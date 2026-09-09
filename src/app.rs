@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
 use leptos::prelude::*;
+use leptos_meta::provide_meta_context;
 use leptos_router::components::{A, Route, Router, Routes};
 use leptos_router::path;
 
@@ -20,10 +21,8 @@ use crate::state::globe_state::GlobeState;
 
 #[component]
 pub fn App() -> impl IntoView {
-    // Vitality first: battery -> torpor, circadian phase, idle homeostasis.
-    // Provided above the router so every route (globe, labs) breathes with
-    // the same substrate.
     crate::vitality::provide_vitality();
+    provide_meta_context();
 
     view! {
         <Router>
@@ -37,27 +36,27 @@ pub fn App() -> impl IntoView {
 
 #[component]
 fn GlobeApp() -> impl IntoView {
-    // Initialize reactive state
     let globe_state = GlobeState::new();
     let data_state = DataState::new();
 
-    // Load static data immediately (always available as fallback)
     let data_for_effect = data_state.clone();
     Effect::new(move |_| {
         let loaded = static_data::load_all();
+        let event_records = static_data::load_natural_event_records();
         log::info!(
-            "Static data: {} sites, {} geothermal, {} corridors, {} vaults, {} fossil deposits, {} nuclear",
+            "Static data: {} sites, {} geothermal, {} corridors, {} vaults, {} fossil deposits, {} nuclear, {} evidence-bearing natural events",
             loaded.sites.len(),
             loaded.geothermal_nodes.len(),
             loaded.maglev_corridors.len(),
             loaded.resontia_vaults.len(),
             loaded.fossil_deposits.len(),
             loaded.nuclear_sites.len(),
+            event_records.len(),
         );
         data_for_effect.set_all(loaded);
+        data_for_effect.set_natural_event_records(event_records);
     });
 
-    // When holochain feature is enabled, try to fetch live data and merge
     #[cfg(feature = "holochain")]
     {
         let data_for_hc = data_state.clone();
@@ -65,7 +64,6 @@ fn GlobeApp() -> impl IntoView {
             let ds = data_for_hc.clone();
             wasm_bindgen_futures::spawn_local(async move {
                 use crate::data::holochain;
-                // Try each data source — on success, replace static data
                 let sites = holochain::fetch_all_sites().await;
                 if !sites.is_empty() {
                     ds.sites.set(sites);
@@ -94,7 +92,6 @@ fn GlobeApp() -> impl IntoView {
         });
     }
 
-    // Provide state via context
     provide_context(globe_state.clone());
     provide_context(data_state.clone());
 
