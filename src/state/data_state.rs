@@ -2,7 +2,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
 use leptos::prelude::*;
-use sol_atlas_core::EvidenceBearingNaturalEvent;
+use sol_atlas_core::{
+    evidence_confluence::{
+        compute_evidence_aware, EventAdmissionPolicy, EvidenceConfluenceResult,
+    },
+    EvidenceBearingNaturalEvent,
+};
 
 use crate::data::types::*;
 
@@ -83,8 +88,8 @@ impl DataState {
     ///
     /// The legacy selection shape currently has no stable event ID, so the
     /// bridge matches the exact projected fields generated from the same
-    /// source parse. ATLAS-3 should put the evidence-record ID directly in the
-    /// selection model and remove this compatibility lookup.
+    /// source parse. A later selection migration should put the evidence-record
+    /// ID directly in the selection model and remove this compatibility lookup.
     pub fn record_for_natural_event(
         &self,
         event: &NaturalEvent,
@@ -94,6 +99,23 @@ impl DataState {
             .iter()
             .find(|record| same_event(&record.event, event))
             .cloned()
+    }
+
+    /// Compute Confluence from one coherent state snapshot while evaluating
+    /// natural events from their canonical record-level evidence classes.
+    ///
+    /// Keeping this join inside `DataState` prevents renderer components from
+    /// accidentally pairing one `LoadedData` snapshot with a different
+    /// natural-event evidence snapshot. The returned audit preserves the exact
+    /// admission/exclusion accounting for the computation.
+    pub fn compute_evidence_confluence(
+        &self,
+        min_layers: usize,
+        policy: EventAdmissionPolicy,
+    ) -> EvidenceConfluenceResult {
+        let snapshot = self.snapshot();
+        let event_records = self.natural_event_records.read();
+        compute_evidence_aware(&snapshot, &event_records, min_layers, policy)
     }
 
     pub fn snapshot(&self) -> LoadedData {
