@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
 
-//! Static JSON data loading — delegates parsing to terra-atlas-core.
+//! Static JSON data loading — delegates parsing to sol-atlas-core.
 
-use sol_atlas_core::types::LoadedData;
+use sol_atlas_core::{EvidenceBearingNaturalEvent, types::LoadedData};
 
 const SITES_JSON: &str = include_str!("../../assets/data/sites-clustered.json");
 const MAGLEV_JSON: &str = include_str!("../../assets/data/maglev-network.json");
@@ -17,9 +17,6 @@ const INFRA_JSON: &str = include_str!("../../assets/data/infrastructure.json");
 const FOSSIL_DEPOSITS_JSON: &str = include_str!("../../assets/data/fossil-deposits.json");
 const NUCLEAR_SITES_JSON: &str = include_str!("../../assets/data/nuclear-sites.json");
 
-// Restored 2026-07-11 (design Phase D): these 7 datasets were dropped from
-// the WASM bundle on 2026-07-10 for having no render path. They now do —
-// see DataState/update_renderer_data/layer_panel's REAL_LAYERS.
 const EARTHQUAKES_JSON: &str = include_str!("../../assets/data/usgs-earthquakes.json");
 const FIRES_JSON: &str = include_str!("../../assets/data/nasa-firms.json");
 const STORMS_JSON: &str = include_str!("../../assets/data/nasa-eonet.json");
@@ -47,5 +44,17 @@ pub fn load_all() -> LoadedData {
         CITIES_JSON,
         CHOKEPOINTS_JSON,
         CRITICAL_INFRA_JSON,
+    )
+}
+
+/// Evidence-bearing natural-event view over the same static source bytes used
+/// by `load_all`. Keeping source inputs identical prevents the renderer and
+/// dossier from drifting onto different snapshots.
+pub fn load_natural_event_records() -> Vec<EvidenceBearingNaturalEvent> {
+    sol_atlas_core::parse_natural_event_records(
+        EARTHQUAKES_JSON,
+        FIRES_JSON,
+        STORMS_JSON,
+        VOLCANOES_JSON,
     )
 }
