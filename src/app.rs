@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
 use leptos::prelude::*;
-use leptos_meta::provide_meta_context;
 use leptos_router::components::{A, Route, Router, Routes};
 use leptos_router::path;
 
@@ -22,7 +21,6 @@ use crate::state::globe_state::GlobeState;
 #[component]
 pub fn App() -> impl IntoView {
     crate::vitality::provide_vitality();
-    provide_meta_context();
 
     view! {
         <Router>
