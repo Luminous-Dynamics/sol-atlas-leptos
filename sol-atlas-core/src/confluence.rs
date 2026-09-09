@@ -2,66 +2,41 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! Confluence: an honest, legible signal for where real-world systems
-//! co-locate — the thing a satellite photo (Google Earth) structurally
-//! cannot show you, because it has no notion of "layers" to correlate.
+//! co-locate — the thing a satellite photo structurally cannot show because
+//! it has no notion of semantic layers to correlate.
 //!
-//! # Design constraints (why this is NOT a risk/danger score)
+//! # Design constraints
 //!
-//! 1. **Never Scenario data.** Only layers whose [`DataProvenance`] kind is
-//!    `Observed` or `Curated` may contribute. Resontia Vaults, Maglev,
-//!    Geothermal, Terra Lumina, Robotics Dispatch, and the DeSci demo are
-//!    speculative planning fiction — mixing them into a "real systems
-//!    overlap here" signal would be actively dishonest, not just
-//!    incomplete. [`eligible_real_layers`] is the single, tested
-//!    enforcement point for this.
-//! 2. **No weighting, no hidden coefficients.** A [`ConfluenceCell`] is
-//!    just the plain set of distinct real categories present and a raw
-//!    entity count — not a blended "severity" or "risk" number. Every
-//!    lit cell can answer "why are you lit?" with a factual sentence
-//!    ("Earthquakes, Nuclear, Chokepoints"), never a black box.
-//! 3. **Co-location is not danger.** Multiple real systems overlapping
-//!    might mean compounding fragility, or it might just mean a
-//!    well-developed region. The UI states this explicitly and never
-//!    implies severity via color/language — that judgment stays with
-//!    the person looking at it.
-//! 4. **Points only, not areas or lines.** Earth Regions (population/GDP
-//!    aggregates keyed to a whole region's centroid) and Supply Chain
-//!    routes (line geometry between two points) are deliberately
-//!    excluded — binning either into a single H3 cell would misrepresent
-//!    what's actually physically co-located there.
+//! 1. **Never Scenario data.** Only layers known to be real may contribute.
+//! 2. **No weighting, no hidden coefficients.** Cells expose the distinct
+//!    categories present and a raw entity count, not a severity score.
+//! 3. **Co-location is not danger.** The UI must not imply that overlapping
+//!    systems are inherently risky.
+//! 4. **Points only.** Region centroids and line routes are excluded.
+//! 5. **Mixed-source layers fail closed.** The current Fires layer combines
+//!    synthetic FIRMS demo records with observed EONET wildfire records. Until
+//!    per-record evidence is carried into `LoadedData`, fires are excluded from
+//!    Confluence rather than allowing synthetic records into a real-data signal.
 
+use crate::evidence::audited_layer_provenance;
 use crate::types::{DataKind, Layer, LoadedData, NaturalEventType};
 use h3o::{CellIndex, LatLng, Resolution};
 use std::collections::HashMap;
 
-/// H3 resolution used for confluence binning: continental/regional scale
-/// (average cell area ~86,801 km²) — fine enough to distinguish regions,
-/// coarse enough that patterns read at a glance from an orbital view
-/// without needing to zoom in. Matches the "civilizational scale"
-/// framing this feature was built for.
 pub const CONFLUENCE_RESOLUTION: Resolution = Resolution::Two;
 
-/// A geographic cell where 2 or more distinct real data categories
-/// co-locate. Every field is directly inspectable — no derived score.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ConfluenceCell {
     pub cell: CellIndex,
     pub lat: f64,
     pub lon: f64,
-    /// Distinct real-data [`Layer`]s present in this cell, sorted by
-    /// label for stable, legible display order.
     pub layers: Vec<Layer>,
-    /// Total entity count across all contributing layers (may exceed
-    /// `layers.len()` if e.g. two earthquakes fall in the same cell).
     pub entity_count: u32,
 }
 
 impl ConfluenceCell {
-    /// Human-readable summary, e.g. "3 real systems: Earthquakes,
-    /// Nuclear Sites, Maritime Chokepoints". Deliberately factual, never
-    /// implies severity.
     pub fn summary(&self) -> String {
-        let names: Vec<&str> = self.layers.iter().map(|l| l.label()).collect();
+        let names: Vec<&str> = self.layers.iter().map(|layer| layer.label()).collect();
         format!(
             "{} real system{}: {}",
             self.layers.len(),
@@ -71,19 +46,14 @@ impl ConfluenceCell {
     }
 }
 
-/// The layers eligible to contribute to confluence — every one is
-/// `Observed` or `Curated` (never `Scenario`), and every one is
-/// point-like data (not a region centroid or a line route). This is the
-/// single source of truth `compute` draws from; the accompanying test
-/// (`eligible_layers_are_never_scenario`) is what makes that a checked
-/// invariant, not just a comment.
-fn eligible_real_layers() -> [Layer; 10] {
+/// Point-like layers whose current loaded representation can be treated as
+/// wholly real. Fires are deliberately absent because that layer is mixed.
+fn eligible_real_layers() -> [Layer; 9] {
     [
         Layer::Energy,
         Layer::Nuclear,
         Layer::FossilDeposits,
         Layer::Earthquakes,
-        Layer::Fires,
         Layer::Storms,
         Layer::Volcanoes,
         Layer::MajorCities,
@@ -91,30 +61,20 @@ fn eligible_real_layers() -> [Layer; 10] {
         Layer::Infrastructure,
     ]
 }
-// Climate, Emergency, and Health are also real point-like data but are
-// added directly in `compute` below alongside the natural-events split —
-// kept out of this fixed-size array only because Rust arrays can't mix
-// literal counts conveniently with the loop below; the invariant test
-// checks the full effective set via `compute`, not just this array.
 
-/// Bin every eligible real-data entity into H3 cells at
-/// [`CONFLUENCE_RESOLUTION`], and return the cells where at least
-/// `min_layers` distinct real categories co-locate (2 is the sensible
-/// default — a single category alone isn't a confluence, it's just that
-/// layer's own marker).
 pub fn compute(data: &LoadedData, min_layers: usize) -> Vec<ConfluenceCell> {
     let mut cells: HashMap<CellIndex, (Vec<Layer>, u32)> = HashMap::new();
 
     let mut bin = |lat: f64, lon: f64, layer: Layer| {
         debug_assert_ne!(
-            layer.provenance().kind,
+            audited_layer_provenance(layer).kind,
             DataKind::Scenario,
             "confluence must never bin scenario-kind layer {layer:?}"
         );
-        let Ok(ll) = LatLng::new(lat, lon) else {
-            return; // non-finite coordinate — skip rather than panic
+        let Ok(lat_lon) = LatLng::new(lat, lon) else {
+            return;
         };
-        let cell = ll.to_cell(CONFLUENCE_RESOLUTION);
+        let cell = lat_lon.to_cell(CONFLUENCE_RESOLUTION);
         let entry = cells.entry(cell).or_default();
         if !entry.0.contains(&layer) {
             entry.0.push(layer);
@@ -122,53 +82,60 @@ pub fn compute(data: &LoadedData, min_layers: usize) -> Vec<ConfluenceCell> {
         entry.1 += 1;
     };
 
-    for s in &data.sites {
-        bin(s.lat, s.lon, Layer::Energy);
+    for site in &data.sites {
+        bin(site.lat, site.lon, Layer::Energy);
     }
-    for n in &data.nuclear_sites {
-        bin(n.lat, n.lon, Layer::Nuclear);
+    for site in &data.nuclear_sites {
+        bin(site.lat, site.lon, Layer::Nuclear);
     }
-    for f in &data.fossil_deposits {
-        bin(f.lat, f.lon, Layer::FossilDeposits);
+    for deposit in &data.fossil_deposits {
+        bin(deposit.lat, deposit.lon, Layer::FossilDeposits);
     }
-    for e in &data.natural_events {
-        let layer = match e.event_type {
+    for event in &data.natural_events {
+        let layer = match event.event_type {
             NaturalEventType::Earthquake => Layer::Earthquakes,
-            NaturalEventType::Fire => Layer::Fires,
+            // Fail closed until the renderer/state path preserves each fire's
+            // EvidenceClass. `Layer::Fires` currently mixes Scenario and
+            // Observed records, so layer-level inclusion would be dishonest.
+            NaturalEventType::Fire => continue,
             NaturalEventType::Storm => Layer::Storms,
             NaturalEventType::Volcano => Layer::Volcanoes,
         };
-        bin(e.lat, e.lon, layer);
+        bin(event.lat, event.lon, layer);
     }
-    for c in &data.major_cities {
-        bin(c.lat, c.lon, Layer::MajorCities);
+    for city in &data.major_cities {
+        bin(city.lat, city.lon, Layer::MajorCities);
     }
-    for c in &data.chokepoints {
-        bin(c.lat, c.lon, Layer::Chokepoints);
+    for chokepoint in &data.chokepoints {
+        bin(chokepoint.lat, chokepoint.lon, Layer::Chokepoints);
     }
-    for i in &data.critical_infrastructure {
-        bin(i.lat, i.lon, Layer::Infrastructure);
+    for infrastructure in &data.critical_infrastructure {
+        bin(
+            infrastructure.lat,
+            infrastructure.lon,
+            Layer::Infrastructure,
+        );
     }
-    for c in &data.climate_projects {
-        bin(c.lat, c.lon, Layer::Climate);
+    for project in &data.climate_projects {
+        bin(project.lat, project.lon, Layer::Climate);
     }
-    for e in &data.emergency_shelters {
-        bin(e.lat, e.lon, Layer::Emergency);
+    for shelter in &data.emergency_shelters {
+        bin(shelter.lat, shelter.lon, Layer::Emergency);
     }
-    for h in &data.health_facilities {
-        bin(h.lat, h.lon, Layer::Health);
+    for facility in &data.health_facilities {
+        bin(facility.lat, facility.lon, Layer::Health);
     }
 
     cells
         .into_iter()
         .filter(|(_, (layers, _))| layers.len() >= min_layers)
         .map(|(cell, (mut layers, entity_count))| {
-            layers.sort_by_key(|l| l.label());
-            let ll = LatLng::from(cell);
+            layers.sort_by_key(|layer| layer.label());
+            let lat_lon = LatLng::from(cell);
             ConfluenceCell {
                 cell,
-                lat: ll.lat(),
-                lon: ll.lng(),
+                lat: lat_lon.lat(),
+                lon: lat_lon.lng(),
                 layers,
                 entity_count,
             }
@@ -184,22 +151,17 @@ mod tests {
         Site,
     };
 
-    /// The core honesty invariant: not one eligible layer is Scenario.
-    /// If someone adds a new real layer to `compute` without adding it
-    /// here (or vice versa), this is the test that should fail.
     #[test]
     fn eligible_layers_are_never_scenario() {
         for layer in eligible_real_layers() {
             assert_ne!(
-                layer.provenance().kind,
+                audited_layer_provenance(layer).kind,
                 DataKind::Scenario,
                 "{layer:?} is Scenario — must never be confluence-eligible"
             );
         }
-        // The three added directly in `compute` (not in the fixed array
-        // above, see its comment) get the same check here.
         for layer in [Layer::Climate, Layer::Emergency, Layer::Health] {
-            assert_ne!(layer.provenance().kind, DataKind::Scenario);
+            assert_ne!(audited_layer_provenance(layer).kind, DataKind::Scenario);
         }
     }
 
@@ -251,33 +213,30 @@ mod tests {
         }
     }
 
-    fn quake(lat: f64, lon: f64) -> NaturalEvent {
+    fn event(lat: f64, lon: f64, event_type: NaturalEventType) -> NaturalEvent {
         NaturalEvent {
             lat,
             lon,
-            event_type: NaturalEventType::Earthquake,
+            event_type,
             magnitude: 5.0,
-            name: "Test Quake".into(),
+            name: "Test Event".into(),
         }
     }
 
     #[test]
     fn no_confluence_below_min_layers() {
-        // Two energy sites in the same cell: still only ONE distinct
-        // layer, so this must not count as a confluence at min_layers=2.
         let data = LoadedData {
             sites: vec![site(10.0, 10.0), site(10.001, 10.001)],
             ..Default::default()
         };
-        let result = compute(&data, 2);
-        assert!(result.is_empty());
+        assert!(compute(&data, 2).is_empty());
     }
 
     #[test]
     fn three_distinct_real_layers_co_locate() {
         let data = LoadedData {
             nuclear_sites: vec![nuclear(35.0, 139.0)],
-            natural_events: vec![quake(35.0001, 139.0001)],
+            natural_events: vec![event(35.0001, 139.0001, NaturalEventType::Earthquake)],
             chokepoints: vec![chokepoint(35.0002, 139.0002)],
             ..Default::default()
         };
@@ -293,16 +252,17 @@ mod tests {
     }
 
     #[test]
+    fn mixed_fire_layer_cannot_influence_real_confluence() {
+        let data = LoadedData {
+            nuclear_sites: vec![nuclear(35.0, 139.0)],
+            natural_events: vec![event(35.0001, 139.0001, NaturalEventType::Fire)],
+            ..Default::default()
+        };
+        assert!(compute(&data, 2).is_empty());
+    }
+
+    #[test]
     fn scenario_data_never_appears_even_at_identical_coordinates() {
-        // Resontia Vaults share coordinates with real infra in this
-        // fixture on purpose — compute() only reads from LoadedData
-        // fields it explicitly binds (sites/nuclear/etc.), never
-        // resontia_vaults/geothermal_nodes/maglev_corridors/
-        // terra_lumina_sites/robotics_dispatch, so there is no code path
-        // for scenario data to enter a ConfluenceCell at all. This test
-        // documents that guarantee structurally: even with real data at
-        // the same coordinates, the result must contain zero scenario
-        // layers by construction.
         let data = LoadedData {
             nuclear_sites: vec![nuclear(9.145, 40.49)],
             chokepoints: vec![chokepoint(9.1451, 40.4901)],
@@ -311,7 +271,7 @@ mod tests {
         let result = compute(&data, 2);
         assert_eq!(result.len(), 1);
         for layer in &result[0].layers {
-            assert_ne!(layer.provenance().kind, DataKind::Scenario);
+            assert_ne!(audited_layer_provenance(*layer).kind, DataKind::Scenario);
         }
     }
 
@@ -319,11 +279,10 @@ mod tests {
     fn far_apart_entities_do_not_merge() {
         let data = LoadedData {
             nuclear_sites: vec![nuclear(35.0, 139.0)],
-            chokepoints: vec![chokepoint(-33.0, 151.0)], // Sydney, far away
+            chokepoints: vec![chokepoint(-33.0, 151.0)],
             ..Default::default()
         };
-        let result = compute(&data, 2);
-        assert!(result.is_empty());
+        assert!(compute(&data, 2).is_empty());
     }
 
     #[test]
