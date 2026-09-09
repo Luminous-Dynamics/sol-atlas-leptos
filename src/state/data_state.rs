@@ -101,13 +101,14 @@ impl DataState {
             .cloned()
     }
 
-    /// Compute Confluence from one coherent state snapshot while evaluating
-    /// natural events from their canonical record-level evidence classes.
+    /// Compute Confluence through the state-owned evidence/data join while
+    /// evaluating natural events from their canonical record-level classes.
     ///
-    /// Keeping this join inside `DataState` prevents renderer components from
-    /// accidentally pairing one `LoadedData` snapshot with a different
-    /// natural-event evidence snapshot. The returned audit preserves the exact
-    /// admission/exclusion accounting for the computation.
+    /// Centralizing the join keeps renderer components from reimplementing the
+    /// admission policy or accidentally falling back to the lossy natural-event
+    /// vector. The returned audit preserves the exact admission/exclusion
+    /// accounting used for this computation. Individual Leptos signals are not
+    /// claimed to form a transactional snapshot.
     pub fn compute_evidence_confluence(
         &self,
         min_layers: usize,
