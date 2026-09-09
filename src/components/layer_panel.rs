@@ -9,11 +9,13 @@
 //! a glance, without a docked disclaimer paragraph.
 
 use leptos::prelude::*;
+use sol_atlas_core::audited_layer_provenance;
 
 use crate::data::types::{DataKind, Layer};
 use crate::state::globe_state::GlobeState;
 
-/// Dock grouping: real observed/curated data first, scenario fiction below.
+/// Dock grouping: real/mixed observed/curated data first, scenario fiction below.
+/// Mixed-source layers must say so in their audited provenance.
 const REAL_LAYERS: [Layer; 15] = [
     Layer::Energy,
     Layer::Nuclear,
@@ -47,12 +49,11 @@ fn DockDot(layer: Layer) -> impl IntoView {
     let gs_toggle = globe_state.clone();
 
     let active = move || gs_active.active_layers.read().contains(&layer);
-    let prov = layer.provenance();
+    let prov = audited_layer_provenance(layer);
     let is_scenario = prov.kind == DataKind::Scenario;
 
     let toggle = move || {
         gs_toggle.toggle_layer(layer);
-        // Whisper the provenance whenever a layer wakes
         if gs_toggle.active_layers.read().contains(&layer) {
             gs_toggle
                 .whisper
@@ -106,7 +107,7 @@ fn ConfluenceDot() -> impl IntoView {
         gs_toggle.show_confluence.update(|v| *v = !*v);
         if gs_toggle.show_confluence.get() {
             gs_toggle.whisper.set(Some(
-                "Confluence — where 2+ real (Observed/Curated) systems co-locate. Not a risk score."
+                "Confluence — where 2+ eligible real systems co-locate. Mixed-source fire records are excluded until record evidence reaches Confluence. Not a risk score."
                     .to_string(),
             ));
         }
@@ -140,7 +141,7 @@ fn ConfluenceDot() -> impl IntoView {
             <span class="dock-flyout">
                 <span class="dock-flyout-name">"Confluence"</span>
                 <span class="dock-flyout-prov">
-                    "derived \u{00b7} where real systems overlap, never scenario data"
+                    "derived · where eligible real systems overlap, never scenario data"
                 </span>
             </span>
         </button>
@@ -166,7 +167,7 @@ pub fn LayerPanel() -> impl IntoView {
             <div class="dock-group">
                 {REAL_LAYERS.into_iter().map(|l| view! { <DockDot layer=l/> }).collect::<Vec<_>>()}
             </div>
-            <div class="dock-divider" title="Below: a derived signal computed from the real layers above, not raw data"></div>
+            <div class="dock-divider" title="Below: a derived signal computed from eligible real layers above, not raw data"></div>
             <div class="dock-group">
                 <ConfluenceDot/>
             </div>
@@ -198,7 +199,6 @@ pub fn LayerPanel() -> impl IntoView {
                 </span>
             </button>
 
-            // EROI legend surfaces only while fossil deposits are visible
             <Show when=fossil_active>
                 <div class="dock-eroi" aria-hidden="true">
                     <span class="eroi-step" style="--c: 15,186,130" title="> 12:1 — powers civilization"></span>
