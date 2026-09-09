@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
 use leptos::prelude::*;
+use sol_atlas_core::EvidenceBearingNaturalEvent;
 
 use crate::data::types::*;
 
@@ -21,6 +22,9 @@ pub struct DataState {
     pub fossil_deposits: RwSignal<Vec<FossilDeposit>>,
     pub nuclear_sites: RwSignal<Vec<NuclearSite>>,
     pub natural_events: RwSignal<Vec<NaturalEvent>>,
+    /// Evidence-bearing view over natural events. Kept separate from the
+    /// legacy renderer vector until selection/render types migrate fully.
+    pub natural_event_records: RwSignal<Vec<EvidenceBearingNaturalEvent>>,
     pub major_cities: RwSignal<Vec<MajorCity>>,
     pub chokepoints: RwSignal<Vec<Chokepoint>>,
     pub critical_infrastructure: RwSignal<Vec<CriticalInfrastructure>>,
@@ -43,6 +47,7 @@ impl DataState {
             fossil_deposits: RwSignal::new(Vec::new()),
             nuclear_sites: RwSignal::new(Vec::new()),
             natural_events: RwSignal::new(Vec::new()),
+            natural_event_records: RwSignal::new(Vec::new()),
             major_cities: RwSignal::new(Vec::new()),
             chokepoints: RwSignal::new(Vec::new()),
             critical_infrastructure: RwSignal::new(Vec::new()),
@@ -70,9 +75,27 @@ impl DataState {
             .set(data.critical_infrastructure);
     }
 
-    /// Snapshot the current reactive state into a plain [`LoadedData`] —
-    /// used by derived, non-signal computations (e.g. Confluence) that
-    /// need a single owned view across all layers at once.
+    pub fn set_natural_event_records(&self, records: Vec<EvidenceBearingNaturalEvent>) {
+        self.natural_event_records.set(records);
+    }
+
+    /// Resolve the evidence record corresponding to a renderer-facing event.
+    ///
+    /// The legacy selection shape currently has no stable event ID, so the
+    /// bridge matches the exact projected fields generated from the same
+    /// source parse. ATLAS-3 should put the evidence-record ID directly in the
+    /// selection model and remove this compatibility lookup.
+    pub fn record_for_natural_event(
+        &self,
+        event: &NaturalEvent,
+    ) -> Option<EvidenceBearingNaturalEvent> {
+        self.natural_event_records
+            .read()
+            .iter()
+            .find(|record| same_event(&record.event, event))
+            .cloned()
+    }
+
     pub fn snapshot(&self) -> LoadedData {
         LoadedData {
             sites: self.sites.get(),
@@ -94,4 +117,12 @@ impl DataState {
             critical_infrastructure: self.critical_infrastructure.get(),
         }
     }
+}
+
+fn same_event(left: &NaturalEvent, right: &NaturalEvent) -> bool {
+    left.lat == right.lat
+        && left.lon == right.lon
+        && left.event_type == right.event_type
+        && left.magnitude == right.magnitude
+        && left.name == right.name
 }

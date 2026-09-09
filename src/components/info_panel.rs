@@ -2,17 +2,26 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
 
-//! The dossier: leads with one hero number (the fact you'd tell someone
-//! first), then quiet secondary rows. Grows in rather than sliding a
-//! rectangle.
+//! The dossier: leads with one hero fact, then quiet secondary rows.
+//! Natural events surface source evidence instead of assuming every record is
+//! an observed snapshot with a generic magnitude.
 
 use leptos::prelude::*;
 
 use crate::data::types::SelectedItem;
+use crate::state::data_state::DataState;
 use crate::state::globe_state::GlobeState;
 
-/// Hero stat block: the single number that defines the selected thing.
 fn hero(value: String, unit: &'static str) -> impl IntoView {
+    view! {
+        <div class="hero-stat">
+            <span class="hero-value">{value}</span>
+            <span class="hero-unit">{unit}</span>
+        </div>
+    }
+}
+
+fn hero_dynamic(value: String, unit: String) -> impl IntoView {
     view! {
         <div class="hero-stat">
             <span class="hero-value">{value}</span>
@@ -33,6 +42,7 @@ fn row(label: &'static str, value: String) -> impl IntoView {
 #[component]
 pub fn InfoPanel() -> impl IntoView {
     let globe_state = expect_context::<GlobeState>();
+    let data_state = expect_context::<DataState>();
 
     let visible = move || globe_state.selected.read().is_some();
     let close = move |_| globe_state.selected.set(None);
@@ -144,13 +154,45 @@ pub fn InfoPanel() -> impl IntoView {
                             </div>
                         }.into_any()
                     }
-                    Some(SelectedItem::NaturalEvent(e)) => view! {
-                        <div>
-                            <h2>{e.name.clone()}</h2>
-                            <div class="subtitle">{format!("{:?} \u{00b7} observed snapshot", e.event_type)}</div>
-                            {hero(format!("{:.1}", e.magnitude), "magnitude")}
-                        </div>
-                    }.into_any(),
+                    Some(SelectedItem::NaturalEvent(e)) => {
+                        if let Some(record) = data_state.record_for_natural_event(e) {
+                            let evidence = sol_atlas_core::summarize_event_evidence(&record);
+                            let primary = match (
+                                evidence.measurement_value.clone(),
+                                evidence.measurement_unit.clone(),
+                            ) {
+                                (Some(value), Some(unit)) => hero_dynamic(value, unit).into_any(),
+                                _ => hero_dynamic(
+                                    evidence.class.to_string(),
+                                    "evidence class".to_string(),
+                                )
+                                .into_any(),
+                            };
+                            view! {
+                                <div>
+                                    <h2>{e.name.clone()}</h2>
+                                    <div class="subtitle">{format!("{:?} · {}", e.event_type, evidence.class)}</div>
+                                    {primary}
+                                    {row("Source", evidence.source)}
+                                    {row("Source time", evidence.source_time)}
+                                    {row("Uncertainty", evidence.uncertainty)}
+                                    {row("Resource", evidence.resource)}
+                                    {row("Evidence ID", evidence.observation_id)}
+                                </div>
+                            }
+                            .into_any()
+                        } else {
+                            view! {
+                                <div>
+                                    <h2>{e.name.clone()}</h2>
+                                    <div class="subtitle">{format!("{:?} · provenance unavailable", e.event_type)}</div>
+                                    {hero(format!("{:.1}", e.magnitude), "legacy display value")}
+                                    {row("Evidence", "No evidence record is bound to this event".to_string())}
+                                </div>
+                            }
+                            .into_any()
+                        }
+                    }
                     Some(SelectedItem::MajorCity(c)) => view! {
                         <div>
                             <h2>{c.name.clone()}</h2>
@@ -177,13 +219,21 @@ pub fn InfoPanel() -> impl IntoView {
                         let rows: Vec<_> = cell
                             .layers
                             .iter()
-                            .map(|l| row(l.label(), l.provenance().kind.label().to_string()))
+                            .map(|layer| {
+                                row(
+                                    layer.label(),
+                                    sol_atlas_core::audited_layer_provenance(*layer)
+                                        .kind
+                                        .label()
+                                        .to_string(),
+                                )
+                            })
                             .collect();
                         view! {
                             <div>
                                 <h2>"Confluence"</h2>
                                 <div class="subtitle">
-                                    "Derived signal \u{00b7} where real systems co-locate \u{00b7} not a risk score"
+                                    "Derived signal · where eligible real systems co-locate · not a risk score"
                                 </div>
                                 {hero(cell.layers.len().to_string(), "real systems here")}
                                 {row("Entities in this cell", cell.entity_count.to_string())}
