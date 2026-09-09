@@ -4,19 +4,20 @@
 //! JSON data loading for Sol Atlas datasets.
 //!
 //! Consumers provide JSON strings (from `include_str!`, file reads, or network).
-//! This module handles deserialization into sol-atlas-core types.
+//! This module handles deserialization into sol-atlas-core types. Natural-event
+//! records pass through the evidence adapter first so classification and source
+//! semantics have one implementation.
 
+use crate::evidence::parse_natural_event_records;
 use crate::types::*;
 use serde::Deserialize;
 
-/// Intermediate type for maglev-network.json (two arrays in one object).
 #[derive(Deserialize)]
 struct MaglevNetwork {
     geothermal_nodes: Vec<GeothermalNode>,
     maglev_corridors: Vec<MaglevCorridor>,
 }
 
-/// Raw site entry from clustered JSON (has extra fields we drop).
 #[derive(Deserialize)]
 struct RawSite {
     id: String,
@@ -31,7 +32,6 @@ struct RawSite {
     country: String,
 }
 
-/// Intermediate type for infrastructure.json (three arrays in one object).
 #[derive(Deserialize)]
 struct InfrastructureBundle {
     #[serde(default)]
@@ -42,7 +42,6 @@ struct InfrastructureBundle {
     robotics_dispatch: Vec<RoboticsDispatch>,
 }
 
-/// Parse energy sites from sites-clustered.json.
 pub fn parse_sites(json: &str) -> Result<Vec<Site>, serde_json::Error> {
     let raw: Vec<RawSite> = serde_json::from_str(json)?;
     Ok(raw
@@ -60,7 +59,6 @@ pub fn parse_sites(json: &str) -> Result<Vec<Site>, serde_json::Error> {
         .collect())
 }
 
-/// Parse maglev-network.json → (geothermal_nodes, maglev_corridors).
 pub fn parse_maglev_network(
     json: &str,
 ) -> Result<(Vec<GeothermalNode>, Vec<MaglevCorridor>), serde_json::Error> {
@@ -68,32 +66,26 @@ pub fn parse_maglev_network(
     Ok((network.geothermal_nodes, network.maglev_corridors))
 }
 
-/// Parse resontia-vaults.json.
 pub fn parse_vaults(json: &str) -> Result<Vec<ResontiaVault>, serde_json::Error> {
     serde_json::from_str(json)
 }
 
-/// Parse terra-lumina-sites.json.
 pub fn parse_terra_lumina(json: &str) -> Result<Vec<TerraLuminaSite>, serde_json::Error> {
     serde_json::from_str(json)
 }
 
-/// Parse earth-regions.json.
 pub fn parse_regions(json: &str) -> Result<Vec<EarthRegion>, serde_json::Error> {
     serde_json::from_str(json)
 }
 
-/// Parse supply-routes.json.
 pub fn parse_supply_routes(json: &str) -> Result<Vec<SupplyRoute>, serde_json::Error> {
     serde_json::from_str(json)
 }
 
-/// Parse climate-projects.json.
 pub fn parse_climate_projects(json: &str) -> Result<Vec<ClimateProject>, serde_json::Error> {
     serde_json::from_str(json)
 }
 
-/// Parse infrastructure.json → (emergency_shelters, health_facilities, robotics_dispatch).
 pub fn parse_infrastructure(
     json: &str,
 ) -> Result<
@@ -112,29 +104,22 @@ pub fn parse_infrastructure(
     ))
 }
 
-/// Parse nuclear-sites.json.
 pub fn parse_nuclear_sites(json: &str) -> Result<Vec<NuclearSite>, serde_json::Error> {
     serde_json::from_str(json)
 }
 
-/// Parse fossil-deposits.json.
 pub fn parse_fossil_deposits(json: &str) -> Result<Vec<FossilDeposit>, serde_json::Error> {
     serde_json::from_str(json)
 }
 
-/// Parse a dataset, logging (never silently swallowing) any failure.
-///
-/// A malformed dataset still degrades to empty rather than crashing the
-/// renderer, but the failure is visible in the console/log instead of the
-/// layer just quietly vanishing.
 fn parse_or_log<T: Default>(dataset: &str, result: Result<T, serde_json::Error>) -> T {
-    result.unwrap_or_else(|e| {
-        log::warn!("sol-atlas-core: failed to parse dataset '{dataset}': {e}");
+    result.unwrap_or_else(|error| {
+        log::warn!("sol-atlas-core: failed to parse dataset '{dataset}': {error}");
         T::default()
     })
 }
 
-/// Load all datasets from their respective JSON strings into a single `LoadedData`.
+#[allow(clippy::too_many_arguments)]
 pub fn load_all(
     sites_json: &str,
     maglev_json: &str,
@@ -200,107 +185,24 @@ pub fn load_all(
     }
 }
 
-/// Parse simplified shipping lane routes (Vec of Vec of [lon, lat]).
 pub fn parse_shipping_lanes(json: &str) -> Vec<Vec<[f64; 2]>> {
     parse_or_log("shipping-lanes", serde_json::from_str(json))
 }
 
-/// Parse GeoJSON natural events from USGS, NASA EONET, FIRMS, and volcano data.
+/// Preserve the renderer-facing record shape while sourcing it from the
+/// evidence-bearing adapter. Consumers that need provenance can call
+/// `crate::evidence::parse_natural_event_records` directly; ATLAS-3 will carry
+/// those records into selection/inspection state.
 fn parse_natural_events(
     earthquakes: &str,
     fires: &str,
-    storms: &str,
+    eonet: &str,
     volcanoes: &str,
 ) -> Vec<NaturalEvent> {
-    let mut events = Vec::new();
-
-    // Parse GeoJSON FeatureCollections (all share same structure)
-    fn parse_geojson(name: &str, json: &str, event_type: NaturalEventType) -> Vec<NaturalEvent> {
-        #[derive(Deserialize)]
-        struct FeatureCollection {
-            features: Vec<Feature>,
-        }
-        #[derive(Deserialize)]
-        struct Feature {
-            properties: Properties,
-            geometry: Geometry,
-        }
-        #[derive(Deserialize)]
-        struct Properties {
-            #[serde(default)]
-            magnitude: Option<f64>,
-            #[serde(default)]
-            brightness: Option<f64>,
-            #[serde(default)]
-            title: Option<String>,
-            #[serde(default)]
-            place: Option<String>,
-            #[serde(default)]
-            name: Option<String>,
-            #[serde(rename = "type", default)]
-            event_kind: Option<String>,
-        }
-        #[derive(Deserialize)]
-        struct Geometry {
-            coordinates: Vec<f64>,
-        }
-
-        let fc = match serde_json::from_str::<FeatureCollection>(json) {
-            Ok(fc) => fc,
-            Err(e) => {
-                log::warn!("sol-atlas-core: failed to parse dataset '{name}': {e}");
-                return vec![];
-            }
-        };
-        fc.features
-            .iter()
-            .filter_map(|f| {
-                let coords = &f.geometry.coordinates;
-                if coords.len() < 2 {
-                    return None;
-                }
-                let lon = coords[0];
-                let lat = coords[1];
-                if lat.abs() > 90.0 || lon.abs() > 180.0 {
-                    return None;
-                }
-                let magnitude = f
-                    .properties
-                    .magnitude
-                    .or(f.properties.brightness.map(|b| b / 100.0))
-                    .unwrap_or(1.0);
-                let name = f
-                    .properties
-                    .title
-                    .as_deref()
-                    .or(f.properties.place.as_deref())
-                    .or(f.properties.name.as_deref())
-                    .unwrap_or("Unknown")
-                    .to_string();
-                Some(NaturalEvent {
-                    lat,
-                    lon,
-                    event_type,
-                    magnitude,
-                    name,
-                })
-            })
-            .collect()
-    }
-
-    events.extend(parse_geojson(
-        "usgs-earthquakes",
-        earthquakes,
-        NaturalEventType::Earthquake,
-    ));
-    events.extend(parse_geojson("nasa-firms", fires, NaturalEventType::Fire));
-    events.extend(parse_geojson("nasa-eonet", storms, NaturalEventType::Storm));
-    events.extend(parse_geojson(
-        "volcanoes",
-        volcanoes,
-        NaturalEventType::Volcano,
-    ));
-    events
+    parse_natural_event_records(earthquakes, fires, eonet, volcanoes)
+        .into_iter()
+        .map(|record| record.event)
+        .collect()
 }
 
 #[cfg(test)]
@@ -314,12 +216,12 @@ mod tests {
             "features": [
                 {
                     "type": "Feature",
-                    "properties": {"magnitude": 5.1, "place": "Peru", "type": "earthquake"},
+                    "properties": {"magnitude": 5.1, "place": "Peru", "source": "USGS", "type": "earthquake"},
                     "geometry": {"type": "Point", "coordinates": [-80.5, -5.2, 10]}
                 },
                 {
                     "type": "Feature",
-                    "properties": {"magnitude": 3.2, "place": "Japan"},
+                    "properties": {"magnitude": 3.2, "place": "Japan", "source": "USGS"},
                     "geometry": {"type": "Point", "coordinates": [139.7, 35.7, 5]}
                 }
             ]
@@ -333,13 +235,13 @@ mod tests {
     }
 
     #[test]
-    fn parse_geojson_fires() {
+    fn parse_geojson_fires_preserves_renderer_brightness_scale() {
         let json = r#"{
             "type": "FeatureCollection",
             "features": [
                 {
                     "type": "Feature",
-                    "properties": {"brightness": 387.0, "confidence": 94, "type": "fire"},
+                    "properties": {"brightness": 387.0, "confidence": 94, "source": "Demo Data", "type": "fire"},
                     "geometry": {"type": "Point", "coordinates": [25.0, -30.0]}
                 }
             ]
@@ -347,7 +249,27 @@ mod tests {
         let events = parse_natural_events("[]", json, "[]", "[]");
         assert_eq!(events.len(), 1);
         assert_eq!(events[0].event_type, NaturalEventType::Fire);
-        assert!((events[0].magnitude - 3.87).abs() < 0.01); // brightness/100
+        assert!((events[0].magnitude - 3.87).abs() < 0.01);
+    }
+
+    #[test]
+    fn eonet_wildfire_is_not_misclassified_as_storm() {
+        let json = r#"{
+            "features": [{
+                "properties": {
+                    "source": "NASA EONET",
+                    "title": "Prescribed Fire",
+                    "categories": ["Wildfires"],
+                    "event_id": "EONET_1",
+                    "magnitude": 1047.0,
+                    "magnitude_unit": "acres"
+                },
+                "geometry": {"coordinates": [-84.0, 30.0]}
+            }]
+        }"#;
+        let events = parse_natural_events("[]", "[]", json, "[]");
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].event_type, NaturalEventType::Fire);
     }
 
     #[test]
@@ -385,7 +307,7 @@ mod city_tests {
         let cities: Vec<MajorCity> = serde_json::from_str(json).unwrap();
         assert_eq!(cities.len(), 2);
         assert_eq!(cities[0].name, "Tokyo");
-        assert_eq!(cities[0].population, 13960000);
+        assert_eq!(cities[0].population, 13_960_000);
         assert!((cities[1].lat - 19.07).abs() < 0.01);
     }
 
@@ -428,11 +350,7 @@ mod infra_tests {
     #[test]
     fn layer_count() {
         let all = Layer::all();
-        assert!(
-            all.len() >= 18,
-            "Expected at least 18 layers, got {}",
-            all.len()
-        );
+        assert!(all.len() >= 18, "Expected at least 18 layers, got {}", all.len());
         assert!(all.contains(&Layer::Infrastructure));
         assert!(all.contains(&Layer::Chokepoints));
     }
@@ -440,23 +358,16 @@ mod infra_tests {
     #[test]
     fn all_layers_have_labels() {
         for layer in Layer::all() {
-            assert!(
-                !layer.label().is_empty(),
-                "Layer {:?} has empty label",
-                layer
-            );
+            assert!(!layer.label().is_empty(), "Layer {layer:?} has empty label");
             assert!(
                 !layer.css_color().is_empty(),
-                "Layer {:?} has empty css_color",
-                layer
+                "Layer {layer:?} has empty css_color"
             );
             let rgb = layer.rgb();
-            for c in rgb {
+            for component in rgb {
                 assert!(
-                    c >= 0.0 && c <= 1.0,
-                    "Layer {:?} RGB out of range: {:?}",
-                    layer,
-                    rgb
+                    (0.0..=1.0).contains(&component),
+                    "Layer {layer:?} RGB out of range: {rgb:?}"
                 );
             }
         }
@@ -469,25 +380,24 @@ mod e2e_tests {
 
     #[test]
     fn loaded_data_has_all_fields() {
-        // Test with minimal valid data for each type
         let data = load_all(
-            "[]",                                                                         // sites
-            r#"{"geothermal_nodes":[],"maglev_corridors":[]}"#,                           // maglev
-            "[]",                                                                         // vaults
-            "[]", // terra lumina
-            "[]", // regions
-            "[]", // supply routes
-            "[]", // climate
-            r#"{"emergency_shelters":[],"health_facilities":[],"robotics_dispatch":[]}"#, // infra
-            "[]", // fossil
-            "[]", // nuclear
-            "[]", // earthquakes
-            "[]", // fires
-            "[]", // storms
-            "[]", // volcanoes
-            "[]", // cities
-            "[]", // chokepoints
-            "[]", // critical infra
+            "[]",
+            r#"{"geothermal_nodes":[],"maglev_corridors":[]}"#,
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            r#"{"emergency_shelters":[],"health_facilities":[],"robotics_dispatch":[]}"#,
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
         );
         assert!(data.sites.is_empty());
         assert!(data.natural_events.is_empty());
@@ -502,7 +412,6 @@ mod e2e_tests {
             "not json", "bad", "{}", "null", "[]", "", "[]", "[]", "[]", "[]", "[]", "[]", "[]",
             "[]", "[]", "[]", "[]",
         );
-        // Should not panic, just return empty vecs
         assert!(data.sites.is_empty());
     }
 }
