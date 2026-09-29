@@ -1305,3 +1305,12 @@ code {
     font-size: 9px !important;
     opacity: 0.62;
 }
+
+
+.replay-status {
+    margin-top: 7px !important;
+    font-family: var(--sa-mono);
+    font-size: 8px !important;
+    letter-spacing: 0.4px;
+    color: rgba(var(--sa-dim), 0.58) !important;
+}
