@@ -7,7 +7,7 @@ use leptos_router::components::A;
 use leptos_router::hooks::{use_params_map, use_query_map};
 
 use crate::data::evidence_projection::{
-    AtlasEvidenceProjectionV1, ClaimKind, ContradictionRef, EpistemicState, TerminalQueryV1,
+    AtlasEvidenceProjectionV1, ClaimKind, ContradictionRef, EpistemicState, LineageCompleteness, TerminalQueryV1,
     Visibility,
 };
 
