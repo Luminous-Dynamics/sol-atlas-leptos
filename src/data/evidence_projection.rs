@@ -384,6 +384,9 @@ mod tests {
             Some("entity:fin:ns-energy-01".into()),
             Some("claim:obs:7f31".into()),
             Some("ef:demo:9d7b".into()),
+            Some("profile:terminal:v1".into()),
+            Some("reasoning:baseline:v1".into()),
+            Some("model:symthaea:v1".into()),
             Some("evidence".into()),
         );
         assert!(query.is_replayable());
@@ -403,6 +406,9 @@ mod tests {
             Some("entity:fin:ns-energy-01".into()),
             None,
             Some("ef:demo:9d7b".into()),
+            None,
+            None,
+            None,
             Some("future-ui".into()),
         );
         assert_eq!(query.view, TerminalView::Evidence);
@@ -423,6 +429,8 @@ mod tests {
     fn terminal_query_is_not_replayable_without_frontier() {
         let query = TerminalQueryV1::from_url_parts(
             Some("entity:fin:ns-energy-01".into()),
+            None,
+            None,
             None,
             None,
             None,
@@ -495,15 +503,18 @@ impl TerminalQueryV1 {
         entity_ref: Option<String>,
         claim_ref: Option<String>,
         frontier_ref: Option<String>,
+        projection_profile: Option<String>,
+        reasoning_program: Option<String>,
+        model_version: Option<String>,
         view: Option<String>,
     ) -> Self {
         Self {
             entity_ref,
             claim_ref,
             frontier_ref,
-            projection_profile: None,
-            reasoning_program: None,
-            model_version: None,
+            projection_profile,
+            reasoning_program,
+            model_version,
             view: TerminalView::parse(view.as_deref()),
         }
     }
