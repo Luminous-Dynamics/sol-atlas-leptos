@@ -1228,3 +1228,21 @@ code {
     .terminal-frontier { width: 100%; }
     .terminal-grid { grid-template-columns: 1fr; }
 }
+
+
+.terminal-route-state {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 5px 10px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(var(--sa-line), 0.12);
+    font-size: 8px;
+    color: rgba(var(--sa-dim), 0.52);
+}
+
+.terminal-route-state code {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
