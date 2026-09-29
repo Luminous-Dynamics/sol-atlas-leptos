@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::civilizational::{
     ClaimId, EntityId, EvidenceFrontierV1, EvidenceId, QualificationStatus,
-    SourceSnapshotId, YearInterval,
+    SourceSnapshotId, YearInterval, EvidenceFrontierId,
 };
 
 /// Stable reference to a record in an external/federated decentralized graph.
@@ -89,7 +89,7 @@ pub struct DkgProjectionAdmissionV1 {
     pub claim_ref: ClaimId,
     pub evidence_refs: Vec<EvidenceId>,
     pub source_snapshots: Vec<SourceSnapshotId>,
-    pub evidence_frontier: String,
+    pub evidence_frontier: EvidenceFrontierId,
 }
 
 impl DkgProjectionAdmissionV1 {
@@ -192,7 +192,7 @@ mod tests {
         assert!(admission.validate());
         assert_eq!(admission.claim_ref, "claim:1".into());
         assert_eq!(admission.record.record_id, "record:1");
-        assert_eq!(admission.evidence_frontier, "frontier:1950");
+        assert_eq!(admission.evidence_frontier, "frontier:1950".into());
     }
 
     #[test]
