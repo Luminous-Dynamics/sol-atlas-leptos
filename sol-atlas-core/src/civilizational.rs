@@ -230,6 +230,18 @@ impl EvidenceFrontierV1 {
     pub fn admits(&self, evidence: &EvidenceId) -> bool {
         self.admitted_evidence.contains(evidence)
     }
+
+    /// A projection is frontier-safe only when every referenced evidence and
+    /// source snapshot has been admitted. This deliberately does not inspect
+    /// historical truth or infer missing evidence.
+    pub fn admits_transition(&self, transition: &HistoricalTransitionV1) -> bool {
+        transition.evidence_refs.iter().all(|id| self.admitted_evidence.contains(id))
+            && transition.source_snapshots.iter().all(|id| self.admitted_sources.contains(id))
+    }
+
+    pub fn admits_snapshot(&self, snapshot: &StateSnapshotV1) -> bool {
+        snapshot.evidence_frontier == self.frontier_id
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -342,6 +354,40 @@ mod tests {
         };
         assert!(frontier.admits(&"evidence:old".into()));
         assert!(!frontier.admits(&"evidence:discovered-later".into()));
+    }
+
+
+
+    #[test]
+    fn frontier_rejects_transition_with_later_evidence_or_source() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            admitted_evidence: ["evidence:old".into()].into_iter().collect(),
+            admitted_sources: ["source:old".into()].into_iter().collect(),
+        };
+        let mut value = transition();
+        value.evidence_refs = vec!["evidence:old".into()];
+        value.source_snapshots = vec!["source:later".into()];
+        assert!(!frontier.admits_transition(&value));
+
+        value.source_snapshots = vec!["source:old".into()];
+        assert!(frontier.admits_transition(&value));
+    }
+
+    #[test]
+    fn snapshot_frontier_identity_is_explicit() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1949".into(),
+            known_by_year: 1949,
+            admitted_evidence: ["evidence:1".into()].into_iter().collect(),
+            admitted_sources: ["source:1".into()].into_iter().collect(),
+        };
+        assert!(frontier.admits_snapshot(&snapshot()));
+
+        let mut later = snapshot();
+        later.evidence_frontier = "frontier:1950".into();
+        assert!(!frontier.admits_snapshot(&later));
     }
 
     #[test]
