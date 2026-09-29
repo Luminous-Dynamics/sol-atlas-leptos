@@ -387,6 +387,13 @@ mod tests {
             Some("evidence".into()),
         );
         assert!(query.is_replayable());
+        assert!(!query.is_replay_addressable());
+        let replay = query.with_replay_context(
+            Some("profile:terminal:v1".into()),
+            Some("reasoning:baseline:v1".into()),
+            Some("model:symthaea:v1".into()),
+        );
+        assert!(replay.is_replay_addressable());
         assert_eq!(query.view, TerminalView::Evidence);
     }
 
@@ -399,6 +406,17 @@ mod tests {
             Some("future-ui".into()),
         );
         assert_eq!(query.view, TerminalView::Evidence);
+    }
+
+    #[test]
+    fn terminal_query_is_not_replay_addressable_without_full_context() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("claim:obs:7f31".into()),
+            Some("ef:demo:9d7b".into()),
+            Some("evidence".into()),
+        );
+        assert!(!query.is_replay_addressable());
     }
 
     #[test]
@@ -424,7 +442,26 @@ pub struct TerminalQueryV1 {
     pub entity_ref: Option<String>,
     pub claim_ref: Option<String>,
     pub frontier_ref: Option<String>,
+    pub projection_profile: Option<String>,
+    pub reasoning_program: Option<String>,
+    pub model_version: Option<String>,
     pub view: TerminalView,
+}
+
+impl TerminalQueryV1 {
+    /// A frontier URL is not by itself a full replay contract.
+    ///
+    /// Full replay requires the same query target plus the projection,
+    /// reasoning-program and model identities. This deliberately prevents
+    /// Atlas from presenting a navigation URL as a verified historical replay.
+    pub fn is_replay_addressable(&self) -> bool {
+        self.entity_ref.is_some()
+            && self.claim_ref.is_some()
+            && self.frontier_ref.is_some()
+            && self.projection_profile.is_some()
+            && self.reasoning_program.is_some()
+            && self.model_version.is_some()
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -464,10 +501,27 @@ impl TerminalQueryV1 {
             entity_ref,
             claim_ref,
             frontier_ref,
+            projection_profile: None,
+            reasoning_program: None,
+            model_version: None,
             view: TerminalView::parse(view.as_deref()),
         }
     }
 
+    pub fn with_replay_context(
+        mut self,
+        projection_profile: Option<String>,
+        reasoning_program: Option<String>,
+        model_version: Option<String>,
+    ) -> Self {
+        self.projection_profile = projection_profile;
+        self.reasoning_program = reasoning_program;
+        self.model_version = model_version;
+        self
+    }
+
+    /// Backwards-compatible name for the old URL-addressability check.
+    /// This means "has a frontier target", not "verified replay".
     pub fn is_replayable(&self) -> bool {
         self.entity_ref.is_some() && self.frontier_ref.is_some()
     }
