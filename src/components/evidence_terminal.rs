@@ -130,12 +130,13 @@ pub fn EvidenceTerminal() -> impl IntoView {
     };
     let selected_claim = move || terminal_query().claim_ref;
     let selected_view = move || terminal_query().view.as_str();
-    let replay_context = move || {
-        let q = terminal_query();
+    // Fixture link context is explicit and only used to construct a complete
+    // address. It is never silently injected into replay-readiness state.
+    let link_replay_context = || {
         (
-            q.projection_profile.unwrap_or_else(|| "profile:terminal:v1".into()),
-            q.reasoning_program.unwrap_or_else(|| "reasoning:baseline:v1".into()),
-            q.model_version.unwrap_or_else(|| "model:symthaea:v1".into()),
+            "profile:terminal:v1".to_string(),
+            "reasoning:baseline:v1".to_string(),
+            "model:symthaea:v1".to_string(),
         )
     };
     let selected_node = move || LineageNodeRef::parse(query.read().get("node").as_deref());
@@ -150,9 +151,9 @@ pub fn EvidenceTerminal() -> impl IntoView {
             selected_entity(),
             selected_frontier(),
             primary.claim_ref,
-            replay_context().0,
-            replay_context().1,
-            replay_context().2
+            link_replay_context().0,
+            link_replay_context().1,
+            link_replay_context().2
         )
     };
 
@@ -219,7 +220,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             <span class="status-chip conflicting">"CONFLICTING"</span>
                         </div>
                         <p>{primary.contradictions.first().map(|c| c.summary.clone()).unwrap_or_else(|| "No contradiction recorded.".into())}</p>
-                        <A class="text-action" href=move || format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=lineage", selected_entity(), selected_frontier(), primary.claim_ref, replay_context().0, replay_context().1, replay_context().2)>"Inspect competing evidence →"</A>
+                        <A class="text-action" href=move || format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=lineage", selected_entity(), selected_frontier(), primary.claim_ref, link_replay_context().0, link_replay_context().1, link_replay_context().2)>"Inspect competing evidence →"</A>
                     </div>
                 </section>
 
@@ -246,9 +247,9 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                     selected_entity(),
                                     selected_frontier(),
                                     primary.claim_ref,
-                                    replay_context().0,
-                                    replay_context().1,
-                                    replay_context().2,
+                                    link_replay_context().0,
+                                    link_replay_context().1,
+                                    link_replay_context().2,
                                     node.query_value()
                                 );
                                 view! {
@@ -264,7 +265,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             <code>{move || selected_node().map(|node| node.query_value()).unwrap_or_else(|| "none".into())}</code>
                             <span class="lineage-resolution">
                                 {move || match selected_node_status() {
-                                    LineageResolution::Resolved => "RESOLVED BY DECLARED PROJECTION",
+                                    LineageResolution::Declared => "DECLARED BY LOCAL PROJECTION · NOT AUTHORITATIVE",
                                     LineageResolution::Unavailable => "UNAVAILABLE · NO FALLBACK",
                                     LineageResolution::Protected => "PROTECTED · CONTENT NOT DISCLOSED",
                                     LineageResolution::Incomplete => "INCOMPLETE · NO NODE SELECTED",
@@ -280,8 +281,11 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             }.into_any(),
                         }}
                         <A class="replay-action" href=replay_href>"↻  Open replay target"</A>
-                        <p class="replay-status">{move || if terminal_query().is_replay_addressable() { "REPLAY CONTEXT COMPLETE · target is addressable" } else { "REPLAY CONTEXT INCOMPLETE · no verified replay implied" }}</p>
-                        <p class="lineage-note">"Inspection links address declared dependencies only; an unresolved node is shown as unavailable rather than replaced with current or inferred data."</p>
+                        <p class="replay-status">{move || match terminal_query().replay_target() {
+    Some(_) => "REPLAY TARGET ADDRESSABLE · dependency resolution still required",
+    None => "REPLAY TARGET INCOMPLETE · no replay implied",
+}}</p>
+                        <p class="lineage-note">"Inspection links address declared dependencies only. Local declaration is not authoritative resolution; unresolved dependencies are never replaced with current or inferred data."</p>
                         <div class="terminal-route-state">
                             <span>"URL view"</span><code>{selected_view}</code>
                             <span>"Claim filter"</span><code>{move || selected_claim().unwrap_or_else(|| "none".into())}</code>
@@ -307,7 +311,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             <span class="status-note">{state_label(primary.qualification)}</span>
                         </div>
                         <p>"Competing explanations, missing information, scenarios and forecasts will enter here through a typed ResearchResult boundary."</p>
-                        <A class="text-action" href=move || format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=research", selected_entity(), selected_frontier(), primary.claim_ref, replay_context().0, replay_context().1, replay_context().2)>"Show information gaps →"</A>
+                        <A class="text-action" href=move || format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=research", selected_entity(), selected_frontier(), primary.claim_ref, link_replay_context().0, link_replay_context().1, link_replay_context().2)>"Show information gaps →"</A>
                     </section>
                 </aside>
             </div>
