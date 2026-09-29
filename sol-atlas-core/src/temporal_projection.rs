@@ -491,6 +491,7 @@ mod tests {
             admitted_evidence: ["e:old", "e:transition"].into_iter().map(Into::into).collect(),
             admitted_sources: ["source:archive"].into_iter().map(Into::into).collect(),
             evidence_metadata: vec![],
+            source_metadata: vec![],
         }
     }
 
