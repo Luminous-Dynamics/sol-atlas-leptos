@@ -47,3 +47,9 @@ This layer does not:
 - replace Mycelix canonical claim authority;
 - decide contested interpretations;
 - make a Draft ontology release equivalent to a Stable or Official release.
+
+## Qualification semantics
+
+Qualification is intentionally treated as a tagged epistemic state, not as a numeric ranking. The resolution boundary therefore requires exact qualification preservation rather than inventing an ordering such as “Established > Supported > Speculative”. This avoids turning a renderer-side compatibility rule into an unsupported claim about the meaning of the statuses.
+
+If a future integration needs a weaker or stronger qualification relation, it should introduce an explicit, versioned compatibility policy with tests for every permitted transition. It should not derive the relation from enum declaration order.
