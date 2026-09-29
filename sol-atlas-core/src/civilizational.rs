@@ -178,9 +178,6 @@ impl StateSnapshotV1 {
             if geometry.evidence.iter().any(|id| !id.is_valid()) {
                 return Err(ProjectionError::EmptyIdentifier);
             }
-            if geometry.evidence.iter().any(|id| !id.is_valid()) {
-                return Err(ProjectionError::EmptyIdentifier);
-            }
             if !geometry.exact && geometry.semantics != SpatialSemantics::ApproximateExtent {
                 return Err(ProjectionError::ApproximateGeometryMislabelled);
             }
@@ -244,8 +241,14 @@ impl HistoricalTransitionV1 {
             return Err(ProjectionError::EmptyIdentifier);
         }
         for geometry in &self.spatial_scope {
+            if !geometry.geometry_ref.is_valid() {
+                return Err(ProjectionError::EmptyIdentifier);
+            }
             if geometry.evidence.is_empty() {
                 return Err(ProjectionError::GeometryWithoutEvidence);
+            }
+            if geometry.evidence.iter().any(|id| !id.is_valid()) {
+                return Err(ProjectionError::EmptyIdentifier);
             }
             if !geometry.exact && geometry.semantics != SpatialSemantics::ApproximateExtent {
                 return Err(ProjectionError::ApproximateGeometryMislabelled);
