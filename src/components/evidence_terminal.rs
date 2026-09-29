@@ -131,15 +131,6 @@ pub fn EvidenceTerminal() -> impl IntoView {
             .map(|node| primary.resolve_lineage_node(&node))
             .unwrap_or(LineageResolution::Incomplete)
     };
-    let lineage_href = move |node: LineageNodeRef| {
-        format!(
-            "/terminal/entity/{}?frontier={}&claim={}&view=lineage&node={}",
-            selected_entity(),
-            selected_frontier(),
-            primary.claim_ref,
-            node.query_value()
-        )
-    };
     let replay_href = move || {
         format!(
             "/terminal/entity/{}?frontier={}&claim={}&view=evidence",
@@ -234,7 +225,13 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                     LineageNodeRef::Derivation(_) => "Derivation receipt",
                                     LineageNodeRef::ReasoningReceipt(_) => "Reasoning receipt",
                                 };
-                                let href = lineage_href(node.clone());
+                                let href = format!(
+                                    "/terminal/entity/{}?frontier={}&claim={}&view=lineage&node={}",
+                                    selected_entity(),
+                                    selected_frontier(),
+                                    primary.claim_ref,
+                                    node.query_value()
+                                );
                                 view! {
                                     <li>
                                         <span>{label}</span>
