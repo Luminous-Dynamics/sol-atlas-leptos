@@ -427,6 +427,12 @@ impl EvidenceFrontierV1 {
         Ok(())
     }
 
+    /// Recomputes the manifest hash after constructing or extending a frontier.
+    pub fn recompute_manifest_hash(&mut self) -> Result<(), ProjectionError> {
+        self.manifest_hash = self.computed_manifest_hash()?;
+        Ok(())
+    }
+
     pub fn admits(&self, evidence: &EvidenceId) -> bool {
         if !self.admitted_evidence.contains(evidence) {
             return false;
@@ -650,6 +656,9 @@ mod tests {
         let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1900".into(),
             known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
             admitted_evidence: ["evidence:old".into()].into_iter().collect(),
             admitted_sources: ["source:archive".into()].into_iter().collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
@@ -671,6 +680,9 @@ mod tests {
         let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1900".into(),
             known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
             admitted_evidence: ["evidence:later".into()].into_iter().collect(),
             admitted_sources: ["source:archive".into()].into_iter().collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
@@ -692,6 +704,9 @@ mod tests {
         let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1900".into(),
             known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
             admitted_evidence: ["evidence:old".into()].into_iter().collect(),
             admitted_sources: ["source:old".into()].into_iter().collect(),
             evidence_metadata: vec![],
@@ -705,6 +720,9 @@ mod tests {
         let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1900".into(),
             known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
             admitted_evidence: ["evidence:old".into()].into_iter().collect(),
             admitted_sources: ["source:old".into()].into_iter().collect(),
         };
@@ -722,6 +740,9 @@ mod tests {
         let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1949".into(),
             known_by_year: 1949,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
             admitted_evidence: ["evidence:1".into()].into_iter().collect(),
             admitted_sources: ["source:1".into()].into_iter().collect(),
         };
@@ -737,6 +758,9 @@ mod tests {
         let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1949".into(),
             known_by_year: 1949,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
             admitted_evidence: [
                 "evidence:1".into(),
                 "evidence:partition".into(),
@@ -774,6 +798,9 @@ mod tests {
         let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1949".into(),
             known_by_year: 1949,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
             admitted_evidence: ["evidence:partition"].into_iter().collect(),
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
             evidence_metadata: vec![],
@@ -788,6 +815,9 @@ mod tests {
         let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1949".into(),
             known_by_year: 1949,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
             admitted_evidence: ["evidence:partition"].into_iter().collect(),
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
             evidence_metadata: vec![],
