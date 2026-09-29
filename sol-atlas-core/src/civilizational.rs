@@ -249,16 +249,25 @@ pub struct ProjectionAuditV1 {
 }
 
 impl ProjectionAuditV1 {
-    pub fn for_snapshot(snapshot: &StateSnapshotV1) -> Self {
-        let evidence_refs = snapshot
-            .geometries
+    fn geometry_evidence(geometries: &[GeometryProjection]) -> Vec<EvidenceId> {
+        geometries
             .iter()
             .flat_map(|geometry| geometry.evidence.iter().cloned())
-            .collect();
+            .collect()
+    }
+
+    pub fn for_snapshot(snapshot: &StateSnapshotV1) -> Self {
+        let evidence_refs = Self::geometry_evidence(&snapshot.geometries);
+        let claim_refs = snapshot
+            .relation_refs
+            .iter()
+            .chain(snapshot.qualification.claim_refs.iter())
+            .cloned()
+            .collect::<Vec<_>>();
 
         Self {
             projection: ProjectionRef::Snapshot(snapshot.snapshot_id.clone()),
-            claim_refs: snapshot.qualification.claim_refs.clone(),
+            claim_refs,
             evidence_refs,
             source_snapshots: Vec::new(),
             temporal_scope: snapshot.valid_time,
@@ -271,10 +280,22 @@ impl ProjectionAuditV1 {
         transition: &HistoricalTransitionV1,
         frontier: &EvidenceFrontierV1,
     ) -> Self {
+        let evidence_refs = transition
+            .evidence_refs
+            .iter()
+            .chain(
+                transition
+                    .spatial_scope
+                    .iter()
+                    .flat_map(|geometry| geometry.evidence.iter()),
+            )
+            .cloned()
+            .collect();
+
         Self {
             projection: ProjectionRef::Transition(transition.transition_id.clone()),
             claim_refs: transition.claim_refs.clone(),
-            evidence_refs: transition.evidence_refs.clone(),
+            evidence_refs,
             source_snapshots: transition.source_snapshots.clone(),
             temporal_scope: transition.event_time,
             qualification: transition.qualification,
@@ -327,8 +348,20 @@ impl EvidenceFrontierV1 {
     /// source snapshot has been admitted. This deliberately does not inspect
     /// historical truth or infer missing evidence.
     pub fn admits_transition(&self, transition: &HistoricalTransitionV1) -> bool {
-        transition.evidence_refs.iter().all(|id| self.admitted_evidence.contains(id))
-            && transition.source_snapshots.iter().all(|id| self.admitted_sources.contains(id))
+        transition
+            .evidence_refs
+            .iter()
+            .chain(
+                transition
+                    .spatial_scope
+                    .iter()
+                    .flat_map(|geometry| geometry.evidence.iter()),
+            )
+            .all(|id| self.admitted_evidence.contains(id))
+            && transition
+                .source_snapshots
+                .iter()
+                .all(|id| self.admitted_sources.contains(id))
     }
 
     pub fn admits_snapshot(&self, snapshot: &StateSnapshotV1) -> bool {
@@ -380,12 +413,12 @@ mod tests {
             geometries: vec![geometry(SpatialSemantics::AdministrativeBoundary, true)],
             institution_refs: vec![],
             constitutional_refs: vec![],
-            relation_refs: vec!["claim:1".into()],
+            relation_refs: vec!["claim:relation".into()],
             evidence_frontier: "frontier:1949".into(),
             qualification: QualificationSummary {
                 status: QualificationStatus::Supported,
                 assessment: Some("assessment:1".into()),
-                claim_refs: vec!["claim:1".into()],
+                claim_refs: vec!["claim:qualification".into()],
                 unresolved: vec![],
                 contested: false,
             },
@@ -495,18 +528,23 @@ mod tests {
         let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1949".into(),
             known_by_year: 1949,
-            admitted_evidence: ["evidence:1".into(), "evidence:partition".into()]
-                .into_iter()
-                .collect(),
-            admitted_sources: ["source-snapshot:archive".into()].into_iter().collect(),
+            admitted_evidence: [
+                "evidence:1".into(),
+                "evidence:partition".into(),
+            ]
+            .into_iter()
+            .collect(),
+            admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
         };
 
         let snapshot_audit = ProjectionAuditV1::for_snapshot(&snapshot());
         assert_eq!(snapshot_audit.validate(), Ok(()));
+        assert_eq!(snapshot_audit.claim_refs.len(), 2);
         assert!(frontier.admits_audit(&snapshot_audit));
 
         let transition_audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
         assert_eq!(transition_audit.validate(), Ok(()));
+        assert_eq!(transition_audit.evidence_refs.len(), 2);
         assert!(frontier.admits_audit(&transition_audit));
 
         let mut later = transition_audit;
@@ -526,12 +564,31 @@ mod tests {
         let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1949".into(),
             known_by_year: 1949,
-            admitted_evidence: ["evidence:partition".into()].into_iter().collect(),
-            admitted_sources: ["source-snapshot:archive".into()].into_iter().collect(),
+            admitted_evidence: ["evidence:partition"].into_iter().collect(),
+            admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
         };
         let mut audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
         audit.source_snapshots.clear();
         assert_eq!(audit.validate(), Err(ProjectionError::IrreversibleTransition));
+    }
+
+    #[test]
+    fn transition_audit_cannot_hide_spatial_evidence() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1949".into(),
+            known_by_year: 1949,
+            admitted_evidence: ["evidence:partition"].into_iter().collect(),
+            admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
+        };
+        let audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
+        assert!(!frontier.admits_audit(&audit));
+    }
+
+    #[test]
+    fn snapshot_audit_includes_relation_claims() {
+        let audit = ProjectionAuditV1::for_snapshot(&snapshot());
+        assert!(audit.claim_refs.contains(&"claim:relation".into()));
+        assert!(audit.claim_refs.contains(&"claim:qualification".into()));
     }
 
     #[test]
