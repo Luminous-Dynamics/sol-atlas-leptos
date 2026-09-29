@@ -565,7 +565,7 @@ impl CulturalProjectionAuditV2 {
                 || argumentation.evidence_refs != self.evidence_refs
                 || argumentation.source_snapshots != self.source_snapshots
                 || argumentation.evidence_frontier != self.evidence_frontier
-                || argumentation.assessment != self.assessment.clone().unwrap_or_else(|| argumentation.assessment.clone()) {
+                || self.assessment.as_ref() != Some(&argumentation.assessment) {
                 return Err(ProjectionError::EmptyIdentifier);
             }
         }
@@ -979,6 +979,72 @@ mod tests {
         let mut audit = CulturalProjectionAuditV1::from_transmission(&value);
         audit.community_recognition_evidence.push("e:late".into());
         assert!(!audit.is_frontier_safe(&frontier));
+    }
+
+    #[test]
+    fn argumentation_temporal_metadata_blocks_late_interpretation() {
+        let frontier = frontier();
+        let value = transmission();
+        let claim = canonical_claim(&value);
+        let argumentation = CulturalArgumentationRefV1 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            claim_ref: value.claim_ref.clone(),
+            evidence_refs: value.evidence_refs.clone(),
+            source_snapshots: value.source_snapshots.clone(),
+            assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+            interpretation_time: Some(YearInterval { from: Some(1960), to: Some(1960) }),
+            available_by: 1960,
+            evidence_frontier: frontier.frontier_id.clone(),
+        };
+        assert!(!argumentation.is_frontier_safe(&claim, &frontier));
+    }
+
+    #[test]
+    fn argumentation_replay_allows_only_records_available_at_frontier() {
+        let mut frontier = frontier();
+        frontier.known_by_year = 1960;
+        frontier.recompute_manifest_hash().expect("fixture hash");
+        let value = transmission();
+        let claim = canonical_claim(&value);
+        let argumentation = CulturalArgumentationRefV1 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            claim_ref: value.claim_ref.clone(),
+            evidence_refs: value.evidence_refs.clone(),
+            source_snapshots: value.source_snapshots.clone(),
+            assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+            interpretation_time: Some(YearInterval { from: Some(1955), to: Some(1955) }),
+            available_by: 1956,
+            evidence_frontier: frontier.frontier_id.clone(),
+        };
+        assert!(argumentation.is_frontier_safe(&claim, &frontier));
+
+        let audit = CulturalProjectionAuditV2::from_projection(&CulturalProjectionV1::Transmission(value))
+            .with_argumentation(argumentation);
+        assert!(audit.validate().is_ok());
+        assert!(audit.is_frontier_safe(&frontier));
+    }
+
+    #[test]
+    fn argumentation_audit_cannot_attach_to_different_claim_or_assessment() {
+        let frontier = frontier();
+        let value = transmission();
+        let argumentation = CulturalArgumentationRefV1 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            claim_ref: value.claim_ref.clone(),
+            evidence_refs: value.evidence_refs.clone(),
+            source_snapshots: value.source_snapshots.clone(),
+            assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+            interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+            available_by: 1950,
+            evidence_frontier: frontier.frontier_id.clone(),
+        };
+        let mut audit = CulturalProjectionAuditV2::from_projection(&CulturalProjectionV1::Transmission(value))
+            .with_argumentation(argumentation);
+        audit.claim_ref = "claim:other".into();
+        assert_eq!(audit.validate(), Err(ProjectionError::EmptyIdentifier));
     }
 
     #[test]
