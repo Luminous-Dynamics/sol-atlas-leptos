@@ -420,6 +420,9 @@ mod tests {
             Some("entity:fin:ns-energy-01".into()),
             Some("claim:obs:7f31".into()),
             Some("ef:demo:9d7b".into()),
+            None,
+            None,
+            None,
             Some("evidence".into()),
         );
         assert!(!query.is_replay_addressable());
