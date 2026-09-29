@@ -314,34 +314,10 @@ impl CulturalTransmissionV1 {
         }
     }
 
-    /// Generic admission constructor shared by all cultural projection variants.
-    pub fn from_projection(
-        projection: &CulturalProjectionV1,
-        frontier: &EvidenceFrontierV1,
-        claim: &CanonicalClaimAdmissionV1,
-    ) -> Option<Self> {
-        if !projection.is_frontier_safe(claim, frontier) {
-            return None;
-        }
-
-        let closure = projection.evidence_closure();
-        let transmission_id = match projection {
-            CulturalProjectionV1::Transmission(value) => value.transmission_id.clone(),
-            CulturalProjectionV1::Transformation(value) => value.transformation_id.clone(),
-        };
-
-        Some(Self {
-            transmission_id,
-            claim_ref: closure.claim_ref,
-            evidence_refs: closure.evidence_refs,
-            source_snapshots: closure.source_snapshots,
-            evidence_frontier: closure.evidence_frontier,
-            qualification: closure.qualification,
-            access_policy: match projection {
-                CulturalProjectionV1::Transmission(value) => value.access_policy,
-                CulturalProjectionV1::Transformation(value) => value.access_policy,
-            },
-        })
+    /// Returns the reusable claim/evidence/source closure for either cultural
+    /// projection variant without coercing its semantic identity.
+    pub fn projection_closure(projection: &CulturalProjectionV1) -> CulturalEvidenceClosureV1 {
+        projection.evidence_closure()
     }
 
     pub fn validate(&self) -> Result<(), ProjectionError> {
@@ -418,6 +394,117 @@ impl CulturalProjectionV1 {
             Self::Transmission(value) => value.is_frontier_safe(claim, frontier),
             Self::Transformation(value) => value.is_frontier_safe(claim, frontier),
         }
+    }
+}
+
+/// Stable identity of an admitted cultural projection without erasing its
+/// semantic relation class.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CulturalProjectionIdV1 {
+    Transmission(TransmissionEventId),
+    Transformation(TransformationEventId),
+}
+
+impl CulturalProjectionIdV1 {
+    pub fn is_valid(&self) -> bool {
+        match self {
+            Self::Transmission(id) => id.is_valid(),
+            Self::Transformation(id) => id.is_valid(),
+        }
+    }
+}
+
+/// Generic admission record for either transmission or transformation.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CulturalProjectionAdmissionV2 {
+    pub projection_id: CulturalProjectionIdV1,
+    pub claim_ref: ClaimId,
+    pub evidence_refs: Vec<EvidenceId>,
+    pub source_snapshots: Vec<SourceSnapshotId>,
+    pub evidence_frontier: EvidenceFrontierId,
+    pub qualification: QualificationStatus,
+    pub access_policy: AccessPolicyV1,
+}
+
+impl CulturalProjectionAdmissionV2 {
+    pub fn from_projection(
+        projection: &CulturalProjectionV1,
+        frontier: &EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Option<Self> {
+        if !projection.is_frontier_safe(claim, frontier) { return None; }
+        let closure = projection.evidence_closure();
+        let (projection_id, access_policy) = match projection {
+            CulturalProjectionV1::Transmission(v) =>
+                (CulturalProjectionIdV1::Transmission(v.transmission_id.clone()), v.access_policy),
+            CulturalProjectionV1::Transformation(v) =>
+                (CulturalProjectionIdV1::Transformation(v.transformation_id.clone()), v.access_policy),
+        };
+        Some(Self { projection_id, claim_ref: closure.claim_ref,
+            evidence_refs: closure.evidence_refs, source_snapshots: closure.source_snapshots,
+            evidence_frontier: closure.evidence_frontier, qualification: closure.qualification,
+            access_policy })
+    }
+
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.projection_id.is_valid() || !self.claim_ref.is_valid()
+            || self.evidence_refs.is_empty() || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.is_empty() || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || !self.evidence_frontier.is_valid() { return Err(ProjectionError::EmptyIdentifier); }
+        Ok(())
+    }
+}
+
+/// Generic "why is this visible?" audit for either cultural projection variant.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CulturalProjectionAuditV2 {
+    pub projection_id: CulturalProjectionIdV1,
+    pub claim_ref: ClaimId,
+    pub evidence_refs: Vec<EvidenceId>,
+    pub source_snapshots: Vec<SourceSnapshotId>,
+    pub community_recognition_evidence: Vec<EvidenceId>,
+    pub assessment: Option<AssessmentId>,
+    pub event_time: YearInterval,
+    pub qualification: QualificationStatus,
+    pub access_policy: AccessPolicyV1,
+    pub evidence_frontier: EvidenceFrontierId,
+}
+
+impl CulturalProjectionAuditV2 {
+    pub fn from_projection(projection: &CulturalProjectionV1) -> Self {
+        let (projection_id, recognition, assessment, event_time, claim_ref, evidence_refs,
+            source_snapshots, qualification, access_policy, evidence_frontier) = match projection {
+            CulturalProjectionV1::Transmission(v) => (
+                CulturalProjectionIdV1::Transmission(v.transmission_id.clone()), &v.community_recognition,
+                v.assessment.clone(), v.event_time, v.claim_ref.clone(), v.evidence_refs.clone(),
+                v.source_snapshots.clone(), v.qualification, v.access_policy, v.evidence_frontier.clone()),
+            CulturalProjectionV1::Transformation(v) => (
+                CulturalProjectionIdV1::Transformation(v.transformation_id.clone()), &v.community_recognition,
+                v.assessment.clone(), v.event_time, v.claim_ref.clone(), v.evidence_refs.clone(),
+                v.source_snapshots.clone(), v.qualification, v.access_policy, v.evidence_frontier.clone()),
+        };
+        Self { projection_id, claim_ref, evidence_refs, source_snapshots,
+            community_recognition_evidence: recognition.iter().flat_map(|r| r.evidence_refs.iter().cloned()).collect(),
+            assessment, event_time, qualification, access_policy, evidence_frontier }
+    }
+
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.projection_id.is_valid() || !self.claim_ref.is_valid()
+            || self.evidence_refs.is_empty() || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.is_empty() || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || self.community_recognition_evidence.iter().any(|id| !id.is_valid())
+            || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
+            || !self.evidence_frontier.is_valid() { return Err(ProjectionError::EmptyIdentifier); }
+        if !self.event_time.is_valid() { return Err(ProjectionError::InvalidTimeInterval); }
+        Ok(())
+    }
+
+    pub fn is_frontier_safe(&self, frontier: &EvidenceFrontierV1) -> bool {
+        self.validate().is_ok() && frontier.validate_temporal_manifest_strict().is_ok()
+            && self.evidence_frontier == frontier.frontier_id
+            && self.evidence_refs.iter().all(|id| frontier.admits(id))
+            && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
+            && self.community_recognition_evidence.iter().all(|id| frontier.admits(id))
     }
 }
 
