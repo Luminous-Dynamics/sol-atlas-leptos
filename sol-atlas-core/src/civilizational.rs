@@ -137,6 +137,10 @@ pub struct StateSnapshotV1 {
     pub institution_refs: Vec<EntityId>,
     pub constitutional_refs: Vec<EntityId>,
     pub relation_refs: Vec<ClaimId>,
+    /// Direct evidence path for claims that make the snapshot itself visible.
+    pub evidence_refs: Vec<EvidenceId>,
+    /// Source snapshots for the snapshot-level evidence path.
+    pub source_snapshots: Vec<SourceSnapshotId>,
     pub evidence_frontier: EvidenceFrontierId,
     pub qualification: QualificationSummary,
 }
@@ -151,6 +155,20 @@ impl StateSnapshotV1 {
         }
         if !self.evidence_frontier.is_valid() {
             return Err(ProjectionError::MissingEvidenceFrontier);
+        }
+        if self.evidence_refs.is_empty() || self.source_snapshots.is_empty() {
+            return Err(ProjectionError::IrreversibleTransition);
+        }
+        if self
+            .evidence_refs
+            .iter()
+            .any(|id| !id.is_valid())
+            || self
+                .source_snapshots
+                .iter()
+                .any(|id| !id.is_valid())
+        {
+            return Err(ProjectionError::EmptyIdentifier);
         }
         for geometry in &self.geometries {
             if !geometry.geometry_ref.is_valid() {
@@ -762,6 +780,8 @@ mod tests {
             institution_refs: vec![],
             constitutional_refs: vec![],
             relation_refs: vec!["claim:relation".into()],
+            evidence_refs: vec!["evidence:1".into()],
+            source_snapshots: vec!["source-snapshot:archive".into()],
             evidence_frontier: "frontier:1949".into(),
             qualification: QualificationSummary {
                 status: QualificationStatus::Supported,
