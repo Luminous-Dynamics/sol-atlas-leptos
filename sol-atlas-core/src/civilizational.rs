@@ -157,7 +157,7 @@ impl StateSnapshotV1 {
             return Err(ProjectionError::MissingEvidenceFrontier);
         }
         if self.evidence_refs.is_empty() || self.source_snapshots.is_empty() {
-            return Err(ProjectionError::IrreversibleTransition);
+            return Err(ProjectionError::SnapshotWithoutEvidencePath);
         }
         if self.relation_refs.iter().any(|id| !id.is_valid())
             || self.qualification.claim_refs.iter().any(|id| !id.is_valid())
@@ -230,7 +230,7 @@ impl HistoricalTransitionV1 {
             return Err(ProjectionError::TransitionWithoutParticipants);
         }
         if self.claim_refs.is_empty() || self.evidence_refs.is_empty() || self.source_snapshots.is_empty() {
-            return Err(ProjectionError::IrreversibleTransition);
+            return Err(ProjectionError::TransitionWithoutEvidencePath);
         }
         if self.claim_refs.iter().any(|id| !id.is_valid())
             || self.evidence_refs.iter().any(|id| !id.is_valid())
@@ -376,7 +376,7 @@ impl ProjectionAuditV1 {
             return Err(ProjectionError::AuditWithoutEvidencePath);
         }
         if self.source_snapshots.is_empty() {
-            return Err(ProjectionError::IrreversibleTransition);
+            return Err(ProjectionError::AuditWithoutSourcePath);
         }
         Ok(())
     }
@@ -781,7 +781,10 @@ pub enum ProjectionError {
     MissingTransitionClass,
     TransitionWithoutParticipants,
     IrreversibleTransition,
+    SnapshotWithoutEvidencePath,
+    TransitionWithoutEvidencePath,
     AuditWithoutEvidencePath,
+    AuditWithoutSourcePath,
     InvalidSnapshot,
     InvalidTransition,
     InvalidEvidenceTemporalMetadata,
@@ -877,7 +880,7 @@ mod tests {
     fn transition_requires_reversible_evidence_path() {
         let mut value = transition();
         value.source_snapshots.clear();
-        assert_eq!(value.validate(), Err(ProjectionError::IrreversibleTransition));
+        assert_eq!(value.validate(), Err(ProjectionError::TransitionWithoutEvidencePath));
     }
 
     #[test]
@@ -1062,7 +1065,7 @@ mod tests {
         };
         let mut audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
         audit.source_snapshots.clear();
-        assert_eq!(audit.validate(), Err(ProjectionError::IrreversibleTransition));
+        assert_eq!(audit.validate(), Err(ProjectionError::AuditWithoutSourcePath));
     }
 
     #[test]
