@@ -127,6 +127,141 @@ impl CulturalArgumentationRefV1 {
     }
 }
 
+/// Argumentation evidence closure deliberately independent from the canonical claim closure.
+/// An assessment/interpretation may rely on a subset or an argument-specific superset of
+/// evidence while remaining explicitly bound to the same canonical claim.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CulturalArgumentationEvidenceClosureV1 {
+    pub claim_ref: ClaimId,
+    pub evidence_refs: Vec<EvidenceId>,
+    pub source_snapshots: Vec<SourceSnapshotId>,
+    pub evidence_frontier: EvidenceFrontierId,
+}
+
+impl CulturalArgumentationEvidenceClosureV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.claim_ref.is_valid()
+            || self.evidence_refs.is_empty()
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.is_empty()
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || !self.evidence_frontier.is_valid()
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        Ok(())
+    }
+
+    pub fn is_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> bool {
+        self.validate().is_ok()
+            && claim.is_frontier_safe(frontier)
+            && self.claim_ref == claim.claim_ref
+            && self.evidence_frontier == frontier.frontier_id
+            && self.evidence_refs.iter().all(|id| frontier.admits(id))
+            && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
+    }
+}
+
+/// Versioned argumentation reference with an independent evidence/source closure.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CulturalArgumentationRefV2 {
+    pub assessment: AssessmentId,
+    pub interpretation: InterpretationId,
+    pub claim_ref: ClaimId,
+    pub closure: CulturalArgumentationEvidenceClosureV1,
+    pub assessment_time: Option<YearInterval>,
+    pub interpretation_time: Option<YearInterval>,
+    pub available_by: i32,
+}
+
+impl CulturalArgumentationRefV2 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.assessment.is_valid() || !self.interpretation.is_valid()
+            || !self.claim_ref.is_valid()
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        self.closure.validate()?;
+        if self.closure.claim_ref != self.claim_ref {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if self.assessment_time.is_some_and(|v| !v.is_valid())
+            || self.interpretation_time.is_some_and(|v| !v.is_valid())
+            || self.available_by < self.assessment_time.and_then(|v| v.to)
+                .or(self.assessment_time.and_then(|v| v.from)).unwrap_or(self.available_by)
+            || self.available_by < self.interpretation_time.and_then(|v| v.to)
+                .or(self.interpretation_time.and_then(|v| v.from)).unwrap_or(self.available_by)
+        {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        Ok(())
+    }
+
+    pub fn is_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> bool {
+        self.validate().is_ok()
+            && self.closure.is_frontier_safe(claim, frontier)
+            && self.available_by <= frontier.known_by_year
+            && frontier.admits_argumentation(&self.assessment, &self.interpretation)
+    }
+}
+
+/// A replay set preserves contemporaneous argumentation alternatives without
+/// assigning an epistemic winner. Ordering is canonical serialization structure only.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CulturalArgumentationSetV1 {
+    pub claim_ref: ClaimId,
+    pub evidence_frontier: EvidenceFrontierId,
+    pub alternatives: Vec<CulturalArgumentationRefV2>,
+}
+
+impl CulturalArgumentationSetV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.claim_ref.is_valid() || !self.evidence_frontier.is_valid()
+            || self.alternatives.is_empty()
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        let mut identities = std::collections::BTreeSet::new();
+        for argumentation in &self.alternatives {
+            argumentation.validate()?;
+            if argumentation.claim_ref != self.claim_ref
+                || argumentation.closure.evidence_frontier != self.evidence_frontier
+                || !identities.insert((argumentation.assessment.clone(), argumentation.interpretation.clone()))
+            {
+                return Err(ProjectionError::EmptyIdentifier);
+            }
+        }
+        Ok(())
+    }
+
+    pub fn is_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> bool {
+        self.validate().is_ok()
+            && self.claim_ref == claim.claim_ref
+            && self.evidence_frontier == frontier.frontier_id
+            && self.alternatives.iter().all(|argumentation| argumentation.is_frontier_safe(claim, frontier))
+    }
+
+    /// Canonicalizes storage order by argument identity. This is not an epistemic ranking.
+    pub fn canonicalize(&mut self) {
+        self.alternatives.sort_by(|a, b| {
+            (a.assessment.clone(), a.interpretation.clone())
+                .cmp(&(b.assessment.clone(), b.interpretation.clone()))
+        });
+    }
+}
+
 /// A documented mechanism by which a practice, technique, concept, or tradition
 /// may have moved between social or geographic contexts. The enum describes the
 /// asserted mechanism; it does not establish that the mechanism occurred.
@@ -1074,4 +1209,99 @@ mod tests {
         assert_eq!(admission.transmission_id, "transmission:1".into());
         assert_eq!(admission.evidence_frontier, "frontier:1950".into());
     }
+    #[test]
+    fn argumentation_v2_can_use_subset_of_canonical_evidence() {
+        let frontier = frontier();
+        let value = transmission();
+        let claim = canonical_claim(&value);
+        let argumentation = CulturalArgumentationRefV2 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            claim_ref: value.claim_ref.clone(),
+            closure: CulturalArgumentationEvidenceClosureV1 {
+                claim_ref: value.claim_ref.clone(),
+                evidence_refs: vec!["e:1".into()],
+                source_snapshots: vec!["source:1".into()],
+                evidence_frontier: frontier.frontier_id.clone(),
+            },
+            assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+            interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+            available_by: 1950,
+        };
+        assert!(argumentation.is_frontier_safe(&claim, &frontier));
+    }
+
+    #[test]
+    fn argumentation_set_preserves_competing_alternatives_without_ranking() {
+        let frontier = frontier();
+        let value = transmission();
+        let claim = canonical_claim(&value);
+        let mut set = CulturalArgumentationSetV1 {
+            claim_ref: value.claim_ref.clone(),
+            evidence_frontier: frontier.frontier_id.clone(),
+            alternatives: vec![
+                CulturalArgumentationRefV2 {
+                    assessment: "assessment:2".into(),
+                    interpretation: "interpretation:2".into(),
+                    claim_ref: value.claim_ref.clone(),
+                    closure: CulturalArgumentationEvidenceClosureV1 {
+                        claim_ref: value.claim_ref.clone(),
+                        evidence_refs: vec!["e:2".into()],
+                        source_snapshots: vec!["source:1".into()],
+                        evidence_frontier: frontier.frontier_id.clone(),
+                    },
+                    assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+                    interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                    available_by: 1950,
+                },
+                CulturalArgumentationRefV2 {
+                    assessment: "assessment:1".into(),
+                    interpretation: "interpretation:1".into(),
+                    claim_ref: value.claim_ref.clone(),
+                    closure: CulturalArgumentationEvidenceClosureV1 {
+                        claim_ref: value.claim_ref.clone(),
+                        evidence_refs: vec!["e:1".into()],
+                        source_snapshots: vec!["source:1".into()],
+                        evidence_frontier: frontier.frontier_id.clone(),
+                    },
+                    assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+                    interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                    available_by: 1950,
+                },
+            ],
+        };
+        assert!(set.is_frontier_safe(&claim, &frontier));
+        set.canonicalize();
+        assert_eq!(set.alternatives.len(), 2);
+        assert_eq!(set.alternatives[0].assessment, "assessment:1".into());
+        assert_eq!(set.alternatives[1].assessment, "assessment:2".into());
+    }
+
+    #[test]
+    fn argumentation_set_rejects_duplicate_identity() {
+        let frontier = frontier();
+        let value = transmission();
+        let claim = canonical_claim(&value);
+        let argumentation = CulturalArgumentationRefV2 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            claim_ref: value.claim_ref.clone(),
+            closure: CulturalArgumentationEvidenceClosureV1 {
+                claim_ref: value.claim_ref.clone(),
+                evidence_refs: vec!["e:1".into()],
+                source_snapshots: vec!["source:1".into()],
+                evidence_frontier: frontier.frontier_id.clone(),
+            },
+            assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+            interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+            available_by: 1950,
+        };
+        let set = CulturalArgumentationSetV1 {
+            claim_ref: value.claim_ref.clone(),
+            evidence_frontier: frontier.frontier_id.clone(),
+            alternatives: vec![argumentation.clone(), argumentation],
+        };
+        assert!(!set.is_frontier_safe(&claim, &frontier));
+    }
+
 }
