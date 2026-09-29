@@ -158,7 +158,7 @@ impl TemporalProjectionRequestV1 {
             .iter()
             .map(|frontier| frontier.frontier_id.clone())
             .collect();
-        result.validate()?;
+        result.validate_against_frontier_chain(chain)?;
         Ok(result)
     }
 }
@@ -268,6 +268,31 @@ fn result_admissions(
 }
 
 impl TemporalProjectionSetV1 {
+    /// Validates the recorded lineage against the full frontier manifests.
+    ///
+    /// The compact path stored in a projection is not itself cryptographic
+    /// proof. This method verifies it against the supplied chain, including
+    /// manifest hashes and append-only inheritance.
+    pub fn validate_against_frontier_chain(
+        &self,
+        chain: &EvidenceFrontierChainV1,
+    ) -> Result<(), ProjectionError> {
+        chain.validate()?;
+        let expected_path = chain
+            .frontiers
+            .iter()
+            .map(|frontier| frontier.frontier_id.clone())
+            .collect::<Vec<_>>();
+        if self.frontier_lineage != expected_path
+            || chain
+                .current()
+                .is_none_or(|frontier| frontier.frontier_id != self.evidence_frontier.frontier_id)
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        self.validate()
+    }
+
     pub fn validate(&self) -> Result<(), ProjectionError> {
         if !self.map_epoch.is_valid() {
             return Err(ProjectionError::InvalidTimeInterval);
