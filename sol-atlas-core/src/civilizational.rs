@@ -363,11 +363,6 @@ impl ProjectionAuditV1 {
         if self.source_snapshots.is_empty() {
             return Err(ProjectionError::IrreversibleTransition);
         }
-        if matches!(self.projection, ProjectionRef::Transition(_))
-            && self.source_snapshots.is_empty()
-        {
-            return Err(ProjectionError::IrreversibleTransition);
-        }
         Ok(())
     }
 }
@@ -716,7 +711,7 @@ impl EvidenceFrontierV1 {
             && transition
                 .source_snapshots
                 .iter()
-                .all(|id| self.admitted_sources.contains(id))
+                .all(|id| self.admits_source(id))
     }
 
     fn admits_source(&self, source: &SourceSnapshotId) -> bool {
@@ -749,12 +744,16 @@ impl EvidenceFrontierV1 {
     /// including spatial evidence, is admitted by this frontier.
     pub fn admits_snapshot_evidence(&self, snapshot: &StateSnapshotV1) -> bool {
         snapshot
-            .geometries
+            .evidence_refs
             .iter()
-            .flat_map(|geometry| geometry.evidence.iter())
+            .chain(
+                snapshot
+                    .geometries
+                    .iter()
+                    .flat_map(|geometry| geometry.evidence.iter()),
+            )
             .all(|id| self.admits(id))
     }
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProjectionError {
@@ -787,7 +786,6 @@ mod tests {
             semantics,
             exact,
             evidence: vec!["evidence:1".into()],
-            source_metadata: vec![],
         }
     }
 
@@ -961,8 +959,9 @@ mod tests {
             manifest_hash: String::new(),
             admitted_evidence: ["evidence:old".into()].into_iter().collect(),
             admitted_sources: ["source:old".into()].into_iter().collect(),
-        
-        source_metadata: vec![],};
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+        };
         let mut value = transition();
         value.evidence_refs = vec!["evidence:old".into()];
         value.source_snapshots = vec!["source:later".into()];
@@ -982,8 +981,9 @@ mod tests {
             manifest_hash: String::new(),
             admitted_evidence: ["evidence:1".into()].into_iter().collect(),
             admitted_sources: ["source:1".into()].into_iter().collect(),
-        
-        source_metadata: vec![],};
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+        };
         assert!(frontier.admits_snapshot(&snapshot()));
 
         let mut later = snapshot();
