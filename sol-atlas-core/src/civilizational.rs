@@ -33,6 +33,7 @@ id_type!(EvidenceId);
 id_type!(SourceSnapshotId);
 id_type!(EvidenceFrontierId);
 id_type!(HypothesisId);
+id_type!(InterpretationId);
 id_type!(AssessmentId);
 id_type!(GeometryRef);
 
