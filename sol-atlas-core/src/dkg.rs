@@ -134,6 +134,7 @@ mod tests {
                 .map(Into::into)
                 .collect(),
             admitted_sources: ["source:1"].into_iter().map(Into::into).collect(),
+            evidence_metadata: vec![],
         }
     }
 
