@@ -984,7 +984,8 @@ mod tests {
     #[test]
     fn argumentation_temporal_metadata_blocks_late_interpretation() {
         let frontier = frontier();
-        let value = transmission();
+        let mut value = transmission();
+        value.assessment = Some("assessment:1".into());
         let claim = canonical_claim(&value);
         let argumentation = CulturalArgumentationRefV1 {
             assessment: "assessment:1".into(),
