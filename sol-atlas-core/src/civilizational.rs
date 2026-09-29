@@ -402,6 +402,7 @@ impl EvidenceFrontierV1 {
             .flat_map(|geometry| geometry.evidence.iter())
             .all(|id| self.admitted_evidence.contains(id))
     }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProjectionError {
