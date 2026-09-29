@@ -115,16 +115,19 @@ sol-atlas-core/src/cultural_systems.rs. It adds:
 
 - typed practice, tradition, community and transmission-event identifiers;
 - explicit transmission modes rather than an inferred generic edge;
+- CulturalEvidenceClosureV1 as the reusable claim/evidence/source/assessment/qualification/frontier boundary;
 - CulturalTransmissionV1 with bounded event time and complete evidence/source closure;
-- CanonicalClaimAdmissionV1 as a projection-side admission token for an externally owned canonical claim;
+- CulturalTransformationV1 with explicit transformation classes sharing the same closure boundary;
+- CanonicalClaimAdmissionV1 as a projection-side admission context for an externally owned canonical claim;
 - CommunityRecognitionV1 as a separate, evidence-backed participation/recognition dimension;
 - AccessPolicyV1 as stewardship metadata independent of epistemic qualification;
+- CulturalProjectionV1 as a renderer-neutral union of transmission and transformation projections;
 - CulturalProjectionAdmissionV1 as an explicit renderer-facing admission object;
 - CulturalProjectionAuditV1 as the reversible “why is this visible?” record, including community-recognition evidence and stewardship metadata.
 
 The important boundary is now executable:
 
-External canonical claim resolution -> claim/evidence/source admission -> temporal frontier -> cultural transmission projection.
+External canonical claim resolution -> reusable evidence closure -> temporal frontier -> cultural transmission/transformation projection.
 
 A transmission cannot be admitted merely because two entities are similar,
 nearby, co-occurring, or connected in a DKG. Community recognition and access
@@ -134,7 +137,7 @@ the evidence supporting the transmission claim itself.
 
 ## Architectural consequence
 
-The current civilizational work should not be discarded. Instead, State Formation becomes one projection over Cultural Systems, which becomes one projection over Civilizational Knowledge, with shared temporal, provenance, qualification, identity and evidence contracts.
+The current civilizational work should not be discarded. Instead, State Formation becomes one projection over Cultural Systems, which becomes one projection over Civilizational Knowledge, with shared temporal, provenance, qualification, identity and evidence contracts. The cultural layer now has a reusable transformation boundary rather than a transmission-only schema, so later language, knowledge, institutional and material-culture slices can compose the same admission machinery.
 
 The result is a temporally versioned, evidence-reversible map of how human knowledge, practices, institutions and communities change and interact.
 
