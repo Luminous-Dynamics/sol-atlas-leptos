@@ -498,10 +498,12 @@ impl CulturalProjectionAdmissionV1 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::civilizational::SourceSnapshotTemporalMetadataV1;
+    use crate::civilizational::{
+        EvidenceTemporalMetadataV1, SourceSnapshotTemporalMetadataV1,
+    };
 
     fn frontier() -> EvidenceFrontierV1 {
-        EvidenceFrontierV1 {
+        let mut frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1950".into(),
             known_by_year: 1950,
             parent_frontier: None,
@@ -512,9 +514,44 @@ mod tests {
                 .map(Into::into)
                 .collect(),
             admitted_sources: ["source:1"].into_iter().map(Into::into).collect(),
-            evidence_metadata: vec![],
-            source_metadata: vec![],
-        }
+            evidence_metadata: vec![
+                EvidenceTemporalMetadataV1 {
+                    evidence_id: "e:1".into(),
+                    source_snapshot: "source:1".into(),
+                    artifact_time: Some(1940),
+                    publication_time: Some(1941),
+                    capture_time: None,
+                    available_by: 1942,
+                    validity_time: Some(YearInterval { from: Some(1900), to: Some(1950) }),
+                },
+                EvidenceTemporalMetadataV1 {
+                    evidence_id: "e:2".into(),
+                    source_snapshot: "source:1".into(),
+                    artifact_time: Some(1945),
+                    publication_time: Some(1946),
+                    capture_time: None,
+                    available_by: 1947,
+                    validity_time: Some(YearInterval { from: Some(1900), to: Some(1950) }),
+                },
+                EvidenceTemporalMetadataV1 {
+                    evidence_id: "e:recognition".into(),
+                    source_snapshot: "source:1".into(),
+                    artifact_time: Some(1948),
+                    publication_time: Some(1949),
+                    capture_time: None,
+                    available_by: 1950,
+                    validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+                },
+            ],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:1".into(),
+                publication_time: Some(1941),
+                capture_time: None,
+                available_by: 1942,
+            }],
+        };
+        frontier.recompute_manifest_hash().expect("fixture hash");
+        frontier
     }
 
     fn canonical_claim(value: &CulturalTransmissionV1) -> CanonicalClaimAdmissionV1 {
@@ -633,6 +670,7 @@ mod tests {
             capture_time: None,
             available_by: 1951,
         }];
+        frontier.recompute_manifest_hash().expect("fixture hash");
         let value = transmission();
         assert!(!value.is_frontier_safe(&canonical_claim(&value), &frontier));
     }
