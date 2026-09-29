@@ -37,7 +37,7 @@ impl TemporalProjectionRequestV1 {
     /// temporal evidence manifest.
     pub fn validate_strict(&self) -> Result<(), ProjectionError> {
         self.validate()?;
-        self.evidence_frontier.validate_temporal_manifest()
+        self.evidence_frontier.validate_temporal_manifest_strict()
     }
 
     /// Validates that this request's selected frontier is the verified leaf of
@@ -47,7 +47,7 @@ impl TemporalProjectionRequestV1 {
         chain: &EvidenceFrontierChainV1,
     ) -> Result<(), ProjectionError> {
         self.validate()?;
-        chain.validate()?;
+        chain.validate_strict()?;
         if chain
             .current()
             .is_none_or(|frontier| frontier.frontier_id != self.evidence_frontier.frontier_id)
@@ -512,6 +512,12 @@ mod tests {
             available_by: 1939,
             validity_time: None,
         }];
+        root.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:archive".into(),
+            publication_time: Some(1939),
+            capture_time: None,
+            available_by: 1939,
+        }];
         root.recompute_manifest_hash().unwrap();
 
         let mut leaf = root.clone();
@@ -633,6 +639,12 @@ mod tests {
                 validity_time: None,
             },
         ];
+        request.evidence_frontier.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:archive".into(),
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+        }];
         request.evidence_frontier.recompute_manifest_hash().unwrap();
         assert_eq!(request.validate_strict(), Ok(()));
         let result = request
@@ -647,6 +659,126 @@ mod tests {
             )
             .unwrap();
         assert_eq!(result.snapshots.len(), 1);
+    }
+
+    #[test]
+    fn strict_manifest_rejects_missing_source_metadata() {
+        let mut frontier = frontier();
+        frontier.evidence_metadata = vec![
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:old".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
+            },
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:transition".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1945),
+                capture_time: None,
+                available_by: 1945,
+                validity_time: None,
+            },
+        ];
+        frontier.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            frontier.validate_temporal_manifest_strict(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn strict_manifest_rejects_late_source_metadata() {
+        let mut frontier = frontier();
+        frontier.evidence_metadata = vec![
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:old".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
+            },
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:transition".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1945),
+                capture_time: None,
+                available_by: 1945,
+                validity_time: None,
+            },
+        ];
+        frontier.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:archive".into(),
+            publication_time: Some(1951),
+            capture_time: None,
+            available_by: 1951,
+        }];
+        frontier.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            frontier.validate_temporal_manifest_strict(),
+            Err(ProjectionError::InvalidEvidenceTemporalMetadata)
+        );
+    }
+
+    #[test]
+    fn strict_manifest_accepts_complete_source_metadata() {
+        let mut frontier = frontier();
+        frontier.evidence_metadata = vec![
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:old".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
+            },
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:transition".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1945),
+                capture_time: None,
+                available_by: 1945,
+                validity_time: None,
+            },
+        ];
+        frontier.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:archive".into(),
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+        }];
+        frontier.recompute_manifest_hash().unwrap();
+        assert_eq!(frontier.validate_temporal_manifest_strict(), Ok(()));
+    }
+
+    #[test]
+    fn strict_chain_rejects_incomplete_source_metadata() {
+        let mut root = frontier();
+        root.evidence_metadata = vec![
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:old".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1939),
+                capture_time: None,
+                available_by: 1939,
+                validity_time: None,
+            },
+        ];
+        root.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            (EvidenceFrontierChainV1 { frontiers: vec![root] }).validate_strict(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
     }
 
     #[test]
