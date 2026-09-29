@@ -392,7 +392,16 @@ impl EvidenceFrontierV1 {
             && audit.evidence_refs.iter().all(|id| self.admitted_evidence.contains(id))
             && audit.source_snapshots.iter().all(|id| self.admitted_sources.contains(id))
     }
-}
+
+    /// Returns true when every evidence reference carried by a snapshot,
+    /// including spatial evidence, is admitted by this frontier.
+    pub fn admits_snapshot_evidence(&self, snapshot: &StateSnapshotV1) -> bool {
+        snapshot
+            .geometries
+            .iter()
+            .flat_map(|geometry| geometry.evidence.iter())
+            .all(|id| self.admitted_evidence.contains(id))
+    }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProjectionError {
