@@ -15,6 +15,7 @@ pub mod cultural_systems;
 pub mod ontology_mapping;
 pub mod ontology_context;
 pub mod projection_semantics;
+pub mod cultural_projection_audit_v3;
 pub mod dkg;
 pub mod temporal_projection;
 pub mod constants;
