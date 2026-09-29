@@ -413,6 +413,9 @@ mod tests {
         EvidenceFrontierV1 {
             frontier_id: "frontier:1949".into(),
             known_by_year: 1949,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
             admitted_evidence: ["e:old", "e:transition"].into_iter().map(Into::into).collect(),
             admitted_sources: ["source:archive"].into_iter().map(Into::into).collect(),
             evidence_metadata: vec![],
@@ -457,6 +460,7 @@ mod tests {
                 validity_time: None,
             },
         ];
+        request.evidence_frontier.recompute_manifest_hash().unwrap();
         assert_eq!(request.validate_strict(), Ok(()));
         let result = request
             .project_strict(
