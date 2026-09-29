@@ -403,6 +403,40 @@ pub struct EvidenceFrontierV1 {
     pub evidence_metadata: Vec<EvidenceTemporalMetadataV1>,
 }
 
+/// An ordered, verifiable lineage of temporal evidence frontiers.
+///
+/// The chain is deliberately supplied as an explicit sequence: a frontier stores only
+/// its parent's stable ID and cannot dereference repository state by itself.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceFrontierChainV1 {
+    pub frontiers: Vec<EvidenceFrontierV1>,
+}
+
+impl EvidenceFrontierChainV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if self.frontiers.is_empty() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        if self.frontiers[0].parent_frontier.is_some() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        self.frontiers[0].validate_temporal_manifest()?;
+
+        for pair in self.frontiers.windows(2) {
+            let parent = &pair[0];
+            let child = &pair[1];
+            child.validate_extension_of(parent)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn current(&self) -> Option<&EvidenceFrontierV1> {
+        self.frontiers.last()
+    }
+}
+
 impl EvidenceFrontierV1 {
     /// Computes the content hash for the frontier admission manifest.
     pub fn computed_manifest_hash(&self) -> Result<String, ProjectionError> {
@@ -872,6 +906,125 @@ mod tests {
         let audit = ProjectionAuditV1::for_snapshot(&snapshot());
         assert!(audit.claim_refs.contains(&"claim:relation".into()));
         assert!(audit.claim_refs.contains(&"claim:qualification".into()));
+    }
+
+    #[test]
+    fn frontier_chain_validates_transitive_append_only_lineage() {
+        let metadata = |evidence_id: &str, source: &str, year: i32| {
+            EvidenceTemporalMetadataV1 {
+                evidence_id: evidence_id.into(),
+                source_snapshot: source.into(),
+                artifact_time: None,
+                publication_time: Some(year),
+                capture_time: None,
+                available_by: year,
+                validity_time: None,
+            }
+        };
+
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata("evidence:a", "source:a", 1900)],
+        };
+        root.recompute_manifest_hash().unwrap();
+
+        let mut middle = EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: Some(root.frontier_id.clone()),
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into(), "evidence:b".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
+            evidence_metadata: vec![
+                metadata("evidence:a", "source:a", 1900),
+                metadata("evidence:b", "source:b", 1950),
+            ],
+        };
+        middle.recompute_manifest_hash().unwrap();
+
+        let mut current = EvidenceFrontierV1 {
+            frontier_id: "frontier:2000".into(),
+            known_by_year: 2000,
+            parent_frontier: Some(middle.frontier_id.clone()),
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: [
+                "evidence:a".into(),
+                "evidence:b".into(),
+                "evidence:c".into(),
+            ]
+            .into_iter()
+            .collect(),
+            admitted_sources: ["source:a".into(), "source:b".into(), "source:c".into()]
+                .into_iter()
+                .collect(),
+            evidence_metadata: vec![
+                metadata("evidence:a", "source:a", 1900),
+                metadata("evidence:b", "source:b", 1950),
+                metadata("evidence:c", "source:c", 2000),
+            ],
+        };
+        current.recompute_manifest_hash().unwrap();
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, middle, current],
+        };
+        assert_eq!(chain.validate(), Ok(()));
+        assert_eq!(chain.current().unwrap().frontier_id, "frontier:2000".into());
+    }
+
+    #[test]
+    fn frontier_chain_rejects_rewritten_ancestor() {
+        let metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:a".into(),
+            source_snapshot: "source:a".into(),
+            artifact_time: None,
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata.clone()],
+        };
+        root.recompute_manifest_hash().unwrap();
+
+        let mut child = EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: Some(root.frontier_id.clone()),
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata],
+        };
+        child.recompute_manifest_hash().unwrap();
+
+        root.policy_version = "rewritten".into();
+        root.recompute_manifest_hash().unwrap();
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, child],
+        };
+        assert_eq!(
+            chain.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
     }
 
     #[test]
