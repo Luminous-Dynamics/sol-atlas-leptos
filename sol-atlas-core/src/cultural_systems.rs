@@ -36,6 +36,40 @@ cultural_id!(TraditionId);
 cultural_id!(CommunityId);
 cultural_id!(TransmissionEventId);
 
+/// Projection-side proof that an external canonical-claim adapter resolved the
+/// referenced claim and its evidence/source closure. Sol Atlas stores the
+/// reference and admission context; it does not own the canonical claim.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CanonicalClaimAdmissionV1 {
+    pub claim_ref: ClaimId,
+    pub evidence_refs: Vec<EvidenceId>,
+    pub source_snapshots: Vec<SourceSnapshotId>,
+    pub qualification: QualificationStatus,
+    pub evidence_frontier: EvidenceFrontierId,
+}
+
+impl CanonicalClaimAdmissionV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.claim_ref.is_valid()
+            || self.evidence_refs.is_empty()
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.is_empty()
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || !self.evidence_frontier.is_valid()
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        Ok(())
+    }
+
+    pub fn is_frontier_safe(&self, frontier: &EvidenceFrontierV1) -> bool {
+        self.validate().is_ok()
+            && self.evidence_frontier == frontier.frontier_id
+            && self.evidence_refs.iter().all(|id| frontier.admits(id))
+            && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
+    }
+}
+
 /// A documented mechanism by which a practice, technique, concept, or tradition
 /// may have moved between social or geographic contexts. The enum describes the
 /// asserted mechanism; it does not establish that the mechanism occurred.
@@ -145,12 +179,19 @@ impl CulturalTransmissionV1 {
     /// Admission is intentionally stronger than structural validation:
     /// the canonical claim and its complete evidence/source closure must be
     /// represented, and every referenced object must be in the same frontier.
-    pub fn is_frontier_safe(&self, frontier: &EvidenceFrontierV1) -> bool {
+    pub fn is_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> bool {
         self.validate().is_ok()
+            && claim.validate().is_ok()
+            && claim.claim_ref == self.claim_ref
+            && claim.evidence_refs == self.evidence_refs
+            && claim.source_snapshots == self.source_snapshots
+            && claim.qualification == self.qualification
+            && claim.is_frontier_safe(frontier)
             && self.evidence_frontier == frontier.frontier_id
-            && frontier.admits(&self.evidence_refs[0])
-            && self.evidence_refs.iter().all(|id| frontier.admits(id))
-            && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
             && self
                 .community_recognition
                 .iter()
@@ -176,8 +217,9 @@ impl CulturalProjectionAdmissionV1 {
     pub fn from_transmission(
         transmission: &CulturalTransmissionV1,
         frontier: &EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
     ) -> Option<Self> {
-        if !transmission.is_frontier_safe(frontier) {
+        if !transmission.is_frontier_safe(claim, frontier) {
             return None;
         }
 
@@ -229,6 +271,16 @@ mod tests {
         }
     }
 
+    fn canonical_claim(value: &CulturalTransmissionV1) -> CanonicalClaimAdmissionV1 {
+        CanonicalClaimAdmissionV1 {
+            claim_ref: value.claim_ref.clone(),
+            evidence_refs: value.evidence_refs.clone(),
+            source_snapshots: value.source_snapshots.clone(),
+            qualification: value.qualification,
+            evidence_frontier: value.evidence_frontier.clone(),
+        }
+    }
+
     fn transmission() -> CulturalTransmissionV1 {
         CulturalTransmissionV1 {
             transmission_id: "transmission:1".into(),
@@ -268,13 +320,28 @@ mod tests {
     }
 
     #[test]
+    fn canonical_claim_resolution_is_required() {
+        let frontier = frontier();
+        let value = transmission();
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:wrong".into(),
+            evidence_refs: value.evidence_refs.clone(),
+            source_snapshots: value.source_snapshots.clone(),
+            qualification: value.qualification,
+            evidence_frontier: value.evidence_frontier.clone(),
+        };
+        assert!(!value.is_frontier_safe(&claim, &frontier));
+    }
+
+    #[test]
     fn frontier_blocks_late_transmission_evidence() {
         let frontier = frontier();
         let mut value = transmission();
-        assert!(value.is_frontier_safe(&frontier));
+        let claim = canonical_claim(&value);
+        assert!(value.is_frontier_safe(&claim, &frontier));
 
         value.evidence_refs.push("e:later".into());
-        assert!(!value.is_frontier_safe(&frontier));
+        assert!(!value.is_frontier_safe(&claim, &frontier));
     }
 
     #[test]
@@ -295,7 +362,9 @@ mod tests {
         let mut value = transmission();
         value.qualification = QualificationStatus::Speculative;
 
-        let admission = CulturalProjectionAdmissionV1::from_transmission(&value, &frontier).unwrap();
+        let claim = canonical_claim(&value);
+        let admission =
+            CulturalProjectionAdmissionV1::from_transmission(&value, &frontier, &claim).unwrap();
 
         assert_eq!(admission.qualification, QualificationStatus::Speculative);
         assert_eq!(admission.access_policy, AccessPolicyV1::CommunityRestricted);
@@ -307,7 +376,12 @@ mod tests {
         let mut value = transmission();
         value.access_policy = AccessPolicyV1::Public;
         let public_admission =
-            CulturalProjectionAdmissionV1::from_transmission(&value, &frontier).unwrap();
+            CulturalProjectionAdmissionV1::from_transmission(
+                &value,
+                &frontier,
+                &canonical_claim(&value),
+            )
+            .unwrap();
 
         value.access_policy = AccessPolicyV1::SacredOrRestricted;
         let restricted_admission =
@@ -319,8 +393,13 @@ mod tests {
     #[test]
     fn admission_is_explicit_and_reversible() {
         let frontier = frontier();
-        let admission =
-            CulturalProjectionAdmissionV1::from_transmission(&transmission(), &frontier).unwrap();
+        let value = transmission();
+        let admission = CulturalProjectionAdmissionV1::from_transmission(
+            &value,
+            &frontier,
+            &canonical_claim(&value),
+        )
+        .unwrap();
 
         assert!(admission.validate().is_ok());
         assert_eq!(admission.claim_ref, "claim:1".into());
