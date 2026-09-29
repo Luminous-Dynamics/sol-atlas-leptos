@@ -136,3 +136,63 @@ mod tests {
         assert_eq!(projection.claim_kind, ClaimKind::Hypothesis);
     }
 }
+
+
+/// URL-addressable research state for the terminal projection.
+///
+/// This is intentionally a view/query contract, not a semantic authority.
+/// Mycelix remains responsible for resolving the referenced frontier, claim,
+/// evidence and derivation before Atlas renders them.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct TerminalQueryV1 {
+    pub entity_ref: Option<String>,
+    pub claim_ref: Option<String>,
+    pub frontier_ref: Option<String>,
+    pub view: TerminalView,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum TerminalView {
+    #[default]
+    Evidence,
+    Lineage,
+    Research,
+}
+
+impl TerminalView {
+    pub fn parse(value: Option<&str>) -> Self {
+        match value {
+            Some("lineage") => Self::Lineage,
+            Some("research") => Self::Research,
+            _ => Self::Evidence,
+        }
+    }
+
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Evidence => "evidence",
+            Self::Lineage => "lineage",
+            Self::Research => "research",
+        }
+    }
+}
+
+impl TerminalQueryV1 {
+    pub fn from_url_parts(
+        entity_ref: Option<String>,
+        claim_ref: Option<String>,
+        frontier_ref: Option<String>,
+        view: Option<String>,
+    ) -> Self {
+        Self {
+            entity_ref,
+            claim_ref,
+            frontier_ref,
+            view: TerminalView::parse(view.as_deref()),
+        }
+    }
+
+    pub fn is_replayable(&self) -> bool {
+        self.entity_ref.is_some() && self.frontier_ref.is_some()
+    }
+}
