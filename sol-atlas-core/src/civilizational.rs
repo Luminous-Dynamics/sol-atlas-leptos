@@ -406,6 +406,8 @@ pub enum ProjectionError {
     TransitionWithoutParticipants,
     IrreversibleTransition,
     AuditWithoutEvidencePath,
+    InvalidSnapshot,
+    InvalidTransition,
 }
 
 #[cfg(test)]
