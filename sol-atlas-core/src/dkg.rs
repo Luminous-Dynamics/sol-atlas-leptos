@@ -127,6 +127,7 @@ impl DkgProjectionAdmissionV1 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::civilizational::SourceSnapshotTemporalMetadataV1;
 
     fn frontier() -> EvidenceFrontierV1 {
         EvidenceFrontierV1 {
