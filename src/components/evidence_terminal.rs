@@ -75,7 +75,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
 
                     <div class="evidence-card hypothesis">
                         <div class="card-head">
-                            <span>"SY MTHAEA CANDIDATE"</span>
+                            <span>"SYMTHAEA CANDIDATE"</span>
                             <span class="mono">"hypothesis:sym:91e2"</span>
                         </div>
                         <h3>"A supply-side transition may explain part of the observed change."</h3>
@@ -127,7 +127,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                     </section>
 
                     <section class="terminal-section research-panel">
-                        <div class="section-title"><span>"SY MTHAEA RESEARCH"</span><span class="status-note">"CANDIDATE"</span></div>
+                        <div class="section-title"><span>"SYMTHAEA RESEARCH"</span><span class="status-note">"CANDIDATE"</span></div>
                         <p>"Competing explanations, missing information, scenarios and forecasts will enter here through a typed ResearchResult boundary."</p>
                         <button class="text-action">"Show information gaps →"</button>
                     </section>
