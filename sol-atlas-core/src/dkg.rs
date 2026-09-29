@@ -90,6 +90,8 @@ pub struct DkgProjectionAdmissionV1 {
     pub evidence_refs: Vec<EvidenceId>,
     pub source_snapshots: Vec<SourceSnapshotId>,
     pub evidence_frontier: EvidenceFrontierId,
+    /// Preserve the source statement's qualification; admission never upgrades it.
+    pub qualification: QualificationStatus,
 }
 
 impl DkgProjectionAdmissionV1 {
@@ -107,6 +109,7 @@ impl DkgProjectionAdmissionV1 {
             evidence_refs: statement.evidence_refs.clone(),
             source_snapshots: statement.source_snapshots.clone(),
             evidence_frontier: frontier.frontier_id.clone(),
+            qualification: statement.qualification,
         })
     }
 
@@ -196,6 +199,7 @@ mod tests {
         assert_eq!(admission.claim_ref, "claim:1".into());
         assert_eq!(admission.record.record_id, "record:1");
         assert_eq!(admission.evidence_frontier, "frontier:1950".into());
+        assert_eq!(admission.qualification, QualificationStatus::Supported);
     }
 
     #[test]
