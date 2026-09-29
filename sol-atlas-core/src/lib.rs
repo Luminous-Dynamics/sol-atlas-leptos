@@ -13,6 +13,7 @@ pub mod confluence;
 pub mod civilizational;
 pub mod cultural_systems;
 pub mod ontology_mapping;
+pub mod ontology_context;
 pub mod dkg;
 pub mod temporal_projection;
 pub mod constants;
