@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::civilizational::{ClaimId, EvidenceFrontierId, ProjectionError, QualificationStatus};
-use crate::cultural_systems::{CulturalProjectionAuditV2, CulturalProjectionIdV1};
+use crate::cultural_systems::{CanonicalClaimAdmissionV1, CulturalProjectionAuditV2, CulturalProjectionIdV1};
 use crate::ontology_resolution::OntologyMappingResolutionV1;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
