@@ -10,7 +10,7 @@
 
 use crate::civilizational::{
     EvidenceFrontierV1, HistoricalTransitionV1, ProjectionAuditV1, ProjectionError, ProjectionRef,
-    StateSnapshotV1, YearInterval,
+    SnapshotId, StateSnapshotV1, TransitionId, YearInterval,
 };
 use serde::{Deserialize, Serialize};
 
@@ -117,7 +117,7 @@ impl TemporalProjectionSetV1 {
             {
                 return Err(ProjectionError::InvalidSnapshot);
             }
-            if previous_snapshot.as_ref().is_some_and(|id: &crate::civilizational::SnapshotId| {
+            if previous_snapshot.as_ref().is_some_and(|id: &SnapshotId| {
                 id >= &snapshot.snapshot_id
             }) {
                 return Err(ProjectionError::InvalidSnapshot);
@@ -135,7 +135,7 @@ impl TemporalProjectionSetV1 {
             {
                 return Err(ProjectionError::InvalidTransition);
             }
-            if previous_transition.as_ref().is_some_and(|id: &crate::civilizational::TransitionId| {
+            if previous_transition.as_ref().is_some_and(|id: &TransitionId| {
                 id >= &transition.transition_id
             }) {
                 return Err(ProjectionError::InvalidTransition);
