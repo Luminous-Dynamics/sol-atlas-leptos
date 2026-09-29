@@ -714,7 +714,7 @@ impl EvidenceFrontierV1 {
                 .all(|id| self.admits_source(id))
     }
 
-    fn admits_source(&self, source: &SourceSnapshotId) -> bool {
+    pub(crate) fn admits_source(&self, source: &SourceSnapshotId) -> bool {
         if !self.admitted_sources.contains(source) {
             return false;
         }
