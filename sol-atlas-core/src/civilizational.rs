@@ -159,14 +159,12 @@ impl StateSnapshotV1 {
         if self.evidence_refs.is_empty() || self.source_snapshots.is_empty() {
             return Err(ProjectionError::IrreversibleTransition);
         }
-        if self
-            .evidence_refs
-            .iter()
-            .any(|id| !id.is_valid())
-            || self
-                .source_snapshots
-                .iter()
-                .any(|id| !id.is_valid())
+        if self.relation_refs.iter().any(|id| !id.is_valid())
+            || self.qualification.claim_refs.iter().any(|id| !id.is_valid())
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || self.institution_refs.iter().any(|id| !id.is_valid())
+            || self.constitutional_refs.iter().any(|id| !id.is_valid())
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -176,6 +174,12 @@ impl StateSnapshotV1 {
             }
             if geometry.evidence.is_empty() {
                 return Err(ProjectionError::GeometryWithoutEvidence);
+            }
+            if geometry.evidence.iter().any(|id| !id.is_valid()) {
+                return Err(ProjectionError::EmptyIdentifier);
+            }
+            if geometry.evidence.iter().any(|id| !id.is_valid()) {
+                return Err(ProjectionError::EmptyIdentifier);
             }
             if !geometry.exact && geometry.semantics != SpatialSemantics::ApproximateExtent {
                 return Err(ProjectionError::ApproximateGeometryMislabelled);
@@ -230,6 +234,14 @@ impl HistoricalTransitionV1 {
         }
         if self.claim_refs.is_empty() || self.evidence_refs.is_empty() || self.source_snapshots.is_empty() {
             return Err(ProjectionError::IrreversibleTransition);
+        }
+        if self.claim_refs.iter().any(|id| !id.is_valid())
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || self.competing_hypotheses.iter().any(|id| !id.is_valid())
+            || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
+        {
+            return Err(ProjectionError::EmptyIdentifier);
         }
         for geometry in &self.spatial_scope {
             if geometry.evidence.is_empty() {
