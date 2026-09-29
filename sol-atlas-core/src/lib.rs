@@ -11,6 +11,7 @@
 pub mod aesthetics;
 pub mod confluence;
 pub mod civilizational;
+pub mod temporal_projection;
 pub mod constants;
 pub mod data;
 pub mod economics;
