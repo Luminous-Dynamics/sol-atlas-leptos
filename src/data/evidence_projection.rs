@@ -135,6 +135,40 @@ mod tests {
         projection.claim_kind = ClaimKind::Hypothesis;
         assert_eq!(projection.claim_kind, ClaimKind::Hypothesis);
     }
+
+    #[test]
+    fn terminal_query_preserves_replay_identity() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("claim:obs:7f31".into()),
+            Some("ef:demo:9d7b".into()),
+            Some("evidence".into()),
+        );
+        assert!(query.is_replayable());
+        assert_eq!(query.view, TerminalView::Evidence);
+    }
+
+    #[test]
+    fn terminal_query_defaults_unknown_views_to_evidence() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            None,
+            Some("ef:demo:9d7b".into()),
+            Some("future-ui".into()),
+        );
+        assert_eq!(query.view, TerminalView::Evidence);
+    }
+
+    #[test]
+    fn terminal_query_is_not_replayable_without_frontier() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            None,
+            None,
+            None,
+        );
+        assert!(!query.is_replayable());
+    }
 }
 
 
