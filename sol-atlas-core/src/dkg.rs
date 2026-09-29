@@ -77,7 +77,7 @@ impl DkgStatementV1 {
             && self
                 .source_snapshots
                 .iter()
-                .all(|id| frontier.admitted_sources.contains(id))
+                .all(|id| frontier.admits_source(id))
     }
 }
 
