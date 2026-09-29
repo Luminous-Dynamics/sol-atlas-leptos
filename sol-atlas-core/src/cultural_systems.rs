@@ -199,6 +199,79 @@ impl CulturalTransmissionV1 {
     }
 }
 
+/// Projection-level "why is this visible?" record for a cultural
+/// transmission. It intentionally contains no causal conclusion beyond the
+/// externally resolved canonical claim reference.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CulturalProjectionAuditV1 {
+    pub transmission_id: TransmissionEventId,
+    pub claim_ref: ClaimId,
+    pub evidence_refs: Vec<EvidenceId>,
+    pub source_snapshots: Vec<SourceSnapshotId>,
+    pub community_recognition_evidence: Vec<EvidenceId>,
+    pub assessment: Option<AssessmentId>,
+    pub event_time: YearInterval,
+    pub qualification: QualificationStatus,
+    pub access_policy: AccessPolicyV1,
+    pub evidence_frontier: EvidenceFrontierId,
+}
+
+impl CulturalProjectionAuditV1 {
+    pub fn from_transmission(transmission: &CulturalTransmissionV1) -> Self {
+        let community_recognition_evidence = transmission
+            .community_recognition
+            .iter()
+            .flat_map(|recognition| recognition.evidence_refs.iter().cloned())
+            .collect();
+
+        Self {
+            transmission_id: transmission.transmission_id.clone(),
+            claim_ref: transmission.claim_ref.clone(),
+            evidence_refs: transmission.evidence_refs.clone(),
+            source_snapshots: transmission.source_snapshots.clone(),
+            community_recognition_evidence,
+            assessment: transmission.assessment.clone(),
+            event_time: transmission.event_time,
+            qualification: transmission.qualification,
+            access_policy: transmission.access_policy,
+            evidence_frontier: transmission.evidence_frontier.clone(),
+        }
+    }
+
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.transmission_id.is_valid()
+            || !self.claim_ref.is_valid()
+            || self.evidence_refs.is_empty()
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.is_empty()
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || self
+                .community_recognition_evidence
+                .iter()
+                .any(|id| !id.is_valid())
+            || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
+            || !self.evidence_frontier.is_valid()
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if !self.event_time.is_valid() {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        Ok(())
+    }
+
+    pub fn is_frontier_safe(&self, frontier: &EvidenceFrontierV1) -> bool {
+        self.validate().is_ok()
+            && self.evidence_frontier == frontier.frontier_id
+            && self.evidence_refs.iter().all(|id| frontier.admits(id))
+            && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
+            && self
+                .community_recognition_evidence
+                .iter()
+                .all(|id| frontier.admits(id))
+    }
+}
+
 /// Explicit projection admission. Keeping this separate prevents a renderer
 /// from treating a raw cultural assertion as admitted merely because it has
 /// a useful-looking graph edge.
@@ -393,6 +466,32 @@ mod tests {
         .unwrap();
 
         assert_eq!(public_admission.qualification, restricted_admission.qualification);
+    }
+
+    #[test]
+    #[test]
+    fn audit_preserves_the_full_reversibility_path() {
+        let value = transmission();
+        let audit = CulturalProjectionAuditV1::from_transmission(&value);
+        assert!(audit.validate().is_ok());
+        assert_eq!(audit.claim_ref, value.claim_ref);
+        assert_eq!(audit.evidence_refs, value.evidence_refs);
+        assert_eq!(audit.source_snapshots, value.source_snapshots);
+        assert_eq!(
+            audit.community_recognition_evidence,
+            vec!["e:recognition".into()]
+        );
+        assert_eq!(audit.qualification, value.qualification);
+        assert_eq!(audit.access_policy, value.access_policy);
+    }
+
+    #[test]
+    fn audit_blocks_unadmitted_community_evidence() {
+        let frontier = frontier();
+        let value = transmission();
+        let mut audit = CulturalProjectionAuditV1::from_transmission(&value);
+        audit.community_recognition_evidence.push("e:late".into());
+        assert!(!audit.is_frontier_safe(&frontier));
     }
 
     #[test]
