@@ -36,9 +36,9 @@ cultural_id!(TraditionId);
 cultural_id!(CommunityId);
 cultural_id!(TransmissionEventId);
 
-/// Projection-side proof that an external canonical-claim adapter resolved the
-/// referenced claim and its evidence/source closure. Sol Atlas stores the
-/// reference and admission context; it does not own the canonical claim.
+/// Projection-side resolution context produced by an external canonical-claim
+/// adapter. Sol Atlas stores the referenced claim, evidence/source closure and
+/// frontier context; it does not own or authenticate the canonical claim.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CanonicalClaimAdmissionV1 {
     pub claim_ref: ClaimId,
@@ -126,6 +126,17 @@ pub struct CulturalTransformationV1 {
 }
 
 impl CulturalTransformationV1 {
+    pub fn evidence_closure(&self) -> CulturalEvidenceClosureV1 {
+        CulturalEvidenceClosureV1 {
+            claim_ref: self.claim_ref.clone(),
+            evidence_refs: self.evidence_refs.clone(),
+            source_snapshots: self.source_snapshots.clone(),
+            assessment: self.assessment.clone(),
+            qualification: self.qualification,
+            evidence_frontier: self.evidence_frontier.clone(),
+        }
+    }
+
     pub fn validate(&self) -> Result<(), ProjectionError> {
         if !self.transformation_id.is_valid()
             || !self.source.is_valid()
@@ -155,14 +166,7 @@ impl CulturalTransformationV1 {
         frontier: &EvidenceFrontierV1,
     ) -> bool {
         self.validate().is_ok()
-            && frontier.validate_temporal_manifest_strict().is_ok()
-            && claim.validate().is_ok()
-            && claim.claim_ref == self.claim_ref
-            && claim.evidence_refs == self.evidence_refs
-            && claim.source_snapshots == self.source_snapshots
-            && claim.qualification == self.qualification
-            && claim.is_frontier_safe(frontier)
-            && self.evidence_frontier == frontier.frontier_id
+            && self.evidence_closure().is_frontier_safe(claim, frontier)
             && self
                 .community_recognition
                 .iter()
@@ -295,6 +299,50 @@ pub struct CulturalTransmissionV1 {
 }
 
 impl CulturalTransmissionV1 {
+    /// Materializes the reusable claim/evidence/source closure carried by this
+    /// projection. Keeping this conversion centralized prevents future cultural
+    /// projection types from implementing subtly different closure semantics.
+    pub fn evidence_closure(&self) -> CulturalEvidenceClosureV1 {
+        CulturalEvidenceClosureV1 {
+            claim_ref: self.claim_ref.clone(),
+            evidence_refs: self.evidence_refs.clone(),
+            source_snapshots: self.source_snapshots.clone(),
+            assessment: self.assessment.clone(),
+            qualification: self.qualification,
+            evidence_frontier: self.evidence_frontier.clone(),
+        }
+    }
+
+    /// Generic admission constructor shared by all cultural projection variants.
+    pub fn from_projection(
+        projection: &CulturalProjectionV1,
+        frontier: &EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Option<Self> {
+        if !projection.is_frontier_safe(claim, frontier) {
+            return None;
+        }
+
+        let closure = projection.evidence_closure();
+        let transmission_id = match projection {
+            CulturalProjectionV1::Transmission(value) => value.transmission_id.clone(),
+            CulturalProjectionV1::Transformation(value) => value.transformation_id.clone(),
+        };
+
+        Some(Self {
+            transmission_id,
+            claim_ref: closure.claim_ref,
+            evidence_refs: closure.evidence_refs,
+            source_snapshots: closure.source_snapshots,
+            evidence_frontier: closure.evidence_frontier,
+            qualification: closure.qualification,
+            access_policy: match projection {
+                CulturalProjectionV1::Transmission(value) => value.access_policy,
+                CulturalProjectionV1::Transformation(value) => value.access_policy,
+            },
+        })
+    }
+
     pub fn validate(&self) -> Result<(), ProjectionError> {
         if !self.transmission_id.is_valid()
             || !self.source.is_valid()
@@ -327,13 +375,7 @@ impl CulturalTransmissionV1 {
         frontier: &EvidenceFrontierV1,
     ) -> bool {
         self.validate().is_ok()
-            && claim.validate().is_ok()
-            && claim.claim_ref == self.claim_ref
-            && claim.evidence_refs == self.evidence_refs
-            && claim.source_snapshots == self.source_snapshots
-            && claim.qualification == self.qualification
-            && claim.is_frontier_safe(frontier)
-            && self.evidence_frontier == frontier.frontier_id
+            && self.evidence_closure().is_frontier_safe(claim, frontier)
             && self
                 .community_recognition
                 .iter()
@@ -352,6 +394,13 @@ pub enum CulturalProjectionV1 {
 }
 
 impl CulturalProjectionV1 {
+    pub fn evidence_closure(&self) -> CulturalEvidenceClosureV1 {
+        match self {
+            Self::Transmission(value) => value.evidence_closure(),
+            Self::Transformation(value) => value.evidence_closure(),
+        }
+    }
+
     pub fn validate(&self) -> Result<(), ProjectionError> {
         match self {
             Self::Transmission(value) => value.validate(),
@@ -460,6 +509,9 @@ pub struct CulturalProjectionAdmissionV1 {
 }
 
 impl CulturalProjectionAdmissionV1 {
+    /// Creates the legacy transmission-shaped admission record. New consumers
+    /// should prefer the generic projection union when they need both relation
+    /// classes.
     pub fn from_transmission(
         transmission: &CulturalTransmissionV1,
         frontier: &EvidenceFrontierV1,
@@ -623,6 +675,23 @@ mod tests {
         };
         assert!(value.is_frontier_safe(&canonical_claim_for_parts(&value), &frontier));
         assert!(CulturalProjectionV1::Transformation(value).validate().is_ok());
+    }
+
+    #[test]
+    fn generic_projection_admission_uses_shared_evidence_closure() {
+        let frontier = frontier();
+        let transmission = transmission();
+        let projection = CulturalProjectionV1::Transmission(transmission.clone());
+        let admission = CulturalProjectionAdmissionV1::from_projection(
+            &projection,
+            &frontier,
+            &canonical_claim(&transmission),
+        )
+        .expect("frontier-safe projection");
+
+        assert_eq!(admission.claim_ref, "claim:1".into());
+        assert_eq!(admission.evidence_refs, vec!["e:1".into(), "e:2".into()]);
+        assert_eq!(admission.source_snapshots, vec!["source:1".into()]);
     }
 
     #[test]
