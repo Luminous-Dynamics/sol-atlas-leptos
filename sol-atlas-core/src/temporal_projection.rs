@@ -150,6 +150,7 @@ impl ProjectionAdmissionV1 {
             evidence_frontier: frontier.frontier_id.clone(),
             admitted_evidence,
             admitted_sources: Vec::new(),
+            evidence_metadata: vec![],
         }
     }
 
@@ -174,6 +175,7 @@ impl ProjectionAdmissionV1 {
             evidence_frontier: frontier.frontier_id.clone(),
             admitted_evidence,
             admitted_sources: transition.source_snapshots.clone(),
+            evidence_metadata: vec![],
         }
     }
 }
@@ -396,6 +398,7 @@ mod tests {
             known_by_year: 1949,
             admitted_evidence: ["e:old", "e:transition"].into_iter().map(Into::into).collect(),
             admitted_sources: ["source:archive"].into_iter().map(Into::into).collect(),
+            evidence_metadata: vec![],
         }
     }
 
