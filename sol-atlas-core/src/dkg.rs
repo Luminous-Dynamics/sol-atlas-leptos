@@ -106,7 +106,7 @@ impl DkgProjectionAdmissionV1 {
             claim_ref: statement.claim_ref.clone(),
             evidence_refs: statement.evidence_refs.clone(),
             source_snapshots: statement.source_snapshots.clone(),
-            evidence_frontier: frontier.frontier_id.0.clone(),
+            evidence_frontier: frontier.frontier_id.clone(),
         })
     }
 
@@ -117,7 +117,7 @@ impl DkgProjectionAdmissionV1 {
             && self.evidence_refs.iter().all(|id| id.is_valid())
             && !self.source_snapshots.is_empty()
             && self.source_snapshots.iter().all(|id| id.is_valid())
-            && !self.evidence_frontier.trim().is_empty()
+            && self.evidence_frontier.is_valid()
     }
 }
 
@@ -129,6 +129,9 @@ mod tests {
         EvidenceFrontierV1 {
             frontier_id: "frontier:1950".into(),
             known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
             admitted_evidence: ["e:1", "e:2"]
                 .into_iter()
                 .map(Into::into)
