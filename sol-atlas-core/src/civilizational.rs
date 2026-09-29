@@ -1016,6 +1016,7 @@ mod tests {
             }],
             source_metadata: vec![],
             argumentation_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         assert_eq!(frontier.validate_temporal_manifest(), Ok(()));
         assert!(frontier.admits(&"evidence:old".into()));
@@ -1042,6 +1043,7 @@ mod tests {
                 validity_time: None,
             }],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         assert_eq!(frontier.validate_temporal_manifest(), Err(ProjectionError::LaterEvidenceInFrontier));
         assert!(!frontier.admits(&"evidence:later".into()));
@@ -1059,6 +1061,7 @@ mod tests {
             admitted_sources: ["source:old".into()].into_iter().collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         assert!(frontier.admits(&"evidence:old".into()));
         assert!(!frontier.admits(&"evidence:discovered-later".into()));
@@ -1076,6 +1079,7 @@ mod tests {
             admitted_sources: ["source:old".into()].into_iter().collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         let mut value = transition();
         value.evidence_refs = vec!["evidence:old".into()];
@@ -1098,6 +1102,7 @@ mod tests {
             admitted_sources: ["source:1".into()].into_iter().collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         assert!(frontier.admits_snapshot(&snapshot()));
 
@@ -1123,6 +1128,7 @@ mod tests {
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
 
         let snapshot_audit = ProjectionAuditV1::for_snapshot(&snapshot());
@@ -1159,6 +1165,7 @@ mod tests {
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         let mut audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
         audit.source_snapshots.clear();
@@ -1177,6 +1184,7 @@ mod tests {
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         let audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
         assert!(!frontier.admits_audit(&audit));
@@ -1213,6 +1221,7 @@ mod tests {
             admitted_sources: ["source:a".into()].into_iter().collect(),
             evidence_metadata: vec![metadata("evidence:a", "source:a", 1900)],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         root.recompute_manifest_hash().unwrap();
 
@@ -1226,10 +1235,12 @@ mod tests {
             admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
             evidence_metadata: vec![
             source_metadata: vec![],
+            argumentation_metadata: vec![],
                 metadata("evidence:a", "source:a", 1900),
                 metadata("evidence:b", "source:b", 1950),
             ],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         middle.recompute_manifest_hash().unwrap();
 
@@ -1251,11 +1262,13 @@ mod tests {
                 .collect(),
             evidence_metadata: vec![
             source_metadata: vec![],
+            argumentation_metadata: vec![],
                 metadata("evidence:a", "source:a", 1900),
                 metadata("evidence:b", "source:b", 1950),
                 metadata("evidence:c", "source:c", 2000),
             ],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         current.recompute_manifest_hash().unwrap();
 
@@ -1287,6 +1300,7 @@ mod tests {
             admitted_sources: ["source:a".into()].into_iter().collect(),
             evidence_metadata: vec![metadata.clone()],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         root.recompute_manifest_hash().unwrap();
 
@@ -1300,6 +1314,7 @@ mod tests {
             admitted_sources: ["source:a".into()].into_iter().collect(),
             evidence_metadata: vec![metadata],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         child.recompute_manifest_hash().unwrap();
 
@@ -1346,6 +1361,7 @@ mod tests {
             admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
             evidence_metadata: vec![metadata_a.clone(), metadata_b.clone()],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         let mut second = first.clone();
         second.evidence_metadata.reverse();
@@ -1379,6 +1395,7 @@ mod tests {
                 validity_time: None,
             }],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         frontier.recompute_manifest_hash().unwrap();
 
@@ -1417,6 +1434,7 @@ mod tests {
             admitted_sources: ["source:a".into()].into_iter().collect(),
             evidence_metadata: vec![parent_metadata.clone()],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         parent.recompute_manifest_hash().unwrap();
 
@@ -1439,6 +1457,7 @@ mod tests {
             admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
             evidence_metadata: vec![parent_metadata.clone(), child_metadata],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         child.recompute_manifest_hash().unwrap();
 
