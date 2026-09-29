@@ -236,7 +236,9 @@ Argumentation is now temporalized at the projection boundary as well. `CulturalA
 - `interpretation_time`: when an interpretation was formulated;
 - `available_by`: the earliest epistemic frontier at which that argumentation record may be used.
 
-A 2026 interpretation therefore cannot silently appear in a 1920 replay merely because its underlying evidence is older. The projection requires the argumentation record to be available by the selected frontier, while the canonical assessment and interpretation remain externally owned.
+A 2026 interpretation therefore cannot silently appear in a 1920 replay merely because its underlying evidence is older.
+
+The frontier now commits this argumentation metadata in its content hash as well. Replay therefore checks two independent temporal closures: the underlying evidence/source availability and the availability of the assessment/interpretation pair itself. Mutating the argumentation metadata after frontier construction invalidates the frontier manifest. The projection requires the argumentation record to be available by the selected frontier, while the canonical assessment and interpretation remain externally owned.
 
 This is deliberately aligned with CRMinf's treatment of argumentation and belief as temporally situated, while retaining Sol Atlas's deterministic frontier rule: later argumentation is excluded rather than used to retroactively upgrade an earlier historical view.
 
