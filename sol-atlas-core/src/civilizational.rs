@@ -385,6 +385,34 @@ impl EvidenceTemporalMetadataV1 {
     }
 }
 
+
+/// Temporal availability metadata for an immutable source snapshot.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SourceSnapshotTemporalMetadataV1 {
+    pub source_snapshot: SourceSnapshotId,
+    pub publication_time: Option<i32>,
+    pub capture_time: Option<i32>,
+    pub available_by: i32,
+}
+
+impl SourceSnapshotTemporalMetadataV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.source_snapshot.is_valid() {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if self.available_by < self.publication_time.unwrap_or(self.available_by)
+            || self.available_by < self.capture_time.unwrap_or(self.available_by)
+        {
+            return Err(ProjectionError::InvalidEvidenceTemporalMetadata);
+        }
+        Ok(())
+    }
+
+    pub fn available_at(&self, known_by_year: i32) -> bool {
+        self.validate().is_ok() && self.available_by <= known_by_year
+    }
+}
+
 /// A projection can be reconstructed only from evidence admitted by this
 /// frontier; callers must filter derived assessments by the same boundary.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -401,6 +429,7 @@ pub struct EvidenceFrontierV1 {
     pub admitted_sources: BTreeSet<SourceSnapshotId>,
     /// Immutable temporal metadata used to verify that admission is not anachronistic.
     pub evidence_metadata: Vec<EvidenceTemporalMetadataV1>,
+    pub source_metadata: Vec<SourceSnapshotTemporalMetadataV1>,
 }
 
 /// An ordered, verifiable lineage of temporal evidence frontiers.
@@ -452,6 +481,7 @@ impl EvidenceFrontierV1 {
             &self.admitted_evidence,
             &self.admitted_sources,
             &canonical_metadata,
+            &self.source_metadata,
         );
         let bytes = serde_json::to_vec(&payload)
             .map_err(|_| ProjectionError::InvalidEvidenceFrontierManifest)?;
@@ -497,6 +527,19 @@ impl EvidenceFrontierV1 {
                 .evidence_metadata
                 .iter()
                 .find(|metadata| metadata.evidence_id == parent_metadata.evidence_id)
+            else {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            };
+            if child_metadata != parent_metadata {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            }
+        }
+
+        for parent_metadata in &parent.source_metadata {
+            let Some(child_metadata) = self
+                .source_metadata
+                .iter()
+                .find(|metadata| metadata.source_snapshot == parent_metadata.source_snapshot)
             else {
                 return Err(ProjectionError::InvalidEvidenceFrontierManifest);
             };
@@ -556,6 +599,25 @@ impl EvidenceFrontierV1 {
                 return Err(ProjectionError::UnadmittedSourceMetadata);
             }
         }
+
+        let mut seen_sources = BTreeSet::new();
+        for metadata in &self.source_metadata {
+            metadata.validate()?;
+            if metadata.available_by > self.known_by_year {
+                return Err(ProjectionError::LaterEvidenceInFrontier);
+            }
+            if !self.admitted_sources.contains(&metadata.source_snapshot)
+                || !seen_sources.insert(metadata.source_snapshot.clone())
+            {
+                return Err(ProjectionError::UnadmittedSourceMetadata);
+            }
+        }
+        if !self.admitted_sources.is_empty()
+            && seen_sources.len() != self.admitted_sources.len()
+        {
+            return Err(ProjectionError::UnadmittedSourceMetadata);
+        }
+
         Ok(())
     }
 
