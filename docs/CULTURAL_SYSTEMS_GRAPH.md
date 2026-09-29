@@ -108,6 +108,27 @@ External DKG assertion -> canonical claim -> evidence/source closure -> temporal
 
 Sol Atlas is therefore a projection/federation layer, not a replacement for Mycelix EPI's canonical evidence authority.
 
+## First implemented vertical slice
+
+The first executable cultural-systems contract is now the transmission slice in
+sol-atlas-core/src/cultural_systems.rs. It adds:
+
+- typed practice, tradition, community and transmission-event identifiers;
+- explicit transmission modes rather than an inferred generic edge;
+- CulturalTransmissionV1 with bounded event time and complete evidence/source closure;
+- CanonicalClaimAdmissionV1 as a projection-side admission token for an externally owned canonical claim;
+- CommunityRecognitionV1 as a separate, evidence-backed participation/recognition dimension;
+- AccessPolicyV1 as stewardship metadata independent of epistemic qualification;
+- CulturalProjectionAdmissionV1 as an explicit renderer-facing admission object.
+
+The important boundary is now executable:
+
+External canonical claim resolution -> claim/evidence/source admission -> temporal frontier -> cultural transmission projection.
+
+A transmission cannot be admitted merely because two entities are similar,
+nearby, co-occurring, or connected in a DKG. Community recognition and access
+policy are carried forward without changing qualification.
+
 ## Architectural consequence
 
 The current civilizational work should not be discarded. Instead, State Formation becomes one projection over Cultural Systems, which becomes one projection over Civilizational Knowledge, with shared temporal, provenance, qualification, identity and evidence contracts.
