@@ -719,8 +719,21 @@ impl EvidenceFrontierV1 {
                 .all(|id| self.admitted_sources.contains(id))
     }
 
+    fn admits_source(&self, source: &SourceSnapshotId) -> bool {
+        if !self.admitted_sources.contains(source) {
+            return false;
+        }
+        self.source_metadata.is_empty()
+            || self.source_metadata.iter().any(|metadata| {
+                &metadata.source_snapshot == source
+                    && metadata.available_at(self.known_by_year)
+            })
+    }
+
     pub fn admits_snapshot(&self, snapshot: &StateSnapshotV1) -> bool {
         snapshot.evidence_frontier == self.frontier_id
+            && snapshot.evidence_refs.iter().all(|id| self.admits(id))
+            && snapshot.source_snapshots.iter().all(|id| self.admits_source(id))
             && snapshot.geometries.iter().all(|g| {
                 g.evidence.iter().all(|id| self.admits(id))
             })
@@ -729,7 +742,7 @@ impl EvidenceFrontierV1 {
     pub fn admits_audit(&self, audit: &ProjectionAuditV1) -> bool {
         audit.evidence_frontier == self.frontier_id
             && audit.evidence_refs.iter().all(|id| self.admits(id))
-            && audit.source_snapshots.iter().all(|id| self.admitted_sources.contains(id))
+            && audit.source_snapshots.iter().all(|id| self.admits_source(id))
     }
 
     /// Returns true when every evidence reference carried by a snapshot,
@@ -742,7 +755,6 @@ impl EvidenceFrontierV1 {
             .all(|id| self.admits(id))
     }
 
-        source_metadata: vec![],}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProjectionError {
