@@ -226,3 +226,14 @@ rather than treating `qualification` as if it were the entire reasoning model.
 Sol Atlas should continue to consume canonical claim/assessment/interpretation references owned by the external DKG authority. It should not create a second canonical historical adjudication system.
 
 This gives us a future CRMinf-compatible projection without coupling the Rust projection contracts to one ontology's class hierarchy.
+
+
+## Projection identity hardening
+
+The cultural projection boundary now keeps transmission and transformation identities distinct at the type level. `CulturalProjectionIdV1` and `CulturalProjectionAdmissionV2` preserve the semantic variant instead of coercing a transformation identifier into a transmission-shaped field. `CulturalProjectionAuditV2` provides the same distinction for evidence-reversible “why shown?” records.
+
+Ontology interoperability is represented separately by `OntologyMappingV1`. A mapping to CIDOC CRM, CRMinf, CRMgeo, or PROV-O is treated as an evidence-bearing projection assertion: it carries the canonical claim/evidence/source closure and frontier, but cannot upgrade qualification or become a second canonical claim authority.
+
+This matches the current external standards boundary: CIDOC CRM 7.4 was released in August 2026; CRMinf 1.2.1 provides an argumentation extension; CRMgeo 2.0.1 is a 2026 release candidate for spatiotemporal/GeoSPARQL integration. These standards should remain interoperability targets rather than being embedded wholesale into the Rust projection model.
+
+Recent temporal-KG research also reinforces the architecture's separation of temporal context and uncertainty rather than treating a graph snapshot as timeless truth. This supports retaining explicit event/validity/evidence-frontier dimensions and keeping reasoning downstream of evidence closure.
