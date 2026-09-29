@@ -241,6 +241,9 @@ impl EvidenceFrontierV1 {
 
     pub fn admits_snapshot(&self, snapshot: &StateSnapshotV1) -> bool {
         snapshot.evidence_frontier == self.frontier_id
+            && snapshot.geometries.iter().all(|g| {
+                g.evidence.iter().all(|id| self.admitted_evidence.contains(id))
+            })
     }
 }
 
