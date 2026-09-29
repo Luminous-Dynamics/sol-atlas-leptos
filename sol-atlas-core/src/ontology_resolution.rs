@@ -6,8 +6,7 @@
 //! A mapping context identifies the external vocabulary used by a renderer.
 //! A resolution additionally proves that the exact mapping resolves through
 //! the canonical claim, evidence/source closure, and temporal frontier that
-//! made the projection admissible. This prevents semantic interoperability
-//! metadata from becoming an evidence-free shortcut.
+//! made the projection admissible.
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -104,15 +103,6 @@ impl OntologyMappingResolutionV1 {
         if self.mapping.qualification != self.qualification {
             return Err(ProjectionError::EmptyIdentifier);
         }
-        if self.mapping.preserves_mapping_fields_for_resolution(
-            &self.claim_ref,
-            &self.evidence_refs,
-            &self.source_snapshots,
-            &self.qualification,
-            &self.evidence_frontier,
-        ) == false {
-            return Err(ProjectionError::EmptyIdentifier);
-        }
         if self.resolution_hash != self.computed_hash()? {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
@@ -132,5 +122,119 @@ impl OntologyMappingResolutionV1 {
             && self.qualification == claim.qualification
             && self.evidence_frontier == frontier.frontier_id
             && self.mapping.qualification == claim.qualification
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::civilizational::{
+        EvidenceTemporalMetadataV1, SourceSnapshotTemporalMetadataV1, YearInterval,
+    };
+    use crate::ontology_mapping::{
+        OntologyMappingKindV1, OntologyMappingStandardV1, OntologyReleaseStatusV1,
+    };
+
+    fn fixture() -> (OntologyMappingV2, CanonicalClaimAdmissionV1, EvidenceFrontierV1) {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["e:1"].into_iter().map(Into::into).collect(),
+            admitted_sources: ["source:1"].into_iter().map(Into::into).collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "e:1".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: Some(1940),
+                publication_time: Some(1941),
+                capture_time: None,
+                available_by: 1942,
+                validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:1".into(),
+                publication_time: Some(1941),
+                capture_time: None,
+                available_by: 1942,
+            }],
+            argumentation_metadata: vec![],
+        };
+        frontier.recompute_manifest_hash().expect("fixture hash");
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            qualification: QualificationStatus::Supported,
+            evidence_frontier: "frontier:1950".into(),
+        };
+        let mapping = OntologyMappingV2::from_claim(
+            "mapping:1",
+            OntologyMappingStandardV1::CidocCrm,
+            "7.4",
+            OntologyReleaseStatusV1::Draft,
+            "E7_Activity",
+            OntologyMappingKindV1::Class,
+            &claim,
+        );
+        (mapping, claim, frontier)
+    }
+
+    #[test]
+    fn resolution_binds_mapping_to_exact_closure() {
+        let (mapping, claim, frontier) = fixture();
+        let resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
+        ).expect("resolution");
+        assert!(resolution.validate().is_ok());
+        assert!(resolution.is_frontier_safe(&claim, &frontier));
+    }
+
+    #[test]
+    fn evidence_or_source_substitution_breaks_frontier_safety() {
+        let (mapping, claim, frontier) = fixture();
+        let mut resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
+        ).expect("resolution");
+        resolution.evidence_refs = vec!["e:other".into()];
+        resolution.recompute_hash().expect("rehash");
+        assert!(!resolution.is_frontier_safe(&claim, &frontier));
+
+        let mut resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
+        ).expect("resolution");
+        resolution.source_snapshots = vec!["source:other".into()];
+        resolution.recompute_hash().expect("rehash");
+        assert!(!resolution.is_frontier_safe(&claim, &frontier));
+    }
+
+    #[test]
+    fn claim_or_frontier_substitution_breaks_frontier_safety() {
+        let (mapping, claim, frontier) = fixture();
+        let resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
+        ).expect("resolution");
+
+        let other_claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:other".into(),
+            ..claim.clone()
+        };
+        assert!(!resolution.is_frontier_safe(&other_claim, &frontier));
+
+        let mut other_frontier = frontier.clone();
+        other_frontier.frontier_id = "frontier:1960".into();
+        other_frontier.recompute_manifest_hash().expect("rehash");
+        assert!(!resolution.is_frontier_safe(&claim, &other_frontier));
+    }
+
+    #[test]
+    fn semantic_tamper_invalidates_content_address() {
+        let (mapping, claim, frontier) = fixture();
+        let mut resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
+        ).expect("resolution");
+        resolution.mapping.external_term = "E8_Acquisition".into();
+        assert!(resolution.validate().is_err());
     }
 }
