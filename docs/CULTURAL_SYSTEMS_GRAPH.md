@@ -192,3 +192,37 @@ Instead:
 The Rust layer owns deterministic projection safety, temporal frontier replay, admission, access/stewardship metadata and reversibility. External semantic standards provide interoperability mappings and richer domain semantics.
 
 This also suggests a future `OntologyMappingV1` boundary rather than embedding ontology-specific identifiers into every projection record.
+
+
+## Interoperability contract: mappings are evidence-bearing assertions
+
+The interoperability layer is intentionally separate from the cultural domain model.
+
+`OntologyMappingV1` records a projection-side correspondence between a Sol Atlas identifier and an external semantic concept. It does not implement CIDOC CRM, CRMinf, CRMgeo, PROV, or any other external ontology.
+
+Each mapping carries its own local type and identifier, external ontology namespace and concept identifier, mapping semantics (`Exact`, `Broad`, `Narrow`, `Related`, or `Contextual`), canonical claim reference, evidence and source-snapshot closure, qualification, and temporal evidence frontier.
+
+> An ontology mapping is an assertion about semantic correspondence; it cannot upgrade the epistemic qualification of the mapped cultural claim.
+
+An `Exact` mapping may mean that a local concept is asserted to correspond to an external ontology concept without implying that the underlying historical claim is established.
+
+### Current interoperability targets
+
+- **CIDOC CRM 7.4** is treated as the current research target, but its August 2026 release is currently listed as a draft. The implementation therefore references ontology identifiers without hard-coding the draft release into the projection schema.
+- **CRMinf 1.2.1** is the natural future mapping target for explicit argumentation, premises, conclusions, and inference activities.
+- **CRMgeo** is the future spatial/temporal semantic mapping target for historical geometry and temporal entities. Its current 2.0/2.0.1 work remains a draft/release-candidate track rather than something Sol Atlas should embed.
+- **W3C PROV-O** is the provenance interoperability target. Sol Atlas retains its deterministic frontier and source-closure invariants locally and can project them into PROV rather than making PROV the admission mechanism.
+
+The separation keeps the core deterministic and version-stable while allowing external ontology mappings to evolve independently.
+
+## Argumentation boundary
+
+The next semantic boundary after evidence closure is:
+
+`Claim -> Assessment -> Interpretation/Hypothesis -> Evidence -> Source Snapshot`
+
+rather than treating `qualification` as if it were the entire reasoning model.
+
+Sol Atlas should continue to consume canonical claim/assessment/interpretation references owned by the external DKG authority. It should not create a second canonical historical adjudication system.
+
+This gives us a future CRMinf-compatible projection without coupling the Rust projection contracts to one ontology's class hierarchy.
