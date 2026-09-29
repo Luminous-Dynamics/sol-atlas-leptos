@@ -413,7 +413,19 @@ impl EvidenceFrontierV1 {
 
     /// Validates the frontier's admission manifest against its temporal metadata.
     pub fn validate_temporal_manifest(&self) -> Result<(), ProjectionError> {
-        if !self.frontier_id.is_valid() || self.evidence_metadata.is_empty() && !self.admitted_evidence.is_empty() {
+        if !self.frontier_id.is_valid() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        if self.evidence_metadata.is_empty() {
+            if !self.admitted_evidence.is_empty() {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            }
+            return Ok(());
+        }
+        if self.evidence_metadata.len() != self.admitted_evidence.len()
+            || self.evidence_metadata.iter().map(|m| &m.evidence_id).collect::<BTreeSet<_>>().len()
+                != self.evidence_metadata.len()
+        {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
         for metadata in &self.evidence_metadata {
@@ -444,7 +456,7 @@ impl EvidenceFrontierV1 {
                     .iter()
                     .flat_map(|geometry| geometry.evidence.iter()),
             )
-            .all(|id| self.admitted_evidence.contains(id))
+            .all(|id| self.admits(id))
             && transition
                 .source_snapshots
                 .iter()
@@ -454,13 +466,13 @@ impl EvidenceFrontierV1 {
     pub fn admits_snapshot(&self, snapshot: &StateSnapshotV1) -> bool {
         snapshot.evidence_frontier == self.frontier_id
             && snapshot.geometries.iter().all(|g| {
-                g.evidence.iter().all(|id| self.admitted_evidence.contains(id))
+                g.evidence.iter().all(|id| self.admits(id))
             })
     }
 
     pub fn admits_audit(&self, audit: &ProjectionAuditV1) -> bool {
         audit.evidence_frontier == self.frontier_id
-            && audit.evidence_refs.iter().all(|id| self.admitted_evidence.contains(id))
+            && audit.evidence_refs.iter().all(|id| self.admits(id))
             && audit.source_snapshots.iter().all(|id| self.admitted_sources.contains(id))
     }
 
@@ -471,7 +483,7 @@ impl EvidenceFrontierV1 {
             .geometries
             .iter()
             .flat_map(|geometry| geometry.evidence.iter())
-            .all(|id| self.admitted_evidence.contains(id))
+            .all(|id| self.admits(id))
     }
 }
 
@@ -729,6 +741,7 @@ mod tests {
             known_by_year: 1949,
             admitted_evidence: ["evidence:partition"].into_iter().collect(),
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
+            evidence_metadata: vec![],
         };
         let mut audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
         audit.source_snapshots.clear();
@@ -742,6 +755,7 @@ mod tests {
             known_by_year: 1949,
             admitted_evidence: ["evidence:partition"].into_iter().collect(),
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
+            evidence_metadata: vec![],
         };
         let audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
         assert!(!frontier.admits_audit(&audit));
