@@ -610,6 +610,35 @@ mod tests {
     }
 
     #[test]
+    fn snapshot_admission_closes_direct_and_spatial_provenance() {
+        let mut frontier = frontier();
+        frontier.admitted_evidence = ["e:old", "e:direct"]
+            .into_iter()
+            .map(Into::into)
+            .collect();
+        let value = snapshot(
+            "snapshot:a",
+            YearInterval { from: Some(1945), to: Some(1947) },
+            "frontier:1949",
+            "e:old",
+        );
+        let mut value = value;
+        value.evidence_refs = vec!["e:direct".into()];
+        assert!(frontier.admits_snapshot(&value));
+        assert!(frontier.admits_snapshot_evidence(&value));
+
+        let admission = ProjectionAdmissionV1::for_snapshot(&value, &frontier);
+        assert!(admission.admitted_evidence.contains(&"e:direct".into()));
+        assert!(admission.admitted_sources.contains(&"source:archive".into()));
+        assert_eq!(admission.validate(), Ok(()));
+
+        let mut blocked = value;
+        blocked.evidence_refs = vec!["e:discovered-later".into()];
+        assert!(!frontier.admits_snapshot(&blocked));
+        assert!(!frontier.admits_snapshot_evidence(&blocked));
+    }
+
+    #[test]
     fn strict_request_rejects_legacy_frontier_manifest() {
         let request = TemporalProjectionRequestV1 {
             map_epoch: YearInterval { from: Some(1940), to: Some(1950) },
