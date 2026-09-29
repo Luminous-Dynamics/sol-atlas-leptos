@@ -31,6 +31,7 @@ pub fn App() -> impl IntoView {
             <Routes fallback=|| view! { <GlobeApp/> }>
                 <Route path=path!("/") view=GlobeApp/>
                 <Route path=path!("/labs/reactor-twin") view=ReactorTwinDemo/>
+                <Route path=path!("/terminal/entity/:entity_ref") view=EvidenceTerminal/>
                 <Route path=path!("/terminal") view=EvidenceTerminal/>
             </Routes>
         </Router>
