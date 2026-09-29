@@ -243,6 +243,18 @@ The frontier now commits this argumentation metadata in its content hash as well
 This is deliberately aligned with CRMinf's treatment of argumentation and belief as temporally situated, while retaining Sol Atlas's deterministic frontier rule: later argumentation is excluded rather than used to retroactively upgrade an earlier historical view.
 
 
+## Argument-specific provenance and competing interpretations
+
+`CulturalArgumentationRefV2` separates argumentation provenance from the immutable canonical claim closure. The argumentation record remains bound to the same `claim_ref`, but its evidence/source closure is independent: an interpretation may legitimately use a subset of the canonical evidence or an argument-specific superset, provided every referenced object is admitted at the selected frontier.
+
+`CulturalArgumentationSetV1` then preserves multiple contemporaneous `(assessment, interpretation)` alternatives for one claim. Duplicate identities are rejected, frontier safety is checked for every alternative, and canonicalization sorts only for deterministic serialization/replay. The ordering is structural and must never be interpreted as an epistemic ranking.
+
+This yields the stronger replay invariant:
+
+> A historical replay preserves both what was evidenced and what was argued from that evidence at that frontier, without retroactively importing later reasoning or collapsing contemporaneous disagreement.
+
+The distinction is consistent with CRMinf 1.2.1's explicit separation of argumentation/inference, meaning comprehension, and belief/provenance assessment, while PROV-O remains a provenance interchange layer rather than Sol Atlas's admission authority.
+
 ## Projection identity hardening
 
 The cultural projection boundary now keeps transmission and transformation identities distinct at the type level. `CulturalProjectionIdV1` and `CulturalProjectionAdmissionV2` preserve the semantic variant instead of coercing a transformation identifier into a transmission-shaped field. `CulturalProjectionAuditV2` provides the same distinction for evidence-reversible “why shown?” records.
