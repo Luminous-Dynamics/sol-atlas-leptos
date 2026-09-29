@@ -191,6 +191,18 @@ mod tests {
     }
 
     #[test]
+    fn frontier_blocks_late_source_metadata_for_dkg_admission() {
+        let mut frontier = frontier();
+        frontier.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:1".into(),
+            publication_time: Some(1951),
+            capture_time: None,
+            available_by: 1951,
+        }];
+        assert!(!statement().is_frontier_safe(&frontier));
+    }
+
+    #[test]
     fn admission_is_explicit_and_reversible() {
         let frontier = frontier();
         let admission =
