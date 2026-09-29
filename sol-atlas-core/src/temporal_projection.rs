@@ -9,7 +9,7 @@
 //! qualification status.
 
 use crate::civilizational::{
-    EvidenceFrontierId, EvidenceFrontierV1, EvidenceId, HistoricalTransitionV1,
+    EvidenceFrontierChainV1, EvidenceFrontierId, EvidenceFrontierV1, EvidenceId, HistoricalTransitionV1,
     ProjectionAuditV1, ProjectionError, ProjectionRef, SnapshotId, SourceSnapshotId,
     StateSnapshotV1, TransitionId, YearInterval,
 };
@@ -38,6 +38,23 @@ impl TemporalProjectionRequestV1 {
     pub fn validate_strict(&self) -> Result<(), ProjectionError> {
         self.validate()?;
         self.evidence_frontier.validate_temporal_manifest()
+    }
+
+    /// Validates that this request's selected frontier is the verified leaf of
+    /// an explicit append-only frontier lineage.
+    pub fn validate_against_frontier_chain(
+        &self,
+        chain: &EvidenceFrontierChainV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        chain.validate()?;
+        if chain
+            .current()
+            .is_none_or(|frontier| frontier.frontier_id != self.evidence_frontier.frontier_id)
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        Ok(())
     }
 
     /// Replay candidates into a stable, frontier-safe projection.
@@ -104,6 +121,7 @@ impl TemporalProjectionRequestV1 {
         let result = TemporalProjectionSetV1 {
             map_epoch: self.map_epoch,
             evidence_frontier: self.evidence_frontier.clone(),
+            frontier_lineage: vec![self.evidence_frontier.frontier_id.clone()],
             snapshots: selected_snapshots,
             transitions: selected_transitions,
             audits,
@@ -120,6 +138,28 @@ impl TemporalProjectionRequestV1 {
     ) -> Result<TemporalProjectionSetV1, ProjectionError> {
         self.validate_strict()?;
         self.project(snapshots, transitions)
+    }
+
+    /// Replays against an explicitly verified frontier lineage.
+    ///
+    /// The returned projection records the ordered frontier IDs used to establish
+    /// the selected frontier. The full manifests remain the caller-supplied
+    /// verification material; the projection stores only their stable path.
+    pub fn project_against_frontier_chain(
+        &self,
+        chain: &EvidenceFrontierChainV1,
+        snapshots: &[StateSnapshotV1],
+        transitions: &[HistoricalTransitionV1],
+    ) -> Result<TemporalProjectionSetV1, ProjectionError> {
+        self.validate_against_frontier_chain(chain)?;
+        let mut result = self.project_strict(snapshots, transitions)?;
+        result.frontier_lineage = chain
+            .frontiers
+            .iter()
+            .map(|frontier| frontier.frontier_id.clone())
+            .collect();
+        result.validate()?;
+        Ok(result)
     }
 }
 
@@ -167,7 +207,6 @@ impl ProjectionAdmissionV1 {
             evidence_frontier: frontier.frontier_id.clone(),
             admitted_evidence,
             admitted_sources: Vec::new(),
-            evidence_metadata: vec![],
         }
     }
 
@@ -192,7 +231,6 @@ impl ProjectionAdmissionV1 {
             evidence_frontier: frontier.frontier_id.clone(),
             admitted_evidence,
             admitted_sources: transition.source_snapshots.clone(),
-            evidence_metadata: vec![],
         }
     }
 }
@@ -201,6 +239,9 @@ impl ProjectionAdmissionV1 {
 pub struct TemporalProjectionSetV1 {
     pub map_epoch: YearInterval,
     pub evidence_frontier: EvidenceFrontierV1,
+    /// Ordered frontier IDs used by chain-aware replay. Legacy replay records
+    /// only the selected frontier.
+    pub frontier_lineage: Vec<EvidenceFrontierId>,
     pub snapshots: Vec<StateSnapshotV1>,
     pub transitions: Vec<HistoricalTransitionV1>,
     pub audits: Vec<ProjectionAuditV1>,
@@ -233,6 +274,12 @@ impl TemporalProjectionSetV1 {
         }
         if !self.evidence_frontier.frontier_id.is_valid() {
             return Err(ProjectionError::MissingEvidenceFrontier);
+        }
+        if self.frontier_lineage.is_empty()
+            || self.frontier_lineage.last() != Some(&self.evidence_frontier.frontier_id)
+            || self.frontier_lineage.iter().any(|id| !id.is_valid())
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
 
         let mut previous_snapshot = None;
@@ -420,6 +467,98 @@ mod tests {
             admitted_sources: ["source:archive"].into_iter().map(Into::into).collect(),
             evidence_metadata: vec![],
         }
+    }
+
+    #[test]
+    fn chain_aware_replay_records_verified_frontier_lineage() {
+        let mut root = frontier();
+        root.frontier_id = "frontier:1940".into();
+        root.known_by_year = 1940;
+        root.parent_frontier = None;
+        root.admitted_evidence = ["e:old"].into_iter().map(Into::into).collect();
+        root.admitted_sources = ["source:archive"].into_iter().map(Into::into).collect();
+        root.evidence_metadata = vec![EvidenceTemporalMetadataV1 {
+            evidence_id: "e:old".into(),
+            source_snapshot: "source:archive".into(),
+            artifact_time: None,
+            publication_time: Some(1939),
+            capture_time: None,
+            available_by: 1939,
+            validity_time: None,
+        }];
+        root.recompute_manifest_hash().unwrap();
+
+        let mut leaf = root.clone();
+        leaf.frontier_id = "frontier:1949".into();
+        leaf.known_by_year = 1949;
+        leaf.parent_frontier = Some(root.frontier_id.clone());
+        leaf.evidence_metadata.push(EvidenceTemporalMetadataV1 {
+            evidence_id: "e:transition".into(),
+            source_snapshot: "source:archive".into(),
+            artifact_time: None,
+            publication_time: Some(1945),
+            capture_time: None,
+            available_by: 1945,
+            validity_time: None,
+        });
+        leaf.admitted_evidence.insert("e:transition".into());
+        leaf.recompute_manifest_hash().unwrap();
+
+        let chain = EvidenceFrontierChainV1 { frontiers: vec![root, leaf.clone()] };
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval { from: Some(1945), to: Some(1947) },
+            evidence_frontier: leaf,
+        };
+        let result = request
+            .project_against_frontier_chain(&chain, &[snapshot(
+                "snapshot:a",
+                YearInterval { from: Some(1945), to: Some(1947) },
+                "frontier:1949",
+                "e:old",
+            )], &[])
+            .unwrap();
+
+        assert_eq!(
+            result.frontier_lineage,
+            vec!["frontier:1940".into(), "frontier:1949".into()]
+        );
+        assert_eq!(result.validate(), Ok(()));
+    }
+
+    #[test]
+    fn chain_aware_replay_rejects_non_leaf_selected_frontier() {
+        let mut root = frontier();
+        root.frontier_id = "frontier:1940".into();
+        root.known_by_year = 1940;
+        root.admitted_evidence = ["e:old"].into_iter().map(Into::into).collect();
+        root.admitted_sources = ["source:archive"].into_iter().map(Into::into).collect();
+        root.evidence_metadata = vec![EvidenceTemporalMetadataV1 {
+            evidence_id: "e:old".into(),
+            source_snapshot: "source:archive".into(),
+            artifact_time: None,
+            publication_time: Some(1939),
+            capture_time: None,
+            available_by: 1939,
+            validity_time: None,
+        }];
+        root.recompute_manifest_hash().unwrap();
+
+        let mut leaf = root.clone();
+        leaf.frontier_id = "frontier:1949".into();
+        leaf.known_by_year = 1949;
+        leaf.parent_frontier = Some(root.frontier_id.clone());
+        leaf.recompute_manifest_hash().unwrap();
+
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval { from: Some(1945), to: Some(1947) },
+            evidence_frontier: root,
+        };
+        assert_eq!(
+            request.validate_against_frontier_chain(&EvidenceFrontierChainV1 {
+                frontiers: vec![request.evidence_frontier.clone(), leaf],
+            }),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
     }
 
     #[test]
