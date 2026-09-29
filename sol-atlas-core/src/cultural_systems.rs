@@ -353,7 +353,8 @@ mod tests {
             capture_time: None,
             available_by: 1951,
         }];
-        assert!(!transmission().is_frontier_safe(&frontier));
+        let value = transmission();
+        assert!(!value.is_frontier_safe(&canonical_claim(&value), &frontier));
     }
 
     #[test]
@@ -384,8 +385,12 @@ mod tests {
             .unwrap();
 
         value.access_policy = AccessPolicyV1::SacredOrRestricted;
-        let restricted_admission =
-            CulturalProjectionAdmissionV1::from_transmission(&value, &frontier).unwrap();
+        let restricted_admission = CulturalProjectionAdmissionV1::from_transmission(
+            &value,
+            &frontier,
+            &canonical_claim(&value),
+        )
+        .unwrap();
 
         assert_eq!(public_admission.qualification, restricted_admission.qualification);
     }
