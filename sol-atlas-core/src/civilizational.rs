@@ -398,10 +398,17 @@ pub struct EvidenceFrontierV1 {
 
 impl EvidenceFrontierV1 {
     pub fn admits(&self, evidence: &EvidenceId) -> bool {
-        self.admitted_evidence.contains(evidence)
-            && self.evidence_metadata.iter().any(|m| {
-                &m.evidence_id == evidence && m.available_at(self.known_by_year)
-            })
+        if !self.admitted_evidence.contains(evidence) {
+            return false;
+        }
+        // Legacy manifests remain readable during migration; populated metadata
+        // turns on the stronger temporal eligibility check.
+        if self.evidence_metadata.is_empty() {
+            return true;
+        }
+        self.evidence_metadata.iter().any(|m| {
+            &m.evidence_id == evidence && m.available_at(self.known_by_year)
+        })
     }
 
     /// Validates the frontier's admission manifest against its temporal metadata.
