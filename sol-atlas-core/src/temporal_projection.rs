@@ -64,9 +64,6 @@ impl TemporalProjectionRequestV1 {
                 return Err(ProjectionError::InvalidTransition);
             }
         }
-        /*
-        */
-
         let mut selected_snapshots = snapshots
             .iter()
             .filter(|snapshot| snapshot.valid_time.overlaps(&self.map_epoch))
