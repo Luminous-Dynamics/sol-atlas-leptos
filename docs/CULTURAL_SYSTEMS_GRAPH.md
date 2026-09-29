@@ -119,7 +119,8 @@ sol-atlas-core/src/cultural_systems.rs. It adds:
 - CanonicalClaimAdmissionV1 as a projection-side admission token for an externally owned canonical claim;
 - CommunityRecognitionV1 as a separate, evidence-backed participation/recognition dimension;
 - AccessPolicyV1 as stewardship metadata independent of epistemic qualification;
-- CulturalProjectionAdmissionV1 as an explicit renderer-facing admission object.
+- CulturalProjectionAdmissionV1 as an explicit renderer-facing admission object;
+- CulturalProjectionAuditV1 as the reversible “why is this visible?” record, including community-recognition evidence and stewardship metadata.
 
 The important boundary is now executable:
 
@@ -127,7 +128,9 @@ External canonical claim resolution -> claim/evidence/source admission -> tempor
 
 A transmission cannot be admitted merely because two entities are similar,
 nearby, co-occurring, or connected in a DKG. Community recognition and access
-policy are carried forward without changing qualification.
+policy are carried forward without changing qualification. The projection audit
+also makes community-recognition evidence inspectable without conflating it with
+the evidence supporting the transmission claim itself.
 
 ## Architectural consequence
 
