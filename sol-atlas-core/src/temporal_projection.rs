@@ -548,6 +548,14 @@ mod tests {
             vec!["frontier:1940".into(), "frontier:1949".into()]
         );
         assert_eq!(result.validate(), Ok(()));
+        assert_eq!(result.validate_against_frontier_chain(&chain), Ok(()));
+
+        let mut tampered = result.clone();
+        tampered.frontier_lineage[0] = "frontier:forged".into();
+        assert_eq!(
+            tampered.validate_against_frontier_chain(&chain),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
     }
 
     #[test]
