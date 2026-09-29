@@ -1414,6 +1414,49 @@ mod tests {
     }
 
     #[test]
+    fn argumentation_metadata_is_committed_to_frontier_hash() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:2000".into(),
+            known_by_year: 2000,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:a".into(),
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1900,
+            }],
+            argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
+                assessment: "assessment:a".into(),
+                interpretation: "interpretation:a".into(),
+                assessment_time: Some(YearInterval { from: Some(1990), to: Some(1990) }),
+                interpretation_time: Some(YearInterval { from: Some(1995), to: Some(1995) }),
+                available_by: 1996,
+            }],
+        };
+        frontier.recompute_manifest_hash().unwrap();
+        assert!(frontier.admits_argumentation(&"assessment:a".into(), &"interpretation:a".into()));
+
+        frontier.argumentation_metadata[0].available_by = 2001;
+        assert_eq!(
+            frontier.verify_manifest_hash(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
     fn frontier_extension_is_append_only_and_metadata_immutable() {
         let parent_metadata = EvidenceTemporalMetadataV1 {
             evidence_id: "evidence:a".into(),
