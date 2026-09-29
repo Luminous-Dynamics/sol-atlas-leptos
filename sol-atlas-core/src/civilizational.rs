@@ -286,7 +286,12 @@ impl ProjectionAuditV1 {
     }
 
     pub fn for_snapshot(snapshot: &StateSnapshotV1) -> Self {
-        let evidence_refs = Self::geometry_evidence(&snapshot.geometries);
+        let evidence_refs = snapshot
+            .evidence_refs
+            .iter()
+            .chain(Self::geometry_evidence(&snapshot.geometries).iter())
+            .cloned()
+            .collect();
         let claim_refs = snapshot
             .relation_refs
             .iter()
@@ -298,7 +303,7 @@ impl ProjectionAuditV1 {
             projection: ProjectionRef::Snapshot(snapshot.snapshot_id.clone()),
             claim_refs,
             evidence_refs,
-            source_snapshots: Vec::new(),
+            source_snapshots: snapshot.source_snapshots.clone(),
             hypothesis_refs: Vec::new(),
             assessment: snapshot.qualification.assessment.clone(),
             temporal_scope: snapshot.valid_time,
@@ -354,6 +359,9 @@ impl ProjectionAuditV1 {
         }
         if self.claim_refs.is_empty() || self.evidence_refs.is_empty() {
             return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        if self.source_snapshots.is_empty() {
+            return Err(ProjectionError::IrreversibleTransition);
         }
         if matches!(self.projection, ProjectionRef::Transition(_))
             && self.source_snapshots.is_empty()
