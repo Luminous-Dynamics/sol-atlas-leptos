@@ -441,6 +441,7 @@ mod tests {
             None,
             None,
             None,
+            None,
         );
         assert!(!query.is_replayable());
     }
@@ -452,7 +453,7 @@ mod tests {
 /// This is deliberately narrower than a replay receipt: it identifies the
 /// requested computation, but does not prove that its dependencies exist or
 /// that the computation has been reconstructed.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ReplayTargetV1 {
     pub entity_ref: String,
     pub claim_ref: String,
@@ -493,7 +494,7 @@ impl ReplayTargetV1 {
 /// Manifest shape requested from the upstream semantic authority before a
 /// replay can be considered resolved. Empty/absent fields are intentionally
 /// not filled by Atlas.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 pub struct DependencyManifestV1 {
     pub frontier_ref: String,
     pub evidence_roots: Vec<String>,
