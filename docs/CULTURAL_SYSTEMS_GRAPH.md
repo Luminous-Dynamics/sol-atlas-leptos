@@ -227,6 +227,19 @@ Sol Atlas should continue to consume canonical claim/assessment/interpretation r
 
 This gives us a future CRMinf-compatible projection without coupling the Rust projection contracts to one ontology's class hierarchy.
 
+### Temporal argumentation invariant
+
+Argumentation is now temporalized at the projection boundary as well. `CulturalArgumentationRefV1` distinguishes:
+
+- `event_time`: when the historical event occurred (owned by the projection itself);
+- `assessment_time`: when an assessment was performed;
+- `interpretation_time`: when an interpretation was formulated;
+- `available_by`: the earliest epistemic frontier at which that argumentation record may be used.
+
+A 2026 interpretation therefore cannot silently appear in a 1920 replay merely because its underlying evidence is older. The projection requires the argumentation record to be available by the selected frontier, while the canonical assessment and interpretation remain externally owned.
+
+This is deliberately aligned with CRMinf's treatment of argumentation and belief as temporally situated, while retaining Sol Atlas's deterministic frontier rule: later argumentation is excluded rather than used to retroactively upgrade an earlier historical view.
+
 
 ## Projection identity hardening
 
@@ -234,6 +247,6 @@ The cultural projection boundary now keeps transmission and transformation ident
 
 Ontology interoperability is represented separately by `OntologyMappingV1`. A mapping to CIDOC CRM, CRMinf, CRMgeo, or PROV-O is treated as an evidence-bearing projection assertion: it carries the canonical claim/evidence/source closure and frontier, but cannot upgrade qualification or become a second canonical claim authority.
 
-This matches the current external standards boundary: CIDOC CRM 7.4 was released in August 2026; CRMinf 1.2.1 provides an argumentation extension; CRMgeo 2.0.1 is a 2026 release candidate for spatiotemporal/GeoSPARQL integration. These standards should remain interoperability targets rather than being embedded wholesale into the Rust projection model.
+This matches the current external standards boundary: CIDOC CRM 7.4 was published in August 2026 as a draft; CRMinf 1.2.1 provides an argumentation extension; CRMgeo 2.0.1 is a 2026 release candidate for spatiotemporal/GeoSPARQL integration. These standards should remain interoperability targets rather than being embedded wholesale into the Rust projection model.
 
 Recent temporal-KG research also reinforces the architecture's separation of temporal context and uncertainty rather than treating a graph snapshot as timeless truth. This supports retaining explicit event/validity/evidence-frontier dimensions and keeping reasoning downstream of evidence closure.
