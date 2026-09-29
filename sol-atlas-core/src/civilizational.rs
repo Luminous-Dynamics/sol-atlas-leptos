@@ -715,7 +715,8 @@ impl EvidenceFrontierV1 {
             .flat_map(|geometry| geometry.evidence.iter())
             .all(|id| self.admits(id))
     }
-}
+
+        source_metadata: vec![],}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProjectionError {
@@ -920,7 +921,8 @@ mod tests {
             manifest_hash: String::new(),
             admitted_evidence: ["evidence:old".into()].into_iter().collect(),
             admitted_sources: ["source:old".into()].into_iter().collect(),
-        };
+        
+        source_metadata: vec![],};
         let mut value = transition();
         value.evidence_refs = vec!["evidence:old".into()];
         value.source_snapshots = vec!["source:later".into()];
@@ -940,7 +942,8 @@ mod tests {
             manifest_hash: String::new(),
             admitted_evidence: ["evidence:1".into()].into_iter().collect(),
             admitted_sources: ["source:1".into()].into_iter().collect(),
-        };
+        
+        source_metadata: vec![],};
         assert!(frontier.admits_snapshot(&snapshot()));
 
         let mut later = snapshot();
