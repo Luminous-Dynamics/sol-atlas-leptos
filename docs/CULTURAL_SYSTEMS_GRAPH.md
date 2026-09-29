@@ -164,3 +164,31 @@ Each slice must remain reversible to evidence and temporally bounded.
 The graph must not produce cultural purity scores, civilization rankings, ancestry rankings, true-culture determinations, automatic ownership claims, automatic territorial entitlement, deterministic cultural identity assignment, or autonomous adjudication of contested heritage.
 
 The objective is to make cultural history more inspectable, plural, temporal and evidence-reversible, not to replace human or community interpretation.
+
+
+## Interoperability research boundary
+
+Recent standards review reinforces a useful separation of concerns.
+
+- **CIDOC CRM** is event-centric and explicitly designed to integrate heterogeneous cultural-heritage information across museums, archives and libraries. Its current published site lists CRM 7.4 (August 2026), while CRMgeo 2.0 provides a spatiotemporal bridge toward GeoSPARQL.
+- **CRMinf** is specifically concerned with argumentation and inference: premises, conclusions and reasoning activities. That makes it a useful conceptual analogue for Sol Atlas's distinction between canonical claims, assessments, interpretations and evidence paths.
+- **W3C PROV** supplies a general provenance vocabulary around entities, activities, agents, derivations and responsibility. It should remain an interoperability layer rather than become the domain ontology for cultural systems.
+- CIDOC CRM's own scope guidance warns against unconstrained ontology growth. This supports keeping Sol Atlas's Rust contracts deliberately small and projection-oriented, with richer domain semantics supplied by canonical DKG/claim authorities and external ontology mappings.
+
+### Architectural consequence
+
+We should **not** attempt to turn the cultural Rust module into a complete CIDOC CRM implementation.
+
+Instead:
+
+    Canonical DKG / Claim Authority
+              ↓
+    Sol Atlas cultural projection contracts
+              ↓
+    CIDOC CRM / CRMinf / PROV mappings
+              ↓
+    External archives, museums, research datasets
+
+The Rust layer owns deterministic projection safety, temporal frontier replay, admission, access/stewardship metadata and reversibility. External semantic standards provide interoperability mappings and richer domain semantics.
+
+This also suggests a future `OntologyMappingV1` boundary rather than embedding ontology-specific identifiers into every projection record.
