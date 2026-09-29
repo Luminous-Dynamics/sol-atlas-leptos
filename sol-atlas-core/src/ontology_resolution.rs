@@ -52,27 +52,41 @@ impl OntologyMappingResolutionV1 {
             evidence_frontier: frontier.frontier_id.clone(),
             resolution_hash: String::new(),
         };
+        resolution.canonicalize();
         resolution.recompute_hash()?;
         Ok(resolution)
     }
 
-    fn canonical_payload(
-        &self,
-    ) -> (
-        &OntologyMappingContextV1,
-        &ClaimId,
-        &Vec<EvidenceId>,
-        &Vec<SourceSnapshotId>,
-        &QualificationStatus,
-        &EvidenceFrontierId,
+    /// Canonicalize evidence/source membership for hashing and replay.
+    ///
+    /// These vectors represent closure membership, not an epistemic ordering.
+    /// Canonicalizing them prevents equivalent set membership from producing
+    /// different resolution hashes merely because a caller supplied a
+    /// different vector order.
+    pub fn canonicalize(&mut self) {
+        self.evidence_refs.sort();
+        self.source_snapshots.sort();
+    }
+
+    fn canonical_payload(&self) -> (
+        OntologyMappingContextV1,
+        ClaimId,
+        Vec<EvidenceId>,
+        Vec<SourceSnapshotId>,
+        QualificationStatus,
+        EvidenceFrontierId,
     ) {
+        let mut evidence_refs = self.evidence_refs.clone();
+        let mut source_snapshots = self.source_snapshots.clone();
+        evidence_refs.sort();
+        source_snapshots.sort();
         (
-            &self.mapping,
-            &self.claim_ref,
-            &self.evidence_refs,
-            &self.source_snapshots,
-            &self.qualification,
-            &self.evidence_frontier,
+            self.mapping.clone(),
+            self.claim_ref.clone(),
+            evidence_refs,
+            source_snapshots,
+            self.qualification,
+            self.evidence_frontier.clone(),
         )
     }
 
@@ -117,8 +131,18 @@ impl OntologyMappingResolutionV1 {
         self.validate().is_ok()
             && claim.is_frontier_safe(frontier)
             && self.claim_ref == claim.claim_ref
-            && self.evidence_refs == claim.evidence_refs
-            && self.source_snapshots == claim.source_snapshots
+            && {
+                let mut claim_evidence = claim.evidence_refs.clone();
+                let mut claim_sources = claim.source_snapshots.clone();
+                claim_evidence.sort();
+                claim_sources.sort();
+                let mut resolution_evidence = self.evidence_refs.clone();
+                let mut resolution_sources = self.source_snapshots.clone();
+                resolution_evidence.sort();
+                resolution_sources.sort();
+                resolution_evidence == claim_evidence
+                    && resolution_sources == claim_sources
+            }
             && self.qualification == claim.qualification
             && self.evidence_frontier == frontier.frontier_id
             && self.mapping.qualification == claim.qualification
@@ -226,6 +250,27 @@ mod tests {
         other_frontier.frontier_id = "frontier:1960".into();
         other_frontier.recompute_manifest_hash().expect("rehash");
         assert!(!resolution.is_frontier_safe(&claim, &other_frontier));
+    }
+
+    #[test]
+    fn closure_member_order_is_not_semantic() {
+        let (mapping, claim, frontier) = fixture();
+        let mut resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
+        ).expect("resolution");
+        resolution.evidence_refs = vec!["e:2".into(), "e:1".into()];
+        resolution.source_snapshots = vec!["source:2".into(), "source:1".into()];
+        let mut canonical = resolution.clone();
+        canonical.canonicalize();
+        canonical.recompute_hash().expect("rehash");
+
+        let mut reordered = canonical.clone();
+        reordered.evidence_refs.reverse();
+        reordered.source_snapshots.reverse();
+        assert_eq!(
+            canonical.computed_hash().expect("hash"),
+            reordered.computed_hash().expect("hash")
+        );
     }
 
     #[test]
