@@ -439,10 +439,28 @@ pub struct EvidenceFrontierV1 {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EvidenceFrontierChainV1 {
     pub frontiers: Vec<EvidenceFrontierV1>,
-            source_metadata: vec![],
 }
 
 impl EvidenceFrontierChainV1 {
+    /// Strict chain validation for reproducible replay. Every frontier in the
+    /// supplied ancestry must carry complete source availability metadata.
+    pub fn validate_strict(&self) -> Result<(), ProjectionError> {
+        if self.frontiers.is_empty() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        if self.frontiers[0].parent_frontier.is_some() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        self.frontiers[0].validate_temporal_manifest_strict()?;
+        for pair in self.frontiers.windows(2) {
+            let parent = &pair[0];
+            let child = &pair[1];
+            child.validate_temporal_manifest_strict()?;
+            child.validate_extension_of(parent)?;
+        }
+        Ok(())
+    }
+
     pub fn validate(&self) -> Result<(), ProjectionError> {
         if self.frontiers.is_empty() {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
@@ -571,6 +589,34 @@ impl EvidenceFrontierV1 {
                         && source.available_at(self.known_by_year)
                 })
         })
+    }
+
+    /// Strict validation for reproducible replay. Unlike the migration-compatible
+    /// validator, this requires temporal metadata for every admitted source snapshot.
+    pub fn validate_temporal_manifest_strict(&self) -> Result<(), ProjectionError> {
+        self.validate_temporal_manifest()?;
+        if self.source_metadata.len() != self.admitted_sources.len() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        let source_ids = self
+            .source_metadata
+            .iter()
+            .map(|metadata| metadata.source_snapshot.clone())
+            .collect::<BTreeSet<_>>();
+        if source_ids.len() != self.admitted_sources.len()
+            || source_ids != self.admitted_sources
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        for evidence_metadata in &self.evidence_metadata {
+            if !source_ids.contains(&evidence_metadata.source_snapshot) {
+                return Err(ProjectionError::UnadmittedSourceMetadata);
+            }
+        }
+
+        Ok(())
     }
 
     /// Validates the frontier's admission manifest against its temporal metadata.
