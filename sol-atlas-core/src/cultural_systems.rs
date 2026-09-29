@@ -82,6 +82,12 @@ pub struct CulturalArgumentationRefV1 {
     pub claim_ref: ClaimId,
     pub evidence_refs: Vec<EvidenceId>,
     pub source_snapshots: Vec<SourceSnapshotId>,
+    /// When the assessment was performed; distinct from historical event time.
+    pub assessment_time: Option<YearInterval>,
+    /// When the interpretation was formulated; distinct from publication/availability.
+    pub interpretation_time: Option<YearInterval>,
+    /// Earliest epistemic frontier year at which this argumentation record may be used.
+    pub available_by: i32,
     pub evidence_frontier: EvidenceFrontierId,
 }
 
@@ -94,6 +100,14 @@ impl CulturalArgumentationRefV1 {
             || self.source_snapshots.iter().any(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid() {
             return Err(ProjectionError::EmptyIdentifier);
+        }
+        if self.available_by < self.assessment_time.and_then(|v| v.to)
+            .or(self.assessment_time.and_then(|v| v.from)).unwrap_or(self.available_by)
+            || self.available_by < self.interpretation_time.and_then(|v| v.to)
+                .or(self.interpretation_time.and_then(|v| v.from)).unwrap_or(self.available_by)
+            || self.assessment_time.is_some_and(|v| !v.is_valid())
+            || self.interpretation_time.is_some_and(|v| !v.is_valid()) {
+            return Err(ProjectionError::InvalidTimeInterval);
         }
         Ok(())
     }
@@ -108,6 +122,7 @@ impl CulturalArgumentationRefV1 {
             && self.evidence_refs == claim.evidence_refs
             && self.source_snapshots == claim.source_snapshots
             && self.evidence_frontier == frontier.frontier_id
+            && self.available_by <= frontier.known_by_year
     }
 }
 
@@ -503,6 +518,9 @@ pub struct CulturalProjectionAuditV2 {
     pub source_snapshots: Vec<SourceSnapshotId>,
     pub community_recognition_evidence: Vec<EvidenceId>,
     pub assessment: Option<AssessmentId>,
+    /// Optional argumentation closure; when present it preserves the assessment/
+    /// interpretation provenance used to justify the projection's qualification.
+    pub argumentation: Option<CulturalArgumentationRefV1>,
     pub event_time: YearInterval,
     pub qualification: QualificationStatus,
     pub access_policy: AccessPolicyV1,
@@ -524,7 +542,14 @@ impl CulturalProjectionAuditV2 {
         };
         Self { projection_id, claim_ref, evidence_refs, source_snapshots,
             community_recognition_evidence: recognition.iter().flat_map(|r| r.evidence_refs.iter().cloned()).collect(),
-            assessment, event_time, qualification, access_policy, evidence_frontier }
+            assessment, argumentation: None, event_time, qualification, access_policy, evidence_frontier }
+    }
+
+    /// Attaches an externally resolved argumentation record without changing the
+    /// semantic identity or qualification of the projection.
+    pub fn with_argumentation(mut self, argumentation: CulturalArgumentationRefV1) -> Self {
+        self.argumentation = Some(argumentation);
+        self
     }
 
     pub fn validate(&self) -> Result<(), ProjectionError> {
@@ -534,6 +559,16 @@ impl CulturalProjectionAuditV2 {
             || self.community_recognition_evidence.iter().any(|id| !id.is_valid())
             || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid() { return Err(ProjectionError::EmptyIdentifier); }
+        if let Some(argumentation) = &self.argumentation {
+            argumentation.validate()?;
+            if argumentation.claim_ref != self.claim_ref
+                || argumentation.evidence_refs != self.evidence_refs
+                || argumentation.source_snapshots != self.source_snapshots
+                || argumentation.evidence_frontier != self.evidence_frontier
+                || argumentation.assessment != self.assessment.clone().unwrap_or_else(|| argumentation.assessment.clone()) {
+                return Err(ProjectionError::EmptyIdentifier);
+            }
+        }
         if !self.event_time.is_valid() { return Err(ProjectionError::InvalidTimeInterval); }
         Ok(())
     }
@@ -544,6 +579,18 @@ impl CulturalProjectionAuditV2 {
             && self.evidence_refs.iter().all(|id| frontier.admits(id))
             && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
             && self.community_recognition_evidence.iter().all(|id| frontier.admits(id))
+            && self.argumentation.as_ref().is_none_or(|argumentation| {
+                argumentation.is_frontier_safe(
+                    &CanonicalClaimAdmissionV1 {
+                        claim_ref: self.claim_ref.clone(),
+                        evidence_refs: self.evidence_refs.clone(),
+                        source_snapshots: self.source_snapshots.clone(),
+                        qualification: self.qualification,
+                        evidence_frontier: self.evidence_frontier.clone(),
+                    },
+                    frontier,
+                )
+            })
     }
 }
 
