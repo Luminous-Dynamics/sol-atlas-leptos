@@ -11,7 +11,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::civilizational::{
-    AssessmentId, ClaimId, EntityId, EvidenceFrontierId, EvidenceFrontierV1, EvidenceId,
+    AssessmentId, ClaimId, EntityId, EvidenceFrontierId, EvidenceFrontierV1, EvidenceId, InterpretationId,
     ProjectionError, QualificationStatus, SourceSnapshotId, YearInterval,
 };
 
@@ -69,6 +69,45 @@ impl CanonicalClaimAdmissionV1 {
             && self.evidence_frontier == frontier.frontier_id
             && self.evidence_refs.iter().all(|id| frontier.admits(id))
             && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
+    }
+}
+
+/// Projection-side argumentation context. The referenced assessment and
+/// interpretation are externally owned; Sol Atlas only carries stable references
+/// and the evidence closure needed to replay a projection safely.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CulturalArgumentationRefV1 {
+    pub assessment: AssessmentId,
+    pub interpretation: InterpretationId,
+    pub claim_ref: ClaimId,
+    pub evidence_refs: Vec<EvidenceId>,
+    pub source_snapshots: Vec<SourceSnapshotId>,
+    pub evidence_frontier: EvidenceFrontierId,
+}
+
+impl CulturalArgumentationRefV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.assessment.is_valid() || !self.interpretation.is_valid()
+            || !self.claim_ref.is_valid() || self.evidence_refs.is_empty()
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.is_empty()
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || !self.evidence_frontier.is_valid() {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        Ok(())
+    }
+
+    pub fn is_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> bool {
+        self.validate().is_ok() && claim.is_frontier_safe(frontier)
+            && self.claim_ref == claim.claim_ref
+            && self.evidence_refs == claim.evidence_refs
+            && self.source_snapshots == claim.source_snapshots
+            && self.evidence_frontier == frontier.frontier_id
     }
 }
 
