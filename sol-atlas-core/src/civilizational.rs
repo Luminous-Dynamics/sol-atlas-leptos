@@ -216,6 +216,98 @@ impl HistoricalTransitionV1 {
     }
 }
 
+/// Identifies exactly what a renderer is showing and preserves the route back
+/// to claims, evidence, source snapshots, temporal scope, qualification, and
+/// the evidence frontier used for admission.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ProjectionRef {
+    Snapshot(SnapshotId),
+    Transition(TransitionId),
+}
+
+impl ProjectionRef {
+    pub fn is_valid(&self) -> bool {
+        match self {
+            Self::Snapshot(id) => id.is_valid(),
+            Self::Transition(id) => id.is_valid(),
+        }
+    }
+}
+
+/// An executable "why is this visible?" audit record. It is a projection-level
+/// object, not a claim that the underlying history is settled.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ProjectionAuditV1 {
+    pub projection: ProjectionRef,
+    pub claim_refs: Vec<ClaimId>,
+    pub evidence_refs: Vec<EvidenceId>,
+    pub source_snapshots: Vec<SourceSnapshotId>,
+    pub temporal_scope: YearInterval,
+    pub qualification: QualificationStatus,
+    pub evidence_frontier: EvidenceFrontierId,
+}
+
+impl ProjectionAuditV1 {
+    pub fn for_snapshot(snapshot: &StateSnapshotV1) -> Self {
+        let evidence_refs = snapshot
+            .geometries
+            .iter()
+            .flat_map(|geometry| geometry.evidence.iter().cloned())
+            .collect();
+
+        Self {
+            projection: ProjectionRef::Snapshot(snapshot.snapshot_id.clone()),
+            claim_refs: snapshot.qualification.claim_refs.clone(),
+            evidence_refs,
+            source_snapshots: Vec::new(),
+            temporal_scope: snapshot.valid_time,
+            qualification: snapshot.qualification.status,
+            evidence_frontier: snapshot.evidence_frontier.clone(),
+        }
+    }
+
+    pub fn for_transition(
+        transition: &HistoricalTransitionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Self {
+        Self {
+            projection: ProjectionRef::Transition(transition.transition_id.clone()),
+            claim_refs: transition.claim_refs.clone(),
+            evidence_refs: transition.evidence_refs.clone(),
+            source_snapshots: transition.source_snapshots.clone(),
+            temporal_scope: transition.event_time,
+            qualification: transition.qualification,
+            evidence_frontier: frontier.frontier_id.clone(),
+        }
+    }
+
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.projection.is_valid()
+            || self.claim_refs.iter().any(|id| !id.is_valid())
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if !self.temporal_scope.is_valid() {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        if !self.evidence_frontier.is_valid() {
+            return Err(ProjectionError::MissingEvidenceFrontier);
+        }
+        if self.claim_refs.is_empty() || self.evidence_refs.is_empty() {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        if matches!(self.projection, ProjectionRef::Transition(_))
+            && self.source_snapshots.is_empty()
+        {
+            return Err(ProjectionError::IrreversibleTransition);
+        }
+        Ok(())
+    }
+}
+
 /// A projection can be reconstructed only from evidence admitted by this
 /// frontier; callers must filter derived assessments by the same boundary.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -245,6 +337,12 @@ impl EvidenceFrontierV1 {
                 g.evidence.iter().all(|id| self.admitted_evidence.contains(id))
             })
     }
+
+    pub fn admits_audit(&self, audit: &ProjectionAuditV1) -> bool {
+        audit.evidence_frontier == self.frontier_id
+            && audit.evidence_refs.iter().all(|id| self.admitted_evidence.contains(id))
+            && audit.source_snapshots.iter().all(|id| self.admitted_sources.contains(id))
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -258,6 +356,7 @@ pub enum ProjectionError {
     MissingTransitionClass,
     TransitionWithoutParticipants,
     IrreversibleTransition,
+    AuditWithoutEvidencePath,
 }
 
 #[cfg(test)]
@@ -359,8 +458,6 @@ mod tests {
         assert!(!frontier.admits(&"evidence:discovered-later".into()));
     }
 
-
-
     #[test]
     fn frontier_rejects_transition_with_later_evidence_or_source() {
         let frontier = EvidenceFrontierV1 {
@@ -391,6 +488,50 @@ mod tests {
         let mut later = snapshot();
         later.evidence_frontier = "frontier:1950".into();
         assert!(!frontier.admits_snapshot(&later));
+    }
+
+    #[test]
+    fn audit_is_reversible_and_frontier_safe() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1949".into(),
+            known_by_year: 1949,
+            admitted_evidence: ["evidence:1".into(), "evidence:partition".into()]
+                .into_iter()
+                .collect(),
+            admitted_sources: ["source-snapshot:archive".into()].into_iter().collect(),
+        };
+
+        let snapshot_audit = ProjectionAuditV1::for_snapshot(&snapshot());
+        assert_eq!(snapshot_audit.validate(), Ok(()));
+        assert!(frontier.admits_audit(&snapshot_audit));
+
+        let transition_audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
+        assert_eq!(transition_audit.validate(), Ok(()));
+        assert!(frontier.admits_audit(&transition_audit));
+
+        let mut later = transition_audit;
+        later.evidence_refs.push("evidence:discovered-later".into());
+        assert!(!frontier.admits_audit(&later));
+    }
+
+    #[test]
+    fn audit_requires_evidence_path() {
+        let mut audit = ProjectionAuditV1::for_snapshot(&snapshot());
+        audit.evidence_refs.clear();
+        assert_eq!(audit.validate(), Err(ProjectionError::AuditWithoutEvidencePath));
+    }
+
+    #[test]
+    fn transition_audit_requires_source_snapshot() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1949".into(),
+            known_by_year: 1949,
+            admitted_evidence: ["evidence:partition".into()].into_iter().collect(),
+            admitted_sources: ["source-snapshot:archive".into()].into_iter().collect(),
+        };
+        let mut audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
+        audit.source_snapshots.clear();
+        assert_eq!(audit.validate(), Err(ProjectionError::IrreversibleTransition));
     }
 
     #[test]
