@@ -7,8 +7,8 @@ use leptos_router::components::A;
 use leptos_router::hooks::{use_params_map, use_query_map};
 
 use crate::data::evidence_projection::{
-    AtlasEvidenceProjectionV1, ClaimKind, ContradictionRef, EpistemicState, LineageCompleteness, TerminalQueryV1,
-    Visibility,
+    AtlasEvidenceProjectionV1, ClaimKind, ContradictionRef, EpistemicState, LineageCompleteness,
+    LineageNodeRef, LineageResolution, TerminalQueryV1, Visibility,
 };
 
 fn fixture_projections() -> Vec<AtlasEvidenceProjectionV1> {
@@ -22,6 +22,7 @@ fn fixture_projections() -> Vec<AtlasEvidenceProjectionV1> {
             evidence_refs: vec!["evidence:4a90".into()],
             derivation_ref: None,
             frontier_ref: "ef:demo:9d7b".into(),
+            qualification_ref: "profile:fin-001c0".into(),
             qualification: EpistemicState::Qualified,
             contradictions: vec![ContradictionRef {
                 claim_ref: "claim:obs:alt-22".into(),
@@ -124,6 +125,21 @@ pub fn EvidenceTerminal() -> impl IntoView {
     };
     let selected_claim = move || terminal_query().claim_ref;
     let selected_view = move || terminal_query().view.as_str();
+    let selected_node = move || LineageNodeRef::parse(query.read().get("node").as_deref());
+    let selected_node_status = move || {
+        selected_node()
+            .map(|node| primary.resolve_lineage_node(&node))
+            .unwrap_or(LineageResolution::Incomplete)
+    };
+    let lineage_href = move |node: LineageNodeRef| {
+        format!(
+            "/terminal/entity/{}?frontier={}&claim={}&view=lineage&node={}",
+            selected_entity(),
+            selected_frontier(),
+            primary.claim_ref,
+            node.query_value()
+        )
+    };
     let replay_href = move || {
         format!(
             "/terminal/entity/{}?frontier={}&claim={}&view=evidence",
@@ -207,13 +223,38 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             <button class="icon-action" aria-label="Close evidence drawer">"×"</button>
                         </div>
                         <ol class="lineage">
-                            <li><span>"Rendered projection"</span><code>{primary.projection_id.clone()}</code></li>
-                            <li><span>"Canonical claim"</span><code>{primary.claim_ref.clone()}</code></li>
-                            <li><span>"Evidence"</span><code>{primary.evidence_refs.first().cloned().unwrap_or_default()}</code></li>
-                            <li><span>"Source snapshot"</span><code>{primary.source_snapshot_refs.first().cloned().unwrap_or_default()}</code></li>
-                            <li><span>"Qualification"</span><code>"profile:fin-001c0"</code></li>
-                            <li><span>"Information frontier"</span><code>{primary.frontier_ref.clone()}</code></li>
+                            {primary.lineage_nodes().into_iter().map(|node| {
+                                let label = match &node {
+                                    LineageNodeRef::Projection(_) => "Rendered projection",
+                                    LineageNodeRef::Claim(_) => "Canonical claim",
+                                    LineageNodeRef::Evidence(_) => "Evidence",
+                                    LineageNodeRef::SourceSnapshot(_) => "Source snapshot",
+                                    LineageNodeRef::Qualification(_) => "Qualification profile",
+                                    LineageNodeRef::Frontier(_) => "Information frontier",
+                                    LineageNodeRef::Derivation(_) => "Derivation receipt",
+                                    LineageNodeRef::ReasoningReceipt(_) => "Reasoning receipt",
+                                };
+                                let href = lineage_href(node.clone());
+                                view! {
+                                    <li>
+                                        <span>{label}</span>
+                                        <A class="lineage-link" href=href>{node.id().to_string()}</A>
+                                    </li>
+                                }
+                            }).collect_view()}
                         </ol>
+                        <div class="lineage-selection">
+                            <span>"INSPECTED NODE"</span>
+                            <code>{move || selected_node().map(|node| node.query_value()).unwrap_or_else(|| "none".into())}</code>
+                            <span class="lineage-resolution">
+                                {move || match selected_node_status() {
+                                    LineageResolution::Resolved => "RESOLVED BY DECLARED PROJECTION",
+                                    LineageResolution::Unavailable => "UNAVAILABLE · NO FALLBACK",
+                                    LineageResolution::Protected => "PROTECTED · CONTENT NOT DISCLOSED",
+                                    LineageResolution::Incomplete => "INCOMPLETE · NO NODE SELECTED",
+                                }}
+                            </span>
+                        </div>
                         {match primary.lineage_completeness() {
                             LineageCompleteness::Complete => view! {
                                 <div class="lineage-integrity complete">"LINEAGE COMPLETE · all declared dependencies are addressable"</div>
@@ -223,6 +264,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             }.into_any(),
                         }}
                         <A class="replay-action" href=replay_href>"↻  Reconstruct at this frontier"</A>
+                        <p class="lineage-note">"Inspection links address declared dependencies only; an unresolved node is shown as unavailable rather than replaced with current or inferred data."</p>
                         <div class="terminal-route-state">
                             <span>"URL view"</span><code>{selected_view}</code>
                             <span>"Claim filter"</span><code>{move || selected_claim().unwrap_or_else(|| "none".into())}</code>
