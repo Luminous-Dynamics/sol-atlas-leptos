@@ -1246,3 +1246,21 @@ code {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+
+.lineage-integrity {
+    margin-top: 11px;
+    padding: 7px 8px;
+    border-left: 2px solid currentColor;
+    font-size: 8px;
+    letter-spacing: 0.5px;
+    line-height: 1.4;
+}
+
+.lineage-integrity.complete {
+    color: rgba(var(--sa-accent), 0.72);
+}
+
+.lineage-integrity.incomplete {
+    color: rgba(255, 170, 110, 0.82);
+}
