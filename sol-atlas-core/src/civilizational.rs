@@ -406,13 +406,18 @@ pub struct EvidenceFrontierV1 {
 impl EvidenceFrontierV1 {
     /// Computes the content hash for the frontier admission manifest.
     pub fn computed_manifest_hash(&self) -> Result<String, ProjectionError> {
+        // Metadata is a vector for serialization compatibility, but manifest
+        // identity must not depend on caller-provided ordering.
+        let mut canonical_metadata = self.evidence_metadata.clone();
+        canonical_metadata.sort_by(|a, b| a.evidence_id.cmp(&b.evidence_id));
+
         let payload = (
             &self.known_by_year,
             &self.parent_frontier,
             &self.policy_version,
             &self.admitted_evidence,
             &self.admitted_sources,
-            &self.evidence_metadata,
+            &canonical_metadata,
         );
         let bytes = serde_json::to_vec(&payload)
             .map_err(|_| ProjectionError::InvalidEvidenceFrontierManifest)?;
@@ -430,6 +435,42 @@ impl EvidenceFrontierV1 {
     /// Recomputes the manifest hash after constructing or extending a frontier.
     pub fn recompute_manifest_hash(&mut self) -> Result<(), ProjectionError> {
         self.manifest_hash = self.computed_manifest_hash()?;
+        Ok(())
+    }
+
+    /// Validates that this frontier is a strict append-only extension of its parent.
+    ///
+    /// The parent must be supplied by the caller because the frontier itself stores only
+    /// the parent's stable identifier. A valid extension may advance the evidence horizon
+    /// and add evidence/sources, but it may not rewrite already-admitted metadata.
+    pub fn validate_extension_of(&self, parent: &Self) -> Result<(), ProjectionError> {
+        if !self.parent_frontier.as_ref().is_some_and(|id| id == &parent.frontier_id) {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        parent.validate_temporal_manifest()?;
+        self.validate_temporal_manifest()?;
+
+        if self.known_by_year < parent.known_by_year
+            || self.policy_version != parent.policy_version
+            || !self.admitted_evidence.is_superset(&parent.admitted_evidence)
+            || !self.admitted_sources.is_superset(&parent.admitted_sources)
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        for parent_metadata in &parent.evidence_metadata {
+            let Some(child_metadata) = self
+                .evidence_metadata
+                .iter()
+                .find(|metadata| metadata.evidence_id == parent_metadata.evidence_id)
+            else {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            };
+            if child_metadata != parent_metadata {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            }
+        }
+
         Ok(())
     }
 
@@ -831,6 +872,146 @@ mod tests {
         let audit = ProjectionAuditV1::for_snapshot(&snapshot());
         assert!(audit.claim_refs.contains(&"claim:relation".into()));
         assert!(audit.claim_refs.contains(&"claim:qualification".into()));
+    }
+
+    #[test]
+    fn manifest_hash_is_independent_of_metadata_order() {
+        let metadata_a = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:a".into(),
+            source_snapshot: "source:a".into(),
+            artifact_time: None,
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+        let metadata_b = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:b".into(),
+            source_snapshot: "source:b".into(),
+            artifact_time: None,
+            publication_time: Some(1901),
+            capture_time: None,
+            available_by: 1901,
+            validity_time: None,
+        };
+
+        let mut first = EvidenceFrontierV1 {
+            frontier_id: "frontier:1901".into(),
+            known_by_year: 1901,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into(), "evidence:b".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata_a.clone(), metadata_b.clone()],
+        };
+        let mut second = first.clone();
+        second.evidence_metadata.reverse();
+
+        first.recompute_manifest_hash().unwrap();
+        second.recompute_manifest_hash().unwrap();
+
+        assert_eq!(first.manifest_hash, second.manifest_hash);
+        assert_eq!(first.validate_temporal_manifest(), Ok(()));
+        assert_eq!(second.validate_temporal_manifest(), Ok(()));
+    }
+
+    #[test]
+    fn manifest_hash_detects_policy_and_admission_tampering() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1901".into(),
+            known_by_year: 1901,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+        };
+        frontier.recompute_manifest_hash().unwrap();
+
+        frontier.policy_version = "v2".into();
+        assert_eq!(
+            frontier.verify_manifest_hash(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        frontier.policy_version = "v1".into();
+        frontier.admitted_evidence.insert("evidence:b".into());
+        assert_eq!(
+            frontier.verify_manifest_hash(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn frontier_extension_is_append_only_and_metadata_immutable() {
+        let parent_metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:a".into(),
+            source_snapshot: "source:a".into(),
+            artifact_time: None,
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![parent_metadata.clone()],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let child_metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:b".into(),
+            source_snapshot: "source:b".into(),
+            artifact_time: None,
+            publication_time: Some(1901),
+            capture_time: None,
+            available_by: 1901,
+            validity_time: None,
+        };
+        let mut child = EvidenceFrontierV1 {
+            frontier_id: "frontier:1901".into(),
+            known_by_year: 1901,
+            parent_frontier: Some(parent.frontier_id.clone()),
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into(), "evidence:b".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
+            evidence_metadata: vec![parent_metadata.clone(), child_metadata],
+        };
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(child.validate_extension_of(&parent), Ok(()));
+
+        child.evidence_metadata[0].available_by = 1899;
+        child.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        child.evidence_metadata[0] = parent_metadata;
+        child.parent_frontier = Some("frontier:wrong".into());
+        child.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
     }
 
     #[test]
