@@ -6,3 +6,4 @@ pub mod holochain;
 pub mod reactor_twin;
 pub mod static_data;
 pub mod types;
+pub mod evidence_projection;
