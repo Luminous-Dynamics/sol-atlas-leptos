@@ -859,6 +859,20 @@ mod tests {
     }
 
     #[test]
+    fn snapshot_reports_missing_evidence_path_distinctly() {
+        let mut value = snapshot();
+        value.evidence_refs.clear();
+        assert_eq!(value.validate(), Err(ProjectionError::SnapshotWithoutEvidencePath));
+    }
+
+    #[test]
+    fn transition_reports_missing_evidence_path_distinctly() {
+        let mut value = transition();
+        value.evidence_refs.clear();
+        assert_eq!(value.validate(), Err(ProjectionError::TransitionWithoutEvidencePath));
+    }
+
+    #[test]
     fn spatial_precision_must_be_explicit_and_supported() {
         let mut value = snapshot();
         value.geometries = vec![geometry(SpatialSemantics::AdministrativeBoundary, false)];
