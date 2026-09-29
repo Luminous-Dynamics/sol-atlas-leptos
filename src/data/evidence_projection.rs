@@ -135,7 +135,8 @@ impl LineageNodeRef {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LineageResolution {
-    Resolved,
+    /// The identifier is declared by the local projection; this is not an authoritative fetch.
+    Declared,
     Unavailable,
     Protected,
     Incomplete,
@@ -147,17 +148,17 @@ impl AtlasEvidenceProjectionV1 {
     pub fn resolve_lineage_node(&self, node: &LineageNodeRef) -> LineageResolution {
         match node {
             LineageNodeRef::Projection(id) => {
-                if id == &self.projection_id { LineageResolution::Resolved } else { LineageResolution::Unavailable }
+                if id == &self.projection_id { LineageResolution::Declared } else { LineageResolution::Unavailable }
             }
             LineageNodeRef::Claim(id) => {
-                if id == &self.claim_ref { LineageResolution::Resolved } else { LineageResolution::Unavailable }
+                if id == &self.claim_ref { LineageResolution::Declared } else { LineageResolution::Unavailable }
             }
             LineageNodeRef::Evidence(id) => {
                 if self.evidence_refs.iter().any(|ref_id| ref_id == id) {
                     if matches!(self.visibility, Visibility::Redacted) {
                         LineageResolution::Protected
                     } else {
-                        LineageResolution::Resolved
+                        LineageResolution::Declared
                     }
                 } else {
                     LineageResolution::Unavailable
@@ -165,7 +166,7 @@ impl AtlasEvidenceProjectionV1 {
             }
             LineageNodeRef::SourceSnapshot(id) => {
                 if self.source_snapshot_refs.iter().any(|ref_id| ref_id == id) {
-                    LineageResolution::Resolved
+                    LineageResolution::Declared
                 } else {
                     LineageResolution::Unavailable
                 }
@@ -174,25 +175,25 @@ impl AtlasEvidenceProjectionV1 {
                 if id == &self.qualification_ref {
                     match self.qualification {
                         EpistemicState::Protected => LineageResolution::Protected,
-                        _ => LineageResolution::Resolved,
+                        _ => LineageResolution::Declared,
                     }
                 } else {
                     LineageResolution::Unavailable
                 }
             }
             LineageNodeRef::Frontier(id) => {
-                if id == &self.frontier_ref { LineageResolution::Resolved } else { LineageResolution::Unavailable }
+                if id == &self.frontier_ref { LineageResolution::Declared } else { LineageResolution::Unavailable }
             }
             LineageNodeRef::Derivation(id) => {
                 if matches!(self.claim_kind, ClaimKind::Derived) && self.derivation_ref.as_deref() == Some(id) {
-                    LineageResolution::Resolved
+                    LineageResolution::Declared
                 } else {
                     LineageResolution::Unavailable
                 }
             }
             LineageNodeRef::ReasoningReceipt(id) => {
                 if matches!(self.claim_kind, ClaimKind::Hypothesis) && self.derivation_ref.as_deref() == Some(id) {
-                    LineageResolution::Resolved
+                    LineageResolution::Declared
                 } else {
                     LineageResolution::Unavailable
                 }
@@ -338,7 +339,7 @@ mod tests {
     fn lineage_nodes_are_typed_and_resolve_without_inference() {
         let projection = fixture();
         let claim = LineageNodeRef::Claim("claim:obs:7f31".into());
-        assert_eq!(projection.resolve_lineage_node(&claim), LineageResolution::Resolved);
+        assert_eq!(projection.resolve_lineage_node(&claim), LineageResolution::Declared);
 
         let missing = LineageNodeRef::Evidence("evidence:not-declared".into());
         assert_eq!(projection.resolve_lineage_node(&missing), LineageResolution::Unavailable);
@@ -397,6 +398,9 @@ mod tests {
             Some("model:symthaea:v1".into()),
         );
         assert!(replay.is_replay_addressable());
+        let target = replay.replay_target().expect("complete replay target");
+        assert_eq!(target.frontier_ref, "ef:demo:9d7b");
+        assert!(!target.dependency_manifest_request().is_complete());
         assert_eq!(query.view, TerminalView::Evidence);
     }
 
@@ -443,6 +447,79 @@ mod tests {
 }
 
 
+/// A complete address for a requested historical computation.
+///
+/// This is deliberately narrower than a replay receipt: it identifies the
+/// requested computation, but does not prove that its dependencies exist or
+/// that the computation has been reconstructed.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ReplayTargetV1 {
+    pub entity_ref: String,
+    pub claim_ref: String,
+    pub frontier_ref: String,
+    pub projection_profile: String,
+    pub reasoning_program: String,
+    pub model_version: String,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReplayReadiness {
+    Incomplete,
+    Addressable,
+}
+
+impl ReplayTargetV1 {
+    pub fn readiness(&self) -> ReplayReadiness {
+        ReplayReadiness::Addressable
+    }
+
+    /// Dependency completeness belongs to the semantic authority; Atlas only
+    /// carries the identifiers needed to request that resolution.
+    pub fn dependency_manifest_request(&self) -> DependencyManifestV1 {
+        DependencyManifestV1 {
+            frontier_ref: self.frontier_ref.clone(),
+            evidence_roots: Vec::new(),
+            source_versions: Vec::new(),
+            canonical_state_root: None,
+            model_version: self.model_version.clone(),
+            ontology_version: None,
+            projection_profile: self.projection_profile.clone(),
+            reasoning_program: self.reasoning_program.clone(),
+            qualification_profile: None,
+        }
+    }
+}
+
+/// Manifest shape requested from the upstream semantic authority before a
+/// replay can be considered resolved. Empty/absent fields are intentionally
+/// not filled by Atlas.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct DependencyManifestV1 {
+    pub frontier_ref: String,
+    pub evidence_roots: Vec<String>,
+    pub source_versions: Vec<String>,
+    pub canonical_state_root: Option<String>,
+    pub model_version: String,
+    pub ontology_version: Option<String>,
+    pub projection_profile: String,
+    pub reasoning_program: String,
+    pub qualification_profile: Option<String>,
+}
+
+impl DependencyManifestV1 {
+    pub fn is_complete(&self) -> bool {
+        !self.frontier_ref.is_empty()
+            && !self.evidence_roots.is_empty()
+            && !self.source_versions.is_empty()
+            && self.canonical_state_root.as_deref().is_some_and(|v| !v.is_empty())
+            && !self.model_version.is_empty()
+            && self.ontology_version.as_deref().is_some_and(|v| !v.is_empty())
+            && !self.projection_profile.is_empty()
+            && !self.reasoning_program.is_empty()
+            && self.qualification_profile.as_deref().is_some_and(|v| !v.is_empty())
+    }
+}
+
 /// URL-addressable research state for the terminal projection.
 ///
 /// This is intentionally a view/query contract, not a semantic authority.
@@ -460,18 +537,24 @@ pub struct TerminalQueryV1 {
 }
 
 impl TerminalQueryV1 {
+    pub fn replay_target(&self) -> Option<ReplayTargetV1> {
+        Some(ReplayTargetV1 {
+            entity_ref: self.entity_ref.clone()?,
+            claim_ref: self.claim_ref.clone()?,
+            frontier_ref: self.frontier_ref.clone()?,
+            projection_profile: self.projection_profile.clone()?,
+            reasoning_program: self.reasoning_program.clone()?,
+            model_version: self.model_version.clone()?,
+        })
+    }
+
     /// A frontier URL is not by itself a full replay contract.
     ///
     /// Full replay requires the same query target plus the projection,
     /// reasoning-program and model identities. This deliberately prevents
     /// Atlas from presenting a navigation URL as a verified historical replay.
     pub fn is_replay_addressable(&self) -> bool {
-        self.entity_ref.is_some()
-            && self.claim_ref.is_some()
-            && self.frontier_ref.is_some()
-            && self.projection_profile.is_some()
-            && self.reasoning_program.is_some()
-            && self.model_version.is_some()
+        self.replay_target().is_some()
     }
 }
 
