@@ -356,7 +356,7 @@ impl TemporalProjectionSetV1 {
 mod tests {
     use super::*;
     use crate::civilizational::{
-        GeometryProjection, QualificationStatus, QualificationSummary, SpatialSemantics,
+        EvidenceTemporalMetadataV1, GeometryProjection, QualificationStatus, QualificationSummary, SpatialSemantics,
         TransitionClass,
     };
     use std::collections::BTreeSet;
@@ -417,6 +417,59 @@ mod tests {
             admitted_sources: ["source:archive"].into_iter().map(Into::into).collect(),
             evidence_metadata: vec![],
         }
+    }
+
+    #[test]
+    fn strict_request_rejects_legacy_frontier_manifest() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval { from: Some(1940), to: Some(1950) },
+            evidence_frontier: frontier(),
+        };
+        assert_eq!(
+            request.validate_strict(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn strict_request_accepts_complete_temporal_manifest() {
+        let mut request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval { from: Some(1940), to: Some(1950) },
+            evidence_frontier: frontier(),
+        };
+        request.evidence_frontier.evidence_metadata = vec![
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:old".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
+            },
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:transition".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1945),
+                capture_time: None,
+                available_by: 1945,
+                validity_time: None,
+            },
+        ];
+        assert_eq!(request.validate_strict(), Ok(()));
+        let result = request
+            .project_strict(
+                &[snapshot(
+                    "snapshot:a",
+                    YearInterval { from: Some(1945), to: Some(1947) },
+                    "frontier:1949",
+                    "e:old",
+                )],
+                &[],
+            )
+            .unwrap();
+        assert_eq!(result.snapshots.len(), 1);
     }
 
     #[test]
