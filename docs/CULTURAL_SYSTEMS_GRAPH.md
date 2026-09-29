@@ -243,6 +243,22 @@ The frontier now commits this argumentation metadata in its content hash as well
 This is deliberately aligned with CRMinf's treatment of argumentation and belief as temporally situated, while retaining Sol Atlas's deterministic frontier rule: later argumentation is excluded rather than used to retroactively upgrade an earlier historical view.
 
 
+
+
+### Version-pinned ontology mappings
+
+The external ontology registry is intentionally not treated as a timeless vocabulary. CIDOC CRM 7.4 was released in August 2026 and the official version registry labels it **Draft**; the same registry distinguishes draft releases from stable and official releases and states that draft releases are not intended to support implementations or official referencing. citeturn0search0turn0search1 CRMinf 1.2.1 was announced in April 2026 as an extension of CIDOC CRM for argumentation. citeturn0search2
+
+Accordingly, a version-pinned mapping records:
+
+- external standard family;
+- exact standard version;
+- release status at the time of mapping;
+- external term and mapping kind;
+- the same canonical claim/evidence/source closure and temporal frontier as the mapped projection.
+
+Changing the external standard version or release status therefore becomes an explicit data change rather than an invisible interpretation drift. The mapping remains interoperability metadata and cannot upgrade the mapped claim's qualification.
+
 ## Argument-specific provenance and competing interpretations
 
 `CulturalArgumentationRefV2` separates argumentation provenance from the immutable canonical claim closure. The argumentation record remains bound to the same `claim_ref`, but its evidence/source closure is independent: an interpretation may legitimately use a subset of the canonical evidence or an argument-specific superset, provided every referenced object is admitted at the selected frontier.
@@ -259,7 +275,7 @@ The distinction is consistent with CRMinf 1.2.1's explicit separation of argumen
 
 The cultural projection boundary now keeps transmission and transformation identities distinct at the type level. `CulturalProjectionIdV1` and `CulturalProjectionAdmissionV2` preserve the semantic variant instead of coercing a transformation identifier into a transmission-shaped field. `CulturalProjectionAuditV2` provides the same distinction for evidence-reversible “why shown?” records.
 
-Ontology interoperability is represented separately by `OntologyMappingV1`. A mapping to CIDOC CRM, CRMinf, CRMgeo, or PROV-O is treated as an evidence-bearing projection assertion: it carries the canonical claim/evidence/source closure and frontier, but cannot upgrade qualification or become a second canonical claim authority.
+Ontology interoperability is represented separately by `OntologyMappingV1` for compatibility and `OntologyMappingV2` for version-pinned mappings. `OntologyMappingV2` requires an explicit external standard version and release status (`Draft`, `ReleaseCandidate`, `Stable`, or `Official`), so a later ontology revision cannot silently change the semantics of an existing mapping. A mapping to CIDOC CRM, CRMinf, CRMgeo, or PROV-O is treated as an evidence-bearing projection assertion: it carries the canonical claim/evidence/source closure and frontier, but cannot upgrade qualification or become a second canonical claim authority.
 
 This matches the current external standards boundary: CIDOC CRM 7.4 was published in August 2026 as a draft; CRMinf 1.2.1 provides an argumentation extension; CRMgeo 2.0.1 is a 2026 release candidate for spatiotemporal/GeoSPARQL integration. These standards should remain interoperability targets rather than being embedded wholesale into the Rust projection model.
 
