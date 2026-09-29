@@ -335,7 +335,6 @@ mod tests {
     }
 
     #[test]
-    #[test]
     fn lineage_nodes_are_typed_and_resolve_without_inference() {
         let projection = fixture();
         let claim = LineageNodeRef::Claim("claim:obs:7f31".into());
