@@ -4,9 +4,6 @@
 
 //! Shared data types, geodetic math, geometry generation, and constants
 //! for Sol Atlas renderers (Leptos WebGL, Bevy wgpu).
-//!
-//! All math uses raw [f32; N] arrays to avoid dependency collisions
-//! between rendering backends (web-sys, glam/nalgebra).
 
 pub mod aesthetics;
 pub mod confluence;
@@ -17,6 +14,7 @@ pub mod ontology_context;
 pub mod ontology_resolution;
 pub mod projection_semantics;
 pub mod cultural_projection_audit_v3;
+pub mod cultural_projection_audit_v4;
 pub mod dkg;
 pub mod temporal_projection;
 pub mod constants;
