@@ -610,6 +610,29 @@ mod tests {
     }
 
     #[test]
+    fn malformed_snapshot_claim_reference_is_rejected() {
+        let mut value = snapshot(
+            "snapshot:a",
+            YearInterval { from: Some(1945), to: Some(1947) },
+            "frontier:1949",
+            "e:old",
+        );
+        value.relation_refs.push("   ".into());
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn malformed_transition_provenance_references_are_rejected() {
+        let mut value = transition(
+            "transition:a",
+            YearInterval { from: Some(1945), to: Some(1947) },
+            "e:transition",
+        );
+        value.competing_hypotheses.push("   ".into());
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
     fn snapshot_admission_closes_direct_and_spatial_provenance() {
         let mut frontier = frontier();
         frontier.admitted_evidence = ["e:old", "e:direct"]
