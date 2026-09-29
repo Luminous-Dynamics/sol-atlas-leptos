@@ -57,6 +57,12 @@ pub enum Visibility {
     Redacted,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LineageCompleteness {
+    Complete,
+    Incomplete,
+}
+
 impl AtlasEvidenceProjectionV1 {
     /// The UI may display this claim, but it may never render it as stronger
     /// than its source qualification or claim kind.
@@ -75,6 +81,28 @@ impl AtlasEvidenceProjectionV1 {
             .map(String::as_str)
             .chain(self.source_snapshot_refs.iter().map(String::as_str))
             .chain(self.derivation_ref.iter().map(String::as_str))
+    }
+
+    /// Returns whether the projection exposes enough identifiers to make its
+    /// semantic lineage inspectable without inventing missing dependencies.
+    pub fn lineage_completeness(&self) -> LineageCompleteness {
+        let has_core = !self.claim_ref.is_empty()
+            && !self.frontier_ref.is_empty()
+            && !self.evidence_refs.is_empty()
+            && !self.source_snapshot_refs.is_empty();
+
+        let derivation_required = matches!(self.claim_kind, ClaimKind::Derived | ClaimKind::Hypothesis);
+        let has_derivation = self
+            .derivation_ref
+            .as_ref()
+            .map(|id| !id.is_empty())
+            .unwrap_or(false);
+
+        if has_core && (!derivation_required || has_derivation) {
+            LineageCompleteness::Complete
+        } else {
+            LineageCompleteness::Incomplete
+        }
     }
 }
 
@@ -127,6 +155,25 @@ mod tests {
             ids,
             vec!["evidence:4a90", "source:filing:v3"]
         );
+    }
+
+    #[test]
+    fn lineage_completeness_requires_derivation_for_derived_claims() {
+        let mut projection = fixture();
+        assert_eq!(projection.lineage_completeness(), LineageCompleteness::Complete);
+
+        projection.claim_kind = ClaimKind::Derived;
+        assert_eq!(projection.lineage_completeness(), LineageCompleteness::Incomplete);
+
+        projection.derivation_ref = Some("derivation:fin:42ac".into());
+        assert_eq!(projection.lineage_completeness(), LineageCompleteness::Complete);
+    }
+
+    #[test]
+    fn lineage_completeness_rejects_missing_source_snapshot() {
+        let mut projection = fixture();
+        projection.source_snapshot_refs.clear();
+        assert_eq!(projection.lineage_completeness(), LineageCompleteness::Incomplete);
     }
 
     #[test]
