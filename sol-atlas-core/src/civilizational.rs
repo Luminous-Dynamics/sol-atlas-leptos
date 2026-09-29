@@ -492,6 +492,9 @@ impl EvidenceFrontierV1 {
         // identity must not depend on caller-provided ordering.
         let mut canonical_metadata = self.evidence_metadata.clone();
         canonical_metadata.sort_by(|a, b| a.evidence_id.cmp(&b.evidence_id));
+        let mut canonical_source_metadata = self.source_metadata.clone();
+        canonical_source_metadata
+            .sort_by(|a, b| a.source_snapshot.cmp(&b.source_snapshot));
 
         let payload = (
             &self.known_by_year,
@@ -500,7 +503,7 @@ impl EvidenceFrontierV1 {
             &self.admitted_evidence,
             &self.admitted_sources,
             &canonical_metadata,
-            &self.source_metadata,
+            &canonical_source_metadata,
         );
         let bytes = serde_json::to_vec(&payload)
             .map_err(|_| ProjectionError::InvalidEvidenceFrontierManifest)?;
