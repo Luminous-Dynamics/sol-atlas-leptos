@@ -197,16 +197,22 @@ impl ProjectionAdmissionV1 {
         frontier: &EvidenceFrontierV1,
     ) -> Self {
         let admitted_evidence = snapshot
-            .geometries
+            .evidence_refs
             .iter()
-            .flat_map(|geometry| geometry.evidence.iter().cloned())
+            .chain(
+                snapshot
+                    .geometries
+                    .iter()
+                    .flat_map(|geometry| geometry.evidence.iter()),
+            )
+            .cloned()
             .collect();
 
         Self {
             projection: ProjectionRef::Snapshot(snapshot.snapshot_id.clone()),
             evidence_frontier: frontier.frontier_id.clone(),
             admitted_evidence,
-            admitted_sources: Vec::new(),
+            admitted_sources: snapshot.source_snapshots.clone(),
         }
     }
 
@@ -277,7 +283,7 @@ impl TemporalProjectionSetV1 {
         &self,
         chain: &EvidenceFrontierChainV1,
     ) -> Result<(), ProjectionError> {
-        chain.validate()?;
+        chain.validate_strict()?;
         let expected_path = chain
             .frontiers
             .iter()
