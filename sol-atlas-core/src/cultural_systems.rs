@@ -1007,6 +1007,8 @@ mod tests {
         frontier.known_by_year = 1960;
         frontier.recompute_manifest_hash().expect("fixture hash");
         let value = transmission();
+        let mut value = value;
+        value.assessment = Some("assessment:1".into());
         let claim = canonical_claim(&value);
         let argumentation = CulturalArgumentationRefV1 {
             assessment: "assessment:1".into(),
