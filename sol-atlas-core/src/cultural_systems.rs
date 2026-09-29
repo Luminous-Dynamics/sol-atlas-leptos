@@ -64,6 +64,7 @@ impl CanonicalClaimAdmissionV1 {
 
     pub fn is_frontier_safe(&self, frontier: &EvidenceFrontierV1) -> bool {
         self.validate().is_ok()
+            && frontier.validate_temporal_manifest_strict().is_ok()
             && self.evidence_frontier == frontier.frontier_id
             && self.evidence_refs.iter().all(|id| frontier.admits(id))
             && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
@@ -86,14 +87,96 @@ pub enum TransmissionMode {
     Institutionalized,
 }
 
+/// A documented kind of cultural transformation. The class describes the
+/// asserted relationship; it does not by itself establish why the change occurred.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CulturalTransformationClass {
+    AdaptedFrom,
+    ReinterpretedFrom,
+    HybridizedWith,
+    LocalizedAs,
+    StandardizedAs,
+    RevivedFrom,
+    ReplacedBy,
+    SuppressedBy,
+}
+
+/// An evidence-backed cultural transformation assertion.
+///
+/// This deliberately shares the same evidence closure and stewardship boundary
+/// as transmission, so future language, knowledge, institutional and
+/// material-culture slices do not invent incompatible provenance models.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CulturalTransformationV1 {
+    pub transformation_id: TransmissionEventId,
+    pub source: EntityId,
+    pub target: EntityId,
+    pub class: CulturalTransformationClass,
+    pub event_time: YearInterval,
+    pub context: Option<String>,
+    pub claim_ref: ClaimId,
+    pub evidence_refs: Vec<EvidenceId>,
+    pub source_snapshots: Vec<SourceSnapshotId>,
+    pub assessment: Option<AssessmentId>,
+    pub qualification: QualificationStatus,
+    pub community_recognition: Vec<CommunityRecognitionV1>,
+    pub access_policy: AccessPolicyV1,
+    pub evidence_frontier: EvidenceFrontierId,
+}
+
+impl CulturalTransformationV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.transformation_id.is_valid()
+            || !self.source.is_valid()
+            || !self.target.is_valid()
+            || !self.claim_ref.is_valid()
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if !self.event_time.is_valid() {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        if self.evidence_refs.is_empty() || self.source_snapshots.is_empty() {
+            return Err(ProjectionError::TransitionWithoutEvidencePath);
+        }
+        for recognition in &self.community_recognition {
+            recognition.validate()?;
+        }
+        Ok(())
+    }
+
+    pub fn is_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> bool {
+        self.validate().is_ok()
+            && frontier.validate_temporal_manifest_strict().is_ok()
+            && claim.validate().is_ok()
+            && claim.claim_ref == self.claim_ref
+            && claim.evidence_refs == self.evidence_refs
+            && claim.source_snapshots == self.source_snapshots
+            && claim.qualification == self.qualification
+            && claim.is_frontier_safe(frontier)
+            && self.evidence_frontier == frontier.frontier_id
+            && self
+                .community_recognition
+                .iter()
+                .all(|recognition| recognition.evidence_refs.iter().all(|id| frontier.admits(id)))
+    }
+}
+
 /// Community participation/recognition is an independent dimension of a
 /// cultural record. It must never upgrade epistemic qualification.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CommunityRecognitionV1 {
     pub community: CommunityId,
     pub practice: PracticeId,
-    pub recognized_from: Option<YearInterval>,
-    pub recognized_to: Option<YearInterval>,
+    pub recognition_time: Option<YearInterval>,
     pub maintained: bool,
     pub transmitted: bool,
     pub evidence_refs: Vec<EvidenceId>,
@@ -104,8 +187,7 @@ impl CommunityRecognitionV1 {
         if !self.community.is_valid() || !self.practice.is_valid() {
             return Err(ProjectionError::EmptyIdentifier);
         }
-        if self.recognized_from.is_some_and(|v| !v.is_valid())
-            || self.recognized_to.is_some_and(|v| !v.is_valid())
+        if self.recognition_time.is_some_and(|v| !v.is_valid())
         {
             return Err(ProjectionError::InvalidTimeInterval);
         }
@@ -126,6 +208,66 @@ pub enum AccessPolicyV1 {
     Sensitive,
     Embargoed,
     Unknown,
+}
+
+/// Reusable canonical-claim/evidence/source closure for cultural projections.
+///
+/// The canonical claim itself remains externally owned. This object is the
+/// projection-side materialization of the claim's evidence path plus its
+/// qualification and temporal frontier. Keeping the closure explicit lets
+/// transmission, transformation, language, knowledge and institutional slices
+/// share the same admission boundary without creating a second claim registry.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CulturalEvidenceClosureV1 {
+    pub claim_ref: ClaimId,
+    pub evidence_refs: Vec<EvidenceId>,
+    pub source_snapshots: Vec<SourceSnapshotId>,
+    pub assessment: Option<AssessmentId>,
+    pub qualification: QualificationStatus,
+    pub evidence_frontier: EvidenceFrontierId,
+}
+
+impl CulturalEvidenceClosureV1 {
+    pub fn from_claim(claim: &CanonicalClaimAdmissionV1, assessment: Option<AssessmentId>) -> Self {
+        Self {
+            claim_ref: claim.claim_ref.clone(),
+            evidence_refs: claim.evidence_refs.clone(),
+            source_snapshots: claim.source_snapshots.clone(),
+            assessment,
+            qualification: claim.qualification,
+            evidence_frontier: claim.evidence_frontier.clone(),
+        }
+    }
+
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.claim_ref.is_valid()
+            || self.evidence_refs.is_empty()
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.is_empty()
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
+            || !self.evidence_frontier.is_valid()
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        Ok(())
+    }
+
+    pub fn is_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> bool {
+        self.validate().is_ok()
+            && claim.validate().is_ok()
+            && frontier.validate_temporal_manifest_strict().is_ok()
+            && self.claim_ref == claim.claim_ref
+            && self.evidence_refs == claim.evidence_refs
+            && self.source_snapshots == claim.source_snapshots
+            && self.qualification == claim.qualification
+            && self.evidence_frontier == frontier.frontier_id
+            && claim.is_frontier_safe(frontier)
+    }
 }
 
 /// An evidence-backed cultural transmission assertion.
@@ -199,6 +341,36 @@ impl CulturalTransmissionV1 {
     }
 }
 
+/// Renderer-neutral union for cultural-system projections.
+///
+/// Keeping transmission and transformation as explicit variants prevents a
+/// generic graph edge from erasing the semantic class of the asserted relation.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CulturalProjectionV1 {
+    Transmission(CulturalTransmissionV1),
+    Transformation(CulturalTransformationV1),
+}
+
+impl CulturalProjectionV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        match self {
+            Self::Transmission(value) => value.validate(),
+            Self::Transformation(value) => value.validate(),
+        }
+    }
+
+    pub fn is_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> bool {
+        match self {
+            Self::Transmission(value) => value.is_frontier_safe(claim, frontier),
+            Self::Transformation(value) => value.is_frontier_safe(claim, frontier),
+        }
+    }
+}
+
 /// Projection-level "why is this visible?" record for a cultural
 /// transmission. It intentionally contains no causal conclusion beyond the
 /// externally resolved canonical claim reference.
@@ -262,6 +434,7 @@ impl CulturalProjectionAuditV1 {
 
     pub fn is_frontier_safe(&self, frontier: &EvidenceFrontierV1) -> bool {
         self.validate().is_ok()
+            && frontier.validate_temporal_manifest_strict().is_ok()
             && self.evidence_frontier == frontier.frontier_id
             && self.evidence_refs.iter().all(|id| frontier.admits(id))
             && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
@@ -370,8 +543,7 @@ mod tests {
             community_recognition: vec![CommunityRecognitionV1 {
                 community: "community:1".into(),
                 practice: "practice:target".into(),
-                recognized_from: Some(YearInterval { from: Some(1940), to: None }),
-                recognized_to: None,
+                recognition_time: Some(YearInterval { from: Some(1940), to: None }),
                 maintained: true,
                 transmitted: true,
                 evidence_refs: vec!["e:recognition".into()],
@@ -379,6 +551,41 @@ mod tests {
             access_policy: AccessPolicyV1::CommunityRestricted,
             evidence_frontier: "frontier:1950".into(),
         }
+    }
+
+    fn canonical_claim_for_parts(
+        value: &CulturalTransformationV1,
+    ) -> CanonicalClaimAdmissionV1 {
+        CanonicalClaimAdmissionV1 {
+            claim_ref: value.claim_ref.clone(),
+            evidence_refs: value.evidence_refs.clone(),
+            source_snapshots: value.source_snapshots.clone(),
+            qualification: value.qualification,
+            evidence_frontier: value.evidence_frontier.clone(),
+        }
+    }
+
+    #[test]
+    fn transformation_uses_the_same_claim_and_frontier_boundary() {
+        let frontier = frontier();
+        let value = CulturalTransformationV1 {
+            transformation_id: "transformation:1".into(),
+            source: "practice:source".into(),
+            target: "practice:target".into(),
+            class: CulturalTransformationClass::LocalizedAs,
+            event_time: YearInterval { from: Some(1920), to: Some(1950) },
+            context: Some("documented local adaptation".into()),
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1", "e:2"].into_iter().map(Into::into).collect(),
+            source_snapshots: vec!["source:1".into()],
+            assessment: None,
+            qualification: QualificationStatus::Supported,
+            community_recognition: vec![],
+            access_policy: AccessPolicyV1::Public,
+            evidence_frontier: "frontier:1950".into(),
+        };
+        assert!(value.is_frontier_safe(&canonical_claim_for_parts(&value), &frontier));
+        assert!(CulturalProjectionV1::Transformation(value).validate().is_ok());
     }
 
     #[test]
@@ -468,7 +675,6 @@ mod tests {
         assert_eq!(public_admission.qualification, restricted_admission.qualification);
     }
 
-    #[test]
     #[test]
     fn audit_preserves_the_full_reversibility_path() {
         let value = transmission();
