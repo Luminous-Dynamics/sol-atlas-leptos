@@ -748,6 +748,7 @@ mod tests {
             semantics,
             exact,
             evidence: vec!["evidence:1".into()],
+            source_metadata: vec![],
         }
     }
 
@@ -851,7 +852,7 @@ mod tests {
             admitted_evidence: ["evidence:old".into()].into_iter().collect(),
             admitted_sources: ["source:archive".into()].into_iter().collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
-            source_metadata: vec![],
+
                 evidence_id: "evidence:old".into(),
                 source_snapshot: "source:archive".into(),
                 artifact_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
@@ -860,6 +861,7 @@ mod tests {
                 available_by: 1800,
                 validity_time: None,
             }],
+            source_metadata: vec![],
         };
         assert_eq!(frontier.validate_temporal_manifest(), Ok(()));
         assert!(frontier.admits(&"evidence:old".into()));
@@ -876,7 +878,7 @@ mod tests {
             admitted_evidence: ["evidence:later".into()].into_iter().collect(),
             admitted_sources: ["source:archive".into()].into_iter().collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
-            source_metadata: vec![],
+
                 evidence_id: "evidence:later".into(),
                 source_snapshot: "source:archive".into(),
                 artifact_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
@@ -885,6 +887,7 @@ mod tests {
                 available_by: 1950,
                 validity_time: None,
             }],
+            source_metadata: vec![],
         };
         assert_eq!(frontier.validate_temporal_manifest(), Err(ProjectionError::LaterEvidenceInFrontier));
         assert!(!frontier.admits(&"evidence:later".into()));
@@ -1068,6 +1071,7 @@ mod tests {
                 metadata("evidence:a", "source:a", 1900),
                 metadata("evidence:b", "source:b", 1950),
             ],
+            source_metadata: vec![],
         };
         middle.recompute_manifest_hash().unwrap();
 
@@ -1093,6 +1097,7 @@ mod tests {
                 metadata("evidence:b", "source:b", 1950),
                 metadata("evidence:c", "source:c", 2000),
             ],
+            source_metadata: vec![],
         };
         current.recompute_manifest_hash().unwrap();
 
@@ -1206,7 +1211,7 @@ mod tests {
             admitted_evidence: ["evidence:a".into()].into_iter().collect(),
             admitted_sources: ["source:a".into()].into_iter().collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
-            source_metadata: vec![],
+
                 evidence_id: "evidence:a".into(),
                 source_snapshot: "source:a".into(),
                 artifact_time: None,
@@ -1215,6 +1220,7 @@ mod tests {
                 available_by: 1900,
                 validity_time: None,
             }],
+            source_metadata: vec![],
         };
         frontier.recompute_manifest_hash().unwrap();
 
