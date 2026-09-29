@@ -450,6 +450,43 @@ impl SourceSnapshotTemporalMetadataV1 {
     }
 }
 
+
+/// Temporal metadata for externally-owned assessment/interpretation records.
+///
+/// The frontier commits this metadata so historical replay cannot silently use a
+/// later scholarly assessment or interpretation merely because its evidence is old.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ArgumentationTemporalMetadataV1 {
+    pub assessment: AssessmentId,
+    pub interpretation: InterpretationId,
+    pub assessment_time: Option<YearInterval>,
+    pub interpretation_time: Option<YearInterval>,
+    pub available_by: i32,
+}
+
+impl ArgumentationTemporalMetadataV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.assessment.is_valid() || !self.interpretation.is_valid() {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if self.assessment_time.is_some_and(|v| !v.is_valid())
+            || self.interpretation_time.is_some_and(|v| !v.is_valid())
+        {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        if self.available_by < self.assessment_time.and_then(|v| v.to).or(self.assessment_time.and_then(|v| v.from)).unwrap_or(self.available_by)
+            || self.available_by < self.interpretation_time.and_then(|v| v.to).or(self.interpretation_time.and_then(|v| v.from)).unwrap_or(self.available_by)
+        {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        Ok(())
+    }
+
+    pub fn available_at(&self, known_by_year: i32) -> bool {
+        self.validate().is_ok() && self.available_by <= known_by_year
+    }
+}
+
 /// A projection can be reconstructed only from evidence admitted by this
 /// frontier; callers must filter derived assessments by the same boundary.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -467,6 +504,8 @@ pub struct EvidenceFrontierV1 {
     /// Immutable temporal metadata used to verify that admission is not anachronistic.
     pub evidence_metadata: Vec<EvidenceTemporalMetadataV1>,
     pub source_metadata: Vec<SourceSnapshotTemporalMetadataV1>,
+    /// Immutable temporal metadata for assessment/interpretation records used by projections.
+    pub argumentation_metadata: Vec<ArgumentationTemporalMetadataV1>,
 }
 
 /// An ordered, verifiable lineage of temporal evidence frontiers.
@@ -541,6 +580,7 @@ impl EvidenceFrontierV1 {
             &self.admitted_sources,
             &canonical_metadata,
             &canonical_source_metadata,
+            &self.argumentation_metadata,
         );
         let bytes = serde_json::to_vec(&payload)
             .map_err(|_| ProjectionError::InvalidEvidenceFrontierManifest)?;
@@ -600,6 +640,19 @@ impl EvidenceFrontierV1 {
                 .iter()
                 .find(|metadata| metadata.source_snapshot == parent_metadata.source_snapshot)
             else {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            };
+            if child_metadata != parent_metadata {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            }
+        }
+
+
+        for parent_metadata in &parent.argumentation_metadata {
+            let Some(child_metadata) = self.argumentation_metadata.iter().find(|metadata| {
+                metadata.assessment == parent_metadata.assessment
+                    && metadata.interpretation == parent_metadata.interpretation
+            }) else {
                 return Err(ProjectionError::InvalidEvidenceFrontierManifest);
             };
             if child_metadata != parent_metadata {
@@ -707,7 +760,35 @@ impl EvidenceFrontierV1 {
             }
         }
 
+        if !self.argumentation_metadata.is_empty() {
+            let mut seen_argumentation = BTreeSet::new();
+            for metadata in &self.argumentation_metadata {
+                metadata.validate()?;
+                if metadata.available_by > self.known_by_year
+                    || !seen_argumentation.insert((
+                        metadata.assessment.clone(),
+                        metadata.interpretation.clone(),
+                    ))
+                {
+                    return Err(ProjectionError::LaterEvidenceInFrontier);
+                }
+            }
+        }
+
         Ok(())
+    }
+
+    /// Whether an assessment/interpretation pair is committed to and available at this frontier.
+    pub fn admits_argumentation(
+        &self,
+        assessment: &AssessmentId,
+        interpretation: &InterpretationId,
+    ) -> bool {
+        self.argumentation_metadata.iter().any(|metadata| {
+            &metadata.assessment == assessment
+                && &metadata.interpretation == interpretation
+                && metadata.available_at(self.known_by_year)
+        })
     }
 
     /// A projection is frontier-safe only when every referenced evidence and
@@ -934,6 +1015,7 @@ mod tests {
                 validity_time: None,
             }],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         };
         assert_eq!(frontier.validate_temporal_manifest(), Ok(()));
         assert!(frontier.admits(&"evidence:old".into()));
