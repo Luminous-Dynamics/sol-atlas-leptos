@@ -345,6 +345,45 @@ impl ProjectionAuditV1 {
     }
 }
 
+/// Temporal provenance metadata for an evidence item.
+///
+/// These timestamps are deliberately separate: an artifact may be ancient while
+/// its publication, capture, or availability to an evidence pipeline is much later.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceTemporalMetadataV1 {
+    pub evidence_id: EvidenceId,
+    pub source_snapshot: SourceSnapshotId,
+    pub artifact_time: Option<YearInterval>,
+    pub publication_time: Option<i32>,
+    pub capture_time: Option<i32>,
+    pub available_by: i32,
+    pub validity_time: Option<YearInterval>,
+}
+
+impl EvidenceTemporalMetadataV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.evidence_id.is_valid() || !self.source_snapshot.is_valid() {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if self.available_by < self.publication_time.unwrap_or(self.available_by)
+            || self.available_by < self.capture_time.unwrap_or(self.available_by)
+        {
+            return Err(ProjectionError::InvalidEvidenceTemporalMetadata);
+        }
+        if self.artifact_time.is_some_and(|v| !v.is_valid())
+            || self.validity_time.is_some_and(|v| !v.is_valid())
+        {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        Ok(())
+    }
+
+    /// Whether this evidence could have been available at the requested frontier.
+    pub fn available_at(&self, known_by_year: i32) -> bool {
+        self.validate().is_ok() && self.available_by <= known_by_year
+    }
+}
+
 /// A projection can be reconstructed only from evidence admitted by this
 /// frontier; callers must filter derived assessments by the same boundary.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -353,11 +392,36 @@ pub struct EvidenceFrontierV1 {
     pub known_by_year: i32,
     pub admitted_evidence: BTreeSet<EvidenceId>,
     pub admitted_sources: BTreeSet<SourceSnapshotId>,
+    /// Immutable temporal metadata used to verify that admission is not anachronistic.
+    pub evidence_metadata: Vec<EvidenceTemporalMetadataV1>,
 }
 
 impl EvidenceFrontierV1 {
     pub fn admits(&self, evidence: &EvidenceId) -> bool {
         self.admitted_evidence.contains(evidence)
+            && self.evidence_metadata.iter().any(|m| {
+                &m.evidence_id == evidence && m.available_at(self.known_by_year)
+            })
+    }
+
+    /// Validates the frontier's admission manifest against its temporal metadata.
+    pub fn validate_temporal_manifest(&self) -> Result<(), ProjectionError> {
+        if !self.frontier_id.is_valid() || self.evidence_metadata.is_empty() && !self.admitted_evidence.is_empty() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        for metadata in &self.evidence_metadata {
+            metadata.validate()?;
+            if metadata.available_by > self.known_by_year {
+                return Err(ProjectionError::LaterEvidenceInFrontier);
+            }
+            if !self.admitted_evidence.contains(&metadata.evidence_id) {
+                return Err(ProjectionError::UnadmittedEvidenceMetadata);
+            }
+            if !self.admitted_sources.contains(&metadata.source_snapshot) {
+                return Err(ProjectionError::UnadmittedSourceMetadata);
+            }
+        }
+        Ok(())
     }
 
     /// A projection is frontier-safe only when every referenced evidence and
@@ -418,6 +482,11 @@ pub enum ProjectionError {
     AuditWithoutEvidencePath,
     InvalidSnapshot,
     InvalidTransition,
+    InvalidEvidenceTemporalMetadata,
+    InvalidEvidenceFrontierManifest,
+    LaterEvidenceInFrontier,
+    UnadmittedEvidenceMetadata,
+    UnadmittedSourceMetadata,
 }
 
 #[cfg(test)]
@@ -508,12 +577,70 @@ mod tests {
     }
 
     #[test]
+    fn evidence_availability_is_distinct_from_artifact_time() {
+        let metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:old".into(),
+            source_snapshot: "source:archive".into(),
+            artifact_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
+            publication_time: Some(1800),
+            capture_time: Some(1900),
+            available_by: 1950,
+            validity_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
+        };
+        assert!(metadata.available_at(1950));
+        assert!(!metadata.available_at(1940));
+    }
+
+    #[test]
+    fn frontier_temporal_manifest_blocks_anachronistic_evidence() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            admitted_evidence: ["evidence:old".into()].into_iter().collect(),
+            admitted_sources: ["source:archive".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:old".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
+                publication_time: Some(1800),
+                capture_time: None,
+                available_by: 1800,
+                validity_time: None,
+            }],
+        };
+        assert_eq!(frontier.validate_temporal_manifest(), Ok(()));
+        assert!(frontier.admits(&"evidence:old".into()));
+    }
+
+    #[test]
+    fn frontier_rejects_metadata_discovered_after_frontier() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            admitted_evidence: ["evidence:later".into()].into_iter().collect(),
+            admitted_sources: ["source:archive".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:later".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
+                publication_time: Some(1950),
+                capture_time: None,
+                available_by: 1950,
+                validity_time: None,
+            }],
+        };
+        assert_eq!(frontier.validate_temporal_manifest(), Err(ProjectionError::LaterEvidenceInFrontier));
+        assert!(!frontier.admits(&"evidence:later".into()));
+    }
+
+    #[test]
     fn frontier_excludes_later_evidence_unless_admitted() {
         let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1900".into(),
             known_by_year: 1900,
             admitted_evidence: ["evidence:old".into()].into_iter().collect(),
             admitted_sources: ["source:old".into()].into_iter().collect(),
+            evidence_metadata: vec![],
         };
         assert!(frontier.admits(&"evidence:old".into()));
         assert!(!frontier.admits(&"evidence:discovered-later".into()));
@@ -563,6 +690,7 @@ mod tests {
             .into_iter()
             .collect(),
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
+            evidence_metadata: vec![],
         };
 
         let snapshot_audit = ProjectionAuditV1::for_snapshot(&snapshot());
