@@ -439,6 +439,7 @@ pub struct EvidenceFrontierV1 {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EvidenceFrontierChainV1 {
     pub frontiers: Vec<EvidenceFrontierV1>,
+            source_metadata: vec![],
 }
 
 impl EvidenceFrontierChainV1 {
@@ -801,6 +802,7 @@ mod tests {
             admitted_evidence: ["evidence:old".into()].into_iter().collect(),
             admitted_sources: ["source:archive".into()].into_iter().collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+            source_metadata: vec![],
                 evidence_id: "evidence:old".into(),
                 source_snapshot: "source:archive".into(),
                 artifact_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
@@ -825,6 +827,7 @@ mod tests {
             admitted_evidence: ["evidence:later".into()].into_iter().collect(),
             admitted_sources: ["source:archive".into()].into_iter().collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+            source_metadata: vec![],
                 evidence_id: "evidence:later".into(),
                 source_snapshot: "source:archive".into(),
                 artifact_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
@@ -849,6 +852,7 @@ mod tests {
             admitted_evidence: ["evidence:old".into()].into_iter().collect(),
             admitted_sources: ["source:old".into()].into_iter().collect(),
             evidence_metadata: vec![],
+            source_metadata: vec![],
         };
         assert!(frontier.admits(&"evidence:old".into()));
         assert!(!frontier.admits(&"evidence:discovered-later".into()));
@@ -908,6 +912,7 @@ mod tests {
             .collect(),
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
             evidence_metadata: vec![],
+            source_metadata: vec![],
         };
 
         let snapshot_audit = ProjectionAuditV1::for_snapshot(&snapshot());
@@ -943,6 +948,7 @@ mod tests {
             admitted_evidence: ["evidence:partition"].into_iter().collect(),
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
             evidence_metadata: vec![],
+            source_metadata: vec![],
         };
         let mut audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
         audit.source_snapshots.clear();
@@ -960,6 +966,7 @@ mod tests {
             admitted_evidence: ["evidence:partition"].into_iter().collect(),
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
             evidence_metadata: vec![],
+            source_metadata: vec![],
         };
         let audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
         assert!(!frontier.admits_audit(&audit));
@@ -995,6 +1002,7 @@ mod tests {
             admitted_evidence: ["evidence:a".into()].into_iter().collect(),
             admitted_sources: ["source:a".into()].into_iter().collect(),
             evidence_metadata: vec![metadata("evidence:a", "source:a", 1900)],
+            source_metadata: vec![],
         };
         root.recompute_manifest_hash().unwrap();
 
@@ -1007,6 +1015,7 @@ mod tests {
             admitted_evidence: ["evidence:a".into(), "evidence:b".into()].into_iter().collect(),
             admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
             evidence_metadata: vec![
+            source_metadata: vec![],
                 metadata("evidence:a", "source:a", 1900),
                 metadata("evidence:b", "source:b", 1950),
             ],
@@ -1030,6 +1039,7 @@ mod tests {
                 .into_iter()
                 .collect(),
             evidence_metadata: vec![
+            source_metadata: vec![],
                 metadata("evidence:a", "source:a", 1900),
                 metadata("evidence:b", "source:b", 1950),
                 metadata("evidence:c", "source:c", 2000),
@@ -1064,6 +1074,7 @@ mod tests {
             admitted_evidence: ["evidence:a".into()].into_iter().collect(),
             admitted_sources: ["source:a".into()].into_iter().collect(),
             evidence_metadata: vec![metadata.clone()],
+            source_metadata: vec![],
         };
         root.recompute_manifest_hash().unwrap();
 
@@ -1076,6 +1087,7 @@ mod tests {
             admitted_evidence: ["evidence:a".into()].into_iter().collect(),
             admitted_sources: ["source:a".into()].into_iter().collect(),
             evidence_metadata: vec![metadata],
+            source_metadata: vec![],
         };
         child.recompute_manifest_hash().unwrap();
 
@@ -1121,6 +1133,7 @@ mod tests {
             admitted_evidence: ["evidence:a".into(), "evidence:b".into()].into_iter().collect(),
             admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
             evidence_metadata: vec![metadata_a.clone(), metadata_b.clone()],
+            source_metadata: vec![],
         };
         let mut second = first.clone();
         second.evidence_metadata.reverse();
@@ -1144,6 +1157,7 @@ mod tests {
             admitted_evidence: ["evidence:a".into()].into_iter().collect(),
             admitted_sources: ["source:a".into()].into_iter().collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+            source_metadata: vec![],
                 evidence_id: "evidence:a".into(),
                 source_snapshot: "source:a".into(),
                 artifact_time: None,
@@ -1189,6 +1203,7 @@ mod tests {
             admitted_evidence: ["evidence:a".into()].into_iter().collect(),
             admitted_sources: ["source:a".into()].into_iter().collect(),
             evidence_metadata: vec![parent_metadata.clone()],
+            source_metadata: vec![],
         };
         parent.recompute_manifest_hash().unwrap();
 
@@ -1210,6 +1225,7 @@ mod tests {
             admitted_evidence: ["evidence:a".into(), "evidence:b".into()].into_iter().collect(),
             admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
             evidence_metadata: vec![parent_metadata.clone(), child_metadata],
+            source_metadata: vec![],
         };
         child.recompute_manifest_hash().unwrap();
 
