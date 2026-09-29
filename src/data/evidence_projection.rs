@@ -20,6 +20,7 @@ pub struct AtlasEvidenceProjectionV1 {
     pub evidence_refs: Vec<String>,
     pub derivation_ref: Option<String>,
     pub frontier_ref: String,
+    pub qualification_ref: String,
     pub qualification: EpistemicState,
     pub contradictions: Vec<ContradictionRef>,
     pub source_snapshot_refs: Vec<String>,
@@ -63,6 +64,161 @@ pub enum LineageCompleteness {
     Incomplete,
 }
 
+/// Typed inspection target for a declared projection dependency.
+///
+/// These references are addresses, not proofs of existence. A projection is
+/// only authoritative when the referenced object is resolved by the upstream
+/// semantic authority (Mycelix); Atlas must never invent a missing node.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum LineageNodeRef {
+    Projection(String),
+    Claim(String),
+    Evidence(String),
+    SourceSnapshot(String),
+    Qualification(String),
+    Frontier(String),
+    Derivation(String),
+    ReasoningReceipt(String),
+}
+
+impl LineageNodeRef {
+    pub fn key(&self) -> &'static str {
+        match self {
+            Self::Projection(_) => "projection",
+            Self::Claim(_) => "claim",
+            Self::Evidence(_) => "evidence",
+            Self::SourceSnapshot(_) => "source",
+            Self::Qualification(_) => "qualification",
+            Self::Frontier(_) => "frontier",
+            Self::Derivation(_) => "derivation",
+            Self::ReasoningReceipt(_) => "reasoning",
+        }
+    }
+
+    pub fn id(&self) -> &str {
+        match self {
+            Self::Projection(id)
+            | Self::Claim(id)
+            | Self::Evidence(id)
+            | Self::SourceSnapshot(id)
+            | Self::Qualification(id)
+            | Self::Frontier(id)
+            | Self::Derivation(id)
+            | Self::ReasoningReceipt(id) => id,
+        }
+    }
+
+    pub fn parse(value: Option<&str>) -> Option<Self> {
+        let (kind, id) = value?.split_once(':')?;
+        if id.is_empty() {
+            return None;
+        }
+        // IDs themselves may contain colons; split_once intentionally preserves
+        // the complete suffix as the canonical identifier.
+        match kind {
+            "projection" => Some(Self::Projection(id.to_string())),
+            "claim" => Some(Self::Claim(id.to_string())),
+            "evidence" => Some(Self::Evidence(id.to_string())),
+            "source" => Some(Self::SourceSnapshot(id.to_string())),
+            "qualification" => Some(Self::Qualification(id.to_string())),
+            "frontier" => Some(Self::Frontier(id.to_string())),
+            "derivation" => Some(Self::Derivation(id.to_string())),
+            "reasoning" => Some(Self::ReasoningReceipt(id.to_string())),
+            _ => None,
+        }
+    }
+
+    pub fn query_value(&self) -> String {
+        format!("{}:{}", self.key(), self.id())
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LineageResolution {
+    Resolved,
+    Unavailable,
+    Protected,
+    Incomplete,
+}
+
+impl AtlasEvidenceProjectionV1 {
+    /// Resolves only references declared by this projection. No current-state
+    /// fallback or inferred relationship is permitted.
+    pub fn resolve_lineage_node(&self, node: &LineageNodeRef) -> LineageResolution {
+        match node {
+            LineageNodeRef::Projection(id) => {
+                if id == &self.projection_id { LineageResolution::Resolved } else { LineageResolution::Unavailable }
+            }
+            LineageNodeRef::Claim(id) => {
+                if id == &self.claim_ref { LineageResolution::Resolved } else { LineageResolution::Unavailable }
+            }
+            LineageNodeRef::Evidence(id) => {
+                if self.evidence_refs.iter().any(|ref_id| ref_id == id) {
+                    if matches!(self.visibility, Visibility::Redacted) {
+                        LineageResolution::Protected
+                    } else {
+                        LineageResolution::Resolved
+                    }
+                } else {
+                    LineageResolution::Unavailable
+                }
+            }
+            LineageNodeRef::SourceSnapshot(id) => {
+                if self.source_snapshot_refs.iter().any(|ref_id| ref_id == id) {
+                    LineageResolution::Resolved
+                } else {
+                    LineageResolution::Unavailable
+                }
+            }
+            LineageNodeRef::Qualification(id) => {
+                if id == &self.qualification_ref {
+                    match self.qualification {
+                        EpistemicState::Protected => LineageResolution::Protected,
+                        _ => LineageResolution::Resolved,
+                    }
+                } else {
+                    LineageResolution::Unavailable
+                }
+            }
+            LineageNodeRef::Frontier(id) => {
+                if id == &self.frontier_ref { LineageResolution::Resolved } else { LineageResolution::Unavailable }
+            }
+            LineageNodeRef::Derivation(id) => {
+                if matches!(self.claim_kind, ClaimKind::Derived) && self.derivation_ref.as_deref() == Some(id) {
+                    LineageResolution::Resolved
+                } else {
+                    LineageResolution::Unavailable
+                }
+            }
+            LineageNodeRef::ReasoningReceipt(id) => {
+                if matches!(self.claim_kind, ClaimKind::Hypothesis) && self.derivation_ref.as_deref() == Some(id) {
+                    LineageResolution::Resolved
+                } else {
+                    LineageResolution::Unavailable
+                }
+            }
+        }
+    }
+
+    pub fn lineage_nodes(&self) -> Vec<LineageNodeRef> {
+        let mut nodes = vec![
+            LineageNodeRef::Projection(self.projection_id.clone()),
+            LineageNodeRef::Claim(self.claim_ref.clone()),
+        ];
+        nodes.extend(self.evidence_refs.iter().cloned().map(LineageNodeRef::Evidence));
+        nodes.extend(self.source_snapshot_refs.iter().cloned().map(LineageNodeRef::SourceSnapshot));
+        nodes.push(LineageNodeRef::Qualification(self.qualification_ref.clone()));
+        nodes.push(LineageNodeRef::Frontier(self.frontier_ref.clone()));
+        if let Some(id) = &self.derivation_ref {
+            nodes.push(match self.claim_kind {
+                ClaimKind::Hypothesis => LineageNodeRef::ReasoningReceipt(id.clone()),
+                _ => LineageNodeRef::Derivation(id.clone()),
+            });
+        }
+        nodes
+    }
+
+
 impl AtlasEvidenceProjectionV1 {
     /// The UI may display this claim, but it may never render it as stronger
     /// than its source qualification or claim kind.
@@ -88,6 +244,7 @@ impl AtlasEvidenceProjectionV1 {
     pub fn lineage_completeness(&self) -> LineageCompleteness {
         let has_core = !self.claim_ref.is_empty()
             && !self.frontier_ref.is_empty()
+            && !self.qualification_ref.is_empty()
             && !self.evidence_refs.is_empty()
             && !self.source_snapshot_refs.is_empty();
 
@@ -120,6 +277,7 @@ mod tests {
             evidence_refs: vec!["evidence:4a90".into()],
             derivation_ref: None,
             frontier_ref: "ef:demo:9d7b".into(),
+            qualification_ref: "profile:fin-001c0".into(),
             qualification: EpistemicState::Qualified,
             contradictions: vec![],
             source_snapshot_refs: vec!["source:filing:v3".into()],
@@ -174,6 +332,44 @@ mod tests {
         let mut projection = fixture();
         projection.source_snapshot_refs.clear();
         assert_eq!(projection.lineage_completeness(), LineageCompleteness::Incomplete);
+    }
+
+    #[test]
+    #[test]
+    fn lineage_nodes_are_typed_and_resolve_without_inference() {
+        let projection = fixture();
+        let claim = LineageNodeRef::Claim("claim:obs:7f31".into());
+        assert_eq!(projection.resolve_lineage_node(&claim), LineageResolution::Resolved);
+
+        let missing = LineageNodeRef::Evidence("evidence:not-declared".into());
+        assert_eq!(projection.resolve_lineage_node(&missing), LineageResolution::Unavailable);
+
+        let nodes = projection.lineage_nodes();
+        assert!(nodes.iter().any(|node| matches!(node, LineageNodeRef::Qualification(id) if id == "profile:fin-001c0")));
+    }
+
+    #[test]
+    fn lineage_node_parser_preserves_colons_in_ids() {
+        let node = LineageNodeRef::parse(Some("evidence:provider:observation:17")).unwrap();
+        assert_eq!(node.id(), "provider:observation:17");
+        assert_eq!(node.query_value(), "evidence:provider:observation:17");
+    }
+
+    #[test]
+    fn protected_evidence_never_becomes_resolved_publicly() {
+        let mut projection = fixture();
+        projection.visibility = Visibility::Redacted;
+        let evidence = LineageNodeRef::Evidence("evidence:4a90".into());
+        assert_eq!(projection.resolve_lineage_node(&evidence), LineageResolution::Protected);
+    }
+
+    #[test]
+    fn hypothesis_derivation_is_exposed_as_reasoning_receipt() {
+        let mut projection = fixture();
+        projection.claim_kind = ClaimKind::Hypothesis;
+        projection.derivation_ref = Some("reasoning:symthaea:91e2".into());
+        let nodes = projection.lineage_nodes();
+        assert!(nodes.iter().any(|node| matches!(node, LineageNodeRef::ReasoningReceipt(id) if id == "reasoning:symthaea:91e2")));
     }
 
     #[test]
