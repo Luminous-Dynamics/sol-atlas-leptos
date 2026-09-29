@@ -102,8 +102,11 @@ pub struct TemporalProjectionSetV1 {
 
 impl TemporalProjectionSetV1 {
     pub fn validate(&self) -> Result<(), ProjectionError> {
-        if !self.map_epoch.is_valid() || !self.evidence_frontier.frontier_id.is_valid() {
+        if !self.map_epoch.is_valid() {
             return Err(ProjectionError::InvalidTimeInterval);
+        }
+        if !self.evidence_frontier.frontier_id.is_valid() {
+            return Err(ProjectionError::MissingEvidenceFrontier);
         }
 
         let mut previous_snapshot = None;
@@ -150,6 +153,19 @@ impl TemporalProjectionSetV1 {
             audit.validate()?;
             if !self.evidence_frontier.admits_audit(audit) {
                 return Err(ProjectionError::AuditWithoutEvidencePath);
+            }
+            match &audit.projection {
+                ProjectionRef::Snapshot(id)
+                    if !self.snapshots.iter().any(|snapshot| &snapshot.snapshot_id == id) =>
+                {
+                    return Err(ProjectionError::AuditWithoutEvidencePath);
+                }
+                ProjectionRef::Transition(id)
+                    if !self.transitions.iter().any(|transition| &transition.transition_id == id) =>
+                {
+                    return Err(ProjectionError::AuditWithoutEvidencePath);
+                }
+                _ => {}
             }
             if previous_projection.is_some_and(|projection| projection >= &audit.projection) {
                 return Err(ProjectionError::AuditWithoutEvidencePath);
@@ -282,6 +298,23 @@ mod tests {
 
         let error = request.project(&[malformed], &[]).unwrap_err();
         assert_eq!(error, ProjectionError::InvalidSnapshot);
+    }
+
+    #[test]
+    fn audit_must_reference_an_included_projection() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval { from: Some(1940), to: Some(1950) },
+            evidence_frontier: frontier(),
+        };
+        let snapshot = snapshot(
+            "snapshot:a",
+            YearInterval { from: Some(1945), to: Some(1947) },
+            "frontier:1949",
+            "e:old",
+        );
+        let mut result = request.project(&[snapshot], &[]).unwrap();
+        result.audits[0].projection = ProjectionRef::Snapshot("snapshot:missing".into());
+        assert_eq!(result.validate(), Err(ProjectionError::AuditWithoutEvidencePath));
     }
 
     #[test]
