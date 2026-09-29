@@ -398,6 +398,11 @@ mod tests {
             Some("model:symthaea:v1".into()),
         );
         assert!(replay.is_replay_addressable());
+        assert_eq!(replay.replay_readiness(), ReplayReadiness::Addressable);
+        assert_eq!(
+            replay.replay_resolution_state(None),
+            ReplayResolutionState::Addressable
+        );
         let target = replay.replay_target().expect("complete replay target");
         assert_eq!(target.frontier_ref, "ef:demo:9d7b");
         assert!(!target.dependency_manifest_request().is_complete());
@@ -430,6 +435,40 @@ mod tests {
             Some("evidence".into()),
         );
         assert!(!query.is_replay_addressable());
+        assert_eq!(query.replay_readiness(), ReplayReadiness::Incomplete);
+        assert_eq!(
+            query.replay_resolution_state(None),
+            ReplayResolutionState::Incomplete
+        );
+    }
+
+    #[test]
+    fn complete_manifest_is_not_a_replay_receipt() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("claim:obs:7f31".into()),
+            Some("ef:demo:9d7b".into()),
+            Some("profile:terminal:v1".into()),
+            Some("reasoning:baseline:v1".into()),
+            Some("model:symthaea:v1".into()),
+            Some("evidence".into()),
+        );
+        let manifest = DependencyManifestV1 {
+            frontier_ref: "ef:demo:9d7b".into(),
+            evidence_roots: vec!["evidence-root:1".into()],
+            source_versions: vec!["source:filing:v3".into()],
+            canonical_state_root: Some("state-root:1".into()),
+            model_versions: vec!["model:symthaea:v1".into()],
+            ontology_version: Some("ontology:fin:v1".into()),
+            projection_profile: "profile:terminal:v1".into(),
+            reasoning_program: "reasoning:baseline:v1".into(),
+            qualification_profile: Some("qualification:fin-001c0".into()),
+        };
+        assert_eq!(
+            query.replay_resolution_state(Some(&manifest)),
+            ReplayResolutionState::ManifestComplete
+        );
+        assert!(query.is_replay_addressable());
     }
 
     #[test]
@@ -469,6 +508,14 @@ pub enum ReplayReadiness {
     Addressable,
 }
 
+/// State of the replay hand-off. A complete manifest does not imply execution.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReplayResolutionState {
+    Incomplete,
+    Addressable,
+    ManifestComplete,
+}
+
 impl ReplayTargetV1 {
     pub fn readiness(&self) -> ReplayReadiness {
         ReplayReadiness::Addressable
@@ -482,7 +529,7 @@ impl ReplayTargetV1 {
             evidence_roots: Vec::new(),
             source_versions: Vec::new(),
             canonical_state_root: None,
-            model_version: self.model_version.clone(),
+            model_versions: vec![self.model_version.clone()],
             ontology_version: None,
             projection_profile: self.projection_profile.clone(),
             reasoning_program: self.reasoning_program.clone(),
@@ -500,7 +547,7 @@ pub struct DependencyManifestV1 {
     pub evidence_roots: Vec<String>,
     pub source_versions: Vec<String>,
     pub canonical_state_root: Option<String>,
-    pub model_version: String,
+    pub model_versions: Vec<String>,
     pub ontology_version: Option<String>,
     pub projection_profile: String,
     pub reasoning_program: String,
@@ -513,7 +560,8 @@ impl DependencyManifestV1 {
             && !self.evidence_roots.is_empty()
             && !self.source_versions.is_empty()
             && self.canonical_state_root.as_deref().is_some_and(|v| !v.is_empty())
-            && !self.model_version.is_empty()
+            && !self.model_versions.is_empty()
+            && self.model_versions.iter().all(|v| !v.is_empty())
             && self.ontology_version.as_deref().is_some_and(|v| !v.is_empty())
             && !self.projection_profile.is_empty()
             && !self.reasoning_program.is_empty()
@@ -556,6 +604,28 @@ impl TerminalQueryV1 {
     /// Atlas from presenting a navigation URL as a verified historical replay.
     pub fn is_replay_addressable(&self) -> bool {
         self.replay_target().is_some()
+    }
+
+    pub fn replay_readiness(&self) -> ReplayReadiness {
+        if self.replay_target().is_some() {
+            ReplayReadiness::Addressable
+        } else {
+            ReplayReadiness::Incomplete
+        }
+    }
+
+    /// Classifies only the local hand-off state. This is not a replay receipt.
+    pub fn replay_resolution_state(
+        &self,
+        manifest: Option<&DependencyManifestV1>,
+    ) -> ReplayResolutionState {
+        if self.replay_target().is_none() {
+            ReplayResolutionState::Incomplete
+        } else if manifest.is_some_and(DependencyManifestV1::is_complete) {
+            ReplayResolutionState::ManifestComplete
+        } else {
+            ReplayResolutionState::Addressable
+        }
     }
 }
 
