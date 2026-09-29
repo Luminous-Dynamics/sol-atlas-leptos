@@ -214,6 +214,14 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             <li><span>"Qualification"</span><code>"profile:fin-001c0"</code></li>
                             <li><span>"Information frontier"</span><code>{primary.frontier_ref.clone()}</code></li>
                         </ol>
+                        {match primary.lineage_completeness() {
+                            LineageCompleteness::Complete => view! {
+                                <div class="lineage-integrity complete">"LINEAGE COMPLETE · all declared dependencies are addressable"</div>
+                            }.into_any(),
+                            LineageCompleteness::Incomplete => view! {
+                                <div class="lineage-integrity incomplete">"LINEAGE INCOMPLETE · no missing dependency is inferred"</div>
+                            }.into_any(),
+                        }}
                         <A class="replay-action" href=replay_href>"↻  Reconstruct at this frontier"</A>
                         <div class="terminal-route-state">
                             <span>"URL view"</span><code>{selected_view}</code>
