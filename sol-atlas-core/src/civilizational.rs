@@ -561,7 +561,14 @@ impl EvidenceFrontierV1 {
             return true;
         }
         self.evidence_metadata.iter().any(|m| {
-            &m.evidence_id == evidence && m.available_at(self.known_by_year)
+            if &m.evidence_id != evidence || !m.available_at(self.known_by_year) {
+                return false;
+            }
+            self.source_metadata.is_empty()
+                || self.source_metadata.iter().any(|source| {
+                    source.source_snapshot == m.source_snapshot
+                        && source.available_at(self.known_by_year)
+                })
         })
     }
 
@@ -600,22 +607,17 @@ impl EvidenceFrontierV1 {
             }
         }
 
-        let mut seen_sources = BTreeSet::new();
-        for metadata in &self.source_metadata {
-            metadata.validate()?;
-            if metadata.available_by > self.known_by_year {
-                return Err(ProjectionError::LaterEvidenceInFrontier);
+        if !self.source_metadata.is_empty() {
+            let mut seen_sources = BTreeSet::new();
+            for metadata in &self.source_metadata {
+                metadata.validate()?;
+                if metadata.available_by > self.known_by_year
+                    || !self.admitted_sources.contains(&metadata.source_snapshot)
+                    || !seen_sources.insert(metadata.source_snapshot.clone())
+                {
+                    return Err(ProjectionError::UnadmittedSourceMetadata);
+                }
             }
-            if !self.admitted_sources.contains(&metadata.source_snapshot)
-                || !seen_sources.insert(metadata.source_snapshot.clone())
-            {
-                return Err(ProjectionError::UnadmittedSourceMetadata);
-            }
-        }
-        if !self.admitted_sources.is_empty()
-            && seen_sources.len() != self.admitted_sources.len()
-        {
-            return Err(ProjectionError::UnadmittedSourceMetadata);
         }
 
         Ok(())
