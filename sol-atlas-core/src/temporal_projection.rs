@@ -457,6 +457,8 @@ mod tests {
             institution_refs: vec![],
             constitutional_refs: vec![],
             relation_refs: vec!["claim:state".into()],
+            evidence_refs: vec![evidence.into()],
+            source_snapshots: vec!["source:archive".into()],
             evidence_frontier: frontier.into(),
             qualification: QualificationSummary {
                 status: QualificationStatus::Supported,
