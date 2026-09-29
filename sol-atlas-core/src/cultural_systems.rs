@@ -35,6 +35,7 @@ cultural_id!(PracticeId);
 cultural_id!(TraditionId);
 cultural_id!(CommunityId);
 cultural_id!(TransmissionEventId);
+cultural_id!(TransformationEventId);
 
 /// Projection-side resolution context produced by an external canonical-claim
 /// adapter. Sol Atlas stores the referenced claim, evidence/source closure and
@@ -109,7 +110,7 @@ pub enum CulturalTransformationClass {
 /// material-culture slices do not invent incompatible provenance models.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CulturalTransformationV1 {
-    pub transformation_id: TransmissionEventId,
+    pub transformation_id: TransformationEventId,
     pub source: EntityId,
     pub target: EntityId,
     pub class: CulturalTransformationClass,
