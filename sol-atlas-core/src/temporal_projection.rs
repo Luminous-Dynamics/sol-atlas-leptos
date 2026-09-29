@@ -32,6 +32,14 @@ impl TemporalProjectionRequestV1 {
         Ok(())
     }
 
+    /// Strict validation for new/reproducible frontiers. Unlike validate,
+    /// this rejects the legacy ID-only admission format and requires a complete
+    /// temporal evidence manifest.
+    pub fn validate_strict(&self) -> Result<(), ProjectionError> {
+        self.validate()?;
+        self.evidence_frontier.validate_temporal_manifest()
+    }
+
     /// Replay candidates into a stable, frontier-safe projection.
     ///
     /// Candidates are validated before filtering so malformed historical data
@@ -103,6 +111,15 @@ impl TemporalProjectionRequestV1 {
         };
         result.validate()?;
         Ok(result)
+    }
+    /// Strict replay variant that requires a complete temporal evidence manifest.
+    pub fn project_strict(
+        &self,
+        snapshots: &[StateSnapshotV1],
+        transitions: &[HistoricalTransitionV1],
+    ) -> Result<TemporalProjectionSetV1, ProjectionError> {
+        self.validate_strict()?;
+        self.project(snapshots, transitions)
     }
 }
 
