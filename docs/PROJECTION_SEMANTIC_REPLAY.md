@@ -47,12 +47,12 @@ authority, and the semantic envelope does not upgrade a claim's qualification.
 For example, CIDOC CRM 7.4 was released in August 2026 but is currently marked
 Draft by the CIDOC CRM version registry. Draft status therefore remains visible
 in the mapping context rather than being silently treated as an implementation
-stable release. citeturn0search1turn0search2
+stable release.
 
 CRMinf 1.2.1 is the natural argumentation interoperability target for the
 existing assessment/interpretation layer, while PROV-O remains the provenance
 interchange boundary. PROV-O is a W3C Recommendation and explicitly supports
-provenance interoperability, versioning, reproducibility, and derivation. citeturn0search9turn0search0
+provenance interoperability, versioning, reproducibility, and derivation.
 
 ## Invariants
 
