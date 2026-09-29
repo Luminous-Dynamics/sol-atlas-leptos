@@ -726,7 +726,7 @@ impl CulturalProjectionAdmissionV1 {
 mod tests {
     use super::*;
     use crate::civilizational::{
-        EvidenceTemporalMetadataV1, SourceSnapshotTemporalMetadataV1,
+        ArgumentationTemporalMetadataV1, EvidenceTemporalMetadataV1, SourceSnapshotTemporalMetadataV1,
     };
 
     fn frontier() -> EvidenceFrontierV1 {
@@ -775,6 +775,13 @@ mod tests {
                 publication_time: Some(1941),
                 capture_time: None,
                 available_by: 1942,
+            }],
+            argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
+                assessment: "assessment:1".into(),
+                interpretation: "interpretation:1".into(),
+                assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+                interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                available_by: 1950,
             }],
         };
         frontier.recompute_manifest_hash().expect("fixture hash");
