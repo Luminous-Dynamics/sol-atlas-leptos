@@ -6,6 +6,7 @@
 //! they do not adjudicate canonical historical truth.
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 
 macro_rules! id_type {
@@ -390,6 +391,12 @@ impl EvidenceTemporalMetadataV1 {
 pub struct EvidenceFrontierV1 {
     pub frontier_id: EvidenceFrontierId,
     pub known_by_year: i32,
+    /// Parent frontier creates an append-only temporal lineage.
+    pub parent_frontier: Option<EvidenceFrontierId>,
+    /// Version of the admission policy used to construct this frontier.
+    pub policy_version: String,
+    /// SHA-256 over the canonical manifest fields excluding this hash.
+    pub manifest_hash: String,
     pub admitted_evidence: BTreeSet<EvidenceId>,
     pub admitted_sources: BTreeSet<SourceSnapshotId>,
     /// Immutable temporal metadata used to verify that admission is not anachronistic.
@@ -397,6 +404,29 @@ pub struct EvidenceFrontierV1 {
 }
 
 impl EvidenceFrontierV1 {
+    /// Computes the content hash for the frontier admission manifest.
+    pub fn computed_manifest_hash(&self) -> Result<String, ProjectionError> {
+        let payload = (
+            &self.known_by_year,
+            &self.parent_frontier,
+            &self.policy_version,
+            &self.admitted_evidence,
+            &self.admitted_sources,
+            &self.evidence_metadata,
+        );
+        let bytes = serde_json::to_vec(&payload)
+            .map_err(|_| ProjectionError::InvalidEvidenceFrontierManifest)?;
+        let digest = Sha256::digest(bytes);
+        Ok(digest.iter().map(|byte| format!("{byte:02x}")).collect())
+    }
+
+    pub fn verify_manifest_hash(&self) -> Result<(), ProjectionError> {
+        if self.manifest_hash != self.computed_manifest_hash()? {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        Ok(())
+    }
+
     pub fn admits(&self, evidence: &EvidenceId) -> bool {
         if !self.admitted_evidence.contains(evidence) {
             return false;
@@ -413,9 +443,14 @@ impl EvidenceFrontierV1 {
 
     /// Validates the frontier's admission manifest against its temporal metadata.
     pub fn validate_temporal_manifest(&self) -> Result<(), ProjectionError> {
-        if !self.frontier_id.is_valid() {
+        if !self.frontier_id.is_valid()
+            || self.policy_version.trim().is_empty()
+            || self.manifest_hash.trim().is_empty()
+            || self.parent_frontier.as_ref().is_some_and(|id| id == &self.frontier_id)
+        {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
+        self.verify_manifest_hash()?;
         if self.evidence_metadata.is_empty() {
             if !self.admitted_evidence.is_empty() {
                 return Err(ProjectionError::InvalidEvidenceFrontierManifest);
