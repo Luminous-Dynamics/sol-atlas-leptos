@@ -3,9 +3,12 @@
 // Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
 
 use leptos::prelude::*;
+use leptos_router::components::A;
+use leptos_router::hooks::{use_params_map, use_query_map};
 
 use crate::data::evidence_projection::{
-    AtlasEvidenceProjectionV1, ClaimKind, ContradictionRef, EpistemicState, Visibility,
+    AtlasEvidenceProjectionV1, ClaimKind, ContradictionRef, EpistemicState, TerminalQueryV1,
+    Visibility,
 };
 
 fn fixture_projections() -> Vec<AtlasEvidenceProjectionV1> {
@@ -94,8 +97,41 @@ fn state_class(state: EpistemicState) -> &'static str {
 /// Projection-only terminal surface. Mycelix remains the semantic authority.
 #[component]
 pub fn EvidenceTerminal() -> impl IntoView {
+    let params = use_params_map();
+    let query = use_query_map();
+
+    let terminal_query = move || {
+        TerminalQueryV1::from_url_parts(
+            params.read().get("entity_ref"),
+            query.read().get("claim"),
+            query.read().get("frontier"),
+            query.read().get("view"),
+        )
+    };
+
     let projections = fixture_projections();
     let primary = projections.first().cloned().expect("fixture is non-empty");
+
+    let selected_entity = move || {
+        terminal_query()
+            .entity_ref
+            .unwrap_or_else(|| primary.entity_ref.clone())
+    };
+    let selected_frontier = move || {
+        terminal_query()
+            .frontier_ref
+            .unwrap_or_else(|| primary.frontier_ref.clone())
+    };
+    let selected_claim = move || terminal_query().claim_ref;
+    let selected_view = move || terminal_query().view.as_str();
+    let replay_href = move || {
+        format!(
+            "/terminal/entity/{}?frontier={}&claim={}&view=evidence",
+            selected_entity(),
+            selected_frontier(),
+            primary.claim_ref
+        )
+    };
 
     view! {
         <main class="evidence-terminal">
@@ -108,7 +144,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                 <div class="terminal-frontier">
                     <span class="frontier-label">"INFORMATION FRONTIER"</span>
                     <strong>"2026-09-29T14:00:00Z"</strong>
-                    <span class="frontier-id">{primary.frontier_ref.clone()}</span>
+                    <span class="frontier-id">{selected_frontier}</span>
                 </div>
             </header>
 
@@ -124,7 +160,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                         <div>
                             <span class="eyebrow">"ENTITY / ORGANIZATION"</span>
                             <h2>"Northstar Energy Holdings"</h2>
-                            <span class="entity-id">{primary.entity_ref.clone()}</span>
+                            <span class="entity-id">{selected_entity}</span>
                         </div>
                         <span class="status-chip qualified">"QUALIFIED"</span>
                     </div>
@@ -160,7 +196,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             <span class="status-chip conflicting">"CONFLICTING"</span>
                         </div>
                         <p>{primary.contradictions.first().map(|c| c.summary.clone()).unwrap_or_else(|| "No contradiction recorded.".into())}</p>
-                        <button class="text-action">"Inspect competing evidence →"</button>
+                        <A class="text-action" href=move || format!("/terminal/entity/{}?frontier={}&claim={}&view=lineage", selected_entity(), selected_frontier(), primary.claim_ref)>"Inspect competing evidence →"</A>
                     </div>
                 </section>
 
@@ -178,7 +214,11 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             <li><span>"Qualification"</span><code>"profile:fin-001c0"</code></li>
                             <li><span>"Information frontier"</span><code>{primary.frontier_ref.clone()}</code></li>
                         </ol>
-                        <button class="replay-action">"↻  Reconstruct at this frontier"</button>
+                        <A class="replay-action" href=replay_href>"↻  Reconstruct at this frontier"</A>
+                        <div class="terminal-route-state">
+                            <span>"URL view"</span><code>{selected_view}</code>
+                            <span>"Claim filter"</span><code>{move || selected_claim().unwrap_or_else(|| "none".into())}</code>
+                        </div>
                     </section>
 
                     <section class="terminal-section status-map">
@@ -200,7 +240,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             <span class="status-note">{state_label(primary.qualification)}</span>
                         </div>
                         <p>"Competing explanations, missing information, scenarios and forecasts will enter here through a typed ResearchResult boundary."</p>
-                        <button class="text-action">"Show information gaps →"</button>
+                        <A class="text-action" href=move || format!("/terminal/entity/{}?frontier={}&claim={}&view=research", selected_entity(), selected_frontier(), primary.claim_ref)>"Show information gaps →"</A>
                     </section>
                 </aside>
             </div>
