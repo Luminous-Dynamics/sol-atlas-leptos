@@ -1,0 +1,301 @@
+// Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+//! Deterministic temporal replay over civilizational projection contracts.
+//!
+//! This layer decides only whether already-described projection candidates are
+//! admissible for a requested map epoch and evidence frontier. It does not
+//! infer historical facts, resolve contested interpretations, or upgrade
+//! qualification status.
+
+use crate::civilizational::{
+    EvidenceFrontierV1, HistoricalTransitionV1, ProjectionAuditV1, ProjectionError, ProjectionRef,
+    StateSnapshotV1, YearInterval,
+};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TemporalProjectionRequestV1 {
+    pub map_epoch: YearInterval,
+    pub evidence_frontier: EvidenceFrontierV1,
+}
+
+impl TemporalProjectionRequestV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.map_epoch.is_valid() {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        if !self.evidence_frontier.frontier_id.is_valid() {
+            return Err(ProjectionError::MissingEvidenceFrontier);
+        }
+        Ok(())
+    }
+
+    /// Replay candidates into a stable, frontier-safe projection.
+    ///
+    /// Candidates are validated before filtering so malformed historical data
+    /// cannot disappear merely because it falls outside the current map epoch.
+    /// Output order is deterministic by stable typed identifiers.
+    pub fn project(
+        &self,
+        snapshots: &[StateSnapshotV1],
+        transitions: &[HistoricalTransitionV1],
+    ) -> Result<TemporalProjectionSetV1, ProjectionError> {
+        self.validate()?;
+
+        for snapshot in snapshots {
+            snapshot.validate().map_err(|_| ProjectionError::InvalidSnapshot)?;
+        }
+        for transition in transitions {
+            transition
+                .validate()
+                .map_err(|_| ProjectionError::InvalidTransition)?;
+        }
+
+        let mut selected_snapshots = snapshots
+            .iter()
+            .filter(|snapshot| snapshot.valid_time.overlaps(&self.map_epoch))
+            .filter(|snapshot| self.evidence_frontier.admits_snapshot(snapshot))
+            .cloned()
+            .collect::<Vec<_>>();
+        selected_snapshots.sort_by(|a, b| a.snapshot_id.cmp(&b.snapshot_id));
+
+        let mut selected_transitions = transitions
+            .iter()
+            .filter(|transition| transition.event_time.overlaps(&self.map_epoch))
+            .filter(|transition| self.evidence_frontier.admits_transition(transition))
+            .cloned()
+            .collect::<Vec<_>>();
+        selected_transitions.sort_by(|a, b| a.transition_id.cmp(&b.transition_id));
+
+        let mut audits = selected_snapshots
+            .iter()
+            .map(ProjectionAuditV1::for_snapshot)
+            .chain(
+                selected_transitions
+                    .iter()
+                    .map(|transition| ProjectionAuditV1::for_transition(transition, &self.evidence_frontier)),
+            )
+            .collect::<Vec<_>>();
+        audits.sort_by(|a, b| a.projection.cmp(&b.projection));
+
+        let result = TemporalProjectionSetV1 {
+            map_epoch: self.map_epoch,
+            evidence_frontier: self.evidence_frontier.clone(),
+            snapshots: selected_snapshots,
+            transitions: selected_transitions,
+            audits,
+        };
+        result.validate()?;
+        Ok(result)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TemporalProjectionSetV1 {
+    pub map_epoch: YearInterval,
+    pub evidence_frontier: EvidenceFrontierV1,
+    pub snapshots: Vec<StateSnapshotV1>,
+    pub transitions: Vec<HistoricalTransitionV1>,
+    pub audits: Vec<ProjectionAuditV1>,
+}
+
+impl TemporalProjectionSetV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.map_epoch.is_valid() || !self.evidence_frontier.frontier_id.is_valid() {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+
+        let mut previous_snapshot = None;
+        for snapshot in &self.snapshots {
+            snapshot.validate().map_err(|_| ProjectionError::InvalidSnapshot)?;
+            if !snapshot.valid_time.overlaps(&self.map_epoch)
+                || !self.evidence_frontier.admits_snapshot(snapshot)
+            {
+                return Err(ProjectionError::InvalidSnapshot);
+            }
+            if previous_snapshot.as_ref().is_some_and(|id: &crate::civilizational::SnapshotId| {
+                id >= &snapshot.snapshot_id
+            }) {
+                return Err(ProjectionError::InvalidSnapshot);
+            }
+            previous_snapshot = Some(&snapshot.snapshot_id);
+        }
+
+        let mut previous_transition = None;
+        for transition in &self.transitions {
+            transition
+                .validate()
+                .map_err(|_| ProjectionError::InvalidTransition)?;
+            if !transition.event_time.overlaps(&self.map_epoch)
+                || !self.evidence_frontier.admits_transition(transition)
+            {
+                return Err(ProjectionError::InvalidTransition);
+            }
+            if previous_transition.as_ref().is_some_and(|id: &crate::civilizational::TransitionId| {
+                id >= &transition.transition_id
+            }) {
+                return Err(ProjectionError::InvalidTransition);
+            }
+            previous_transition = Some(&transition.transition_id);
+        }
+
+        let expected = self.snapshots.len() + self.transitions.len();
+        if self.audits.len() != expected {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        let mut previous_projection: Option<&ProjectionRef> = None;
+        for audit in &self.audits {
+            audit.validate()?;
+            if !self.evidence_frontier.admits_audit(audit) {
+                return Err(ProjectionError::AuditWithoutEvidencePath);
+            }
+            if previous_projection.is_some_and(|projection| projection >= &audit.projection) {
+                return Err(ProjectionError::AuditWithoutEvidencePath);
+            }
+            previous_projection = Some(&audit.projection);
+        }
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::civilizational::{
+        GeometryProjection, QualificationStatus, QualificationSummary, SpatialSemantics,
+        TransitionClass,
+    };
+    use std::collections::BTreeSet;
+
+    fn geometry(evidence: &str) -> GeometryProjection {
+        GeometryProjection {
+            geometry_ref: "geom:1".into(),
+            semantics: SpatialSemantics::AdministrativeBoundary,
+            exact: true,
+            evidence: vec![evidence.into()],
+        }
+    }
+
+    fn snapshot(id: &str, interval: YearInterval, frontier: &str, evidence: &str) -> StateSnapshotV1 {
+        StateSnapshotV1 {
+            entity_id: format!("state:{id}").as_str().into(),
+            snapshot_id: id.into(),
+            valid_time: interval,
+            geometries: vec![geometry(evidence)],
+            institution_refs: vec![],
+            constitutional_refs: vec![],
+            relation_refs: vec!["claim:state".into()],
+            evidence_frontier: frontier.into(),
+            qualification: QualificationSummary {
+                status: QualificationStatus::Supported,
+                assessment: None,
+                claim_refs: vec!["claim:qualification".into()],
+                unresolved: vec![],
+                contested: false,
+            },
+        }
+    }
+
+    fn transition(id: &str, interval: YearInterval, evidence: &str) -> HistoricalTransitionV1 {
+        HistoricalTransitionV1 {
+            transition_id: id.into(),
+            event_time: interval,
+            classes: [TransitionClass::Formation].into_iter().collect::<BTreeSet<_>>(),
+            source_entities: vec!["polity:old".into()],
+            target_entities: vec!["state:new".into()],
+            spatial_scope: vec![],
+            mechanism: None,
+            claim_refs: vec!["claim:transition".into()],
+            evidence_refs: vec![evidence.into()],
+            source_snapshots: vec!["source:archive".into()],
+            competing_hypotheses: vec![],
+            assessment: None,
+            qualification: QualificationStatus::Supported,
+            uncertainty: None,
+        }
+    }
+
+    fn frontier() -> EvidenceFrontierV1 {
+        EvidenceFrontierV1 {
+            frontier_id: "frontier:1949".into(),
+            known_by_year: 1949,
+            admitted_evidence: ["e:old", "e:transition"].into_iter().map(Into::into).collect(),
+            admitted_sources: ["source:archive"].into_iter().map(Into::into).collect(),
+        }
+    }
+
+    #[test]
+    fn replay_filters_by_epoch_and_frontier() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval { from: Some(1940), to: Some(1950) },
+            evidence_frontier: frontier(),
+        };
+        let snapshots = vec![
+            snapshot("snapshot:b", YearInterval { from: Some(1945), to: Some(1947) }, "frontier:1949", "e:old"),
+            snapshot("snapshot:a", YearInterval { from: Some(1930), to: Some(1939) }, "frontier:1949", "e:old"),
+            snapshot("snapshot:c", YearInterval { from: Some(1945), to: Some(1947) }, "frontier:later", "e:old"),
+        ];
+        let transitions = vec![
+            transition("transition:b", YearInterval { from: Some(1947), to: Some(1947) }, "e:transition"),
+            transition("transition:a", YearInterval { from: Some(1900), to: Some(1901) }, "e:transition"),
+        ];
+
+        let result = request.project(&snapshots, &transitions).unwrap();
+        assert_eq!(result.snapshots.iter().map(|v| &v.snapshot_id).collect::<Vec<_>>(), vec![&"snapshot:b".into()]);
+        assert_eq!(result.transitions.iter().map(|v| &v.transition_id).collect::<Vec<_>>(), vec![&"transition:b".into()]);
+        assert_eq!(result.audits.len(), 2);
+        assert_eq!(result.audits[0].projection, ProjectionRef::Snapshot("snapshot:b".into()));
+        assert_eq!(result.audits[1].projection, ProjectionRef::Transition("transition:b".into()));
+    }
+
+    #[test]
+    fn replay_is_deterministically_sorted() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval { from: Some(1900), to: Some(2000) },
+            evidence_frontier: frontier(),
+        };
+        let snapshots = vec![
+            snapshot("snapshot:z", YearInterval { from: Some(1950), to: Some(1951) }, "frontier:1949", "e:old"),
+            snapshot("snapshot:a", YearInterval { from: Some(1950), to: Some(1951) }, "frontier:1949", "e:old"),
+        ];
+        let result = request.project(&snapshots, &[]).unwrap();
+        assert_eq!(result.snapshots[0].snapshot_id, "snapshot:a".into());
+        assert_eq!(result.snapshots[1].snapshot_id, "snapshot:z".into());
+    }
+
+    #[test]
+    fn replay_rejects_malformed_candidates_even_outside_epoch() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval { from: Some(2000), to: Some(2001) },
+            evidence_frontier: frontier(),
+        };
+        let mut malformed = snapshot(
+            "snapshot:bad",
+            YearInterval { from: Some(1800), to: Some(1799) },
+            "frontier:1949",
+            "e:old",
+        );
+        malformed.geometries[0].evidence.clear();
+
+        let error = request.project(&[malformed], &[]).unwrap_err();
+        assert_eq!(error, ProjectionError::InvalidSnapshot);
+    }
+
+    #[test]
+    fn open_intervals_overlap_as_unbounded_ranges() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval { from: Some(2000), to: Some(2001) },
+            evidence_frontier: frontier(),
+        };
+        let open_snapshot = snapshot(
+            "snapshot:open",
+            YearInterval { from: None, to: Some(2000) },
+            "frontier:1949",
+            "e:old",
+        );
+        assert_eq!(request.project(&[open_snapshot], &[]).unwrap().snapshots.len(), 1);
+    }
+}
