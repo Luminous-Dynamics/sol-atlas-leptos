@@ -8,7 +8,7 @@ use leptos_router::hooks::{use_params_map, use_query_map};
 
 use crate::data::evidence_projection::{
     AtlasEvidenceProjectionV1, ClaimKind, ContradictionRef, EpistemicState, LineageCompleteness,
-    LineageNodeRef, LineageResolution, TerminalQueryV1, Visibility,
+    LineageNodeRef, LineageResolution, TerminalQueryV1, TerminalQueryValidity, Visibility,
 };
 
 fn fixture_projections() -> Vec<AtlasEvidenceProjectionV1> {
@@ -540,6 +540,9 @@ pub fn EvidenceTerminal() -> impl IntoView {
     let selected_claim = move || terminal_query().claim_ref;
     let selected_projection = move || {
         let q = terminal_query();
+        if q.validity() == TerminalQueryValidity::Malformed {
+            return None;
+        }
         if matches!(
             projection_context_state(
                 q.projection_profile.as_deref(),
