@@ -93,3 +93,125 @@ impl CulturalProjectionAuditV4 {
     pub fn evidence_frontier(&self) -> &EvidenceFrontierId { &self.base.evidence_frontier }
     pub fn qualification(&self) -> QualificationStatus { self.base.qualification }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::civilizational::{
+        EvidenceFrontierV1, EvidenceTemporalMetadataV1, SourceSnapshotTemporalMetadataV1,
+        YearInterval,
+    };
+    use crate::cultural_systems::{CulturalProjectionIdV1, CulturalProjectionAuditV2};
+    use crate::ontology_context::OntologyMappingRelationV1;
+    use crate::ontology_mapping::{
+        OntologyMappingKindV1, OntologyMappingStandardV1, OntologyReleaseStatusV1,
+        OntologyMappingV2,
+    };
+
+    fn fixture() -> (
+        CulturalProjectionAuditV2,
+        CanonicalClaimAdmissionV1,
+        EvidenceFrontierV1,
+        OntologyMappingV2,
+    ) {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["e:1"].into_iter().map(Into::into).collect(),
+            admitted_sources: ["source:1"].into_iter().map(Into::into).collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "e:1".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: Some(1940),
+                publication_time: Some(1941),
+                capture_time: None,
+                available_by: 1942,
+                validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:1".into(),
+                publication_time: Some(1941),
+                capture_time: None,
+                available_by: 1942,
+            }],
+            argumentation_metadata: vec![],
+        };
+        frontier.recompute_manifest_hash().expect("frontier hash");
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            qualification: QualificationStatus::Supported,
+            evidence_frontier: "frontier:1950".into(),
+        };
+        let base = CulturalProjectionAuditV2 {
+            projection_id: CulturalProjectionIdV1::Transmission("transmission:1".into()),
+            claim_ref: claim.claim_ref.clone(),
+            evidence_refs: claim.evidence_refs.clone(),
+            source_snapshots: claim.source_snapshots.clone(),
+            community_recognition_evidence: vec![],
+            assessment: None,
+            argumentation: None,
+            event_time: YearInterval { from: Some(1900), to: Some(1950) },
+            qualification: claim.qualification,
+            access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+            evidence_frontier: frontier.frontier_id.clone(),
+        };
+        let mapping = OntologyMappingV2::from_claim(
+            "mapping:1",
+            OntologyMappingStandardV1::CidocCrm,
+            "7.4",
+            OntologyReleaseStatusV1::Draft,
+            "E7_Activity",
+            OntologyMappingKindV1::Class,
+            &claim,
+        );
+        (base, claim, frontier, mapping)
+    }
+
+    #[test]
+    fn v4_rejects_duplicate_mapping_identity() {
+        let (base, claim, frontier, mapping) = fixture();
+        let resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
+        ).expect("resolution");
+        let mut duplicate = resolution.clone();
+        duplicate.mapping.external_term = "E8_Acquisition".into();
+        duplicate.mapping.recompute_hash().expect("mapping hash");
+        duplicate.recompute_hash().expect("resolution hash");
+        let audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution, duplicate]);
+        assert_eq!(audit, Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn v4_frontier_safety_is_bound_to_one_canonical_claim() {
+        let (base, claim, frontier, mapping) = fixture();
+        let resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
+        ).expect("resolution");
+        let audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution])
+            .expect("audit");
+        let other_claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:other".into(),
+            ..claim
+        };
+        assert!(!audit.is_frontier_safe(&frontier, &other_claim));
+    }
+
+    #[test]
+    fn v4_hash_covers_resolution_identity_and_rejects_tamper() {
+        let (base, claim, frontier, mapping) = fixture();
+        let resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
+        ).expect("resolution");
+        let mut audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution])
+            .expect("audit");
+        audit.resolutions[0].mapping.external_term = "E8_Acquisition".into();
+        audit.resolutions[0].mapping.recompute_hash().expect("mapping hash");
+        audit.resolutions[0].recompute_hash().expect("resolution hash");
+        assert!(audit.validate().is_err());
+    }
+}
