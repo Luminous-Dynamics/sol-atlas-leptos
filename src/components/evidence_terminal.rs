@@ -159,9 +159,41 @@ fn projection_for_query(
     }
 }
 
+fn projection_for_terminal_query(
+    projections: &[AtlasEvidenceProjectionV1],
+    query: &TerminalQueryV1,
+) -> Option<AtlasEvidenceProjectionV1> {
+    if query.validity() == TerminalQueryValidity::Malformed {
+        return None;
+    }
+
+    projection_for_query(
+        projections,
+        query.entity_ref.as_deref(),
+        query.claim_ref.as_deref(),
+        query.frontier_ref.as_deref(),
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn malformed_terminal_query_cannot_select_local_projection() {
+        let projections = fixture_projections();
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("   ".into()),
+            Some("ef:demo:9d7b".into()),
+            None,
+            None,
+            None,
+            Some("evidence".into()),
+        );
+        assert_eq!(query.validity(), TerminalQueryValidity::Malformed);
+        assert!(projection_for_terminal_query(&projections, &query).is_none());
+    }
 
     #[test]
     fn terminal_navigation_target_carries_complete_identity() {
@@ -553,12 +585,20 @@ pub fn EvidenceTerminal() -> impl IntoView {
         ) {
             None
         } else {
-            projection_for_query(
-                &projection_catalog,
-                q.entity_ref.as_deref().or(Some(primary.entity_ref.as_str())),
-                q.claim_ref.as_deref(),
-                q.frontier_ref.as_deref().or(Some(primary.frontier_ref.as_str())),
-            )
+            let query = if q.entity_ref.is_none() {
+                TerminalQueryV1::from_url_parts(
+                    Some(primary.entity_ref.clone()),
+                    q.claim_ref.clone(),
+                    q.frontier_ref.clone().or(Some(primary.frontier_ref.clone())),
+                    q.projection_profile.clone(),
+                    q.reasoning_program.clone(),
+                    q.model_version.clone(),
+                    Some(q.view.as_str().to_string()),
+                )
+            } else {
+                q
+            };
+            projection_for_terminal_query(&projection_catalog, &query)
         }
     };
     let replay_claim = move || {
