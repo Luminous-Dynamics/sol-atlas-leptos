@@ -301,6 +301,18 @@ mod tests {
     }
 
     #[test]
+    fn replay_claim_is_absent_when_entity_has_no_local_projection() {
+        let projections = fixture_projections();
+        let selected = projection_for_query(
+            &projections,
+            Some("entity:unknown:404"),
+            None,
+            Some("ef:demo:9d7b"),
+        );
+        assert!(selected.is_none());
+    }
+
+    #[test]
     fn replay_claim_does_not_mix_primary_claim_into_unknown_entity() {
         let projections = fixture_projections();
         let selected = projection_for_query(
