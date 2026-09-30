@@ -37,6 +37,16 @@ cultural_id!(CommunityId);
 cultural_id!(TransmissionEventId);
 cultural_id!(TransformationEventId);
 
+fn has_duplicate_ids(ids: &[EvidenceId]) -> bool {
+    let mut seen = std::collections::BTreeSet::new();
+    ids.iter().any(|id| !seen.insert(id))
+}
+
+fn has_duplicate_source_snapshots(ids: &[SourceSnapshotId]) -> bool {
+    let mut seen = std::collections::BTreeSet::new();
+    ids.iter().any(|id| !seen.insert(id))
+}
+
 /// Projection-side resolution context produced by an external canonical-claim
 /// adapter. Sol Atlas stores the referenced claim, evidence/source closure and
 /// frontier context; it does not own or authenticate the canonical claim.
@@ -57,6 +67,8 @@ impl CanonicalClaimAdmissionV1 {
             || self.source_snapshots.is_empty()
             || self.source_snapshots.iter().any(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid()
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_source_snapshots(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -146,6 +158,8 @@ impl CulturalArgumentationEvidenceClosureV1 {
             || self.source_snapshots.is_empty()
             || self.source_snapshots.iter().any(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid()
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_source_snapshots(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -1275,6 +1289,37 @@ mod tests {
         assert_eq!(set.alternatives.len(), 2);
         assert_eq!(set.alternatives[0].assessment, "assessment:1".into());
         assert_eq!(set.alternatives[1].assessment, "assessment:2".into());
+    }
+
+
+    fn argumentation_set_rejects_duplicate_identity()    #[test]
+    fn canonical_claim_admission_rejects_duplicate_closure_members() {
+        let mut value = canonical_claim(&transmission());
+        value.evidence_refs.push("e:1".into());
+        assert!(value.validate().is_err());
+
+        let mut value = canonical_claim(&transmission());
+        value.source_snapshots.push("source:1".into());
+        assert!(value.validate().is_err());
+    }
+
+    #[test]
+    fn argumentation_closure_rejects_duplicate_members() {
+        let frontier = frontier();
+        let value = transmission();
+        let claim = canonical_claim(&value);
+        let mut closure = CulturalArgumentationEvidenceClosureV1 {
+            claim_ref: claim.claim_ref.clone(),
+            evidence_refs: vec!["e:1", "e:1"].into_iter().map(Into::into).collect(),
+            source_snapshots: vec!["source:1"].into_iter().map(Into::into).collect(),
+            evidence_frontier: frontier.frontier_id.clone(),
+        };
+        assert!(closure.validate().is_err());
+
+        closure.evidence_refs = vec!["e:1"].into_iter().map(Into::into).collect();
+        closure.source_snapshots = vec!["source:1", "source:1"]
+            .into_iter().map(Into::into).collect();
+        assert!(closure.validate().is_err());
     }
 
     #[test]
