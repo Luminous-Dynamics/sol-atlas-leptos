@@ -66,20 +66,67 @@ fn fixture_projections() -> Vec<AtlasEvidenceProjectionV1> {
 }
 
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ProjectionContextState {
+    NotRequested,
+    PartiallySpecified,
+    LocallyMatched,
+    LocallyMismatched,
+}
+
+fn projection_context_state(
+    projection_profile: Option<&str>,
+    reasoning_program: Option<&str>,
+    model_version: Option<&str>,
+) -> ProjectionContextState {
+    let supplied = [
+        projection_profile.is_some(),
+        reasoning_program.is_some(),
+        model_version.is_some(),
+    ]
+    .into_iter()
+    .filter(|present| *present)
+    .count();
+
+    match supplied {
+        0 => ProjectionContextState::NotRequested,
+        1 | 2 => ProjectionContextState::PartiallySpecified,
+        3 => {
+            if projection_profile == Some("profile:terminal:v1")
+                && reasoning_program == Some("reasoning:baseline:v1")
+                && model_version == Some("model:symthaea:v1")
+            {
+                ProjectionContextState::LocallyMatched
+            } else {
+                ProjectionContextState::LocallyMismatched
+            }
+        }
+        _ => unreachable!("the replay context has exactly three fields"),
+    }
+}
+
 fn projection_context_matches(
     projection_profile: Option<&str>,
     reasoning_program: Option<&str>,
     model_version: Option<&str>,
 ) -> bool {
-    projection_profile
-        .map(|value| value == "profile:terminal:v1")
-        .unwrap_or(true)
-        && reasoning_program
-            .map(|value| value == "reasoning:baseline:v1")
-            .unwrap_or(true)
-        && model_version
-            .map(|value| value == "model:symthaea:v1")
-            .unwrap_or(true)
+    !matches!(
+        projection_context_state(projection_profile, reasoning_program, model_version),
+        ProjectionContextState::LocallyMismatched
+    )
+}
+
+fn projection_context_label(state: ProjectionContextState) -> &'static str {
+    match state {
+        ProjectionContextState::NotRequested => "LOCAL CONTEXT NOT REQUESTED",
+        ProjectionContextState::PartiallySpecified => "LOCAL CONTEXT PARTIAL",
+        ProjectionContextState::LocallyMatched => {
+            "LOCAL CONTEXT MATCHED · NOT AUTHORITATIVE"
+        }
+        ProjectionContextState::LocallyMismatched => {
+            "LOCAL CONTEXT MISMATCH · NO FALLBACK"
+        }
+    }
 }
 
 fn projection_for_query(
@@ -117,10 +164,51 @@ mod tests {
     use super::*;
 
     #[test]
+    fn replay_context_state_distinguishes_absent_partial_match_and_mismatch() {
+        assert_eq!(
+            projection_context_state(None, None, None),
+            ProjectionContextState::NotRequested
+        );
+        assert_eq!(
+            projection_context_state(
+                Some("profile:terminal:v1"),
+                None,
+                Some("model:symthaea:v1"),
+            ),
+            ProjectionContextState::PartiallySpecified
+        );
+        assert_eq!(
+            projection_context_state(
+                Some("profile:terminal:v1"),
+                Some("reasoning:baseline:v1"),
+                Some("model:symthaea:v1"),
+            ),
+            ProjectionContextState::LocallyMatched
+        );
+        assert_eq!(
+            projection_context_state(
+                Some("profile:other:v2"),
+                Some("reasoning:baseline:v1"),
+                Some("model:symthaea:v1"),
+            ),
+            ProjectionContextState::LocallyMismatched
+        );
+    }
+
+    #[test]
     fn matching_local_replay_context_is_accepted_as_local_only() {
         assert!(projection_context_matches(
             Some("profile:terminal:v1"),
             Some("reasoning:baseline:v1"),
+            Some("model:symthaea:v1"),
+        ));
+    }
+
+    #[test]
+    fn partial_local_replay_context_does_not_fail_closed() {
+        assert!(projection_context_matches(
+            Some("profile:terminal:v1"),
+            None,
             Some("model:symthaea:v1"),
         ));
     }
@@ -280,10 +368,13 @@ pub fn EvidenceTerminal() -> impl IntoView {
     let selected_claim = move || terminal_query().claim_ref;
     let selected_projection = move || {
         let q = terminal_query();
-        if !projection_context_matches(
-            q.projection_profile.as_deref(),
-            q.reasoning_program.as_deref(),
-            q.model_version.as_deref(),
+        if matches!(
+            projection_context_state(
+                q.projection_profile.as_deref(),
+                q.reasoning_program.as_deref(),
+                q.model_version.as_deref(),
+            ),
+            ProjectionContextState::LocallyMismatched
         ) {
             None
         } else {
@@ -458,6 +549,15 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             }.into_any(),
                         }}
                         <A class="replay-action" href=replay_href>"↻  Open replay target"</A>
+                        <p class="replay-status">{move || {
+                            let q = terminal_query();
+                            let context = projection_context_state(
+                                q.projection_profile.as_deref(),
+                                q.reasoning_program.as_deref(),
+                                q.model_version.as_deref(),
+                            );
+                            format!("{} · replay resolution still requires authoritative dependencies", projection_context_label(context))
+                        }}</p>
                         <p class="replay-status">{move || match terminal_query().replay_target() {
     Some(_) => "REPLAY TARGET ADDRESSABLE · dependency resolution still required",
     None => "REPLAY TARGET INCOMPLETE · no replay implied",
