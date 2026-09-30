@@ -265,7 +265,7 @@ mod tests {
         CanonicalClaimAdmissionV1,
         EvidenceFrontierChainV1,
     ) {
-        let mut frontier = EvidenceFrontierV1 {
+        let mut root = EvidenceFrontierV1 {
             frontier_id: "frontier:1950".into(),
             known_by_year: 1950,
             parent_frontier: None,
@@ -298,14 +298,20 @@ mod tests {
                 available_by: 1950,
             }],
         };
-        frontier.recompute_manifest_hash().expect("frontier hash");
+        root.recompute_manifest_hash().expect("root hash");
+
+        let mut child = root.clone();
+        child.frontier_id = "frontier:1951".into();
+        child.known_by_year = 1951;
+        child.parent_frontier = Some(root.frontier_id.clone());
+        child.recompute_manifest_hash().expect("child hash");
 
         let claim = CanonicalClaimAdmissionV1 {
             claim_ref: "claim:1".into(),
             evidence_refs: vec!["e:1".into(), "e:2".into()],
             source_snapshots: vec!["source:1".into()],
             qualification: QualificationStatus::Supported,
-            evidence_frontier: frontier.frontier_id.clone(),
+            evidence_frontier: child.frontier_id.clone(),
         };
 
         let base = crate::cultural_systems::CulturalProjectionAuditV2 {
@@ -319,7 +325,7 @@ mod tests {
             event_time: YearInterval { from: Some(1900), to: Some(1950) },
             qualification: claim.qualification,
             access_policy: crate::cultural_systems::AccessPolicyV1::Public,
-            evidence_frontier: frontier.frontier_id.clone(),
+            evidence_frontier: child.frontier_id.clone(),
         };
 
         let mapping = OntologyMappingV2::from_claim(
@@ -328,7 +334,7 @@ mod tests {
             OntologyMappingKindV1::Class, &claim,
         );
         let resolution = crate::ontology_resolution::OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &child,
         ).expect("resolution");
         let v4 = crate::cultural_projection_audit_v4::CulturalProjectionAuditV4::from_v2(
             base, vec![resolution],
@@ -344,53 +350,21 @@ mod tests {
                     claim_ref: claim.claim_ref.clone(),
                     evidence_refs: vec!["e:1".into()],
                     source_snapshots: vec!["source:1".into()],
-                    evidence_frontier: frontier.frontier_id.clone(),
+                    evidence_frontier: child.frontier_id.clone(),
                 },
                 assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
                 interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
                 available_by: 1950,
             },
-            &frontier,
+            &child,
         ).expect("typed argumentation");
 
         let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation])
             .expect("v5 audit");
 
-        let mut child = frontier;
-        child.frontier_id = "frontier:1951".into();
-        child.known_by_year = 1951;
-        child.parent_frontier = Some("frontier:1950".into());
-        child.recompute_manifest_hash().expect("child hash");
-        // Keep the audit/claim on the verified leaf so the fixture exercises
-        // chain lineage without introducing later evidence.
-        let chain = EvidenceFrontierChainV1 { frontiers: vec![
-            {
-                let mut root = child.clone();
-                root.frontier_id = "frontier:1950".into();
-                root.known_by_year = 1950;
-                root.parent_frontier = None;
-                root.recompute_manifest_hash().expect("root hash");
-                root
-            },
-            child,
-        ] };
-        // The audit is still at frontier:1950, so make the current leaf the
-        // same frontier ID while retaining a two-node verified lineage.
-        let mut leaf = chain.frontiers[1].clone();
-        leaf.frontier_id = "frontier:1950".into();
-        leaf.parent_frontier = Some(chain.frontiers[0].frontier_id.clone());
-        leaf.known_by_year = 1950;
-        leaf.recompute_manifest_hash().expect("leaf hash");
-        let chain = EvidenceFrontierChainV1 {
-            frontiers: vec![chain.frontiers[0].clone(), leaf],
-        };
-
-        // Rebuild the audit against the leaf manifest identity by using a
-        // single-leaf chain: lineage tests mutate this chain later.
-        let single = EvidenceFrontierChainV1 {
-            frontiers: vec![chain.frontiers[0].clone()],
-        };
-        (audit, claim, single)
+        (audit, claim, EvidenceFrontierChainV1 {
+            frontiers: vec![root, child],
+        })
     }
 
     #[test]
