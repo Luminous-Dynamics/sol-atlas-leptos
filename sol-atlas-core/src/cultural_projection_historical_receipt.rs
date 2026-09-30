@@ -129,6 +129,24 @@ mod tests {
         });
         child.recompute_manifest_hash().expect("child hash");
 
+        let mut grandchild = child.clone();
+        grandchild.frontier_id = "frontier:1952".into();
+        grandchild.known_by_year = 1952;
+        grandchild.parent_frontier = Some(child.frontier_id.clone());
+        grandchild.admitted_evidence.insert("e:3".into());
+        grandchild.admitted_sources.insert("source:3".into());
+        grandchild.evidence_metadata.push(EvidenceTemporalMetadataV1 {
+            evidence_id: "e:3".into(), source_snapshot: "source:3".into(),
+            artifact_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+            publication_time: Some(1951), capture_time: None, available_by: 1952,
+            validity_time: Some(YearInterval { from: Some(1948), to: Some(1952) }),
+        });
+        grandchild.source_metadata.push(SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:3".into(), publication_time: Some(1951),
+            capture_time: None, available_by: 1952,
+        });
+        grandchild.recompute_manifest_hash().expect("grandchild hash");
+
         let claim = CanonicalClaimAdmissionV1 {
             claim_ref: "claim:1".into(), evidence_refs: vec!["e:1".into()],
             source_snapshots: vec!["source:1".into()], qualification: QualificationStatus::Supported,
@@ -169,7 +187,7 @@ mod tests {
             }, &root,
         ).expect("argumentation");
         let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
-        (audit, claim, EvidenceFrontierChainV1 { frontiers: vec![root, child] })
+        (audit, claim, EvidenceFrontierChainV1 { frontiers: vec![root, child, grandchild] })
     }
 
     #[test]
@@ -178,6 +196,7 @@ mod tests {
         let receipt = V5HistoricalReplayReceiptV1::from_audit_at(&audit, &chain, &"frontier:1950".into(), &claim).expect("receipt");
         assert_eq!(receipt.validate_against_audit_at(&audit, &chain, &claim), Ok(()));
         assert_eq!(receipt.replay.frontier_lineage.len(), 1);
+        assert_eq!(receipt.replay.frontier_lineage[0].0, "frontier:1950".into());
         assert_eq!(receipt.selected_frontier, "frontier:1950".into());
     }
 
@@ -186,15 +205,76 @@ mod tests {
         let (audit, claim, chain) = fixture();
         let receipt = V5HistoricalReplayReceiptV1::from_audit_at(&audit, &chain, &"frontier:1950".into(), &claim).expect("receipt");
         assert_eq!(receipt.replay.frontier_lineage.len(), 1);
-        assert!(!receipt.replay.frontier_lineage.iter().any(|(id, _)| id == "frontier:1951"));
+        assert!(!receipt.replay.frontier_lineage.iter().any(|(id, _)| {
+            id == "frontier:1951" || id == "frontier:1952"
+        }));
     }
 
     #[test]
     fn later_corruption_does_not_invalidate_historical_receipt() {
         let (audit, claim, mut chain) = fixture();
         let receipt = V5HistoricalReplayReceiptV1::from_audit_at(&audit, &chain, &"frontier:1950".into(), &claim).expect("receipt");
-        chain.frontiers[1].manifest_hash = "corrupt-later-manifest".into();
+        chain.frontiers[1].manifest_hash = "corrupt-middle-manifest".into();
+        chain.frontiers[2].manifest_hash = "corrupt-later-manifest".into();
         assert_eq!(receipt.validate_against_audit_at(&audit, &chain, &claim), Ok(()));
+        assert_eq!(
+            chain.validate_strict(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn three_frontiers_have_distinct_verified_manifest_hashes() {
+        let (_, _, chain) = fixture();
+        assert_eq!(chain.validate_strict(), Ok(()));
+        assert_eq!(chain.frontiers.len(), 3);
+        assert_ne!(chain.frontiers[0].manifest_hash, chain.frontiers[1].manifest_hash);
+        assert_ne!(chain.frontiers[1].manifest_hash, chain.frontiers[2].manifest_hash);
+        assert_ne!(chain.frontiers[0].manifest_hash, chain.frontiers[2].manifest_hash);
+        assert_eq!(
+            chain.frontiers[2].parent_frontier,
+            Some("frontier:1951".into())
+        );
+        assert!(chain.frontiers[2].admitted_evidence.contains("e:3"));
+        assert!(chain.frontiers[2].admitted_sources.contains("source:3"));
+    }
+
+    #[test]
+    fn inherited_manifest_corruption_invalidates_descendants() {
+        let (_, _, mut chain) = fixture();
+        chain.frontiers[0].manifest_hash = "rewritten-root".into();
+        assert_eq!(
+            chain.validate_strict(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn receipt_cannot_be_transplanted_to_structurally_similar_later_frontier() {
+        let (audit, claim, chain) = fixture();
+        let mut receipt = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &chain,
+            &"frontier:1950".into(),
+            &claim,
+        )
+        .expect("receipt");
+        receipt.selected_frontier = "frontier:1952".into();
+        assert!(receipt.validate_against_audit_at(&audit, &chain, &claim).is_err());
+    }
+
+    #[test]
+    fn receipt_preserves_claim_qualification() {
+        let (audit, claim, chain) = fixture();
+        let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &chain,
+            &"frontier:1950".into(),
+            &claim,
+        )
+        .expect("receipt");
+        assert_eq!(receipt.replay.qualification, claim.qualification);
+        assert_eq!(receipt.replay.qualification, QualificationStatus::Supported);
     }
 
     #[test]
