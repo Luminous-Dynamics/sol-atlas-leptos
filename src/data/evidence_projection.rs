@@ -599,6 +599,56 @@ mod tests {
     }
 
     #[test]
+    fn replay_resolution_state_distinguishes_addressable_unresolved_and_matched() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("claim:obs:7f31".into()),
+            Some("ef:demo:9d7b".into()),
+            Some("profile:terminal:v1".into()),
+            Some("reasoning:baseline:v1".into()),
+            Some("model:symthaea:v1".into()),
+            Some("evidence".into()),
+        );
+
+        assert_eq!(
+            query.replay_resolution_state(None),
+            ReplayResolutionState::Addressable
+        );
+
+        let incomplete = query
+            .replay_target()
+            .expect("complete replay target")
+            .dependency_manifest_request();
+        assert_eq!(
+            query.replay_resolution_state(Some(&incomplete)),
+            ReplayResolutionState::Unresolved
+        );
+
+        let target = query.replay_target().expect("complete replay target");
+        let mut mismatched = DependencyManifestV1 {
+            frontier_ref: target.frontier_ref.clone(),
+            evidence_roots: vec!["evidence-root:1".into()],
+            source_versions: vec!["source:filing:v3".into()],
+            canonical_state_root: Some("state-root:1".into()),
+            model_versions: vec![target.model_version.clone()],
+            ontology_version: Some("ontology:fin:v1".into()),
+            projection_profile: target.projection_profile.clone(),
+            reasoning_program: "reasoning:other:v1".into(),
+            qualification_profile: Some("qualification:fin-001c0".into()),
+        };
+        assert_eq!(
+            query.replay_resolution_state(Some(&mismatched)),
+            ReplayResolutionState::Unresolved
+        );
+
+        mismatched.reasoning_program = target.reasoning_program.clone();
+        assert_eq!(
+            query.replay_resolution_state(Some(&mismatched)),
+            ReplayResolutionState::DependencyContextMatched
+        );
+    }
+
+    #[test]
     fn empty_replay_identifiers_are_incomplete() {
         let query = TerminalQueryV1::from_url_parts(
             Some("entity:fin:ns-energy-01".into()),
