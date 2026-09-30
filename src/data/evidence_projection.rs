@@ -546,14 +546,21 @@ mod tests {
             reasoning_program: target.reasoning_program.clone(),
             qualification_profile: Some("qualification:fin-001c0".into()),
         };
-        assert!(manifest.matches_target(&target));
+        assert!(manifest.matches_dependency_context(&target));
+
+        // The dependency manifest intentionally does not bind entity/claim.
+        // That semantic query identity must come from the canonical authority.
+        let mut different_query = target.clone();
+        different_query.entity_ref = "entity:other:99".into();
+        different_query.claim_ref = "claim:other:99".into();
+        assert!(manifest.matches_dependency_context(&different_query));
 
         manifest.projection_profile = "profile:terminal:v2".into();
-        assert!(!manifest.matches_target(&target));
+        assert!(!manifest.matches_dependency_context(&target));
 
         manifest.projection_profile = target.projection_profile.clone();
         manifest.reasoning_program = "reasoning:baseline:v2".into();
-        assert!(!manifest.matches_target(&target));
+        assert!(!manifest.matches_dependency_context(&target));
     }
 
     #[test]
@@ -674,7 +681,12 @@ pub struct DependencyManifestV1 {
 }
 
 impl DependencyManifestV1 {
-    pub fn matches_target(&self, target: &ReplayTargetV1) -> bool {
+    /// Checks the dependency execution context required by the requested replay.
+    ///
+    /// This deliberately does **not** bind the entity/claim/query identity.
+    /// Atlas must not invent a semantic query identifier; that binding belongs
+    /// to the canonical Mycelix replay contract when exposed upstream.
+    pub fn matches_dependency_context(&self, target: &ReplayTargetV1) -> bool {
         self.is_complete()
             && self.frontier_ref == target.frontier_ref
             && self.projection_profile == target.projection_profile
@@ -756,7 +768,7 @@ impl TerminalQueryV1 {
                 None => ReplayResolutionState::Addressable,
                 Some(manifest) => {
                     let target = self.replay_target().expect("checked above");
-                    if manifest.matches_target(&target) {
+                    if manifest.matches_dependency_context(&target) {
                         ReplayResolutionState::ManifestMatched
                     } else {
                         ReplayResolutionState::Unresolved
