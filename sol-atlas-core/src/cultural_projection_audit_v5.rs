@@ -72,9 +72,6 @@ impl CulturalProjectionAuditV5 {
             {
                 return Err(ProjectionError::EmptyIdentifier);
             }
-            if value.closure.qualification(&self.base.base.qualification).is_err() {
-                return Err(ProjectionError::EmptyIdentifier);
-            }
         }
 
         if let Some(legacy) = self.base.base.argumentation.as_ref() {
