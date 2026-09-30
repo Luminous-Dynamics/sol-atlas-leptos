@@ -278,6 +278,32 @@ mod tests {
     }
 
     #[test]
+    fn same_id_different_manifest_cannot_substitute_frontier() {
+        let (audit, claim, chain) = fixture();
+        let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &chain,
+            &"frontier:1950".into(),
+            &claim,
+        )
+        .expect("receipt");
+
+        let mut substituted_root = chain.frontiers[0].clone();
+        // Preserve the identifier while changing a manifest-covered field.
+        substituted_root.policy_version = "v2".into();
+        substituted_root.recompute_manifest_hash().expect("substituted hash");
+        assert_eq!(substituted_root.frontier_id, "frontier:1950".into());
+        assert_ne!(substituted_root.manifest_hash, chain.frontiers[0].manifest_hash);
+
+        let substituted_chain = EvidenceFrontierChainV1 {
+            frontiers: vec![substituted_root],
+        };
+        assert!(receipt
+            .validate_against_audit_at(&audit, &substituted_chain, &claim)
+            .is_err());
+    }
+
+    #[test]
     fn receipt_hash_binds_selected_frontier() {
         let (audit, claim, chain) = fixture();
         let mut receipt = V5HistoricalReplayReceiptV1::from_audit_at(&audit, &chain, &"frontier:1950".into(), &claim).expect("receipt");
