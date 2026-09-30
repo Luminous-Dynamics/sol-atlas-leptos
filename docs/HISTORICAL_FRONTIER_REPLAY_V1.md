@@ -27,18 +27,32 @@ frontier therefore cannot invalidate an otherwise valid earlier replay.
 Conversely, a later audit cannot masquerade as an earlier replay: its frontier identity and
 closure must match the selected historical endpoint.
 
-## Test obligations
+## Historical receipts
 
-The implementation includes coverage for:
+`cultural_projection_historical_receipt::V5HistoricalReplayReceiptV1` is the
+content-addressed artifact for a selected historical replay.
 
-- replay at a verified root prefix;
-- later-frontier corruption not contaminating an earlier replay;
-- a child-bound audit being rejected at the parent frontier;
-- unknown frontier identifiers being rejected.
+The receipt:
 
-This is deliberately additive to the existing leaf-oriented V5 replay receipt. A future
-historical receipt should record the selected prefix lineage rather than silently redefining
-the existing `leaf_frontier` contract.
+1. records the selected frontier explicitly;
+2. builds the existing V5 replay receipt against only the verified prefix through that frontier;
+3. binds its own hash to both the selected frontier and the underlying replay receipt;
+4. preserves the existing `leaf_frontier` semantics instead of redefining them.
+
+The adversarial fixture now models three epochs — `frontier:1950`,
+`frontier:1951`, and `frontier:1952` — with independently introduced evidence.
+The tests assert that:
+
+- the three manifests are distinct and the full chain validates;
+- a root receipt contains only its one-frontier lineage;
+- corruption in later frontiers cannot invalidate that historical receipt;
+- the same corruption does invalidate strict validation of the descendant chain;
+- rewriting an inherited root manifest invalidates descendants;
+- a receipt cannot be transplanted to a later structurally similar frontier;
+- qualification remains the canonical claim's qualification.
+
+This is deliberately additive to the leaf-oriented V5 replay receipt. Historical selection
+changes the validation boundary, not the meaning of `leaf_frontier`.
 
 ## Epistemic boundary
 
