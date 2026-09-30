@@ -140,6 +140,50 @@ impl CulturalProjectionAuditV5 {
             })
     }
 
+    /// Validates the complete V5 audit against an explicit append-only
+    /// frontier lineage. The selected frontier must be the verified chain leaf;
+    /// every canonical claim/evidence/source closure, typed argumentation
+    /// record, and ontology resolution is then checked against that same leaf.
+    ///
+    /// This is intentionally stronger than `is_frontier_safe`: a caller cannot
+    /// present a valid later frontier while asking the audit to masquerade as
+    /// an earlier historical view.
+    pub fn validate_against_frontier_chain(
+        &self,
+        chain: &crate::civilizational::EvidenceFrontierChainV1,
+        claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        chain.validate_strict()?;
+        let frontier = chain
+            .current()
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+
+        if self.evidence_frontier() != &frontier.frontier_id
+            || claim.evidence_frontier != frontier.frontier_id
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        if !claim.is_frontier_safe(frontier) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        self.validate()?;
+        if !self.is_frontier_safe(frontier, claim) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
+    /// Boolean convenience wrapper for chain-aware replay/admission.
+    pub fn is_chain_safe(
+        &self,
+        chain: &crate::civilizational::EvidenceFrontierChainV1,
+        claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
+    ) -> bool {
+        self.validate_against_frontier_chain(chain, claim).is_ok()
+    }
     pub fn projection_id(&self) -> &CulturalProjectionIdV1 {
         self.base.projection_id()
     }
@@ -364,13 +408,48 @@ mod tests {
 
     #[test]
     fn v5_argumentation_cannot_upgrade_qualification() {
-        let (v4, claim, frontier, argumentation) = fixture();
-        let mut downgraded = claim.clone();
-        downgraded.qualification = QualificationStatus::Speculative;
+        let (v4, mut claim, frontier, argumentation) = fixture();
         let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation])
             .expect("v5 audit");
+        claim.qualification = QualificationStatus::Established;
         assert_eq!(audit.qualification(), QualificationStatus::Supported);
+        assert!(!audit.is_frontier_safe(&frontier, &claim));
+        claim.qualification = QualificationStatus::Supported;
         assert!(audit.is_frontier_safe(&frontier, &claim));
-        let _ = downgraded;
+    }
+
+    #[test]
+    fn v5_chain_replay_requires_selected_frontier_to_be_verified_leaf() {
+        let (v4, claim, child, argumentation) = fixture();
+        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation])
+            .expect("v5 audit");
+        let mut root = child.clone();
+        root.frontier_id = "frontier:1949".into();
+        root.known_by_year = 1949;
+        root.parent_frontier = None;
+        root.argumentation_metadata[0].available_by = 1949;
+        root.recompute_manifest_hash().expect("root hash");
+        let chain = crate::civilizational::EvidenceFrontierChainV1 {
+            frontiers: vec![root],
+        };
+        assert_eq!(
+            audit.validate_against_frontier_chain(&chain, &claim),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+        assert!(!audit.is_chain_safe(&chain, &claim));
+    }
+
+    #[test]
+    fn v5_chain_replay_accepts_complete_same_leaf_closure() {
+        let (v4, claim, frontier, argumentation) = fixture();
+        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation])
+            .expect("v5 audit");
+        let mut root = frontier.clone();
+        root.parent_frontier = None;
+        root.recompute_manifest_hash().expect("root hash");
+        let chain = crate::civilizational::EvidenceFrontierChainV1 {
+            frontiers: vec![root],
+        };
+        assert!(audit.is_chain_safe(&chain, &claim));
     }
 }
