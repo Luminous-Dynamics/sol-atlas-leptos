@@ -1292,7 +1292,8 @@ mod tests {
     }
 
 
-    fn argumentation_set_rejects_duplicate_identity()    #[test]
+    #[test]
+    fn argumentation_set_rejects_duplicate_identity() {
     fn canonical_claim_admission_rejects_duplicate_closure_members() {
         let mut value = canonical_claim(&transmission());
         value.evidence_refs.push("e:1".into());
