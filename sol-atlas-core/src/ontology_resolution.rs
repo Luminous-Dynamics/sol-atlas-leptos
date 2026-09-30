@@ -19,6 +19,16 @@ use crate::cultural_systems::CanonicalClaimAdmissionV1;
 use crate::ontology_context::{OntologyMappingContextV1, OntologyMappingRelationV1};
 use crate::ontology_mapping::OntologyMappingV2;
 
+fn has_duplicate_ids(ids: &[EvidenceId]) -> bool {
+    let mut seen = std::collections::BTreeSet::new();
+    ids.iter().any(|id| !seen.insert(id))
+}
+
+fn has_duplicate_source_snapshots(ids: &[SourceSnapshotId]) -> bool {
+    let mut seen = std::collections::BTreeSet::new();
+    ids.iter().any(|id| !seen.insert(id))
+}
+
 /// Content-addressed proof that one ontology mapping resolves to the exact
 /// canonical claim/evidence/source closure used by the projection.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -111,6 +121,8 @@ impl OntologyMappingResolutionV1 {
             || self.source_snapshots.iter().any(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid()
             || self.resolution_hash.trim().is_empty()
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_source_snapshots(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -271,6 +283,24 @@ mod tests {
             canonical.computed_hash().expect("hash"),
             reordered.computed_hash().expect("hash")
         );
+    }
+
+    #[test]
+    fn duplicate_closure_members_invalidate_resolution() {
+        let (mapping, claim, frontier) = fixture();
+        let mut resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
+        ).expect("resolution");
+        resolution.evidence_refs.push("e:1".into());
+        resolution.recompute_hash().expect("rehash");
+        assert!(resolution.validate().is_err());
+
+        let mut resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
+        ).expect("resolution");
+        resolution.source_snapshots.push("source:1".into());
+        resolution.recompute_hash().expect("rehash");
+        assert!(resolution.validate().is_err());
     }
 
     #[test]
