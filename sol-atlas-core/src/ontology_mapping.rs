@@ -205,6 +205,7 @@ mod tests {
             source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
                 source_snapshot: "source:1".into(), publication_time: Some(1941), capture_time: None, available_by: 1942,
             }],
+            argumentation_metadata: vec![],
         };
         frontier.recompute_manifest_hash().expect("fixture hash");
         let c=CanonicalClaimAdmissionV1 { claim_ref:"claim:1".into(), evidence_refs:vec!["e:1".into()], source_snapshots:vec!["source:1".into()], qualification:QualificationStatus::Supported, evidence_frontier:"frontier:1950".into() };
