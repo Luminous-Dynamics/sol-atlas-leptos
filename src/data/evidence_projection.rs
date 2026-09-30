@@ -466,7 +466,7 @@ mod tests {
         };
         assert_eq!(
             query.replay_resolution_state(Some(&manifest)),
-            ReplayResolutionState::ManifestComplete
+            ReplayResolutionState::ManifestMatched
         );
         assert!(query.is_replay_addressable());
         let mut mismatched = manifest.clone();
@@ -475,12 +475,82 @@ mod tests {
             query.replay_resolution_state(Some(&mismatched)),
             ReplayResolutionState::Unresolved
         );
-        let mut wrong_model = manifest;
+        let mut wrong_model = manifest.clone();
         wrong_model.model_versions = vec!["model:other:v9".into()];
         assert_eq!(
             query.replay_resolution_state(Some(&wrong_model)),
             ReplayResolutionState::Unresolved
         );
+
+        let mut wrong_profile = manifest.clone();
+        wrong_profile.projection_profile = "profile:other:v2".into();
+        assert_eq!(
+            query.replay_resolution_state(Some(&wrong_profile)),
+            ReplayResolutionState::Unresolved
+        );
+
+        let mut wrong_program = manifest;
+        wrong_program.reasoning_program = "reasoning:other:v9".into();
+        assert_eq!(
+            query.replay_resolution_state(Some(&wrong_program)),
+            ReplayResolutionState::Unresolved
+        );
+    }
+
+    #[test]
+    fn incomplete_manifest_rejects_whitespace_only_dependencies() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("claim:obs:7f31".into()),
+            Some("ef:demo:9d7b".into()),
+            Some("profile:terminal:v1".into()),
+            Some("reasoning:baseline:v1".into()),
+            Some("model:symthaea:v1".into()),
+            Some("evidence".into()),
+        );
+        let target = query.replay_target().expect("complete replay target");
+        let mut manifest = target.dependency_manifest_request();
+        manifest.evidence_roots = vec!["   ".into()];
+        manifest.source_versions = vec!["source:filing:v3".into()];
+        manifest.canonical_state_root = Some("state-root:1".into());
+        manifest.ontology_version = Some("ontology:fin:v1".into());
+        manifest.qualification_profile = Some("qualification:fin-001c0".into());
+        assert!(!manifest.is_complete());
+
+        manifest.evidence_roots = vec!["evidence-root:1".into()];
+        manifest.source_versions = vec!["  ".into()];
+        assert!(!manifest.is_complete());
+    }
+
+    #[test]
+    fn manifest_match_requires_projection_and_reasoning_identity() {
+        let target = ReplayTargetV1 {
+            entity_ref: "entity:fin:ns-energy-01".into(),
+            claim_ref: "claim:obs:7f31".into(),
+            frontier_ref: "ef:demo:9d7b".into(),
+            projection_profile: "profile:terminal:v1".into(),
+            reasoning_program: "reasoning:baseline:v1".into(),
+            model_version: "model:symthaea:v1".into(),
+        };
+        let mut manifest = DependencyManifestV1 {
+            frontier_ref: target.frontier_ref.clone(),
+            evidence_roots: vec!["evidence-root:1".into()],
+            source_versions: vec!["source:filing:v3".into()],
+            canonical_state_root: Some("state-root:1".into()),
+            model_versions: vec![target.model_version.clone()],
+            ontology_version: Some("ontology:fin:v1".into()),
+            projection_profile: target.projection_profile.clone(),
+            reasoning_program: target.reasoning_program.clone(),
+            qualification_profile: Some("qualification:fin-001c0".into()),
+        };
+        assert!(manifest.matches_target(&target));
+
+        manifest.projection_profile = "profile:terminal:v2".into();
+        assert!(!manifest.matches_target(&target));
+
+        manifest.projection_profile = target.projection_profile.clone();
+        manifest.reasoning_program = "reasoning:baseline:v2".into();
+        assert!(!manifest.matches_target(&target));
     }
 
     #[test]
@@ -540,7 +610,9 @@ pub enum ReplayResolutionState {
     Incomplete,
     Addressable,
     Unresolved,
-    ManifestComplete,
+    /// The dependency manifest is complete and matches the requested replay target.
+    /// This still does not prove resolution by Mycelix or replay execution.
+    ManifestMatched,
 }
 
 impl ReplayTargetV1 {
