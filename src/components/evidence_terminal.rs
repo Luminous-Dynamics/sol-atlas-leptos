@@ -168,7 +168,7 @@ mod tests {
         let target = TerminalNavigationTarget::new(
             "entity:fin:ns-energy-01",
             "ef:demo:9d7b",
-            "claim:obs:7f31",
+            TerminalClaimRef::new("claim:obs:7f31").expect("test claim"),
             "profile:terminal:v1",
             "reasoning:baseline:v1",
             "model:symthaea:v1",
@@ -183,18 +183,14 @@ mod tests {
     }
 
     #[test]
-    fn terminal_navigation_target_cannot_omit_claim() {
-        let target = TerminalNavigationTarget::new(
-            "entity:fin:ns-energy-01",
-            "ef:demo:9d7b",
-            "",
-            "profile:terminal:v1",
-            "reasoning:baseline:v1",
-            "model:symthaea:v1",
-            TerminalView::Evidence,
+    fn terminal_claim_ref_rejects_empty_and_whitespace_identity() {
+        assert!(TerminalClaimRef::new("").is_none());
+        assert!(TerminalClaimRef::new("   ").is_none());
+        assert!(TerminalClaimRef::new("\t\n").is_none());
+        assert_eq!(
+            TerminalClaimRef::new("claim:obs:7f31").expect("claim").as_str(),
+            "claim:obs:7f31"
         );
-
-        assert!(target.href().contains("&claim=&"));
     }
 
     #[test]
@@ -392,6 +388,20 @@ impl TerminalView {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+struct TerminalClaimRef(String);
+
+impl TerminalClaimRef {
+    fn new(value: impl Into<String>) -> Option<Self> {
+        let value = value.into();
+        (!value.trim().is_empty()).then_some(Self(value))
+    }
+
+    fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct TerminalNavigationTarget {
     entity_ref: String,
     frontier_ref: String,
@@ -407,7 +417,7 @@ impl TerminalNavigationTarget {
     fn new(
         entity_ref: impl Into<String>,
         frontier_ref: impl Into<String>,
-        claim_ref: impl Into<String>,
+        claim_ref: TerminalClaimRef,
         projection_profile: impl Into<String>,
         reasoning_program: impl Into<String>,
         model_version: impl Into<String>,
@@ -416,7 +426,7 @@ impl TerminalNavigationTarget {
         Self {
             entity_ref: entity_ref.into(),
             frontier_ref: frontier_ref.into(),
-            claim_ref: claim_ref.into(),
+            claim_ref: claim_ref.0,
             projection_profile: projection_profile.into(),
             reasoning_program: reasoning_program.into(),
             model_version: model_version.into(),
@@ -573,16 +583,19 @@ pub fn EvidenceTerminal() -> impl IntoView {
     let replay_href = move || {
         replay_claim().map(|claim| {
             let context = link_replay_context();
-            TerminalNavigationTarget::new(
-                selected_entity(),
-                selected_frontier(),
-                claim,
-                context.0,
-                context.1,
-                context.2,
-                TerminalView::Evidence,
-            )
-            .href()
+            TerminalClaimRef::new(claim).map(|claim| {
+                TerminalNavigationTarget::new(
+                    selected_entity(),
+                    selected_frontier(),
+                    claim,
+                    context.0,
+                    context.1,
+                    context.2,
+                    TerminalView::Evidence,
+                )
+                .href()
+            })
+        }).flatten()
         })
     };
 
@@ -657,7 +670,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                 TerminalNavigationTarget::new(
                                     selected_entity(),
                                     selected_frontier(),
-                                    claim,
+                                    TerminalClaimRef::new(claim)?,
                                     context.0,
                                     context.1,
                                     context.2,
@@ -693,10 +706,12 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                 };
                                 let href = {
                                     let context = link_replay_context();
+                                    let claim = TerminalClaimRef::new(replay_claim_value())
+                                        .expect("a projected lineage node requires a non-empty claim");
                                     TerminalNavigationTarget::new(
                                         selected_entity(),
                                         selected_frontier(),
-                                        replay_claim_value(),
+                                        claim,
                                         context.0,
                                         context.1,
                                         context.2,
