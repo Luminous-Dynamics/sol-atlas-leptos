@@ -469,7 +469,7 @@ mod tests {
         };
         assert_eq!(
             query.replay_resolution_state(Some(&manifest)),
-            ReplayResolutionState::ManifestMatched
+            ReplayResolutionState::DependencyContextMatched
         );
         assert!(query.is_replay_addressable());
         let mut mismatched = manifest.clone();
@@ -656,9 +656,10 @@ pub enum ReplayResolutionState {
     Incomplete,
     Addressable,
     Unresolved,
-    /// The dependency manifest is complete and matches the requested replay target.
-    /// This still does not prove resolution by Mycelix or replay execution.
-    ManifestMatched,
+    /// The dependency manifest is complete and its execution context matches the
+    /// requested replay target. This still does not prove authoritative Mycelix
+    /// resolution or replay execution.
+    DependencyContextMatched,
 }
 
 impl ReplayTargetV1 {
@@ -831,7 +832,7 @@ impl TerminalQueryV1 {
                 Some(manifest) => {
                     let target = self.replay_target().expect("checked above");
                     match manifest.dependency_context_match(&target) {
-                        DependencyContextMatch::Matched => ReplayResolutionState::ManifestMatched,
+                        DependencyContextMatch::Matched => ReplayResolutionState::DependencyContextMatched,
                         DependencyContextMatch::Incomplete | DependencyContextMatch::Mismatch => {
                             ReplayResolutionState::Unresolved
                         }
