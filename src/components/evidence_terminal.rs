@@ -70,18 +70,28 @@ fn projection_for_query(
     projections: &[AtlasEvidenceProjectionV1],
     entity_ref: Option<&str>,
     claim_ref: Option<&str>,
+    frontier_ref: Option<&str>,
 ) -> Option<AtlasEvidenceProjectionV1> {
     let entity_ref = entity_ref?;
     match claim_ref {
         Some(claim_ref) => projections
             .iter()
             .find(|projection| {
-                projection.entity_ref == entity_ref && projection.claim_ref == claim_ref
+                projection.entity_ref == entity_ref
+                    && projection.claim_ref == claim_ref
+                    && frontier_ref
+                        .map(|frontier| projection.frontier_ref == frontier)
+                        .unwrap_or(true)
             })
             .cloned(),
         None => projections
             .iter()
-            .find(|projection| projection.entity_ref == entity_ref)
+            .find(|projection| {
+                projection.entity_ref == entity_ref
+                    && frontier_ref
+                        .map(|frontier| projection.frontier_ref == frontier)
+                        .unwrap_or(true)
+            })
             .cloned(),
     }
 }
@@ -97,6 +107,7 @@ mod tests {
             &projections,
             Some("entity:fin:ns-energy-01"),
             Some("claim:derived:42ac"),
+            Some("ef:demo:9d7b"),
         )
         .expect("derived projection should resolve");
 
@@ -124,6 +135,7 @@ mod tests {
             &projections,
             Some("entity:other:01"),
             Some("claim:obs:7f31"),
+            Some("ef:demo:9d7b"),
         )
         .is_none());
     }
@@ -135,6 +147,7 @@ mod tests {
             &projections,
             Some("entity:fin:ns-energy-01"),
             None,
+            Some("ef:demo:9d7b"),
         )
         .expect("entity projection should resolve");
 
@@ -213,6 +226,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
             &projection_catalog,
             q.entity_ref.as_deref().or(Some(primary.entity_ref.as_str())),
             q.claim_ref.as_deref(),
+            q.frontier_ref.as_deref().or(Some(primary.frontier_ref.as_str())),
         )
     };
     let replay_claim = move || selected_claim().unwrap_or_else(|| primary.claim_ref.clone());
