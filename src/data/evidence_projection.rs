@@ -610,14 +610,16 @@ impl DependencyManifestV1 {
     pub fn is_complete(&self) -> bool {
         !self.frontier_ref.is_empty()
             && !self.evidence_roots.is_empty()
+            && self.evidence_roots.iter().all(|v| !v.trim().is_empty())
             && !self.source_versions.is_empty()
-            && self.canonical_state_root.as_deref().is_some_and(|v| !v.is_empty())
+            && self.source_versions.iter().all(|v| !v.trim().is_empty())
+            && self.canonical_state_root.as_deref().is_some_and(|v| !v.trim().is_empty())
             && !self.model_versions.is_empty()
-            && self.model_versions.iter().all(|v| !v.is_empty())
-            && self.ontology_version.as_deref().is_some_and(|v| !v.is_empty())
-            && !self.projection_profile.is_empty()
-            && !self.reasoning_program.is_empty()
-            && self.qualification_profile.as_deref().is_some_and(|v| !v.is_empty())
+            && self.model_versions.iter().all(|v| !v.trim().is_empty())
+            && self.ontology_version.as_deref().is_some_and(|v| !v.trim().is_empty())
+            && !self.projection_profile.trim().is_empty()
+            && !self.reasoning_program.trim().is_empty()
+            && self.qualification_profile.as_deref().is_some_and(|v| !v.trim().is_empty())
     }
 }
 
