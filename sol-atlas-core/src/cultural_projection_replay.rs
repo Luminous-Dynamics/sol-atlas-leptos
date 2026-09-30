@@ -414,6 +414,35 @@ mod tests {
     }
 
     #[test]
+    fn receipt_hash_changes_when_argumentation_or_ontology_changes() {
+        let (audit, claim, chain) = fixture();
+        let mut receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
+            .expect("receipt");
+        let original = receipt.receipt_hash.clone();
+
+        receipt.argumentation[0].semantic_hash = "tampered-argumentation".into();
+        assert_ne!(original, receipt.computed_hash().expect("hash"));
+        assert!(receipt.validate_against_audit_and_chain(&audit, &chain, &claim).is_err());
+
+        let mut receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
+            .expect("receipt");
+        receipt.ontology_resolutions[0].resolution_hash = "tampered-resolution".into();
+        assert_ne!(original, receipt.computed_hash().expect("hash"));
+        assert!(receipt.validate_against_audit_and_chain(&audit, &chain, &claim).is_err());
+    }
+
+    #[test]
+    fn receipt_rejects_replaying_child_audit_at_parent_frontier() {
+        let (audit, claim, chain) = fixture();
+        let receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
+            .expect("receipt");
+        let parent_only = EvidenceFrontierChainV1 {
+            frontiers: vec![chain.frontiers[0].clone()],
+        };
+        assert!(receipt.validate_against_audit_and_chain(&audit, &parent_only, &claim).is_err());
+    }
+
+    #[test]
     fn receipt_cannot_change_qualification() {
         let (audit, claim, chain) = fixture();
         let mut receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
