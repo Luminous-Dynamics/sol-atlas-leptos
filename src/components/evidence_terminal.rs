@@ -164,6 +164,19 @@ mod tests {
     use super::*;
 
     #[test]
+    fn terminal_url_encoding_preserves_identifier_boundaries() {
+        assert_eq!(encode_terminal_url_value("claim:obs:a?b&c#d"), "claim%3Aobs%3Aa%3Fb%26c%23d");
+        assert_eq!(encode_terminal_url_value("entity/with space"), "entity%2Fwith%20space");
+        assert_eq!(encode_terminal_url_value("already%encoded"), "already%25encoded");
+        assert_eq!(encode_terminal_url_value("plain-id_1.~"), "plain-id_1.~");
+    }
+
+    #[test]
+    fn terminal_url_encoding_is_byte_stable_for_utf8() {
+        assert_eq!(encode_terminal_url_value("café"), "caf%C3%A9");
+    }
+
+    #[test]
     fn replay_context_state_distinguishes_absent_partial_match_and_mismatch() {
         assert_eq!(
             projection_context_state(None, None, None),
@@ -326,6 +339,21 @@ mod tests {
     }
 }
 
+
+fn encode_terminal_url_value(value: &str) -> String {
+    value
+        .bytes()
+        .flat_map(|byte| {
+            if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~') {
+                vec![byte as char]
+            } else {
+                const HEX: &[u8; 16] = b"0123456789ABCDEF";
+                vec!['%', HEX[(byte >> 4) as usize] as char, HEX[(byte & 0x0f) as usize] as char]
+            }
+        })
+        .collect()
+}
+
 fn claim_kind_label(kind: ClaimKind) -> &'static str {
     match kind {
         ClaimKind::Observed => "OBSERVED CLAIM",
@@ -437,12 +465,12 @@ pub fn EvidenceTerminal() -> impl IntoView {
         replay_claim().map(|claim| {
             format!(
                 "/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=evidence",
-                selected_entity(),
-                selected_frontier(),
-                claim,
-                link_replay_context().0,
-                link_replay_context().1,
-                link_replay_context().2
+                encode_terminal_url_value(&selected_entity()),
+                encode_terminal_url_value(&selected_frontier()),
+                encode_terminal_url_value(&claim),
+                encode_terminal_url_value(&link_replay_context().0),
+                encode_terminal_url_value(&link_replay_context().1),
+                encode_terminal_url_value(&link_replay_context().2)
             )
         })
     };
@@ -513,7 +541,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             .and_then(|projection| projection.contradictions.first().map(|c| c.summary.clone()))
                             .unwrap_or_else(|| "No local contradiction is available for the selected claim.".into())}</p>
                         {move || replay_claim().map(|claim| view! {
-                            <A class="text-action" href=format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=lineage", selected_entity(), selected_frontier(), claim, link_replay_context().0, link_replay_context().1, link_replay_context().2)>"Inspect competing evidence →"</A>
+                            <A class="text-action" href=format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=lineage", encode_terminal_url_value(&selected_entity()), encode_terminal_url_value(&selected_frontier()), encode_terminal_url_value(&claim), encode_terminal_url_value(&link_replay_context().0), encode_terminal_url_value(&link_replay_context().1), encode_terminal_url_value(&link_replay_context().2))>"Inspect competing evidence →"</A>
                         })}
                     </div>
                 </section>
@@ -542,13 +570,13 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                 };
                                 let href = format!(
                                     "/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=lineage&node={}",
-                                    selected_entity(),
-                                    selected_frontier(),
-                                    replay_claim_value(),
-                                    link_replay_context().0,
-                                    link_replay_context().1,
-                                    link_replay_context().2,
-                                    node.query_value()
+                                    encode_terminal_url_value(&selected_entity()),
+                                    encode_terminal_url_value(&selected_frontier()),
+                                    encode_terminal_url_value(&replay_claim_value()),
+                                    encode_terminal_url_value(&link_replay_context().0),
+                                    encode_terminal_url_value(&link_replay_context().1),
+                                    encode_terminal_url_value(&link_replay_context().2),
+                                    encode_terminal_url_value(&node.query_value())
                                 );
                                 view! {
                                     <li>
@@ -629,7 +657,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                         </div>
                         <p>"Competing explanations, missing information, scenarios and forecasts will enter here through a typed ResearchResult boundary."</p>
                         {move || replay_claim().map(|claim| view! {
-                            <A class="text-action" href=format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=research", selected_entity(), selected_frontier(), claim, link_replay_context().0, link_replay_context().1, link_replay_context().2)>"Show information gaps →"</A>
+                            <A class="text-action" href=format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=research", encode_terminal_url_value(&selected_entity()), encode_terminal_url_value(&selected_frontier()), encode_terminal_url_value(&claim), encode_terminal_url_value(&link_replay_context().0), encode_terminal_url_value(&link_replay_context().1), encode_terminal_url_value(&link_replay_context().2))>"Show information gaps →"</A>
                         })}
                     </section>
                 </aside>
