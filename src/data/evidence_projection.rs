@@ -383,6 +383,38 @@ mod tests {
     }
 
     #[test]
+    fn malformed_explicit_query_identity_never_becomes_absence() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("   ".into()),
+            Some("ef:demo:9d7b".into()),
+            None,
+            None,
+            None,
+            Some("evidence".into()),
+        );
+        assert_eq!(query.validity(), TerminalQueryValidity::Malformed);
+        assert!(!query.is_replay_addressable());
+        assert_eq!(query.replay_resolution_state(None), ReplayResolutionState::Unresolved);
+    }
+
+    #[test]
+    fn valid_partial_query_identity_remains_distinct_from_malformed() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            None,
+            Some("ef:demo:9d7b".into()),
+            None,
+            None,
+            None,
+            Some("evidence".into()),
+        );
+        assert_eq!(query.validity(), TerminalQueryValidity::Valid);
+        assert_eq!(query.replay_resolution_state(None), ReplayResolutionState::Addressable);
+        assert!(!query.is_replay_addressable());
+    }
+
+    #[test]
     fn terminal_query_preserves_replay_identity() {
         let query = TerminalQueryV1::from_url_parts(
             Some("entity:fin:ns-energy-01".into()),
@@ -828,6 +860,16 @@ impl DependencyManifestV1 {
 /// Mycelix remains responsible for resolving the referenced frontier, claim,
 /// evidence and derivation before Atlas renders them.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+/// Structural validation state for URL-derived terminal identity.
+///
+/// A malformed explicit value is deliberately distinct from an absent value:
+/// callers may fall back only for absence, never for an invalid identity.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TerminalQueryValidity {
+    Valid,
+    Malformed,
+}
+
 pub struct TerminalQueryV1 {
     pub entity_ref: Option<String>,
     pub claim_ref: Option<String>,
@@ -839,6 +881,24 @@ pub struct TerminalQueryV1 {
 }
 
 impl TerminalQueryV1 {
+    /// Classifies URL-derived identity without normalizing malformed values into
+    /// absence. This preserves the distinction required for fail-closed lookup.
+    pub fn validity(&self) -> TerminalQueryValidity {
+        let values = [
+            self.entity_ref.as_deref(),
+            self.claim_ref.as_deref(),
+            self.frontier_ref.as_deref(),
+            self.projection_profile.as_deref(),
+            self.reasoning_program.as_deref(),
+            self.model_version.as_deref(),
+        ];
+        if values.into_iter().flatten().any(|value| value.trim().is_empty()) {
+            TerminalQueryValidity::Malformed
+        } else {
+            TerminalQueryValidity::Valid
+        }
+    }
+
     pub fn replay_target(&self) -> Option<ReplayTargetV1> {
         let target = ReplayTargetV1 {
             entity_ref: self.entity_ref.clone()?,
@@ -873,6 +933,9 @@ impl TerminalQueryV1 {
         &self,
         manifest: Option<&DependencyManifestV1>,
     ) -> ReplayResolutionState {
+        if self.validity() == TerminalQueryValidity::Malformed {
+            return ReplayResolutionState::Unresolved;
+        }
         if self.replay_target().is_none() {
             ReplayResolutionState::Incomplete
         } else {
