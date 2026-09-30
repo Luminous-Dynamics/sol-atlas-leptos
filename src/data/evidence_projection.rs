@@ -680,7 +680,7 @@ impl DependencyManifestV1 {
     }
 
     pub fn is_complete(&self) -> bool {
-        !self.frontier_ref.is_empty()
+        !self.frontier_ref.trim().is_empty()
             && !self.evidence_roots.is_empty()
             && self.evidence_roots.iter().all(|v| !v.trim().is_empty())
             && !self.source_versions.is_empty()
@@ -754,7 +754,7 @@ impl TerminalQueryV1 {
                 Some(manifest) => {
                     let target = self.replay_target().expect("checked above");
                     if manifest.matches_target(&target) {
-                        ReplayResolutionState::ManifestComplete
+                        ReplayResolutionState::ManifestMatched
                     } else {
                         ReplayResolutionState::Unresolved
                     }
