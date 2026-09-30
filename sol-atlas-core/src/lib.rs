@@ -19,6 +19,7 @@ pub mod cultural_projection_audit_v4;
 pub mod cultural_projection_audit_v5;
 pub mod cultural_projection_replay;
 pub mod cultural_projection_historical_replay;
+pub mod cultural_projection_historical_receipt;
 pub mod dkg;
 pub mod temporal_projection;
 pub mod constants;
