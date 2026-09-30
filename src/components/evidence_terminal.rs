@@ -299,6 +299,19 @@ mod tests {
 
         assert_eq!(selected.claim_ref, "claim:obs:7f31");
     }
+
+    #[test]
+    fn replay_claim_does_not_mix_primary_claim_into_unknown_entity() {
+        let projections = fixture_projections();
+        let selected = projection_for_query(
+            &projections,
+            Some("entity:unknown:404"),
+            None,
+            Some("ef:demo:9d7b"),
+        );
+        assert!(selected.is_none());
+        assert!(None::<String>.or_else(|| selected.map(|projection| projection.claim_ref)).is_none());
+    }
 }
 
 fn claim_kind_label(kind: ClaimKind) -> &'static str {
@@ -386,7 +399,9 @@ pub fn EvidenceTerminal() -> impl IntoView {
             )
         }
     };
-    let replay_claim = move || selected_claim().unwrap_or_else(|| primary.claim_ref.clone());
+    let replay_claim = move || {
+        selected_claim().or_else(|| selected_projection().map(|projection| projection.claim_ref))
+    };
     let selected_view = move || terminal_query().view.as_str();
     // Fixture link context is explicit and only used to construct a complete
     // address. It is never silently injected into replay-readiness state.
@@ -406,15 +421,17 @@ pub fn EvidenceTerminal() -> impl IntoView {
         }
     };
     let replay_href = move || {
-        format!(
-            "/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=evidence",
-            selected_entity(),
-            selected_frontier(),
-            replay_claim(),
-            link_replay_context().0,
-            link_replay_context().1,
-            link_replay_context().2
-        )
+        replay_claim().map(|claim| {
+            format!(
+                "/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=evidence",
+                selected_entity(),
+                selected_frontier(),
+                claim,
+                link_replay_context().0,
+                link_replay_context().1,
+                link_replay_context().2
+            )
+        })
     };
 
     view! {
