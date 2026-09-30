@@ -86,6 +86,62 @@ fn projection_for_query(
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn selected_claim_resolves_its_own_projection() {
+        let projections = fixture_projections();
+        let selected = projection_for_query(
+            &projections,
+            Some("entity:fin:ns-energy-01"),
+            Some("claim:derived:42ac"),
+        )
+        .expect("derived projection should resolve");
+
+        assert_eq!(selected.claim_ref, "claim:derived:42ac");
+        assert_eq!(selected.claim_kind, ClaimKind::Derived);
+    }
+
+    #[test]
+    fn unknown_selected_claim_does_not_fall_back_to_primary() {
+        let projections = fixture_projections();
+
+        assert!(projection_for_query(
+            &projections,
+            Some("entity:fin:ns-energy-01"),
+            Some("claim:unknown:404"),
+        )
+        .is_none());
+    }
+
+    #[test]
+    fn selected_claim_must_belong_to_selected_entity() {
+        let projections = fixture_projections();
+
+        assert!(projection_for_query(
+            &projections,
+            Some("entity:other:01"),
+            Some("claim:obs:7f31"),
+        )
+        .is_none());
+    }
+
+    #[test]
+    fn entity_without_claim_selects_that_entity_projection() {
+        let projections = fixture_projections();
+        let selected = projection_for_query(
+            &projections,
+            Some("entity:fin:ns-energy-01"),
+            None,
+        )
+        .expect("entity projection should resolve");
+
+        assert_eq!(selected.claim_ref, "claim:obs:7f31");
+    }
+}
+
 fn claim_kind_label(kind: ClaimKind) -> &'static str {
     match kind {
         ClaimKind::Observed => "OBSERVED CLAIM",
