@@ -78,6 +78,13 @@ impl CulturalProjectionAuditV5 {
             if !self.argumentation.iter().any(|value| {
                 value.assessment == legacy.assessment
                     && value.interpretation == legacy.interpretation
+                    && value.claim_ref == legacy.claim_ref
+                    && value.closure.evidence_refs == legacy.evidence_refs
+                    && value.closure.source_snapshots == legacy.source_snapshots
+                    && value.closure.evidence_frontier == legacy.evidence_frontier
+                    && value.assessment_time == legacy.assessment_time
+                    && value.interpretation_time == legacy.interpretation_time
+                    && value.available_by == legacy.available_by
             }) {
                 return Err(ProjectionError::EmptyIdentifier);
             }
