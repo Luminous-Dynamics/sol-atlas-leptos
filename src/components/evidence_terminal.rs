@@ -164,6 +164,40 @@ mod tests {
     use super::*;
 
     #[test]
+    fn terminal_navigation_target_carries_complete_identity() {
+        let target = TerminalNavigationTarget::new(
+            "entity:fin:ns-energy-01",
+            "ef:demo:9d7b",
+            "claim:obs:7f31",
+            "profile:terminal:v1",
+            "reasoning:baseline:v1",
+            "model:symthaea:v1",
+            TerminalView::Lineage,
+        )
+        .with_node("evidence:4a90");
+
+        assert_eq!(
+            target.href(),
+            "/terminal/entity/entity%3Afin%3Ans-energy-01?frontier=ef%3Ademo%3A9d7b&claim=claim%3Aobs%3A7f31&projection=profile%3Aterminal%3Av1&reasoning=reasoning%3Abaseline%3Av1&model=model%3Asymthaea%3Av1&view=lineage&node=evidence%3A4a90"
+        );
+    }
+
+    #[test]
+    fn terminal_navigation_target_cannot_omit_claim() {
+        let target = TerminalNavigationTarget::new(
+            "entity:fin:ns-energy-01",
+            "ef:demo:9d7b",
+            "",
+            "profile:terminal:v1",
+            "reasoning:baseline:v1",
+            "model:symthaea:v1",
+            TerminalView::Evidence,
+        );
+
+        assert!(target.href().contains("&claim=&"));
+    }
+
+    #[test]
     fn terminal_url_encoding_preserves_identifier_boundaries() {
         assert_eq!(encode_terminal_url_value("claim:obs:a?b&c#d"), "claim%3Aobs%3Aa%3Fb%26c%23d");
         assert_eq!(encode_terminal_url_value("entity/with space"), "entity%2Fwith%20space");
@@ -340,6 +374,81 @@ mod tests {
 }
 
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum TerminalView {
+    Evidence,
+    Lineage,
+    Research,
+}
+
+impl TerminalView {
+    fn query_value(self) -> &'static str {
+        match self {
+            Self::Evidence => "evidence",
+            Self::Lineage => "lineage",
+            Self::Research => "research",
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct TerminalNavigationTarget {
+    entity_ref: String,
+    frontier_ref: String,
+    claim_ref: String,
+    projection_profile: String,
+    reasoning_program: String,
+    model_version: String,
+    view: TerminalView,
+    node: Option<String>,
+}
+
+impl TerminalNavigationTarget {
+    fn new(
+        entity_ref: impl Into<String>,
+        frontier_ref: impl Into<String>,
+        claim_ref: impl Into<String>,
+        projection_profile: impl Into<String>,
+        reasoning_program: impl Into<String>,
+        model_version: impl Into<String>,
+        view: TerminalView,
+    ) -> Self {
+        Self {
+            entity_ref: entity_ref.into(),
+            frontier_ref: frontier_ref.into(),
+            claim_ref: claim_ref.into(),
+            projection_profile: projection_profile.into(),
+            reasoning_program: reasoning_program.into(),
+            model_version: model_version.into(),
+            view,
+            node: None,
+        }
+    }
+
+    fn with_node(mut self, node: impl Into<String>) -> Self {
+        self.node = Some(node.into());
+        self
+    }
+
+    fn href(&self) -> String {
+        let mut href = format!(
+            "/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view={}",
+            encode_terminal_url_value(&self.entity_ref),
+            encode_terminal_url_value(&self.frontier_ref),
+            encode_terminal_url_value(&self.claim_ref),
+            encode_terminal_url_value(&self.projection_profile),
+            encode_terminal_url_value(&self.reasoning_program),
+            encode_terminal_url_value(&self.model_version),
+            self.view.query_value(),
+        );
+        if let Some(node) = &self.node {
+            href.push_str("&node=");
+            href.push_str(&encode_terminal_url_value(node));
+        }
+        href
+    }
+}
+
 fn encode_terminal_url_value(value: &str) -> String {
     value
         .bytes()
@@ -463,15 +572,17 @@ pub fn EvidenceTerminal() -> impl IntoView {
     };
     let replay_href = move || {
         replay_claim().map(|claim| {
-            format!(
-                "/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=evidence",
-                encode_terminal_url_value(&selected_entity()),
-                encode_terminal_url_value(&selected_frontier()),
-                encode_terminal_url_value(&claim),
-                encode_terminal_url_value(&link_replay_context().0),
-                encode_terminal_url_value(&link_replay_context().1),
-                encode_terminal_url_value(&link_replay_context().2)
+            let context = link_replay_context();
+            TerminalNavigationTarget::new(
+                selected_entity(),
+                selected_frontier(),
+                claim,
+                context.0,
+                context.1,
+                context.2,
+                TerminalView::Evidence,
             )
+            .href()
         })
     };
 
@@ -541,7 +652,19 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             .and_then(|projection| projection.contradictions.first().map(|c| c.summary.clone()))
                             .unwrap_or_else(|| "No local contradiction is available for the selected claim.".into())}</p>
                         {move || replay_claim().map(|claim| view! {
-                            <A class="text-action" href=format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=lineage", encode_terminal_url_value(&selected_entity()), encode_terminal_url_value(&selected_frontier()), encode_terminal_url_value(&claim), encode_terminal_url_value(&link_replay_context().0), encode_terminal_url_value(&link_replay_context().1), encode_terminal_url_value(&link_replay_context().2))>"Inspect competing evidence →"</A>
+                            <A class="text-action" href={
+                                let context = link_replay_context();
+                                TerminalNavigationTarget::new(
+                                    selected_entity(),
+                                    selected_frontier(),
+                                    claim,
+                                    context.0,
+                                    context.1,
+                                    context.2,
+                                    TerminalView::Lineage,
+                                )
+                                .href()
+                            }>"Inspect competing evidence →"</A>
                         })}
                     </div>
                 </section>
@@ -568,16 +691,20 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                     LineageNodeRef::Derivation(_) => "Derivation receipt",
                                     LineageNodeRef::ReasoningReceipt(_) => "Reasoning receipt",
                                 };
-                                let href = format!(
-                                    "/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=lineage&node={}",
-                                    encode_terminal_url_value(&selected_entity()),
-                                    encode_terminal_url_value(&selected_frontier()),
-                                    encode_terminal_url_value(&replay_claim_value()),
-                                    encode_terminal_url_value(&link_replay_context().0),
-                                    encode_terminal_url_value(&link_replay_context().1),
-                                    encode_terminal_url_value(&link_replay_context().2),
-                                    encode_terminal_url_value(&node.query_value())
-                                );
+                                let href = {
+                                    let context = link_replay_context();
+                                    TerminalNavigationTarget::new(
+                                        selected_entity(),
+                                        selected_frontier(),
+                                        replay_claim_value(),
+                                        context.0,
+                                        context.1,
+                                        context.2,
+                                        TerminalView::Lineage,
+                                    )
+                                    .with_node(node.query_value())
+                                    .href()
+                                };
                                 view! {
                                     <li>
                                         <span>{label}</span>
@@ -657,7 +784,19 @@ pub fn EvidenceTerminal() -> impl IntoView {
                         </div>
                         <p>"Competing explanations, missing information, scenarios and forecasts will enter here through a typed ResearchResult boundary."</p>
                         {move || replay_claim().map(|claim| view! {
-                            <A class="text-action" href=format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=research", encode_terminal_url_value(&selected_entity()), encode_terminal_url_value(&selected_frontier()), encode_terminal_url_value(&claim), encode_terminal_url_value(&link_replay_context().0), encode_terminal_url_value(&link_replay_context().1), encode_terminal_url_value(&link_replay_context().2))>"Show information gaps →"</A>
+                            <A class="text-action" href={
+                                let context = link_replay_context();
+                                TerminalNavigationTarget::new(
+                                    selected_entity(),
+                                    selected_frontier(),
+                                    claim,
+                                    context.0,
+                                    context.1,
+                                    context.2,
+                                    TerminalView::Research,
+                                )
+                                .href()
+                            }>"Show information gaps →"</A>
                         })}
                     </section>
                 </aside>
