@@ -138,6 +138,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
 
     let projections = fixture_projections();
     let primary = projections.first().cloned().expect("fixture is non-empty");
+    let projection_catalog = projections.clone();
 
     let selected_entity = move || {
         terminal_query()
@@ -153,7 +154,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
     let selected_projection = move || {
         let q = terminal_query();
         projection_for_query(
-            &projections,
+            &projection_catalog,
             q.entity_ref.as_deref().or(Some(primary.entity_ref.as_str())),
             q.claim_ref.as_deref(),
         )
