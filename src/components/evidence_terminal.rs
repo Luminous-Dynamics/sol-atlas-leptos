@@ -129,6 +129,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
             .unwrap_or_else(|| primary.frontier_ref.clone())
     };
     let selected_claim = move || terminal_query().claim_ref;
+    let replay_claim = move || selected_claim().unwrap_or_else(|| primary.claim_ref.clone());
     let selected_view = move || terminal_query().view.as_str();
     // Fixture link context is explicit and only used to construct a complete
     // address. It is never silently injected into replay-readiness state.
@@ -150,7 +151,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
             "/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=evidence",
             selected_entity(),
             selected_frontier(),
-            primary.claim_ref,
+            replay_claim(),
             link_replay_context().0,
             link_replay_context().1,
             link_replay_context().2
@@ -285,6 +286,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
     Some(_) => "REPLAY TARGET ADDRESSABLE · dependency resolution still required",
     None => "REPLAY TARGET INCOMPLETE · no replay implied",
 }}</p>
+                        <p class="lineage-note">"Replay links preserve the selected claim context; opening a target is navigation only and does not assert dependency resolution or replay execution."</p>
                         <p class="lineage-note">"Inspection links address declared dependencies only. Local declaration is not authoritative resolution; unresolved dependencies are never replaced with current or inferred data."</p>
                         <div class="terminal-route-state">
                             <span>"URL view"</span><code>{selected_view}</code>
