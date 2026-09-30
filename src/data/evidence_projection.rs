@@ -415,6 +415,67 @@ mod tests {
     }
 
     #[test]
+    fn replay_target_construction_rejects_malformed_query() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("   ".into()),
+            Some("ef:demo:9d7b".into()),
+            Some("profile:terminal:v1".into()),
+            Some("reasoning:baseline:v1".into()),
+            Some("model:symthaea:v1".into()),
+            Some("evidence".into()),
+        );
+
+        assert_eq!(
+            ReplayTargetV1::try_from_terminal_query(&query),
+            Err(ReplayTargetConstructionError::MalformedQuery)
+        );
+        assert!(query.replay_target().is_none());
+    }
+
+    #[test]
+    fn replay_target_construction_rejects_incomplete_query() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("claim:obs:7f31".into()),
+            Some("ef:demo:9d7b".into()),
+            None,
+            None,
+            None,
+            Some("evidence".into()),
+        );
+
+        assert_eq!(
+            ReplayTargetV1::try_from_terminal_query(&query),
+            Err(ReplayTargetConstructionError::IncompleteQuery)
+        );
+        assert!(query.replay_target().is_none());
+    }
+
+    #[test]
+    fn replay_target_construction_preserves_complete_terminal_identity() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("claim:obs:7f31".into()),
+            Some("ef:demo:9d7b".into()),
+            Some("profile:terminal:v1".into()),
+            Some("reasoning:baseline:v1".into()),
+            Some("model:symthaea:v1".into()),
+            Some("evidence".into()),
+        );
+
+        let target = ReplayTargetV1::try_from_terminal_query(&query)
+            .expect("complete query should construct a replay target");
+
+        assert_eq!(target.entity_ref, "entity:fin:ns-energy-01");
+        assert_eq!(target.claim_ref, "claim:obs:7f31");
+        assert_eq!(target.frontier_ref, "ef:demo:9d7b");
+        assert_eq!(target.projection_profile, "profile:terminal:v1");
+        assert_eq!(target.reasoning_program, "reasoning:baseline:v1");
+        assert_eq!(target.model_version, "model:symthaea:v1");
+    }
+
+    #[test]
     fn terminal_query_preserves_replay_identity() {
         let query = TerminalQueryV1::from_url_parts(
             Some("entity:fin:ns-energy-01".into()),
@@ -743,7 +804,59 @@ pub enum ReplayResolutionState {
     DependencyContextMatched,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReplayTargetConstructionError {
+    MalformedQuery,
+    IncompleteQuery,
+}
+
 impl ReplayTargetV1 {
+    /// Constructs a replay target only from a structurally valid terminal query.
+    ///
+    /// This is a composition boundary, not a semantic validation step:
+    /// Atlas can prove that the URL-derived fields are present and non-blank,
+    /// but only the upstream semantic authority can establish their canonical
+    /// meaning and dependency relationships.
+    pub fn try_from_terminal_query(
+        query: &TerminalQueryV1,
+    ) -> Result<Self, ReplayTargetConstructionError> {
+        if query.validity() == TerminalQueryValidity::Malformed {
+            return Err(ReplayTargetConstructionError::MalformedQuery);
+        }
+
+        let target = Self {
+            entity_ref: query
+                .entity_ref
+                .clone()
+                .ok_or(ReplayTargetConstructionError::IncompleteQuery)?,
+            claim_ref: query
+                .claim_ref
+                .clone()
+                .ok_or(ReplayTargetConstructionError::IncompleteQuery)?,
+            frontier_ref: query
+                .frontier_ref
+                .clone()
+                .ok_or(ReplayTargetConstructionError::IncompleteQuery)?,
+            projection_profile: query
+                .projection_profile
+                .clone()
+                .ok_or(ReplayTargetConstructionError::IncompleteQuery)?,
+            reasoning_program: query
+                .reasoning_program
+                .clone()
+                .ok_or(ReplayTargetConstructionError::IncompleteQuery)?,
+            model_version: query
+                .model_version
+                .clone()
+                .ok_or(ReplayTargetConstructionError::IncompleteQuery)?,
+        };
+
+        target
+            .is_well_formed()
+            .then_some(target)
+            .ok_or(ReplayTargetConstructionError::MalformedQuery)
+    }
+
     pub fn is_well_formed(&self) -> bool {
         [
             self.entity_ref.as_str(),
@@ -900,15 +1013,7 @@ impl TerminalQueryV1 {
     }
 
     pub fn replay_target(&self) -> Option<ReplayTargetV1> {
-        let target = ReplayTargetV1 {
-            entity_ref: self.entity_ref.clone()?,
-            claim_ref: self.claim_ref.clone()?,
-            frontier_ref: self.frontier_ref.clone()?,
-            projection_profile: self.projection_profile.clone()?,
-            reasoning_program: self.reasoning_program.clone()?,
-            model_version: self.model_version.clone()?,
-        };
-        target.is_well_formed().then_some(target)
+        ReplayTargetV1::try_from_terminal_query(self).ok()
     }
 
     /// A frontier URL is not by itself a full replay contract.
