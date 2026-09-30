@@ -546,6 +546,10 @@ mod tests {
             reasoning_program: target.reasoning_program.clone(),
             qualification_profile: Some("qualification:fin-001c0".into()),
         };
+        assert_eq!(
+            manifest.dependency_context_match(&target),
+            DependencyContextMatch::Matched
+        );
         assert!(manifest.matches_dependency_context(&target));
 
         // The dependency manifest intentionally does not bind entity/claim.
@@ -553,14 +557,46 @@ mod tests {
         let mut different_query = target.clone();
         different_query.entity_ref = "entity:other:99".into();
         different_query.claim_ref = "claim:other:99".into();
+        assert_eq!(
+            manifest.dependency_context_match(&different_query),
+            DependencyContextMatch::Matched
+        );
         assert!(manifest.matches_dependency_context(&different_query));
 
         manifest.projection_profile = "profile:terminal:v2".into();
+        assert_eq!(
+            manifest.dependency_context_match(&target),
+            DependencyContextMatch::Mismatch
+        );
         assert!(!manifest.matches_dependency_context(&target));
 
         manifest.projection_profile = target.projection_profile.clone();
         manifest.reasoning_program = "reasoning:baseline:v2".into();
+        assert_eq!(
+            manifest.dependency_context_match(&target),
+            DependencyContextMatch::Mismatch
+        );
         assert!(!manifest.matches_dependency_context(&target));
+    }
+
+    #[test]
+    fn incomplete_manifest_is_distinct_from_context_mismatch() {
+        let target = ReplayTargetV1 {
+            entity_ref: "entity:fin:ns-energy-01".into(),
+            claim_ref: "claim:obs:7f31".into(),
+            frontier_ref: "ef:demo:9d7b".into(),
+            projection_profile: "profile:terminal:v1".into(),
+            reasoning_program: "reasoning:baseline:v1".into(),
+            model_version: "model:symthaea:v1".into(),
+        };
+        let manifest = target.dependency_manifest_request();
+
+        assert_eq!(
+            manifest.dependency_context_match(&target),
+            DependencyContextMatch::Incomplete
+        );
+        assert!(!manifest.matches_dependency_context(&target));
+    }
     }
 
     #[test]
@@ -680,18 +716,44 @@ pub struct DependencyManifestV1 {
     pub qualification_profile: Option<String>,
 }
 
+/// Result of comparing a dependency manifest with the execution context
+/// required by a replay target.
+///
+/// This distinguishes an absent/incomplete dependency set from a genuine
+/// context mismatch. Neither matched nor mismatched local context is an
+/// authoritative Mycelix resolution result.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DependencyContextMatch {
+    Incomplete,
+    Mismatch,
+    Matched,
+}
+
 impl DependencyManifestV1 {
-    /// Checks the dependency execution context required by the requested replay.
+    /// Classifies the dependency execution context required by the requested replay.
     ///
     /// This deliberately does **not** bind the entity/claim/query identity.
     /// Atlas must not invent a semantic query identifier; that binding belongs
     /// to the canonical Mycelix replay contract when exposed upstream.
-    pub fn matches_dependency_context(&self, target: &ReplayTargetV1) -> bool {
-        self.is_complete()
-            && self.frontier_ref == target.frontier_ref
+    pub fn dependency_context_match(&self, target: &ReplayTargetV1) -> DependencyContextMatch {
+        if !self.is_complete() {
+            return DependencyContextMatch::Incomplete;
+        }
+
+        if self.frontier_ref == target.frontier_ref
             && self.projection_profile == target.projection_profile
             && self.reasoning_program == target.reasoning_program
             && self.model_versions.iter().any(|version| version == &target.model_version)
+        {
+            DependencyContextMatch::Matched
+        } else {
+            DependencyContextMatch::Mismatch
+        }
+    }
+
+    /// Compatibility predicate for callers that only need a boolean.
+    pub fn matches_dependency_context(&self, target: &ReplayTargetV1) -> bool {
+        self.dependency_context_match(target) == DependencyContextMatch::Matched
     }
 
     pub fn is_complete(&self) -> bool {
@@ -768,10 +830,11 @@ impl TerminalQueryV1 {
                 None => ReplayResolutionState::Addressable,
                 Some(manifest) => {
                     let target = self.replay_target().expect("checked above");
-                    if manifest.matches_dependency_context(&target) {
-                        ReplayResolutionState::ManifestMatched
-                    } else {
-                        ReplayResolutionState::Unresolved
+                    match manifest.dependency_context_match(&target) {
+                        DependencyContextMatch::Matched => ReplayResolutionState::ManifestMatched,
+                        DependencyContextMatch::Incomplete | DependencyContextMatch::Mismatch => {
+                            ReplayResolutionState::Unresolved
+                        }
                     }
                 }
             }
