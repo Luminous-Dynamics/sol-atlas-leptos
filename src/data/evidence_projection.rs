@@ -110,7 +110,7 @@ impl LineageNodeRef {
 
     pub fn parse(value: Option<&str>) -> Option<Self> {
         let (kind, id) = value?.split_once(':')?;
-        if id.is_empty() {
+        if id.trim().is_empty() {
             return None;
         }
         // IDs themselves may contain colons; split_once intentionally preserves
@@ -226,8 +226,9 @@ impl AtlasEvidenceProjectionV1 {
     pub fn can_render_statement(&self) -> bool {
         !matches!(self.visibility, Visibility::Redacted)
             && !self.evidence_refs.is_empty()
-            && !self.frontier_ref.is_empty()
-            && !self.claim_ref.is_empty()
+            && self.evidence_refs.iter().all(|id| !id.trim().is_empty())
+            && !self.frontier_ref.trim().is_empty()
+            && !self.claim_ref.trim().is_empty()
     }
 
     /// Stable identifiers required for a reversible "why is this shown?"
@@ -243,17 +244,19 @@ impl AtlasEvidenceProjectionV1 {
     /// Returns whether the projection exposes enough identifiers to make its
     /// semantic lineage inspectable without inventing missing dependencies.
     pub fn lineage_completeness(&self) -> LineageCompleteness {
-        let has_core = !self.claim_ref.is_empty()
-            && !self.frontier_ref.is_empty()
-            && !self.qualification_ref.is_empty()
+        let has_core = !self.claim_ref.trim().is_empty()
+            && !self.frontier_ref.trim().is_empty()
+            && !self.qualification_ref.trim().is_empty()
             && !self.evidence_refs.is_empty()
-            && !self.source_snapshot_refs.is_empty();
+            && self.evidence_refs.iter().all(|id| !id.trim().is_empty())
+            && !self.source_snapshot_refs.is_empty()
+            && self.source_snapshot_refs.iter().all(|id| !id.trim().is_empty());
 
         let derivation_required = matches!(self.claim_kind, ClaimKind::Derived | ClaimKind::Hypothesis);
         let has_derivation = self
             .derivation_ref
             .as_ref()
-            .map(|id| !id.is_empty())
+            .map(|id| !id.trim().is_empty())
             .unwrap_or(false);
 
         if has_core && (!derivation_required || has_derivation) {
