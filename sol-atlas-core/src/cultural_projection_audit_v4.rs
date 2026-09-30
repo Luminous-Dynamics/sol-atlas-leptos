@@ -11,6 +11,11 @@ use sha2::{Digest, Sha256};
 
 use crate::civilizational::{ClaimId, EvidenceFrontierId, ProjectionError, QualificationStatus};
 use crate::cultural_systems::{CanonicalClaimAdmissionV1, CulturalProjectionAuditV2, CulturalProjectionIdV1};
+
+fn has_duplicate_mapping_ids(resolutions: &[OntologyMappingResolutionV1]) -> bool {
+    let mut seen = std::collections::BTreeSet::new();
+    resolutions.iter().any(|resolution| !seen.insert(resolution.mapping.mapping_id.clone()))
+}
 use crate::ontology_resolution::OntologyMappingResolutionV1;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -32,6 +37,9 @@ impl CulturalProjectionAuditV4 {
     pub fn validate(&self) -> Result<(), ProjectionError> {
         self.base.validate()?;
         if self.resolutions.is_empty() || self.semantic_hash.trim().is_empty() {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if has_duplicate_mapping_ids(&self.resolutions) {
             return Err(ProjectionError::EmptyIdentifier);
         }
         for resolution in &self.resolutions {
@@ -67,13 +75,16 @@ impl CulturalProjectionAuditV4 {
         Ok(())
     }
 
-    pub fn is_frontier_safe(&self, frontier: &crate::civilizational::EvidenceFrontierV1,
-        claims: &[crate::cultural_systems::CanonicalClaimAdmissionV1]) -> bool {
+    pub fn is_frontier_safe(
+        &self,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> bool {
         self.validate().is_ok()
             && self.base.is_frontier_safe(frontier)
+            && claim.claim_ref == self.base.claim_ref
             && self.resolutions.iter().all(|resolution| {
-                claims.iter().any(|claim| resolution.is_frontier_safe(claim, frontier)
-                    && claim.claim_ref == self.base.claim_ref)
+                resolution.is_frontier_safe(claim, frontier)
             })
     }
 
