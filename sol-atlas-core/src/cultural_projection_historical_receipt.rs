@@ -190,6 +190,96 @@ mod tests {
         (audit, claim, EvidenceFrontierChainV1 { frontiers: vec![root, child, grandchild] })
     }
 
+    fn audit_bound_to_frontier(
+        audit: &CulturalProjectionAuditV5,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierId,
+    ) -> CulturalProjectionAuditV5 {
+        let mut rebound = audit.clone();
+        rebound.base.base.evidence_frontier = frontier.clone();
+        for resolution in &mut rebound.base.resolutions {
+            resolution.evidence_frontier = frontier.clone();
+            resolution.recompute_hash().expect("resolution hash");
+        }
+        rebound.base.recompute_hash().expect("v4 hash");
+        for argumentation in &mut rebound.argumentation {
+            argumentation.closure.evidence_frontier = frontier.clone();
+            argumentation.recompute_hash().expect("argumentation hash");
+        }
+        rebound.recompute_hash().expect("v5 hash");
+        assert_eq!(rebound.claim_ref(), &claim.claim_ref);
+        rebound.validate().expect("rebound audit");
+        rebound
+    }
+
+    #[test]
+    fn independent_epoch_receipts_bind_to_their_exact_verified_prefixes() {
+        let (root_audit, root_claim, chain) = fixture();
+        let mut receipts = Vec::new();
+
+        for (index, frontier) in chain.frontiers.iter().enumerate() {
+            let claim = CanonicalClaimAdmissionV1 {
+                evidence_frontier: frontier.frontier_id.clone(),
+                ..root_claim.clone()
+            };
+            let audit = audit_bound_to_frontier(&root_audit, &claim, &frontier.frontier_id);
+            let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
+                &audit,
+                &chain,
+                &frontier.frontier_id,
+                &claim,
+            )
+            .expect("epoch receipt");
+            assert_eq!(receipt.replay.frontier_lineage.len(), index + 1);
+            assert_eq!(
+                receipt.replay.leaf_frontier,
+                frontier.frontier_id
+            );
+            receipts.push(receipt);
+        }
+
+        assert_ne!(receipts[0].receipt_hash, receipts[1].receipt_hash);
+        assert_ne!(receipts[1].receipt_hash, receipts[2].receipt_hash);
+        assert_ne!(receipts[0].receipt_hash, receipts[2].receipt_hash);
+
+        let (root_claim_for_cross_check, child_claim, grandchild_claim) = (
+            root_claim.clone(),
+            CanonicalClaimAdmissionV1 {
+                evidence_frontier: chain.frontiers[1].frontier_id.clone(),
+                ..root_claim.clone()
+            },
+            CanonicalClaimAdmissionV1 {
+                evidence_frontier: chain.frontiers[2].frontier_id.clone(),
+                ..root_claim
+            },
+        );
+        let root_audit_for_cross_check = audit_bound_to_frontier(
+            &root_audit,
+            &root_claim_for_cross_check,
+            &chain.frontiers[0].frontier_id,
+        );
+        let child_audit = audit_bound_to_frontier(
+            &root_audit,
+            &child_claim,
+            &chain.frontiers[1].frontier_id,
+        );
+        let grandchild_audit = audit_bound_to_frontier(
+            &root_audit,
+            &grandchild_claim,
+            &chain.frontiers[2].frontier_id,
+        );
+
+        assert!(receipts[0]
+            .validate_against_audit_at(&child_audit, &chain, &child_claim)
+            .is_err());
+        assert!(receipts[1]
+            .validate_against_audit_at(&grandchild_audit, &chain, &grandchild_claim)
+            .is_err());
+        assert!(receipts[2]
+            .validate_against_audit_at(&root_audit_for_cross_check, &chain, &root_claim_for_cross_check)
+            .is_err());
+    }
+
     #[test]
     fn selected_prefix_receipt_round_trips() {
         let (audit, claim, chain) = fixture();
