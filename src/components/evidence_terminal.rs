@@ -66,6 +66,22 @@ fn fixture_projections() -> Vec<AtlasEvidenceProjectionV1> {
 }
 
 
+fn projection_context_matches(
+    projection_profile: Option<&str>,
+    reasoning_program: Option<&str>,
+    model_version: Option<&str>,
+) -> bool {
+    projection_profile
+        .map(|value| value == "profile:terminal:v1")
+        .unwrap_or(true)
+        && reasoning_program
+            .map(|value| value == "reasoning:baseline:v1")
+            .unwrap_or(true)
+        && model_version
+            .map(|value| value == "model:symthaea:v1")
+            .unwrap_or(true)
+}
+
 fn projection_for_query(
     projections: &[AtlasEvidenceProjectionV1],
     entity_ref: Option<&str>,
@@ -99,6 +115,34 @@ fn projection_for_query(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn matching_local_replay_context_is_accepted_as_local_only() {
+        assert!(projection_context_matches(
+            Some("profile:terminal:v1"),
+            Some("reasoning:baseline:v1"),
+            Some("model:symthaea:v1"),
+        ));
+    }
+
+    #[test]
+    fn mismatched_local_replay_context_fails_closed() {
+        assert!(!projection_context_matches(
+            Some("profile:other:v2"),
+            Some("reasoning:baseline:v1"),
+            Some("model:symthaea:v1"),
+        ));
+        assert!(!projection_context_matches(
+            Some("profile:terminal:v1"),
+            Some("reasoning:other:v9"),
+            Some("model:symthaea:v1"),
+        ));
+        assert!(!projection_context_matches(
+            Some("profile:terminal:v1"),
+            Some("reasoning:baseline:v1"),
+            Some("model:other:v9"),
+        ));
+    }
 
     #[test]
     fn selected_claim_resolves_its_own_projection() {
@@ -236,12 +280,20 @@ pub fn EvidenceTerminal() -> impl IntoView {
     let selected_claim = move || terminal_query().claim_ref;
     let selected_projection = move || {
         let q = terminal_query();
-        projection_for_query(
-            &projection_catalog,
-            q.entity_ref.as_deref().or(Some(primary.entity_ref.as_str())),
-            q.claim_ref.as_deref(),
-            q.frontier_ref.as_deref().or(Some(primary.frontier_ref.as_str())),
-        )
+        if !projection_context_matches(
+            q.projection_profile.as_deref(),
+            q.reasoning_program.as_deref(),
+            q.model_version.as_deref(),
+        ) {
+            None
+        } else {
+            projection_for_query(
+                &projection_catalog,
+                q.entity_ref.as_deref().or(Some(primary.entity_ref.as_str())),
+                q.claim_ref.as_deref(),
+                q.frontier_ref.as_deref().or(Some(primary.frontier_ref.as_str())),
+            )
+        }
     };
     let replay_claim = move || selected_claim().unwrap_or_else(|| primary.claim_ref.clone());
     let selected_view = move || terminal_query().view.as_str();
