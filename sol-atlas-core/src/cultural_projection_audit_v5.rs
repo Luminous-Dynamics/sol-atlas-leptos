@@ -335,6 +335,26 @@ mod tests {
     }
 
     #[test]
+    fn v5_rejects_typed_record_that_drifts_from_legacy_argumentation() {
+        let (mut v4, _claim, _frontier, mut typed) = fixture();
+        v4.base.argumentation = Some(crate::cultural_systems::CulturalArgumentationRefV1 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into(), "e:2".into()],
+            source_snapshots: vec!["source:1".into()],
+            assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+            interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+            available_by: 1950,
+            evidence_frontier: "frontier:1950".into(),
+        });
+        typed.closure.evidence_refs = vec!["e:1".into()];
+        typed.recompute_hash().expect("rehash");
+        let result = CulturalProjectionAuditV5::from_v4(v4, vec![typed]);
+        assert_eq!(result, Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
     fn v5_rejects_duplicate_typed_identity() {
         let (v4, _claim, _frontier, first) = fixture();
         let duplicate = first.clone();
