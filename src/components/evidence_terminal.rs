@@ -500,7 +500,9 @@ pub fn EvidenceTerminal() -> impl IntoView {
                         <p>{move || selected_projection()
                             .and_then(|projection| projection.contradictions.first().map(|c| c.summary.clone()))
                             .unwrap_or_else(|| "No local contradiction is available for the selected claim.".into())}</p>
-                        <A class="text-action" href=move || format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=lineage", selected_entity(), selected_frontier(), replay_claim_value(), link_replay_context().0, link_replay_context().1, link_replay_context().2)>"Inspect competing evidence →"</A>
+                        {move || replay_claim().map(|claim| view! {
+                            <A class="text-action" href=format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=lineage", selected_entity(), selected_frontier(), claim, link_replay_context().0, link_replay_context().1, link_replay_context().2)>"Inspect competing evidence →"</A>
+                        })}
                     </div>
                 </section>
 
@@ -614,7 +616,9 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                 .unwrap_or("UNAVAILABLE")}</span>
                         </div>
                         <p>"Competing explanations, missing information, scenarios and forecasts will enter here through a typed ResearchResult boundary."</p>
-                        <A class="text-action" href=move || format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=research", selected_entity(), selected_frontier(), replay_claim_value(), link_replay_context().0, link_replay_context().1, link_replay_context().2)>"Show information gaps →"</A>
+                        {move || replay_claim().map(|claim| view! {
+                            <A class="text-action" href=format!("/terminal/entity/{}?frontier={}&claim={}&projection={}&reasoning={}&model={}&view=research", selected_entity(), selected_frontier(), claim, link_replay_context().0, link_replay_context().1, link_replay_context().2)>"Show information gaps →"</A>
+                        })}
                     </section>
                 </aside>
             </div>
