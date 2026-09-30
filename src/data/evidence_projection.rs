@@ -597,7 +597,6 @@ mod tests {
         );
         assert!(!manifest.matches_dependency_context(&target));
     }
-    }
 
     #[test]
     fn empty_replay_identifiers_are_incomplete() {
