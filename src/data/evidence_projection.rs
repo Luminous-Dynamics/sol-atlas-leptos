@@ -218,7 +218,7 @@ impl AtlasEvidenceProjectionV1 {
         }
         nodes
     }
-
+}
 
 impl AtlasEvidenceProjectionV1 {
     /// The UI may display this claim, but it may never render it as stronger
@@ -469,6 +469,32 @@ mod tests {
             ReplayResolutionState::ManifestComplete
         );
         assert!(query.is_replay_addressable());
+        let mut mismatched = manifest.clone();
+        mismatched.frontier_ref = "ef:later".into();
+        assert_eq!(
+            query.replay_resolution_state(Some(&mismatched)),
+            ReplayResolutionState::Unresolved
+        );
+        let mut wrong_model = manifest;
+        wrong_model.model_versions = vec!["model:other:v9".into()];
+        assert_eq!(
+            query.replay_resolution_state(Some(&wrong_model)),
+            ReplayResolutionState::Unresolved
+        );
+    }
+
+    #[test]
+    fn empty_replay_identifiers_are_incomplete() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("claim:obs:7f31".into()),
+            Some("ef:demo:9d7b".into()),
+            Some(" ".into()),
+            Some("reasoning:baseline:v1".into()),
+            Some("model:symthaea:v1".into()),
+            None,
+        );
+        assert_eq!(query.replay_readiness(), ReplayReadiness::Incomplete);
     }
 
     #[test]
@@ -513,12 +539,30 @@ pub enum ReplayReadiness {
 pub enum ReplayResolutionState {
     Incomplete,
     Addressable,
+    Unresolved,
     ManifestComplete,
 }
 
 impl ReplayTargetV1 {
+    pub fn is_well_formed(&self) -> bool {
+        [
+            self.entity_ref.as_str(),
+            self.claim_ref.as_str(),
+            self.frontier_ref.as_str(),
+            self.projection_profile.as_str(),
+            self.reasoning_program.as_str(),
+            self.model_version.as_str(),
+        ]
+        .iter()
+        .all(|value| !value.trim().is_empty())
+    }
+
     pub fn readiness(&self) -> ReplayReadiness {
-        ReplayReadiness::Addressable
+        if self.is_well_formed() {
+            ReplayReadiness::Addressable
+        } else {
+            ReplayReadiness::Incomplete
+        }
     }
 
     /// Dependency completeness belongs to the semantic authority; Atlas only
@@ -555,6 +599,14 @@ pub struct DependencyManifestV1 {
 }
 
 impl DependencyManifestV1 {
+    pub fn matches_target(&self, target: &ReplayTargetV1) -> bool {
+        self.is_complete()
+            && self.frontier_ref == target.frontier_ref
+            && self.projection_profile == target.projection_profile
+            && self.reasoning_program == target.reasoning_program
+            && self.model_versions.iter().any(|version| version == &target.model_version)
+    }
+
     pub fn is_complete(&self) -> bool {
         !self.frontier_ref.is_empty()
             && !self.evidence_roots.is_empty()
@@ -587,14 +639,15 @@ pub struct TerminalQueryV1 {
 
 impl TerminalQueryV1 {
     pub fn replay_target(&self) -> Option<ReplayTargetV1> {
-        Some(ReplayTargetV1 {
+        let target = ReplayTargetV1 {
             entity_ref: self.entity_ref.clone()?,
             claim_ref: self.claim_ref.clone()?,
             frontier_ref: self.frontier_ref.clone()?,
             projection_profile: self.projection_profile.clone()?,
             reasoning_program: self.reasoning_program.clone()?,
             model_version: self.model_version.clone()?,
-        })
+        };
+        target.is_well_formed().then_some(target)
     }
 
     /// A frontier URL is not by itself a full replay contract.
@@ -621,10 +674,18 @@ impl TerminalQueryV1 {
     ) -> ReplayResolutionState {
         if self.replay_target().is_none() {
             ReplayResolutionState::Incomplete
-        } else if manifest.is_some_and(DependencyManifestV1::is_complete) {
-            ReplayResolutionState::ManifestComplete
         } else {
-            ReplayResolutionState::Addressable
+            match manifest {
+                None => ReplayResolutionState::Addressable,
+                Some(manifest) => {
+                    let target = self.replay_target().expect("checked above");
+                    if manifest.matches_target(&target) {
+                        ReplayResolutionState::ManifestComplete
+                    } else {
+                        ReplayResolutionState::Unresolved
+                    }
+                }
+            }
         }
     }
 }
