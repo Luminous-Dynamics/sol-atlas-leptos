@@ -123,6 +123,7 @@ mod tests {
             &projections,
             Some("entity:fin:ns-energy-01"),
             Some("claim:unknown:404"),
+            Some("ef:demo:9d7b"),
         )
         .is_none());
     }
@@ -136,6 +137,19 @@ mod tests {
             Some("entity:other:01"),
             Some("claim:obs:7f31"),
             Some("ef:demo:9d7b"),
+        )
+        .is_none());
+    }
+
+    #[test]
+    fn mismatched_frontier_does_not_fall_back_to_local_projection() {
+        let projections = fixture_projections();
+
+        assert!(projection_for_query(
+            &projections,
+            Some("entity:fin:ns-energy-01"),
+            Some("claim:obs:7f31"),
+            Some("ef:later:9999"),
         )
         .is_none());
     }
