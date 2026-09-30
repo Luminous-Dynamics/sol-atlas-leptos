@@ -596,7 +596,6 @@ pub fn EvidenceTerminal() -> impl IntoView {
                 .href()
             })
         }).flatten()
-        })
     };
 
     view! {
