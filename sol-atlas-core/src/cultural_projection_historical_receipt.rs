@@ -1,0 +1,216 @@
+// Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+//! Content-addressed receipts for explicitly selected historical V5 replay prefixes.
+
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+use crate::civilizational::{EvidenceFrontierChainV1, EvidenceFrontierId, ProjectionError};
+use crate::cultural_projection_audit_v5::CulturalProjectionAuditV5;
+use crate::cultural_projection_historical_replay::validate_v5_at;
+use crate::cultural_projection_replay::V5ReplayReceiptV1;
+use crate::cultural_systems::CanonicalClaimAdmissionV1;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct V5HistoricalReplayReceiptV1 {
+    pub selected_frontier: EvidenceFrontierId,
+    pub replay: V5ReplayReceiptV1,
+    pub receipt_hash: String,
+}
+
+impl V5HistoricalReplayReceiptV1 {
+    pub fn from_audit_at(
+        audit: &CulturalProjectionAuditV5,
+        chain: &EvidenceFrontierChainV1,
+        frontier_id: &EvidenceFrontierId,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<Self, ProjectionError> {
+        validate_v5_at(audit, chain, frontier_id, claim)?;
+        let index = chain.frontiers.iter().position(|f| &f.frontier_id == frontier_id)
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+        let prefix = EvidenceFrontierChainV1 { frontiers: chain.frontiers[..=index].to_vec() };
+        let replay = V5ReplayReceiptV1::from_audit_and_chain(audit, &prefix, claim)?;
+        let mut receipt = Self {
+            selected_frontier: frontier_id.clone(),
+            replay,
+            receipt_hash: String::new(),
+        };
+        receipt.recompute_hash()?;
+        receipt.validate_against_audit_at(audit, chain, claim)?;
+        Ok(receipt)
+    }
+
+    pub fn validate_against_audit_at(
+        &self,
+        audit: &CulturalProjectionAuditV5,
+        chain: &EvidenceFrontierChainV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        validate_v5_at(audit, chain, &self.selected_frontier, claim)?;
+        if self.replay.leaf_frontier != self.selected_frontier {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        let index = chain.frontiers.iter().position(|f| f.frontier_id == self.selected_frontier)
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+        let prefix = EvidenceFrontierChainV1 { frontiers: chain.frontiers[..=index].to_vec() };
+        self.replay.validate_against_audit_and_chain(audit, &prefix, claim)?;
+        if self.receipt_hash != self.computed_hash()? {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        Ok(())
+    }
+
+    pub fn computed_hash(&self) -> Result<String, ProjectionError> {
+        let bytes = serde_json::to_vec(&(&self.selected_frontier, &self.replay.receipt_hash))
+            .map_err(|_| ProjectionError::InvalidEvidenceFrontierManifest)?;
+        let digest = Sha256::digest(bytes);
+        Ok(digest.iter().map(|b| format!("{b:02x}")).collect())
+    }
+
+    pub fn recompute_hash(&mut self) -> Result<(), ProjectionError> {
+        self.receipt_hash = self.computed_hash()?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::civilizational::{
+        ArgumentationTemporalMetadataV1, EvidenceFrontierV1, EvidenceTemporalMetadataV1,
+        QualificationStatus, SourceSnapshotTemporalMetadataV1, YearInterval,
+    };
+    use crate::cultural_argumentation::{CulturalArgumentationKindV1, CulturalArgumentationRefV3};
+    use crate::cultural_systems::{
+        AccessPolicyV1, CanonicalClaimAdmissionV1, CulturalArgumentationEvidenceClosureV1,
+        CulturalProjectionAuditV2, CulturalProjectionIdV1,
+    };
+    use crate::ontology_context::OntologyMappingRelationV1;
+    use crate::ontology_mapping::{
+        OntologyMappingKindV1, OntologyMappingStandardV1, OntologyMappingV2,
+        OntologyReleaseStatusV1,
+    };
+
+    fn fixture() -> (CulturalProjectionAuditV5, CanonicalClaimAdmissionV1, EvidenceFrontierChainV1) {
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(), known_by_year: 1950, parent_frontier: None,
+            policy_version: "v1".into(), manifest_hash: String::new(),
+            admitted_evidence: ["e:1"].into_iter().map(Into::into).collect(),
+            admitted_sources: ["source:1"].into_iter().map(Into::into).collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "e:1".into(), source_snapshot: "source:1".into(),
+                artifact_time: Some(YearInterval { from: Some(1940), to: Some(1940) }),
+                publication_time: Some(1941), capture_time: None, available_by: 1942,
+                validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:1".into(), publication_time: Some(1941),
+                capture_time: None, available_by: 1942,
+            }],
+            argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
+                assessment: "assessment:1".into(), interpretation: "interpretation:1".into(),
+                assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+                interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                available_by: 1950,
+            }],
+        };
+        root.recompute_manifest_hash().expect("root hash");
+        let mut child = root.clone();
+        child.frontier_id = "frontier:1951".into();
+        child.known_by_year = 1951;
+        child.parent_frontier = Some(root.frontier_id.clone());
+        child.admitted_evidence.insert("e:2".into());
+        child.evidence_metadata.push(EvidenceTemporalMetadataV1 {
+            evidence_id: "e:2".into(), source_snapshot: "source:1".into(),
+            artifact_time: Some(YearInterval { from: Some(1945), to: Some(1945) }),
+            publication_time: Some(1950), capture_time: None, available_by: 1951,
+            validity_time: Some(YearInterval { from: Some(1945), to: Some(1951) }),
+        });
+        child.recompute_manifest_hash().expect("child hash");
+
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:1".into(), evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()], qualification: QualificationStatus::Supported,
+            evidence_frontier: root.frontier_id.clone(),
+        };
+        let base = CulturalProjectionAuditV2 {
+            projection_id: CulturalProjectionIdV1::Transmission("transmission:1".into()),
+            claim_ref: claim.claim_ref.clone(), evidence_refs: claim.evidence_refs.clone(),
+            source_snapshots: claim.source_snapshots.clone(), community_recognition_evidence: vec![],
+            assessment: Some("assessment:1".into()), argumentation: None,
+            event_time: YearInterval { from: Some(1900), to: Some(1950) },
+            qualification: claim.qualification, access_policy: AccessPolicyV1::Public,
+            evidence_frontier: root.frontier_id.clone(),
+        };
+        let mapping = OntologyMappingV2::from_claim(
+            "mapping:1", OntologyMappingStandardV1::CidocCrm, "7.4",
+            OntologyReleaseStatusV1::Draft, "E7_Activity", OntologyMappingKindV1::Class, &claim,
+        );
+        let resolution = crate::ontology_resolution::OntologyMappingResolutionV1::from_mapping(
+            &mapping, OntologyMappingRelationV1::Exact, &claim, &root,
+        ).expect("resolution");
+        let v4 = crate::cultural_projection_audit_v4::CulturalProjectionAuditV4::from_v2(
+            base, vec![resolution],
+        ).expect("v4 audit");
+        let argumentation = CulturalArgumentationRefV3::from_v2(
+            CulturalArgumentationKindV1::InferenceMaking,
+            crate::cultural_systems::CulturalArgumentationRefV2 {
+                assessment: "assessment:1".into(), interpretation: "interpretation:1".into(),
+                claim_ref: claim.claim_ref.clone(),
+                closure: CulturalArgumentationEvidenceClosureV1 {
+                    claim_ref: claim.claim_ref.clone(), evidence_refs: vec!["e:1".into()],
+                    source_snapshots: vec!["source:1".into()],
+                    evidence_frontier: root.frontier_id.clone(),
+                },
+                assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+                interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                available_by: 1950,
+            }, &root,
+        ).expect("argumentation");
+        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
+        (audit, claim, EvidenceFrontierChainV1 { frontiers: vec![root, child] })
+    }
+
+    #[test]
+    fn selected_prefix_receipt_round_trips() {
+        let (audit, claim, chain) = fixture();
+        let receipt = V5HistoricalReplayReceiptV1::from_audit_at(&audit, &chain, &"frontier:1950".into(), &claim).expect("receipt");
+        assert_eq!(receipt.validate_against_audit_at(&audit, &chain, &claim), Ok(()));
+        assert_eq!(receipt.replay.frontier_lineage.len(), 1);
+        assert_eq!(receipt.selected_frontier, "frontier:1950".into());
+    }
+
+    #[test]
+    fn later_frontier_is_not_in_receipt_lineage() {
+        let (audit, claim, chain) = fixture();
+        let receipt = V5HistoricalReplayReceiptV1::from_audit_at(&audit, &chain, &"frontier:1950".into(), &claim).expect("receipt");
+        assert_eq!(receipt.replay.frontier_lineage.len(), 1);
+        assert!(!receipt.replay.frontier_lineage.iter().any(|(id, _)| id == "frontier:1951"));
+    }
+
+    #[test]
+    fn later_corruption_does_not_invalidate_historical_receipt() {
+        let (audit, claim, mut chain) = fixture();
+        let receipt = V5HistoricalReplayReceiptV1::from_audit_at(&audit, &chain, &"frontier:1950".into(), &claim).expect("receipt");
+        chain.frontiers[1].manifest_hash = "corrupt-later-manifest".into();
+        assert_eq!(receipt.validate_against_audit_at(&audit, &chain, &claim), Ok(()));
+    }
+
+    #[test]
+    fn receipt_hash_binds_selected_frontier() {
+        let (audit, claim, chain) = fixture();
+        let mut receipt = V5HistoricalReplayReceiptV1::from_audit_at(&audit, &chain, &"frontier:1950".into(), &claim).expect("receipt");
+        let original = receipt.receipt_hash.clone();
+        receipt.selected_frontier = "frontier:1951".into();
+        assert_ne!(original, receipt.computed_hash().expect("hash"));
+        assert!(receipt.validate_against_audit_at(&audit, &chain, &claim).is_err());
+    }
+
+    #[test]
+    fn child_bound_audit_cannot_validate_at_parent() {
+        let (audit, claim, chain) = fixture();
+        let child_claim = CanonicalClaimAdmissionV1 { evidence_frontier: "frontier:1951".into(), ..claim };
+        assert!(V5HistoricalReplayReceiptV1::from_audit_at(&audit, &chain, &"frontier:1951".into(), &child_claim).is_err());
+    }
+}
