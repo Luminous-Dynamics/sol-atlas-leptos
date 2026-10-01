@@ -535,6 +535,37 @@ mod tests {
 
 
     #[test]
+    fn appending_a_verified_descendant_does_not_change_an_existing_historical_receipt() {
+        let (audit, claim, full_chain) = fixture();
+        let root_id: EvidenceFrontierId = "frontier:1950".into();
+        let root_chain = EvidenceFrontierChainV1 {
+            frontiers: vec![full_chain.frontiers[0].clone()],
+        };
+
+        let before = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &root_chain,
+            &root_id,
+            &claim,
+        )
+        .expect("root receipt before append");
+
+        let after = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &full_chain,
+            &root_id,
+            &claim,
+        )
+        .expect("root receipt after append");
+
+        assert_eq!(before.receipt_hash, after.receipt_hash);
+        assert_eq!(before.replay.receipt_hash, after.replay.receipt_hash);
+        assert_eq!(before.replay.frontier_lineage, after.replay.frontier_lineage);
+        assert_eq!(before.selected_frontier, root_id);
+    }
+
+
+    #[test]
     fn reconstructed_root_with_changed_availability_cannot_reuse_historical_receipt() {
         let (audit, claim, chain) = fixture();
         let root_id: EvidenceFrontierId = "frontier:1950".into();
