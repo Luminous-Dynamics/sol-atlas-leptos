@@ -161,6 +161,16 @@ impl DependencyResolutionState {
         }
     }
 
+    /// Returns true only for the explicit terminal Resolved state carrying
+    /// an authority response whose own status is also Resolved.
+    ///
+    /// This is intentionally narrower than merely having a resolution reference;
+    /// a reference may represent partial, protected, mismatched, or unavailable
+    /// authority outcomes.
+    pub fn is_terminally_resolved(&self) -> bool {
+        matches!(self, Self::Resolved(reference) if reference.is_terminally_resolved())
+    }
+
     pub fn resolution_ref(&self) -> Option<&AuthorityResolutionRefV1> {
         match self {
             Self::Resolved(reference)
@@ -191,6 +201,23 @@ impl DependencyResolutionState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn terminal_resolution_requires_resolved_state_and_response() {
+        let resolved = AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
+            "manifest:abc",
+            "resolution:001",
+            DependencyResolutionStatus::Resolved,
+        ).unwrap();
+        let request = DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap();
+
+        assert!(DependencyResolutionState::Resolved(resolved.clone()).is_terminally_resolved());
+        assert!(!DependencyResolutionState::PartiallyResolved(resolved.clone()).is_terminally_resolved());
+        assert!(!DependencyResolutionState::Rejected(resolved).is_terminally_resolved());
+        assert!(!DependencyResolutionState::NotRequested.is_terminally_resolved());
+        assert!(!DependencyResolutionState::Requested(request).is_terminally_resolved());
+    }
 
     #[test]
     fn request_is_not_a_resolution() {
