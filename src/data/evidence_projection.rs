@@ -531,7 +531,7 @@ mod tests {
         );
         let target = replay.replay_target().expect("complete replay target");
         assert_eq!(target.frontier_ref, "ef:demo:9d7b");
-        assert!(!target.dependency_manifest_request().is_complete());
+        assert!(!target.dependency_manifest_request().expect("complete replay target").is_complete());
         assert_eq!(query.view, TerminalView::Evidence);
     }
 
@@ -635,7 +635,7 @@ mod tests {
             Some("evidence".into()),
         );
         let target = query.replay_target().expect("complete replay target");
-        let mut manifest = target.dependency_manifest_request();
+        let mut manifest = target.dependency_manifest_request().expect("complete replay target");
         manifest.evidence_roots = vec!["   ".into()];
         manifest.source_versions = vec!["source:filing:v3".into()];
         manifest.canonical_state_root = Some("state-root:1".into());
@@ -712,7 +712,7 @@ mod tests {
             reasoning_program: "reasoning:baseline:v1".into(),
             model_version: "model:symthaea:v1".into(),
         };
-        let manifest = target.dependency_manifest_request();
+        let manifest = target.dependency_manifest_request().expect("complete replay target");
 
         assert_eq!(
             manifest.dependency_context_match(&target),
@@ -741,7 +741,8 @@ mod tests {
         let incomplete = query
             .replay_target()
             .expect("complete replay target")
-            .dependency_manifest_request();
+            .dependency_manifest_request()
+            .expect("complete replay target");
         assert_eq!(
             query.replay_resolution_state(Some(&incomplete)),
             ReplayResolutionState::Unresolved
@@ -783,6 +784,27 @@ mod tests {
             None,
         );
         assert_eq!(query.replay_readiness(), ReplayReadiness::Incomplete);
+    }
+
+    #[test]
+    fn deserialized_malformed_replay_target_fails_closed_at_context_boundary() {
+        let target: ReplayTargetV1 = serde_json::from_str(
+            r#"{
+                "entity_ref":"entity:fin:ns-energy-01",
+                "claim_ref":"claim:obs:7f31",
+                "frontier_ref":"ef:demo:9d7b",
+                "projection_profile":"profile:terminal:v1",
+                "reasoning_program":"   ",
+                "model_version":"model:symthaea:v1"
+            }"#,
+        )
+        .expect("serde should deserialize the structural target");
+
+        assert!(!target.is_well_formed());
+        assert_eq!(target.readiness(), ReplayReadiness::Incomplete);
+        assert!(target.navigation_identity().is_none());
+        assert!(target.execution_context().is_none());
+        assert!(target.dependency_manifest_request().is_none());
     }
 
     #[test]
@@ -983,12 +1005,9 @@ impl ReplayTargetV1 {
 
     /// Dependency completeness belongs to the semantic authority; Atlas only
     /// carries the identifiers needed to request that resolution.
-    pub fn dependency_manifest_request(&self) -> DependencyManifestV1 {
-        let context = self
-            .execution_context()
-            .expect("dependency manifest requires an addressable replay target");
-
-        DependencyManifestV1::from_execution_context(context)
+    pub fn dependency_manifest_request(&self) -> Option<DependencyManifestV1> {
+        let context = self.execution_context()?;
+        Some(DependencyManifestV1::from_execution_context(context))
     }
 }
 
