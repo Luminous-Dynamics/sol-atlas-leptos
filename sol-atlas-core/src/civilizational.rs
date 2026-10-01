@@ -1777,6 +1777,78 @@ mod tests {
     }
 
     #[test]
+    fn frontier_extension_preserves_inherited_source_and_argumentation_metadata() {
+        let inherited_source = SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:archive".into(),
+            publication_time: Some(1890),
+            capture_time: Some(1895),
+            available_by: 1900,
+        };
+        let inherited_argumentation = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:old".into(),
+            interpretation: "interpretation:old".into(),
+            assessment_time: Some(YearInterval { from: Some(1880), to: Some(1880) }),
+            interpretation_time: Some(YearInterval { from: Some(1885), to: Some(1885) }),
+            available_by: 1900,
+        };
+        let evidence = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:archive".into(),
+            source_snapshot: inherited_source.source_snapshot.clone(),
+            artifact_time: None,
+            publication_time: Some(1890),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:archive".into()].into_iter().collect(),
+            admitted_sources: ["source:archive".into()].into_iter().collect(),
+            evidence_metadata: vec![evidence.clone()],
+            source_metadata: vec![inherited_source.clone()],
+            argumentation_metadata: vec![inherited_argumentation.clone()],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let mut child = parent.clone();
+        child.frontier_id = "frontier:1910".into();
+        child.known_by_year = 1910;
+        child.parent_frontier = Some(parent.frontier_id.clone());
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(child.validate_extension_of(&parent), Ok(()));
+        assert_eq!(child.source_metadata[0], inherited_source);
+        assert_eq!(child.argumentation_metadata[0], inherited_argumentation);
+
+        child.source_metadata[0].available_by = 1905;
+        child.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        child.source_metadata[0] = inherited_source;
+        child.argumentation_metadata[0].assessment_time =
+            Some(YearInterval { from: Some(1881), to: Some(1881) });
+        child.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        child.source_metadata[0] = parent.source_metadata[0].clone();
+        child.argumentation_metadata[0] = parent.argumentation_metadata[0].clone();
+        child.evidence_metadata = vec![evidence];
+        child.recompute_manifest_hash().unwrap();
+        assert_eq!(child.validate_extension_of(&parent), Ok(()));
+    }
+
+    #[test]
     fn argumentation_metadata_is_validated_when_evidence_metadata_is_absent() {
         let mut frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:argumentation-only".into(),
