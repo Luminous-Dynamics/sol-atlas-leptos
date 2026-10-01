@@ -322,6 +322,14 @@ pub struct CapabilityGraphError {
     pub missing: Vec<CapabilityId>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CapabilityImpact {
+    /// Capabilities with a complete declared closure containing the unavailable capability.
+    pub affected: Vec<CapabilityId>,
+    /// Capabilities whose closure could not be fully evaluated.
+    pub unresolved: Vec<CapabilityId>,
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct CapabilityGraph {
     pub capabilities: Vec<Capability>,
@@ -334,16 +342,19 @@ impl CapabilityGraph {
     /// This is a declared dependency blast radius, not a prediction of real
     /// world impact. Explicit substitutes are intentionally not selected here;
     /// resilience policy remains a separate, auditable decision.
-    pub fn affected_by(&self, unavailable: &CapabilityId) -> Vec<CapabilityId> {
-        self.capabilities
-            .iter()
-            .filter_map(|capability| {
-                self.required_closure(&capability.id)
-                    .ok()
-                    .filter(|closure| closure.contains(unavailable))
-                    .map(|_| capability.id.clone())
-            })
-            .collect()
+    pub fn affected_by(&self, unavailable: &CapabilityId) -> CapabilityImpact {
+        let mut affected = Vec::new();
+        let mut unresolved = Vec::new();
+
+        for capability in &self.capabilities {
+            match self.required_closure(&capability.id) {
+                Ok(closure) if closure.contains(unavailable) => affected.push(capability.id.clone()),
+                Ok(_) => {}
+                Err(_) => unresolved.push(capability.id.clone()),
+            }
+        }
+
+        CapabilityImpact { affected, unresolved }
     }
 
     /// Compute the deterministic transitive dependency closure of a root.
@@ -434,11 +445,12 @@ mod graph_tests {
         };
 
         assert_eq!(
-            graph.affected_by(&CapabilityId("c".into())),
+            graph.affected_by(&CapabilityId("c".into())).affected,
             vec![CapabilityId("a".into()), CapabilityId("b".into()), CapabilityId("c".into())]
         );
+        assert!(graph.affected_by(&CapabilityId("c".into())).unresolved.is_empty());
         assert_eq!(
-            graph.affected_by(&CapabilityId("independent".into())),
+            graph.affected_by(&CapabilityId("independent".into())).affected,
             vec![CapabilityId("independent".into())]
         );
     }
@@ -453,7 +465,7 @@ mod graph_tests {
         };
 
         assert_eq!(
-            graph.affected_by(&CapabilityId("b".into())),
+            graph.affected_by(&CapabilityId("b".into())).affected,
             vec![CapabilityId("a".into()), CapabilityId("b".into())]
         );
     }
