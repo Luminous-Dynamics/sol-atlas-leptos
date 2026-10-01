@@ -1,0 +1,131 @@
+// Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
+
+use leptos::prelude::*;
+use sol_atlas_core::bootstrap::water_purification_fixture;
+use sol_atlas_core::capability::{CapabilityGraph, CapabilityId, DependencyKind, EvidenceKind};
+
+#[component]
+pub fn CapabilityAtlasDemo() -> impl IntoView {
+    let graph = water_purification_fixture();
+    let root = CapabilityId("water.purification".into());
+    let closure = graph.required_closure(&root).unwrap_or_default();
+
+    let capabilities = closure
+        .iter()
+        .filter_map(|id| graph.capabilities.iter().find(|c| &c.id == id))
+        .collect::<Vec<_>>();
+
+    view! {
+        <main class="capability-atlas">
+            <header class="capability-atlas-header">
+                <div>
+                    <p class="capability-kicker">"Humanity / AI Bootstrap Atlas"</p>
+                    <h1>"What would it take to establish this capability?"</h1>
+                    <p class="capability-lede">
+                        "A deterministic, synthetic dependency walk. This surface visualizes semantics; it does not qualify them."
+                    </p>
+                </div>
+                <a class="capability-back" href="/">"← Return to globe"</a>
+            </header>
+
+            <section class="capability-warning" aria-label="Evidence status">
+                <span class="capability-badge scenario">"SCENARIO"</span>
+                <span>
+                    "Synthetic fixture only — not field validation, operational proof, or CIV-BOOT qualification."
+                </span>
+            </section>
+
+            <section class="capability-grid">
+                <article class="capability-card capability-root">
+                    <p class="capability-label">"ROOT CAPABILITY"</p>
+                    <h2>"Water purification"</h2>
+                    <p>"Produces potable water from an identified source."</p>
+                    <div class="capability-facts">
+                        <span>"Required closure: " {closure.len()}</span>
+                        <span>"Qualification: none"</span>
+                    </div>
+                </article>
+
+                <article class="capability-card">
+                    <p class="capability-label">"DEPENDENCY CLOSURE"</p>
+                    <ol class="capability-chain">
+                        {capabilities.iter().map(|cap| view! {
+                            <li class:root-cap=cap.id == root>
+                                <span class="capability-node">{cap.name.clone()}</span>
+                                <span class="capability-id">{cap.id.0.clone()}</span>
+                            </li>
+                        }).collect_view()}
+                    </ol>
+                </article>
+            </section>
+
+            <section class="capability-card">
+                <div class="capability-section-title">
+                    <div>
+                        <p class="capability-label">"EVIDENCE / PROVENANCE / AUTHORITY"</p>
+                        <h2>"Nothing is inferred"</h2>
+                    </div>
+                    <span class="capability-principle">"visual presence ≠ qualification"</span>
+                </div>
+
+                <div class="capability-table-wrap">
+                    <table class="capability-table">
+                        <thead>
+                            <tr>
+                                <th>"Capability"</th>
+                                <th>"Relations"</th>
+                                <th>"Evidence"</th>
+                                <th>"Location"</th>
+                                <th>"Qualification"</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {capabilities.iter().map(|cap| {
+                                let relation_count = cap.dependencies.iter()
+                                    .filter(|d| d.required)
+                                    .count();
+                                let evidence = cap.evidence.first()
+                                    .map(|e| match e.kind {
+                                        EvidenceKind::Observed => "Observed",
+                                        EvidenceKind::Curated => "Curated",
+                                        EvidenceKind::Scenario => "Scenario",
+                                    })
+                                    .unwrap_or("None");
+                                let location = if cap.has_location() { "Present" } else { "None" };
+                                let qualification = if cap.is_qualified() { "Qualified" } else { "None" };
+                                view! {
+                                    <tr>
+                                        <td>
+                                            <strong>{cap.name.clone()}</strong>
+                                            <small>{cap.id.0.clone()}</small>
+                                        </td>
+                                        <td>{relation_count}</td>
+                                        <td><span class="capability-badge scenario">{evidence}</span></td>
+                                        <td>{location}</td>
+                                        <td>{qualification}</td>
+                                    </tr>
+                                }
+                            }).collect_view()}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="capability-card capability-semantics">
+                <p class="capability-label">"SEMANTIC GUARDRAILS"</p>
+                <div class="capability-principles">
+                    <span>"evidence ≠ qualification"</span>
+                    <span>“geographic presence ≠ availability”</span>
+                    <span>"deployment ≠ reproducibility"</span>
+                    <span>"capability amplification ≠ authority amplification"</span>
+                </div>
+            </section>
+
+            <footer class="capability-footer">
+                "Synthetic reference: sol-atlas:bootstrap-fixture:v1 · Deterministic closure · Renderer-neutral core"
+            </footer>
+        </main>
+    }
+}
