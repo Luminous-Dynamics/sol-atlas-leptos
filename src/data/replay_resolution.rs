@@ -152,7 +152,12 @@ impl DependencyResolutionState {
             Self::Requested(_) => DependencyResolutionStatus::Requested,
             Self::Resolved(_) => DependencyResolutionStatus::Resolved,
             Self::PartiallyResolved(_) => DependencyResolutionStatus::PartiallyResolved,
-            Self::Rejected(reference) => reference.status,
+            Self::Rejected(reference) => match reference.status {
+                // A caller can construct public enum variants directly; never
+                // surface a terminal authority status from a locally rejected state.
+                DependencyResolutionStatus::Resolved => DependencyResolutionStatus::Mismatched,
+                status => status,
+            },
         }
     }
 
@@ -319,6 +324,19 @@ mod tests {
             .is_bound_to_request(&DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap()));
         assert!(!DependencyResolutionState::Rejected(reference)
             .is_bound_to_request(&DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap()));
+    }
+
+    #[test]
+    fn rejected_variant_never_reports_terminal_resolved_status() {
+        let reference = AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
+            "manifest:abc",
+            "resolution:001",
+            DependencyResolutionStatus::Resolved,
+        ).unwrap();
+        let state = DependencyResolutionState::Rejected(reference);
+        assert_eq!(state.status(), DependencyResolutionStatus::Mismatched);
+        assert!(!state.is_bound_to("frontier:001", "manifest:abc"));
     }
 
     #[test]
