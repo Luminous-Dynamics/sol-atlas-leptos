@@ -939,3 +939,251 @@ canvas#globe-canvas.has-hover {
         transition: none;
     }
 }
+
+
+/* ─── Humanity / AI Bootstrap Atlas vertical slice ───────────────── */
+
+.capability-atlas {
+    min-height: 100vh;
+    width: 100%;
+    overflow: auto;
+    padding: 48px clamp(18px, 4vw, 64px) 56px;
+    background:
+        radial-gradient(circle at 15% 0%, rgba(var(--sa-accent), 0.08), transparent 35%),
+        radial-gradient(circle at 90% 20%, rgba(var(--sa-cool), 0.06), transparent 30%),
+        var(--sa-bg);
+}
+
+.capability-atlas-header,
+.capability-grid,
+.capability-card,
+.capability-warning,
+.capability-footer {
+    width: min(1120px, 100%);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.capability-atlas-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: flex-start;
+    margin-bottom: 22px;
+}
+
+.capability-kicker,
+.capability-label {
+    color: rgba(var(--sa-accent), 0.7);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+}
+
+.capability-atlas h1 {
+    max-width: 760px;
+    font-size: clamp(28px, 4vw, 48px);
+    line-height: 1.05;
+    font-weight: 250;
+    letter-spacing: -1.5px;
+}
+
+.capability-atlas h2 {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.capability-lede {
+    max-width: 720px;
+    margin-top: 12px;
+    color: rgba(var(--sa-dim), 0.72);
+    line-height: 1.55;
+}
+
+.capability-back {
+    color: rgb(var(--sa-accent));
+    text-decoration: none;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.capability-back:hover { text-decoration: underline; }
+
+.capability-warning {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(var(--sa-scenario), 0.28);
+    border-radius: var(--sa-radius-sm);
+    background: rgba(var(--sa-scenario), 0.06);
+    color: rgba(var(--sa-dim), 0.82);
+    font-size: 12px;
+}
+
+.capability-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 3px 7px;
+    border-radius: 999px;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.capability-badge.scenario {
+    color: rgba(var(--sa-scenario), 0.95);
+    border: 1px solid rgba(var(--sa-scenario), 0.3);
+    background: rgba(var(--sa-scenario), 0.08);
+}
+
+.capability-grid {
+    display: grid;
+    grid-template-columns: minmax(250px, 0.8fr) minmax(360px, 1.2fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.capability-card {
+    padding: 20px;
+    border: 1px solid rgba(var(--sa-line), 0.16);
+    border-radius: var(--sa-radius);
+    background: rgba(var(--sa-panel), 0.62);
+    backdrop-filter: blur(14px);
+    box-shadow: inset 0 0 24px rgba(var(--sa-cool), 0.018);
+}
+
+.capability-root {
+    border-color: rgba(var(--sa-accent), 0.28);
+}
+
+.capability-facts {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 18px;
+    color: rgba(var(--sa-dim), 0.55);
+    font-size: 11px;
+}
+
+.capability-chain {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 14px;
+}
+
+.capability-chain li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    border-left: 2px solid rgba(var(--sa-line), 0.22);
+    background: rgba(var(--sa-bg), 0.2);
+}
+
+.capability-chain li.root-cap {
+    border-left-color: rgba(var(--sa-accent), 0.8);
+}
+
+.capability-node { font-size: 12px; }
+.capability-id {
+    color: rgba(var(--sa-dim), 0.38);
+    font-size: 9px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.capability-section-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-end;
+    margin-bottom: 14px;
+}
+
+.capability-principle {
+    color: rgba(var(--sa-accent), 0.7);
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.capability-table-wrap { overflow-x: auto; }
+
+.capability-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.capability-table th {
+    color: rgba(var(--sa-muted), 0.55);
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-align: left;
+    text-transform: uppercase;
+    padding: 9px 8px;
+    border-bottom: 1px solid rgba(var(--sa-line), 0.15);
+}
+
+.capability-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(var(--sa-line), 0.08);
+    vertical-align: top;
+    color: rgba(var(--sa-dim), 0.72);
+}
+
+.capability-table td strong,
+.capability-table td small {
+    display: block;
+}
+
+.capability-table td strong { color: var(--sa-fg); font-weight: 500; }
+.capability-table td small {
+    margin-top: 3px;
+    color: rgba(var(--sa-dim), 0.35);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 9px;
+}
+
+.capability-semantics { margin-top: 16px; }
+
+.capability-principles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.capability-principles span {
+    padding: 7px 9px;
+    border: 1px solid rgba(var(--sa-line), 0.13);
+    border-radius: 999px;
+    color: rgba(var(--sa-dim), 0.65);
+    font-size: 10px;
+}
+
+.capability-footer {
+    margin-top: 16px;
+    color: rgba(var(--sa-dim), 0.3);
+    font-size: 9px;
+    letter-spacing: 0.5px;
+}
+
+.capability-atlas-link {
+    display: block;
+    margin-top: 5px;
+}
+
+@media (max-width: 760px) {
+    .capability-atlas { padding-top: 28px; }
+    .capability-atlas-header { flex-direction: column; }
+    .capability-grid { grid-template-columns: 1fr; }
+    .capability-warning { align-items: flex-start; }
+    .capability-section-title { align-items: flex-start; flex-direction: column; }
+}
