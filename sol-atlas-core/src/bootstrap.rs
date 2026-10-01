@@ -50,6 +50,21 @@ fn required(id: &str, relation: DependencyKind) -> CapabilityDependency {
     }
 }
 
+fn required_with_substitutes(
+    id: &str,
+    relation: DependencyKind,
+    substitutes: &[&str],
+) -> CapabilityDependency {
+    CapabilityDependency {
+        capability: CapabilityId(id.into()),
+        relation,
+        substitutes: substitutes
+            .iter()
+            .map(|candidate| CapabilityId((*candidate).into()))
+            .collect(),
+    }
+}
+
 /// A minimal graph for exercising the bootstrap-path interaction model.
 ///
 /// The graph is deliberately not presented as a universal historical sequence.
@@ -60,7 +75,11 @@ pub fn water_purification_fixture() -> CapabilityGraph {
                 "water.purification",
                 "Water purification",
                 vec![
-                    required("energy.electricity", DependencyKind::Energy),
+                    required_with_substitutes(
+                        "energy.electricity",
+                        DependencyKind::Energy,
+                        &["energy.mechanical"],
+                    ),
                     required("materials.filter_media", DependencyKind::Material),
                     required("knowledge.water_treatment", DependencyKind::Knowledge),
                     required("maintenance.pump", DependencyKind::Maintenance),
@@ -143,6 +162,29 @@ mod tests {
         assert!(closure.contains(&CapabilityId("energy.electricity".into())));
         assert!(closure.contains(&CapabilityId("manufacturing.workshop".into())));
         assert!(closure.contains(&CapabilityId("knowledge.preservation".into())));
+    }
+
+    #[test]
+    #[test]
+    fn fixture_declares_alternative_candidates_without_selecting_them() {
+        let graph = water_purification_fixture();
+        let root = graph
+            .capabilities
+            .iter()
+            .find(|capability| capability.id == CapabilityId("water.purification".into()))
+            .unwrap();
+        let alternatives = root.alternative_paths();
+
+        assert_eq!(alternatives.len(), 1);
+        assert_eq!(alternatives[0].for_dependency, CapabilityId("energy.electricity".into()));
+        assert_eq!(alternatives[0].candidate, CapabilityId("energy.mechanical".into()));
+        assert!(alternatives[0].evidence.is_empty());
+        assert!(alternatives[0].claim_ceiling.contains("not established"));
+
+        let closure = graph
+            .required_closure(&CapabilityId("water.purification".into()))
+            .unwrap();
+        assert!(!closure.contains(&CapabilityId("energy.mechanical".into())));
     }
 
     #[test]
