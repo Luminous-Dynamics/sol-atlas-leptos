@@ -48,6 +48,8 @@ impl DependencyResolutionRequestV1 {
 /// that the requested replay subsequently executed.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct AuthorityResolutionRefV1 {
+    /// Opaque canonical frontier identity owned by Mycelix.
+    pub frontier_ref: String,
     pub manifest_digest: String,
     pub resolution_ref: String,
     pub status: DependencyResolutionStatus,
@@ -55,16 +57,22 @@ pub struct AuthorityResolutionRefV1 {
 
 impl AuthorityResolutionRefV1 {
     pub fn from_authority(
+        frontier_ref: impl Into<String>,
         manifest_digest: impl Into<String>,
         resolution_ref: impl Into<String>,
         status: DependencyResolutionStatus,
     ) -> Option<Self> {
+        let frontier_ref = frontier_ref.into();
         let manifest_digest = manifest_digest.into();
         let resolution_ref = resolution_ref.into();
-        if manifest_digest.trim().is_empty() || resolution_ref.trim().is_empty() {
+        if frontier_ref.trim().is_empty()
+            || manifest_digest.trim().is_empty()
+            || resolution_ref.trim().is_empty()
+        {
             return None;
         }
         Some(Self {
+            frontier_ref,
             manifest_digest,
             resolution_ref,
             status,
@@ -128,9 +136,10 @@ impl DependencyResolutionState {
     /// 1. it is in the explicit Resolved state;
     /// 2. the authority response says Resolved; and
     /// 3. the response is bound to the exact requested manifest identity.
-    pub fn is_bound_to(&self, manifest_digest: &str) -> bool {
+    pub fn is_bound_to(&self, frontier_ref: &str, manifest_digest: &str) -> bool {
         matches!(self, Self::Resolved(reference)
-            if reference.manifest_digest == manifest_digest
+            if reference.frontier_ref == frontier_ref
+                && reference.manifest_digest == manifest_digest
                 && reference.is_terminally_resolved())
     }
 }
@@ -144,7 +153,7 @@ mod tests {
         let request = DependencyResolutionRequestV1::new("manifest:abc").unwrap();
         let state = DependencyResolutionState::Requested(request);
         assert_eq!(state.status(), DependencyResolutionStatus::Requested);
-        assert!(!state.is_bound_to("manifest:abc"));
+        assert!(!state.is_bound_to("frontier:001", "manifest:abc"));
         assert!(state.resolution_ref().is_none());
     }
 
@@ -156,6 +165,7 @@ mod tests {
     #[test]
     fn authority_reference_requires_explicit_nonblank_identity() {
         assert!(AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
             "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
@@ -163,11 +173,20 @@ mod tests {
 
         assert!(AuthorityResolutionRefV1::from_authority(
             "   ",
+            "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
         ).is_none());
 
         assert!(AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
+            "   ",
+            "resolution:001",
+            DependencyResolutionStatus::Resolved,
+        ).is_none());
+
+        assert!(AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
             "manifest:abc",
             " ",
             DependencyResolutionStatus::Resolved,
@@ -177,19 +196,21 @@ mod tests {
     #[test]
     fn resolved_state_requires_manifest_binding() {
         let reference = AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
             "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
         ).unwrap();
         let state = DependencyResolutionState::Resolved(reference);
 
-        assert!(state.is_bound_to("manifest:abc"));
-        assert!(!state.is_bound_to("manifest:other"));
+        assert!(state.is_bound_to("frontier:001", "manifest:abc"));
+        assert!(!state.is_bound_to("frontier:001", "manifest:other"));
     }
 
     #[test]
     fn authority_response_constructor_rejects_request_only_statuses() {
         let reference = AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
             "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Requested,
@@ -197,6 +218,7 @@ mod tests {
         assert!(DependencyResolutionState::try_from_authority(reference).is_none());
 
         let reference = AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
             "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
@@ -221,32 +243,35 @@ mod tests {
                 status,
             ).unwrap();
             let state = DependencyResolutionState::try_from_authority(reference).unwrap();
-            assert!(!state.is_bound_to("manifest:abc"));
+            assert!(!state.is_bound_to("frontier:001", "manifest:abc"));
         }
     }
 
     #[test]
     fn variant_controls_terminal_resolution() {
         let reference = AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
             "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
         ).unwrap();
 
         assert!(!DependencyResolutionState::PartiallyResolved(reference.clone())
-            .is_bound_to("manifest:abc"));
+            .is_bound_to("frontier:001", "manifest:abc"));
         assert!(!DependencyResolutionState::Rejected(reference)
-            .is_bound_to("manifest:abc"));
+            .is_bound_to("frontier:001", "manifest:abc"));
     }
 
     #[test]
     fn partial_and_protected_states_never_become_terminal_resolution() {
         let partial = AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
             "manifest:abc",
             "resolution:partial",
             DependencyResolutionStatus::PartiallyResolved,
         ).unwrap();
         let protected = AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
             "manifest:abc",
             "resolution:protected",
             DependencyResolutionStatus::Protected,
@@ -257,6 +282,6 @@ mod tests {
             DependencyResolutionStatus::PartiallyResolved
         );
         assert!(!DependencyResolutionState::Rejected(protected)
-            .is_bound_to("manifest:abc"));
+            .is_bound_to("frontier:001", "manifest:abc"));
     }
 }
