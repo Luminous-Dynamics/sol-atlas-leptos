@@ -91,6 +91,20 @@ pub enum DependencyResolutionState {
 }
 
 impl DependencyResolutionState {
+    /// Converts an explicit authority response into the corresponding local
+    /// resolution state. Request-only statuses are not valid authority
+    /// responses and therefore cannot cross this boundary.
+    pub fn try_from_authority(reference: AuthorityResolutionRefV1) -> Option<Self> {
+        match reference.status {
+            DependencyResolutionStatus::Resolved => Some(Self::Resolved(reference)),
+            DependencyResolutionStatus::PartiallyResolved => Some(Self::PartiallyResolved(reference)),
+            DependencyResolutionStatus::Mismatched
+            | DependencyResolutionStatus::Protected
+            | DependencyResolutionStatus::Unavailable => Some(Self::Rejected(reference)),
+            DependencyResolutionStatus::Unrequested | DependencyResolutionStatus::Requested => None,
+        }
+    }
+
     pub fn status(&self) -> DependencyResolutionStatus {
         match self {
             Self::NotRequested => DependencyResolutionStatus::Unrequested,
@@ -171,6 +185,44 @@ mod tests {
 
         assert!(state.is_bound_to("manifest:abc"));
         assert!(!state.is_bound_to("manifest:other"));
+    }
+
+    #[test]
+    fn authority_response_constructor_rejects_request_only_statuses() {
+        let reference = AuthorityResolutionRefV1::from_authority(
+            "manifest:abc",
+            "resolution:001",
+            DependencyResolutionStatus::Requested,
+        ).unwrap();
+        assert!(DependencyResolutionState::try_from_authority(reference).is_none());
+
+        let reference = AuthorityResolutionRefV1::from_authority(
+            "manifest:abc",
+            "resolution:001",
+            DependencyResolutionStatus::Resolved,
+        ).unwrap();
+        assert!(matches!(
+            DependencyResolutionState::try_from_authority(reference),
+            Some(DependencyResolutionState::Resolved(_))
+        ));
+    }
+
+    #[test]
+    fn authority_response_constructor_maps_nonterminal_outcomes_fail_closed() {
+        for status in [
+            DependencyResolutionStatus::PartiallyResolved,
+            DependencyResolutionStatus::Mismatched,
+            DependencyResolutionStatus::Protected,
+            DependencyResolutionStatus::Unavailable,
+        ] {
+            let reference = AuthorityResolutionRefV1::from_authority(
+                "manifest:abc",
+                "resolution:001",
+                status,
+            ).unwrap();
+            let state = DependencyResolutionState::try_from_authority(reference).unwrap();
+            assert!(!state.is_bound_to("manifest:abc"));
+        }
     }
 
     #[test]
