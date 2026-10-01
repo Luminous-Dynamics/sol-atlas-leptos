@@ -135,7 +135,7 @@ impl DependencyResolutionState {
     /// A dependency set is replay-eligible only when:
     /// 1. it is in the explicit Resolved state;
     /// 2. the authority response says Resolved; and
-    /// 3. the response is bound to the exact requested manifest identity.
+    /// 3. the response is bound to the exact requested frontier and manifest identities.
     pub fn is_bound_to(&self, frontier_ref: &str, manifest_digest: &str) -> bool {
         matches!(self, Self::Resolved(reference)
             if reference.frontier_ref == frontier_ref
@@ -238,6 +238,7 @@ mod tests {
             DependencyResolutionStatus::Unavailable,
         ] {
             let reference = AuthorityResolutionRefV1::from_authority(
+                "frontier:001",
                 "manifest:abc",
                 "resolution:001",
                 status,
