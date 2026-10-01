@@ -79,6 +79,43 @@ pub struct CapabilityQualification {
     pub claim_ceiling: String,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum InstanceState {
+    Planned,
+    Installed,
+    Operational,
+    Maintenance,
+    Retired,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CapabilityInstance {
+    /// Stable identity for one concrete instantiation of a capability.
+    pub id: String,
+    /// Abstract capability this instance realizes.
+    pub capability: CapabilityId,
+    /// Geographic placement; presence alone is not operational evidence.
+    pub location: CapabilityLocation,
+    /// Current declared lifecycle state of this instance.
+    pub state: InstanceState,
+    /// Evidence references scoped to this concrete instance.
+    pub evidence: Vec<String>,
+    /// Optional external qualification scoped to this instance.
+    pub qualification: Option<CapabilityQualification>,
+}
+
+impl CapabilityInstance {
+    /// Geographic placement is intentionally not treated as operational evidence.
+    pub fn has_operational_evidence(&self) -> bool {
+        !self.evidence.is_empty()
+    }
+
+    /// Qualification remains explicit even when an instance is operational.
+    pub fn is_qualified(&self) -> bool {
+        self.qualification.is_some()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CapabilityDependency {
     pub capability: CapabilityId,
@@ -192,6 +229,55 @@ mod tests {
         let c = capability();
         assert!(c.has_location());
         assert_eq!(c.state, CapabilityState::Demonstrated);
+    }
+
+    #[test]
+    fn instance_location_does_not_imply_operation_or_qualification() {
+        let instance = CapabilityInstance {
+            id: "instance-001".into(),
+            capability: CapabilityId("water.purification".into()),
+            location: CapabilityLocation {
+                id: "node-001".into(),
+                label: "Demo node".into(),
+                lat: 0.0,
+                lon: 0.0,
+            },
+            state: InstanceState::Installed,
+            evidence: vec![],
+            qualification: None,
+        };
+
+        assert!(!instance.has_operational_evidence());
+        assert!(!instance.is_qualified());
+    }
+
+    #[test]
+    fn instance_qualification_is_scoped_and_explicit() {
+        let mut instance = CapabilityInstance {
+            id: "instance-002".into(),
+            capability: CapabilityId("water.purification".into()),
+            location: CapabilityLocation {
+                id: "node-002".into(),
+                label: "Qualified demo node".into(),
+                lat: 1.0,
+                lon: 1.0,
+            },
+            state: InstanceState::Operational,
+            evidence: vec!["run-002".into()],
+            qualification: None,
+        };
+
+        assert!(instance.has_operational_evidence());
+        assert!(!instance.is_qualified());
+
+        instance.qualification = Some(CapabilityQualification {
+            authority: "CIV-BOOT adapter".into(),
+            reference: "qual-002".into(),
+            scope: "instance-002 only".into(),
+            claim_ceiling: "Exact instance/profile only.".into(),
+        });
+
+        assert!(instance.is_qualified());
     }
 
     #[test]
