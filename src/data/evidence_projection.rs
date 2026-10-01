@@ -796,6 +796,8 @@ mod tests {
             None,
             None,
         );
+        assert!(!query.is_frontier_addressable());
+        #[allow(deprecated)]
         assert!(!query.is_replayable());
     }
 }
@@ -1231,9 +1233,20 @@ impl TerminalQueryV1 {
         self
     }
 
-    /// Backwards-compatible name for the old URL-addressability check.
-    /// This means "has a frontier target", not "verified replay".
-    pub fn is_replayable(&self) -> bool {
+    /// Returns true when the query names an entity and frontier target.
+    ///
+    /// This is navigation/addressability only; it does not establish a full
+    /// replay target, dependency resolution, or replay execution.
+    pub fn is_frontier_addressable(&self) -> bool {
         self.entity_ref.is_some() && self.frontier_ref.is_some()
+    }
+
+    /// Backwards-compatible alias for callers using the pre-hardening name.
+    ///
+    /// Prefer is_frontier_addressable: this predicate does not mean that a
+    /// replay has been verified or executed.
+    #[deprecated(note = "use is_frontier_addressable; this predicate only checks frontier navigation")]
+    pub fn is_replayable(&self) -> bool {
+        self.is_frontier_addressable()
     }
 }
