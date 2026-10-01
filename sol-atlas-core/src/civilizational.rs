@@ -796,7 +796,11 @@ impl EvidenceFrontierV1 {
                         metadata.interpretation.clone(),
                     ))
                 {
-                    return Err(ProjectionError::LaterEvidenceInFrontier);
+                    return Err(if metadata.available_by > self.known_by_year {
+                        ProjectionError::LaterEvidenceInFrontier
+                    } else {
+                        ProjectionError::DuplicateArgumentationMetadata
+                    });
                 }
             }
         }
@@ -900,6 +904,7 @@ pub enum ProjectionError {
     LaterEvidenceInFrontier,
     UnadmittedEvidenceMetadata,
     UnadmittedSourceMetadata,
+    DuplicateArgumentationMetadata,
 }
 
 #[cfg(test)]
@@ -1482,6 +1487,49 @@ mod tests {
 
         first.recompute_manifest_hash().unwrap();
         assert_eq!(first.manifest_hash, first_hash);
+    }
+
+    #[test]
+    fn duplicate_argumentation_metadata_has_a_dedicated_validation_error() {
+        let metadata = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:a".into(),
+            interpretation: "interpretation:a".into(),
+            assessment_time: Some(YearInterval { from: Some(1990), to: Some(1990) }),
+            interpretation_time: Some(YearInterval { from: Some(1995), to: Some(1995) }),
+            available_by: 1996,
+        };
+
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:duplicate-argumentation".into(),
+            known_by_year: 2000,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1990),
+                capture_time: None,
+                available_by: 1990,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:a".into(),
+                publication_time: Some(1990),
+                capture_time: None,
+                available_by: 1990,
+            }],
+            argumentation_metadata: vec![metadata.clone(), metadata],
+        };
+        frontier.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            frontier.validate_temporal_manifest(),
+            Err(ProjectionError::DuplicateArgumentationMetadata)
+        );
     }
 
     #[test]
