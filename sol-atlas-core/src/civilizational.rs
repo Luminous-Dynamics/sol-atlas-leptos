@@ -808,7 +808,13 @@ impl EvidenceFrontierV1 {
         Ok(())
     }
 
-    /// Whether an assessment/interpretation pair is committed to and available at this frontier.
+    /// Whether an externally-owned assessment/interpretation pair is committed to and
+    /// available at this frontier.
+    ///
+    /// This is intentionally pair-scoped rather than claim-scoped: the frontier records
+    /// temporal availability of the external argumentation record. Claim-specific binding
+    /// is enforced by CulturalArgumentationRefV3 and its evidence closure, so frontier
+    /// admission must not be mistaken for permission to reuse an argument for another claim.
     pub fn admits_argumentation(
         &self,
         assessment: &AssessmentId,
