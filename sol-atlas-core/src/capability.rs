@@ -328,6 +328,24 @@ pub struct CapabilityGraph {
 }
 
 impl CapabilityGraph {
+    /// Return capabilities whose required closure depends on an unavailable
+    /// capability.
+    ///
+    /// This is a declared dependency blast radius, not a prediction of real
+    /// world impact. Explicit substitutes are intentionally not selected here;
+    /// resilience policy remains a separate, auditable decision.
+    pub fn affected_by(&self, unavailable: &CapabilityId) -> Vec<CapabilityId> {
+        self.capabilities
+            .iter()
+            .filter_map(|capability| {
+                self.required_closure(&capability.id)
+                    .ok()
+                    .filter(|closure| closure.contains(unavailable))
+                    .map(|_| capability.id.clone())
+            })
+            .collect()
+    }
+
     /// Compute the deterministic transitive dependency closure of a root.
     ///
     /// Only dependency relations whose kind is required participate.
@@ -402,6 +420,42 @@ mod graph_tests {
                 ai: String::new(),
             },
         }
+    }
+
+    #[test]
+    fn affected_by_reports_declared_dependency_blast_radius() {
+        let graph = CapabilityGraph {
+            capabilities: vec![
+                cap("a", &["b"]),
+                cap("b", &["c"]),
+                cap("c", &[]),
+                cap("independent", &[]),
+            ],
+        };
+
+        assert_eq!(
+            graph.affected_by(&CapabilityId("c".into())),
+            vec![CapabilityId("a".into()), CapabilityId("b".into()), CapabilityId("c".into())]
+        );
+        assert_eq!(
+            graph.affected_by(&CapabilityId("independent".into())),
+            vec![CapabilityId("independent".into())]
+        );
+    }
+
+    #[test]
+    fn alternatives_are_not_implicitly_selected_by_blast_radius() {
+        let mut root = cap("a", &["b"]);
+        root.dependencies[0].substitutes = vec![CapabilityId("alternative".into())];
+
+        let graph = CapabilityGraph {
+            capabilities: vec![root, cap("b", &[]), cap("alternative", &[])],
+        };
+
+        assert_eq!(
+            graph.affected_by(&CapabilityId("b".into())),
+            vec![CapabilityId("a".into()), CapabilityId("b".into())]
+        );
     }
 
     #[test]
