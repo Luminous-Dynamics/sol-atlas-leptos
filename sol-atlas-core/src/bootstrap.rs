@@ -165,7 +165,6 @@ mod tests {
     }
 
     #[test]
-    #[test]
     fn fixture_declares_alternative_candidates_without_selecting_them() {
         let graph = water_purification_fixture();
         let root = graph
