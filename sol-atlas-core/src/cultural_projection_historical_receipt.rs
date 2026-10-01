@@ -487,6 +487,54 @@ mod tests {
     }
 
     #[test]
+    fn valid_later_frontier_addition_does_not_change_historical_root_receipt() {
+        let (audit, claim, mut chain) = fixture();
+        let root_id: EvidenceFrontierId = "frontier:1950".into();
+        let original = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &chain,
+            &root_id,
+            &claim,
+        )
+        .expect("original root receipt");
+
+        let parent = chain.frontiers.last().cloned().expect("grandchild");
+        let mut later = parent.clone();
+        later.frontier_id = "frontier:1953".into();
+        later.known_by_year = 1953;
+        later.parent_frontier = Some(parent.frontier_id.clone());
+        later.admitted_evidence.insert("e:4".into());
+        later.evidence_metadata.push(EvidenceTemporalMetadataV1 {
+            evidence_id: "e:4".into(),
+            source_snapshot: "source:3".into(),
+            artifact_time: Some(YearInterval { from: Some(1950), to: Some(1950) }),
+            publication_time: Some(1952),
+            capture_time: None,
+            available_by: 1953,
+            validity_time: Some(YearInterval { from: Some(1950), to: Some(1953) }),
+        });
+        later.recompute_manifest_hash().expect("later frontier hash");
+        chain.frontiers.push(later);
+
+        assert_eq!(chain.validate_strict(), Ok(()));
+
+        let reconstructed = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &chain,
+            &root_id,
+            &claim,
+        )
+        .expect("root receipt with later frontier");
+
+        assert_eq!(original.receipt_hash, reconstructed.receipt_hash);
+        assert_eq!(original.replay.receipt_hash, reconstructed.replay.receipt_hash);
+        assert_eq!(original.replay.frontier_lineage, reconstructed.replay.frontier_lineage);
+        assert_eq!(reconstructed.validate_against_audit_at(&audit, &chain, &claim), Ok(()));
+        assert_eq!(reconstructed.replay.frontier_lineage.len(), 1);
+    }
+
+
+    #[test]
     fn reconstructed_root_with_changed_availability_cannot_reuse_historical_receipt() {
         let (audit, claim, chain) = fixture();
         let root_id: EvidenceFrontierId = "frontier:1950".into();
