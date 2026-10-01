@@ -44,6 +44,14 @@ impl DependencyResolutionRequestV1 {
         Some(Self { frontier_ref, manifest_digest })
     }
 
+    /// Returns true when this request satisfies the constructor's identity invariant.
+    ///
+    /// This remains useful after deserialization because serde can populate
+    /// private fields without going through `new`.
+    pub fn is_well_formed(&self) -> bool {
+        !self.frontier_ref.trim().is_empty() && !self.manifest_digest.trim().is_empty()
+    }
+
     pub fn frontier_ref(&self) -> &str {
         &self.frontier_ref
     }
@@ -53,7 +61,9 @@ impl DependencyResolutionRequestV1 {
     }
 
     pub fn matches_authority_response(&self, reference: &AuthorityResolutionRefV1) -> bool {
-        self.frontier_ref == reference.frontier_ref
+        self.is_well_formed()
+            && reference.is_well_formed()
+            && self.frontier_ref == reference.frontier_ref
             && self.manifest_digest == reference.manifest_digest
     }
 }
@@ -96,6 +106,17 @@ impl AuthorityResolutionRefV1 {
         })
     }
 
+    /// Returns true when all authority identity fields satisfy the nonblank
+    /// invariant enforced by `from_authority`.
+    ///
+    /// This is also checked after deserialization so malformed external data
+    /// cannot become terminal merely by bypassing the constructor.
+    pub fn is_well_formed(&self) -> bool {
+        !self.frontier_ref.trim().is_empty()
+            && !self.manifest_digest.trim().is_empty()
+            && !self.resolution_ref.trim().is_empty()
+    }
+
     pub fn frontier_ref(&self) -> &str {
         &self.frontier_ref
     }
@@ -113,7 +134,7 @@ impl AuthorityResolutionRefV1 {
     }
 
     pub fn is_terminally_resolved(&self) -> bool {
-        self.status == DependencyResolutionStatus::Resolved
+        self.is_well_formed() && self.status == DependencyResolutionStatus::Resolved
     }
 }
 
@@ -185,9 +206,10 @@ impl DependencyResolutionState {
     /// 2. the authority response says Resolved; and
     /// 3. the response is bound to the exact requested frontier and manifest identities.
     pub fn is_bound_to_request(&self, request: &DependencyResolutionRequestV1) -> bool {
-        matches!(self, Self::Resolved(reference)
-            if request.matches_authority_response(reference)
-                && reference.is_terminally_resolved())
+        request.is_well_formed()
+            && matches!(self, Self::Resolved(reference)
+                if request.matches_authority_response(reference)
+                    && reference.is_terminally_resolved())
     }
 
     pub fn is_bound_to(&self, frontier_ref: &str, manifest_digest: &str) -> bool {
@@ -220,6 +242,24 @@ mod tests {
     }
 
     #[test]
+    #[test]
+    fn deserialized_blank_identities_fail_closed() {
+        let malformed_request: DependencyResolutionRequestV1 =
+            serde_json::from_str(r#"{"frontier_ref":"   ","manifest_digest":"manifest:abc"}"#)
+                .unwrap();
+        let malformed_reference: AuthorityResolutionRefV1 = serde_json::from_str(
+            r#"{"frontier_ref":"frontier:001","manifest_digest":"manifest:abc","resolution_ref":"resolution:001","status":"Resolved"}"#,
+        )
+        .unwrap();
+
+        assert!(!malformed_request.is_well_formed());
+        assert!(!malformed_reference.is_well_formed());
+        assert!(!malformed_reference.is_terminally_resolved());
+        assert!(!malformed_request.matches_authority_response(&malformed_reference));
+        assert!(!DependencyResolutionState::Resolved(malformed_reference)
+            .is_bound_to_request(&malformed_request));
+    }
+
     fn request_is_not_a_resolution() {
         let request = DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap();
         let state = DependencyResolutionState::Requested(request);
