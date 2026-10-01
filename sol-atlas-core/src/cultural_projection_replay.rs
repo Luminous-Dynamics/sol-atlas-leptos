@@ -454,6 +454,64 @@ mod tests {
     }
 
     #[test]
+    fn argumentation_reconstruction_is_order_independent_but_identity_sensitive() {
+        let (mut audit, claim, mut chain) = fixture();
+
+        let mut second = audit.argumentation[0].clone();
+        second.assessment = "assessment:2".into();
+        second.interpretation = "interpretation:2".into();
+        second.closure.evidence_refs = vec!["e:2".into()];
+        second.recompute_hash().expect("second argumentation hash");
+        audit.argumentation.push(second);
+
+        for frontier in &mut chain.frontiers {
+            frontier.argumentation_metadata.push(
+                crate::civilizational::ArgumentationTemporalMetadataV1 {
+                    assessment: "assessment:2".into(),
+                    interpretation: "interpretation:2".into(),
+                    assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
+                    interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                    available_by: 1950,
+                },
+            );
+            frontier.recompute_manifest_hash().expect("argumentation manifest hash");
+        }
+        audit.recompute_hash().expect("multi-argumentation audit hash");
+        audit
+            .validate_against_frontier_chain(&chain, &claim)
+            .expect("multi-argumentation audit");
+
+        let original = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
+            .expect("original receipt");
+
+        let mut reordered_audit = audit.clone();
+        reordered_audit.argumentation.reverse();
+        reordered_audit.recompute_hash().expect("reordered audit hash");
+        assert_eq!(reordered_audit.semantic_hash, audit.semantic_hash);
+
+        let reordered = V5ReplayReceiptV1::from_audit_and_chain(
+            &reordered_audit,
+            &chain,
+            &claim,
+        )
+        .expect("reordered receipt");
+        assert_eq!(original.receipt_hash, reordered.receipt_hash);
+        assert_eq!(original.argumentation, reordered.argumentation);
+
+        let mut identity_changed = reordered_audit.clone();
+        identity_changed.argumentation[0].kind = CulturalArgumentationKindV1::MeaningComprehension;
+        identity_changed.argumentation[0].recompute_hash().expect("identity hash");
+        identity_changed.recompute_hash().expect("identity audit hash");
+        assert_ne!(identity_changed.semantic_hash, reordered_audit.semantic_hash);
+        assert!(V5ReplayReceiptV1::from_audit_and_chain(
+            &identity_changed,
+            &chain,
+            &claim,
+        )
+        .is_err());
+    }
+
+    #[test]
     fn receipt_hash_changes_when_argumentation_or_ontology_changes() {
         let (audit, claim, chain) = fixture();
         let mut receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
