@@ -561,11 +561,35 @@ impl EvidenceFrontierChainV1 {
     }
 }
 
+/// Explicit version of the canonicalization contract used by frontier manifests.
+///
+/// V1 intentionally canonicalizes evidence/source metadata ordering but preserves
+/// argumentation metadata ordering. That behavior is compatibility-sensitive because
+/// existing manifest hashes are content-addressed artifacts.
+///
+/// A future canonicalization change MUST introduce a new versioned contract rather
+/// than silently changing the meaning of an existing manifest hash.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum EvidenceFrontierManifestCanonicalizationV1 {}
+
+impl EvidenceFrontierManifestCanonicalizationV1 {
+    pub const VERSION: &'static str = "evidence-frontier-manifest-c14n-v1";
+}
+
 impl EvidenceFrontierV1 {
-    /// Computes the content hash for the frontier admission manifest.
+    /// Computes the content hash using the explicitly versioned V1 manifest
+    /// canonicalization contract.
     pub fn computed_manifest_hash(&self) -> Result<String, ProjectionError> {
-        // Metadata is a vector for serialization compatibility, but manifest
-        // identity must not depend on caller-provided ordering.
+        self.computed_manifest_hash_with(EvidenceFrontierManifestCanonicalizationV1)
+    }
+
+    pub fn computed_manifest_hash_with(
+        &self,
+        _canonicalization: EvidenceFrontierManifestCanonicalizationV1,
+    ) -> Result<String, ProjectionError> {
+        // Metadata is a vector for serialization compatibility, but V1 manifest
+        // identity must not depend on caller-provided ordering for evidence/source
+        // metadata. Argumentation metadata remains order-sensitive in V1.
         let mut canonical_metadata = self.evidence_metadata.clone();
         canonical_metadata.sort_by(|a, b| a.evidence_id.cmp(&b.evidence_id));
         let mut canonical_source_metadata = self.source_metadata.clone();
@@ -573,6 +597,7 @@ impl EvidenceFrontierV1 {
             .sort_by(|a, b| a.source_snapshot.cmp(&b.source_snapshot));
 
         let payload = (
+            EvidenceFrontierManifestCanonicalizationV1::VERSION,
             &self.known_by_year,
             &self.parent_frontier,
             &self.policy_version,
@@ -1411,6 +1436,51 @@ mod tests {
             frontier.verify_manifest_hash(),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
+    }
+
+    #[test]
+    fn manifest_canonicalization_v1_is_explicit_and_argumentation_order_sensitive() {
+        let metadata = |assessment: &str, interpretation: &str| ArgumentationTemporalMetadataV1 {
+            assessment: assessment.into(),
+            interpretation: interpretation.into(),
+            assessment_time: Some(YearInterval { from: Some(1990), to: Some(1990) }),
+            interpretation_time: Some(YearInterval { from: Some(1995), to: Some(1995) }),
+            available_by: 1996,
+        };
+
+        let mut first = EvidenceFrontierV1 {
+            frontier_id: "frontier:c14n-v1".into(),
+            known_by_year: 2000,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![
+                metadata("assessment:a", "interpretation:a"),
+                metadata("assessment:b", "interpretation:b"),
+            ],
+        };
+        let mut second = first.clone();
+        second.argumentation_metadata.reverse();
+
+        let first_hash = first
+            .computed_manifest_hash_with(EvidenceFrontierManifestCanonicalizationV1)
+            .unwrap();
+        let second_hash = second
+            .computed_manifest_hash_with(EvidenceFrontierManifestCanonicalizationV1)
+            .unwrap();
+
+        assert_eq!(
+            EvidenceFrontierManifestCanonicalizationV1::VERSION,
+            "evidence-frontier-manifest-c14n-v1"
+        );
+        assert_ne!(first_hash, second_hash);
+
+        first.recompute_manifest_hash().unwrap();
+        assert_eq!(first.manifest_hash, first_hash);
     }
 
     #[test]
