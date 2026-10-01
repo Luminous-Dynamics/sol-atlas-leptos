@@ -474,6 +474,10 @@ impl ArgumentationTemporalMetadataV1 {
         {
             return Err(ProjectionError::InvalidTimeInterval);
         }
+        // V1 treats available_by as availability of the completed external
+        // argumentation record. Thus an explicit temporal end must not occur
+        // after the record becomes available; an open-ended extent still cannot
+        // begin after that availability boundary.
         if self.available_by < self.assessment_time.and_then(|v| v.to).or(self.assessment_time.and_then(|v| v.from)).unwrap_or(self.available_by)
             || self.available_by < self.interpretation_time.and_then(|v| v.to).or(self.interpretation_time.and_then(|v| v.from)).unwrap_or(self.available_by)
         {
