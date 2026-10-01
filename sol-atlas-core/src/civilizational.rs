@@ -1067,6 +1067,88 @@ mod tests {
     }
 
     #[test]
+    fn evidence_availability_at_frontier_is_inclusive() {
+        let metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:cutoff".into(),
+            source_snapshot: "source:cutoff".into(),
+            artifact_time: Some(YearInterval { from: Some(1800), to: Some(1800) }),
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1950,
+            validity_time: None,
+        };
+        assert!(!metadata.available_at(1949));
+        assert!(metadata.available_at(1950));
+        assert!(metadata.available_at(1951));
+    }
+
+    #[test]
+    fn source_snapshot_availability_at_frontier_is_inclusive() {
+        let metadata = SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:cutoff".into(),
+            publication_time: Some(1940),
+            capture_time: Some(1950),
+            available_by: 1950,
+        };
+        assert!(!metadata.available_at(1949));
+        assert!(metadata.available_at(1950));
+    }
+
+    #[test]
+    fn argumentation_frontier_admission_uses_record_availability_not_temporal_extent() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1950,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:a".into(),
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1950,
+            }],
+            argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
+                assessment: "assessment:old".into(),
+                interpretation: "interpretation:old".into(),
+                assessment_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
+                interpretation_time: Some(YearInterval { from: Some(1300), to: Some(1300) }),
+                available_by: 1950,
+            }],
+        };
+        frontier.recompute_manifest_hash().unwrap();
+
+        assert!(frontier.admits_argumentation(&"assessment:old".into(), &"interpretation:old".into()));
+
+        frontier.known_by_year = 1949;
+        assert!(!frontier.admits_argumentation(&"assessment:old".into(), &"interpretation:old".into()));
+    }
+
+    #[test]
+    fn later_frontier_horizon_does_not_make_earlier_metadata_available() {
+        let metadata = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:later".into(),
+            interpretation: "interpretation:later".into(),
+            assessment_time: Some(YearInterval { from: Some(1800), to: Some(1800) }),
+            interpretation_time: Some(YearInterval { from: Some(1800), to: Some(1800) }),
+            available_by: 1951,
+        };
+        assert!(!metadata.available_at(1950));
+        assert!(metadata.available_at(1951));
+    }
+
+    #[test]
     fn argumentation_availability_can_be_unknown_until_a_later_frontier() {
         let value = ArgumentationTemporalMetadataV1 {
             assessment: "assessment:1".into(),
