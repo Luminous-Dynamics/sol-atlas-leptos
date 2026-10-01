@@ -210,3 +210,148 @@ mod tests {
         assert!(!c.contribution.ai.is_empty());
     }
 }
+
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CapabilityGraphError {
+    pub missing: Vec<CapabilityId>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct CapabilityGraph {
+    pub capabilities: Vec<Capability>,
+}
+
+impl CapabilityGraph {
+    /// Compute the deterministic transitive dependency closure of a root.
+    ///
+    /// Only dependencies marked `required` participate. Substitutes are
+    /// reported as metadata but are not silently selected by the closure.
+    /// Missing required capabilities are returned as an error instead of
+    /// being interpreted as satisfied.
+    pub fn required_closure(
+        &self,
+        root: &CapabilityId,
+    ) -> Result<Vec<CapabilityId>, CapabilityGraphError> {
+        use std::collections::{BTreeSet, VecDeque};
+
+        let index = self
+            .capabilities
+            .iter()
+            .map(|c| (c.id.clone(), c))
+            .collect::<std::collections::BTreeMap<_, _>>();
+
+        let mut queue = VecDeque::from([root.clone()]);
+        let mut seen = BTreeSet::new();
+        let mut missing = BTreeSet::new();
+
+        while let Some(id) = queue.pop_front() {
+            if !seen.insert(id.clone()) {
+                continue;
+            }
+
+            let Some(capability) = index.get(&id) else {
+                missing.insert(id);
+                continue;
+            };
+
+            for dependency in capability.dependencies.iter().filter(|d| d.required) {
+                queue.push_back(dependency.capability.clone());
+            }
+        }
+
+        if !missing.is_empty() {
+            return Err(CapabilityGraphError {
+                missing: missing.into_iter().collect(),
+            });
+        }
+
+        Ok(seen.into_iter().collect())
+    }
+}
+
+#[cfg(test)]
+mod graph_tests {
+    use super::*;
+
+    fn cap(id: &str, dependencies: &[&str]) -> Capability {
+        Capability {
+            id: CapabilityId(id.into()),
+            name: id.into(),
+            description: String::new(),
+            state: CapabilityState::Demonstrated,
+            dependencies: dependencies
+                .iter()
+                .map(|dependency| CapabilityDependency {
+                    capability: CapabilityId((*dependency).into()),
+                    relation: DependencyKind::Required,
+                    required: true,
+                    substitutes: vec![],
+                })
+                .collect(),
+            evidence: vec![],
+            provenance: vec![],
+            locations: vec![],
+            qualification: None,
+            contribution: HumanAiContribution {
+                human: String::new(),
+                ai: String::new(),
+            },
+        }
+    }
+
+    #[test]
+    fn required_closure_is_transitive_and_deterministic() {
+        let graph = CapabilityGraph {
+            capabilities: vec![
+                cap("c", &["b"]),
+                cap("a", &["c"]),
+                cap("b", &["d"]),
+                cap("d", &[]),
+            ],
+        };
+
+        assert_eq!(
+            graph.required_closure(&CapabilityId("a".into())).unwrap(),
+            vec![
+                CapabilityId("a".into()),
+                CapabilityId("b".into()),
+                CapabilityId("c".into()),
+                CapabilityId("d".into()),
+            ]
+        );
+    }
+
+    #[test]
+    fn missing_dependency_is_not_silently_satisfied() {
+        let graph = CapabilityGraph {
+            capabilities: vec![cap("a", &["missing"])],
+        };
+
+        let error = graph.required_closure(&CapabilityId("a".into())).unwrap_err();
+        assert_eq!(
+            error.missing,
+            vec![CapabilityId("missing".into())]
+        );
+    }
+
+    #[test]
+    fn optional_dependencies_do_not_expand_required_closure() {
+        let mut root = cap("a", &[]);
+        root.dependencies.push(CapabilityDependency {
+            capability: CapabilityId("optional".into()),
+            relation: DependencyKind::Enabling,
+            required: false,
+            substitutes: vec![],
+        });
+
+        let graph = CapabilityGraph {
+            capabilities: vec![root],
+        };
+
+        assert_eq!(
+            graph.required_closure(&CapabilityId("a".into())).unwrap(),
+            vec![CapabilityId("a".into())]
+        );
+    }
+}
