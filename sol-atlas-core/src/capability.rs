@@ -108,7 +108,7 @@ pub enum InstanceState {
     Retired,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CapabilityInstance {
     /// Stable identity for one concrete instantiation of a capability.
     pub id: String,
