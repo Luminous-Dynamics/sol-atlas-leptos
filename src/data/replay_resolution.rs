@@ -242,7 +242,6 @@ mod tests {
     }
 
     #[test]
-    #[test]
     fn deserialized_blank_identities_fail_closed() {
         let malformed_request: DependencyResolutionRequestV1 =
             serde_json::from_str(r#"{"frontier_ref":"   ","manifest_digest":"manifest:abc"}"#)
@@ -260,6 +259,7 @@ mod tests {
             .is_bound_to_request(&malformed_request));
     }
 
+    #[test]
     fn request_is_not_a_resolution() {
         let request = DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap();
         let state = DependencyResolutionState::Requested(request);
