@@ -756,24 +756,24 @@ impl EvidenceFrontierV1 {
             if !self.admitted_evidence.is_empty() {
                 return Err(ProjectionError::InvalidEvidenceFrontierManifest);
             }
-            return Ok(());
-        }
-        if self.evidence_metadata.len() != self.admitted_evidence.len()
-            || self.evidence_metadata.iter().map(|m| &m.evidence_id).collect::<BTreeSet<_>>().len()
-                != self.evidence_metadata.len()
-        {
-            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
-        }
-        for metadata in &self.evidence_metadata {
-            metadata.validate()?;
-            if metadata.available_by > self.known_by_year {
-                return Err(ProjectionError::LaterEvidenceInFrontier);
+        } else {
+            if self.evidence_metadata.len() != self.admitted_evidence.len()
+                || self.evidence_metadata.iter().map(|m| &m.evidence_id).collect::<BTreeSet<_>>().len()
+                    != self.evidence_metadata.len()
+            {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
             }
-            if !self.admitted_evidence.contains(&metadata.evidence_id) {
-                return Err(ProjectionError::UnadmittedEvidenceMetadata);
-            }
-            if !self.admitted_sources.contains(&metadata.source_snapshot) {
-                return Err(ProjectionError::UnadmittedSourceMetadata);
+            for metadata in &self.evidence_metadata {
+                metadata.validate()?;
+                if metadata.available_by > self.known_by_year {
+                    return Err(ProjectionError::LaterEvidenceInFrontier);
+                }
+                if !self.admitted_evidence.contains(&metadata.evidence_id) {
+                    return Err(ProjectionError::UnadmittedEvidenceMetadata);
+                }
+                if !self.admitted_sources.contains(&metadata.source_snapshot) {
+                    return Err(ProjectionError::UnadmittedSourceMetadata);
+                }
             }
         }
 
@@ -1773,6 +1773,103 @@ mod tests {
         assert_eq!(
             child.validate_extension_of(&parent),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn argumentation_metadata_is_validated_when_evidence_metadata_is_absent() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:argumentation-only".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: BTreeSet::new(),
+            admitted_sources: BTreeSet::new(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
+                assessment: "assessment:later".into(),
+                interpretation: "interpretation:later".into(),
+                assessment_time: Some(YearInterval { from: Some(1940), to: Some(1940) }),
+                interpretation_time: Some(YearInterval { from: Some(1940), to: Some(1940) }),
+                available_by: 1951,
+            }],
+        };
+        frontier.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            frontier.validate_temporal_manifest(),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
+    }
+
+    #[test]
+    fn frontier_extension_adds_argumentation_without_rewriting_inherited_record() {
+        let inherited_argumentation = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:old".into(),
+            interpretation: "interpretation:old".into(),
+            assessment_time: Some(YearInterval { from: Some(1800), to: Some(1800) }),
+            interpretation_time: Some(YearInterval { from: Some(1800), to: Some(1800) }),
+            available_by: 1900,
+        };
+        let new_argumentation = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:new".into(),
+            interpretation: "interpretation:new".into(),
+            assessment_time: Some(YearInterval { from: Some(1901), to: Some(1901) }),
+            interpretation_time: Some(YearInterval { from: Some(1901), to: Some(1901) }),
+            available_by: 1901,
+        };
+
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+            source_metadata: vec![],
+            argumentation_metadata: vec![inherited_argumentation.clone()],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let mut child = parent.clone();
+        child.frontier_id = "frontier:1901".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(parent.frontier_id.clone());
+        child.argumentation_metadata.push(new_argumentation.clone());
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(child.validate_extension_of(&parent), Ok(()));
+        assert_eq!(parent.argumentation_metadata[0], inherited_argumentation);
+        assert!(child.admits_argumentation(
+            &"assessment:new".into(),
+            &"interpretation:new".into()
+        ));
+
+        child.argumentation_metadata[0].available_by = 1901;
+        child.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        child.argumentation_metadata[0] = inherited_argumentation;
+        child.argumentation_metadata[1].available_by = 1902;
+        child.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            child.validate_temporal_manifest(),
+            Err(ProjectionError::LaterEvidenceInFrontier)
         );
     }
 
