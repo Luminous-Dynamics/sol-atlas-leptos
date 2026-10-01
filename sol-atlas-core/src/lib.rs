@@ -9,6 +9,7 @@
 //! between rendering backends (web-sys, glam/nalgebra).
 
 pub mod aesthetics;
+pub mod bootstrap;
 pub mod capability;
 pub mod confluence;
 pub mod constants;
@@ -28,5 +29,6 @@ pub mod timeline;
 pub mod types;
 pub mod visual_validation;
 
+pub use bootstrap::*;
 pub use capability::*;
 pub use types::*;
