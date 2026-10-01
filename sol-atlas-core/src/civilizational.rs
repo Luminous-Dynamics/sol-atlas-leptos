@@ -1032,6 +1032,50 @@ mod tests {
     }
 
     #[test]
+    fn argumentation_availability_requires_temporal_extent_to_be_available() {
+        let base = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            assessment_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+            interpretation_time: Some(YearInterval { from: Some(1941), to: Some(1949) }),
+            available_by: 1950,
+        };
+        assert_eq!(base.validate(), Ok(()));
+
+        let mut before_end = base.clone();
+        before_end.available_by = 1949;
+        assert_eq!(before_end.validate(), Err(ProjectionError::InvalidTimeInterval));
+    }
+
+    #[test]
+    fn argumentation_open_ended_extent_still_requires_known_start_before_availability() {
+        let mut value = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            assessment_time: Some(YearInterval { from: Some(1950), to: None }),
+            interpretation_time: None,
+            available_by: 1950,
+        };
+        assert_eq!(value.validate(), Ok(()));
+
+        value.available_by = 1949;
+        assert_eq!(value.validate(), Err(ProjectionError::InvalidTimeInterval));
+    }
+
+    #[test]
+    fn argumentation_availability_can_be_unknown_until_a_later_frontier() {
+        let value = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            assessment_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+            interpretation_time: None,
+            available_by: 1950,
+        };
+        assert!(!value.available_at(1949));
+        assert!(value.available_at(1950));
+    }
+
+    #[test]
     fn frontier_temporal_manifest_blocks_anachronistic_evidence() {
         let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1900".into(),
