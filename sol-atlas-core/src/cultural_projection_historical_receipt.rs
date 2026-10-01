@@ -517,6 +517,39 @@ mod tests {
 
 
     #[test]
+    fn child_receipt_rejects_parent_lineage_substitution() {
+        let (audit, claim, chain) = fixture();
+        let child_id: EvidenceFrontierId = "frontier:1951".into();
+        let child_claim = CanonicalClaimAdmissionV1 {
+            evidence_frontier: child_id.clone(),
+            ..claim
+        };
+        let child_audit = audit_bound_to_frontier(&audit, &child_claim, &child_id);
+        let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
+            &child_audit,
+            &chain,
+            &child_id,
+            &child_claim,
+        )
+        .expect("child receipt");
+
+        // Keep the selected child's own manifest intact, but substitute its
+        // parent identity. The receipt must remain bound to the verified
+        // historical lineage, not merely to the selected frontier contents.
+        let mut substituted = chain.clone();
+        substituted.frontiers[1].parent_frontier = Some("frontier:synthetic-parent".into());
+        assert_eq!(
+            substituted.frontiers[1].manifest_hash,
+            chain.frontiers[1].manifest_hash
+        );
+
+        assert!(receipt
+            .validate_against_audit_at(&child_audit, &substituted, &child_claim)
+            .is_err());
+    }
+
+
+    #[test]
     fn child_bound_audit_cannot_validate_at_parent() {
         let (audit, claim, chain) = fixture();
         let child_claim = CanonicalClaimAdmissionV1 { evidence_frontier: "frontier:1951".into(), ..claim };
