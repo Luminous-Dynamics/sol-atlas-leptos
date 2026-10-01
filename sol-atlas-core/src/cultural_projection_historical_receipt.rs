@@ -449,6 +449,74 @@ mod tests {
     }
 
     #[test]
+    fn historical_root_receipt_is_invariant_to_equivalent_descendant_reconstruction() {
+        let (audit, claim, chain) = fixture();
+        let root_id: EvidenceFrontierId = "frontier:1950".into();
+        let original = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &chain,
+            &root_id,
+            &claim,
+        )
+        .expect("original root receipt");
+
+        // Reconstruct later frontiers independently while preserving the exact
+        // root frontier and all manifest semantics. These descendant changes
+        // must not become part of a receipt explicitly selected at the root.
+        let mut reconstructed = chain.clone();
+        reconstructed.frontiers[1].evidence_metadata.reverse();
+        reconstructed.frontiers[1].source_metadata.reverse();
+        reconstructed.frontiers[1].recompute_manifest_hash().expect("child hash");
+        reconstructed.frontiers[2].evidence_metadata.reverse();
+        reconstructed.frontiers[2].source_metadata.reverse();
+        reconstructed.frontiers[2].recompute_manifest_hash().expect("grandchild hash");
+        assert_eq!(reconstructed.frontiers[0], chain.frontiers[0]);
+        assert_eq!(reconstructed.validate_strict(), Ok(()));
+
+        let reconstructed_receipt = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &reconstructed,
+            &root_id,
+            &claim,
+        )
+        .expect("reconstructed root receipt");
+
+        assert_eq!(original.receipt_hash, reconstructed_receipt.receipt_hash);
+        assert_eq!(original.replay.receipt_hash, reconstructed_receipt.replay.receipt_hash);
+        assert_eq!(original.replay.frontier_lineage, reconstructed_receipt.replay.frontier_lineage);
+    }
+
+    #[test]
+    fn reconstructed_root_with_changed_availability_cannot_reuse_historical_receipt() {
+        let (audit, claim, chain) = fixture();
+        let root_id: EvidenceFrontierId = "frontier:1950".into();
+        let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &chain,
+            &root_id,
+            &claim,
+        )
+        .expect("original root receipt");
+
+        let mut reconstructed_root = chain.frontiers[0].clone();
+        reconstructed_root.evidence_metadata[0].available_by = 1943;
+        reconstructed_root.recompute_manifest_hash().expect("reconstructed root hash");
+
+        let reconstructed_chain = EvidenceFrontierChainV1 {
+            frontiers: vec![reconstructed_root],
+        };
+
+        assert_ne!(
+            receipt.replay.frontier_lineage[0].1,
+            reconstructed_chain.frontiers[0].manifest_hash
+        );
+        assert!(receipt
+            .validate_against_audit_at(&audit, &reconstructed_chain, &claim)
+            .is_err());
+    }
+
+
+    #[test]
     fn child_bound_audit_cannot_validate_at_parent() {
         let (audit, claim, chain) = fixture();
         let child_claim = CanonicalClaimAdmissionV1 { evidence_frontier: "frontier:1951".into(), ..claim };
