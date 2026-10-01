@@ -414,6 +414,46 @@ mod tests {
     }
 
     #[test]
+    fn independently_reconstructed_equivalent_closure_preserves_receipt_hash() {
+        let (audit, claim, chain) = fixture();
+        let original = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
+            .expect("original receipt");
+
+        let mut equivalent_chain = chain.clone();
+        equivalent_chain.frontiers[0].evidence_metadata.reverse();
+        equivalent_chain.frontiers[0].admitted_evidence =
+            ["e:2", "e:1"].into_iter().map(Into::into).collect();
+        equivalent_chain.frontiers[0].admitted_sources =
+            ["source:1"].into_iter().map(Into::into).collect();
+        equivalent_chain.frontiers[0]
+            .recompute_manifest_hash()
+            .expect("equivalent root hash");
+        assert_eq!(
+            equivalent_chain.frontiers[0].manifest_hash,
+            chain.frontiers[0].manifest_hash
+        );
+        assert_eq!(equivalent_chain.validate_strict(), Ok(()));
+
+        let mut equivalent_audit = audit.clone();
+        equivalent_audit.base.base.evidence_refs.reverse();
+        equivalent_audit.recompute_hash().expect("equivalent audit hash");
+        assert_eq!(equivalent_audit.semantic_hash, audit.semantic_hash);
+        equivalent_audit.validate().expect("equivalent audit");
+
+        let mut equivalent_claim = claim.clone();
+        equivalent_claim.evidence_refs.reverse();
+        let equivalent = V5ReplayReceiptV1::from_audit_and_chain(
+            &equivalent_audit,
+            &equivalent_chain,
+            &equivalent_claim,
+        )
+        .expect("equivalent receipt");
+
+        assert_eq!(original.receipt_hash, equivalent.receipt_hash);
+        assert_eq!(original.frontier_lineage, equivalent.frontier_lineage);
+    }
+
+    #[test]
     fn receipt_hash_changes_when_argumentation_or_ontology_changes() {
         let (audit, claim, chain) = fixture();
         let mut receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
