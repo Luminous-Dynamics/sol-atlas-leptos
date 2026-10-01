@@ -30,8 +30,8 @@ pub enum DependencyResolutionStatus {
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct DependencyResolutionRequestV1 {
     /// Opaque canonical frontier identity owned by Mycelix.
-    pub frontier_ref: String,
-    pub manifest_digest: String,
+    frontier_ref: String,
+    manifest_digest: String,
 }
 
 impl DependencyResolutionRequestV1 {
@@ -42,6 +42,14 @@ impl DependencyResolutionRequestV1 {
             return None;
         }
         Some(Self { frontier_ref, manifest_digest })
+    }
+
+    pub fn frontier_ref(&self) -> &str {
+        &self.frontier_ref
+    }
+
+    pub fn manifest_digest(&self) -> &str {
+        &self.manifest_digest
     }
 
     pub fn matches_authority_response(&self, reference: &AuthorityResolutionRefV1) -> bool {
@@ -57,10 +65,10 @@ impl DependencyResolutionRequestV1 {
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct AuthorityResolutionRefV1 {
     /// Opaque canonical frontier identity owned by Mycelix.
-    pub frontier_ref: String,
-    pub manifest_digest: String,
-    pub resolution_ref: String,
-    pub status: DependencyResolutionStatus,
+    frontier_ref: String,
+    manifest_digest: String,
+    resolution_ref: String,
+    status: DependencyResolutionStatus,
 }
 
 impl AuthorityResolutionRefV1 {
@@ -85,6 +93,22 @@ impl AuthorityResolutionRefV1 {
             resolution_ref,
             status,
         })
+    }
+
+    pub fn frontier_ref(&self) -> &str {
+        &self.frontier_ref
+    }
+
+    pub fn manifest_digest(&self) -> &str {
+        &self.manifest_digest
+    }
+
+    pub fn resolution_ref(&self) -> &str {
+        &self.resolution_ref
+    }
+
+    pub fn status(&self) -> DependencyResolutionStatus {
+        self.status
     }
 
     pub fn is_terminally_resolved(&self) -> bool {
