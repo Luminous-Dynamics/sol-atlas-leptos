@@ -570,7 +570,7 @@ impl EvidenceFrontierChainV1 {
 /// A future canonicalization change MUST introduce a new versioned contract rather
 /// than silently changing the meaning of an existing manifest hash.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum EvidenceFrontierManifestCanonicalizationV1 {}
+pub struct EvidenceFrontierManifestCanonicalizationV1;
 
 impl EvidenceFrontierManifestCanonicalizationV1 {
     pub const VERSION: &'static str = "evidence-frontier-manifest-c14n-v1";
@@ -589,7 +589,9 @@ impl EvidenceFrontierV1 {
     ) -> Result<String, ProjectionError> {
         // Metadata is a vector for serialization compatibility, but V1 manifest
         // identity must not depend on caller-provided ordering for evidence/source
-        // metadata. Argumentation metadata remains order-sensitive in V1.
+        // metadata. Argumentation metadata remains order-sensitive in V1. The
+        // version label is deliberately not included in the payload so V1
+        // reproduces the already-issued manifest hashes byte-for-byte.
         let mut canonical_metadata = self.evidence_metadata.clone();
         canonical_metadata.sort_by(|a, b| a.evidence_id.cmp(&b.evidence_id));
         let mut canonical_source_metadata = self.source_metadata.clone();
@@ -597,7 +599,6 @@ impl EvidenceFrontierV1 {
             .sort_by(|a, b| a.source_snapshot.cmp(&b.source_snapshot));
 
         let payload = (
-            EvidenceFrontierManifestCanonicalizationV1::VERSION,
             &self.known_by_year,
             &self.parent_frontier,
             &self.policy_version,
