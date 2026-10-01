@@ -29,13 +29,33 @@ pub enum EvidenceKind {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DependencyKind {
+    /// A hard dependency that must be present for the modeled capability.
     Required,
+    /// A context/enabler that may support a capability without entering its hard closure.
     Enabling,
+    /// A maintenance capability required to sustain the modeled capability.
     Maintenance,
+    /// Required knowledge needed by the modeled capability.
     Knowledge,
+    /// Required energy capability needed by the modeled capability.
     Energy,
+    /// Required material capability needed by the modeled capability.
     Material,
+    /// A documented alternative path; never selected implicitly.
     Alternative,
+}
+
+impl DependencyKind {
+    /// Whether this relation participates in the required capability closure.
+    ///
+    /// Requirement semantics live in the relation kind itself. There is
+    /// intentionally no second boolean source of truth.
+    pub fn is_required(self) -> bool {
+        matches!(
+            self,
+            Self::Required | Self::Maintenance | Self::Knowledge | Self::Energy | Self::Material
+        )
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -120,7 +140,7 @@ impl CapabilityInstance {
 pub struct CapabilityDependency {
     pub capability: CapabilityId,
     pub relation: DependencyKind,
-    pub required: bool,
+    /// Explicit alternative candidates; never silently selected.
     pub substitutes: Vec<CapabilityId>,
 }
 
@@ -179,7 +199,6 @@ mod tests {
             dependencies: vec![CapabilityDependency {
                 capability: CapabilityId("energy.electricity".into()),
                 relation: DependencyKind::Energy,
-                required: true,
                 substitutes: vec![CapabilityId("energy.mechanical".into())],
             }],
             evidence: vec![CapabilityEvidence {
@@ -285,7 +304,7 @@ mod tests {
         let c = capability();
         let dep = &c.dependencies[0];
         assert_eq!(dep.relation, DependencyKind::Energy);
-        assert!(dep.required);
+        assert!(dep.relation.is_required());
         assert_eq!(dep.substitutes.len(), 1);
     }
 
@@ -311,8 +330,8 @@ pub struct CapabilityGraph {
 impl CapabilityGraph {
     /// Compute the deterministic transitive dependency closure of a root.
     ///
-    /// Only dependencies marked `required` participate. Substitutes are
-    /// reported as metadata but are not silently selected by the closure.
+    /// Only dependency relations whose kind is required participate.
+    /// Substitutes are metadata and are never silently selected by the closure.
     /// Missing required capabilities are returned as an error instead of
     /// being interpreted as satisfied.
     pub fn required_closure(
@@ -341,7 +360,7 @@ impl CapabilityGraph {
                 continue;
             };
 
-            for dependency in capability.dependencies.iter().filter(|d| d.required) {
+            for dependency in capability.dependencies.iter().filter(|d| d.relation.is_required()) {
                 queue.push_back(dependency.capability.clone());
             }
         }
@@ -371,7 +390,6 @@ mod graph_tests {
                 .map(|dependency| CapabilityDependency {
                     capability: CapabilityId((*dependency).into()),
                     relation: DependencyKind::Required,
-                    required: true,
                     substitutes: vec![],
                 })
                 .collect(),
@@ -427,7 +445,6 @@ mod graph_tests {
         root.dependencies.push(CapabilityDependency {
             capability: CapabilityId("optional".into()),
             relation: DependencyKind::Enabling,
-            required: false,
             substitutes: vec![],
         });
 
