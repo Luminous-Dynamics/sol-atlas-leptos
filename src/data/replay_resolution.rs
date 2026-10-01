@@ -84,6 +84,7 @@ impl AuthorityResolutionRefV1 {
         if frontier_ref.trim().is_empty()
             || manifest_digest.trim().is_empty()
             || resolution_ref.trim().is_empty()
+            || matches!(status, DependencyResolutionStatus::Unrequested | DependencyResolutionStatus::Requested)
         {
             return None;
         }
@@ -265,13 +266,14 @@ mod tests {
 
     #[test]
     fn authority_response_constructor_rejects_request_only_statuses() {
-        let reference = AuthorityResolutionRefV1::from_authority(
-            "frontier:001",
-            "manifest:abc",
-            "resolution:001",
-            DependencyResolutionStatus::Requested,
-        ).unwrap();
-        assert!(DependencyResolutionState::try_from_authority(reference).is_none());
+        for status in [DependencyResolutionStatus::Unrequested, DependencyResolutionStatus::Requested] {
+            assert!(AuthorityResolutionRefV1::from_authority(
+                "frontier:001",
+                "manifest:abc",
+                "resolution:001",
+                status,
+            ).is_none());
+        }
 
         let reference = AuthorityResolutionRefV1::from_authority(
             "frontier:001",
