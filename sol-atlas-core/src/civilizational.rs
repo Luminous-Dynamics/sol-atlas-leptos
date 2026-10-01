@@ -1053,7 +1053,6 @@ mod tests {
             }],
             source_metadata: vec![],
             argumentation_metadata: vec![],
-            argumentation_metadata: vec![],
         };
         assert_eq!(frontier.validate_temporal_manifest(), Ok(()));
         assert!(frontier.admits(&"evidence:old".into()));
