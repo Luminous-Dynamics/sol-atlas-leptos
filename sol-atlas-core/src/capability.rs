@@ -317,6 +317,38 @@ mod tests {
 }
 
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AlternativePath {
+    /// The dependency this candidate could replace.
+    pub for_dependency: CapabilityId,
+    /// An explicitly declared candidate capability.
+    pub candidate: CapabilityId,
+    /// Evidence/reference supporting the alternative relationship.
+    pub evidence: Vec<String>,
+    /// What this declaration is allowed to claim.
+    pub claim_ceiling: String,
+}
+
+impl Capability {
+    /// Enumerate explicitly declared alternatives for this capability.
+    ///
+    /// This is discovery only: no candidate is treated as selected,
+    /// equivalent, or operationally interchangeable.
+    pub fn alternative_paths(&self) -> Vec<AlternativePath> {
+        self.dependencies
+            .iter()
+            .flat_map(|dependency| {
+                dependency.substitutes.iter().cloned().map(|candidate| AlternativePath {
+                    for_dependency: dependency.capability.clone(),
+                    candidate,
+                    evidence: Vec::new(),
+                    claim_ceiling: "Declared alternative candidate only; equivalence and operational interchangeability are not established.".into(),
+                })
+            })
+            .collect()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CapabilityGraphError {
     pub missing: Vec<CapabilityId>,
@@ -453,6 +485,22 @@ mod graph_tests {
             graph.affected_by(&CapabilityId("independent".into())).affected,
             vec![CapabilityId("independent".into())]
         );
+    }
+
+    #[test]
+    fn alternatives_are_explicit_candidates_not_selections() {
+        let mut root = cap("a", &["b"]);
+        root.dependencies[0].substitutes = vec![
+            CapabilityId("alternative-1".into()),
+            CapabilityId("alternative-2".into()),
+        ];
+
+        let paths = root.alternative_paths();
+        assert_eq!(paths.len(), 2);
+        assert_eq!(paths[0].for_dependency, CapabilityId("b".into()));
+        assert_eq!(paths[0].candidate, CapabilityId("alternative-1".into()));
+        assert!(paths[0].evidence.is_empty());
+        assert!(paths[0].claim_ceiling.contains("not established"));
     }
 
     #[test]
