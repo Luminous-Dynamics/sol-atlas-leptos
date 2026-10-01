@@ -356,10 +356,22 @@ pub struct CapabilityGraphError {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CapabilityImpact {
-    /// Capabilities with a complete declared closure containing the unavailable capability.
-    pub affected: Vec<CapabilityId>,
-    /// Capabilities whose closure could not be fully evaluated.
+    /// The capability explicitly declared unavailable by the analysis input.
+    pub unavailable: CapabilityId,
+    /// Capabilities that directly require the unavailable capability.
+    pub direct_affected: Vec<CapabilityId>,
+    /// Capabilities that depend on the unavailable capability through one or more
+    /// intermediate required dependencies.
+    pub transitive_affected: Vec<CapabilityId>,
+    /// Capabilities whose required closure could not be fully evaluated.
+    ///
+    /// Unresolved is deliberately separate from affected: incomplete graph data
+    /// is not evidence of safety, equivalence, or absence of impact.
     pub unresolved: Vec<CapabilityId>,
+    /// Compatibility view of the complete affected set, excluding the unavailable
+    /// capability itself. Prefer direct_affected and transitive_affected when the
+    /// causal distance matters.
+    pub affected: Vec<CapabilityId>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -375,18 +387,41 @@ impl CapabilityGraph {
     /// world impact. Explicit substitutes are intentionally not selected here;
     /// resilience policy remains a separate, auditable decision.
     pub fn affected_by(&self, unavailable: &CapabilityId) -> CapabilityImpact {
-        let mut affected = Vec::new();
+        let mut direct_affected = Vec::new();
+        let mut transitive_affected = Vec::new();
         let mut unresolved = Vec::new();
 
         for capability in &self.capabilities {
+            if capability.id == *unavailable {
+                continue;
+            }
+
             match self.required_closure(&capability.id) {
-                Ok(closure) if closure.contains(unavailable) => affected.push(capability.id.clone()),
+                Ok(closure) if closure.contains(unavailable) => {
+                    if capability.dependencies.iter().any(|dependency| {
+                        dependency.relation.is_required() && dependency.capability == *unavailable
+                    }) {
+                        direct_affected.push(capability.id.clone());
+                    } else {
+                        transitive_affected.push(capability.id.clone());
+                    }
+                }
                 Ok(_) => {}
                 Err(_) => unresolved.push(capability.id.clone()),
             }
         }
 
-        CapabilityImpact { affected, unresolved }
+        let mut affected = direct_affected.clone();
+        affected.extend(transitive_affected.iter().cloned());
+        affected.sort();
+
+        CapabilityImpact {
+            unavailable: unavailable.clone(),
+            direct_affected,
+            transitive_affected,
+            unresolved,
+            affected,
+        }
     }
 
     /// Compute the deterministic transitive dependency closure of a root.
@@ -476,15 +511,17 @@ mod graph_tests {
             ],
         };
 
-        assert_eq!(
-            graph.affected_by(&CapabilityId("c".into())).affected,
-            vec![CapabilityId("a".into()), CapabilityId("b".into()), CapabilityId("c".into())]
-        );
-        assert!(graph.affected_by(&CapabilityId("c".into())).unresolved.is_empty());
-        assert_eq!(
-            graph.affected_by(&CapabilityId("independent".into())).affected,
-            vec![CapabilityId("independent".into())]
-        );
+        let impact = graph.affected_by(&CapabilityId("c".into()));
+        assert_eq!(impact.unavailable, CapabilityId("c".into()));
+        assert_eq!(impact.direct_affected, vec![CapabilityId("b".into())]);
+        assert_eq!(impact.transitive_affected, vec![CapabilityId("a".into())]);
+        assert_eq!(impact.affected, vec![CapabilityId("a".into()), CapabilityId("b".into())]);
+        assert!(impact.unresolved.is_empty());
+
+        let independent = graph.affected_by(&CapabilityId("independent".into()));
+        assert!(independent.affected.is_empty());
+        assert!(independent.direct_affected.is_empty());
+        assert!(independent.transitive_affected.is_empty());
     }
 
     #[test]
