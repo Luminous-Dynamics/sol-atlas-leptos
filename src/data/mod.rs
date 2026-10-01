@@ -7,3 +7,4 @@ pub mod reactor_twin;
 pub mod static_data;
 pub mod types;
 pub mod evidence_projection;
+pub mod replay_resolution;
