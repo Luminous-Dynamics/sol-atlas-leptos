@@ -476,6 +476,36 @@ mod tests {
     }
 
     #[test]
+    fn replay_target_exposes_distinct_navigation_and_execution_contexts() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("claim:obs:7f31".into()),
+            Some("ef:demo:9d7b".into()),
+            Some("profile:terminal:v1".into()),
+            Some("reasoning:baseline:v1".into()),
+            Some("model:symthaea:v1".into()),
+            Some("evidence".into()),
+        );
+        let target = query.replay_target().expect("complete replay target");
+
+        let navigation = target.navigation_identity().expect("navigation identity");
+        assert_eq!(navigation.entity_ref(), "entity:fin:ns-energy-01");
+        assert_eq!(navigation.claim_ref(), "claim:obs:7f31");
+
+        let context = target.execution_context().expect("execution context");
+        assert_eq!(context.frontier_ref(), "ef:demo:9d7b");
+        assert_eq!(context.projection_profile(), "profile:terminal:v1");
+        assert_eq!(context.reasoning_program(), "reasoning:baseline:v1");
+        assert_eq!(context.model_version(), "model:symthaea:v1");
+
+        let manifest = DependencyManifestV1::from_execution_context(context);
+        assert_eq!(manifest.frontier_ref, "ef:demo:9d7b");
+        assert_eq!(manifest.model_versions, vec!["model:symthaea:v1"]);
+        assert!(manifest.evidence_roots.is_empty());
+        assert!(manifest.qualification_profile.is_none());
+    }
+
+    #[test]
     fn terminal_query_preserves_replay_identity() {
         let query = TerminalQueryV1::from_url_parts(
             Some("entity:fin:ns-energy-01".into()),
@@ -786,6 +816,57 @@ pub struct ReplayTargetV1 {
     pub model_version: String,
 }
 
+/// Local navigation identity for an addressable replay request.
+///
+/// This is intentionally a terminal/navigation identity, not a canonical
+/// semantic query identifier. Canonical query semantics remain upstream.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ReplayNavigationIdentityV1 {
+    entity_ref: String,
+    claim_ref: String,
+}
+
+/// Local execution context for an addressable replay request.
+///
+/// These identifiers describe the requested projection/model/reasoning
+/// context. They do not establish that the referenced versions exist or are
+/// authoritative.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ReplayExecutionContextV1 {
+    frontier_ref: String,
+    projection_profile: String,
+    reasoning_program: String,
+    model_version: String,
+}
+
+impl ReplayNavigationIdentityV1 {
+    pub fn entity_ref(&self) -> &str {
+        &self.entity_ref
+    }
+
+    pub fn claim_ref(&self) -> &str {
+        &self.claim_ref
+    }
+}
+
+impl ReplayExecutionContextV1 {
+    pub fn frontier_ref(&self) -> &str {
+        &self.frontier_ref
+    }
+
+    pub fn projection_profile(&self) -> &str {
+        &self.projection_profile
+    }
+
+    pub fn reasoning_program(&self) -> &str {
+        &self.reasoning_program
+    }
+
+    pub fn model_version(&self) -> &str {
+        &self.model_version
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ReplayReadiness {
     Incomplete,
@@ -878,20 +959,34 @@ impl ReplayTargetV1 {
         }
     }
 
+    /// Returns the navigation identity only after the target's structural
+    /// completeness invariant has been established.
+    pub fn navigation_identity(&self) -> Option<ReplayNavigationIdentityV1> {
+        self.is_well_formed().then(|| ReplayNavigationIdentityV1 {
+            entity_ref: self.entity_ref.clone(),
+            claim_ref: self.claim_ref.clone(),
+        })
+    }
+
+    /// Returns the execution context only after the target's structural
+    /// completeness invariant has been established.
+    pub fn execution_context(&self) -> Option<ReplayExecutionContextV1> {
+        self.is_well_formed().then(|| ReplayExecutionContextV1 {
+            frontier_ref: self.frontier_ref.clone(),
+            projection_profile: self.projection_profile.clone(),
+            reasoning_program: self.reasoning_program.clone(),
+            model_version: self.model_version.clone(),
+        })
+    }
+
     /// Dependency completeness belongs to the semantic authority; Atlas only
     /// carries the identifiers needed to request that resolution.
     pub fn dependency_manifest_request(&self) -> DependencyManifestV1 {
-        DependencyManifestV1 {
-            frontier_ref: self.frontier_ref.clone(),
-            evidence_roots: Vec::new(),
-            source_versions: Vec::new(),
-            canonical_state_root: None,
-            model_versions: vec![self.model_version.clone()],
-            ontology_version: None,
-            projection_profile: self.projection_profile.clone(),
-            reasoning_program: self.reasoning_program.clone(),
-            qualification_profile: None,
-        }
+        let context = self
+            .execution_context()
+            .expect("dependency manifest requires an addressable replay target");
+
+        DependencyManifestV1::from_execution_context(context)
     }
 }
 
@@ -925,6 +1020,23 @@ pub enum DependencyContextMatch {
 }
 
 impl DependencyManifestV1 {
+    /// Builds the local dependency hand-off from a structurally complete
+    /// execution context. Authority-owned dependency roots and qualification
+    /// data remain intentionally absent.
+    pub fn from_execution_context(context: ReplayExecutionContextV1) -> Self {
+        Self {
+            frontier_ref: context.frontier_ref,
+            evidence_roots: Vec::new(),
+            source_versions: Vec::new(),
+            canonical_state_root: None,
+            model_versions: vec![context.model_version],
+            ontology_version: None,
+            projection_profile: context.projection_profile,
+            reasoning_program: context.reasoning_program,
+            qualification_profile: None,
+        }
+    }
+
     /// Classifies the dependency execution context required by the requested replay.
     ///
     /// This deliberately does **not** bind the entity/claim/query identity.
