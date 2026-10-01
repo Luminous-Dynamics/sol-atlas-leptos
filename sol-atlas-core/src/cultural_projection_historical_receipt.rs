@@ -404,6 +404,51 @@ mod tests {
     }
 
     #[test]
+    fn independently_reordered_equivalent_prefix_preserves_receipt_hash() {
+        let (audit, claim, chain) = fixture();
+        let frontier_id: EvidenceFrontierId = "frontier:1951".into();
+        let child_claim = CanonicalClaimAdmissionV1 {
+            evidence_frontier: frontier_id.clone(),
+            ..claim.clone()
+        };
+        let child_audit = audit_bound_to_frontier(&audit, &child_claim, &frontier_id);
+        let original = V5HistoricalReplayReceiptV1::from_audit_at(
+            &child_audit,
+            &chain,
+            &frontier_id,
+            &child_claim,
+        )
+        .expect("original receipt");
+
+        // Reconstruct the same verified prefix with a different vector order.
+        // Manifest identity is canonical over set-like metadata, while the
+        // selected frontier and its lineage remain unchanged.
+        let mut equivalent_chain = chain.clone();
+        equivalent_chain.frontiers[1].evidence_metadata.reverse();
+        equivalent_chain.frontiers[1].recompute_manifest_hash().expect("equivalent child hash");
+        assert_eq!(
+            equivalent_chain.frontiers[1].manifest_hash,
+            chain.frontiers[1].manifest_hash
+        );
+        assert_eq!(equivalent_chain.validate_strict(), Ok(()));
+
+        let mut equivalent_claim = child_claim.clone();
+        equivalent_claim.evidence_refs.reverse();
+        equivalent_claim.source_snapshots.reverse();
+        let equivalent = V5HistoricalReplayReceiptV1::from_audit_at(
+            &child_audit,
+            &equivalent_chain,
+            &frontier_id,
+            &equivalent_claim,
+        )
+        .expect("equivalent receipt");
+
+        assert_eq!(original.receipt_hash, equivalent.receipt_hash);
+        assert_eq!(original.replay.receipt_hash, equivalent.replay.receipt_hash);
+        assert_eq!(original.replay.frontier_lineage, equivalent.replay.frontier_lineage);
+    }
+
+    #[test]
     fn child_bound_audit_cannot_validate_at_parent() {
         let (audit, claim, chain) = fixture();
         let child_claim = CanonicalClaimAdmissionV1 { evidence_frontier: "frontier:1951".into(), ..claim };
