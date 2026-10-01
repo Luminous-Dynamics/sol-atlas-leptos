@@ -46,7 +46,6 @@ fn required(id: &str, relation: DependencyKind) -> CapabilityDependency {
     CapabilityDependency {
         capability: CapabilityId(id.into()),
         relation,
-        required: true,
         substitutes: vec![],
     }
 }
