@@ -12,11 +12,6 @@
 
 use serde::{Deserialize, Serialize};
 
-/// The outcome reported by the semantic authority for a dependency request.
-///
-/// This is transport state, not an Atlas-derived epistemic judgment. In
-/// particular, Resolved means the authority supplied a complete response
-/// bound to the requested manifest; it does not mean that replay executed.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub enum DependencyResolutionStatus {
     Unrequested,
@@ -30,18 +25,27 @@ pub enum DependencyResolutionStatus {
 
 /// A typed request hand-off from Atlas to the semantic authority.
 ///
-/// The manifest payload remains opaque to this adapter. Atlas therefore cannot
-/// accidentally turn locally-known execution context into authoritative
-/// evidence roots, source versions, state roots, ontology, or qualification.
+/// The manifest identity is opaque here: its semantics remain owned by the
+/// canonical authority rather than being reconstructed by Atlas.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct DependencyResolutionRequestV1 {
     pub manifest_digest: String,
 }
 
-/// A reference to an authoritative resolution response.
+impl DependencyResolutionRequestV1 {
+    pub fn new(manifest_digest: impl Into<String>) -> Option<Self> {
+        let manifest_digest = manifest_digest.into();
+        if manifest_digest.trim().is_empty() {
+            return None;
+        }
+        Some(Self { manifest_digest })
+    }
+}
+
+/// A reference to an explicit authoritative resolution response.
 ///
-/// The response is identified separately from the request so a request cannot
-/// masquerade as proof that the authority answered it.
+/// This is evidence that an authority answered a manifest request, not proof
+/// that the requested replay subsequently executed.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct AuthorityResolutionRefV1 {
     pub manifest_digest: String,
@@ -50,11 +54,6 @@ pub struct AuthorityResolutionRefV1 {
 }
 
 impl AuthorityResolutionRefV1 {
-    /// Construct only an explicit authority-response reference.
-    ///
-    /// The adapter does not infer this from a manifest or from local fixture
-    /// data. Callers must supply both the manifest binding and authority
-    /// response identifier.
     pub fn from_authority(
         manifest_digest: impl Into<String>,
         resolution_ref: impl Into<String>,
@@ -79,9 +78,9 @@ impl AuthorityResolutionRefV1 {
 
 /// A replay dependency hand-off state.
 ///
-/// AuthorityResolutionRefV1 is intentionally not a replay receipt. Actual
-/// execution must remain represented by the canonical replay/derivation
-/// authority rather than being synthesized in Atlas.
+/// The enum variant is authoritative for the local state classification.
+/// This prevents a malformed combination such as PartiallyResolved carrying
+/// a Resolved response from accidentally becoming replay-eligible.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum DependencyResolutionState {
     NotRequested,
@@ -97,7 +96,7 @@ impl DependencyResolutionState {
             Self::NotRequested => DependencyResolutionStatus::Unrequested,
             Self::Requested(_) => DependencyResolutionStatus::Requested,
             Self::Resolved(_) => DependencyResolutionStatus::Resolved,
-            Self::PartiallyResolved(reference) => reference.status,
+            Self::PartiallyResolved(_) => DependencyResolutionStatus::PartiallyResolved,
             Self::Rejected(reference) => reference.status,
         }
     }
@@ -111,15 +110,14 @@ impl DependencyResolutionState {
         }
     }
 
-    /// A resolved dependency set is usable only when its authority response is
-    /// explicitly bound to the requested manifest digest.
+    /// A dependency set is replay-eligible only when:
+    /// 1. it is in the explicit Resolved state;
+    /// 2. the authority response says Resolved; and
+    /// 3. the response is bound to the exact requested manifest identity.
     pub fn is_bound_to(&self, manifest_digest: &str) -> bool {
-        self.resolution_ref()
-            .map(|reference| {
-                reference.manifest_digest == manifest_digest
-                    && reference.is_terminally_resolved()
-            })
-            .unwrap_or(false)
+        matches!(self, Self::Resolved(reference)
+            if reference.manifest_digest == manifest_digest
+                && reference.is_terminally_resolved())
     }
 }
 
@@ -129,13 +127,16 @@ mod tests {
 
     #[test]
     fn request_is_not_a_resolution() {
-        let request = DependencyResolutionRequestV1 {
-            manifest_digest: "manifest:abc".into(),
-        };
+        let request = DependencyResolutionRequestV1::new("manifest:abc").unwrap();
         let state = DependencyResolutionState::Requested(request);
         assert_eq!(state.status(), DependencyResolutionStatus::Requested);
         assert!(!state.is_bound_to("manifest:abc"));
         assert!(state.resolution_ref().is_none());
+    }
+
+    #[test]
+    fn request_rejects_blank_manifest_identity() {
+        assert!(DependencyResolutionRequestV1::new("   ").is_none());
     }
 
     #[test]
@@ -144,22 +145,19 @@ mod tests {
             "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
-        )
-        .is_some());
+        ).is_some());
 
         assert!(AuthorityResolutionRefV1::from_authority(
             "   ",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
-        )
-        .is_none());
+        ).is_none());
 
         assert!(AuthorityResolutionRefV1::from_authority(
             "manifest:abc",
             " ",
             DependencyResolutionStatus::Resolved,
-        )
-        .is_none());
+        ).is_none());
     }
 
     #[test]
@@ -168,12 +166,25 @@ mod tests {
             "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
-        )
-        .unwrap();
+        ).unwrap();
         let state = DependencyResolutionState::Resolved(reference);
 
         assert!(state.is_bound_to("manifest:abc"));
         assert!(!state.is_bound_to("manifest:other"));
+    }
+
+    #[test]
+    fn variant_controls_terminal_resolution() {
+        let reference = AuthorityResolutionRefV1::from_authority(
+            "manifest:abc",
+            "resolution:001",
+            DependencyResolutionStatus::Resolved,
+        ).unwrap();
+
+        assert!(!DependencyResolutionState::PartiallyResolved(reference.clone())
+            .is_bound_to("manifest:abc"));
+        assert!(!DependencyResolutionState::Rejected(reference)
+            .is_bound_to("manifest:abc"));
     }
 
     #[test]
@@ -182,17 +193,17 @@ mod tests {
             "manifest:abc",
             "resolution:partial",
             DependencyResolutionStatus::PartiallyResolved,
-        )
-        .unwrap();
+        ).unwrap();
         let protected = AuthorityResolutionRefV1::from_authority(
             "manifest:abc",
             "resolution:protected",
             DependencyResolutionStatus::Protected,
-        )
-        .unwrap();
+        ).unwrap();
 
-        assert!(!DependencyResolutionState::PartiallyResolved(partial)
-            .is_bound_to("manifest:abc"));
+        assert_eq!(
+            DependencyResolutionState::PartiallyResolved(partial).status(),
+            DependencyResolutionStatus::PartiallyResolved
+        );
         assert!(!DependencyResolutionState::Rejected(protected)
             .is_bound_to("manifest:abc"));
     }
