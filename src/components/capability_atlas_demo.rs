@@ -84,7 +84,7 @@ pub fn CapabilityAtlasDemo() -> impl IntoView {
                         <tbody>
                             {capabilities.iter().map(|cap| {
                                 let relation_count = cap.dependencies.iter()
-                                    .filter(|d| d.required)
+                                    .filter(|d| d.relation.is_required())
                                     .count();
                                 let evidence = cap.evidence.first()
                                     .map(|e| match e.kind {
@@ -117,7 +117,7 @@ pub fn CapabilityAtlasDemo() -> impl IntoView {
                 <p class="capability-label">"SEMANTIC GUARDRAILS"</p>
                 <div class="capability-principles">
                     <span>"evidence ≠ qualification"</span>
-                    <span>“geographic presence ≠ availability”</span>
+                    <span>{"geographic presence ≠ availability"}</span>
                     <span>"deployment ≠ reproducibility"</span>
                     <span>"capability amplification ≠ authority amplification"</span>
                 </div>
