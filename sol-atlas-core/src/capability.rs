@@ -2088,7 +2088,7 @@ mod graph_tests {
             scope: "instance-001".into(),
             expected_postconditions: vec!["b".into(), "a".into(), "a".into()],
             observed_postconditions: vec!["observed-b".into(), "observed-a".into()],
-            evidence: vec!["evidence-1".into()],
+            evidence: vec![verified_test_evidence("evidence-1")],
             missing_postconditions: vec![],
             contradictory_postconditions: vec![],
             dependency_closure: vec![CapabilityId("dep-b".into()), CapabilityId("dep-a".into())],
