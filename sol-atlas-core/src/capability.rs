@@ -2188,10 +2188,7 @@ mod graph_tests {
             .required_closure(&CapabilityId("a".into()))
             .unwrap_err();
         assert!(closure_error.missing.is_empty());
-        assert_eq!(
-            closure_error.duplicate_ids,
-            vec![CapabilityId("a".into())]
-        );
+        assert_eq!(closure_error.duplicate_ids, vec![CapabilityId("a".into())]);
 
         let impact = graph.affected_by(&CapabilityId("a".into()));
         assert!(impact.direct_affected.is_empty());
@@ -3120,13 +3117,19 @@ mod graph_tests {
             .digest();
 
         assert!(verification.passes_with_bound_snapshots_and_registry(
-            &dependency, &evidence, &environment, &registry
+            &dependency,
+            &evidence,
+            &environment,
+            &registry
         ));
 
         let mut changed = registry.clone();
         changed.version = 2;
         assert!(!verification.passes_with_bound_snapshots_and_registry(
-            &dependency, &evidence, &environment, &changed
+            &dependency,
+            &evidence,
+            &environment,
+            &changed
         ));
     }
 
