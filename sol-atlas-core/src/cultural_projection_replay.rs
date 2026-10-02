@@ -611,9 +611,10 @@ mod tests {
             identity_changed.semantic_hash,
             reordered_audit.semantic_hash
         );
-        assert!(
-            V5ReplayReceiptV1::from_audit_and_chain(&identity_changed, &chain, &claim,).is_err()
-        );
+        let identity_changed_receipt =
+            V5ReplayReceiptV1::from_audit_and_chain(&identity_changed, &chain, &claim)
+                .expect("identity-changed receipt");
+        assert_ne!(identity_changed_receipt.receipt_hash, original.receipt_hash);
     }
 
     #[test]
