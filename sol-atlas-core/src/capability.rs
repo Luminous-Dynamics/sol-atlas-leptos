@@ -999,7 +999,6 @@ impl RecoveryPolicyDecisionSnapshotV1 {
     pub fn is_well_formed(&self) -> bool {
         self.schema == Self::SCHEMA
             && !self.id.is_empty()
-            && self.decision == RecoveryPolicyDecisionV1::Admitted
             && !self.purpose.is_empty()
             && !self.consumer.is_empty()
             && !self.plan_id.is_empty()
@@ -1013,8 +1012,16 @@ impl RecoveryPolicyDecisionSnapshotV1 {
             && !self.claim_ceiling.is_empty()
     }
 
+    /// Whether this well-formed decision explicitly admits the recovery action.
+    ///
+    /// Rejected decisions remain canonical audit records but are never
+    /// executable authorization.
+    pub fn is_admitted(&self) -> bool {
+        self.is_well_formed() && self.decision == RecoveryPolicyDecisionV1::Admitted
+    }
+
     pub fn is_valid_at(&self, now: &str) -> bool {
-        self.is_well_formed()
+        self.is_admitted()
             && is_canonical_utc_timestamp(now)
             && self.issued_at.as_str() <= now
             && now < self.valid_until.as_str()
@@ -3590,7 +3597,16 @@ mod graph_tests {
 
         let mut rejected = decision.clone();
         rejected.decision = RecoveryPolicyDecisionV1::Rejected;
-        assert!(!rejected.is_well_formed());
+        assert!(rejected.is_well_formed());
+        assert!(!rejected.is_admitted());
+        assert!(!rejected.is_valid_at("2026-10-02T08:00:00Z"));
+        assert_ne!(decision.digest(), rejected.digest());
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &rejected,
+            "2026-10-02T08:00:00Z"
+        ));
 
         plan.claim_ceiling = "mutated plan".into();
         assert!(!verification.passes_with_bound_plan_execution(&plan, &bound_execution));
