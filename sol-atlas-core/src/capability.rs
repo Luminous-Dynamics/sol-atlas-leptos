@@ -16,6 +16,7 @@
 //! - a deployed instance != universal availability
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct CapabilityId(pub String);
@@ -414,6 +415,79 @@ pub enum RecoveryVerificationState {
     Inconclusive,
 }
 
+/// Canonical semantic input set for a recovery verification.
+///
+/// Set-like collections are sorted and deduplicated before serialization so
+/// equivalent inputs produce the same digest regardless of insertion order.
+/// The digest identifies the exact verification inputs; it does not prove
+/// that those inputs are true or that the resulting capability is qualified.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryVerificationSnapshotV1 {
+    pub schema: String,
+    pub execution_id: String,
+    pub capability: CapabilityId,
+    pub scope: String,
+    pub expected_postconditions: Vec<String>,
+    pub observed_postconditions: Vec<String>,
+    pub missing_postconditions: Vec<String>,
+    pub contradictory_postconditions: Vec<String>,
+    pub dependency_closure: Vec<CapabilityId>,
+    pub unresolved_dependencies: Vec<CapabilityId>,
+    pub dependency_snapshot: String,
+    pub environment_snapshot: String,
+    pub evidence_snapshot: String,
+}
+
+impl RecoveryVerificationSnapshotV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-verification-snapshot:v1";
+
+    pub fn from_verification(verification: &RecoveryVerification) -> Self {
+        fn sorted_strings(values: &[String]) -> Vec<String> {
+            let mut values = values.to_vec();
+            values.sort();
+            values.dedup();
+            values
+        }
+
+        fn sorted_ids(values: &[CapabilityId]) -> Vec<CapabilityId> {
+            let mut values = values.to_vec();
+            values.sort();
+            values.dedup();
+            values
+        }
+
+        Self {
+            schema: Self::SCHEMA.into(),
+            execution_id: verification.execution_id.clone(),
+            capability: verification.capability.clone(),
+            scope: verification.scope.clone(),
+            expected_postconditions: sorted_strings(&verification.expected_postconditions),
+            observed_postconditions: sorted_strings(&verification.observed_postconditions),
+            missing_postconditions: sorted_strings(&verification.missing_postconditions),
+            contradictory_postconditions: sorted_strings(&verification.contradictory_postconditions),
+            dependency_closure: sorted_ids(&verification.dependency_closure),
+            unresolved_dependencies: sorted_ids(&verification.unresolved_dependencies),
+            dependency_snapshot: verification.dependency_snapshot.clone(),
+            environment_snapshot: verification.environment_snapshot.clone(),
+            evidence_snapshot: verification.evidence_snapshot.clone(),
+        }
+    }
+
+    /// Stable JSON bytes for this fixed-field schema.
+    ///
+    /// This is a project-specific canonical form: it uses a fixed struct
+    /// property order and normalizes set-like arrays before serialization.
+    /// It does not claim full RFC 8785/JCS interoperability.
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        serde_json::to_vec(self).expect("verification snapshot contains only serializable strings")
+    }
+
+    /// SHA-256 identity of the canonical semantic verification inputs.
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+}
 /// Result of checking whether a verification record can still be reused
 /// against the exact inputs it originally verified.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -463,8 +537,17 @@ pub struct RecoveryVerification {
 }
 
 impl RecoveryVerification {
-    /// A passed verification requires complete declared postcondition coverage,
-    /// no contradictions, and a fully resolved required dependency closure.
+    /// Recompute the verification-input digest from the record itself.
+    pub fn derived_snapshot(&self) -> RecoveryVerificationSnapshotV1 {
+        RecoveryVerificationSnapshotV1::from_verification(self)
+    }
+
+    /// Whether the stored snapshot identity matches the record's semantic inputs.
+    pub fn snapshot_matches_inputs(&self) -> bool {
+        self.verification_snapshot == self.derived_snapshot().digest()
+    }
+
+    /// A passed verification requires complete declared postcondition coverage,    /// no contradictions, and a fully resolved required dependency closure.
     ///
     /// This still does not grant external qualification.
     pub fn passes(&self) -> bool {
@@ -481,6 +564,7 @@ impl RecoveryVerification {
             && !self.dependency_closure.is_empty()
             && !self.evidence.is_empty()
             && !self.verification_snapshot.is_empty()
+            && self.snapshot_matches_inputs()
             && !self.dependency_snapshot.is_empty()
             && !self.environment_snapshot.is_empty()
             && !self.evidence_snapshot.is_empty()
@@ -1109,6 +1193,73 @@ mod graph_tests {
         );
     }
 
+    #[test]
+    fn recovery_verification_snapshot_is_order_independent() {
+        let mut a = RecoveryVerification {
+            execution_id: "execution-snapshot".into(),
+            capability: CapabilityId("water.purification".into()),
+            scope: "instance-001".into(),
+            expected_postconditions: vec!["b".into(), "a".into(), "a".into()],
+            observed_postconditions: vec!["observed-b".into(), "observed-a".into()],
+            evidence: vec!["evidence-1".into()],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("dep-b".into()), CapabilityId("dep-a".into())],
+            unresolved_dependencies: vec![],
+            verification_snapshot: String::new(),
+            dependency_snapshot: "deps-1".into(),
+            environment_snapshot: "env-1".into(),
+            evidence_snapshot: "evidence-1".into(),
+            valid_until: "2026-10-03T00:00:00Z".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Passed,
+            verifier: "runner".into(),
+            verified_at: "2026-10-02T00:00:00Z".into(),
+            claim_ceiling: "Exact inputs only.".into(),
+        };
+        let digest = a.derived_snapshot().digest();
+        a.verification_snapshot = digest.clone();
+        let mut b = a.clone();
+        b.expected_postconditions.reverse();
+        b.dependency_closure.reverse();
+        b.observed_postconditions.reverse();
+        assert_eq!(a.derived_snapshot().canonical_bytes(), b.derived_snapshot().canonical_bytes());
+        assert_eq!(digest, b.derived_snapshot().digest());
+        assert!(a.snapshot_matches_inputs());
+        assert!(b.snapshot_matches_inputs());
+    }
+
+    #[test]
+    fn recovery_verification_snapshot_changes_when_semantic_input_changes() {
+        let mut verification = RecoveryVerification {
+            execution_id: "execution-snapshot-mutation".into(),
+            capability: CapabilityId("water.purification".into()),
+            scope: "instance-001".into(),
+            expected_postconditions: vec!["potable water available".into()],
+            observed_postconditions: vec!["potable water available".into()],
+            evidence: vec!["water-test".into()],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("water.purification".into())],
+            unresolved_dependencies: vec![],
+            verification_snapshot: String::new(),
+            dependency_snapshot: "deps-1".into(),
+            environment_snapshot: "env-1".into(),
+            evidence_snapshot: "evidence-1".into(),
+            valid_until: "2026-10-03T00:00:00Z".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Passed,
+            verifier: "runner".into(),
+            verified_at: "2026-10-02T00:00:00Z".into(),
+            claim_ceiling: "Exact inputs only.".into(),
+        };
+        let digest = verification.derived_snapshot().digest();
+        verification.verification_snapshot = digest.clone();
+        assert!(verification.snapshot_matches_inputs());
+        verification.observed_postconditions.push("new observation".into());
+        assert!(!verification.snapshot_matches_inputs());
+        assert_ne!(digest, verification.derived_snapshot().digest());
+    }
     #[test]
     fn recovery_verification_requires_complete_postconditions_and_dependencies() {
         let verification = RecoveryVerification {
