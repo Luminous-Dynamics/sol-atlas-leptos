@@ -14,8 +14,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::civilizational::{
-    ClaimId, EntityId, EvidenceFrontierV1, EvidenceId, QualificationStatus,
-    SourceSnapshotId, YearInterval, EvidenceFrontierId,
+    ClaimId, EntityId, EvidenceFrontierId, EvidenceFrontierV1, EvidenceId, QualificationStatus,
+    SourceSnapshotId, YearInterval,
 };
 
 /// Stable reference to a record in an external/federated decentralized graph.
@@ -68,12 +68,8 @@ impl DkgStatementV1 {
     /// every evidence reference is admitted by the requested frontier.
     pub fn is_frontier_safe(&self, frontier: &EvidenceFrontierV1) -> bool {
         self.validate()
-            && frontier
-                .admits(&self.evidence_refs[0])
-            && self
-                .evidence_refs
-                .iter()
-                .all(|id| frontier.admits(id))
+            && frontier.admits(&self.evidence_refs[0])
+            && self.evidence_refs.iter().all(|id| frontier.admits(id))
             && self
                 .source_snapshots
                 .iter()
@@ -136,10 +132,7 @@ mod tests {
             parent_frontier: None,
             policy_version: "v1".into(),
             manifest_hash: String::new(),
-            admitted_evidence: ["e:1", "e:2"]
-                .into_iter()
-                .map(Into::into)
-                .collect(),
+            admitted_evidence: ["e:1", "e:2"].into_iter().map(Into::into).collect(),
             admitted_sources: ["source:1"].into_iter().map(Into::into).collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
@@ -206,8 +199,7 @@ mod tests {
     #[test]
     fn admission_is_explicit_and_reversible() {
         let frontier = frontier();
-        let admission =
-            DkgProjectionAdmissionV1::from_statement(&statement(), &frontier).unwrap();
+        let admission = DkgProjectionAdmissionV1::from_statement(&statement(), &frontier).unwrap();
 
         assert!(admission.validate());
         assert_eq!(admission.claim_ref, "claim:1".into());
@@ -222,8 +214,7 @@ mod tests {
         let mut value = statement();
         value.qualification = QualificationStatus::Speculative;
 
-        let admission =
-            DkgProjectionAdmissionV1::from_statement(&value, &frontier).unwrap();
+        let admission = DkgProjectionAdmissionV1::from_statement(&value, &frontier).unwrap();
 
         assert_eq!(value.qualification, QualificationStatus::Speculative);
         assert!(admission.validate());
