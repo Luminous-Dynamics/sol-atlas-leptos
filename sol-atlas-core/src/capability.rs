@@ -2174,13 +2174,27 @@ impl RecoveryExecution {
         snapshot.is_well_formed() && self.input_snapshot == snapshot.digest()
     }
 
+    fn matches_plan_execution_contract(&self, plan: &RecoveryPlan) -> bool {
+        self.attempted_steps == plan.steps
+            && self.completed_steps == plan.steps
+            && plan
+                .preconditions
+                .iter()
+                .all(|condition| self.observed_preconditions.contains(condition))
+    }
+
     /// Stronger success gate binding the execution to the exact ready recovery plan.
+    ///
+    /// In addition to the cryptographic input snapshot, the concrete execution
+    /// must actually attempt and complete the declared plan steps and observe
+    /// every declared precondition.
     ///
     /// This still does not establish recovery verification or external qualification.
     pub fn is_successful_with_bound_plan(&self, plan: &RecoveryPlan) -> bool {
         self.is_successful()
             && plan.is_ready()
             && self.plan_id == plan.id
+            && self.matches_plan_execution_contract(plan)
             && self.input_snapshot_matches_plan(plan)
     }
 
@@ -2199,6 +2213,7 @@ impl RecoveryExecution {
         self.is_successful()
             && plan.is_ready_against_candidate(candidate)
             && self.plan_id == plan.id
+            && self.matches_plan_execution_contract(plan)
             && self.input_snapshot_matches_plan(plan)
     }
 
@@ -2329,6 +2344,10 @@ mod graph_tests {
         missing_prerequisite.required_capabilities.push(CapabilityId("missing".into()));
         assert!(!plan.is_ready_against_candidate(&missing_prerequisite));
 
+        let mut missing_candidate_from_closure = candidate.clone();
+        missing_candidate_from_closure.required_capabilities.remove(0);
+        assert!(!plan.is_ready_against_candidate(&missing_candidate_from_closure));
+
         let mut unresolved = candidate.clone();
         unresolved.missing_capabilities = vec![CapabilityId("membrane".into())];
         assert!(!plan.is_ready_against_candidate(&unresolved));
@@ -2426,6 +2445,18 @@ mod graph_tests {
         let mut changed_plan = plan.clone();
         changed_plan.steps[1] = "independent-test".into();
         assert!(!execution.input_snapshot_matches_plan(&changed_plan));
+
+        let mut substituted_steps = execution.clone();
+        substituted_steps.attempted_steps[1] = "independent-test".into();
+        substituted_steps.completed_steps = substituted_steps.attempted_steps.clone();
+        assert!(!substituted_steps.is_successful_with_bound_plan(&plan));
+
+        let mut missed_precondition = execution.clone();
+        missed_precondition.observed_preconditions[0] = "site NOT prepared".into();
+        missed_precondition.input_snapshot =
+            RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &missed_precondition)
+                .digest();
+        assert!(!missed_precondition.is_successful_with_bound_plan(&plan));
 
         let mut changed_inputs = execution.clone();
         changed_inputs.authorization = Some("different-authorization".into());
