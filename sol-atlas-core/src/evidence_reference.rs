@@ -599,7 +599,11 @@ impl EvidenceReferenceVerificationV1 {
                 }
                 _ => false,
             }
-            && match (&self.registry_id, self.registry_version, &self.registry_digest) {
+            && match (
+                &self.registry_id,
+                self.registry_version,
+                &self.registry_digest,
+            ) {
                 (None, None, None) => true,
                 (Some(id), Some(version), Some(digest)) => {
                     !id.is_empty() && version > 0 && !digest.is_empty()
@@ -613,10 +617,7 @@ impl EvidenceReferenceVerificationV1 {
     ///
     /// Unlike is_verified(), this method binds processing to a concrete
     /// authorization object rather than merely checking embedded metadata.
-    pub fn is_verified_against_profile(
-        &self,
-        profile: &EvidenceReferenceProfileV1,
-    ) -> bool {
+    pub fn is_verified_against_profile(&self, profile: &EvidenceReferenceProfileV1) -> bool {
         self.is_verified()
             && profile.is_well_formed()
             && profile.accepts(&self.reference)
@@ -640,7 +641,6 @@ impl EvidenceReferenceVerificationV1 {
             && self.registry_version == Some(registry.version)
             && self.registry_digest.as_deref() == Some(registry.digest().as_str())
     }
-
 }
 #[cfg(test)]
 mod tests {
@@ -803,9 +803,15 @@ mod tests {
             .unwrap();
 
         assert!(verification.is_verified());
-        assert_eq!(verification.profile_id.as_deref(), Some("profile-audit-001"));
+        assert_eq!(
+            verification.profile_id.as_deref(),
+            Some("profile-audit-001")
+        );
         assert_eq!(verification.profile_version, Some(1));
-        assert_eq!(verification.profile_digest.as_deref(), Some(profile.digest().as_str()));
+        assert_eq!(
+            verification.profile_digest.as_deref(),
+            Some(profile.digest().as_str())
+        );
         assert!(verification.is_verified_against_profile(&profile));
 
         let mut changed = profile.clone();
@@ -867,7 +873,9 @@ mod tests {
             observed_digest: Some(reference.digest.clone()),
             profile_id: Some("profile-audit-002".into()),
             profile_version: None,
-            profile_digest: Some("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into()),
+            profile_digest: Some(
+                "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into(),
+            ),
             registry_id: None,
             registry_version: None,
             registry_digest: None,
