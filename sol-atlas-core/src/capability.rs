@@ -392,8 +392,11 @@ pub struct RecoveryPlan {
 impl RecoveryPlan {
     pub fn is_ready(&self) -> bool {
         self.state == RecoveryPlanState::Ready
+            && !self.id.is_empty()
+            && !self.unavailable.0.is_empty()
+            && !self.candidate.0.is_empty()
             && !self.steps.is_empty()
-            && self.prerequisites.iter().all(|_| true)
+            && !self.expected_evidence.is_empty()
     }
 }
 
