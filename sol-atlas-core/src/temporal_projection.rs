@@ -934,7 +934,7 @@ mod tests {
         frontier.recompute_manifest_hash().unwrap();
         assert_eq!(
             frontier.validate_temporal_manifest_strict(),
-            Err(ProjectionError::InvalidEvidenceTemporalMetadata)
+            Err(ProjectionError::LaterEvidenceInFrontier)
         );
     }
 
