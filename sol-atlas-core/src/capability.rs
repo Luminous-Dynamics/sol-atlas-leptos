@@ -363,6 +363,41 @@ impl Capability {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryPlanState {
+    Draft,
+    Ready,
+    Executing,
+    Succeeded,
+    Failed,
+    Verified,
+}
+
+/// An explicit, auditable recovery plan. Planning does not imply execution or
+/// successful restoration; those claims require later execution evidence.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryPlan {
+    pub id: String,
+    pub unavailable: CapabilityId,
+    pub candidate: CapabilityId,
+    pub prerequisites: Vec<CapabilityId>,
+    pub steps: Vec<String>,
+    pub preconditions: Vec<String>,
+    pub expected_evidence: Vec<String>,
+    pub human_contribution: String,
+    pub ai_contribution: String,
+    pub state: RecoveryPlanState,
+    pub claim_ceiling: String,
+}
+
+impl RecoveryPlan {
+    pub fn is_ready(&self) -> bool {
+        self.state == RecoveryPlanState::Ready
+            && !self.steps.is_empty()
+            && self.prerequisites.iter().all(|_| true)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RecoverySelectionState {
     /// Candidate has been discovered from explicit graph metadata.
     Discovered,
@@ -670,6 +705,27 @@ mod graph_tests {
         assert!(independent.affected.is_empty());
         assert!(independent.direct_affected.is_empty());
         assert!(independent.transitive_affected.is_empty());
+    }
+
+    #[test]
+    fn recovery_plan_does_not_imply_execution_or_success() {
+        let plan = RecoveryPlan {
+            id: "recovery-plan-001".into(),
+            unavailable: CapabilityId("unavailable".into()),
+            candidate: CapabilityId("recovery".into()),
+            prerequisites: vec![CapabilityId("workshop".into())],
+            steps: vec!["Prepare recovery path".into()],
+            preconditions: vec!["Workshop operational".into()],
+            expected_evidence: vec!["Operational run record".into()],
+            human_contribution: "Operate and judge".into(),
+            ai_contribution: "Analyze and plan".into(),
+            state: RecoveryPlanState::Ready,
+            claim_ceiling: "Plan only; execution and successful restoration are not established.".into(),
+        };
+
+        assert!(plan.is_ready());
+        assert_eq!(plan.state, RecoveryPlanState::Ready);
+        assert!(plan.claim_ceiling.contains("not established"));
     }
 
     #[test]
