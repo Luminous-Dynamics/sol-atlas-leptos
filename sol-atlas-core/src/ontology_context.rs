@@ -15,8 +15,7 @@ use sha2::{Digest, Sha256};
 
 use crate::civilizational::{ProjectionError, QualificationStatus};
 use crate::ontology_mapping::{
-    OntologyMappingKindV1, OntologyMappingStandardV1, OntologyMappingV2,
-    OntologyReleaseStatusV1,
+    OntologyMappingKindV1, OntologyMappingStandardV1, OntologyMappingV2, OntologyReleaseStatusV1,
 };
 
 /// Semantic relationship between a local concept and an external ontology term.
@@ -200,11 +199,9 @@ mod tests {
     #[test]
     fn mapping_context_is_content_addressed() {
         let (mapping, _) = fixture();
-        let context = OntologyMappingContextV1::from_mapping(
-            &mapping,
-            OntologyMappingRelationV1::Exact,
-        )
-        .expect("context");
+        let context =
+            OntologyMappingContextV1::from_mapping(&mapping, OntologyMappingRelationV1::Exact)
+                .expect("context");
         assert!(context.validate().is_ok());
         assert!(context.preserves_mapping(&mapping));
     }
@@ -212,19 +209,15 @@ mod tests {
     #[test]
     fn changing_term_or_relation_invalidates_digest() {
         let (mapping, _) = fixture();
-        let mut context = OntologyMappingContextV1::from_mapping(
-            &mapping,
-            OntologyMappingRelationV1::Exact,
-        )
-        .expect("context");
+        let mut context =
+            OntologyMappingContextV1::from_mapping(&mapping, OntologyMappingRelationV1::Exact)
+                .expect("context");
         context.external_term = "E8_Acquisition".into();
         assert!(context.validate().is_err());
 
-        let mut context = OntologyMappingContextV1::from_mapping(
-            &mapping,
-            OntologyMappingRelationV1::Exact,
-        )
-        .expect("context");
+        let mut context =
+            OntologyMappingContextV1::from_mapping(&mapping, OntologyMappingRelationV1::Exact)
+                .expect("context");
         context.relation = OntologyMappingRelationV1::Broad;
         assert!(context.validate().is_err());
     }
@@ -232,19 +225,15 @@ mod tests {
     #[test]
     fn version_and_release_status_are_integrity_bound() {
         let (mapping, _) = fixture();
-        let mut context = OntologyMappingContextV1::from_mapping(
-            &mapping,
-            OntologyMappingRelationV1::Exact,
-        )
-        .expect("context");
+        let mut context =
+            OntologyMappingContextV1::from_mapping(&mapping, OntologyMappingRelationV1::Exact)
+                .expect("context");
         context.standard_version = "7.5".into();
         assert!(context.validate().is_err());
 
-        let mut context = OntologyMappingContextV1::from_mapping(
-            &mapping,
-            OntologyMappingRelationV1::Exact,
-        )
-        .expect("context");
+        let mut context =
+            OntologyMappingContextV1::from_mapping(&mapping, OntologyMappingRelationV1::Exact)
+                .expect("context");
         context.release_status = OntologyReleaseStatusV1::Stable;
         assert!(context.validate().is_err());
     }
@@ -253,11 +242,9 @@ mod tests {
     fn mapping_context_preserves_qualification() {
         let (mut mapping, _) = fixture();
         mapping.qualification = QualificationStatus::Speculative;
-        let context = OntologyMappingContextV1::from_mapping(
-            &mapping,
-            OntologyMappingRelationV1::Contextual,
-        )
-        .expect("context");
+        let context =
+            OntologyMappingContextV1::from_mapping(&mapping, OntologyMappingRelationV1::Contextual)
+                .expect("context");
         assert_eq!(context.qualification, QualificationStatus::Speculative);
         assert!(context.preserves_mapping(&mapping));
     }
