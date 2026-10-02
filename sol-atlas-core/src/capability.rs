@@ -743,6 +743,9 @@ pub struct RecoveryPlan {
     pub id: String,
     pub unavailable: CapabilityId,
     pub candidate: CapabilityId,
+    /// Exact digest of the candidate record bound to this plan, when present.
+    #[serde(default)]
+    pub candidate_snapshot: String,
     pub prerequisites: Vec<CapabilityId>,
     pub steps: Vec<String>,
     pub preconditions: Vec<String>,
@@ -2109,6 +2112,7 @@ impl RecoveryExecutionSnapshotV1 {
             execution_id: execution.execution_id.clone(),
             unavailable: plan.unavailable.clone(),
             candidate: plan.candidate.clone(),
+            candidate_snapshot: plan.candidate_snapshot.clone(),
             prerequisites: plan.prerequisites.clone(),
             steps: plan.steps.clone(),
             preconditions: plan.preconditions.clone(),
@@ -2159,6 +2163,7 @@ impl RecoveryExecutionSnapshotV1 {
             execution_id: String,
             unavailable: CapabilityId,
             candidate: CapabilityId,
+            candidate_snapshot: String,
             prerequisites: Vec<CapabilityId>,
             steps: Vec<String>,
             preconditions: Vec<String>,
@@ -2176,6 +2181,7 @@ impl RecoveryExecutionSnapshotV1 {
             execution_id: self.execution_id.clone(),
             unavailable: self.unavailable.clone(),
             candidate: self.candidate.clone(),
+            candidate_snapshot: self.candidate_snapshot.clone(),
             prerequisites: self.prerequisites.clone(),
             steps: self.steps.clone(),
             preconditions: self.preconditions.clone(),
@@ -2664,6 +2670,10 @@ mod graph_tests {
         let mut changed_plan = plan.clone();
         changed_plan.steps[1] = "independent-test".into();
         assert!(!execution.input_snapshot_matches_plan(&changed_plan));
+
+        let mut changed_candidate_binding = plan.clone();
+        changed_candidate_binding.candidate_snapshot = "sha256:different-candidate".into();
+        assert!(!execution.input_snapshot_matches_plan(&changed_candidate_binding));
 
         let mut substituted_steps = execution.clone();
         substituted_steps.attempted_steps[1] = "independent-test".into();
