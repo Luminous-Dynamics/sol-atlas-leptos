@@ -691,6 +691,45 @@ impl RecoveryCandidate {
     }
 }
 
+/// Canonical semantic snapshot of the required dependency graph for one root capability.
+///
+/// Unlike the historical `dependency_snapshot: String` field on verification,
+/// this record is constructed directly from the graph. It therefore commits to
+/// the actual required nodes and directed dependency relations rather than to
+/// an opaque producer-supplied label.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DependencySnapshotV1 {
+    pub schema: String,
+    pub root: CapabilityId,
+    pub nodes: Vec<CapabilityId>,
+    pub edges: Vec<DependencySnapshotEdgeV1>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DependencySnapshotEdgeV1 {
+    pub from: CapabilityId,
+    pub to: CapabilityId,
+    pub relation: DependencyKind,
+}
+
+impl DependencySnapshotV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:dependency-snapshot:v1";
+
+    /// Stable project-specific canonical bytes.
+    ///
+    /// Set-like node/edge collections are normalized before serialization.
+    /// This is intentionally not presented as RFC 8785/JCS.
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        serde_json::to_vec(self)
+            .expect("dependency snapshot contains only serializable graph primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CapabilityGraphError {
     pub missing: Vec<CapabilityId>,
@@ -722,6 +761,65 @@ pub struct CapabilityGraph {
 }
 
 impl CapabilityGraph {
+    /// Build a dependency snapshot from the actual required graph reachable from
+    /// `root`. Alternatives and enabling-only relations are excluded because
+    /// they are not part of the required closure.
+    ///
+    /// Missing required nodes fail closed instead of producing a partial digest.
+    pub fn dependency_snapshot(
+        &self,
+        root: &CapabilityId,
+    ) -> Result<DependencySnapshotV1, CapabilityGraphError> {
+        use std::collections::{BTreeMap, BTreeSet, VecDeque};
+
+        let index = self
+            .capabilities
+            .iter()
+            .map(|capability| (capability.id.clone(), capability))
+            .collect::<BTreeMap<_, _>>();
+
+        let mut queue = VecDeque::from([root.clone()]);
+        let mut nodes = BTreeSet::new();
+        let mut edges = BTreeSet::new();
+        let mut missing = BTreeSet::new();
+
+        while let Some(id) = queue.pop_front() {
+            if !nodes.insert(id.clone()) {
+                continue;
+            }
+
+            let Some(capability) = index.get(&id) else {
+                missing.insert(id);
+                continue;
+            };
+
+            for dependency in capability.dependencies.iter().filter(|d| d.relation.is_required()) {
+                edges.insert((
+                    capability.id.clone(),
+                    dependency.capability.clone(),
+                    dependency.relation,
+                ));
+                queue.push_back(dependency.capability.clone());
+            }
+        }
+
+        if !missing.is_empty() {
+            return Err(CapabilityGraphError {
+                missing: missing.into_iter().collect(),
+            });
+        }
+
+        Ok(DependencySnapshotV1 {
+            schema: DependencySnapshotV1::SCHEMA.into(),
+            root: root.clone(),
+            nodes: nodes.into_iter().collect(),
+            edges: edges
+                .into_iter()
+                .map(|(from, to, relation)| DependencySnapshotEdgeV1 { from, to, relation })
+                .collect(),
+        })
+    }
+
     /// Return capabilities whose required closure depends on an unavailable
     /// capability.
     ///
@@ -1005,6 +1103,115 @@ mod graph_tests {
                 ai: String::new(),
             },
         }
+    }
+
+    #[test]
+    fn dependency_snapshot_is_derived_from_the_actual_required_graph() {
+        let graph = CapabilityGraph {
+            capabilities: vec![
+                cap("a", &["b"]),
+                cap("b", &["c"]),
+                cap("c", &[]),
+                cap("ignored", &[]),
+            ],
+        };
+
+        let snapshot = graph
+            .dependency_snapshot(&CapabilityId("a".into()))
+            .unwrap();
+
+        assert_eq!(snapshot.root, CapabilityId("a".into()));
+        assert_eq!(
+            snapshot.nodes,
+            vec![
+                CapabilityId("a".into()),
+                CapabilityId("b".into()),
+                CapabilityId("c".into())
+            ]
+        );
+        assert_eq!(snapshot.edges.len(), 2);
+        assert_eq!(snapshot.edges[0].from, CapabilityId("a".into()));
+        assert_eq!(snapshot.edges[0].to, CapabilityId("b".into()));
+        assert_eq!(snapshot.edges[0].relation, DependencyKind::Required);
+        assert!(!snapshot.nodes.contains(&CapabilityId("ignored".into())));
+        assert!(snapshot.digest().starts_with("sha256:"));
+    }
+
+    #[test]
+    fn dependency_snapshot_is_order_invariant_and_changes_on_graph_mutation() {
+        let first = CapabilityGraph {
+            capabilities: vec![cap("a", &["b"]), cap("b", &["c"]), cap("c", &[])],
+        };
+        let second = CapabilityGraph {
+            capabilities: vec![cap("c", &[]), cap("b", &["c"]), cap("a", &["b"])],
+        };
+
+        let first_digest = first
+            .dependency_snapshot(&CapabilityId("a".into()))
+            .unwrap()
+            .digest();
+        let second_digest = second
+            .dependency_snapshot(&CapabilityId("a".into()))
+            .unwrap()
+            .digest();
+        assert_eq!(first_digest, second_digest);
+
+        let mutated = CapabilityGraph {
+            capabilities: vec![cap("a", &["b"]), cap("b", &["d"]), cap("c", &[])],
+        };
+        let mutated_result = mutated.dependency_snapshot(&CapabilityId("a".into()));
+        assert_eq!(
+            mutated_result.unwrap_err().missing,
+            vec![CapabilityId("d".into())]
+        );
+    }
+
+    #[test]
+    fn dependency_snapshot_excludes_non_required_relations_and_alternatives() {
+        let graph = CapabilityGraph {
+            capabilities: vec![
+                Capability {
+                    id: CapabilityId("a".into()),
+                    name: "a".into(),
+                    description: String::new(),
+                    state: CapabilityState::Demonstrated,
+                    dependencies: vec![
+                        CapabilityDependency {
+                            capability: CapabilityId("b".into()),
+                            relation: DependencyKind::Required,
+                            substitutes: vec![CapabilityId("alternative".into())],
+                        },
+                        CapabilityDependency {
+                            capability: CapabilityId("enabler".into()),
+                            relation: DependencyKind::Enabling,
+                            substitutes: vec![],
+                        },
+                    ],
+                    evidence: vec![],
+                    provenance: vec![],
+                    locations: vec![],
+                    qualification: None,
+                    contribution: HumanAiContribution {
+                        human: String::new(),
+                        ai: String::new(),
+                    },
+                },
+                cap("b", &[]),
+                cap("enabler", &[]),
+                cap("alternative", &[]),
+            ],
+        };
+
+        let snapshot = graph
+            .dependency_snapshot(&CapabilityId("a".into()))
+            .unwrap();
+
+        assert_eq!(
+            snapshot.nodes,
+            vec![CapabilityId("a".into()), CapabilityId("b".into())]
+        );
+        assert_eq!(snapshot.edges.len(), 1);
+        assert_eq!(snapshot.edges[0].to, CapabilityId("b".into()));
     }
 
     #[test]
