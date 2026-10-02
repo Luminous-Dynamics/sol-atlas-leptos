@@ -868,7 +868,12 @@ impl RecoveryVerificationSnapshotV1 {
                     &right.claim_ceiling,
                 ))
         });
-        evidence.dedup();
+        evidence.dedup_by(|left, right| {
+            left.artifact_type == right.artifact_type
+                && left.context == right.context
+                && left.digest == right.digest
+                && left.claim_ceiling == right.claim_ceiling
+        });
 
         let canonical = CanonicalSnapshot {
             schema: self.schema.clone(),
