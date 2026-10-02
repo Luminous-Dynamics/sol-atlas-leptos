@@ -586,8 +586,24 @@ impl EvidenceReferenceVerificationV1 {
                 _ => false,
             }
     }
-}
 
+    /// Strictly verify that this processing result was authorized by the exact
+    /// supplied profile declaration, including its content-addressed identity.
+    ///
+    /// Unlike is_verified(), this method binds processing to a concrete
+    /// authorization object rather than merely checking embedded metadata.
+    pub fn is_verified_against_profile(
+        &self,
+        profile: &EvidenceReferenceProfileV1,
+    ) -> bool {
+        self.is_verified()
+            && profile.is_well_formed()
+            && profile.accepts(&self.reference)
+            && self.profile_id.as_deref() == Some(profile.id.as_str())
+            && self.profile_version == Some(profile.version)
+            && self.profile_digest.as_deref() == Some(profile.digest().as_str())
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -752,6 +768,11 @@ mod tests {
         assert_eq!(verification.profile_id.as_deref(), Some("profile-audit-001"));
         assert_eq!(verification.profile_version, Some(1));
         assert_eq!(verification.profile_digest.as_deref(), Some(profile.digest().as_str()));
+        assert!(verification.is_verified_against_profile(&profile));
+
+        let mut changed = profile.clone();
+        changed.version = 2;
+        assert!(!verification.is_verified_against_profile(&changed));
     }
 
     #[test]
