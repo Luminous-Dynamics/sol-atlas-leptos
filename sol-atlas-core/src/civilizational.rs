@@ -1533,8 +1533,6 @@ mod tests {
                 .collect(),
             admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
             evidence_metadata: vec![
-            source_metadata: vec![],
-            argumentation_metadata: vec![],
                 metadata("evidence:a", "source:a", 1900),
                 metadata("evidence:b", "source:b", 1950),
             ],
@@ -1560,8 +1558,6 @@ mod tests {
                 .into_iter()
                 .collect(),
             evidence_metadata: vec![
-            source_metadata: vec![],
-            argumentation_metadata: vec![],
                 metadata("evidence:a", "source:a", 1900),
                 metadata("evidence:b", "source:b", 1950),
                 metadata("evidence:c", "source:c", 2000),
