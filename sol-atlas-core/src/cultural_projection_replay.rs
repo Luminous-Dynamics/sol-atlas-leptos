@@ -14,7 +14,7 @@ use crate::civilizational::{
     AssessmentId, ClaimId, EvidenceFrontierId, EvidenceId, EvidenceFrontierChainV1,
     ProjectionError, QualificationStatus, SourceSnapshotId,
 };
-use crate::cultural_argumentation::{CulturalArgumentationKindV1, CulturalArgumentationRefV3};
+use crate::cultural_argumentation::CulturalArgumentationKindV1;
 use crate::cultural_projection_audit_v5::CulturalProjectionAuditV5;
 use crate::cultural_systems::{CanonicalClaimAdmissionV1, CulturalProjectionIdV1};
 
