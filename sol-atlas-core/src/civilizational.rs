@@ -760,6 +760,9 @@ impl EvidenceFrontierV1 {
     /// validator, this requires temporal metadata for every admitted source snapshot.
     pub fn validate_temporal_manifest_strict(&self) -> Result<(), ProjectionError> {
         self.validate_temporal_manifest()?;
+        if self.manifest_hash.trim().is_empty() || self.verify_manifest_hash().is_err() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
         if self.source_metadata.len() != self.admitted_sources.len() {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
