@@ -1566,6 +1566,9 @@ mod graph_tests {
     use super::*;
 
     fn verified_test_evidence(label: &str) -> EvidenceReferenceVerificationV1 {
+        let preimage = b"deterministic Sol Atlas test evidence";
+        let digest = Sha256::digest(preimage);
+
         let reference = EvidenceReferenceV1::content_addressed(
             "test-evidence-record",
             DigestContextV1 {
@@ -1577,20 +1580,20 @@ mod graph_tests {
                 preimage_encoding: "UTF-8".into(),
                 representation: DigestRepresentationV1::PrefixedLowerHex,
             },
-            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            format!("sha256:{digest:x}"),
             "Exact test evidence identity only.",
         )
         .unwrap()
         .with_display_label(label);
 
-        EvidenceReferenceVerificationV1 {
-            reference: reference.clone(),
-            resolution: EvidenceReferenceResolutionV1::Verified,
-            verifier: Some("deterministic-test-verifier".into()),
-            verified_at: Some("2026-10-02T00:00:00Z".into()),
-            observed_digest: Some(reference.digest.clone()),
-            claim_ceiling: "Exact test evidence identity verified.".into(),
-        }
+        reference
+            .verify_preimage(
+                preimage,
+                "deterministic-test-verifier",
+                "2026-10-02T00:00:00Z",
+                "Exact test evidence identity verified.",
+            )
+            .unwrap()
     }
 
     fn cap(id: &str, dependencies: &[&str]) -> Capability {
