@@ -576,6 +576,22 @@ mod graph_tests {
     }
 
     #[test]
+    fn unresolved_impact_is_scoped_to_relevant_gaps() {
+        let graph = CapabilityGraph {
+            capabilities: vec![
+                cap("a", &["b", "unrelated-missing"]),
+                cap("b", &["c"]),
+                cap("c", &[]),
+            ],
+        };
+
+        let impact = graph.affected_by(&CapabilityId("c".into()));
+        assert_eq!(impact.direct_affected, vec![CapabilityId("b".into())]);
+        assert_eq!(impact.transitive_affected, vec![CapabilityId("a".into())]);
+        assert!(impact.unresolved.is_empty());
+    }
+
+    #[test]
     fn alternatives_are_explicit_candidates_not_selections() {
         let mut root = cap("a", &["b"]);
         root.dependencies[0].substitutes = vec![
