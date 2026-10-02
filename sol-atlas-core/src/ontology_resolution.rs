@@ -78,7 +78,9 @@ impl OntologyMappingResolutionV1 {
         self.source_snapshots.sort();
     }
 
-    fn canonical_payload(&self) -> (
+    fn canonical_payload(
+        &self,
+    ) -> (
         OntologyMappingContextV1,
         ClaimId,
         Vec<EvidenceId>,
@@ -152,8 +154,7 @@ impl OntologyMappingResolutionV1 {
                 let mut resolution_sources = self.source_snapshots.clone();
                 resolution_evidence.sort();
                 resolution_sources.sort();
-                resolution_evidence == claim_evidence
-                    && resolution_sources == claim_sources
+                resolution_evidence == claim_evidence && resolution_sources == claim_sources
             }
             && self.qualification == claim.qualification
             && self.evidence_frontier == frontier.frontier_id
@@ -171,7 +172,11 @@ mod tests {
         OntologyMappingKindV1, OntologyMappingStandardV1, OntologyReleaseStatusV1,
     };
 
-    fn fixture() -> (OntologyMappingV2, CanonicalClaimAdmissionV1, EvidenceFrontierV1) {
+    fn fixture() -> (
+        OntologyMappingV2,
+        CanonicalClaimAdmissionV1,
+        EvidenceFrontierV1,
+    ) {
         let mut frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1950".into(),
             known_by_year: 1950,
@@ -187,7 +192,10 @@ mod tests {
                 publication_time: Some(1941),
                 capture_time: None,
                 available_by: 1942,
-                validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+                validity_time: Some(YearInterval {
+                    from: Some(1940),
+                    to: Some(1950),
+                }),
             }],
             source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
                 source_snapshot: "source:1".into(),
@@ -221,8 +229,12 @@ mod tests {
     fn resolution_binds_mapping_to_exact_closure() {
         let (mapping, claim, frontier) = fixture();
         let resolution = OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
-        ).expect("resolution");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
         assert!(resolution.validate().is_ok());
         assert!(resolution.is_frontier_safe(&claim, &frontier));
     }
@@ -231,15 +243,23 @@ mod tests {
     fn evidence_or_source_substitution_breaks_frontier_safety() {
         let (mapping, claim, frontier) = fixture();
         let mut resolution = OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
-        ).expect("resolution");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
         resolution.evidence_refs = vec!["e:other".into()];
         resolution.recompute_hash().expect("rehash");
         assert!(!resolution.is_frontier_safe(&claim, &frontier));
 
         let mut resolution = OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
-        ).expect("resolution");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
         resolution.source_snapshots = vec!["source:other".into()];
         resolution.recompute_hash().expect("rehash");
         assert!(!resolution.is_frontier_safe(&claim, &frontier));
@@ -249,8 +269,12 @@ mod tests {
     fn claim_or_frontier_substitution_breaks_frontier_safety() {
         let (mapping, claim, frontier) = fixture();
         let resolution = OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
-        ).expect("resolution");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
 
         let other_claim = CanonicalClaimAdmissionV1 {
             claim_ref: "claim:other".into(),
@@ -268,8 +292,12 @@ mod tests {
     fn closure_member_order_is_not_semantic() {
         let (mapping, claim, frontier) = fixture();
         let mut resolution = OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
-        ).expect("resolution");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
         resolution.evidence_refs = vec!["e:2".into(), "e:1".into()];
         resolution.source_snapshots = vec!["source:2".into(), "source:1".into()];
         let mut canonical = resolution.clone();
@@ -289,15 +317,23 @@ mod tests {
     fn duplicate_closure_members_invalidate_resolution() {
         let (mapping, claim, frontier) = fixture();
         let mut resolution = OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
-        ).expect("resolution");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
         resolution.evidence_refs.push("e:1".into());
         resolution.recompute_hash().expect("rehash");
         assert!(resolution.validate().is_err());
 
         let mut resolution = OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
-        ).expect("resolution");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
         resolution.source_snapshots.push("source:1".into());
         resolution.recompute_hash().expect("rehash");
         assert!(resolution.validate().is_err());
@@ -307,8 +343,12 @@ mod tests {
     fn semantic_tamper_invalidates_content_address() {
         let (mapping, claim, frontier) = fixture();
         let mut resolution = OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
-        ).expect("resolution");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
         resolution.mapping.external_term = "E8_Acquisition".into();
         assert!(resolution.validate().is_err());
     }
