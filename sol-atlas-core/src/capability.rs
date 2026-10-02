@@ -513,6 +513,8 @@ impl RecoveryEvidenceCoverage {
         matches!(self, Self::ClosedWorld)
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RecoveryVerificationValidity {
     Current,
     Stale,
