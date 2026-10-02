@@ -1294,6 +1294,10 @@ pub struct RecoveryVerification {
     pub verifier: String,
     pub verified_at: String,
     pub claim_ceiling: String,
+    /// Digest of the exact concrete execution-result record consumed by verification.
+    /// Empty is legacy/unbound; stronger consumers must require an exact match.
+    #[serde(default)]
+    pub execution_result_snapshot: String,
 }
 
 impl RecoveryVerification {
@@ -1347,9 +1351,12 @@ impl RecoveryVerification {
     }
 
     pub fn passes_with_bound_execution(&self, execution: &RecoveryExecution) -> bool {
+        let snapshot = RecoveryExecutionResultSnapshotV1::from_execution(execution);
         self.passes()
             && execution.is_successful()
             && self.execution_id == execution.execution_id
+            && snapshot.is_well_formed()
+            && self.execution_result_snapshot == snapshot.digest()
     }
 
     /// Stronger gate requiring the structured dependency, evidence, and
@@ -2194,6 +2201,89 @@ impl RecoveryExecutionSnapshotV1 {
 ///
 /// Execution evidence is intentionally separate from the plan: a plan describes
 /// intended actions, while this record describes what actually happened.
+/// Canonical content identity for the concrete result of one recovery execution.
+///
+/// Input authorization and AI-assistance metadata are excluded because they belong
+/// to the execution-input snapshot. This record binds the observed result instead.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryExecutionResultSnapshotV1 {
+    pub schema: String,
+    pub plan_id: String,
+    pub execution_id: String,
+    pub started_at: String,
+    pub ended_at: Option<String>,
+    pub attempted_steps: Vec<String>,
+    pub completed_steps: Vec<String>,
+    pub failed_steps: Vec<String>,
+    pub observed_preconditions: Vec<String>,
+    pub evidence: Vec<String>,
+    pub resulting_state: CapabilityState,
+    pub failure_reason: Option<String>,
+    pub claim_ceiling: String,
+}
+
+impl RecoveryExecutionResultSnapshotV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-execution-result-snapshot:v1";
+
+    pub fn from_execution(execution: &RecoveryExecution) -> Self {
+        Self {
+            schema: Self::SCHEMA.into(),
+            plan_id: execution.plan_id.clone(),
+            execution_id: execution.execution_id.clone(),
+            started_at: execution.started_at.clone(),
+            ended_at: execution.ended_at.clone(),
+            attempted_steps: execution.attempted_steps.clone(),
+            completed_steps: execution.completed_steps.clone(),
+            failed_steps: execution.failed_steps.clone(),
+            observed_preconditions: execution.observed_preconditions.clone(),
+            evidence: execution.evidence.clone(),
+            resulting_state: execution.resulting_state,
+            failure_reason: execution.failure_reason.clone(),
+            claim_ceiling: execution.claim_ceiling.clone(),
+        }
+    }
+
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA
+            && !self.plan_id.is_empty()
+            && !self.execution_id.is_empty()
+            && is_canonical_utc_timestamp(&self.started_at)
+            && self.ended_at.as_deref().is_some_and(is_canonical_utc_timestamp)
+            && !self.attempted_steps.is_empty()
+            && self.attempted_steps.iter().all(|step| !step.is_empty())
+            && unique_nonempty_strings(&self.attempted_steps)
+            && self.completed_steps.iter().all(|step| !step.is_empty())
+            && self.failed_steps.iter().all(|step| !step.is_empty())
+            && unique_nonempty_strings(&self.completed_steps)
+            && unique_nonempty_strings(&self.failed_steps)
+            && self.observed_preconditions.iter().all(|condition| !condition.is_empty())
+            && unique_nonempty_strings(&self.observed_preconditions)
+            && unique_nonempty_strings(&self.evidence)
+            && !self.claim_ceiling.is_empty()
+            && self.ended_at.as_ref().is_some_and(|ended_at| {
+                self.started_at.as_str() <= ended_at.as_str()
+            })
+            && {
+                let attempted = self.attempted_steps.iter().collect::<std::collections::BTreeSet<_>>();
+                let completed = self.completed_steps.iter().collect::<std::collections::BTreeSet<_>>();
+                let failed = self.failed_steps.iter().collect::<std::collections::BTreeSet<_>>();
+                completed.is_subset(&attempted)
+                    && failed.is_subset(&attempted)
+                    && completed.is_disjoint(&failed)
+            }
+    }
+
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        serde_json::to_vec(self)
+            .expect("recovery execution result snapshot contains only serializable primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RecoveryExecution {
     /// Recovery plan that authorized/defined the attempted execution.
@@ -2475,6 +2565,14 @@ mod graph_tests {
         let mut self_substitute = candidate.clone();
         self_substitute.candidate = self_substitute.for_dependency.clone();
         assert!(!plan.is_ready_against_candidate(&self_substitute));
+
+        let snapshot = candidate.snapshot();
+        assert!(snapshot.is_well_formed());
+        assert_eq!(snapshot.digest(), candidate.snapshot().digest());
+
+        let mut relabeled = candidate.clone();
+        relabeled.claim_ceiling = "different ceiling".into();
+        assert_ne!(snapshot.digest(), relabeled.snapshot().digest());
     }
 
     #[test]
@@ -2529,6 +2627,9 @@ mod graph_tests {
             claim_ceiling: "Declared recovery candidate only.".into(),
         };
 
+        let mut plan = plan;
+        plan.candidate_snapshot = candidate.snapshot().digest();
+
         assert!(execution.input_snapshot_matches_plan(&plan));
         assert!(execution.is_successful_with_bound_plan(&plan));
         assert!(execution.is_successful_with_bound_candidate(&plan, &candidate));
@@ -2572,6 +2673,16 @@ mod graph_tests {
         let mut malformed = RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &execution);
         malformed.execution_claim_ceiling.clear();
         assert!(!malformed.is_well_formed());
+
+        let result_snapshot = RecoveryExecutionResultSnapshotV1::from_execution(&execution);
+        assert!(result_snapshot.is_well_formed());
+
+        let mut changed_result = execution.clone();
+        changed_result.resulting_state = CapabilityState::Deployed;
+        assert_ne!(
+            result_snapshot.digest(),
+            RecoveryExecutionResultSnapshotV1::from_execution(&changed_result).digest()
+        );
     }
 
     #[test]
@@ -2779,6 +2890,7 @@ mod graph_tests {
             verifier: "test-verifier".into(),
             verified_at: "2026-10-02T00:00:00Z".into(),
             claim_ceiling: "Exact verification scope only.".into(),
+            execution_result_snapshot: String::new(),
         };
 
         let snapshot = RecoveryVerificationSnapshotV1::from_verification_with_snapshots(
@@ -2818,6 +2930,7 @@ mod graph_tests {
             verifier: "test-verifier".into(),
             verified_at: "2026-10-02T00:00:00Z".into(),
             claim_ceiling: "Exact verification scope only.".into(),
+            execution_result_snapshot: String::new(),
         };
 
         let base = RecoveryVerificationSnapshotV1::from_verification(&verification);
@@ -2901,6 +3014,7 @@ mod graph_tests {
             verifier: "coverage-verifier".into(),
             verified_at: "2026-10-02T08:00:00Z".into(),
             claim_ceiling: "Exact coverage scope only.".into(),
+            execution_result_snapshot: String::new(),
         };
         verification.verification_snapshot =
             RecoveryVerificationSnapshotV1::from_verification_with_snapshots(
@@ -2953,6 +3067,10 @@ mod graph_tests {
             failure_reason: None,
             claim_ceiling: "Exact execution scope only.".into(),
         };
+        let mut verification = verification;
+        verification.execution_result_snapshot =
+            RecoveryExecutionResultSnapshotV1::from_execution(&execution).digest();
+
         assert!(verification.passes_with_bound_execution(&execution));
 
         let mut wrong_execution_id = execution.clone();
@@ -3039,6 +3157,7 @@ mod graph_tests {
             verifier: "verification-runner".into(),
             verified_at: "2026-10-02T00:00:00Z".into(),
             claim_ceiling: "Exact verification scope only.".into(),
+            execution_result_snapshot: String::new(),
         };
 
         verification.verification_snapshot =
@@ -3304,6 +3423,7 @@ mod graph_tests {
             verifier: "closure-verifier".into(),
             verified_at: "2026-10-02T08:00:00Z".into(),
             claim_ceiling: "Exact closure scope only.".into(),
+            execution_result_snapshot: String::new(),
         };
         verification.verification_snapshot =
             RecoveryVerificationSnapshotV1::from_verification_with_snapshots(
@@ -3904,6 +4024,7 @@ mod graph_tests {
             verifier: "verification-runner".into(),
             verified_at: "2026-10-02T12:00:00Z".into(),
             claim_ceiling: "Coverage test.".into(),
+            execution_result_snapshot: String::new(),
         };
         verification.verification_snapshot = verification.derived_snapshot().digest();
         assert!(!verification.passes());
@@ -3938,6 +4059,7 @@ mod graph_tests {
             verifier: "runner".into(),
             verified_at: "2026-10-02T00:00:00Z".into(),
             claim_ceiling: "Exact inputs only.".into(),
+            execution_result_snapshot: String::new(),
         };
         let digest = a.derived_snapshot().digest();
         a.verification_snapshot = digest.clone();
@@ -3977,6 +4099,7 @@ mod graph_tests {
             verifier: "runner".into(),
             verified_at: "2026-10-02T00:00:00Z".into(),
             claim_ceiling: "Exact inputs only.".into(),
+            execution_result_snapshot: String::new(),
         };
         let digest = verification.derived_snapshot().digest();
         verification.verification_snapshot = digest.clone();
@@ -4011,6 +4134,7 @@ mod graph_tests {
             verifier: "verification-runner".into(),
             verified_at: "2026-10-02T00:00:00Z".into(),
             claim_ceiling: "Exact verification scope only.".into(),
+            execution_result_snapshot: String::new(),
         };
         verification.verification_snapshot = verification.derived_snapshot().digest();
         assert!(verification.passes());
@@ -4051,6 +4175,7 @@ mod graph_tests {
             verified_at: "2026-10-02T08:10:00Z".into(),
             claim_ceiling:
                 "Exact execution and instance scope only; qualification is not established.".into(),
+            execution_result_snapshot: String::new(),
         };
         let mut verification = verification;
         verification.verification_snapshot = verification.derived_snapshot().digest();
@@ -4082,6 +4207,7 @@ mod graph_tests {
             verifier: "verification-runner".into(),
             verified_at: "2026-10-02T08:10:00Z".into(),
             claim_ceiling: "Ambiguous result.".into(),
+            execution_result_snapshot: String::new(),
         };
 
         assert!(!verification.passes());
@@ -4112,6 +4238,7 @@ mod graph_tests {
             verified_at: "2026-10-02T08:10:00Z".into(),
             claim_ceiling:
                 "Exact execution and instance scope only; qualification is not established.".into(),
+            execution_result_snapshot: String::new(),
         };
 
         assert_eq!(
@@ -4243,6 +4370,7 @@ mod graph_tests {
             verifier: "registry-verifier".into(),
             verified_at: "2026-10-02T08:00:00Z".into(),
             claim_ceiling: "Exact registry-gated scope only.".into(),
+            execution_result_snapshot: String::new(),
         };
         verification.verification_snapshot =
             RecoveryVerificationSnapshotV1::from_verification_with_snapshots(
@@ -4307,6 +4435,7 @@ mod graph_tests {
             verifier: "verification-runner".into(),
             verified_at: "2026-10-02T08:10:00Z".into(),
             claim_ceiling: "Exact verification scope only.".into(),
+            execution_result_snapshot: String::new(),
         };
 
         assert_eq!(
@@ -4359,6 +4488,7 @@ mod graph_tests {
             verifier: "verification-runner".into(),
             verified_at: "2026-10-02T08:10:00Z".into(),
             claim_ceiling: "Exact verification scope only.".into(),
+            execution_result_snapshot: String::new(),
         };
 
         assert!(!verification.passes());
@@ -4392,6 +4522,7 @@ mod graph_tests {
             verified_at: "2026-10-02T08:10:00Z".into(),
             claim_ceiling:
                 "Exact execution and instance scope only; qualification is not established.".into(),
+            execution_result_snapshot: String::new(),
         };
 
         assert_eq!(
