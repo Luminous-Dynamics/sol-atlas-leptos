@@ -2245,10 +2245,16 @@ impl CapabilityGraph {
 pub struct RecoveryExecutionSnapshotV1 {
     pub schema: String,
     pub plan_id: String,
+    /// Digest of the canonical plan semantics bound to this execution input.
+    /// Empty is legacy/unbound; stronger consumers must require an exact match.
+    #[serde(default)]
     pub plan_snapshot: String,
     pub execution_id: String,
     pub unavailable: CapabilityId,
     pub candidate: CapabilityId,
+    /// Digest of the canonical candidate content bound by the plan.
+    /// Empty is legacy/unbound; stronger consumers must require an exact match.
+    #[serde(default)]
     pub candidate_snapshot: String,
     pub prerequisites: Vec<CapabilityId>,
     /// Ordered execution steps: order is part of the input identity.
