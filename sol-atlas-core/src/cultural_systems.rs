@@ -1030,7 +1030,10 @@ mod tests {
                 EvidenceTemporalMetadataV1 {
                     evidence_id: "e:2".into(),
                     source_snapshot: "source:1".into(),
-                    artifact_time: Some(1945),
+                    artifact_time: Some(YearInterval {
+                        from: Some(1945),
+                        to: Some(1945),
+                    }),
                     publication_time: Some(1946),
                     capture_time: None,
                     available_by: 1947,
@@ -1042,7 +1045,10 @@ mod tests {
                 EvidenceTemporalMetadataV1 {
                     evidence_id: "e:recognition".into(),
                     source_snapshot: "source:1".into(),
-                    artifact_time: Some(1948),
+                    artifact_time: Some(YearInterval {
+                        from: Some(1948),
+                        to: Some(1948),
+                    }),
                     publication_time: Some(1949),
                     capture_time: None,
                     available_by: 1950,
