@@ -1160,6 +1160,118 @@ mod graph_tests {
     }
 
     #[test]
+    fn recovery_verification_rejects_scope_and_snapshot_drift() {
+        let verification = RecoveryVerification {
+            execution_id: "execution-fresh".into(),
+            capability: CapabilityId("water.purification".into()),
+            scope: "instance-003".into(),
+            expected_postconditions: vec!["potable water available".into()],
+            observed_postconditions: vec!["potable water available".into()],
+            evidence: vec!["water-test".into()],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("water.purification".into())],
+            unresolved_dependencies: vec![],
+            verification_snapshot: "verification-inputs-003".into(),
+            dependency_snapshot: "deps-003".into(),
+            environment_snapshot: "env-003".into(),
+            evidence_snapshot: "evidence-003".into(),
+            valid_until: "2026-10-02T12:00:00Z".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Passed,
+            verifier: "verification-runner".into(),
+            verified_at: "2026-10-02T08:10:00Z".into(),
+            claim_ceiling: "Exact execution and instance scope only; qualification is not established.".into(),
+        };
+
+        assert_eq!(
+            verification.validity_against(
+                &CapabilityId("water.purification".into()),
+                "instance-003",
+                "deps-003",
+                "env-003",
+                "evidence-003",
+                "2026-10-02T10:00:00Z",
+            ),
+            RecoveryVerificationValidity::Current
+        );
+        assert_eq!(
+            verification.validity_against(
+                &CapabilityId("water.purification".into()),
+                "instance-003",
+                "deps-004",
+                "env-003",
+                "evidence-003",
+                "2026-10-02T10:00:00Z",
+            ),
+            RecoveryVerificationValidity::DependencyDrift
+        );
+        assert_eq!(
+            verification.validity_against(
+                &CapabilityId("water.purification".into()),
+                "instance-004",
+                "deps-003",
+                "env-003",
+                "evidence-003",
+                "2026-10-02T10:00:00Z",
+            ),
+            RecoveryVerificationValidity::ScopeMismatch
+        );
+    }
+
+    #[test]
+    fn recovery_verification_expires_and_can_be_superseded() {
+        let verification = RecoveryVerification {
+            execution_id: "execution-expiring".into(),
+            capability: CapabilityId("water.purification".into()),
+            scope: "instance-004".into(),
+            expected_postconditions: vec!["potable water available".into()],
+            observed_postconditions: vec!["potable water available".into()],
+            evidence: vec!["water-test".into()],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("water.purification".into())],
+            unresolved_dependencies: vec![],
+            verification_snapshot: "verification-inputs-004".into(),
+            dependency_snapshot: "deps-004".into(),
+            environment_snapshot: "env-004".into(),
+            evidence_snapshot: "evidence-004".into(),
+            valid_until: "2026-10-02T12:00:00Z".into(),
+            superseded_by: Some("execution-newer".into()),
+            state: RecoveryVerificationState::Passed,
+            verifier: "verification-runner".into(),
+            verified_at: "2026-10-02T08:10:00Z".into(),
+            claim_ceiling: "Exact execution and instance scope only; qualification is not established.".into(),
+        };
+
+        assert_eq!(
+            verification.validity_against(
+                &CapabilityId("water.purification".into()),
+                "instance-004",
+                "deps-004",
+                "env-004",
+                "evidence-004",
+                "2026-10-02T10:00:00Z",
+            ),
+            RecoveryVerificationValidity::Superseded
+        );
+
+        let mut current = verification.clone();
+        current.superseded_by = None;
+        assert_eq!(
+            current.validity_against(
+                &CapabilityId("water.purification".into()),
+                "instance-004",
+                "deps-004",
+                "env-004",
+                "evidence-004",
+                "2026-10-02T13:00:00Z",
+            ),
+            RecoveryVerificationValidity::Stale
+        );
+    }
+
+    #[test]
     fn recovery_execution_does_not_imply_verification_or_qualification() {
         let execution = RecoveryExecution {
             plan_id: "recovery-plan-001".into(),
