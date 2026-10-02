@@ -93,6 +93,30 @@ pub struct EvidenceReferenceV1 {
     pub claim_ceiling: String,
 }
 
+/// Canonical representation of an evidence reference for snapshot hashing.
+///
+/// Display labels are intentionally excluded: changing a human-facing label
+/// must not change the referenced content identity. The claim ceiling remains
+/// included because it changes what the evidence reference is allowed to claim.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceReferenceCanonicalV1 {
+    pub artifact_type: String,
+    pub context: DigestContextV1,
+    pub digest: String,
+    pub claim_ceiling: String,
+}
+
+impl From<&EvidenceReferenceV1> for EvidenceReferenceCanonicalV1 {
+    fn from(reference: &EvidenceReferenceV1) -> Self {
+        Self {
+            artifact_type: reference.artifact_type.clone(),
+            context: reference.context.clone(),
+            digest: reference.digest.clone(),
+            claim_ceiling: reference.claim_ceiling.clone(),
+        }
+    }
+}
+
 impl EvidenceReferenceV1 {
     pub const SCHEMA: &'static str = "sol-atlas:evidence-reference:v1";
 
@@ -129,6 +153,39 @@ impl EvidenceReferenceV1 {
         }
 
         Ok(reference)
+    }
+
+    /// Preserve a legacy/bare evidence locator explicitly as unresolved.
+    ///
+    /// The locator is carried as display metadata only; the empty digest keeps
+    /// the reference structurally inadmissible until a real content identity is
+    /// supplied and verified.
+    pub fn unresolved_legacy(
+        label: impl Into<String>,
+        claim_ceiling: impl Into<String>,
+    ) -> Self {
+        Self {
+            artifact_type: "legacy/unresolved".into(),
+            context: DigestContextV1 {
+                id: "sol-atlas:unresolved-legacy:v1".into(),
+                preimage_construction: "unresolved; no content identity asserted".into(),
+                canonicalization: "none".into(),
+                hash_algorithm: "none".into(),
+                domain_separator: "sol-atlas:unresolved:v1".into(),
+                preimage_encoding: "none".into(),
+                representation: DigestRepresentationV1::RawBytes,
+            },
+            digest: String::new(),
+            display_label: Some(label.into()),
+            claim_ceiling: claim_ceiling.into(),
+        }
+    }
+
+    /// Compare the immutable content identity only; human labels are irrelevant.
+    pub fn same_content_identity(&self, other: &Self) -> bool {
+        self.artifact_type == other.artifact_type
+            && self.context == other.context
+            && self.digest == other.digest
     }
 
     pub fn with_display_label(mut self, label: impl Into<String>) -> Self {
