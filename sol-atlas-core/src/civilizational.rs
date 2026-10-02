@@ -528,6 +528,14 @@ impl EvidenceFrontierChainV1 {
         if self.frontiers.is_empty() {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
+        let mut frontier_ids = BTreeSet::new();
+        if self
+            .frontiers
+            .iter()
+            .any(|frontier| !frontier_ids.insert(frontier.frontier_id.clone()))
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
         if self.frontiers[0].parent_frontier.is_some() {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
@@ -543,6 +551,15 @@ impl EvidenceFrontierChainV1 {
 
     pub fn validate(&self) -> Result<(), ProjectionError> {
         if self.frontiers.is_empty() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        let mut frontier_ids = BTreeSet::new();
+        if self
+            .frontiers
+            .iter()
+            .any(|frontier| !frontier_ids.insert(frontier.frontier_id.clone()))
+        {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
 
@@ -1772,6 +1789,65 @@ mod tests {
         child.recompute_manifest_hash().unwrap();
         assert_eq!(
             child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn frontier_chain_rejects_duplicate_frontier_identity() {
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["e:1".into()].into_iter().collect(),
+            admitted_sources: ["source:1".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "e:1".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1890),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:1".into(),
+                publication_time: Some(1890),
+                capture_time: None,
+                available_by: 1900,
+            }],
+            argumentation_metadata: vec![],
+        };
+        root.recompute_manifest_hash().unwrap();
+
+        let mut child = root.clone();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(root.frontier_id.clone());
+        // Same frontier ID, but a valid-looking independently hashed manifest.
+        child.admitted_evidence.insert("e:2".into());
+        child.evidence_metadata.push(EvidenceTemporalMetadataV1 {
+            evidence_id: "e:2".into(),
+            source_snapshot: "source:1".into(),
+            artifact_time: None,
+            publication_time: Some(1891),
+            capture_time: None,
+            available_by: 1901,
+            validity_time: None,
+        });
+        child.recompute_manifest_hash().unwrap();
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, child],
+        };
+
+        assert_eq!(
+            chain.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+        assert_eq!(
+            chain.validate_strict(),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
