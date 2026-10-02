@@ -595,6 +595,30 @@ impl RecoveryVerificationSnapshotV1 {
         }
     }
 
+    /// Construct a verification snapshot only from structured component
+    /// snapshots. Component identities are derived by their own producers first;
+    /// this method binds those identities into the verification question.
+    pub fn from_verification_with_snapshots(
+        verification: &RecoveryVerification,
+        dependency: &DependencySnapshotV1,
+        evidence: &EvidenceSnapshotV1,
+        environment: &EnvironmentSnapshotV1,
+    ) -> Result<Self, &'static str> {
+        if dependency.root != verification.capability
+            || evidence.subject != verification.capability
+            || environment.subject != verification.capability
+            || environment.scope != verification.scope
+        {
+            return Err("snapshot subject or scope does not match verification");
+        }
+
+        let mut snapshot = Self::from_verification(verification);
+        snapshot.dependency_snapshot = dependency.digest();
+        snapshot.evidence_snapshot = evidence.digest();
+        snapshot.environment_snapshot = environment.digest();
+        Ok(snapshot)
+    }
+
     /// Stable JSON bytes for this fixed-field schema.
     ///
     /// This is a project-specific canonical form: it uses a fixed struct
@@ -1223,6 +1247,71 @@ mod graph_tests {
                 ai: String::new(),
             },
         }
+    }
+
+    #[test]
+    fn verification_snapshot_binds_derived_component_digests() {
+        let graph = CapabilityGraph {
+            capabilities: vec![cap("a", &["b"]), cap("b", &[])],
+        };
+        let dependency = graph
+            .dependency_snapshot(&CapabilityId("a".into()))
+            .unwrap();
+
+        let mut capability = cap("a", &[]);
+        capability.evidence = vec![CapabilityEvidence {
+            kind: EvidenceKind::Observed,
+            reference: "evidence-a".into(),
+            claim_ceiling: "exact observation".into(),
+        }];
+        let evidence =
+            EvidenceSnapshotV1::from_capability(&capability, RecoveryEvidenceCoverage::ClosedWorld);
+        let environment = EnvironmentSnapshotV1::from_facts(
+            CapabilityId("a".into()),
+            "site-1",
+            vec![EnvironmentFactV1 {
+                key: "temperature".into(),
+                value: "20".into(),
+                unit: Some("C".into()),
+                source: "sensor-a".into(),
+            }],
+        );
+
+        let verification = RecoveryVerification {
+            execution_id: "execution-a".into(),
+            capability: CapabilityId("a".into()),
+            scope: "site-1".into(),
+            expected_postconditions: vec!["operational".into()],
+            observed_postconditions: vec!["operational".into()],
+            evidence: vec!["evidence-a".into()],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("a".into()), CapabilityId("b".into())],
+            unresolved_dependencies: vec![],
+            verification_snapshot: String::new(),
+            dependency_snapshot: String::new(),
+            environment_snapshot: String::new(),
+            evidence_snapshot: String::new(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
+            valid_until: "9999-12-31T23:59:59Z".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Pending,
+            verifier: "test-verifier".into(),
+            verified_at: "2026-10-02T00:00:00Z".into(),
+            claim_ceiling: "Exact verification scope only.".into(),
+        };
+
+        let snapshot = RecoveryVerificationSnapshotV1::from_verification_with_snapshots(
+            &verification,
+            &dependency,
+            &evidence,
+            &environment,
+        )
+        .unwrap();
+
+        assert_eq!(snapshot.dependency_snapshot, dependency.digest());
+        assert_eq!(snapshot.evidence_snapshot, evidence.digest());
+        assert_eq!(snapshot.environment_snapshot, environment.digest());
     }
 
     #[test]
