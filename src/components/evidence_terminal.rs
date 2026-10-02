@@ -5,6 +5,7 @@
 use leptos::prelude::*;
 use leptos_router::components::A;
 use leptos_router::hooks::{use_params_map, use_query_map};
+use std::rc::Rc;
 
 use crate::data::evidence_projection::{
     AtlasEvidenceProjectionV1, ClaimKind, ContradictionRef, EpistemicState, LineageCompleteness,
@@ -561,75 +562,75 @@ pub fn EvidenceTerminal() -> impl IntoView {
 
     let primary_entity_ref = primary.entity_ref.clone();
     let primary_frontier_ref = primary.frontier_ref.clone();
-    let selected_entity = {
+    let selected_entity: Rc<dyn Fn() -> String> = {
         let terminal_query = terminal_query.clone();
-        move || {
+        Rc::new(move || {
             terminal_query()
                 .entity_ref
                 .unwrap_or_else(|| primary_entity_ref.clone())
-        }
+        })
     };
-    let selected_frontier = {
+    let selected_frontier: Rc<dyn Fn() -> String> = {
         let terminal_query = terminal_query.clone();
-        move || {
+        Rc::new(move || {
             terminal_query()
                 .frontier_ref
                 .unwrap_or_else(|| primary_frontier_ref.clone())
-        }
+        })
     };
-    let selected_claim = {
+    let selected_claim: Rc<dyn Fn() -> Option<String>> = {
         let terminal_query = terminal_query.clone();
-        move || terminal_query().claim_ref
+        Rc::new(move || terminal_query().claim_ref)
     };
-    let selected_projection = {
+    let selected_projection: Rc<dyn Fn() -> Option<AtlasEvidenceProjectionV1>> = {
         let terminal_query = terminal_query.clone();
         let projection_catalog = projection_catalog.clone();
-        let primary_entity_ref = primary_entity_ref.clone();
-        let primary_frontier_ref = primary_frontier_ref.clone();
-        move || {
+        let primary_entity_ref = primary.entity_ref.clone();
+        let primary_frontier_ref = primary.frontier_ref.clone();
+        Rc::new(move || {
             let q = terminal_query();
-        if q.validity() == TerminalQueryValidity::Malformed {
-            return None;
-        }
-        if matches!(
-            projection_context_state(
-                q.projection_profile.as_deref(),
-                q.reasoning_program.as_deref(),
-                q.model_version.as_deref(),
-            ),
-            ProjectionContextState::LocallyMismatched
-        ) {
-            None
-        } else {
-            let query = if q.entity_ref.is_none() {
-                TerminalQueryV1::from_url_parts(
-                    Some(primary_entity_ref.clone()),
-                    q.claim_ref.clone(),
-                    q.frontier_ref.clone().or(Some(primary_frontier_ref.clone())),
-                    q.projection_profile.clone(),
-                    q.reasoning_program.clone(),
-                    q.model_version.clone(),
-                    Some(q.view.as_str().to_string()),
-                )
-            } else {
-                q
-            };
-            projection_for_terminal_query(&projection_catalog, &query)
+            if q.validity() == TerminalQueryValidity::Malformed {
+                return None;
             }
-        }
+            if matches!(
+                projection_context_state(
+                    q.projection_profile.as_deref(),
+                    q.reasoning_program.as_deref(),
+                    q.model_version.as_deref(),
+                ),
+                ProjectionContextState::LocallyMismatched
+            ) {
+                None
+            } else {
+                let query = if q.entity_ref.is_none() {
+                    TerminalQueryV1::from_url_parts(
+                        Some(primary_entity_ref.clone()),
+                        q.claim_ref.clone(),
+                        q.frontier_ref.clone().or(Some(primary_frontier_ref.clone())),
+                        q.projection_profile.clone(),
+                        q.reasoning_program.clone(),
+                        q.model_version.clone(),
+                        Some(q.view.as_str().to_string()),
+                    )
+                } else {
+                    q
+                };
+                projection_for_terminal_query(&projection_catalog, &query)
+            }
+        })
     };
-    let replay_claim = {
+    let replay_claim: Rc<dyn Fn() -> Option<String>> = {
         let selected_claim = selected_claim.clone();
         let selected_projection = selected_projection.clone();
-        move || selected_claim().or_else(|| selected_projection().map(|projection| projection.claim_ref))
+        Rc::new(move || selected_claim().or_else(|| selected_projection().map(|projection| projection.claim_ref)))
     };
-    let replay_claim_value = {
+    let replay_claim_value: Rc<dyn Fn() -> String> = {
         let replay_claim = replay_claim.clone();
-        move || replay_claim().unwrap_or_default()
+        Rc::new(move || replay_claim().unwrap_or_default())
     };
-    let selected_view = {
+    let selected_view: Rc<dyn Fn() -> &str> = {
         let terminal_query = terminal_query.clone();
-        move || terminal_query().view.as_str()
+        Rc::new(move || terminal_query().view.as_str())
     };
     // Fixture link context is explicit and only used to construct a complete
     // address. It is never silently injected into replay-readiness state.
@@ -640,24 +641,24 @@ pub fn EvidenceTerminal() -> impl IntoView {
             "model:symthaea:v1".to_string(),
         )
     };
-    let selected_node = {
+    let selected_node: Rc<dyn Fn() -> Option<LineageNodeRef>> = {
         let query = query.clone();
-        move || LineageNodeRef::parse(query.read().get("node").as_deref())
+        Rc::new(move || LineageNodeRef::parse(query.read().get("node").as_deref()))
     };
-    let selected_node_status = {
+    let selected_node_status: Rc<dyn Fn() -> LineageResolution> = {
         let selected_node = selected_node.clone();
         let selected_projection = selected_projection.clone();
-        move || match (selected_node(), selected_projection()) {
+        Rc::new(move || match (selected_node(), selected_projection()) {
             (Some(node), Some(projection)) => projection.resolve_lineage_node(&node),
             (Some(_), None) => LineageResolution::Incomplete,
             (None, _) => LineageResolution::Incomplete,
-        }
+        })
     };
-    let replay_href = {
+    let replay_href: Rc<dyn Fn() -> Option<String>> = {
         let replay_claim = replay_claim.clone();
         let selected_entity = selected_entity.clone();
         let selected_frontier = selected_frontier.clone();
-        move || replay_claim().map(|claim| {
+        Rc::new(move || replay_claim().map(|claim| {
             let context = link_replay_context();
             TerminalClaimRef::new(claim).map(|claim| {
                 TerminalNavigationTarget::new(
@@ -671,7 +672,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                 )
                 .href()
             })
-        }).flatten()
+        }).flatten())
     };
 
     view! {
