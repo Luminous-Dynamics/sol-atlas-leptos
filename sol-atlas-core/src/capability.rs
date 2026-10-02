@@ -719,6 +719,11 @@ pub struct RecoveryVerificationSnapshotV1 {
     /// A PASS requires every reference to have a recomputed digest and verifier
     /// metadata; unresolved legacy strings are not admissible.
     pub evidence: Vec<EvidenceReferenceV1>,
+    /// Digest of the exact profile/registry authorization metadata recorded for
+    /// each processed evidence reference. An empty value is legacy/incomplete
+    /// and therefore cannot match a snapshot produced by the current schema.
+    #[serde(default)]
+    pub evidence_authorization_snapshot: String,
     pub missing_postconditions: Vec<String>,
     pub contradictory_postconditions: Vec<String>,
     pub dependency_closure: Vec<CapabilityId>,
@@ -779,6 +784,8 @@ impl RecoveryVerificationSnapshotV1 {
                 values.dedup();
                 values
             },
+            evidence_authorization_snapshot:
+                Self::evidence_authorization_snapshot(verification),
             missing_postconditions: sorted_strings(&verification.missing_postconditions),
             contradictory_postconditions: sorted_strings(
                 &verification.contradictory_postconditions,
@@ -795,6 +802,100 @@ impl RecoveryVerificationSnapshotV1 {
     /// Construct a verification snapshot only from structured component
     /// snapshots. Component identities are derived by their own producers first;
     /// this method binds those identities into the verification question.
+    fn evidence_authorization_snapshot(verification: &RecoveryVerification) -> String {
+        #[derive(Serialize)]
+        struct CanonicalAuthorization {
+            artifact_type: String,
+            context: DigestContextV1,
+            digest: String,
+            purpose: Option<String>,
+            claim_ceiling: String,
+            profile_id: Option<String>,
+            profile_version: Option<u32>,
+            profile_digest: Option<String>,
+            registry_id: Option<String>,
+            registry_version: Option<u32>,
+            registry_digest: Option<String>,
+        }
+
+        #[derive(Serialize)]
+        struct CanonicalAuthorizationSnapshot {
+            schema: String,
+            evidence: Vec<CanonicalAuthorization>,
+        }
+
+        let mut evidence = verification
+            .evidence
+            .iter()
+            .map(|verification| CanonicalAuthorization {
+                artifact_type: verification.reference.artifact_type.clone(),
+                context: verification.reference.context.clone(),
+                digest: verification.reference.digest.clone(),
+                purpose: verification.reference.purpose.clone(),
+                claim_ceiling: verification.reference.claim_ceiling.clone(),
+                profile_id: verification.profile_id.clone(),
+                profile_version: verification.profile_version,
+                profile_digest: verification.profile_digest.clone(),
+                registry_id: verification.registry_id.clone(),
+                registry_version: verification.registry_version,
+                registry_digest: verification.registry_digest.clone(),
+            })
+            .collect::<Vec<_>>();
+
+        evidence.sort_by(|left, right| {
+            (
+                &left.artifact_type,
+                &left.context,
+                &left.digest,
+                &left.purpose,
+                &left.claim_ceiling,
+                &left.profile_id,
+                left.profile_version,
+                &left.profile_digest,
+                &left.registry_id,
+                left.registry_version,
+                &left.registry_digest,
+            )
+                .cmp(&(
+                    &right.artifact_type,
+                    &right.context,
+                    &right.digest,
+                    &right.purpose,
+                    &right.claim_ceiling,
+                    &right.profile_id,
+                    right.profile_version,
+                    &right.profile_digest,
+                    &right.registry_id,
+                    right.registry_version,
+                    &right.registry_digest,
+                ))
+        });
+        evidence.dedup_by(|left, right| {
+            left.artifact_type == right.artifact_type
+                && left.context == right.context
+                && left.digest == right.digest
+                && left.purpose == right.purpose
+                && left.claim_ceiling == right.claim_ceiling
+                && left.profile_id == right.profile_id
+                && left.profile_version == right.profile_version
+                && left.profile_digest == right.profile_digest
+                && left.registry_id == right.registry_id
+                && left.registry_version == right.registry_version
+                && left.registry_digest == right.registry_digest
+        });
+
+        let canonical = CanonicalAuthorizationSnapshot {
+            schema: "sol-atlas:evidence-authorization-snapshot:v1".into(),
+            evidence,
+        };
+
+        let digest = Sha256::digest(
+            serde_json::to_vec(&canonical)
+                .expect("evidence authorization snapshot is serializable"),
+        );
+        format!("sha256:{digest:x}")
+    }
+
     pub fn from_verification_with_snapshots(
         verification: &RecoveryVerification,
         dependency: &DependencySnapshotV1,
@@ -840,6 +941,7 @@ impl RecoveryVerificationSnapshotV1 {
             expected_postconditions: Vec<String>,
             observed_postconditions: Vec<String>,
             evidence: Vec<CanonicalEvidenceReference>,
+            evidence_authorization_snapshot: String,
             missing_postconditions: Vec<String>,
             contradictory_postconditions: Vec<String>,
             dependency_closure: Vec<CapabilityId>,
@@ -907,6 +1009,7 @@ impl RecoveryVerificationSnapshotV1 {
             expected_postconditions: sorted_strings(&self.expected_postconditions),
             observed_postconditions: sorted_strings(&self.observed_postconditions),
             evidence,
+            evidence_authorization_snapshot: self.evidence_authorization_snapshot.clone(),
             missing_postconditions: sorted_strings(&self.missing_postconditions),
             contradictory_postconditions: sorted_strings(&self.contradictory_postconditions),
             dependency_closure: sorted_ids(&self.dependency_closure),
@@ -1033,6 +1136,7 @@ impl RecoveryVerification {
                 .iter()
                 .all(|verification| verification.is_verified())
             && !self.verification_snapshot.is_empty()
+            && !self.derived_snapshot().evidence_authorization_snapshot.is_empty()
             && self.snapshot_matches_inputs()
             && !self.dependency_snapshot.is_empty()
             && !self.environment_snapshot.is_empty()
@@ -1720,6 +1824,62 @@ mod graph_tests {
         assert_eq!(snapshot.dependency_snapshot, dependency.digest());
         assert_eq!(snapshot.evidence_snapshot, evidence.digest());
         assert_eq!(snapshot.environment_snapshot, environment.digest());
+    }
+
+    #[test]
+    fn verification_snapshot_binds_evidence_authorization_identity() {
+        let verification = RecoveryVerification {
+            execution_id: "authorization-binding".into(),
+            capability: CapabilityId("a".into()),
+            scope: "site-1".into(),
+            expected_postconditions: vec!["operational".into()],
+            observed_postconditions: vec!["operational".into()],
+            evidence: vec![verified_test_evidence("evidence-a")],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("a".into())],
+            unresolved_dependencies: vec![],
+            verification_snapshot: String::new(),
+            dependency_snapshot: "sha256:dependency".into(),
+            environment_snapshot: "sha256:environment".into(),
+            evidence_snapshot: "sha256:evidence".into(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
+            valid_until: "9999-12-31T23:59:59Z".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Passed,
+            verifier: "test-verifier".into(),
+            verified_at: "2026-10-02T00:00:00Z".into(),
+            claim_ceiling: "Exact verification scope only.".into(),
+        };
+
+        let base = RecoveryVerificationSnapshotV1::from_verification(&verification);
+        assert!(!base.evidence_authorization_snapshot.is_empty());
+
+        let mut profile_bound = verification.clone();
+        profile_bound.evidence[0].profile_id = Some("profile-001".into());
+        profile_bound.evidence[0].profile_version = Some(1);
+        profile_bound.evidence[0].profile_digest =
+            Some("sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".into());
+
+        let profile_snapshot = RecoveryVerificationSnapshotV1::from_verification(&profile_bound);
+        assert_ne!(
+            base.evidence_authorization_snapshot,
+            profile_snapshot.evidence_authorization_snapshot
+        );
+        assert_ne!(base.digest(), profile_snapshot.digest());
+
+        let mut registry_bound = profile_bound.clone();
+        registry_bound.evidence[0].registry_id = Some("registry-001".into());
+        registry_bound.evidence[0].registry_version = Some(1);
+        registry_bound.evidence[0].registry_digest =
+            Some("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into());
+
+        let registry_snapshot = RecoveryVerificationSnapshotV1::from_verification(&registry_bound);
+        assert_ne!(
+            profile_snapshot.evidence_authorization_snapshot,
+            registry_snapshot.evidence_authorization_snapshot
+        );
+        assert_ne!(profile_snapshot.digest(), registry_snapshot.digest());
     }
 
     #[test]
