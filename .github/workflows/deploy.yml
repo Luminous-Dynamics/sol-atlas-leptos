@@ -40,7 +40,7 @@ jobs:
       - name: Install Trunk
         run: |
           if ! command -v trunk &> /dev/null; then
-            cargo install trunk --locked
+            cargo install trunk --locked --version 0.21.14
           fi
 
       - name: Build
