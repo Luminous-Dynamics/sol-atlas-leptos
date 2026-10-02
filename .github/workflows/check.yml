@@ -14,6 +14,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  supply-chain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Enforce immutable action references
+        run: |
+          if grep -RInE '^[[:space:]-]*uses:[[:space:]]*[^@[:space:]]+@' .github/workflows               | grep -vE '@[0-9a-f]{40}([[:space:]]|$)'; then
+            echo "All GitHub Actions must use full 40-character commit SHAs."
+            exit 1
+          fi
+      - name: Enforce pinned Trunk install
+        run: |
+          if grep -RInE 'cargo install trunk --locked([[:space:]]|$)' .github/workflows               | grep -v -- '--version'; then
+            echo "Trunk installs must pin an explicit release version."
+            exit 1
+          fi
+
   fmt:
     runs-on: ubuntu-latest
     timeout-minutes: 10
