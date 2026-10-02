@@ -1517,7 +1517,6 @@ impl CapabilityGraph {
     }
 }
 
-
 /// Evidence emitted by a concrete recovery execution.
 ///
 /// Execution evidence is intentionally separate from the plan: a plan describes
@@ -1572,8 +1571,7 @@ impl RecoveryExecution {
     /// A failed execution must preserve a reason rather than silently becoming
     /// an unsuccessful "success" record.
     pub fn is_failed(&self) -> bool {
-        self.ended_at.is_some()
-            && (!self.failed_steps.is_empty() || self.failure_reason.is_some())
+        self.ended_at.is_some() && (!self.failed_steps.is_empty() || self.failure_reason.is_some())
     }
 
     /// Whether the execution has produced the evidence required by its plan.
