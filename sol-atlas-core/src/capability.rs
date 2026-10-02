@@ -16,7 +16,8 @@
 //! - a deployed instance != universal availability
 
 use crate::evidence_reference::{
-    EvidenceReferenceCanonicalV1, EvidenceReferenceV1, EvidenceReferenceVerificationV1,
+    DigestContextV1, DigestRepresentationV1, EvidenceReferenceCanonicalV1, EvidenceReferenceResolutionV1,
+    EvidenceReferenceV1, EvidenceReferenceVerificationV1,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -1404,6 +1405,34 @@ impl RecoveryExecution {
 mod graph_tests {
     use super::*;
 
+    fn verified_test_evidence(label: &str) -> EvidenceReferenceVerificationV1 {
+        let reference = EvidenceReferenceV1::content_addressed(
+            "test-evidence-record",
+            DigestContextV1 {
+                id: "sol-atlas:test-sha256:v1".into(),
+                preimage_construction: "canonical test evidence bytes".into(),
+                canonicalization: "sol-atlas-test-canonical-v1".into(),
+                hash_algorithm: "SHA-256".into(),
+                domain_separator: "sol-atlas:test-evidence:v1".into(),
+                preimage_encoding: "UTF-8".into(),
+                representation: DigestRepresentationV1::PrefixedLowerHex,
+            },
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "Exact test evidence identity only.",
+        )
+        .unwrap()
+        .with_display_label(label);
+
+        EvidenceReferenceVerificationV1 {
+            reference: reference.clone(),
+            resolution: EvidenceReferenceResolutionV1::Verified,
+            verifier: Some("deterministic-test-verifier".into()),
+            verified_at: Some("2026-10-02T00:00:00Z".into()),
+            observed_digest: Some(reference.digest.clone()),
+            claim_ceiling: "Exact test evidence identity verified.".into(),
+        }
+    }
+
     fn cap(id: &str, dependencies: &[&str]) -> Capability {
         Capability {
             id: CapabilityId(id.into()),
@@ -1463,7 +1492,7 @@ mod graph_tests {
             scope: "site-1".into(),
             expected_postconditions: vec!["operational".into()],
             observed_postconditions: vec!["operational".into()],
-            evidence: vec!["evidence-a".into()],
+            evidence: vec![verified_test_evidence("evidence-a")],
             missing_postconditions: vec![],
             contradictory_postconditions: vec![],
             dependency_closure: vec![CapabilityId("a".into()), CapabilityId("b".into())],
@@ -1601,6 +1630,94 @@ mod graph_tests {
         );
         assert_eq!(snapshot.edges.len(), 1);
         assert_eq!(snapshot.edges[0].to, CapabilityId("b".into()));
+    }
+
+    #[test]
+    fn legacy_capability_evidence_stays_unresolved_in_snapshots() {
+        let mut capability = cap("a", &[]);
+        capability.evidence = vec![CapabilityEvidence {
+            kind: EvidenceKind::Observed,
+            reference: "branch/main".into(),
+            claim_ceiling: "Legacy reference only.".into(),
+        }];
+
+        let snapshot = EvidenceSnapshotV1::from_capability(
+            &capability,
+            RecoveryEvidenceCoverage::ClosedWorld,
+        );
+
+        assert_eq!(snapshot.evidence.len(), 1);
+        assert!(!snapshot.evidence[0].reference.is_well_formed());
+        assert_eq!(
+            snapshot.evidence[0].unresolved_locator.as_deref(),
+            Some("branch/main")
+        );
+        assert!(!snapshot.all_references_verified(&[]));
+    }
+
+    #[test]
+    fn typed_evidence_snapshot_digest_ignores_display_label() {
+        let first = EvidenceReferenceV1::content_addressed(
+            "test-evidence-record",
+            DigestContextV1 {
+                id: "sol-atlas:test-sha256:v1".into(),
+                preimage_construction: "canonical test evidence bytes".into(),
+                canonicalization: "sol-atlas-test-canonical-v1".into(),
+                hash_algorithm: "SHA-256".into(),
+                domain_separator: "sol-atlas:test-evidence:v1".into(),
+                preimage_encoding: "UTF-8".into(),
+                representation: DigestRepresentationV1::PrefixedLowerHex,
+            },
+            "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "Exact typed evidence only.",
+        )
+        .unwrap()
+        .with_display_label("first label");
+        let second = first.clone().with_display_label("second label");
+
+        let first_snapshot = EvidenceSnapshotV1::from_entries(
+            CapabilityId("a".into()),
+            RecoveryEvidenceCoverage::ClosedWorld,
+            vec![EvidenceSnapshotEntryV1 {
+                kind: EvidenceKind::Observed,
+                reference: first,
+                claim_ceiling: "Exact typed evidence only.".into(),
+                unresolved_locator: None,
+            }],
+        );
+        let second_snapshot = EvidenceSnapshotV1::from_entries(
+            CapabilityId("a".into()),
+            RecoveryEvidenceCoverage::ClosedWorld,
+            vec![EvidenceSnapshotEntryV1 {
+                kind: EvidenceKind::Observed,
+                reference: second,
+                claim_ceiling: "Exact typed evidence only.".into(),
+                unresolved_locator: None,
+            }],
+        );
+
+        assert_eq!(first_snapshot.digest(), second_snapshot.digest());
+    }
+
+    #[test]
+    fn evidence_snapshot_requires_verified_matching_references() {
+        let verification = verified_test_evidence("typed-evidence");
+        let snapshot = EvidenceSnapshotV1::from_entries(
+            CapabilityId("a".into()),
+            RecoveryEvidenceCoverage::ClosedWorld,
+            vec![EvidenceSnapshotEntryV1 {
+                kind: EvidenceKind::Observed,
+                reference: verification.reference.clone(),
+                claim_ceiling: verification.reference.claim_ceiling.clone(),
+                unresolved_locator: None,
+            }],
+        );
+
+        assert!(snapshot.all_references_verified(&[verification.clone()]));
+
+        let mut unresolved = verification;
+        unresolved.resolution = EvidenceReferenceResolutionV1::Unresolved;
+        assert!(!snapshot.all_references_verified(&[unresolved]));
     }
 
     #[test]
@@ -1937,7 +2054,7 @@ mod graph_tests {
             scope: "instance-coverage".into(),
             expected_postconditions: vec!["potable water available".into()],
             observed_postconditions: vec!["potable water available".into()],
-            evidence: vec!["water-test".into()],
+            evidence: vec![verified_test_evidence("water-test")],
             missing_postconditions: vec![],
             contradictory_postconditions: vec![],
             dependency_closure: vec![CapabilityId("water.purification".into())],
@@ -2008,7 +2125,7 @@ mod graph_tests {
             scope: "instance-001".into(),
             expected_postconditions: vec!["potable water available".into()],
             observed_postconditions: vec!["potable water available".into()],
-            evidence: vec!["water-test".into()],
+            evidence: vec![verified_test_evidence("water-test")],
             missing_postconditions: vec![],
             contradictory_postconditions: vec![],
             dependency_closure: vec![CapabilityId("water.purification".into())],
@@ -2032,6 +2149,39 @@ mod graph_tests {
         assert_ne!(digest, verification.derived_snapshot().digest());
     }
     #[test]
+    fn recovery_verification_requires_verified_evidence_references() {
+        let mut verification = RecoveryVerification {
+            execution_id: "execution-evidence-binding".into(),
+            capability: CapabilityId("a".into()),
+            scope: "site-1".into(),
+            expected_postconditions: vec!["operational".into()],
+            observed_postconditions: vec!["operational".into()],
+            evidence: vec![verified_test_evidence("binding-test")],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("a".into())],
+            unresolved_dependencies: vec![],
+            verification_snapshot: String::new(),
+            dependency_snapshot: "deps-binding".into(),
+            environment_snapshot: "env-binding".into(),
+            evidence_snapshot: "evidence-binding".into(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
+            valid_until: "9999-12-31T23:59:59Z".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Passed,
+            verifier: "verification-runner".into(),
+            verified_at: "2026-10-02T00:00:00Z".into(),
+            claim_ceiling: "Exact verification scope only.".into(),
+        };
+        verification.verification_snapshot = verification.derived_snapshot().digest();
+        assert!(verification.passes());
+
+        verification.evidence[0].resolution = EvidenceReferenceResolutionV1::Unresolved;
+        verification.verification_snapshot = verification.derived_snapshot().digest();
+        assert!(!verification.passes());
+    }
+
+    #[test]
     fn recovery_verification_requires_complete_postconditions_and_dependencies() {
         let verification = RecoveryVerification {
             execution_id: "execution-verified".into(),
@@ -2045,7 +2195,7 @@ mod graph_tests {
                 "potable water available".into(),
                 "pump responding".into(),
             ],
-            evidence: vec!["water-test".into()],
+            evidence: vec![verified_test_evidence("water-test")],
             missing_postconditions: vec![],
             contradictory_postconditions: vec![],
             dependency_closure: vec![CapabilityId("water.purification".into())],
@@ -2076,7 +2226,7 @@ mod graph_tests {
             scope: "instance-002".into(),
             expected_postconditions: vec!["potable water available".into()],
             observed_postconditions: vec!["potable water available".into()],
-            evidence: vec!["water-test".into()],
+            evidence: vec![verified_test_evidence("water-test")],
             missing_postconditions: vec![],
             contradictory_postconditions: vec!["contamination detected".into()],
             dependency_closure: vec![],
@@ -2105,7 +2255,7 @@ mod graph_tests {
             scope: "instance-003".into(),
             expected_postconditions: vec!["potable water available".into()],
             observed_postconditions: vec!["potable water available".into()],
-            evidence: vec!["water-test".into()],
+            evidence: vec![verified_test_evidence("water-test")],
             missing_postconditions: vec![],
             contradictory_postconditions: vec![],
             dependency_closure: vec![CapabilityId("water.purification".into())],
@@ -2169,7 +2319,7 @@ mod graph_tests {
             scope: "instance-004".into(),
             expected_postconditions: vec!["potable water available".into()],
             observed_postconditions: vec!["potable water available".into()],
-            evidence: vec!["water-test".into()],
+            evidence: vec![verified_test_evidence("water-test")],
             missing_postconditions: vec![],
             contradictory_postconditions: vec![],
             dependency_closure: vec![CapabilityId("water.purification".into())],
