@@ -10,7 +10,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::civilizational::ProjectionError;
-use crate::cultural_systems::{CulturalArgumentationRefV1, CulturalProjectionAuditV2, CulturalProjectionIdV1};
+use crate::cultural_systems::{
+    CulturalArgumentationRefV1, CulturalProjectionAuditV2, CulturalProjectionIdV1,
+};
 use crate::projection_semantics::ProjectionSemanticEnvelopeV1;
 
 /// Reproducible "why was this rendered?" audit envelope.
@@ -29,7 +31,10 @@ impl CulturalProjectionAuditV3 {
         base: CulturalProjectionAuditV2,
         semantic_context: ProjectionSemanticEnvelopeV1,
     ) -> Result<Self, ProjectionError> {
-        let audit = Self { base, semantic_context };
+        let audit = Self {
+            base,
+            semantic_context,
+        };
         audit.validate()?;
         Ok(audit)
     }
@@ -66,10 +71,7 @@ impl CulturalProjectionAuditV3 {
         Ok(())
     }
 
-    pub fn is_frontier_safe(
-        &self,
-        frontier: &crate::civilizational::EvidenceFrontierV1,
-    ) -> bool {
+    pub fn is_frontier_safe(&self, frontier: &crate::civilizational::EvidenceFrontierV1) -> bool {
         self.validate().is_ok()
             && self.base.is_frontier_safe(frontier)
             && self.semantic_context.evidence_frontier == frontier.frontier_id
@@ -91,7 +93,9 @@ mod tests {
         EvidenceFrontierV1, EvidenceTemporalMetadataV1, QualificationStatus,
         SourceSnapshotTemporalMetadataV1, YearInterval,
     };
-    use crate::cultural_systems::{CanonicalClaimAdmissionV1, CulturalProjectionV1, CulturalTransmissionV1};
+    use crate::cultural_systems::{
+        CanonicalClaimAdmissionV1, CulturalProjectionV1, CulturalTransmissionV1,
+    };
     use crate::ontology_context::{OntologyMappingContextV1, OntologyMappingRelationV1};
     use crate::ontology_mapping::{
         OntologyMappingKindV1, OntologyMappingStandardV1, OntologyMappingV2,
@@ -114,7 +118,10 @@ mod tests {
                 publication_time: Some(1941),
                 capture_time: None,
                 available_by: 1942,
-                validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+                validity_time: Some(YearInterval {
+                    from: Some(1940),
+                    to: Some(1950),
+                }),
             }],
             source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
                 source_snapshot: "source:1".into(),
@@ -134,7 +141,10 @@ mod tests {
             source: "practice:source".into(),
             target: "practice:target".into(),
             mode: crate::cultural_systems::TransmissionMode::Translated,
-            event_time: YearInterval { from: Some(1900), to: Some(1950) },
+            event_time: YearInterval {
+                from: Some(1900),
+                to: Some(1950),
+            },
             context: Some("documented".into()),
             claim_ref: "claim:1".into(),
             evidence_refs: vec!["e:1".into()],
@@ -166,11 +176,9 @@ mod tests {
             OntologyMappingKindV1::Class,
             &claim,
         );
-        let context = OntologyMappingContextV1::from_mapping(
-            &mapping,
-            OntologyMappingRelationV1::Exact,
-        )
-        .expect("mapping context");
+        let context =
+            OntologyMappingContextV1::from_mapping(&mapping, OntologyMappingRelationV1::Exact)
+                .expect("mapping context");
 
         let mut envelope = ProjectionSemanticEnvelopeV1 {
             projection_id: CulturalProjectionIdV1::Transmission("transmission:1".into()),
@@ -186,8 +194,8 @@ mod tests {
 
     #[test]
     fn v3_audit_binds_semantic_context_to_v2_identity() {
-        let value = CulturalProjectionAuditV3::from_v2(audit(), semantic_context())
-            .expect("v3 audit");
+        let value =
+            CulturalProjectionAuditV3::from_v2(audit(), semantic_context()).expect("v3 audit");
         assert!(value.validate().is_ok());
         assert!(value.is_frontier_safe(&frontier()));
     }
@@ -209,7 +217,9 @@ mod tests {
     fn semantic_mapping_cannot_upgrade_qualification() {
         let mut context = semantic_context();
         context.mappings[0].qualification = QualificationStatus::Established;
-        context.mappings[0].recompute_hash().expect("mapping rehash");
+        context.mappings[0]
+            .recompute_hash()
+            .expect("mapping rehash");
         context.recompute_hash().expect("envelope rehash");
         assert!(CulturalProjectionAuditV3::from_v2(audit(), context).is_err());
     }
