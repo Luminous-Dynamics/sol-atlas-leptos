@@ -1410,7 +1410,9 @@ mod tests {
             source_metadata: vec![],
             argumentation_metadata: vec![],
         };
-        assert!(frontier.admits_snapshot(&snapshot()));
+        let mut admitted_snapshot = snapshot();
+        admitted_snapshot.source_snapshots = vec!["source:1".into()];
+        assert!(frontier.admits_snapshot(&admitted_snapshot));
 
         let mut later = snapshot();
         later.evidence_frontier = "frontier:1950".into();
