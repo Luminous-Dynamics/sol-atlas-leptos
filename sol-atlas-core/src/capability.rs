@@ -1598,7 +1598,7 @@ impl RecoveryVerification {
     ) -> bool {
         self.is_successful_with_bound_candidate(plan, candidate)
             && decision.is_valid_at(now)
-            && decision.id == self.authorization.as_deref().unwrap_or_default()
+            && decision.digest() == self.authorization.as_deref().unwrap_or_default()
             && decision.plan_id == plan.id
             && decision.plan_snapshot == plan.snapshot().digest()
             && decision.candidate == candidate.candidate
@@ -3518,7 +3518,7 @@ mod graph_tests {
             claim_ceiling: "Exact recovery admission only.".into(),
         };
 
-        bound_execution.authorization = Some(decision.id.clone());
+        bound_execution.authorization = Some(decision.digest());
         bound_execution.input_snapshot =
             RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &bound_execution).digest();
         verification.execution_result_snapshot =
@@ -3544,6 +3544,21 @@ mod graph_tests {
         let mut wrong_purpose = decision.clone();
         wrong_purpose.purpose = "different-purpose".into();
         assert_ne!(decision.digest(), wrong_purpose.digest());
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &wrong_purpose,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        let mut wrong_consumer = decision.clone();
+        wrong_consumer.consumer = "different-consumer".into();
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &wrong_consumer,
+            "2026-10-02T08:00:00Z"
+        ));
 
         let mut expired = decision.clone();
         expired.valid_until = "2026-10-02T07:59:00Z".into();
