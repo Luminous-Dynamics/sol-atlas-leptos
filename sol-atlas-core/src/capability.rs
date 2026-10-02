@@ -715,6 +715,19 @@ impl RecoveryExecution {
         self.ended_at.is_some()
             && (!self.failed_steps.is_empty() || self.failure_reason.is_some())
     }
+
+    /// Whether the execution has produced the evidence required by its plan.
+    ///
+    /// This is deliberately a structural check only. Matching evidence does not
+    /// establish that the evidence is valid, current, or sufficient for
+    /// verification; those judgments belong to the verification layer.
+    pub fn satisfies_plan_evidence(&self, plan: &RecoveryPlan) -> bool {
+        self.plan_id == plan.id
+            && plan
+                .expected_evidence
+                .iter()
+                .all(|expected| self.evidence.iter().any(|actual| actual == expected))
+    }
 }
 
 #[cfg(test)]
