@@ -1163,7 +1163,7 @@ mod tests {
         let frontier = frontier();
         let transmission = transmission();
         let projection = CulturalProjectionV1::Transmission(transmission.clone());
-        let admission = CulturalProjectionAdmissionV1::from_projection(
+        let admission = CulturalProjectionAdmissionV2::from_projection(
             &projection,
             &frontier,
             &canonical_claim(&transmission),
