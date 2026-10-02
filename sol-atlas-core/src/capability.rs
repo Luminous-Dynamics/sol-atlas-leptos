@@ -21,7 +21,7 @@ use sha2::{Digest, Sha256};
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct CapabilityId(pub String);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum EvidenceKind {
     Observed,
     Curated,
@@ -71,6 +71,69 @@ pub struct CapabilityEvidence {
     pub kind: EvidenceKind,
     pub reference: String,
     pub claim_ceiling: String,
+}
+
+/// Canonical snapshot of the evidence records consumed for a verification scope.
+///
+/// The snapshot records structured evidence identity and claim ceilings rather
+/// than hashing a caller-provided label. It identifies what was consumed; it
+/// does not establish that the referenced evidence is true or sufficient.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceSnapshotV1 {
+    pub schema: String,
+    pub subject: CapabilityId,
+    pub evidence: Vec<EvidenceSnapshotEntryV1>,
+    pub coverage: RecoveryEvidenceCoverage,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceSnapshotEntryV1 {
+    pub kind: EvidenceKind,
+    pub reference: String,
+    pub claim_ceiling: String,
+}
+
+impl EvidenceSnapshotV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:evidence-snapshot:v1";
+
+    /// Stable project-specific canonical bytes.
+    ///
+    /// Evidence entries are normalized by kind/reference/claim ceiling before
+    /// serialization. This does not claim RFC 8785/JCS interoperability.
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        serde_json::to_vec(self)
+            .expect("evidence snapshot contains only serializable evidence primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+
+    pub fn from_capability(capability: &Capability, coverage: RecoveryEvidenceCoverage) -> Self {
+        let mut evidence = capability
+            .evidence
+            .iter()
+            .map(|entry| EvidenceSnapshotEntryV1 {
+                kind: entry.kind,
+                reference: entry.reference.clone(),
+                claim_ceiling: entry.claim_ceiling.clone(),
+            })
+            .collect::<Vec<_>>();
+
+        evidence.sort_by(|left, right| {
+            (&left.kind, &left.reference, &left.claim_ceiling)
+                .cmp(&(&right.kind, &right.reference, &right.claim_ceiling))
+        });
+        evidence.dedup();
+
+        Self {
+            schema: Self::SCHEMA.into(),
+            subject: capability.id.clone(),
+            evidence,
+            coverage,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1214,6 +1277,64 @@ mod graph_tests {
         );
         assert_eq!(snapshot.edges.len(), 1);
         assert_eq!(snapshot.edges[0].to, CapabilityId("b".into()));
+    }
+
+    #[test]
+    fn evidence_snapshot_is_derived_from_structured_capability_evidence() {
+        let mut capability = cap("a", &[]);
+        capability.evidence = vec![
+            CapabilityEvidence {
+                kind: EvidenceKind::Observed,
+                reference: "evidence-b".into(),
+                claim_ceiling: "b".into(),
+            },
+            CapabilityEvidence {
+                kind: EvidenceKind::Scenario,
+                reference: "fixture".into(),
+                claim_ceiling: "scenario only".into(),
+            },
+            CapabilityEvidence {
+                kind: EvidenceKind::Observed,
+                reference: "evidence-b".into(),
+                claim_ceiling: "b".into(),
+            },
+        ];
+
+        let snapshot = EvidenceSnapshotV1::from_capability(
+            &capability,
+            RecoveryEvidenceCoverage::ClosedWorld,
+        );
+
+        assert_eq!(snapshot.subject, CapabilityId("a".into()));
+        assert_eq!(snapshot.evidence.len(), 2);
+        assert_eq!(snapshot.evidence[0].kind, EvidenceKind::Observed);
+        assert!(snapshot.digest().starts_with("sha256:"));
+    }
+
+    #[test]
+    fn evidence_snapshot_digest_changes_on_semantic_evidence_mutation() {
+        let mut capability = cap("a", &[]);
+        capability.evidence = vec![CapabilityEvidence {
+            kind: EvidenceKind::Observed,
+            reference: "evidence-a".into(),
+            claim_ceiling: "exact observation".into(),
+        }];
+
+        let first = EvidenceSnapshotV1::from_capability(
+            &capability,
+            RecoveryEvidenceCoverage::ClosedWorld,
+        )
+        .digest();
+
+        capability.evidence[0].claim_ceiling = "broader claim".into();
+
+        let second = EvidenceSnapshotV1::from_capability(
+            &capability,
+            RecoveryEvidenceCoverage::ClosedWorld,
+        )
+        .digest();
+
+        assert_ne!(first, second);
     }
 
     #[test]
