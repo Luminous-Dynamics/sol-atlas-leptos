@@ -1250,9 +1250,21 @@ impl RecoveryVerification {
         }
 
         if dependency.root != self.capability
+            || !dependency.is_well_formed()
             || evidence.subject != self.capability
             || environment.subject != self.capability
             || environment.scope != self.scope
+        {
+            return false;
+        }
+
+        let mut declared_closure = self.dependency_closure.clone();
+        let mut bound_closure = dependency.nodes.clone();
+        declared_closure.sort();
+        bound_closure.sort();
+        if declared_closure.len() != self.dependency_closure.len()
+            || bound_closure.len() != dependency.nodes.len()
+            || declared_closure != bound_closure
         {
             return false;
         }
@@ -1418,6 +1430,37 @@ pub struct DependencySnapshotEdgeV1 {
 
 impl DependencySnapshotV1 {
     pub const SCHEMA: &'static str = "sol-atlas:dependency-snapshot:v1";
+
+    pub fn is_well_formed(&self) -> bool {
+        if self.schema != Self::SCHEMA
+            || self.root.0.is_empty()
+            || self.nodes.is_empty()
+            || !self.nodes.contains(&self.root)
+        {
+            return false;
+        }
+
+        let mut nodes = self.nodes.clone();
+        nodes.sort();
+        nodes.dedup();
+        if nodes.len() != self.nodes.len() {
+            return false;
+        }
+
+        let mut edges = self.edges.clone();
+        edges.sort_by(|left, right| {
+            (&left.from, &left.to, &left.relation).cmp(&(&right.from, &right.to, &right.relation))
+        });
+        if edges.windows(2).any(|pair| pair[0] == pair[1]) {
+            return false;
+        }
+
+        edges.iter().all(|edge| {
+            edge.relation.is_required()
+                && self.nodes.contains(&edge.from)
+                && self.nodes.contains(&edge.to)
+        })
+    }
 
     /// Stable project-specific canonical bytes.
     ///
@@ -2400,6 +2443,117 @@ mod graph_tests {
         assert!(graph
             .recovery_candidates(&CapabilityId("a".into()))
             .is_empty());
+    }
+
+    #[test]
+    fn dependency_snapshot_rejects_duplicate_or_invalid_structure() {
+        let mut duplicate_nodes = DependencySnapshotV1 {
+            schema: DependencySnapshotV1::SCHEMA.into(),
+            root: CapabilityId("a".into()),
+            nodes: vec![CapabilityId("a".into()), CapabilityId("a".into())],
+            edges: vec![],
+        };
+        assert!(!duplicate_nodes.is_well_formed());
+
+        duplicate_nodes.nodes = vec![CapabilityId("a".into()), CapabilityId("b".into())];
+        duplicate_nodes.edges = vec![DependencySnapshotEdgeV1 {
+            from: CapabilityId("a".into()),
+            to: CapabilityId("missing".into()),
+            relation: DependencyKind::Required,
+        }];
+        assert!(!duplicate_nodes.is_well_formed());
+
+        duplicate_nodes.edges.clear();
+        duplicate_nodes.nodes = vec![CapabilityId("a".into())];
+        duplicate_nodes.schema = "wrong-schema".into();
+        assert!(!duplicate_nodes.is_well_formed());
+    }
+
+    #[test]
+    fn dependency_snapshot_binds_exact_verification_closure() { 
+        let graph = CapabilityGraph {
+            capabilities: vec![cap("a", &["b"]), cap("b", &[])],
+        };
+        let dependency = graph
+            .dependency_snapshot(&CapabilityId("a".into()))
+            .unwrap();
+        assert!(dependency.is_well_formed());
+
+        let evidence_reference = verified_test_evidence("closure-binding");
+        let evidence = EvidenceSnapshotV1::from_entries(
+            CapabilityId("a".into()),
+            RecoveryEvidenceCoverage::ClosedWorld,
+            vec![EvidenceSnapshotEntryV1 {
+                kind: EvidenceKind::Observed,
+                claim_ceiling: evidence_reference.reference.claim_ceiling.clone(),
+                reference: evidence_reference.reference.clone(),
+                unresolved_locator: None,
+            }],
+        );
+        let environment = EnvironmentSnapshotV1::from_facts(
+            CapabilityId("a".into()),
+            "site-1",
+            vec![EnvironmentFactV1 {
+                key: "temperature".into(),
+                value: "20".into(),
+                unit: Some("C".into()),
+                source: "sensor-a".into(),
+            }],
+        );
+        let mut verification = RecoveryVerification {
+            execution_id: "closure-binding".into(),
+            capability: CapabilityId("a".into()),
+            scope: "site-1".into(),
+            expected_postconditions: vec!["operational".into()],
+            observed_postconditions: vec!["operational".into()],
+            evidence: vec![evidence_reference],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: dependency.nodes.clone(),
+            unresolved_dependencies: vec![],
+            verification_snapshot: String::new(),
+            dependency_snapshot: dependency.digest(),
+            environment_snapshot: environment.digest(),
+            evidence_snapshot: evidence.digest(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
+            valid_until: "9999-12-31T23:59:59Z".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Passed,
+            verifier: "closure-verifier".into(),
+            verified_at: "2026-10-02T08:00:00Z".into(),
+            claim_ceiling: "Exact closure scope only.".into(),
+        };
+        verification.verification_snapshot =
+            RecoveryVerificationSnapshotV1::from_verification_with_snapshots(
+                &verification,
+                &dependency,
+                &evidence,
+                &environment,
+            )
+            .unwrap()
+            .digest();
+
+        assert!(verification.passes_with_bound_snapshots(
+            &dependency,
+            &evidence,
+            &environment
+        ));
+
+        verification.dependency_closure = vec![CapabilityId("a".into())];
+        verification.verification_snapshot =
+            RecoveryVerificationSnapshotV1::from_verification_with_snapshots(
+                &verification,
+                &dependency,
+                &evidence,
+                &environment,
+            )
+            .unwrap()
+            .digest();
+        assert!(!verification.passes_with_bound_snapshots(
+            &dependency,
+            &evidence,
+            &environment
+        ));
     }
 
     #[test]
