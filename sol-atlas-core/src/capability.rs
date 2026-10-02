@@ -400,6 +400,60 @@ impl RecoveryPlan {
     }
 }
 
+
+/// Verification result for a completed recovery execution.
+///
+/// Verification is deliberately separate from execution: evidence can be
+/// present while the recovered capability remains unavailable, out of scope,
+/// or otherwise inconsistent with the declared postconditions.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryVerificationState {
+    Pending,
+    Passed,
+    Failed,
+    Inconclusive,
+}
+
+/// Auditable verification of the post-execution capability state.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryVerification {
+    pub execution_id: String,
+    pub capability: CapabilityId,
+    pub scope: String,
+    pub expected_postconditions: Vec<String>,
+    pub observed_postconditions: Vec<String>,
+    pub evidence: Vec<String>,
+    pub missing_postconditions: Vec<String>,
+    pub contradictory_postconditions: Vec<String>,
+    pub dependency_closure: Vec<CapabilityId>,
+    pub unresolved_dependencies: Vec<CapabilityId>,
+    pub state: RecoveryVerificationState,
+    pub verifier: String,
+    pub verified_at: String,
+    pub claim_ceiling: String,
+}
+
+impl RecoveryVerification {
+    /// A passed verification requires complete declared postcondition coverage,
+    /// no contradictions, and a fully resolved required dependency closure.
+    ///
+    /// This still does not grant external qualification.
+    pub fn passes(&self) -> bool {
+        self.state == RecoveryVerificationState::Passed
+            && !self.execution_id.is_empty()
+            && !self.capability.0.is_empty()
+            && !self.expected_postconditions.is_empty()
+            && !self.expected_postconditions.iter().any(|condition| {
+                !self.observed_postconditions.iter().any(|observed| observed == condition)
+            })
+            && self.contradictory_postconditions.is_empty()
+            && self.unresolved_dependencies.is_empty()
+            && !self.evidence.is_empty()
+            && !self.verifier.is_empty()
+            && !self.verified_at.is_empty()
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RecoverySelectionState {
     /// Candidate has been discovered from explicit graph metadata.
