@@ -127,64 +127,40 @@ impl EvidenceSnapshotV1 {
             coverage: RecoveryEvidenceCoverage,
         }
 
-        fn sorted_strings(values: &[String]) -> Vec<String> {
-            let mut values = values.to_vec();
-            values.sort();
-            values.dedup();
-            values
-        }
-
-        fn sorted_ids(values: &[CapabilityId]) -> Vec<CapabilityId> {
-            let mut values = values.to_vec();
-            values.sort();
-            values.dedup();
-            values
-        }
-
         let mut evidence = self
             .evidence
             .iter()
-            .map(|reference| CanonicalEvidenceReference {
-                artifact_type: reference.artifact_type.clone(),
-                context: reference.context.clone(),
-                digest: reference.digest.clone(),
-                claim_ceiling: reference.claim_ceiling.clone(),
+            .map(|entry| CanonicalEntry {
+                kind: entry.kind,
+                reference: (&entry.reference).into(),
+                claim_ceiling: entry.claim_ceiling.clone(),
+                unresolved_locator: entry.unresolved_locator.clone(),
             })
             .collect::<Vec<_>>();
         evidence.sort_by(|left, right| {
             (
-                &left.artifact_type,
-                &left.context,
-                &left.digest,
+                &left.kind,
+                &left.reference.artifact_type,
+                &left.reference.context,
+                &left.reference.digest,
                 &left.claim_ceiling,
+                &left.unresolved_locator,
             )
                 .cmp(&(
-                    &right.artifact_type,
-                    &right.context,
-                    &right.digest,
+                    &right.kind,
+                    &right.reference.artifact_type,
+                    &right.reference.context,
+                    &right.reference.digest,
                     &right.claim_ceiling,
+                    &right.unresolved_locator,
                 ))
         });
-        evidence.dedup_by(|left, right| {
-            left.artifact_type == right.artifact_type
-                && left.context == right.context
-                && left.digest == right.digest
-                && left.claim_ceiling == right.claim_ceiling
-        });
+        evidence.dedup();
 
         let canonical = CanonicalSnapshot {
             schema: self.schema.clone(),
             subject: self.subject.clone(),
-            evidence: self
-                .evidence
-                .iter()
-                .map(|entry| CanonicalEntry {
-                    kind: entry.kind,
-                    reference: (&entry.reference).into(),
-                    claim_ceiling: entry.claim_ceiling.clone(),
-                    unresolved_locator: entry.unresolved_locator.clone(),
-                })
-                .collect(),
+            evidence,
             coverage: self.coverage,
         };
 
