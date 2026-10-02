@@ -55,7 +55,7 @@ jobs:
 
       - name: Build
         run: |
-          trunk build --release --no-sri
+          trunk build --release --locked --no-sri
 
       - name: SPA fallback for client-side routes
         run: |
