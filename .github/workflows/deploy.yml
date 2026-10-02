@@ -12,6 +12,9 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+env:
+  RUST_TOOLCHAIN: 1.99.0
+
 jobs:
   build:
     permissions:
@@ -26,7 +29,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
         with:
-          toolchain: 1.99.0
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           targets: wasm32-unknown-unknown
 
       - name: Cache cargo
@@ -38,7 +41,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-cargo-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
 
       - name: Install Trunk
         run: |
