@@ -1753,6 +1753,35 @@ mod graph_tests {
     }
 
     #[test]
+    fn typed_evidence_snapshot_digest_changes_for_identity_mutations() {
+        let reference = verified_test_evidence("mutation-test").reference;
+        let base = EvidenceSnapshotV1::from_entries(
+            CapabilityId("a".into()),
+            RecoveryEvidenceCoverage::ClosedWorld,
+            vec![EvidenceSnapshotEntryV1 {
+                kind: EvidenceKind::Observed,
+                claim_ceiling: reference.claim_ceiling.clone(),
+                reference,
+                unresolved_locator: None,
+            }],
+        );
+        let base_digest = base.digest();
+
+        let mut artifact_type = base.clone();
+        artifact_type.evidence[0].reference.artifact_type = "other-artifact".into();
+        assert_ne!(base_digest, artifact_type.digest());
+
+        let mut digest = base.clone();
+        digest.evidence[0].reference.digest =
+            "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into();
+        assert_ne!(base_digest, digest.digest());
+
+        let mut context = base;
+        context.evidence[0].reference.context.domain_separator = "other-domain:v1".into();
+        assert_ne!(base_digest, context.digest());
+    }
+
+    #[test]
     fn evidence_snapshot_digest_changes_on_semantic_evidence_mutation() {
         let mut capability = cap("a", &[]);
         capability.evidence = vec![CapabilityEvidence {
