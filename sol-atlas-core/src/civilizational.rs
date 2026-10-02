@@ -893,7 +893,7 @@ impl EvidenceFrontierV1 {
     /// This closes the provenance path instead of merely checking two independent
     /// sets: an admitted evidence item cannot silently resolve to source A while
     /// the projection declares only source B.
-    fn admits_evidence_path(
+    pub(crate) fn admits_evidence_path(
         &self,
         evidence_ids: &[EvidenceId],
         source_snapshots: &[SourceSnapshotId],
