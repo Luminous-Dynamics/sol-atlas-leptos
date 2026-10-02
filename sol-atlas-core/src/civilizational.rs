@@ -1363,7 +1363,7 @@ mod tests {
             policy_version: "v1".into(),
             manifest_hash: String::new(),
             admitted_evidence: ["evidence:old".into()].into_iter().collect(),
-            admitted_sources: ["source:old".into()].into_iter().collect(),
+            admitted_sources: ["source-snapshot:archive".into()].into_iter().collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
             argumentation_metadata: vec![],
