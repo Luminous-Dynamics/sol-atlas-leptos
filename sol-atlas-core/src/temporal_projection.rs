@@ -612,15 +612,17 @@ mod tests {
 
         let mut shadow_leaf = tampered.evidence_frontier.clone();
         shadow_leaf.admitted_evidence.insert("e:shadow".into());
-        shadow_leaf.evidence_metadata.push(EvidenceTemporalMetadataV1 {
-            evidence_id: "e:shadow".into(),
-            source_snapshot: "source:archive".into(),
-            artifact_time: None,
-            publication_time: Some(1948),
-            capture_time: None,
-            available_by: 1948,
-            validity_time: None,
-        });
+        shadow_leaf
+            .evidence_metadata
+            .push(EvidenceTemporalMetadataV1 {
+                evidence_id: "e:shadow".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1948),
+                capture_time: None,
+                available_by: 1948,
+                validity_time: None,
+            });
         shadow_leaf.recompute_manifest_hash().unwrap();
         let mut manifest_tampered = result.clone();
         manifest_tampered.evidence_frontier = shadow_leaf;
@@ -659,15 +661,17 @@ mod tests {
         chain_leaf.frontier_id = "frontier:1949".into();
         chain_leaf.known_by_year = 1949;
         chain_leaf.parent_frontier = Some(root.frontier_id.clone());
-        chain_leaf.evidence_metadata.push(EvidenceTemporalMetadataV1 {
-            evidence_id: "e:transition".into(),
-            source_snapshot: "source:archive".into(),
-            artifact_time: None,
-            publication_time: Some(1945),
-            capture_time: None,
-            available_by: 1945,
-            validity_time: None,
-        });
+        chain_leaf
+            .evidence_metadata
+            .push(EvidenceTemporalMetadataV1 {
+                evidence_id: "e:transition".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1945),
+                capture_time: None,
+                available_by: 1945,
+                validity_time: None,
+            });
         chain_leaf.admitted_evidence.insert("e:transition".into());
         chain_leaf.recompute_manifest_hash().unwrap();
 
@@ -677,15 +681,17 @@ mod tests {
 
         let mut request_leaf = chain_leaf.clone();
         request_leaf.admitted_evidence.insert("e:shadow".into());
-        request_leaf.evidence_metadata.push(EvidenceTemporalMetadataV1 {
-            evidence_id: "e:shadow".into(),
-            source_snapshot: "source:archive".into(),
-            artifact_time: None,
-            publication_time: Some(1948),
-            capture_time: None,
-            available_by: 1948,
-            validity_time: None,
-        });
+        request_leaf
+            .evidence_metadata
+            .push(EvidenceTemporalMetadataV1 {
+                evidence_id: "e:shadow".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1948),
+                capture_time: None,
+                available_by: 1948,
+                validity_time: None,
+            });
         request_leaf.recompute_manifest_hash().unwrap();
 
         let request = TemporalProjectionRequestV1 {
