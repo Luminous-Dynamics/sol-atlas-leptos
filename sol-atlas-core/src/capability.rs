@@ -28,7 +28,7 @@ pub enum EvidenceKind {
     Scenario,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DependencyKind {
     /// A hard dependency that must be present for the modeled capability.
     Required,
