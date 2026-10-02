@@ -1974,6 +1974,72 @@ mod graph_tests {
     }
 
     #[test]
+    fn execution_success_rejects_reversed_and_duplicate_steps() {
+        let base = RecoveryExecution {
+            plan_id: "plan-execution-integrity".into(),
+            execution_id: "execution-integrity".into(),
+            started_at: "2026-10-02T08:00:00Z".into(),
+            ended_at: Some("2026-10-02T08:05:00Z".into()),
+            attempted_steps: vec!["install".into(), "test".into()],
+            completed_steps: vec!["install".into(), "test".into()],
+            failed_steps: vec![],
+            observed_preconditions: vec![],
+            evidence: vec!["evidence-001".into()],
+            resulting_state: CapabilityState::Demonstrated,
+            authorization: Some("authorization-001".into()),
+            ai_assistance: None,
+            input_snapshot: "sha256:execution-inputs".into(),
+            failure_reason: None,
+            claim_ceiling: "Exact execution record only.".into(),
+        };
+        assert!(base.is_successful());
+
+        let mut reversed = base.clone();
+        reversed.ended_at = Some("2026-10-02T07:59:59Z".into());
+        assert!(!reversed.is_successful());
+
+        let mut duplicate = base.clone();
+        duplicate.attempted_steps = vec!["install".into(), "install".into()];
+        duplicate.completed_steps = duplicate.attempted_steps.clone();
+        assert!(!duplicate.is_successful());
+
+        let mut empty = base.clone();
+        empty.attempted_steps[1].clear();
+        empty.completed_steps = empty.attempted_steps.clone();
+        assert!(!empty.is_successful());
+    }
+
+    #[test]
+    fn failed_execution_rejects_malformed_terminal_metadata() {
+        let mut execution = RecoveryExecution {
+            plan_id: "plan-failure-integrity".into(),
+            execution_id: "execution-failure-integrity".into(),
+            started_at: "2026-10-02T09:00:00Z".into(),
+            ended_at: Some("2026-10-02T09:02:00Z".into()),
+            attempted_steps: vec!["prepare".into()],
+            completed_steps: vec![],
+            failed_steps: vec!["prepare".into()],
+            observed_preconditions: vec![],
+            evidence: vec![],
+            resulting_state: CapabilityState::Conceptual,
+            authorization: None,
+            ai_assistance: None,
+            input_snapshot: "sha256:execution-inputs".into(),
+            failure_reason: Some("precondition failed".into()),
+            claim_ceiling: "Exact failure record only.".into(),
+        };
+        assert!(execution.is_failed());
+
+        execution.ended_at = Some("2026-10-02T08:59:59Z".into());
+        assert!(!execution.is_failed());
+
+        execution.ended_at = Some("2026-10-02T09:02:00Z".into());
+        execution.failure_reason = Some(String::new());
+        execution.failed_steps.clear();
+        assert!(!execution.is_failed());
+    }
+
+    #[test]
     fn verification_snapshot_binds_derived_component_digests() {
         let graph = CapabilityGraph {
             capabilities: vec![cap("a", &["b"]), cap("b", &[])],
