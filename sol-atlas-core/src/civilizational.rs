@@ -1387,6 +1387,7 @@ mod tests {
             argumentation_metadata: vec![],
         };
         let mut value = transition();
+        value.spatial_scope.clear();
         value.evidence_refs = vec!["evidence:old".into()];
         value.source_snapshots = vec!["source:later".into()];
         assert!(!frontier.admits_transition(&value));
