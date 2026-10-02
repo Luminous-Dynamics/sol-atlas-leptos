@@ -125,9 +125,20 @@ pub struct CapabilityInstance {
 }
 
 impl CapabilityInstance {
-    /// Geographic placement is intentionally not treated as operational evidence.
-    pub fn has_operational_evidence(&self) -> bool {
+    /// Whether this concrete instance has any attached evidence references.
+    ///
+    /// Evidence presence is intentionally independent from lifecycle state:
+    /// an installed, maintained, or retired instance may retain historical
+    /// evidence without being operational now.
+    pub fn has_evidence(&self) -> bool {
         !self.evidence.is_empty()
+    }
+
+    /// Whether the instance is currently declared operational and has evidence.
+    ///
+    /// This is still not a qualification claim; qualification remains explicit.
+    pub fn has_current_operational_evidence(&self) -> bool {
+        self.state == InstanceState::Operational && self.has_evidence()
     }
 
     /// Qualification remains explicit even when an instance is operational.
@@ -266,7 +277,8 @@ mod tests {
             qualification: None,
         };
 
-        assert!(!instance.has_operational_evidence());
+        assert!(!instance.has_evidence());
+        assert!(!instance.has_current_operational_evidence());
         assert!(!instance.is_qualified());
     }
 
@@ -286,7 +298,8 @@ mod tests {
             qualification: None,
         };
 
-        assert!(instance.has_operational_evidence());
+        assert!(instance.has_evidence());
+        assert!(instance.has_current_operational_evidence());
         assert!(!instance.is_qualified());
 
         instance.qualification = Some(CapabilityQualification {
