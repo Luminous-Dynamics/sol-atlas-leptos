@@ -66,6 +66,30 @@ impl DigestContextV1 {
 }
 
 
+/// An explicit acceptance profile for one artifact type and one digest context.
+///
+/// Multiple authorized contexts should be represented by multiple profiles rather
+/// than silently choosing among contexts for the same reference.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceReferenceProfileV1 {
+    pub id: String,
+    pub artifact_type: String,
+    pub context: DigestContextV1,
+    pub claim_ceiling: String,
+}
+
+impl EvidenceReferenceProfileV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:evidence-reference-profile:v1";
+
+    pub fn accepts(&self, reference: &EvidenceReferenceV1) -> bool {
+        !self.id.is_empty()
+            && !self.claim_ceiling.is_empty()
+            && reference.is_well_formed()
+            && reference.artifact_type == self.artifact_type
+            && reference.context == self.context
+    }
+}
+
 /// A content-addressed, typed reference to one evidence artifact.
 ///
 /// digest is an identity claim under context; it is not itself proof that the
@@ -217,6 +241,24 @@ impl EvidenceReferenceV1 {
         })
     }
 
+    /// Verify this reference only when an explicit profile authorizes
+    /// its artifact type and exact digest context.
+    ///
+    /// Profile admission and digest recomputation remain distinct checks.
+    pub fn verify_preimage_against_profile(
+        &self,
+        profile: &EvidenceReferenceProfileV1,
+        preimage: &[u8],
+        verifier: impl Into<String>,
+        verified_at: impl Into<String>,
+        claim_ceiling: impl Into<String>,
+    ) -> Result<EvidenceReferenceVerificationV1, &'static str> {
+        if !profile.accepts(self) {
+            return Err("evidence reference is not authorized by profile");
+        }
+        self.verify_preimage(preimage, verifier, verified_at, claim_ceiling)
+    }
+
     /// Preserve a legacy/bare evidence locator explicitly as unresolved.
     ///
     /// The locator is carried as display metadata only; the empty digest keeps
@@ -323,6 +365,73 @@ mod tests {
             "Exact artifact identity only.",
         )
         .unwrap()
+    }
+
+    #[test]
+    fn profile_accepts_only_exact_artifact_type_and_context() {
+        let reference = reference();
+        let profile = EvidenceReferenceProfileV1 {
+            id: "profile-001".into(),
+            artifact_type: reference.artifact_type.clone(),
+            context: reference.context.clone(),
+            claim_ceiling: "Profile-scoped evidence only.".into(),
+        };
+
+        assert!(profile.accepts(&reference));
+
+        let mut wrong_type = reference.clone();
+        wrong_type.artifact_type = "other-artifact".into();
+        assert!(!profile.accepts(&wrong_type));
+
+        let mut wrong_context = reference;
+        wrong_context.context.domain_separator = "other-domain:v1".into();
+        assert!(!profile.accepts(&wrong_context));
+    }
+
+    #[test]
+    fn profile_binds_preimage_verification_to_authorized_context() {
+        let preimage = b"profile-bound-evidence";
+        let digest = Sha256::digest(preimage);
+        let reference = EvidenceReferenceV1::content_addressed(
+            "recovery-execution-record",
+            context(),
+            format!("sha256:{digest:x}"),
+            "Exact artifact identity only.",
+        )
+        .unwrap();
+        let profile = EvidenceReferenceProfileV1 {
+            id: "profile-002".into(),
+            artifact_type: reference.artifact_type.clone(),
+            context: reference.context.clone(),
+            claim_ceiling: "Profile-scoped evidence only.".into(),
+        };
+
+        assert!(
+            reference
+                .verify_preimage_against_profile(
+                    &profile,
+                    preimage,
+                    "deterministic-verifier",
+                    "2026-10-02T00:00:00Z",
+                    "Profile-scoped verification only.",
+                )
+                .unwrap()
+                .is_verified()
+        );
+
+        let mut mutated_profile = profile;
+        mutated_profile.context.domain_separator = "other-domain:v1".into();
+        assert!(
+            reference
+                .verify_preimage_against_profile(
+                    &mutated_profile,
+                    preimage,
+                    "deterministic-verifier",
+                    "2026-10-02T00:00:00Z",
+                    "Profile-scoped verification only.",
+                )
+                .is_err()
+        );
     }
 
     #[test]
