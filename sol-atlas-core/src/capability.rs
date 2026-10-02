@@ -1260,6 +1260,8 @@ impl RecoveryVerification {
         if self.dependency_snapshot != dependency.digest()
             || self.evidence_snapshot != evidence.digest()
             || self.environment_snapshot != environment.digest()
+            || evidence.coverage != self.evidence_coverage
+            || !evidence.coverage.permits_pass()
         {
             return false;
         }
@@ -2178,6 +2180,113 @@ mod graph_tests {
             registry_snapshot.evidence_authorization_snapshot
         );
         assert_ne!(profile_snapshot.digest(), registry_snapshot.digest());
+    }
+
+    #[test]
+    fn bound_verification_requires_evidence_snapshot_coverage_alignment() {
+        let graph = CapabilityGraph {
+            capabilities: vec![cap("a", &[])],
+        };
+        let dependency = graph
+            .dependency_snapshot(&CapabilityId("a".into()))
+            .unwrap();
+        let evidence_reference = verified_test_evidence("coverage-check");
+        let evidence = EvidenceSnapshotV1::from_entries(
+            CapabilityId("a".into()),
+            RecoveryEvidenceCoverage::ClosedWorld,
+            vec![EvidenceSnapshotEntryV1 {
+                kind: EvidenceKind::Observed,
+                claim_ceiling: evidence_reference.reference.claim_ceiling.clone(),
+                reference: evidence_reference.reference.clone(),
+                unresolved_locator: None,
+            }],
+        );
+        let environment = EnvironmentSnapshotV1::from_facts(
+            CapabilityId("a".into()),
+            "site-1",
+            vec![EnvironmentFactV1 {
+                key: "temperature".into(),
+                value: "20".into(),
+                unit: Some("C".into()),
+                source: "sensor-a".into(),
+            }],
+        );
+        let mut verification = RecoveryVerification {
+            execution_id: "coverage-bound".into(),
+            capability: CapabilityId("a".into()),
+            scope: "site-1".into(),
+            expected_postconditions: vec!["operational".into()],
+            observed_postconditions: vec!["operational".into()],
+            evidence: vec![evidence_reference],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("a".into())],
+            unresolved_dependencies: vec![],
+            verification_snapshot: String::new(),
+            dependency_snapshot: dependency.digest(),
+            environment_snapshot: environment.digest(),
+            evidence_snapshot: evidence.digest(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
+            valid_until: "9999-12-31T23:59:59Z".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Passed,
+            verifier: "coverage-verifier".into(),
+            verified_at: "2026-10-02T08:00:00Z".into(),
+            claim_ceiling: "Exact coverage scope only.".into(),
+        };
+        verification.verification_snapshot =
+            RecoveryVerificationSnapshotV1::from_verification_with_snapshots(
+                &verification,
+                &dependency,
+                &evidence,
+                &environment,
+            )
+            .unwrap()
+            .digest();
+        assert!(verification.passes_with_bound_snapshots(
+            &dependency,
+            &evidence,
+            &environment
+        ));
+
+        let mut open_world = evidence.clone();
+        open_world.coverage = RecoveryEvidenceCoverage::OpenWorld;
+        let mut open_verification = verification.clone();
+        open_verification.evidence_snapshot = open_world.digest();
+        open_verification.verification_snapshot =
+            RecoveryVerificationSnapshotV1::from_verification_with_snapshots(
+                &open_verification,
+                &dependency,
+                &open_world,
+                &environment,
+            )
+            .unwrap()
+            .digest();
+        assert!(!open_verification.passes_with_bound_snapshots(
+            &dependency,
+            &open_world,
+            &environment
+        ));
+    }
+
+    #[test]
+    fn evidence_snapshot_requires_bijective_reference_matching() {
+        let verification = verified_test_evidence("duplicate-check");
+        let mut snapshot = EvidenceSnapshotV1::from_entries(
+            CapabilityId("a".into()),
+            RecoveryEvidenceCoverage::ClosedWorld,
+            vec![EvidenceSnapshotEntryV1 {
+                kind: EvidenceKind::Observed,
+                reference: verification.reference.clone(),
+                claim_ceiling: verification.reference.claim_ceiling.clone(),
+                unresolved_locator: None,
+            }],
+        );
+        assert!(snapshot.all_references_verified(std::slice::from_ref(&verification)));
+
+        snapshot.evidence.push(snapshot.evidence[0].clone());
+        let duplicate_verifications = vec![verification.clone(), verification];
+        assert!(!snapshot.all_references_verified(&duplicate_verifications));
     }
 
     #[test]
