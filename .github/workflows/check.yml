@@ -65,3 +65,8 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      # Keep the pure-core integration/unit test suite executable as a
+      # first-class CI target. The binary test command compiles sol-atlas-core
+      # but does not execute its own integration tests under sol-atlas-core/tests.
+      - name: Test sol-atlas-core
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
