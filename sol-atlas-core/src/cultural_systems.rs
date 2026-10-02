@@ -1076,6 +1076,19 @@ mod tests {
                     to: Some(1949),
                 }),
                 available_by: 1950,
+            },
+            ArgumentationTemporalMetadataV1 {
+                assessment: "assessment:2".into(),
+                interpretation: "interpretation:2".into(),
+                assessment_time: Some(YearInterval {
+                    from: Some(1948),
+                    to: Some(1948),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1949),
+                    to: Some(1949),
+                }),
+                available_by: 1950,
             }],
         };
         frontier.recompute_manifest_hash().expect("fixture hash");
