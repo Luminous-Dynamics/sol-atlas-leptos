@@ -32,4 +32,5 @@ pub mod visual_validation;
 
 pub use bootstrap::*;
 pub use capability::*;
+pub use evidence_reference::*;
 pub use types::*;
