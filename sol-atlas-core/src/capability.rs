@@ -136,6 +136,61 @@ impl EvidenceSnapshotV1 {
     }
 }
 
+/// Canonical snapshot of explicit environment facts relevant to a verification scope.
+///
+/// Environment facts are modeled as structured observations with an explicit
+/// scope and source reference. The snapshot identifies the exact inputs used;
+/// it does not assert that the measurements are accurate outside their declared
+/// scope or time.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EnvironmentSnapshotV1 {
+    pub schema: String,
+    pub subject: CapabilityId,
+    pub scope: String,
+    pub facts: Vec<EnvironmentFactV1>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EnvironmentFactV1 {
+    pub key: String,
+    pub value: String,
+    pub unit: Option<String>,
+    pub source: String,
+}
+
+impl EnvironmentSnapshotV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:environment-snapshot:v1";
+
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        serde_json::to_vec(self)
+            .expect("environment snapshot contains only serializable environment primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+
+    pub fn from_facts(
+        subject: CapabilityId,
+        scope: impl Into<String>,
+        mut facts: Vec<EnvironmentFactV1>,
+    ) -> Self {
+        facts.sort_by(|left, right| {
+            (&left.key, &left.value, &left.unit, &left.source)
+                .cmp(&(&right.key, &right.value, &right.unit, &right.source))
+        });
+        facts.dedup();
+
+        Self {
+            schema: Self::SCHEMA.into(),
+            subject,
+            scope: scope.into(),
+            facts,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CapabilityProvenance {
     pub source: String,
@@ -1335,6 +1390,62 @@ mod graph_tests {
         .digest();
 
         assert_ne!(first, second);
+    }
+
+    #[test]
+    fn environment_snapshot_is_order_invariant_and_scope_sensitive() {
+        let facts = vec![
+            EnvironmentFactV1 {
+                key: "temperature".into(),
+                value: "20".into(),
+                unit: Some("C".into()),
+                source: "sensor-a".into(),
+            },
+            EnvironmentFactV1 {
+                key: "pressure".into(),
+                value: "101".into(),
+                unit: Some("kPa".into()),
+                source: "sensor-b".into(),
+            },
+        ];
+
+        let first = EnvironmentSnapshotV1::from_facts(
+            CapabilityId("a".into()),
+            "site-1",
+            facts.clone(),
+        )
+        .digest();
+
+        let mut reversed = facts;
+        reversed.reverse();
+        let second = EnvironmentSnapshotV1::from_facts(
+            CapabilityId("a".into()),
+            "site-1",
+            reversed,
+        )
+        .digest();
+        assert_eq!(first, second);
+
+        let scoped = EnvironmentSnapshotV1::from_facts(
+            CapabilityId("a".into()),
+            "site-2",
+            vec![
+                EnvironmentFactV1 {
+                    key: "temperature".into(),
+                    value: "20".into(),
+                    unit: Some("C".into()),
+                    source: "sensor-a".into(),
+                },
+                EnvironmentFactV1 {
+                    key: "pressure".into(),
+                    value: "101".into(),
+                    unit: Some("kPa".into()),
+                    source: "sensor-b".into(),
+                },
+            ],
+        )
+        .digest();
+        assert_ne!(first, scoped);
     }
 
     #[test]
