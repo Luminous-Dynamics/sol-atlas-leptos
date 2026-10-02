@@ -707,7 +707,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             .and_then(|projection| projection.contradictions.first().map(|c| c.summary.clone()))
                             .unwrap_or_else(|| "No local contradiction is available for the selected claim.".into())}</p>
                         {move || replay_claim().map(|claim| view! {
-                            <A class="text-action" href={
+                            <A attr:class="text-action" href={
                                 let context = link_replay_context();
                                 TerminalNavigationTarget::new(
                                     selected_entity(),
@@ -765,7 +765,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                 view! {
                                     <li>
                                         <span>{label}</span>
-                                        <A class="lineage-link" href=href>{node.id().to_string()}</A>
+                                        <A attr:class="lineage-link" href=href>{node.id().to_string()}</A>
                                     </li>
                                 }
                             }).collect_view()}
@@ -793,7 +793,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             }.into_any(),
                         }}
                         {move || replay_href().map(|href| view! {
-                            <A class="replay-action" href=href>"↻  Open replay target"</A>
+                            <A attr:class="replay-action" href=href>"↻  Open replay target"</A>
                         })}
                         <p class="replay-status">{move || {
                             let q = terminal_query();
@@ -841,7 +841,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                         </div>
                         <p>"Competing explanations, missing information, scenarios and forecasts will enter here through a typed ResearchResult boundary."</p>
                         {move || replay_claim().map(|claim| view! {
-                            <A class="text-action" href={
+                            <A attr:class="text-action" href={
                                 let context = link_replay_context();
                                 TerminalNavigationTarget::new(
                                     selected_entity(),
