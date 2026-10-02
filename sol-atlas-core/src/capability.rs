@@ -437,6 +437,7 @@ pub struct RecoveryVerificationSnapshotV1 {
     pub dependency_snapshot: String,
     pub environment_snapshot: String,
     pub evidence_snapshot: String,
+    pub evidence_coverage: RecoveryEvidenceCoverage,
 }
 
 impl RecoveryVerificationSnapshotV1 {
@@ -472,6 +473,7 @@ impl RecoveryVerificationSnapshotV1 {
             dependency_snapshot: verification.dependency_snapshot.clone(),
             environment_snapshot: verification.environment_snapshot.clone(),
             evidence_snapshot: verification.evidence_snapshot.clone(),
+            evidence_coverage: verification.evidence_coverage,
         }
     }
 
@@ -493,6 +495,24 @@ impl RecoveryVerificationSnapshotV1 {
 /// Result of checking whether a verification record can still be reused
 /// against the exact inputs it originally verified.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+/// Declares whether the verifier knows the submitted evidence set is complete.
+///
+/// `ClosedWorld` means the selected verification profile defines the supplied
+/// bundle as the complete admissible evidence universe. `OpenWorld` means
+/// absence from the bundle is not evidence of absence. `Unknown` prevents a
+/// verifier from silently treating an incomplete search as a pass.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryEvidenceCoverage {
+    ClosedWorld,
+    OpenWorld,
+    Unknown,
+}
+
+impl RecoveryEvidenceCoverage {
+    pub fn permits_pass(&self) -> bool {
+        matches!(self, Self::ClosedWorld)
+    }
+}
 pub enum RecoveryVerificationValidity {
     Current,
     Stale,
@@ -528,6 +548,8 @@ pub struct RecoveryVerification {
     pub environment_snapshot: String,
     /// Snapshot of the evidence set consumed by verification.
     pub evidence_snapshot: String,
+    /// Explicit policy for whether the supplied evidence set is complete.
+    pub evidence_coverage: RecoveryEvidenceCoverage,
     /// Canonical UTC timestamp at which this verification ceases to be reusable.
     pub valid_until: String,
     /// Optional lineage marker for a newer verification that supersedes this one.
@@ -571,6 +593,7 @@ impl RecoveryVerification {
             && !self.dependency_snapshot.is_empty()
             && !self.environment_snapshot.is_empty()
             && !self.evidence_snapshot.is_empty()
+            && self.evidence_coverage.permits_pass()
             && !self.valid_until.is_empty()
             && !self.verifier.is_empty()
             && !self.verified_at.is_empty()
@@ -1197,6 +1220,40 @@ mod graph_tests {
     }
 
     #[test]
+    fn open_world_or_unknown_evidence_cannot_pass() {
+        let mut verification = RecoveryVerification {
+            execution_id: "coverage-test".into(),
+            capability: CapabilityId("water.purification".into()),
+            scope: "instance-coverage".into(),
+            expected_postconditions: vec!["potable water available".into()],
+            observed_postconditions: vec!["potable water available".into()],
+            evidence: vec!["water-test".into()],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("water.purification".into())],
+            unresolved_dependencies: vec![],
+            verification_snapshot: String::new(),
+            dependency_snapshot: "deps-coverage".into(),
+            environment_snapshot: "env-coverage".into(),
+            evidence_snapshot: "evidence-coverage".into(),
+            evidence_coverage: RecoveryEvidenceCoverage::OpenWorld,
+            valid_until: "2026-10-03T00:00:00Z".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Passed,
+            verifier: "verification-runner".into(),
+            verified_at: "2026-10-02T12:00:00Z".into(),
+            claim_ceiling: "Coverage test.".into(),
+        };
+        verification.verification_snapshot = verification.derived_snapshot().digest();
+        assert!(!verification.passes());
+        verification.evidence_coverage = RecoveryEvidenceCoverage::Unknown;
+        verification.verification_snapshot = verification.derived_snapshot().digest();
+        assert!(!verification.passes());
+        verification.evidence_coverage = RecoveryEvidenceCoverage::ClosedWorld;
+        verification.verification_snapshot = verification.derived_snapshot().digest();
+        assert!(verification.passes());
+    }
+    #[test]
     fn recovery_verification_snapshot_is_order_independent() {
         let mut a = RecoveryVerification {
             execution_id: "execution-snapshot".into(),
@@ -1213,6 +1270,7 @@ mod graph_tests {
             dependency_snapshot: "deps-1".into(),
             environment_snapshot: "env-1".into(),
             evidence_snapshot: "evidence-1".into(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
             valid_until: "2026-10-03T00:00:00Z".into(),
             superseded_by: None,
             state: RecoveryVerificationState::Passed,
@@ -1286,6 +1344,7 @@ mod graph_tests {
             dependency_snapshot: "deps-001".into(),
             environment_snapshot: "env-001".into(),
             evidence_snapshot: "evidence-001".into(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
             valid_until: "2026-10-02T12:00:00Z".into(),
             superseded_by: None,
             state: RecoveryVerificationState::Passed,
@@ -1316,6 +1375,7 @@ mod graph_tests {
             dependency_snapshot: "deps-002".into(),
             environment_snapshot: "env-002".into(),
             evidence_snapshot: "evidence-002".into(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
             valid_until: "2026-10-02T12:00:00Z".into(),
             superseded_by: None,
             state: RecoveryVerificationState::Passed,
@@ -1344,6 +1404,7 @@ mod graph_tests {
             dependency_snapshot: "deps-003".into(),
             environment_snapshot: "env-003".into(),
             evidence_snapshot: "evidence-003".into(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
             valid_until: "2026-10-02T12:00:00Z".into(),
             superseded_by: None,
             state: RecoveryVerificationState::Passed,
@@ -1407,6 +1468,7 @@ mod graph_tests {
             dependency_snapshot: "deps-004".into(),
             environment_snapshot: "env-004".into(),
             evidence_snapshot: "evidence-004".into(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
             valid_until: "2026-10-02T12:00:00Z".into(),
             superseded_by: Some("execution-newer".into()),
             state: RecoveryVerificationState::Passed,
