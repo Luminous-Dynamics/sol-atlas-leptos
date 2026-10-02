@@ -1418,7 +1418,7 @@ mod tests {
             admitted_evidence: ["evidence:1".into(), "evidence:partition".into()]
                 .into_iter()
                 .collect(),
-            admitted_sources: ["source-snapshot:archive"].into_iter().map(Into::into).collect(),
+            admitted_sources: ["source-snapshot:archive"]\n                .into_iter()\n                .map(Into::into)\n                .collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
             argumentation_metadata: vec![],
