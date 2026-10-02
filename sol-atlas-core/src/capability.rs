@@ -127,6 +127,51 @@ impl EvidenceSnapshotV1 {
             coverage: RecoveryEvidenceCoverage,
         }
 
+        fn sorted_strings(values: &[String]) -> Vec<String> {
+            let mut values = values.to_vec();
+            values.sort();
+            values.dedup();
+            values
+        }
+
+        fn sorted_ids(values: &[CapabilityId]) -> Vec<CapabilityId> {
+            let mut values = values.to_vec();
+            values.sort();
+            values.dedup();
+            values
+        }
+
+        let mut evidence = self
+            .evidence
+            .iter()
+            .map(|reference| CanonicalEvidenceReference {
+                artifact_type: reference.artifact_type.clone(),
+                context: reference.context.clone(),
+                digest: reference.digest.clone(),
+                claim_ceiling: reference.claim_ceiling.clone(),
+            })
+            .collect::<Vec<_>>();
+        evidence.sort_by(|left, right| {
+            (
+                &left.artifact_type,
+                &left.context,
+                &left.digest,
+                &left.claim_ceiling,
+            )
+                .cmp(&(
+                    &right.artifact_type,
+                    &right.context,
+                    &right.digest,
+                    &right.claim_ceiling,
+                ))
+        });
+        evidence.dedup_by(|left, right| {
+            left.artifact_type == right.artifact_type
+                && left.context == right.context
+                && left.digest == right.digest
+                && left.claim_ceiling == right.claim_ceiling
+        });
+
         let canonical = CanonicalSnapshot {
             schema: self.schema.clone(),
             subject: self.subject.clone(),
@@ -261,7 +306,29 @@ impl EnvironmentSnapshotV1 {
     pub const SCHEMA: &'static str = "sol-atlas:environment-snapshot:v1";
 
     pub fn canonical_bytes(&self) -> Vec<u8> {
-        serde_json::to_vec(self)
+        #[derive(Serialize)]
+        struct CanonicalSnapshot {
+            schema: String,
+            subject: CapabilityId,
+            scope: String,
+            facts: Vec<EnvironmentFactV1>,
+        }
+
+        let mut facts = self.facts.clone();
+        facts.sort_by(|left, right| {
+            (&left.key, &left.value, &left.unit, &left.source)
+                .cmp(&(&right.key, &right.value, &right.unit, &right.source))
+        });
+        facts.dedup();
+
+        let canonical = CanonicalSnapshot {
+            schema: self.schema.clone(),
+            subject: self.subject.clone(),
+            scope: self.scope.clone(),
+            facts,
+        };
+
+        serde_json::to_vec(&canonical)
             .expect("environment snapshot contains only serializable environment primitives")
     }
 
@@ -782,22 +849,13 @@ impl RecoveryVerificationSnapshotV1 {
             execution_id: self.execution_id.clone(),
             capability: self.capability.clone(),
             scope: self.scope.clone(),
-            expected_postconditions: self.expected_postconditions.clone(),
-            observed_postconditions: self.observed_postconditions.clone(),
-            evidence: self
-                .evidence
-                .iter()
-                .map(|reference| CanonicalEvidenceReference {
-                    artifact_type: reference.artifact_type.clone(),
-                    context: reference.context.clone(),
-                    digest: reference.digest.clone(),
-                    claim_ceiling: reference.claim_ceiling.clone(),
-                })
-                .collect(),
-            missing_postconditions: self.missing_postconditions.clone(),
-            contradictory_postconditions: self.contradictory_postconditions.clone(),
-            dependency_closure: self.dependency_closure.clone(),
-            unresolved_dependencies: self.unresolved_dependencies.clone(),
+            expected_postconditions: sorted_strings(&self.expected_postconditions),
+            observed_postconditions: sorted_strings(&self.observed_postconditions),
+            evidence,
+            missing_postconditions: sorted_strings(&self.missing_postconditions),
+            contradictory_postconditions: sorted_strings(&self.contradictory_postconditions),
+            dependency_closure: sorted_ids(&self.dependency_closure),
+            unresolved_dependencies: sorted_ids(&self.unresolved_dependencies),
             dependency_snapshot: self.dependency_snapshot.clone(),
             environment_snapshot: self.environment_snapshot.clone(),
             evidence_snapshot: self.evidence_snapshot.clone(),
@@ -1045,7 +1103,32 @@ impl DependencySnapshotV1 {
     /// Set-like node/edge collections are normalized before serialization.
     /// This is intentionally not presented as RFC 8785/JCS.
     pub fn canonical_bytes(&self) -> Vec<u8> {
-        serde_json::to_vec(self)
+        #[derive(Serialize)]
+        struct CanonicalSnapshot {
+            schema: String,
+            root: CapabilityId,
+            nodes: Vec<CapabilityId>,
+            edges: Vec<DependencySnapshotEdgeV1>,
+        }
+
+        let mut nodes = self.nodes.clone();
+        nodes.sort();
+        nodes.dedup();
+
+        let mut edges = self.edges.clone();
+        edges.sort_by(|left, right| {
+            (&left.from, &left.to, &left.relation).cmp(&(&right.from, &right.to, &right.relation))
+        });
+        edges.dedup();
+
+        let canonical = CanonicalSnapshot {
+            schema: self.schema.clone(),
+            root: self.root.clone(),
+            nodes,
+            edges,
+        };
+
+        serde_json::to_vec(&canonical)
             .expect("dependency snapshot contains only serializable graph primitives")
     }
 
