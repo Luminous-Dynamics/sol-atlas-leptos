@@ -532,7 +532,7 @@ mod tests {
         let target = replay.replay_target().expect("complete replay target");
         assert_eq!(target.frontier_ref, "ef:demo:9d7b");
         assert!(!target.dependency_manifest_request().expect("complete replay target").is_complete());
-        assert_eq!(query.view, TerminalView::Evidence);
+        assert_eq!(replay.view, TerminalView::Evidence);
     }
 
     #[test]
@@ -1105,7 +1105,6 @@ impl DependencyManifestV1 {
 /// This is intentionally a view/query contract, not a semantic authority.
 /// Mycelix remains responsible for resolving the referenced frontier, claim,
 /// evidence and derivation before Atlas renders them.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
 /// Structural validation state for URL-derived terminal identity.
 ///
 /// A malformed explicit value is deliberately distinct from an absent value:
@@ -1116,6 +1115,7 @@ pub enum TerminalQueryValidity {
     Malformed,
 }
 
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct TerminalQueryV1 {
     pub entity_ref: Option<String>,
     pub claim_ref: Option<String>,
