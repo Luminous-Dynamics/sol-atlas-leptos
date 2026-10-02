@@ -2104,6 +2104,62 @@ mod tests {
     }
 
     #[test]
+    fn frontier_extension_rejects_reordering_inherited_argumentation() {
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: BTreeSet::new(),
+            admitted_sources: BTreeSet::new(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![
+                ArgumentationTemporalMetadataV1 {
+                    assessment: "assessment:a".into(),
+                    interpretation: "interpretation:a".into(),
+                    assessment_time: Some(YearInterval {
+                        from: Some(1800),
+                        to: Some(1800),
+                    }),
+                    interpretation_time: Some(YearInterval {
+                        from: Some(1800),
+                        to: Some(1800),
+                    }),
+                    available_by: 1900,
+                },
+                ArgumentationTemporalMetadataV1 {
+                    assessment: "assessment:b".into(),
+                    interpretation: "interpretation:b".into(),
+                    assessment_time: Some(YearInterval {
+                        from: Some(1801),
+                        to: Some(1801),
+                    }),
+                    interpretation_time: Some(YearInterval {
+                        from: Some(1801),
+                        to: Some(1801),
+                    }),
+                    available_by: 1900,
+                },
+            ],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let mut child = parent.clone();
+        child.frontier_id = "frontier:1901".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(parent.frontier_id.clone());
+        child.argumentation_metadata.swap(0, 1);
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
     fn frontier_extension_adds_argumentation_without_rewriting_inherited_record() {
         let inherited_argumentation = ArgumentationTemporalMetadataV1 {
             assessment: "assessment:old".into(),
