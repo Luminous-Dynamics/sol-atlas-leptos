@@ -732,13 +732,37 @@ pub struct RecoveryPlan {
 }
 
 impl RecoveryPlan {
+    fn steps_are_well_formed(&self) -> bool {
+        if self.steps.is_empty() || self.steps.iter().any(|step| step.is_empty()) {
+            return false;
+        }
+
+        let mut steps = self.steps.clone();
+        steps.sort();
+        steps.dedup();
+        steps.len() == self.steps.len()
+    }
+
+    fn prerequisites_are_well_formed(&self) -> bool {
+        self.prerequisites.iter().all(|id| !id.0.is_empty())
+            && self.preconditions.iter().all(|condition| !condition.is_empty())
+            && self
+                .expected_evidence
+                .iter()
+                .all(|reference| !reference.is_empty())
+    }
+
     pub fn is_ready(&self) -> bool {
         self.state == RecoveryPlanState::Ready
             && !self.id.is_empty()
             && !self.unavailable.0.is_empty()
             && !self.candidate.0.is_empty()
-            && !self.steps.is_empty()
+            && self.steps_are_well_formed()
+            && self.prerequisites_are_well_formed()
             && !self.expected_evidence.is_empty()
+            && !self.human_contribution.is_empty()
+            && !self.ai_contribution.is_empty()
+            && !self.claim_ceiling.is_empty()
     }
 }
 
@@ -1472,6 +1496,7 @@ impl DependencySnapshotV1 {
         if self.schema != Self::SCHEMA
             || self.root.0.is_empty()
             || self.nodes.is_empty()
+            || self.nodes.iter().any(|id| id.0.is_empty())
             || !self.nodes.contains(&self.root)
         {
             return false;
@@ -1929,6 +1954,18 @@ impl RecoveryExecution {
             && unique.len() == self.attempted_steps.len()
     }
 
+    fn completed_and_failed_steps_are_consistent(&self) -> bool {
+        let attempted = self.attempted_steps.iter().collect::<std::collections::BTreeSet<_>>();
+        let completed = self.completed_steps.iter().collect::<std::collections::BTreeSet<_>>();
+        let failed = self.failed_steps.iter().collect::<std::collections::BTreeSet<_>>();
+
+        self.completed_steps.iter().all(|step| !step.is_empty())
+            && self.failed_steps.iter().all(|step| !step.is_empty())
+            && completed.is_subset(&attempted)
+            && failed.is_subset(&attempted)
+            && completed.is_disjoint(&failed)
+    }
+
     /// Execution is complete only when it has an end marker and no failed steps.
     ///
     /// This does not establish verification or qualification.
@@ -1951,6 +1988,7 @@ impl RecoveryExecution {
         self.terminal_timestamps_are_well_formed()
             && !self.plan_id.is_empty()
             && !self.execution_id.is_empty()
+            && self.completed_and_failed_steps_are_consistent()
             && (self.failed_steps.iter().any(|step| !step.is_empty())
                 || self.failure_reason.as_ref().is_some_and(|reason| !reason.is_empty()))
     }
@@ -2480,6 +2518,79 @@ mod graph_tests {
         assert!(graph
             .recovery_candidates(&CapabilityId("a".into()))
             .is_empty());
+    }
+
+
+
+    #[test]
+    fn recovery_plan_readiness_rejects_ambiguous_or_incomplete_structure() {
+        let base = RecoveryPlan {
+            id: "plan-ready".into(),
+            unavailable: CapabilityId("water".into()),
+            candidate: CapabilityId("filter".into()),
+            prerequisites: vec![CapabilityId("power".into())],
+            steps: vec!["install".into(), "test".into()],
+            preconditions: vec!["site prepared".into()],
+            expected_evidence: vec!["evidence-001".into()],
+            human_contribution: "operator".into(),
+            ai_contribution: "planning assistance".into(),
+            state: RecoveryPlanState::Ready,
+            claim_ceiling: "Exact recovery plan scope only.".into(),
+        };
+        assert!(base.is_ready());
+
+        let mut duplicate_steps = base.clone();
+        duplicate_steps.steps[1] = duplicate_steps.steps[0].clone();
+        assert!(!duplicate_steps.is_ready());
+
+        let mut blank_contribution = base.clone();
+        blank_contribution.human_contribution.clear();
+        assert!(!blank_contribution.is_ready());
+
+        let mut blank_evidence = base;
+        blank_evidence.expected_evidence[0].clear();
+        assert!(!blank_evidence.is_ready());
+    }
+
+    #[test]
+    fn dependency_snapshot_rejects_empty_capability_ids() {
+        let snapshot = DependencySnapshotV1 {
+            schema: DependencySnapshotV1::SCHEMA.into(),
+            root: CapabilityId("a".into()),
+            nodes: vec![CapabilityId("a".into()), CapabilityId(String::new())],
+            edges: vec![],
+        };
+        assert!(!snapshot.is_well_formed());
+    }
+
+    #[test]
+    fn failed_execution_rejects_unknown_or_conflicting_steps() {
+        let base = RecoveryExecution {
+            plan_id: "plan-failure-consistency".into(),
+            execution_id: "execution-failure-consistency".into(),
+            started_at: "2026-10-02T09:00:00Z".into(),
+            ended_at: Some("2026-10-02T09:02:00Z".into()),
+            attempted_steps: vec!["prepare".into(), "install".into()],
+            completed_steps: vec!["prepare".into()],
+            failed_steps: vec!["install".into()],
+            observed_preconditions: vec![],
+            evidence: vec![],
+            resulting_state: CapabilityState::Conceptual,
+            authorization: None,
+            ai_assistance: None,
+            input_snapshot: "sha256:execution-inputs".into(),
+            failure_reason: Some("install failed".into()),
+            claim_ceiling: "Exact failure record only.".into(),
+        };
+        assert!(base.is_failed());
+
+        let mut unknown = base.clone();
+        unknown.failed_steps = vec!["publish".into()];
+        assert!(!unknown.is_failed());
+
+        let mut conflict = base;
+        conflict.failed_steps = vec!["prepare".into()];
+        assert!(!conflict.is_failed());
     }
 
     #[test]
