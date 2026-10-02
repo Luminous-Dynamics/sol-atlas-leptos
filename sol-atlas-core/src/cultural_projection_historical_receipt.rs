@@ -302,6 +302,7 @@ mod tests {
         rebound.base.recompute_hash().expect("v4 hash");
         for argumentation in &mut rebound.argumentation {
             argumentation.closure.evidence_frontier = frontier.clone();
+            argumentation.evidence_frontier = frontier.clone();
             argumentation.recompute_hash().expect("argumentation hash");
         }
         rebound.recompute_hash().expect("v5 hash");
