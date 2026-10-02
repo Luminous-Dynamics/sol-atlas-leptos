@@ -1440,6 +1440,8 @@ impl DependencySnapshotV1 {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CapabilityGraphError {
     pub missing: Vec<CapabilityId>,
+    /// Capability IDs declared more than once make the graph ambiguous.
+    pub duplicate_ids: Vec<CapabilityId>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1479,6 +1481,14 @@ impl CapabilityGraph {
     ) -> Result<DependencySnapshotV1, CapabilityGraphError> {
         use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
+        let duplicate_ids = self.duplicate_capability_ids();
+        if !duplicate_ids.is_empty() {
+            return Err(CapabilityGraphError {
+                missing: vec![],
+                duplicate_ids,
+            });
+        }
+
         let index = self
             .capabilities
             .iter()
@@ -1517,6 +1527,7 @@ impl CapabilityGraph {
         if !missing.is_empty() {
             return Err(CapabilityGraphError {
                 missing: missing.into_iter().collect(),
+                duplicate_ids: vec![],
             });
         }
 
@@ -1539,6 +1550,17 @@ impl CapabilityGraph {
     /// resilience policy remains a separate, auditable decision.
     pub fn affected_by(&self, unavailable: &CapabilityId) -> CapabilityImpact {
         use std::collections::{BTreeMap, BTreeSet, VecDeque};
+
+        let duplicate_ids = self.duplicate_capability_ids();
+        if !duplicate_ids.is_empty() {
+            return CapabilityImpact {
+                unavailable: unavailable.clone(),
+                direct_affected: vec![],
+                transitive_affected: vec![],
+                unresolved: duplicate_ids,
+                affected: vec![],
+            };
+        }
 
         let index = self
             .capabilities
@@ -1623,6 +1645,10 @@ impl CapabilityGraph {
     /// substitutes a candidate automatically. Each candidate's own closure is
     /// analyzed independently so missing recovery prerequisites remain visible.
     pub fn recovery_candidates(&self, unavailable: &CapabilityId) -> Vec<RecoveryCandidate> {
+        if !self.duplicate_capability_ids().is_empty() {
+            return Vec::new();
+        }
+
         let mut candidates = self
             .capabilities
             .iter()
@@ -1710,11 +1736,37 @@ impl CapabilityGraph {
         &self,
         root: &CapabilityId,
     ) -> Result<Vec<CapabilityId>, CapabilityGraphError> {
+        let duplicate_ids = self.duplicate_capability_ids();
+        if !duplicate_ids.is_empty() {
+            return Err(CapabilityGraphError {
+                missing: vec![],
+                duplicate_ids,
+            });
+        }
+
         let (present, missing) = self.required_closure_with_missing(root);
         if !missing.is_empty() {
-            return Err(CapabilityGraphError { missing });
+            return Err(CapabilityGraphError {
+                missing,
+                duplicate_ids: vec![],
+            });
         }
         Ok(present)
+    }
+
+    fn duplicate_capability_ids(&self) -> Vec<CapabilityId> {
+        use std::collections::BTreeSet;
+
+        let mut seen = BTreeSet::new();
+        let mut duplicates = BTreeSet::new();
+
+        for capability in &self.capabilities {
+            if !seen.insert(capability.id.clone()) {
+                duplicates.insert(capability.id.clone());
+            }
+        }
+
+        duplicates.into_iter().collect()
     }
 }
 
@@ -2118,6 +2170,38 @@ mod graph_tests {
             &evidence,
             &changed_environment
         ));
+    }
+
+    #[test]
+    fn duplicate_capability_ids_fail_closed_in_graph_operations() {
+        let graph = CapabilityGraph {
+            capabilities: vec![cap("a", &[]), cap("a", &[])],
+        };
+
+        let error = graph
+            .dependency_snapshot(&CapabilityId("a".into()))
+            .unwrap_err();
+        assert!(error.missing.is_empty());
+        assert_eq!(error.duplicate_ids, vec![CapabilityId("a".into())]);
+
+        let closure_error = graph
+            .required_closure(&CapabilityId("a".into()))
+            .unwrap_err();
+        assert!(closure_error.missing.is_empty());
+        assert_eq!(
+            closure_error.duplicate_ids,
+            vec![CapabilityId("a".into())]
+        );
+
+        let impact = graph.affected_by(&CapabilityId("a".into()));
+        assert!(impact.direct_affected.is_empty());
+        assert!(impact.transitive_affected.is_empty());
+        assert!(impact.affected.is_empty());
+        assert_eq!(impact.unresolved, vec![CapabilityId("a".into())]);
+
+        assert!(graph
+            .recovery_candidates(&CapabilityId("a".into()))
+            .is_empty());
     }
 
     #[test]
