@@ -59,6 +59,24 @@ impl DigestContextV1 {
             && !self.hash_algorithm.is_empty()
             && !self.domain_separator.is_empty()
             && !self.preimage_encoding.is_empty()
+            && self.digest_representation_is_well_formed()
+    }
+
+    fn digest_representation_is_well_formed(&self) -> bool {
+        match self.representation {
+            DigestRepresentationV1::RawBytes => !self.digest.is_empty(),
+            DigestRepresentationV1::LowerHex => {
+                !self.digest.is_empty() && self.digest.bytes().all(|b| b.is_ascii_hexdigit())
+            }
+            DigestRepresentationV1::PrefixedLowerHex => {
+                let Some((prefix, value)) = self.digest.split_once(':') else {
+                    return false;
+                };
+                !prefix.is_empty()
+                    && !value.is_empty()
+                    && value.bytes().all(|b| b.is_ascii_hexdigit())
+            }
+        }
     }
 }
 
@@ -89,7 +107,9 @@ impl EvidenceReferenceV1 {
     }
 
     /// Mutable URLs, branch names, labels, and bare IDs are intentionally not
-    /// accepted as content identity by this constructor.
+    /// accepted as content identity by this constructor. The digest representation
+    /// is validated structurally; actual retrieval and recomputation remain a
+    /// separate verification step.
     pub fn content_addressed(
         artifact_type: impl Into<String>,
         context: DigestContextV1,
@@ -200,6 +220,54 @@ mod tests {
             "Exact artifact identity only.",
         )
         .is_err());
+    }
+
+    #[test]
+    fn bare_or_mutable_digest_values_are_rejected() {
+        let context = context();
+        for digest in ["branch/main", "https://example.invalid/evidence", "artifact-123"] {
+            assert!(
+                EvidenceReferenceV1::content_addressed(
+                    "recovery-execution-record",
+                    context.clone(),
+                    digest,
+                    "Exact artifact identity only.",
+                )
+                .is_err(),
+                "mutable/non-digest value unexpectedly accepted: {digest}"
+            );
+        }
+    }
+
+    #[test]
+    fn digest_representation_rejects_invalid_hex() {
+        let mut context = context();
+        context.representation = DigestRepresentationV1::LowerHex;
+        assert!(
+            EvidenceReferenceV1::content_addressed(
+                "recovery-execution-record",
+                context,
+                "not-a-hex-digest",
+                "Exact artifact identity only.",
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn prefixed_digest_requires_nonempty_hex_suffix() {
+        let context = context();
+        for digest in ["sha256:", "sha256:xyz", "branch/main"] {
+            assert!(
+                EvidenceReferenceV1::content_addressed(
+                    "recovery-execution-record",
+                    context.clone(),
+                    digest,
+                    "Exact artifact identity only.",
+                )
+                .is_err()
+            );
+        }
     }
 
     #[test]
