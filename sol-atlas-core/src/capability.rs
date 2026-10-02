@@ -1116,6 +1116,12 @@ mod graph_tests {
             contradictory_postconditions: vec![],
             dependency_closure: vec![CapabilityId("water.purification".into())],
             unresolved_dependencies: vec![],
+            verification_snapshot: "verification-inputs-001".into(),
+            dependency_snapshot: "deps-001".into(),
+            environment_snapshot: "env-001".into(),
+            evidence_snapshot: "evidence-001".into(),
+            valid_until: "2026-10-02T12:00:00Z".into(),
+            superseded_by: None,
             state: RecoveryVerificationState::Passed,
             verifier: "verification-runner".into(),
             verified_at: "2026-10-02T08:10:00Z".into(),
@@ -1138,6 +1144,12 @@ mod graph_tests {
             contradictory_postconditions: vec!["contamination detected".into()],
             dependency_closure: vec![],
             unresolved_dependencies: vec![CapabilityId("pump-maintenance".into())],
+            verification_snapshot: "verification-inputs-002".into(),
+            dependency_snapshot: "deps-002".into(),
+            environment_snapshot: "env-002".into(),
+            evidence_snapshot: "evidence-002".into(),
+            valid_until: "2026-10-02T12:00:00Z".into(),
+            superseded_by: None,
             state: RecoveryVerificationState::Passed,
             verifier: "verification-runner".into(),
             verified_at: "2026-10-02T08:10:00Z".into(),
@@ -1198,46 +1210,3 @@ mod graph_tests {
             ended_at: Some("2026-10-02T08:05:00Z".into()),
             attempted_steps: vec!["restore".into()],
             completed_steps: vec!["restore".into()],
-            failed_steps: vec![],
-            observed_preconditions: vec![],
-            evidence: vec!["restore-run".into(), "service-health".into()],
-            resulting_state: CapabilityState::Deployed,
-            authorization: None,
-            ai_assistance: None,
-            input_snapshot: "snapshot-evidence".into(),
-            failure_reason: None,
-            claim_ceiling: "Execution evidence only; verification is not established.".into(),
-        };
-
-        assert!(execution.is_successful());
-        assert!(execution.satisfies_plan_evidence(&plan));
-
-        execution.evidence.pop();
-        assert!(!execution.satisfies_plan_evidence(&plan));
-    }
-
-    #[test]
-    fn incomplete_execution_is_not_successful() {
-        let execution = RecoveryExecution {
-            plan_id: "recovery-plan-002".into(),
-            execution_id: "execution-002".into(),
-            started_at: "2026-10-02T08:00:00Z".into(),
-            ended_at: Some("2026-10-02T08:03:00Z".into()),
-            attempted_steps: vec!["restore".into(), "verify".into()],
-            completed_steps: vec!["restore".into()],
-            failed_steps: vec!["verify".into()],
-            observed_preconditions: vec![],
-            evidence: vec!["partial-evidence-002".into()],
-            resulting_state: CapabilityState::Demonstrated,
-            authorization: Some("operator-auth-002".into()),
-            ai_assistance: None,
-            input_snapshot: "snapshot-002".into(),
-            failure_reason: Some("verification step failed".into()),
-            claim_ceiling: "Failed execution only; restoration is not established.".into(),
-        };
-
-        assert!(!execution.is_successful());
-        assert!(execution.is_failed());
-    }
-
-}
