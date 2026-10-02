@@ -887,10 +887,36 @@ impl EvidenceFrontierV1 {
     }
 
     /// A projection is frontier-safe only when every referenced evidence and
-    /// source snapshot has been admitted. This deliberately does not inspect
-    /// historical truth or infer missing evidence.
+    /// source snapshot has been admitted, and temporal evidence metadata binds
+    /// each evidence reference to one of the projection's declared sources.
+    ///
+    /// This closes the provenance path instead of merely checking two independent
+    /// sets: an admitted evidence item cannot silently resolve to source A while
+    /// the projection declares only source B.
+    fn admits_evidence_path(
+        &self,
+        evidence_ids: &[EvidenceId],
+        source_snapshots: &[SourceSnapshotId],
+    ) -> bool {
+        if !source_snapshots
+            .iter()
+            .all(|id| self.admits_source(id))
+        {
+            return false;
+        }
+
+        evidence_ids.iter().all(|id| {
+            self.admits(id)
+                && (self.evidence_metadata.is_empty()
+                    || self.evidence_metadata.iter().any(|metadata| {
+                        &metadata.evidence_id == id
+                            && source_snapshots.contains(&metadata.source_snapshot)
+                    }))
+        })
+    }
+
     pub fn admits_transition(&self, transition: &HistoricalTransitionV1) -> bool {
-        transition
+        let evidence_ids = transition
             .evidence_refs
             .iter()
             .chain(
@@ -899,11 +925,9 @@ impl EvidenceFrontierV1 {
                     .iter()
                     .flat_map(|geometry| geometry.evidence.iter()),
             )
-            .all(|id| self.admits(id))
-            && transition
-                .source_snapshots
-                .iter()
-                .all(|id| self.admits_source(id))
+            .cloned()
+            .collect::<Vec<_>>();
+        self.admits_evidence_path(&evidence_ids, &transition.source_snapshots)
     }
 
     pub(crate) fn admits_source(&self, source: &SourceSnapshotId) -> bool {
@@ -917,25 +941,24 @@ impl EvidenceFrontierV1 {
     }
 
     pub fn admits_snapshot(&self, snapshot: &StateSnapshotV1) -> bool {
+        let evidence_ids = snapshot
+            .evidence_refs
+            .iter()
+            .chain(
+                snapshot
+                    .geometries
+                    .iter()
+                    .flat_map(|geometry| geometry.evidence.iter()),
+            )
+            .cloned()
+            .collect::<Vec<_>>();
         snapshot.evidence_frontier == self.frontier_id
-            && snapshot.evidence_refs.iter().all(|id| self.admits(id))
-            && snapshot
-                .source_snapshots
-                .iter()
-                .all(|id| self.admits_source(id))
-            && snapshot
-                .geometries
-                .iter()
-                .all(|g| g.evidence.iter().all(|id| self.admits(id)))
+            && self.admits_evidence_path(&evidence_ids, &snapshot.source_snapshots)
     }
 
     pub fn admits_audit(&self, audit: &ProjectionAuditV1) -> bool {
         audit.evidence_frontier == self.frontier_id
-            && audit.evidence_refs.iter().all(|id| self.admits(id))
-            && audit
-                .source_snapshots
-                .iter()
-                .all(|id| self.admits_source(id))
+            && self.admits_evidence_path(&audit.evidence_refs, &audit.source_snapshots)
     }
 
     /// Returns true when every evidence reference carried by a snapshot,
@@ -1352,6 +1375,70 @@ mod tests {
             Err(ProjectionError::LaterEvidenceInFrontier)
         );
         assert!(!frontier.admits(&"evidence:later".into()));
+    }
+
+    #[test]
+    fn evidence_source_closure_cannot_be_bypassed_by_declaring_another_admitted_source() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:1", "evidence:partition"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            admitted_sources: ["source-snapshot:archive", "source-snapshot:other"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            evidence_metadata: vec![
+                EvidenceTemporalMetadataV1 {
+                    evidence_id: "evidence:1".into(),
+                    source_snapshot: "source-snapshot:archive".into(),
+                    artifact_time: None,
+                    publication_time: Some(1940),
+                    capture_time: None,
+                    available_by: 1940,
+                    validity_time: None,
+                },
+                EvidenceTemporalMetadataV1 {
+                    evidence_id: "evidence:partition".into(),
+                    source_snapshot: "source-snapshot:archive".into(),
+                    artifact_time: None,
+                    publication_time: Some(1945),
+                    capture_time: None,
+                    available_by: 1945,
+                    validity_time: None,
+                },
+            ],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+
+        let admitted_snapshot = snapshot();
+        assert!(frontier.admits_snapshot(&admitted_snapshot));
+
+        let mut mismatched_snapshot = admitted_snapshot.clone();
+        mismatched_snapshot.source_snapshots = vec!["source-snapshot:other".into()];
+        assert!(!frontier.admits_snapshot(&mismatched_snapshot));
+
+        let admitted_transition = transition();
+        assert!(frontier.admits_transition(&admitted_transition));
+
+        let mut mismatched_transition = admitted_transition.clone();
+        mismatched_transition.source_snapshots = vec!["source-snapshot:other".into()];
+        assert!(!frontier.admits_transition(&mismatched_transition));
+
+        let admitted_audit = ProjectionAuditV1::for_snapshot(&admitted_snapshot);
+        assert!(frontier.admits_audit(&admitted_audit));
+
+        let mismatched_audit = ProjectionAuditV1 {
+            source_snapshots: vec!["source-snapshot:other".into()],
+            ..admitted_audit
+        };
+        assert!(!frontier.admits_audit(&mismatched_audit));
     }
 
     #[test]
