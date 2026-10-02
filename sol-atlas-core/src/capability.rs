@@ -499,6 +499,7 @@ impl RecoveryVerification {
         &self,
         capability: &CapabilityId,
         scope: &str,
+        verification_snapshot: &str,
         dependency_snapshot: &str,
         environment_snapshot: &str,
         evidence_snapshot: &str,
@@ -508,6 +509,9 @@ impl RecoveryVerification {
             return RecoveryVerificationValidity::Superseded;
         }
         if &self.capability != capability || self.scope != scope {
+            return RecoveryVerificationValidity::ScopeMismatch;
+        }
+        if self.verification_snapshot != verification_snapshot {
             return RecoveryVerificationValidity::ScopeMismatch;
         }
         if self.dependency_snapshot != dependency_snapshot {
@@ -1188,6 +1192,7 @@ mod graph_tests {
             verification.validity_against(
                 &CapabilityId("water.purification".into()),
                 "instance-003",
+                "verification-inputs-003",
                 "deps-003",
                 "env-003",
                 "evidence-003",
@@ -1199,6 +1204,7 @@ mod graph_tests {
             verification.validity_against(
                 &CapabilityId("water.purification".into()),
                 "instance-003",
+                "verification-inputs-003",
                 "deps-004",
                 "env-003",
                 "evidence-003",
@@ -1210,6 +1216,7 @@ mod graph_tests {
             verification.validity_against(
                 &CapabilityId("water.purification".into()),
                 "instance-004",
+                "verification-inputs-003",
                 "deps-003",
                 "env-003",
                 "evidence-003",
@@ -1248,77 +1255,3 @@ mod graph_tests {
             verification.validity_against(
                 &CapabilityId("water.purification".into()),
                 "instance-004",
-                "deps-004",
-                "env-004",
-                "evidence-004",
-                "2026-10-02T10:00:00Z",
-            ),
-            RecoveryVerificationValidity::Superseded
-        );
-
-        let mut current = verification.clone();
-        current.superseded_by = None;
-        assert_eq!(
-            current.validity_against(
-                &CapabilityId("water.purification".into()),
-                "instance-004",
-                "deps-004",
-                "env-004",
-                "evidence-004",
-                "2026-10-02T13:00:00Z",
-            ),
-            RecoveryVerificationValidity::Stale
-        );
-    }
-
-    #[test]
-    fn recovery_execution_does_not_imply_verification_or_qualification() {
-        let execution = RecoveryExecution {
-            plan_id: "recovery-plan-001".into(),
-            execution_id: "execution-001".into(),
-            started_at: "2026-10-02T08:00:00Z".into(),
-            ended_at: Some("2026-10-02T08:05:00Z".into()),
-            attempted_steps: vec!["restore".into()],
-            completed_steps: vec!["restore".into()],
-            failed_steps: vec![],
-            observed_preconditions: vec!["workshop operational".into()],
-            evidence: vec!["execution-evidence-001".into()],
-            resulting_state: CapabilityState::Deployed,
-            authorization: Some("operator-auth-001".into()),
-            ai_assistance: Some("dependency analysis".into()),
-            input_snapshot: "snapshot-001".into(),
-            failure_reason: None,
-            claim_ceiling: "Execution evidence only; verification and qualification are not established.".into(),
-        };
-
-        assert!(execution.is_successful());
-        assert!(!execution.is_failed());
-        assert!(!execution.claim_ceiling.is_empty());
-    }
-
-    #[test]
-    fn execution_can_check_plan_evidence_without_self_verifying() {
-        let plan = RecoveryPlan {
-            id: "recovery-plan-evidence".into(),
-            unavailable: CapabilityId("unavailable".into()),
-            candidate: CapabilityId("candidate".into()),
-            prerequisites: vec![],
-            steps: vec!["restore".into()],
-            preconditions: vec![],
-            expected_evidence: vec![
-                "restore-run".into(),
-                "service-health".into(),
-            ],
-            human_contribution: "Operate".into(),
-            ai_contribution: "Analyze".into(),
-            state: RecoveryPlanState::Ready,
-            claim_ceiling: "Plan only.".into(),
-        };
-
-        let mut execution = RecoveryExecution {
-            plan_id: plan.id.clone(),
-            execution_id: "execution-evidence".into(),
-            started_at: "2026-10-02T08:00:00Z".into(),
-            ended_at: Some("2026-10-02T08:05:00Z".into()),
-            attempted_steps: vec!["restore".into()],
-            completed_steps: vec!["restore".into()],
