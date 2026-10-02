@@ -587,7 +587,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
         let primary_entity_ref = primary_entity_ref.clone();
         let primary_frontier_ref = primary_frontier_ref.clone();
         move || {
-        let q = terminal_query();
+            let q = terminal_query();
         if q.validity() == TerminalQueryValidity::Malformed {
             return None;
         }
@@ -603,9 +603,9 @@ pub fn EvidenceTerminal() -> impl IntoView {
         } else {
             let query = if q.entity_ref.is_none() {
                 TerminalQueryV1::from_url_parts(
-                    Some(primary.entity_ref.clone()),
+                    Some(primary_entity_ref.clone()),
                     q.claim_ref.clone(),
-                    q.frontier_ref.clone().or(Some(primary.frontier_ref.clone())),
+                    q.frontier_ref.clone().or(Some(primary_frontier_ref.clone())),
                     q.projection_profile.clone(),
                     q.reasoning_program.clone(),
                     q.model_version.clone(),
@@ -615,7 +615,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                 q
             };
             projection_for_terminal_query(&projection_catalog, &query)
-        }
+            }
         }
     };
     let replay_claim = {
