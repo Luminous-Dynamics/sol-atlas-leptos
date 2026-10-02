@@ -609,6 +609,26 @@ mod tests {
             tampered.validate_against_frontier_chain(&chain),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
+
+        let mut shadow_leaf = tampered.evidence_frontier.clone();
+        shadow_leaf.admitted_evidence.insert("e:shadow".into());
+        shadow_leaf.evidence_metadata.push(EvidenceTemporalMetadataV1 {
+            evidence_id: "e:shadow".into(),
+            source_snapshot: "source:archive".into(),
+            artifact_time: None,
+            publication_time: Some(1948),
+            capture_time: None,
+            available_by: 1948,
+            validity_time: None,
+        });
+        shadow_leaf.recompute_manifest_hash().unwrap();
+        let mut manifest_tampered = result.clone();
+        manifest_tampered.evidence_frontier = shadow_leaf;
+        manifest_tampered.frontier_lineage[0] = "frontier:1940".into();
+        assert_eq!(
+            manifest_tampered.validate_against_frontier_chain(&chain),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
     }
 
     #[test]
