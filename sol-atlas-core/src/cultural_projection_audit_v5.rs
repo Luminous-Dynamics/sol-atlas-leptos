@@ -67,8 +67,8 @@ impl CulturalProjectionAuditV5 {
 
         for value in &self.argumentation {
             value.validate()?;
-            if value.claim_ref != self.base.claim_ref()
-                || value.evidence_frontier != self.base.evidence_frontier()
+            if value.claim_ref != *self.base.claim_ref()
+                || value.evidence_frontier != *self.base.evidence_frontier()
             {
                 return Err(ProjectionError::EmptyIdentifier);
             }
