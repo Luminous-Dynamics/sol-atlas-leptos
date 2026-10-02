@@ -17,8 +17,7 @@
 
 use crate::evidence_reference::{
     DigestContextV1, EvidenceReferenceCanonicalV1, EvidenceReferenceProfileRegistryV1,
-    EvidenceReferenceV1,
-    EvidenceReferenceVerificationV1,
+    EvidenceReferenceV1, EvidenceReferenceVerificationV1,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -262,9 +261,11 @@ impl EvidenceSnapshotV1 {
             return false;
         }
 
-        if !self.evidence.iter().all(|entry| {
-            entry.reference.is_well_formed() && entry.unresolved_locator.is_none()
-        }) {
+        if !self
+            .evidence
+            .iter()
+            .all(|entry| entry.reference.is_well_formed() && entry.unresolved_locator.is_none())
+        {
             return false;
         }
 
@@ -292,7 +293,10 @@ impl EvidenceSnapshotV1 {
         }
 
         let mut evidence_keys = self.evidence.iter().map(key).collect::<Vec<_>>();
-        let mut verification_keys = verifications.iter().map(verification_key).collect::<Vec<_>>();
+        let mut verification_keys = verifications
+            .iter()
+            .map(verification_key)
+            .collect::<Vec<_>>();
         evidence_keys.sort();
         verification_keys.sort();
 
@@ -1508,8 +1512,7 @@ impl RecoveryVerification {
         plan: &RecoveryPlan,
         execution: &RecoveryExecution,
     ) -> bool {
-        self.passes_with_bound_execution(execution)
-            && execution.is_successful_with_bound_plan(plan)
+        self.passes_with_bound_execution(execution) && execution.is_successful_with_bound_plan(plan)
     }
 
     /// Stronger verification gate binding the verification to the exact
@@ -1742,7 +1745,10 @@ impl RecoveryCandidateSnapshotV1 {
             && self.for_dependency != self.candidate
             && unique_nonempty_ids(&self.required_capabilities)
             && unique_nonempty_ids(&self.missing_capabilities)
-            && !self.required_capabilities.iter().any(|id| self.missing_capabilities.contains(id))
+            && !self
+                .required_capabilities
+                .iter()
+                .any(|id| self.missing_capabilities.contains(id))
             && unique_nonempty_strings(&self.evidence)
             && !self.claim_ceiling.is_empty()
     }
@@ -2307,7 +2313,10 @@ impl RecoveryExecutionSnapshotV1 {
             && self.prerequisites.iter().all(|id| !id.0.is_empty())
             && !self.steps.is_empty()
             && self.steps.iter().all(|step| !step.is_empty())
-            && !self.preconditions.iter().any(|condition| condition.is_empty())
+            && !self
+                .preconditions
+                .iter()
+                .any(|condition| condition.is_empty())
             && !self
                 .expected_evidence
                 .iter()
@@ -2435,7 +2444,10 @@ impl RecoveryExecutionResultSnapshotV1 {
             && !self.input_snapshot.is_empty()
             && !self.execution_id.is_empty()
             && is_canonical_utc_timestamp(&self.started_at)
-            && self.ended_at.as_deref().is_some_and(is_canonical_utc_timestamp)
+            && self
+                .ended_at
+                .as_deref()
+                .is_some_and(is_canonical_utc_timestamp)
             && !self.attempted_steps.is_empty()
             && self.attempted_steps.iter().all(|step| !step.is_empty())
             && unique_nonempty_strings(&self.attempted_steps)
@@ -2443,17 +2455,30 @@ impl RecoveryExecutionResultSnapshotV1 {
             && self.failed_steps.iter().all(|step| !step.is_empty())
             && unique_nonempty_strings(&self.completed_steps)
             && unique_nonempty_strings(&self.failed_steps)
-            && self.observed_preconditions.iter().all(|condition| !condition.is_empty())
+            && self
+                .observed_preconditions
+                .iter()
+                .all(|condition| !condition.is_empty())
             && unique_nonempty_strings(&self.observed_preconditions)
             && unique_nonempty_strings(&self.evidence)
             && !self.claim_ceiling.is_empty()
-            && self.ended_at.as_ref().is_some_and(|ended_at| {
-                self.started_at.as_str() <= ended_at.as_str()
-            })
+            && self
+                .ended_at
+                .as_ref()
+                .is_some_and(|ended_at| self.started_at.as_str() <= ended_at.as_str())
             && {
-                let attempted = self.attempted_steps.iter().collect::<std::collections::BTreeSet<_>>();
-                let completed = self.completed_steps.iter().collect::<std::collections::BTreeSet<_>>();
-                let failed = self.failed_steps.iter().collect::<std::collections::BTreeSet<_>>();
+                let attempted = self
+                    .attempted_steps
+                    .iter()
+                    .collect::<std::collections::BTreeSet<_>>();
+                let completed = self
+                    .completed_steps
+                    .iter()
+                    .collect::<std::collections::BTreeSet<_>>();
+                let failed = self
+                    .failed_steps
+                    .iter()
+                    .collect::<std::collections::BTreeSet<_>>();
                 completed.is_subset(&attempted)
                     && failed.is_subset(&attempted)
                     && completed.is_disjoint(&failed)
@@ -2525,9 +2550,18 @@ impl RecoveryExecution {
     }
 
     fn completed_and_failed_steps_are_consistent(&self) -> bool {
-        let attempted = self.attempted_steps.iter().collect::<std::collections::BTreeSet<_>>();
-        let completed = self.completed_steps.iter().collect::<std::collections::BTreeSet<_>>();
-        let failed = self.failed_steps.iter().collect::<std::collections::BTreeSet<_>>();
+        let attempted = self
+            .attempted_steps
+            .iter()
+            .collect::<std::collections::BTreeSet<_>>();
+        let completed = self
+            .completed_steps
+            .iter()
+            .collect::<std::collections::BTreeSet<_>>();
+        let failed = self
+            .failed_steps
+            .iter()
+            .collect::<std::collections::BTreeSet<_>>();
 
         self.completed_steps.iter().all(|step| !step.is_empty())
             && self.failed_steps.iter().all(|step| !step.is_empty())
@@ -2623,7 +2657,10 @@ impl RecoveryExecution {
             && !self.execution_id.is_empty()
             && self.completed_and_failed_steps_are_consistent()
             && (self.failed_steps.iter().any(|step| !step.is_empty())
-                || self.failure_reason.as_ref().is_some_and(|reason| !reason.is_empty()))
+                || self
+                    .failure_reason
+                    .as_ref()
+                    .is_some_and(|reason| !reason.is_empty()))
     }
 }
 
@@ -2693,7 +2730,10 @@ mod graph_tests {
             id: "plan-candidate-binding".into(),
             unavailable: CapabilityId("water".into()),
             candidate: CapabilityId("filter".into()),
-            prerequisites: vec![CapabilityId("power".into()), CapabilityId("membrane".into())],
+            prerequisites: vec![
+                CapabilityId("power".into()),
+                CapabilityId("membrane".into()),
+            ],
             steps: vec!["install".into(), "test".into()],
             preconditions: vec!["site prepared".into()],
             expected_evidence: vec!["evidence-001".into()],
@@ -2725,11 +2765,15 @@ mod graph_tests {
         assert!(!plan.is_ready_against_candidate(&wrong_candidate));
 
         let mut missing_prerequisite = candidate.clone();
-        missing_prerequisite.required_capabilities.push(CapabilityId("missing".into()));
+        missing_prerequisite
+            .required_capabilities
+            .push(CapabilityId("missing".into()));
         assert!(!plan.is_ready_against_candidate(&missing_prerequisite));
 
         let mut missing_candidate_from_closure = candidate.clone();
-        missing_candidate_from_closure.required_capabilities.remove(0);
+        missing_candidate_from_closure
+            .required_capabilities
+            .remove(0);
         assert!(!plan.is_ready_against_candidate(&missing_candidate_from_closure));
 
         let mut unresolved = candidate.clone();
@@ -2862,24 +2906,15 @@ mod graph_tests {
         changed_candidate
             .required_capabilities
             .push(CapabilityId("membrane".into()));
-        assert!(!execution.is_successful_with_bound_candidate(
-            &plan,
-            &changed_candidate
-        ));
+        assert!(!execution.is_successful_with_bound_candidate(&plan, &changed_candidate));
 
         let mut stale_plan = plan.clone();
         stale_plan.candidate_snapshot = "sha256:stale-candidate".into();
-        assert!(!execution.is_successful_with_bound_candidate(
-            &stale_plan,
-            &candidate
-        ));
+        assert!(!execution.is_successful_with_bound_candidate(&stale_plan, &candidate));
 
         let mut rejected_candidate = candidate;
         rejected_candidate.selection = RecoverySelectionState::Rejected;
-        assert!(!execution.is_successful_with_bound_candidate(
-            &plan,
-            &rejected_candidate
-        ));
+        assert!(!execution.is_successful_with_bound_candidate(&plan, &rejected_candidate));
 
         let mut changed_plan = plan.clone();
         changed_plan.steps[1] = "independent-test".into();
@@ -3268,11 +3303,7 @@ mod graph_tests {
             )
             .unwrap()
             .digest();
-        assert!(verification.passes_with_bound_snapshots(
-            &dependency,
-            &evidence,
-            &environment
-        ));
+        assert!(verification.passes_with_bound_snapshots(&dependency, &evidence, &environment));
 
         let mut open_world = evidence.clone();
         open_world.coverage = RecoveryEvidenceCoverage::OpenWorld;
@@ -3588,8 +3619,7 @@ mod graph_tests {
             coverage: RecoveryEvidenceCoverage::ClosedWorld,
         };
         assert!(!evidence.is_well_formed());
-        evidence.evidence[0].claim_ceiling =
-            evidence.evidence[0].reference.claim_ceiling.clone();
+        evidence.evidence[0].claim_ceiling = evidence.evidence[0].reference.claim_ceiling.clone();
         assert!(evidence.is_well_formed());
     }
 
@@ -3618,7 +3648,7 @@ mod graph_tests {
     }
 
     #[test]
-    fn dependency_snapshot_binds_exact_verification_closure() { 
+    fn dependency_snapshot_binds_exact_verification_closure() {
         let graph = CapabilityGraph {
             capabilities: vec![cap("a", &["b"]), cap("b", &[])],
         };
@@ -3682,11 +3712,7 @@ mod graph_tests {
             .unwrap()
             .digest();
 
-        assert!(verification.passes_with_bound_snapshots(
-            &dependency,
-            &evidence,
-            &environment
-        ));
+        assert!(verification.passes_with_bound_snapshots(&dependency, &evidence, &environment));
 
         verification.dependency_closure = vec![CapabilityId("a".into())];
         verification.verification_snapshot =
@@ -3698,11 +3724,7 @@ mod graph_tests {
             )
             .unwrap()
             .digest();
-        assert!(!verification.passes_with_bound_snapshots(
-            &dependency,
-            &evidence,
-            &environment
-        ));
+        assert!(!verification.passes_with_bound_snapshots(&dependency, &evidence, &environment));
     }
 
     #[test]
