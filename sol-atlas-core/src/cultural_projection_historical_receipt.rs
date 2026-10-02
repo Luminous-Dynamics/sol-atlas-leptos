@@ -843,14 +843,15 @@ mod tests {
     #[test]
     fn receipt_json_round_trip_preserves_historical_identity() {
         let (audit, claim, chain) = fixture();
+        let child_claim = CanonicalClaimAdmissionV1 {
+            evidence_frontier: "frontier:1951".into(),
+            ..claim.clone()
+        };
         let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
             &audit,
             &chain,
             &"frontier:1951".into(),
-            &CanonicalClaimAdmissionV1 {
-                evidence_frontier: "frontier:1951".into(),
-                ..claim
-            },
+            &child_claim,
         )
         .expect("receipt");
 
@@ -864,22 +865,7 @@ mod tests {
             decoded.computed_hash().expect("decoded hash")
         );
         decoded
-            .validate_against_audit_at(
-                &audit,
-                &chain,
-                &CanonicalClaimAdmissionV1 {
-                    evidence_frontier: "frontier:1951".into(),
-                    evidence_refs: vec!["e:1".into()],
-                    source_snapshots: vec!["source:1".into()],
-                    ..CanonicalClaimAdmissionV1 {
-                        claim_ref: "claim:1".into(),
-                        evidence_refs: vec!["e:1".into()],
-                        source_snapshots: vec!["source:1".into()],
-                        qualification: QualificationStatus::Supported,
-                        evidence_frontier: "frontier:1951".into(),
-                    }
-                },
-            )
+            .validate_against_audit_at(&audit, &chain, &child_claim)
             .expect("round-tripped receipt remains valid");
     }
 
