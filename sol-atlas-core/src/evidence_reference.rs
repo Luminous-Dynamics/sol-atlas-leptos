@@ -65,7 +65,6 @@ impl DigestContextV1 {
     }
 }
 
-
 /// An explicit acceptance profile for one artifact type and one digest context.
 ///
 /// Multiple authorized contexts should be represented by multiple profiles rather
