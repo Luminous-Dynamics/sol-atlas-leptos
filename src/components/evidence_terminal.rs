@@ -737,9 +737,14 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             <span>"CONTRADICTION"</span>
                             <span class="status-chip conflicting">"CONFLICTING"</span>
                         </div>
-                        <p>{move || selected_projection()
-                            .and_then(|projection| projection.contradictions.first().map(|c| c.summary.clone()))
-                            .unwrap_or_else(|| "No local contradiction is available for the selected claim.".into())}</p>
+                        {{
+                            let selected_projection = selected_projection.clone();
+                            move || view! {
+                                <p>{selected_projection()
+                                    .and_then(|projection| projection.contradictions.first().map(|c| c.summary.clone()))
+                                    .unwrap_or_else(|| "No local contradiction is available for the selected claim.".into())}</p>
+                            }
+                        }}
                         {{
                             let replay_claim = replay_claim.clone();
                             let selected_entity = selected_entity.clone();
