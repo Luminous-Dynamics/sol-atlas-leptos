@@ -578,11 +578,11 @@ pub fn EvidenceTerminal() -> impl IntoView {
                 .unwrap_or_else(|| primary_frontier_ref.clone())
         })
     };
-    let selected_claim: Arc<dyn Fn() -> Option<String + Send + Sync>> = {
+    let selected_claim: Arc<dyn Fn() -> Option<String> + Send + Sync> = {
         let terminal_query = terminal_query.clone();
         Arc::new(move || terminal_query().claim_ref)
     };
-    let selected_projection: Arc<dyn Fn() -> Option<AtlasEvidenceProjectionV1 + Send + Sync>> = {
+    let selected_projection: Arc<dyn Fn() -> Option<AtlasEvidenceProjectionV1> + Send + Sync> = {
         let terminal_query = terminal_query.clone();
         let projection_catalog = projection_catalog.clone();
         let primary_entity_ref = primary.entity_ref.clone();
@@ -619,7 +619,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
             }
         })
     };
-    let replay_claim: Arc<dyn Fn() -> Option<String + Send + Sync>> = {
+    let replay_claim: Arc<dyn Fn() -> Option<String> + Send + Sync> = {
         let selected_claim = selected_claim.clone();
         let selected_projection = selected_projection.clone();
         Arc::new(move || selected_claim().or_else(|| selected_projection().map(|projection| projection.claim_ref)))
@@ -641,7 +641,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
             "model:symthaea:v1".to_string(),
         )
     };
-    let selected_node: Arc<dyn Fn() -> Option<LineageNodeRef + Send + Sync>> = {
+    let selected_node: Arc<dyn Fn() -> Option<LineageNodeRef> + Send + Sync> = {
         let query = query.clone();
         Arc::new(move || LineageNodeRef::parse(query.read().get("node").as_deref()))
     };
@@ -654,7 +654,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
             (None, _) => LineageResolution::Incomplete,
         })
     };
-    let replay_href: Arc<dyn Fn() -> Option<String + Send + Sync>> = {
+    let replay_href: Arc<dyn Fn() -> Option<String> + Send + Sync> = {
         let replay_claim = replay_claim.clone();
         let selected_entity = selected_entity.clone();
         let selected_frontier = selected_frontier.clone();
