@@ -841,6 +841,70 @@ mod tests {
     }
 
     #[test]
+    fn receipt_json_round_trip_preserves_historical_identity() {
+        let (audit, claim, chain) = fixture();
+        let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &chain,
+            &"frontier:1951".into(),
+            &CanonicalClaimAdmissionV1 {
+                evidence_frontier: "frontier:1951".into(),
+                ..claim
+            },
+        )
+        .expect("receipt");
+
+        let encoded = serde_json::to_vec(&receipt).expect("receipt json");
+        let decoded: V5HistoricalReplayReceiptV1 =
+            serde_json::from_slice(&encoded).expect("decoded receipt");
+
+        assert_eq!(receipt, decoded);
+        assert_eq!(
+            decoded.receipt_hash,
+            decoded.computed_hash().expect("decoded hash")
+        );
+        decoded
+            .validate_against_audit_at(
+                &audit,
+                &chain,
+                &CanonicalClaimAdmissionV1 {
+                    evidence_frontier: "frontier:1951".into(),
+                    evidence_refs: vec!["e:1".into()],
+                    source_snapshots: vec!["source:1".into()],
+                    ..CanonicalClaimAdmissionV1 {
+                        claim_ref: "claim:1".into(),
+                        evidence_refs: vec!["e:1".into()],
+                        source_snapshots: vec!["source:1".into()],
+                        qualification: QualificationStatus::Supported,
+                        evidence_frontier: "frontier:1951".into(),
+                    }
+                },
+            )
+            .expect("round-tripped receipt remains valid");
+    }
+
+    #[test]
+    fn receipt_hash_recomputation_is_idempotent() {
+        let (audit, claim, chain) = fixture();
+        let mut receipt = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &chain,
+            &"frontier:1950".into(),
+            &claim,
+        )
+        .expect("receipt");
+        let first = receipt.receipt_hash.clone();
+
+        receipt.recompute_hash().expect("first recomputation");
+        let second = receipt.receipt_hash.clone();
+        receipt.recompute_hash().expect("second recomputation");
+
+        assert_eq!(first, second);
+        assert_eq!(second, receipt.receipt_hash);
+        assert_eq!(receipt.computed_hash().expect("computed hash"), second);
+    }
+
+    #[test]
     fn child_bound_audit_cannot_validate_at_parent() {
         let (audit, claim, chain) = fixture();
         let child_claim = CanonicalClaimAdmissionV1 {
