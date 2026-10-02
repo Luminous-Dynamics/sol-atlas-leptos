@@ -226,6 +226,58 @@ mod tests {
         );
     }
 
+
+    #[test]
+    fn replay_navigation_href_requires_complete_execution_context() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("claim:obs:7f31".into()),
+            Some("ef:demo:9d7b".into()),
+            None,
+            None,
+            None,
+            Some("evidence".into()),
+        );
+
+        assert_eq!(replay_navigation_href(&query, TerminalView::Evidence), None);
+    }
+
+    #[test]
+    fn replay_navigation_href_uses_query_execution_context_exactly() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("claim:obs:7f31".into()),
+            Some("ef:historical:1234".into()),
+            Some("profile:custom:v7".into()),
+            Some("reasoning:custom:v9".into()),
+            Some("model:symthaea:v42".into()),
+            Some("evidence".into()),
+        );
+
+        let href = replay_navigation_href(&query, TerminalView::Evidence).expect("complete replay target");
+        assert!(href.contains("frontier=ef%3Ahistorical%3A1234"));
+        assert!(href.contains("projection=profile%3Acustom%3Av7"));
+        assert!(href.contains("reasoning=reasoning%3Acustom%3Av9"));
+        assert!(href.contains("model=model%3Asymthaea%3Av42"));
+        assert!(!href.contains("profile%3Aterminal%3Av1"));
+        assert!(!href.contains("reasoning%3Abaseline%3Av1"));
+    }
+
+    #[test]
+    fn malformed_execution_context_cannot_be_repaired_by_fixture_defaults() {
+        let query = TerminalQueryV1::from_url_parts(
+            Some("entity:fin:ns-energy-01".into()),
+            Some("claim:obs:7f31".into()),
+            Some("ef:demo:9d7b".into()),
+            Some("profile:terminal:v1".into()),
+            Some("   ".into()),
+            Some("model:symthaea:v1".into()),
+            Some("evidence".into()),
+        );
+
+        assert_eq!(replay_navigation_href(&query, TerminalView::Evidence), None);
+    }
+
     #[test]
     fn terminal_url_encoding_preserves_identifier_boundaries() {
         assert_eq!(encode_terminal_url_value("claim:obs:a?b&c#d"), "claim%3Aobs%3Aa%3Fb%26c%23d");
@@ -538,6 +590,23 @@ fn state_class(state: EpistemicState) -> &'static str {
     }
 }
 
+fn replay_navigation_href(query: &TerminalQueryV1, view: TerminalView) -> Option<String> {
+    let target = query.replay_target()?;
+    let claim = TerminalClaimRef::new(target.claim_ref().to_string())?;
+    Some(
+        TerminalNavigationTarget::new(
+            target.entity_ref().to_string(),
+            target.frontier_ref().to_string(),
+            claim,
+            target.projection_profile().to_string(),
+            target.reasoning_program().to_string(),
+            target.model_version().to_string(),
+            view,
+        )
+        .href(),
+    )
+}
+
 /// Projection-only terminal surface. Mycelix remains the semantic authority.
 #[component]
 pub fn EvidenceTerminal() -> impl IntoView {
@@ -655,24 +724,8 @@ pub fn EvidenceTerminal() -> impl IntoView {
         })
     };
     let replay_href: Arc<dyn Fn() -> Option<String> + Send + Sync> = {
-        let replay_claim = replay_claim.clone();
-        let selected_entity = selected_entity.clone();
-        let selected_frontier = selected_frontier.clone();
-        Arc::new(move || replay_claim().map(|claim| {
-            let context = link_replay_context();
-            TerminalClaimRef::new(claim).map(|claim| {
-                TerminalNavigationTarget::new(
-                    selected_entity(),
-                    selected_frontier(),
-                    claim,
-                    context.0,
-                    context.1,
-                    context.2,
-                    TerminalView::Evidence,
-                )
-                .href()
-            })
-        }).flatten())
+        let terminal_query = terminal_query.clone();
+        Arc::new(move || replay_navigation_href(&terminal_query(), TerminalView::Evidence))
     };
 
     view! {
