@@ -8,9 +8,7 @@
 //! so a malformed or newly-added later frontier cannot contaminate an earlier
 //! historical replay.
 
-use crate::civilizational::{
-    EvidenceFrontierChainV1, EvidenceFrontierId, ProjectionError,
-};
+use crate::civilizational::{EvidenceFrontierChainV1, EvidenceFrontierId, ProjectionError};
 use crate::cultural_projection_audit_v5::CulturalProjectionAuditV5;
 use crate::cultural_systems::CanonicalClaimAdmissionV1;
 
@@ -108,11 +106,17 @@ mod tests {
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
                 evidence_id: "e:1".into(),
                 source_snapshot: "source:1".into(),
-                artifact_time: Some(YearInterval { from: Some(1940), to: Some(1940) }),
+                artifact_time: Some(YearInterval {
+                    from: Some(1940),
+                    to: Some(1940),
+                }),
                 publication_time: Some(1941),
                 capture_time: None,
                 available_by: 1942,
-                validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+                validity_time: Some(YearInterval {
+                    from: Some(1940),
+                    to: Some(1950),
+                }),
             }],
             source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
                 source_snapshot: "source:1".into(),
@@ -123,8 +127,14 @@ mod tests {
             argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
                 assessment: "assessment:1".into(),
                 interpretation: "interpretation:1".into(),
-                assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-                interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                assessment_time: Some(YearInterval {
+                    from: Some(1948),
+                    to: Some(1948),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1949),
+                    to: Some(1949),
+                }),
                 available_by: 1950,
             }],
         };
@@ -138,11 +148,17 @@ mod tests {
         child.evidence_metadata.push(EvidenceTemporalMetadataV1 {
             evidence_id: "e:2".into(),
             source_snapshot: "source:1".into(),
-            artifact_time: Some(YearInterval { from: Some(1945), to: Some(1945) }),
+            artifact_time: Some(YearInterval {
+                from: Some(1945),
+                to: Some(1945),
+            }),
             publication_time: Some(1950),
             capture_time: None,
             available_by: 1951,
-            validity_time: Some(YearInterval { from: Some(1945), to: Some(1951) }),
+            validity_time: Some(YearInterval {
+                from: Some(1945),
+                to: Some(1951),
+            }),
         });
         child.recompute_manifest_hash().expect("child hash");
 
@@ -162,7 +178,10 @@ mod tests {
             community_recognition_evidence: vec![],
             assessment: Some("assessment:1".into()),
             argumentation: None,
-            event_time: YearInterval { from: Some(1900), to: Some(1950) },
+            event_time: YearInterval {
+                from: Some(1900),
+                to: Some(1950),
+            },
             qualification: claim.qualification,
             access_policy: AccessPolicyV1::Public,
             evidence_frontier: root.frontier_id.clone(),
@@ -202,16 +221,21 @@ mod tests {
                     source_snapshots: vec!["source:1".into()],
                     evidence_frontier: root.frontier_id.clone(),
                 },
-                assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-                interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                assessment_time: Some(YearInterval {
+                    from: Some(1948),
+                    to: Some(1948),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1949),
+                    to: Some(1949),
+                }),
                 available_by: 1950,
             },
             &root,
         )
         .expect("argumentation");
 
-        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation])
-            .expect("v5 audit");
+        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
 
         (
             audit,
@@ -229,7 +253,12 @@ mod tests {
             validate_v5_at(&audit, &chain, &"frontier:1950".into(), &claim),
             Ok(())
         );
-        assert!(is_v5_safe_at(&audit, &chain, &"frontier:1950".into(), &claim));
+        assert!(is_v5_safe_at(
+            &audit,
+            &chain,
+            &"frontier:1950".into(),
+            &claim
+        ));
     }
 
     #[test]
@@ -241,13 +270,7 @@ mod tests {
         // the root must still validate because only the root prefix is read.
         chain.frontiers[1].manifest_hash = "malformed-later-frontier".into();
 
-        assert!(validate_v5_at(
-            &audit,
-            &chain,
-            &"frontier:1950".into(),
-            &claim
-        )
-        .is_ok());
+        assert!(validate_v5_at(&audit, &chain, &"frontier:1950".into(), &claim).is_ok());
         assert_ne!(later.manifest_hash, chain.frontiers[1].manifest_hash);
     }
 
@@ -262,31 +285,13 @@ mod tests {
 
         // The audit itself remains bound to the root, so a parent replay must
         // reject the mismatched claim and a child replay must reject the root audit.
-        assert!(validate_v5_at(
-            &audit,
-            &chain,
-            &"frontier:1950".into(),
-            &child_claim
-        )
-        .is_err());
-        assert!(validate_v5_at(
-            &audit,
-            &chain,
-            &child_frontier.frontier_id,
-            &child_claim
-        )
-        .is_err());
+        assert!(validate_v5_at(&audit, &chain, &"frontier:1950".into(), &child_claim).is_err());
+        assert!(validate_v5_at(&audit, &chain, &child_frontier.frontier_id, &child_claim).is_err());
     }
 
     #[test]
     fn unknown_frontier_is_rejected() {
         let (audit, claim, chain) = fixture();
-        assert!(validate_v5_at(
-            &audit,
-            &chain,
-            &"frontier:unknown".into(),
-            &claim
-        )
-        .is_err());
+        assert!(validate_v5_at(&audit, &chain, &"frontier:unknown".into(), &claim).is_err());
     }
 }
