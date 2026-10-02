@@ -963,6 +963,74 @@ impl RecoveryPlan {
     }
 }
 
+/// External policy decision bound to one exact recovery plan and candidate.
+///
+/// This record does not establish that the referenced authority is legitimate.
+/// It makes the admission/selection decision explicit, content-addressed, and
+/// consumable only for the exact plan, candidate, purpose, consumer, and validity
+/// window recorded here.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryPolicyDecisionSnapshotV1 {
+    pub schema: String,
+    pub id: String,
+    pub decision: RecoveryPolicyDecisionV1,
+    pub purpose: String,
+    pub consumer: String,
+    pub plan_id: String,
+    pub plan_snapshot: String,
+    pub candidate: CapabilityId,
+    pub candidate_snapshot: String,
+    /// Opaque reference to the external authority/issuer record.
+    pub authority_reference: String,
+    pub issued_at: String,
+    pub valid_until: String,
+    pub claim_ceiling: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryPolicyDecisionV1 {
+    Admitted,
+    Rejected,
+}
+
+impl RecoveryPolicyDecisionSnapshotV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-policy-decision-snapshot:v1";
+
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA
+            && !self.id.is_empty()
+            && self.decision == RecoveryPolicyDecisionV1::Admitted
+            && !self.purpose.is_empty()
+            && !self.consumer.is_empty()
+            && !self.plan_id.is_empty()
+            && !self.plan_snapshot.is_empty()
+            && !self.candidate.0.is_empty()
+            && !self.candidate_snapshot.is_empty()
+            && !self.authority_reference.is_empty()
+            && is_canonical_utc_timestamp(&self.issued_at)
+            && is_canonical_utc_timestamp(&self.valid_until)
+            && self.issued_at.as_str() < self.valid_until.as_str()
+            && !self.claim_ceiling.is_empty()
+    }
+
+    pub fn is_valid_at(&self, now: &str) -> bool {
+        self.is_well_formed()
+            && is_canonical_utc_timestamp(now)
+            && self.issued_at.as_str() <= now
+            && now < self.valid_until.as_str()
+    }
+
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        serde_json::to_vec(self)
+            .expect("recovery policy decision snapshot contains only serializable primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+}
+
 /// Verification result for a completed recovery execution.
 ///
 /// Verification is deliberately separate from execution: evidence can be
@@ -1513,6 +1581,42 @@ impl RecoveryVerification {
         execution: &RecoveryExecution,
     ) -> bool {
         self.passes_with_bound_execution(execution) && execution.is_successful_with_bound_plan(plan)
+    }
+
+    /// Stronger execution gate binding the exact candidate and plan to an
+    /// external admitted policy decision.
+    ///
+    /// The policy record is consumed, not interpreted as authority by this core:
+    /// its authority reference remains opaque and must be validated by the
+    /// external policy/issuer layer.
+    pub fn is_successful_with_bound_policy_decision(
+        &self,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        now: &str,
+    ) -> bool {
+        self.is_successful_with_bound_candidate(plan, candidate)
+            && decision.is_valid_at(now)
+            && decision.id == self.authorization.as_deref().unwrap_or_default()
+            && decision.plan_id == plan.id
+            && decision.plan_snapshot == plan.snapshot().digest()
+            && decision.candidate == candidate.candidate
+            && decision.candidate_snapshot == candidate.snapshot().digest()
+    }
+
+    /// Stronger verification gate binding verification to the exact policy
+    /// decision, candidate, plan, and concrete execution result.
+    pub fn passes_with_bound_policy_decision(
+        &self,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        execution: &RecoveryExecution,
+        now: &str,
+    ) -> bool {
+        self.passes_with_bound_execution(execution)
+            && execution.is_successful_with_bound_policy_decision(plan, candidate, decision, now)
     }
 
     /// Stronger verification gate binding the verification to the exact
@@ -3397,6 +3501,62 @@ mod graph_tests {
             &candidate,
             &bound_execution
         ));
+
+        let decision = RecoveryPolicyDecisionSnapshotV1 {
+            schema: RecoveryPolicyDecisionSnapshotV1::SCHEMA.into(),
+            id: "permit-coverage-bound".into(),
+            decision: RecoveryPolicyDecisionV1::Admitted,
+            purpose: "recovery.execute".into(),
+            consumer: "operator-001".into(),
+            plan_id: plan.id.clone(),
+            plan_snapshot: plan.snapshot().digest(),
+            candidate: candidate.candidate.clone(),
+            candidate_snapshot: candidate.snapshot().digest(),
+            authority_reference: "authority-record-001".into(),
+            issued_at: "2026-10-02T07:50:00Z".into(),
+            valid_until: "2026-10-02T08:10:00Z".into(),
+            claim_ceiling: "Exact recovery admission only.".into(),
+        };
+
+        bound_execution.authorization = Some(decision.id.clone());
+        bound_execution.input_snapshot =
+            RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &bound_execution).digest();
+        verification.execution_result_snapshot =
+            RecoveryExecutionResultSnapshotV1::from_execution(&bound_execution).digest();
+
+        assert!(decision.is_well_formed());
+        assert!(decision.is_valid_at("2026-10-02T08:00:00Z"));
+        assert!(!decision.is_valid_at("2026-10-02T08:10:00Z"));
+        assert!(bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &decision,
+            "2026-10-02T08:00:00Z"
+        ));
+        assert!(verification.passes_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &decision,
+            &bound_execution,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        let mut wrong_purpose = decision.clone();
+        wrong_purpose.purpose = "different-purpose".into();
+        assert_ne!(decision.digest(), wrong_purpose.digest());
+
+        let mut expired = decision.clone();
+        expired.valid_until = "2026-10-02T07:59:00Z".into();
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &expired,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        let mut rejected = decision.clone();
+        rejected.decision = RecoveryPolicyDecisionV1::Rejected;
+        assert!(!rejected.is_well_formed());
 
         plan.claim_ceiling = "mutated plan".into();
         assert!(!verification.passes_with_bound_plan_execution(&plan, &bound_execution));
