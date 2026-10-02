@@ -559,18 +559,29 @@ pub fn EvidenceTerminal() -> impl IntoView {
     let primary = projections.first().cloned().expect("fixture is non-empty");
     let projection_catalog = projections.clone();
 
-    let selected_entity = move || {
-        terminal_query()
-            .entity_ref
-            .unwrap_or_else(|| primary.entity_ref.clone())
+    let primary_entity_ref = primary.entity_ref.clone();
+    let primary_frontier_ref = primary.frontier_ref.clone();
+    let selected_entity = {
+        let terminal_query = terminal_query.clone();
+        move || {
+            terminal_query()
+                .entity_ref
+                .unwrap_or_else(|| primary_entity_ref.clone())
+        }
     };
-    let selected_frontier = move || {
-        terminal_query()
-            .frontier_ref
-            .unwrap_or_else(|| primary.frontier_ref.clone())
+    let selected_frontier = {
+        let terminal_query = terminal_query.clone();
+        move || {
+            terminal_query()
+                .frontier_ref
+                .unwrap_or_else(|| primary_frontier_ref.clone())
+        }
     };
-    let selected_claim = move || terminal_query().claim_ref;
-    let selected_projection = move || {
+    let selected_claim = {
+        let terminal_query = terminal_query.clone();
+        move || terminal_query().claim_ref
+    };
+    let selected_projection = {
         let q = terminal_query();
         if q.validity() == TerminalQueryValidity::Malformed {
             return None;
@@ -601,11 +612,19 @@ pub fn EvidenceTerminal() -> impl IntoView {
             projection_for_terminal_query(&projection_catalog, &query)
         }
     };
-    let replay_claim = move || {
-        selected_claim().or_else(|| selected_projection().map(|projection| projection.claim_ref))
+    let replay_claim = {
+        let selected_claim = selected_claim.clone();
+        let selected_projection = selected_projection.clone();
+        move || selected_claim().or_else(|| selected_projection().map(|projection| projection.claim_ref))
     };
-    let replay_claim_value = move || replay_claim().unwrap_or_default();
-    let selected_view = move || terminal_query().view.as_str();
+    let replay_claim_value = {
+        let replay_claim = replay_claim.clone();
+        move || replay_claim().unwrap_or_default()
+    };
+    let selected_view = {
+        let terminal_query = terminal_query.clone();
+        move || terminal_query().view.as_str()
+    };
     // Fixture link context is explicit and only used to construct a complete
     // address. It is never silently injected into replay-readiness state.
     let link_replay_context = || {
@@ -616,15 +635,20 @@ pub fn EvidenceTerminal() -> impl IntoView {
         )
     };
     let selected_node = move || LineageNodeRef::parse(query.read().get("node").as_deref());
-    let selected_node_status = move || {
-        match (selected_node(), selected_projection()) {
+    let selected_node_status = {
+        let selected_node = selected_node.clone();
+        let selected_projection = selected_projection.clone();
+        move || match (selected_node(), selected_projection()) {
             (Some(node), Some(projection)) => projection.resolve_lineage_node(&node),
             (Some(_), None) => LineageResolution::Incomplete,
             (None, _) => LineageResolution::Incomplete,
         }
     };
-    let replay_href = move || {
-        replay_claim().map(|claim| {
+    let replay_href = {
+        let replay_claim = replay_claim.clone();
+        let selected_entity = selected_entity.clone();
+        let selected_frontier = selected_frontier.clone();
+        move || replay_claim().map(|claim| {
             let context = link_replay_context();
             TerminalClaimRef::new(claim).map(|claim| {
                 TerminalNavigationTarget::new(
