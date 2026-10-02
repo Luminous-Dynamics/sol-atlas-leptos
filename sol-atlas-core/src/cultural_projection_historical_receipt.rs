@@ -629,6 +629,40 @@ mod tests {
 
 
     #[test]
+    fn reconstructed_root_with_changed_source_availability_cannot_reuse_receipt() {
+        let (audit, claim, chain) = fixture();
+        let root_id: EvidenceFrontierId = "frontier:1950".into();
+        let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit, &chain, &root_id, &claim,
+        ).expect("original receipt");
+
+        let mut root = chain.frontiers[0].clone();
+        root.source_metadata[0].available_by = 1943;
+        root.recompute_manifest_hash().expect("changed source hash");
+        let changed_chain = EvidenceFrontierChainV1 { frontiers: vec![root] };
+
+        assert!(receipt.validate_against_audit_at(&audit, &changed_chain, &claim).is_err());
+    }
+
+    #[test]
+    fn reconstructed_root_with_changed_argumentation_extent_cannot_reuse_receipt() {
+        let (audit, claim, chain) = fixture();
+        let root_id: EvidenceFrontierId = "frontier:1950".into();
+        let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit, &chain, &root_id, &claim,
+        ).expect("original receipt");
+
+        let mut root = chain.frontiers[0].clone();
+        root.argumentation_metadata[0].interpretation_time =
+            Some(YearInterval { from: Some(1947), to: Some(1947) });
+        root.recompute_manifest_hash().expect("changed argumentation hash");
+        let changed_chain = EvidenceFrontierChainV1 { frontiers: vec![root] };
+
+        assert!(receipt.validate_against_audit_at(&audit, &changed_chain, &claim).is_err());
+    }
+
+
+    #[test]
     fn child_bound_audit_cannot_validate_at_parent() {
         let (audit, claim, chain) = fixture();
         let child_claim = CanonicalClaimAdmissionV1 { evidence_frontier: "frontier:1951".into(), ..claim };
