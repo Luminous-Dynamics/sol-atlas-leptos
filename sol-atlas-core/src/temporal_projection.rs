@@ -11,7 +11,7 @@
 use crate::civilizational::{
     EvidenceFrontierChainV1, EvidenceFrontierId, EvidenceFrontierV1, EvidenceId,
     HistoricalTransitionV1, ProjectionAuditV1, ProjectionError, ProjectionRef, SnapshotId,
-    SourceSnapshotId, SourceSnapshotTemporalMetadataV1, StateSnapshotV1, TransitionId, YearInterval,
+    SourceSnapshotId, StateSnapshotV1, TransitionId, YearInterval,
 };
 use serde::{Deserialize, Serialize};
 
