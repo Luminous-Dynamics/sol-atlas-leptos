@@ -61,26 +61,9 @@ impl DigestContextV1 {
             && !self.hash_algorithm.is_empty()
             && !self.domain_separator.is_empty()
             && !self.preimage_encoding.is_empty()
-            && self.digest_representation_is_well_formed()
-    }
-
-    fn digest_representation_is_well_formed(&self) -> bool {
-        match self.representation {
-            DigestRepresentationV1::RawBytes => false,
-            DigestRepresentationV1::LowerHex => {
-                !self.digest.is_empty() && self.digest.bytes().all(|b| b.is_ascii_hexdigit())
-            }
-            DigestRepresentationV1::PrefixedLowerHex => {
-                let Some((prefix, value)) = self.digest.split_once(':') else {
-                    return false;
-                };
-                !prefix.is_empty()
-                    && !value.is_empty()
-                    && value.bytes().all(|b| b.is_ascii_hexdigit())
-            }
-        }
     }
 }
+
 
 /// A content-addressed, typed reference to one evidence artifact.
 ///
@@ -122,13 +105,30 @@ impl From<&EvidenceReferenceV1> for EvidenceReferenceCanonicalV1 {
 impl EvidenceReferenceV1 {
     pub const SCHEMA: &'static str = "sol-atlas:evidence-reference:v1";
 
+    fn digest_is_well_formed(&self) -> bool {
+        match self.context.representation {
+            DigestRepresentationV1::RawBytes => false,
+            DigestRepresentationV1::LowerHex => {
+                self.digest.len() == 64 && self.digest.bytes().all(|b| b.is_ascii_hexdigit())
+            }
+            DigestRepresentationV1::PrefixedLowerHex => {
+                let Some((prefix, value)) = self.digest.split_once(':') else {
+                    return false;
+                };
+                !prefix.is_empty()
+                    && value.len() == 64
+                    && value.bytes().all(|b| b.is_ascii_hexdigit())
+            }
+        }
+    }
+
     /// A reference is syntactically admissible only when it has an explicit
     /// artifact type, complete digest context, non-empty digest, and claim
     /// ceiling. This does not perform artifact retrieval or digest recomputation.
     pub fn is_well_formed(&self) -> bool {
         !self.artifact_type.is_empty()
             && self.context.is_well_formed()
-            && !self.digest.is_empty()
+            && self.digest_is_well_formed()
             && !self.claim_ceiling.is_empty()
     }
 
