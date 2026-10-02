@@ -1391,7 +1391,8 @@ mod tests {
         value.source_snapshots = vec!["source:later".into()];
         assert!(!frontier.admits_transition(&value));
 
-        value.source_snapshots = vec!["source:old".into()];
+        value.source_snapshots = vec!["source-snapshot:archive".into()];
+        frontier.admitted_sources = ["source-snapshot:archive".into()].into_iter().collect();
         assert!(frontier.admits_transition(&value));
     }
 
@@ -2020,7 +2021,7 @@ mod tests {
 
         assert_eq!(child.validate_extension_of(&parent), Ok(()));
 
-        child.evidence_metadata[0].available_by = 1899;
+        child.evidence_metadata[0].available_by = 1901;
         child.recompute_manifest_hash().unwrap();
         assert_eq!(
             child.validate_extension_of(&parent),
