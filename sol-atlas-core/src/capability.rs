@@ -957,4 +957,54 @@ mod graph_tests {
             vec![CapabilityId("a".into())]
         );
     }
+
+    #[test]
+    fn recovery_execution_does_not_imply_verification_or_qualification() {
+        let execution = RecoveryExecution {
+            plan_id: "recovery-plan-001".into(),
+            execution_id: "execution-001".into(),
+            started_at: "2026-10-02T08:00:00Z".into(),
+            ended_at: Some("2026-10-02T08:05:00Z".into()),
+            attempted_steps: vec!["restore".into()],
+            completed_steps: vec!["restore".into()],
+            failed_steps: vec![],
+            observed_preconditions: vec!["workshop operational".into()],
+            evidence: vec!["execution-evidence-001".into()],
+            resulting_state: CapabilityState::Deployed,
+            authorization: Some("operator-auth-001".into()),
+            ai_assistance: Some("dependency analysis".into()),
+            input_snapshot: "snapshot-001".into(),
+            failure_reason: None,
+            claim_ceiling: "Execution evidence only; verification and qualification are not established.".into(),
+        };
+
+        assert!(execution.is_successful());
+        assert!(!execution.is_failed());
+        assert!(!execution.claim_ceiling.is_empty());
+    }
+
+    #[test]
+    fn incomplete_execution_is_not_successful() {
+        let execution = RecoveryExecution {
+            plan_id: "recovery-plan-002".into(),
+            execution_id: "execution-002".into(),
+            started_at: "2026-10-02T08:00:00Z".into(),
+            ended_at: Some("2026-10-02T08:03:00Z".into()),
+            attempted_steps: vec!["restore".into(), "verify".into()],
+            completed_steps: vec!["restore".into()],
+            failed_steps: vec!["verify".into()],
+            observed_preconditions: vec![],
+            evidence: vec!["partial-evidence-002".into()],
+            resulting_state: CapabilityState::Demonstrated,
+            authorization: Some("operator-auth-002".into()),
+            ai_assistance: None,
+            input_snapshot: "snapshot-002".into(),
+            failure_reason: Some("verification step failed".into()),
+            claim_ceiling: "Failed execution only; restoration is not established.".into(),
+        };
+
+        assert!(!execution.is_successful());
+        assert!(execution.is_failed());
+    }
+
 }
