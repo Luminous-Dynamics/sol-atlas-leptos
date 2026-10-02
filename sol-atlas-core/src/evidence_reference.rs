@@ -17,6 +17,7 @@
 //! - payload truth != qualification
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 /// Representation of the digest value carried by a typed reference.
 ///
@@ -158,6 +159,56 @@ impl EvidenceReferenceV1 {
         }
 
         Ok(reference)
+    }
+
+    /// Recompute the digest over an explicitly supplied canonical preimage.
+    ///
+    /// This primitive intentionally does not guess or perform the declared
+    /// canonicalization/preimage-construction transform. The caller must supply
+    /// the exact bytes produced by that declared construction. V1 currently
+    /// supports SHA-256 with textual lower-hex or prefixed-lower-hex output.
+    pub fn verify_preimage(
+        &self,
+        preimage: &[u8],
+        verifier: impl Into<String>,
+        verified_at: impl Into<String>,
+        claim_ceiling: impl Into<String>,
+    ) -> Result<EvidenceReferenceVerificationV1, &'static str> {
+        if !self.is_well_formed() {
+            return Err("evidence reference is not well formed");
+        }
+        if self.context.hash_algorithm != "SHA-256" {
+            return Err("unsupported digest algorithm for preimage verification");
+        }
+
+        let digest = Sha256::digest(preimage);
+        let observed_digest = match self.context.representation {
+            DigestRepresentationV1::RawBytes => {
+                return Err("raw-byte digest representation is unsupported by V1");
+            }
+            DigestRepresentationV1::LowerHex => format!("{digest:x}"),
+            DigestRepresentationV1::PrefixedLowerHex => format!("sha256:{digest:x}"),
+        };
+
+        if observed_digest != self.digest {
+            return Err("recomputed digest does not match evidence reference");
+        }
+
+        let verifier = verifier.into();
+        let verified_at = verified_at.into();
+        let claim_ceiling = claim_ceiling.into();
+        if verifier.is_empty() || verified_at.is_empty() || claim_ceiling.is_empty() {
+            return Err("verification metadata is incomplete");
+        }
+
+        Ok(EvidenceReferenceVerificationV1 {
+            reference: self.clone(),
+            resolution: EvidenceReferenceResolutionV1::Verified,
+            verifier: Some(verifier),
+            verified_at: Some(verified_at),
+            observed_digest: Some(observed_digest),
+            claim_ceiling,
+        })
     }
 
     /// Preserve a legacy/bare evidence locator explicitly as unresolved.
@@ -432,6 +483,51 @@ mod tests {
         assert!(!EvidenceReferenceResolutionV1::Unresolved.permits_evidence_use());
         assert!(!EvidenceReferenceResolutionV1::Failed.permits_evidence_use());
         assert!(EvidenceReferenceResolutionV1::Verified.permits_evidence_use());
+    }
+
+    #[test]
+    fn verify_preimage_recomputes_the_declared_digest() {
+        let preimage = b"deterministic evidence payload";
+        let digest = Sha256::digest(preimage);
+
+        let reference = EvidenceReferenceV1::content_addressed(
+            "recovery-execution-record",
+            DigestContextV1 {
+                id: "sol-atlas:test-sha256:v1".into(),
+                preimage_construction: "exact supplied canonical bytes".into(),
+                canonicalization: "sol-atlas-test-canonical-v1".into(),
+                hash_algorithm: "SHA-256".into(),
+                domain_separator: "sol-atlas:test-evidence:v1".into(),
+                preimage_encoding: "UTF-8".into(),
+                representation: DigestRepresentationV1::PrefixedLowerHex,
+            },
+            format!("sha256:{digest:x}"),
+            "Exact artifact identity only.",
+        )
+        .unwrap();
+
+        let verification = reference
+            .verify_preimage(
+                preimage,
+                "deterministic-verifier",
+                "2026-10-02T00:00:00Z",
+                "Exact artifact identity verified.",
+            )
+            .unwrap();
+
+        assert!(verification.is_verified());
+        assert_eq!(verification.observed_digest.as_deref(), Some(reference.digest.as_str()));
+
+        assert!(
+            reference
+                .verify_preimage(
+                    b"tampered evidence payload",
+                    "deterministic-verifier",
+                    "2026-10-02T00:00:00Z",
+                    "Exact artifact identity verified.",
+                )
+                .is_err()
+        );
     }
 
     #[test]
