@@ -1922,10 +1922,7 @@ impl RecoveryExecutionSnapshotV1 {
     ///
     /// The execution's resulting state, evidence, and completion/failure markers
     /// are intentionally excluded: they are outputs of the activity, not inputs.
-    pub fn from_plan_and_execution(
-        plan: &RecoveryPlan,
-        execution: &RecoveryExecution,
-    ) -> Self {
+    pub fn from_plan_and_execution(plan: &RecoveryPlan, execution: &RecoveryExecution) -> Self {
         Self {
             schema: Self::SCHEMA.into(),
             plan_id: plan.id.clone(),
@@ -1954,8 +1951,14 @@ impl RecoveryExecutionSnapshotV1 {
             && !self.steps.is_empty()
             && self.steps.iter().all(|step| !step.is_empty())
             && !self.preconditions.iter().any(|condition| condition.is_empty())
-            && !self.expected_evidence.iter().any(|reference| reference.is_empty())
-            && !self.observed_preconditions.iter().any(|condition| condition.is_empty())
+            && !self
+                .expected_evidence
+                .iter()
+                .any(|reference| reference.is_empty())
+            && !self
+                .observed_preconditions
+                .iter()
+                .any(|condition| condition.is_empty())
             && self
                 .authorization
                 .as_ref()
