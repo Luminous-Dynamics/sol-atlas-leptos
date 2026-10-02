@@ -387,6 +387,14 @@ impl CapabilityGraph {
     /// world impact. Explicit substitutes are intentionally not selected here;
     /// resilience policy remains a separate, auditable decision.
     pub fn affected_by(&self, unavailable: &CapabilityId) -> CapabilityImpact {
+        use std::collections::{BTreeMap, BTreeSet, VecDeque};
+
+        let index = self
+            .capabilities
+            .iter()
+            .map(|c| (c.id.clone(), c))
+            .collect::<BTreeMap<_, _>>();
+
         let mut direct_affected = Vec::new();
         let mut transitive_affected = Vec::new();
         let mut unresolved = Vec::new();
@@ -396,20 +404,50 @@ impl CapabilityGraph {
                 continue;
             }
 
-            match self.required_closure(&capability.id) {
-                Ok(closure) if closure.contains(unavailable) => {
-                    if capability.dependencies.iter().any(|dependency| {
-                        dependency.relation.is_required() && dependency.capability == *unavailable
-                    }) {
-                        direct_affected.push(capability.id.clone());
-                    } else {
-                        transitive_affected.push(capability.id.clone());
-                    }
+            // Analyze reachability specifically toward the unavailable capability.
+            // This avoids treating unrelated missing graph data as evidence of
+            // unresolved impact.
+            let mut queue = VecDeque::from([capability.id.clone()]);
+            let mut seen = BTreeSet::new();
+            let mut reaches_unavailable = false;
+            let mut has_relevant_gap = false;
+
+            while let Some(id) = queue.pop_front() {
+                if !seen.insert(id.clone()) {
+                    continue;
                 }
-                Ok(_) => {}
-                Err(_) => unresolved.push(capability.id.clone()),
+
+                if id == *unavailable {
+                    reaches_unavailable = true;
+                    continue;
+                }
+
+                let Some(current) = index.get(&id) else {
+                    has_relevant_gap = true;
+                    continue;
+                };
+
+                for dependency in current.dependencies.iter().filter(|d| d.relation.is_required()) {
+                    queue.push_back(dependency.capability.clone());
+                }
+            }
+
+            if reaches_unavailable {
+                if capability.dependencies.iter().any(|dependency| {
+                    dependency.relation.is_required() && dependency.capability == *unavailable
+                }) {
+                    direct_affected.push(capability.id.clone());
+                } else {
+                    transitive_affected.push(capability.id.clone());
+                }
+            } else if has_relevant_gap {
+                unresolved.push(capability.id.clone());
             }
         }
+
+        direct_affected.sort();
+        transitive_affected.sort();
+        unresolved.sort();
 
         let mut affected = direct_affected.clone();
         affected.extend(transitive_affected.iter().cloned());
