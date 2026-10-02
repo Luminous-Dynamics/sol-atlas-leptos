@@ -909,6 +909,8 @@ impl EvidenceFrontierV1 {
             .all(|id| self.admits(id))
     }
 
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProjectionError {
     EmptyIdentifier,
