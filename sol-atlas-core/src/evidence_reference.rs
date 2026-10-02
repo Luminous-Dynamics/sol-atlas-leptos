@@ -81,12 +81,20 @@ pub struct EvidenceReferenceProfileV1 {
 impl EvidenceReferenceProfileV1 {
     pub const SCHEMA: &'static str = "sol-atlas:evidence-reference-profile:v1";
 
-    pub fn accepts(&self, reference: &EvidenceReferenceV1) -> bool {
+    pub fn is_well_formed(&self) -> bool {
         !self.id.is_empty()
+            && !self.artifact_type.is_empty()
             && !self.claim_ceiling.is_empty()
+            && self.context.is_well_formed()
+            && self.context.representation != DigestRepresentationV1::RawBytes
+    }
+
+    pub fn accepts(&self, reference: &EvidenceReferenceV1) -> bool {
+        self.is_well_formed()
             && reference.is_well_formed()
             && reference.artifact_type == self.artifact_type
             && reference.context == self.context
+            && reference.claim_ceiling == self.claim_ceiling
     }
 }
 
@@ -378,6 +386,10 @@ mod tests {
         };
 
         assert!(profile.accepts(&reference));
+
+        let mut broader_claim = reference.clone();
+        broader_claim.claim_ceiling = "Broader claim than authorized profile.".into();
+        assert!(!profile.accepts(&broader_claim));
 
         let mut wrong_type = reference.clone();
         wrong_type.artifact_type = "other-artifact".into();
