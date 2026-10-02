@@ -272,10 +272,7 @@ impl EvidenceReferenceV1 {
     /// The locator is carried as display metadata only; the empty digest keeps
     /// the reference structurally inadmissible until a real content identity is
     /// supplied and verified.
-    pub fn unresolved_legacy(
-        label: impl Into<String>,
-        claim_ceiling: impl Into<String>,
-    ) -> Self {
+    pub fn unresolved_legacy(label: impl Into<String>, claim_ceiling: impl Into<String>) -> Self {
         Self {
             artifact_type: "legacy/unresolved".into(),
             context: DigestContextV1 {
@@ -453,19 +450,25 @@ mod tests {
         let mut context = context();
         context.canonicalization.clear();
 
-        assert!(EvidenceReferenceV1::content_addressed(
-            "recovery-execution-record",
-            context,
-            "sha256:aaaaaaaa",
-            "Exact artifact identity only.",
-        )
-        .is_err());
+        assert!(
+            EvidenceReferenceV1::content_addressed(
+                "recovery-execution-record",
+                context,
+                "sha256:aaaaaaaa",
+                "Exact artifact identity only.",
+            )
+            .is_err()
+        );
     }
 
     #[test]
     fn bare_or_mutable_digest_values_are_rejected() {
         let context = context();
-        for digest in ["branch/main", "https://example.invalid/evidence", "artifact-123"] {
+        for digest in [
+            "branch/main",
+            "https://example.invalid/evidence",
+            "artifact-123",
+        ] {
             assert!(
                 EvidenceReferenceV1::content_addressed(
                     "recovery-execution-record",
@@ -658,7 +661,10 @@ mod tests {
             .unwrap();
 
         assert!(verification.is_verified());
-        assert_eq!(verification.observed_digest.as_deref(), Some(reference.digest.as_str()));
+        assert_eq!(
+            verification.observed_digest.as_deref(),
+            Some(reference.digest.as_str())
+        );
 
         assert!(
             reference
@@ -704,7 +710,8 @@ mod tests {
     #[test]
     fn claim_ceiling_remains_explicit() {
         let mut reference = reference();
-        reference.claim_ceiling = "Exact record identity only; payload truth not established.".into();
+        reference.claim_ceiling =
+            "Exact record identity only; payload truth not established.".into();
         assert!(reference.claim_ceiling.contains("truth not established"));
     }
 }
