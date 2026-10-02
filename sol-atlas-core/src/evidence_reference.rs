@@ -430,6 +430,9 @@ impl EvidenceReferenceV1 {
             verifier: Some(verifier),
             verified_at: Some(verified_at),
             observed_digest: Some(observed_digest),
+            profile_id: None,
+            profile_version: None,
+            profile_digest: None,
             claim_ceiling,
         })
     }
@@ -581,7 +584,7 @@ impl EvidenceReferenceVerificationV1 {
             && match (&self.profile_id, self.profile_version, &self.profile_digest) {
                 (None, None, None) => true,
                 (Some(id), Some(version), Some(digest)) => {
-                    !id.is_empty() && *version > 0 && !digest.is_empty()
+                    !id.is_empty() && version > 0 && !digest.is_empty()
                 }
                 _ => false,
             }
