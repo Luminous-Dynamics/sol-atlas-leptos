@@ -573,6 +573,42 @@ impl CapabilityGraph {
         candidates
     }
 
+    /// Compute a partial deterministic closure while preserving missing prerequisites.
+    /// Present capabilities and absent prerequisites are kept in separate sets so
+    /// recovery analysis can never imply that a missing candidate exists.
+    fn required_closure_with_missing(
+        &self,
+        root: &CapabilityId,
+    ) -> (Vec<CapabilityId>, Vec<CapabilityId>) {
+        use std::collections::{BTreeMap, BTreeSet, VecDeque};
+
+        let index = self
+            .capabilities
+            .iter()
+            .map(|c| (c.id.clone(), c))
+            .collect::<BTreeMap<_, _>>();
+        let mut queue = VecDeque::from([root.clone()]);
+        let mut seen = BTreeSet::new();
+        let mut present = BTreeSet::new();
+        let mut missing = BTreeSet::new();
+
+        while let Some(id) = queue.pop_front() {
+            if !seen.insert(id.clone()) {
+                continue;
+            }
+            let Some(capability) = index.get(&id) else {
+                missing.insert(id);
+                continue;
+            };
+            present.insert(id);
+            for dependency in capability.dependencies.iter().filter(|d| d.relation.is_required()) {
+                queue.push_back(dependency.capability.clone());
+            }
+        }
+
+        (present.into_iter().collect(), missing.into_iter().collect())
+    }
+
     /// Compute the deterministic transitive dependency closure of a root.
     ///
     /// Only dependency relations whose kind is required participate.
