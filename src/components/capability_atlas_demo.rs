@@ -15,10 +15,16 @@ pub fn CapabilityAtlasDemo() -> impl IntoView {
         Err(error) => {
             let mut details = Vec::new();
             if !error.missing.is_empty() {
-                details.push(format!("{} missing required capability(s)", error.missing.len()));
+                details.push(format!(
+                    "{} missing required capability(s)",
+                    error.missing.len()
+                ));
             }
             if !error.duplicate_ids.is_empty() {
-                details.push(format!("{} duplicate capability ID(s)", error.duplicate_ids.len()));
+                details.push(format!(
+                    "{} duplicate capability ID(s)",
+                    error.duplicate_ids.len()
+                ));
             }
 
             (
