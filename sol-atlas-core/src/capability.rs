@@ -1062,6 +1062,69 @@ pub enum RecoveryVerificationValidity {
     Superseded,
 }
 
+/// Canonical UTC timestamp accepted by recovery verification freshness checks.
+///
+/// The fixed second-resolution representation is intentionally narrower than
+/// general RFC 3339: YYYY-MM-DDTHH:MM:SSZ. Fixed-width UTC timestamps can be
+/// compared lexically without timezone or precision ambiguity.
+fn is_canonical_utc_timestamp(value: &str) -> bool {
+    fn digits(value: &[u8]) -> bool {
+        value.iter().all(u8::is_ascii_digit)
+    }
+
+    fn leap_year(year: u32) -> bool {
+        year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+    }
+
+    if value.len() != 20 {
+        return false;
+    }
+
+    let bytes = value.as_bytes();
+    if bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+        || !digits(&bytes[0..4])
+        || !digits(&bytes[5..7])
+        || !digits(&bytes[8..10])
+        || !digits(&bytes[11..13])
+        || !digits(&bytes[14..16])
+        || !digits(&bytes[17..19])
+    {
+        return false;
+    }
+
+    let year = value[0..4].parse::<u32>().ok();
+    let month = value[5..7].parse::<u32>().ok();
+    let day = value[8..10].parse::<u32>().ok();
+    let hour = value[11..13].parse::<u32>().ok();
+    let minute = value[14..16].parse::<u32>().ok();
+    let second = value[17..19].parse::<u32>().ok();
+
+    let (Some(year), Some(month), Some(day), Some(hour), Some(minute), Some(second)) =
+        (year, month, day, hour, minute, second)
+    else {
+        return false;
+    };
+
+    if !(1..=12).contains(&month) || hour > 23 || minute > 59 || second > 59 {
+        return false;
+    }
+
+    let days_in_month = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap_year(year) => 29,
+        2 => 28,
+        _ => unreachable!(),
+    };
+
+    (1..=days_in_month).contains(&day)
+}
+
 /// Auditable verification of the post-execution capability state.
 ///
 /// Snapshot bindings are deliberately explicit: a historical PASS must not
@@ -1144,9 +1207,9 @@ impl RecoveryVerification {
             && !self.environment_snapshot.is_empty()
             && !self.evidence_snapshot.is_empty()
             && self.evidence_coverage.permits_pass()
-            && !self.valid_until.is_empty()
+            && is_canonical_utc_timestamp(&self.valid_until)
             && !self.verifier.is_empty()
-            && !self.verified_at.is_empty()
+            && is_canonical_utc_timestamp(&self.verified_at)
     }
 
     /// Stronger gate requiring the structured dependency, evidence, and
@@ -1233,11 +1296,13 @@ impl RecoveryVerification {
             || self.dependency_snapshot.is_empty()
             || self.environment_snapshot.is_empty()
             || self.evidence_snapshot.is_empty()
-            || self.valid_until.is_empty()
+            || !is_canonical_utc_timestamp(&self.verified_at)
+            || !is_canonical_utc_timestamp(&self.valid_until)
+            || !is_canonical_utc_timestamp(now)
         {
             return RecoveryVerificationValidity::Stale;
         }
-        if now > self.valid_until.as_str() {
+        if now >= self.valid_until.as_str() {
             return RecoveryVerificationValidity::Stale;
         }
         RecoveryVerificationValidity::Current
@@ -2779,6 +2844,102 @@ mod graph_tests {
             ),
             RecoveryVerificationValidity::ScopeMismatch
         );
+    }
+
+    #[test]
+    fn canonical_utc_timestamp_rejects_ambiguous_or_invalid_values() {
+        assert!(is_canonical_utc_timestamp("2026-10-02T12:00:00Z"));
+        assert!(is_canonical_utc_timestamp("2000-02-29T00:00:00Z"));
+        assert!(!is_canonical_utc_timestamp("2026-10-02T12:00:00+00:00"));
+        assert!(!is_canonical_utc_timestamp("2026-10-02T12:00:00.000Z"));
+        assert!(!is_canonical_utc_timestamp("2026-02-29T12:00:00Z"));
+        assert!(!is_canonical_utc_timestamp("2026-13-01T12:00:00Z"));
+        assert!(!is_canonical_utc_timestamp("2026-10-02T24:00:00Z"));
+        assert!(!is_canonical_utc_timestamp("not-a-timestamp"));
+    }
+
+    #[test]
+    fn recovery_verification_expires_at_declared_valid_until() {
+        let verification = RecoveryVerification {
+            execution_id: "execution-boundary".into(),
+            capability: CapabilityId("water.purification".into()),
+            scope: "instance-boundary".into(),
+            expected_postconditions: vec!["potable water available".into()],
+            observed_postconditions: vec!["potable water available".into()],
+            evidence: vec![verified_test_evidence("water-test")],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("water.purification".into())],
+            unresolved_dependencies: vec![],
+            verification_snapshot: "verification-inputs-boundary".into(),
+            dependency_snapshot: "deps-boundary".into(),
+            environment_snapshot: "env-boundary".into(),
+            evidence_snapshot: "evidence-boundary".into(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
+            valid_until: "2026-10-02T12:00:00Z".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Passed,
+            verifier: "verification-runner".into(),
+            verified_at: "2026-10-02T08:10:00Z".into(),
+            claim_ceiling: "Exact verification scope only.".into(),
+        };
+
+        assert_eq!(
+            verification.validity_against(
+                &CapabilityId("water.purification".into()),
+                "instance-boundary",
+                "verification-inputs-boundary",
+                "deps-boundary",
+                "env-boundary",
+                "evidence-boundary",
+                "2026-10-02T11:59:59Z",
+            ),
+            RecoveryVerificationValidity::Current
+        );
+        assert_eq!(
+            verification.validity_against(
+                &CapabilityId("water.purification".into()),
+                "instance-boundary",
+                "verification-inputs-boundary",
+                "deps-boundary",
+                "env-boundary",
+                "evidence-boundary",
+                "2026-10-02T12:00:00Z",
+            ),
+            RecoveryVerificationValidity::Stale
+        );
+    }
+
+    #[test]
+    fn recovery_verification_rejects_malformed_freshness_timestamps() {
+        let mut verification = RecoveryVerification {
+            execution_id: "execution-malformed-time".into(),
+            capability: CapabilityId("water.purification".into()),
+            scope: "instance-time".into(),
+            expected_postconditions: vec!["potable water available".into()],
+            observed_postconditions: vec!["potable water available".into()],
+            evidence: vec![verified_test_evidence("water-test")],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("water.purification".into())],
+            unresolved_dependencies: vec![],
+            verification_snapshot: "verification-inputs-time".into(),
+            dependency_snapshot: "deps-time".into(),
+            environment_snapshot: "env-time".into(),
+            evidence_snapshot: "evidence-time".into(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
+            valid_until: "tomorrow".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Passed,
+            verifier: "verification-runner".into(),
+            verified_at: "2026-10-02T08:10:00Z".into(),
+            claim_ceiling: "Exact verification scope only.".into(),
+        };
+
+        assert!(!verification.passes());
+        verification.valid_until = "2026-10-02T12:00:00Z".into();
+        verification.verification_snapshot = verification.derived_snapshot().digest();
+        assert!(verification.passes());
     }
 
     #[test]
