@@ -191,8 +191,11 @@ impl EvidenceSnapshotV1 {
             .collect::<Vec<_>>();
 
         evidence.sort_by(|left, right| {
-            (&left.kind, &left.claim_ceiling, &left.unresolved_locator)
-                .cmp(&(&right.kind, &right.claim_ceiling, &right.unresolved_locator))
+            (&left.kind, &left.claim_ceiling, &left.unresolved_locator).cmp(&(
+                &right.kind,
+                &right.claim_ceiling,
+                &right.unresolved_locator,
+            ))
         });
         evidence.dedup();
 
@@ -251,14 +254,18 @@ impl EvidenceSnapshotV1 {
                     && entry.unresolved_locator.is_none()
                     && verifications.iter().any(|verification| {
                         verification.is_verified()
-                            && verification.reference.same_content_identity(&entry.reference)
+                            && verification
+                                .reference
+                                .same_content_identity(&entry.reference)
                             && verification.reference.claim_ceiling == entry.claim_ceiling
                     })
             })
             && verifications.iter().all(|verification| {
                 verification.is_verified()
                     && self.evidence.iter().any(|entry| {
-                        entry.reference.same_content_identity(&verification.reference)
+                        entry
+                            .reference
+                            .same_content_identity(&verification.reference)
                             && entry.claim_ceiling == verification.reference.claim_ceiling
                             && entry.unresolved_locator.is_none()
                     })
@@ -302,8 +309,12 @@ impl EnvironmentSnapshotV1 {
 
         let mut facts = self.facts.clone();
         facts.sort_by(|left, right| {
-            (&left.key, &left.value, &left.unit, &left.source)
-                .cmp(&(&right.key, &right.value, &right.unit, &right.source))
+            (&left.key, &left.value, &left.unit, &left.source).cmp(&(
+                &right.key,
+                &right.value,
+                &right.unit,
+                &right.source,
+            ))
         });
         facts.dedup();
 
@@ -329,8 +340,12 @@ impl EnvironmentSnapshotV1 {
         mut facts: Vec<EnvironmentFactV1>,
     ) -> Self {
         facts.sort_by(|left, right| {
-            (&left.key, &left.value, &left.unit, &left.source)
-                .cmp(&(&right.key, &right.value, &right.unit, &right.source))
+            (&left.key, &left.value, &left.unit, &left.source).cmp(&(
+                &right.key,
+                &right.value,
+                &right.unit,
+                &right.source,
+            ))
         });
         facts.dedup();
 
@@ -600,7 +615,6 @@ mod tests {
     }
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AlternativePath {
     /// The dependency this candidate could replace.
@@ -671,7 +685,6 @@ impl RecoveryPlan {
     }
 }
 
-
 /// Verification result for a completed recovery execution.
 ///
 /// Verification is deliberately separate from execution: evidence can be
@@ -703,7 +716,7 @@ pub struct RecoveryVerificationSnapshotV1 {
     ///
     /// A PASS requires every reference to have a recomputed digest and verifier
     /// metadata; unresolved legacy strings are not admissible.
-    pub evidence: Vec<EvidenceReferenceVerificationV1>,
+    pub evidence: Vec<EvidenceReferenceV1>,
     pub missing_postconditions: Vec<String>,
     pub contradictory_postconditions: Vec<String>,
     pub dependency_closure: Vec<CapabilityId>,
@@ -763,7 +776,9 @@ impl RecoveryVerificationSnapshotV1 {
                 values
             },
             missing_postconditions: sorted_strings(&verification.missing_postconditions),
-            contradictory_postconditions: sorted_strings(&verification.contradictory_postconditions),
+            contradictory_postconditions: sorted_strings(
+                &verification.contradictory_postconditions,
+            ),
             dependency_closure: sorted_ids(&verification.dependency_closure),
             unresolved_dependencies: sorted_ids(&verification.unresolved_dependencies),
             dependency_snapshot: verification.dependency_snapshot.clone(),
@@ -995,13 +1010,17 @@ impl RecoveryVerification {
             && !self.scope.is_empty()
             && !self.expected_postconditions.is_empty()
             && !self.expected_postconditions.iter().any(|condition| {
-                !self.observed_postconditions.iter().any(|observed| observed == condition)
+                !self
+                    .observed_postconditions
+                    .iter()
+                    .any(|observed| observed == condition)
             })
             && self.contradictory_postconditions.is_empty()
             && self.unresolved_dependencies.is_empty()
             && !self.dependency_closure.is_empty()
             && !self.evidence.is_empty()
-            && self.evidence
+            && self
+                .evidence
                 .iter()
                 .all(|verification| verification.is_verified())
             && !self.verification_snapshot.is_empty()
@@ -1280,7 +1299,11 @@ impl CapabilityGraph {
                 continue;
             };
 
-            for dependency in capability.dependencies.iter().filter(|d| d.relation.is_required()) {
+            for dependency in capability
+                .dependencies
+                .iter()
+                .filter(|d| d.relation.is_required())
+            {
                 edges.insert((
                     capability.id.clone(),
                     dependency.capability.clone(),
@@ -1354,7 +1377,11 @@ impl CapabilityGraph {
                     continue;
                 };
 
-                for dependency in current.dependencies.iter().filter(|d| d.relation.is_required()) {
+                for dependency in current
+                    .dependencies
+                    .iter()
+                    .filter(|d| d.relation.is_required())
+                {
                     queue.push_back(dependency.capability.clone());
                 }
             }
@@ -1394,10 +1421,7 @@ impl CapabilityGraph {
     /// Candidate discovery is deterministic and never selects, ranks, or
     /// substitutes a candidate automatically. Each candidate's own closure is
     /// analyzed independently so missing recovery prerequisites remain visible.
-    pub fn recovery_candidates(
-        &self,
-        unavailable: &CapabilityId,
-    ) -> Vec<RecoveryCandidate> {
+    pub fn recovery_candidates(&self, unavailable: &CapabilityId) -> Vec<RecoveryCandidate> {
         let mut candidates = self
             .capabilities
             .iter()
@@ -1430,8 +1454,7 @@ impl CapabilityGraph {
             .collect::<Vec<_>>();
 
         candidates.sort_by(|left, right| {
-            (&left.for_dependency, &left.candidate)
-                .cmp(&(&right.for_dependency, &right.candidate))
+            (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
         });
         candidates
     }
@@ -1464,7 +1487,11 @@ impl CapabilityGraph {
                 continue;
             };
             present.insert(id);
-            for dependency in capability.dependencies.iter().filter(|d| d.relation.is_required()) {
+            for dependency in capability
+                .dependencies
+                .iter()
+                .filter(|d| d.relation.is_required())
+            {
                 queue.push_back(dependency.capability.clone());
             }
         }
@@ -1755,21 +1782,13 @@ mod graph_tests {
             .unwrap()
             .digest();
 
-        assert!(verification.passes_with_bound_snapshots(
-            &dependency,
-            &evidence,
-            &environment
-        ));
+        assert!(verification.passes_with_bound_snapshots(&dependency, &evidence, &environment));
 
         let mut bad_snapshot = verification.clone();
         bad_snapshot.evidence_snapshot = "opaque-evidence-label".into();
         bad_snapshot.verification_snapshot = bad_snapshot.derived_snapshot().digest();
         assert!(bad_snapshot.passes());
-        assert!(!bad_snapshot.passes_with_bound_snapshots(
-            &dependency,
-            &evidence,
-            &environment
-        ));
+        assert!(!bad_snapshot.passes_with_bound_snapshots(&dependency, &evidence, &environment));
 
         let mut changed_environment = environment.clone();
         changed_environment.facts[0].value = "21".into();
@@ -1898,10 +1917,8 @@ mod graph_tests {
             claim_ceiling: "Legacy reference only.".into(),
         }];
 
-        let snapshot = EvidenceSnapshotV1::from_capability(
-            &capability,
-            RecoveryEvidenceCoverage::ClosedWorld,
-        );
+        let snapshot =
+            EvidenceSnapshotV1::from_capability(&capability, RecoveryEvidenceCoverage::ClosedWorld);
 
         assert_eq!(snapshot.evidence.len(), 1);
         assert!(!snapshot.evidence[0].reference.is_well_formed());
@@ -1998,10 +2015,8 @@ mod graph_tests {
             },
         ];
 
-        let snapshot = EvidenceSnapshotV1::from_capability(
-            &capability,
-            RecoveryEvidenceCoverage::ClosedWorld,
-        );
+        let snapshot =
+            EvidenceSnapshotV1::from_capability(&capability, RecoveryEvidenceCoverage::ClosedWorld);
 
         assert_eq!(snapshot.subject, CapabilityId("a".into()));
         assert_eq!(snapshot.evidence.len(), 2);
@@ -2047,19 +2062,15 @@ mod graph_tests {
             claim_ceiling: "exact observation".into(),
         }];
 
-        let first = EvidenceSnapshotV1::from_capability(
-            &capability,
-            RecoveryEvidenceCoverage::ClosedWorld,
-        )
-        .digest();
+        let first =
+            EvidenceSnapshotV1::from_capability(&capability, RecoveryEvidenceCoverage::ClosedWorld)
+                .digest();
 
         capability.evidence[0].claim_ceiling = "broader claim".into();
 
-        let second = EvidenceSnapshotV1::from_capability(
-            &capability,
-            RecoveryEvidenceCoverage::ClosedWorld,
-        )
-        .digest();
+        let second =
+            EvidenceSnapshotV1::from_capability(&capability, RecoveryEvidenceCoverage::ClosedWorld)
+                .digest();
 
         assert_ne!(first, second);
     }
@@ -2081,21 +2092,15 @@ mod graph_tests {
             },
         ];
 
-        let first = EnvironmentSnapshotV1::from_facts(
-            CapabilityId("a".into()),
-            "site-1",
-            facts.clone(),
-        )
-        .digest();
+        let first =
+            EnvironmentSnapshotV1::from_facts(CapabilityId("a".into()), "site-1", facts.clone())
+                .digest();
 
         let mut reversed = facts;
         reversed.reverse();
-        let second = EnvironmentSnapshotV1::from_facts(
-            CapabilityId("a".into()),
-            "site-1",
-            reversed,
-        )
-        .digest();
+        let second =
+            EnvironmentSnapshotV1::from_facts(CapabilityId("a".into()), "site-1", reversed)
+                .digest();
         assert_eq!(first, second);
 
         let scoped = EnvironmentSnapshotV1::from_facts(
@@ -2135,7 +2140,10 @@ mod graph_tests {
         assert_eq!(impact.unavailable, CapabilityId("c".into()));
         assert_eq!(impact.direct_affected, vec![CapabilityId("b".into())]);
         assert_eq!(impact.transitive_affected, vec![CapabilityId("a".into())]);
-        assert_eq!(impact.affected, vec![CapabilityId("a".into()), CapabilityId("b".into())]);
+        assert_eq!(
+            impact.affected,
+            vec![CapabilityId("a".into()), CapabilityId("b".into())]
+        );
         assert!(impact.unresolved.is_empty());
 
         let independent = graph.affected_by(&CapabilityId("independent".into()));
@@ -2157,7 +2165,8 @@ mod graph_tests {
             human_contribution: "Operate and judge".into(),
             ai_contribution: "Analyze and plan".into(),
             state: RecoveryPlanState::Ready,
-            claim_ceiling: "Plan only; execution and successful restoration are not established.".into(),
+            claim_ceiling: "Plan only; execution and successful restoration are not established."
+                .into(),
         };
 
         assert!(plan.is_ready());
@@ -2306,11 +2315,10 @@ mod graph_tests {
             capabilities: vec![cap("a", &["missing"])],
         };
 
-        let error = graph.required_closure(&CapabilityId("a".into())).unwrap_err();
-        assert_eq!(
-            error.missing,
-            vec![CapabilityId("missing".into())]
-        );
+        let error = graph
+            .required_closure(&CapabilityId("a".into()))
+            .unwrap_err();
+        assert_eq!(error.missing, vec![CapabilityId("missing".into())]);
     }
 
     #[test]
@@ -2397,7 +2405,10 @@ mod graph_tests {
         b.expected_postconditions.reverse();
         b.dependency_closure.reverse();
         b.observed_postconditions.reverse();
-        assert_eq!(a.derived_snapshot().canonical_bytes(), b.derived_snapshot().canonical_bytes());
+        assert_eq!(
+            a.derived_snapshot().canonical_bytes(),
+            b.derived_snapshot().canonical_bytes()
+        );
         assert_eq!(digest, b.derived_snapshot().digest());
         assert!(a.snapshot_matches_inputs());
         assert!(b.snapshot_matches_inputs());
@@ -2430,7 +2441,9 @@ mod graph_tests {
         let digest = verification.derived_snapshot().digest();
         verification.verification_snapshot = digest.clone();
         assert!(verification.snapshot_matches_inputs());
-        verification.observed_postconditions.push("new observation".into());
+        verification
+            .observed_postconditions
+            .push("new observation".into());
         assert!(!verification.snapshot_matches_inputs());
         assert_ne!(digest, verification.derived_snapshot().digest());
     }
@@ -2496,7 +2509,8 @@ mod graph_tests {
             state: RecoveryVerificationState::Passed,
             verifier: "verification-runner".into(),
             verified_at: "2026-10-02T08:10:00Z".into(),
-            claim_ceiling: "Exact execution and instance scope only; qualification is not established.".into(),
+            claim_ceiling:
+                "Exact execution and instance scope only; qualification is not established.".into(),
         };
         let mut verification = verification;
         verification.verification_snapshot = verification.derived_snapshot().digest();
@@ -2556,7 +2570,8 @@ mod graph_tests {
             state: RecoveryVerificationState::Passed,
             verifier: "verification-runner".into(),
             verified_at: "2026-10-02T08:10:00Z".into(),
-            claim_ceiling: "Exact execution and instance scope only; qualification is not established.".into(),
+            claim_ceiling:
+                "Exact execution and instance scope only; qualification is not established.".into(),
         };
 
         assert_eq!(
@@ -2620,7 +2635,8 @@ mod graph_tests {
             state: RecoveryVerificationState::Passed,
             verifier: "verification-runner".into(),
             verified_at: "2026-10-02T08:10:00Z".into(),
-            claim_ceiling: "Exact execution and instance scope only; qualification is not established.".into(),
+            claim_ceiling:
+                "Exact execution and instance scope only; qualification is not established.".into(),
         };
 
         assert_eq!(
