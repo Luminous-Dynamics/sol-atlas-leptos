@@ -264,6 +264,10 @@ impl EvidenceReferenceV1 {
         if !profile.accepts(self) {
             return Err("evidence reference is not authorized by profile");
         }
+        let claim_ceiling = claim_ceiling.into();
+        if claim_ceiling != profile.claim_ceiling {
+            return Err("verification claim ceiling does not match profile");
+        }
         self.verify_preimage(preimage, verifier, verified_at, claim_ceiling)
     }
 
@@ -343,6 +347,7 @@ impl EvidenceReferenceVerificationV1 {
             && self.verified_at.as_ref().is_some_and(|t| !t.is_empty())
             && self.observed_digest.as_ref() == Some(&self.reference.digest)
             && !self.claim_ceiling.is_empty()
+            && self.claim_ceiling == self.reference.claim_ceiling
     }
 }
 
@@ -374,7 +379,8 @@ mod tests {
 
     #[test]
     fn profile_accepts_only_exact_artifact_type_and_context() {
-        let reference = reference();
+        let mut reference = reference();
+        reference.claim_ceiling = "Profile-scoped evidence only.".into();
         let profile = EvidenceReferenceProfileV1 {
             id: "profile-001".into(),
             artifact_type: reference.artifact_type.clone(),
@@ -401,11 +407,11 @@ mod tests {
     fn profile_binds_preimage_verification_to_authorized_context() {
         let preimage = b"profile-bound-evidence";
         let digest = Sha256::digest(preimage);
-        let reference = EvidenceReferenceV1::content_addressed(
+        let mut reference = EvidenceReferenceV1::content_addressed(
             "recovery-execution-record",
             context(),
             format!("sha256:{digest:x}"),
-            "Exact artifact identity only.",
+            "Profile-scoped evidence only.",
         )
         .unwrap();
         let profile = EvidenceReferenceProfileV1 {
@@ -422,13 +428,13 @@ mod tests {
                     preimage,
                     "deterministic-verifier",
                     "2026-10-02T00:00:00Z",
-                    "Profile-scoped verification only.",
+                    "Profile-scoped evidence only.",
                 )
                 .unwrap()
                 .is_verified()
         );
 
-        let mut mutated_profile = profile;
+        let mut mutated_profile = profile.clone();
         mutated_profile.context.domain_separator = "other-domain:v1".into();
         assert!(
             reference
@@ -437,7 +443,25 @@ mod tests {
                     preimage,
                     "deterministic-verifier",
                     "2026-10-02T00:00:00Z",
-                    "Profile-scoped verification only.",
+                    "Profile-scoped evidence only.",
+                )
+                .is_err()
+        );
+
+        let profile = EvidenceReferenceProfileV1 {
+            id: "profile-003".into(),
+            artifact_type: reference.artifact_type.clone(),
+            context: reference.context.clone(),
+            claim_ceiling: reference.claim_ceiling.clone(),
+        };
+        assert!(
+            reference
+                .verify_preimage_against_profile(
+                    &profile,
+                    preimage,
+                    "deterministic-verifier",
+                    "2026-10-02T00:00:00Z",
+                    "Broader than profile.",
                 )
                 .is_err()
         );
@@ -656,7 +680,7 @@ mod tests {
                 preimage,
                 "deterministic-verifier",
                 "2026-10-02T00:00:00Z",
-                "Exact artifact identity verified.",
+                "Exact artifact identity only.",
             )
             .unwrap();
 
@@ -698,7 +722,7 @@ mod tests {
             verifier: Some("deterministic-verifier".into()),
             verified_at: Some("2026-10-02T00:00:00Z".into()),
             observed_digest: Some(reference.digest.clone()),
-            claim_ceiling: "Exact artifact identity verified.".into(),
+            claim_ceiling: reference.claim_ceiling.clone(),
         };
         assert!(verified.is_verified());
 
