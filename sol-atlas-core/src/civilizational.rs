@@ -16,11 +16,15 @@ macro_rules! id_type {
         pub struct $name(pub String);
 
         impl From<&str> for $name {
-            fn from(value: &str) -> Self { Self(value.to_owned()) }
+            fn from(value: &str) -> Self {
+                Self(value.to_owned())
+            }
         }
 
         impl $name {
-            pub fn is_valid(&self) -> bool { !self.0.trim().is_empty() }
+            pub fn is_valid(&self) -> bool {
+                !self.0.trim().is_empty()
+            }
         }
     };
 }
@@ -59,8 +63,12 @@ impl YearInterval {
     pub fn overlaps(&self, other: &Self) -> bool {
         self.is_valid()
             && other.is_valid()
-            && self.to.is_none_or(|to| other.from.is_none_or(|from| from <= to))
-            && other.to.is_none_or(|to| self.from.is_none_or(|from| from <= to))
+            && self
+                .to
+                .is_none_or(|to| other.from.is_none_or(|from| from <= to))
+            && other
+                .to
+                .is_none_or(|to| self.from.is_none_or(|from| from <= to))
     }
 }
 
@@ -161,7 +169,11 @@ impl StateSnapshotV1 {
             return Err(ProjectionError::SnapshotWithoutEvidencePath);
         }
         if self.relation_refs.iter().any(|id| !id.is_valid())
-            || self.qualification.claim_refs.iter().any(|id| !id.is_valid())
+            || self
+                .qualification
+                .claim_refs
+                .iter()
+                .any(|id| !id.is_valid())
             || self.evidence_refs.iter().any(|id| !id.is_valid())
             || self.source_snapshots.iter().any(|id| !id.is_valid())
             || self.institution_refs.iter().any(|id| !id.is_valid())
@@ -230,7 +242,10 @@ impl HistoricalTransitionV1 {
         if self.source_entities.is_empty() && self.target_entities.is_empty() {
             return Err(ProjectionError::TransitionWithoutParticipants);
         }
-        if self.claim_refs.is_empty() || self.evidence_refs.is_empty() || self.source_snapshots.is_empty() {
+        if self.claim_refs.is_empty()
+            || self.evidence_refs.is_empty()
+            || self.source_snapshots.is_empty()
+        {
             return Err(ProjectionError::TransitionWithoutEvidencePath);
         }
         if self.claim_refs.iter().any(|id| !id.is_valid())
@@ -422,7 +437,6 @@ impl EvidenceTemporalMetadataV1 {
     }
 }
 
-
 /// Temporal availability metadata for an immutable source snapshot.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SourceSnapshotTemporalMetadataV1 {
@@ -449,7 +463,6 @@ impl SourceSnapshotTemporalMetadataV1 {
         self.validate().is_ok() && self.available_by <= known_by_year
     }
 }
-
 
 /// Temporal metadata for externally-owned assessment/interpretation records.
 ///
@@ -478,8 +491,18 @@ impl ArgumentationTemporalMetadataV1 {
         // argumentation record. Thus an explicit temporal end must not occur
         // after the record becomes available; an open-ended extent still cannot
         // begin after that availability boundary.
-        if self.available_by < self.assessment_time.and_then(|v| v.to).or(self.assessment_time.and_then(|v| v.from)).unwrap_or(self.available_by)
-            || self.available_by < self.interpretation_time.and_then(|v| v.to).or(self.interpretation_time.and_then(|v| v.from)).unwrap_or(self.available_by)
+        if self.available_by
+            < self
+                .assessment_time
+                .and_then(|v| v.to)
+                .or(self.assessment_time.and_then(|v| v.from))
+                .unwrap_or(self.available_by)
+            || self.available_by
+                < self
+                    .interpretation_time
+                    .and_then(|v| v.to)
+                    .or(self.interpretation_time.and_then(|v| v.from))
+                    .unwrap_or(self.available_by)
         {
             return Err(ProjectionError::InvalidTimeInterval);
         }
@@ -616,8 +639,7 @@ impl EvidenceFrontierV1 {
         let mut canonical_metadata = self.evidence_metadata.clone();
         canonical_metadata.sort_by(|a, b| a.evidence_id.cmp(&b.evidence_id));
         let mut canonical_source_metadata = self.source_metadata.clone();
-        canonical_source_metadata
-            .sort_by(|a, b| a.source_snapshot.cmp(&b.source_snapshot));
+        canonical_source_metadata.sort_by(|a, b| a.source_snapshot.cmp(&b.source_snapshot));
 
         let payload = (
             &self.known_by_year,
@@ -654,7 +676,11 @@ impl EvidenceFrontierV1 {
     /// the parent's stable identifier. A valid extension may advance the evidence horizon
     /// and add evidence/sources, but it may not rewrite already-admitted metadata.
     pub fn validate_extension_of(&self, parent: &Self) -> Result<(), ProjectionError> {
-        if !self.parent_frontier.as_ref().is_some_and(|id| id == &parent.frontier_id) {
+        if !self
+            .parent_frontier
+            .as_ref()
+            .is_some_and(|id| id == &parent.frontier_id)
+        {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
         parent.validate_temporal_manifest()?;
@@ -662,7 +688,9 @@ impl EvidenceFrontierV1 {
 
         if self.known_by_year < parent.known_by_year
             || self.policy_version != parent.policy_version
-            || !self.admitted_evidence.is_superset(&parent.admitted_evidence)
+            || !self
+                .admitted_evidence
+                .is_superset(&parent.admitted_evidence)
             || !self.admitted_sources.is_superset(&parent.admitted_sources)
         {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
@@ -693,7 +721,6 @@ impl EvidenceFrontierV1 {
                 return Err(ProjectionError::InvalidEvidenceFrontierManifest);
             }
         }
-
 
         for parent_metadata in &parent.argumentation_metadata {
             let Some(child_metadata) = self.argumentation_metadata.iter().find(|metadata| {
@@ -744,9 +771,7 @@ impl EvidenceFrontierV1 {
             .iter()
             .map(|metadata| metadata.source_snapshot.clone())
             .collect::<BTreeSet<_>>();
-        if source_ids.len() != self.admitted_sources.len()
-            || source_ids != self.admitted_sources
-        {
+        if source_ids.len() != self.admitted_sources.len() || source_ids != self.admitted_sources {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
 
@@ -764,7 +789,10 @@ impl EvidenceFrontierV1 {
         if !self.frontier_id.is_valid()
             || self.policy_version.trim().is_empty()
             || self.manifest_hash.trim().is_empty()
-            || self.parent_frontier.as_ref().is_some_and(|id| id == &self.frontier_id)
+            || self
+                .parent_frontier
+                .as_ref()
+                .is_some_and(|id| id == &self.frontier_id)
         {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
@@ -775,7 +803,12 @@ impl EvidenceFrontierV1 {
             }
         } else {
             if self.evidence_metadata.len() != self.admitted_evidence.len()
-                || self.evidence_metadata.iter().map(|m| &m.evidence_id).collect::<BTreeSet<_>>().len()
+                || self
+                    .evidence_metadata
+                    .iter()
+                    .map(|m| &m.evidence_id)
+                    .collect::<BTreeSet<_>>()
+                    .len()
                     != self.evidence_metadata.len()
             {
                 return Err(ProjectionError::InvalidEvidenceFrontierManifest);
@@ -812,10 +845,8 @@ impl EvidenceFrontierV1 {
             for metadata in &self.argumentation_metadata {
                 metadata.validate()?;
                 if metadata.available_by > self.known_by_year
-                    || !seen_argumentation.insert((
-                        metadata.assessment.clone(),
-                        metadata.interpretation.clone(),
-                    ))
+                    || !seen_argumentation
+                        .insert((metadata.assessment.clone(), metadata.interpretation.clone()))
                 {
                     return Err(if metadata.available_by > self.known_by_year {
                         ProjectionError::LaterEvidenceInFrontier
@@ -874,24 +905,30 @@ impl EvidenceFrontierV1 {
         }
         self.source_metadata.is_empty()
             || self.source_metadata.iter().any(|metadata| {
-                &metadata.source_snapshot == source
-                    && metadata.available_at(self.known_by_year)
+                &metadata.source_snapshot == source && metadata.available_at(self.known_by_year)
             })
     }
 
     pub fn admits_snapshot(&self, snapshot: &StateSnapshotV1) -> bool {
         snapshot.evidence_frontier == self.frontier_id
             && snapshot.evidence_refs.iter().all(|id| self.admits(id))
-            && snapshot.source_snapshots.iter().all(|id| self.admits_source(id))
-            && snapshot.geometries.iter().all(|g| {
-                g.evidence.iter().all(|id| self.admits(id))
-            })
+            && snapshot
+                .source_snapshots
+                .iter()
+                .all(|id| self.admits_source(id))
+            && snapshot
+                .geometries
+                .iter()
+                .all(|g| g.evidence.iter().all(|id| self.admits(id)))
     }
 
     pub fn admits_audit(&self, audit: &ProjectionAuditV1) -> bool {
         audit.evidence_frontier == self.frontier_id
             && audit.evidence_refs.iter().all(|id| self.admits(id))
-            && audit.source_snapshots.iter().all(|id| self.admits_source(id))
+            && audit
+                .source_snapshots
+                .iter()
+                .all(|id| self.admits_source(id))
     }
 
     /// Returns true when every evidence reference carried by a snapshot,
@@ -908,7 +945,6 @@ impl EvidenceFrontierV1 {
             )
             .all(|id| self.admits(id))
     }
-
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -953,7 +989,10 @@ mod tests {
         StateSnapshotV1 {
             entity_id: "state:alpha".into(),
             snapshot_id: "snapshot:alpha:1900".into(),
-            valid_time: YearInterval { from: Some(1900), to: Some(1949) },
+            valid_time: YearInterval {
+                from: Some(1900),
+                to: Some(1949),
+            },
             geometries: vec![geometry(SpatialSemantics::AdministrativeBoundary, true)],
             institution_refs: vec![],
             constitutional_refs: vec![],
@@ -974,7 +1013,10 @@ mod tests {
     fn transition() -> HistoricalTransitionV1 {
         HistoricalTransitionV1 {
             transition_id: "transition:1".into(),
-            event_time: YearInterval { from: Some(1947), to: Some(1947) },
+            event_time: YearInterval {
+                from: Some(1947),
+                to: Some(1947),
+            },
             classes: [TransitionClass::Partition].into_iter().collect(),
             source_entities: vec!["polity:old".into(), "territory:shared".into()],
             target_entities: vec!["state:new-a".into(), "state:new-b".into()],
@@ -986,39 +1028,57 @@ mod tests {
             competing_hypotheses: vec!["hypothesis:a".into(), "hypothesis:b".into()],
             assessment: None,
             qualification: QualificationStatus::Contested,
-            uncertainty: Some(YearInterval { from: Some(1946), to: Some(1948) }),
+            uncertainty: Some(YearInterval {
+                from: Some(1946),
+                to: Some(1948),
+            }),
         }
     }
 
     #[test]
     fn snapshot_rejects_invalid_interval_and_missing_frontier() {
         let mut value = snapshot();
-        value.valid_time = YearInterval { from: Some(1950), to: Some(1900) };
+        value.valid_time = YearInterval {
+            from: Some(1950),
+            to: Some(1900),
+        };
         assert_eq!(value.validate(), Err(ProjectionError::InvalidTimeInterval));
         let mut value = snapshot();
         value.evidence_frontier = "".into();
-        assert_eq!(value.validate(), Err(ProjectionError::MissingEvidenceFrontier));
+        assert_eq!(
+            value.validate(),
+            Err(ProjectionError::MissingEvidenceFrontier)
+        );
     }
 
     #[test]
     fn snapshot_reports_missing_evidence_path_distinctly() {
         let mut value = snapshot();
         value.evidence_refs.clear();
-        assert_eq!(value.validate(), Err(ProjectionError::SnapshotWithoutEvidencePath));
+        assert_eq!(
+            value.validate(),
+            Err(ProjectionError::SnapshotWithoutEvidencePath)
+        );
     }
 
     #[test]
     fn transition_reports_missing_evidence_path_distinctly() {
         let mut value = transition();
         value.evidence_refs.clear();
-        assert_eq!(value.validate(), Err(ProjectionError::TransitionWithoutEvidencePath));
+        assert_eq!(
+            value.validate(),
+            Err(ProjectionError::TransitionWithoutEvidencePath)
+        );
     }
 
     #[test]
     fn spatial_precision_must_be_explicit_and_supported() {
         let mut value = snapshot();
         value.geometries = vec![geometry(SpatialSemantics::AdministrativeBoundary, false)];
-        assert_eq!(value.validate(), Err(ProjectionError::ApproximateGeometryMislabelled));
+        assert_eq!(
+            value.validate(),
+            Err(ProjectionError::ApproximateGeometryMislabelled)
+        );
         value.geometries = vec![geometry(SpatialSemantics::ApproximateExtent, false)];
         assert_eq!(value.validate(), Ok(()));
     }
@@ -1036,7 +1096,10 @@ mod tests {
     fn transition_requires_reversible_evidence_path() {
         let mut value = transition();
         value.source_snapshots.clear();
-        assert_eq!(value.validate(), Err(ProjectionError::TransitionWithoutEvidencePath));
+        assert_eq!(
+            value.validate(),
+            Err(ProjectionError::TransitionWithoutEvidencePath)
+        );
     }
 
     #[test]
@@ -1044,11 +1107,17 @@ mod tests {
         let metadata = EvidenceTemporalMetadataV1 {
             evidence_id: "evidence:old".into(),
             source_snapshot: "source:archive".into(),
-            artifact_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
+            artifact_time: Some(YearInterval {
+                from: Some(1200),
+                to: Some(1200),
+            }),
             publication_time: Some(1800),
             capture_time: Some(1900),
             available_by: 1950,
-            validity_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
+            validity_time: Some(YearInterval {
+                from: Some(1200),
+                to: Some(1200),
+            }),
         };
         assert!(metadata.available_at(1950));
         assert!(!metadata.available_at(1940));
@@ -1059,15 +1128,24 @@ mod tests {
         let base = ArgumentationTemporalMetadataV1 {
             assessment: "assessment:1".into(),
             interpretation: "interpretation:1".into(),
-            assessment_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
-            interpretation_time: Some(YearInterval { from: Some(1941), to: Some(1949) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1941),
+                to: Some(1949),
+            }),
             available_by: 1950,
         };
         assert_eq!(base.validate(), Ok(()));
 
         let mut before_end = base.clone();
         before_end.available_by = 1949;
-        assert_eq!(before_end.validate(), Err(ProjectionError::InvalidTimeInterval));
+        assert_eq!(
+            before_end.validate(),
+            Err(ProjectionError::InvalidTimeInterval)
+        );
     }
 
     #[test]
@@ -1075,7 +1153,10 @@ mod tests {
         let mut value = ArgumentationTemporalMetadataV1 {
             assessment: "assessment:1".into(),
             interpretation: "interpretation:1".into(),
-            assessment_time: Some(YearInterval { from: Some(1950), to: None }),
+            assessment_time: Some(YearInterval {
+                from: Some(1950),
+                to: None,
+            }),
             interpretation_time: None,
             available_by: 1950,
         };
@@ -1090,7 +1171,10 @@ mod tests {
         let metadata = EvidenceTemporalMetadataV1 {
             evidence_id: "evidence:cutoff".into(),
             source_snapshot: "source:cutoff".into(),
-            artifact_time: Some(YearInterval { from: Some(1800), to: Some(1800) }),
+            artifact_time: Some(YearInterval {
+                from: Some(1800),
+                to: Some(1800),
+            }),
             publication_time: Some(1900),
             capture_time: None,
             available_by: 1950,
@@ -1126,7 +1210,10 @@ mod tests {
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
                 evidence_id: "evidence:a".into(),
                 source_snapshot: "source:a".into(),
-                artifact_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
+                artifact_time: Some(YearInterval {
+                    from: Some(1200),
+                    to: Some(1200),
+                }),
                 publication_time: Some(1900),
                 capture_time: None,
                 available_by: 1950,
@@ -1141,17 +1228,27 @@ mod tests {
             argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
                 assessment: "assessment:old".into(),
                 interpretation: "interpretation:old".into(),
-                assessment_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
-                interpretation_time: Some(YearInterval { from: Some(1300), to: Some(1300) }),
+                assessment_time: Some(YearInterval {
+                    from: Some(1200),
+                    to: Some(1200),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1300),
+                    to: Some(1300),
+                }),
                 available_by: 1950,
             }],
         };
         frontier.recompute_manifest_hash().unwrap();
 
-        assert!(frontier.admits_argumentation(&"assessment:old".into(), &"interpretation:old".into()));
+        assert!(
+            frontier.admits_argumentation(&"assessment:old".into(), &"interpretation:old".into())
+        );
 
         frontier.known_by_year = 1949;
-        assert!(!frontier.admits_argumentation(&"assessment:old".into(), &"interpretation:old".into()));
+        assert!(
+            !frontier.admits_argumentation(&"assessment:old".into(), &"interpretation:old".into())
+        );
     }
 
     #[test]
@@ -1159,8 +1256,14 @@ mod tests {
         let metadata = ArgumentationTemporalMetadataV1 {
             assessment: "assessment:later".into(),
             interpretation: "interpretation:later".into(),
-            assessment_time: Some(YearInterval { from: Some(1800), to: Some(1800) }),
-            interpretation_time: Some(YearInterval { from: Some(1800), to: Some(1800) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1800),
+                to: Some(1800),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1800),
+                to: Some(1800),
+            }),
             available_by: 1951,
         };
         assert!(!metadata.available_at(1950));
@@ -1172,7 +1275,10 @@ mod tests {
         let value = ArgumentationTemporalMetadataV1 {
             assessment: "assessment:1".into(),
             interpretation: "interpretation:1".into(),
-            assessment_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            }),
             interpretation_time: None,
             available_by: 1950,
         };
@@ -1191,10 +1297,12 @@ mod tests {
             admitted_evidence: ["evidence:old".into()].into_iter().collect(),
             admitted_sources: ["source:archive".into()].into_iter().collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
-
                 evidence_id: "evidence:old".into(),
                 source_snapshot: "source:archive".into(),
-                artifact_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
+                artifact_time: Some(YearInterval {
+                    from: Some(1200),
+                    to: Some(1200),
+                }),
                 publication_time: Some(1800),
                 capture_time: None,
                 available_by: 1800,
@@ -1218,10 +1326,12 @@ mod tests {
             admitted_evidence: ["evidence:later".into()].into_iter().collect(),
             admitted_sources: ["source:archive".into()].into_iter().collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
-
                 evidence_id: "evidence:later".into(),
                 source_snapshot: "source:archive".into(),
-                artifact_time: Some(YearInterval { from: Some(1200), to: Some(1200) }),
+                artifact_time: Some(YearInterval {
+                    from: Some(1200),
+                    to: Some(1200),
+                }),
                 publication_time: Some(1950),
                 capture_time: None,
                 available_by: 1950,
@@ -1230,7 +1340,10 @@ mod tests {
             source_metadata: vec![],
             argumentation_metadata: vec![],
         };
-        assert_eq!(frontier.validate_temporal_manifest(), Err(ProjectionError::LaterEvidenceInFrontier));
+        assert_eq!(
+            frontier.validate_temporal_manifest(),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
         assert!(!frontier.admits(&"evidence:later".into()));
     }
 
@@ -1304,12 +1417,9 @@ mod tests {
             parent_frontier: None,
             policy_version: "v1".into(),
             manifest_hash: String::new(),
-            admitted_evidence: [
-                "evidence:1".into(),
-                "evidence:partition".into(),
-            ]
-            .into_iter()
-            .collect(),
+            admitted_evidence: ["evidence:1".into(), "evidence:partition".into()]
+                .into_iter()
+                .collect(),
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
@@ -1335,7 +1445,10 @@ mod tests {
     fn audit_requires_evidence_path() {
         let mut audit = ProjectionAuditV1::for_snapshot(&snapshot());
         audit.evidence_refs.clear();
-        assert_eq!(audit.validate(), Err(ProjectionError::AuditWithoutEvidencePath));
+        assert_eq!(
+            audit.validate(),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
     }
 
     #[test]
@@ -1354,7 +1467,10 @@ mod tests {
         };
         let mut audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
         audit.source_snapshots.clear();
-        assert_eq!(audit.validate(), Err(ProjectionError::AuditWithoutSourcePath));
+        assert_eq!(
+            audit.validate(),
+            Err(ProjectionError::AuditWithoutSourcePath)
+        );
     }
 
     #[test]
@@ -1384,16 +1500,14 @@ mod tests {
 
     #[test]
     fn frontier_chain_validates_transitive_append_only_lineage() {
-        let metadata = |evidence_id: &str, source: &str, year: i32| {
-            EvidenceTemporalMetadataV1 {
-                evidence_id: evidence_id.into(),
-                source_snapshot: source.into(),
-                artifact_time: None,
-                publication_time: Some(year),
-                capture_time: None,
-                available_by: year,
-                validity_time: None,
-            }
+        let metadata = |evidence_id: &str, source: &str, year: i32| EvidenceTemporalMetadataV1 {
+            evidence_id: evidence_id.into(),
+            source_snapshot: source.into(),
+            artifact_time: None,
+            publication_time: Some(year),
+            capture_time: None,
+            available_by: year,
+            validity_time: None,
         };
 
         let mut root = EvidenceFrontierV1 {
@@ -1416,7 +1530,9 @@ mod tests {
             parent_frontier: Some(root.frontier_id.clone()),
             policy_version: "v1".into(),
             manifest_hash: String::new(),
-            admitted_evidence: ["evidence:a".into(), "evidence:b".into()].into_iter().collect(),
+            admitted_evidence: ["evidence:a".into(), "evidence:b".into()]
+                .into_iter()
+                .collect(),
             admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
             evidence_metadata: vec![
             source_metadata: vec![],
@@ -1542,7 +1658,9 @@ mod tests {
             parent_frontier: None,
             policy_version: "v1".into(),
             manifest_hash: String::new(),
-            admitted_evidence: ["evidence:a".into(), "evidence:b".into()].into_iter().collect(),
+            admitted_evidence: ["evidence:a".into(), "evidence:b".into()]
+                .into_iter()
+                .collect(),
             admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
             evidence_metadata: vec![metadata_a.clone(), metadata_b.clone()],
             source_metadata: vec![],
@@ -1570,7 +1688,6 @@ mod tests {
             admitted_evidence: ["evidence:a".into()].into_iter().collect(),
             admitted_sources: ["source:a".into()].into_iter().collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
-
                 evidence_id: "evidence:a".into(),
                 source_snapshot: "source:a".into(),
                 artifact_time: None,
@@ -1603,8 +1720,14 @@ mod tests {
         let metadata = |assessment: &str, interpretation: &str| ArgumentationTemporalMetadataV1 {
             assessment: assessment.into(),
             interpretation: interpretation.into(),
-            assessment_time: Some(YearInterval { from: Some(1990), to: Some(1990) }),
-            interpretation_time: Some(YearInterval { from: Some(1995), to: Some(1995) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1990),
+                to: Some(1990),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1995),
+                to: Some(1995),
+            }),
             available_by: 1996,
         };
 
@@ -1648,8 +1771,14 @@ mod tests {
         let metadata = ArgumentationTemporalMetadataV1 {
             assessment: "assessment:a".into(),
             interpretation: "interpretation:a".into(),
-            assessment_time: Some(YearInterval { from: Some(1990), to: Some(1990) }),
-            interpretation_time: Some(YearInterval { from: Some(1995), to: Some(1995) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1990),
+                to: Some(1990),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1995),
+                to: Some(1995),
+            }),
             available_by: 1996,
         };
 
@@ -1714,8 +1843,14 @@ mod tests {
             argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
                 assessment: "assessment:a".into(),
                 interpretation: "interpretation:a".into(),
-                assessment_time: Some(YearInterval { from: Some(1990), to: Some(1990) }),
-                interpretation_time: Some(YearInterval { from: Some(1995), to: Some(1995) }),
+                assessment_time: Some(YearInterval {
+                    from: Some(1990),
+                    to: Some(1990),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1995),
+                    to: Some(1995),
+                }),
                 available_by: 1996,
             }],
         };
@@ -1769,7 +1904,9 @@ mod tests {
             parent_frontier: Some(parent.frontier_id.clone()),
             policy_version: "v1".into(),
             manifest_hash: String::new(),
-            admitted_evidence: ["evidence:a".into(), "evidence:b".into()].into_iter().collect(),
+            admitted_evidence: ["evidence:a".into(), "evidence:b".into()]
+                .into_iter()
+                .collect(),
             admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
             evidence_metadata: vec![parent_metadata.clone(), child_metadata],
             source_metadata: vec![],
@@ -1865,8 +2002,14 @@ mod tests {
         let inherited_argumentation = ArgumentationTemporalMetadataV1 {
             assessment: "assessment:old".into(),
             interpretation: "interpretation:old".into(),
-            assessment_time: Some(YearInterval { from: Some(1880), to: Some(1880) }),
-            interpretation_time: Some(YearInterval { from: Some(1885), to: Some(1885) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1880),
+                to: Some(1880),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1885),
+                to: Some(1885),
+            }),
             available_by: 1900,
         };
         let evidence = EvidenceTemporalMetadataV1 {
@@ -1911,8 +2054,10 @@ mod tests {
         );
 
         child.source_metadata[0] = inherited_source;
-        child.argumentation_metadata[0].assessment_time =
-            Some(YearInterval { from: Some(1881), to: Some(1881) });
+        child.argumentation_metadata[0].assessment_time = Some(YearInterval {
+            from: Some(1881),
+            to: Some(1881),
+        });
         child.recompute_manifest_hash().unwrap();
         assert_eq!(
             child.validate_extension_of(&parent),
@@ -1941,8 +2086,14 @@ mod tests {
             argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
                 assessment: "assessment:later".into(),
                 interpretation: "interpretation:later".into(),
-                assessment_time: Some(YearInterval { from: Some(1940), to: Some(1940) }),
-                interpretation_time: Some(YearInterval { from: Some(1940), to: Some(1940) }),
+                assessment_time: Some(YearInterval {
+                    from: Some(1940),
+                    to: Some(1940),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1940),
+                    to: Some(1940),
+                }),
                 available_by: 1951,
             }],
         };
@@ -1959,15 +2110,27 @@ mod tests {
         let inherited_argumentation = ArgumentationTemporalMetadataV1 {
             assessment: "assessment:old".into(),
             interpretation: "interpretation:old".into(),
-            assessment_time: Some(YearInterval { from: Some(1800), to: Some(1800) }),
-            interpretation_time: Some(YearInterval { from: Some(1800), to: Some(1800) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1800),
+                to: Some(1800),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1800),
+                to: Some(1800),
+            }),
             available_by: 1900,
         };
         let new_argumentation = ArgumentationTemporalMetadataV1 {
             assessment: "assessment:new".into(),
             interpretation: "interpretation:new".into(),
-            assessment_time: Some(YearInterval { from: Some(1901), to: Some(1901) }),
-            interpretation_time: Some(YearInterval { from: Some(1901), to: Some(1901) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1901),
+                to: Some(1901),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1901),
+                to: Some(1901),
+            }),
             available_by: 1901,
         };
 
@@ -2002,10 +2165,7 @@ mod tests {
 
         assert_eq!(child.validate_extension_of(&parent), Ok(()));
         assert_eq!(parent.argumentation_metadata[0], inherited_argumentation);
-        assert!(child.admits_argumentation(
-            &"assessment:new".into(),
-            &"interpretation:new".into()
-        ));
+        assert!(child.admits_argumentation(&"assessment:new".into(), &"interpretation:new".into()));
 
         child.argumentation_metadata[0].available_by = 1901;
         child.recompute_manifest_hash().unwrap();
@@ -2025,7 +2185,10 @@ mod tests {
 
     #[test]
     fn year_interval_uses_inclusive_bounds() {
-        let interval = YearInterval { from: Some(-300), to: Some(-200) };
+        let interval = YearInterval {
+            from: Some(-300),
+            to: Some(-200),
+        };
         assert!(interval.contains(-300));
         assert!(interval.contains(-200));
         assert!(!interval.contains(-199));
