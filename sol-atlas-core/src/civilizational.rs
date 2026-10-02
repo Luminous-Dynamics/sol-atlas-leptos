@@ -1593,6 +1593,61 @@ mod tests {
     }
 
     #[test]
+    fn strict_chain_rejects_legacy_ancestor_even_when_leaf_is_hashed() {
+        let metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:a".into(),
+            source_snapshot: "source:a".into(),
+            artifact_time: None,
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+        let source = SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:a".into(),
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1900,
+        };
+
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata.clone()],
+            source_metadata: vec![source.clone()],
+            argumentation_metadata: vec![],
+        };
+        root.recompute_manifest_hash().unwrap();
+        let mut child = root.clone();
+        child.frontier_id = "frontier:1901".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(root.frontier_id.clone());
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(root.validate_temporal_manifest_strict(), Ok(()));
+        assert_eq!(child.validate_temporal_manifest_strict(), Ok(()));
+
+        root.manifest_hash.clear();
+        assert_eq!(
+            root.validate_temporal_manifest_strict(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, child],
+        };
+        assert_eq!(
+            chain.validate_strict(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
     fn frontier_chain_rejects_rewritten_ancestor() {
         let metadata = EvidenceTemporalMetadataV1 {
             evidence_id: "evidence:a".into(),
