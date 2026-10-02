@@ -2150,6 +2150,24 @@ impl RecoveryExecution {
             && completed.is_disjoint(&failed)
     }
 
+    fn metadata_is_well_formed(&self) -> bool {
+        !self.evidence.is_empty()
+            && self.evidence.iter().all(|evidence| !evidence.is_empty())
+            && self
+                .observed_preconditions
+                .iter()
+                .all(|condition| !condition.is_empty())
+            && self
+                .authorization
+                .as_ref()
+                .is_none_or(|authorization| !authorization.is_empty())
+            && self
+                .ai_assistance
+                .as_ref()
+                .is_none_or(|assistance| !assistance.is_empty())
+            && !self.claim_ceiling.is_empty()
+    }
+
     /// Recompute and compare the concrete execution-input snapshot against its plan.
     pub fn input_snapshot_matches_plan(&self, plan: &RecoveryPlan) -> bool {
         let snapshot = RecoveryExecutionSnapshotV1::from_plan_and_execution(plan, self);
@@ -2195,9 +2213,8 @@ impl RecoveryExecution {
             && self.completed_steps == self.attempted_steps
             && self.failed_steps.is_empty()
             && self.failure_reason.is_none()
-            && !self.evidence.is_empty()
+            && self.metadata_is_well_formed()
             && !self.input_snapshot.is_empty()
-            && !self.claim_ceiling.is_empty()
     }
 
     /// A failed execution must preserve a terminal marker and an explicit
@@ -2447,6 +2464,26 @@ mod graph_tests {
         let mut incomplete = execution.clone();
         incomplete.input_snapshot.clear();
         assert!(!incomplete.is_successful());
+
+        let mut blank_evidence = execution.clone();
+        blank_evidence.evidence[0].clear();
+        assert!(!blank_evidence.is_successful());
+
+        let mut blank_observation = execution.clone();
+        blank_observation.observed_preconditions.push(String::new());
+        assert!(!blank_observation.is_successful());
+
+        let mut blank_authorization = execution.clone();
+        blank_authorization.authorization = Some(String::new());
+        assert!(!blank_authorization.is_successful());
+
+        let mut blank_ai_assistance = execution.clone();
+        blank_ai_assistance.ai_assistance = Some(String::new());
+        assert!(!blank_ai_assistance.is_successful());
+
+        let mut blank_claim_ceiling = execution.clone();
+        blank_claim_ceiling.claim_ceiling.clear();
+        assert!(!blank_claim_ceiling.is_successful());
 
         let mut malformed_time = execution.clone();
         malformed_time.started_at = "yesterday".into();
