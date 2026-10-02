@@ -786,7 +786,6 @@ impl EvidenceFrontierV1 {
     pub fn validate_temporal_manifest(&self) -> Result<(), ProjectionError> {
         if !self.frontier_id.is_valid()
             || self.policy_version.trim().is_empty()
-            || self.manifest_hash.trim().is_empty()
             || self
                 .parent_frontier
                 .as_ref()
@@ -794,7 +793,12 @@ impl EvidenceFrontierV1 {
         {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
-        self.verify_manifest_hash()?;
+        // Migration-compatible validation permits legacy manifests that predate
+        // content-addressed hashes. Strict replay validation below requires a
+        // non-empty, self-consistent manifest hash before admitting the frontier.
+        if !self.manifest_hash.trim().is_empty() {
+            self.verify_manifest_hash()?;
+        }
         if self.evidence_metadata.is_empty() {
             if !self.admitted_evidence.is_empty() {
                 return Err(ProjectionError::InvalidEvidenceFrontierManifest);
