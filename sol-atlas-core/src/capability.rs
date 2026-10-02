@@ -429,6 +429,7 @@ pub struct RecoveryVerificationSnapshotV1 {
     pub scope: String,
     pub expected_postconditions: Vec<String>,
     pub observed_postconditions: Vec<String>,
+    pub evidence: Vec<String>,
     pub missing_postconditions: Vec<String>,
     pub contradictory_postconditions: Vec<String>,
     pub dependency_closure: Vec<CapabilityId>,
@@ -463,6 +464,7 @@ impl RecoveryVerificationSnapshotV1 {
             scope: verification.scope.clone(),
             expected_postconditions: sorted_strings(&verification.expected_postconditions),
             observed_postconditions: sorted_strings(&verification.observed_postconditions),
+            evidence: sorted_strings(&verification.evidence),
             missing_postconditions: sorted_strings(&verification.missing_postconditions),
             contradictory_postconditions: sorted_strings(&verification.contradictory_postconditions),
             dependency_closure: sorted_ids(&verification.dependency_closure),
@@ -547,7 +549,8 @@ impl RecoveryVerification {
         self.verification_snapshot == self.derived_snapshot().digest()
     }
 
-    /// A passed verification requires complete declared postcondition coverage,    /// no contradictions, and a fully resolved required dependency closure.
+    /// A passed verification requires complete declared postcondition coverage,
+    /// no contradictions, and a fully resolved required dependency closure.
     ///
     /// This still does not grant external qualification.
     pub fn passes(&self) -> bool {
@@ -1279,7 +1282,7 @@ mod graph_tests {
             contradictory_postconditions: vec![],
             dependency_closure: vec![CapabilityId("water.purification".into())],
             unresolved_dependencies: vec![],
-            verification_snapshot: "verification-inputs-001".into(),
+            verification_snapshot: String::new(),
             dependency_snapshot: "deps-001".into(),
             environment_snapshot: "env-001".into(),
             evidence_snapshot: "evidence-001".into(),
@@ -1290,6 +1293,8 @@ mod graph_tests {
             verified_at: "2026-10-02T08:10:00Z".into(),
             claim_ceiling: "Exact execution and instance scope only; qualification is not established.".into(),
         };
+        let mut verification = verification;
+        verification.verification_snapshot = verification.derived_snapshot().digest();
 
         assert!(verification.passes());
     }
