@@ -722,16 +722,14 @@ impl EvidenceFrontierV1 {
             }
         }
 
-        for parent_metadata in &parent.argumentation_metadata {
-            let Some(child_metadata) = self.argumentation_metadata.iter().find(|metadata| {
-                metadata.assessment == parent_metadata.assessment
-                    && metadata.interpretation == parent_metadata.interpretation
-            }) else {
-                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
-            };
-            if child_metadata != parent_metadata {
-                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
-            }
+        // V1 argumentation metadata is representation-sensitive. Inherited
+        // argumentation therefore has to remain an exact prefix: reordering an
+        // inherited record is a historical rewrite, not an append-only extension.
+        if !self
+            .argumentation_metadata
+            .starts_with(&parent.argumentation_metadata)
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
 
         Ok(())
