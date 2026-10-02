@@ -13,6 +13,9 @@ concurrency:
   group: check-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  RUST_TOOLCHAIN: 1.99.0
+
 jobs:
   supply-chain:
     runs-on: ubuntu-latest
@@ -44,7 +47,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
         with:
-          toolchain: 1.99.0
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: rustfmt
       - run: cargo fmt --all --check
 
@@ -58,7 +61,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
         with:
-          toolchain: 1.99.0
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           targets: wasm32-unknown-unknown
       - name: Cache cargo
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
@@ -68,7 +71,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-wasm-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-cargo-wasm-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
       - run: cargo check --target wasm32-unknown-unknown
 
   test-native:
@@ -81,7 +84,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
         with:
-          toolchain: 1.99.0
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
       - name: Cache cargo
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
@@ -90,7 +93,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-cargo-native-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
       - run: cargo test --bin sol-atlas-leptos
       - name: Test sol-atlas-core
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml
