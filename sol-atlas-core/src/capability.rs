@@ -702,6 +702,25 @@ mod graph_tests {
     }
 
     #[test]
+    fn recovery_candidate_missing_root_is_not_reported_as_present() {
+        let mut root = cap("root", &["unavailable"]);
+        root.dependencies[0].substitutes = vec![CapabilityId("missing-recovery".into())];
+
+        let graph = CapabilityGraph {
+            capabilities: vec![root, cap("unavailable", &[])],
+        };
+
+        let candidates = graph.recovery_candidates(&CapabilityId("unavailable".into()));
+        assert_eq!(candidates.len(), 1);
+        assert!(candidates[0].required_capabilities.is_empty());
+        assert_eq!(
+            candidates[0].missing_capabilities,
+            vec![CapabilityId("missing-recovery".into())]
+        );
+        assert!(!candidates[0].is_resolvable());
+    }
+
+    #[test]
     fn recovery_candidate_missing_prerequisite_remains_unresolved() {
         let mut root = cap("root", &["unavailable"]);
         root.dependencies[0].substitutes = vec![CapabilityId("recovery".into())];
