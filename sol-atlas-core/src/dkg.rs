@@ -136,6 +136,7 @@ mod tests {
             admitted_sources: ["source:1"].into_iter().map(Into::into).collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
+            argumentation_metadata: vec![],
         }
     }
 
