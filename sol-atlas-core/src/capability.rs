@@ -16,8 +16,8 @@
 //! - a deployed instance != universal availability
 
 use crate::evidence_reference::{
-    DigestContextV1, DigestRepresentationV1, EvidenceReferenceCanonicalV1, EvidenceReferenceResolutionV1,
-    EvidenceReferenceV1, EvidenceReferenceVerificationV1,
+    DigestContextV1, DigestRepresentationV1, EvidenceReferenceCanonicalV1,
+    EvidenceReferenceResolutionV1, EvidenceReferenceV1, EvidenceReferenceVerificationV1,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
