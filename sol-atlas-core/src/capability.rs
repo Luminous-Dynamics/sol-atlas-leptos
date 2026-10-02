@@ -16,8 +16,8 @@
 //! - a deployed instance != universal availability
 
 use crate::evidence_reference::{
-    DigestContextV1, DigestRepresentationV1, EvidenceReferenceCanonicalV1,
-    EvidenceReferenceProfileRegistryV1, EvidenceReferenceResolutionV1, EvidenceReferenceV1,
+    DigestContextV1, EvidenceReferenceCanonicalV1, EvidenceReferenceProfileRegistryV1,
+    EvidenceReferenceV1,
     EvidenceReferenceVerificationV1,
 };
 use serde::{Deserialize, Serialize};
@@ -1482,9 +1482,51 @@ pub struct RecoveryCandidate {
 }
 
 impl RecoveryCandidate {
+    /// Structural integrity of an explicitly discovered candidate.
+    ///
+    /// Partial candidates may have missing prerequisites, but their identities
+    /// and present/missing sets must remain unambiguous. Resolution is a
+    /// separate stronger gate.
+    pub fn is_well_formed(&self) -> bool {
+        if self.for_dependency.0.is_empty()
+            || self.candidate.0.is_empty()
+            || self.for_dependency == self.candidate
+            || self.claim_ceiling.is_empty()
+        {
+            return false;
+        }
+
+        if self
+            .required_capabilities
+            .iter()
+            .chain(self.missing_capabilities.iter())
+            .any(|id| id.0.is_empty())
+        {
+            return false;
+        }
+
+        let mut required = self.required_capabilities.clone();
+        required.sort();
+        required.dedup();
+        if required.len() != self.required_capabilities.len() {
+            return false;
+        }
+
+        let mut missing = self.missing_capabilities.clone();
+        missing.sort();
+        missing.dedup();
+        if missing.len() != self.missing_capabilities.len() {
+            return false;
+        }
+
+        !required.iter().any(|id| missing.contains(id))
+    }
+
     /// Whether the candidate's own required closure is complete.
     pub fn is_resolvable(&self) -> bool {
-        self.missing_capabilities.is_empty()
+        self.is_well_formed()
+            && self.missing_capabilities.is_empty()
+            && self.required_capabilities.contains(&self.candidate)
     }
 }
 
@@ -2082,7 +2124,7 @@ impl RecoveryExecution {
         self.ended_at.as_deref().is_some_and(|ended_at| {
             is_canonical_utc_timestamp(&self.started_at)
                 && is_canonical_utc_timestamp(ended_at)
-                && self.started_at <= ended_at
+                && self.started_at.as_str() <= ended_at
         })
     }
 
@@ -2120,6 +2162,24 @@ impl RecoveryExecution {
     pub fn is_successful_with_bound_plan(&self, plan: &RecoveryPlan) -> bool {
         self.is_successful()
             && plan.is_ready()
+            && self.plan_id == plan.id
+            && self.input_snapshot_matches_plan(plan)
+    }
+
+    /// Stronger success gate that also binds the execution to an explicit
+    /// candidate record at the point of consumption.
+    ///
+    /// Candidate discovery and policy selection remain external concerns.
+    /// This gate only rejects a successful execution when the supplied
+    /// candidate is malformed, unresolved, rejected, or inconsistent with
+    /// the plan's declared alternative and prerequisite closure.
+    pub fn is_successful_with_bound_candidate(
+        &self,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+    ) -> bool {
+        self.is_successful()
+            && plan.is_ready_against_candidate(candidate)
             && self.plan_id == plan.id
             && self.input_snapshot_matches_plan(plan)
     }
@@ -2256,9 +2316,23 @@ mod graph_tests {
         unresolved.missing_capabilities = vec![CapabilityId("membrane".into())];
         assert!(!plan.is_ready_against_candidate(&unresolved));
 
-        let mut rejected = candidate;
+        let mut rejected = candidate.clone();
         rejected.selection = RecoverySelectionState::Rejected;
         assert!(!plan.is_ready_against_candidate(&rejected));
+
+        let mut malformed = candidate.clone();
+        malformed.claim_ceiling.clear();
+        assert!(!plan.is_ready_against_candidate(&malformed));
+
+        let mut duplicate_prerequisite = candidate.clone();
+        duplicate_prerequisite
+            .required_capabilities
+            .push(CapabilityId("power".into()));
+        assert!(!plan.is_ready_against_candidate(&duplicate_prerequisite));
+
+        let mut self_substitute = candidate.clone();
+        self_substitute.candidate = self_substitute.for_dependency.clone();
+        assert!(!plan.is_ready_against_candidate(&self_substitute));
     }
 
     #[test]
@@ -2298,8 +2372,39 @@ mod graph_tests {
         execution.input_snapshot =
             RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &execution).digest();
 
+        let candidate = RecoveryCandidate {
+            for_dependency: CapabilityId("water".into()),
+            candidate: CapabilityId("filter".into()),
+            required_capabilities: vec![
+                CapabilityId("filter".into()),
+                CapabilityId("power".into()),
+            ],
+            missing_capabilities: vec![],
+            evidence: vec![],
+            qualification: None,
+            selection: RecoverySelectionState::Discovered,
+            claim_ceiling: "Declared recovery candidate only.".into(),
+        };
+
         assert!(execution.input_snapshot_matches_plan(&plan));
         assert!(execution.is_successful_with_bound_plan(&plan));
+        assert!(execution.is_successful_with_bound_candidate(&plan, &candidate));
+
+        let mut changed_candidate = candidate.clone();
+        changed_candidate
+            .required_capabilities
+            .push(CapabilityId("membrane".into()));
+        assert!(!execution.is_successful_with_bound_candidate(
+            &plan,
+            &changed_candidate
+        ));
+
+        let mut rejected_candidate = candidate;
+        rejected_candidate.selection = RecoverySelectionState::Rejected;
+        assert!(!execution.is_successful_with_bound_candidate(
+            &plan,
+            &rejected_candidate
+        ));
 
         let mut changed_plan = plan.clone();
         changed_plan.steps[1] = "independent-test".into();
