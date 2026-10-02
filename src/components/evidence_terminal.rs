@@ -628,9 +628,9 @@ pub fn EvidenceTerminal() -> impl IntoView {
         let replay_claim = replay_claim.clone();
         Rc::new(move || replay_claim().unwrap_or_default())
     };
-    let selected_view: Rc<dyn Fn() -> &str> = {
+    let selected_view: Rc<dyn Fn() -> String> = {
         let terminal_query = terminal_query.clone();
-        Rc::new(move || terminal_query().view.as_str())
+        Rc::new(move || terminal_query().view.as_str().to_string())
     };
     // Fixture link context is explicit and only used to construct a complete
     // address. It is never silently injected into replay-readiness state.
