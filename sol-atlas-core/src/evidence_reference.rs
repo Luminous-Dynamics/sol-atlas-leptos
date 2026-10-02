@@ -121,7 +121,13 @@ impl EvidenceReferenceV1 {
                 let Some((prefix, value)) = self.digest.split_once(':') else {
                     return false;
                 };
-                !prefix.is_empty() && is_lower_hex(value)
+
+                let expected_prefix = match self.context.hash_algorithm.as_str() {
+                    "SHA-256" => "sha256",
+                    _ => return false,
+                };
+
+                prefix == expected_prefix && is_lower_hex(value)
             }
         }
     }
@@ -377,6 +383,21 @@ mod tests {
                 "recovery-execution-record",
                 context,
                 "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "Exact artifact identity only.",
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn prefixed_digest_requires_algorithm_matching_prefix() {
+        let context = context();
+
+        assert!(
+            EvidenceReferenceV1::content_addressed(
+                "recovery-execution-record",
+                context,
+                "sha512:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 "Exact artifact identity only.",
             )
             .is_err()
