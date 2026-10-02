@@ -1295,7 +1295,7 @@ mod tests {
 
     #[test]
     fn frontier_temporal_manifest_blocks_anachronistic_evidence() {
-        let mut frontier = EvidenceFrontierV1 {
+        let frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1900".into(),
             known_by_year: 1900,
             parent_frontier: None,
