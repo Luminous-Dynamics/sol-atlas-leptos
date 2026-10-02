@@ -3358,6 +3358,75 @@ mod graph_tests {
         let mut failed_execution = execution;
         failed_execution.failure_reason = Some("verification step failed".into());
         assert!(!verification.passes_with_bound_execution(&failed_execution));
+
+        let candidate = RecoveryCandidate {
+            for_dependency: CapabilityId("a".into()),
+            candidate: CapabilityId("recovery".into()),
+            required_capabilities: vec![CapabilityId("recovery".into())],
+            missing_capabilities: vec![],
+            evidence: vec![],
+            qualification: None,
+            selection: RecoverySelectionState::Discovered,
+            claim_ceiling: "Declared recovery candidate only.".into(),
+        };
+        let mut plan = RecoveryPlan {
+            id: "plan-coverage-bound".into(),
+            unavailable: CapabilityId("a".into()),
+            candidate: CapabilityId("recovery".into()),
+            candidate_snapshot: candidate.snapshot().digest(),
+            prerequisites: vec![CapabilityId("recovery".into())],
+            steps: vec!["verify".into()],
+            preconditions: vec![],
+            expected_evidence: vec!["coverage-check".into()],
+            human_contribution: String::new(),
+            ai_contribution: String::new(),
+            state: RecoveryPlanState::Ready,
+            claim_ceiling: "Exact plan scope only.".into(),
+        };
+
+        let mut bound_execution = execution.clone();
+        bound_execution.input_snapshot =
+            RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &bound_execution)
+                .digest();
+        verification.execution_result_snapshot =
+            RecoveryExecutionResultSnapshotV1::from_execution(&bound_execution).digest();
+
+        assert!(verification.passes_with_bound_plan_execution(&plan, &bound_execution));
+        assert!(verification.passes_with_bound_candidate_execution(
+            &plan,
+            &candidate,
+            &bound_execution
+        ));
+
+        plan.claim_ceiling = "mutated plan".into();
+        assert!(!verification.passes_with_bound_plan_execution(
+            &plan,
+            &bound_execution
+        ));
+
+        let mut stale_candidate = candidate.clone();
+        stale_candidate.claim_ceiling = "mutated candidate".into();
+        assert!(!verification.passes_with_bound_candidate_execution(
+            &RecoveryPlan {
+                candidate_snapshot: stale_candidate.snapshot().digest(),
+                ..RecoveryPlan {
+                    id: "plan-coverage-bound".into(),
+                    unavailable: CapabilityId("a".into()),
+                    candidate: CapabilityId("recovery".into()),
+                    candidate_snapshot: stale_candidate.snapshot().digest(),
+                    prerequisites: vec![CapabilityId("recovery".into())],
+                    steps: vec!["verify".into()],
+                    preconditions: vec![],
+                    expected_evidence: vec!["coverage-check".into()],
+                    human_contribution: String::new(),
+                    ai_contribution: String::new(),
+                    state: RecoveryPlanState::Ready,
+                    claim_ceiling: "Exact plan scope only.".into(),
+                }
+            },
+            &stale_candidate,
+            &bound_execution
+        ));
     }
 
     #[test]
