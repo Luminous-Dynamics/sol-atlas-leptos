@@ -784,8 +784,7 @@ impl RecoveryVerificationSnapshotV1 {
                 values.dedup();
                 values
             },
-            evidence_authorization_snapshot:
-                Self::evidence_authorization_snapshot(verification),
+            evidence_authorization_snapshot: Self::evidence_authorization_snapshot(verification),
             missing_postconditions: sorted_strings(&verification.missing_postconditions),
             contradictory_postconditions: sorted_strings(
                 &verification.contradictory_postconditions,
@@ -1136,7 +1135,10 @@ impl RecoveryVerification {
                 .iter()
                 .all(|verification| verification.is_verified())
             && !self.verification_snapshot.is_empty()
-            && !self.derived_snapshot().evidence_authorization_snapshot.is_empty()
+            && !self
+                .derived_snapshot()
+                .evidence_authorization_snapshot
+                .is_empty()
             && self.snapshot_matches_inputs()
             && !self.dependency_snapshot.is_empty()
             && !self.environment_snapshot.is_empty()
