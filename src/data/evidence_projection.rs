@@ -516,7 +516,7 @@ mod tests {
             Some("model:symthaea:v1".into()),
             Some("evidence".into()),
         );
-        assert!(query.is_replayable());
+        assert!(query.is_frontier_addressable());
         assert!(!query.is_replay_addressable());
         let replay = query.with_replay_context(
             Some("profile:terminal:v1".into()),
@@ -819,8 +819,7 @@ mod tests {
             None,
         );
         assert!(!query.is_frontier_addressable());
-        #[allow(deprecated)]
-        assert!(!query.is_replayable());
+        assert!(!query.is_frontier_addressable());
     }
 }
 
