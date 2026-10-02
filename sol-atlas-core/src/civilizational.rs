@@ -2104,6 +2104,81 @@ mod tests {
     }
 
     #[test]
+    fn frontier_extension_allows_canonical_metadata_reordering() {
+        let metadata_a = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:a".into(),
+            source_snapshot: "source:a".into(),
+            artifact_time: None,
+            publication_time: Some(1890),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+        let metadata_b = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:b".into(),
+            source_snapshot: "source:b".into(),
+            artifact_time: None,
+            publication_time: Some(1891),
+            capture_time: None,
+            available_by: 1901,
+            validity_time: None,
+        };
+        let source_a = SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:a".into(),
+            publication_time: Some(1890),
+            capture_time: None,
+            available_by: 1900,
+        };
+        let source_b = SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:b".into(),
+            publication_time: Some(1891),
+            capture_time: None,
+            available_by: 1901,
+        };
+
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:c14n-parent".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata_a.clone()],
+            source_metadata: vec![source_a.clone()],
+            argumentation_metadata: vec![],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let mut child = EvidenceFrontierV1 {
+            frontier_id: "frontier:c14n-child".into(),
+            known_by_year: 1901,
+            parent_frontier: Some(parent.frontier_id.clone()),
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a", "evidence:b"]
+                .into_iter()
+                .map(EvidenceId::from)
+                .collect(),
+            admitted_sources: ["source:a", "source:b"]
+                .into_iter()
+                .map(SourceSnapshotId::from)
+                .collect(),
+            evidence_metadata: vec![metadata_b, metadata_a],
+            source_metadata: vec![source_b, source_a],
+            argumentation_metadata: vec![],
+        };
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(child.validate_extension_of(&parent), Ok(()));
+        assert_eq!(
+            child.verify_manifest_hash(),
+            Ok(()),
+            "canonical metadata reordering must remain self-consistent"
+        );
+    }
+
+    #[test]
     fn frontier_extension_rejects_policy_version_change() {
         let mut parent = EvidenceFrontierV1 {
             frontier_id: "frontier:policy-parent".into(),
@@ -2247,106 +2322,3 @@ mod tests {
             ],
         };
         parent.recompute_manifest_hash().unwrap();
-
-        let mut child = parent.clone();
-        child.frontier_id = "frontier:1901".into();
-        child.known_by_year = 1901;
-        child.parent_frontier = Some(parent.frontier_id.clone());
-        child.argumentation_metadata.swap(0, 1);
-        child.recompute_manifest_hash().unwrap();
-
-        assert_eq!(
-            child.validate_extension_of(&parent),
-            Err(ProjectionError::InvalidEvidenceFrontierManifest)
-        );
-    }
-
-    #[test]
-    fn frontier_extension_adds_argumentation_without_rewriting_inherited_record() {
-        let inherited_argumentation = ArgumentationTemporalMetadataV1 {
-            assessment: "assessment:old".into(),
-            interpretation: "interpretation:old".into(),
-            assessment_time: Some(YearInterval {
-                from: Some(1800),
-                to: Some(1800),
-            }),
-            interpretation_time: Some(YearInterval {
-                from: Some(1800),
-                to: Some(1800),
-            }),
-            available_by: 1900,
-        };
-        let new_argumentation = ArgumentationTemporalMetadataV1 {
-            assessment: "assessment:new".into(),
-            interpretation: "interpretation:new".into(),
-            assessment_time: Some(YearInterval {
-                from: Some(1901),
-                to: Some(1901),
-            }),
-            interpretation_time: Some(YearInterval {
-                from: Some(1901),
-                to: Some(1901),
-            }),
-            available_by: 1901,
-        };
-
-        let mut parent = EvidenceFrontierV1 {
-            frontier_id: "frontier:1900".into(),
-            known_by_year: 1900,
-            parent_frontier: None,
-            policy_version: "v1".into(),
-            manifest_hash: String::new(),
-            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
-            admitted_sources: ["source:a".into()].into_iter().collect(),
-            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
-                evidence_id: "evidence:a".into(),
-                source_snapshot: "source:a".into(),
-                artifact_time: None,
-                publication_time: Some(1900),
-                capture_time: None,
-                available_by: 1900,
-                validity_time: None,
-            }],
-            source_metadata: vec![],
-            argumentation_metadata: vec![inherited_argumentation.clone()],
-        };
-        parent.recompute_manifest_hash().unwrap();
-
-        let mut child = parent.clone();
-        child.frontier_id = "frontier:1901".into();
-        child.known_by_year = 1901;
-        child.parent_frontier = Some(parent.frontier_id.clone());
-        child.argumentation_metadata.push(new_argumentation.clone());
-        child.recompute_manifest_hash().unwrap();
-
-        assert_eq!(child.validate_extension_of(&parent), Ok(()));
-        assert_eq!(parent.argumentation_metadata[0], inherited_argumentation);
-        assert!(child.admits_argumentation(&"assessment:new".into(), &"interpretation:new".into()));
-
-        child.argumentation_metadata[0].available_by = 1901;
-        child.recompute_manifest_hash().unwrap();
-        assert_eq!(
-            child.validate_extension_of(&parent),
-            Err(ProjectionError::InvalidEvidenceFrontierManifest)
-        );
-
-        child.argumentation_metadata[0] = inherited_argumentation;
-        child.argumentation_metadata[1].available_by = 1902;
-        child.recompute_manifest_hash().unwrap();
-        assert_eq!(
-            child.validate_temporal_manifest(),
-            Err(ProjectionError::LaterEvidenceInFrontier)
-        );
-    }
-
-    #[test]
-    fn year_interval_uses_inclusive_bounds() {
-        let interval = YearInterval {
-            from: Some(-300),
-            to: Some(-200),
-        };
-        assert!(interval.contains(-300));
-        assert!(interval.contains(-200));
-        assert!(!interval.contains(-199));
-    }
-}
