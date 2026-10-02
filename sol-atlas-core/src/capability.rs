@@ -754,10 +754,6 @@ pub struct RecoveryPlan {
     pub ai_contribution: String,
     pub state: RecoveryPlanState,
     pub claim_ceiling: String,
-    /// Digest of the exact candidate record bound when this plan was prepared.
-    /// Empty is legacy/unbound; stronger consumers must require an exact match.
-    #[serde(default)]
-    pub candidate_snapshot: String,
 }
 
 impl RecoveryPlan {
@@ -821,6 +817,145 @@ impl RecoveryPlan {
             .iter()
             .filter(|capability| *capability != &candidate.candidate)
             .all(|capability| self.prerequisites.contains(capability))
+    }
+}
+
+/// Canonical semantic snapshot of one recovery plan.
+///
+/// Lifecycle state is deliberately excluded: Draft -> Ready -> Executing ->
+/// Succeeded/Failed/Verified is a mutable lifecycle transition, not a change to
+/// the plan semantics that governed an execution. State must therefore be bound
+/// separately by the consuming policy when needed.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryPlanSnapshotV1 {
+    pub schema: String,
+    pub id: String,
+    pub unavailable: CapabilityId,
+    pub candidate: CapabilityId,
+    pub candidate_snapshot: String,
+    pub prerequisites: Vec<CapabilityId>,
+    /// Ordered recovery actions: order is part of plan identity.
+    pub steps: Vec<String>,
+    pub preconditions: Vec<String>,
+    pub expected_evidence: Vec<String>,
+    pub human_contribution: String,
+    pub ai_contribution: String,
+    pub claim_ceiling: String,
+}
+
+impl RecoveryPlanSnapshotV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-plan-snapshot:v1";
+
+    pub fn from_plan(plan: &RecoveryPlan) -> Self {
+        let mut prerequisites = plan.prerequisites.clone();
+        prerequisites.sort();
+        prerequisites.dedup();
+
+        let mut preconditions = plan.preconditions.clone();
+        preconditions.sort();
+        preconditions.dedup();
+
+        let mut expected_evidence = plan.expected_evidence.clone();
+        expected_evidence.sort();
+        expected_evidence.dedup();
+
+        Self {
+            schema: Self::SCHEMA.into(),
+            id: plan.id.clone(),
+            unavailable: plan.unavailable.clone(),
+            candidate: plan.candidate.clone(),
+            candidate_snapshot: plan.candidate_snapshot.clone(),
+            prerequisites,
+            steps: plan.steps.clone(),
+            preconditions,
+            expected_evidence,
+            human_contribution: plan.human_contribution.clone(),
+            ai_contribution: plan.ai_contribution.clone(),
+            claim_ceiling: plan.claim_ceiling.clone(),
+        }
+    }
+
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA
+            && !self.id.is_empty()
+            && !self.unavailable.0.is_empty()
+            && !self.candidate.0.is_empty()
+            && !self.candidate_snapshot.is_empty()
+            && unique_nonempty_ids(&self.prerequisites)
+            && !self.steps.is_empty()
+            && unique_nonempty_strings(&self.steps)
+            && unique_nonempty_strings(&self.preconditions)
+            && unique_nonempty_strings(&self.expected_evidence)
+            && !self.claim_ceiling.is_empty()
+    }
+
+    /// Stable project-specific canonical bytes for the fixed-field plan schema.
+    ///
+    /// Set-like collections are normalized before serialization. This is not
+    /// presented as RFC 8785/JCS interoperability.
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        #[derive(Serialize)]
+        struct CanonicalSnapshot {
+            schema: String,
+            id: String,
+            unavailable: CapabilityId,
+            candidate: CapabilityId,
+            candidate_snapshot: String,
+            prerequisites: Vec<CapabilityId>,
+            steps: Vec<String>,
+            preconditions: Vec<String>,
+            expected_evidence: Vec<String>,
+            human_contribution: String,
+            ai_contribution: String,
+            claim_ceiling: String,
+        }
+
+        let mut prerequisites = self.prerequisites.clone();
+        prerequisites.sort();
+        prerequisites.dedup();
+
+        let mut preconditions = self.preconditions.clone();
+        preconditions.sort();
+        preconditions.dedup();
+
+        let mut expected_evidence = self.expected_evidence.clone();
+        expected_evidence.sort();
+        expected_evidence.dedup();
+
+        let canonical = CanonicalSnapshot {
+            schema: self.schema.clone(),
+            id: self.id.clone(),
+            unavailable: self.unavailable.clone(),
+            candidate: self.candidate.clone(),
+            candidate_snapshot: self.candidate_snapshot.clone(),
+            prerequisites,
+            steps: self.steps.clone(),
+            preconditions,
+            expected_evidence,
+            human_contribution: self.human_contribution.clone(),
+            ai_contribution: self.ai_contribution.clone(),
+            claim_ceiling: self.claim_ceiling.clone(),
+        };
+
+        serde_json::to_vec(&canonical)
+            .expect("recovery plan snapshot contains only serializable plan primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+}
+
+impl RecoveryPlan {
+    pub fn snapshot(&self) -> RecoveryPlanSnapshotV1 {
+        RecoveryPlanSnapshotV1::from_plan(self)
+    }
+
+    /// Stronger binding that requires the persisted plan semantics to be
+    /// reconstructible into the same canonical plan snapshot.
+    pub fn is_exactly_bound_by_snapshot(&self, snapshot: &RecoveryPlanSnapshotV1) -> bool {
+        snapshot.is_well_formed() && snapshot == &self.snapshot()
     }
 }
 
@@ -2083,9 +2218,11 @@ impl CapabilityGraph {
 pub struct RecoveryExecutionSnapshotV1 {
     pub schema: String,
     pub plan_id: String,
+    pub plan_snapshot: String,
     pub execution_id: String,
     pub unavailable: CapabilityId,
     pub candidate: CapabilityId,
+    pub candidate_snapshot: String,
     pub prerequisites: Vec<CapabilityId>,
     /// Ordered execution steps: order is part of the input identity.
     pub steps: Vec<String>,
@@ -2109,6 +2246,7 @@ impl RecoveryExecutionSnapshotV1 {
         Self {
             schema: Self::SCHEMA.into(),
             plan_id: plan.id.clone(),
+            plan_snapshot: plan.snapshot().digest(),
             execution_id: execution.execution_id.clone(),
             unavailable: plan.unavailable.clone(),
             candidate: plan.candidate.clone(),
@@ -2128,9 +2266,11 @@ impl RecoveryExecutionSnapshotV1 {
     pub fn is_well_formed(&self) -> bool {
         self.schema == Self::SCHEMA
             && !self.plan_id.is_empty()
+            && !self.plan_snapshot.is_empty()
             && !self.execution_id.is_empty()
             && !self.unavailable.0.is_empty()
             && !self.candidate.0.is_empty()
+            && !self.candidate_snapshot.is_empty()
             && self.prerequisites.iter().all(|id| !id.0.is_empty())
             && !self.steps.is_empty()
             && self.steps.iter().all(|step| !step.is_empty())
@@ -2160,6 +2300,7 @@ impl RecoveryExecutionSnapshotV1 {
         struct CanonicalSnapshot {
             schema: String,
             plan_id: String,
+            plan_snapshot: String,
             execution_id: String,
             unavailable: CapabilityId,
             candidate: CapabilityId,
@@ -2178,6 +2319,7 @@ impl RecoveryExecutionSnapshotV1 {
         let canonical = CanonicalSnapshot {
             schema: self.schema.clone(),
             plan_id: self.plan_id.clone(),
+            plan_snapshot: self.plan_snapshot.clone(),
             execution_id: self.execution_id.clone(),
             unavailable: self.unavailable.clone(),
             candidate: self.candidate.clone(),
@@ -2394,6 +2536,7 @@ impl RecoveryExecution {
     pub fn is_successful_with_bound_plan(&self, plan: &RecoveryPlan) -> bool {
         self.is_successful()
             && plan.is_ready()
+            && plan.snapshot().is_well_formed()
             && self.plan_id == plan.id
             && self.matches_plan_execution_contract(plan)
             && self.input_snapshot_matches_plan(plan)
@@ -2583,6 +2726,35 @@ mod graph_tests {
         let mut relabeled = candidate.clone();
         relabeled.claim_ceiling = "different ceiling".into();
         assert_ne!(snapshot.digest(), relabeled.snapshot().digest());
+
+        let mut bound_plan = plan.clone();
+        bound_plan.candidate_snapshot = snapshot.digest();
+        let plan_snapshot = bound_plan.snapshot();
+        assert!(plan_snapshot.is_well_formed());
+        assert!(bound_plan.is_exactly_bound_by_snapshot(&plan_snapshot));
+
+        let mut lifecycle_only = bound_plan.clone();
+        lifecycle_only.state = RecoveryPlanState::Executing;
+        assert_eq!(plan_snapshot.digest(), lifecycle_only.snapshot().digest());
+
+        let mut changed_plan_semantics = bound_plan.clone();
+        changed_plan_semantics.claim_ceiling = "different plan ceiling".into();
+        assert_ne!(
+            plan_snapshot.digest(),
+            changed_plan_semantics.snapshot().digest()
+        );
+
+        let mut changed_contribution = bound_plan.clone();
+        changed_contribution.human_contribution = "different operator context".into();
+        assert_ne!(
+            plan_snapshot.digest(),
+            changed_contribution.snapshot().digest()
+        );
+
+        let mut malformed_snapshot = plan_snapshot.clone();
+        malformed_snapshot.candidate_snapshot.clear();
+        assert!(!malformed_snapshot.is_well_formed());
+        assert!(!bound_plan.is_exactly_bound_by_snapshot(&malformed_snapshot));
     }
 
     #[test]
@@ -2639,7 +2811,10 @@ mod graph_tests {
 
         let mut plan = plan;
         plan.candidate_snapshot = candidate.snapshot().digest();
+        execution.input_snapshot =
+            RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &execution).digest();
 
+        assert!(plan.snapshot().is_well_formed());
         assert!(execution.input_snapshot_matches_plan(&plan));
         assert!(execution.is_successful_with_bound_plan(&plan));
         assert!(execution.is_successful_with_bound_candidate(&plan, &candidate));
