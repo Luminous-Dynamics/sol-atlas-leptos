@@ -326,7 +326,7 @@ impl TemporalProjectionSetV1 {
             }) {
                 return Err(ProjectionError::InvalidSnapshot);
             }
-            previous_snapshot = Some(snapshot.snapshot_id);
+            previous_snapshot = Some(snapshot.snapshot_id.clone());
         }
 
         let mut previous_transition = None;
@@ -344,7 +344,7 @@ impl TemporalProjectionSetV1 {
             }) {
                 return Err(ProjectionError::InvalidTransition);
             }
-            previous_transition = Some(transition.transition_id);
+            previous_transition = Some(transition.transition_id.clone());
         }
 
         let expected = self.snapshots.len() + self.transitions.len();
