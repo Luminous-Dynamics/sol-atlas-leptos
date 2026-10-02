@@ -30,6 +30,7 @@ impl TemporalProjectionRequestV1 {
         if !self.evidence_frontier.frontier_id.is_valid() {
             return Err(ProjectionError::MissingEvidenceFrontier);
         }
+        self.evidence_frontier.validate_temporal_manifest()?;
         Ok(())
     }
 
@@ -307,6 +308,7 @@ impl TemporalProjectionSetV1 {
         if !self.evidence_frontier.frontier_id.is_valid() {
             return Err(ProjectionError::MissingEvidenceFrontier);
         }
+        self.evidence_frontier.validate_temporal_manifest()?;
         if self.frontier_lineage.is_empty()
             || self.frontier_lineage.last() != Some(&self.evidence_frontier.frontier_id)
             || self.frontier_lineage.iter().any(|id| !id.is_valid())
@@ -807,6 +809,64 @@ mod tests {
         blocked.evidence_refs = vec!["e:discovered-later".into()];
         assert!(!frontier.admits_snapshot(&blocked));
         assert!(!frontier.admits_snapshot_evidence(&blocked));
+    }
+
+    #[test]
+    fn legacy_request_rejects_corrupt_present_manifest() {
+        let mut request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: frontier(),
+        };
+        request.evidence_frontier.manifest_hash = "corrupt-present-manifest".into();
+        assert_eq!(
+            request.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn legacy_result_rejects_corrupt_present_manifest() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: frontier(),
+        };
+        let mut result = request
+            .project(
+                &[snapshot(
+                    "snapshot:a",
+                    YearInterval {
+                        from: Some(1945),
+                        to: Some(1947),
+                    },
+                    "frontier:1949",
+                    "e:old",
+                )],
+                &[],
+            )
+            .expect("legacy projection");
+        result.evidence_frontier.manifest_hash = "corrupt-present-manifest".into();
+        assert_eq!(
+            result.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn legacy_validation_still_accepts_empty_manifest() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: frontier(),
+        };
+        assert_eq!(request.validate(), Ok(()));
     }
 
     #[test]
