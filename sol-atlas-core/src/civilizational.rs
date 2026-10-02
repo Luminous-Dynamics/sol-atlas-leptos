@@ -2322,3 +2322,16 @@ mod tests {
             ],
         };
         parent.recompute_manifest_hash().unwrap();
+        let mut child = parent.clone();
+        child.frontier_id = "frontier:1901".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(parent.frontier_id.clone());
+        child.argumentation_metadata.reverse();
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+}
