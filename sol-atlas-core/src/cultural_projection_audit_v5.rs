@@ -427,7 +427,7 @@ mod tests {
 
     #[test]
     fn v5_preserves_competing_argumentation_without_ranking() {
-        let (v4, claim, frontier, first) = fixture();
+        let (v4, claim, mut frontier, first) = fixture();
         let mut second = first.clone();
         second.assessment = "assessment:2".into();
         second.interpretation = "interpretation:2".into();
