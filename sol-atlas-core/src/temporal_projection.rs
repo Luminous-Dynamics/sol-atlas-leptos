@@ -11,8 +11,7 @@
 use crate::civilizational::{
     EvidenceFrontierChainV1, EvidenceFrontierId, EvidenceFrontierV1, EvidenceId,
     HistoricalTransitionV1, ProjectionAuditV1, ProjectionError, ProjectionRef, SnapshotId,
-    SourceSnapshotId, StateSnapshotV1, TransitionId,
-    YearInterval,
+    SourceSnapshotId, StateSnapshotV1, TransitionId, YearInterval,
 };
 use serde::{Deserialize, Serialize};
 
@@ -456,8 +455,7 @@ mod tests {
     use super::*;
     use crate::civilizational::{
         EvidenceTemporalMetadataV1, GeometryProjection, QualificationStatus, QualificationSummary,
-        SourceSnapshotTemporalMetadataV1,
-        SpatialSemantics, TransitionClass,
+        SourceSnapshotTemporalMetadataV1, SpatialSemantics, TransitionClass,
     };
     use std::collections::BTreeSet;
 
