@@ -1494,7 +1494,34 @@ impl RecoveryVerification {
             && execution.is_successful()
             && self.execution_id == execution.execution_id
             && snapshot.is_well_formed()
+            && snapshot.input_snapshot == execution.input_snapshot
             && self.execution_result_snapshot == snapshot.digest()
+    }
+
+    /// Stronger verification gate binding the verification to the exact ready
+    /// plan and the concrete execution that reports its result.
+    ///
+    /// Plan semantics remain separate from mutable lifecycle state and from the
+    /// external policy that authorized candidate selection.
+    pub fn passes_with_bound_plan_execution(
+        &self,
+        plan: &RecoveryPlan,
+        execution: &RecoveryExecution,
+    ) -> bool {
+        self.passes_with_bound_execution(execution)
+            && execution.is_successful_with_bound_plan(plan)
+    }
+
+    /// Stronger verification gate binding the verification to the exact
+    /// candidate lineage, ready plan, and concrete execution result.
+    pub fn passes_with_bound_candidate_execution(
+        &self,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        execution: &RecoveryExecution,
+    ) -> bool {
+        self.passes_with_bound_execution(execution)
+            && execution.is_successful_with_bound_candidate(plan, candidate)
     }
 
     /// Stronger gate requiring the structured dependency, evidence, and
@@ -2357,6 +2384,10 @@ impl RecoveryExecutionSnapshotV1 {
 pub struct RecoveryExecutionResultSnapshotV1 {
     pub schema: String,
     pub plan_id: String,
+    /// Digest of the exact execution-input snapshot consumed by this result.
+    /// Empty is legacy/unbound; stronger consumers must require an exact match.
+    #[serde(default)]
+    pub input_snapshot: String,
     pub execution_id: String,
     pub started_at: String,
     pub ended_at: Option<String>,
@@ -2377,6 +2408,7 @@ impl RecoveryExecutionResultSnapshotV1 {
         Self {
             schema: Self::SCHEMA.into(),
             plan_id: execution.plan_id.clone(),
+            input_snapshot: execution.input_snapshot.clone(),
             execution_id: execution.execution_id.clone(),
             started_at: execution.started_at.clone(),
             ended_at: execution.ended_at.clone(),
@@ -2394,6 +2426,7 @@ impl RecoveryExecutionResultSnapshotV1 {
     pub fn is_well_formed(&self) -> bool {
         self.schema == Self::SCHEMA
             && !self.plan_id.is_empty()
+            && !self.input_snapshot.is_empty()
             && !self.execution_id.is_empty()
             && is_canonical_utc_timestamp(&self.started_at)
             && self.ended_at.as_deref().is_some_and(is_canonical_utc_timestamp)
@@ -2877,6 +2910,10 @@ mod graph_tests {
         malformed_result_snapshot.claim_ceiling.clear();
         assert!(!malformed_result_snapshot.is_well_formed());
 
+        let mut detached_result_snapshot = result_snapshot.clone();
+        detached_result_snapshot.input_snapshot.clear();
+        assert!(!detached_result_snapshot.is_well_formed());
+
         let mut changed_result = execution.clone();
         changed_result.resulting_state = CapabilityState::Deployed;
         assert_ne!(
@@ -3272,6 +3309,10 @@ mod graph_tests {
             RecoveryExecutionResultSnapshotV1::from_execution(&execution).digest();
 
         assert!(verification.passes_with_bound_execution(&execution));
+
+        let mut changed_input = execution.clone();
+        changed_input.input_snapshot = "sha256:different-input".into();
+        assert!(!verification.passes_with_bound_execution(&changed_input));
 
         let mut wrong_execution_id = execution.clone();
         wrong_execution_id.execution_id = "different-execution".into();
