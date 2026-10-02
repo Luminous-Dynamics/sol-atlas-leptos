@@ -686,7 +686,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                 <div class="terminal-frontier">
                     <span class="frontier-label">"INFORMATION FRONTIER"</span>
                     <strong>"2026-09-29T14:00:00Z"</strong>
-                    <span class="frontier-id">{selected_frontier}</span>
+                    <span class="frontier-id">{move || selected_frontier()}</span>
                 </div>
             </header>
 
@@ -702,7 +702,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                         <div>
                             <span class="eyebrow">"ENTITY / ORGANIZATION"</span>
                             <h2>"Northstar Energy Holdings"</h2>
-                            <span class="entity-id">{selected_entity}</span>
+                            <span class="entity-id">{move || selected_entity()}</span>
                         </div>
                         <span class="status-chip qualified">"QUALIFIED"</span>
                     </div>
@@ -859,7 +859,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                         }}
                         <p class="lineage-note">"Inspection links address declared dependencies only. Local declaration is not authoritative resolution; unresolved dependencies are never replaced with current or inferred data."</p>
                         <div class="terminal-route-state">
-                            <span>"URL view"</span><code>{selected_view}</code>
+                            <span>"URL view"</span><code>{move || selected_view()}</code>
                             <span>"Claim filter"</span><code>{move || selected_claim().unwrap_or_else(|| "none".into())}</code>
                         </div>
                     </section>
