@@ -716,6 +716,28 @@ pub enum RecoveryPlanState {
 
 /// An explicit, auditable recovery plan. Planning does not imply execution or
 /// successful restoration; those claims require later execution evidence.
+fn unique_nonempty_strings(values: &[String]) -> bool {
+    if values.iter().any(|value| value.is_empty()) {
+        return false;
+    }
+
+    let mut unique = values.to_vec();
+    unique.sort();
+    unique.dedup();
+    unique.len() == values.len()
+}
+
+fn unique_nonempty_ids(values: &[CapabilityId]) -> bool {
+    if values.iter().any(|value| value.0.is_empty()) {
+        return false;
+    }
+
+    let mut unique = values.to_vec();
+    unique.sort();
+    unique.dedup();
+    unique.len() == values.len()
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RecoveryPlan {
     pub id: String,
@@ -744,12 +766,9 @@ impl RecoveryPlan {
     }
 
     fn prerequisites_are_well_formed(&self) -> bool {
-        self.prerequisites.iter().all(|id| !id.0.is_empty())
-            && self.preconditions.iter().all(|condition| !condition.is_empty())
-            && self
-                .expected_evidence
-                .iter()
-                .all(|reference| !reference.is_empty())
+        unique_nonempty_ids(&self.prerequisites)
+            && unique_nonempty_strings(&self.preconditions)
+            && unique_nonempty_strings(&self.expected_evidence)
     }
 
     pub fn is_ready(&self) -> bool {
@@ -2157,12 +2176,8 @@ impl RecoveryExecution {
     }
 
     fn metadata_is_well_formed(&self) -> bool {
-        !self.evidence.is_empty()
-            && self.evidence.iter().all(|evidence| !evidence.is_empty())
-            && self
-                .observed_preconditions
-                .iter()
-                .all(|condition| !condition.is_empty())
+        unique_nonempty_strings(&self.evidence)
+            && unique_nonempty_strings(&self.observed_preconditions)
             && self
                 .authorization
                 .as_ref()
@@ -2505,6 +2520,16 @@ mod graph_tests {
         let mut blank_evidence = execution.clone();
         blank_evidence.evidence[0].clear();
         assert!(!blank_evidence.is_successful());
+
+        let mut duplicate_evidence = execution.clone();
+        duplicate_evidence.evidence.push("evidence-001".into());
+        assert!(!duplicate_evidence.is_successful());
+
+        let mut duplicate_observation = execution.clone();
+        duplicate_observation
+            .observed_preconditions
+            .push("site ready".into());
+        assert!(!duplicate_observation.is_successful());
 
         let mut blank_observation = execution.clone();
         blank_observation.observed_preconditions.push(String::new());
@@ -3012,6 +3037,24 @@ mod graph_tests {
         let mut blank_step = base.clone();
         blank_step.steps[0].clear();
         assert!(!blank_step.is_ready());
+
+        let mut duplicate_prerequisite = base.clone();
+        duplicate_prerequisite
+            .prerequisites
+            .push(CapabilityId("power".into()));
+        assert!(!duplicate_prerequisite.is_ready());
+
+        let mut duplicate_precondition = base.clone();
+        duplicate_precondition
+            .preconditions
+            .push(duplicate_precondition.preconditions[0].clone());
+        assert!(!duplicate_precondition.is_ready());
+
+        let mut duplicate_expected_evidence = base.clone();
+        duplicate_expected_evidence
+            .expected_evidence
+            .push(duplicate_expected_evidence.expected_evidence[0].clone());
+        assert!(!duplicate_expected_evidence.is_ready());
 
         let mut blank_evidence = base;
         blank_evidence.expected_evidence[0].clear();
