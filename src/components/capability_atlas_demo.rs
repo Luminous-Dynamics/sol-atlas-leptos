@@ -10,7 +10,26 @@ use sol_atlas_core::capability::{CapabilityGraph, CapabilityId, DependencyKind, 
 pub fn CapabilityAtlasDemo() -> impl IntoView {
     let graph = water_purification_fixture();
     let root = CapabilityId("water.purification".into());
-    let closure = graph.required_closure(&root).unwrap_or_default();
+    let (closure, closure_status) = match graph.required_closure(&root) {
+        Ok(closure) => (closure, "Required dependency closure resolved.".to_string()),
+        Err(error) => {
+            let mut details = Vec::new();
+            if !error.missing.is_empty() {
+                details.push(format!("{} missing required capability(s)", error.missing.len()));
+            }
+            if !error.duplicate_ids.is_empty() {
+                details.push(format!("{} duplicate capability ID(s)", error.duplicate_ids.len()));
+            }
+
+            (
+                Vec::new(),
+                format!(
+                    "Required dependency closure unresolved: {}.",
+                    details.join("; ")
+                ),
+            )
+        }
+    };
 
     let capabilities = closure
         .iter()
@@ -43,7 +62,11 @@ pub fn CapabilityAtlasDemo() -> impl IntoView {
                     <h2>"Water purification"</h2>
                     <p>"Produces potable water from an identified source."</p>
                     <div class="capability-facts">
-                        <span>"Required closure: " {closure.len()}</span>
+                        <span>{closure_status.clone()}</span>
+                        <span>
+                            "Resolved closure entries: "
+                            {closure.len()}
+                        </span>
                         <span>"Qualification: none"</span>
                     </div>
                 </article>
