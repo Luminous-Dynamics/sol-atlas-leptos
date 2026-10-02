@@ -940,30 +940,36 @@ mod tests {
         )
         .unwrap();
 
-        assert!(reference
-            .verify_preimage(
-                preimage,
-                "deterministic-verifier",
-                "2026-10-02T00:00:00Z",
-                "Exact artifact identity only.",
-            )
-            .is_ok());
-        assert!(reference
-            .verify_preimage(
-                preimage,
-                "deterministic-verifier",
-                "2026-10-02T00:00:00+00:00",
-                "Exact artifact identity only.",
-            )
-            .is_err());
-        assert!(reference
-            .verify_preimage(
-                preimage,
-                "deterministic-verifier",
-                "2026-02-29T00:00:00Z",
-                "Exact artifact identity only.",
-            )
-            .is_err());
+        assert!(
+            reference
+                .verify_preimage(
+                    preimage,
+                    "deterministic-verifier",
+                    "2026-10-02T00:00:00Z",
+                    "Exact artifact identity only.",
+                )
+                .is_ok()
+        );
+        assert!(
+            reference
+                .verify_preimage(
+                    preimage,
+                    "deterministic-verifier",
+                    "2026-10-02T00:00:00+00:00",
+                    "Exact artifact identity only.",
+                )
+                .is_err()
+        );
+        assert!(
+            reference
+                .verify_preimage(
+                    preimage,
+                    "deterministic-verifier",
+                    "2026-02-29T00:00:00Z",
+                    "Exact artifact identity only.",
+                )
+                .is_err()
+        );
     }
 
     #[test]
