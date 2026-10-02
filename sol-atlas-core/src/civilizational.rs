@@ -2280,6 +2280,34 @@ mod tests {
     }
 
     #[test]
+    fn strict_validation_requires_complete_source_temporal_metadata() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:strict-source-metadata".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: BTreeSet::new(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        frontier.recompute_manifest_hash().unwrap();
+
+        // Migration-compatible validation permits legacy frontiers that have
+        // admitted sources but predate complete source temporal metadata.
+        assert_eq!(frontier.validate_temporal_manifest(), Ok(()));
+
+        // New/reproducible validation must close that migration gap: every
+        // admitted source needs exactly one temporal metadata record.
+        assert_eq!(
+            frontier.validate_temporal_manifest_strict(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
     fn frontier_extension_rejects_reordering_inherited_argumentation() {
         let mut parent = EvidenceFrontierV1 {
             frontier_id: "frontier:1900".into(),
