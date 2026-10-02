@@ -20,9 +20,7 @@ use crate::cultural_argumentation::CulturalArgumentationRefV3;
 use crate::cultural_projection_audit_v4::CulturalProjectionAuditV4;
 use crate::cultural_systems::CulturalProjectionIdV1;
 
-fn has_duplicate_argumentation_identity(
-    values: &[CulturalArgumentationRefV3],
-) -> bool {
+fn has_duplicate_argumentation_identity(values: &[CulturalArgumentationRefV3]) -> bool {
     let mut seen = std::collections::BTreeSet::new();
     values.iter().any(|value| {
         !seen.insert((
@@ -99,8 +97,18 @@ impl CulturalProjectionAuditV5 {
     pub fn computed_hash(&self) -> Result<String, ProjectionError> {
         let mut argumentation = self.argumentation.clone();
         argumentation.sort_by(|a, b| {
-            (a.kind, a.assessment.clone(), a.interpretation.clone(), a.semantic_hash.clone())
-                .cmp(&(b.kind, b.assessment.clone(), b.interpretation.clone(), b.semantic_hash.clone()))
+            (
+                a.kind,
+                a.assessment.clone(),
+                a.interpretation.clone(),
+                a.semantic_hash.clone(),
+            )
+                .cmp(&(
+                    b.kind,
+                    b.assessment.clone(),
+                    b.interpretation.clone(),
+                    b.semantic_hash.clone(),
+                ))
         });
         let payload = (
             &self.base.semantic_hash,
@@ -123,8 +131,18 @@ impl CulturalProjectionAuditV5 {
 
     pub fn canonicalize(&mut self) {
         self.argumentation.sort_by(|a, b| {
-            (a.kind, a.assessment.clone(), a.interpretation.clone(), a.semantic_hash.clone())
-                .cmp(&(b.kind, b.assessment.clone(), b.interpretation.clone(), b.semantic_hash.clone()))
+            (
+                a.kind,
+                a.assessment.clone(),
+                a.interpretation.clone(),
+                a.semantic_hash.clone(),
+            )
+                .cmp(&(
+                    b.kind,
+                    b.assessment.clone(),
+                    b.interpretation.clone(),
+                    b.semantic_hash.clone(),
+                ))
         });
     }
 
@@ -135,9 +153,10 @@ impl CulturalProjectionAuditV5 {
     ) -> bool {
         self.validate().is_ok()
             && self.base.is_frontier_safe(frontier, claim)
-            && self.argumentation.iter().all(|value| {
-                value.is_frontier_safe(claim, frontier)
-            })
+            && self
+                .argumentation
+                .iter()
+                .all(|value| value.is_frontier_safe(claim, frontier))
     }
 
     /// Validates the complete V5 audit against an explicit append-only
@@ -202,9 +221,21 @@ impl CulturalProjectionAuditV5 {
 
     pub fn argumentation_identities(
         &self,
-    ) -> Vec<(crate::cultural_argumentation::CulturalArgumentationKindV1, AssessmentId, crate::civilizational::InterpretationId)> {
-        let mut identities = self.argumentation.iter()
-            .map(|value| (value.kind, value.assessment.clone(), value.interpretation.clone()))
+    ) -> Vec<(
+        crate::cultural_argumentation::CulturalArgumentationKindV1,
+        AssessmentId,
+        crate::civilizational::InterpretationId,
+    )> {
+        let mut identities = self
+            .argumentation
+            .iter()
+            .map(|value| {
+                (
+                    value.kind,
+                    value.assessment.clone(),
+                    value.interpretation.clone(),
+                )
+            })
             .collect::<Vec<_>>();
         identities.sort();
         identities
@@ -215,8 +246,8 @@ impl CulturalProjectionAuditV5 {
 mod tests {
     use super::*;
     use crate::civilizational::{
-        EvidenceFrontierV1, EvidenceTemporalMetadataV1,
-        SourceSnapshotTemporalMetadataV1, YearInterval,
+        EvidenceFrontierV1, EvidenceTemporalMetadataV1, SourceSnapshotTemporalMetadataV1,
+        YearInterval,
     };
     use crate::cultural_argumentation::CulturalArgumentationKindV1;
     use crate::cultural_systems::{
@@ -227,7 +258,7 @@ mod tests {
         OntologyMappingKindV1, OntologyMappingStandardV1, OntologyMappingV2,
         OntologyReleaseStatusV1,
     };
-    
+
     fn fixture() -> (
         CulturalProjectionAuditV4,
         CanonicalClaimAdmissionV1,
@@ -244,26 +275,47 @@ mod tests {
             admitted_sources: ["source:1"].into_iter().map(Into::into).collect(),
             evidence_metadata: vec![
                 EvidenceTemporalMetadataV1 {
-                    evidence_id: "e:1".into(), source_snapshot: "source:1".into(),
-                    artifact_time: Some(1940), publication_time: Some(1941),
-                    capture_time: None, available_by: 1942,
-                    validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+                    evidence_id: "e:1".into(),
+                    source_snapshot: "source:1".into(),
+                    artifact_time: Some(1940),
+                    publication_time: Some(1941),
+                    capture_time: None,
+                    available_by: 1942,
+                    validity_time: Some(YearInterval {
+                        from: Some(1940),
+                        to: Some(1950),
+                    }),
                 },
                 EvidenceTemporalMetadataV1 {
-                    evidence_id: "e:2".into(), source_snapshot: "source:1".into(),
-                    artifact_time: Some(1945), publication_time: Some(1946),
-                    capture_time: None, available_by: 1947,
-                    validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+                    evidence_id: "e:2".into(),
+                    source_snapshot: "source:1".into(),
+                    artifact_time: Some(1945),
+                    publication_time: Some(1946),
+                    capture_time: None,
+                    available_by: 1947,
+                    validity_time: Some(YearInterval {
+                        from: Some(1940),
+                        to: Some(1950),
+                    }),
                 },
             ],
             source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
-                source_snapshot: "source:1".into(), publication_time: Some(1941),
-                capture_time: None, available_by: 1942,
+                source_snapshot: "source:1".into(),
+                publication_time: Some(1941),
+                capture_time: None,
+                available_by: 1942,
             }],
             argumentation_metadata: vec![crate::civilizational::ArgumentationTemporalMetadataV1 {
-                assessment: "assessment:1".into(), interpretation: "interpretation:1".into(),
-                assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-                interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                assessment: "assessment:1".into(),
+                interpretation: "interpretation:1".into(),
+                assessment_time: Some(YearInterval {
+                    from: Some(1948),
+                    to: Some(1948),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1949),
+                    to: Some(1949),
+                }),
                 available_by: 1950,
             }],
         };
@@ -285,22 +337,32 @@ mod tests {
             community_recognition_evidence: vec![],
             assessment: Some("assessment:1".into()),
             argumentation: None,
-            event_time: YearInterval { from: Some(1900), to: Some(1950) },
+            event_time: YearInterval {
+                from: Some(1900),
+                to: Some(1950),
+            },
             qualification: claim.qualification,
             access_policy: crate::cultural_systems::AccessPolicyV1::Public,
             evidence_frontier: frontier.frontier_id.clone(),
         };
 
         let mapping = OntologyMappingV2::from_claim(
-            "mapping:1", OntologyMappingStandardV1::CidocCrm, "7.4",
-            OntologyReleaseStatusV1::Draft, "E7_Activity",
-            OntologyMappingKindV1::Class, &claim,
+            "mapping:1",
+            OntologyMappingStandardV1::CidocCrm,
+            "7.4",
+            OntologyReleaseStatusV1::Draft,
+            "E7_Activity",
+            OntologyMappingKindV1::Class,
+            &claim,
         );
         let resolution = crate::ontology_resolution::OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
-        ).expect("resolution");
-        let v4 = CulturalProjectionAuditV4::from_v2(base, vec![resolution])
-            .expect("v4 audit");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
+        let v4 = CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("v4 audit");
 
         let value = CulturalArgumentationRefV3::from_v2(
             CulturalArgumentationKindV1::InferenceMaking,
@@ -314,20 +376,26 @@ mod tests {
                     source_snapshots: vec!["source:1".into()],
                     evidence_frontier: frontier.frontier_id.clone(),
                 },
-                assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-                interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                assessment_time: Some(YearInterval {
+                    from: Some(1948),
+                    to: Some(1948),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1949),
+                    to: Some(1949),
+                }),
                 available_by: 1950,
             },
             &frontier,
-        ).expect("typed argumentation");
+        )
+        .expect("typed argumentation");
         (v4, claim, frontier, value)
     }
 
     #[test]
     fn v5_binds_typed_argumentation_to_v4_identity() {
         let (v4, claim, frontier, argumentation) = fixture();
-        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation])
-            .expect("v5 audit");
+        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
         assert!(audit.validate().is_ok());
         assert!(audit.is_frontier_safe(&frontier, &claim));
     }
@@ -335,8 +403,8 @@ mod tests {
     #[test]
     fn changing_argumentation_kind_changes_audit_hash() {
         let (v4, _claim, _frontier, argumentation) = fixture();
-        let mut audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation])
-            .expect("v5 audit");
+        let mut audit =
+            CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
         let original = audit.semantic_hash.clone();
         audit.argumentation[0].kind = CulturalArgumentationKindV1::MeaningComprehension;
         assert_ne!(original, audit.computed_hash().expect("hash"));
@@ -365,15 +433,21 @@ mod tests {
 
         frontier.argumentation_metadata.push(
             crate::civilizational::ArgumentationTemporalMetadataV1 {
-                assessment: "assessment:2".into(), interpretation: "interpretation:2".into(),
-                assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-                interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                assessment: "assessment:2".into(),
+                interpretation: "interpretation:2".into(),
+                assessment_time: Some(YearInterval {
+                    from: Some(1948),
+                    to: Some(1948),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1949),
+                    to: Some(1949),
+                }),
                 available_by: 1950,
             },
         );
         frontier.recompute_manifest_hash().expect("frontier hash");
-        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![first, second])
-            .expect("v5 audit");
+        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![first, second]).expect("v5 audit");
         assert_eq!(audit.argumentation_identities().len(), 2);
         assert!(audit.is_frontier_safe(&frontier, &claim));
     }
@@ -387,8 +461,14 @@ mod tests {
             claim_ref: "claim:1".into(),
             evidence_refs: vec!["e:1".into(), "e:2".into()],
             source_snapshots: vec!["source:1".into()],
-            assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-            interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1948),
+                to: Some(1948),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1949),
+                to: Some(1949),
+            }),
             available_by: 1950,
             evidence_frontier: "frontier:1950".into(),
         });
@@ -409,8 +489,7 @@ mod tests {
     #[test]
     fn v5_argumentation_cannot_upgrade_qualification() {
         let (v4, mut claim, frontier, argumentation) = fixture();
-        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation])
-            .expect("v5 audit");
+        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
         claim.qualification = QualificationStatus::Established;
         assert_eq!(audit.qualification(), QualificationStatus::Supported);
         assert!(!audit.is_frontier_safe(&frontier, &claim));
@@ -421,8 +500,7 @@ mod tests {
     #[test]
     fn v5_chain_replay_requires_selected_frontier_to_be_verified_leaf() {
         let (v4, claim, child, argumentation) = fixture();
-        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation])
-            .expect("v5 audit");
+        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
         let mut root = child.clone();
         root.frontier_id = "frontier:1949".into();
         root.known_by_year = 1949;
@@ -442,8 +520,7 @@ mod tests {
     #[test]
     fn v5_chain_replay_accepts_complete_same_leaf_closure() {
         let (v4, claim, frontier, argumentation) = fixture();
-        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation])
-            .expect("v5 audit");
+        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
         let mut root = frontier.clone();
         root.parent_frontier = None;
         root.recompute_manifest_hash().expect("root hash");
