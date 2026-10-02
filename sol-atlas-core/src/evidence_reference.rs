@@ -24,6 +24,8 @@ use serde::{Deserialize, Serialize};
 /// between them because the wire representation is part of the digest context.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DigestRepresentationV1 {
+    /// Reserved for a future byte-backed digest field; invalid for the current
+    /// string-backed representation, so V1 constructors fail closed.
     RawBytes,
     LowerHex,
     PrefixedLowerHex,
@@ -64,7 +66,7 @@ impl DigestContextV1 {
 
     fn digest_representation_is_well_formed(&self) -> bool {
         match self.representation {
-            DigestRepresentationV1::RawBytes => !self.digest.is_empty(),
+            DigestRepresentationV1::RawBytes => false,
             DigestRepresentationV1::LowerHex => {
                 !self.digest.is_empty() && self.digest.bytes().all(|b| b.is_ascii_hexdigit())
             }
@@ -343,6 +345,31 @@ mod tests {
 
         assert_ne!(first.context, second.context);
         assert_eq!(first.digest, second.digest);
+    }
+
+    #[test]
+    fn incompatible_digest_contexts_do_not_share_content_identity() {
+        let first = reference();
+        let mut second = first.clone();
+        second.context.canonicalization = "other-canonicalization:v1".into();
+
+        assert!(!first.same_content_identity(&second));
+    }
+
+    #[test]
+    fn raw_bytes_representation_fails_closed_for_string_digests() {
+        let mut context = context();
+        context.representation = DigestRepresentationV1::RawBytes;
+
+        assert!(
+            EvidenceReferenceV1::content_addressed(
+                "recovery-execution-record",
+                context,
+                "opaque-bytes",
+                "Exact artifact identity only.",
+            )
+            .is_err()
+        );
     }
 
     #[test]
