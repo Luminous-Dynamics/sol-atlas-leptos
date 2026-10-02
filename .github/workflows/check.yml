@@ -15,6 +15,7 @@ concurrency:
 
 env:
   RUST_TOOLCHAIN: 1.99.0
+  TRUNK_VERSION: 0.21.14
 
 jobs:
   supply-chain:
@@ -73,6 +74,33 @@ jobs:
             target/
           key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-cargo-wasm-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
       - run: cargo check --workspace --locked --target wasm32-unknown-unknown
+
+  build-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          targets: wasm32-unknown-unknown
+      - name: Cache cargo
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-trunk-${{ env.TRUNK_VERSION }}-check-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
+      - name: Install Trunk
+        run: cargo install trunk --locked --version "${{ env.TRUNK_VERSION }}"
+      - name: Build web bundle
+        run: trunk build --release --locked --no-sri
 
   test-native:
     runs-on: ubuntu-latest
