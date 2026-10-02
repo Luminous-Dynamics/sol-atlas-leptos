@@ -751,6 +751,10 @@ pub struct RecoveryPlan {
     pub ai_contribution: String,
     pub state: RecoveryPlanState,
     pub claim_ceiling: String,
+    /// Digest of the exact candidate record bound when this plan was prepared.
+    /// Empty is legacy/unbound; stronger consumers must require an exact match.
+    #[serde(default)]
+    pub candidate_snapshot: String,
 }
 
 impl RecoveryPlan {
@@ -780,6 +784,18 @@ impl RecoveryPlan {
             && self.prerequisites_are_well_formed()
             && !self.expected_evidence.is_empty()
             && !self.claim_ceiling.is_empty()
+    }
+
+    /// Bind the plan to the canonical candidate snapshot persisted with the plan.
+    pub fn is_ready_against_candidate_snapshot(
+        &self,
+        candidate: &RecoveryCandidate,
+        snapshot: &RecoveryCandidateSnapshotV1,
+    ) -> bool {
+        self.is_ready_against_candidate(candidate)
+            && snapshot.is_well_formed()
+            && snapshot == &candidate.snapshot()
+            && self.candidate_snapshot == snapshot.digest()
     }
 
     /// Stronger readiness gate binding the plan to an explicitly discovered candidate.
@@ -1506,7 +1522,75 @@ pub struct RecoveryCandidate {
     pub claim_ceiling: String,
 }
 
+/// Canonical content identity for one recovery candidate.
+///
+/// Selection state is deliberately excluded: discovery/admission/selection are
+/// policy lifecycle state, not intrinsic candidate content identity.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryCandidateSnapshotV1 {
+    pub schema: String,
+    pub for_dependency: CapabilityId,
+    pub candidate: CapabilityId,
+    pub required_capabilities: Vec<CapabilityId>,
+    pub missing_capabilities: Vec<CapabilityId>,
+    pub evidence: Vec<String>,
+    pub qualification: Option<CapabilityQualification>,
+    pub claim_ceiling: String,
+}
+
+impl RecoveryCandidateSnapshotV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-candidate-snapshot:v1";
+
+    pub fn from_candidate(candidate: &RecoveryCandidate) -> Self {
+        let mut required_capabilities = candidate.required_capabilities.clone();
+        required_capabilities.sort();
+        required_capabilities.dedup();
+        let mut missing_capabilities = candidate.missing_capabilities.clone();
+        missing_capabilities.sort();
+        missing_capabilities.dedup();
+        let mut evidence = candidate.evidence.clone();
+        evidence.sort();
+        evidence.dedup();
+        Self {
+            schema: Self::SCHEMA.into(),
+            for_dependency: candidate.for_dependency.clone(),
+            candidate: candidate.candidate.clone(),
+            required_capabilities,
+            missing_capabilities,
+            evidence,
+            qualification: candidate.qualification.clone(),
+            claim_ceiling: candidate.claim_ceiling.clone(),
+        }
+    }
+
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA
+            && !self.for_dependency.0.is_empty()
+            && !self.candidate.0.is_empty()
+            && self.for_dependency != self.candidate
+            && unique_nonempty_ids(&self.required_capabilities)
+            && unique_nonempty_ids(&self.missing_capabilities)
+            && !self.required_capabilities.iter().any(|id| self.missing_capabilities.contains(id))
+            && unique_nonempty_strings(&self.evidence)
+            && !self.claim_ceiling.is_empty()
+    }
+
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        serde_json::to_vec(self)
+            .expect("recovery candidate snapshot contains only serializable primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+}
+
 impl RecoveryCandidate {
+    pub fn snapshot(&self) -> RecoveryCandidateSnapshotV1 {
+        RecoveryCandidateSnapshotV1::from_candidate(self)
+    }
+
     /// Structural integrity of an explicitly discovered candidate.
     ///
     /// Partial candidates may have missing prerequisites, but their identities
@@ -2339,6 +2423,7 @@ mod graph_tests {
             ai_contribution: String::new(),
             state: RecoveryPlanState::Ready,
             claim_ceiling: "Exact recovery plan scope only.".into(),
+            candidate_snapshot: String::new(),
         };
         let candidate = RecoveryCandidate {
             for_dependency: CapabilityId("water".into()),
@@ -2406,6 +2491,7 @@ mod graph_tests {
             ai_contribution: String::new(),
             state: RecoveryPlanState::Ready,
             claim_ceiling: "Exact recovery plan scope only.".into(),
+            candidate_snapshot: String::new(),
         };
 
         let mut execution = RecoveryExecution {
@@ -3027,6 +3113,7 @@ mod graph_tests {
             ai_contribution: "planning assistance".into(),
             state: RecoveryPlanState::Ready,
             claim_ceiling: "Exact recovery plan scope only.".into(),
+            candidate_snapshot: String::new(),
         };
         assert!(base.is_ready());
 
@@ -3619,6 +3706,7 @@ mod graph_tests {
             state: RecoveryPlanState::Ready,
             claim_ceiling: "Plan only; execution and successful restoration are not established."
                 .into(),
+            candidate_snapshot: String::new(),
         };
 
         assert!(plan.is_ready());
