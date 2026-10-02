@@ -1418,7 +1418,7 @@ mod tests {
             admitted_evidence: ["evidence:1".into(), "evidence:partition".into()]
                 .into_iter()
                 .collect(),
-            admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
+            admitted_sources: ["source-snapshot:archive"].into_iter().map(Into::into).collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
             argumentation_metadata: vec![],
@@ -1457,7 +1457,7 @@ mod tests {
             parent_frontier: None,
             policy_version: "v1".into(),
             manifest_hash: String::new(),
-            admitted_evidence: ["evidence:partition"].into_iter().collect(),
+            admitted_evidence: ["evidence:partition"].into_iter().map(Into::into).collect(),
             admitted_sources: ["source-snapshot:archive"].into_iter().collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
