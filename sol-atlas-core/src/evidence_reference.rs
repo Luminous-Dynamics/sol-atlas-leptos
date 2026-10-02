@@ -30,14 +30,23 @@ fn is_canonical_utc_timestamp(value: &str) -> bool {
     }
 
     let bytes = value.as_bytes();
-    let digit_ranges = [&bytes[0..4], &bytes[5..7], &bytes[8..10], &bytes[11..13], &bytes[14..16], &bytes[17..19]];
+    let digit_ranges = [
+        &bytes[0..4],
+        &bytes[5..7],
+        &bytes[8..10],
+        &bytes[11..13],
+        &bytes[14..16],
+        &bytes[17..19],
+    ];
     if bytes[4] != b'-'
         || bytes[7] != b'-'
         || bytes[10] != b'T'
         || bytes[13] != b':'
         || bytes[16] != b':'
         || bytes[19] != b'Z'
-        || digit_ranges.iter().any(|digits| !digits.iter().all(u8::is_ascii_digit))
+        || digit_ranges
+            .iter()
+            .any(|digits| !digits.iter().all(u8::is_ascii_digit))
     {
         return false;
     }
