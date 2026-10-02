@@ -1740,12 +1740,19 @@ impl RecoveryExecution {
     ///
     /// This does not establish verification or qualification.
     pub fn is_successful(&self) -> bool {
-        self.ended_at.is_some()
+        self.ended_at
+            .as_deref()
+            .is_some_and(is_canonical_utc_timestamp)
+            && is_canonical_utc_timestamp(&self.started_at)
+            && !self.plan_id.is_empty()
+            && !self.execution_id.is_empty()
             && !self.attempted_steps.is_empty()
             && self.failed_steps.is_empty()
-            && self.completed_steps.len() == self.attempted_steps.len()
+            && self.completed_steps == self.attempted_steps
             && self.failure_reason.is_none()
             && !self.evidence.is_empty()
+            && !self.input_snapshot.is_empty()
+            && !self.claim_ceiling.is_empty()
     }
 
     /// A failed execution must preserve a reason rather than silently becoming
@@ -1826,6 +1833,65 @@ mod graph_tests {
                 ai: String::new(),
             },
         }
+    }
+
+    #[test]
+    fn successful_execution_requires_exact_completed_steps_and_metadata() {
+        let execution = RecoveryExecution {
+            plan_id: "plan-001".into(),
+            execution_id: "execution-001".into(),
+            started_at: "2026-10-02T08:00:00Z".into(),
+            ended_at: Some("2026-10-02T08:05:00Z".into()),
+            attempted_steps: vec!["install".into(), "test".into()],
+            completed_steps: vec!["install".into(), "test".into()],
+            failed_steps: vec![],
+            observed_preconditions: vec!["site ready".into()],
+            evidence: vec!["evidence-001".into()],
+            resulting_state: CapabilityState::Demonstrated,
+            authorization: Some("auth-001".into()),
+            ai_assistance: Some("planning assistance".into()),
+            input_snapshot: "sha256:execution-inputs".into(),
+            failure_reason: None,
+            claim_ceiling: "Exact execution record only.".into(),
+        };
+        assert!(execution.is_successful());
+
+        let mut wrong_completed = execution.clone();
+        wrong_completed.completed_steps = vec!["install".into(), "publish".into()];
+        assert!(!wrong_completed.is_successful());
+
+        let mut incomplete = execution.clone();
+        incomplete.input_snapshot.clear();
+        assert!(!incomplete.is_successful());
+
+        let mut malformed_time = execution.clone();
+        malformed_time.started_at = "yesterday".into();
+        assert!(!malformed_time.is_successful());
+    }
+
+    #[test]
+    fn failed_execution_is_terminal_only_when_a_failure_is_recorded() {
+        let mut execution = RecoveryExecution {
+            plan_id: "plan-002".into(),
+            execution_id: "execution-002".into(),
+            started_at: "2026-10-02T09:00:00Z".into(),
+            ended_at: Some("2026-10-02T09:02:00Z".into()),
+            attempted_steps: vec!["prepare".into()],
+            completed_steps: vec![],
+            failed_steps: vec!["prepare".into()],
+            observed_preconditions: vec![],
+            evidence: vec![],
+            resulting_state: CapabilityState::Conceptual,
+            authorization: None,
+            ai_assistance: None,
+            input_snapshot: "sha256:execution-inputs".into(),
+            failure_reason: Some("precondition failed".into()),
+            claim_ceiling: "Exact failure record only.".into(),
+        };
+        assert!(execution.is_failed());
+
+        execution.ended_at = None;
+        assert!(!execution.is_failed());
     }
 
     #[test]
