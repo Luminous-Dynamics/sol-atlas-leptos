@@ -5,7 +5,7 @@
 use leptos::prelude::*;
 use leptos_router::components::A;
 use leptos_router::hooks::{use_params_map, use_query_map};
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::data::evidence_projection::{
     AtlasEvidenceProjectionV1, ClaimKind, ContradictionRef, EpistemicState, LineageCompleteness,
@@ -562,32 +562,32 @@ pub fn EvidenceTerminal() -> impl IntoView {
 
     let primary_entity_ref = primary.entity_ref.clone();
     let primary_frontier_ref = primary.frontier_ref.clone();
-    let selected_entity: Rc<dyn Fn() -> String> = {
+    let selected_entity: Arc<dyn Fn() -> String + Send + Sync> = {
         let terminal_query = terminal_query.clone();
-        Rc::new(move || {
+        Arc::new(move || {
             terminal_query()
                 .entity_ref
                 .unwrap_or_else(|| primary_entity_ref.clone())
         })
     };
-    let selected_frontier: Rc<dyn Fn() -> String> = {
+    let selected_frontier: Arc<dyn Fn() -> String + Send + Sync> = {
         let terminal_query = terminal_query.clone();
-        Rc::new(move || {
+        Arc::new(move || {
             terminal_query()
                 .frontier_ref
                 .unwrap_or_else(|| primary_frontier_ref.clone())
         })
     };
-    let selected_claim: Rc<dyn Fn() -> Option<String>> = {
+    let selected_claim: Arc<dyn Fn() -> Option<String + Send + Sync>> = {
         let terminal_query = terminal_query.clone();
-        Rc::new(move || terminal_query().claim_ref)
+        Arc::new(move || terminal_query().claim_ref)
     };
-    let selected_projection: Rc<dyn Fn() -> Option<AtlasEvidenceProjectionV1>> = {
+    let selected_projection: Arc<dyn Fn() -> Option<AtlasEvidenceProjectionV1 + Send + Sync>> = {
         let terminal_query = terminal_query.clone();
         let projection_catalog = projection_catalog.clone();
         let primary_entity_ref = primary.entity_ref.clone();
         let primary_frontier_ref = primary.frontier_ref.clone();
-        Rc::new(move || {
+        Arc::new(move || {
             let q = terminal_query();
             if q.validity() == TerminalQueryValidity::Malformed {
                 return None;
@@ -619,18 +619,18 @@ pub fn EvidenceTerminal() -> impl IntoView {
             }
         })
     };
-    let replay_claim: Rc<dyn Fn() -> Option<String>> = {
+    let replay_claim: Arc<dyn Fn() -> Option<String + Send + Sync>> = {
         let selected_claim = selected_claim.clone();
         let selected_projection = selected_projection.clone();
-        Rc::new(move || selected_claim().or_else(|| selected_projection().map(|projection| projection.claim_ref)))
+        Arc::new(move || selected_claim().or_else(|| selected_projection().map(|projection| projection.claim_ref)))
     };
-    let replay_claim_value: Rc<dyn Fn() -> String> = {
+    let replay_claim_value: Arc<dyn Fn() -> String + Send + Sync> = {
         let replay_claim = replay_claim.clone();
-        Rc::new(move || replay_claim().unwrap_or_default())
+        Arc::new(move || replay_claim().unwrap_or_default())
     };
-    let selected_view: Rc<dyn Fn() -> String> = {
+    let selected_view: Arc<dyn Fn() -> String + Send + Sync> = {
         let terminal_query = terminal_query.clone();
-        Rc::new(move || terminal_query().view.as_str().to_string())
+        Arc::new(move || terminal_query().view.as_str().to_string())
     };
     // Fixture link context is explicit and only used to construct a complete
     // address. It is never silently injected into replay-readiness state.
@@ -641,24 +641,24 @@ pub fn EvidenceTerminal() -> impl IntoView {
             "model:symthaea:v1".to_string(),
         )
     };
-    let selected_node: Rc<dyn Fn() -> Option<LineageNodeRef>> = {
+    let selected_node: Arc<dyn Fn() -> Option<LineageNodeRef + Send + Sync>> = {
         let query = query.clone();
-        Rc::new(move || LineageNodeRef::parse(query.read().get("node").as_deref()))
+        Arc::new(move || LineageNodeRef::parse(query.read().get("node").as_deref()))
     };
-    let selected_node_status: Rc<dyn Fn() -> LineageResolution> = {
+    let selected_node_status: Arc<dyn Fn() -> LineageResolution + Send + Sync> = {
         let selected_node = selected_node.clone();
         let selected_projection = selected_projection.clone();
-        Rc::new(move || match (selected_node(), selected_projection()) {
+        Arc::new(move || match (selected_node(), selected_projection()) {
             (Some(node), Some(projection)) => projection.resolve_lineage_node(&node),
             (Some(_), None) => LineageResolution::Incomplete,
             (None, _) => LineageResolution::Incomplete,
         })
     };
-    let replay_href: Rc<dyn Fn() -> Option<String>> = {
+    let replay_href: Arc<dyn Fn() -> Option<String + Send + Sync>> = {
         let replay_claim = replay_claim.clone();
         let selected_entity = selected_entity.clone();
         let selected_frontier = selected_frontier.clone();
-        Rc::new(move || replay_claim().map(|claim| {
+        Arc::new(move || replay_claim().map(|claim| {
             let context = link_replay_context();
             TerminalClaimRef::new(claim).map(|claim| {
                 TerminalNavigationTarget::new(
