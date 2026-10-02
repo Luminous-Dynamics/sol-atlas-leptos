@@ -1809,42 +1809,48 @@ pub struct RecoveryExecution {
 }
 
 impl RecoveryExecution {
+    fn terminal_timestamps_are_well_formed(&self) -> bool {
+        self.ended_at.as_deref().is_some_and(|ended_at| {
+            is_canonical_utc_timestamp(&self.started_at)
+                && is_canonical_utc_timestamp(ended_at)
+                && self.started_at <= ended_at
+        })
+    }
+
+    fn attempted_steps_are_unique(&self) -> bool {
+        let mut unique = self.attempted_steps.clone();
+        unique.sort();
+        unique.dedup();
+
+        !self.attempted_steps.is_empty()
+            && self.attempted_steps.iter().all(|step| !step.is_empty())
+            && unique.len() == self.attempted_steps.len()
+    }
+
     /// Execution is complete only when it has an end marker and no failed steps.
     ///
     /// This does not establish verification or qualification.
     pub fn is_successful(&self) -> bool {
-        self.ended_at
-            .as_deref()
-            .is_some_and(is_canonical_utc_timestamp)
-            && is_canonical_utc_timestamp(&self.started_at)
+        self.terminal_timestamps_are_well_formed()
             && !self.plan_id.is_empty()
             && !self.execution_id.is_empty()
-            && !self.attempted_steps.is_empty()
-            && self.failed_steps.is_empty()
+            && self.attempted_steps_are_unique()
             && self.completed_steps == self.attempted_steps
+            && self.failed_steps.is_empty()
             && self.failure_reason.is_none()
             && !self.evidence.is_empty()
             && !self.input_snapshot.is_empty()
             && !self.claim_ceiling.is_empty()
     }
 
-    /// A failed execution must preserve a reason rather than silently becoming
-    /// an unsuccessful "success" record.
+    /// A failed execution must preserve a terminal marker and an explicit
+    /// failure indication rather than silently becoming an unsuccessful success.
     pub fn is_failed(&self) -> bool {
-        self.ended_at.is_some() && (!self.failed_steps.is_empty() || self.failure_reason.is_some())
-    }
-
-    /// Whether the execution has produced the evidence required by its plan.
-    ///
-    /// This is deliberately a structural check only. Matching evidence does not
-    /// establish that the evidence is valid, current, or sufficient for
-    /// verification; those judgments belong to the verification layer.
-    pub fn satisfies_plan_evidence(&self, plan: &RecoveryPlan) -> bool {
-        self.plan_id == plan.id
-            && plan
-                .expected_evidence
-                .iter()
-                .all(|expected| self.evidence.iter().any(|actual| actual == expected))
+        self.terminal_timestamps_are_well_formed()
+            && !self.plan_id.is_empty()
+            && !self.execution_id.is_empty()
+            && (self.failed_steps.iter().any(|step| !step.is_empty())
+                || self.failure_reason.as_ref().is_some_and(|reason| !reason.is_empty()))
     }
 }
 
