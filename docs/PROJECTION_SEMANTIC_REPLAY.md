@@ -79,6 +79,14 @@ Strict replay therefore requires all of the following:
 This prevents a valid modern leaf from laundering a legacy or incomplete
 ancestor into a reproducible historical chain.
 
+The V1 frontier hash uses an application-defined canonical payload serialized
+with Rust's serde_json; it is deterministic within this contract but is not
+claimed to be RFC 8785 JSON Canonicalization Scheme (JCS) wire-compatible.
+RFC 8785 exists specifically to define an invariant JSON representation for
+cross-implementation hashing/signing. A future interoperability-facing
+manifest format may adopt a standardized canonical serialization, but changing
+the current V1 hash contract would require an explicit versioned migration.
+
 ## Invariants
 
 - ontology mapping != canonical claim
