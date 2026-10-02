@@ -104,6 +104,15 @@ pub struct EvidenceSnapshotEntryV1 {
 impl EvidenceSnapshotV1 {
     pub const SCHEMA: &'static str = "sol-atlas:evidence-snapshot:v1";
 
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA
+            && !self.subject.0.is_empty()
+            && self.evidence.iter().all(|entry| {
+                entry.reference.is_well_formed()
+                    && entry.claim_ceiling == entry.reference.claim_ceiling
+            })
+    }
+
     /// Stable project-specific canonical bytes.
     ///
     /// The digest binds typed content identity, context, and claim ceiling while
@@ -320,6 +329,31 @@ pub struct EnvironmentFactV1 {
 
 impl EnvironmentSnapshotV1 {
     pub const SCHEMA: &'static str = "sol-atlas:environment-snapshot:v1";
+
+    pub fn is_well_formed(&self) -> bool {
+        if self.schema != Self::SCHEMA || self.subject.0.is_empty() || self.scope.is_empty() {
+            return false;
+        }
+
+        let mut facts = self.facts.clone();
+        if facts.iter().any(|fact| {
+            fact.key.is_empty()
+                || fact.value.is_empty()
+                || fact.source.is_empty()
+                || fact.unit.as_ref().is_some_and(|unit| unit.is_empty())
+        }) {
+            return false;
+        }
+        facts.sort_by(|left, right| {
+            (&left.key, &left.value, &left.unit, &left.source).cmp(&(
+                &right.key,
+                &right.value,
+                &right.unit,
+                &right.source,
+            ))
+        });
+        facts.len() == self.facts.len() && facts.windows(2).all(|pair| pair[0] != pair[1])
+    }
 
     pub fn canonical_bytes(&self) -> Vec<u8> {
         #[derive(Serialize)]
@@ -1251,7 +1285,10 @@ impl RecoveryVerification {
 
         if dependency.root != self.capability
             || !dependency.is_well_formed()
+            || !evidence.is_well_formed()
             || evidence.subject != self.capability
+            || evidence.coverage != self.evidence_coverage
+            || !environment.is_well_formed()
             || environment.subject != self.capability
             || environment.scope != self.scope
         {
@@ -2443,6 +2480,39 @@ mod graph_tests {
         assert!(graph
             .recovery_candidates(&CapabilityId("a".into()))
             .is_empty());
+    }
+
+    #[test]
+    fn component_snapshots_reject_malformed_schema_and_fields() {
+        let mut environment = EnvironmentSnapshotV1::from_facts(
+            CapabilityId("a".into()),
+            "site-1",
+            vec![EnvironmentFactV1 {
+                key: "temperature".into(),
+                value: "20".into(),
+                unit: Some("C".into()),
+                source: "sensor-a".into(),
+            }],
+        );
+        assert!(environment.is_well_formed());
+        environment.schema = "wrong-schema".into();
+        assert!(!environment.is_well_formed());
+
+        let mut evidence = EvidenceSnapshotV1 {
+            schema: EvidenceSnapshotV1::SCHEMA.into(),
+            subject: CapabilityId("a".into()),
+            evidence: vec![EvidenceSnapshotEntryV1 {
+                kind: EvidenceKind::Observed,
+                reference: verified_test_evidence("malformed-component").reference,
+                claim_ceiling: "different ceiling".into(),
+                unresolved_locator: None,
+            }],
+            coverage: RecoveryEvidenceCoverage::ClosedWorld,
+        };
+        assert!(!evidence.is_well_formed());
+        evidence.evidence[0].claim_ceiling =
+            evidence.evidence[0].reference.claim_ceiling.clone();
+        assert!(evidence.is_well_formed());
     }
 
     #[test]
