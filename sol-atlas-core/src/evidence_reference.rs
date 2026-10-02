@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// These forms are deliberately distinct. A verifier must not silently coerce
 /// between them because the wire representation is part of the digest context.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DigestRepresentationV1 {
     RawBytes,
     LowerHex,
@@ -38,7 +38,7 @@ pub enum DigestRepresentationV1 {
 /// canonicalization may name a project-local algorithm. This type does not
 /// claim RFC 8785/JCS interoperability merely by naming a canonicalization
 /// string.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct DigestContextV1 {
     pub id: String,
     pub preimage_construction: String,
