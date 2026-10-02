@@ -44,15 +44,40 @@ serialization/replay only; it carries no epistemic priority.
 The external ontology remains external. Sol Atlas does not become an ontology
 authority, and the semantic envelope does not upgrade a claim's qualification.
 
-For example, CIDOC CRM 7.4 was released in August 2026 but is currently marked
-Draft by the CIDOC CRM version registry. Draft status therefore remains visible
-in the mapping context rather than being silently treated as an implementation
-stable release.
+As of October 2026, CIDOC CRM 7.4 was released in August 2026 and is listed by
+the official CIDOC CRM registry as **Draft**. Draft status therefore remains
+visible in the mapping context rather than being silently treated as an
+implementation-stable release:
+https://cidoc-crm.org/versions-of-the-cidoc-crm
 
-CRMinf 1.2.1 is the natural argumentation interoperability target for the
-existing assessment/interpretation layer, while PROV-O remains the provenance
-interchange boundary. PROV-O is a W3C Recommendation and explicitly supports
-provenance interoperability, versioning, reproducibility, and derivation.
+CRMinf 1.2.1 was released in April 2026 and is listed by the official CRMinf
+registry as **Stable**:
+https://cidoc-crm.org/crminf/fm_releases
+
+PROV-O remains the provenance interchange boundary. The W3C PROV family defines
+validity/consistency constraints and normalization/equivalence for provenance,
+while leaving syntax-sensitive cryptographic identity to the application
+boundary:
+https://www.w3.org/TR/prov-constraints/
+
+## Strict replay boundary
+
+Migration-compatible frontier validation may read legacy manifests whose
+content-addressed hash is absent, preserving existing serialized fixtures and
+older records. That compatibility mode is not sufficient for reproducible
+historical replay.
+
+Strict replay therefore requires all of the following:
+
+- a non-empty self-consistent frontier manifest hash;
+- complete temporal metadata for every admitted source snapshot;
+- source IDs in metadata to match the admitted source set exactly;
+- every evidence metadata record to reference an admitted source;
+- every ancestor frontier in the selected chain to satisfy the same strict
+  requirements, not merely the selected leaf.
+
+This prevents a valid modern leaf from laundering a legacy or incomplete
+ancestor into a reproducible historical chain.
 
 ## Invariants
 
