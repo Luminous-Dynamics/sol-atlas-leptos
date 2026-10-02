@@ -10,11 +10,15 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::civilizational::{ClaimId, EvidenceFrontierId, ProjectionError, QualificationStatus};
-use crate::cultural_systems::{CanonicalClaimAdmissionV1, CulturalProjectionAuditV2, CulturalProjectionIdV1};
+use crate::cultural_systems::{
+    CanonicalClaimAdmissionV1, CulturalProjectionAuditV2, CulturalProjectionIdV1,
+};
 
 fn has_duplicate_mapping_ids(resolutions: &[OntologyMappingResolutionV1]) -> bool {
     let mut seen = std::collections::BTreeSet::new();
-    resolutions.iter().any(|resolution| !seen.insert(resolution.mapping.mapping_id.clone()))
+    resolutions
+        .iter()
+        .any(|resolution| !seen.insert(resolution.mapping.mapping_id.clone()))
 }
 use crate::ontology_resolution::OntologyMappingResolutionV1;
 
@@ -26,9 +30,15 @@ pub struct CulturalProjectionAuditV4 {
 }
 
 impl CulturalProjectionAuditV4 {
-    pub fn from_v2(base: CulturalProjectionAuditV2,
-        resolutions: Vec<OntologyMappingResolutionV1>) -> Result<Self, ProjectionError> {
-        let mut audit = Self { base, resolutions, semantic_hash: String::new() };
+    pub fn from_v2(
+        base: CulturalProjectionAuditV2,
+        resolutions: Vec<OntologyMappingResolutionV1>,
+    ) -> Result<Self, ProjectionError> {
+        let mut audit = Self {
+            base,
+            resolutions,
+            semantic_hash: String::new(),
+        };
         audit.recompute_hash()?;
         audit.validate()?;
         Ok(audit)
@@ -46,7 +56,8 @@ impl CulturalProjectionAuditV4 {
             resolution.validate()?;
             if resolution.claim_ref != self.base.claim_ref
                 || resolution.evidence_frontier != self.base.evidence_frontier
-                || resolution.qualification != self.base.qualification {
+                || resolution.qualification != self.base.qualification
+            {
                 return Err(ProjectionError::EmptyIdentifier);
             }
         }
@@ -62,8 +73,13 @@ impl CulturalProjectionAuditV4 {
             (a.mapping.mapping_id.clone(), a.resolution_hash.clone())
                 .cmp(&(b.mapping.mapping_id.clone(), b.resolution_hash.clone()))
         });
-        let payload = (&self.base.projection_id, &self.base.claim_ref,
-            &self.base.evidence_frontier, &self.base.qualification, &resolutions);
+        let payload = (
+            &self.base.projection_id,
+            &self.base.claim_ref,
+            &self.base.evidence_frontier,
+            &self.base.qualification,
+            &resolutions,
+        );
         let bytes = serde_json::to_vec(&payload)
             .map_err(|_| ProjectionError::InvalidEvidenceFrontierManifest)?;
         let digest = Sha256::digest(bytes);
@@ -83,15 +99,24 @@ impl CulturalProjectionAuditV4 {
         self.validate().is_ok()
             && self.base.is_frontier_safe(frontier)
             && claim.claim_ref == self.base.claim_ref
-            && self.resolutions.iter().all(|resolution| {
-                resolution.is_frontier_safe(claim, frontier)
-            })
+            && self
+                .resolutions
+                .iter()
+                .all(|resolution| resolution.is_frontier_safe(claim, frontier))
     }
 
-    pub fn projection_id(&self) -> &CulturalProjectionIdV1 { &self.base.projection_id }
-    pub fn claim_ref(&self) -> &ClaimId { &self.base.claim_ref }
-    pub fn evidence_frontier(&self) -> &EvidenceFrontierId { &self.base.evidence_frontier }
-    pub fn qualification(&self) -> QualificationStatus { self.base.qualification }
+    pub fn projection_id(&self) -> &CulturalProjectionIdV1 {
+        &self.base.projection_id
+    }
+    pub fn claim_ref(&self) -> &ClaimId {
+        &self.base.claim_ref
+    }
+    pub fn evidence_frontier(&self) -> &EvidenceFrontierId {
+        &self.base.evidence_frontier
+    }
+    pub fn qualification(&self) -> QualificationStatus {
+        self.base.qualification
+    }
 }
 
 #[cfg(test)]
@@ -101,11 +126,11 @@ mod tests {
         EvidenceFrontierV1, EvidenceTemporalMetadataV1, SourceSnapshotTemporalMetadataV1,
         YearInterval,
     };
-    use crate::cultural_systems::{CulturalProjectionIdV1, CulturalProjectionAuditV2};
+    use crate::cultural_systems::{CulturalProjectionAuditV2, CulturalProjectionIdV1};
     use crate::ontology_context::OntologyMappingRelationV1;
     use crate::ontology_mapping::{
-        OntologyMappingKindV1, OntologyMappingStandardV1, OntologyReleaseStatusV1,
-        OntologyMappingV2,
+        OntologyMappingKindV1, OntologyMappingStandardV1, OntologyMappingV2,
+        OntologyReleaseStatusV1,
     };
 
     fn fixture() -> (
@@ -129,7 +154,10 @@ mod tests {
                 publication_time: Some(1941),
                 capture_time: None,
                 available_by: 1942,
-                validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+                validity_time: Some(YearInterval {
+                    from: Some(1940),
+                    to: Some(1950),
+                }),
             }],
             source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
                 source_snapshot: "source:1".into(),
@@ -155,7 +183,10 @@ mod tests {
             community_recognition_evidence: vec![],
             assessment: None,
             argumentation: None,
-            event_time: YearInterval { from: Some(1900), to: Some(1950) },
+            event_time: YearInterval {
+                from: Some(1900),
+                to: Some(1950),
+            },
             qualification: claim.qualification,
             access_policy: crate::cultural_systems::AccessPolicyV1::Public,
             evidence_frontier: frontier.frontier_id.clone(),
@@ -176,8 +207,12 @@ mod tests {
     fn v4_rejects_duplicate_mapping_identity() {
         let (base, claim, frontier, mapping) = fixture();
         let resolution = OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
-        ).expect("resolution");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
         let mut duplicate = resolution.clone();
         duplicate.mapping.external_term = "E8_Acquisition".into();
         duplicate.mapping.recompute_hash().expect("mapping hash");
@@ -190,10 +225,13 @@ mod tests {
     fn v4_frontier_safety_is_bound_to_one_canonical_claim() {
         let (base, claim, frontier, mapping) = fixture();
         let resolution = OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
-        ).expect("resolution");
-        let audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution])
-            .expect("audit");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
+        let audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
         let other_claim = CanonicalClaimAdmissionV1 {
             claim_ref: "claim:other".into(),
             ..claim
@@ -205,13 +243,21 @@ mod tests {
     fn v4_hash_covers_resolution_identity_and_rejects_tamper() {
         let (base, claim, frontier, mapping) = fixture();
         let resolution = OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &frontier,
-        ).expect("resolution");
-        let mut audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution])
-            .expect("audit");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
+        let mut audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
         audit.resolutions[0].mapping.external_term = "E8_Acquisition".into();
-        audit.resolutions[0].mapping.recompute_hash().expect("mapping hash");
-        audit.resolutions[0].recompute_hash().expect("resolution hash");
+        audit.resolutions[0]
+            .mapping
+            .recompute_hash()
+            .expect("mapping hash");
+        audit.resolutions[0]
+            .recompute_hash()
+            .expect("resolution hash");
         assert!(audit.validate().is_err());
     }
 }
