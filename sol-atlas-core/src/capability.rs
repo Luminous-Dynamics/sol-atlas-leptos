@@ -1679,6 +1679,98 @@ mod graph_tests {
     }
 
     #[test]
+    fn provenance_complete_verification_requires_exact_bound_component_snapshots() {
+        let graph = CapabilityGraph {
+            capabilities: vec![cap("a", &["b"]), cap("b", &[])],
+        };
+        let dependency = graph
+            .dependency_snapshot(&CapabilityId("a".into()))
+            .unwrap();
+
+        let evidence_reference = verified_test_evidence("bound-evidence");
+        let evidence = EvidenceSnapshotV1::from_entries(
+            CapabilityId("a".into()),
+            RecoveryEvidenceCoverage::ClosedWorld,
+            vec![EvidenceSnapshotEntryV1 {
+                kind: EvidenceKind::Observed,
+                claim_ceiling: evidence_reference.reference.claim_ceiling.clone(),
+                reference: evidence_reference.reference.clone(),
+                unresolved_locator: None,
+            }],
+        );
+        let environment = EnvironmentSnapshotV1::from_facts(
+            CapabilityId("a".into()),
+            "site-1",
+            vec![EnvironmentFactV1 {
+                key: "temperature".into(),
+                value: "20".into(),
+                unit: Some("C".into()),
+                source: "sensor-a".into(),
+            }],
+        );
+
+        assert!(evidence.all_references_verified(&[evidence_reference.clone()]));
+
+        let mut verification = RecoveryVerification {
+            execution_id: "execution-bound".into(),
+            capability: CapabilityId("a".into()),
+            scope: "site-1".into(),
+            expected_postconditions: vec!["operational".into()],
+            observed_postconditions: vec!["operational".into()],
+            evidence: vec![evidence_reference],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: dependency.nodes.clone(),
+            unresolved_dependencies: vec![],
+            verification_snapshot: String::new(),
+            dependency_snapshot: dependency.digest(),
+            environment_snapshot: environment.digest(),
+            evidence_snapshot: evidence.digest(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
+            valid_until: "9999-12-31T23:59:59Z".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Passed,
+            verifier: "verification-runner".into(),
+            verified_at: "2026-10-02T00:00:00Z".into(),
+            claim_ceiling: "Exact verification scope only.".into(),
+        };
+
+        verification.verification_snapshot =
+            RecoveryVerificationSnapshotV1::from_verification_with_snapshots(
+                &verification,
+                &dependency,
+                &evidence,
+                &environment,
+            )
+            .unwrap()
+            .digest();
+
+        assert!(verification.passes_with_bound_snapshots(
+            &dependency,
+            &evidence,
+            &environment
+        ));
+
+        let mut bad_snapshot = verification.clone();
+        bad_snapshot.evidence_snapshot = "opaque-evidence-label".into();
+        bad_snapshot.verification_snapshot = bad_snapshot.derived_snapshot().digest();
+        assert!(bad_snapshot.passes());
+        assert!(!bad_snapshot.passes_with_bound_snapshots(
+            &dependency,
+            &evidence,
+            &environment
+        ));
+
+        let mut changed_environment = environment.clone();
+        changed_environment.facts[0].value = "21".into();
+        assert!(!verification.passes_with_bound_snapshots(
+            &dependency,
+            &evidence,
+            &changed_environment
+        ));
+    }
+
+    #[test]
     fn dependency_snapshot_is_derived_from_the_actual_required_graph() {
         let graph = CapabilityGraph {
             capabilities: vec![
