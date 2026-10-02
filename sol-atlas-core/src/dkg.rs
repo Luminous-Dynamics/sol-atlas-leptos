@@ -65,15 +65,10 @@ impl DkgStatementV1 {
     }
 
     /// A DKG statement crosses into the temporal projection layer only when
-    /// every evidence reference is admitted by the requested frontier.
+    /// its evidence path is admitted as a closed evidence -> source path.
     pub fn is_frontier_safe(&self, frontier: &EvidenceFrontierV1) -> bool {
         self.validate()
-            && frontier.admits(&self.evidence_refs[0])
-            && self.evidence_refs.iter().all(|id| frontier.admits(id))
-            && self
-                .source_snapshots
-                .iter()
-                .all(|id| frontier.admits_source(id))
+            && frontier.admits_evidence_path(&self.evidence_refs, &self.source_snapshots)
     }
 }
 
@@ -173,6 +168,39 @@ mod tests {
         let mut value = statement();
         value.evidence_refs.clear();
         assert!(!value.validate());
+    }
+
+    #[test]
+    fn frontier_blocks_dkg_evidence_declared_against_another_admitted_source() {
+        let mut frontier = frontier();
+        frontier.admitted_sources.insert("source:2".into());
+        frontier.evidence_metadata = vec![
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:1".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
+            },
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:2".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1945),
+                capture_time: None,
+                available_by: 1945,
+                validity_time: None,
+            },
+        ];
+
+        let admitted = statement();
+        assert!(admitted.is_frontier_safe(&frontier));
+
+        let mut mismatched = admitted;
+        mismatched.source_snapshots = vec!["source:2".into()];
+        assert!(!mismatched.is_frontier_safe(&frontier));
     }
 
     #[test]
