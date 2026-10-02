@@ -111,7 +111,7 @@ impl EvidenceSnapshotV1 {
     /// unresolved record. This is project-specific canonicalization; it does
     /// not claim RFC 8785/JCS interoperability.
     pub fn canonical_bytes(&self) -> Vec<u8> {
-        #[derive(Serialize)]
+        #[derive(Serialize, PartialEq)]
         struct CanonicalEntry {
             kind: EvidenceKind,
             reference: EvidenceReferenceCanonicalV1,
@@ -948,7 +948,7 @@ pub struct RecoveryVerification {
     pub scope: String,
     pub expected_postconditions: Vec<String>,
     pub observed_postconditions: Vec<String>,
-    pub evidence: Vec<EvidenceReferenceV1>,
+    pub evidence: Vec<EvidenceReferenceVerificationV1>,
     pub missing_postconditions: Vec<String>,
     pub contradictory_postconditions: Vec<String>,
     pub dependency_closure: Vec<CapabilityId>,
@@ -1001,7 +1001,9 @@ impl RecoveryVerification {
             && self.unresolved_dependencies.is_empty()
             && !self.dependency_closure.is_empty()
             && !self.evidence.is_empty()
-            && self.evidence.iter().all(EvidenceReferenceVerificationV1::is_verified)
+            && self.evidence
+                .iter()
+                .all(|verification| verification.is_verified())
             && !self.verification_snapshot.is_empty()
             && self.snapshot_matches_inputs()
             && !self.dependency_snapshot.is_empty()
