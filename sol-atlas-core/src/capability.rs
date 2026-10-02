@@ -760,8 +760,6 @@ impl RecoveryPlan {
             && self.steps_are_well_formed()
             && self.prerequisites_are_well_formed()
             && !self.expected_evidence.is_empty()
-            && !self.human_contribution.is_empty()
-            && !self.ai_contribution.is_empty()
             && !self.claim_ceiling.is_empty()
     }
 }
@@ -2543,13 +2541,18 @@ mod graph_tests {
         duplicate_steps.steps[1] = duplicate_steps.steps[0].clone();
         assert!(!duplicate_steps.is_ready());
 
-        let mut blank_contribution = base.clone();
-        blank_contribution.human_contribution.clear();
-        assert!(!blank_contribution.is_ready());
+        let mut blank_step = base.clone();
+        blank_step.steps[0].clear();
+        assert!(!blank_step.is_ready());
 
         let mut blank_evidence = base;
         blank_evidence.expected_evidence[0].clear();
         assert!(!blank_evidence.is_ready());
+
+        let mut blank_claim_ceiling = blank_evidence;
+        blank_claim_ceiling.expected_evidence[0] = "evidence-001".into();
+        blank_claim_ceiling.claim_ceiling.clear();
+        assert!(!blank_claim_ceiling.is_ready());
     }
 
     #[test]
