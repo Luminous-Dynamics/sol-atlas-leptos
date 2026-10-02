@@ -523,6 +523,14 @@ impl RecoveryVerification {
         if self.evidence_snapshot != evidence_snapshot {
             return RecoveryVerificationValidity::EvidenceDrift;
         }
+        if self.verification_snapshot.is_empty()
+            || self.dependency_snapshot.is_empty()
+            || self.environment_snapshot.is_empty()
+            || self.evidence_snapshot.is_empty()
+            || self.valid_until.is_empty()
+        {
+            return RecoveryVerificationValidity::Stale;
+        }
         if now > self.valid_until {
             return RecoveryVerificationValidity::Stale;
         }
