@@ -836,8 +836,11 @@ impl EvidenceFrontierV1 {
             let mut seen_sources = BTreeSet::new();
             for metadata in &self.source_metadata {
                 metadata.validate()?;
-                if metadata.available_by > self.known_by_year
-                    || !self.admitted_sources.contains(&metadata.source_snapshot)
+                metadata.validate()?;
+                if metadata.available_by > self.known_by_year {
+                    return Err(ProjectionError::LaterEvidenceInFrontier);
+                }
+                if !self.admitted_sources.contains(&metadata.source_snapshot)
                     || !seen_sources.insert(metadata.source_snapshot.clone())
                 {
                     return Err(ProjectionError::UnadmittedSourceMetadata);
