@@ -1311,6 +1311,12 @@ impl RecoveryVerification {
             && is_canonical_utc_timestamp(&self.verified_at)
     }
 
+    pub fn passes_with_bound_execution(&self, execution: &RecoveryExecution) -> bool {
+        self.passes()
+            && execution.is_successful()
+            && self.execution_id == execution.execution_id
+    }
+
     /// Stronger gate requiring the structured dependency, evidence, and
     /// environment snapshots used to derive the verification record.
     ///
@@ -2818,6 +2824,33 @@ mod graph_tests {
             &open_world,
             &environment
         ));
+
+        let execution = RecoveryExecution {
+            plan_id: "plan-coverage-bound".into(),
+            execution_id: "coverage-bound".into(),
+            started_at: "2026-10-02T07:59:00Z".into(),
+            ended_at: Some("2026-10-02T08:00:00Z".into()),
+            attempted_steps: vec!["verify".into()],
+            completed_steps: vec!["verify".into()],
+            failed_steps: vec![],
+            observed_preconditions: vec![],
+            evidence: vec!["coverage-check".into()],
+            resulting_state: CapabilityState::Demonstrated,
+            authorization: Some("verification-authorized".into()),
+            ai_assistance: None,
+            input_snapshot: "sha256:execution-inputs".into(),
+            failure_reason: None,
+            claim_ceiling: "Exact execution scope only.".into(),
+        };
+        assert!(verification.passes_with_bound_execution(&execution));
+
+        let mut wrong_execution_id = execution.clone();
+        wrong_execution_id.execution_id = "different-execution".into();
+        assert!(!verification.passes_with_bound_execution(&wrong_execution_id));
+
+        let mut failed_execution = execution;
+        failed_execution.failure_reason = Some("verification step failed".into());
+        assert!(!verification.passes_with_bound_execution(&failed_execution));
     }
 
     #[test]
