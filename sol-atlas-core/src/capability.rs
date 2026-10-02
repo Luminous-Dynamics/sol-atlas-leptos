@@ -15,6 +15,9 @@
 //! - evidence != qualification
 //! - a deployed instance != universal availability
 
+use crate::evidence_reference::{
+    EvidenceReferenceCanonicalV1, EvidenceReferenceV1, EvidenceReferenceVerificationV1,
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -89,8 +92,11 @@ pub struct EvidenceSnapshotV1 {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EvidenceSnapshotEntryV1 {
     pub kind: EvidenceKind,
-    pub reference: String,
+    pub reference: EvidenceReferenceV1,
     pub claim_ceiling: String,
+    /// Legacy locators remain visible as unresolved metadata rather than being
+    /// silently upgraded into content identity.
+    pub unresolved_locator: Option<String>,
 }
 
 impl EvidenceSnapshotV1 {
@@ -98,10 +104,45 @@ impl EvidenceSnapshotV1 {
 
     /// Stable project-specific canonical bytes.
     ///
-    /// Evidence entries are normalized by kind/reference/claim ceiling before
-    /// serialization. This does not claim RFC 8785/JCS interoperability.
+    /// The digest binds typed content identity, context, and claim ceiling while
+    /// deliberately excluding display labels. Unresolved legacy locators are
+    /// included separately so their presence cannot collapse into another
+    /// unresolved record. This is project-specific canonicalization; it does
+    /// not claim RFC 8785/JCS interoperability.
     pub fn canonical_bytes(&self) -> Vec<u8> {
-        serde_json::to_vec(self)
+        #[derive(Serialize)]
+        struct CanonicalEntry {
+            kind: EvidenceKind,
+            reference: EvidenceReferenceCanonicalV1,
+            claim_ceiling: String,
+            unresolved_locator: Option<String>,
+        }
+
+        #[derive(Serialize)]
+        struct CanonicalSnapshot {
+            schema: String,
+            subject: CapabilityId,
+            evidence: Vec<CanonicalEntry>,
+            coverage: RecoveryEvidenceCoverage,
+        }
+
+        let canonical = CanonicalSnapshot {
+            schema: self.schema.clone(),
+            subject: self.subject.clone(),
+            evidence: self
+                .evidence
+                .iter()
+                .map(|entry| CanonicalEntry {
+                    kind: entry.kind,
+                    reference: (&entry.reference).into(),
+                    claim_ceiling: entry.claim_ceiling.clone(),
+                    unresolved_locator: entry.unresolved_locator.clone(),
+                })
+                .collect(),
+            coverage: self.coverage,
+        };
+
+        serde_json::to_vec(&canonical)
             .expect("evidence snapshot contains only serializable evidence primitives")
     }
 
@@ -110,20 +151,26 @@ impl EvidenceSnapshotV1 {
         format!("sha256:{digest:x}")
     }
 
+    /// Preserve a legacy capability evidence record as an explicitly unresolved
+    /// typed reference. No mutable label is promoted into content identity.
     pub fn from_capability(capability: &Capability, coverage: RecoveryEvidenceCoverage) -> Self {
         let mut evidence = capability
             .evidence
             .iter()
             .map(|entry| EvidenceSnapshotEntryV1 {
                 kind: entry.kind,
-                reference: entry.reference.clone(),
+                reference: EvidenceReferenceV1::unresolved_legacy(
+                    entry.reference.clone(),
+                    entry.claim_ceiling.clone(),
+                ),
                 claim_ceiling: entry.claim_ceiling.clone(),
+                unresolved_locator: Some(entry.reference.clone()),
             })
             .collect::<Vec<_>>();
 
         evidence.sort_by(|left, right| {
-            (&left.kind, &left.reference, &left.claim_ceiling)
-                .cmp(&(&right.kind, &right.reference, &right.claim_ceiling))
+            (&left.kind, &left.claim_ceiling, &left.unresolved_locator)
+                .cmp(&(&right.kind, &right.claim_ceiling, &right.unresolved_locator))
         });
         evidence.dedup();
 
@@ -133,6 +180,57 @@ impl EvidenceSnapshotV1 {
             evidence,
             coverage,
         }
+    }
+
+    /// Construct a snapshot from already-typed evidence references.
+    pub fn from_entries(
+        subject: CapabilityId,
+        coverage: RecoveryEvidenceCoverage,
+        mut evidence: Vec<EvidenceSnapshotEntryV1>,
+    ) -> Self {
+        evidence.sort_by(|left, right| {
+            (
+                &left.kind,
+                &left.reference.artifact_type,
+                &left.reference.context,
+                &left.reference.digest,
+                &left.claim_ceiling,
+                &left.unresolved_locator,
+            )
+                .cmp(&(
+                    &right.kind,
+                    &right.reference.artifact_type,
+                    &right.reference.context,
+                    &right.reference.digest,
+                    &right.claim_ceiling,
+                    &right.unresolved_locator,
+                ))
+        });
+        evidence.dedup();
+
+        Self {
+            schema: Self::SCHEMA.into(),
+            subject,
+            evidence,
+            coverage,
+        }
+    }
+
+    /// A snapshot can be used as closed-world evidence only when every entry is
+    /// a well-formed typed reference with an independently verified digest.
+    pub fn all_references_verified(
+        &self,
+        verifications: &[EvidenceReferenceVerificationV1],
+    ) -> bool {
+        self.evidence.iter().all(|entry| {
+            entry.reference.is_well_formed()
+                && entry.unresolved_locator.is_none()
+                && verifications.iter().any(|verification| {
+                    verification.is_verified()
+                        && verification.reference.same_content_identity(&entry.reference)
+                        && verification.reference.claim_ceiling == entry.claim_ceiling
+                })
+        })
     }
 }
 
@@ -547,7 +645,11 @@ pub struct RecoveryVerificationSnapshotV1 {
     pub scope: String,
     pub expected_postconditions: Vec<String>,
     pub observed_postconditions: Vec<String>,
-    pub evidence: Vec<String>,
+    /// Typed evidence references plus independent processing state.
+    ///
+    /// A PASS requires every reference to have a recomputed digest and verifier
+    /// metadata; unresolved legacy strings are not admissible.
+    pub evidence: Vec<EvidenceReferenceVerificationV1>,
     pub missing_postconditions: Vec<String>,
     pub contradictory_postconditions: Vec<String>,
     pub dependency_closure: Vec<CapabilityId>,
@@ -583,7 +685,29 @@ impl RecoveryVerificationSnapshotV1 {
             scope: verification.scope.clone(),
             expected_postconditions: sorted_strings(&verification.expected_postconditions),
             observed_postconditions: sorted_strings(&verification.observed_postconditions),
-            evidence: sorted_strings(&verification.evidence),
+            evidence: {
+                let mut values = verification
+                    .evidence
+                    .iter()
+                    .map(|verification| verification.reference.clone())
+                    .collect::<Vec<_>>();
+                values.sort_by(|left, right| {
+                    (
+                        &left.artifact_type,
+                        &left.context,
+                        &left.digest,
+                        &left.claim_ceiling,
+                    )
+                        .cmp(&(
+                            &right.artifact_type,
+                            &right.context,
+                            &right.digest,
+                            &right.claim_ceiling,
+                        ))
+                });
+                values.dedup();
+                values
+            },
             missing_postconditions: sorted_strings(&verification.missing_postconditions),
             contradictory_postconditions: sorted_strings(&verification.contradictory_postconditions),
             dependency_closure: sorted_ids(&verification.dependency_closure),
@@ -625,7 +749,62 @@ impl RecoveryVerificationSnapshotV1 {
     /// property order and normalizes set-like arrays before serialization.
     /// It does not claim full RFC 8785/JCS interoperability.
     pub fn canonical_bytes(&self) -> Vec<u8> {
-        serde_json::to_vec(self).expect("verification snapshot contains only serializable strings")
+        #[derive(Serialize)]
+        struct CanonicalEvidenceReference {
+            artifact_type: String,
+            context: crate::evidence_reference::DigestContextV1,
+            digest: String,
+            claim_ceiling: String,
+        }
+
+        #[derive(Serialize)]
+        struct CanonicalSnapshot {
+            schema: String,
+            execution_id: String,
+            capability: CapabilityId,
+            scope: String,
+            expected_postconditions: Vec<String>,
+            observed_postconditions: Vec<String>,
+            evidence: Vec<CanonicalEvidenceReference>,
+            missing_postconditions: Vec<String>,
+            contradictory_postconditions: Vec<String>,
+            dependency_closure: Vec<CapabilityId>,
+            unresolved_dependencies: Vec<CapabilityId>,
+            dependency_snapshot: String,
+            environment_snapshot: String,
+            evidence_snapshot: String,
+            evidence_coverage: RecoveryEvidenceCoverage,
+        }
+
+        let canonical = CanonicalSnapshot {
+            schema: self.schema.clone(),
+            execution_id: self.execution_id.clone(),
+            capability: self.capability.clone(),
+            scope: self.scope.clone(),
+            expected_postconditions: self.expected_postconditions.clone(),
+            observed_postconditions: self.observed_postconditions.clone(),
+            evidence: self
+                .evidence
+                .iter()
+                .map(|reference| CanonicalEvidenceReference {
+                    artifact_type: reference.artifact_type.clone(),
+                    context: reference.context.clone(),
+                    digest: reference.digest.clone(),
+                    claim_ceiling: reference.claim_ceiling.clone(),
+                })
+                .collect(),
+            missing_postconditions: self.missing_postconditions.clone(),
+            contradictory_postconditions: self.contradictory_postconditions.clone(),
+            dependency_closure: self.dependency_closure.clone(),
+            unresolved_dependencies: self.unresolved_dependencies.clone(),
+            dependency_snapshot: self.dependency_snapshot.clone(),
+            environment_snapshot: self.environment_snapshot.clone(),
+            evidence_snapshot: self.evidence_snapshot.clone(),
+            evidence_coverage: self.evidence_coverage,
+        };
+
+        serde_json::to_vec(&canonical)
+            .expect("verification snapshot contains only serializable verification primitives")
     }
 
     /// SHA-256 identity of the canonical semantic verification inputs.
@@ -679,7 +858,7 @@ pub struct RecoveryVerification {
     pub scope: String,
     pub expected_postconditions: Vec<String>,
     pub observed_postconditions: Vec<String>,
-    pub evidence: Vec<String>,
+    pub evidence: Vec<EvidenceReferenceV1>,
     pub missing_postconditions: Vec<String>,
     pub contradictory_postconditions: Vec<String>,
     pub dependency_closure: Vec<CapabilityId>,
@@ -732,6 +911,7 @@ impl RecoveryVerification {
             && self.unresolved_dependencies.is_empty()
             && !self.dependency_closure.is_empty()
             && !self.evidence.is_empty()
+            && self.evidence.iter().all(EvidenceReferenceVerificationV1::is_verified)
             && !self.verification_snapshot.is_empty()
             && self.snapshot_matches_inputs()
             && !self.dependency_snapshot.is_empty()
