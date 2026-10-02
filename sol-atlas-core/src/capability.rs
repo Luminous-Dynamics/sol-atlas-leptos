@@ -1895,6 +1895,125 @@ impl CapabilityGraph {
     }
 }
 
+/// Canonical semantic snapshot of the inputs that governed one recovery execution.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryExecutionSnapshotV1 {
+    pub schema: String,
+    pub plan_id: String,
+    pub execution_id: String,
+    pub unavailable: CapabilityId,
+    pub candidate: CapabilityId,
+    pub prerequisites: Vec<CapabilityId>,
+    /// Ordered execution steps: order is part of the input identity.
+    pub steps: Vec<String>,
+    pub preconditions: Vec<String>,
+    pub expected_evidence: Vec<String>,
+    pub observed_preconditions: Vec<String>,
+    pub authorization: Option<String>,
+    pub ai_assistance: Option<String>,
+    pub plan_claim_ceiling: String,
+    pub execution_claim_ceiling: String,
+}
+
+impl RecoveryExecutionSnapshotV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-execution-snapshot:v1";
+
+    /// Derive the exact input identity from the plan and the concrete execution.
+    ///
+    /// The execution's resulting state, evidence, and completion/failure markers
+    /// are intentionally excluded: they are outputs of the activity, not inputs.
+    pub fn from_plan_and_execution(
+        plan: &RecoveryPlan,
+        execution: &RecoveryExecution,
+    ) -> Self {
+        Self {
+            schema: Self::SCHEMA.into(),
+            plan_id: plan.id.clone(),
+            execution_id: execution.execution_id.clone(),
+            unavailable: plan.unavailable.clone(),
+            candidate: plan.candidate.clone(),
+            prerequisites: plan.prerequisites.clone(),
+            steps: plan.steps.clone(),
+            preconditions: plan.preconditions.clone(),
+            expected_evidence: plan.expected_evidence.clone(),
+            observed_preconditions: execution.observed_preconditions.clone(),
+            authorization: execution.authorization.clone(),
+            ai_assistance: execution.ai_assistance.clone(),
+            plan_claim_ceiling: plan.claim_ceiling.clone(),
+            execution_claim_ceiling: execution.claim_ceiling.clone(),
+        }
+    }
+
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA
+            && !self.plan_id.is_empty()
+            && !self.execution_id.is_empty()
+            && !self.unavailable.0.is_empty()
+            && !self.candidate.0.is_empty()
+            && self.prerequisites.iter().all(|id| !id.0.is_empty())
+            && !self.steps.is_empty()
+            && self.steps.iter().all(|step| !step.is_empty())
+            && !self.preconditions.iter().any(|condition| condition.is_empty())
+            && !self.expected_evidence.iter().any(|reference| reference.is_empty())
+            && !self.observed_preconditions.iter().any(|condition| condition.is_empty())
+            && self
+                .authorization
+                .as_ref()
+                .is_none_or(|authorization| !authorization.is_empty())
+            && self
+                .ai_assistance
+                .as_ref()
+                .is_none_or(|assistance| !assistance.is_empty())
+            && !self.plan_claim_ceiling.is_empty()
+            && !self.execution_claim_ceiling.is_empty()
+    }
+
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        #[derive(Serialize)]
+        struct CanonicalSnapshot {
+            schema: String,
+            plan_id: String,
+            execution_id: String,
+            unavailable: CapabilityId,
+            candidate: CapabilityId,
+            prerequisites: Vec<CapabilityId>,
+            steps: Vec<String>,
+            preconditions: Vec<String>,
+            expected_evidence: Vec<String>,
+            observed_preconditions: Vec<String>,
+            authorization: Option<String>,
+            ai_assistance: Option<String>,
+            plan_claim_ceiling: String,
+            execution_claim_ceiling: String,
+        }
+
+        let canonical = CanonicalSnapshot {
+            schema: self.schema.clone(),
+            plan_id: self.plan_id.clone(),
+            execution_id: self.execution_id.clone(),
+            unavailable: self.unavailable.clone(),
+            candidate: self.candidate.clone(),
+            prerequisites: self.prerequisites.clone(),
+            steps: self.steps.clone(),
+            preconditions: self.preconditions.clone(),
+            expected_evidence: self.expected_evidence.clone(),
+            observed_preconditions: self.observed_preconditions.clone(),
+            authorization: self.authorization.clone(),
+            ai_assistance: self.ai_assistance.clone(),
+            plan_claim_ceiling: self.plan_claim_ceiling.clone(),
+            execution_claim_ceiling: self.execution_claim_ceiling.clone(),
+        };
+
+        serde_json::to_vec(&canonical)
+            .expect("execution input snapshot contains only serializable primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+}
+
 /// Evidence emitted by a concrete recovery execution.
 ///
 /// Execution evidence is intentionally separate from the plan: a plan describes
@@ -1962,6 +2081,22 @@ impl RecoveryExecution {
             && completed.is_subset(&attempted)
             && failed.is_subset(&attempted)
             && completed.is_disjoint(&failed)
+    }
+
+    /// Recompute and compare the concrete execution-input snapshot against its plan.
+    pub fn input_snapshot_matches_plan(&self, plan: &RecoveryPlan) -> bool {
+        let snapshot = RecoveryExecutionSnapshotV1::from_plan_and_execution(plan, self);
+        snapshot.is_well_formed() && self.input_snapshot == snapshot.digest()
+    }
+
+    /// Stronger success gate binding the execution to the exact ready recovery plan.
+    ///
+    /// This still does not establish recovery verification or external qualification.
+    pub fn is_successful_with_bound_plan(&self, plan: &RecoveryPlan) -> bool {
+        self.is_successful()
+            && plan.is_ready()
+            && self.plan_id == plan.id
+            && self.input_snapshot_matches_plan(plan)
     }
 
     /// Execution is complete only when it has an end marker and no failed steps.
@@ -2050,6 +2185,59 @@ mod graph_tests {
                 ai: String::new(),
             },
         }
+    }
+
+    #[test]
+    fn execution_input_snapshot_binds_exact_plan_and_execution_inputs() {
+        let plan = RecoveryPlan {
+            id: "plan-input-binding".into(),
+            unavailable: CapabilityId("water".into()),
+            candidate: CapabilityId("filter".into()),
+            prerequisites: vec![CapabilityId("power".into())],
+            steps: vec!["install".into(), "test".into()],
+            preconditions: vec!["site prepared".into()],
+            expected_evidence: vec!["evidence-001".into()],
+            human_contribution: String::new(),
+            ai_contribution: String::new(),
+            state: RecoveryPlanState::Ready,
+            claim_ceiling: "Exact recovery plan scope only.".into(),
+        };
+
+        let mut execution = RecoveryExecution {
+            plan_id: plan.id.clone(),
+            execution_id: "execution-input-binding".into(),
+            started_at: "2026-10-02T08:00:00Z".into(),
+            ended_at: Some("2026-10-02T08:05:00Z".into()),
+            attempted_steps: plan.steps.clone(),
+            completed_steps: plan.steps.clone(),
+            failed_steps: vec![],
+            observed_preconditions: vec!["site prepared".into()],
+            evidence: vec!["evidence-001".into()],
+            resulting_state: CapabilityState::Demonstrated,
+            authorization: Some("authorization-001".into()),
+            ai_assistance: None,
+            input_snapshot: String::new(),
+            failure_reason: None,
+            claim_ceiling: "Exact execution scope only.".into(),
+        };
+
+        execution.input_snapshot =
+            RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &execution).digest();
+
+        assert!(execution.input_snapshot_matches_plan(&plan));
+        assert!(execution.is_successful_with_bound_plan(&plan));
+
+        let mut changed_plan = plan.clone();
+        changed_plan.steps[1] = "independent-test".into();
+        assert!(!execution.input_snapshot_matches_plan(&changed_plan));
+
+        let mut changed_inputs = execution.clone();
+        changed_inputs.authorization = Some("different-authorization".into());
+        assert!(!changed_inputs.input_snapshot_matches_plan(&plan));
+
+        let mut malformed = RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &execution);
+        malformed.execution_claim_ceiling.clear();
+        assert!(!malformed.is_well_formed());
     }
 
     #[test]
