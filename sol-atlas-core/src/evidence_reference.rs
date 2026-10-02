@@ -453,7 +453,12 @@ impl EvidenceReferenceV1 {
         if claim_ceiling != profile.claim_ceiling {
             return Err("verification claim ceiling does not match profile");
         }
-        self.verify_preimage(preimage, verifier, verified_at, claim_ceiling)
+        let mut verification =
+            self.verify_preimage(preimage, verifier, verified_at, claim_ceiling)?;
+        verification.profile_id = Some(profile.id.clone());
+        verification.profile_version = Some(profile.version);
+        verification.profile_digest = Some(profile.digest());
+        Ok(verification)
     }
 
     /// Verify this reference only through an explicit profile registry.
@@ -557,6 +562,10 @@ pub struct EvidenceReferenceVerificationV1 {
     pub verifier: Option<String>,
     pub verified_at: Option<String>,
     pub observed_digest: Option<String>,
+    /// Exact profile identity used to authorize this verification, when applicable.
+    pub profile_id: Option<String>,
+    pub profile_version: Option<u32>,
+    pub profile_digest: Option<String>,
     pub claim_ceiling: String,
 }
 
@@ -569,6 +578,13 @@ impl EvidenceReferenceVerificationV1 {
             && self.observed_digest.as_ref() == Some(&self.reference.digest)
             && !self.claim_ceiling.is_empty()
             && self.claim_ceiling == self.reference.claim_ceiling
+            && match (&self.profile_id, self.profile_version, &self.profile_digest) {
+                (None, None, None) => true,
+                (Some(id), Some(version), Some(digest)) => {
+                    !id.is_empty() && *version > 0 && !digest.is_empty()
+                }
+                _ => false,
+            }
     }
 }
 
@@ -698,6 +714,64 @@ mod tests {
                 )
                 .is_err()
         );
+    }
+
+    #[test]
+    fn profile_bound_verification_records_authorizing_profile_identity() {
+        let preimage = b"profile-audit";
+        let digest = Sha256::digest(preimage);
+        let reference = EvidenceReferenceV1::content_addressed(
+            "recovery-execution-record",
+            context(),
+            format!("sha256:{digest:x}"),
+            "Profile-scoped evidence only.",
+        )
+        .unwrap()
+        .with_purpose("recovery-verification")
+        .unwrap();
+        let profile = EvidenceReferenceProfileV1 {
+            id: "profile-audit-001".into(),
+            version: 1,
+            artifact_type: reference.artifact_type.clone(),
+            context: reference.context.clone(),
+            purpose: Some("recovery-verification".into()),
+            claim_ceiling: reference.claim_ceiling.clone(),
+        };
+
+        let verification = reference
+            .verify_preimage_against_profile(
+                &profile,
+                preimage,
+                "deterministic-verifier",
+                "2026-10-02T00:00:00Z",
+                "Profile-scoped evidence only.",
+            )
+            .unwrap();
+
+        assert!(verification.is_verified());
+        assert_eq!(verification.profile_id.as_deref(), Some("profile-audit-001"));
+        assert_eq!(verification.profile_version, Some(1));
+        assert_eq!(verification.profile_digest.as_deref(), Some(profile.digest().as_str()));
+    }
+
+    #[test]
+    fn malformed_profile_binding_fails_closed() {
+        let reference = reference();
+        let mut verification = EvidenceReferenceVerificationV1 {
+            reference: reference.clone(),
+            resolution: EvidenceReferenceResolutionV1::Verified,
+            verifier: Some("deterministic-verifier".into()),
+            verified_at: Some("2026-10-02T00:00:00Z".into()),
+            observed_digest: Some(reference.digest.clone()),
+            profile_id: Some("profile-audit-002".into()),
+            profile_version: None,
+            profile_digest: Some("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into()),
+            claim_ceiling: reference.claim_ceiling.clone(),
+        };
+
+        assert!(!verification.is_verified());
+        verification.profile_version = Some(1);
+        assert!(verification.is_verified());
     }
 
     #[test]
@@ -1094,6 +1168,9 @@ mod tests {
             verifier: Some("deterministic-verifier".into()),
             verified_at: Some("2026-10-02T00:00:00Z".into()),
             observed_digest: Some(reference.digest.clone()),
+            profile_id: None,
+            profile_version: None,
+            profile_digest: None,
             claim_ceiling: reference.claim_ceiling.clone(),
         };
         assert!(verified.is_verified());
