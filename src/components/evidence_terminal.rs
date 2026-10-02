@@ -582,6 +582,11 @@ pub fn EvidenceTerminal() -> impl IntoView {
         move || terminal_query().claim_ref
     };
     let selected_projection = {
+        let terminal_query = terminal_query.clone();
+        let projection_catalog = projection_catalog.clone();
+        let primary_entity_ref = primary_entity_ref.clone();
+        let primary_frontier_ref = primary_frontier_ref.clone();
+        move || {
         let q = terminal_query();
         if q.validity() == TerminalQueryValidity::Malformed {
             return None;
@@ -611,6 +616,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
             };
             projection_for_terminal_query(&projection_catalog, &query)
         }
+        }
     };
     let replay_claim = {
         let selected_claim = selected_claim.clone();
@@ -634,7 +640,10 @@ pub fn EvidenceTerminal() -> impl IntoView {
             "model:symthaea:v1".to_string(),
         )
     };
-    let selected_node = move || LineageNodeRef::parse(query.read().get("node").as_deref());
+    let selected_node = {
+        let query = query.clone();
+        move || LineageNodeRef::parse(query.read().get("node").as_deref())
+    };
     let selected_node_status = {
         let selected_node = selected_node.clone();
         let selected_projection = selected_projection.clone();
