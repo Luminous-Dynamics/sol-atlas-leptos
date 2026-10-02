@@ -146,6 +146,129 @@ impl EvidenceReferenceProfileV1 {
     }
 }
 
+/// Immutable, content-addressed set of evidence-reference profiles.
+///
+/// The registry owns context selection. It refuses duplicate (artifact_type,
+/// purpose) declarations and refuses ambiguous selection when one artifact
+/// type has multiple accepted contexts but the reference omits purpose.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceReferenceProfileRegistryV1 {
+    pub id: String,
+    pub version: u32,
+    pub profiles: Vec<EvidenceReferenceProfileV1>,
+}
+
+impl EvidenceReferenceProfileRegistryV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:evidence-reference-profile-registry:v1";
+
+    pub fn is_well_formed(&self) -> bool {
+        if self.id.is_empty() || self.version == 0 || self.profiles.is_empty() {
+            return false;
+        }
+
+        if self.profiles.iter().any(|profile| !profile.is_well_formed()) {
+            return false;
+        }
+
+        for (index, left) in self.profiles.iter().enumerate() {
+            for right in self.profiles.iter().skip(index + 1) {
+                if left.artifact_type == right.artifact_type && left.purpose == right.purpose {
+                    return false;
+                }
+                if left.id == right.id && left.version == right.version {
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
+
+    /// Resolve exactly one profile for a reference.
+    ///
+    /// A single accepted context permits an omitted purpose. Multiple accepted
+    /// contexts require an explicit purpose; there is never entry-order or
+    /// context-preference fallback.
+    pub fn resolve(&self, reference: &EvidenceReferenceV1) -> Option<&EvidenceReferenceProfileV1> {
+        if !self.is_well_formed() || !reference.is_well_formed() {
+            return None;
+        }
+
+        let candidates = self
+            .profiles
+            .iter()
+            .filter(|profile| profile.artifact_type == reference.artifact_type)
+            .collect::<Vec<_>>();
+
+        if candidates.is_empty() {
+            return None;
+        }
+
+        let selected = match reference.purpose.as_deref() {
+            Some(purpose) => {
+                let mut matches = candidates
+                    .into_iter()
+                    .filter(|profile| profile.purpose.as_deref() == Some(purpose));
+                let selected = matches.next()?;
+                if matches.next().is_some() {
+                    return None;
+                }
+                selected
+            }
+            None if candidates.len() == 1 => candidates[0],
+            None => return None,
+        };
+
+        selected.accepts(reference).then_some(selected)
+    }
+
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        #[derive(Serialize)]
+        struct CanonicalRegistry {
+            schema: String,
+            id: String,
+            version: u32,
+            profiles: Vec<EvidenceReferenceProfileV1>,
+        }
+
+        let mut profiles = self.profiles.clone();
+        profiles.sort_by(|left, right| {
+            (
+                &left.artifact_type,
+                &left.purpose,
+                &left.id,
+                left.version,
+                &left.context,
+                &left.claim_ceiling,
+            )
+                .cmp(&(
+                    &right.artifact_type,
+                    &right.purpose,
+                    &right.id,
+                    right.version,
+                    &right.context,
+                    &right.claim_ceiling,
+                ))
+        });
+
+        let canonical = CanonicalRegistry {
+            schema: Self::SCHEMA.into(),
+            id: self.id.clone(),
+            version: self.version,
+            profiles,
+        };
+
+        serde_json::to_vec(&canonical)
+            .expect("evidence profile registry contains only serializable primitives")
+    }
+
+    /// SHA-256 identity of this exact profile registry snapshot.
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+}
+
 /// A content-addressed, typed reference to one evidence artifact.
 ///
 /// digest is an identity claim under context; it is not itself proof that the
@@ -324,6 +447,31 @@ impl EvidenceReferenceV1 {
             return Err("verification claim ceiling does not match profile");
         }
         self.verify_preimage(preimage, verifier, verified_at, claim_ceiling)
+    }
+
+    /// Verify this reference only through an explicit profile registry.
+    ///
+    /// Registry resolution is deterministic and fail-closed: an unknown type,
+    /// ambiguous context, duplicate declaration, or purpose mismatch cannot be
+    /// converted into a verification success.
+    pub fn verify_preimage_against_registry(
+        &self,
+        registry: &EvidenceReferenceProfileRegistryV1,
+        preimage: &[u8],
+        verifier: impl Into<String>,
+        verified_at: impl Into<String>,
+        claim_ceiling: impl Into<String>,
+    ) -> Result<EvidenceReferenceVerificationV1, &'static str> {
+        let profile = registry
+            .resolve(self)
+            .ok_or("evidence reference cannot be resolved by profile registry")?;
+        self.verify_preimage_against_profile(
+            profile,
+            preimage,
+            verifier,
+            verified_at,
+            claim_ceiling,
+        )
     }
 
     /// Preserve a legacy/bare evidence locator explicitly as unresolved.
@@ -546,6 +694,119 @@ mod tests {
                 )
                 .is_err()
         );
+    }
+
+    #[test]
+    fn profile_registry_resolves_single_context_without_purpose() {
+        let mut reference = reference();
+        reference.claim_ceiling = "Profile-scoped evidence only.".into();
+        let profile = EvidenceReferenceProfileV1 {
+            id: "registry-profile-001".into(),
+            version: 1,
+            artifact_type: reference.artifact_type.clone(),
+            context: reference.context.clone(),
+            purpose: None,
+            claim_ceiling: "Profile-scoped evidence only.".into(),
+        };
+        let registry = EvidenceReferenceProfileRegistryV1 {
+            id: "registry-001".into(),
+            version: 1,
+            profiles: vec![profile],
+        };
+
+        assert!(registry.is_well_formed());
+        assert!(registry.resolve(&reference).is_some());
+    }
+
+    #[test]
+    fn profile_registry_requires_purpose_when_contexts_are_multiple() {
+        let mut reference = reference();
+        reference.claim_ceiling = "Profile-scoped evidence only.".into();
+
+        let mut second_context = reference.context.clone();
+        second_context.domain_separator = "sol-atlas:alternate:v1".into();
+
+        let first = EvidenceReferenceProfileV1 {
+            id: "registry-profile-002".into(),
+            version: 1,
+            artifact_type: reference.artifact_type.clone(),
+            context: reference.context.clone(),
+            purpose: Some("recovery-verification".into()),
+            claim_ceiling: reference.claim_ceiling.clone(),
+        };
+        let second = EvidenceReferenceProfileV1 {
+            id: "registry-profile-003".into(),
+            version: 1,
+            artifact_type: reference.artifact_type.clone(),
+            context: second_context,
+            purpose: Some("recovery-replay".into()),
+            claim_ceiling: reference.claim_ceiling.clone(),
+        };
+        let registry = EvidenceReferenceProfileRegistryV1 {
+            id: "registry-002".into(),
+            version: 1,
+            profiles: vec![first.clone(), second],
+        };
+
+        assert!(registry.is_well_formed());
+        assert!(registry.resolve(&reference).is_none());
+
+        let explicit = reference
+            .clone()
+            .with_purpose("recovery-verification")
+            .unwrap();
+        assert!(registry.resolve(&explicit).is_some());
+        assert_eq!(
+            registry.resolve(&explicit).map(|profile| profile.id.as_str()),
+            Some("registry-profile-002")
+        );
+    }
+
+    #[test]
+    fn profile_registry_rejects_duplicate_type_and_purpose() {
+        let reference = reference();
+        let profile = EvidenceReferenceProfileV1 {
+            id: "registry-profile-004".into(),
+            version: 1,
+            artifact_type: reference.artifact_type.clone(),
+            context: reference.context.clone(),
+            purpose: Some("recovery-verification".into()),
+            claim_ceiling: reference.claim_ceiling.clone(),
+        };
+        let mut duplicate = profile.clone();
+        duplicate.id = "registry-profile-005".into();
+
+        let registry = EvidenceReferenceProfileRegistryV1 {
+            id: "registry-003".into(),
+            version: 1,
+            profiles: vec![profile, duplicate],
+        };
+
+        assert!(!registry.is_well_formed());
+        let explicit = reference.with_purpose("recovery-verification").unwrap();
+        assert!(registry.resolve(&explicit).is_none());
+    }
+
+    #[test]
+    fn profile_registry_digest_changes_with_version() {
+        let reference = reference();
+        let profile = EvidenceReferenceProfileV1 {
+            id: "registry-profile-006".into(),
+            version: 1,
+            artifact_type: reference.artifact_type.clone(),
+            context: reference.context.clone(),
+            purpose: Some("recovery-verification".into()),
+            claim_ceiling: reference.claim_ceiling.clone(),
+        };
+        let registry = EvidenceReferenceProfileRegistryV1 {
+            id: "registry-004".into(),
+            version: 1,
+            profiles: vec![profile],
+        };
+        let mut changed = registry.clone();
+        changed.version = 2;
+
+        assert_ne!(registry.digest(), changed.digest());
     }
 
     #[test]
