@@ -17,7 +17,8 @@
 
 use crate::evidence_reference::{
     DigestContextV1, DigestRepresentationV1, EvidenceReferenceCanonicalV1,
-    EvidenceReferenceResolutionV1, EvidenceReferenceV1, EvidenceReferenceVerificationV1,
+    EvidenceReferenceProfileRegistryV1, EvidenceReferenceResolutionV1, EvidenceReferenceV1,
+    EvidenceReferenceVerificationV1,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -1256,6 +1257,26 @@ impl RecoveryVerification {
             Ok(snapshot) => self.verification_snapshot == snapshot.digest(),
             Err(_) => false,
         }
+    }
+
+    /// Stronger gate requiring every processed evidence reference to remain
+    /// authorized by the exact supplied profile registry.
+    ///
+    /// The generic bound-snapshot gate intentionally permits unbound verified
+    /// evidence. This method is the explicit policy boundary for consumers that
+    /// require registry-backed admission as well as digest verification.
+    pub fn passes_with_bound_snapshots_and_registry(
+        &self,
+        dependency: &DependencySnapshotV1,
+        evidence: &EvidenceSnapshotV1,
+        environment: &EnvironmentSnapshotV1,
+        registry: &EvidenceReferenceProfileRegistryV1,
+    ) -> bool {
+        self.passes_with_bound_snapshots(dependency, evidence, environment)
+            && self
+                .evidence
+                .iter()
+                .all(|verification| verification.is_verified_against_registry(registry))
     }
 
     /// Check whether this verification remains bound to the exact scope and
@@ -2910,6 +2931,119 @@ mod graph_tests {
             ),
             RecoveryVerificationValidity::ScopeMismatch
         );
+    }
+
+    #[test]
+    fn registry_bound_verification_requires_exact_registry_authorization() {
+        let dependency = DependencySnapshotV1 {
+            schema: DependencySnapshotV1::SCHEMA.into(),
+            root: CapabilityId("a".into()),
+            nodes: vec![CapabilityId("a".into())],
+            edges: vec![],
+        };
+        let environment = EnvironmentSnapshotV1::from_facts(
+            CapabilityId("a".into()),
+            "site-1",
+            vec![EnvironmentFactV1 {
+                key: "temperature".into(),
+                value: "20".into(),
+                unit: Some("C".into()),
+                source: "sensor-a".into(),
+            }],
+        );
+        let preimage = b"registry-gated-evidence";
+        let digest = Sha256::digest(preimage);
+        let reference = EvidenceReferenceV1::content_addressed(
+            "test-evidence-record",
+            DigestContextV1 {
+                id: "sol-atlas:registry-test:v1".into(),
+                preimage_construction: "exact supplied test bytes".into(),
+                canonicalization: "sol-atlas-registry-test-v1".into(),
+                hash_algorithm: "SHA-256".into(),
+                domain_separator: "sol-atlas:registry-test:v1".into(),
+                preimage_encoding: "UTF-8".into(),
+                representation: DigestRepresentationV1::PrefixedLowerHex,
+            },
+            format!("sha256:{digest:x}"),
+            "Registry-authorized test evidence only.",
+        )
+        .unwrap()
+        .with_purpose("recovery-verification")
+        .unwrap();
+        let profile = crate::evidence_reference::EvidenceReferenceProfileV1 {
+            id: "registry-profile".into(),
+            version: 1,
+            artifact_type: reference.artifact_type.clone(),
+            context: reference.context.clone(),
+            purpose: Some("recovery-verification".into()),
+            claim_ceiling: reference.claim_ceiling.clone(),
+        };
+        let registry = EvidenceReferenceProfileRegistryV1 {
+            id: "registry-001".into(),
+            version: 1,
+            profiles: vec![profile],
+        };
+        let processed = reference
+            .verify_preimage_against_registry(
+                &registry,
+                preimage,
+                "registry-verifier",
+                "2026-10-02T08:00:00Z",
+                "Registry-authorized test evidence only.",
+            )
+            .unwrap();
+        let evidence = EvidenceSnapshotV1::from_entries(
+            CapabilityId("a".into()),
+            RecoveryEvidenceCoverage::ClosedWorld,
+            vec![EvidenceSnapshotEntryV1 {
+                kind: EvidenceKind::Observed,
+                reference: processed.reference.clone(),
+                claim_ceiling: processed.reference.claim_ceiling.clone(),
+                unresolved_locator: None,
+            }],
+        );
+        let mut verification = RecoveryVerification {
+            execution_id: "execution-registry-gated".into(),
+            capability: CapabilityId("a".into()),
+            scope: "site-1".into(),
+            expected_postconditions: vec!["operational".into()],
+            observed_postconditions: vec!["operational".into()],
+            evidence: vec![processed],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("a".into())],
+            unresolved_dependencies: vec![],
+            verification_snapshot: String::new(),
+            dependency_snapshot: dependency.digest(),
+            environment_snapshot: environment.digest(),
+            evidence_snapshot: evidence.digest(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
+            valid_until: "9999-12-31T23:59:59Z".into(),
+            superseded_by: None,
+            state: RecoveryVerificationState::Passed,
+            verifier: "registry-verifier".into(),
+            verified_at: "2026-10-02T08:00:00Z".into(),
+            claim_ceiling: "Exact registry-gated scope only.".into(),
+        };
+        verification.verification_snapshot =
+            RecoveryVerificationSnapshotV1::from_verification_with_snapshots(
+                &verification,
+                &dependency,
+                &evidence,
+                &environment,
+            )
+            .unwrap()
+            .digest();
+
+        assert!(verification.passes_with_bound_snapshots_and_registry(
+            &dependency, &evidence, &environment, &registry
+        ));
+
+        let mut changed = registry.clone();
+        changed.version = 2;
+        assert!(!verification.passes_with_bound_snapshots_and_registry(
+            &dependency, &evidence, &environment, &changed
+        ));
     }
 
     #[test]
