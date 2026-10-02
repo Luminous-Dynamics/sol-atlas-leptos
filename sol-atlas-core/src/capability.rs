@@ -3387,8 +3387,7 @@ mod graph_tests {
 
         let mut bound_execution = execution.clone();
         bound_execution.input_snapshot =
-            RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &bound_execution)
-                .digest();
+            RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &bound_execution).digest();
         verification.execution_result_snapshot =
             RecoveryExecutionResultSnapshotV1::from_execution(&bound_execution).digest();
 
@@ -3400,10 +3399,7 @@ mod graph_tests {
         ));
 
         plan.claim_ceiling = "mutated plan".into();
-        assert!(!verification.passes_with_bound_plan_execution(
-            &plan,
-            &bound_execution
-        ));
+        assert!(!verification.passes_with_bound_plan_execution(&plan, &bound_execution));
 
         let mut stale_candidate = candidate;
         stale_candidate.claim_ceiling = "mutated candidate".into();
@@ -3543,12 +3539,12 @@ mod graph_tests {
         assert!(impact.affected.is_empty());
         assert_eq!(impact.unresolved, vec![CapabilityId("a".into())]);
 
-        assert!(graph
-            .recovery_candidates(&CapabilityId("a".into()))
-            .is_empty());
+        assert!(
+            graph
+                .recovery_candidates(&CapabilityId("a".into()))
+                .is_empty()
+        );
     }
-
-
 
     #[test]
     fn recovery_plan_readiness_rejects_ambiguous_or_incomplete_structure() {
