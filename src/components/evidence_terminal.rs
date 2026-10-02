@@ -679,7 +679,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             ClaimKind::Derived => " derived",
                             ClaimKind::Hypothesis => " hypothesis",
                         };
-                        let status_class = state_class(projection.qualification);
+                        let _status_class = state_class(projection.qualification);
                         let kind_label = claim_kind_label(projection.claim_kind);
                         let status = state_label(projection.qualification);
                         view! {
@@ -706,7 +706,11 @@ pub fn EvidenceTerminal() -> impl IntoView {
                         <p>{move || selected_projection()
                             .and_then(|projection| projection.contradictions.first().map(|c| c.summary.clone()))
                             .unwrap_or_else(|| "No local contradiction is available for the selected claim.".into())}</p>
-                        {move || replay_claim().map(|claim| view! {
+                        {{
+                            let replay_claim = replay_claim.clone();
+                            let selected_entity = selected_entity.clone();
+                            let selected_frontier = selected_frontier.clone();
+                            move || replay_claim().map(|claim| view! {
                             <A attr:class="text-action" href={
                                 let context = link_replay_context();
                                 TerminalNavigationTarget::new(
@@ -720,7 +724,8 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                 )
                                 .href()
                             }>"Inspect competing evidence →"</A>
-                        })}
+                        })
+                        }}
                     </div>
                 </section>
 
@@ -731,7 +736,9 @@ pub fn EvidenceTerminal() -> impl IntoView {
                             <button class="icon-action" aria-label="Close evidence drawer">"×"</button>
                         </div>
                         <ol class="lineage">
-                            {selected_projection()
+                            {{
+                                let selected_projection = selected_projection.clone();
+                                move || selected_projection()
                                 .map(|projection| projection.lineage_nodes())
                                 .unwrap_or_default()
                                 .into_iter()
@@ -768,7 +775,8 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                         <A attr:class="lineage-link" href=href>{node.id().to_string()}</A>
                                     </li>
                                 }
-                            }).collect_view()}
+                            }).collect_view()
+                            }}
                         </ol>
                         <div class="lineage-selection">
                             <span>"INSPECTED NODE"</span>
@@ -809,9 +817,12 @@ pub fn EvidenceTerminal() -> impl IntoView {
     None => "REPLAY TARGET INCOMPLETE · no replay link emitted",
 }}</p>
                         <p class="lineage-note">"Replay links preserve the selected claim context; opening a target is navigation only and does not assert dependency resolution or replay execution."</p>
-                        {move || selected_projection().map(|_| ()).is_none().then(|| view! {
-                            <p class="lineage-note">"SELECTED CLAIM NOT LOCALLY PROJECTED · NO FALLBACK"</p>
-                        })}
+                        {{
+                            let selected_projection = selected_projection.clone();
+                            move || selected_projection().map(|_| ()).is_none().then(|| view! {
+                                <p class="lineage-note">"SELECTED CLAIM NOT LOCALLY PROJECTED · NO FALLBACK"</p>
+                            })
+                        }}
                         <p class="lineage-note">"Inspection links address declared dependencies only. Local declaration is not authoritative resolution; unresolved dependencies are never replaced with current or inferred data."</p>
                         <div class="terminal-route-state">
                             <span>"URL view"</span><code>{selected_view}</code>
@@ -840,7 +851,11 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                 .unwrap_or("UNAVAILABLE")}</span>
                         </div>
                         <p>"Competing explanations, missing information, scenarios and forecasts will enter here through a typed ResearchResult boundary."</p>
-                        {move || replay_claim().map(|claim| view! {
+                        {{
+                            let replay_claim = replay_claim.clone();
+                            let selected_entity = selected_entity.clone();
+                            let selected_frontier = selected_frontier.clone();
+                            move || replay_claim().map(|claim| view! {
                             <A attr:class="text-action" href={
                                 let context = link_replay_context();
                                 TerminalNavigationTarget::new(
@@ -854,7 +869,8 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                 )
                                 .href()
                             }>"Show information gaps →"</A>
-                        })}
+                        })
+                        }}
                     </section>
                 </aside>
             </div>
