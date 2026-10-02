@@ -51,7 +51,7 @@ impl TemporalProjectionRequestV1 {
         chain.validate_strict()?;
         if chain
             .current()
-            .is_none_or(|frontier| frontier.frontier_id != self.evidence_frontier.frontier_id)
+            .is_none_or(|frontier| frontier != &self.evidence_frontier)
         {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
@@ -293,7 +293,7 @@ impl TemporalProjectionSetV1 {
         if self.frontier_lineage != expected_path
             || chain
                 .current()
-                .is_none_or(|frontier| frontier.frontier_id != self.evidence_frontier.frontier_id)
+                .is_none_or(|frontier| frontier != &self.evidence_frontier)
         {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
@@ -607,6 +607,77 @@ mod tests {
         tampered.frontier_lineage[0] = "frontier:forged".into();
         assert_eq!(
             tampered.validate_against_frontier_chain(&chain),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn chain_aware_replay_rejects_same_id_different_leaf_manifest() {
+        let mut root = frontier();
+        root.frontier_id = "frontier:1940".into();
+        root.known_by_year = 1940;
+        root.admitted_evidence = ["e:old"].into_iter().map(Into::into).collect();
+        root.admitted_sources = ["source:archive"].into_iter().map(Into::into).collect();
+        root.evidence_metadata = vec![EvidenceTemporalMetadataV1 {
+            evidence_id: "e:old".into(),
+            source_snapshot: "source:archive".into(),
+            artifact_time: None,
+            publication_time: Some(1939),
+            capture_time: None,
+            available_by: 1939,
+            validity_time: None,
+        }];
+        root.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:archive".into(),
+            publication_time: Some(1939),
+            capture_time: None,
+            available_by: 1939,
+        }];
+        root.recompute_manifest_hash().unwrap();
+
+        let mut chain_leaf = root.clone();
+        chain_leaf.frontier_id = "frontier:1949".into();
+        chain_leaf.known_by_year = 1949;
+        chain_leaf.parent_frontier = Some(root.frontier_id.clone());
+        chain_leaf.evidence_metadata.push(EvidenceTemporalMetadataV1 {
+            evidence_id: "e:transition".into(),
+            source_snapshot: "source:archive".into(),
+            artifact_time: None,
+            publication_time: Some(1945),
+            capture_time: None,
+            available_by: 1945,
+            validity_time: None,
+        });
+        chain_leaf.admitted_evidence.insert("e:transition".into());
+        chain_leaf.recompute_manifest_hash().unwrap();
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, chain_leaf.clone()],
+        };
+
+        let mut request_leaf = chain_leaf.clone();
+        request_leaf.admitted_evidence.insert("e:shadow".into());
+        request_leaf.evidence_metadata.push(EvidenceTemporalMetadataV1 {
+            evidence_id: "e:shadow".into(),
+            source_snapshot: "source:archive".into(),
+            artifact_time: None,
+            publication_time: Some(1948),
+            capture_time: None,
+            available_by: 1948,
+            validity_time: None,
+        });
+        request_leaf.recompute_manifest_hash().unwrap();
+
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1945),
+                to: Some(1947),
+            },
+            evidence_frontier: request_leaf,
+        };
+
+        assert_eq!(
+            request.validate_against_frontier_chain(&chain),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
