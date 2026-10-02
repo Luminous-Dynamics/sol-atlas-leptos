@@ -414,7 +414,24 @@ pub enum RecoveryVerificationState {
     Inconclusive,
 }
 
+/// Result of checking whether a verification record can still be reused
+/// against the exact inputs it originally verified.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryVerificationValidity {
+    Current,
+    Stale,
+    ScopeMismatch,
+    DependencyDrift,
+    EnvironmentDrift,
+    EvidenceDrift,
+    Superseded,
+}
+
 /// Auditable verification of the post-execution capability state.
+///
+/// Snapshot bindings are deliberately explicit: a historical PASS must not
+/// silently become a current claim after the capability scope, dependency
+/// graph, environment, or evidence changes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RecoveryVerification {
     pub execution_id: String,
@@ -427,6 +444,18 @@ pub struct RecoveryVerification {
     pub contradictory_postconditions: Vec<String>,
     pub dependency_closure: Vec<CapabilityId>,
     pub unresolved_dependencies: Vec<CapabilityId>,
+    /// Stable snapshot identity for the verification input set.
+    pub verification_snapshot: String,
+    /// Snapshot of the exact required dependency closure used by verification.
+    pub dependency_snapshot: String,
+    /// Snapshot of the environment in which verification was performed.
+    pub environment_snapshot: String,
+    /// Snapshot of the evidence set consumed by verification.
+    pub evidence_snapshot: String,
+    /// Canonical UTC timestamp at which this verification ceases to be reusable.
+    pub valid_until: String,
+    /// Optional lineage marker for a newer verification that supersedes this one.
+    pub superseded_by: Option<String>,
     pub state: RecoveryVerificationState,
     pub verifier: String,
     pub verified_at: String,
@@ -442,15 +471,58 @@ impl RecoveryVerification {
         self.state == RecoveryVerificationState::Passed
             && !self.execution_id.is_empty()
             && !self.capability.0.is_empty()
+            && !self.scope.is_empty()
             && !self.expected_postconditions.is_empty()
             && !self.expected_postconditions.iter().any(|condition| {
                 !self.observed_postconditions.iter().any(|observed| observed == condition)
             })
             && self.contradictory_postconditions.is_empty()
             && self.unresolved_dependencies.is_empty()
+            && !self.dependency_closure.is_empty()
             && !self.evidence.is_empty()
+            && !self.verification_snapshot.is_empty()
+            && !self.dependency_snapshot.is_empty()
+            && !self.environment_snapshot.is_empty()
+            && !self.evidence_snapshot.is_empty()
+            && !self.valid_until.is_empty()
             && !self.verifier.is_empty()
             && !self.verified_at.is_empty()
+    }
+
+    /// Check whether this verification remains bound to the exact scope and
+    /// snapshots that were originally verified.
+    ///
+    /// Snapshot identifiers are intentionally opaque: their producer owns the
+    /// digest/canonicalization scheme. A mismatch is drift, never an implicit
+    /// re-verification.
+    pub fn validity_against(
+        &self,
+        capability: &CapabilityId,
+        scope: &str,
+        dependency_snapshot: &str,
+        environment_snapshot: &str,
+        evidence_snapshot: &str,
+        now: &str,
+    ) -> RecoveryVerificationValidity {
+        if self.superseded_by.is_some() {
+            return RecoveryVerificationValidity::Superseded;
+        }
+        if &self.capability != capability || self.scope != scope {
+            return RecoveryVerificationValidity::ScopeMismatch;
+        }
+        if self.dependency_snapshot != dependency_snapshot {
+            return RecoveryVerificationValidity::DependencyDrift;
+        }
+        if self.environment_snapshot != environment_snapshot {
+            return RecoveryVerificationValidity::EnvironmentDrift;
+        }
+        if self.evidence_snapshot != evidence_snapshot {
+            return RecoveryVerificationValidity::EvidenceDrift;
+        }
+        if now > self.valid_until {
+            return RecoveryVerificationValidity::Stale;
+        }
+        RecoveryVerificationValidity::Current
     }
 }
 
