@@ -541,15 +541,7 @@ impl CapabilityGraph {
                     .flat_map(move |dependency| {
                         dependency.substitutes.iter().map(move |candidate| {
                             let (required_capabilities, missing_capabilities) =
-                                match self.required_closure(candidate) {
-                                    Ok(closure) => (closure, Vec::new()),
-                                    Err(error) => {
-                                        let partial = self
-                                            .required_closure(candidate)
-                                            .unwrap_or_else(|_| vec![candidate.clone()]);
-                                        (partial, error.missing)
-                                    }
-                                };
+                                self.required_closure_with_missing(candidate);
 
                             RecoveryCandidate {
                                 for_dependency: dependency.capability.clone(),
@@ -619,40 +611,11 @@ impl CapabilityGraph {
         &self,
         root: &CapabilityId,
     ) -> Result<Vec<CapabilityId>, CapabilityGraphError> {
-        use std::collections::{BTreeSet, VecDeque};
-
-        let index = self
-            .capabilities
-            .iter()
-            .map(|c| (c.id.clone(), c))
-            .collect::<std::collections::BTreeMap<_, _>>();
-
-        let mut queue = VecDeque::from([root.clone()]);
-        let mut seen = BTreeSet::new();
-        let mut missing = BTreeSet::new();
-
-        while let Some(id) = queue.pop_front() {
-            if !seen.insert(id.clone()) {
-                continue;
-            }
-
-            let Some(capability) = index.get(&id) else {
-                missing.insert(id);
-                continue;
-            };
-
-            for dependency in capability.dependencies.iter().filter(|d| d.relation.is_required()) {
-                queue.push_back(dependency.capability.clone());
-            }
-        }
-
+        let (present, missing) = self.required_closure_with_missing(root);
         if !missing.is_empty() {
-            return Err(CapabilityGraphError {
-                missing: missing.into_iter().collect(),
-            });
+            return Err(CapabilityGraphError { missing });
         }
-
-        Ok(seen.into_iter().collect())
+        Ok(present)
     }
 }
 
