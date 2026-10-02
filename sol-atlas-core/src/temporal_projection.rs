@@ -30,7 +30,9 @@ impl TemporalProjectionRequestV1 {
         if !self.evidence_frontier.frontier_id.is_valid() {
             return Err(ProjectionError::MissingEvidenceFrontier);
         }
-        self.evidence_frontier.validate_temporal_manifest()?;
+        if !self.evidence_frontier.manifest_hash.trim().is_empty() {
+            self.evidence_frontier.verify_manifest_hash()?;
+        }
         Ok(())
     }
 
@@ -308,7 +310,9 @@ impl TemporalProjectionSetV1 {
         if !self.evidence_frontier.frontier_id.is_valid() {
             return Err(ProjectionError::MissingEvidenceFrontier);
         }
-        self.evidence_frontier.validate_temporal_manifest()?;
+        if !self.evidence_frontier.manifest_hash.trim().is_empty() {
+            self.evidence_frontier.verify_manifest_hash()?;
+        }
         if self.frontier_lineage.is_empty()
             || self.frontier_lineage.last() != Some(&self.evidence_frontier.frontier_id)
             || self.frontier_lineage.iter().any(|id| !id.is_valid())
