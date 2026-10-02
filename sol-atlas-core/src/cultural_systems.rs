@@ -11,8 +11,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::civilizational::{
-    AssessmentId, ClaimId, EntityId, EvidenceFrontierId, EvidenceFrontierV1, EvidenceId, InterpretationId,
-    ProjectionError, QualificationStatus, SourceSnapshotId, YearInterval,
+    AssessmentId, ClaimId, EntityId, EvidenceFrontierId, EvidenceFrontierV1, EvidenceId,
+    InterpretationId, ProjectionError, QualificationStatus, SourceSnapshotId, YearInterval,
 };
 
 macro_rules! cultural_id {
@@ -22,11 +22,15 @@ macro_rules! cultural_id {
         pub struct $name(pub String);
 
         impl From<&str> for $name {
-            fn from(value: &str) -> Self { Self(value.to_owned()) }
+            fn from(value: &str) -> Self {
+                Self(value.to_owned())
+            }
         }
 
         impl $name {
-            pub fn is_valid(&self) -> bool { !self.0.trim().is_empty() }
+            pub fn is_valid(&self) -> bool {
+                !self.0.trim().is_empty()
+            }
         }
     };
 }
@@ -80,7 +84,10 @@ impl CanonicalClaimAdmissionV1 {
             && frontier.validate_temporal_manifest_strict().is_ok()
             && self.evidence_frontier == frontier.frontier_id
             && self.evidence_refs.iter().all(|id| frontier.admits(id))
-            && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
+            && self
+                .source_snapshots
+                .iter()
+                .all(|id| frontier.admits_source(id))
     }
 }
 
@@ -105,20 +112,32 @@ pub struct CulturalArgumentationRefV1 {
 
 impl CulturalArgumentationRefV1 {
     pub fn validate(&self) -> Result<(), ProjectionError> {
-        if !self.assessment.is_valid() || !self.interpretation.is_valid()
-            || !self.claim_ref.is_valid() || self.evidence_refs.is_empty()
+        if !self.assessment.is_valid()
+            || !self.interpretation.is_valid()
+            || !self.claim_ref.is_valid()
+            || self.evidence_refs.is_empty()
             || self.evidence_refs.iter().any(|id| !id.is_valid())
             || self.source_snapshots.is_empty()
             || self.source_snapshots.iter().any(|id| !id.is_valid())
-            || !self.evidence_frontier.is_valid() {
+            || !self.evidence_frontier.is_valid()
+        {
             return Err(ProjectionError::EmptyIdentifier);
         }
-        if self.available_by < self.assessment_time.and_then(|v| v.to)
-            .or(self.assessment_time.and_then(|v| v.from)).unwrap_or(self.available_by)
-            || self.available_by < self.interpretation_time.and_then(|v| v.to)
-                .or(self.interpretation_time.and_then(|v| v.from)).unwrap_or(self.available_by)
+        if self.available_by
+            < self
+                .assessment_time
+                .and_then(|v| v.to)
+                .or(self.assessment_time.and_then(|v| v.from))
+                .unwrap_or(self.available_by)
+            || self.available_by
+                < self
+                    .interpretation_time
+                    .and_then(|v| v.to)
+                    .or(self.interpretation_time.and_then(|v| v.from))
+                    .unwrap_or(self.available_by)
             || self.assessment_time.is_some_and(|v| !v.is_valid())
-            || self.interpretation_time.is_some_and(|v| !v.is_valid()) {
+            || self.interpretation_time.is_some_and(|v| !v.is_valid())
+        {
             return Err(ProjectionError::InvalidTimeInterval);
         }
         Ok(())
@@ -129,7 +148,8 @@ impl CulturalArgumentationRefV1 {
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate().is_ok() && claim.is_frontier_safe(frontier)
+        self.validate().is_ok()
+            && claim.is_frontier_safe(frontier)
             && self.claim_ref == claim.claim_ref
             && self.evidence_refs == claim.evidence_refs
             && self.source_snapshots == claim.source_snapshots
@@ -176,7 +196,10 @@ impl CulturalArgumentationEvidenceClosureV1 {
             && self.claim_ref == claim.claim_ref
             && self.evidence_frontier == frontier.frontier_id
             && self.evidence_refs.iter().all(|id| frontier.admits(id))
-            && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
+            && self
+                .source_snapshots
+                .iter()
+                .all(|id| frontier.admits_source(id))
     }
 }
 
@@ -194,7 +217,8 @@ pub struct CulturalArgumentationRefV2 {
 
 impl CulturalArgumentationRefV2 {
     pub fn validate(&self) -> Result<(), ProjectionError> {
-        if !self.assessment.is_valid() || !self.interpretation.is_valid()
+        if !self.assessment.is_valid()
+            || !self.interpretation.is_valid()
             || !self.claim_ref.is_valid()
         {
             return Err(ProjectionError::EmptyIdentifier);
@@ -205,10 +229,18 @@ impl CulturalArgumentationRefV2 {
         }
         if self.assessment_time.is_some_and(|v| !v.is_valid())
             || self.interpretation_time.is_some_and(|v| !v.is_valid())
-            || self.available_by < self.assessment_time.and_then(|v| v.to)
-                .or(self.assessment_time.and_then(|v| v.from)).unwrap_or(self.available_by)
-            || self.available_by < self.interpretation_time.and_then(|v| v.to)
-                .or(self.interpretation_time.and_then(|v| v.from)).unwrap_or(self.available_by)
+            || self.available_by
+                < self
+                    .assessment_time
+                    .and_then(|v| v.to)
+                    .or(self.assessment_time.and_then(|v| v.from))
+                    .unwrap_or(self.available_by)
+            || self.available_by
+                < self
+                    .interpretation_time
+                    .and_then(|v| v.to)
+                    .or(self.interpretation_time.and_then(|v| v.from))
+                    .unwrap_or(self.available_by)
         {
             return Err(ProjectionError::InvalidTimeInterval);
         }
@@ -238,7 +270,8 @@ pub struct CulturalArgumentationSetV1 {
 
 impl CulturalArgumentationSetV1 {
     pub fn validate(&self) -> Result<(), ProjectionError> {
-        if !self.claim_ref.is_valid() || !self.evidence_frontier.is_valid()
+        if !self.claim_ref.is_valid()
+            || !self.evidence_frontier.is_valid()
             || self.alternatives.is_empty()
         {
             return Err(ProjectionError::EmptyIdentifier);
@@ -248,7 +281,10 @@ impl CulturalArgumentationSetV1 {
             argumentation.validate()?;
             if argumentation.claim_ref != self.claim_ref
                 || argumentation.closure.evidence_frontier != self.evidence_frontier
-                || !identities.insert((argumentation.assessment.clone(), argumentation.interpretation.clone()))
+                || !identities.insert((
+                    argumentation.assessment.clone(),
+                    argumentation.interpretation.clone(),
+                ))
             {
                 return Err(ProjectionError::EmptyIdentifier);
             }
@@ -264,7 +300,10 @@ impl CulturalArgumentationSetV1 {
         self.validate().is_ok()
             && self.claim_ref == claim.claim_ref
             && self.evidence_frontier == frontier.frontier_id
-            && self.alternatives.iter().all(|argumentation| argumentation.is_frontier_safe(claim, frontier))
+            && self
+                .alternatives
+                .iter()
+                .all(|argumentation| argumentation.is_frontier_safe(claim, frontier))
     }
 
     /// Canonicalizes storage order by argument identity. This is not an epistemic ranking.
@@ -372,10 +411,12 @@ impl CulturalTransformationV1 {
     ) -> bool {
         self.validate().is_ok()
             && self.evidence_closure().is_frontier_safe(claim, frontier)
-            && self
-                .community_recognition
-                .iter()
-                .all(|recognition| recognition.evidence_refs.iter().all(|id| frontier.admits(id)))
+            && self.community_recognition.iter().all(|recognition| {
+                recognition
+                    .evidence_refs
+                    .iter()
+                    .all(|id| frontier.admits(id))
+            })
     }
 }
 
@@ -396,8 +437,7 @@ impl CommunityRecognitionV1 {
         if !self.community.is_valid() || !self.practice.is_valid() {
             return Err(ProjectionError::EmptyIdentifier);
         }
-        if self.recognition_time.is_some_and(|v| !v.is_valid())
-        {
+        if self.recognition_time.is_some_and(|v| !v.is_valid()) {
             return Err(ProjectionError::InvalidTimeInterval);
         }
         if self.evidence_refs.is_empty() || self.evidence_refs.iter().any(|id| !id.is_valid()) {
@@ -557,10 +597,12 @@ impl CulturalTransmissionV1 {
     ) -> bool {
         self.validate().is_ok()
             && self.evidence_closure().is_frontier_safe(claim, frontier)
-            && self
-                .community_recognition
-                .iter()
-                .all(|recognition| recognition.evidence_refs.iter().all(|id| frontier.admits(id)))
+            && self.community_recognition.iter().all(|recognition| {
+                recognition
+                    .evidence_refs
+                    .iter()
+                    .all(|id| frontier.admits(id))
+            })
     }
 }
 
@@ -636,25 +678,42 @@ impl CulturalProjectionAdmissionV2 {
         frontier: &EvidenceFrontierV1,
         claim: &CanonicalClaimAdmissionV1,
     ) -> Option<Self> {
-        if !projection.is_frontier_safe(claim, frontier) { return None; }
+        if !projection.is_frontier_safe(claim, frontier) {
+            return None;
+        }
         let closure = projection.evidence_closure();
         let (projection_id, access_policy) = match projection {
-            CulturalProjectionV1::Transmission(v) =>
-                (CulturalProjectionIdV1::Transmission(v.transmission_id.clone()), v.access_policy),
-            CulturalProjectionV1::Transformation(v) =>
-                (CulturalProjectionIdV1::Transformation(v.transformation_id.clone()), v.access_policy),
+            CulturalProjectionV1::Transmission(v) => (
+                CulturalProjectionIdV1::Transmission(v.transmission_id.clone()),
+                v.access_policy,
+            ),
+            CulturalProjectionV1::Transformation(v) => (
+                CulturalProjectionIdV1::Transformation(v.transformation_id.clone()),
+                v.access_policy,
+            ),
         };
-        Some(Self { projection_id, claim_ref: closure.claim_ref,
-            evidence_refs: closure.evidence_refs, source_snapshots: closure.source_snapshots,
-            evidence_frontier: closure.evidence_frontier, qualification: closure.qualification,
-            access_policy })
+        Some(Self {
+            projection_id,
+            claim_ref: closure.claim_ref,
+            evidence_refs: closure.evidence_refs,
+            source_snapshots: closure.source_snapshots,
+            evidence_frontier: closure.evidence_frontier,
+            qualification: closure.qualification,
+            access_policy,
+        })
     }
 
     pub fn validate(&self) -> Result<(), ProjectionError> {
-        if !self.projection_id.is_valid() || !self.claim_ref.is_valid()
-            || self.evidence_refs.is_empty() || self.evidence_refs.iter().any(|id| !id.is_valid())
-            || self.source_snapshots.is_empty() || self.source_snapshots.iter().any(|id| !id.is_valid())
-            || !self.evidence_frontier.is_valid() { return Err(ProjectionError::EmptyIdentifier); }
+        if !self.projection_id.is_valid()
+            || !self.claim_ref.is_valid()
+            || self.evidence_refs.is_empty()
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.is_empty()
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || !self.evidence_frontier.is_valid()
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
         Ok(())
     }
 }
@@ -679,20 +738,59 @@ pub struct CulturalProjectionAuditV2 {
 
 impl CulturalProjectionAuditV2 {
     pub fn from_projection(projection: &CulturalProjectionV1) -> Self {
-        let (projection_id, recognition, assessment, event_time, claim_ref, evidence_refs,
-            source_snapshots, qualification, access_policy, evidence_frontier) = match projection {
+        let (
+            projection_id,
+            recognition,
+            assessment,
+            event_time,
+            claim_ref,
+            evidence_refs,
+            source_snapshots,
+            qualification,
+            access_policy,
+            evidence_frontier,
+        ) = match projection {
             CulturalProjectionV1::Transmission(v) => (
-                CulturalProjectionIdV1::Transmission(v.transmission_id.clone()), &v.community_recognition,
-                v.assessment.clone(), v.event_time, v.claim_ref.clone(), v.evidence_refs.clone(),
-                v.source_snapshots.clone(), v.qualification, v.access_policy, v.evidence_frontier.clone()),
+                CulturalProjectionIdV1::Transmission(v.transmission_id.clone()),
+                &v.community_recognition,
+                v.assessment.clone(),
+                v.event_time,
+                v.claim_ref.clone(),
+                v.evidence_refs.clone(),
+                v.source_snapshots.clone(),
+                v.qualification,
+                v.access_policy,
+                v.evidence_frontier.clone(),
+            ),
             CulturalProjectionV1::Transformation(v) => (
-                CulturalProjectionIdV1::Transformation(v.transformation_id.clone()), &v.community_recognition,
-                v.assessment.clone(), v.event_time, v.claim_ref.clone(), v.evidence_refs.clone(),
-                v.source_snapshots.clone(), v.qualification, v.access_policy, v.evidence_frontier.clone()),
+                CulturalProjectionIdV1::Transformation(v.transformation_id.clone()),
+                &v.community_recognition,
+                v.assessment.clone(),
+                v.event_time,
+                v.claim_ref.clone(),
+                v.evidence_refs.clone(),
+                v.source_snapshots.clone(),
+                v.qualification,
+                v.access_policy,
+                v.evidence_frontier.clone(),
+            ),
         };
-        Self { projection_id, claim_ref, evidence_refs, source_snapshots,
-            community_recognition_evidence: recognition.iter().flat_map(|r| r.evidence_refs.iter().cloned()).collect(),
-            assessment, argumentation: None, event_time, qualification, access_policy, evidence_frontier }
+        Self {
+            projection_id,
+            claim_ref,
+            evidence_refs,
+            source_snapshots,
+            community_recognition_evidence: recognition
+                .iter()
+                .flat_map(|r| r.evidence_refs.iter().cloned())
+                .collect(),
+            assessment,
+            argumentation: None,
+            event_time,
+            qualification,
+            access_policy,
+            evidence_frontier,
+        }
     }
 
     /// Attaches an externally resolved argumentation record without changing the
@@ -703,32 +801,51 @@ impl CulturalProjectionAuditV2 {
     }
 
     pub fn validate(&self) -> Result<(), ProjectionError> {
-        if !self.projection_id.is_valid() || !self.claim_ref.is_valid()
-            || self.evidence_refs.is_empty() || self.evidence_refs.iter().any(|id| !id.is_valid())
-            || self.source_snapshots.is_empty() || self.source_snapshots.iter().any(|id| !id.is_valid())
-            || self.community_recognition_evidence.iter().any(|id| !id.is_valid())
+        if !self.projection_id.is_valid()
+            || !self.claim_ref.is_valid()
+            || self.evidence_refs.is_empty()
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.is_empty()
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || self
+                .community_recognition_evidence
+                .iter()
+                .any(|id| !id.is_valid())
             || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
-            || !self.evidence_frontier.is_valid() { return Err(ProjectionError::EmptyIdentifier); }
+            || !self.evidence_frontier.is_valid()
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
         if let Some(argumentation) = &self.argumentation {
             argumentation.validate()?;
             if argumentation.claim_ref != self.claim_ref
                 || argumentation.evidence_refs != self.evidence_refs
                 || argumentation.source_snapshots != self.source_snapshots
                 || argumentation.evidence_frontier != self.evidence_frontier
-                || self.assessment.as_ref() != Some(&argumentation.assessment) {
+                || self.assessment.as_ref() != Some(&argumentation.assessment)
+            {
                 return Err(ProjectionError::EmptyIdentifier);
             }
         }
-        if !self.event_time.is_valid() { return Err(ProjectionError::InvalidTimeInterval); }
+        if !self.event_time.is_valid() {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
         Ok(())
     }
 
     pub fn is_frontier_safe(&self, frontier: &EvidenceFrontierV1) -> bool {
-        self.validate().is_ok() && frontier.validate_temporal_manifest_strict().is_ok()
+        self.validate().is_ok()
+            && frontier.validate_temporal_manifest_strict().is_ok()
             && self.evidence_frontier == frontier.frontier_id
             && self.evidence_refs.iter().all(|id| frontier.admits(id))
-            && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
-            && self.community_recognition_evidence.iter().all(|id| frontier.admits(id))
+            && self
+                .source_snapshots
+                .iter()
+                .all(|id| frontier.admits_source(id))
+            && self
+                .community_recognition_evidence
+                .iter()
+                .all(|id| frontier.admits(id))
             && self.argumentation.as_ref().is_none_or(|argumentation| {
                 argumentation.is_frontier_safe(
                     &CanonicalClaimAdmissionV1 {
@@ -810,7 +927,10 @@ impl CulturalProjectionAuditV1 {
             && frontier.validate_temporal_manifest_strict().is_ok()
             && self.evidence_frontier == frontier.frontier_id
             && self.evidence_refs.iter().all(|id| frontier.admits(id))
-            && self.source_snapshots.iter().all(|id| frontier.admits_source(id))
+            && self
+                .source_snapshots
+                .iter()
+                .all(|id| frontier.admits_source(id))
             && self
                 .community_recognition_evidence
                 .iter()
@@ -875,7 +995,8 @@ impl CulturalProjectionAdmissionV1 {
 mod tests {
     use super::*;
     use crate::civilizational::{
-        ArgumentationTemporalMetadataV1, EvidenceTemporalMetadataV1, SourceSnapshotTemporalMetadataV1,
+        ArgumentationTemporalMetadataV1, EvidenceTemporalMetadataV1,
+        SourceSnapshotTemporalMetadataV1,
     };
 
     fn frontier() -> EvidenceFrontierV1 {
@@ -898,7 +1019,10 @@ mod tests {
                     publication_time: Some(1941),
                     capture_time: None,
                     available_by: 1942,
-                    validity_time: Some(YearInterval { from: Some(1900), to: Some(1950) }),
+                    validity_time: Some(YearInterval {
+                        from: Some(1900),
+                        to: Some(1950),
+                    }),
                 },
                 EvidenceTemporalMetadataV1 {
                     evidence_id: "e:2".into(),
@@ -907,7 +1031,10 @@ mod tests {
                     publication_time: Some(1946),
                     capture_time: None,
                     available_by: 1947,
-                    validity_time: Some(YearInterval { from: Some(1900), to: Some(1950) }),
+                    validity_time: Some(YearInterval {
+                        from: Some(1900),
+                        to: Some(1950),
+                    }),
                 },
                 EvidenceTemporalMetadataV1 {
                     evidence_id: "e:recognition".into(),
@@ -916,7 +1043,10 @@ mod tests {
                     publication_time: Some(1949),
                     capture_time: None,
                     available_by: 1950,
-                    validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+                    validity_time: Some(YearInterval {
+                        from: Some(1940),
+                        to: Some(1950),
+                    }),
                 },
             ],
             source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
@@ -928,8 +1058,14 @@ mod tests {
             argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
                 assessment: "assessment:1".into(),
                 interpretation: "interpretation:1".into(),
-                assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-                interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                assessment_time: Some(YearInterval {
+                    from: Some(1948),
+                    to: Some(1948),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1949),
+                    to: Some(1949),
+                }),
                 available_by: 1950,
             }],
         };
@@ -953,7 +1089,10 @@ mod tests {
             source: "practice:source".into(),
             target: "practice:target".into(),
             mode: TransmissionMode::Translated,
-            event_time: YearInterval { from: Some(1900), to: Some(1950) },
+            event_time: YearInterval {
+                from: Some(1900),
+                to: Some(1950),
+            },
             context: Some("documented translation context".into()),
             claim_ref: "claim:1".into(),
             evidence_refs: vec!["e:1", "e:2"].into_iter().map(Into::into).collect(),
@@ -963,7 +1102,10 @@ mod tests {
             community_recognition: vec![CommunityRecognitionV1 {
                 community: "community:1".into(),
                 practice: "practice:target".into(),
-                recognition_time: Some(YearInterval { from: Some(1940), to: None }),
+                recognition_time: Some(YearInterval {
+                    from: Some(1940),
+                    to: None,
+                }),
                 maintained: true,
                 transmitted: true,
                 evidence_refs: vec!["e:recognition".into()],
@@ -973,9 +1115,7 @@ mod tests {
         }
     }
 
-    fn canonical_claim_for_parts(
-        value: &CulturalTransformationV1,
-    ) -> CanonicalClaimAdmissionV1 {
+    fn canonical_claim_for_parts(value: &CulturalTransformationV1) -> CanonicalClaimAdmissionV1 {
         CanonicalClaimAdmissionV1 {
             claim_ref: value.claim_ref.clone(),
             evidence_refs: value.evidence_refs.clone(),
@@ -993,7 +1133,10 @@ mod tests {
             source: "practice:source".into(),
             target: "practice:target".into(),
             class: CulturalTransformationClass::LocalizedAs,
-            event_time: YearInterval { from: Some(1920), to: Some(1950) },
+            event_time: YearInterval {
+                from: Some(1920),
+                to: Some(1950),
+            },
             context: Some("documented local adaptation".into()),
             claim_ref: "claim:1".into(),
             evidence_refs: vec!["e:1", "e:2"].into_iter().map(Into::into).collect(),
@@ -1005,7 +1148,11 @@ mod tests {
             evidence_frontier: "frontier:1950".into(),
         };
         assert!(value.is_frontier_safe(&canonical_claim_for_parts(&value), &frontier));
-        assert!(CulturalProjectionV1::Transformation(value).validate().is_ok());
+        assert!(
+            CulturalProjectionV1::Transformation(value)
+                .validate()
+                .is_ok()
+        );
     }
 
     #[test]
@@ -1033,7 +1180,10 @@ mod tests {
 
         value = transmission();
         value.evidence_refs.clear();
-        assert_eq!(value.validate(), Err(ProjectionError::TransitionWithoutEvidencePath));
+        assert_eq!(
+            value.validate(),
+            Err(ProjectionError::TransitionWithoutEvidencePath)
+        );
     }
 
     #[test]
@@ -1094,13 +1244,12 @@ mod tests {
         let frontier = frontier();
         let mut value = transmission();
         value.access_policy = AccessPolicyV1::Public;
-        let public_admission =
-            CulturalProjectionAdmissionV1::from_transmission(
-                &value,
-                &frontier,
-                &canonical_claim(&value),
-            )
-            .unwrap();
+        let public_admission = CulturalProjectionAdmissionV1::from_transmission(
+            &value,
+            &frontier,
+            &canonical_claim(&value),
+        )
+        .unwrap();
 
         value.access_policy = AccessPolicyV1::SacredOrRestricted;
         let restricted_admission = CulturalProjectionAdmissionV1::from_transmission(
@@ -1110,7 +1259,10 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(public_admission.qualification, restricted_admission.qualification);
+        assert_eq!(
+            public_admission.qualification,
+            restricted_admission.qualification
+        );
     }
 
     #[test]
@@ -1150,8 +1302,14 @@ mod tests {
             claim_ref: value.claim_ref.clone(),
             evidence_refs: value.evidence_refs.clone(),
             source_snapshots: value.source_snapshots.clone(),
-            assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-            interpretation_time: Some(YearInterval { from: Some(1960), to: Some(1960) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1948),
+                to: Some(1948),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1960),
+                to: Some(1960),
+            }),
             available_by: 1960,
             evidence_frontier: frontier.frontier_id.clone(),
         };
@@ -1173,15 +1331,22 @@ mod tests {
             claim_ref: value.claim_ref.clone(),
             evidence_refs: value.evidence_refs.clone(),
             source_snapshots: value.source_snapshots.clone(),
-            assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-            interpretation_time: Some(YearInterval { from: Some(1955), to: Some(1955) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1948),
+                to: Some(1948),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1955),
+                to: Some(1955),
+            }),
             available_by: 1956,
             evidence_frontier: frontier.frontier_id.clone(),
         };
         assert!(argumentation.is_frontier_safe(&claim, &frontier));
 
-        let audit = CulturalProjectionAuditV2::from_projection(&CulturalProjectionV1::Transmission(value))
-            .with_argumentation(argumentation);
+        let audit =
+            CulturalProjectionAuditV2::from_projection(&CulturalProjectionV1::Transmission(value))
+                .with_argumentation(argumentation);
         assert!(audit.validate().is_ok());
         assert!(audit.is_frontier_safe(&frontier));
     }
@@ -1196,13 +1361,20 @@ mod tests {
             claim_ref: value.claim_ref.clone(),
             evidence_refs: value.evidence_refs.clone(),
             source_snapshots: value.source_snapshots.clone(),
-            assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-            interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1948),
+                to: Some(1948),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1949),
+                to: Some(1949),
+            }),
             available_by: 1950,
             evidence_frontier: frontier.frontier_id.clone(),
         };
-        let mut audit = CulturalProjectionAuditV2::from_projection(&CulturalProjectionV1::Transmission(value))
-            .with_argumentation(argumentation);
+        let mut audit =
+            CulturalProjectionAuditV2::from_projection(&CulturalProjectionV1::Transmission(value))
+                .with_argumentation(argumentation);
         audit.claim_ref = "claim:other".into();
         assert_eq!(audit.validate(), Err(ProjectionError::EmptyIdentifier));
     }
@@ -1238,8 +1410,14 @@ mod tests {
                 source_snapshots: vec!["source:1".into()],
                 evidence_frontier: frontier.frontier_id.clone(),
             },
-            assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-            interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1948),
+                to: Some(1948),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1949),
+                to: Some(1949),
+            }),
             available_by: 1950,
         };
         assert!(argumentation.is_frontier_safe(&claim, &frontier));
@@ -1264,8 +1442,14 @@ mod tests {
                         source_snapshots: vec!["source:1".into()],
                         evidence_frontier: frontier.frontier_id.clone(),
                     },
-                    assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-                    interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                    assessment_time: Some(YearInterval {
+                        from: Some(1948),
+                        to: Some(1948),
+                    }),
+                    interpretation_time: Some(YearInterval {
+                        from: Some(1949),
+                        to: Some(1949),
+                    }),
                     available_by: 1950,
                 },
                 CulturalArgumentationRefV2 {
@@ -1278,8 +1462,14 @@ mod tests {
                         source_snapshots: vec!["source:1".into()],
                         evidence_frontier: frontier.frontier_id.clone(),
                     },
-                    assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-                    interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                    assessment_time: Some(YearInterval {
+                        from: Some(1948),
+                        to: Some(1948),
+                    }),
+                    interpretation_time: Some(YearInterval {
+                        from: Some(1949),
+                        to: Some(1949),
+                    }),
                     available_by: 1950,
                 },
             ],
@@ -1290,7 +1480,6 @@ mod tests {
         assert_eq!(set.alternatives[0].assessment, "assessment:1".into());
         assert_eq!(set.alternatives[1].assessment, "assessment:2".into());
     }
-
 
     #[test]
     fn canonical_claim_admission_rejects_duplicate_closure_members() {
@@ -1318,7 +1507,9 @@ mod tests {
 
         closure.evidence_refs = vec!["e:1"].into_iter().map(Into::into).collect();
         closure.source_snapshots = vec!["source:1", "source:1"]
-            .into_iter().map(Into::into).collect();
+            .into_iter()
+            .map(Into::into)
+            .collect();
         assert!(closure.validate().is_err());
     }
 
@@ -1337,8 +1528,14 @@ mod tests {
                 source_snapshots: vec!["source:1".into()],
                 evidence_frontier: frontier.frontier_id.clone(),
             },
-            assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-            interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+            assessment_time: Some(YearInterval {
+                from: Some(1948),
+                to: Some(1948),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1949),
+                to: Some(1949),
+            }),
             available_by: 1950,
         };
         let set = CulturalArgumentationSetV1 {
@@ -1348,5 +1545,4 @@ mod tests {
         };
         assert!(!set.is_frontier_safe(&claim, &frontier));
     }
-
 }
