@@ -19,6 +19,57 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+/// Narrow canonical UTC timestamp used for auditable evidence processing metadata.
+fn is_canonical_utc_timestamp(value: &str) -> bool {
+    fn leap_year(year: u32) -> bool {
+        year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+    }
+
+    if value.len() != 20 {
+        return false;
+    }
+
+    let bytes = value.as_bytes();
+    let digit_ranges = [&bytes[0..4], &bytes[5..7], &bytes[8..10], &bytes[11..13], &bytes[14..16], &bytes[17..19]];
+    if bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+        || digit_ranges.iter().any(|digits| !digits.iter().all(u8::is_ascii_digit))
+    {
+        return false;
+    }
+
+    let year = value[0..4].parse::<u32>().ok();
+    let month = value[5..7].parse::<u32>().ok();
+    let day = value[8..10].parse::<u32>().ok();
+    let hour = value[11..13].parse::<u32>().ok();
+    let minute = value[14..16].parse::<u32>().ok();
+    let second = value[17..19].parse::<u32>().ok();
+
+    let (Some(year), Some(month), Some(day), Some(hour), Some(minute), Some(second)) =
+        (year, month, day, hour, minute, second)
+    else {
+        return false;
+    };
+
+    if !(1..=12).contains(&month) || hour > 23 || minute > 59 || second > 59 {
+        return false;
+    }
+
+    let days_in_month = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap_year(year) => 29,
+        2 => 28,
+        _ => unreachable!(),
+    };
+
+    (1..=days_in_month).contains(&day)
+}
+
 /// Representation of the digest value carried by a typed reference.
 ///
 /// These forms are deliberately distinct. A verifier must not silently coerce
@@ -420,8 +471,11 @@ impl EvidenceReferenceV1 {
         let verifier = verifier.into();
         let verified_at = verified_at.into();
         let claim_ceiling = claim_ceiling.into();
-        if verifier.is_empty() || verified_at.is_empty() || claim_ceiling.is_empty() {
-            return Err("verification metadata is incomplete");
+        if verifier.is_empty()
+            || !is_canonical_utc_timestamp(&verified_at)
+            || claim_ceiling.is_empty()
+        {
+            return Err("verification metadata is incomplete or non-canonical");
         }
 
         Ok(EvidenceReferenceVerificationV1 {
@@ -588,7 +642,10 @@ impl EvidenceReferenceVerificationV1 {
         self.resolution == EvidenceReferenceResolutionV1::Verified
             && self.reference.is_well_formed()
             && self.verifier.as_ref().is_some_and(|v| !v.is_empty())
-            && self.verified_at.as_ref().is_some_and(|t| !t.is_empty())
+            && self
+                .verified_at
+                .as_ref()
+                .is_some_and(|t| is_canonical_utc_timestamp(t))
             && self.observed_digest.as_ref() == Some(&self.reference.digest)
             && !self.claim_ceiling.is_empty()
             && self.claim_ceiling == self.reference.claim_ceiling
@@ -860,6 +917,44 @@ mod tests {
         let mut changed = registry.clone();
         changed.version = 2;
         assert!(!verification.is_verified_against_registry(&changed));
+    }
+
+    #[test]
+    fn evidence_verification_rejects_non_canonical_timestamps() {
+        let preimage = b"timestamp-bound-evidence";
+        let digest = Sha256::digest(preimage);
+        let reference = EvidenceReferenceV1::content_addressed(
+            "recovery-execution-record",
+            context(),
+            format!("sha256:{digest:x}"),
+            "Exact artifact identity only.",
+        )
+        .unwrap();
+
+        assert!(reference
+            .verify_preimage(
+                preimage,
+                "deterministic-verifier",
+                "2026-10-02T00:00:00Z",
+                "Exact artifact identity only.",
+            )
+            .is_ok());
+        assert!(reference
+            .verify_preimage(
+                preimage,
+                "deterministic-verifier",
+                "2026-10-02T00:00:00+00:00",
+                "Exact artifact identity only.",
+            )
+            .is_err());
+        assert!(reference
+            .verify_preimage(
+                preimage,
+                "deterministic-verifier",
+                "2026-02-29T00:00:00Z",
+                "Exact artifact identity only.",
+            )
+            .is_err());
     }
 
     #[test]
