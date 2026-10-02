@@ -762,6 +762,28 @@ impl RecoveryPlan {
             && !self.expected_evidence.is_empty()
             && !self.claim_ceiling.is_empty()
     }
+
+    /// Stronger readiness gate binding the plan to an explicitly discovered candidate.
+    ///
+    /// Candidate discovery remains separate from policy selection: this only proves
+    /// that the plan targets the same declared alternative and includes the candidate's
+    /// known required closure as prerequisites.
+    pub fn is_ready_against_candidate(&self, candidate: &RecoveryCandidate) -> bool {
+        if !self.is_ready()
+            || candidate.selection == RecoverySelectionState::Rejected
+            || !candidate.is_resolvable()
+            || self.unavailable != candidate.for_dependency
+            || self.candidate != candidate.candidate
+        {
+            return false;
+        }
+
+        candidate
+            .required_capabilities
+            .iter()
+            .filter(|capability| *capability != &candidate.candidate)
+            .all(|capability| self.prerequisites.contains(capability))
+    }
 }
 
 /// Verification result for a completed recovery execution.
@@ -2188,6 +2210,55 @@ mod graph_tests {
                 ai: String::new(),
             },
         }
+    }
+
+    #[test]
+    fn recovery_plan_can_bind_only_to_its_declared_resolvable_candidate() {
+        let plan = RecoveryPlan {
+            id: "plan-candidate-binding".into(),
+            unavailable: CapabilityId("water".into()),
+            candidate: CapabilityId("filter".into()),
+            prerequisites: vec![CapabilityId("power".into()), CapabilityId("membrane".into())],
+            steps: vec!["install".into(), "test".into()],
+            preconditions: vec!["site prepared".into()],
+            expected_evidence: vec!["evidence-001".into()],
+            human_contribution: String::new(),
+            ai_contribution: String::new(),
+            state: RecoveryPlanState::Ready,
+            claim_ceiling: "Exact recovery plan scope only.".into(),
+        };
+        let candidate = RecoveryCandidate {
+            for_dependency: CapabilityId("water".into()),
+            candidate: CapabilityId("filter".into()),
+            required_capabilities: vec![
+                CapabilityId("filter".into()),
+                CapabilityId("power".into()),
+                CapabilityId("membrane".into()),
+            ],
+            missing_capabilities: vec![],
+            evidence: vec![],
+            qualification: None,
+            selection: RecoverySelectionState::Discovered,
+            claim_ceiling: "Declared recovery candidate only.".into(),
+        };
+
+        assert!(plan.is_ready_against_candidate(&candidate));
+
+        let mut wrong_candidate = candidate.clone();
+        wrong_candidate.candidate = CapabilityId("other-filter".into());
+        assert!(!plan.is_ready_against_candidate(&wrong_candidate));
+
+        let mut missing_prerequisite = candidate.clone();
+        missing_prerequisite.required_capabilities.push(CapabilityId("missing".into()));
+        assert!(!plan.is_ready_against_candidate(&missing_prerequisite));
+
+        let mut unresolved = candidate.clone();
+        unresolved.missing_capabilities = vec![CapabilityId("membrane".into())];
+        assert!(!plan.is_ready_against_candidate(&unresolved));
+
+        let mut rejected = candidate;
+        rejected.selection = RecoverySelectionState::Rejected;
+        assert!(!plan.is_ready_against_candidate(&rejected));
     }
 
     #[test]
