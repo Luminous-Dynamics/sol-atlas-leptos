@@ -417,7 +417,7 @@ mod tests {
                 .replay
                 .frontier_lineage
                 .iter()
-                .any(|(id, _)| { id == "frontier:1951" || id == "frontier:1952" })
+                .any(|(id, _)| { id == &"frontier:1951".into() || id == &"frontier:1952".into() })
         );
     }
 
