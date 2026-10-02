@@ -14,7 +14,7 @@ use crate::civilizational::{
     AssessmentId, ClaimId, EvidenceFrontierChainV1, EvidenceFrontierId, EvidenceId,
     ProjectionError, QualificationStatus, SourceSnapshotId,
 };
-use crate::cultural_argumentation::{CulturalArgumentationKindV1, CulturalArgumentationRefV3};
+use crate::cultural_argumentation::CulturalArgumentationKindV1;
 use crate::cultural_projection_audit_v5::CulturalProjectionAuditV5;
 use crate::cultural_systems::{CanonicalClaimAdmissionV1, CulturalProjectionIdV1};
 
@@ -281,7 +281,7 @@ mod tests {
         EvidenceFrontierV1, EvidenceTemporalMetadataV1, SourceSnapshotTemporalMetadataV1,
         YearInterval,
     };
-    use crate::cultural_argumentation::CulturalArgumentationKindV1;
+    use crate::cultural_argumentation::{CulturalArgumentationKindV1, CulturalArgumentationRefV3};
     use crate::cultural_projection_audit_v5::CulturalProjectionAuditV5;
     use crate::cultural_systems::{
         CanonicalClaimAdmissionV1, CulturalArgumentationEvidenceClosureV1,
