@@ -3383,6 +3383,7 @@ mod graph_tests {
             state: RecoveryPlanState::Ready,
             claim_ceiling: "Exact plan scope only.".into(),
         };
+        let original_plan = plan.clone();
 
         let mut bound_execution = execution.clone();
         bound_execution.input_snapshot =
@@ -3404,26 +3405,10 @@ mod graph_tests {
             &bound_execution
         ));
 
-        let mut stale_candidate = candidate.clone();
+        let mut stale_candidate = candidate;
         stale_candidate.claim_ceiling = "mutated candidate".into();
         assert!(!verification.passes_with_bound_candidate_execution(
-            &RecoveryPlan {
-                candidate_snapshot: stale_candidate.snapshot().digest(),
-                ..RecoveryPlan {
-                    id: "plan-coverage-bound".into(),
-                    unavailable: CapabilityId("a".into()),
-                    candidate: CapabilityId("recovery".into()),
-                    candidate_snapshot: stale_candidate.snapshot().digest(),
-                    prerequisites: vec![CapabilityId("recovery".into())],
-                    steps: vec!["verify".into()],
-                    preconditions: vec![],
-                    expected_evidence: vec!["coverage-check".into()],
-                    human_contribution: String::new(),
-                    ai_contribution: String::new(),
-                    state: RecoveryPlanState::Ready,
-                    claim_ceiling: "Exact plan scope only.".into(),
-                }
-            },
+            &original_plan,
             &stale_candidate,
             &bound_execution
         ));
