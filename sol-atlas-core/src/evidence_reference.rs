@@ -433,6 +433,9 @@ impl EvidenceReferenceV1 {
             profile_id: None,
             profile_version: None,
             profile_digest: None,
+            registry_id: None,
+            registry_version: None,
+            registry_digest: None,
             claim_ceiling,
         })
     }
@@ -480,13 +483,17 @@ impl EvidenceReferenceV1 {
         let profile = registry
             .resolve(self)
             .ok_or("evidence reference cannot be resolved by profile registry")?;
-        self.verify_preimage_against_profile(
+        let mut verification = self.verify_preimage_against_profile(
             profile,
             preimage,
             verifier,
             verified_at,
             claim_ceiling,
-        )
+        )?;
+        verification.registry_id = Some(registry.id.clone());
+        verification.registry_version = Some(registry.version);
+        verification.registry_digest = Some(registry.digest());
+        Ok(verification)
     }
 
     /// Preserve a legacy/bare evidence locator explicitly as unresolved.
@@ -569,6 +576,10 @@ pub struct EvidenceReferenceVerificationV1 {
     pub profile_id: Option<String>,
     pub profile_version: Option<u32>,
     pub profile_digest: Option<String>,
+    /// Exact profile-registry identity used for authorization, when applicable.
+    pub registry_id: Option<String>,
+    pub registry_version: Option<u32>,
+    pub registry_digest: Option<String>,
     pub claim_ceiling: String,
 }
 
@@ -582,6 +593,13 @@ impl EvidenceReferenceVerificationV1 {
             && !self.claim_ceiling.is_empty()
             && self.claim_ceiling == self.reference.claim_ceiling
             && match (&self.profile_id, self.profile_version, &self.profile_digest) {
+                (None, None, None) => true,
+                (Some(id), Some(version), Some(digest)) => {
+                    !id.is_empty() && version > 0 && !digest.is_empty()
+                }
+                _ => false,
+            }
+            && match (&self.registry_id, self.registry_version, &self.registry_digest) {
                 (None, None, None) => true,
                 (Some(id), Some(version), Some(digest)) => {
                     !id.is_empty() && version > 0 && !digest.is_empty()
@@ -606,6 +624,23 @@ impl EvidenceReferenceVerificationV1 {
             && self.profile_version == Some(profile.version)
             && self.profile_digest.as_deref() == Some(profile.digest().as_str())
     }
+
+    /// Strictly verify that this result remains authorized by the supplied
+    /// profile registry snapshot and resolves to the exact embedded profile.
+    pub fn is_verified_against_registry(
+        &self,
+        registry: &EvidenceReferenceProfileRegistryV1,
+    ) -> bool {
+        let Some(profile) = registry.resolve(&self.reference) else {
+            return false;
+        };
+
+        self.is_verified_against_profile(profile)
+            && self.registry_id.as_deref() == Some(registry.id.as_str())
+            && self.registry_version == Some(registry.version)
+            && self.registry_digest.as_deref() == Some(registry.digest().as_str())
+    }
+
 }
 #[cfg(test)]
 mod tests {
@@ -779,6 +814,49 @@ mod tests {
     }
 
     #[test]
+    fn registry_bound_verification_records_and_checks_registry_identity() {
+        let preimage = b"registry-audit";
+        let digest = Sha256::digest(preimage);
+        let reference = EvidenceReferenceV1::content_addressed(
+            "recovery-execution-record",
+            context(),
+            format!("sha256:{digest:x}"),
+            "Profile-scoped evidence only.",
+        )
+        .unwrap()
+        .with_purpose("recovery-verification")
+        .unwrap();
+        let profile = EvidenceReferenceProfileV1 {
+            id: "registry-check-profile".into(),
+            version: 1,
+            artifact_type: reference.artifact_type.clone(),
+            context: reference.context.clone(),
+            purpose: Some("recovery-verification".into()),
+            claim_ceiling: reference.claim_ceiling.clone(),
+        };
+        let registry = EvidenceReferenceProfileRegistryV1 {
+            id: "registry-check".into(),
+            version: 1,
+            profiles: vec![profile],
+        };
+
+        let verification = reference
+            .verify_preimage_against_registry(
+                &registry,
+                preimage,
+                "deterministic-verifier",
+                "2026-10-02T00:00:00Z",
+                "Profile-scoped evidence only.",
+            )
+            .unwrap();
+
+        assert!(verification.is_verified_against_registry(&registry));
+        let mut changed = registry.clone();
+        changed.version = 2;
+        assert!(!verification.is_verified_against_registry(&changed));
+    }
+
+    #[test]
     fn malformed_profile_binding_fails_closed() {
         let reference = reference();
         let mut verification = EvidenceReferenceVerificationV1 {
@@ -790,6 +868,9 @@ mod tests {
             profile_id: Some("profile-audit-002".into()),
             profile_version: None,
             profile_digest: Some("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into()),
+            registry_id: None,
+            registry_version: None,
+            registry_digest: None,
             claim_ceiling: reference.claim_ceiling.clone(),
         };
 
@@ -1195,6 +1276,9 @@ mod tests {
             profile_id: None,
             profile_version: None,
             profile_digest: None,
+            registry_id: None,
+            registry_version: None,
+            registry_digest: None,
             claim_ceiling: reference.claim_ceiling.clone(),
         };
         assert!(verified.is_verified());
