@@ -238,21 +238,31 @@ impl EvidenceSnapshotV1 {
         }
     }
 
-    /// A snapshot can be used as closed-world evidence only when every entry is
-    /// a well-formed typed reference with an independently verified digest.
+    /// A snapshot can be used as closed-world evidence only when its entries
+    /// form an exact set of well-formed typed references with independently
+    /// verified digest bindings.
     pub fn all_references_verified(
         &self,
         verifications: &[EvidenceReferenceVerificationV1],
     ) -> bool {
-        self.evidence.iter().all(|entry| {
-            entry.reference.is_well_formed()
-                && entry.unresolved_locator.is_none()
-                && verifications.iter().any(|verification| {
-                    verification.is_verified()
-                        && verification.reference.same_content_identity(&entry.reference)
-                        && verification.reference.claim_ceiling == entry.claim_ceiling
-                })
-        })
+        self.evidence.len() == verifications.len()
+            && self.evidence.iter().all(|entry| {
+                entry.reference.is_well_formed()
+                    && entry.unresolved_locator.is_none()
+                    && verifications.iter().any(|verification| {
+                        verification.is_verified()
+                            && verification.reference.same_content_identity(&entry.reference)
+                            && verification.reference.claim_ceiling == entry.claim_ceiling
+                    })
+            })
+            && verifications.iter().all(|verification| {
+                verification.is_verified()
+                    && self.evidence.iter().any(|entry| {
+                        entry.reference.same_content_identity(&verification.reference)
+                            && entry.claim_ceiling == verification.reference.claim_ceiling
+                            && entry.unresolved_locator.is_none()
+                    })
+            })
     }
 }
 
@@ -996,6 +1006,52 @@ impl RecoveryVerification {
             && !self.valid_until.is_empty()
             && !self.verifier.is_empty()
             && !self.verified_at.is_empty()
+    }
+
+    /// Stronger gate requiring the structured dependency, evidence, and
+    /// environment snapshots used to derive the verification record.
+    ///
+    /// This closes the remaining gap between "has digest-looking strings" and
+    /// "those digests are demonstrably the hashes of the exact structured inputs."
+    /// It still does not establish payload truth or external qualification.
+    pub fn passes_with_bound_snapshots(
+        &self,
+        dependency: &DependencySnapshotV1,
+        evidence: &EvidenceSnapshotV1,
+        environment: &EnvironmentSnapshotV1,
+    ) -> bool {
+        if !self.passes() {
+            return false;
+        }
+
+        if dependency.root != self.capability
+            || evidence.subject != self.capability
+            || environment.subject != self.capability
+            || environment.scope != self.scope
+        {
+            return false;
+        }
+
+        if self.dependency_snapshot != dependency.digest()
+            || self.evidence_snapshot != evidence.digest()
+            || self.environment_snapshot != environment.digest()
+        {
+            return false;
+        }
+
+        if !evidence.all_references_verified(&self.evidence) {
+            return false;
+        }
+
+        match RecoveryVerificationSnapshotV1::from_verification_with_snapshots(
+            self,
+            dependency,
+            evidence,
+            environment,
+        ) {
+            Ok(snapshot) => self.verification_snapshot == snapshot.digest(),
+            Err(_) => false,
+        }
     }
 
     /// Check whether this verification remains bound to the exact scope and
