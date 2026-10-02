@@ -712,7 +712,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                 TerminalNavigationTarget::new(
                                     selected_entity(),
                                     selected_frontier(),
-                                    TerminalClaimRef::new(claim)?,
+                                    TerminalClaimRef::new(claim).expect("replay_claim returns a non-empty claim"),
                                     context.0,
                                     context.1,
                                     context.2,
@@ -846,7 +846,7 @@ pub fn EvidenceTerminal() -> impl IntoView {
                                 TerminalNavigationTarget::new(
                                     selected_entity(),
                                     selected_frontier(),
-                                    claim,
+                                    TerminalClaimRef::new(claim).expect("replay_claim returns a non-empty claim"),
                                     context.0,
                                     context.1,
                                     context.2,
