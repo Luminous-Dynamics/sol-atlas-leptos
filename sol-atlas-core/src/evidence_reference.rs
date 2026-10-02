@@ -71,9 +71,15 @@ impl DigestContextV1 {
 /// than silently choosing among contexts for the same reference.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EvidenceReferenceProfileV1 {
+    /// Stable profile identifier.
     pub id: String,
+    /// Immutable profile revision. Zero is invalid.
+    pub version: u32,
     pub artifact_type: String,
     pub context: DigestContextV1,
+    /// Explicit context-selection purpose. Required when a consuming profile
+    /// distinguishes multiple contexts for the same artifact type.
+    pub purpose: Option<String>,
     pub claim_ceiling: String,
 }
 
@@ -82,10 +88,15 @@ impl EvidenceReferenceProfileV1 {
 
     pub fn is_well_formed(&self) -> bool {
         !self.id.is_empty()
+            && self.version > 0
             && !self.artifact_type.is_empty()
             && !self.claim_ceiling.is_empty()
             && self.context.is_well_formed()
             && self.context.representation != DigestRepresentationV1::RawBytes
+            && self
+                .purpose
+                .as_ref()
+                .is_none_or(|purpose| !purpose.is_empty())
     }
 
     pub fn accepts(&self, reference: &EvidenceReferenceV1) -> bool {
@@ -93,7 +104,45 @@ impl EvidenceReferenceProfileV1 {
             && reference.is_well_formed()
             && reference.artifact_type == self.artifact_type
             && reference.context == self.context
+            && reference.purpose == self.purpose
             && reference.claim_ceiling == self.claim_ceiling
+    }
+
+    /// Canonical semantic bytes for this exact published profile identity.
+    ///
+    /// This is a project-local fixed-field canonical form and makes the
+    /// profile's version, purpose, context, and claim ceiling independently
+    /// addressable. It does not claim RFC 8785/JCS interoperability.
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        #[derive(Serialize)]
+        struct CanonicalProfile {
+            schema: String,
+            id: String,
+            version: u32,
+            artifact_type: String,
+            context: DigestContextV1,
+            purpose: Option<String>,
+            claim_ceiling: String,
+        }
+
+        let canonical = CanonicalProfile {
+            schema: Self::SCHEMA.into(),
+            id: self.id.clone(),
+            version: self.version,
+            artifact_type: self.artifact_type.clone(),
+            context: self.context.clone(),
+            purpose: self.purpose.clone(),
+            claim_ceiling: self.claim_ceiling.clone(),
+        };
+
+        serde_json::to_vec(&canonical)
+            .expect("evidence reference profile contains only serializable primitives")
+    }
+
+    /// SHA-256 identity of this exact profile declaration.
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
     }
 }
 
@@ -106,6 +155,9 @@ pub struct EvidenceReferenceV1 {
     pub artifact_type: String,
     pub context: DigestContextV1,
     pub digest: String,
+    /// Selects the profile-declared digest context when a type has multiple
+    /// authorized contexts.
+    pub purpose: Option<String>,
     pub display_label: Option<String>,
     pub claim_ceiling: String,
 }
@@ -120,6 +172,7 @@ pub struct EvidenceReferenceCanonicalV1 {
     pub artifact_type: String,
     pub context: DigestContextV1,
     pub digest: String,
+    pub purpose: Option<String>,
     pub claim_ceiling: String,
 }
 
@@ -129,6 +182,7 @@ impl From<&EvidenceReferenceV1> for EvidenceReferenceCanonicalV1 {
             artifact_type: reference.artifact_type.clone(),
             context: reference.context.clone(),
             digest: reference.digest.clone(),
+            purpose: reference.purpose.clone(),
             claim_ceiling: reference.claim_ceiling.clone(),
         }
     }
@@ -171,6 +225,7 @@ impl EvidenceReferenceV1 {
             && self.context.is_well_formed()
             && self.digest_is_well_formed()
             && !self.claim_ceiling.is_empty()
+            && self.purpose.as_ref().is_none_or(|purpose| !purpose.is_empty())
     }
 
     /// Mutable URLs, branch names, labels, and bare IDs are intentionally not
@@ -187,6 +242,7 @@ impl EvidenceReferenceV1 {
             artifact_type: artifact_type.into(),
             context,
             digest: digest.into(),
+            purpose: None,
             display_label: None,
             claim_ceiling: claim_ceiling.into(),
         };
@@ -288,6 +344,7 @@ impl EvidenceReferenceV1 {
                 representation: DigestRepresentationV1::RawBytes,
             },
             digest: String::new(),
+            purpose: None,
             display_label: Some(label.into()),
             claim_ceiling: claim_ceiling.into(),
         }
@@ -298,6 +355,16 @@ impl EvidenceReferenceV1 {
         self.artifact_type == other.artifact_type
             && self.context == other.context
             && self.digest == other.digest
+    }
+
+    /// Bind an explicit context-selection purpose to this reference.
+    pub fn with_purpose(mut self, purpose: impl Into<String>) -> Result<Self, &'static str> {
+        let purpose = purpose.into();
+        if purpose.is_empty() {
+            return Err("reference purpose must not be empty");
+        }
+        self.purpose = Some(purpose);
+        Ok(self)
     }
 
     pub fn with_display_label(mut self, label: impl Into<String>) -> Self {
@@ -380,10 +447,13 @@ mod tests {
     fn profile_accepts_only_exact_artifact_type_and_context() {
         let mut reference = reference();
         reference.claim_ceiling = "Profile-scoped evidence only.".into();
+        let reference = reference.with_purpose("recovery-verification").unwrap();
         let profile = EvidenceReferenceProfileV1 {
             id: "profile-001".into(),
+            version: 1,
             artifact_type: reference.artifact_type.clone(),
             context: reference.context.clone(),
+            purpose: Some("recovery-verification".into()),
             claim_ceiling: "Profile-scoped evidence only.".into(),
         };
 
@@ -397,26 +467,36 @@ mod tests {
         wrong_type.artifact_type = "other-artifact".into();
         assert!(!profile.accepts(&wrong_type));
 
-        let mut wrong_context = reference;
+        let mut wrong_context = reference.clone();
         wrong_context.context.domain_separator = "other-domain:v1".into();
         assert!(!profile.accepts(&wrong_context));
+
+        let wrong_purpose = reference
+            .clone()
+            .with_purpose("other-purpose")
+            .unwrap();
+        assert!(!profile.accepts(&wrong_purpose));
     }
 
     #[test]
     fn profile_binds_preimage_verification_to_authorized_context() {
         let preimage = b"profile-bound-evidence";
         let digest = Sha256::digest(preimage);
-        let mut reference = EvidenceReferenceV1::content_addressed(
+        let reference = EvidenceReferenceV1::content_addressed(
             "recovery-execution-record",
             context(),
             format!("sha256:{digest:x}"),
             "Profile-scoped evidence only.",
         )
+        .unwrap()
+        .with_purpose("recovery-verification")
         .unwrap();
         let profile = EvidenceReferenceProfileV1 {
             id: "profile-002".into(),
+            version: 1,
             artifact_type: reference.artifact_type.clone(),
             context: reference.context.clone(),
+            purpose: Some("recovery-verification".into()),
             claim_ceiling: "Profile-scoped evidence only.".into(),
         };
 
@@ -449,8 +529,10 @@ mod tests {
 
         let profile = EvidenceReferenceProfileV1 {
             id: "profile-003".into(),
+            version: 1,
             artifact_type: reference.artifact_type.clone(),
             context: reference.context.clone(),
+            purpose: reference.purpose.clone(),
             claim_ceiling: reference.claim_ceiling.clone(),
         };
         assert!(
@@ -464,6 +546,30 @@ mod tests {
                 )
                 .is_err()
         );
+    }
+
+    #[test]
+    fn profile_identity_changes_when_version_or_purpose_changes() {
+        let base = EvidenceReferenceProfileV1 {
+            id: "profile-identity".into(),
+            version: 1,
+            artifact_type: "recovery-execution-record".into(),
+            context: context(),
+            purpose: Some("recovery-verification".into()),
+            claim_ceiling: "Profile-scoped evidence only.".into(),
+        };
+
+        let mut versioned = base.clone();
+        versioned.version = 2;
+        assert_ne!(base.digest(), versioned.digest());
+
+        let mut repurposed = base.clone();
+        repurposed.purpose = Some("recovery-planning".into());
+        assert_ne!(base.digest(), repurposed.digest());
+
+        let mut relabeled = base.clone();
+        relabeled.id = "different-profile-name".into();
+        assert_ne!(base.digest(), relabeled.digest());
     }
 
     #[test]
