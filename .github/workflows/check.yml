@@ -20,6 +20,14 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
+      - name: Snapshot rustfmt output
+        if: always()
+        run: |
+          cargo fmt --all
+          for file in src/app.rs src/components/evidence_terminal.rs src/data/replay_resolution.rs; do
+            echo "===== ${file} ====="
+            cat "${file}"
+          done
 
   check-wasm:
     runs-on: ubuntu-latest
