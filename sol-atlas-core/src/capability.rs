@@ -257,6 +257,7 @@ impl EvidenceSnapshotV1 {
                             && verification
                                 .reference
                                 .same_content_identity(&entry.reference)
+                            && verification.reference.purpose == entry.reference.purpose
                             && verification.reference.claim_ceiling == entry.claim_ceiling
                     })
             })
@@ -266,6 +267,7 @@ impl EvidenceSnapshotV1 {
                         entry
                             .reference
                             .same_content_identity(&verification.reference)
+                            && entry.reference.purpose == verification.reference.purpose
                             && entry.claim_ceiling == verification.reference.claim_ceiling
                             && entry.unresolved_locator.is_none()
                     })
