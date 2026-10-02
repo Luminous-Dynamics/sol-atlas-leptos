@@ -636,7 +636,7 @@ impl RecoveryVerificationSnapshotV1 {
 }
 /// Result of checking whether a verification record can still be reused
 /// against the exact inputs it originally verified.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+///
 /// Declares whether the verifier knows the submitted evidence set is complete.
 ///
 /// `ClosedWorld` means the selected verification profile defines the supplied
@@ -785,7 +785,7 @@ impl RecoveryVerification {
         {
             return RecoveryVerificationValidity::Stale;
         }
-        if now > self.valid_until {
+        if now > self.valid_until.as_str() {
             return RecoveryVerificationValidity::Stale;
         }
         RecoveryVerificationValidity::Current
