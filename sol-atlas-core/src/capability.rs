@@ -820,6 +820,46 @@ impl RecoveryVerificationSnapshotV1 {
             evidence_coverage: RecoveryEvidenceCoverage,
         }
 
+        fn sorted_strings(values: &[String]) -> Vec<String> {
+            let mut values = values.to_vec();
+            values.sort();
+            values.dedup();
+            values
+        }
+
+        fn sorted_ids(values: &[CapabilityId]) -> Vec<CapabilityId> {
+            let mut values = values.to_vec();
+            values.sort();
+            values.dedup();
+            values
+        }
+
+        let mut evidence = self
+            .evidence
+            .iter()
+            .map(|reference| CanonicalEvidenceReference {
+                artifact_type: reference.artifact_type.clone(),
+                context: reference.context.clone(),
+                digest: reference.digest.clone(),
+                claim_ceiling: reference.claim_ceiling.clone(),
+            })
+            .collect::<Vec<_>>();
+        evidence.sort_by(|left, right| {
+            (
+                &left.artifact_type,
+                &left.context,
+                &left.digest,
+                &left.claim_ceiling,
+            )
+                .cmp(&(
+                    &right.artifact_type,
+                    &right.context,
+                    &right.digest,
+                    &right.claim_ceiling,
+                ))
+        });
+        evidence.dedup();
+
         let canonical = CanonicalSnapshot {
             schema: self.schema.clone(),
             execution_id: self.execution_id.clone(),
