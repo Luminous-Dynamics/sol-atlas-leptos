@@ -464,8 +464,8 @@ mod tests {
             chain.frontiers[2].parent_frontier,
             Some("frontier:1951".into())
         );
-        assert!(chain.frontiers[2].admitted_evidence.contains("e:3"));
-        assert!(chain.frontiers[2].admitted_sources.contains("source:3"));
+        assert!(chain.frontiers[2].admitted_evidence.contains(&"e:3".into()));
+        assert!(chain.frontiers[2].admitted_sources.contains(&"source:3".into()));
     }
 
     #[test]
