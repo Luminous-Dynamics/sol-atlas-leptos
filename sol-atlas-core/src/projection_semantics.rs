@@ -53,24 +53,6 @@ impl ProjectionSemanticEnvelopeV1 {
         });
     }
 
-    fn canonical_payload(
-        &self,
-    ) -> (
-        &CulturalProjectionIdV1,
-        &ClaimId,
-        &EvidenceFrontierId,
-        &QualificationStatus,
-        &Vec<OntologyMappingContextV1>,
-    ) {
-        (
-            &self.projection_id,
-            &self.claim_ref,
-            &self.evidence_frontier,
-            &self.qualification,
-            &self.mappings,
-        )
-    }
-
     pub fn computed_hash(&self) -> Result<String, ProjectionError> {
         let mut mappings = self.mappings.clone();
         mappings.sort_by(|a, b| {
