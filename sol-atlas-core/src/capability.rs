@@ -362,6 +362,49 @@ impl Capability {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoverySelectionState {
+    /// Candidate has been discovered from explicit graph metadata.
+    Discovered,
+    /// An external policy/qualification layer has admitted the candidate.
+    Admissible,
+    /// An external policy layer has selected the candidate for execution.
+    Selected,
+    /// An external policy layer has rejected the candidate.
+    Rejected,
+}
+
+/// An explicit recovery candidate derived from a declared alternative path.
+///
+/// The graph may discover and analyze candidates, but it never changes their
+/// selection state. Policy, authority, and execution remain external concerns.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryCandidate {
+    /// Capability dependency that this candidate is declared to address.
+    pub for_dependency: CapabilityId,
+    /// Explicit candidate capability.
+    pub candidate: CapabilityId,
+    /// Deterministic required closure of the candidate, when fully resolvable.
+    pub required_capabilities: Vec<CapabilityId>,
+    /// Missing prerequisites prevent the candidate closure from being complete.
+    pub missing_capabilities: Vec<CapabilityId>,
+    /// Evidence references attached to the alternative declaration.
+    pub evidence: Vec<String>,
+    /// Optional qualification scoped to this candidate.
+    pub qualification: Option<CapabilityQualification>,
+    /// Selection state owned by an external policy layer.
+    pub selection: RecoverySelectionState,
+    /// Exact claim ceiling for this candidate record.
+    pub claim_ceiling: String,
+}
+
+impl RecoveryCandidate {
+    /// Whether the candidate's own required closure is complete.
+    pub fn is_resolvable(&self) -> bool {
+        self.missing_capabilities.is_empty()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CapabilityGraphError {
     pub missing: Vec<CapabilityId>,
@@ -475,6 +518,61 @@ impl CapabilityGraph {
         }
     }
 
+    /// Enumerate explicit recovery candidates for a declared unavailable dependency.
+    ///
+    /// Candidate discovery is deterministic and never selects, ranks, or
+    /// substitutes a candidate automatically. Each candidate's own closure is
+    /// analyzed independently so missing recovery prerequisites remain visible.
+    pub fn recovery_candidates(
+        &self,
+        unavailable: &CapabilityId,
+    ) -> Vec<RecoveryCandidate> {
+        let mut candidates = self
+            .capabilities
+            .iter()
+            .flat_map(|capability| {
+                capability
+                    .dependencies
+                    .iter()
+                    .filter(move |dependency| {
+                        dependency.relation.is_required()
+                            && dependency.capability == *unavailable
+                    })
+                    .flat_map(move |dependency| {
+                        dependency.substitutes.iter().map(move |candidate| {
+                            let (required_capabilities, missing_capabilities) =
+                                match self.required_closure(candidate) {
+                                    Ok(closure) => (closure, Vec::new()),
+                                    Err(error) => {
+                                        let partial = self
+                                            .required_closure(candidate)
+                                            .unwrap_or_else(|_| vec![candidate.clone()]);
+                                        (partial, error.missing)
+                                    }
+                                };
+
+                            RecoveryCandidate {
+                                for_dependency: dependency.capability.clone(),
+                                candidate: candidate.clone(),
+                                required_capabilities,
+                                missing_capabilities,
+                                evidence: Vec::new(),
+                                qualification: None,
+                                selection: RecoverySelectionState::Discovered,
+                                claim_ceiling: "Declared recovery candidate only; equivalence, operational interchangeability, and successful recovery are not established.".into(),
+                            }
+                        })
+                    })
+            })
+            .collect::<Vec<_>>();
+
+        candidates.sort_by(|left, right| {
+            (&left.for_dependency, &left.candidate)
+                .cmp(&(&right.for_dependency, &right.candidate))
+        });
+        candidates
+    }
+
     /// Compute the deterministic transitive dependency closure of a root.
     ///
     /// Only dependency relations whose kind is required participate.
@@ -573,6 +671,53 @@ mod graph_tests {
         assert!(independent.affected.is_empty());
         assert!(independent.direct_affected.is_empty());
         assert!(independent.transitive_affected.is_empty());
+    }
+
+    #[test]
+    fn recovery_candidates_are_discovered_without_selection() {
+        let mut root = cap("root", &["unavailable"]);
+        root.dependencies[0].substitutes = vec![CapabilityId("recovery".into())];
+
+        let graph = CapabilityGraph {
+            capabilities: vec![
+                root,
+                cap("unavailable", &[]),
+                cap("recovery", &["recovery-prerequisite"]),
+                cap("recovery-prerequisite", &[]),
+            ],
+        };
+
+        let candidates = graph.recovery_candidates(&CapabilityId("unavailable".into()));
+        assert_eq!(candidates.len(), 1);
+        assert_eq!(candidates[0].candidate, CapabilityId("recovery".into()));
+        assert_eq!(
+            candidates[0].required_capabilities,
+            vec![
+                CapabilityId("recovery".into()),
+                CapabilityId("recovery-prerequisite".into())
+            ]
+        );
+        assert!(candidates[0].missing_capabilities.is_empty());
+        assert_eq!(candidates[0].selection, RecoverySelectionState::Discovered);
+        assert!(!candidates[0].claim_ceiling.is_empty());
+    }
+
+    #[test]
+    fn recovery_candidate_missing_prerequisite_remains_unresolved() {
+        let mut root = cap("root", &["unavailable"]);
+        root.dependencies[0].substitutes = vec![CapabilityId("recovery".into())];
+
+        let graph = CapabilityGraph {
+            capabilities: vec![root, cap("unavailable", &[]), cap("recovery", &["missing"])],
+        };
+
+        let candidates = graph.recovery_candidates(&CapabilityId("unavailable".into()));
+        assert_eq!(
+            candidates[0].missing_capabilities,
+            vec![CapabilityId("missing".into())]
+        );
+        assert!(!candidates[0].is_resolvable());
+        assert_eq!(candidates[0].selection, RecoverySelectionState::Discovered);
     }
 
     #[test]
