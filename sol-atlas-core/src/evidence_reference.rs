@@ -166,7 +166,11 @@ impl EvidenceReferenceProfileRegistryV1 {
             return false;
         }
 
-        if self.profiles.iter().any(|profile| !profile.is_well_formed()) {
+        if self
+            .profiles
+            .iter()
+            .any(|profile| !profile.is_well_formed())
+        {
             return false;
         }
 
@@ -348,7 +352,10 @@ impl EvidenceReferenceV1 {
             && self.context.is_well_formed()
             && self.digest_is_well_formed()
             && !self.claim_ceiling.is_empty()
-            && self.purpose.as_ref().is_none_or(|purpose| !purpose.is_empty())
+            && self
+                .purpose
+                .as_ref()
+                .is_none_or(|purpose| !purpose.is_empty())
     }
 
     /// Mutable URLs, branch names, labels, and bare IDs are intentionally not
@@ -619,10 +626,7 @@ mod tests {
         wrong_context.context.domain_separator = "other-domain:v1".into();
         assert!(!profile.accepts(&wrong_context));
 
-        let wrong_purpose = reference
-            .clone()
-            .with_purpose("other-purpose")
-            .unwrap();
+        let wrong_purpose = reference.clone().with_purpose("other-purpose").unwrap();
         assert!(!profile.accepts(&wrong_purpose));
     }
 
@@ -757,7 +761,9 @@ mod tests {
             .unwrap();
         assert!(registry.resolve(&explicit).is_some());
         assert_eq!(
-            registry.resolve(&explicit).map(|profile| profile.id.as_str()),
+            registry
+                .resolve(&explicit)
+                .map(|profile| profile.id.as_str()),
             Some("registry-profile-002")
         );
     }
