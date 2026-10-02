@@ -2751,10 +2751,10 @@ mod graph_tests {
             changed_contribution.snapshot().digest()
         );
 
-        let mut malformed_snapshot = plan_snapshot.clone();
-        malformed_snapshot.candidate_snapshot.clear();
-        assert!(!malformed_snapshot.is_well_formed());
-        assert!(!bound_plan.is_exactly_bound_by_snapshot(&malformed_snapshot));
+        let mut malformed_plan_snapshot = plan_snapshot.clone();
+        malformed_plan_snapshot.candidate_snapshot.clear();
+        assert!(!malformed_plan_snapshot.is_well_formed());
+        assert!(!bound_plan.is_exactly_bound_by_snapshot(&malformed_plan_snapshot));
     }
 
     #[test]
