@@ -14,8 +14,7 @@ use crate::civilizational::{
     YearInterval,
 };
 use crate::cultural_systems::{
-    CanonicalClaimAdmissionV1, CulturalArgumentationEvidenceClosureV1,
-    CulturalArgumentationRefV2,
+    CanonicalClaimAdmissionV1, CulturalArgumentationEvidenceClosureV1, CulturalArgumentationRefV2,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -71,7 +70,9 @@ impl CulturalArgumentationRefV3 {
         Ok(result)
     }
 
-    fn canonical_payload(&self) -> (
+    fn canonical_payload(
+        &self,
+    ) -> (
         &CulturalArgumentationKindV1,
         &AssessmentId,
         &InterpretationId,
@@ -83,9 +84,15 @@ impl CulturalArgumentationRefV3 {
         &EvidenceFrontierId,
     ) {
         (
-            &self.kind, &self.assessment, &self.interpretation, &self.claim_ref,
-            &self.closure, &self.assessment_time, &self.interpretation_time,
-            &self.available_by, &self.evidence_frontier,
+            &self.kind,
+            &self.assessment,
+            &self.interpretation,
+            &self.claim_ref,
+            &self.closure,
+            &self.assessment_time,
+            &self.interpretation_time,
+            &self.available_by,
+            &self.evidence_frontier,
         )
     }
 
@@ -102,8 +109,10 @@ impl CulturalArgumentationRefV3 {
     }
 
     pub fn validate(&self) -> Result<(), ProjectionError> {
-        if !self.assessment.is_valid() || !self.interpretation.is_valid()
-            || !self.claim_ref.is_valid() || !self.evidence_frontier.is_valid()
+        if !self.assessment.is_valid()
+            || !self.interpretation.is_valid()
+            || !self.claim_ref.is_valid()
+            || !self.evidence_frontier.is_valid()
             || self.semantic_hash.trim().is_empty()
         {
             return Err(ProjectionError::EmptyIdentifier);
@@ -116,10 +125,18 @@ impl CulturalArgumentationRefV3 {
         }
         if self.assessment_time.is_some_and(|v| !v.is_valid())
             || self.interpretation_time.is_some_and(|v| !v.is_valid())
-            || self.available_by < self.assessment_time.and_then(|v| v.to)
-                .or(self.assessment_time.and_then(|v| v.from)).unwrap_or(self.available_by)
-            || self.available_by < self.interpretation_time.and_then(|v| v.to)
-                .or(self.interpretation_time.and_then(|v| v.from)).unwrap_or(self.available_by)
+            || self.available_by
+                < self
+                    .assessment_time
+                    .and_then(|v| v.to)
+                    .or(self.assessment_time.and_then(|v| v.from))
+                    .unwrap_or(self.available_by)
+            || self.available_by
+                < self
+                    .interpretation_time
+                    .and_then(|v| v.to)
+                    .or(self.interpretation_time.and_then(|v| v.from))
+                    .unwrap_or(self.available_by)
         {
             return Err(ProjectionError::InvalidTimeInterval);
         }
@@ -160,13 +177,19 @@ mod tests {
             admitted_evidence: ["e:1"].into_iter().map(Into::into).collect(),
             admitted_sources: ["source:1"].into_iter().map(Into::into).collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
-                evidence_id: "e:1".into(), source_snapshot: "source:1".into(),
-                artifact_time: None, publication_time: None, capture_time: None,
-                available_by: 1940, validity_time: None,
+                evidence_id: "e:1".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: None,
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
             }],
             source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
                 source_snapshot: "source:1".into(),
-                publication_time: None, capture_time: None, available_by: 1940,
+                publication_time: None,
+                capture_time: None,
+                available_by: 1940,
             }],
             argumentation_metadata: vec![crate::civilizational::ArgumentationTemporalMetadataV1 {
                 assessment: "assessment:1".into(),
@@ -207,12 +230,10 @@ mod tests {
             CulturalArgumentationKindV1::InferenceMaking,
             value,
             &frontier,
-        ).expect("argumentation");
+        )
+        .expect("argumentation");
 
-        assert!(frontier.admits_argumentation(
-            &argument.assessment,
-            &argument.interpretation,
-        ));
+        assert!(frontier.admits_argumentation(&argument.assessment, &argument.interpretation,));
         assert!(argument.is_frontier_safe(&claim_one, &frontier));
         assert!(!argument.is_frontier_safe(&claim_two, &frontier));
     }
@@ -228,13 +249,19 @@ mod tests {
             admitted_evidence: ["e:1"].into_iter().map(Into::into).collect(),
             admitted_sources: ["source:1"].into_iter().map(Into::into).collect(),
             evidence_metadata: vec![EvidenceTemporalMetadataV1 {
-                evidence_id: "e:1".into(), source_snapshot: "source:1".into(),
-                artifact_time: None, publication_time: None, capture_time: None,
-                available_by: 1940, validity_time: None,
+                evidence_id: "e:1".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: None,
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
             }],
             source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
                 source_snapshot: "source:1".into(),
-                publication_time: None, capture_time: None, available_by: 1940,
+                publication_time: None,
+                capture_time: None,
+                available_by: 1940,
             }],
             argumentation_metadata: vec![],
         };
@@ -256,16 +283,26 @@ mod tests {
                 source_snapshots: claim.source_snapshots.clone(),
                 evidence_frontier: frontier.frontier_id.clone(),
             },
-            assessment_time: None, interpretation_time: None, available_by: 1940,
+            assessment_time: None,
+            interpretation_time: None,
+            available_by: 1940,
         };
-        frontier.argumentation_metadata.push(crate::civilizational::ArgumentationTemporalMetadataV1 {
-            assessment: "assessment:1".into(), interpretation: "interpretation:1".into(),
-            assessment_time: None, interpretation_time: None, available_by: 1940,
-        });
+        frontier.argumentation_metadata.push(
+            crate::civilizational::ArgumentationTemporalMetadataV1 {
+                assessment: "assessment:1".into(),
+                interpretation: "interpretation:1".into(),
+                assessment_time: None,
+                interpretation_time: None,
+                available_by: 1940,
+            },
+        );
         frontier.recompute_manifest_hash().expect("rehash");
         let mut a = CulturalArgumentationRefV3::from_v2(
-            CulturalArgumentationKindV1::InferenceMaking, value.clone(), &frontier,
-        ).expect("v3");
+            CulturalArgumentationKindV1::InferenceMaking,
+            value.clone(),
+            &frontier,
+        )
+        .expect("v3");
         let original = a.semantic_hash.clone();
         a.kind = CulturalArgumentationKindV1::MeaningComprehension;
         assert_ne!(original, a.computed_hash().expect("hash"));
