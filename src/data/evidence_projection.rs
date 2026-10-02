@@ -831,12 +831,12 @@ mod tests {
 /// that the computation has been reconstructed.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ReplayTargetV1 {
-    pub entity_ref: String,
-    pub claim_ref: String,
-    pub frontier_ref: String,
-    pub projection_profile: String,
-    pub reasoning_program: String,
-    pub model_version: String,
+    entity_ref: String,
+    claim_ref: String,
+    frontier_ref: String,
+    projection_profile: String,
+    reasoning_program: String,
+    model_version: String,
 }
 
 /// Local navigation identity for an addressable replay request.
@@ -860,6 +860,32 @@ pub struct ReplayExecutionContextV1 {
     projection_profile: String,
     reasoning_program: String,
     model_version: String,
+}
+
+impl ReplayTargetV1 {
+    pub fn entity_ref(&self) -> &str {
+        &self.entity_ref
+    }
+
+    pub fn claim_ref(&self) -> &str {
+        &self.claim_ref
+    }
+
+    pub fn frontier_ref(&self) -> &str {
+        &self.frontier_ref
+    }
+
+    pub fn projection_profile(&self) -> &str {
+        &self.projection_profile
+    }
+
+    pub fn reasoning_program(&self) -> &str {
+        &self.reasoning_program
+    }
+
+    pub fn model_version(&self) -> &str {
+        &self.model_version
+    }
 }
 
 impl ReplayNavigationIdentityV1 {
