@@ -2406,7 +2406,7 @@ impl RecoveryExecution {
         candidate: &RecoveryCandidate,
     ) -> bool {
         self.is_successful()
-            && plan.is_ready_against_candidate(candidate)
+            && plan.is_ready_against_candidate_snapshot(candidate, &candidate.snapshot())
             && self.plan_id == plan.id
             && self.matches_plan_execution_contract(plan)
             && self.input_snapshot_matches_plan(plan)
@@ -2570,6 +2570,10 @@ mod graph_tests {
         assert!(snapshot.is_well_formed());
         assert_eq!(snapshot.digest(), candidate.snapshot().digest());
 
+        let mut malformed_snapshot = snapshot.clone();
+        malformed_snapshot.candidate = CapabilityId(String::new());
+        assert!(!malformed_snapshot.is_well_formed());
+
         let mut relabeled = candidate.clone();
         relabeled.claim_ceiling = "different ceiling".into();
         assert_ne!(snapshot.digest(), relabeled.snapshot().digest());
@@ -2643,6 +2647,13 @@ mod graph_tests {
             &changed_candidate
         ));
 
+        let mut stale_plan = plan.clone();
+        stale_plan.candidate_snapshot = "sha256:stale-candidate".into();
+        assert!(!execution.is_successful_with_bound_candidate(
+            &stale_plan,
+            &candidate
+        ));
+
         let mut rejected_candidate = candidate;
         rejected_candidate.selection = RecoverySelectionState::Rejected;
         assert!(!execution.is_successful_with_bound_candidate(
@@ -2676,6 +2687,10 @@ mod graph_tests {
 
         let result_snapshot = RecoveryExecutionResultSnapshotV1::from_execution(&execution);
         assert!(result_snapshot.is_well_formed());
+
+        let mut malformed_result_snapshot = result_snapshot.clone();
+        malformed_result_snapshot.claim_ceiling.clear();
+        assert!(!malformed_result_snapshot.is_well_formed());
 
         let mut changed_result = execution.clone();
         changed_result.resulting_state = CapabilityState::Deployed;
