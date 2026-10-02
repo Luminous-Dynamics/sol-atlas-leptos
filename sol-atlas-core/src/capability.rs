@@ -2010,4 +2010,13 @@ mod graph_tests {
         assert_eq!(
             verification.validity_against(
                 &CapabilityId("water.purification".into()),
-                "instance-004",
+                "instance-004",                "verification-inputs-004",
+                "deps-004",
+                "env-004",
+                "evidence-004",
+                "2026-10-02T13:00:00Z",
+            ),
+            RecoveryVerificationValidity::Superseded
+        );
+    }
+}
