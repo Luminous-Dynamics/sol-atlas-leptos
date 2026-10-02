@@ -1745,6 +1745,43 @@ mod tests {
     }
 
     #[test]
+    fn manifest_hash_is_state_identity_not_frontier_id_identity() {
+        let metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:a".into(),
+            source_snapshot: "source:a".into(),
+            artifact_time: None,
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+        let mut first = EvidenceFrontierV1 {
+            frontier_id: "frontier:state-a".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata.clone()],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        first.recompute_manifest_hash().unwrap();
+
+        let mut second = first.clone();
+        second.frontier_id = "frontier:state-b".into();
+        second.recompute_manifest_hash().unwrap();
+
+        assert_eq!(first.manifest_hash, second.manifest_hash);
+        assert_ne!(first.frontier_id, second.frontier_id);
+
+        second.parent_frontier = Some(first.frontier_id.clone());
+        second.recompute_manifest_hash().unwrap();
+        assert_ne!(first.manifest_hash, second.manifest_hash);
+    }
+
+    #[test]
     fn manifest_hash_detects_policy_and_admission_tampering() {
         let mut frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1901".into(),
