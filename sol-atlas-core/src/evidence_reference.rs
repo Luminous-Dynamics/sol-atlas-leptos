@@ -106,18 +106,21 @@ impl EvidenceReferenceV1 {
     pub const SCHEMA: &'static str = "sol-atlas:evidence-reference:v1";
 
     fn digest_is_well_formed(&self) -> bool {
+        let is_lower_hex = |value: &str| {
+            value.len() == 64
+                && value
+                    .bytes()
+                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        };
+
         match self.context.representation {
             DigestRepresentationV1::RawBytes => false,
-            DigestRepresentationV1::LowerHex => {
-                self.digest.len() == 64 && self.digest.bytes().all(|b| b.is_ascii_hexdigit())
-            }
+            DigestRepresentationV1::LowerHex => is_lower_hex(&self.digest),
             DigestRepresentationV1::PrefixedLowerHex => {
                 let Some((prefix, value)) = self.digest.split_once(':') else {
                     return false;
                 };
-                !prefix.is_empty()
-                    && value.len() == 64
-                    && value.bytes().all(|b| b.is_ascii_hexdigit())
+                !prefix.is_empty() && is_lower_hex(value)
             }
         }
     }
@@ -307,6 +310,37 @@ mod tests {
                 "recovery-execution-record",
                 context,
                 "not-a-hex-digest",
+                "Exact artifact identity only.",
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn lower_hex_rejects_uppercase_digits() {
+        let mut context = context();
+        context.representation = DigestRepresentationV1::LowerHex;
+
+        assert!(
+            EvidenceReferenceV1::content_addressed(
+                "recovery-execution-record",
+                context,
+                "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "Exact artifact identity only.",
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn prefixed_lower_hex_rejects_uppercase_digits() {
+        let context = context();
+
+        assert!(
+            EvidenceReferenceV1::content_addressed(
+                "recovery-execution-record",
+                context,
+                "sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                 "Exact artifact identity only.",
             )
             .is_err()
