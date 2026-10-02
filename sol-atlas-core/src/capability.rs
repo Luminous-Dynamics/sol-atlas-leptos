@@ -249,30 +249,50 @@ impl EvidenceSnapshotV1 {
         &self,
         verifications: &[EvidenceReferenceVerificationV1],
     ) -> bool {
-        self.evidence.len() == verifications.len()
-            && self.evidence.iter().all(|entry| {
-                entry.reference.is_well_formed()
-                    && entry.unresolved_locator.is_none()
-                    && verifications.iter().any(|verification| {
-                        verification.is_verified()
-                            && verification
-                                .reference
-                                .same_content_identity(&entry.reference)
-                            && verification.reference.purpose == entry.reference.purpose
-                            && verification.reference.claim_ceiling == entry.claim_ceiling
-                    })
-            })
-            && verifications.iter().all(|verification| {
-                verification.is_verified()
-                    && self.evidence.iter().any(|entry| {
-                        entry
-                            .reference
-                            .same_content_identity(&verification.reference)
-                            && entry.reference.purpose == verification.reference.purpose
-                            && entry.claim_ceiling == verification.reference.claim_ceiling
-                            && entry.unresolved_locator.is_none()
-                    })
-            })
+        if self.evidence.len() != verifications.len() {
+            return false;
+        }
+
+        if !self.evidence.iter().all(|entry| {
+            entry.reference.is_well_formed() && entry.unresolved_locator.is_none()
+        }) {
+            return false;
+        }
+
+        if !verifications
+            .iter()
+            .all(EvidenceReferenceVerificationV1::is_verified)
+        {
+            return false;
+        }
+
+        fn key(entry: &EvidenceSnapshotEntryV1) -> String {
+            serde_json::to_string(&(
+                EvidenceReferenceCanonicalV1::from(&entry.reference),
+                entry.claim_ceiling.clone(),
+            ))
+            .expect("evidence snapshot comparison key is serializable")
+        }
+
+        fn verification_key(verification: &EvidenceReferenceVerificationV1) -> String {
+            serde_json::to_string(&(
+                EvidenceReferenceCanonicalV1::from(&verification.reference),
+                verification.reference.claim_ceiling.clone(),
+            ))
+            .expect("evidence verification comparison key is serializable")
+        }
+
+        let mut evidence_keys = self.evidence.iter().map(key).collect::<Vec<_>>();
+        let mut verification_keys = verifications.iter().map(verification_key).collect::<Vec<_>>();
+        evidence_keys.sort();
+        verification_keys.sort();
+
+        evidence_keys.dedup();
+        verification_keys.dedup();
+
+        evidence_keys.len() == self.evidence.len()
+            && verification_keys.len() == verifications.len()
+            && evidence_keys == verification_keys
     }
 }
 
