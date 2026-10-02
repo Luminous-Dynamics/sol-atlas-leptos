@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::civilizational::{
-    AssessmentId, ClaimId, EvidenceFrontierId, EvidenceId, EvidenceFrontierChainV1,
+    AssessmentId, ClaimId, EvidenceFrontierChainV1, EvidenceFrontierId, EvidenceId,
     ProjectionError, QualificationStatus, SourceSnapshotId,
 };
 use crate::cultural_argumentation::CulturalArgumentationKindV1;
@@ -87,8 +87,18 @@ impl V5ReplayReceiptV1 {
             .collect::<Vec<_>>();
 
         argumentation.sort_by(|a, b| {
-            (a.kind, a.assessment.clone(), a.interpretation.clone(), a.semantic_hash.clone())
-                .cmp(&(b.kind, b.assessment.clone(), b.interpretation.clone(), b.semantic_hash.clone()))
+            (
+                a.kind,
+                a.assessment.clone(),
+                a.interpretation.clone(),
+                a.semantic_hash.clone(),
+            )
+                .cmp(&(
+                    b.kind,
+                    b.assessment.clone(),
+                    b.interpretation.clone(),
+                    b.semantic_hash.clone(),
+                ))
         });
         ontology_resolutions.sort_by(|a, b| {
             (a.mapping_id.clone(), a.resolution_hash.clone())
@@ -104,7 +114,8 @@ impl V5ReplayReceiptV1 {
             argumentation,
             ontology_resolutions,
             frontier_lineage,
-            leaf_frontier: chain.current()
+            leaf_frontier: chain
+                .current()
                 .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?
                 .frontier_id
                 .clone(),
@@ -157,8 +168,18 @@ impl V5ReplayReceiptV1 {
             })
             .collect::<Vec<_>>();
         argumentation.sort_by(|a, b| {
-            (a.kind, a.assessment.clone(), a.interpretation.clone(), a.semantic_hash.clone())
-                .cmp(&(b.kind, b.assessment.clone(), b.interpretation.clone(), b.semantic_hash.clone()))
+            (
+                a.kind,
+                a.assessment.clone(),
+                a.interpretation.clone(),
+                a.semantic_hash.clone(),
+            )
+                .cmp(&(
+                    b.kind,
+                    b.assessment.clone(),
+                    b.interpretation.clone(),
+                    b.semantic_hash.clone(),
+                ))
         });
 
         let mut ontology_resolutions = audit
@@ -190,7 +211,8 @@ impl V5ReplayReceiptV1 {
             source_snapshots,
             argumentation,
             ontology_resolutions,
-            frontier_lineage: chain.frontiers
+            frontier_lineage: chain
+                .frontiers
                 .iter()
                 .map(|frontier| (frontier.frontier_id.clone(), frontier.manifest_hash.clone()))
                 .collect(),
@@ -232,8 +254,18 @@ impl V5ReplayReceiptV1 {
         self.source_snapshots.sort();
         self.source_snapshots.dedup();
         self.argumentation.sort_by(|a, b| {
-            (a.kind, a.assessment.clone(), a.interpretation.clone(), a.semantic_hash.clone())
-                .cmp(&(b.kind, b.assessment.clone(), b.interpretation.clone(), b.semantic_hash.clone()))
+            (
+                a.kind,
+                a.assessment.clone(),
+                a.interpretation.clone(),
+                a.semantic_hash.clone(),
+            )
+                .cmp(&(
+                    b.kind,
+                    b.assessment.clone(),
+                    b.interpretation.clone(),
+                    b.semantic_hash.clone(),
+                ))
         });
         self.ontology_resolutions.sort_by(|a, b| {
             (a.mapping_id.clone(), a.resolution_hash.clone())
@@ -276,26 +308,47 @@ mod tests {
             admitted_sources: ["source:1"].into_iter().map(Into::into).collect(),
             evidence_metadata: vec![
                 EvidenceTemporalMetadataV1 {
-                    evidence_id: "e:1".into(), source_snapshot: "source:1".into(),
-                    artifact_time: Some(1940), publication_time: Some(1941),
-                    capture_time: None, available_by: 1942,
-                    validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+                    evidence_id: "e:1".into(),
+                    source_snapshot: "source:1".into(),
+                    artifact_time: Some(1940),
+                    publication_time: Some(1941),
+                    capture_time: None,
+                    available_by: 1942,
+                    validity_time: Some(YearInterval {
+                        from: Some(1940),
+                        to: Some(1950),
+                    }),
                 },
                 EvidenceTemporalMetadataV1 {
-                    evidence_id: "e:2".into(), source_snapshot: "source:1".into(),
-                    artifact_time: Some(1945), publication_time: Some(1946),
-                    capture_time: None, available_by: 1947,
-                    validity_time: Some(YearInterval { from: Some(1940), to: Some(1950) }),
+                    evidence_id: "e:2".into(),
+                    source_snapshot: "source:1".into(),
+                    artifact_time: Some(1945),
+                    publication_time: Some(1946),
+                    capture_time: None,
+                    available_by: 1947,
+                    validity_time: Some(YearInterval {
+                        from: Some(1940),
+                        to: Some(1950),
+                    }),
                 },
             ],
             source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
-                source_snapshot: "source:1".into(), publication_time: Some(1941),
-                capture_time: None, available_by: 1942,
+                source_snapshot: "source:1".into(),
+                publication_time: Some(1941),
+                capture_time: None,
+                available_by: 1942,
             }],
             argumentation_metadata: vec![crate::civilizational::ArgumentationTemporalMetadataV1 {
-                assessment: "assessment:1".into(), interpretation: "interpretation:1".into(),
-                assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-                interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                assessment: "assessment:1".into(),
+                interpretation: "interpretation:1".into(),
+                assessment_time: Some(YearInterval {
+                    from: Some(1948),
+                    to: Some(1948),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1949),
+                    to: Some(1949),
+                }),
                 available_by: 1950,
             }],
         };
@@ -323,23 +376,36 @@ mod tests {
             community_recognition_evidence: vec![],
             assessment: Some("assessment:1".into()),
             argumentation: None,
-            event_time: YearInterval { from: Some(1900), to: Some(1950) },
+            event_time: YearInterval {
+                from: Some(1900),
+                to: Some(1950),
+            },
             qualification: claim.qualification,
             access_policy: crate::cultural_systems::AccessPolicyV1::Public,
             evidence_frontier: child.frontier_id.clone(),
         };
 
         let mapping = OntologyMappingV2::from_claim(
-            "mapping:1", OntologyMappingStandardV1::CidocCrm, "7.4",
-            OntologyReleaseStatusV1::Draft, "E7_Activity",
-            OntologyMappingKindV1::Class, &claim,
+            "mapping:1",
+            OntologyMappingStandardV1::CidocCrm,
+            "7.4",
+            OntologyReleaseStatusV1::Draft,
+            "E7_Activity",
+            OntologyMappingKindV1::Class,
+            &claim,
         );
         let resolution = crate::ontology_resolution::OntologyMappingResolutionV1::from_mapping(
-            &mapping, OntologyMappingRelationV1::Exact, &claim, &child,
-        ).expect("resolution");
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &child,
+        )
+        .expect("resolution");
         let v4 = crate::cultural_projection_audit_v4::CulturalProjectionAuditV4::from_v2(
-            base, vec![resolution],
-        ).expect("v4 audit");
+            base,
+            vec![resolution],
+        )
+        .expect("v4 audit");
 
         let argumentation = CulturalArgumentationRefV3::from_v2(
             CulturalArgumentationKindV1::InferenceMaking,
@@ -353,26 +419,36 @@ mod tests {
                     source_snapshots: vec!["source:1".into()],
                     evidence_frontier: child.frontier_id.clone(),
                 },
-                assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-                interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                assessment_time: Some(YearInterval {
+                    from: Some(1948),
+                    to: Some(1948),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1949),
+                    to: Some(1949),
+                }),
                 available_by: 1950,
             },
             &child,
-        ).expect("typed argumentation");
+        )
+        .expect("typed argumentation");
 
-        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation])
-            .expect("v5 audit");
+        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
 
-        (audit, claim, EvidenceFrontierChainV1 {
-            frontiers: vec![root, child],
-        })
+        (
+            audit,
+            claim,
+            EvidenceFrontierChainV1 {
+                frontiers: vec![root, child],
+            },
+        )
     }
 
     #[test]
     fn receipt_round_trip_validates() {
         let (audit, claim, chain) = fixture();
-        let receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
-            .expect("receipt");
+        let receipt =
+            V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim).expect("receipt");
         assert_eq!(
             receipt.validate_against_audit_and_chain(&audit, &chain, &claim),
             Ok(())
@@ -382,30 +458,38 @@ mod tests {
     #[test]
     fn receipt_hash_changes_when_closure_changes() {
         let (audit, claim, chain) = fixture();
-        let mut receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
-            .expect("receipt");
+        let mut receipt =
+            V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim).expect("receipt");
         let original = receipt.receipt_hash.clone();
         receipt.evidence_refs.push("e:extra".into());
         assert_ne!(original, receipt.computed_hash().expect("hash"));
-        assert!(receipt.validate_against_audit_and_chain(&audit, &chain, &claim).is_err());
+        assert!(
+            receipt
+                .validate_against_audit_and_chain(&audit, &chain, &claim)
+                .is_err()
+        );
     }
 
     #[test]
     fn receipt_hash_changes_when_lineage_changes() {
         let (audit, claim, chain) = fixture();
-        let mut receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
-            .expect("receipt");
+        let mut receipt =
+            V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim).expect("receipt");
         let original = receipt.receipt_hash.clone();
         receipt.frontier_lineage[0].1 = "tampered-manifest".into();
         assert_ne!(original, receipt.computed_hash().expect("hash"));
-        assert!(receipt.validate_against_audit_and_chain(&audit, &chain, &claim).is_err());
+        assert!(
+            receipt
+                .validate_against_audit_and_chain(&audit, &chain, &claim)
+                .is_err()
+        );
     }
 
     #[test]
     fn receipt_is_order_independent_for_set_like_closure() {
         let (audit, claim, chain) = fixture();
-        let mut receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
-            .expect("receipt");
+        let mut receipt =
+            V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim).expect("receipt");
         let original = receipt.receipt_hash.clone();
         receipt.evidence_refs.reverse();
         receipt.source_snapshots.reverse();
@@ -437,7 +521,9 @@ mod tests {
 
         let mut equivalent_audit = audit.clone();
         equivalent_audit.base.base.evidence_refs.reverse();
-        equivalent_audit.recompute_hash().expect("equivalent audit hash");
+        equivalent_audit
+            .recompute_hash()
+            .expect("equivalent audit hash");
         assert_eq!(equivalent_audit.semantic_hash, audit.semantic_hash);
         equivalent_audit.validate().expect("equivalent audit");
 
@@ -470,14 +556,24 @@ mod tests {
                 crate::civilizational::ArgumentationTemporalMetadataV1 {
                     assessment: "assessment:2".into(),
                     interpretation: "interpretation:2".into(),
-                    assessment_time: Some(YearInterval { from: Some(1948), to: Some(1948) }),
-                    interpretation_time: Some(YearInterval { from: Some(1949), to: Some(1949) }),
+                    assessment_time: Some(YearInterval {
+                        from: Some(1948),
+                        to: Some(1948),
+                    }),
+                    interpretation_time: Some(YearInterval {
+                        from: Some(1949),
+                        to: Some(1949),
+                    }),
                     available_by: 1950,
                 },
             );
-            frontier.recompute_manifest_hash().expect("argumentation manifest hash");
+            frontier
+                .recompute_manifest_hash()
+                .expect("argumentation manifest hash");
         }
-        audit.recompute_hash().expect("multi-argumentation audit hash");
+        audit
+            .recompute_hash()
+            .expect("multi-argumentation audit hash");
         audit
             .validate_against_frontier_chain(&chain, &claim)
             .expect("multi-argumentation audit");
@@ -487,80 +583,108 @@ mod tests {
 
         let mut reordered_audit = audit.clone();
         reordered_audit.argumentation.reverse();
-        reordered_audit.recompute_hash().expect("reordered audit hash");
+        reordered_audit
+            .recompute_hash()
+            .expect("reordered audit hash");
         assert_eq!(reordered_audit.semantic_hash, audit.semantic_hash);
 
-        let reordered = V5ReplayReceiptV1::from_audit_and_chain(
-            &reordered_audit,
-            &chain,
-            &claim,
-        )
-        .expect("reordered receipt");
+        let reordered = V5ReplayReceiptV1::from_audit_and_chain(&reordered_audit, &chain, &claim)
+            .expect("reordered receipt");
         assert_eq!(original.receipt_hash, reordered.receipt_hash);
         assert_eq!(original.argumentation, reordered.argumentation);
 
         let mut identity_changed = reordered_audit.clone();
         identity_changed.argumentation[0].kind = CulturalArgumentationKindV1::MeaningComprehension;
-        identity_changed.argumentation[0].recompute_hash().expect("identity hash");
-        identity_changed.recompute_hash().expect("identity audit hash");
-        assert_ne!(identity_changed.semantic_hash, reordered_audit.semantic_hash);
-        assert!(V5ReplayReceiptV1::from_audit_and_chain(
-            &identity_changed,
-            &chain,
-            &claim,
-        )
-        .is_err());
+        identity_changed.argumentation[0]
+            .recompute_hash()
+            .expect("identity hash");
+        identity_changed
+            .recompute_hash()
+            .expect("identity audit hash");
+        assert_ne!(
+            identity_changed.semantic_hash,
+            reordered_audit.semantic_hash
+        );
+        assert!(
+            V5ReplayReceiptV1::from_audit_and_chain(&identity_changed, &chain, &claim,).is_err()
+        );
     }
 
     #[test]
     fn receipt_hash_changes_when_argumentation_or_ontology_changes() {
         let (audit, claim, chain) = fixture();
-        let mut receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
-            .expect("receipt");
+        let mut receipt =
+            V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim).expect("receipt");
         let original = receipt.receipt_hash.clone();
 
         receipt.argumentation[0].semantic_hash = "tampered-argumentation".into();
         assert_ne!(original, receipt.computed_hash().expect("hash"));
-        assert!(receipt.validate_against_audit_and_chain(&audit, &chain, &claim).is_err());
+        assert!(
+            receipt
+                .validate_against_audit_and_chain(&audit, &chain, &claim)
+                .is_err()
+        );
 
-        let mut receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
-            .expect("receipt");
+        let mut receipt =
+            V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim).expect("receipt");
         receipt.ontology_resolutions[0].resolution_hash = "tampered-resolution".into();
         assert_ne!(original, receipt.computed_hash().expect("hash"));
-        assert!(receipt.validate_against_audit_and_chain(&audit, &chain, &claim).is_err());
+        assert!(
+            receipt
+                .validate_against_audit_and_chain(&audit, &chain, &claim)
+                .is_err()
+        );
     }
 
     #[test]
     fn receipt_rejects_replaying_child_audit_at_parent_frontier() {
         let (audit, claim, chain) = fixture();
-        let receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
-            .expect("receipt");
+        let receipt =
+            V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim).expect("receipt");
         let parent_only = EvidenceFrontierChainV1 {
             frontiers: vec![chain.frontiers[0].clone()],
         };
-        assert!(receipt.validate_against_audit_and_chain(&audit, &parent_only, &claim).is_err());
+        assert!(
+            receipt
+                .validate_against_audit_and_chain(&audit, &parent_only, &claim)
+                .is_err()
+        );
     }
 
     #[test]
     fn receipt_cannot_change_qualification() {
         let (audit, claim, chain) = fixture();
-        let mut receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
-            .expect("receipt");
+        let mut receipt =
+            V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim).expect("receipt");
         receipt.qualification = QualificationStatus::Established;
         receipt.recompute_hash().expect("rehash");
-        assert!(receipt.validate_against_audit_and_chain(&audit, &chain, &claim).is_err());
+        assert!(
+            receipt
+                .validate_against_audit_and_chain(&audit, &chain, &claim)
+                .is_err()
+        );
         assert_eq!(audit.qualification(), QualificationStatus::Supported);
     }
 
     #[test]
     fn receipt_rejects_unrelated_frontier_lineage() {
         let (audit, claim, chain) = fixture();
-        let receipt = V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim)
-            .expect("receipt");
+        let receipt =
+            V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim).expect("receipt");
         let mut unrelated = chain.clone();
         unrelated.frontiers[0].frontier_id = "frontier:unrelated".into();
-        unrelated.frontiers[0].recompute_manifest_hash().expect("hash");
-        assert!(receipt.validate_against_audit_and_chain(&audit, &chain, &claim).is_ok());
-        assert!(receipt.validate_against_audit_and_chain(&audit, &unrelated, &claim).is_err());
+        unrelated.frontiers[0]
+            .recompute_manifest_hash()
+            .expect("hash");
+        assert!(
+            receipt
+                .validate_against_audit_and_chain(&audit, &chain, &claim)
+                .is_ok()
+        );
+        assert!(
+            receipt
+                .validate_against_audit_and_chain(&audit, &unrelated, &claim)
+                .is_err()
+        );
     }
 }
