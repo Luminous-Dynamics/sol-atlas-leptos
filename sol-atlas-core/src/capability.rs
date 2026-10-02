@@ -997,6 +997,50 @@ mod graph_tests {
     }
 
     #[test]
+    fn execution_can_check_plan_evidence_without_self_verifying() {
+        let plan = RecoveryPlan {
+            id: "recovery-plan-evidence".into(),
+            unavailable: CapabilityId("unavailable".into()),
+            candidate: CapabilityId("candidate".into()),
+            prerequisites: vec![],
+            steps: vec!["restore".into()],
+            preconditions: vec![],
+            expected_evidence: vec![
+                "restore-run".into(),
+                "service-health".into(),
+            ],
+            human_contribution: "Operate".into(),
+            ai_contribution: "Analyze".into(),
+            state: RecoveryPlanState::Ready,
+            claim_ceiling: "Plan only.".into(),
+        };
+
+        let mut execution = RecoveryExecution {
+            plan_id: plan.id.clone(),
+            execution_id: "execution-evidence".into(),
+            started_at: "2026-10-02T08:00:00Z".into(),
+            ended_at: Some("2026-10-02T08:05:00Z".into()),
+            attempted_steps: vec!["restore".into()],
+            completed_steps: vec!["restore".into()],
+            failed_steps: vec![],
+            observed_preconditions: vec![],
+            evidence: vec!["restore-run".into(), "service-health".into()],
+            resulting_state: CapabilityState::Deployed,
+            authorization: None,
+            ai_assistance: None,
+            input_snapshot: "snapshot-evidence".into(),
+            failure_reason: None,
+            claim_ceiling: "Execution evidence only; verification is not established.".into(),
+        };
+
+        assert!(execution.is_successful());
+        assert!(execution.satisfies_plan_evidence(&plan));
+
+        execution.evidence.pop();
+        assert!(!execution.satisfies_plan_evidence(&plan));
+    }
+
+    #[test]
     fn incomplete_execution_is_not_successful() {
         let execution = RecoveryExecution {
             plan_id: "recovery-plan-002".into(),
