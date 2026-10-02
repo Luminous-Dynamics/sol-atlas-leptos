@@ -11,11 +11,7 @@ use crate::capability::*;
 
 pub const SYNTHETIC_FIXTURE_REFERENCE: &str = "sol-atlas:bootstrap-fixture:v1";
 
-fn capability(
-    id: &str,
-    name: &str,
-    dependencies: Vec<CapabilityDependency>,
-) -> Capability {
+fn capability(id: &str, name: &str, dependencies: Vec<CapabilityDependency>) -> Capability {
     Capability {
         id: CapabilityId(id.into()),
         name: name.into(),
@@ -25,8 +21,7 @@ fn capability(
         evidence: vec![CapabilityEvidence {
             kind: EvidenceKind::Scenario,
             reference: SYNTHETIC_FIXTURE_REFERENCE.into(),
-            claim_ceiling: "Synthetic fixture only; not field validation or qualification."
-                .into(),
+            claim_ceiling: "Synthetic fixture only; not field validation or qualification.".into(),
         }],
         provenance: vec![CapabilityProvenance {
             source: SYNTHETIC_FIXTURE_REFERENCE.into(),
@@ -88,7 +83,10 @@ pub fn water_purification_fixture() -> CapabilityGraph {
             capability(
                 "energy.electricity",
                 "Electricity supply",
-                vec![required("manufacturing.generator", DependencyKind::Required)],
+                vec![required(
+                    "manufacturing.generator",
+                    DependencyKind::Required,
+                )],
             ),
             capability(
                 "materials.filter_media",
@@ -111,28 +109,33 @@ pub fn water_purification_fixture() -> CapabilityGraph {
             capability(
                 "maintenance.pump",
                 "Pump maintenance",
-                vec![required("manufacturing.workshop", DependencyKind::Maintenance)],
+                vec![required(
+                    "manufacturing.workshop",
+                    DependencyKind::Maintenance,
+                )],
             ),
             capability(
                 "knowledge.water_treatment",
                 "Water-treatment knowledge",
-                vec![required("knowledge.preservation", DependencyKind::Knowledge)],
+                vec![required(
+                    "knowledge.preservation",
+                    DependencyKind::Knowledge,
+                )],
             ),
             capability(
                 "knowledge.fabrication",
                 "Fabrication knowledge",
-                vec![required("knowledge.preservation", DependencyKind::Knowledge)],
+                vec![required(
+                    "knowledge.preservation",
+                    DependencyKind::Knowledge,
+                )],
             ),
             capability(
                 "materials.metals",
                 "Metal feedstock",
                 vec![required("manufacturing.workshop", DependencyKind::Material)],
             ),
-            capability(
-                "knowledge.preservation",
-                "Knowledge preservation",
-                vec![],
-            ),
+            capability("knowledge.preservation", "Knowledge preservation", vec![]),
         ],
     }
 }
@@ -144,10 +147,12 @@ mod tests {
     #[test]
     fn fixture_is_explicitly_synthetic() {
         let graph = water_purification_fixture();
-        assert!(graph
-            .capabilities
-            .iter()
-            .all(|c| c.evidence.iter().all(|e| e.kind == EvidenceKind::Scenario)));
+        assert!(
+            graph
+                .capabilities
+                .iter()
+                .all(|c| c.evidence.iter().all(|e| e.kind == EvidenceKind::Scenario))
+        );
         assert!(graph.capabilities.iter().all(|c| !c.is_qualified()));
     }
 
@@ -175,8 +180,14 @@ mod tests {
         let alternatives = root.alternative_paths();
 
         assert_eq!(alternatives.len(), 1);
-        assert_eq!(alternatives[0].for_dependency, CapabilityId("energy.electricity".into()));
-        assert_eq!(alternatives[0].candidate, CapabilityId("energy.mechanical".into()));
+        assert_eq!(
+            alternatives[0].for_dependency,
+            CapabilityId("energy.electricity".into())
+        );
+        assert_eq!(
+            alternatives[0].candidate,
+            CapabilityId("energy.mechanical".into())
+        );
         assert!(alternatives[0].evidence.is_empty());
         assert!(alternatives[0].claim_ceiling.contains("not established"));
 
