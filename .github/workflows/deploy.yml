@@ -19,16 +19,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
         with:
           toolchain: 1.99.0
           targets: wasm32-unknown-unknown
 
       - name: Cache cargo
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
             ~/.cargo/bin/
@@ -46,21 +48,14 @@ jobs:
 
       - name: Build
         run: |
-          # Release build (opt-level=z + LTO: 17.3MB dev WASM -> ~835KB).
-          # index.html sets data-wasm-opt="0" so trunk skips its bundled
-          # wasm-opt, which chokes on this crate's output — the cargo
-          # release profile does the size work instead.
           trunk build --release --no-sri
 
       - name: SPA fallback for client-side routes
         run: |
-          # GitHub Pages serves 404.html for unknown paths; copying index.html
-          # there lets deep links / refreshes on routes like /labs/reactor-twin
-          # load the app instead of a 404 page.
           cp dist/index.html dist/404.html
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           path: dist
 
@@ -74,4 +69,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
