@@ -1026,6 +1026,56 @@ mod graph_tests {
     }
 
     #[test]
+    fn recovery_verification_requires_complete_postconditions_and_dependencies() {
+        let verification = RecoveryVerification {
+            execution_id: "execution-verified".into(),
+            capability: CapabilityId("water.purification".into()),
+            scope: "instance-001".into(),
+            expected_postconditions: vec![
+                "potable water available".into(),
+                "pump responding".into(),
+            ],
+            observed_postconditions: vec![
+                "potable water available".into(),
+                "pump responding".into(),
+            ],
+            evidence: vec!["water-test".into()],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec![],
+            dependency_closure: vec![CapabilityId("water.purification".into())],
+            unresolved_dependencies: vec![],
+            state: RecoveryVerificationState::Passed,
+            verifier: "verification-runner".into(),
+            verified_at: "2026-10-02T08:10:00Z".into(),
+            claim_ceiling: "Exact execution and instance scope only; qualification is not established.".into(),
+        };
+
+        assert!(verification.passes());
+    }
+
+    #[test]
+    fn contradictory_or_unresolved_verification_cannot_pass() {
+        let verification = RecoveryVerification {
+            execution_id: "execution-ambiguous".into(),
+            capability: CapabilityId("water.purification".into()),
+            scope: "instance-002".into(),
+            expected_postconditions: vec!["potable water available".into()],
+            observed_postconditions: vec!["potable water available".into()],
+            evidence: vec!["water-test".into()],
+            missing_postconditions: vec![],
+            contradictory_postconditions: vec!["contamination detected".into()],
+            dependency_closure: vec![],
+            unresolved_dependencies: vec![CapabilityId("pump-maintenance".into())],
+            state: RecoveryVerificationState::Passed,
+            verifier: "verification-runner".into(),
+            verified_at: "2026-10-02T08:10:00Z".into(),
+            claim_ceiling: "Ambiguous result.".into(),
+        };
+
+        assert!(!verification.passes());
+    }
+
+    #[test]
     fn recovery_execution_does_not_imply_verification_or_qualification() {
         let execution = RecoveryExecution {
             plan_id: "recovery-plan-001".into(),
