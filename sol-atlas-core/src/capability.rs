@@ -1020,6 +1020,15 @@ impl RecoveryPolicyDecisionSnapshotV1 {
             && now < self.valid_until.as_str()
     }
 
+    /// A pre-execution decision must already be valid when the activity begins
+    /// and must remain valid at the point the record is consumed.
+    pub fn covers_execution(&self, execution: &RecoveryExecution, now: &str) -> bool {
+        self.is_valid_at(now)
+            && is_canonical_utc_timestamp(&execution.started_at)
+            && self.issued_at.as_str() <= execution.started_at.as_str()
+            && execution.started_at.as_str() < self.valid_until.as_str()
+    }
+
     pub fn canonical_bytes(&self) -> Vec<u8> {
         serde_json::to_vec(self)
             .expect("recovery policy decision snapshot contains only serializable primitives")
@@ -1597,7 +1606,7 @@ impl RecoveryVerification {
         now: &str,
     ) -> bool {
         self.is_successful_with_bound_candidate(plan, candidate)
-            && decision.is_valid_at(now)
+            && decision.covers_execution(self, now)
             && decision.digest() == self.authorization.as_deref().unwrap_or_default()
             && decision.plan_id == plan.id
             && decision.plan_snapshot == plan.snapshot().digest()
@@ -3527,6 +3536,16 @@ mod graph_tests {
         assert!(decision.is_well_formed());
         assert!(decision.is_valid_at("2026-10-02T08:00:00Z"));
         assert!(!decision.is_valid_at("2026-10-02T08:10:00Z"));
+        assert!(decision.covers_execution(
+            &bound_execution,
+            "2026-10-02T08:00:00Z"
+        ));
+        let mut late_issued = decision.clone();
+        late_issued.issued_at = "2026-10-02T08:01:00Z".into();
+        assert!(!late_issued.covers_execution(
+            &bound_execution,
+            "2026-10-02T08:05:00Z"
+        ));
         assert!(bound_execution.is_successful_with_bound_policy_decision(
             &plan,
             &candidate,
