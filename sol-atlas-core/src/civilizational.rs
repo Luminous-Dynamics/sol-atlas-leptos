@@ -2104,6 +2104,108 @@ mod tests {
     }
 
     #[test]
+    fn frontier_extension_rejects_policy_version_change() {
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:policy-parent".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: BTreeSet::new(),
+            admitted_sources: BTreeSet::new(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let mut child = parent.clone();
+        child.frontier_id = "frontier:policy-child".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(parent.frontier_id.clone());
+        child.policy_version = "v2".into();
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn frontier_extension_rejects_known_by_year_regression() {
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:horizon-parent".into(),
+            known_by_year: 1901,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: BTreeSet::new(),
+            admitted_sources: BTreeSet::new(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let mut child = parent.clone();
+        child.frontier_id = "frontier:horizon-child".into();
+        child.known_by_year = 1900;
+        child.parent_frontier = Some(parent.frontier_id.clone());
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn frontier_extension_requires_admission_sets_to_be_monotonic() {
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:admission-parent".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:a".into(),
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1900,
+            }],
+            argumentation_metadata: vec![],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let mut child = parent.clone();
+        child.frontier_id = "frontier:admission-child".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(parent.frontier_id.clone());
+        child.admitted_evidence.clear();
+        child.evidence_metadata.clear();
+        child.admitted_sources.clear();
+        child.source_metadata.clear();
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
     fn frontier_extension_rejects_reordering_inherited_argumentation() {
         let mut parent = EvidenceFrontierV1 {
             frontier_id: "frontier:1900".into(),
