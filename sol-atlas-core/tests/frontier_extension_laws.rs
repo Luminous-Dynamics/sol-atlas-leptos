@@ -68,7 +68,10 @@ fn canonical_reorder_plus_append_cannot_hide_inherited_metadata_mutation() {
             .into_iter()
             .map(Into::into)
             .collect(),
-        evidence_metadata: vec![evidence("evidence:a", "source:a", 1900), evidence("evidence:b", "source:b", 1900)],
+        evidence_metadata: vec![
+            evidence("evidence:a", "source:a", 1900),
+            evidence("evidence:b", "source:b", 1900),
+        ],
         source_metadata: vec![source("source:a", 1900), source("source:b", 1900)],
         argumentation_metadata: vec![],
     };
@@ -81,7 +84,9 @@ fn canonical_reorder_plus_append_cannot_hide_inherited_metadata_mutation() {
 
     child.admitted_evidence.insert("evidence:c".into());
     child.admitted_sources.insert("source:c".into());
-    child.evidence_metadata.push(evidence("evidence:c", "source:c", 1902));
+    child
+        .evidence_metadata
+        .push(evidence("evidence:c", "source:c", 1902));
     child.source_metadata.push(source("source:c", 1902));
 
     // Canonical evidence/source metadata is set-like, so reordering is valid.
