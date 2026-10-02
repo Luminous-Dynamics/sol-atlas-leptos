@@ -852,8 +852,9 @@ mod tests {
             evidence_frontier: "frontier:1951".into(),
             ..claim.clone()
         };
+        let child_audit = audit_bound_to_frontier(&audit, &child_claim, &"frontier:1951".into());
         let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
-            &audit,
+            &child_audit,
             &chain,
             &"frontier:1951".into(),
             &child_claim,
@@ -870,7 +871,7 @@ mod tests {
             decoded.computed_hash().expect("decoded hash")
         );
         decoded
-            .validate_against_audit_at(&audit, &chain, &child_claim)
+            .validate_against_audit_at(&child_audit, &chain, &child_claim)
             .expect("round-tripped receipt remains valid");
     }
 
