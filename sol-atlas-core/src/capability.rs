@@ -763,12 +763,14 @@ impl RecoveryVerificationSnapshotV1 {
                         &left.artifact_type,
                         &left.context,
                         &left.digest,
+                        &left.purpose,
                         &left.claim_ceiling,
                     )
                         .cmp(&(
                             &right.artifact_type,
                             &right.context,
                             &right.digest,
+                            &right.purpose,
                             &right.claim_ceiling,
                         ))
                 });
@@ -823,6 +825,7 @@ impl RecoveryVerificationSnapshotV1 {
             artifact_type: String,
             context: crate::evidence_reference::DigestContextV1,
             digest: String,
+            purpose: Option<String>,
             claim_ceiling: String,
         }
 
@@ -866,6 +869,7 @@ impl RecoveryVerificationSnapshotV1 {
                 artifact_type: reference.artifact_type.clone(),
                 context: reference.context.clone(),
                 digest: reference.digest.clone(),
+                purpose: reference.purpose.clone(),
                 claim_ceiling: reference.claim_ceiling.clone(),
             })
             .collect::<Vec<_>>();
@@ -874,12 +878,14 @@ impl RecoveryVerificationSnapshotV1 {
                 &left.artifact_type,
                 &left.context,
                 &left.digest,
+                &left.purpose,
                 &left.claim_ceiling,
             )
                 .cmp(&(
                     &right.artifact_type,
                     &right.context,
                     &right.digest,
+                    &right.purpose,
                     &right.claim_ceiling,
                 ))
         });
@@ -887,6 +893,7 @@ impl RecoveryVerificationSnapshotV1 {
             left.artifact_type == right.artifact_type
                 && left.context == right.context
                 && left.digest == right.digest
+                && left.purpose == right.purpose
                 && left.claim_ceiling == right.claim_ceiling
         });
 
