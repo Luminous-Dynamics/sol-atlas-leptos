@@ -2190,6 +2190,7 @@ impl RecoveryResilienceAssessmentV1 {
             || self.root.0.is_empty()
             || self.unavailable.0.is_empty()
             || self.root == self.unavailable
+            || self.scope_snapshot.root != self.root
             || !self.scope_snapshot.is_well_formed()
             || self.claim_ceiling.is_empty()
             || !unique_nonempty_ids(&self.affected)
@@ -2198,6 +2199,11 @@ impl RecoveryResilienceAssessmentV1 {
                 .affected
                 .iter()
                 .any(|id| self.unresolved.contains(id))
+            || self
+                .affected
+                .iter()
+                .chain(self.unresolved.iter())
+                .any(|id| !self.scope_snapshot.present_nodes.contains(id))
         {
             return false;
         }
@@ -5038,6 +5044,27 @@ mod graph_tests {
         );
         assert!(assessment.scope_snapshot.digest().starts_with("sha256:"));
         assert!(assessment.is_exactly_bound_to_graph(&graph));
+    }
+
+    #[test]
+    fn resilience_assessment_rejects_scope_root_or_membership_drift() {
+        let graph = CapabilityGraph {
+            capabilities: vec![cap("root", &["unavailable"]), cap("unavailable", &[])],
+        };
+        let mut assessment = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+
+        assessment.scope_snapshot.root = CapabilityId("other".into());
+        assert!(!assessment.is_well_formed());
+
+        let mut assessment = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+        assessment.affected = vec![CapabilityId("not-in-scope".into())];
+        assert!(!assessment.is_well_formed());
     }
 
     #[test]
