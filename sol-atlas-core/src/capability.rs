@@ -1973,10 +1973,6 @@ impl DependencySnapshotV1 {
             return false;
         }
 
-        let mut duplicate_nodes = self.duplicate_nodes.clone();
-        duplicate_nodes.sort();
-        duplicate_nodes.dedup();
-
         let mut edges = self.edges.clone();
         edges.sort_by(|left, right| {
             (&left.from, &left.to, &left.relation).cmp(&(&right.from, &right.to, &right.relation))
