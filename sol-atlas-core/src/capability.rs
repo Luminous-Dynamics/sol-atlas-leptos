@@ -4331,12 +4331,104 @@ mod graph_tests {
             "2026-10-02T08:00:00Z"
         ));
 
+        let mut changed_decision_id = decision.clone();
+        changed_decision_id.id = "permit-coverage-bound-mutated".into();
+        assert_ne!(decision.digest(), changed_decision_id.digest());
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &changed_decision_id,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        let mut changed_authority = decision.clone();
+        changed_authority.authority_reference = "authority-record-002".into();
+        assert_ne!(decision.digest(), changed_authority.digest());
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &changed_authority,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        let mut changed_issued_at = decision.clone();
+        changed_issued_at.issued_at = "2026-10-02T07:51:00Z".into();
+        assert_ne!(decision.digest(), changed_issued_at.digest());
+        assert!(changed_issued_at.covers_execution(&bound_execution, "2026-10-02T08:00:00Z"));
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &changed_issued_at,
+            "2026-10-02T08:00:00Z"
+        ));
+
         let mut wrong_consumer = decision.clone();
         wrong_consumer.consumer = "different-consumer".into();
         assert!(!bound_execution.is_successful_with_bound_policy_decision(
             &plan,
             &candidate,
             &wrong_consumer,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        let mut changed_claim_ceiling = decision.clone();
+        changed_claim_ceiling.claim_ceiling = "different admission ceiling".into();
+        assert_ne!(decision.digest(), changed_claim_ceiling.digest());
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &changed_claim_ceiling,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        let mut changed_plan_id = decision.clone();
+        changed_plan_id.plan_id = "different-plan".into();
+        assert_ne!(decision.digest(), changed_plan_id.digest());
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &changed_plan_id,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        let mut changed_plan_snapshot = decision.clone();
+        changed_plan_snapshot.plan_snapshot = "sha256:different-plan-snapshot".into();
+        assert_ne!(decision.digest(), changed_plan_snapshot.digest());
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &changed_plan_snapshot,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        let mut changed_candidate = decision.clone();
+        changed_candidate.candidate = CapabilityId("different-candidate".into());
+        assert_ne!(decision.digest(), changed_candidate.digest());
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &changed_candidate,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        let mut changed_candidate_snapshot = decision.clone();
+        changed_candidate_snapshot.candidate_snapshot =
+            "sha256:different-candidate-snapshot".into();
+        assert_ne!(decision.digest(), changed_candidate_snapshot.digest());
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &changed_candidate_snapshot,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        let mut changed_valid_until = decision.clone();
+        changed_valid_until.valid_until = "2026-10-02T08:09:00Z".into();
+        assert_ne!(decision.digest(), changed_valid_until.digest());
+        assert!(!bound_execution.is_successful_with_bound_policy_decision(
+            &plan,
+            &candidate,
+            &changed_valid_until,
             "2026-10-02T08:00:00Z"
         ));
 
