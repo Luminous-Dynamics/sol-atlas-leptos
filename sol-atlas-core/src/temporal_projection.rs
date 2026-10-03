@@ -287,7 +287,7 @@ impl ProjectionAdmissionV1 {
     }
 
     pub fn for_snapshot(snapshot: &StateSnapshotV1, frontier: &EvidenceFrontierV1) -> Self {
-        let admitted_evidence = snapshot
+        let mut admitted_evidence = snapshot
             .evidence_refs
             .iter()
             .chain(
@@ -297,7 +297,9 @@ impl ProjectionAdmissionV1 {
                     .flat_map(|geometry| geometry.evidence.iter()),
             )
             .cloned()
-            .collect();
+            .collect::<Vec<_>>();
+        let mut seen_evidence = BTreeSet::new();
+        admitted_evidence.retain(|id| seen_evidence.insert(id.clone()));
 
         Self {
             projection: ProjectionRef::Snapshot(snapshot.snapshot_id.clone()),
@@ -312,7 +314,7 @@ impl ProjectionAdmissionV1 {
         transition: &HistoricalTransitionV1,
         frontier: &EvidenceFrontierV1,
     ) -> Self {
-        let admitted_evidence = transition
+        let mut admitted_evidence = transition
             .evidence_refs
             .iter()
             .chain(
@@ -322,7 +324,9 @@ impl ProjectionAdmissionV1 {
                     .flat_map(|geometry| geometry.evidence.iter()),
             )
             .cloned()
-            .collect();
+            .collect::<Vec<_>>();
+        let mut seen_evidence = BTreeSet::new();
+        admitted_evidence.retain(|id| seen_evidence.insert(id.clone()));
 
         Self {
             projection: ProjectionRef::Transition(transition.transition_id.clone()),
@@ -941,6 +945,37 @@ mod tests {
             request.validate(),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
+    }
+
+    #[test]
+    fn projection_accepts_evidence_reused_by_direct_and_spatial_paths() {
+        let frontier = frontier();
+        let value = snapshot(
+            "snapshot:shared-evidence",
+            YearInterval {
+                from: Some(1945),
+                to: Some(1947),
+            },
+            "frontier:1949",
+            "e:old",
+        );
+
+        let result = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1945),
+                to: Some(1947),
+            },
+            evidence_frontier: frontier,
+        }
+        .project(&[value], &[]);
+
+        assert!(result.is_ok());
+        let result = result.expect("cross-channel evidence reuse should remain admissible");
+        assert_eq!(
+            result.admissions[0].admitted_evidence,
+            vec!["e:old".into()]
+        );
+        assert_eq!(result.audits[0].evidence_refs, vec!["e:old".into()]);
     }
 
     #[test]
