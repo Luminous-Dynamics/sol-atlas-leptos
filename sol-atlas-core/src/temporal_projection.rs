@@ -194,6 +194,8 @@ impl ProjectionAdmissionV1 {
             || !self.evidence_frontier.is_valid()
             || self.admitted_evidence.iter().any(|id| !id.is_valid())
             || self.admitted_sources.iter().any(|id| !id.is_valid())
+            || has_duplicate_ids(&self.admitted_evidence)
+            || has_duplicate_ids(&self.admitted_sources)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -538,6 +540,11 @@ mod tests {
         SourceSnapshotTemporalMetadataV1, SpatialSemantics, TransitionClass,
     };
     use std::collections::BTreeSet;
+
+fn has_duplicate_ids<T: Ord>(ids: &[T]) -> bool {
+    let mut seen = BTreeSet::new();
+    ids.iter().any(|id| !seen.insert(id))
+}
 
     fn geometry(evidence: &str) -> GeometryProjection {
         GeometryProjection {
@@ -932,6 +939,27 @@ mod tests {
             request.validate(),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
+    }
+
+    #[test]
+    fn admission_rejects_duplicate_provenance_ids() {
+        let frontier = frontier();
+        let snapshot = snapshot(
+            "snapshot:duplicate",
+            YearInterval {
+                from: Some(1945),
+                to: Some(1947),
+            },
+            "frontier:1949",
+            "e:old",
+        );
+        let mut admission = ProjectionAdmissionV1::for_snapshot(&snapshot, &frontier);
+        admission.admitted_evidence.push("e:old".into());
+        assert_eq!(admission.validate(), Err(ProjectionError::EmptyIdentifier));
+
+        let mut admission = ProjectionAdmissionV1::for_snapshot(&snapshot, &frontier);
+        admission.admitted_sources.push("source:archive".into());
+        assert_eq!(admission.validate(), Err(ProjectionError::EmptyIdentifier));
     }
 
     #[test]
