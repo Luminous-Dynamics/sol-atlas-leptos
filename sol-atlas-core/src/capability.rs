@@ -16,10 +16,11 @@
 //! - a deployed instance != universal availability
 
 use crate::evidence_reference::{
-    DigestContextV1, DigestRepresentationV1, EvidenceReferenceCanonicalV1,
-    EvidenceReferenceProfileRegistryV1, EvidenceReferenceResolutionV1, EvidenceReferenceV1,
+    DigestContextV1, EvidenceReferenceCanonicalV1, EvidenceReferenceProfileRegistryV1, EvidenceReferenceV1,
     EvidenceReferenceVerificationV1,
 };
+#[cfg(test)]
+use crate::evidence_reference::{DigestRepresentationV1, EvidenceReferenceResolutionV1};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -1390,7 +1391,6 @@ impl RecoveryVerificationSnapshotV1 {
             contradictory_postconditions: sorted_strings(&self.contradictory_postconditions),
             dependency_closure: sorted_ids(&self.dependency_closure),
             unresolved_dependencies: sorted_ids(&self.unresolved_dependencies),
-            scope_snapshot: self.scope_snapshot.clone(),
             environment_snapshot: self.environment_snapshot.clone(),
             evidence_snapshot: self.evidence_snapshot.clone(),
             evidence_coverage: self.evidence_coverage,
