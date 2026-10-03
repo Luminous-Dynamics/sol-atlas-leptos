@@ -2228,6 +2228,23 @@ impl RecoveryResilienceAssessmentV1 {
                 .all(|candidate| !candidate.missing_capabilities.is_empty())
     }
 
+    /// Whether the analyzed required dependency scope is complete.
+    ///
+    /// A well-formed assessment may still be incomplete when required capabilities
+    /// are absent from the supplied graph. This gate makes that distinction explicit.
+    pub fn has_complete_scope(&self) -> bool {
+        self.is_well_formed() && self.scope_snapshot.missing_nodes.is_empty()
+    }
+
+    /// Whether the assessment is complete enough for a consumer that requires a
+    /// closed structural graph before considering declared alternatives.
+    ///
+    /// This remains a structural gate only; it does not establish availability,
+    /// equivalence, maintainability, reproducibility, or successful recovery.
+    pub fn is_structurally_actionable(&self) -> bool {
+        self.has_complete_scope()
+    }
+
     pub fn canonical_bytes(&self) -> Vec<u8> {
         #[derive(Serialize)]
         struct CanonicalAssessment {
@@ -4985,6 +5002,22 @@ mod graph_tests {
         assert!(!assessment.scope_snapshot.is_well_formed());
         assert!(!assessment.is_well_formed());
         assert!(!assessment.is_exactly_bound_to_graph(&graph));
+    }
+
+    #[test]
+    fn resilience_assessment_exposes_completion_gate() {
+        let root = cap("root", &["unavailable", "missing-support"]);
+        let graph = CapabilityGraph {
+            capabilities: vec![root, cap("unavailable", &[])],
+        };
+        let assessment = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+
+        assert!(assessment.is_well_formed());
+        assert!(!assessment.has_complete_scope());
+        assert!(!assessment.is_structurally_actionable());
     }
 
     #[test]
