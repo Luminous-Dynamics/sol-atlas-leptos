@@ -2236,12 +2236,11 @@ impl RecoveryResilienceAssessmentV1 {
         self.is_well_formed() && self.scope_snapshot.missing_nodes.is_empty()
     }
 
-    /// Whether the assessment is complete enough for a consumer that requires a
-    /// closed structural graph before considering declared alternatives.
+    /// Whether the assessment has a complete structural graph scope.
     ///
     /// This remains a structural gate only; it does not establish availability,
     /// equivalence, maintainability, reproducibility, or successful recovery.
-    pub fn is_structurally_actionable(&self) -> bool {
+    pub fn is_structurally_complete(&self) -> bool {
         self.has_complete_scope()
     }
 
@@ -5017,7 +5016,7 @@ mod graph_tests {
 
         assert!(assessment.is_well_formed());
         assert!(!assessment.has_complete_scope());
-        assert!(!assessment.is_structurally_actionable());
+        assert!(!assessment.is_structurally_complete());
     }
 
     #[test]
