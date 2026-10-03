@@ -2177,8 +2177,14 @@ impl RecoveryResilienceAssessmentV1 {
         let digest = Sha256::digest(self.canonical_bytes());
         format!("sha256:{digest:x}")
     }
-}
 
+    /// Re-derive the complete assessment from the supplied graph and reject any
+    /// drift in structural impact, unresolved state, alternatives, or claim ceiling.
+    pub fn is_exactly_bound_to_graph(&self, graph: &CapabilityGraph) -> bool {
+        self.is_well_formed()
+            && graph.resilience_assessment(&self.root, &self.unavailable) == *self
+    }
+}
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct CapabilityGraph {
@@ -4840,6 +4846,14 @@ mod graph_tests {
         );
 
         assert_eq!(first.digest(), second.digest());
+        assert!(first.is_exactly_bound_to_graph(&graph));
+
+        let mut drifted_root = cap("root", &["unavailable"]);
+        drifted_root.dependencies[0].substitutes = vec![CapabilityId("recovery-c".into())];
+        let drifted_graph = CapabilityGraph {
+            capabilities: vec![drifted_root, cap("unavailable", &[]), cap("recovery-a", &[]), cap("recovery-b", &[]), cap("recovery-c", &[])],
+        };
+        assert!(!first.is_exactly_bound_to_graph(&drifted_graph));
     }
 
     #[test]
