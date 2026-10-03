@@ -708,6 +708,45 @@ impl CulturalProjectionAdmissionV2 {
         }
         Ok(())
     }
+
+    /// Reciprocal validation: an admission must reconstruct from the same
+    /// projection, canonical claim, and verified frontier that created it.
+    pub fn validate_against_projection(
+        &self,
+        projection: &CulturalProjectionV1,
+        frontier: &EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        if !projection.is_frontier_safe(claim, frontier) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        let closure = projection.evidence_closure();
+        let (projection_id, access_policy) = match projection {
+            CulturalProjectionV1::Transmission(value) => (
+                CulturalProjectionIdV1::Transmission(value.transmission_id.clone()),
+                value.access_policy,
+            ),
+            CulturalProjectionV1::Transformation(value) => (
+                CulturalProjectionIdV1::Transformation(value.transformation_id.clone()),
+                value.access_policy,
+            ),
+        };
+
+        if self.projection_id != projection_id
+            || self.claim_ref != closure.claim_ref
+            || self.evidence_refs != closure.evidence_refs
+            || self.source_snapshots != closure.source_snapshots
+            || self.evidence_frontier != closure.evidence_frontier
+            || self.qualification != closure.qualification
+            || self.access_policy != access_policy
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
 }
 
 /// Generic "why is this visible?" audit for either cultural projection variant.
@@ -1160,6 +1199,50 @@ mod tests {
             CulturalProjectionV1::Transformation(value)
                 .validate()
                 .is_ok()
+        );
+    }
+
+    #[test]
+    fn projection_admission_is_reversible_to_exact_projection() {
+        let frontier = frontier();
+        let transmission = transmission();
+        let projection = CulturalProjectionV1::Transmission(transmission.clone());
+        let admission = CulturalProjectionAdmissionV2::from_projection(
+            &projection,
+            &frontier,
+            &canonical_claim(&transmission),
+        )
+        .expect("frontier-safe projection");
+
+        assert_eq!(
+            admission.validate_against_projection(
+                &projection,
+                &frontier,
+                &canonical_claim(&transmission)
+            ),
+            Ok(())
+        );
+
+        let mut tampered = admission.clone();
+        tampered.evidence_refs = vec!["e:2".into()];
+        assert_eq!(
+            tampered.validate_against_projection(
+                &projection,
+                &frontier,
+                &canonical_claim(&transmission)
+            ),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+
+        let mut tampered = admission;
+        tampered.access_policy = AccessPolicyV1::Public;
+        assert_eq!(
+            tampered.validate_against_projection(
+                &projection,
+                &frontier,
+                &canonical_claim(&transmission)
+            ),
+            Err(ProjectionError::AuditWithoutEvidencePath)
         );
     }
 
