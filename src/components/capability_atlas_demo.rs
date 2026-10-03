@@ -4,12 +4,15 @@
 
 use leptos::prelude::*;
 use sol_atlas_core::bootstrap::water_purification_fixture;
-use sol_atlas_core::capability::{CapabilityGraph, CapabilityId, DependencyKind, EvidenceKind};
+use sol_atlas_core::capability::{CapabilityId, EvidenceKind};
 
 #[component]
 pub fn CapabilityAtlasDemo() -> impl IntoView {
     let graph = water_purification_fixture();
     let root = CapabilityId("water.purification".into());
+    let unavailable = CapabilityId("energy.electricity".into());
+    let resilience = graph.resilience_assessment(&root, &unavailable);
+    let resilience_binding = resilience.is_exactly_bound_to_graph(&graph);
     let (closure, closure_status) = match graph.required_closure(&root) {
         Ok(closure) => (closure, "Required dependency closure resolved.".to_string()),
         Err(error) => {
@@ -88,6 +91,70 @@ pub fn CapabilityAtlasDemo() -> impl IntoView {
                         }).collect_view()}
                     </ol>
                 </article>
+            </section>
+
+            <section class="capability-card capability-resilience">
+                <div class="capability-section-title">
+                    <div>
+                        <p class="capability-label">"STRUCTURAL RESILIENCE ANALYSIS"</p>
+                        <h2>"Alternatives are reported, never inferred"</h2>
+                    </div>
+                    <span class="capability-principle">
+                        {format!("Graph binding: {}", if resilience_binding { "exact" } else { "drift detected" })}
+                    </span>
+                </div>
+
+                <div class="capability-resilience-summary">
+                    <span>
+                        "Unavailable: "
+                        <code>{unavailable.0.clone()}</code>
+                    </span>
+                    <span>
+                        "Structurally affected: "
+                        {resilience.affected.len()}
+                    </span>
+                    <span>
+                        "Unresolved scope: "
+                        {resilience.unresolved.len()}
+                    </span>
+                    <span>
+                        "Declared alternatives: "
+                        {resilience.alternatives.len()}
+                    </span>
+                    <span>
+                        "Unresolved alternatives: "
+                        {resilience.unresolved_alternatives.len()}
+                    </span>
+                </div>
+
+                <div class="capability-resilience-list">
+                    {resilience.alternatives.iter().map(|candidate| view! {
+                        <div class="capability-resilience-row">
+                            <span class="capability-badge scenario">"DECLARED"</span>
+                            <span>
+                                <strong>{candidate.candidate.0.clone()}</strong>
+                                <small>{format!("for {}", candidate.for_dependency.0)}</small>
+                            </span>
+                            <span>"Closure resolved; selection and interchangeability are not established."</span>
+                        </div>
+                    }).collect_view()}
+                    {resilience.unresolved_alternatives.iter().map(|candidate| view! {
+                        <div class="capability-resilience-row unresolved">
+                            <span class="capability-badge scenario">"UNRESOLVED"</span>
+                            <span>
+                                <strong>{candidate.candidate.0.clone()}</strong>
+                                <small>{format!("for {}", candidate.for_dependency.0)}</small>
+                            </span>
+                            <span>
+                                {format!("Missing: {}", candidate.missing_capabilities.iter().map(|id| id.0.as_str()).collect::<Vec<_>>().join(", "))}
+                            </span>
+                        </div>
+                    }).collect_view()}
+                </div>
+
+                <p class="capability-resilience-ceiling">
+                    {resilience.claim_ceiling.clone()}
+                </p>
             </section>
 
             <section class="capability-card">
