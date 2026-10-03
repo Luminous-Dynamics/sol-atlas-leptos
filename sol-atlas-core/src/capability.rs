@@ -3559,6 +3559,14 @@ mod graph_tests {
             &bound_execution,
             "2026-10-02T07:59:00Z"
         ));
+        assert!(!decision.covers_execution(
+            &bound_execution,
+            "2026-10-02T07:58:00Z"
+        ));
+        assert!(!decision.covers_execution(
+            &bound_execution,
+            "2026-10-02T07:59:00Z"
+        ));
         assert!(decision.covers_execution(
             &bound_execution,
             "2026-10-02T08:00:00Z"
