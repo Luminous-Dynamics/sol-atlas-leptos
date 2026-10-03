@@ -4372,15 +4372,17 @@ mod graph_tests {
             "2026-10-02T08:00:00Z"
         ));
 
-        assert!(bound_execution.is_successful_with_bound_policy_decision_for_context(
-            &plan,
-            &candidate,
-            &decision,
-            "recovery.execute",
-            "operator-001",
-            "authority-record-001",
-            "2026-10-02T08:00:00Z"
-        ));
+        assert!(
+            bound_execution.is_successful_with_bound_policy_decision_for_context(
+                &plan,
+                &candidate,
+                &decision,
+                "recovery.execute",
+                "operator-001",
+                "authority-record-001",
+                "2026-10-02T08:00:00Z"
+            )
+        );
         assert!(verification.passes_with_bound_policy_decision_for_context(
             &plan,
             &candidate,
@@ -4392,42 +4394,50 @@ mod graph_tests {
             "2026-10-02T08:00:00Z"
         ));
 
-        assert!(!bound_execution.is_successful_with_bound_policy_decision_for_context(
-            &plan,
-            &candidate,
-            &decision,
-            "different-purpose",
-            "operator-001",
-            "authority-record-001",
-            "2026-10-02T08:00:00Z"
-        ));
-        assert!(!bound_execution.is_successful_with_bound_policy_decision_for_context(
-            &plan,
-            &candidate,
-            &decision,
-            "recovery.execute",
-            "different-consumer",
-            "authority-record-001",
-            "2026-10-02T08:00:00Z"
-        ));
-        assert!(!bound_execution.is_successful_with_bound_policy_decision_for_context(
-            &plan,
-            &candidate,
-            &decision,
-            "recovery.execute",
-            "operator-001",
-            "different-authority",
-            "2026-10-02T08:00:00Z"
-        ));
-        assert!(!bound_execution.is_successful_with_bound_policy_decision_for_context(
-            &plan,
-            &candidate,
-            &decision,
-            "",
-            "operator-001",
-            "authority-record-001",
-            "2026-10-02T08:00:00Z"
-        ));
+        assert!(
+            !bound_execution.is_successful_with_bound_policy_decision_for_context(
+                &plan,
+                &candidate,
+                &decision,
+                "different-purpose",
+                "operator-001",
+                "authority-record-001",
+                "2026-10-02T08:00:00Z"
+            )
+        );
+        assert!(
+            !bound_execution.is_successful_with_bound_policy_decision_for_context(
+                &plan,
+                &candidate,
+                &decision,
+                "recovery.execute",
+                "different-consumer",
+                "authority-record-001",
+                "2026-10-02T08:00:00Z"
+            )
+        );
+        assert!(
+            !bound_execution.is_successful_with_bound_policy_decision_for_context(
+                &plan,
+                &candidate,
+                &decision,
+                "recovery.execute",
+                "operator-001",
+                "different-authority",
+                "2026-10-02T08:00:00Z"
+            )
+        );
+        assert!(
+            !bound_execution.is_successful_with_bound_policy_decision_for_context(
+                &plan,
+                &candidate,
+                &decision,
+                "",
+                "operator-001",
+                "authority-record-001",
+                "2026-10-02T08:00:00Z"
+            )
+        );
         assert!(!verification.passes_with_bound_policy_decision_for_context(
             &plan,
             &candidate,
