@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This note defines the V1 meaning of temporal availability in Sol Atlas civilizational projections. It clarifies existing behavior; it does not change serialized fields, manifest hashing, or replay semantics.
+This note defines the V1 meaning of temporal availability in Sol Atlas civilizational projections. It clarifies existing behavior; it does not change the meaning of the temporal availability fields or frontier manifest hashing. Temporal admission receipts may carry an optional frontier manifest hash so a newly produced receipt can bind to the exact content-addressed frontier; this receipt-level field is migration-compatible and does not alter the V1 availability semantics.
 
 ## Three distinct concepts
 
