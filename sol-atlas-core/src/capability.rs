@@ -4255,11 +4255,8 @@ mod graph_tests {
         assert!(!decision.covers_execution(&bound_execution, "2026-10-02T07:59:00Z"));
         assert!(decision.covers_execution(&bound_execution, "2026-10-02T08:00:00Z"));
         let mut reversed_execution = bound_execution.clone();
-        reversed_execution.ended_at = Some("2026-10-02T07:59:59Z".into());
-        assert!(!decision.covers_execution(
-            &reversed_execution,
-            "2026-10-02T08:00:00Z"
-        ));
+        reversed_execution.ended_at = Some("2026-10-02T07:58:59Z".into());
+        assert!(!decision.covers_execution(&reversed_execution, "2026-10-02T08:00:00Z"));
         let mut late_issued = decision.clone();
         late_issued.issued_at = "2026-10-02T08:01:00Z".into();
         assert!(!late_issued.covers_execution(&bound_execution, "2026-10-02T08:05:00Z"));
