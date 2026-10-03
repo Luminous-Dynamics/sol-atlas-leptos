@@ -16,8 +16,8 @@
 //! - a deployed instance != universal availability
 
 use crate::evidence_reference::{
-    DigestContextV1, EvidenceReferenceCanonicalV1, EvidenceReferenceProfileRegistryV1, EvidenceReferenceV1,
-    EvidenceReferenceVerificationV1,
+    DigestContextV1, EvidenceReferenceCanonicalV1, EvidenceReferenceProfileRegistryV1,
+    EvidenceReferenceV1, EvidenceReferenceVerificationV1,
 };
 #[cfg(test)]
 use crate::evidence_reference::{DigestRepresentationV1, EvidenceReferenceResolutionV1};
@@ -2120,8 +2120,7 @@ impl RecoveryResilienceScopeSnapshotV1 {
 
         let mut edges = self.edges.clone();
         edges.sort_by(|left, right| {
-            (&left.from, &left.to, &left.relation)
-                .cmp(&(&right.from, &right.to, &right.relation))
+            (&left.from, &left.to, &left.relation).cmp(&(&right.from, &right.to, &right.relation))
         });
         edges.dedup();
 
@@ -2144,17 +2143,25 @@ impl RecoveryResilienceScopeSnapshotV1 {
             || !unique_nonempty_ids(&self.missing_nodes)
             || !unique_nonempty_ids(&self.duplicate_nodes)
             || !self.duplicate_nodes.is_empty()
-            || self.present_nodes.iter().any(|id| self.missing_nodes.contains(id))
-            || self.present_nodes.iter().any(|id| self.duplicate_nodes.contains(id))
-            || self.missing_nodes.iter().any(|id| self.duplicate_nodes.contains(id))
+            || self
+                .present_nodes
+                .iter()
+                .any(|id| self.missing_nodes.contains(id))
+            || self
+                .present_nodes
+                .iter()
+                .any(|id| self.duplicate_nodes.contains(id))
+            || self
+                .missing_nodes
+                .iter()
+                .any(|id| self.duplicate_nodes.contains(id))
         {
             return false;
         }
 
         let mut edges = self.edges.clone();
         edges.sort_by(|left, right| {
-            (&left.from, &left.to, &left.relation)
-                .cmp(&(&right.from, &right.to, &right.relation))
+            (&left.from, &left.to, &left.relation).cmp(&(&right.from, &right.to, &right.relation))
         });
         if edges.windows(2).any(|pair| pair[0] == pair[1]) {
             return false;
@@ -2299,8 +2306,7 @@ impl RecoveryResilienceProfileV1 {
 
         let mut alternatives = self.alternatives.clone();
         alternatives.sort_by(|left, right| {
-            (&left.for_dependency, &left.candidate)
-                .cmp(&(&right.for_dependency, &right.candidate))
+            (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
         });
         if alternatives.windows(2).any(|pair| {
             pair[0].for_dependency == pair[1].for_dependency
@@ -2309,7 +2315,9 @@ impl RecoveryResilienceProfileV1 {
             return false;
         }
 
-        self.alternatives.iter().all(RecoveryCandidateSnapshotV1::is_well_formed)
+        self.alternatives
+            .iter()
+            .all(RecoveryCandidateSnapshotV1::is_well_formed)
     }
 
     pub fn canonical_bytes(&self) -> Vec<u8> {
@@ -2331,8 +2339,7 @@ impl RecoveryResilienceProfileV1 {
 
         let mut alternatives = self.alternatives.clone();
         alternatives.sort_by(|left, right| {
-            (&left.for_dependency, &left.candidate)
-                .cmp(&(&right.for_dependency, &right.candidate))
+            (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
         });
 
         serde_json::to_vec(&CanonicalProfile {
@@ -2365,15 +2372,13 @@ impl RecoveryResilienceProfileV1 {
         let mut expected_alternatives = assessment.alternatives.clone();
         expected_alternatives.extend(assessment.unresolved_alternatives.clone());
         expected_alternatives.sort_by(|left, right| {
-            (&left.for_dependency, &left.candidate)
-                .cmp(&(&right.for_dependency, &right.candidate))
+            (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
         });
         expected_alternatives.dedup();
 
         let mut actual_alternatives = self.alternatives.clone();
         actual_alternatives.sort_by(|left, right| {
-            (&left.for_dependency, &left.candidate)
-                .cmp(&(&right.for_dependency, &right.candidate))
+            (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
         });
         actual_alternatives.dedup();
 
@@ -2424,10 +2429,7 @@ impl RecoveryResilienceAssessmentV1 {
             || self.claim_ceiling.is_empty()
             || !unique_nonempty_ids(&self.affected)
             || !unique_nonempty_ids(&self.unresolved)
-            || self
-                .affected
-                .iter()
-                .any(|id| self.unresolved.contains(id))
+            || self.affected.iter().any(|id| self.unresolved.contains(id))
             || self
                 .affected
                 .iter()
@@ -2509,8 +2511,7 @@ impl RecoveryResilienceAssessmentV1 {
 
         let mut unresolved_alternatives = self.unresolved_alternatives.clone();
         unresolved_alternatives.sort_by(|left, right| {
-            (&left.for_dependency, &left.candidate)
-                .cmp(&(&right.for_dependency, &right.candidate))
+            (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
         });
         unresolved_alternatives.dedup();
 
@@ -2538,8 +2539,7 @@ impl RecoveryResilienceAssessmentV1 {
     /// Re-derive the complete assessment from the supplied graph and reject any
     /// drift in structural impact, unresolved state, alternatives, or claim ceiling.
     pub fn is_exactly_bound_to_graph(&self, graph: &CapabilityGraph) -> bool {
-        self.is_well_formed()
-            && graph.resilience_assessment(&self.root, &self.unavailable) == *self
+        self.is_well_formed() && graph.resilience_assessment(&self.root, &self.unavailable) == *self
     }
 }
 
@@ -2824,8 +2824,8 @@ impl CapabilityGraph {
                     dependency.relation.is_required() && dependency.capability == *unavailable
                 }) {
                     for candidate_id in &dependency.substitutes {
-                        let (required_capabilities, missing_capabilities) =
-                            self.required_closure_with_missing_for_recovery(candidate_id, unavailable);
+                        let (required_capabilities, missing_capabilities) = self
+                            .required_closure_with_missing_for_recovery(candidate_id, unavailable);
                         let candidate = RecoveryCandidate {
                             for_dependency: dependency.capability.clone(),
                             candidate: candidate_id.clone(),
@@ -2849,13 +2849,11 @@ impl CapabilityGraph {
         }
 
         alternatives.sort_by(|left, right| {
-            (&left.for_dependency, &left.candidate)
-                .cmp(&(&right.for_dependency, &right.candidate))
+            (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
         });
         alternatives.dedup();
         unresolved_alternatives.sort_by(|left, right| {
-            (&left.for_dependency, &left.candidate)
-                .cmp(&(&right.for_dependency, &right.candidate))
+            (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
         });
         unresolved_alternatives.dedup();
 
@@ -2874,10 +2872,7 @@ impl CapabilityGraph {
 
     /// Build a deterministic root-scoped dependency record without discarding
     /// missing prerequisites. Duplicate capability IDs remain fail-closed.
-    fn resilience_scope_snapshot(
-        &self,
-        root: &CapabilityId,
-    ) -> RecoveryResilienceScopeSnapshotV1 {
+    fn resilience_scope_snapshot(&self, root: &CapabilityId) -> RecoveryResilienceScopeSnapshotV1 {
         use std::collections::{BTreeMap, BTreeSet};
 
         let duplicate_nodes = self.duplicate_capability_ids();
@@ -2898,7 +2893,9 @@ impl CapabilityGraph {
                     .iter()
                     .filter(|dependency| dependency.relation.is_required())
                 {
-                    if present.contains(&dependency.capability) || missing.contains(&dependency.capability) {
+                    if present.contains(&dependency.capability)
+                        || missing.contains(&dependency.capability)
+                    {
                         edges.insert((
                             capability.id.clone(),
                             dependency.capability.clone(),
@@ -5308,7 +5305,6 @@ mod graph_tests {
         assert!(qualified.is_well_formed());
     }
 
-
     #[test]
     fn resilience_profile_digest_is_stable_under_alternative_order() {
         let mut root = cap("root", &["unavailable"]);
@@ -5453,20 +5449,20 @@ mod graph_tests {
                 .collect::<Vec<_>>(),
             vec![CapabilityId("recovery-missing".into())]
         );
-        assert!(assessment
-            .alternatives
-            .iter()
-            .all(|candidate| candidate.missing_capabilities.is_empty()));
-        assert!(assessment
-            .unresolved_alternatives
-            .iter()
-            .all(|candidate| !candidate.missing_capabilities.is_empty()));
-        assert_eq!(
+        assert!(
             assessment
                 .alternatives
-                .first()
-                .unwrap()
-                .claim_ceiling,
+                .iter()
+                .all(|candidate| candidate.missing_capabilities.is_empty())
+        );
+        assert!(
+            assessment
+                .unresolved_alternatives
+                .iter()
+                .all(|candidate| !candidate.missing_capabilities.is_empty())
+        );
+        assert_eq!(
+            assessment.alternatives.first().unwrap().claim_ceiling,
             "Declared recovery candidate only; equivalence and operational interchangeability are not established."
         );
     }
@@ -5597,7 +5593,10 @@ mod graph_tests {
         );
 
         assert_eq!(assessment.alternatives.len(), 1);
-        assert_eq!(assessment.alternatives[0].candidate, CapabilityId("recovery".into()));
+        assert_eq!(
+            assessment.alternatives[0].candidate,
+            CapabilityId("recovery".into())
+        );
     }
 
     #[test]
@@ -5609,7 +5608,12 @@ mod graph_tests {
         ];
 
         let graph = CapabilityGraph {
-            capabilities: vec![root, cap("unavailable", &[]), cap("recovery-a", &[]), cap("recovery-b", &[])],
+            capabilities: vec![
+                root,
+                cap("unavailable", &[]),
+                cap("recovery-a", &[]),
+                cap("recovery-b", &[]),
+            ],
         };
         let first = graph.resilience_assessment(
             &CapabilityId("root".into()),
@@ -5622,7 +5626,12 @@ mod graph_tests {
             CapabilityId("recovery-b".into()),
         ];
         let reversed_graph = CapabilityGraph {
-            capabilities: vec![reversed_root, cap("recovery-b", &[]), cap("unavailable", &[]), cap("recovery-a", &[])],
+            capabilities: vec![
+                reversed_root,
+                cap("recovery-b", &[]),
+                cap("unavailable", &[]),
+                cap("recovery-a", &[]),
+            ],
         };
         let second = reversed_graph.resilience_assessment(
             &CapabilityId("root".into()),
@@ -5635,7 +5644,13 @@ mod graph_tests {
         let mut drifted_root = cap("root", &["unavailable"]);
         drifted_root.dependencies[0].substitutes = vec![CapabilityId("recovery-c".into())];
         let drifted_graph = CapabilityGraph {
-            capabilities: vec![drifted_root, cap("unavailable", &[]), cap("recovery-a", &[]), cap("recovery-b", &[]), cap("recovery-c", &[])],
+            capabilities: vec![
+                drifted_root,
+                cap("unavailable", &[]),
+                cap("recovery-a", &[]),
+                cap("recovery-b", &[]),
+                cap("recovery-c", &[]),
+            ],
         };
         assert!(!first.is_exactly_bound_to_graph(&drifted_graph));
     }
@@ -6291,10 +6306,7 @@ mod graph_tests {
             vec![CapabilityId("circular".into())]
         );
 
-        let assessment = graph.resilience_assessment(
-            &CapabilityId("root".into()),
-            &unavailable,
-        );
+        let assessment = graph.resilience_assessment(&CapabilityId("root".into()), &unavailable);
         assert!(assessment.alternatives.is_empty());
         assert_eq!(assessment.unresolved_alternatives.len(), 1);
         assert_eq!(
@@ -6307,5 +6319,4 @@ mod graph_tests {
         );
         assert!(assessment.is_well_formed());
     }
-
 }
