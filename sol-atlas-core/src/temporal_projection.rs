@@ -22,7 +22,6 @@ fn has_duplicate_ids<T: Ord>(ids: &[T]) -> bool {
     ids.iter().any(|id| !seen.insert(id))
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TemporalProjectionRequestV1 {
     pub map_epoch: YearInterval,
