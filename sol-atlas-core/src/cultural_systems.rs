@@ -907,6 +907,55 @@ impl CulturalProjectionAuditV2 {
     }
 }
 
+    /// Reciprocal validation against the exact projection and canonical claim
+    /// that produced this audit. This keeps the audit descriptive rather than
+    /// allowing post-construction field rebinding to masquerade as provenance.
+    pub fn validate_against_projection(
+        &self,
+        projection: &CulturalProjectionV1,
+        frontier: &EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        if !projection.is_frontier_safe(claim, frontier) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        let expected = Self::from_projection(projection);
+        if self.projection_id != expected.projection_id
+            || self.claim_ref != expected.claim_ref
+            || self.evidence_refs != expected.evidence_refs
+            || self.source_snapshots != expected.source_snapshots
+            || self.community_recognition_evidence != expected.community_recognition_evidence
+            || self.assessment != expected.assessment
+            || self.event_time != expected.event_time
+            || self.qualification != expected.qualification
+            || self.access_policy != expected.access_policy
+            || self.evidence_frontier != expected.evidence_frontier
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        match (&self.argumentation, &expected.argumentation) {
+            (None, None) => {}
+            (Some(argumentation), _) => {
+                if argumentation.claim_ref != self.claim_ref
+                    || argumentation.evidence_refs != self.evidence_refs
+                    || argumentation.source_snapshots != self.source_snapshots
+                    || argumentation.evidence_frontier != self.evidence_frontier
+                    || self.assessment.as_ref() != Some(&argumentation.assessment)
+                    || !argumentation.is_frontier_safe(claim, frontier)
+                {
+                    return Err(ProjectionError::AuditWithoutEvidencePath);
+                }
+            }
+            (None, Some(_)) => unreachable!("from_projection never creates argumentation"),
+        }
+
+        Ok(())
+    }
+}
+
 /// Projection-level "why is this visible?" record for a cultural
 /// transmission. It intentionally contains no causal conclusion beyond the
 /// externally resolved canonical claim reference.
@@ -1218,6 +1267,34 @@ mod tests {
             CulturalProjectionV1::Transformation(value)
                 .validate()
                 .is_ok()
+        );
+    }
+
+    #[test]
+    fn projection_audit_is_reversible_to_exact_projection() {
+        let frontier = frontier();
+        let transmission = transmission();
+        let projection = CulturalProjectionV1::Transmission(transmission.clone());
+        let audit = CulturalProjectionAuditV2::from_projection(&projection);
+
+        assert_eq!(
+            audit.validate_against_projection(
+                &projection,
+                &frontier,
+                &canonical_claim(&transmission)
+            ),
+            Ok(())
+        );
+
+        let mut tampered = audit.clone();
+        tampered.access_policy = AccessPolicyV1::Sensitive;
+        assert_eq!(
+            tampered.validate_against_projection(
+                &projection,
+                &frontier,
+                &canonical_claim(&transmission)
+            ),
+            Err(ProjectionError::AuditWithoutEvidencePath)
         );
     }
 
