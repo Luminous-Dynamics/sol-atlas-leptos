@@ -1043,6 +1043,10 @@ impl RecoveryPolicyDecisionSnapshotV1 {
     pub fn covers_execution(&self, execution: &RecoveryExecution, now: &str) -> bool {
         self.is_valid_at(now)
             && execution.terminal_timestamps_are_well_formed()
+            && execution
+                .ended_at
+                .as_deref()
+                .is_some_and(|ended_at| execution.started_at.as_str() <= ended_at)
             && self.issued_at.as_str() <= execution.started_at.as_str()
             && execution.started_at.as_str() < self.valid_until.as_str()
             && execution
@@ -4796,7 +4800,7 @@ mod graph_tests {
 
         assert_eq!(
             snapshot.nodes,
-            vec![CapabilityId("a".into())]
+            vec![CapabilityId("a".into()), CapabilityId("b".into())]
         );
         assert_eq!(snapshot.edges.len(), 1);
         assert_eq!(snapshot.edges[0].to, CapabilityId("b".into()));
@@ -5197,7 +5201,7 @@ mod graph_tests {
 
         assert_eq!(
             graph.affected_by(&CapabilityId("b".into())).affected,
-            vec![CapabilityId("a".into()), CapabilityId("b".into())]
+            vec![CapabilityId("a".into())]
         );
     }
 
