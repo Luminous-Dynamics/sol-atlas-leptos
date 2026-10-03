@@ -708,6 +708,8 @@ impl CulturalProjectionAdmissionV2 {
             || self.source_snapshots.is_empty()
             || self.source_snapshots.iter().any(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid()
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_source_snapshots(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -1261,6 +1263,33 @@ mod tests {
             ),
             Err(ProjectionError::AuditWithoutEvidencePath)
         );
+    }
+
+    #[test]
+    fn projection_admission_rejects_duplicate_provenance_ids() {
+        let frontier = frontier();
+        let transmission = transmission();
+        let projection = CulturalProjectionV1::Transmission(transmission.clone());
+        let mut admission = CulturalProjectionAdmissionV2::from_projection(
+            &projection,
+            &frontier,
+            &canonical_claim(&transmission),
+        )
+        .expect("frontier-safe projection");
+
+        admission.evidence_refs.push("e:1".into());
+        assert_eq!(admission.validate(), Err(ProjectionError::EmptyIdentifier));
+
+        let mut admission = CulturalProjectionAdmissionV2::from_projection(
+            &projection,
+            &frontier,
+            &canonical_claim(&transmission),
+        )
+        .expect("frontier-safe projection");
+        admission
+            .source_snapshots
+            .push("source:1".into());
+        assert_eq!(admission.validate(), Err(ProjectionError::EmptyIdentifier));
     }
 
     #[test]
