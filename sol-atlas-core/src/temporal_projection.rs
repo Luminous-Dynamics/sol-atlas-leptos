@@ -1616,6 +1616,63 @@ mod tests {
     }
 
     #[test]
+    fn projection_set_binds_admissions_to_hashed_frontier_identity() {
+        let mut hashed_frontier = frontier();
+        hashed_frontier.evidence_metadata = vec![EvidenceTemporalMetadataV1 {
+            evidence_id: "e:old".into(),
+            source_snapshot: "source:archive".into(),
+            artifact_time: None,
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+            validity_time: None,
+        }];
+        hashed_frontier.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:archive".into(),
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+        }];
+        hashed_frontier
+            .recompute_manifest_hash()
+            .expect("manifest hash");
+
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: hashed_frontier,
+        };
+        let snapshot = snapshot(
+            "snapshot:hashed",
+            YearInterval {
+                from: Some(1945),
+                to: Some(1947),
+            },
+            "frontier:1949",
+            "e:old",
+        );
+        let mut result = request.project(&[snapshot], &[]).unwrap();
+
+        assert_eq!(
+            result.admissions[0].frontier_manifest_hash,
+            result.evidence_frontier.manifest_hash
+        );
+        assert!(!result.admissions[0].frontier_manifest_hash.is_empty());
+        assert_eq!(result.validate(), Ok(()));
+
+        let mut same_id_shadow = result.evidence_frontier.clone();
+        same_id_shadow.admitted_evidence.insert("e:transition".into());
+        same_id_shadow.recompute_manifest_hash().unwrap();
+        result.evidence_frontier = same_id_shadow;
+        assert_eq!(
+            result.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
     fn admission_receipt_source_tamper_is_rejected_even_when_source_is_admitted() {
         let request = TemporalProjectionRequestV1 {
             map_epoch: YearInterval {
