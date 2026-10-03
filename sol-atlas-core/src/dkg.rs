@@ -204,6 +204,41 @@ mod tests {
     }
 
     #[test]
+    fn frontier_blocks_dkg_admission_through_a_corrupt_present_manifest() {
+        let mut frontier = frontier();
+        frontier.evidence_metadata = vec![
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:1".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
+            },
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:2".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1945),
+                capture_time: None,
+                available_by: 1945,
+                validity_time: None,
+            },
+        ];
+        frontier.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:1".into(),
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+        }];
+        frontier.recompute_manifest_hash().unwrap();
+        frontier.manifest_hash = "corrupt-present-manifest".into();
+
+        assert!(!statement().is_frontier_safe(&frontier));
+    }
+
+    #[test]
     fn frontier_blocks_late_or_unknown_evidence() {
         let frontier = frontier();
         let mut value = statement();
