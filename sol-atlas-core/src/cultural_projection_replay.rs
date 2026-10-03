@@ -140,7 +140,10 @@ impl V5ReplayReceiptV1 {
         chain: &EvidenceFrontierChainV1,
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<(), ProjectionError> {
-        audit.validate_against_projection(projection, chain.current().ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?, claim)?;
+        let frontier = chain
+            .current()
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+        audit.validate_against_projection(projection, frontier, claim)?;
         self.validate_against_audit_and_chain(audit, chain, claim)
     }
 
