@@ -694,7 +694,8 @@ impl Capability {
     /// This is discovery only: no candidate is treated as selected,
     /// equivalent, or operationally interchangeable.
     pub fn alternative_paths(&self) -> Vec<AlternativePath> {
-        self.dependencies
+        let mut paths = self
+            .dependencies
             .iter()
             .flat_map(|dependency| {
                 dependency.substitutes.iter().cloned().map(|candidate| AlternativePath {
@@ -704,7 +705,15 @@ impl Capability {
                     claim_ceiling: "Declared alternative candidate only; equivalence and operational interchangeability are not established.".into(),
                 })
             })
-            .collect()
+            .collect::<Vec<_>>();
+
+        paths.sort_by(|left, right| {
+            (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
+        });
+        paths.dedup_by(|left, right| {
+            left.for_dependency == right.for_dependency && left.candidate == right.candidate
+        });
+        paths
     }
 }
 
@@ -2404,6 +2413,9 @@ impl CapabilityGraph {
 
         candidates.sort_by(|left, right| {
             (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
+        });
+        candidates.dedup_by(|left, right| {
+            left.for_dependency == right.for_dependency && left.candidate == right.candidate
         });
         candidates
     }
@@ -4698,16 +4710,35 @@ mod graph_tests {
     fn alternatives_are_explicit_candidates_not_selections() {
         let mut root = cap("a", &["b"]);
         root.dependencies[0].substitutes = vec![
-            CapabilityId("alternative-1".into()),
             CapabilityId("alternative-2".into()),
+            CapabilityId("alternative-1".into()),
+            CapabilityId("alternative-1".into()),
         ];
 
         let paths = root.alternative_paths();
         assert_eq!(paths.len(), 2);
         assert_eq!(paths[0].for_dependency, CapabilityId("b".into()));
         assert_eq!(paths[0].candidate, CapabilityId("alternative-1".into()));
+        assert_eq!(paths[1].candidate, CapabilityId("alternative-2".into()));
         assert!(paths[0].evidence.is_empty());
         assert!(paths[0].claim_ceiling.contains("not established"));
+    }
+
+    #[test]
+    fn recovery_candidate_discovery_deduplicates_identical_declarations() {
+        let mut root = cap("root", &["unavailable"]);
+        root.dependencies[0].substitutes = vec![
+            CapabilityId("recovery".into()),
+            CapabilityId("recovery".into()),
+        ];
+
+        let graph = CapabilityGraph {
+            capabilities: vec![root, cap("unavailable", &[]), cap("recovery", &[])],
+        };
+
+        let candidates = graph.recovery_candidates(&CapabilityId("unavailable".into()));
+        assert_eq!(candidates.len(), 1);
+        assert_eq!(candidates[0].candidate, CapabilityId("recovery".into()));
     }
 
     #[test]
