@@ -3551,14 +3551,6 @@ mod graph_tests {
         assert!(decision.is_well_formed());
         assert!(decision.is_valid_at("2026-10-02T08:00:00Z"));
         assert!(!decision.is_valid_at("2026-10-02T08:10:00Z"));
-        assert!(!decision.covers_execution(
-            &bound_execution,
-            "2026-10-02T07:58:00Z"
-        ));
-        assert!(!decision.covers_execution(
-            &bound_execution,
-            "2026-10-02T07:59:00Z"
-        ));
         assert!(!decision.covers_execution(&bound_execution, "2026-10-02T07:58:00Z"));
         assert!(!decision.covers_execution(&bound_execution, "2026-10-02T07:59:00Z"));
         assert!(decision.covers_execution(&bound_execution, "2026-10-02T08:00:00Z"));
