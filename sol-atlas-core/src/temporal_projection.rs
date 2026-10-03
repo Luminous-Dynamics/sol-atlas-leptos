@@ -1160,6 +1160,7 @@ mod tests {
             capture_time: None,
             available_by: 1940,
         }];
+        frontier.admitted_evidence.remove("e:transition");
         frontier.recompute_manifest_hash().unwrap();
         assert_eq!(frontier.validate_temporal_manifest_strict(), Ok(()));
     }
@@ -1425,8 +1426,11 @@ mod tests {
         );
 
         let mut forged_hash_frontier = result.evidence_frontier.clone();
-        forged_hash_frontier.admitted_evidence.insert("e:transition".into());
-        assert_eq!(
+        forged_hash_frontier
+            .admitted_evidence
+            .insert("e:transition".into());
+        forged_hash_frontier.manifest_hash = "0".repeat(64);
+        assert_ne!(
             forged_hash_frontier.manifest_hash,
             result.evidence_frontier.manifest_hash
         );
