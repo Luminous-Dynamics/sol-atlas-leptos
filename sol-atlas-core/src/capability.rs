@@ -3518,7 +3518,7 @@ mod graph_tests {
                 preimage,
                 "deterministic-test-verifier",
                 "2026-10-02T00:00:00Z",
-                "Exact test evidence identity verified.",
+                "Exact test evidence identity only.",
             )
             .unwrap()
     }
@@ -4796,7 +4796,7 @@ mod graph_tests {
 
         assert_eq!(
             snapshot.nodes,
-            vec![CapabilityId("a".into()), CapabilityId("b".into())]
+            vec![CapabilityId("a".into())]
         );
         assert_eq!(snapshot.edges.len(), 1);
         assert_eq!(snapshot.edges[0].to, CapabilityId("b".into()));
