@@ -66,4 +66,5 @@ jobs:
       - name: Test sol-atlas-core
         run: cargo test -p sol-atlas-core --lib
       - name: Test application binary
+        if: ${{ always() }}
         run: cargo test --bin sol-atlas-leptos
