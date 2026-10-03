@@ -3559,24 +3559,12 @@ mod graph_tests {
             &bound_execution,
             "2026-10-02T07:59:00Z"
         ));
-        assert!(!decision.covers_execution(
-            &bound_execution,
-            "2026-10-02T07:58:00Z"
-        ));
-        assert!(!decision.covers_execution(
-            &bound_execution,
-            "2026-10-02T07:59:00Z"
-        ));
-        assert!(decision.covers_execution(
-            &bound_execution,
-            "2026-10-02T08:00:00Z"
-        ));
+        assert!(!decision.covers_execution(&bound_execution, "2026-10-02T07:58:00Z"));
+        assert!(!decision.covers_execution(&bound_execution, "2026-10-02T07:59:00Z"));
+        assert!(decision.covers_execution(&bound_execution, "2026-10-02T08:00:00Z"));
         let mut late_issued = decision.clone();
         late_issued.issued_at = "2026-10-02T08:01:00Z".into();
-        assert!(!late_issued.covers_execution(
-            &bound_execution,
-            "2026-10-02T08:05:00Z"
-        ));
+        assert!(!late_issued.covers_execution(&bound_execution, "2026-10-02T08:05:00Z"));
         assert!(bound_execution.is_successful_with_bound_policy_decision(
             &plan,
             &candidate,
