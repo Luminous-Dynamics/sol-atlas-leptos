@@ -991,6 +991,11 @@ pub struct RecoveryPolicyDecisionSnapshotV1 {
     pub plan_snapshot: String,
     pub candidate: CapabilityId,
     pub candidate_snapshot: String,
+    /// Optional exact execution binding. When present, the decision is valid
+    /// only for this execution identity; when absent, validity is governed by
+    /// the plan/candidate/context and validity window.
+    #[serde(default)]
+    pub execution_id: Option<String>,
     /// Opaque reference to the external authority/issuer record.
     pub authority_reference: String,
     pub issued_at: String,
@@ -1016,6 +1021,10 @@ impl RecoveryPolicyDecisionSnapshotV1 {
             && !self.plan_snapshot.is_empty()
             && !self.candidate.0.is_empty()
             && !self.candidate_snapshot.is_empty()
+            && self
+                .execution_id
+                .as_ref()
+                .is_none_or(|execution_id| !execution_id.is_empty())
             && !self.authority_reference.is_empty()
             && is_canonical_utc_timestamp(&self.issued_at)
             && is_canonical_utc_timestamp(&self.valid_until)
@@ -1049,6 +1058,10 @@ impl RecoveryPolicyDecisionSnapshotV1 {
                 .is_some_and(|ended_at| execution.started_at.as_str() <= ended_at)
             && self.issued_at.as_str() <= execution.started_at.as_str()
             && execution.started_at.as_str() < self.valid_until.as_str()
+            && self
+                .execution_id
+                .as_deref()
+                .is_none_or(|execution_id| execution_id == execution.execution_id)
             && execution
                 .ended_at
                 .as_deref()
@@ -4334,6 +4347,7 @@ mod graph_tests {
             plan_snapshot: plan.snapshot().digest(),
             candidate: candidate.candidate.clone(),
             candidate_snapshot: candidate.snapshot().digest(),
+            execution_id: Some(bound_execution.execution_id.clone()),
             authority_reference: "authority-record-001".into(),
             issued_at: "2026-10-02T07:50:00Z".into(),
             valid_until: "2026-10-02T08:10:00Z".into(),
@@ -4352,6 +4366,19 @@ mod graph_tests {
         assert!(!decision.covers_execution(&bound_execution, "2026-10-02T07:58:00Z"));
         assert!(!decision.covers_execution(&bound_execution, "2026-10-02T07:59:00Z"));
         assert!(decision.covers_execution(&bound_execution, "2026-10-02T08:00:00Z"));
+        let mut different_execution = bound_execution.clone();
+        different_execution.execution_id = "coverage-bound-other".into();
+        assert!(!decision.covers_execution(
+            &different_execution,
+            "2026-10-02T08:00:00Z"
+        ));
+        let mut unbound_decision = decision.clone();
+        unbound_decision.execution_id = None;
+        assert_ne!(decision.digest(), unbound_decision.digest());
+        assert!(unbound_decision.covers_execution(
+            &different_execution,
+            "2026-10-02T08:00:00Z"
+        ));
         let mut reversed_execution = bound_execution.clone();
         reversed_execution.ended_at = Some("2026-10-02T07:58:59Z".into());
         assert!(!decision.covers_execution(&reversed_execution, "2026-10-02T08:00:00Z"));
