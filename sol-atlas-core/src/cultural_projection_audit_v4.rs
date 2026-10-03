@@ -55,6 +55,8 @@ impl CulturalProjectionAuditV4 {
         for resolution in &self.resolutions {
             resolution.validate()?;
             if resolution.claim_ref != self.base.claim_ref
+                || resolution.evidence_refs != self.base.evidence_refs
+                || resolution.source_snapshots != self.base.source_snapshots
                 || resolution.evidence_frontier != self.base.evidence_frontier
                 || resolution.qualification != self.base.qualification
             {
@@ -274,6 +276,26 @@ mod tests {
             ..claim
         };
         assert!(!audit.is_frontier_safe(&frontier, &other_claim));
+    }
+
+    #[test]
+    fn v4_validation_rejects_resolution_closure_drift_from_audit() {
+        let (base, claim, frontier, mapping) = fixture();
+        let resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
+        let mut audit =
+            CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
+
+        audit.base.evidence_refs = vec!["e:other".into()];
+        assert_eq!(
+            audit.validate(),
+            Err(ProjectionError::EmptyIdentifier)
+        );
     }
 
     #[test]
