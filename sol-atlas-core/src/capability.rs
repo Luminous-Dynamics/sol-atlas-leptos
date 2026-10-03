@@ -4218,6 +4218,22 @@ mod graph_tests {
         failed_execution.failure_reason = Some("verification step failed".into());
         assert!(!verification.passes_with_bound_execution(&failed_execution));
 
+        let mut changed_result_state = execution.clone();
+        changed_result_state.resulting_state = CapabilityState::Deployed;
+        assert!(!verification.passes_with_bound_execution(&changed_result_state));
+
+        let mut changed_result_evidence = execution.clone();
+        changed_result_evidence.evidence[0] = "different-evidence".into();
+        assert!(!verification.passes_with_bound_execution(&changed_result_evidence));
+
+        let mut changed_result_claim = execution.clone();
+        changed_result_claim.claim_ceiling = "different result ceiling".into();
+        assert!(!verification.passes_with_bound_execution(&changed_result_claim));
+
+        let mut changed_result_end = execution.clone();
+        changed_result_end.ended_at = Some("2026-10-02T08:01:00Z".into());
+        assert!(!verification.passes_with_bound_execution(&changed_result_end));
+
         let candidate = RecoveryCandidate {
             for_dependency: CapabilityId("a".into()),
             candidate: CapabilityId("recovery".into()),
