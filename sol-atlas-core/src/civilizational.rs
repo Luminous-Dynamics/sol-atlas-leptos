@@ -1417,7 +1417,8 @@ mod tests {
             argumentation_metadata: vec![],
         };
 
-        let admitted_snapshot = snapshot();
+        let mut admitted_snapshot = snapshot();
+        admitted_snapshot.evidence_frontier = frontier.frontier_id.clone();
         assert!(frontier.admits_snapshot(&admitted_snapshot));
 
         let mut mismatched_snapshot = admitted_snapshot.clone();
