@@ -326,12 +326,14 @@ impl ProjectionAuditV1 {
     }
 
     pub fn for_snapshot(snapshot: &StateSnapshotV1) -> Self {
-        let evidence_refs = snapshot
+        let mut evidence_refs = snapshot
             .evidence_refs
             .iter()
             .chain(Self::geometry_evidence(&snapshot.geometries).iter())
             .cloned()
-            .collect();
+            .collect::<Vec<_>>();
+        let mut seen_evidence = BTreeSet::new();
+        evidence_refs.retain(|id| seen_evidence.insert(id.clone()));
         let claim_refs = snapshot
             .relation_refs
             .iter()
@@ -356,7 +358,7 @@ impl ProjectionAuditV1 {
         transition: &HistoricalTransitionV1,
         frontier: &EvidenceFrontierV1,
     ) -> Self {
-        let evidence_refs = transition
+        let mut evidence_refs = transition
             .evidence_refs
             .iter()
             .chain(
@@ -366,7 +368,9 @@ impl ProjectionAuditV1 {
                     .flat_map(|geometry| geometry.evidence.iter()),
             )
             .cloned()
-            .collect();
+            .collect::<Vec<_>>();
+        let mut seen_evidence = BTreeSet::new();
+        evidence_refs.retain(|id| seen_evidence.insert(id.clone()));
 
         Self {
             projection: ProjectionRef::Transition(transition.transition_id.clone()),
@@ -2637,6 +2641,41 @@ mod tests {
             evidence_frontier: "frontier:1".into(),
         };
         assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn audit_constructor_collapses_cross_channel_evidence_reuse() {
+        let snapshot = StateSnapshotV1 {
+            entity_id: "state:shared".into(),
+            snapshot_id: "snapshot:shared".into(),
+            valid_time: YearInterval {
+                from: Some(1900),
+                to: Some(1900),
+            },
+            geometries: vec![GeometryProjection {
+                geometry_ref: "geom:shared".into(),
+                semantics: SpatialSemantics::AdministrativeBoundary,
+                exact: true,
+                evidence: vec!["e:shared".into()],
+            }],
+            institution_refs: vec![],
+            constitutional_refs: vec![],
+            relation_refs: vec!["claim:shared".into()],
+            evidence_refs: vec!["e:shared".into()],
+            source_snapshots: vec!["source:shared".into()],
+            evidence_frontier: "frontier:shared".into(),
+            qualification: QualificationSummary {
+                status: QualificationStatus::Supported,
+                assessment: None,
+                claim_refs: vec!["claim:shared".into()],
+                unresolved: vec![],
+                contested: false,
+            },
+        };
+
+        let audit = ProjectionAuditV1::for_snapshot(&snapshot);
+        assert_eq!(audit.evidence_refs, vec!["e:shared".into()]);
+        assert_eq!(audit.validate(), Ok(()));
     }
 
     #[test]
