@@ -19,7 +19,6 @@ fn has_duplicate_ids<T: Ord>(ids: &[T]) -> bool {
     ids.iter().any(|id| !seen.insert(id))
 }
 
-
 use crate::civilizational::{
     ClaimId, EntityId, EvidenceFrontierId, EvidenceFrontierV1, EvidenceId, QualificationStatus,
     SourceSnapshotId, YearInterval,
