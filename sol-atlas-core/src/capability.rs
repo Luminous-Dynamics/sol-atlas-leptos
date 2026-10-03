@@ -3648,6 +3648,16 @@ mod graph_tests {
         lifecycle_only.state = RecoveryPlanState::Executing;
         assert_eq!(plan_snapshot.digest(), lifecycle_only.snapshot().digest());
 
+        let mut reordered_steps = bound_plan.clone();
+        reordered_steps.steps.reverse();
+        assert_ne!(plan_snapshot.digest(), reordered_steps.snapshot().digest());
+
+        let mut reordered_sets = bound_plan.clone();
+        reordered_sets.prerequisites.reverse();
+        reordered_sets.preconditions.reverse();
+        reordered_sets.expected_evidence.reverse();
+        assert_eq!(plan_snapshot.digest(), reordered_sets.snapshot().digest());
+
         let mut changed_plan_semantics = bound_plan.clone();
         changed_plan_semantics.claim_ceiling = "different plan ceiling".into();
         assert_ne!(
