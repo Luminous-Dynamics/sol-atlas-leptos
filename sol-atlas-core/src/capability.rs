@@ -3799,6 +3799,27 @@ mod graph_tests {
             result_snapshot.digest(),
             RecoveryExecutionResultSnapshotV1::from_execution(&changed_result).digest()
         );
+
+        let mut changed_result_evidence = execution.clone();
+        changed_result_evidence.evidence[0] = "different-evidence".into();
+        assert_ne!(
+            result_snapshot.digest(),
+            RecoveryExecutionResultSnapshotV1::from_execution(&changed_result_evidence).digest()
+        );
+
+        let mut changed_result_claim = execution.clone();
+        changed_result_claim.claim_ceiling = "narrower result scope".into();
+        assert_ne!(
+            result_snapshot.digest(),
+            RecoveryExecutionResultSnapshotV1::from_execution(&changed_result_claim).digest()
+        );
+
+        let mut changed_result_terminal = execution.clone();
+        changed_result_terminal.ended_at = Some("2026-10-02T08:06:00Z".into());
+        assert_ne!(
+            result_snapshot.digest(),
+            RecoveryExecutionResultSnapshotV1::from_execution(&changed_result_terminal).digest()
+        );
     }
 
     #[test]
