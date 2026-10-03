@@ -264,8 +264,7 @@ impl ProjectionAdmissionV1 {
             .validate()
             .map_err(|_| ProjectionError::InvalidTransition)?;
         self.validate_frontier_identity(frontier)?;
-        if self.evidence_frontier != frontier.frontier_id
-            || !frontier.admits_transition(transition)
+        if self.evidence_frontier != frontier.frontier_id || !frontier.admits_transition(transition)
         {
             return Err(ProjectionError::AuditWithoutEvidencePath);
         }
@@ -904,7 +903,10 @@ mod tests {
             },
             evidence_frontier: frontier(),
         };
-        request.evidence_frontier.admitted_evidence.insert("e:extra".into());
+        request
+            .evidence_frontier
+            .admitted_evidence
+            .insert("e:extra".into());
         request
             .evidence_frontier
             .recompute_manifest_hash()
@@ -942,7 +944,10 @@ mod tests {
             evidence_frontier: frontier(),
         };
         let mut result = request.project(&[], &[]).expect("empty projection");
-        result.evidence_frontier.admitted_evidence.insert("e:extra".into());
+        result
+            .evidence_frontier
+            .admitted_evidence
+            .insert("e:extra".into());
         result
             .evidence_frontier
             .recompute_manifest_hash()
@@ -1391,10 +1396,7 @@ mod tests {
         );
         let result = request.project(&[snapshot.clone()], &[]).unwrap();
         assert_eq!(
-            result.admissions[0].validate_against_snapshot(
-                &snapshot,
-                &result.evidence_frontier
-            ),
+            result.admissions[0].validate_against_snapshot(&snapshot, &result.evidence_frontier),
             Ok(())
         );
 
@@ -1413,7 +1415,9 @@ mod tests {
         );
 
         let mut same_id_shadow = result.evidence_frontier.clone();
-        same_id_shadow.admitted_evidence.insert("e:transition".into());
+        same_id_shadow
+            .admitted_evidence
+            .insert("e:transition".into());
         same_id_shadow.recompute_manifest_hash().unwrap();
         assert_ne!(
             same_id_shadow.manifest_hash,
@@ -1434,8 +1438,7 @@ mod tests {
             result.evidence_frontier.manifest_hash
         );
         assert_eq!(
-            result.admissions[0]
-                .validate_against_snapshot(&snapshot, &forged_hash_frontier),
+            result.admissions[0].validate_against_snapshot(&snapshot, &forged_hash_frontier),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
@@ -1459,10 +1462,8 @@ mod tests {
         );
         let result = request.project(&[], &[transition.clone()]).unwrap();
         assert_eq!(
-            result.admissions[0].validate_against_transition(
-                &transition,
-                &result.evidence_frontier
-            ),
+            result.admissions[0]
+                .validate_against_transition(&transition, &result.evidence_frontier),
             Ok(())
         );
 
@@ -1481,9 +1482,7 @@ mod tests {
             result.evidence_frontier.manifest_hash
         );
         assert_eq!(
-            result
-                .admissions[0]
-                .validate_against_transition(&transition, &same_id_shadow),
+            result.admissions[0].validate_against_transition(&transition, &same_id_shadow),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
@@ -1587,8 +1586,7 @@ mod tests {
             "e:old",
         );
         let result = request.project(&[snapshot], &[]).unwrap();
-        let mut encoded =
-            serde_json::to_value(&result.admissions[0]).expect("serialize admission");
+        let mut encoded = serde_json::to_value(&result.admissions[0]).expect("serialize admission");
         encoded
             .as_object_mut()
             .expect("admission object")
@@ -1620,25 +1618,21 @@ mod tests {
         );
         let mut result = request.project(&[snapshot.clone()], &[]).unwrap();
 
-        result.evidence_frontier.evidence_metadata = vec![
-            EvidenceTemporalMetadataV1 {
-                evidence_id: "e:old".into(),
-                source_snapshot: "source:archive".into(),
-                artifact_time: None,
-                publication_time: Some(1940),
-                capture_time: None,
-                available_by: 1940,
-                validity_time: None,
-            },
-        ];
-        result.evidence_frontier.source_metadata = vec![
-            SourceSnapshotTemporalMetadataV1 {
-                source_snapshot: "source:archive".into(),
-                publication_time: Some(1940),
-                capture_time: None,
-                available_by: 1940,
-            },
-        ];
+        result.evidence_frontier.evidence_metadata = vec![EvidenceTemporalMetadataV1 {
+            evidence_id: "e:old".into(),
+            source_snapshot: "source:archive".into(),
+            artifact_time: None,
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+            validity_time: None,
+        }];
+        result.evidence_frontier.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:archive".into(),
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+        }];
         result
             .evidence_frontier
             .recompute_manifest_hash()
@@ -1647,10 +1641,7 @@ mod tests {
         let mut legacy = result.admissions[0].clone();
         legacy.frontier_manifest_hash.clear();
         assert_eq!(
-            legacy.validate_against_snapshot(
-                &snapshot,
-                &result.evidence_frontier
-            ),
+            legacy.validate_against_snapshot(&snapshot, &result.evidence_frontier),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
@@ -1725,7 +1716,9 @@ mod tests {
             capture_time: None,
             available_by: 1940,
         }];
-        hashed_frontier.admitted_evidence.remove(&"e:transition".into());
+        hashed_frontier
+            .admitted_evidence
+            .remove(&"e:transition".into());
         hashed_frontier
             .recompute_manifest_hash()
             .expect("manifest hash");
