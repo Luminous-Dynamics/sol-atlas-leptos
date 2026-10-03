@@ -1322,7 +1322,6 @@ impl RecoveryVerificationSnapshotV1 {
             contradictory_postconditions: Vec<String>,
             dependency_closure: Vec<CapabilityId>,
             unresolved_dependencies: Vec<CapabilityId>,
-            scope_snapshot: RecoveryResilienceScopeSnapshotV1,
             environment_snapshot: String,
             evidence_snapshot: String,
             evidence_coverage: RecoveryEvidenceCoverage,
@@ -1760,7 +1759,6 @@ impl RecoveryVerification {
             return RecoveryVerificationValidity::EvidenceDrift;
         }
         if self.verification_snapshot.is_empty()
-            || !self.scope_snapshot.is_well_formed()
             || self.environment_snapshot.is_empty()
             || self.evidence_snapshot.is_empty()
             || !is_canonical_utc_timestamp(&self.verified_at)
@@ -4187,7 +4185,7 @@ mod graph_tests {
         wrong_execution_id.execution_id = "different-execution".into();
         assert!(!verification.passes_with_bound_execution(&wrong_execution_id));
 
-        let mut failed_execution = execution;
+        let mut failed_execution = execution.clone();
         failed_execution.failure_reason = Some("verification step failed".into());
         assert!(!verification.passes_with_bound_execution(&failed_execution));
 
@@ -5787,6 +5785,7 @@ mod graph_tests {
             dependency_snapshot: "deps-1".into(),
             environment_snapshot: "env-1".into(),
             evidence_snapshot: "evidence-1".into(),
+            evidence_coverage: RecoveryEvidenceCoverage::ClosedWorld,
             valid_until: "2026-10-03T00:00:00Z".into(),
             superseded_by: None,
             state: RecoveryVerificationState::Passed,
