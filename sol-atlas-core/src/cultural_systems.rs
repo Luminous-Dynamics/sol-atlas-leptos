@@ -1195,6 +1195,33 @@ mod tests {
     }
 
     #[test]
+    fn canonical_claim_and_argumentation_closures_cannot_rebind_evidence_to_another_source() {
+        let mut frontier = frontier();
+        frontier.admitted_sources.insert("source:2".into());
+        frontier.source_metadata.push(SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:2".into(),
+            publication_time: Some(1950),
+            capture_time: None,
+            available_by: 1950,
+        });
+        frontier.recompute_manifest_hash().expect("fixture hash");
+
+        let transmission = transmission();
+        let mut claim = canonical_claim(&transmission);
+        assert!(claim.is_frontier_safe(&frontier));
+        claim.source_snapshots = vec!["source:2".into()];
+        assert!(!claim.is_frontier_safe(&frontier));
+
+        let closure = CulturalArgumentationEvidenceClosureV1 {
+            claim_ref: transmission.claim_ref,
+            evidence_refs: transmission.evidence_refs,
+            source_snapshots: vec!["source:2".into()],
+            evidence_frontier: transmission.evidence_frontier,
+        };
+        assert!(!closure.is_frontier_safe(&canonical_claim(&transmission), &frontier));
+    }
+
+    #[test]
     fn canonical_claim_resolution_is_required() {
         let frontier = frontier();
         let value = transmission();
