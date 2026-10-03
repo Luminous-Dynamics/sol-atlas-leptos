@@ -52,11 +52,21 @@ impl CulturalProjectionAuditV4 {
         if has_duplicate_mapping_ids(&self.resolutions) {
             return Err(ProjectionError::EmptyIdentifier);
         }
+
+        let mut base_evidence_refs = self.base.evidence_refs.clone();
+        base_evidence_refs.sort();
+        let mut base_source_snapshots = self.base.source_snapshots.clone();
+        base_source_snapshots.sort();
+
         for resolution in &self.resolutions {
             resolution.validate()?;
+            let mut resolution_evidence_refs = resolution.evidence_refs.clone();
+            resolution_evidence_refs.sort();
+            let mut resolution_source_snapshots = resolution.source_snapshots.clone();
+            resolution_source_snapshots.sort();
             if resolution.claim_ref != self.base.claim_ref
-                || resolution.evidence_refs != self.base.evidence_refs
-                || resolution.source_snapshots != self.base.source_snapshots
+                || resolution_evidence_refs != base_evidence_refs
+                || resolution_source_snapshots != base_source_snapshots
                 || resolution.evidence_frontier != self.base.evidence_frontier
                 || resolution.qualification != self.base.qualification
             {
@@ -71,6 +81,11 @@ impl CulturalProjectionAuditV4 {
 
     pub fn computed_hash(&self) -> Result<String, ProjectionError> {
         let mut resolutions = self.resolutions.clone();
+        // Ontology mapping resolution closure vectors are membership sets, so
+        // nested evidence/source ordering must not alter the V4 semantic hash.
+        for resolution in &mut resolutions {
+            resolution.canonicalize();
+        }
         resolutions.sort_by(|a, b| {
             (a.mapping.mapping_id.clone(), a.resolution_hash.clone())
                 .cmp(&(b.mapping.mapping_id.clone(), b.resolution_hash.clone()))
