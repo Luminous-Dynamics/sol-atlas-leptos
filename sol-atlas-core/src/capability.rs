@@ -1032,8 +1032,16 @@ impl RecoveryPolicyDecisionSnapshotV1 {
     pub fn covers_execution(&self, execution: &RecoveryExecution, now: &str) -> bool {
         self.is_valid_at(now)
             && is_canonical_utc_timestamp(&execution.started_at)
+            && execution
+                .ended_at
+                .as_deref()
+                .is_some_and(is_canonical_utc_timestamp)
             && self.issued_at.as_str() <= execution.started_at.as_str()
             && execution.started_at.as_str() < self.valid_until.as_str()
+            && execution
+                .ended_at
+                .as_deref()
+                .is_some_and(|ended_at| ended_at <= now)
     }
 
     pub fn canonical_bytes(&self) -> Vec<u8> {
@@ -3543,6 +3551,14 @@ mod graph_tests {
         assert!(decision.is_well_formed());
         assert!(decision.is_valid_at("2026-10-02T08:00:00Z"));
         assert!(!decision.is_valid_at("2026-10-02T08:10:00Z"));
+        assert!(!decision.covers_execution(
+            &bound_execution,
+            "2026-10-02T07:58:00Z"
+        ));
+        assert!(!decision.covers_execution(
+            &bound_execution,
+            "2026-10-02T07:59:00Z"
+        ));
         assert!(decision.covers_execution(
             &bound_execution,
             "2026-10-02T08:00:00Z"
