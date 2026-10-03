@@ -1542,6 +1542,7 @@ mod tests {
             capture_time: None,
             available_by: 1940,
         }];
+        frontier.admitted_evidence.remove("e:transition");
         frontier.recompute_manifest_hash().unwrap();
 
         let request = TemporalProjectionRequestV1 {
@@ -1725,6 +1726,7 @@ mod tests {
             capture_time: None,
             available_by: 1940,
         }];
+        hashed_frontier.admitted_evidence.remove("e:transition");
         hashed_frontier
             .recompute_manifest_hash()
             .expect("manifest hash");
