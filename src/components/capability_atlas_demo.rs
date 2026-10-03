@@ -114,7 +114,11 @@ pub fn CapabilityAtlasDemo() -> impl IntoView {
                         {resilience.affected.len()}
                     </span>
                     <span>
-                        "Unresolved scope: "
+                        "Scope missing prerequisites: "
+                        {resilience.scope_snapshot.missing_nodes.len()}
+                    </span>
+                    <span>
+                        "Unresolved impact: "
                         {resilience.unresolved.len()}
                     </span>
                     <span>
