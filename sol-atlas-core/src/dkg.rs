@@ -12,6 +12,13 @@
 //! relationship remains reversible.
 
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeSet;
+
+fn has_duplicate_ids<T: Ord>(ids: &[T]) -> bool {
+    let mut seen = BTreeSet::new();
+    ids.iter().any(|id| !seen.insert(id))
+}
+
 
 use crate::civilizational::{
     ClaimId, EntityId, EvidenceFrontierId, EvidenceFrontierV1, EvidenceId, QualificationStatus,
@@ -61,6 +68,8 @@ impl DkgStatementV1 {
             && self.evidence_refs.iter().all(|id| id.is_valid())
             && !self.source_snapshots.is_empty()
             && self.source_snapshots.iter().all(|id| id.is_valid())
+            && !has_duplicate_ids(&self.evidence_refs)
+            && !has_duplicate_ids(&self.source_snapshots)
             && self.temporal_scope.is_valid()
     }
 
@@ -81,6 +90,10 @@ pub struct DkgProjectionAdmissionV1 {
     pub evidence_refs: Vec<EvidenceId>,
     pub source_snapshots: Vec<SourceSnapshotId>,
     pub evidence_frontier: EvidenceFrontierId,
+    /// Content-addressed identity of the selected frontier when available.
+    /// Empty is retained only for serialized legacy admissions.
+    #[serde(default)]
+    pub frontier_manifest_hash: String,
     /// Preserve the source statement's qualification; admission never upgrades it.
     pub qualification: QualificationStatus,
 }
@@ -100,6 +113,7 @@ impl DkgProjectionAdmissionV1 {
             evidence_refs: statement.evidence_refs.clone(),
             source_snapshots: statement.source_snapshots.clone(),
             evidence_frontier: frontier.frontier_id.clone(),
+            frontier_manifest_hash: frontier.manifest_hash.clone(),
             qualification: statement.qualification,
         })
     }
@@ -111,7 +125,15 @@ impl DkgProjectionAdmissionV1 {
             && self.evidence_refs.iter().all(|id| id.is_valid())
             && !self.source_snapshots.is_empty()
             && self.source_snapshots.iter().all(|id| id.is_valid())
+            && !has_duplicate_ids(&self.evidence_refs)
+            && !has_duplicate_ids(&self.source_snapshots)
             && self.evidence_frontier.is_valid()
+            && (self.frontier_manifest_hash.is_empty()
+                || (self.frontier_manifest_hash.len() == 64
+                    && self
+                        .frontier_manifest_hash
+                        .bytes()
+                        .all(|byte| byte.is_ascii_hexdigit())))
     }
 
     /// Reciprocal validation against the exact canonical statement and frontier
@@ -126,6 +148,7 @@ impl DkgProjectionAdmissionV1 {
         self.validate()
             && statement.is_frontier_safe(frontier)
             && self.evidence_frontier == frontier.frontier_id
+            && self.frontier_manifest_hash == frontier.manifest_hash
             && self.record == statement.record
             && self.claim_ref == statement.claim_ref
             && self.evidence_refs == statement.evidence_refs
@@ -180,6 +203,38 @@ mod tests {
         let mut record = statement().record;
         record.content_hash.clear();
         assert!(!record.is_valid());
+    }
+
+    #[test]
+    fn dkg_admission_binds_same_id_frontier_manifest() {
+        let mut frontier = frontier();
+        frontier.recompute_manifest_hash().unwrap();
+        let statement = statement();
+        let admission = DkgProjectionAdmissionV1::from_statement(&statement, &frontier)
+            .expect("frontier-safe statement");
+        assert!(admission.validate_against_statement(&statement, &frontier));
+
+        let mut shadow = frontier.clone();
+        shadow.policy_version = "v2".into();
+        shadow.recompute_manifest_hash().unwrap();
+
+        assert!(!admission.validate_against_statement(&statement, &shadow));
+    }
+
+    #[test]
+    fn dkg_admission_rejects_malformed_manifest_and_duplicate_provenance() {
+        let frontier = frontier();
+        let statement = statement();
+        let mut admission = DkgProjectionAdmissionV1::from_statement(&statement, &frontier)
+            .expect("frontier-safe statement");
+
+        admission.frontier_manifest_hash = "not-a-sha256".into();
+        assert!(!admission.validate());
+
+        let mut admission = DkgProjectionAdmissionV1::from_statement(&statement, &frontier)
+            .expect("frontier-safe statement");
+        admission.evidence_refs.push("e:1".into());
+        assert!(!admission.validate());
     }
 
     #[test]
