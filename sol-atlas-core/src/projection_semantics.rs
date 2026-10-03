@@ -30,7 +30,8 @@ pub struct ProjectionSemanticEnvelopeV1 {
 
 impl ProjectionSemanticEnvelopeV1 {
     pub fn validate(&self) -> Result<(), ProjectionError> {
-        if !self.claim_ref.is_valid()
+        if !self.projection_id.is_valid()
+            || !self.claim_ref.is_valid()
             || !self.evidence_frontier.is_valid()
             || self.mappings.is_empty()
             || self.envelope_hash.trim().is_empty()
@@ -39,6 +40,9 @@ impl ProjectionSemanticEnvelopeV1 {
         }
         for mapping in &self.mappings {
             mapping.validate()?;
+            if mapping.qualification != self.qualification {
+                return Err(ProjectionError::EmptyIdentifier);
+            }
         }
         if self.envelope_hash != self.computed_hash()? {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
@@ -143,6 +147,41 @@ mod tests {
         );
         OntologyMappingContextV1::from_mapping(&mapping, OntologyMappingRelationV1::Exact)
             .expect("mapping context")
+    }
+
+    #[test]
+    fn envelope_rejects_invalid_projection_identity() {
+        let mut envelope = ProjectionSemanticEnvelopeV1 {
+            projection_id: CulturalProjectionIdV1::Transmission("".into()),
+            claim_ref: "claim:1".into(),
+            evidence_frontier: "frontier:1950".into(),
+            qualification: QualificationStatus::Supported,
+            mappings: vec![mapping("mapping:1", "E7_Activity")],
+            envelope_hash: String::new(),
+        };
+        envelope.recompute_hash().expect("envelope hash");
+        assert_eq!(
+            envelope.validate(),
+            Err(ProjectionError::EmptyIdentifier)
+        );
+    }
+
+    #[test]
+    fn envelope_rejects_mapping_qualification_drift() {
+        let mut envelope = ProjectionSemanticEnvelopeV1 {
+            projection_id: CulturalProjectionIdV1::Transmission("transmission:1".into()),
+            claim_ref: "claim:1".into(),
+            evidence_frontier: "frontier:1950".into(),
+            qualification: QualificationStatus::Supported,
+            mappings: vec![mapping("mapping:1", "E7_Activity")],
+            envelope_hash: String::new(),
+        };
+        envelope.mappings[0].qualification = QualificationStatus::Speculative;
+        envelope.recompute_hash().expect("rehashed drift fixture");
+        assert_eq!(
+            envelope.validate(),
+            Err(ProjectionError::EmptyIdentifier)
+        );
     }
 
     #[test]
