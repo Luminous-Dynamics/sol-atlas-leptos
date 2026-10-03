@@ -1462,6 +1462,94 @@ mod tests {
     }
 
     #[test]
+    fn legacy_admission_json_defaults_manifest_hash() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: frontier(),
+        };
+        let snapshot = snapshot(
+            "snapshot:legacy-json",
+            YearInterval {
+                from: Some(1945),
+                to: Some(1947),
+            },
+            "frontier:1949",
+            "e:old",
+        );
+        let result = request.project(&[snapshot], &[]).unwrap();
+        let mut encoded =
+            serde_json::to_value(&result.admissions[0]).expect("serialize admission");
+        encoded
+            .as_object_mut()
+            .expect("admission object")
+            .remove("frontier_manifest_hash");
+
+        let decoded: ProjectionAdmissionV1 =
+            serde_json::from_value(encoded).expect("deserialize legacy admission");
+        assert!(decoded.frontier_manifest_hash.is_empty());
+        assert_eq!(decoded.validate(), Ok(()));
+    }
+
+    #[test]
+    fn admission_with_legacy_empty_manifest_hash_does_not_bind_a_populated_frontier() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: frontier(),
+        };
+        let snapshot = snapshot(
+            "snapshot:manifest-bound",
+            YearInterval {
+                from: Some(1945),
+                to: Some(1947),
+            },
+            "frontier:1949",
+            "e:old",
+        );
+        let mut result = request.project(&[snapshot.clone()], &[]);
+        let mut result = result.unwrap();
+
+        result.evidence_frontier.evidence_metadata = vec![
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:old".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
+            },
+        ];
+        result.evidence_frontier.source_metadata = vec![
+            SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:archive".into(),
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+            },
+        ];
+        result
+            .evidence_frontier
+            .recompute_manifest_hash()
+            .expect("manifest hash");
+
+        let mut legacy = result.admissions[0].clone();
+        legacy.frontier_manifest_hash.clear();
+        assert_eq!(
+            legacy.validate_against_snapshot(
+                &snapshot,
+                &result.evidence_frontier
+            ),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
     fn audit_must_match_the_projected_object_exactly() {
         let request = TemporalProjectionRequestV1 {
             map_epoch: YearInterval {
