@@ -124,6 +124,29 @@ impl CulturalProjectionAuditV4 {
                 .all(|resolution| resolution.is_frontier_safe(claim, frontier))
     }
 
+    /// Reciprocal validation against the exact cultural projection,
+    /// canonical claim, frontier, and resolved ontology closure.
+    pub fn validate_against_projection(
+        &self,
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        self.base
+            .validate_against_projection(projection, frontier, claim)?;
+
+        if self
+            .resolutions
+            .iter()
+            .any(|resolution| !resolution.is_frontier_safe(claim, frontier))
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn projection_id(&self) -> &CulturalProjectionIdV1 {
         &self.base.projection_id
     }
@@ -241,6 +264,50 @@ mod tests {
         duplicate.recompute_hash().expect("resolution hash");
         let audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution, duplicate]);
         assert_eq!(audit, Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn v4_reciprocal_validation_rejects_projection_rebinding() {
+        let (base, claim, frontier, mapping) = fixture();
+        let resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
+        let audit =
+            CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
+
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: None,
+                qualification: QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                evidence_frontier: "frontier:1950".into(),
+            },
+        );
+
+        let mut tampered = audit;
+        tampered.base.access_policy = crate::cultural_systems::AccessPolicyV1::Sensitive;
+        tampered.recompute_hash().expect("audit rehash");
+        assert_eq!(
+            tampered.validate_against_projection(&projection, &frontier, &claim),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
     }
 
     #[test]
