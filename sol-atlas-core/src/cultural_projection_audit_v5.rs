@@ -430,6 +430,44 @@ mod tests {
     }
 
     #[test]
+    fn v5_reciprocal_validation_rejects_projection_rebinding() {
+        let (v4, claim, frontier, argumentation) = fixture();
+        let audit =
+            CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
+
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into(), "e:2".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: Some("assessment:1".into()),
+                qualification: QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                evidence_frontier: "frontier:1950".into(),
+            },
+        );
+
+        let mut tampered = audit;
+        tampered.base.base.access_policy =
+            crate::cultural_systems::AccessPolicyV1::Sensitive;
+        tampered.recompute_hash().expect("audit rehash");
+        assert_eq!(
+            tampered.validate_against_projection(&projection, &frontier, &claim),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
+
+    #[test]
     fn changing_argumentation_kind_changes_audit_hash() {
         let (v4, _claim, _frontier, argumentation) = fixture();
         let mut audit =
