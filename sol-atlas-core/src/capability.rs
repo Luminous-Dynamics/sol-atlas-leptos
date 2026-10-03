@@ -1599,28 +1599,6 @@ impl RecoveryVerification {
         self.passes_with_bound_execution(execution) && execution.is_successful_with_bound_plan(plan)
     }
 
-    /// Stronger execution gate binding the exact candidate and plan to an
-    /// external admitted policy decision.
-    ///
-    /// The policy record is consumed, not interpreted as authority by this core:
-    /// its authority reference remains opaque and must be validated by the
-    /// external policy/issuer layer.
-    pub fn is_successful_with_bound_policy_decision(
-        &self,
-        plan: &RecoveryPlan,
-        candidate: &RecoveryCandidate,
-        decision: &RecoveryPolicyDecisionSnapshotV1,
-        now: &str,
-    ) -> bool {
-        self.is_successful_with_bound_candidate(plan, candidate)
-            && decision.covers_execution(self, now)
-            && decision.digest() == self.authorization.as_deref().unwrap_or_default()
-            && decision.plan_id == plan.id
-            && decision.plan_snapshot == plan.snapshot().digest()
-            && decision.candidate == candidate.candidate
-            && decision.candidate_snapshot == candidate.snapshot().digest()
-    }
-
     /// Stronger verification gate binding verification to the exact policy
     /// decision, candidate, plan, and concrete execution result.
     pub fn passes_with_bound_policy_decision(
@@ -2752,6 +2730,28 @@ impl RecoveryExecution {
             && self.plan_id == plan.id
             && self.matches_plan_execution_contract(plan)
             && self.input_snapshot_matches_plan(plan)
+    }
+
+    /// Stronger success gate binding the exact candidate, plan, and
+    /// external admitted policy decision.
+    ///
+    /// The policy record is consumed, not interpreted as authority by this core:
+    /// its authority reference remains opaque and must be validated by the
+    /// external policy/issuer layer.
+    pub fn is_successful_with_bound_policy_decision(
+        &self,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        now: &str,
+    ) -> bool {
+        self.is_successful_with_bound_candidate(plan, candidate)
+            && decision.covers_execution(self, now)
+            && decision.digest() == self.authorization.as_deref().unwrap_or_default()
+            && decision.plan_id == plan.id
+            && decision.plan_snapshot == plan.snapshot().digest()
+            && decision.candidate == candidate.candidate
+            && decision.candidate_snapshot == candidate.snapshot().digest()
     }
 
     /// Execution is complete only when it has an end marker and no failed steps.
