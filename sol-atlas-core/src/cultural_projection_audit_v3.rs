@@ -77,6 +77,29 @@ impl CulturalProjectionAuditV3 {
             && self.semantic_context.evidence_frontier == frontier.frontier_id
     }
 
+    /// Reciprocal validation against the exact projection, canonical claim,
+    /// and frontier that produced this semantic audit.
+    pub fn validate_against_projection(
+        &self,
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        self.base
+            .validate_against_projection(projection, frontier, claim)?;
+
+        if self.semantic_context.projection_id != self.base.projection_id
+            || self.semantic_context.claim_ref != self.base.claim_ref
+            || self.semantic_context.evidence_frontier != frontier.frontier_id
+            || self.semantic_context.qualification != self.base.qualification
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn argumentation(&self) -> Option<&CulturalArgumentationRefV1> {
         self.base.argumentation.as_ref()
     }
@@ -201,6 +224,48 @@ mod tests {
             CulturalProjectionAuditV3::from_v2(audit(), semantic_context()).expect("v3 audit");
         assert!(value.validate().is_ok());
         assert!(value.is_frontier_safe(&frontier()));
+    }
+
+    #[test]
+    fn v3_audit_reciprocal_validation_rejects_projection_rebinding() {
+        let frontier = frontier();
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: None,
+                qualification: QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                evidence_frontier: "frontier:1950".into(),
+            },
+        );
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            qualification: QualificationStatus::Supported,
+            evidence_frontier: "frontier:1950".into(),
+        };
+        let value =
+            CulturalProjectionAuditV3::from_v2(audit(), semantic_context()).expect("v3 audit");
+
+        let mut tampered = value;
+        tampered.base.access_policy = crate::cultural_systems::AccessPolicyV1::Sensitive;
+        assert_eq!(
+            tampered.validate_against_projection(&projection, &frontier, &claim),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
     }
 
     #[test]
