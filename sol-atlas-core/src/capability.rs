@@ -1322,7 +1322,7 @@ impl RecoveryVerificationSnapshotV1 {
             contradictory_postconditions: Vec<String>,
             dependency_closure: Vec<CapabilityId>,
             unresolved_dependencies: Vec<CapabilityId>,
-            dependency_snapshot: String,
+            scope_snapshot: RecoveryResilienceScopeSnapshotV1,
             environment_snapshot: String,
             evidence_snapshot: String,
             evidence_coverage: RecoveryEvidenceCoverage,
@@ -1390,7 +1390,7 @@ impl RecoveryVerificationSnapshotV1 {
             contradictory_postconditions: sorted_strings(&self.contradictory_postconditions),
             dependency_closure: sorted_ids(&self.dependency_closure),
             unresolved_dependencies: sorted_ids(&self.unresolved_dependencies),
-            dependency_snapshot: self.dependency_snapshot.clone(),
+            scope_snapshot: self.scope_snapshot.clone(),
             environment_snapshot: self.environment_snapshot.clone(),
             evidence_snapshot: self.evidence_snapshot.clone(),
             evidence_coverage: self.evidence_coverage,
@@ -1760,7 +1760,7 @@ impl RecoveryVerification {
             return RecoveryVerificationValidity::EvidenceDrift;
         }
         if self.verification_snapshot.is_empty()
-            || self.dependency_snapshot.is_empty()
+            || !self.scope_snapshot.is_well_formed()
             || self.environment_snapshot.is_empty()
             || self.evidence_snapshot.is_empty()
             || !is_canonical_utc_timestamp(&self.verified_at)
@@ -2055,6 +2055,92 @@ pub struct CapabilityImpact {
     pub affected: Vec<CapabilityId>,
 }
 
+/// Canonical snapshot of the dependency scope used by a resilience assessment.
+///
+/// Unlike DependencySnapshotV1, this record can represent an incomplete graph:
+/// missing prerequisites are explicit rather than causing the whole analysis scope
+/// to disappear behind an empty digest. Duplicate capability IDs remain invalid.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryResilienceScopeSnapshotV1 {
+    pub schema: String,
+    pub root: CapabilityId,
+    pub present_nodes: Vec<CapabilityId>,
+    pub missing_nodes: Vec<CapabilityId>,
+    pub edges: Vec<DependencySnapshotEdgeV1>,
+}
+
+impl RecoveryResilienceScopeSnapshotV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-resilience-scope:v1";
+
+    pub fn is_well_formed(&self) -> bool {
+        if self.schema != Self::SCHEMA
+            || self.root.0.is_empty()
+            || self.present_nodes.is_empty()
+            || !self.present_nodes.contains(&self.root)
+            || !unique_nonempty_ids(&self.present_nodes)
+            || !unique_nonempty_ids(&self.missing_nodes)
+            || self.present_nodes.iter().any(|id| self.missing_nodes.contains(id))
+        {
+            return false;
+        }
+
+        let mut edges = self.edges.clone();
+        edges.sort_by(|left, right| {
+            (&left.from, &left.to, &left.relation)
+                .cmp(&(&right.from, &right.to, &right.relation))
+        });
+        if edges.windows(2).any(|pair| pair[0] == pair[1]) {
+            return false;
+        }
+
+        edges.iter().all(|edge| {
+            edge.relation.is_required()
+                && self.present_nodes.contains(&edge.from)
+                && (self.present_nodes.contains(&edge.to) || self.missing_nodes.contains(&edge.to))
+        })
+    }
+
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        #[derive(Serialize)]
+        struct CanonicalScope {
+            schema: String,
+            root: CapabilityId,
+            present_nodes: Vec<CapabilityId>,
+            missing_nodes: Vec<CapabilityId>,
+            edges: Vec<DependencySnapshotEdgeV1>,
+        }
+
+        let mut present_nodes = self.present_nodes.clone();
+        present_nodes.sort();
+        present_nodes.dedup();
+
+        let mut missing_nodes = self.missing_nodes.clone();
+        missing_nodes.sort();
+        missing_nodes.dedup();
+
+        let mut edges = self.edges.clone();
+        edges.sort_by(|left, right| {
+            (&left.from, &left.to, &left.relation)
+                .cmp(&(&right.from, &right.to, &right.relation))
+        });
+        edges.dedup();
+
+        serde_json::to_vec(&CanonicalScope {
+            schema: self.schema.clone(),
+            root: self.root.clone(),
+            present_nodes,
+            missing_nodes,
+            edges,
+        })
+        .expect("recovery resilience scope contains only serializable graph primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+}
+
 /// Canonical, root-scoped structural resilience assessment.
 ///
 /// This is a graph analysis record, not a resilience or substitution claim. It
@@ -2066,8 +2152,9 @@ pub struct RecoveryResilienceAssessmentV1 {
     pub schema: String,
     pub root: CapabilityId,
     pub unavailable: CapabilityId,
-    /// Digest of the exact required dependency snapshot used as the analysis scope.
-    pub dependency_snapshot: String,
+    /// Exact dependency scope snapshot used as the analysis scope, including
+    /// explicit missing prerequisites when the graph is incomplete.
+    pub scope_snapshot: RecoveryResilienceScopeSnapshotV1,
     /// Affected capabilities inside the root's declared required closure.
     pub affected: Vec<CapabilityId>,
     /// Unresolved capabilities inside the analyzed scope.
@@ -2427,8 +2514,12 @@ impl CapabilityGraph {
     ) -> RecoveryResilienceAssessmentV1 {
         use std::collections::BTreeSet;
 
-        let (root_nodes, _) = self.required_closure_with_missing(root);
-        let root_scope = root_nodes.into_iter().collect::<BTreeSet<_>>();
+        let scope_snapshot = self.resilience_scope_snapshot(root);
+        let root_scope = scope_snapshot
+            .present_nodes
+            .iter()
+            .cloned()
+            .collect::<BTreeSet<_>>();
         let impact = self.affected_by(unavailable);
 
         let mut affected = impact
@@ -2502,21 +2593,64 @@ impl CapabilityGraph {
         });
         unresolved_alternatives.dedup();
 
-        let dependency_snapshot = self
-            .dependency_snapshot(root)
-            .map(|snapshot| snapshot.digest())
-            .unwrap_or_default();
-
         RecoveryResilienceAssessmentV1 {
             schema: RecoveryResilienceAssessmentV1::SCHEMA.into(),
             root: root.clone(),
             unavailable: unavailable.clone(),
-            dependency_snapshot,
+            scope_snapshot,
             affected,
             unresolved,
             alternatives,
             unresolved_alternatives,
             claim_ceiling: "Declared graph impact and explicit alternative-path analysis only; real-world resilience, equivalence, interchangeability, availability, sustainability, and successful recovery are not established.".into(),
+        }
+    }
+
+    /// Build a deterministic root-scoped dependency record without discarding
+    /// missing prerequisites. Duplicate capability IDs remain fail-closed.
+    fn resilience_scope_snapshot(
+        &self,
+        root: &CapabilityId,
+    ) -> RecoveryResilienceScopeSnapshotV1 {
+        use std::collections::{BTreeMap, BTreeSet};
+
+        let (present_nodes, missing_nodes) = self.required_closure_with_missing(root);
+        let index = self
+            .capabilities
+            .iter()
+            .map(|capability| (capability.id.clone(), capability))
+            .collect::<BTreeMap<_, _>>();
+        let present = present_nodes.iter().cloned().collect::<BTreeSet<_>>();
+        let missing = missing_nodes.iter().cloned().collect::<BTreeSet<_>>();
+        let mut edges = BTreeSet::new();
+
+        for id in &present_nodes {
+            if let Some(capability) = index.get(id) {
+                for dependency in capability
+                    .dependencies
+                    .iter()
+                    .filter(|dependency| dependency.relation.is_required())
+                {
+                    if present.contains(&dependency.capability) || missing.contains(&dependency.capability) {
+                        edges.insert((
+                            capability.id.clone(),
+                            dependency.capability.clone(),
+                            dependency.relation,
+                        ));
+                    }
+                }
+            }
+        }
+
+        RecoveryResilienceScopeSnapshotV1 {
+            schema: RecoveryResilienceScopeSnapshotV1::SCHEMA.into(),
+            root: root.clone(),
+            present_nodes,
+            missing_nodes,
+            edges: edges
+                .into_iter()
+                .map(|(from, to, relation)| DependencySnapshotEdgeV1 { from, to, relation })
+                .collect(),
         }
     }
 
@@ -4779,7 +4913,8 @@ mod graph_tests {
         );
 
         assert!(assessment.is_well_formed());
-        assert!(!assessment.dependency_snapshot.is_empty());
+        assert!(assessment.scope_snapshot.is_well_formed());
+        assert!(assessment.scope_snapshot.missing_nodes.is_empty());
         assert_eq!(assessment.affected, vec![CapabilityId("root".into())]);
         assert!(assessment.unresolved.is_empty());
         assert_eq!(
@@ -4814,6 +4949,27 @@ mod graph_tests {
                 .claim_ceiling,
             "Declared recovery candidate only; equivalence and operational interchangeability are not established."
         );
+    }
+
+    #[test]
+    fn resilience_scope_preserves_missing_nodes_without_empty_digest() {
+        let root = cap("root", &["unavailable", "missing-support"]);
+        let graph = CapabilityGraph {
+            capabilities: vec![root, cap("unavailable", &[])],
+        };
+
+        let assessment = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+
+        assert!(assessment.is_well_formed());
+        assert_eq!(
+            assessment.scope_snapshot.missing_nodes,
+            vec![CapabilityId("missing-support".into())]
+        );
+        assert!(assessment.scope_snapshot.digest().starts_with("sha256:"));
+        assert!(assessment.is_exactly_bound_to_graph(&graph));
     }
 
     #[test]
