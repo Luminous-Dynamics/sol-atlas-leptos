@@ -1300,6 +1300,36 @@ mod tests {
     }
 
     #[test]
+    fn admission_receipt_source_tamper_is_rejected_even_when_source_is_admitted() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: frontier(),
+        };
+        let snapshot = snapshot(
+            "snapshot:a",
+            YearInterval {
+                from: Some(1945),
+                to: Some(1947),
+            },
+            "frontier:1949",
+            "e:old",
+        );
+        let mut result = request.project(&[snapshot], &[]).unwrap();
+        result
+            .evidence_frontier
+            .admitted_sources
+            .insert("source:other".into());
+        result.admissions[0].admitted_sources = vec!["source:other".into()];
+        assert_eq!(
+            result.validate(),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
+
+    #[test]
     fn audit_must_reference_an_included_projection() {
         let request = TemporalProjectionRequestV1 {
             map_epoch: YearInterval {
