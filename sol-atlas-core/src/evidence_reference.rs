@@ -1381,6 +1381,12 @@ mod tests {
             verifier: None,
             verified_at: None,
             observed_digest: None,
+            profile_id: None,
+            profile_version: None,
+            profile_digest: None,
+            registry_id: None,
+            registry_version: None,
+            registry_digest: None,
             claim_ceiling: "Exact artifact only.".into(),
         };
         assert!(!unresolved.is_verified());
