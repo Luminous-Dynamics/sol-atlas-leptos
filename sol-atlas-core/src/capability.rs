@@ -2445,12 +2445,35 @@ impl CapabilityGraph {
         let mut unresolved_alternatives = Vec::new();
 
         if root_declares_unavailable {
-            for candidate in self.recovery_candidates(unavailable) {
-                let snapshot = candidate.snapshot();
-                if candidate.is_resolvable() {
-                    alternatives.push(snapshot);
-                } else {
-                    unresolved_alternatives.push(snapshot);
+            for capability in &self.capabilities {
+                if !root_scope.contains(&capability.id) {
+                    continue;
+                }
+
+                for dependency in capability.dependencies.iter().filter(|dependency| {
+                    dependency.relation.is_required() && dependency.capability == *unavailable
+                }) {
+                    for candidate_id in &dependency.substitutes {
+                        let (required_capabilities, missing_capabilities) =
+                            self.required_closure_with_missing(candidate_id);
+                        let candidate = RecoveryCandidate {
+                            for_dependency: dependency.capability.clone(),
+                            candidate: candidate_id.clone(),
+                            required_capabilities,
+                            missing_capabilities,
+                            evidence: Vec::new(),
+                            qualification: None,
+                            selection: RecoverySelectionState::Discovered,
+                            claim_ceiling: "Declared recovery candidate only; equivalence and operational interchangeability are not established.".into(),
+                        };
+                        let snapshot = candidate.snapshot();
+
+                        if candidate.is_resolvable() {
+                            alternatives.push(snapshot);
+                        } else {
+                            unresolved_alternatives.push(snapshot);
+                        }
+                    }
                 }
             }
         }
