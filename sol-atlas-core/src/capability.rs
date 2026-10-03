@@ -2688,7 +2688,7 @@ impl CapabilityGraph {
                     .flat_map(move |dependency| {
                         dependency.substitutes.iter().map(move |candidate| {
                             let (required_capabilities, missing_capabilities) =
-                                self.required_closure_with_missing(candidate);
+                                self.required_closure_with_missing_for_recovery(candidate, unavailable);
 
                             RecoveryCandidate {
                                 for_dependency: dependency.capability.clone(),
@@ -2771,7 +2771,7 @@ impl CapabilityGraph {
                 }) {
                     for candidate_id in &dependency.substitutes {
                         let (required_capabilities, missing_capabilities) =
-                            self.required_closure_with_missing(candidate_id);
+                            self.required_closure_with_missing_for_recovery(candidate_id, unavailable);
                         let candidate = RecoveryCandidate {
                             for_dependency: dependency.capability.clone(),
                             candidate: candidate_id.clone(),
@@ -2889,6 +2889,55 @@ impl CapabilityGraph {
 
         while let Some(id) = queue.pop_front() {
             if !seen.insert(id.clone()) {
+                continue;
+            }
+            let Some(capability) = index.get(&id) else {
+                missing.insert(id);
+                continue;
+            };
+            present.insert(id);
+            for dependency in capability
+                .dependencies
+                .iter()
+                .filter(|d| d.relation.is_required())
+            {
+                queue.push_back(dependency.capability.clone());
+            }
+        }
+
+        (present.into_iter().collect(), missing.into_iter().collect())
+    }
+
+    /// Compute a recovery candidate closure while treating the unavailable
+    /// capability as unsatisfied even when its graph node still exists.
+    ///
+    /// A substitute that depends on the capability it is supposed to replace is
+    /// therefore preserved as an unresolved candidate rather than being marked
+    /// structurally resolvable merely because the unavailable node is present in
+    /// the source graph.
+    fn required_closure_with_missing_for_recovery(
+        &self,
+        root: &CapabilityId,
+        unavailable: &CapabilityId,
+    ) -> (Vec<CapabilityId>, Vec<CapabilityId>) {
+        use std::collections::{BTreeMap, BTreeSet, VecDeque};
+
+        let index = self
+            .capabilities
+            .iter()
+            .map(|c| (c.id.clone(), c))
+            .collect::<BTreeMap<_, _>>();
+        let mut queue = VecDeque::from([root.clone()]);
+        let mut seen = BTreeSet::new();
+        let mut present = BTreeSet::new();
+        let mut missing = BTreeSet::new();
+
+        while let Some(id) = queue.pop_front() {
+            if !seen.insert(id.clone()) {
+                continue;
+            }
+            if id == *unavailable {
+                missing.insert(id);
                 continue;
             }
             let Some(capability) = index.get(&id) else {
@@ -6049,4 +6098,80 @@ mod graph_tests {
             RecoveryVerificationValidity::Superseded
         );
     }
+    #[test]
+    fn recovery_candidates_treat_self_dependent_substitutes_as_unresolved() {
+        let graph = CapabilityGraph {
+            capabilities: vec![
+                Capability {
+                    id: CapabilityId("root".into()),
+                    name: "root".into(),
+                    description: String::new(),
+                    state: CapabilityState::Demonstrated,
+                    dependencies: vec![CapabilityDependency {
+                        capability: CapabilityId("unavailable".into()),
+                        relation: DependencyKind::Required,
+                        substitutes: vec![CapabilityId("circular".into())],
+                    }],
+                    evidence: vec![],
+                    provenance: vec![],
+                    locations: vec![],
+                    qualification: None,
+                    contribution: HumanAiContribution {
+                        human: String::new(),
+                        ai: String::new(),
+                    },
+                },
+                Capability {
+                    id: CapabilityId("circular".into()),
+                    name: "circular".into(),
+                    description: String::new(),
+                    state: CapabilityState::Demonstrated,
+                    dependencies: vec![CapabilityDependency {
+                        capability: CapabilityId("unavailable".into()),
+                        relation: DependencyKind::Required,
+                        substitutes: vec![],
+                    }],
+                    evidence: vec![],
+                    provenance: vec![],
+                    locations: vec![],
+                    qualification: None,
+                    contribution: HumanAiContribution {
+                        human: String::new(),
+                        ai: String::new(),
+                    },
+                },
+                cap("unavailable", &[]),
+            ],
+        };
+
+        let unavailable = CapabilityId("unavailable".into());
+        let candidates = graph.recovery_candidates(&unavailable);
+        assert_eq!(candidates.len(), 1);
+        assert!(!candidates[0].is_resolvable());
+        assert_eq!(
+            candidates[0].missing_capabilities,
+            vec![unavailable.clone()]
+        );
+        assert_eq!(
+            candidates[0].required_capabilities,
+            vec![CapabilityId("circular".into())]
+        );
+
+        let assessment = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &unavailable,
+        );
+        assert!(assessment.alternatives.is_empty());
+        assert_eq!(assessment.unresolved_alternatives.len(), 1);
+        assert_eq!(
+            assessment.unresolved_alternatives[0].candidate,
+            CapabilityId("circular".into())
+        );
+        assert_eq!(
+            assessment.unresolved_alternatives[0].missing_capabilities,
+            vec![unavailable]
+        );
+        assert!(assessment.is_well_formed());
+    }
+
 }
