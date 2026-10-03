@@ -1258,4 +1258,6 @@ canvas#globe-canvas.has-hover {
     .capability-grid { grid-template-columns: 1fr; }
     .capability-warning { align-items: flex-start; }
     .capability-section-title { align-items: flex-start; flex-direction: column; }
+    .capability-resilience-row { grid-template-columns: auto 1fr; }
+    .capability-resilience-row > span:last-child { grid-column: 1 / -1; }
 }
