@@ -1201,26 +1201,28 @@ mod tests {
         frontier
             .source_metadata
             .push(SourceSnapshotTemporalMetadataV1 {
-            source_snapshot: "source:2".into(),
-            publication_time: Some(1950),
-            capture_time: None,
-            available_by: 1950,
-        });
+                source_snapshot: "source:2".into(),
+                publication_time: Some(1950),
+                capture_time: None,
+                available_by: 1950,
+            });
         frontier.recompute_manifest_hash().expect("fixture hash");
 
         let transmission = transmission();
-        let mut claim = canonical_claim(&transmission);
-        assert!(claim.is_frontier_safe(&frontier));
-        claim.source_snapshots = vec!["source:2".into()];
-        assert!(!claim.is_frontier_safe(&frontier));
+        let canonical = canonical_claim(&transmission);
+        assert!(canonical.is_frontier_safe(&frontier));
+
+        let mut mismatched = canonical.clone();
+        mismatched.source_snapshots = vec!["source:2".into()];
+        assert!(!mismatched.is_frontier_safe(&frontier));
 
         let closure = CulturalArgumentationEvidenceClosureV1 {
-            claim_ref: transmission.claim_ref,
-            evidence_refs: transmission.evidence_refs,
+            claim_ref: transmission.claim_ref.clone(),
+            evidence_refs: transmission.evidence_refs.clone(),
             source_snapshots: vec!["source:2".into()],
-            evidence_frontier: transmission.evidence_frontier,
+            evidence_frontier: transmission.evidence_frontier.clone(),
         };
-        assert!(!closure.is_frontier_safe(&canonical_claim(&transmission), &frontier));
+        assert!(!closure.is_frontier_safe(&canonical, &frontier));
     }
 
     #[test]
