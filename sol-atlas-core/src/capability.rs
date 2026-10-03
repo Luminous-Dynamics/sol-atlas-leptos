@@ -1869,8 +1869,41 @@ impl RecoveryCandidateSnapshotV1 {
     }
 
     pub fn canonical_bytes(&self) -> Vec<u8> {
-        serde_json::to_vec(self)
-            .expect("recovery candidate snapshot contains only serializable primitives")
+        #[derive(Serialize)]
+        struct CanonicalSnapshot {
+            schema: String,
+            for_dependency: CapabilityId,
+            candidate: CapabilityId,
+            required_capabilities: Vec<CapabilityId>,
+            missing_capabilities: Vec<CapabilityId>,
+            evidence: Vec<String>,
+            qualification: Option<CapabilityQualification>,
+            claim_ceiling: String,
+        }
+
+        let mut required_capabilities = self.required_capabilities.clone();
+        required_capabilities.sort();
+        required_capabilities.dedup();
+
+        let mut missing_capabilities = self.missing_capabilities.clone();
+        missing_capabilities.sort();
+        missing_capabilities.dedup();
+
+        let mut evidence = self.evidence.clone();
+        evidence.sort();
+        evidence.dedup();
+
+        serde_json::to_vec(&CanonicalSnapshot {
+            schema: Self::SCHEMA.into(),
+            for_dependency: self.for_dependency.clone(),
+            candidate: self.candidate.clone(),
+            required_capabilities,
+            missing_capabilities,
+            evidence,
+            qualification: self.qualification.clone(),
+            claim_ceiling: self.claim_ceiling.clone(),
+        })
+        .expect("recovery candidate snapshot contains only serializable primitives")
     }
 
     pub fn digest(&self) -> String {
@@ -5142,6 +5175,34 @@ mod graph_tests {
             graph.affected_by(&CapabilityId("b".into())).affected,
             vec![CapabilityId("a".into()), CapabilityId("b".into())]
         );
+    }
+
+    #[test]
+    fn recovery_candidate_snapshot_digest_is_order_invariant_for_set_fields() {
+        let first = RecoveryCandidateSnapshotV1 {
+            schema: RecoveryCandidateSnapshotV1::SCHEMA.into(),
+            for_dependency: CapabilityId("unavailable".into()),
+            candidate: CapabilityId("recovery".into()),
+            required_capabilities: vec![
+                CapabilityId("recovery".into()),
+                CapabilityId("prerequisite-a".into()),
+                CapabilityId("prerequisite-b".into()),
+            ],
+            missing_capabilities: vec![],
+            evidence: vec!["evidence-b".into(), "evidence-a".into()],
+            qualification: None,
+            claim_ceiling: "Exact candidate declaration only.".into(),
+        };
+        let mut second = first.clone();
+        second.required_capabilities.reverse();
+        second.evidence.reverse();
+
+        assert!(first.is_well_formed());
+        assert!(second.is_well_formed());
+        assert_eq!(first.digest(), second.digest());
+
+        second.claim_ceiling = "Broader candidate claim.".into();
+        assert_ne!(first.digest(), second.digest());
     }
 
     #[test]
