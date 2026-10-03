@@ -2106,6 +2106,36 @@ pub struct RecoveryResilienceScopeSnapshotV1 {
 impl RecoveryResilienceScopeSnapshotV1 {
     pub const SCHEMA: &'static str = "sol-atlas:recovery-resilience-scope:v1";
 
+    fn canonicalized(&self) -> Self {
+        let mut present_nodes = self.present_nodes.clone();
+        present_nodes.sort();
+        present_nodes.dedup();
+
+        let mut missing_nodes = self.missing_nodes.clone();
+        missing_nodes.sort();
+        missing_nodes.dedup();
+
+        let mut duplicate_nodes = self.duplicate_nodes.clone();
+        duplicate_nodes.sort();
+        duplicate_nodes.dedup();
+
+        let mut edges = self.edges.clone();
+        edges.sort_by(|left, right| {
+            (&left.from, &left.to, &left.relation)
+                .cmp(&(&right.from, &right.to, &right.relation))
+        });
+        edges.dedup();
+
+        Self {
+            schema: self.schema.clone(),
+            root: self.root.clone(),
+            present_nodes,
+            missing_nodes,
+            duplicate_nodes,
+            edges,
+        }
+    }
+
     pub fn is_well_formed(&self) -> bool {
         if self.schema != Self::SCHEMA
             || self.root.0.is_empty()
@@ -2149,32 +2179,15 @@ impl RecoveryResilienceScopeSnapshotV1 {
             edges: Vec<DependencySnapshotEdgeV1>,
         }
 
-        let mut present_nodes = self.present_nodes.clone();
-        present_nodes.sort();
-        present_nodes.dedup();
-
-        let mut missing_nodes = self.missing_nodes.clone();
-        missing_nodes.sort();
-        missing_nodes.dedup();
-
-        let mut duplicate_nodes = self.duplicate_nodes.clone();
-        duplicate_nodes.sort();
-        duplicate_nodes.dedup();
-
-        let mut edges = self.edges.clone();
-        edges.sort_by(|left, right| {
-            (&left.from, &left.to, &left.relation)
-                .cmp(&(&right.from, &right.to, &right.relation))
-        });
-        edges.dedup();
+        let canonicalized = self.canonicalized();
 
         serde_json::to_vec(&CanonicalScope {
-            schema: self.schema.clone(),
-            root: self.root.clone(),
-            present_nodes,
-            missing_nodes,
-            duplicate_nodes,
-            edges,
+            schema: canonicalized.schema,
+            root: canonicalized.root,
+            present_nodes: canonicalized.present_nodes,
+            missing_nodes: canonicalized.missing_nodes,
+            duplicate_nodes: canonicalized.duplicate_nodes,
+            edges: canonicalized.edges,
         })
         .expect("recovery resilience scope contains only serializable graph primitives")
     }
@@ -2209,6 +2222,19 @@ pub struct RecoveryResilienceFieldV1 {
 }
 
 impl RecoveryResilienceFieldV1 {
+    fn canonicalized(&self) -> Self {
+        let mut evidence = self.evidence.clone();
+        evidence.sort();
+        evidence.dedup();
+
+        Self {
+            state: self.state,
+            value: self.value.clone(),
+            evidence,
+            claim_ceiling: self.claim_ceiling.clone(),
+        }
+    }
+
     pub fn is_well_formed(&self) -> bool {
         if self.claim_ceiling.is_empty() || !unique_nonempty_strings(&self.evidence) {
             return false;
@@ -2316,11 +2342,11 @@ impl RecoveryResilienceProfileV1 {
             unavailable: self.unavailable.clone(),
             assessment_snapshot: self.assessment_snapshot.clone(),
             scope_snapshot: self.scope_snapshot.clone(),
-            availability: self.availability.clone(),
-            maintenance: self.maintenance.clone(),
-            repair_replacement: self.repair_replacement.clone(),
-            recovery_class: self.recovery_class.clone(),
-            reproducibility: self.reproducibility.clone(),
+            availability: self.availability.canonicalized(),
+            maintenance: self.maintenance.canonicalized(),
+            repair_replacement: self.repair_replacement.canonicalized(),
+            recovery_class: self.recovery_class.canonicalized(),
+            reproducibility: self.reproducibility.canonicalized(),
             alternatives,
             claim_ceiling: self.claim_ceiling.clone(),
         })
@@ -2493,7 +2519,7 @@ impl RecoveryResilienceAssessmentV1 {
             schema: self.schema.clone(),
             root: self.root.clone(),
             unavailable: self.unavailable.clone(),
-            scope_snapshot: self.scope_snapshot.clone(),
+            scope_snapshot: self.scope_snapshot.canonicalized(),
             affected,
             unresolved,
             alternatives,
@@ -5203,6 +5229,57 @@ mod graph_tests {
 
         second.claim_ceiling = "Broader candidate claim.".into();
         assert_ne!(first.digest(), second.digest());
+    }
+
+    #[test]
+    fn nested_set_like_state_is_canonicalized_in_parent_digests() {
+        let mut root = cap("root", &["unavailable"]);
+        root.dependencies[0].substitutes = vec![
+            CapabilityId("recovery-a".into()),
+            CapabilityId("recovery-b".into()),
+        ];
+        let graph = CapabilityGraph {
+            capabilities: vec![
+                root,
+                cap("unavailable", &[]),
+                cap("recovery-a", &[]),
+                cap("recovery-b", &[]),
+            ],
+        };
+        let mut assessment = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+
+        let baseline = assessment.clone();
+        assessment.scope_snapshot.present_nodes.reverse();
+        assessment.scope_snapshot.edges.reverse();
+        assert!(assessment.is_well_formed());
+        assert_eq!(assessment.digest(), baseline.digest());
+
+        let field = || RecoveryResilienceFieldV1 {
+            state: RecoveryResilienceFieldStateV1::Observed,
+            value: Some("present".into()),
+            evidence: vec!["evidence-b".into(), "evidence-a".into()],
+            claim_ceiling: "Exact observation only.".into(),
+        };
+        let mut profile = RecoveryResilienceProfileV1 {
+            schema: RecoveryResilienceProfileV1::SCHEMA.into(),
+            capability: baseline.root.clone(),
+            unavailable: baseline.unavailable.clone(),
+            assessment_snapshot: baseline.digest(),
+            scope_snapshot: baseline.scope_snapshot.digest(),
+            availability: field(),
+            maintenance: field(),
+            repair_replacement: field(),
+            recovery_class: field(),
+            reproducibility: field(),
+            alternatives: baseline.alternatives.clone(),
+            claim_ceiling: "Descriptive profile bound to one structural assessment only.".into(),
+        };
+        let baseline_digest = profile.digest();
+        profile.availability.evidence.reverse();
+        assert_eq!(baseline_digest, profile.digest());
     }
 
     #[test]
