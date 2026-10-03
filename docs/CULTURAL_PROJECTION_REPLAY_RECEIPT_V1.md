@@ -60,3 +60,13 @@ Sol Atlas remains the projection/replay layer. Canonical claims and their eviden
 ## Compatibility
 
 This layer is additive to V5. Existing V1-V5 audit contracts remain unchanged. Consumers that do not need replay receipts can continue using the existing audit validation APIs.
+
+## End-to-end reciprocal binding
+
+Replay receipt validation has two layers:
+
+- `validate_against_audit_and_chain` verifies that the receipt reconstructs exactly from the supplied V5 audit and verified frontier chain.
+- `validate_against_projection` additionally verifies that the V5 audit itself reconstructs from the exact originating cultural projection and canonical claim before validating the receipt.
+- `V5HistoricalReplayReceiptV1::validate_against_projection_at` carries the same end-to-end invariant through a historical prefix receipt selected at an earlier frontier.
+
+This distinction is intentional: content hashes provide tamper evidence for the receipt, while reciprocal validation establishes the semantic derivation edge back to the source projection. The receipt remains descriptive provenance and does not become a new authority layer.
