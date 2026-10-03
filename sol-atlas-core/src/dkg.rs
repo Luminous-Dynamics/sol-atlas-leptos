@@ -208,6 +208,32 @@ mod tests {
     #[test]
     fn dkg_admission_binds_same_id_frontier_manifest() {
         let mut frontier = frontier();
+        frontier.evidence_metadata = vec![
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:1".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
+            },
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:2".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1941),
+                capture_time: None,
+                available_by: 1941,
+                validity_time: None,
+            },
+        ];
+        frontier.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:1".into(),
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+        }];
         frontier.recompute_manifest_hash().unwrap();
         let statement = statement();
         let admission = DkgProjectionAdmissionV1::from_statement(&statement, &frontier)
