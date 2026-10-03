@@ -30,7 +30,7 @@ impl TemporalProjectionRequestV1 {
             return Err(ProjectionError::MissingEvidenceFrontier);
         }
         if !self.evidence_frontier.manifest_hash.trim().is_empty() {
-            self.evidence_frontier.verify_manifest_hash()?;
+            self.evidence_frontier.validate_temporal_manifest()?;
         }
         Ok(())
     }
@@ -310,7 +310,7 @@ impl TemporalProjectionSetV1 {
             return Err(ProjectionError::MissingEvidenceFrontier);
         }
         if !self.evidence_frontier.manifest_hash.trim().is_empty() {
-            self.evidence_frontier.verify_manifest_hash()?;
+            self.evidence_frontier.validate_temporal_manifest()?;
         }
         if self.frontier_lineage.is_empty()
             || self.frontier_lineage.last() != Some(&self.evidence_frontier.frontier_id)
@@ -815,6 +815,27 @@ mod tests {
     }
 
     #[test]
+    fn populated_request_rejects_structurally_invalid_present_manifest() {
+        let mut request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: frontier(),
+        };
+        request.evidence_frontier.admitted_evidence.insert("e:extra".into());
+        request
+            .evidence_frontier
+            .recompute_manifest_hash()
+            .expect("manifest hash");
+
+        assert_eq!(
+            request.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
     fn legacy_request_rejects_corrupt_present_manifest() {
         let mut request = TemporalProjectionRequestV1 {
             map_epoch: YearInterval {
@@ -826,6 +847,28 @@ mod tests {
         request.evidence_frontier.manifest_hash = "corrupt-present-manifest".into();
         assert_eq!(
             request.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn populated_result_rejects_structurally_invalid_present_manifest_even_when_empty() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: frontier(),
+        };
+        let mut result = request.project(&[], &[]).expect("empty projection");
+        result.evidence_frontier.admitted_evidence.insert("e:extra".into());
+        result
+            .evidence_frontier
+            .recompute_manifest_hash()
+            .expect("manifest hash");
+
+        assert_eq!(
+            result.validate(),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
