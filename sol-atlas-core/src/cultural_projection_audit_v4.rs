@@ -99,6 +99,8 @@ impl CulturalProjectionAuditV4 {
         self.validate().is_ok()
             && self.base.is_frontier_safe(frontier)
             && claim.claim_ref == self.base.claim_ref
+            && self.base.evidence_refs == claim.evidence_refs
+            && self.base.source_snapshots == claim.source_snapshots
             && self
                 .resolutions
                 .iter()
@@ -222,6 +224,30 @@ mod tests {
         duplicate.recompute_hash().expect("resolution hash");
         let audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution, duplicate]);
         assert_eq!(audit, Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn v4_frontier_safety_rejects_admitted_but_rebound_evidence_closure() {
+        let (base, claim, frontier, mapping) = fixture();
+        let resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
+        let mut audit =
+            CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
+
+        audit.base.evidence_refs = vec!["e:other".into()];
+        audit.recompute_hash().expect("audit hash");
+
+        let mut rebound_frontier = frontier.clone();
+        rebound_frontier.admitted_evidence.insert("e:other".into());
+        rebound_frontier.evidence_metadata[0].source_snapshot = "source:1".into();
+        rebound_frontier.recompute_manifest_hash().expect("frontier hash");
+
+        assert!(!audit.is_frontier_safe(&rebound_frontier, &claim));
     }
 
     #[test]
