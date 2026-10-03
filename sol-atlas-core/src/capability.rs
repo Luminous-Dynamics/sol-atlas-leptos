@@ -4383,16 +4383,18 @@ mod graph_tests {
                 "2026-10-02T08:00:00Z"
             )
         );
-        assert!(verification.passes_with_bound_policy_decision_for_context(
-            &plan,
-            &candidate,
-            &decision,
-            &bound_execution,
-            "recovery.execute",
-            "operator-001",
-            "authority-record-001",
-            "2026-10-02T08:00:00Z"
-        ));
+        assert!(
+            verification.passes_with_bound_policy_decision_for_context(
+                &plan,
+                &candidate,
+                &decision,
+                &bound_execution,
+                "recovery.execute",
+                "operator-001",
+                "authority-record-001",
+                "2026-10-02T08:00:00Z"
+            )
+        );
 
         assert!(
             !bound_execution.is_successful_with_bound_policy_decision_for_context(
@@ -4438,16 +4440,18 @@ mod graph_tests {
                 "2026-10-02T08:00:00Z"
             )
         );
-        assert!(!verification.passes_with_bound_policy_decision_for_context(
-            &plan,
-            &candidate,
-            &decision,
-            &bound_execution,
-            "recovery.execute",
-            "",
-            "authority-record-001",
-            "2026-10-02T08:00:00Z"
-        ));
+        assert!(
+            !verification.passes_with_bound_policy_decision_for_context(
+                &plan,
+                &candidate,
+                &decision,
+                &bound_execution,
+                "recovery.execute",
+                "",
+                "authority-record-001",
+                "2026-10-02T08:00:00Z"
+            )
+        );
 
         let mut wrong_purpose = decision.clone();
         wrong_purpose.purpose = "different-purpose".into();
