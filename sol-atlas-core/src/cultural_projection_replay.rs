@@ -527,6 +527,9 @@ mod tests {
 
         let mut equivalent_audit = audit.clone();
         equivalent_audit.base.base.evidence_refs.reverse();
+        if let Some(argumentation) = equivalent_audit.base.base.argumentation.as_mut() {
+            argumentation.evidence_refs.reverse();
+        }
         equivalent_audit
             .recompute_hash()
             .expect("equivalent audit hash");
