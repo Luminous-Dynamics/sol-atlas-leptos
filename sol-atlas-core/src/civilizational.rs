@@ -898,6 +898,11 @@ impl EvidenceFrontierV1 {
         evidence_ids: &[EvidenceId],
         source_snapshots: &[SourceSnapshotId],
     ) -> bool {
+        // Preserve migration-compatible empty manifests, but never admit through
+        // a frontier carrying a present, corrupted content hash.
+        if !self.manifest_hash.trim().is_empty() && self.verify_manifest_hash().is_err() {
+            return false;
+        }
         if !source_snapshots.iter().all(|id| self.admits_source(id)) {
             return false;
         }
@@ -1437,6 +1442,45 @@ mod tests {
             ..admitted_audit
         };
         assert!(!frontier.admits_audit(&mismatched_audit));
+    }
+
+    #[test]
+    fn evidence_source_closure_rejects_corrupt_present_frontier_manifest() {
+        let mut frontier = frontier();
+        frontier.admitted_evidence.insert("e:direct".into());
+        frontier.evidence_metadata = vec![
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:old".into(),
+                source_snapshot: "source-snapshot:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
+            },
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:direct".into(),
+                source_snapshot: "source-snapshot:archive".into(),
+                artifact_time: None,
+                publication_time: Some(1945),
+                capture_time: None,
+                available_by: 1945,
+                validity_time: None,
+            },
+        ];
+        frontier.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source-snapshot:archive".into(),
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+        }];
+        frontier.recompute_manifest_hash().unwrap();
+        frontier.manifest_hash = "corrupt-present-manifest".into();
+
+        let mut value = snapshot();
+        value.evidence_frontier = frontier.frontier_id.clone();
+        value.evidence_refs = vec!["e:direct".into()];
+        assert!(!frontier.admits_snapshot(&value));
     }
 
     #[test]
