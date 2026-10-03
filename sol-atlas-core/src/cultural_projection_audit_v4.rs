@@ -253,24 +253,27 @@ mod tests {
             &frontier,
         )
         .expect("resolution");
-        let mut audit =
-            CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
+        let mut audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
 
         audit.base.evidence_refs = vec!["e:other".into()];
         audit.recompute_hash().expect("audit hash");
 
         let mut rebound_frontier = frontier.clone();
         rebound_frontier.admitted_evidence.insert("e:other".into());
-        rebound_frontier.evidence_metadata.push(EvidenceTemporalMetadataV1 {
-            evidence_id: "e:other".into(),
-            source_snapshot: "source:1".into(),
-            artifact_time: None,
-            publication_time: Some(1949),
-            capture_time: None,
-            available_by: 1949,
-            validity_time: None,
-        });
-        rebound_frontier.recompute_manifest_hash().expect("frontier hash");
+        rebound_frontier
+            .evidence_metadata
+            .push(EvidenceTemporalMetadataV1 {
+                evidence_id: "e:other".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1949),
+                capture_time: None,
+                available_by: 1949,
+                validity_time: None,
+            });
+        rebound_frontier
+            .recompute_manifest_hash()
+            .expect("frontier hash");
 
         assert!(!audit.is_frontier_safe(&rebound_frontier, &claim));
     }
@@ -303,14 +306,10 @@ mod tests {
             &frontier,
         )
         .expect("resolution");
-        let mut audit =
-            CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
+        let mut audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
 
         audit.base.evidence_refs = vec!["e:other".into()];
-        assert_eq!(
-            audit.validate(),
-            Err(ProjectionError::EmptyIdentifier)
-        );
+        assert_eq!(audit.validate(), Err(ProjectionError::EmptyIdentifier));
     }
 
     #[test]
