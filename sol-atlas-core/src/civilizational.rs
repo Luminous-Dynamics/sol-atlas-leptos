@@ -1383,6 +1383,46 @@ mod tests {
         assert!(!frontier.admits(&"evidence:later".into()));
     }
 
+    fn evidence_closure_frontier() -> EvidenceFrontierV1 {
+        EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:1", "evidence:partition"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            admitted_sources: ["source-snapshot:archive", "source-snapshot:other"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            evidence_metadata: vec![
+                EvidenceTemporalMetadataV1 {
+                    evidence_id: "evidence:1".into(),
+                    source_snapshot: "source-snapshot:archive".into(),
+                    artifact_time: None,
+                    publication_time: Some(1940),
+                    capture_time: None,
+                    available_by: 1940,
+                    validity_time: None,
+                },
+                EvidenceTemporalMetadataV1 {
+                    evidence_id: "evidence:partition".into(),
+                    source_snapshot: "source-snapshot:archive".into(),
+                    artifact_time: None,
+                    publication_time: Some(1945),
+                    capture_time: None,
+                    available_by: 1945,
+                    validity_time: None,
+                },
+            ],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        }
+    }
+
     #[test]
     fn evidence_source_closure_cannot_be_bypassed_by_declaring_another_admitted_source() {
         let frontier = EvidenceFrontierV1 {
@@ -1450,7 +1490,7 @@ mod tests {
 
     #[test]
     fn evidence_source_closure_rejects_corrupt_present_frontier_manifest() {
-        let mut frontier = frontier();
+        let mut frontier = evidence_closure_frontier();
         frontier.admitted_evidence.insert("e:direct".into());
         frontier.evidence_metadata = vec![
             EvidenceTemporalMetadataV1 {
