@@ -1198,7 +1198,9 @@ mod tests {
     fn canonical_claim_and_argumentation_closures_cannot_rebind_evidence_to_another_source() {
         let mut frontier = frontier();
         frontier.admitted_sources.insert("source:2".into());
-        frontier.source_metadata.push(SourceSnapshotTemporalMetadataV1 {
+        frontier
+            .source_metadata
+            .push(SourceSnapshotTemporalMetadataV1 {
             source_snapshot: "source:2".into(),
             publication_time: Some(1950),
             capture_time: None,
