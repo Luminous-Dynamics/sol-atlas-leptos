@@ -1973,6 +1973,10 @@ impl DependencySnapshotV1 {
             return false;
         }
 
+        let mut duplicate_nodes = self.duplicate_nodes.clone();
+        duplicate_nodes.sort();
+        duplicate_nodes.dedup();
+
         let mut edges = self.edges.clone();
         edges.sort_by(|left, right| {
             (&left.from, &left.to, &left.relation).cmp(&(&right.from, &right.to, &right.relation))
@@ -2066,6 +2070,7 @@ pub struct RecoveryResilienceScopeSnapshotV1 {
     pub root: CapabilityId,
     pub present_nodes: Vec<CapabilityId>,
     pub missing_nodes: Vec<CapabilityId>,
+    pub duplicate_nodes: Vec<CapabilityId>,
     pub edges: Vec<DependencySnapshotEdgeV1>,
 }
 
@@ -2079,7 +2084,11 @@ impl RecoveryResilienceScopeSnapshotV1 {
             || !self.present_nodes.contains(&self.root)
             || !unique_nonempty_ids(&self.present_nodes)
             || !unique_nonempty_ids(&self.missing_nodes)
+            || !unique_nonempty_ids(&self.duplicate_nodes)
+            || !self.duplicate_nodes.is_empty()
             || self.present_nodes.iter().any(|id| self.missing_nodes.contains(id))
+            || self.present_nodes.iter().any(|id| self.duplicate_nodes.contains(id))
+            || self.missing_nodes.iter().any(|id| self.duplicate_nodes.contains(id))
         {
             return false;
         }
@@ -2107,6 +2116,7 @@ impl RecoveryResilienceScopeSnapshotV1 {
             root: CapabilityId,
             present_nodes: Vec<CapabilityId>,
             missing_nodes: Vec<CapabilityId>,
+            duplicate_nodes: Vec<CapabilityId>,
             edges: Vec<DependencySnapshotEdgeV1>,
         }
 
@@ -2130,6 +2140,7 @@ impl RecoveryResilienceScopeSnapshotV1 {
             root: self.root.clone(),
             present_nodes,
             missing_nodes,
+            duplicate_nodes,
             edges,
         })
         .expect("recovery resilience scope contains only serializable graph primitives")
@@ -2614,6 +2625,7 @@ impl CapabilityGraph {
     ) -> RecoveryResilienceScopeSnapshotV1 {
         use std::collections::{BTreeMap, BTreeSet};
 
+        let duplicate_nodes = self.duplicate_capability_ids();
         let (present_nodes, missing_nodes) = self.required_closure_with_missing(root);
         let index = self
             .capabilities
@@ -2647,6 +2659,7 @@ impl CapabilityGraph {
             root: root.clone(),
             present_nodes,
             missing_nodes,
+            duplicate_nodes,
             edges: edges
                 .into_iter()
                 .map(|(from, to, relation)| DependencySnapshotEdgeV1 { from, to, relation })
@@ -4949,6 +4962,25 @@ mod graph_tests {
                 .claim_ceiling,
             "Declared recovery candidate only; equivalence and operational interchangeability are not established."
         );
+    }
+
+    #[test]
+    fn resilience_scope_rejects_duplicate_capability_ids() {
+        let graph = CapabilityGraph {
+            capabilities: vec![cap("root", &[]), cap("root", &[])],
+        };
+        let assessment = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+
+        assert_eq!(
+            assessment.scope_snapshot.duplicate_nodes,
+            vec![CapabilityId("root".into())]
+        );
+        assert!(!assessment.scope_snapshot.is_well_formed());
+        assert!(!assessment.is_well_formed());
+        assert!(!assessment.is_exactly_bound_to_graph(&graph));
     }
 
     #[test]
