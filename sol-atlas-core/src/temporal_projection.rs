@@ -199,6 +199,57 @@ impl ProjectionAdmissionV1 {
         Ok(())
     }
 
+    /// Reciprocal validation against the exact snapshot and frontier that
+    /// produced this admission receipt.
+    pub fn validate_against_snapshot(
+        &self,
+        snapshot: &StateSnapshotV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        snapshot
+            .validate()
+            .map_err(|_| ProjectionError::InvalidSnapshot)?;
+        if self.evidence_frontier != frontier.frontier_id
+            || snapshot.evidence_frontier != frontier.frontier_id
+            || !frontier.admits_snapshot(snapshot)
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        let expected = Self::for_snapshot(snapshot, frontier);
+        if self != &expected {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
+    /// Reciprocal validation against the exact transition and frontier that
+    /// produced this admission receipt.
+    pub fn validate_against_transition(
+        &self,
+        transition: &HistoricalTransitionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        transition
+            .validate()
+            .map_err(|_| ProjectionError::InvalidTransition)?;
+        if self.evidence_frontier != frontier.frontier_id
+            || !frontier.admits_transition(transition)
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        let expected = Self::for_transition(transition, frontier);
+        if self != &expected {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn for_snapshot(snapshot: &StateSnapshotV1, frontier: &EvidenceFrontierV1) -> Self {
         let admitted_evidence = snapshot
             .evidence_refs
@@ -414,30 +465,30 @@ impl TemporalProjectionSetV1 {
 
         let mut previous_admission: Option<&ProjectionRef> = None;
         for admission in &self.admissions {
-            admission.validate()?;
-            if admission.evidence_frontier != self.evidence_frontier.frontier_id {
-                return Err(ProjectionError::AuditWithoutEvidencePath);
+            match &admission.projection {
+                ProjectionRef::Snapshot(id) => {
+                    let snapshot = self
+                        .snapshots
+                        .iter()
+                        .find(|snapshot| &snapshot.snapshot_id == id)
+                        .ok_or(ProjectionError::AuditWithoutEvidencePath)?;
+                    admission
+                        .validate_against_snapshot(snapshot, &self.evidence_frontier)
+                        .map_err(|_| ProjectionError::AuditWithoutEvidencePath)?;
+                }
+                ProjectionRef::Transition(id) => {
+                    let transition = self
+                        .transitions
+                        .iter()
+                        .find(|transition| &transition.transition_id == id)
+                        .ok_or(ProjectionError::AuditWithoutEvidencePath)?;
+                    admission
+                        .validate_against_transition(transition, &self.evidence_frontier)
+                        .map_err(|_| ProjectionError::AuditWithoutEvidencePath)?;
+                }
             }
-            let expected_admission = match &admission.projection {
-                ProjectionRef::Snapshot(id) => self
-                    .snapshots
-                    .iter()
-                    .find(|snapshot| &snapshot.snapshot_id == id)
-                    .filter(|snapshot| self.evidence_frontier.admits_snapshot_evidence(snapshot))
-                    .map(|snapshot| {
-                        ProjectionAdmissionV1::for_snapshot(snapshot, &self.evidence_frontier)
-                    }),
-                ProjectionRef::Transition(id) => self
-                    .transitions
-                    .iter()
-                    .find(|transition| &transition.transition_id == id)
-                    .filter(|transition| self.evidence_frontier.admits_transition(transition))
-                    .map(|transition| {
-                        ProjectionAdmissionV1::for_transition(transition, &self.evidence_frontier)
-                    }),
-            };
 
-            if expected_admission.as_ref() != Some(admission) {
+            if admission.evidence_frontier != self.evidence_frontier.frontier_id {
                 return Err(ProjectionError::AuditWithoutEvidencePath);
             }
             if previous_admission.is_some_and(|projection| projection >= &admission.projection) {
@@ -1288,6 +1339,82 @@ mod tests {
 
         let error = request.project(&[malformed], &[]).unwrap_err();
         assert_eq!(error, ProjectionError::InvalidSnapshot);
+    }
+
+    #[test]
+    fn admission_receipt_validates_against_its_snapshot() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: frontier(),
+        };
+        let snapshot = snapshot(
+            "snapshot:a",
+            YearInterval {
+                from: Some(1945),
+                to: Some(1947),
+            },
+            "frontier:1949",
+            "e:old",
+        );
+        let result = request.project(&[snapshot.clone()], &[]).unwrap();
+        assert_eq!(
+            result.admissions[0].validate_against_snapshot(
+                &snapshot,
+                &result.evidence_frontier
+            ),
+            Ok(())
+        );
+
+        let mut tampered = result.admissions[0].clone();
+        tampered.admitted_evidence = vec!["e:transition".into()];
+        assert_eq!(
+            tampered.validate_against_snapshot(&snapshot, &result.evidence_frontier),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+
+        let mut shadow_frontier = result.evidence_frontier.clone();
+        shadow_frontier.frontier_id = "frontier:shadow".into();
+        assert_eq!(
+            result.admissions[0].validate_against_snapshot(&snapshot, &shadow_frontier),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
+
+    #[test]
+    fn admission_receipt_validates_against_its_transition() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: frontier(),
+        };
+        let transition = transition(
+            "transition:a",
+            YearInterval {
+                from: Some(1945),
+                to: Some(1947),
+            },
+            "e:transition",
+        );
+        let result = request.project(&[], &[transition.clone()]).unwrap();
+        assert_eq!(
+            result.admissions[0].validate_against_transition(
+                &transition,
+                &result.evidence_frontier
+            ),
+            Ok(())
+        );
+
+        let mut tampered = result.admissions[0].clone();
+        tampered.admitted_sources = vec!["source:other".into()];
+        assert_eq!(
+            tampered.validate_against_transition(&transition, &result.evidence_frontier),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
     }
 
     #[test]
