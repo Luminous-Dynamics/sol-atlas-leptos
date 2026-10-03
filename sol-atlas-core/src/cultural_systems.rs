@@ -119,15 +119,6 @@ impl CulturalArgumentationRefV1 {
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
-        if !self.frontier_manifest_hash.is_empty()
-            && (self.frontier_manifest_hash.len() != 64
-                || !self
-                    .frontier_manifest_hash
-                    .bytes()
-                    .all(|byte| byte.is_ascii_hexdigit()))
-        {
-            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
-        }
         if self.available_by
             < self
                 .assessment_time
@@ -719,6 +710,15 @@ impl CulturalProjectionAdmissionV2 {
             || !self.evidence_frontier.is_valid()
         {
             return Err(ProjectionError::EmptyIdentifier);
+        }
+        if !self.frontier_manifest_hash.is_empty()
+            && (self.frontier_manifest_hash.len() != 64
+                || !self
+                    .frontier_manifest_hash
+                    .bytes()
+                    .all(|byte| byte.is_ascii_hexdigit()))
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
         Ok(())
     }
