@@ -2046,6 +2046,140 @@ pub struct CapabilityImpact {
     pub affected: Vec<CapabilityId>,
 }
 
+/// Canonical, root-scoped structural resilience assessment.
+///
+/// This is a graph analysis record, not a resilience or substitution claim. It
+/// keeps structurally affected capabilities, unresolved graph regions, and
+/// explicitly declared alternative candidates in separate sets. Alternative
+/// candidates are snapshots only; no selection or substitution occurs here.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryResilienceAssessmentV1 {
+    pub schema: String,
+    pub root: CapabilityId,
+    pub unavailable: CapabilityId,
+    /// Digest of the exact required dependency snapshot used as the analysis scope.
+    pub dependency_snapshot: String,
+    /// Affected capabilities inside the root's declared required closure.
+    pub affected: Vec<CapabilityId>,
+    /// Unresolved capabilities inside the analyzed scope.
+    pub unresolved: Vec<CapabilityId>,
+    /// Explicit alternatives whose candidate closure is fully resolvable.
+    pub alternatives: Vec<RecoveryCandidateSnapshotV1>,
+    /// Explicit alternatives whose candidate closure remains incomplete.
+    pub unresolved_alternatives: Vec<RecoveryCandidateSnapshotV1>,
+    /// Structural-analysis claim ceiling; never a real-world resilience guarantee.
+    pub claim_ceiling: String,
+}
+
+impl RecoveryResilienceAssessmentV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-resilience-assessment:v1";
+
+    pub fn is_well_formed(&self) -> bool {
+        if self.schema != Self::SCHEMA
+            || self.root.0.is_empty()
+            || self.unavailable.0.is_empty()
+            || self.root == self.unavailable
+            || self.dependency_snapshot.is_empty()
+            || self.claim_ceiling.is_empty()
+            || !unique_nonempty_ids(&self.affected)
+            || !unique_nonempty_ids(&self.unresolved)
+            || self
+                .affected
+                .iter()
+                .any(|id| self.unresolved.contains(id))
+        {
+            return false;
+        }
+
+        let mut alternatives = self.alternatives.clone();
+        alternatives.sort_by(|left, right| {
+            (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
+        });
+        alternatives.dedup();
+
+        let mut unresolved_alternatives = self.unresolved_alternatives.clone();
+        unresolved_alternatives.sort_by(|left, right| {
+            (&left.for_dependency, &left.candidate)
+                .cmp(&(&right.for_dependency, &right.candidate))
+        });
+        unresolved_alternatives.dedup();
+
+        alternatives.len() == self.alternatives.len()
+            && unresolved_alternatives.len() == self.unresolved_alternatives.len()
+            && self.alternatives.iter().all(|candidate| {
+                candidate.is_well_formed()
+                    && candidate.for_dependency == self.unavailable
+                    && candidate.missing_capabilities.is_empty()
+            })
+            && self.unresolved_alternatives.iter().all(|candidate| {
+                candidate.is_well_formed()
+                    && candidate.for_dependency == self.unavailable
+                    && !candidate.missing_capabilities.is_empty()
+            })
+            && self
+                .alternatives
+                .iter()
+                .all(|candidate| !self.unresolved_alternatives.contains(candidate))
+    }
+
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        #[derive(Serialize)]
+        struct CanonicalAssessment {
+            schema: String,
+            root: CapabilityId,
+            unavailable: CapabilityId,
+            dependency_snapshot: String,
+            affected: Vec<CapabilityId>,
+            unresolved: Vec<CapabilityId>,
+            alternatives: Vec<RecoveryCandidateSnapshotV1>,
+            unresolved_alternatives: Vec<RecoveryCandidateSnapshotV1>,
+            claim_ceiling: String,
+        }
+
+        let mut affected = self.affected.clone();
+        affected.sort();
+        affected.dedup();
+
+        let mut unresolved = self.unresolved.clone();
+        unresolved.sort();
+        unresolved.dedup();
+
+        let mut alternatives = self.alternatives.clone();
+        alternatives.sort_by(|left, right| {
+            (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
+        });
+        alternatives.dedup();
+
+        let mut unresolved_alternatives = self.unresolved_alternatives.clone();
+        unresolved_alternatives.sort_by(|left, right| {
+            (&left.for_dependency, &left.candidate)
+                .cmp(&(&right.for_dependency, &right.candidate))
+        });
+        unresolved_alternatives.dedup();
+
+        let canonical = CanonicalAssessment {
+            schema: self.schema.clone(),
+            root: self.root.clone(),
+            unavailable: self.unavailable.clone(),
+            dependency_snapshot: self.dependency_snapshot.clone(),
+            affected,
+            unresolved,
+            alternatives,
+            unresolved_alternatives,
+            claim_ceiling: self.claim_ceiling.clone(),
+        };
+
+        serde_json::to_vec(&canonical)
+            .expect("recovery resilience assessment contains only serializable primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+}
+
+
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct CapabilityGraph {
     pub capabilities: Vec<Capability>,
@@ -2266,6 +2400,88 @@ impl CapabilityGraph {
             (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
         });
         candidates
+    }
+
+    /// Produce a root-scoped structural resilience assessment.
+    ///
+    /// Only explicitly declared alternatives reachable from the root's required
+    /// closure are reported. Candidate closures with missing prerequisites are
+    /// kept separate from resolvable alternatives, and no candidate is selected.
+    pub fn resilience_assessment(
+        &self,
+        root: &CapabilityId,
+        unavailable: &CapabilityId,
+    ) -> RecoveryResilienceAssessmentV1 {
+        use std::collections::BTreeSet;
+
+        let (root_nodes, _) = self.required_closure_with_missing(root);
+        let root_scope = root_nodes.into_iter().collect::<BTreeSet<_>>();
+        let impact = self.affected_by(unavailable);
+
+        let mut affected = impact
+            .affected
+            .into_iter()
+            .filter(|id| root_scope.contains(id))
+            .collect::<Vec<_>>();
+        affected.sort();
+        affected.dedup();
+
+        let mut unresolved = impact
+            .unresolved
+            .into_iter()
+            .filter(|id| root_scope.contains(id))
+            .collect::<Vec<_>>();
+        unresolved.sort();
+        unresolved.dedup();
+
+        let root_declares_unavailable = self.capabilities.iter().any(|capability| {
+            root_scope.contains(&capability.id)
+                && capability.dependencies.iter().any(|dependency| {
+                    dependency.relation.is_required() && dependency.capability == *unavailable
+                })
+        });
+
+        let mut alternatives = Vec::new();
+        let mut unresolved_alternatives = Vec::new();
+
+        if root_declares_unavailable {
+            for candidate in self.recovery_candidates(unavailable) {
+                let snapshot = candidate.snapshot();
+                if candidate.is_resolvable() {
+                    alternatives.push(snapshot);
+                } else {
+                    unresolved_alternatives.push(snapshot);
+                }
+            }
+        }
+
+        alternatives.sort_by(|left, right| {
+            (&left.for_dependency, &left.candidate)
+                .cmp(&(&right.for_dependency, &right.candidate))
+        });
+        alternatives.dedup();
+        unresolved_alternatives.sort_by(|left, right| {
+            (&left.for_dependency, &left.candidate)
+                .cmp(&(&right.for_dependency, &right.candidate))
+        });
+        unresolved_alternatives.dedup();
+
+        let dependency_snapshot = self
+            .dependency_snapshot(root)
+            .map(|snapshot| snapshot.digest())
+            .unwrap_or_default();
+
+        RecoveryResilienceAssessmentV1 {
+            schema: RecoveryResilienceAssessmentV1::SCHEMA.into(),
+            root: root.clone(),
+            unavailable: unavailable.clone(),
+            dependency_snapshot,
+            affected,
+            unresolved,
+            alternatives,
+            unresolved_alternatives,
+            claim_ceiling: "Declared graph impact and explicit alternative-path analysis only; real-world resilience, equivalence, interchangeability, availability, sustainability, and successful recovery are not established.".into(),
+        }
     }
 
     /// Compute a partial deterministic closure while preserving missing prerequisites.
@@ -4478,6 +4694,129 @@ mod graph_tests {
             graph.affected_by(&CapabilityId("b".into())).affected,
             vec![CapabilityId("a".into()), CapabilityId("b".into())]
         );
+    }
+
+    #[test]
+    fn resilience_assessment_is_root_scoped_and_separates_unresolved_alternatives() {
+        let mut root = cap("root", &["unavailable"]);
+        root.dependencies[0].substitutes = vec![
+            CapabilityId("recovery-good".into()),
+            CapabilityId("recovery-missing".into()),
+        ];
+
+        let mut unrelated = cap("unrelated", &["unavailable"]);
+        unrelated.dependencies[0].substitutes = vec![CapabilityId("unrelated-recovery".into())];
+
+        let graph = CapabilityGraph {
+            capabilities: vec![
+                root,
+                unrelated,
+                cap("unavailable", &[]),
+                cap("recovery-good", &["good-prerequisite"]),
+                cap("good-prerequisite", &[]),
+                cap("recovery-missing", &["missing-prerequisite"]),
+            ],
+        };
+
+        let assessment = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+
+        assert!(assessment.is_well_formed());
+        assert!(!assessment.dependency_snapshot.is_empty());
+        assert_eq!(assessment.affected, vec![CapabilityId("root".into())]);
+        assert!(assessment.unresolved.is_empty());
+        assert_eq!(
+            assessment
+                .alternatives
+                .iter()
+                .map(|candidate| candidate.candidate.clone())
+                .collect::<Vec<_>>(),
+            vec![CapabilityId("recovery-good".into())]
+        );
+        assert_eq!(
+            assessment
+                .unresolved_alternatives
+                .iter()
+                .map(|candidate| candidate.candidate.clone())
+                .collect::<Vec<_>>(),
+            vec![CapabilityId("recovery-missing".into())]
+        );
+        assert!(assessment
+            .alternatives
+            .iter()
+            .all(|candidate| candidate.missing_capabilities.is_empty()));
+        assert!(assessment
+            .unresolved_alternatives
+            .iter()
+            .all(|candidate| !candidate.missing_capabilities.is_empty()));
+        assert_eq!(
+            assessment
+                .alternatives
+                .first()
+                .unwrap()
+                .claim_ceiling,
+            "Declared recovery candidate only; equivalence and operational interchangeability are not established."
+        );
+    }
+
+    #[test]
+    fn resilience_assessment_does_not_import_unrelated_alternatives() {
+        let mut root = cap("root", &["unavailable"]);
+        root.dependencies[0].substitutes = vec![CapabilityId("recovery".into())];
+        let mut unrelated = cap("unrelated", &["unavailable"]);
+        unrelated.dependencies[0].substitutes = vec![CapabilityId("unrelated-recovery".into())];
+
+        let graph = CapabilityGraph {
+            capabilities: vec![
+                root,
+                unrelated,
+                cap("unavailable", &[]),
+                cap("recovery", &[]),
+                cap("unrelated-recovery", &[]),
+            ],
+        };
+
+        let assessment = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+
+        assert_eq!(assessment.alternatives.len(), 1);
+        assert_eq!(assessment.alternatives[0].candidate, CapabilityId("recovery".into()));
+    }
+
+    #[test]
+    fn resilience_assessment_digest_is_order_invariant() {
+        let mut root = cap("root", &["unavailable"]);
+        root.dependencies[0].substitutes = vec![
+            CapabilityId("recovery-b".into()),
+            CapabilityId("recovery-a".into()),
+        ];
+
+        let graph = CapabilityGraph {
+            capabilities: vec![root, cap("unavailable", &[]), cap("recovery-a", &[]), cap("recovery-b", &[])],
+        };
+        let first = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+
+        let mut reversed_root = cap("root", &["unavailable"]);
+        reversed_root.dependencies[0].substitutes = vec![
+            CapabilityId("recovery-a".into()),
+            CapabilityId("recovery-b".into()),
+        ];
+        let reversed_graph = CapabilityGraph {
+            capabilities: vec![reversed_root, cap("recovery-b", &[]), cap("unavailable", &[]), cap("recovery-a", &[])],
+        };
+        let second = reversed_graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+
+        assert_eq!(first.digest(), second.digest());
     }
 
     #[test]
