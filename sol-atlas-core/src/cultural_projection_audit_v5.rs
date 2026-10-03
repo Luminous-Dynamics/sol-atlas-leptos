@@ -159,6 +159,29 @@ impl CulturalProjectionAuditV5 {
                 .all(|value| value.is_frontier_safe(claim, frontier))
     }
 
+    /// Reciprocal validation against the exact cultural projection and
+    /// canonical evidence/argumentation context that produced this V5 audit.
+    pub fn validate_against_projection(
+        &self,
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        self.base
+            .validate_against_projection(projection, frontier, claim)?;
+
+        if self
+            .argumentation
+            .iter()
+            .any(|value| !value.is_frontier_safe(claim, frontier))
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     /// Validates the complete V5 audit against an explicit append-only
     /// frontier lineage. The selected frontier must be the verified chain leaf;
     /// every canonical claim/evidence/source closure, typed argumentation
