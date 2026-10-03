@@ -41,6 +41,11 @@ id_type!(InterpretationId);
 id_type!(AssessmentId);
 id_type!(GeometryRef);
 
+fn has_duplicate_ids<T: Ord>(ids: &[T]) -> bool {
+    let mut seen = BTreeSet::new();
+    ids.iter().any(|id| !seen.insert(id))
+}
+
 /// Year-based interval; bounds are inclusive and may be open-ended.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct YearInterval {
@@ -178,6 +183,8 @@ impl StateSnapshotV1 {
             || self.source_snapshots.iter().any(|id| !id.is_valid())
             || self.institution_refs.iter().any(|id| !id.is_valid())
             || self.constitutional_refs.iter().any(|id| !id.is_valid())
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_ids(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -253,6 +260,8 @@ impl HistoricalTransitionV1 {
             || self.source_snapshots.iter().any(|id| !id.is_valid())
             || self.competing_hypotheses.iter().any(|id| !id.is_valid())
             || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_ids(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -379,6 +388,8 @@ impl ProjectionAuditV1 {
             || self.source_snapshots.iter().any(|id| !id.is_valid())
             || self.hypothesis_refs.iter().any(|id| !id.is_valid())
             || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_ids(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -2553,6 +2564,79 @@ mod tests {
             child.validate_extension_of(&parent),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
+    }
+
+    #[test]
+    fn snapshot_rejects_duplicate_provenance_ids() {
+        let mut value = StateSnapshotV1 {
+            entity_id: "state:1".into(),
+            snapshot_id: "snapshot:1".into(),
+            valid_time: YearInterval {
+                from: Some(1900),
+                to: Some(1900),
+            },
+            geometries: vec![],
+            institution_refs: vec![],
+            constitutional_refs: vec![],
+            relation_refs: vec!["claim:1".into()],
+            evidence_refs: vec!["e:1".into(), "e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            evidence_frontier: "frontier:1".into(),
+            qualification: QualificationSummary {
+                status: QualificationStatus::Supported,
+                assessment: None,
+                claim_refs: vec!["claim:1".into()],
+                unresolved: vec![],
+                contested: false,
+            },
+        };
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+        value.evidence_refs = vec!["e:1".into()];
+        value.source_snapshots = vec!["source:1".into(), "source:1".into()];
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn transition_rejects_duplicate_provenance_ids() {
+        let value = HistoricalTransitionV1 {
+            transition_id: "transition:1".into(),
+            event_time: YearInterval {
+                from: Some(1900),
+                to: Some(1900),
+            },
+            classes: [TransitionClass::Formation].into_iter().collect(),
+            source_entities: vec!["state:old".into()],
+            target_entities: vec!["state:new".into()],
+            spatial_scope: vec![],
+            mechanism: None,
+            claim_refs: vec!["claim:1".into()],
+            evidence_refs: vec!["e:1".into(), "e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            competing_hypotheses: vec![],
+            assessment: None,
+            qualification: QualificationStatus::Supported,
+            uncertainty: None,
+        };
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn audit_rejects_duplicate_provenance_ids() {
+        let value = ProjectionAuditV1 {
+            projection: ProjectionRef::Transition("transition:1".into()),
+            claim_refs: vec!["claim:1".into()],
+            evidence_refs: vec!["e:1".into(), "e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            hypothesis_refs: vec![],
+            assessment: None,
+            temporal_scope: YearInterval {
+                from: Some(1900),
+                to: Some(1900),
+            },
+            qualification: QualificationStatus::Supported,
+            evidence_frontier: "frontier:1".into(),
+        };
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
     }
 
     #[test]
