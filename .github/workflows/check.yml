@@ -98,7 +98,7 @@ jobs:
             target/
           key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-trunk-${{ env.TRUNK_VERSION }}-check-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
       - name: Install Trunk
-        run: cargo install trunk --locked --version "${{ env.TRUNK_VERSION }}"
+        run: cargo install trunk --locked --version "${{ env.TRUNK_VERSION }}" --force
       - name: Build web bundle
         run: trunk build --release --locked --no-sri
 
