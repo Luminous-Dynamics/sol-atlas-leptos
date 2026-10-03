@@ -14,6 +14,11 @@ use crate::civilizational::{ClaimId, EvidenceFrontierId, ProjectionError, Qualif
 use crate::cultural_systems::CulturalProjectionIdV1;
 use crate::ontology_context::OntologyMappingContextV1;
 
+fn has_duplicate_mapping_ids(mappings: &[OntologyMappingContextV1]) -> bool {
+    let mut seen = std::collections::BTreeSet::new();
+    mappings.iter().any(|mapping| !seen.insert(mapping.mapping_id.clone()))
+}
+
 /// Content-addressed semantic context attached to a projection render.
 ///
 /// Mapping order is canonicalized for deterministic replay. Ordering carries
@@ -35,6 +40,7 @@ impl ProjectionSemanticEnvelopeV1 {
             || !self.evidence_frontier.is_valid()
             || self.mappings.is_empty()
             || self.envelope_hash.trim().is_empty()
+            || has_duplicate_mapping_ids(&self.mappings)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -147,6 +153,22 @@ mod tests {
         );
         OntologyMappingContextV1::from_mapping(&mapping, OntologyMappingRelationV1::Exact)
             .expect("mapping context")
+    }
+
+    #[test]
+    fn envelope_rejects_duplicate_mapping_identity() {
+        let first = mapping("mapping:1", "E7_Activity");
+        let second = mapping("mapping:1", "I1_Argumentation");
+        let mut envelope = ProjectionSemanticEnvelopeV1 {
+            projection_id: CulturalProjectionIdV1::Transmission("transmission:1".into()),
+            claim_ref: "claim:1".into(),
+            evidence_frontier: "frontier:1950".into(),
+            qualification: QualificationStatus::Supported,
+            mappings: vec![first, second],
+            envelope_hash: String::new(),
+        };
+        envelope.recompute_hash().expect("envelope hash");
+        assert_eq!(envelope.validate(), Err(ProjectionError::EmptyIdentifier));
     }
 
     #[test]
