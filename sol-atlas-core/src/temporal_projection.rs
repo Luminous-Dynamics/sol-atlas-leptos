@@ -15,6 +15,14 @@ use crate::civilizational::{
 };
 use serde::{Deserialize, Serialize};
 
+use std::collections::BTreeSet;
+
+fn has_duplicate_ids<T: Ord>(ids: &[T]) -> bool {
+    let mut seen = BTreeSet::new();
+    ids.iter().any(|id| !seen.insert(id))
+}
+
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TemporalProjectionRequestV1 {
     pub map_epoch: YearInterval,
@@ -540,11 +548,6 @@ mod tests {
         SourceSnapshotTemporalMetadataV1, SpatialSemantics, TransitionClass,
     };
     use std::collections::BTreeSet;
-
-fn has_duplicate_ids<T: Ord>(ids: &[T]) -> bool {
-    let mut seen = BTreeSet::new();
-    ids.iter().any(|id| !seen.insert(id))
-}
 
     fn geometry(evidence: &str) -> GeometryProjection {
         GeometryProjection {
