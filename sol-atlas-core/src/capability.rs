@@ -2100,35 +2100,30 @@ impl RecoveryResilienceAssessmentV1 {
             return false;
         }
 
-        let mut alternatives = self.alternatives.clone();
-        alternatives.sort_by(|left, right| {
-            (&left.for_dependency, &left.candidate).cmp(&(&right.for_dependency, &right.candidate))
-        });
-        alternatives.dedup();
-
-        let mut unresolved_alternatives = self.unresolved_alternatives.clone();
-        unresolved_alternatives.sort_by(|left, right| {
-            (&left.for_dependency, &left.candidate)
-                .cmp(&(&right.for_dependency, &right.candidate))
-        });
-        unresolved_alternatives.dedup();
-
-        alternatives.len() == self.alternatives.len()
-            && unresolved_alternatives.len() == self.unresolved_alternatives.len()
-            && self.alternatives.iter().all(|candidate| {
-                candidate.is_well_formed()
-                    && candidate.for_dependency == self.unavailable
-                    && candidate.missing_capabilities.is_empty()
+        let mut candidate_keys = std::collections::BTreeSet::new();
+        if self
+            .alternatives
+            .iter()
+            .chain(self.unresolved_alternatives.iter())
+            .any(|candidate| {
+                !candidate.is_well_formed()
+                    || candidate.for_dependency != self.unavailable
+                    || !candidate_keys.insert((
+                        candidate.for_dependency.clone(),
+                        candidate.candidate.clone(),
+                    ))
             })
-            && self.unresolved_alternatives.iter().all(|candidate| {
-                candidate.is_well_formed()
-                    && candidate.for_dependency == self.unavailable
-                    && !candidate.missing_capabilities.is_empty()
-            })
+        {
+            return false;
+        }
+
+        self.alternatives
+            .iter()
+            .all(|candidate| candidate.missing_capabilities.is_empty())
             && self
-                .alternatives
+                .unresolved_alternatives
                 .iter()
-                .all(|candidate| !self.unresolved_alternatives.contains(candidate))
+                .all(|candidate| !candidate.missing_capabilities.is_empty())
     }
 
     pub fn canonical_bytes(&self) -> Vec<u8> {
@@ -4819,6 +4814,32 @@ mod graph_tests {
                 .claim_ceiling,
             "Declared recovery candidate only; equivalence and operational interchangeability are not established."
         );
+    }
+
+    #[test]
+    fn resilience_assessment_rejects_duplicate_candidate_identity() {
+        let mut root = cap("root", &["unavailable"]);
+        root.dependencies[0].substitutes = vec![CapabilityId("recovery".into())];
+        let graph = CapabilityGraph {
+            capabilities: vec![root, cap("unavailable", &[]), cap("recovery", &[])],
+        };
+        let base = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+        let candidate = base.alternatives[0].clone();
+
+        let mut duplicate = base.clone();
+        let mut altered = candidate.clone();
+        altered.claim_ceiling = "different claim ceiling".into();
+        duplicate.alternatives.push(altered);
+        assert!(!duplicate.is_well_formed());
+
+        let mut cross_partition = base;
+        let mut unresolved = candidate;
+        unresolved.missing_capabilities = vec![CapabilityId("missing".into())];
+        cross_partition.unresolved_alternatives.push(unresolved);
+        assert!(!cross_partition.is_well_formed());
     }
 
     #[test]
