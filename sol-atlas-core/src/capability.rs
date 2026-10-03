@@ -1042,11 +1042,7 @@ impl RecoveryPolicyDecisionSnapshotV1 {
     /// and must remain valid at the point the record is consumed.
     pub fn covers_execution(&self, execution: &RecoveryExecution, now: &str) -> bool {
         self.is_valid_at(now)
-            && is_canonical_utc_timestamp(&execution.started_at)
-            && execution
-                .ended_at
-                .as_deref()
-                .is_some_and(is_canonical_utc_timestamp)
+            && execution.terminal_timestamps_are_well_formed()
             && self.issued_at.as_str() <= execution.started_at.as_str()
             && execution.started_at.as_str() < self.valid_until.as_str()
             && execution
@@ -4254,6 +4250,12 @@ mod graph_tests {
         assert!(!decision.covers_execution(&bound_execution, "2026-10-02T07:58:00Z"));
         assert!(!decision.covers_execution(&bound_execution, "2026-10-02T07:59:00Z"));
         assert!(decision.covers_execution(&bound_execution, "2026-10-02T08:00:00Z"));
+        let mut reversed_execution = bound_execution.clone();
+        reversed_execution.ended_at = Some("2026-10-02T07:59:59Z".into());
+        assert!(!decision.covers_execution(
+            &reversed_execution,
+            "2026-10-02T08:00:00Z"
+        ));
         let mut late_issued = decision.clone();
         late_issued.issued_at = "2026-10-02T08:01:00Z".into();
         assert!(!late_issued.covers_execution(&bound_execution, "2026-10-02T08:05:00Z"));
