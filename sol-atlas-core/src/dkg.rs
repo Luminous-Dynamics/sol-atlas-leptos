@@ -295,7 +295,8 @@ mod tests {
     fn admission_rejects_rebound_evidence_even_when_ids_remain_valid() {
         let frontier = frontier();
         let statement = statement();
-        let mut admission = DkgProjectionAdmissionV1::from_statement(&statement, &frontier).unwrap();
+        let mut admission =
+            DkgProjectionAdmissionV1::from_statement(&statement, &frontier).unwrap();
         admission.evidence_refs.reverse();
 
         assert!(!admission.validate_against_statement(&statement, &frontier));
