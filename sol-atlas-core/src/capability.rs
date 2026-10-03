@@ -2156,6 +2156,136 @@ impl RecoveryResilienceScopeSnapshotV1 {
     }
 }
 
+/// Non-scoring, evidence-scoped profile for resilience dimensions.
+///
+/// The profile records declarations about availability, maintenance, repair or
+/// replacement, recovery class, and reproducibility without turning them into a
+/// resilience score or a universal claim. Each dimension remains independently
+/// stateful and carries its own evidence and claim ceiling.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryResilienceFieldStateV1 {
+    NotAssessed,
+    Declared,
+    Observed,
+    Qualified,
+    Unresolved,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryResilienceFieldV1 {
+    pub state: RecoveryResilienceFieldStateV1,
+    pub value: Option<String>,
+    pub evidence: Vec<String>,
+    pub claim_ceiling: String,
+}
+
+impl RecoveryResilienceFieldV1 {
+    pub fn is_well_formed(&self) -> bool {
+        if self.claim_ceiling.is_empty() || !unique_nonempty_strings(&self.evidence) {
+            return false;
+        }
+
+        match self.state {
+            RecoveryResilienceFieldStateV1::NotAssessed => {
+                self.value.is_none() && self.evidence.is_empty()
+            }
+            RecoveryResilienceFieldStateV1::Declared
+            | RecoveryResilienceFieldStateV1::Observed
+            | RecoveryResilienceFieldStateV1::Qualified => {
+                self.value.as_ref().is_some_and(|value| !value.is_empty())
+                    && (self.state == RecoveryResilienceFieldStateV1::Declared
+                        || !self.evidence.is_empty())
+            }
+            RecoveryResilienceFieldStateV1::Unresolved => {
+                self.value.as_ref().is_none_or(|value| !value.is_empty())
+            }
+        }
+    }
+}
+
+/// Explicit resilience profile bound to one structural assessment snapshot.
+///
+/// This record does not select alternatives and does not infer missing dimensions.
+/// It is an evidence-bearing descriptive overlay on the graph analysis.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryResilienceProfileV1 {
+    pub schema: String,
+    pub capability: CapabilityId,
+    pub unavailable: CapabilityId,
+    pub assessment_snapshot: String,
+    pub scope_snapshot: String,
+    pub availability: RecoveryResilienceFieldV1,
+    pub maintenance: RecoveryResilienceFieldV1,
+    pub repair_replacement: RecoveryResilienceFieldV1,
+    pub recovery_class: RecoveryResilienceFieldV1,
+    pub reproducibility: RecoveryResilienceFieldV1,
+    pub alternatives: Vec<RecoveryCandidateSnapshotV1>,
+    pub claim_ceiling: String,
+}
+
+impl RecoveryResilienceProfileV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-resilience-profile:v1";
+
+    pub fn is_well_formed(&self) -> bool {
+        if self.schema != Self::SCHEMA
+            || self.capability.0.is_empty()
+            || self.unavailable.0.is_empty()
+            || self.capability == self.unavailable
+            || self.assessment_snapshot.is_empty()
+            || self.scope_snapshot.is_empty()
+            || self.claim_ceiling.is_empty()
+            || !self.availability.is_well_formed()
+            || !self.maintenance.is_well_formed()
+            || !self.repair_replacement.is_well_formed()
+            || !self.recovery_class.is_well_formed()
+            || !self.reproducibility.is_well_formed()
+        {
+            return false;
+        }
+
+        let mut alternatives = self.alternatives.clone();
+        alternatives.sort_by(|left, right| {
+            (&left.for_dependency, &left.candidate)
+                .cmp(&(&right.for_dependency, &right.candidate))
+        });
+        if alternatives.windows(2).any(|pair| {
+            pair[0].for_dependency == pair[1].for_dependency
+                && pair[0].candidate == pair[1].candidate
+        }) {
+            return false;
+        }
+
+        self.alternatives.iter().all(RecoveryCandidateSnapshotV1::is_well_formed)
+    }
+
+    pub fn is_bound_to_assessment(&self, assessment: &RecoveryResilienceAssessmentV1) -> bool {
+        if !self.is_well_formed() || !assessment.is_well_formed() {
+            return false;
+        }
+
+        let mut expected_alternatives = assessment.alternatives.clone();
+        expected_alternatives.extend(assessment.unresolved_alternatives.clone());
+        expected_alternatives.sort_by(|left, right| {
+            (&left.for_dependency, &left.candidate)
+                .cmp(&(&right.for_dependency, &right.candidate))
+        });
+        expected_alternatives.dedup();
+
+        let mut actual_alternatives = self.alternatives.clone();
+        actual_alternatives.sort_by(|left, right| {
+            (&left.for_dependency, &left.candidate)
+                .cmp(&(&right.for_dependency, &right.candidate))
+        });
+        actual_alternatives.dedup();
+
+        self.capability == assessment.root
+            && self.unavailable == assessment.unavailable
+            && self.assessment_snapshot == assessment.digest()
+            && self.scope_snapshot == assessment.scope_snapshot.digest()
+            && actual_alternatives == expected_alternatives
+    }
+}
+
 /// Canonical, root-scoped structural resilience assessment.
 ///
 /// This is a graph analysis record, not a resilience or substitution claim. It
@@ -4922,6 +5052,78 @@ mod graph_tests {
             graph.affected_by(&CapabilityId("b".into())).affected,
             vec![CapabilityId("a".into()), CapabilityId("b".into())]
         );
+    }
+
+    #[test]
+    fn resilience_profile_requires_evidence_for_observed_or_qualified_fields() {
+        let undeclared = RecoveryResilienceFieldV1 {
+            state: RecoveryResilienceFieldStateV1::Observed,
+            value: Some("present".into()),
+            evidence: vec![],
+            claim_ceiling: "Exact observation only.".into(),
+        };
+        assert!(!undeclared.is_well_formed());
+
+        let declared = RecoveryResilienceFieldV1 {
+            state: RecoveryResilienceFieldStateV1::Declared,
+            value: Some("present".into()),
+            evidence: vec![],
+            claim_ceiling: "Exact declaration only.".into(),
+        };
+        assert!(declared.is_well_formed());
+
+        let qualified = RecoveryResilienceFieldV1 {
+            state: RecoveryResilienceFieldStateV1::Qualified,
+            value: Some("class-a".into()),
+            evidence: vec!["qualification:1".into()],
+            claim_ceiling: "Exact qualified scope only.".into(),
+        };
+        assert!(qualified.is_well_formed());
+    }
+
+    #[test]
+    fn resilience_profile_binds_exactly_to_assessment_and_alternatives() {
+        let mut root = cap("root", &["unavailable"]);
+        root.dependencies[0].substitutes = vec![CapabilityId("recovery".into())];
+        let graph = CapabilityGraph {
+            capabilities: vec![root, cap("unavailable", &[]), cap("recovery", &[])],
+        };
+        let assessment = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+        let field = || RecoveryResilienceFieldV1 {
+            state: RecoveryResilienceFieldStateV1::NotAssessed,
+            value: None,
+            evidence: vec![],
+            claim_ceiling: "Dimension not assessed.".into(),
+        };
+        let profile = RecoveryResilienceProfileV1 {
+            schema: RecoveryResilienceProfileV1::SCHEMA.into(),
+            capability: assessment.root.clone(),
+            unavailable: assessment.unavailable.clone(),
+            assessment_snapshot: assessment.digest(),
+            scope_snapshot: assessment.scope_snapshot.digest(),
+            availability: field(),
+            maintenance: field(),
+            repair_replacement: field(),
+            recovery_class: field(),
+            reproducibility: field(),
+            alternatives: assessment
+                .alternatives
+                .iter()
+                .chain(assessment.unresolved_alternatives.iter())
+                .cloned()
+                .collect(),
+            claim_ceiling: "Descriptive profile bound to one structural assessment only.".into(),
+        };
+
+        assert!(profile.is_well_formed());
+        assert!(profile.is_bound_to_assessment(&assessment));
+
+        let mut changed = assessment.clone();
+        changed.alternatives.clear();
+        assert!(!profile.is_bound_to_assessment(&changed));
     }
 
     #[test]
