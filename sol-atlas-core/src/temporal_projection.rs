@@ -207,6 +207,9 @@ impl ProjectionAdmissionV1 {
         &self,
         frontier: &EvidenceFrontierV1,
     ) -> Result<(), ProjectionError> {
+        if !frontier.manifest_hash.trim().is_empty() {
+            frontier.validate_temporal_manifest()?;
+        }
         if self.frontier_manifest_hash != frontier.manifest_hash {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
@@ -1411,6 +1414,18 @@ mod tests {
             result.admissions[0].validate_against_snapshot(&snapshot, &same_id_shadow),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
+
+        let mut forged_hash_frontier = result.evidence_frontier.clone();
+        forged_hash_frontier.admitted_evidence.insert("e:transition".into());
+        assert_eq!(
+            forged_hash_frontier.manifest_hash,
+            result.evidence_frontier.manifest_hash
+        );
+        assert_eq!(
+            result.admissions[0]
+                .validate_against_snapshot(&snapshot, &forged_hash_frontier),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
     }
 
     #[test]
@@ -1511,8 +1526,7 @@ mod tests {
             "frontier:1949",
             "e:old",
         );
-        let mut result = request.project(&[snapshot.clone()], &[]);
-        let mut result = result.unwrap();
+        let mut result = request.project(&[snapshot.clone()], &[]).unwrap();
 
         result.evidence_frontier.evidence_metadata = vec![
             EvidenceTemporalMetadataV1 {
