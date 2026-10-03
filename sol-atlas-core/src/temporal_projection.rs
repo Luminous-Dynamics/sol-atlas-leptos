@@ -180,6 +180,10 @@ impl TemporalProjectionRequestV1 {
 pub struct ProjectionAdmissionV1 {
     pub projection: ProjectionRef,
     pub evidence_frontier: EvidenceFrontierId,
+    /// Content-addressed identity of the selected frontier when present.
+    /// Legacy ID-only frontiers leave this empty.
+    #[serde(default)]
+    pub frontier_manifest_hash: String,
     pub admitted_evidence: Vec<EvidenceId>,
     pub admitted_sources: Vec<SourceSnapshotId>,
 }
@@ -199,6 +203,16 @@ impl ProjectionAdmissionV1 {
         Ok(())
     }
 
+    fn validate_frontier_identity(
+        &self,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        if self.frontier_manifest_hash != frontier.manifest_hash {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        Ok(())
+    }
+
     /// Reciprocal validation against the exact snapshot and frontier that
     /// produced this admission receipt.
     pub fn validate_against_snapshot(
@@ -210,6 +224,7 @@ impl ProjectionAdmissionV1 {
         snapshot
             .validate()
             .map_err(|_| ProjectionError::InvalidSnapshot)?;
+        self.validate_frontier_identity(frontier)?;
         if self.evidence_frontier != frontier.frontier_id
             || snapshot.evidence_frontier != frontier.frontier_id
             || !frontier.admits_snapshot(snapshot)
@@ -236,6 +251,7 @@ impl ProjectionAdmissionV1 {
         transition
             .validate()
             .map_err(|_| ProjectionError::InvalidTransition)?;
+        self.validate_frontier_identity(frontier)?;
         if self.evidence_frontier != frontier.frontier_id
             || !frontier.admits_transition(transition)
         {
@@ -266,6 +282,7 @@ impl ProjectionAdmissionV1 {
         Self {
             projection: ProjectionRef::Snapshot(snapshot.snapshot_id.clone()),
             evidence_frontier: frontier.frontier_id.clone(),
+            frontier_manifest_hash: frontier.manifest_hash.clone(),
             admitted_evidence,
             admitted_sources: snapshot.source_snapshots.clone(),
         }
@@ -290,6 +307,7 @@ impl ProjectionAdmissionV1 {
         Self {
             projection: ProjectionRef::Transition(transition.transition_id.clone()),
             evidence_frontier: frontier.frontier_id.clone(),
+            frontier_manifest_hash: frontier.manifest_hash.clone(),
             admitted_evidence,
             admitted_sources: transition.source_snapshots.clone(),
         }
@@ -1381,6 +1399,18 @@ mod tests {
             result.admissions[0].validate_against_snapshot(&snapshot, &shadow_frontier),
             Err(ProjectionError::AuditWithoutEvidencePath)
         );
+
+        let mut same_id_shadow = result.evidence_frontier.clone();
+        same_id_shadow.admitted_evidence.insert("e:transition".into());
+        same_id_shadow.recompute_manifest_hash().unwrap();
+        assert_ne!(
+            same_id_shadow.manifest_hash,
+            result.evidence_frontier.manifest_hash
+        );
+        assert_eq!(
+            result.admissions[0].validate_against_snapshot(&snapshot, &same_id_shadow),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
     }
 
     #[test]
@@ -1414,6 +1444,20 @@ mod tests {
         assert_eq!(
             tampered.validate_against_transition(&transition, &result.evidence_frontier),
             Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+
+        let mut same_id_shadow = result.evidence_frontier.clone();
+        same_id_shadow.admitted_evidence.insert("e:old".into());
+        same_id_shadow.recompute_manifest_hash().unwrap();
+        assert_ne!(
+            same_id_shadow.manifest_hash,
+            result.evidence_frontier.manifest_hash
+        );
+        assert_eq!(
+            result
+                .admissions[0]
+                .validate_against_transition(&transition, &same_id_shadow),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
 
