@@ -898,10 +898,7 @@ impl EvidenceFrontierV1 {
         evidence_ids: &[EvidenceId],
         source_snapshots: &[SourceSnapshotId],
     ) -> bool {
-        if !source_snapshots
-            .iter()
-            .all(|id| self.admits_source(id))
-        {
+        if !source_snapshots.iter().all(|id| self.admits_source(id)) {
             return false;
         }
 
