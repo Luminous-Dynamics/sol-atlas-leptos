@@ -200,6 +200,15 @@ impl ProjectionAdmissionV1 {
         if self.admitted_evidence.is_empty() {
             return Err(ProjectionError::AuditWithoutEvidencePath);
         }
+        if !self.frontier_manifest_hash.is_empty()
+            && (self.frontier_manifest_hash.len() != 64
+                || !self
+                    .frontier_manifest_hash
+                    .bytes()
+                    .all(|byte| byte.is_ascii_hexdigit()))
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
         Ok(())
     }
 
@@ -1473,6 +1482,85 @@ mod tests {
                 .admissions[0]
                 .validate_against_transition(&transition, &same_id_shadow),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn admission_rejects_malformed_nonempty_manifest_hash() {
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: frontier(),
+        };
+        let snapshot = snapshot(
+            "snapshot:hash-format",
+            YearInterval {
+                from: Some(1945),
+                to: Some(1947),
+            },
+            "frontier:1949",
+            "e:old",
+        );
+        let result = request.project(&[snapshot], &[]).unwrap();
+
+        let mut invalid_length = result.admissions[0].clone();
+        invalid_length.frontier_manifest_hash = "abcd".into();
+        assert_eq!(
+            invalid_length.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        let mut invalid_character = result.admissions[0].clone();
+        invalid_character.frontier_manifest_hash = "z".repeat(64);
+        assert_eq!(
+            invalid_character.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn admission_accepts_a_well_formed_manifest_hash() {
+        let mut frontier = frontier();
+        frontier.evidence_metadata = vec![EvidenceTemporalMetadataV1 {
+            evidence_id: "e:old".into(),
+            source_snapshot: "source:archive".into(),
+            artifact_time: None,
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+            validity_time: None,
+        }];
+        frontier.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:archive".into(),
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+        }];
+        frontier.recompute_manifest_hash().unwrap();
+
+        let request = TemporalProjectionRequestV1 {
+            map_epoch: YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            },
+            evidence_frontier: frontier,
+        };
+        let snapshot = snapshot(
+            "snapshot:hash-format-valid",
+            YearInterval {
+                from: Some(1945),
+                to: Some(1947),
+            },
+            "frontier:1949",
+            "e:old",
+        );
+        let result = request.project(&[snapshot], &[]).unwrap();
+        assert_eq!(result.admissions[0].validate(), Ok(()));
+        assert_eq!(
+            result.admissions[0].frontier_manifest_hash,
+            result.evidence_frontier.manifest_hash
         );
     }
 
