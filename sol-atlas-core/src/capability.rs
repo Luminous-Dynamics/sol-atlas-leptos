@@ -1630,6 +1630,31 @@ impl RecoveryVerification {
             && execution.is_successful_with_bound_policy_decision(plan, candidate, decision, now)
     }
 
+    /// Strongest verification gate: require the policy decision to match
+    /// the exact consumer/purpose/authority context expected by the verifier.
+    pub fn passes_with_bound_policy_decision_for_context(
+        &self,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        execution: &RecoveryExecution,
+        expected_purpose: &str,
+        expected_consumer: &str,
+        expected_authority_reference: &str,
+        now: &str,
+    ) -> bool {
+        self.passes_with_bound_execution(execution)
+            && execution.is_successful_with_bound_policy_decision_for_context(
+                plan,
+                candidate,
+                decision,
+                expected_purpose,
+                expected_consumer,
+                expected_authority_reference,
+                now,
+            )
+    }
+
     /// Stronger verification gate binding the verification to the exact
     /// candidate lineage, ready plan, and concrete execution result.
     pub fn passes_with_bound_candidate_execution(
@@ -3462,6 +3487,32 @@ impl RecoveryExecution {
             && decision.candidate_snapshot == candidate.snapshot().digest()
     }
 
+    /// Strongest policy gate: bind the admitted decision to the exact
+    /// consumer, purpose, and external authority reference expected by the
+    /// calling policy context.
+    ///
+    /// The weaker policy-decision gate intentionally remains available for
+    /// consumers that already establish those context bindings elsewhere.
+    /// This variant makes the confused-deputy boundary explicit in the core API.
+    pub fn is_successful_with_bound_policy_decision_for_context(
+        &self,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        expected_purpose: &str,
+        expected_consumer: &str,
+        expected_authority_reference: &str,
+        now: &str,
+    ) -> bool {
+        !expected_purpose.is_empty()
+            && !expected_consumer.is_empty()
+            && !expected_authority_reference.is_empty()
+            && decision.purpose == expected_purpose
+            && decision.consumer == expected_consumer
+            && decision.authority_reference == expected_authority_reference
+            && self.is_successful_with_bound_policy_decision(plan, candidate, decision, now)
+    }
+
     /// Execution is complete only when it has an end marker and no failed steps.
     ///
     /// This does not establish verification or qualification.
@@ -4318,6 +4369,73 @@ mod graph_tests {
             &candidate,
             &decision,
             &bound_execution,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        assert!(bound_execution.is_successful_with_bound_policy_decision_for_context(
+            &plan,
+            &candidate,
+            &decision,
+            "recovery.execute",
+            "operator-001",
+            "authority-record-001",
+            "2026-10-02T08:00:00Z"
+        ));
+        assert!(verification.passes_with_bound_policy_decision_for_context(
+            &plan,
+            &candidate,
+            &decision,
+            &bound_execution,
+            "recovery.execute",
+            "operator-001",
+            "authority-record-001",
+            "2026-10-02T08:00:00Z"
+        ));
+
+        assert!(!bound_execution.is_successful_with_bound_policy_decision_for_context(
+            &plan,
+            &candidate,
+            &decision,
+            "different-purpose",
+            "operator-001",
+            "authority-record-001",
+            "2026-10-02T08:00:00Z"
+        ));
+        assert!(!bound_execution.is_successful_with_bound_policy_decision_for_context(
+            &plan,
+            &candidate,
+            &decision,
+            "recovery.execute",
+            "different-consumer",
+            "authority-record-001",
+            "2026-10-02T08:00:00Z"
+        ));
+        assert!(!bound_execution.is_successful_with_bound_policy_decision_for_context(
+            &plan,
+            &candidate,
+            &decision,
+            "recovery.execute",
+            "operator-001",
+            "different-authority",
+            "2026-10-02T08:00:00Z"
+        ));
+        assert!(!bound_execution.is_successful_with_bound_policy_decision_for_context(
+            &plan,
+            &candidate,
+            &decision,
+            "",
+            "operator-001",
+            "authority-record-001",
+            "2026-10-02T08:00:00Z"
+        ));
+        assert!(!verification.passes_with_bound_policy_decision_for_context(
+            &plan,
+            &candidate,
+            &decision,
+            &bound_execution,
+            "recovery.execute",
+            "",
+            "authority-record-001",
             "2026-10-02T08:00:00Z"
         ));
 
