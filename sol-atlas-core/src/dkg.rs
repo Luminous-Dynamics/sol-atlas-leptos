@@ -113,6 +113,25 @@ impl DkgProjectionAdmissionV1 {
             && self.source_snapshots.iter().all(|id| id.is_valid())
             && self.evidence_frontier.is_valid()
     }
+
+    /// Reciprocal validation against the exact canonical statement and frontier
+    /// that produced this admission. The receipt is descriptive provenance, not
+    /// an independent authority, so every receipt field must reconstruct exactly
+    /// from the admitted statement and selected frontier.
+    pub fn validate_against_statement(
+        &self,
+        statement: &DkgStatementV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> bool {
+        self.validate()
+            && statement.is_frontier_safe(frontier)
+            && self.evidence_frontier == frontier.frontier_id
+            && self.record == statement.record
+            && self.claim_ref == statement.claim_ref
+            && self.evidence_refs == statement.evidence_refs
+            && self.source_snapshots == statement.source_snapshots
+            && self.qualification == statement.qualification
+    }
 }
 
 #[cfg(test)]
@@ -270,6 +289,37 @@ mod tests {
         assert_eq!(admission.record.record_id, "record:1");
         assert_eq!(admission.evidence_frontier, "frontier:1950".into());
         assert_eq!(admission.qualification, QualificationStatus::Supported);
+    }
+
+    #[test]
+    fn admission_rejects_rebound_evidence_even_when_ids_remain_valid() {
+        let frontier = frontier();
+        let statement = statement();
+        let mut admission = DkgProjectionAdmissionV1::from_statement(&statement, &frontier).unwrap();
+        admission.evidence_refs.reverse();
+
+        assert!(!admission.validate_against_statement(&statement, &frontier));
+    }
+
+    #[test]
+    fn admission_rejects_rebound_source_even_when_source_is_frontier_admitted() {
+        let mut frontier = frontier();
+        frontier.admitted_sources.insert("source:2".into());
+        let statement = statement();
+        let mut admission = DkgProjectionAdmissionV1::from_statement(&statement, &frontier).unwrap();
+        admission.source_snapshots = vec!["source:2".into()];
+
+        assert!(!admission.validate_against_statement(&statement, &frontier));
+    }
+
+    #[test]
+    fn admission_rejects_qualification_drift() {
+        let frontier = frontier();
+        let statement = statement();
+        let mut admission = DkgProjectionAdmissionV1::from_statement(&statement, &frontier).unwrap();
+        admission.qualification = QualificationStatus::Speculative;
+
+        assert!(!admission.validate_against_statement(&statement, &frontier));
     }
 
     #[test]
