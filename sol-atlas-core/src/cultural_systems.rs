@@ -119,6 +119,15 @@ impl CulturalArgumentationRefV1 {
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
+        if !self.frontier_manifest_hash.is_empty()
+            && (self.frontier_manifest_hash.len() != 64
+                || !self
+                    .frontier_manifest_hash
+                    .bytes()
+                    .all(|byte| byte.is_ascii_hexdigit()))
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
         if self.available_by
             < self
                 .assessment_time
@@ -660,6 +669,10 @@ pub struct CulturalProjectionAdmissionV2 {
     pub evidence_refs: Vec<EvidenceId>,
     pub source_snapshots: Vec<SourceSnapshotId>,
     pub evidence_frontier: EvidenceFrontierId,
+    /// Content-addressed identity of the selected frontier when available.
+    /// Empty is retained only for serialized legacy admissions.
+    #[serde(default)]
+    pub frontier_manifest_hash: String,
     pub qualification: QualificationStatus,
     pub access_policy: AccessPolicyV1,
 }
@@ -690,6 +703,7 @@ impl CulturalProjectionAdmissionV2 {
             evidence_refs: closure.evidence_refs,
             source_snapshots: closure.source_snapshots,
             evidence_frontier: closure.evidence_frontier,
+            frontier_manifest_hash: frontier.manifest_hash.clone(),
             qualification: closure.qualification,
             access_policy,
         })
@@ -720,6 +734,9 @@ impl CulturalProjectionAdmissionV2 {
         self.validate()?;
         if !projection.is_frontier_safe(claim, frontier) {
             return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        if self.frontier_manifest_hash != frontier.manifest_hash {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
 
         let closure = projection.evidence_closure();
@@ -1243,6 +1260,44 @@ mod tests {
                 &canonical_claim(&transmission)
             ),
             Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
+
+    #[test]
+    fn projection_admission_binds_same_id_frontier_manifest() {
+        let frontier = frontier();
+        let transmission = transmission();
+        let projection = CulturalProjectionV1::Transmission(transmission.clone());
+        let admission = CulturalProjectionAdmissionV2::from_projection(
+            &projection,
+            &frontier,
+            &canonical_claim(&transmission),
+        )
+        .expect("frontier-safe projection");
+
+        let mut shadow = frontier.clone();
+        shadow
+            .admitted_evidence
+            .insert("e:shadow".into());
+        shadow.evidence_metadata.push(EvidenceTemporalMetadataV1 {
+            evidence_id: "e:shadow".into(),
+            source_snapshot: "source:1".into(),
+            artifact_time: None,
+            publication_time: Some(1950),
+            capture_time: None,
+            available_by: 1950,
+            validity_time: None,
+        });
+        shadow.recompute_manifest_hash().expect("shadow hash");
+
+        assert_ne!(admission.frontier_manifest_hash, shadow.manifest_hash);
+        assert_eq!(
+            admission.validate_against_projection(
+                &projection,
+                &shadow,
+                &canonical_claim(&transmission)
+            ),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
 
