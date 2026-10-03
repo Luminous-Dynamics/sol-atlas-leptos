@@ -83,11 +83,7 @@ impl CanonicalClaimAdmissionV1 {
         self.validate().is_ok()
             && frontier.validate_temporal_manifest_strict().is_ok()
             && self.evidence_frontier == frontier.frontier_id
-            && self.evidence_refs.iter().all(|id| frontier.admits(id))
-            && self
-                .source_snapshots
-                .iter()
-                .all(|id| frontier.admits_source(id))
+            && frontier.admits_evidence_path(&self.evidence_refs, &self.source_snapshots)
     }
 }
 
@@ -195,11 +191,7 @@ impl CulturalArgumentationEvidenceClosureV1 {
             && claim.is_frontier_safe(frontier)
             && self.claim_ref == claim.claim_ref
             && self.evidence_frontier == frontier.frontier_id
-            && self.evidence_refs.iter().all(|id| frontier.admits(id))
-            && self
-                .source_snapshots
-                .iter()
-                .all(|id| frontier.admits_source(id))
+            && frontier.admits_evidence_path(&self.evidence_refs, &self.source_snapshots)
     }
 }
 
@@ -837,11 +829,7 @@ impl CulturalProjectionAuditV2 {
         self.validate().is_ok()
             && frontier.validate_temporal_manifest_strict().is_ok()
             && self.evidence_frontier == frontier.frontier_id
-            && self.evidence_refs.iter().all(|id| frontier.admits(id))
-            && self
-                .source_snapshots
-                .iter()
-                .all(|id| frontier.admits_source(id))
+            && frontier.admits_evidence_path(&self.evidence_refs, &self.source_snapshots)
             && self
                 .community_recognition_evidence
                 .iter()
@@ -926,11 +914,7 @@ impl CulturalProjectionAuditV1 {
         self.validate().is_ok()
             && frontier.validate_temporal_manifest_strict().is_ok()
             && self.evidence_frontier == frontier.frontier_id
-            && self.evidence_refs.iter().all(|id| frontier.admits(id))
-            && self
-                .source_snapshots
-                .iter()
-                .all(|id| frontier.admits_source(id))
+            && frontier.admits_evidence_path(&self.evidence_refs, &self.source_snapshots)
             && self
                 .community_recognition_evidence
                 .iter()
