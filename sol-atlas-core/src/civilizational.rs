@@ -621,6 +621,19 @@ impl EvidenceFrontierManifestCanonicalizationV1 {
 }
 
 impl EvidenceFrontierV1 {
+    fn validate_identity_shape(&self) -> Result<(), ProjectionError> {
+        if !self.frontier_id.is_valid()
+            || self.policy_version.trim().is_empty()
+            || self
+                .parent_frontier
+                .as_ref()
+                .is_some_and(|id| !id.is_valid() || id == &self.frontier_id)
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        Ok(())
+    }
+
     /// Computes the content hash using the explicitly versioned V1 manifest
     /// canonicalization contract.
     pub fn computed_manifest_hash(&self) -> Result<String, ProjectionError> {
@@ -787,15 +800,7 @@ impl EvidenceFrontierV1 {
 
     /// Validates the frontier's admission manifest against its temporal metadata.
     pub fn validate_temporal_manifest(&self) -> Result<(), ProjectionError> {
-        if !self.frontier_id.is_valid()
-            || self.policy_version.trim().is_empty()
-            || self
-                .parent_frontier
-                .as_ref()
-                .is_some_and(|id| id == &self.frontier_id)
-        {
-            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
-        }
+        self.validate_identity_shape()?;
         // Migration-compatible validation permits legacy manifests that predate
         // content-addressed hashes. Strict replay validation below requires a
         // non-empty, self-consistent manifest hash before admitting the frontier.
@@ -898,8 +903,12 @@ impl EvidenceFrontierV1 {
         evidence_ids: &[EvidenceId],
         source_snapshots: &[SourceSnapshotId],
     ) -> bool {
-        // Preserve the legacy ID-only frontier form, but require every populated
-        // manifest to satisfy its full temporal/structural validation before admission.
+        // Preserve the legacy ID-only frontier form, but still require its
+        // identity envelope to be structurally sound. Populated manifests retain
+        // the full temporal/structural validation below.
+        if self.validate_identity_shape().is_err() {
+            return false;
+        }
         let is_legacy_id_only = self.manifest_hash.trim().is_empty()
             && self.evidence_metadata.is_empty()
             && self.source_metadata.is_empty()
@@ -1320,6 +1329,38 @@ mod tests {
         };
         assert!(!value.available_at(1949));
         assert!(value.available_at(1950));
+    }
+
+    #[test]
+    fn legacy_frontier_rejects_malformed_identity_shape() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:legacy".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:old"].into_iter().collect(),
+            admitted_sources: ["source:archive"].into_iter().collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+
+        frontier.policy_version.clear();
+        assert_eq!(
+            frontier.admits_evidence_path(
+                &["evidence:old".into()],
+                &["source:archive".into()]
+            ),
+            false
+        );
+
+        frontier.policy_version = "v1".into();
+        frontier.parent_frontier = Some("".into());
+        assert!(!frontier.admits_evidence_path(
+            &["evidence:old".into()],
+            &["source:archive".into()]
+        ));
     }
 
     #[test]
