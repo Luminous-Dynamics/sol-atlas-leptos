@@ -1286,9 +1286,7 @@ mod tests {
             &canonical_claim(&transmission),
         )
         .expect("frontier-safe projection");
-        admission
-            .source_snapshots
-            .push("source:1".into());
+        admission.source_snapshots.push("source:1".into());
         assert_eq!(admission.validate(), Err(ProjectionError::EmptyIdentifier));
     }
 
