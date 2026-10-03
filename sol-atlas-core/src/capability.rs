@@ -2186,7 +2186,7 @@ impl RecoveryResilienceAssessmentV1 {
             || self.root.0.is_empty()
             || self.unavailable.0.is_empty()
             || self.root == self.unavailable
-            || self.dependency_snapshot.is_empty()
+            || !self.scope_snapshot.is_well_formed()
             || self.claim_ceiling.is_empty()
             || !unique_nonempty_ids(&self.affected)
             || !unique_nonempty_ids(&self.unresolved)
@@ -2230,7 +2230,7 @@ impl RecoveryResilienceAssessmentV1 {
             schema: String,
             root: CapabilityId,
             unavailable: CapabilityId,
-            dependency_snapshot: String,
+            scope_snapshot: RecoveryResilienceScopeSnapshotV1,
             affected: Vec<CapabilityId>,
             unresolved: Vec<CapabilityId>,
             alternatives: Vec<RecoveryCandidateSnapshotV1>,
@@ -2263,7 +2263,7 @@ impl RecoveryResilienceAssessmentV1 {
             schema: self.schema.clone(),
             root: self.root.clone(),
             unavailable: self.unavailable.clone(),
-            dependency_snapshot: self.dependency_snapshot.clone(),
+            scope_snapshot: self.scope_snapshot.clone(),
             affected,
             unresolved,
             alternatives,
