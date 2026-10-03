@@ -2258,6 +2258,51 @@ impl RecoveryResilienceProfileV1 {
         self.alternatives.iter().all(RecoveryCandidateSnapshotV1::is_well_formed)
     }
 
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        #[derive(Serialize)]
+        struct CanonicalProfile {
+            schema: String,
+            capability: CapabilityId,
+            unavailable: CapabilityId,
+            assessment_snapshot: String,
+            scope_snapshot: String,
+            availability: RecoveryResilienceFieldV1,
+            maintenance: RecoveryResilienceFieldV1,
+            repair_replacement: RecoveryResilienceFieldV1,
+            recovery_class: RecoveryResilienceFieldV1,
+            reproducibility: RecoveryResilienceFieldV1,
+            alternatives: Vec<RecoveryCandidateSnapshotV1>,
+            claim_ceiling: String,
+        }
+
+        let mut alternatives = self.alternatives.clone();
+        alternatives.sort_by(|left, right| {
+            (&left.for_dependency, &left.candidate)
+                .cmp(&(&right.for_dependency, &right.candidate))
+        });
+
+        serde_json::to_vec(&CanonicalProfile {
+            schema: self.schema.clone(),
+            capability: self.capability.clone(),
+            unavailable: self.unavailable.clone(),
+            assessment_snapshot: self.assessment_snapshot.clone(),
+            scope_snapshot: self.scope_snapshot.clone(),
+            availability: self.availability.clone(),
+            maintenance: self.maintenance.clone(),
+            repair_replacement: self.repair_replacement.clone(),
+            recovery_class: self.recovery_class.clone(),
+            reproducibility: self.reproducibility.clone(),
+            alternatives,
+            claim_ceiling: self.claim_ceiling.clone(),
+        })
+        .expect("recovery resilience profile contains only serializable primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+
     pub fn is_bound_to_assessment(&self, assessment: &RecoveryResilienceAssessmentV1) -> bool {
         if !self.is_well_formed() || !assessment.is_well_formed() {
             return false;
@@ -5079,6 +5124,58 @@ mod graph_tests {
             claim_ceiling: "Exact qualified scope only.".into(),
         };
         assert!(qualified.is_well_formed());
+    }
+
+
+    #[test]
+    fn resilience_profile_digest_is_stable_under_alternative_order() {
+        let mut root = cap("root", &["unavailable"]);
+        root.dependencies[0].substitutes = vec![
+            CapabilityId("recovery-b".into()),
+            CapabilityId("recovery-a".into()),
+        ];
+        let graph = CapabilityGraph {
+            capabilities: vec![
+                root,
+                cap("unavailable", &[]),
+                cap("recovery-a", &[]),
+                cap("recovery-b", &[]),
+            ],
+        };
+        let assessment = graph.resilience_assessment(
+            &CapabilityId("root".into()),
+            &CapabilityId("unavailable".into()),
+        );
+        let field = || RecoveryResilienceFieldV1 {
+            state: RecoveryResilienceFieldStateV1::NotAssessed,
+            value: None,
+            evidence: vec![],
+            claim_ceiling: "Dimension not assessed.".into(),
+        };
+
+        let mut first = RecoveryResilienceProfileV1 {
+            schema: RecoveryResilienceProfileV1::SCHEMA.into(),
+            capability: assessment.root.clone(),
+            unavailable: assessment.unavailable.clone(),
+            assessment_snapshot: assessment.digest(),
+            scope_snapshot: assessment.scope_snapshot.digest(),
+            availability: field(),
+            maintenance: field(),
+            repair_replacement: field(),
+            recovery_class: field(),
+            reproducibility: field(),
+            alternatives: assessment.alternatives.clone(),
+            claim_ceiling: "Descriptive profile bound to one structural assessment only.".into(),
+        };
+        let mut second = first.clone();
+        second.alternatives.reverse();
+        assert_eq!(first.digest(), second.digest());
+
+        second.claim_ceiling = "Different bounded claim.".into();
+        assert_ne!(first.digest(), second.digest());
+
+        first.assessment_snapshot = "sha256:changed".into();
+        assert_ne!(first.digest(), second.digest());
     }
 
     #[test]
