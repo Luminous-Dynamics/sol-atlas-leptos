@@ -160,10 +160,7 @@ mod tests {
             envelope_hash: String::new(),
         };
         envelope.recompute_hash().expect("envelope hash");
-        assert_eq!(
-            envelope.validate(),
-            Err(ProjectionError::EmptyIdentifier)
-        );
+        assert_eq!(envelope.validate(), Err(ProjectionError::EmptyIdentifier));
     }
 
     #[test]
@@ -177,6 +174,9 @@ mod tests {
             envelope_hash: String::new(),
         };
         envelope.mappings[0].qualification = QualificationStatus::Speculative;
+        envelope.mappings[0]
+            .recompute_hash()
+            .expect("rehashed mapping drift fixture");
         envelope.recompute_hash().expect("rehashed drift fixture");
         assert_eq!(
             envelope.validate(),
@@ -228,7 +228,12 @@ mod tests {
             claim_ref: "claim:1".into(),
             evidence_frontier: "frontier:1950".into(),
             qualification: QualificationStatus::Speculative,
-            mappings: vec![mapping("mapping:1", "E7_Activity")],
+            mappings: vec![{
+                let mut value = mapping("mapping:1", "E7_Activity");
+                value.qualification = QualificationStatus::Speculative;
+                value.recompute_hash().expect("rehashed mapping");
+                value
+            }],
             envelope_hash: String::new(),
         };
         envelope.recompute_hash().expect("envelope hash");
