@@ -209,6 +209,50 @@ mod tests {
         }
     }
 
+    struct ContendedMemoryStore {
+        inner: MemoryStore,
+        load_barrier: Barrier,
+    }
+
+    impl ContendedMemoryStore {
+        fn new(decision: &RecoveryPolicyDecisionSnapshotV1) -> Self {
+            Self {
+                inner: MemoryStore::new(decision),
+                load_barrier: Barrier::new(2),
+            }
+        }
+
+        fn current(
+            &self,
+            decision: &RecoveryPolicyDecisionSnapshotV1,
+        ) -> RecoveryPolicyConsumptionSnapshotV1 {
+            self.inner.current(decision)
+        }
+    }
+
+    impl RecoveryPolicyConsumptionStore for ContendedMemoryStore {
+        type Error = &'static str;
+
+        fn load(
+            &self,
+            decision_digest: &str,
+        ) -> Result<Option<RecoveryPolicyConsumptionSnapshotV1>, Self::Error> {
+            let current = self.inner.load(decision_digest)?;
+            self.load_barrier.wait();
+            Ok(current)
+        }
+
+        fn compare_and_set(
+            &self,
+            decision_digest: &str,
+            expected_snapshot_digest: &str,
+            next: &RecoveryPolicyConsumptionSnapshotV1,
+        ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
+            self.inner
+                .compare_and_set(decision_digest, expected_snapshot_digest, next)
+        }
+    }
+
     struct BrokenStore;
 
     impl RecoveryPolicyConsumptionStore for BrokenStore {
@@ -332,7 +376,7 @@ mod tests {
     }
 
     #[test]
-    fn stale_contenders_allow_exactly_one_commit() {
+    fn concurrent_stale_contenders_race_on_the_same_loaded_version() {
         let (decision, execution, current) = fixture();
         let (first, first_next) =
             transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
@@ -341,17 +385,13 @@ mod tests {
 
         assert_ne!(first.next_snapshot_digest, second.next_snapshot_digest);
 
-        let store = Arc::new(MemoryStore::new(&decision));
-        let barrier = Arc::new(Barrier::new(3));
-
+        let store = Arc::new(ContendedMemoryStore::new(&decision));
         let left_store = Arc::clone(&store);
-        let left_barrier = Arc::clone(&barrier);
         let left_decision = decision.clone();
         let left_execution = execution.clone();
         let left_transition = first.clone();
         let left_next = first_next.clone();
         let left = thread::spawn(move || {
-            left_barrier.wait();
             persist_consumption_transition(
                 left_store.as_ref(),
                 &left_decision,
@@ -363,13 +403,11 @@ mod tests {
         });
 
         let right_store = Arc::clone(&store);
-        let right_barrier = Arc::clone(&barrier);
         let right_decision = decision.clone();
         let right_execution = execution.clone();
         let right_transition = second.clone();
         let right_next = second_next.clone();
         let right = thread::spawn(move || {
-            right_barrier.wait();
             persist_consumption_transition(
                 right_store.as_ref(),
                 &right_decision,
@@ -380,24 +418,25 @@ mod tests {
             .expect("right persistence")
         });
 
-        barrier.wait();
-
         let outcomes = [left.join().expect("left join"), right.join().expect("right join")];
         assert_eq!(
             outcomes
                 .iter()
-                .filter(|outcome| **outcome
-                    == RecoveryPolicyConsumptionPersistenceOutcome::Committed)
+                .filter(|outcome| {
+                    **outcome == RecoveryPolicyConsumptionPersistenceOutcome::Committed
+                })
                 .count(),
             1
         );
-        assert!(outcomes.iter().any(|outcome| {
-            matches!(
-                outcome,
-                RecoveryPolicyConsumptionPersistenceOutcome::Conflict
-                    | RecoveryPolicyConsumptionPersistenceOutcome::ReplayDetected
-            )
-        }));
+        assert_eq!(
+            outcomes
+                .iter()
+                .filter(|outcome| {
+                    **outcome == RecoveryPolicyConsumptionPersistenceOutcome::Conflict
+                })
+                .count(),
+            1
+        );
 
         let current = store.current(&decision);
         assert_eq!(
