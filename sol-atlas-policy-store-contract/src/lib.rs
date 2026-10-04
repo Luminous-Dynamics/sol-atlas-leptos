@@ -347,6 +347,230 @@ where
         .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
 }
 
+/// Durable receipt state for one external execution effect.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RecoveryExecutionEffectStateV1 {
+    InProgress,
+    Succeeded,
+    Failed,
+}
+
+/// Durable idempotency receipt for the external effect of one execution.
+///
+/// The execution-input snapshot is the semantic fingerprint. The attempt
+/// identifier establishes which execution claim may advance an InProgress
+/// receipt. Outcome identity is content-addressed; the receipt does not
+/// contain or imply the external side effect itself.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RecoveryExecutionEffectReceiptV1 {
+    pub schema: String,
+    pub execution_id: String,
+    pub execution_input_snapshot: String,
+    pub attempt_id: String,
+    pub state: RecoveryExecutionEffectStateV1,
+    pub outcome_digest: Option<String>,
+}
+
+impl RecoveryExecutionEffectReceiptV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-execution-effect-receipt:v1";
+
+    pub fn in_progress(
+        execution_id: impl Into<String>,
+        execution_input_snapshot: impl Into<String>,
+        attempt_id: impl Into<String>,
+    ) -> Self {
+        Self {
+            schema: Self::SCHEMA.into(),
+            execution_id: execution_id.into(),
+            execution_input_snapshot: execution_input_snapshot.into(),
+            attempt_id: attempt_id.into(),
+            state: RecoveryExecutionEffectStateV1::InProgress,
+            outcome_digest: None,
+        }
+    }
+
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA
+            && !self.execution_id.is_empty()
+            && is_sha256_digest(&self.execution_input_snapshot)
+            && !self.attempt_id.is_empty()
+            && match self.state {
+                RecoveryExecutionEffectStateV1::InProgress => self.outcome_digest.is_none(),
+                RecoveryExecutionEffectStateV1::Succeeded
+                | RecoveryExecutionEffectStateV1::Failed => self
+                    .outcome_digest
+                    .as_deref()
+                    .is_some_and(is_sha256_digest),
+            }
+    }
+}
+
+/// Result of atomically beginning an external effect.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionEffectStartResult {
+    Started,
+    AlreadyInProgressSameAttempt,
+    AlreadyInProgressOtherAttempt,
+    AlreadySucceededSameRequest,
+    AlreadyFailedSameRequest,
+    FingerprintMismatch,
+    MalformedReceipt,
+    Indeterminate,
+}
+
+/// Result of atomically completing an effect receipt.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionEffectCompletionResult {
+    Completed,
+    AlreadyCompletedSameOutcome,
+    AlreadyCompletedDifferentOutcome,
+    NotOwner,
+    MissingReceipt,
+    FingerprintMismatch,
+    MalformedReceipt,
+    Indeterminate,
+}
+
+/// Storage-neutral contract for durable external-effect idempotency receipts.
+pub trait RecoveryExecutionEffectStore: Send + Sync {
+    type Error;
+
+    fn begin_effect(
+        &self,
+        receipt: &RecoveryExecutionEffectReceiptV1,
+    ) -> Result<RecoveryExecutionEffectStartResult, Self::Error>;
+
+    fn complete_effect(
+        &self,
+        execution_id: &str,
+        execution_input_snapshot: &str,
+        attempt_id: &str,
+        completed: &RecoveryExecutionEffectReceiptV1,
+    ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error>;
+
+    fn load_effect(
+        &self,
+        execution_id: &str,
+    ) -> Result<Option<RecoveryExecutionEffectReceiptV1>, Self::Error>;
+}
+
+/// Point-in-time reconciliation result for an uncertain effect-start or
+/// completion acknowledgement.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionEffectReconciliationOutcome {
+    ObservedInProgressOwnedByThisAttempt,
+    ObservedInProgressOwnedByOtherAttempt,
+    ObservedSucceeded,
+    ObservedFailed,
+    ObservedDifferentFingerprint,
+    MissingReceipt,
+    InvalidReceipt,
+}
+
+/// Reconcile an uncertain effect-store result without mutating the store.
+pub fn reconcile_execution_effect<S>(
+    store: &S,
+    execution_id: &str,
+    expected_input_snapshot: &str,
+    attempt_id: &str,
+) -> Result<
+    RecoveryExecutionEffectReconciliationOutcome,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionEffectStore,
+{
+    if execution_id.is_empty() || !is_sha256_digest(expected_input_snapshot) || attempt_id.is_empty() {
+        return Ok(RecoveryExecutionEffectReconciliationOutcome::InvalidReceipt);
+    }
+
+    let Some(current) = store
+        .load_effect(execution_id)
+        .map_err(RecoveryPolicyConsumptionPersistenceError::Store)?
+    else {
+        return Ok(RecoveryExecutionEffectReconciliationOutcome::MissingReceipt);
+    };
+
+    if !current.is_well_formed() {
+        return Ok(RecoveryExecutionEffectReconciliationOutcome::InvalidReceipt);
+    }
+
+    if current.execution_input_snapshot != expected_input_snapshot {
+        return Ok(
+            RecoveryExecutionEffectReconciliationOutcome::ObservedDifferentFingerprint,
+        );
+    }
+
+    Ok(match (&current.state, current.attempt_id == attempt_id) {
+        (RecoveryExecutionEffectStateV1::InProgress, true) => {
+            RecoveryExecutionEffectReconciliationOutcome::ObservedInProgressOwnedByThisAttempt
+        }
+        (RecoveryExecutionEffectStateV1::InProgress, false) => {
+            RecoveryExecutionEffectReconciliationOutcome::ObservedInProgressOwnedByOtherAttempt
+        }
+        (RecoveryExecutionEffectStateV1::Succeeded, _) => {
+            RecoveryExecutionEffectReconciliationOutcome::ObservedSucceeded
+        }
+        (RecoveryExecutionEffectStateV1::Failed, _) => {
+            RecoveryExecutionEffectReconciliationOutcome::ObservedFailed
+        }
+    })
+}
+
+/// Attempt to begin one external execution effect.
+pub fn begin_execution_effect<S>(
+    store: &S,
+    receipt: &RecoveryExecutionEffectReceiptV1,
+) -> Result<
+    RecoveryExecutionEffectStartResult,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionEffectStore,
+{
+    if !receipt.is_well_formed() {
+        return Ok(RecoveryExecutionEffectStartResult::MalformedReceipt);
+    }
+
+    store
+        .begin_effect(receipt)
+        .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
+}
+
+/// Record a terminal external-effect outcome under the attempt that owns the
+/// InProgress receipt. This does not perform the external effect.
+pub fn complete_execution_effect<S>(
+    store: &S,
+    started: &RecoveryExecutionEffectReceiptV1,
+    completed: &RecoveryExecutionEffectReceiptV1,
+) -> Result<
+    RecoveryExecutionEffectCompletionResult,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionEffectStore,
+{
+    if !started.is_well_formed()
+        || started.state != RecoveryExecutionEffectStateV1::InProgress
+        || !completed.is_well_formed()
+        || completed.execution_id != started.execution_id
+        || completed.execution_input_snapshot != started.execution_input_snapshot
+        || completed.attempt_id != started.attempt_id
+        || completed.state == RecoveryExecutionEffectStateV1::InProgress
+    {
+        return Ok(RecoveryExecutionEffectCompletionResult::MalformedReceipt);
+    }
+
+    store
+        .complete_effect(
+            &started.execution_id,
+            &started.execution_input_snapshot,
+            &started.attempt_id,
+            completed,
+        )
+        .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
+}
+
 /// Validate and persist one transition through the external CAS boundary.
 ///
 /// The helper deliberately performs load/validation/CAS as separate operations:
@@ -557,6 +781,322 @@ mod tests {
             self.inner
                 .compare_and_set(decision_digest, expected_snapshot_digest, next)
         }
+    }
+
+    #[derive(Default)]
+    struct ExecutionEffectMemoryStore {
+        values: Mutex<BTreeMap<String, RecoveryExecutionEffectReceiptV1>>,
+    }
+
+    impl RecoveryExecutionEffectStore for ExecutionEffectMemoryStore {
+        type Error = &'static str;
+
+        fn begin_effect(
+            &self,
+            receipt: &RecoveryExecutionEffectReceiptV1,
+        ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
+            let mut values = self.values.lock().map_err(|_| "poisoned")?;
+            let Some(current) = values.get(&receipt.execution_id) else {
+                values.insert(receipt.execution_id.clone(), receipt.clone());
+                return Ok(RecoveryExecutionEffectStartResult::Started);
+            };
+
+            if current.execution_input_snapshot != receipt.execution_input_snapshot {
+                return Ok(RecoveryExecutionEffectStartResult::FingerprintMismatch);
+            }
+
+            Ok(match (&current.state, current.attempt_id == receipt.attempt_id) {
+                (RecoveryExecutionEffectStateV1::InProgress, true) => {
+                    RecoveryExecutionEffectStartResult::AlreadyInProgressSameAttempt
+                }
+                (RecoveryExecutionEffectStateV1::InProgress, false) => {
+                    RecoveryExecutionEffectStartResult::AlreadyInProgressOtherAttempt
+                }
+                (RecoveryExecutionEffectStateV1::Succeeded, _ ) => {
+                    RecoveryExecutionEffectStartResult::AlreadySucceededSameRequest
+                }
+                (RecoveryExecutionEffectStateV1::Failed, _ ) => {
+                    RecoveryExecutionEffectStartResult::AlreadyFailedSameRequest
+                }
+            })
+        }
+
+        fn complete_effect(
+            &self,
+            execution_id: &str,
+            execution_input_snapshot: &str,
+            attempt_id: &str,
+            completed: &RecoveryExecutionEffectReceiptV1,
+        ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
+            let mut values = self.values.lock().map_err(|_| "poisoned")?;
+            let Some(current) = values.get(execution_id) else {
+                return Ok(RecoveryExecutionEffectCompletionResult::MissingReceipt);
+            };
+
+            if current.execution_input_snapshot != execution_input_snapshot {
+                return Ok(RecoveryExecutionEffectCompletionResult::FingerprintMismatch);
+            }
+
+            if current.state != RecoveryExecutionEffectStateV1::InProgress {
+                return Ok(if current.outcome_digest == completed.outcome_digest {
+                    RecoveryExecutionEffectCompletionResult::AlreadyCompletedSameOutcome
+                } else {
+                    RecoveryExecutionEffectCompletionResult::AlreadyCompletedDifferentOutcome
+                });
+            }
+
+            if current.attempt_id != attempt_id {
+                return Ok(RecoveryExecutionEffectCompletionResult::NotOwner);
+            }
+
+            values.insert(execution_id.to_owned(), completed.clone());
+            Ok(RecoveryExecutionEffectCompletionResult::Completed)
+        }
+
+        fn load_effect(
+            &self,
+            execution_id: &str,
+        ) -> Result<Option<RecoveryExecutionEffectReceiptV1>, Self::Error> {
+            Ok(self
+                .values
+                .lock()
+                .map_err(|_| "poisoned")?
+                .get(execution_id)
+                .cloned())
+        }
+    }
+
+    fn effect_receipt_fixture(
+        attempt_id: &str,
+        input_snapshot: &str,
+    ) -> RecoveryExecutionEffectReceiptV1 {
+        RecoveryExecutionEffectReceiptV1::in_progress(
+            "effect-001",
+            input_snapshot,
+            attempt_id,
+        )
+    }
+
+    #[test]
+    fn first_effect_attempt_is_started_once() {
+        let store = ExecutionEffectMemoryStore::default();
+        let receipt = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+
+        assert_eq!(
+            begin_execution_effect(&store, &receipt).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            begin_execution_effect(&store, &receipt).expect("duplicate start"),
+            RecoveryExecutionEffectStartResult::AlreadyInProgressSameAttempt
+        );
+    }
+
+    #[test]
+    fn competing_effect_attempt_cannot_start_the_same_execution() {
+        let store = Arc::new(ExecutionEffectMemoryStore::default());
+        let first = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let second = effect_receipt_fixture(
+            "attempt-b",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+
+        let left_store = Arc::clone(&store);
+        let left_receipt = first.clone();
+        let left = thread::spawn(move || begin_execution_effect(left_store.as_ref(), &left_receipt));
+        let right_store = Arc::clone(&store);
+        let right_receipt = second.clone();
+        let right = thread::spawn(move || begin_execution_effect(right_store.as_ref(), &right_receipt));
+
+        let outcomes = [
+            left.join().expect("left join").expect("left result"),
+            right.join().expect("right join").expect("right result"),
+        ];
+        assert_eq!(
+            outcomes.iter().filter(|outcome| **outcome == RecoveryExecutionEffectStartResult::Started).count(),
+            1
+        );
+        assert_eq!(
+            outcomes.iter().filter(|outcome| **outcome == RecoveryExecutionEffectStartResult::AlreadyInProgressOtherAttempt).count(),
+            1
+        );
+    }
+
+    #[test]
+    fn effect_cannot_reuse_execution_identity_for_different_input() {
+        let store = ExecutionEffectMemoryStore::default();
+        let first = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let different = effect_receipt_fixture(
+            "attempt-b",
+            "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        );
+
+        assert_eq!(
+            begin_execution_effect(&store, &first).expect("first start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            begin_execution_effect(&store, &different).expect("fingerprint mismatch"),
+            RecoveryExecutionEffectStartResult::FingerprintMismatch
+        );
+    }
+
+    #[test]
+    fn only_the_claim_owner_can_complete_an_effect() {
+        let store = ExecutionEffectMemoryStore::default();
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let foreign = RecoveryExecutionEffectReceiptV1 {
+            attempt_id: "attempt-b".into(),
+            ..started.clone()
+        };
+        let success = RecoveryExecutionEffectReceiptV1 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into()),
+            ..started.clone()
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect(&store, &foreign, &success).expect("owner check"),
+            RecoveryExecutionEffectCompletionResult::MalformedReceipt
+        );
+    }
+
+    #[test]
+    fn completed_effect_replays_same_result_without_reexecution() {
+        let store = ExecutionEffectMemoryStore::default();
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let success = RecoveryExecutionEffectReceiptV1 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into()),
+            ..started.clone()
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect(&store, &started, &success).expect("complete"),
+            RecoveryExecutionEffectCompletionResult::Completed
+        );
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("replay"),
+            RecoveryExecutionEffectStartResult::AlreadySucceededSameRequest
+        );
+    }
+
+    #[test]
+    fn indeterminate_effect_start_reconciles_without_retry() {
+        struct IndeterminateEffectStore {
+            inner: ExecutionEffectMemoryStore,
+            commit: bool,
+        }
+
+        impl RecoveryExecutionEffectStore for IndeterminateEffectStore {
+            type Error = &'static str;
+
+            fn begin_effect(
+                &self,
+                receipt: &RecoveryExecutionEffectReceiptV1,
+            ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
+                if self.commit {
+                    let result = self.inner.begin_effect(receipt)?;
+                    if result != RecoveryExecutionEffectStartResult::Started {
+                        return Ok(result);
+                    }
+                }
+                Ok(RecoveryExecutionEffectStartResult::Indeterminate)
+            }
+
+            fn complete_effect(
+                &self,
+                execution_id: &str,
+                execution_input_snapshot: &str,
+                attempt_id: &str,
+                completed: &RecoveryExecutionEffectReceiptV1,
+            ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
+                self.inner.complete_effect(
+                    execution_id,
+                    execution_input_snapshot,
+                    attempt_id,
+                    completed,
+                )
+            }
+
+            fn load_effect(
+                &self,
+                execution_id: &str,
+            ) -> Result<Option<RecoveryExecutionEffectReceiptV1>, Self::Error> {
+                self.inner.load_effect(execution_id)
+            }
+        }
+
+        let receipt = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let store = IndeterminateEffectStore {
+            inner: ExecutionEffectMemoryStore::default(),
+            commit: true,
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &receipt).expect("indeterminate start"),
+            RecoveryExecutionEffectStartResult::Indeterminate
+        );
+        assert_eq!(
+            reconcile_execution_effect(
+                &store,
+                &receipt.execution_id,
+                &receipt.execution_input_snapshot,
+                &receipt.attempt_id,
+            )
+            .expect("reconcile start"),
+            RecoveryExecutionEffectReconciliationOutcome::ObservedInProgressOwnedByThisAttempt
+        );
+    }
+
+    #[test]
+    fn invalid_effect_completion_never_reaches_store() {
+        let store = ExecutionEffectMemoryStore::default();
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let success = RecoveryExecutionEffectReceiptV1 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into()),
+            ..started.clone()
+        };
+        let malformed_started = RecoveryExecutionEffectReceiptV1 {
+            attempt_id: "attempt-b".into(),
+            ..started
+        };
+
+        assert_eq!(
+            complete_execution_effect(&store, &malformed_started, &success)
+                .expect("malformed completion"),
+            RecoveryExecutionEffectCompletionResult::MalformedReceipt
+        );
     }
 
     #[derive(Default)]
