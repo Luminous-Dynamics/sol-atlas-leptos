@@ -2000,4 +2000,49 @@ mod tests {
         assert_eq!(closure.validate(), Err(ProjectionError::EmptyIdentifier));
     }
 
+    #[test]
+    fn legacy_v1_audit_is_bound_to_exact_transmission() {
+        let frontier = frontier();
+        let transmission = transmission();
+        let claim = canonical_claim(&transmission);
+        let audit = CulturalProjectionAuditV1::from_transmission(&transmission);
+
+        assert_eq!(
+            audit.validate_against_transmission(&transmission, &frontier, &claim),
+            Ok(())
+        );
+
+        let mut tampered = audit;
+        tampered.access_policy = AccessPolicyV1::Sensitive;
+        assert_eq!(
+            tampered.validate_against_transmission(&transmission, &frontier, &claim),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
+
+    #[test]
+    fn legacy_v1_admission_is_bound_to_exact_transmission() {
+        let frontier = frontier();
+        let transmission = transmission();
+        let claim = canonical_claim(&transmission);
+        let admission = CulturalProjectionAdmissionV1::from_transmission(
+            &transmission,
+            &frontier,
+            &claim,
+        )
+        .expect("frontier-safe transmission");
+
+        assert_eq!(
+            admission.validate_against_transmission(&transmission, &frontier, &claim),
+            Ok(())
+        );
+
+        let mut tampered = admission;
+        tampered.access_policy = AccessPolicyV1::Sensitive;
+        assert_eq!(
+            tampered.validate_against_transmission(&transmission, &frontier, &claim),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
+
 }
