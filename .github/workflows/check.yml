@@ -20,6 +20,8 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
+      - name: Check policy-store contract formatting
+        run: cargo fmt --manifest-path sol-atlas-policy-store-contract/Cargo.toml -- --check
 
   check-wasm:
     runs-on: ubuntu-latest
@@ -68,3 +70,6 @@ jobs:
       - name: Test application binary
         if: ${{ always() }}
         run: cargo test --bin sol-atlas-leptos
+      - name: Test policy-store contract
+        if: ${{ always() }}
+        run: cargo test --manifest-path sol-atlas-policy-store-contract/Cargo.toml
