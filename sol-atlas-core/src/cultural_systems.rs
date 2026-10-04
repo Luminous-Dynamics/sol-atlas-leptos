@@ -663,8 +663,25 @@ impl CulturalProjectionV1 {
             Self::Transformation(value) => value.is_frontier_safe(claim, frontier),
         }
     }
+    /// Computes the projection's content identity using the domain's explicit
+    /// canonicalization rules. Primary evidence/source references are
+    /// set-like, matching the replay receipt contract; other vectors retain
+    /// their declared order because this function does not invent semantic
+    /// equivalences.
     pub fn semantic_hash(&self) -> Result<String, ProjectionError> {
-        let payload = ("sol-atlas:cultural-projection-v1", self);
+        let mut canonical = self.clone();
+        match &mut canonical {
+            Self::Transmission(value) => {
+                value.evidence_refs.sort();
+                value.source_snapshots.sort();
+            }
+            Self::Transformation(value) => {
+                value.evidence_refs.sort();
+                value.source_snapshots.sort();
+            }
+        }
+
+        let payload = ("sol-atlas:cultural-projection-v1", &canonical);
         let bytes = serde_json::to_vec(&payload)
             .map_err(|_| ProjectionError::InvalidEvidenceFrontierManifest)?;
         let digest = Sha256::digest(bytes);
@@ -1237,6 +1254,23 @@ mod tests {
         assert_ne!(
             original,
             rebound.semantic_hash().expect("rebound projection hash")
+        );
+    }
+
+    #[test]
+    fn projection_semantic_hash_is_order_independent_for_set_like_closure() {
+        let projection = CulturalProjectionV1::Transmission(transmission());
+        let original = projection.semantic_hash().expect("projection hash");
+
+        let mut reordered = projection.clone();
+        if let CulturalProjectionV1::Transmission(value) = &mut reordered {
+            value.evidence_refs.reverse();
+            value.source_snapshots.reverse();
+        }
+
+        assert_eq!(
+            original,
+            reordered.semantic_hash().expect("reordered projection hash")
         );
     }
 
