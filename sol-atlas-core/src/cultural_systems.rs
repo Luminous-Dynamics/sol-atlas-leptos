@@ -116,6 +116,8 @@ impl CulturalArgumentationRefV1 {
             || self.source_snapshots.is_empty()
             || self.source_snapshots.iter().any(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid()
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_source_snapshots(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -398,6 +400,11 @@ impl CulturalTransformationV1 {
         if self.evidence_refs.is_empty() || self.source_snapshots.is_empty() {
             return Err(ProjectionError::TransitionWithoutEvidencePath);
         }
+        if has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_source_snapshots(&self.source_snapshots)
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
         for recognition in &self.community_recognition {
             recognition.validate()?;
         }
@@ -440,7 +447,10 @@ impl CommunityRecognitionV1 {
         if self.recognition_time.is_some_and(|v| !v.is_valid()) {
             return Err(ProjectionError::InvalidTimeInterval);
         }
-        if self.evidence_refs.is_empty() || self.evidence_refs.iter().any(|id| !id.is_valid()) {
+        if self.evidence_refs.is_empty()
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || has_duplicate_ids(&self.evidence_refs)
+        {
             return Err(ProjectionError::SnapshotWithoutEvidencePath);
         }
         Ok(())
@@ -496,6 +506,8 @@ impl CulturalEvidenceClosureV1 {
             || self.source_snapshots.iter().any(|id| !id.is_valid())
             || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid()
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_source_snapshots(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -580,6 +592,11 @@ impl CulturalTransmissionV1 {
         }
         if self.evidence_refs.is_empty() || self.source_snapshots.is_empty() {
             return Err(ProjectionError::TransitionWithoutEvidencePath);
+        }
+        if has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_source_snapshots(&self.source_snapshots)
+        {
+            return Err(ProjectionError::EmptyIdentifier);
         }
         for recognition in &self.community_recognition {
             recognition.validate()?;
