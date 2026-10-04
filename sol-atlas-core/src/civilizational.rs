@@ -906,6 +906,16 @@ impl EvidenceFrontierV1 {
         })
     }
 
+
+    /// Returns whether an argumentation record is admitted and its declared availability exactly matches the frontier's committed metadata.
+    pub(crate) fn admits_argumentation_at(&self, assessment: &AssessmentId, interpretation: &InterpretationId, available_by: i32) -> bool {
+        self.argumentation_metadata.iter().any(|metadata| {
+            &metadata.assessment == assessment
+                && &metadata.interpretation == interpretation
+                && metadata.available_by == available_by
+                && metadata.available_at(self.known_by_year)
+        })
+    }
     /// A projection is frontier-safe only when every referenced evidence and
     /// source snapshot has been admitted, and temporal evidence metadata binds
     /// each evidence reference to one of the projection's declared sources.
