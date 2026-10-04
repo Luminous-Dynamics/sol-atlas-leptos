@@ -24,6 +24,11 @@ pub fn validate_v5_at(
     frontier_id: &EvidenceFrontierId,
     claim: &CanonicalClaimAdmissionV1,
 ) -> Result<(), ProjectionError> {
+    // Selection by identifier is only unambiguous when the supplied sequence
+    // has globally unique frontier IDs. This does not validate later frontier
+    // contents, preserving the historical prefix boundary.
+    chain.validate_unique_frontier_ids()?;
+
     let Some(index) = chain
         .frontiers
         .iter()
