@@ -352,6 +352,45 @@ mod tests {
     }
 
     #[test]
+    fn v3_strong_constructor_preserves_v2_projection_diagnostic() {
+        let projection = CulturalProjectionV1::Transmission(CulturalTransmissionV1 {
+            transmission_id: "transmission:1".into(),
+            source: "practice:source".into(),
+            target: "practice:target".into(),
+            mode: crate::cultural_systems::TransmissionMode::Translated,
+            event_time: YearInterval {
+                from: Some(1950),
+                to: Some(1949),
+            },
+            context: Some("invalid temporal fixture".into()),
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            assessment: None,
+            qualification: QualificationStatus::Supported,
+            community_recognition: vec![],
+            access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+            evidence_frontier: "frontier:1950".into(),
+        });
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            qualification: QualificationStatus::Supported,
+            evidence_frontier: "frontier:1950".into(),
+        };
+
+        assert_eq!(
+            CulturalProjectionAuditV3::from_projection_at_with_semantic_context(
+                &projection,
+                &frontier(),
+                &claim,
+                semantic_context(),
+            ),
+            Err(ProjectionError::InvalidTimeInterval)
+        );
+    }
+    #[test]
     fn v3_strong_constructor_rejects_semantic_context_rebinding() {
         let mut rebound = semantic_context();
         rebound.claim_ref = "claim:other".into();
