@@ -19,6 +19,12 @@ use sol_atlas_core::{
 use std::collections::BTreeMap;
 use std::sync::Mutex;
 
+fn is_sha256_digest(value: &str) -> bool {
+    value.strip_prefix("sha256:").is_some_and(|hex| {
+        hex.len() == 64 && hex.bytes().all(|byte| byte.is_ascii_hexdigit())
+    })
+}
+
 /// Persistence outcomes visible to an adapter caller.
 ///
 /// Semantic rejection is distinct from store failure: only Committed means
@@ -665,7 +671,7 @@ mod tests {
             resulting_state: CapabilityState::Demonstrated,
             authorization: None,
             ai_assistance: None,
-            input_snapshot: "sha256:execution-input".into(),
+            input_snapshot: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into(),
             failure_reason: None,
             claim_ceiling: "Exact execution scope only.".into(),
         };
