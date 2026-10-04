@@ -809,6 +809,10 @@ pub struct CulturalProjectionAuditV2 {
     pub qualification: QualificationStatus,
     pub access_policy: AccessPolicyV1,
     pub evidence_frontier: EvidenceFrontierId,
+    /// Content-addressed identity of the selected frontier when available.
+    /// Empty is retained only for serialized legacy audits.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub frontier_manifest_hash: String,
 }
 
 impl CulturalProjectionAuditV2 {
@@ -868,6 +872,22 @@ impl CulturalProjectionAuditV2 {
         }
     }
 
+    /// Creates a legacy-compatible audit without embedding frontier manifest identity.
+    ///
+    /// New provenance pipelines should prefer the strong frontier-bound constructor.
+    pub fn from_projection_at(
+        projection: &CulturalProjectionV1,
+        frontier: &EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Option<Self> {
+        if !projection.is_frontier_safe(claim, frontier) {
+            return None;
+        }
+        let mut audit = Self::from_projection(projection);
+        audit.frontier_manifest_hash = frontier.manifest_hash.clone();
+        Some(audit)
+    }
+
     /// Attaches an externally resolved argumentation record without changing the
     /// semantic identity or qualification of the projection.
     pub fn with_argumentation(mut self, argumentation: CulturalArgumentationRefV1) -> Self {
@@ -892,6 +912,15 @@ impl CulturalProjectionAuditV2 {
             || has_duplicate_source_snapshots(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
+        }
+        if !self.frontier_manifest_hash.is_empty()
+            && (self.frontier_manifest_hash.len() != 64
+                || !self
+                    .frontier_manifest_hash
+                    .bytes()
+                    .all(|byte| byte.is_ascii_hexdigit()))
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
         if let Some(argumentation) = &self.argumentation {
             argumentation.validate()?;
@@ -945,6 +974,11 @@ impl CulturalProjectionAuditV2 {
         self.validate()?;
         if !projection.is_frontier_safe(claim, frontier) {
             return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        if !self.frontier_manifest_hash.is_empty()
+            && self.frontier_manifest_hash != frontier.manifest_hash
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
 
         let expected = Self::from_projection(projection);
@@ -2093,4 +2127,29 @@ mod tests {
             Err(ProjectionError::AuditWithoutEvidencePath)
         );
     }
+
+    #[test]
+    fn v2_audit_strong_constructor_rejects_same_id_frontier_reissuance() {
+        let frontier = frontier();
+        let transmission = transmission();
+        let claim = canonical_claim(&transmission);
+        let projection = CulturalProjectionV1::Transmission(transmission);
+
+        let audit = CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim)
+            .expect("frontier-safe audit");
+        assert_eq!(audit.frontier_manifest_hash, frontier.manifest_hash);
+
+        let mut substituted = frontier.clone();
+        substituted.policy_version = "reissued-policy".into();
+        substituted
+            .recompute_manifest_hash()
+            .expect("substituted frontier hash");
+        assert_ne!(substituted.manifest_hash, frontier.manifest_hash);
+
+        assert_eq!(
+            audit.validate_against_projection(&projection, &substituted, &claim),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
 }
