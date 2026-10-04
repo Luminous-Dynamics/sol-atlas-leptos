@@ -53,8 +53,9 @@ The tests assert that:
 - a receipt cannot be transplanted to a later structurally similar frontier;
 - qualification remains the canonical claim's qualification.
 
-This is deliberately additive to the leaf-oriented V5 replay receipt. Historical selection
-changes the validation boundary, not the meaning of `leaf_frontier`.
+The leaf-oriented V5 replay receipt applies the same identity rule: projection-bound
+validation requires globally unique frontier identifiers before selecting the receipt's leaf
+prefix. Historical selection changes the validation boundary, not the meaning of `leaf_frontier`.
 
 ## Epistemic boundary
 
