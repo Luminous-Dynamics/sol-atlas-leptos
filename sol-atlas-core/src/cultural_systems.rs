@@ -905,7 +905,6 @@ impl CulturalProjectionAuditV2 {
                 )
             })
     }
-}
 
     /// Reciprocal validation against the exact projection and canonical claim
     /// that produced this audit. This keeps the audit descriptive rather than
