@@ -895,7 +895,7 @@ impl RecoveryPlanSnapshotV1 {
             && !self.id.is_empty()
             && !self.unavailable.0.is_empty()
             && !self.candidate.0.is_empty()
-            && !self.candidate_snapshot.is_empty()
+            && is_sha256_digest(&self.candidate_snapshot)
             && unique_nonempty_ids(&self.prerequisites)
             && !self.steps.is_empty()
             && unique_nonempty_strings(&self.steps)
@@ -1390,9 +1390,9 @@ impl RecoveryPolicyDecisionSnapshotV1 {
             && !self.purpose.is_empty()
             && !self.consumer.is_empty()
             && !self.plan_id.is_empty()
-            && !self.plan_snapshot.is_empty()
+            && is_sha256_digest(&self.plan_snapshot)
             && !self.candidate.0.is_empty()
-            && !self.candidate_snapshot.is_empty()
+            && is_sha256_digest(&self.candidate_snapshot)
             && self
                 .execution_id
                 .as_ref()
@@ -3522,11 +3522,11 @@ impl RecoveryExecutionSnapshotV1 {
     pub fn is_well_formed(&self) -> bool {
         self.schema == Self::SCHEMA
             && !self.plan_id.is_empty()
-            && !self.plan_snapshot.is_empty()
+            && is_sha256_digest(&self.plan_snapshot)
             && !self.execution_id.is_empty()
             && !self.unavailable.0.is_empty()
             && !self.candidate.0.is_empty()
-            && !self.candidate_snapshot.is_empty()
+            && is_sha256_digest(&self.candidate_snapshot)
             && self.prerequisites.iter().all(|id| !id.0.is_empty())
             && !self.steps.is_empty()
             && self.steps.iter().all(|step| !step.is_empty())
@@ -3658,7 +3658,7 @@ impl RecoveryExecutionResultSnapshotV1 {
     pub fn is_well_formed(&self) -> bool {
         self.schema == Self::SCHEMA
             && !self.plan_id.is_empty()
-            && !self.input_snapshot.is_empty()
+            && is_sha256_digest(&self.input_snapshot)
             && !self.execution_id.is_empty()
             && is_canonical_utc_timestamp(&self.started_at)
             && self
