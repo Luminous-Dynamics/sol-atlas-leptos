@@ -113,8 +113,11 @@ The current projection semantic canonicalization is intentionally narrow and exp
 
 ## Construction and validation tiers
 
-The V4 and V5 audit layers now expose two deliberate provenance tiers:
+The V3, V4, and V5 audit layers now expose deliberate provenance tiers:
 
+- V3 `from_v2` remains a migration-compatible semantic-audit constructor, while
+  `validate_strong_against_projection(...)` provides an additive strong-consumer
+  gate requiring the V2 frontier-manifest and projection-semantic commitments.
 - `from_v2` / `from_v4` remain migration-compatible constructors for already
   serialized or legacy-shaped records.
 - `CulturalProjectionAuditV4::from_projection_at(...)` and
