@@ -140,7 +140,15 @@ impl V5ReplayReceiptV1 {
         chain: &EvidenceFrontierChainV1,
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<(), ProjectionError> {
-        let frontier = chain
+        let index = chain
+            .frontiers
+            .iter()
+            .position(|frontier| frontier.frontier_id == self.leaf_frontier)
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+        let prefix = EvidenceFrontierChainV1 {
+            frontiers: chain.frontiers[..=index].to_vec(),
+        };
+        let frontier = prefix
             .current()
             .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
         audit.validate_against_projection(projection, frontier, claim)?;
