@@ -888,6 +888,8 @@ impl CulturalProjectionAuditV2 {
                 .any(|id| !id.is_valid())
             || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid()
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_source_snapshots(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -1118,6 +1120,8 @@ impl CulturalProjectionAdmissionV1 {
             || self.source_snapshots.is_empty()
             || self.source_snapshots.iter().any(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid()
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_source_snapshots(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -1997,6 +2001,43 @@ mod tests {
         closure.evidence_refs = vec!["e:1".into()];
         closure.source_snapshots = vec!["source:1".into(), "source:1".into()];
         assert_eq!(closure.validate(), Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn legacy_v1_audit_rejects_duplicate_provenance() {
+        let mut audit = CulturalProjectionAuditV1::from_transmission(&transmission());
+
+        audit.evidence_refs.push("e:1".into());
+        assert_eq!(audit.validate(), Err(ProjectionError::EmptyIdentifier));
+
+        let mut audit = CulturalProjectionAuditV1::from_transmission(&transmission());
+        audit.source_snapshots.push("source:1".into());
+        assert_eq!(audit.validate(), Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn legacy_v1_admission_rejects_duplicate_provenance() {
+        let frontier = frontier();
+        let transmission = transmission();
+        let claim = canonical_claim(&transmission);
+        let mut admission = CulturalProjectionAdmissionV1::from_transmission(
+            &transmission,
+            &frontier,
+            &claim,
+        )
+        .expect("frontier-safe transmission");
+
+        admission.evidence_refs.push("e:1".into());
+        assert_eq!(admission.validate(), Err(ProjectionError::EmptyIdentifier));
+
+        let mut admission = CulturalProjectionAdmissionV1::from_transmission(
+            &transmission,
+            &frontier,
+            &claim,
+        )
+        .expect("frontier-safe transmission");
+        admission.source_snapshots.push("source:1".into());
+        assert_eq!(admission.validate(), Err(ProjectionError::EmptyIdentifier));
     }
 
     #[test]
