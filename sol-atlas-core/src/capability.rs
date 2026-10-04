@@ -1594,6 +1594,7 @@ impl RecoveryPolicyConsumptionTransitionV1 {
 
         Some(Self {
             schema: Self::SCHEMA.into(),
+            mode: RecoveryPolicyConsumptionTransitionModeV1::ExecutionAdmission,
             decision_digest: current.decision_digest.clone(),
             expected_snapshot_digest: current.digest(),
             next_snapshot_digest: next.digest(),
@@ -1621,6 +1622,7 @@ impl RecoveryPolicyConsumptionTransitionV1 {
 
         Some(Self {
             schema: Self::SCHEMA.into(),
+            mode: RecoveryPolicyConsumptionTransitionModeV1::ExecutionAdmission,
             decision_digest: current.decision_digest.clone(),
             expected_snapshot_digest: current.digest(),
             next_snapshot_digest: next.digest(),
@@ -4987,6 +4989,8 @@ mod graph_tests {
             RecoveryPolicyConsumptionOutcomeV1::CandidateBindingMismatch
         );
 
+        let mut changed_input = plan_execution.clone();
+        changed_input.input_snapshot = "sha256:tampered-input-snapshot".into();
         assert!(
             RecoveryPolicyConsumptionTransitionV1::for_successful_consumption_against_plan(
                 &plan_available,
@@ -5010,8 +5014,6 @@ mod graph_tests {
             RecoveryPolicyConsumptionOutcomeV1::PlanBindingMismatch
         );
 
-        let mut changed_input = plan_execution.clone();
-        changed_input.input_snapshot = "sha256:tampered-input-snapshot".into();
         assert_eq!(
             plan_available.consumption_outcome_against_plan(
                 &plan_decision,
