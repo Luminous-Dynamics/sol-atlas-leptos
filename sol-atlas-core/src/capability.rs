@@ -1033,6 +1033,7 @@ pub enum RecoveryPolicyConsumptionOutcomeV1 {
     MalformedDecision,
     DecisionMismatch,
     AlreadyConsumed,
+    MalformedExecution,
     PlanMismatch,
     ExecutionMismatch,
     DecisionRejected,
@@ -1112,6 +1113,9 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         }
         if !decision.is_well_formed() {
             return RecoveryPolicyConsumptionOutcomeV1::MalformedDecision;
+        }
+        if execution.execution_id.is_empty() || execution.plan_id.is_empty() {
+            return RecoveryPolicyConsumptionOutcomeV1::MalformedExecution;
         }
         if decision.digest() != self.decision_digest {
             return RecoveryPolicyConsumptionOutcomeV1::DecisionMismatch;
@@ -4182,6 +4186,24 @@ mod graph_tests {
         assert!(consumed
             .consumed(&decision, &execution, "2026-10-02T08:01:00Z")
             .is_none());
+
+        let mut malformed_execution = execution.clone();
+        malformed_execution.execution_id.clear();
+        assert_eq!(
+            available.consumption_outcome(
+                &decision,
+                &malformed_execution,
+                "2026-10-02T08:00:00Z"
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::MalformedExecution
+        );
+        assert!(RecoveryPolicyConsumptionTransitionV1::for_successful_consumption(
+            &available,
+            &decision,
+            &malformed_execution,
+            "2026-10-02T08:00:00Z",
+        )
+        .is_none());
 
         let mut different_plan_execution = execution.clone();
         different_plan_execution.plan_id = "plan-other".into();
