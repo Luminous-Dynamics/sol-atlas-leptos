@@ -1900,4 +1900,64 @@ mod tests {
         v2.available_by = 1949;
         assert!(!v2.is_frontier_safe(&claim, &frontier));
     }
+    #[test]
+    fn cultural_projection_provenance_paths_reject_duplicate_members() {
+        let mut value = transmission();
+        value.evidence_refs.push("e:1".into());
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+
+        let mut value = transmission();
+        value.source_snapshots.push("source:1".into());
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+
+        let mut value = CulturalTransformationV1 {
+            transformation_id: "transformation:1".into(),
+            source: "practice:source".into(),
+            target: "practice:target".into(),
+            class: CulturalTransformationClass::AdaptedFrom,
+            event_time: YearInterval {
+                from: Some(1900),
+                to: Some(1950),
+            },
+            context: None,
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into(), "e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            assessment: None,
+            qualification: QualificationStatus::Supported,
+            community_recognition: vec![],
+            access_policy: AccessPolicyV1::Public,
+            evidence_frontier: "frontier:1950".into(),
+        };
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+
+        value.evidence_refs = vec!["e:1".into()];
+        value.source_snapshots = vec!["source:1".into(), "source:1".into()];
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+
+        let recognition = CommunityRecognitionV1 {
+            community: "community:1".into(),
+            practice: "practice:1".into(),
+            recognition_time: None,
+            maintained: true,
+            transmitted: true,
+            evidence_refs: vec!["e:recognition".into(), "e:recognition".into()],
+        };
+        assert_eq!(recognition.validate(), Err(ProjectionError::SnapshotWithoutEvidencePath));
+
+        let mut closure = CulturalEvidenceClosureV1 {
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into(), "e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            assessment: None,
+            qualification: QualificationStatus::Supported,
+            evidence_frontier: "frontier:1950".into(),
+        };
+        assert_eq!(closure.validate(), Err(ProjectionError::EmptyIdentifier));
+
+        closure.evidence_refs = vec!["e:1".into()];
+        closure.source_snapshots = vec!["source:1".into(), "source:1".into()];
+        assert_eq!(closure.validate(), Err(ProjectionError::EmptyIdentifier));
+    }
+
 }
