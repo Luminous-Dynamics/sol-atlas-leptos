@@ -30,6 +30,9 @@ pub enum RecoveryPolicyConsumptionPersistenceOutcome {
     ReplayDetected,
     MissingState,
     InvalidTransition,
+    MalformedDecision,
+    MalformedTransition,
+    MalformedSuccessor,
 }
 
 /// Storage failure is intentionally opaque to this contract package.
@@ -78,6 +81,16 @@ pub fn persist_consumption_transition<S>(
 where
     S: RecoveryPolicyConsumptionStore,
 {
+    if !decision.is_well_formed() {
+        return Ok(RecoveryPolicyConsumptionPersistenceOutcome::MalformedDecision);
+    }
+    if !transition.is_well_formed() {
+        return Ok(RecoveryPolicyConsumptionPersistenceOutcome::MalformedTransition);
+    }
+    if !next.is_well_formed() {
+        return Ok(RecoveryPolicyConsumptionPersistenceOutcome::MalformedSuccessor);
+    }
+
     let Some(current) = store
         .load(&decision.digest())
         .map_err(RecoveryPolicyConsumptionPersistenceError::Store)?
@@ -412,6 +425,89 @@ mod tests {
             ),
             Err(RecoveryPolicyConsumptionPersistenceError::Store("load failed"))
         ));
+    }
+
+    #[test]
+    fn malformed_inputs_never_reach_store() {
+        struct CountingStore {
+            loaded: Mutex<bool>,
+            cas_called: Mutex<bool>,
+        }
+
+        impl RecoveryPolicyConsumptionStore for CountingStore {
+            type Error = &'static str;
+
+            fn load(
+                &self,
+                _decision_digest: &str,
+            ) -> Result<Option<RecoveryPolicyConsumptionSnapshotV1>, Self::Error> {
+                *self.loaded.lock().expect("load lock") = true;
+                Err("load must not be called")
+            }
+
+            fn compare_and_set(
+                &self,
+                _decision_digest: &str,
+                _expected_snapshot_digest: &str,
+                _next: &RecoveryPolicyConsumptionSnapshotV1,
+            ) -> Result<bool, Self::Error> {
+                *self.cas_called.lock().expect("cas lock") = true;
+                Err("cas must not be called")
+            }
+        }
+
+        let (decision, execution, current) = fixture();
+        let (transition, next) =
+            transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
+        let store = CountingStore {
+            loaded: Mutex::new(false),
+            cas_called: Mutex::new(false),
+        };
+
+        let mut malformed_decision = decision.clone();
+        malformed_decision.consumer.clear();
+        assert_eq!(
+            persist_consumption_transition(
+                &store,
+                &malformed_decision,
+                &execution,
+                &transition,
+                &next,
+            )
+            .expect("malformed decision outcome"),
+            RecoveryPolicyConsumptionPersistenceOutcome::MalformedDecision
+        );
+
+        let mut malformed_transition = transition.clone();
+        malformed_transition.execution_id.clear();
+        assert_eq!(
+            persist_consumption_transition(
+                &store,
+                &decision,
+                &execution,
+                &malformed_transition,
+                &next,
+            )
+            .expect("malformed transition outcome"),
+            RecoveryPolicyConsumptionPersistenceOutcome::MalformedTransition
+        );
+
+        let mut malformed_next = next.clone();
+        malformed_next.claim_ceiling.clear();
+        assert_eq!(
+            persist_consumption_transition(
+                &store,
+                &decision,
+                &execution,
+                &transition,
+                &malformed_next,
+            )
+            .expect("malformed successor outcome"),
+            RecoveryPolicyConsumptionPersistenceOutcome::MalformedSuccessor
+        );
+
+        assert!(!*store.loaded.lock().expect("load lock"));
+        assert!(!*store.cas_called.lock().expect("cas lock"));
     }
 
     #[test]
