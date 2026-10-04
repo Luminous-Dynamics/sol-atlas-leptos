@@ -146,21 +146,43 @@ impl CulturalArgumentationRefV3 {
         Ok(())
     }
 
+    /// Validates typed argumentation against the exact canonical claim and
+    /// strict frontier, preserving temporal and evidence-path failures.
+    pub fn validate_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        self.closure.validate_frontier_safe(claim, frontier)?;
+
+        if self.claim_ref != claim.claim_ref
+            || self.evidence_frontier != frontier.frontier_id
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        if self.available_by > frontier.known_by_year {
+            return Err(ProjectionError::LaterEvidenceInFrontier);
+        }
+
+        if !frontier.admits_argumentation_at(
+            &self.assessment,
+            &self.interpretation,
+            self.available_by,
+        ) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate().is_ok()
-            && self.claim_ref == claim.claim_ref
-            && self.closure.is_frontier_safe(claim, frontier)
-            && self.evidence_frontier == frontier.frontier_id
-            && self.available_by <= frontier.known_by_year
-            && frontier.admits_argumentation_at(
-                &self.assessment,
-                &self.interpretation,
-                self.available_by,
-            )
+        self.validate_frontier_safe(claim, frontier).is_ok()
     }
 }
 
