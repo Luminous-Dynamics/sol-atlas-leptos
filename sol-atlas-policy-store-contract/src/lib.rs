@@ -1247,6 +1247,24 @@ pub enum RecoveryExecutionFenceReconciliationOutcome {
     InvalidFence,
 }
 
+/// Reconcile an established fence against the authoritative fence store.
+///
+/// This is intentionally read-only and point-in-time. Current means the exact
+/// established generation is observed in the fence store at this read; it does
+/// not reserve that generation for a later effect-store operation.
+pub fn reconcile_established_execution_fence<S>(
+    store: &S,
+    expected: &EstablishedRecoveryExecutionFenceV1,
+) -> Result<
+    RecoveryExecutionFenceReconciliationOutcome,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionFenceStore,
+{
+    reconcile_execution_fence(store, expected.fence())
+}
+
 /// Reconcile a fenced ownership acknowledgement without mutating the store.
 pub fn reconcile_execution_fence<S>(
     store: &S,
@@ -3642,6 +3660,91 @@ mod tests {
         assert_eq!(
             acquire_execution_fence(&store, &fence).expect("replay"),
             RecoveryExecutionFenceResult::AlreadyOwnedSameAttempt
+        );
+    }
+
+    #[test]
+    fn established_fence_freshness_check_is_point_in_time_and_fail_closed() {
+        let store = FencedExecutionMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let established =
+            match establish_execution_fence(&store, &initial).expect("establish") {
+                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+                _ => panic!("initial establishment must succeed"),
+            };
+
+        assert_eq!(
+            reconcile_established_execution_fence(&store, &established)
+                .expect("current freshness"),
+            RecoveryExecutionFenceReconciliationOutcome::ObservedCurrentOwnedByThisAttempt
+        );
+
+        let successor =
+            match recover_established_execution_fence(&store, &established, "attempt-b")
+                .expect("recover")
+            {
+                RecoveryExecutionFenceRecoveryEstablishmentV1::Established(fence) => fence,
+                _ => panic!("recovery must succeed"),
+            };
+        assert_eq!(successor.fence_epoch(), established.fence_epoch() + 1);
+
+        assert_eq!(
+            reconcile_established_execution_fence(&store, &established)
+                .expect("stale freshness"),
+            RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence
+        );
+        assert_eq!(
+            reconcile_established_execution_fence(&store, &successor)
+                .expect("current successor freshness"),
+            RecoveryExecutionFenceReconciliationOutcome::ObservedCurrentOwnedByThisAttempt
+        );
+    }
+
+    #[test]
+    fn established_fence_freshness_check_reports_missing_and_malformed_state() {
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let established =
+            match establish_execution_fence(&FencedExecutionMemoryStore::default(), &fence)
+                .expect("establish")
+            {
+                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+                _ => panic!("initial establishment must succeed"),
+            };
+
+        let missing = FencedExecutionMemoryStore::default();
+        assert_eq!(
+            reconcile_established_execution_fence(&missing, &established)
+                .expect("missing"),
+            RecoveryExecutionFenceReconciliationOutcome::MissingFence
+        );
+
+        let malformed = FencedExecutionMemoryStore::default();
+        malformed
+            .values
+            .lock()
+            .expect("memory store")
+            .insert(
+                established.execution_id().to_owned(),
+                RecoveryExecutionFenceV1 {
+                    schema: RecoveryExecutionFenceV1::SCHEMA.into(),
+                    execution_id: established.execution_id().into(),
+                    execution_input_snapshot: "not-a-digest".into(),
+                    attempt_id: established.attempt_id().into(),
+                    fence_epoch: established.fence_epoch(),
+                },
+            );
+        assert_eq!(
+            reconcile_established_execution_fence(&malformed, &established)
+                .expect("malformed"),
+            RecoveryExecutionFenceReconciliationOutcome::InvalidFence
         );
     }
 
