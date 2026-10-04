@@ -57,8 +57,7 @@ impl CulturalProjectionAuditV4 {
         claim: &CanonicalClaimAdmissionV1,
         resolutions: Vec<OntologyMappingResolutionV1>,
     ) -> Result<Self, ProjectionError> {
-        let base = CulturalProjectionAuditV2::from_projection_at(projection, frontier, claim)
-            .ok_or(ProjectionError::AuditWithoutEvidencePath)?;
+        let base = CulturalProjectionAuditV2::from_projection_at(projection, frontier, claim)?;
         let audit = Self::from_v2(base, resolutions)?;
         audit.validate_strong_against_projection(projection, frontier, claim)?;
         Ok(audit)
