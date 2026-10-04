@@ -24,6 +24,9 @@ impl V5HistoricalReplayReceiptV1 {
         chain: &EvidenceFrontierChainV1,
         frontier_id: &EvidenceFrontierId,
     ) -> Result<EvidenceFrontierChainV1, ProjectionError> {
+        // Prefix selection is identifier-based; reject globally duplicated IDs
+        // before selecting the first matching historical frontier.
+        chain.validate_unique_frontier_ids()?;
         let index = chain
             .frontiers
             .iter()
