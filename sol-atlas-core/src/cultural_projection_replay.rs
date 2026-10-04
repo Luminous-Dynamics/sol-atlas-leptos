@@ -190,6 +190,9 @@ impl V5ReplayReceiptV1 {
         chain: &EvidenceFrontierChainV1,
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<(), ProjectionError> {
+        // Keep the strong path symmetric with compatibility validation:
+        // identifier-based leaf selection must be globally unambiguous.
+        chain.validate_unique_frontier_ids()?;
         let index = chain
             .frontiers
             .iter()
