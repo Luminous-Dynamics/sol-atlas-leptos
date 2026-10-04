@@ -75,7 +75,11 @@ impl CulturalProjectionAuditV5 {
             claim,
             resolutions,
         )?;
-        Self::from_v4(base, argumentation).ok()
+        let audit = Self::from_v4(base, argumentation).ok()?;
+        audit
+            .validate_strong_against_projection(projection, frontier, claim)
+            .ok()?;
+        Some(audit)
     }
 
     pub fn validate(&self) -> Result<(), ProjectionError> {
@@ -518,6 +522,46 @@ mod tests {
         assert_eq!(
             audit.validate_against_projection(&rebound, &frontier, &claim),
             Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
+
+    #[test]
+    fn v5_strong_constructor_rejects_frontier_unsafe_argumentation() {
+        let (v4, claim, frontier, argumentation) = fixture();
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into(), "e:2".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: Some("assessment:1".into()),
+                qualification: QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                evidence_frontier: "frontier:1950".into(),
+            },
+        );
+        let mut unsafe_argumentation = argumentation;
+        unsafe_argumentation.closure.evidence_refs = vec!["e:unadmitted".into()];
+        unsafe_argumentation.recompute_hash().expect("rehash");
+
+        assert!(
+            CulturalProjectionAuditV5::from_projection_at(
+                &projection,
+                &frontier,
+                &claim,
+                v4.resolutions.clone(),
+                vec![unsafe_argumentation],
+            )
+            .is_none()
         );
     }
 
