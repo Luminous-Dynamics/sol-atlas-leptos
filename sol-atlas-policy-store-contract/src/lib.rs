@@ -268,9 +268,56 @@ mod tests {
     use std::sync::{Arc, Barrier};
     use std::thread;
 
+    struct IndeterminateOutcomeStore {
+        inner: MemoryStore,
+        commit_before_indeterminate: bool,
+    }
+
+    impl IndeterminateOutcomeStore {
+        fn new(
+            decision: &RecoveryPolicyDecisionSnapshotV1,
+            commit_before_indeterminate: bool,
+        ) -> Self {
+            Self {
+                inner: MemoryStore::new(decision),
+                commit_before_indeterminate,
+            }
+        }
+    }
+
     #[derive(Default)]
     struct MemoryStore {
         values: Mutex<BTreeMap<String, RecoveryPolicyConsumptionSnapshotV1>>,
+    }
+
+    impl RecoveryPolicyConsumptionStore for IndeterminateOutcomeStore {
+        type Error = &'static str;
+
+        fn load(
+            &self,
+            decision_digest: &str,
+        ) -> Result<Option<RecoveryPolicyConsumptionSnapshotV1>, Self::Error> {
+            self.inner.load(decision_digest)
+        }
+
+        fn compare_and_set(
+            &self,
+            decision_digest: &str,
+            expected_snapshot_digest: &str,
+            next: &RecoveryPolicyConsumptionSnapshotV1,
+        ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
+            if self.commit_before_indeterminate {
+                let result = self.inner.compare_and_set(
+                    decision_digest,
+                    expected_snapshot_digest,
+                    next,
+                )?;
+                if result != RecoveryPolicyConsumptionCasResult::Committed {
+                    return Ok(result);
+                }
+            }
+            Ok(RecoveryPolicyConsumptionCasResult::Indeterminate)
+        }
     }
 
     impl MemoryStore {
@@ -674,6 +721,58 @@ mod tests {
         assert_ne!(
             outcome,
             RecoveryPolicyConsumptionPersistenceOutcome::Committed
+        );
+    }
+
+    #[test]
+    fn reconciliation_recovers_a_commit_followed_by_an_indeterminate_ack() {
+        let (decision, execution, current) = fixture();
+        let (transition, next) =
+            transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
+        let store = IndeterminateOutcomeStore::new(&decision, true);
+
+        assert_eq!(
+            persist_consumption_transition(
+                &store,
+                &decision,
+                &execution,
+                &transition,
+                &next,
+            )
+            .expect("indeterminate persistence result"),
+            RecoveryPolicyConsumptionPersistenceOutcome::CommitIndeterminate
+        );
+
+        assert_eq!(
+            reconcile_indeterminate_consumption(&store, &decision, &transition, &next)
+                .expect("reconcile committed successor"),
+            RecoveryPolicyConsumptionReconciliationOutcome::ObservedCommitted
+        );
+    }
+
+    #[test]
+    fn reconciliation_recovers_an_indeterminate_ack_without_a_commit() {
+        let (decision, execution, current) = fixture();
+        let (transition, next) =
+            transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
+        let store = IndeterminateOutcomeStore::new(&decision, false);
+
+        assert_eq!(
+            persist_consumption_transition(
+                &store,
+                &decision,
+                &execution,
+                &transition,
+                &next,
+            )
+            .expect("indeterminate persistence result"),
+            RecoveryPolicyConsumptionPersistenceOutcome::CommitIndeterminate
+        );
+
+        assert_eq!(
+            reconcile_indeterminate_consumption(&store, &decision, &transition, &next)
+                .expect("reconcile expected pre-state"),
+            RecoveryPolicyConsumptionReconciliationOutcome::ObservedExpected
         );
     }
 
