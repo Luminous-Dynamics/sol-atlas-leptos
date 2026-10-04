@@ -374,6 +374,8 @@ mod tests {
             qualification: claim.qualification,
             access_policy: crate::cultural_systems::AccessPolicyV1::Public,
             evidence_frontier: frontier.frontier_id.clone(),
+            frontier_manifest_hash: String::new(),
+            projection_semantic_hash: String::new(),
         };
 
         let mapping = OntologyMappingV2::from_claim(
