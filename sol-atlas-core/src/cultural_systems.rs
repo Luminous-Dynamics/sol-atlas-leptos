@@ -1133,9 +1133,6 @@ impl CulturalProjectionAdmissionV1 {
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<(), ProjectionError> {
         self.validate()?;
-        if self.frontier_manifest_matches(frontier).is_err() {
-            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
-        }
         if !transmission.is_frontier_safe(claim, frontier) {
             return Err(ProjectionError::AuditWithoutEvidencePath);
         }
@@ -1147,14 +1144,6 @@ impl CulturalProjectionAdmissionV1 {
         Ok(())
     }
 
-    fn frontier_manifest_matches(
-        &self,
-        _frontier: &EvidenceFrontierV1,
-    ) -> Result<(), ProjectionError> {
-        // V1 has no manifest-hash field; frontier identity is the strongest
-        // serialized boundary available for this legacy shape.
-        Ok(())
-    }
 }
 
 #[cfg(test)]
