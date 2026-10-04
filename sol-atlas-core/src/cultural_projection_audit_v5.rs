@@ -205,6 +205,22 @@ impl CulturalProjectionAuditV5 {
         Ok(())
     }
 
+    /// Strong reciprocal validation for new provenance paths.
+    ///
+    /// This rejects migration-era V4 bases that omit the originating
+    /// projection semantic commitment, while retaining the ordinary validator
+    /// for backwards-compatible replay.
+    pub fn validate_strong_against_projection(
+        &self,
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate_against_projection(projection, frontier, claim)?;
+        self.base.validate_strong_against_projection(projection, frontier, claim)?;
+        Ok(())
+    }
+
     /// Validates the complete V5 audit against an explicit append-only
     /// frontier lineage. The selected frontier must be the verified chain leaf;
     /// every canonical claim/evidence/source closure, typed argumentation
@@ -501,6 +517,43 @@ mod tests {
         assert_eq!(
             audit.validate_against_projection(&rebound, &frontier, &claim),
             Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
+
+    #[test]
+    fn v5_strong_validation_rejects_legacy_v4_base() {
+        let (legacy_v4, claim, frontier, argumentation) = fixture();
+        let audit =
+            CulturalProjectionAuditV5::from_v4(legacy_v4, vec![argumentation]).expect("v5 audit");
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into(), "e:2".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: Some("assessment:1".into()),
+                qualification: QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                evidence_frontier: "frontier:1950".into(),
+            },
+        );
+
+        assert_eq!(
+            audit.validate_against_projection(&projection, &frontier, &claim),
+            Ok(())
+        );
+        assert_eq!(
+            audit.validate_strong_against_projection(&projection, &frontier, &claim),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
 
