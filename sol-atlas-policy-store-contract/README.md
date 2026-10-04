@@ -51,7 +51,7 @@ This deliberately leaves one hard systems boundary explicit: the effect must its
 
 The effect receipt is now explicitly fence-aware. A receipt must carry a non-zero `fence_epoch`, and `complete_execution_effect` supplies that epoch to the storage boundary. A stale owner whose execution fence has been superseded is therefore rejected rather than being allowed to terminalize the durable effect receipt.
 
-`RecoveryExecutionEffectReceiptV2::in_progress_for_fence` derives the receipt identity directly from an established `RecoveryExecutionFenceV1`, avoiding a second caller-supplied copy of execution ID, fingerprint, attempt, and epoch.
+`RecoveryExecutionEffectReceiptV2::in_progress_for_fence` derives the receipt identity directly from an established `RecoveryExecutionFenceV1`, avoiding a second caller-supplied copy of execution ID, fingerprint, attempt, and epoch. `begin_execution_effect_for_fence` uses that same derivation for effect admission, so the normal start path has one fence-bound source of truth. The helper still requires the caller to supply a fence that was actually established by the execution-fence store; a raw structurally valid fence is not itself proof of current ownership.
 
 This closes the durable-receipt stale-owner gap, but it does not magically fence an arbitrary external API. The concrete effect adapter must propagate the same epoch/token to the protected resource and have that resource reject stale epochs. Google Chubby's sequencer design uses this same division: the client passes the sequencer to the server and the receiving server validates it before allowing the protected operation.
 
@@ -79,7 +79,7 @@ The matrix intentionally leaves abandoned claims and in-progress effects without
 
 ## Fenced recovery for abandoned execution ownership (#31)
 
-`RecoveryExecutionFenceV1` adds an explicit recovery-capable ownership generation. The first fenced claim starts at epoch `1`; recovery is an atomic compare-and-set from one exact current fence to a successor with the same execution identity and fingerprint and exactly `epoch + 1`.
+`RecoveryExecutionFenceV1` adds an explicit recovery-capable ownership generation. The first fenced claim starts at epoch `1`; recovery is an atomic compare-and-set from one exact current fence to a successor with the same execution identity and fingerprint and exactly `epoch + 1`. The store trait itself carries these invariants as defense in depth: a direct initial acquire at another epoch, or a direct recovery with a non-monotonic successor, must be rejected without mutating durable fence state.
 
 `recover_execution_fence` never guesses ownership from elapsed time. A stale recovery attempt is rejected when its expected fence no longer matches the durable current fence. `reconcile_execution_fence` is read-only and distinguishes current ownership, another owner at the same generation, a stale generation, an older observed generation, fingerprint drift, missing state, and malformed state.
 
