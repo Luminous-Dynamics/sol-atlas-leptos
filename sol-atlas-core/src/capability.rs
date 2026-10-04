@@ -1444,7 +1444,7 @@ pub struct RecoveryPolicyConsumptionTransitionV1 {
 }
 
 impl RecoveryPolicyConsumptionTransitionV1 {
-    pub const SCHEMA: &'static str = "sol-atlas:recovery-policy-consumption-transition:v1";
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-policy-consumption-transition:v2";
 
     /// Construct a one-time transition for the execution start event.
     pub fn for_execution_admission(
@@ -4317,6 +4317,17 @@ mod graph_tests {
             admission_transition.mode,
             RecoveryPolicyConsumptionTransitionModeV1::ExecutionAdmission
         );
+
+        let mut wrong_admission_mode = admission_transition.clone();
+        wrong_admission_mode.mode =
+            RecoveryPolicyConsumptionTransitionModeV1::CompletedConsumption;
+        assert_ne!(admission_transition.digest(), wrong_admission_mode.digest());
+        assert!(!wrong_admission_mode.matches(
+            &available,
+            &decision,
+            &execution,
+            &admission_next,
+        ));
 
         let mut future_execution = execution.clone();
         future_execution.started_at = "2026-10-02T08:11:00Z".into();
