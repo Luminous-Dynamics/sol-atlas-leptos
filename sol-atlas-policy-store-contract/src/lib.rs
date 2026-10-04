@@ -668,6 +668,29 @@ where
         .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
 }
 
+/// Attempt to begin an effect using a single established fence as the source
+/// of execution identity, fingerprint, attempt, and fence epoch.
+///
+/// The helper eliminates a caller-created second copy of those fields. The
+/// fence still has to come from a successful acquisition/recovery path; this
+/// helper does not prove that a raw fence value is currently authoritative.
+pub fn begin_execution_effect_for_fence<S>(
+    store: &S,
+    fence: &RecoveryExecutionFenceV1,
+) -> Result<
+    RecoveryExecutionEffectStartResult,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionEffectStore,
+{
+    let Some(receipt) = RecoveryExecutionEffectReceiptV2::in_progress_for_fence(fence) else {
+        return Ok(RecoveryExecutionEffectStartResult::MalformedReceipt);
+    };
+
+    begin_execution_effect(store, &receipt)
+}
+
 /// Record a terminal external-effect outcome under the attempt that owns the
 /// InProgress receipt. This does not perform the external effect.
 pub fn complete_execution_effect<S>(
@@ -877,11 +900,23 @@ pub enum RecoveryExecutionFenceResult {
 pub trait RecoveryExecutionFenceStore: Send + Sync {
     type Error;
 
+    /// Atomically establish the initial ownership generation.
+    ///
+    /// Implementations MUST reject a malformed fence. When no record exists
+    /// for the execution identity, only fence epoch 1 may be acquired; a
+    /// non-initial epoch must return MalformedFence without mutating state.
+    /// An existing record must never be replaced by a different owner merely
+    /// because the supplied fence was caller-chosen.
     fn acquire_fence(
         &self,
         fence: &RecoveryExecutionFenceV1,
     ) -> Result<RecoveryExecutionFenceResult, Self::Error>;
 
+    /// Atomically transfer ownership from one exact current generation.
+    ///
+    /// Implementations MUST reject malformed fences and malformed transitions:
+    /// the successor must preserve execution identity and fingerprint, use a
+    /// different attempt, and advance the expected epoch by exactly one.
     fn recover_if_current(
         &self,
         expected: &RecoveryExecutionFenceV1,
@@ -2359,11 +2394,19 @@ mod tests {
             &self,
             fence: &RecoveryExecutionFenceV1,
         ) -> Result<RecoveryExecutionFenceResult, Self::Error> {
+            if !fence.is_well_formed() || fence.fence_epoch != 1 {
+                return Ok(RecoveryExecutionFenceResult::MalformedFence);
+            }
+
             let mut values = self.values.lock().map_err(|_| "poisoned")?;
             let Some(current) = values.get(&fence.execution_id) else {
                 values.insert(fence.execution_id.clone(), fence.clone());
                 return Ok(RecoveryExecutionFenceResult::Acquired);
             };
+
+            if !current.is_well_formed() {
+                return Ok(RecoveryExecutionFenceResult::MalformedFence);
+            }
 
             if current.execution_input_snapshot != fence.execution_input_snapshot {
                 return Ok(RecoveryExecutionFenceResult::FingerprintMismatch);
@@ -2383,10 +2426,27 @@ mod tests {
             expected: &RecoveryExecutionFenceV1,
             successor: &RecoveryExecutionFenceV1,
         ) -> Result<RecoveryExecutionFenceResult, Self::Error> {
+            if !expected.is_well_formed()
+                || !successor.is_well_formed()
+                || successor.execution_id != expected.execution_id
+                || successor.execution_input_snapshot != expected.execution_input_snapshot
+                || successor.attempt_id == expected.attempt_id
+                || expected
+                    .fence_epoch
+                    .checked_add(1)
+                    .is_none_or(|next| successor.fence_epoch != next)
+            {
+                return Ok(RecoveryExecutionFenceResult::MalformedFence);
+            }
+
             let mut values = self.values.lock().map_err(|_| "poisoned")?;
             let Some(current) = values.get(&expected.execution_id) else {
                 return Ok(RecoveryExecutionFenceResult::MissingCurrentFence);
             };
+
+            if !current.is_well_formed() {
+                return Ok(RecoveryExecutionFenceResult::MalformedFence);
+            }
 
             if current.execution_input_snapshot != expected.execution_input_snapshot {
                 return Ok(RecoveryExecutionFenceResult::FingerprintMismatch);
@@ -2791,6 +2851,56 @@ mod tests {
     }
 
     #[test]
+    #[test]
+    fn fence_store_rejects_non_initial_epoch_even_when_called_directly() {
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let mut fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        fence.fence_epoch = 2;
+        let store = FencedExecutionMemoryStore::default();
+
+        assert_eq!(
+            store.acquire_fence(&fence).expect("direct store acquire"),
+            RecoveryExecutionFenceResult::MalformedFence
+        );
+        assert!(
+            store
+                .load_fence(&fence.execution_id)
+                .expect("load after rejection")
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn fence_store_rejects_non_monotonic_successor_even_when_called_directly() {
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let mut successor =
+            RecoveryExecutionFenceV1::for_recovery(&initial, "attempt-b").expect("successor");
+        successor.fence_epoch = 7;
+        let store = FencedExecutionMemoryStore::default();
+
+        assert_eq!(
+            store.acquire_fence(&initial).expect("initial acquire"),
+            RecoveryExecutionFenceResult::Acquired
+        );
+        assert_eq!(
+            store
+                .recover_if_current(&initial, &successor)
+                .expect("direct recovery"),
+            RecoveryExecutionFenceResult::MalformedFence
+        );
+        assert_eq!(
+            store.load_fence(&initial.execution_id).expect("load current"),
+            Some(initial)
+        );
+    }
+
     fn initial_fence_is_acquired_once_and_replayed_idempotently() {
         let claim = execution_claim_fixture(
             "attempt-a",
@@ -2806,6 +2916,46 @@ mod tests {
         assert_eq!(
             acquire_execution_fence(&store, &fence).expect("replay"),
             RecoveryExecutionFenceResult::AlreadyOwnedSameAttempt
+        );
+    }
+
+    #[test]
+    fn effect_start_can_be_derived_from_one_fence_binding() {
+        let store = ExecutionEffectMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+
+        assert_eq!(
+            begin_execution_effect_for_fence(&store, &fence).expect("fenced start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            begin_execution_effect_for_fence(&store, &fence).expect("fenced replay"),
+            RecoveryExecutionEffectStartResult::AlreadyInProgressSameAttempt
+        );
+    }
+
+    #[test]
+    fn effect_start_rejects_a_fence_generation_that_is_not_current_in_the_effect_store() {
+        let store = ExecutionEffectMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let successor =
+            RecoveryExecutionFenceV1::for_recovery(&initial, "attempt-b").expect("successor");
+
+        assert_eq!(
+            begin_execution_effect_for_fence(&store, &initial).expect("initial start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            begin_execution_effect_for_fence(&store, &successor).expect("future fence"),
+            RecoveryExecutionEffectStartResult::FenceMismatch
         );
     }
 
