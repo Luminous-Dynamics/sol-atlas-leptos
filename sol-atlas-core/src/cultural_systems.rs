@@ -151,7 +151,11 @@ impl CulturalArgumentationRefV1 {
             && self.source_snapshots == claim.source_snapshots
             && self.evidence_frontier == frontier.frontier_id
             && self.available_by <= frontier.known_by_year
-            && frontier.admits_argumentation(&self.assessment, &self.interpretation)
+            && frontier.admits_argumentation_at(
+                &self.assessment,
+                &self.interpretation,
+                self.available_by,
+            )
     }
 }
 
@@ -247,7 +251,11 @@ impl CulturalArgumentationRefV2 {
         self.validate().is_ok()
             && self.closure.is_frontier_safe(claim, frontier)
             && self.available_by <= frontier.known_by_year
-            && frontier.admits_argumentation(&self.assessment, &self.interpretation)
+            && frontier.admits_argumentation_at(
+                &self.assessment,
+                &self.interpretation,
+                self.available_by,
+            )
     }
 }
 
