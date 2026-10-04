@@ -4157,8 +4157,10 @@ mod graph_tests {
         let mut plan_decision = decision.clone();
         plan_decision.plan_snapshot = plan.snapshot().digest();
         plan_decision.candidate_snapshot = plan.candidate_snapshot.clone();
+        let plan_available =
+            RecoveryPolicyConsumptionSnapshotV1::for_decision(&plan_decision);
         assert_eq!(
-            available.consumption_outcome_against_plan(
+            plan_available.consumption_outcome_against_plan(
                 &plan_decision,
                 &plan,
                 &plan_execution,
@@ -4170,7 +4172,7 @@ mod graph_tests {
         let mut changed_plan = plan.clone();
         changed_plan.steps.push("different".into());
         assert_eq!(
-            available.consumption_outcome_against_plan(
+            plan_available.consumption_outcome_against_plan(
                 &plan_decision,
                 &changed_plan,
                 &plan_execution,
@@ -4182,7 +4184,7 @@ mod graph_tests {
         let mut changed_input = plan_execution.clone();
         changed_input.input_snapshot = "sha256:tampered-input-snapshot".into();
         assert_eq!(
-            available.consumption_outcome_against_plan(
+            plan_available.consumption_outcome_against_plan(
                 &plan_decision,
                 &plan,
                 &changed_input,
