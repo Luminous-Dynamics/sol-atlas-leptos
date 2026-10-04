@@ -381,5 +381,4 @@ mod tests {
         argument.recompute_hash().expect("rehash");
         assert!(!argument.is_frontier_safe(&claim, &frontier));
     }
-
 }
