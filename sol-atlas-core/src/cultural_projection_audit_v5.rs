@@ -217,7 +217,8 @@ impl CulturalProjectionAuditV5 {
         claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
     ) -> Result<(), ProjectionError> {
         self.validate_against_projection(projection, frontier, claim)?;
-        self.base.validate_strong_against_projection(projection, frontier, claim)?;
+        self.base
+            .validate_strong_against_projection(projection, frontier, claim)?;
         Ok(())
     }
 
