@@ -1037,6 +1037,7 @@ pub enum RecoveryPolicyConsumptionOutcomeV1 {
     ExecutionMismatch,
     DecisionRejected,
     PlanBindingMismatch,
+    CandidateBindingMismatch,
     ExecutionInputMismatch,
     DecisionNotValidAtConsumption,
     ExecutionNotCovered,
@@ -1187,6 +1188,29 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         RecoveryPolicyConsumptionOutcomeV1::Allowed
     }
 
+    /// Strongest one-time consumption gate: bind the authorization to the
+    /// exact discovered candidate record as well as the canonical plan and
+    /// execution-input snapshot.
+    pub fn consumption_outcome_against_candidate(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        execution: &RecoveryExecution,
+        now: &str,
+    ) -> RecoveryPolicyConsumptionOutcomeV1 {
+        match self.consumption_outcome_against_plan(decision, plan, execution, now) {
+            RecoveryPolicyConsumptionOutcomeV1::Allowed => {}
+            outcome => return outcome,
+        }
+
+        if !plan.is_ready_against_candidate_snapshot(candidate, &candidate.snapshot()) {
+            return RecoveryPolicyConsumptionOutcomeV1::CandidateBindingMismatch;
+        }
+
+        RecoveryPolicyConsumptionOutcomeV1::Allowed
+    }
+
     pub fn permits_consumption(
         &self,
         decision: &RecoveryPolicyDecisionSnapshotV1,
@@ -1264,6 +1288,29 @@ impl RecoveryPolicyConsumptionTransitionV1 {
 
     /// Construct a consumption transition only after binding the authorization
     /// to the exact canonical plan and execution-input snapshot.
+    /// Construct a transition only after binding the authorization to the exact
+    /// discovered candidate, canonical plan, and execution-input snapshot.
+    pub fn for_successful_consumption_against_candidate(
+        current: &RecoveryPolicyConsumptionSnapshotV1,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        execution: &RecoveryExecution,
+        now: &str,
+    ) -> Option<Self> {
+        if current.consumption_outcome_against_candidate(
+            decision,
+            plan,
+            candidate,
+            execution,
+            now,
+        ) != RecoveryPolicyConsumptionOutcomeV1::Allowed
+        {
+            return None;
+        }
+        Self::for_successful_consumption(current, decision, execution, now)
+    }
+
     pub fn for_successful_consumption_against_plan(
         current: &RecoveryPolicyConsumptionSnapshotV1,
         decision: &RecoveryPolicyDecisionSnapshotV1,
@@ -4203,6 +4250,48 @@ mod graph_tests {
             &plan_execution,
             &plan_next,
         ));
+
+        let candidate = RecoveryCandidate {
+            for_dependency: plan.unavailable.clone(),
+            candidate: plan.candidate.clone(),
+            required_capabilities: vec![plan.candidate.clone()],
+            missing_capabilities: vec![],
+            evidence: vec![],
+            qualification: None,
+            selection: RecoverySelectionState::Selected,
+            claim_ceiling: "Exact candidate scope.".into(),
+        };
+        let mut candidate_plan = plan.clone();
+        candidate_plan.candidate_snapshot = candidate.snapshot().digest();
+        let mut candidate_decision = plan_decision.clone();
+        candidate_decision.plan_snapshot = candidate_plan.snapshot().digest();
+        candidate_decision.candidate_snapshot = candidate.snapshot().digest();
+        let candidate_available =
+            RecoveryPolicyConsumptionSnapshotV1::for_decision(&candidate_decision);
+        let candidate_transition =
+            RecoveryPolicyConsumptionTransitionV1::for_successful_consumption_against_candidate(
+                &candidate_available,
+                &candidate_decision,
+                &candidate_plan,
+                &candidate,
+                &plan_execution,
+                "2026-10-02T08:00:00Z",
+            )
+            .expect("candidate-bound transition");
+        assert!(candidate_transition.is_well_formed());
+
+        let mut altered_candidate = candidate.clone();
+        altered_candidate.claim_ceiling = "altered candidate".into();
+        assert_eq!(
+            candidate_available.consumption_outcome_against_candidate(
+                &candidate_decision,
+                &candidate_plan,
+                &altered_candidate,
+                &plan_execution,
+                "2026-10-02T08:00:00Z",
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::CandidateBindingMismatch
+        );
 
         assert!(
             RecoveryPolicyConsumptionTransitionV1::for_successful_consumption_against_plan(
