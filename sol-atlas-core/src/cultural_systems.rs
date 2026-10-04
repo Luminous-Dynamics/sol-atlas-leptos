@@ -1387,9 +1387,7 @@ mod tests {
         .expect("frontier-safe projection");
 
         let mut shadow = frontier.clone();
-        shadow
-            .admitted_evidence
-            .insert("e:shadow".into());
+        shadow.admitted_evidence.insert("e:shadow".into());
         shadow.evidence_metadata.push(EvidenceTemporalMetadataV1 {
             evidence_id: "e:shadow".into(),
             source_snapshot: "source:1".into(),
@@ -1885,5 +1883,4 @@ mod tests {
         v2.available_by = 1949;
         assert!(!v2.is_frontier_safe(&claim, &frontier));
     }
-
 }
