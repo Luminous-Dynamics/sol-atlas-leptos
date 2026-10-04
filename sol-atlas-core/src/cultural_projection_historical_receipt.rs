@@ -738,7 +738,7 @@ mod tests {
                 },
                 context: Some("documented".into()),
                 claim_ref: "claim:1".into(),
-                evidence_refs: vec!["e:1".into(), "e:2".into()],
+                evidence_refs: vec!["e:1".into()],
                 source_snapshots: vec!["source:1".into()],
                 assessment: Some("assessment:1".into()),
                 qualification: QualificationStatus::Supported,
