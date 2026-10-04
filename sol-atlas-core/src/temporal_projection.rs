@@ -971,10 +971,7 @@ mod tests {
 
         assert!(result.is_ok());
         let result = result.expect("cross-channel evidence reuse should remain admissible");
-        assert_eq!(
-            result.admissions[0].admitted_evidence,
-            vec!["e:old".into()]
-        );
+        assert_eq!(result.admissions[0].admitted_evidence, vec!["e:old".into()]);
         assert_eq!(result.audits[0].evidence_refs, vec!["e:old".into()]);
     }
 
@@ -1814,7 +1811,9 @@ mod tests {
         assert_eq!(result.validate(), Ok(()));
 
         let mut same_id_shadow = result.evidence_frontier.clone();
-        same_id_shadow.admitted_evidence.insert("e:transition".into());
+        same_id_shadow
+            .admitted_evidence
+            .insert("e:transition".into());
         same_id_shadow.recompute_manifest_hash().unwrap();
         result.evidence_frontier = same_id_shadow;
         assert_eq!(
