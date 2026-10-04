@@ -571,9 +571,9 @@ mod tests {
                 _decision_digest: &str,
                 _expected_snapshot_digest: &str,
                 _next: &RecoveryPolicyConsumptionSnapshotV1,
-            ) -> Result<bool, Self::Error> {
+            ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
                 *self.cas_called.lock().expect("cas lock") = true;
-                Ok(true)
+                Ok(RecoveryPolicyConsumptionCasResult::Committed)
             }
         }
 
@@ -622,7 +622,7 @@ mod tests {
                 _decision_digest: &str,
                 _expected_snapshot_digest: &str,
                 _next: &RecoveryPolicyConsumptionSnapshotV1,
-            ) -> Result<bool, Self::Error> {
+            ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
                 Err("cas must not be reached")
             }
         }
@@ -725,7 +725,7 @@ mod tests {
                 _decision_digest: &str,
                 _expected_snapshot_digest: &str,
                 _next: &RecoveryPolicyConsumptionSnapshotV1,
-            ) -> Result<bool, Self::Error> {
+            ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
                 *self.cas_called.lock().expect("cas lock") = true;
                 Err("cas must not be called")
             }
@@ -807,9 +807,9 @@ mod tests {
                 _decision_digest: &str,
                 _expected_snapshot_digest: &str,
                 _next: &RecoveryPolicyConsumptionSnapshotV1,
-            ) -> Result<bool, Self::Error> {
+            ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
                 *self.cas_called.lock().expect("cas lock") = true;
-                Ok(true)
+                Ok(RecoveryPolicyConsumptionCasResult::Committed)
             }
         }
 
