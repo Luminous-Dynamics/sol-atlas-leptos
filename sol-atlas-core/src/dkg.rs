@@ -387,7 +387,8 @@ mod tests {
         let mut frontier = frontier();
         frontier.admitted_sources.insert("source:2".into());
         let statement = statement();
-        let mut admission = DkgProjectionAdmissionV1::from_statement(&statement, &frontier).unwrap();
+        let mut admission =
+            DkgProjectionAdmissionV1::from_statement(&statement, &frontier).unwrap();
         admission.source_snapshots = vec!["source:2".into()];
 
         assert!(!admission.validate_against_statement(&statement, &frontier));
