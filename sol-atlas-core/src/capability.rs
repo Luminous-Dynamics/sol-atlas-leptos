@@ -4131,6 +4131,39 @@ mod graph_tests {
         );
         assert!(available.permits_consumption(&decision, &execution, "2026-10-02T08:00:00Z"));
 
+        assert_eq!(
+            available.admission_outcome_for_execution_start(&decision, &execution),
+            RecoveryPolicyConsumptionOutcomeV1::Allowed
+        );
+        let admission_next = available
+            .consumed_at_execution_start(&decision, &execution)
+            .expect("execution-start consumption");
+        assert_eq!(
+            admission_next.consumed_at,
+            Some(execution.started_at.clone())
+        );
+        let admission_transition =
+            RecoveryPolicyConsumptionTransitionV1::for_execution_admission(
+                &available,
+                &decision,
+                &execution,
+            )
+            .expect("execution-start transition");
+        assert!(admission_transition.matches(
+            &available,
+            &decision,
+            &execution,
+            &admission_next,
+        ));
+        assert_eq!(admission_transition.consumed_at, execution.started_at);
+
+        let mut future_execution = execution.clone();
+        future_execution.started_at = "2026-10-02T08:11:00Z".into();
+        assert_eq!(
+            available.admission_outcome_for_execution_start(&decision, &future_execution),
+            RecoveryPolicyConsumptionOutcomeV1::DecisionNotValidAtConsumption
+        );
+
         let available_digest = available.digest();
         let consumed_preview = available
             .consumed(&decision, &execution, "2026-10-02T08:00:00Z")
