@@ -908,7 +908,12 @@ impl EvidenceFrontierV1 {
 
 
     /// Returns whether an argumentation record is admitted and its declared availability exactly matches the frontier's committed metadata.
-    pub(crate) fn admits_argumentation_at(&self, assessment: &AssessmentId, interpretation: &InterpretationId, available_by: i32) -> bool {
+    pub(crate) fn admits_argumentation_at(
+        &self,
+        assessment: &AssessmentId,
+        interpretation: &InterpretationId,
+        available_by: i32,
+    ) -> bool {
         self.argumentation_metadata.iter().any(|metadata| {
             &metadata.assessment == assessment
                 && &metadata.interpretation == interpretation
@@ -1364,8 +1369,8 @@ mod tests {
             parent_frontier: None,
             policy_version: "v1".into(),
             manifest_hash: String::new(),
-            admitted_evidence: ["evidence:old"].into_iter().collect(),
-            admitted_sources: ["source:archive"].into_iter().collect(),
+            admitted_evidence: ["evidence:old"].into_iter().map(Into::into).collect(),
+            admitted_sources: ["source:archive"].into_iter().map(Into::into).collect(),
             evidence_metadata: vec![],
             source_metadata: vec![],
             argumentation_metadata: vec![],
@@ -1373,19 +1378,15 @@ mod tests {
 
         frontier.policy_version.clear();
         assert_eq!(
-            frontier.admits_evidence_path(
-                &["evidence:old".into()],
-                &["source:archive".into()]
-            ),
+            frontier.admits_evidence_path(&["evidence:old".into()], &["source:archive".into()]),
             false
         );
 
         frontier.policy_version = "v1".into();
         frontier.parent_frontier = Some("".into());
-        assert!(!frontier.admits_evidence_path(
-            &["evidence:old".into()],
-            &["source:archive".into()]
-        ));
+        assert!(
+            !frontier.admits_evidence_path(&["evidence:old".into()], &["source:archive".into()])
+        );
     }
 
     #[test]
