@@ -595,9 +595,11 @@ mod tests {
             },
         );
 
-        assert!(receipt
-            .validate_against_projection_at(&projection, &audit, &chain, &claim)
-            .is_ok());
+        assert!(
+            receipt
+                .validate_against_projection_at(&projection, &audit, &chain, &claim)
+                .is_ok()
+        );
 
         projection = match projection {
             crate::cultural_systems::CulturalProjectionV1::Transmission(mut value) => {
