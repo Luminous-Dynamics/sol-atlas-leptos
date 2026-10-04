@@ -1105,6 +1105,73 @@ mod tests {
     }
 
     #[test]
+    fn concurrent_effect_completion_persists_only_one_terminal_outcome() {
+        let store = Arc::new(ExecutionEffectMemoryStore::default());
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let success = RecoveryExecutionEffectReceiptV1 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some(
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    .into(),
+            ),
+            ..started.clone()
+        };
+        let failure = RecoveryExecutionEffectReceiptV1 {
+            state: RecoveryExecutionEffectStateV1::Failed,
+            outcome_digest: Some(
+                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                    .into(),
+            ),
+            ..started.clone()
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+
+        let left_store = Arc::clone(&store);
+        let left_started = started.clone();
+        let left_success = success.clone();
+        let left = thread::spawn(move || {
+            complete_execution_effect(&left_store, &left_started, &left_success)
+        });
+
+        let right_store = Arc::clone(&store);
+        let right_started = started.clone();
+        let right_failure = failure.clone();
+        let right = thread::spawn(move || {
+            complete_execution_effect(&right_store, &right_started, &right_failure)
+        });
+
+        let outcomes = [
+            left.join().expect("left join").expect("left result"),
+            right.join().expect("right join").expect("right result"),
+        ];
+
+        assert_eq!(
+            outcomes
+                .iter()
+                .filter(|outcome| **outcome == RecoveryExecutionEffectCompletionResult::Completed)
+                .count(),
+            1
+        );
+        assert_eq!(
+            outcomes
+                .iter()
+                .filter(|outcome| {
+                    **outcome
+                        == RecoveryExecutionEffectCompletionResult::AlreadyCompletedDifferentOutcome
+                })
+                .count(),
+            1
+        );
+    }
+
+    #[test]
     fn terminal_state_is_part_of_effect_outcome_identity() {
         let store = ExecutionEffectMemoryStore::default();
         let started = effect_receipt_fixture(
