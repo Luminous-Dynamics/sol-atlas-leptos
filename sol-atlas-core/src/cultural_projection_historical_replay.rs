@@ -38,9 +38,7 @@ pub fn validate_v5_at(
         return Err(ProjectionError::InvalidEvidenceFrontierManifest);
     }
 
-    if !claim.is_frontier_safe(selected) {
-        return Err(ProjectionError::AuditWithoutEvidencePath);
-    }
+    claim.validate_frontier_safe(selected)?;
 
     audit.validate()?;
     if !audit.is_frontier_safe(selected, claim) {
@@ -262,6 +260,25 @@ mod tests {
         ));
     }
 
+    #[test]
+    fn historical_replay_preserves_claim_frontier_diagnostic() {
+        let (audit, mut claim, chain) = fixture();
+        let mut selected = chain.frontiers[0].clone();
+        selected.manifest_hash = "not-a-valid-sha256".into();
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![selected, chain.frontiers[1].clone()],
+        };
+
+        assert_eq!(
+            validate_v5_at(&audit, &chain, &"frontier:1950".into(), &claim),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+        claim.evidence_frontier = "frontier:other".into();
+        assert_eq!(
+            validate_v5_at(&audit, &EvidenceFrontierChainV1 { frontiers: chain.frontiers.clone() }, &"frontier:1950".into(), &claim),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
     #[test]
     fn historical_replay_accepts_verified_prefix() {
         let (audit, claim, chain) = fixture();
