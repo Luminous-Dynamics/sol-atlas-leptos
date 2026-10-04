@@ -194,6 +194,20 @@ pub struct RecoveryExecutionClaimV1 {
 impl RecoveryExecutionClaimV1 {
     pub const SCHEMA: &'static str = "sol-atlas:recovery-execution-claim:v1";
 
+    /// Construct a claim directly from the execution's canonical input snapshot.
+    ///
+    /// The snapshot digest must already have been established by the execution
+    /// admission path; this constructor does not reinterpret execution inputs.
+    pub fn for_execution(execution: &RecoveryExecution, attempt_id: impl Into<String>) -> Option<Self> {
+        let claim = Self {
+            schema: Self::SCHEMA.into(),
+            execution_id: execution.execution_id.clone(),
+            execution_input_snapshot: execution.input_snapshot.clone(),
+            attempt_id: attempt_id.into(),
+        };
+        claim.is_well_formed().then_some(claim)
+    }
+
     pub fn is_well_formed(&self) -> bool {
         self.schema == Self::SCHEMA
             && !self.execution_id.is_empty()
@@ -219,6 +233,8 @@ pub enum RecoveryExecutionClaimResult {
     /// Reusing an execution identity for a different request is rejected
     /// rather than silently mutating the meaning of the execution.
     ExecutionIdentityReuseMismatch,
+    /// The supplied claim is structurally malformed and must not reach the store.
+    MalformedClaim,
     /// The store cannot determine whether the claim was acquired.
     Indeterminate,
 }
@@ -314,7 +330,7 @@ where
     S: RecoveryExecutionClaimStore,
 {
     if !claim.is_well_formed() {
-        return Ok(RecoveryExecutionClaimResult::ExecutionIdentityReuseMismatch);
+        return Ok(RecoveryExecutionClaimResult::MalformedClaim);
     }
 
     store
@@ -705,6 +721,49 @@ mod tests {
             execution_input_snapshot: input_snapshot.into(),
             attempt_id: attempt_id.into(),
         }
+    }
+
+    #[test]
+    fn execution_claim_uses_the_existing_execution_input_fingerprint() {
+        let execution = fixture().1;
+        let claim = RecoveryExecutionClaimV1::for_execution(&execution, "attempt-a")
+            .expect("well-formed execution claim");
+        assert_eq!(claim.execution_id, execution.execution_id);
+        assert_eq!(claim.execution_input_snapshot, execution.input_snapshot);
+        assert_eq!(claim.attempt_id, "attempt-a");
+    }
+
+    #[test]
+    fn malformed_execution_claim_never_reaches_store() {
+        struct NoClaimStore;
+
+        impl RecoveryExecutionClaimStore for NoClaimStore {
+            type Error = &'static str;
+
+            fn claim_if_absent(
+                &self,
+                _claim: &RecoveryExecutionClaimV1,
+            ) -> Result<RecoveryExecutionClaimResult, Self::Error> {
+                Err("claim store must not be reached")
+            }
+
+            fn load_claim(
+                &self,
+                _execution_id: &str,
+            ) -> Result<Option<RecoveryExecutionClaimV1>, Self::Error> {
+                Err("claim store must not be reached")
+            }
+        }
+
+        let mut claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        claim.attempt_id.clear();
+        assert_eq!(
+            claim_execution_start(&NoClaimStore, &claim).expect("malformed claim outcome"),
+            RecoveryExecutionClaimResult::MalformedClaim
+        );
     }
 
     #[test]
