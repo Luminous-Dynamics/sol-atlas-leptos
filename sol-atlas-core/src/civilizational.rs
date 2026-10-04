@@ -1929,8 +1929,21 @@ mod tests {
             manifest_hash: String::new(),
             admitted_evidence: ["evidence:a".into()].into_iter().collect(),
             admitted_sources: ["source:a".into()].into_iter().collect(),
-            evidence_metadata: vec![],
-            source_metadata: vec![],
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1899),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:a".into(),
+                publication_time: Some(1899),
+                capture_time: None,
+                available_by: 1900,
+            }],
             argumentation_metadata: vec![],
         };
         root.recompute_manifest_hash().unwrap();
