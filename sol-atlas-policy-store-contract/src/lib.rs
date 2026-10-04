@@ -1449,6 +1449,97 @@ mod tests {
     }
 
     #[test]
+    fn indeterminate_fenced_effect_recovery_reconciles_to_current_generation() {
+        struct IndeterminateRecoveryStore {
+            inner: ExecutionEffectMemoryStore,
+        }
+
+        impl RecoveryExecutionEffectStore for IndeterminateRecoveryStore {
+            type Error = &'static str;
+
+            fn begin_effect(
+                &self,
+                receipt: &RecoveryExecutionEffectReceiptV2,
+            ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
+                self.inner.begin_effect(receipt)
+            }
+
+            fn complete_effect(
+                &self,
+                execution_id: &str,
+                execution_input_snapshot: &str,
+                attempt_id: &str,
+                fence_epoch: u64,
+                completed: &RecoveryExecutionEffectReceiptV2,
+            ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
+                self.inner.complete_effect(
+                    execution_id,
+                    execution_input_snapshot,
+                    attempt_id,
+                    fence_epoch,
+                    completed,
+                )
+            }
+
+            fn recover_effect_if_current(
+                &self,
+                expected: &RecoveryExecutionEffectReceiptV2,
+                successor: &RecoveryExecutionEffectReceiptV2,
+            ) -> Result<RecoveryExecutionEffectRecoveryResult, Self::Error> {
+                let result = self.inner.recover_effect_if_current(expected, successor)?;
+                if result == RecoveryExecutionEffectRecoveryResult::Recovered {
+                    return Ok(RecoveryExecutionEffectRecoveryResult::Indeterminate);
+                }
+                Ok(result)
+            }
+
+            fn load_effect(
+                &self,
+                execution_id: &str,
+            ) -> Result<Option<RecoveryExecutionEffectReceiptV2>, Self::Error> {
+                self.inner.load_effect(execution_id)
+            }
+        }
+
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let successor = RecoveryExecutionEffectReceiptV2 {
+            attempt_id: "attempt-b".into(),
+            fence_epoch: 2,
+            ..started.clone()
+        };
+        let store = IndeterminateRecoveryStore {
+            inner: ExecutionEffectMemoryStore::default(),
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            recover_execution_effect(&store, &started, &successor).expect("unknown recovery"),
+            RecoveryExecutionEffectRecoveryResult::Indeterminate
+        );
+        assert_eq!(
+            reconcile_execution_effect(
+                &store,
+                &successor.execution_id,
+                &successor.execution_input_snapshot,
+                &successor.attempt_id,
+                successor.fence_epoch,
+            )
+            .expect("reconcile recovery"),
+            RecoveryExecutionEffectReconciliationOutcome::ObservedInProgressOwnedByThisAttempt
+        );
+        assert_eq!(
+            begin_execution_effect(&store, &successor).expect("recovered replay"),
+            RecoveryExecutionEffectStartResult::AlreadyInProgressSameAttempt
+        );
+    }
+
+    #[test]
     fn concurrent_fenced_effect_recovery_has_one_winner() {
         let store = Arc::new(ExecutionEffectMemoryStore::default());
         let started = effect_receipt_fixture(
