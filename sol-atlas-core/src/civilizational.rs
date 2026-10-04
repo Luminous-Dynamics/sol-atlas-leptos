@@ -576,6 +576,27 @@ impl EvidenceFrontierChainV1 {
         Ok(())
     }
 
+    /// Select an explicit frontier by globally unique ID and return only the
+    /// supplied sequence prefix ending at that frontier.
+    ///
+    /// This validates selector identity but deliberately does not validate
+    /// frontier contents. Callers choose migration or strict validation for
+    /// the returned prefix.
+    pub(crate) fn prefix_through(
+        &self,
+        frontier_id: &EvidenceFrontierId,
+    ) -> Result<Self, ProjectionError> {
+        self.validate_unique_frontier_ids()?;
+        let index = self
+            .frontiers
+            .iter()
+            .position(|frontier| &frontier.frontier_id == frontier_id)
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+        Ok(Self {
+            frontiers: self.frontiers[..=index].to_vec(),
+        })
+    }
+
     /// Strict chain validation for reproducible replay. Every frontier in the
     /// supplied ancestry must carry complete source availability metadata.
     pub fn validate_strict(&self) -> Result<(), ProjectionError> {
