@@ -1451,6 +1451,54 @@ impl RecoveryPolicyConsumptionTransitionV1 {
         })
     }
 
+    /// Construct an execution-start transition bound to the exact plan.
+    pub fn for_execution_admission_against_plan(
+        current: &RecoveryPolicyConsumptionSnapshotV1,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        execution: &RecoveryExecution,
+    ) -> Option<Self> {
+        let next =
+            current.consumed_at_execution_start_against_plan(decision, plan, execution)?;
+
+        Some(Self {
+            schema: Self::SCHEMA.into(),
+            decision_digest: current.decision_digest.clone(),
+            expected_snapshot_digest: current.digest(),
+            next_snapshot_digest: next.digest(),
+            execution_id: execution.execution_id.clone(),
+            consumed_at: execution.started_at.clone(),
+            claim_ceiling: current.claim_ceiling.clone(),
+        })
+    }
+
+    /// Construct an execution-start transition bound to the exact candidate.
+    pub fn for_execution_admission_against_candidate(
+        current: &RecoveryPolicyConsumptionSnapshotV1,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        execution: &RecoveryExecution,
+    ) -> Option<Self> {
+        let next =
+            current.consumed_at_execution_start_against_candidate(
+                decision,
+                plan,
+                candidate,
+                execution,
+            )?;
+
+        Some(Self {
+            schema: Self::SCHEMA.into(),
+            decision_digest: current.decision_digest.clone(),
+            expected_snapshot_digest: current.digest(),
+            next_snapshot_digest: next.digest(),
+            execution_id: execution.execution_id.clone(),
+            consumed_at: execution.started_at.clone(),
+            claim_ceiling: current.claim_ceiling.clone(),
+        })
+    }
+
     pub fn for_successful_consumption(
         current: &RecoveryPolicyConsumptionSnapshotV1,
         decision: &RecoveryPolicyDecisionSnapshotV1,
