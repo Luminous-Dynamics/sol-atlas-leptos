@@ -441,6 +441,9 @@ impl RecoveryExecutionEffectReceiptV2 {
 }
 
 /// Result of atomically beginning an external effect.
+///
+/// Fence epochs protect only live InProgress ownership. Terminal Succeeded/Failed
+/// receipts are immutable history and remain replayable across later fence epochs.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RecoveryExecutionEffectStartResult {
     Started,
@@ -512,6 +515,10 @@ pub trait RecoveryExecutionEffectStore: Send + Sync {
 
 /// Point-in-time reconciliation result for an uncertain effect-start or
 /// completion acknowledgement.
+///
+/// Terminal outcomes are historical observations and therefore remain visible
+/// across fence generations; fence comparisons apply only while the receipt is
+/// still InProgress.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RecoveryExecutionEffectReconciliationOutcome {
     ObservedInProgressOwnedByThisAttempt,
@@ -1431,6 +1438,59 @@ mod tests {
             )
             .expect("reconcile stale fence"),
             RecoveryExecutionEffectReconciliationOutcome::ObservedStaleFence
+        );
+    }
+
+    #[test]
+    fn failed_effect_result_remains_replayable_after_fence_advances() {
+        let store = ExecutionEffectMemoryStore::default();
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let failed = RecoveryExecutionEffectReceiptV2 {
+            state: RecoveryExecutionEffectStateV1::Failed,
+            outcome_digest: Some(
+                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                    .into(),
+            ),
+            ..started.clone()
+        };
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial_fence =
+            RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let successor_fence =
+            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
+                .expect("successor fence");
+        let replay =
+            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence)
+                .expect("new epoch replay");
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect(&store, &started, &failed).expect("fail"),
+            RecoveryExecutionEffectCompletionResult::Completed
+        );
+        assert_eq!(
+            begin_execution_effect(&store, &replay).expect("failed replay"),
+            RecoveryExecutionEffectStartResult::AlreadyFailedSameRequest
+        );
+        assert_eq!(
+            reconcile_execution_effect(
+                &store,
+                &replay.execution_id,
+                &replay.execution_input_snapshot,
+                &replay.attempt_id,
+                replay.fence_epoch,
+            )
+            .expect("reconcile failed replay"),
+            RecoveryExecutionEffectReconciliationOutcome::ObservedFailed
         );
     }
 
