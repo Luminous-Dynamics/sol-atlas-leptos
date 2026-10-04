@@ -524,6 +524,42 @@ mod tests {
     }
 
     #[test]
+    fn v5_strong_constructor_preserves_v2_projection_diagnostic() {
+        let (_, claim, frontier, _) = fixture();
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1950),
+                    to: Some(1949),
+                },
+                context: Some("invalid temporal fixture".into()),
+                claim_ref: claim.claim_ref.clone(),
+                evidence_refs: claim.evidence_refs.clone(),
+                source_snapshots: claim.source_snapshots.clone(),
+                assessment: None,
+                qualification: claim.qualification,
+                community_recognition: vec![],
+                access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                evidence_frontier: claim.evidence_frontier.clone(),
+            },
+        );
+
+        assert_eq!(
+            CulturalProjectionAuditV5::from_projection_at(
+                &projection,
+                &frontier,
+                &claim,
+                vec![],
+                vec![],
+            ),
+            Err(ProjectionError::InvalidTimeInterval)
+        );
+    }
+    #[test]
     fn v5_strong_constructor_rejects_frontier_unsafe_argumentation() {
         let (v4, claim, frontier, argumentation) = fixture();
         let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
