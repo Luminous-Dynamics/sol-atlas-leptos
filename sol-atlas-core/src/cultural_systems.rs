@@ -1833,4 +1833,57 @@ mod tests {
         };
         assert!(!set.is_frontier_safe(&claim, &frontier));
     }
+
+    #[test]
+    fn argumentation_availability_is_bound_to_frontier_metadata() {
+        let frontier = frontier();
+        let value = transmission();
+        let claim = canonical_claim(&value);
+
+        let mut v1 = CulturalArgumentationRefV1 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            claim_ref: claim.claim_ref.clone(),
+            evidence_refs: claim.evidence_refs.clone(),
+            source_snapshots: claim.source_snapshots.clone(),
+            assessment_time: Some(YearInterval {
+                from: Some(1948),
+                to: Some(1948),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1949),
+                to: Some(1949),
+            }),
+            available_by: 1950,
+            evidence_frontier: frontier.frontier_id.clone(),
+        };
+        assert!(v1.is_frontier_safe(&claim, &frontier));
+        v1.available_by = 1949;
+        assert!(!v1.is_frontier_safe(&claim, &frontier));
+
+        let mut v2 = CulturalArgumentationRefV2 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            claim_ref: claim.claim_ref.clone(),
+            closure: CulturalArgumentationEvidenceClosureV1 {
+                claim_ref: claim.claim_ref.clone(),
+                evidence_refs: vec!["e:1".into()],
+                source_snapshots: vec!["source:1".into()],
+                evidence_frontier: frontier.frontier_id.clone(),
+            },
+            assessment_time: Some(YearInterval {
+                from: Some(1948),
+                to: Some(1948),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1949),
+                to: Some(1949),
+            }),
+            available_by: 1950,
+        };
+        assert!(v2.is_frontier_safe(&claim, &frontier));
+        v2.available_by = 1949;
+        assert!(!v2.is_frontier_safe(&claim, &frontier));
+    }
+
 }
