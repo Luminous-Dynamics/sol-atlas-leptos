@@ -21,8 +21,10 @@ The API:
 4. Requires the audit and canonical claim to name that same frontier.
 5. Checks the canonical claim, audit, typed argumentation, and ontology closure against that selected frontier.
 
-Later frontier records are intentionally outside the validation scope. A later malformed
-frontier therefore cannot invalidate an otherwise valid earlier replay.
+Before selection, the supplied sequence's frontier IDs are required to be globally unique.
+Later frontier contents are still outside the validation scope: malformed content on a distinct
+later ID therefore cannot invalidate an otherwise valid earlier replay. Duplicate identity is
+different because it would make the historical selector itself ambiguous.
 
 Conversely, a later audit cannot masquerade as an earlier replay: its frontier identity and
 closure must match the selected historical endpoint.
