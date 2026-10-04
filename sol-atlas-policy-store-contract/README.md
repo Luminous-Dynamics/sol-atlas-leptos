@@ -46,3 +46,20 @@ The package now models the durable receipt around an external effect as `InProgr
 A repeated request with the same execution identity and fingerprint is therefore classified instead of starting a second effect. A different fingerprint is rejected. An uncertain store acknowledgement is reconciled by reading the receipt; the receipt state itself is never treated as proof that the external action completed.
 
 This deliberately leaves one hard systems boundary explicit: the effect must itself be idempotent or transactionally coupled to the receipt if retries after an uncertain outcome are expected to be safe. AWS guidance recommends unique idempotency tokens and persisted operation state, while Stripe documents replaying the stored first result for a repeated idempotency key. These references guide the contract shape; they are not claims that Sol Atlas interoperates with either API.
+
+## Orchestration recovery matrix (#29)
+
+The policy, claim, and effect stores are separate local transaction boundaries. The contract therefore treats orchestration as a saga-like sequence rather than a distributed transaction. Current recommended ordering is: admit policy context → atomically acquire execution claim → atomically consume authorization → begin effect → perform effect → terminalize receipt. Saga participants must be idempotent when retries are possible. citeturn751713search0turn751713search2
+
+| Observed state | Safe next action | What must not be inferred |
+| --- | --- | --- |
+| Authorization unconsumed + no execution claim | Acquire claim, then consume authorization | No claim means nobody can race later |
+| Authorization unconsumed + same execution claim | Consume authorization if admission remains valid | Claim implies authorization validity |
+| Authorization consumed + same execution claim | Reconcile/continue the same execution | Consumption implies external effect occurred |
+| Authorization consumed + no claim | Reconcile execution/effect identity before any irreversible work | Missing claim proves that nothing happened |
+| Effect `InProgress` + same attempt | Reconcile effect; do not start a second effect | Process ownership implies effect completion |
+| Effect `InProgress` + other attempt | Fail closed or use adapter-specific recovery | Stale ownership can be safely stolen |
+| Effect `Succeeded` | Return/reuse the recorded result | A replay should re-run the external effect |
+| Effect `Failed` | Apply an explicit retry policy, normally with a new execution identity | A failure receipt is permission to repeat blindly |
+
+The matrix intentionally leaves abandoned claims and in-progress effects without automatic expiry. Automatic expiry can transfer ownership while the original external side effect is still live; a concrete adapter needs a stronger heartbeat/fencing protocol before making that safe. AWS guidance similarly calls out idempotency and transaction-isolation concerns in saga orchestration. citeturn751713search2turn751713search7
