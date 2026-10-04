@@ -2001,7 +2001,10 @@ mod tests {
             transmitted: true,
             evidence_refs: vec!["e:recognition".into(), "e:recognition".into()],
         };
-        assert_eq!(recognition.validate(), Err(ProjectionError::SnapshotWithoutEvidencePath));
+        assert_eq!(
+            recognition.validate(),
+            Err(ProjectionError::SnapshotWithoutEvidencePath)
+        );
 
         let mut closure = CulturalEvidenceClosureV1 {
             claim_ref: "claim:1".into(),
@@ -2035,22 +2038,16 @@ mod tests {
         let frontier = frontier();
         let transmission = transmission();
         let claim = canonical_claim(&transmission);
-        let mut admission = CulturalProjectionAdmissionV1::from_transmission(
-            &transmission,
-            &frontier,
-            &claim,
-        )
-        .expect("frontier-safe transmission");
+        let mut admission =
+            CulturalProjectionAdmissionV1::from_transmission(&transmission, &frontier, &claim)
+                .expect("frontier-safe transmission");
 
         admission.evidence_refs.push("e:1".into());
         assert_eq!(admission.validate(), Err(ProjectionError::EmptyIdentifier));
 
-        let mut admission = CulturalProjectionAdmissionV1::from_transmission(
-            &transmission,
-            &frontier,
-            &claim,
-        )
-        .expect("frontier-safe transmission");
+        let mut admission =
+            CulturalProjectionAdmissionV1::from_transmission(&transmission, &frontier, &claim)
+                .expect("frontier-safe transmission");
         admission.source_snapshots.push("source:1".into());
         assert_eq!(admission.validate(), Err(ProjectionError::EmptyIdentifier));
     }
@@ -2080,12 +2077,9 @@ mod tests {
         let frontier = frontier();
         let transmission = transmission();
         let claim = canonical_claim(&transmission);
-        let admission = CulturalProjectionAdmissionV1::from_transmission(
-            &transmission,
-            &frontier,
-            &claim,
-        )
-        .expect("frontier-safe transmission");
+        let admission =
+            CulturalProjectionAdmissionV1::from_transmission(&transmission, &frontier, &claim)
+                .expect("frontier-safe transmission");
 
         assert_eq!(
             admission.validate_against_transmission(&transmission, &frontier, &claim),
@@ -2099,5 +2093,4 @@ mod tests {
             Err(ProjectionError::AuditWithoutEvidencePath)
         );
     }
-
 }
