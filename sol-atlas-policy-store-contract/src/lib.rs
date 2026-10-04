@@ -25,8 +25,15 @@ use std::sync::Mutex;
 /// the adapter may report that consumption was persisted.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RecoveryPolicyConsumptionPersistenceOutcome {
+    /// The store positively acknowledged that the exact successor was committed.
     Committed,
+    /// The expected version was no longer current and this operation did not commit.
     Conflict,
+    /// The store could not establish whether the atomic commit happened.
+    ///
+    /// A caller must neither report success nor blindly retry a single-use
+    /// action without reconciling the resulting state.
+    CommitIndeterminate,
     ReplayDetected,
     MissingState,
     InvalidTransition,
@@ -42,12 +49,29 @@ pub enum RecoveryPolicyConsumptionPersistenceError<E> {
     Store(E),
 }
 
+/// Result of the single atomic persistence decision.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryPolicyConsumptionCasResult {
+    /// The exact supplied successor was committed.
+    Committed,
+    /// The expected version was not current; this operation did not commit.
+    NotCurrent,
+    /// The store cannot determine whether the commit happened.
+    Indeterminate,
+}
+
 /// A minimal compare-and-set store required by the persistence boundary.
 ///
 /// Implementations MUST make compare_and_set atomic with respect to all
-/// contenders for the same authorization key. Returning true means the exact
-/// supplied successor was committed; returning false means the expected
-/// version was no longer current and the caller must not report success.
+/// contenders for the same authorization key.
+///
+/// Committed means the exact supplied successor was committed.
+/// NotCurrent means the expected version was no longer current and this
+/// operation did not commit.
+/// Indeterminate means the store cannot determine whether the commit
+/// happened (for example, the database may have committed before the response
+/// was lost). Callers must not report success or blindly retry a single-use
+/// action in that state.
 pub trait RecoveryPolicyConsumptionStore: Send + Sync {
     type Error;
 
@@ -61,7 +85,7 @@ pub trait RecoveryPolicyConsumptionStore: Send + Sync {
         decision_digest: &str,
         expected_snapshot_digest: &str,
         next: &RecoveryPolicyConsumptionSnapshotV1,
-    ) -> Result<bool, Self::Error>;
+    ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error>;
 }
 
 /// Validate and persist one transition through the external CAS boundary.
@@ -125,7 +149,7 @@ where
         return Ok(RecoveryPolicyConsumptionPersistenceOutcome::InvalidTransition);
     }
 
-    let committed = store
+    let cas_result = store
         .compare_and_set(
             &decision_digest,
             &transition.expected_snapshot_digest,
@@ -133,11 +157,17 @@ where
         )
         .map_err(RecoveryPolicyConsumptionPersistenceError::Store)?;
 
-    if committed {
-        Ok(RecoveryPolicyConsumptionPersistenceOutcome::Committed)
-    } else {
-        Ok(RecoveryPolicyConsumptionPersistenceOutcome::Conflict)
-    }
+    Ok(match cas_result {
+        RecoveryPolicyConsumptionCasResult::Committed => {
+            RecoveryPolicyConsumptionPersistenceOutcome::Committed
+        }
+        RecoveryPolicyConsumptionCasResult::NotCurrent => {
+            RecoveryPolicyConsumptionPersistenceOutcome::Conflict
+        }
+        RecoveryPolicyConsumptionCasResult::Indeterminate => {
+            RecoveryPolicyConsumptionPersistenceOutcome::CommitIndeterminate
+        }
+    })
 }
 
 #[cfg(test)]
@@ -196,7 +226,7 @@ mod tests {
             _decision_digest: &str,
             _expected_snapshot_digest: &str,
             _next: &RecoveryPolicyConsumptionSnapshotV1,
-        ) -> Result<bool, Self::Error> {
+        ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
             unreachable!("load failure must prevent CAS")
         }
     }
@@ -221,16 +251,16 @@ mod tests {
             decision_digest: &str,
             expected_snapshot_digest: &str,
             next: &RecoveryPolicyConsumptionSnapshotV1,
-        ) -> Result<bool, Self::Error> {
+        ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
             let mut values = self.values.lock().map_err(|_| "poisoned")?;
             let Some(current) = values.get(decision_digest) else {
-                return Ok(false);
+                return Ok(RecoveryPolicyConsumptionCasResult::NotCurrent);
             };
             if current.digest() != expected_snapshot_digest {
-                return Ok(false);
+                return Ok(RecoveryPolicyConsumptionCasResult::NotCurrent);
             }
             values.insert(decision_digest.to_owned(), next.clone());
-            Ok(true)
+            Ok(RecoveryPolicyConsumptionCasResult::Committed)
         }
     }
 
@@ -401,9 +431,9 @@ mod tests {
                 _decision_digest: &str,
                 _expected_snapshot_digest: &str,
                 _next: &RecoveryPolicyConsumptionSnapshotV1,
-            ) -> Result<bool, Self::Error> {
+            ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
                 *self.cas_called.lock().expect("cas lock") = true;
-                Ok(true)
+                Ok(RecoveryPolicyConsumptionCasResult::Committed)
             }
         }
 
@@ -449,8 +479,8 @@ mod tests {
                 _decision_digest: &str,
                 _expected_snapshot_digest: &str,
                 _next: &RecoveryPolicyConsumptionSnapshotV1,
-            ) -> Result<bool, Self::Error> {
-                Ok(false)
+            ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
+                Ok(RecoveryPolicyConsumptionCasResult::NotCurrent)
             }
         }
 
@@ -467,6 +497,55 @@ mod tests {
             )
             .expect("CAS rejection result"),
             RecoveryPolicyConsumptionPersistenceOutcome::Conflict
+        );
+    }
+
+    #[test]
+    fn indeterminate_commit_is_not_reported_as_success() {
+        struct IndeterminateStore {
+            loaded: RecoveryPolicyConsumptionSnapshotV1,
+        }
+
+        impl RecoveryPolicyConsumptionStore for IndeterminateStore {
+            type Error = &'static str;
+
+            fn load(
+                &self,
+                _decision_digest: &str,
+            ) -> Result<Option<RecoveryPolicyConsumptionSnapshotV1>, Self::Error> {
+                Ok(Some(self.loaded.clone()))
+            }
+
+            fn compare_and_set(
+                &self,
+                _decision_digest: &str,
+                _expected_snapshot_digest: &str,
+                _next: &RecoveryPolicyConsumptionSnapshotV1,
+            ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
+                Ok(RecoveryPolicyConsumptionCasResult::Indeterminate)
+            }
+        }
+
+        let (decision, execution, current) = fixture();
+        let (transition, next) =
+            transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
+
+        let outcome = persist_consumption_transition(
+            &IndeterminateStore { loaded: current },
+            &decision,
+            &execution,
+            &transition,
+            &next,
+        )
+        .expect("indeterminate CAS result");
+
+        assert_eq!(
+            outcome,
+            RecoveryPolicyConsumptionPersistenceOutcome::CommitIndeterminate
+        );
+        assert_ne!(
+            outcome,
+            RecoveryPolicyConsumptionPersistenceOutcome::Committed
         );
     }
 
