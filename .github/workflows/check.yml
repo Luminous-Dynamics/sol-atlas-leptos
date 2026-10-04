@@ -1,5 +1,8 @@
 name: Check
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
@@ -10,58 +13,113 @@ concurrency:
   group: check-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  RUST_TOOLCHAIN: 1.99.0
+  TRUNK_VERSION: 0.21.14
+
 jobs:
+  supply-chain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Enforce immutable action references
+        run: |
+          if grep -RInE '^[[:space:]-]*uses:[[:space:]]*[^@[:space:]]+@' .github/workflows               | grep -vE '@[0-9a-f]{40}([[:space:]]|$)'; then
+            echo "All GitHub Actions must use full 40-character commit SHAs."
+            exit 1
+          fi
+      - name: Enforce pinned Trunk install
+        run: |
+          if grep -RInE 'cargo install trunk --locked([[:space:]]|$)' .github/workflows               | grep -v -- '--version'; then
+            echo "Trunk installs must pin an explicit release version."
+            exit 1
+          fi
+
   fmt:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: rustfmt
       - run: cargo fmt --all --check
 
   check-wasm:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           targets: wasm32-unknown-unknown
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-wasm-${{ hashFiles('**/Cargo.lock') }}
-      # The actual deploy target (see deploy.yml) — if this doesn't build,
-      # the site can't ship. This is the check that caught a real bug
-      # (a closure type-inference error in layer_panel.rs) before it
-      # would otherwise have shipped, 2026-07-10.
-      - run: cargo check --target wasm32-unknown-unknown
+          key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-cargo-wasm-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
+      - run: cargo check --workspace --locked --target wasm32-unknown-unknown
+
+  build-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          targets: wasm32-unknown-unknown
+      - name: Cache cargo
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-trunk-${{ env.TRUNK_VERSION }}-check-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
+      - name: Install Trunk
+        run: cargo install trunk --locked --version "${{ env.TRUNK_VERSION }}" --force
+      - name: Build web bundle
+        run: trunk build --release --locked --no-sri
 
   test-native:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
-      # This crate is a wasm-bindgen-heavy [[bin]] with no [lib] target —
-      # native `cargo test` still works (verified 2026-07-11) and is much
-      # faster than a wasm test harness for the pure-logic unit tests
-      # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
-      # `cargo test --lib` fails with "no library targets found".
-      - run: cargo test --bin sol-atlas-leptos
+          key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-cargo-native-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
+      - run: cargo test --workspace --locked
