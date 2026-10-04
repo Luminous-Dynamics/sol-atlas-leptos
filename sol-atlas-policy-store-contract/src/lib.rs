@@ -204,7 +204,10 @@ impl RecoveryExecutionClaimV1 {
     ///
     /// The snapshot digest must already have been established by the execution
     /// admission path; this constructor does not reinterpret execution inputs.
-    pub fn for_execution(execution: &RecoveryExecution, attempt_id: impl Into<String>) -> Option<Self> {
+    pub fn for_execution(
+        execution: &RecoveryExecution,
+        attempt_id: impl Into<String>,
+    ) -> Option<Self> {
         let claim = Self {
             schema: Self::SCHEMA.into(),
             execution_id: execution.execution_id.clone(),
@@ -671,7 +674,8 @@ mod tests {
             resulting_state: CapabilityState::Demonstrated,
             authorization: None,
             ai_assistance: None,
-            input_snapshot: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into(),
+            input_snapshot:
+                "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into(),
             failure_reason: None,
             claim_ceiling: "Exact execution scope only.".into(),
         };
@@ -822,7 +826,9 @@ mod tests {
 
         let right_store = Arc::clone(&store);
         let right_claim = claim_b.clone();
-        let right = thread::spawn(move || claim_execution_start(right_store.as_ref(), &right_claim));
+        let right = thread::spawn(move || {
+            claim_execution_start(right_store.as_ref(), &right_claim)
+        });
 
         let outcomes = [
             left.join().expect("left join").expect("left result"),
@@ -1357,7 +1363,8 @@ mod tests {
         let (transition, next) =
             transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
         let mut loaded = current;
-        loaded.decision_digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into();
+        loaded.decision_digest =
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into();
         let store = MismatchedStore {
             loaded,
             cas_called: Mutex::new(false),
