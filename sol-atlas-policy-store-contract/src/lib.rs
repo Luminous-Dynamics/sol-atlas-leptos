@@ -660,6 +660,247 @@ where
     })
 }
 
+/// Durable monotonic ownership epoch for recoverable execution claims.
+///
+/// This is the stronger recovery-capable companion to RecoveryExecutionClaimV1.
+/// A fenced adapter uses the epoch as a capability that must also be enforced by
+/// the protected resource: an older epoch is stale after a successful takeover.
+/// The epoch is scoped to one execution identity and starts at one.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RecoveryExecutionFenceV1 {
+    pub schema: String,
+    pub execution_id: String,
+    pub execution_input_snapshot: String,
+    pub attempt_id: String,
+    pub fence_epoch: u64,
+}
+
+impl RecoveryExecutionFenceV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-execution-fence:v1";
+
+    /// Create the first fenced ownership generation for an execution claim.
+    pub fn for_initial_claim(claim: &RecoveryExecutionClaimV1) -> Option<Self> {
+        if !claim.is_well_formed() {
+            return None;
+        }
+
+        let fence = Self {
+            schema: Self::SCHEMA.into(),
+            execution_id: claim.execution_id.clone(),
+            execution_input_snapshot: claim.execution_input_snapshot.clone(),
+            attempt_id: claim.attempt_id.clone(),
+            fence_epoch: 1,
+        };
+
+        fence.is_well_formed().then_some(fence)
+    }
+
+    /// Create the next ownership generation from an exact current fence.
+    ///
+    /// Takeover is deliberately a different attempt. A same-attempt replay should
+    /// continue using the existing generation rather than manufacturing a new one.
+    pub fn for_recovery(current: &Self, new_attempt_id: impl Into<String>) -> Option<Self> {
+        if !current.is_well_formed() {
+            return None;
+        }
+
+        let fence_epoch = current.fence_epoch.checked_add(1)?;
+        let successor = Self {
+            schema: Self::SCHEMA.into(),
+            execution_id: current.execution_id.clone(),
+            execution_input_snapshot: current.execution_input_snapshot.clone(),
+            attempt_id: new_attempt_id.into(),
+            fence_epoch,
+        };
+
+        (successor.attempt_id != current.attempt_id && successor.is_well_formed())
+            .then_some(successor)
+    }
+
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA
+            && !self.execution_id.is_empty()
+            && is_sha256_digest(&self.execution_input_snapshot)
+            && !self.attempt_id.is_empty()
+            && self.fence_epoch > 0
+    }
+}
+
+/// Result of a fenced execution-ownership operation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionFenceResult {
+    Acquired,
+    AlreadyOwnedSameAttempt,
+    AlreadyOwnedOtherAttempt,
+    Recovered,
+    StaleExpectedFence,
+    MissingCurrentFence,
+    FingerprintMismatch,
+    MalformedFence,
+    Indeterminate,
+}
+
+/// Storage-neutral contract for monotonic execution fencing.
+///
+/// recover_if_current MUST be atomic for the same execution identity. A
+/// successful recovery replaces exactly the expected current owner with the
+/// supplied successor whose epoch is exactly current + 1.
+///
+/// The store owns the authoritative epoch. A caller must never treat a locally
+/// chosen epoch as sufficient proof of ownership.
+pub trait RecoveryExecutionFenceStore: Send + Sync {
+    type Error;
+
+    fn acquire_fence(
+        &self,
+        fence: &RecoveryExecutionFenceV1,
+    ) -> Result<RecoveryExecutionFenceResult, Self::Error>;
+
+    fn recover_if_current(
+        &self,
+        expected: &RecoveryExecutionFenceV1,
+        successor: &RecoveryExecutionFenceV1,
+    ) -> Result<RecoveryExecutionFenceResult, Self::Error>;
+
+    fn load_fence(
+        &self,
+        execution_id: &str,
+    ) -> Result<Option<RecoveryExecutionFenceV1>, Self::Error>;
+}
+
+/// Point-in-time observation after reconciling a fenced ownership operation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionFenceReconciliationOutcome {
+    ObservedCurrentOwnedByThisAttempt,
+    ObservedCurrentOwnedByOtherAttempt,
+    ObservedStaleFence,
+    ObservedOlderFence,
+    ObservedDifferentFingerprint,
+    MissingFence,
+    InvalidFence,
+}
+
+/// Reconcile a fenced ownership acknowledgement without mutating the store.
+pub fn reconcile_execution_fence<S>(
+    store: &S,
+    expected: &RecoveryExecutionFenceV1,
+) -> Result<
+    RecoveryExecutionFenceReconciliationOutcome,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionFenceStore,
+{
+    if !expected.is_well_formed() {
+        return Ok(RecoveryExecutionFenceReconciliationOutcome::InvalidFence);
+    }
+
+    let Some(current) = store
+        .load_fence(&expected.execution_id)
+        .map_err(RecoveryPolicyConsumptionPersistenceError::Store)?
+    else {
+        return Ok(RecoveryExecutionFenceReconciliationOutcome::MissingFence);
+    };
+
+    if !current.is_well_formed() {
+        return Ok(RecoveryExecutionFenceReconciliationOutcome::InvalidFence);
+    }
+
+    if current.execution_input_snapshot != expected.execution_input_snapshot {
+        return Ok(RecoveryExecutionFenceReconciliationOutcome::ObservedDifferentFingerprint);
+    }
+
+    match current.fence_epoch.cmp(&expected.fence_epoch) {
+        std::cmp::Ordering::Greater => {
+            Ok(RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence)
+        }
+        std::cmp::Ordering::Less => {
+            Ok(RecoveryExecutionFenceReconciliationOutcome::ObservedOlderFence)
+        }
+        std::cmp::Ordering::Equal if current.attempt_id == expected.attempt_id => {
+            Ok(RecoveryExecutionFenceReconciliationOutcome::ObservedCurrentOwnedByThisAttempt)
+        }
+        std::cmp::Ordering::Equal => {
+            Ok(RecoveryExecutionFenceReconciliationOutcome::ObservedCurrentOwnedByOtherAttempt)
+        }
+    }
+}
+
+/// Attempt to acquire the initial fenced generation.
+pub fn acquire_execution_fence<S>(
+    store: &S,
+    fence: &RecoveryExecutionFenceV1,
+) -> Result<
+    RecoveryExecutionFenceResult,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionFenceStore,
+{
+    if !fence.is_well_formed() {
+        return Ok(RecoveryExecutionFenceResult::MalformedFence);
+    }
+
+    store
+        .acquire_fence(fence)
+        .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
+}
+
+/// Atomically transfer fenced ownership from one exact generation to the next.
+pub fn recover_execution_fence<S>(
+    store: &S,
+    expected: &RecoveryExecutionFenceV1,
+    successor: &RecoveryExecutionFenceV1,
+) -> Result<
+    RecoveryExecutionFenceResult,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionFenceStore,
+{
+    if !expected.is_well_formed()
+        || !successor.is_well_formed()
+        || successor.execution_id != expected.execution_id
+        || successor.execution_input_snapshot != expected.execution_input_snapshot
+        || successor.attempt_id == expected.attempt_id
+        || successor.fence_epoch != expected.fence_epoch.saturating_add(1)
+    {
+        return Ok(RecoveryExecutionFenceResult::MalformedFence);
+    }
+
+    store
+        .recover_if_current(expected, successor)
+        .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
+}
+
+/// Validate the numeric fencing invariant at a protected resource.
+///
+/// The protected resource, not merely the lock holder, must enforce this check.
+/// Current is the only value that permits the supplied operation. A future
+/// epoch is not automatically accepted: it indicates that the caller has not
+/// established durable ownership for that generation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionFenceCheck {
+    Invalid,
+    Stale,
+    Current,
+    Future,
+}
+
+pub fn check_execution_fence(
+    current_epoch: u64,
+    supplied_epoch: u64,
+) -> RecoveryExecutionFenceCheck {
+    if current_epoch == 0 || supplied_epoch == 0 {
+        RecoveryExecutionFenceCheck::Invalid
+    } else if supplied_epoch < current_epoch {
+        RecoveryExecutionFenceCheck::Stale
+    } else if supplied_epoch == current_epoch {
+        RecoveryExecutionFenceCheck::Current
+    } else {
+        RecoveryExecutionFenceCheck::Future
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -999,7 +1240,7 @@ mod tests {
         );
         assert_eq!(
             complete_execution_effect(&store, &foreign, &foreign_success).expect("owner check"),
-            RecoveryExecutionEffectCompletionResult::MalformedReceipt
+            RecoveryExecutionEffectCompletionResult::NotOwner
         );
     }
 
@@ -1465,6 +1706,71 @@ mod tests {
         }
     }
 
+    #[derive(Default)]
+    struct FencedExecutionMemoryStore {
+        values: Mutex<BTreeMap<String, RecoveryExecutionFenceV1>>,
+    }
+
+    impl RecoveryExecutionFenceStore for FencedExecutionMemoryStore {
+        type Error = &'static str;
+
+        fn acquire_fence(
+            &self,
+            fence: &RecoveryExecutionFenceV1,
+        ) -> Result<RecoveryExecutionFenceResult, Self::Error> {
+            let mut values = self.values.lock().map_err(|_| "poisoned")?;
+            let Some(current) = values.get(&fence.execution_id) else {
+                values.insert(fence.execution_id.clone(), fence.clone());
+                return Ok(RecoveryExecutionFenceResult::Acquired);
+            };
+
+            if current.execution_input_snapshot != fence.execution_input_snapshot {
+                return Ok(RecoveryExecutionFenceResult::FingerprintMismatch);
+            }
+
+            Ok(if current.attempt_id == fence.attempt_id
+                && current.fence_epoch == fence.fence_epoch
+            {
+                RecoveryExecutionFenceResult::AlreadyOwnedSameAttempt
+            } else {
+                RecoveryExecutionFenceResult::AlreadyOwnedOtherAttempt
+            })
+        }
+
+        fn recover_if_current(
+            &self,
+            expected: &RecoveryExecutionFenceV1,
+            successor: &RecoveryExecutionFenceV1,
+        ) -> Result<RecoveryExecutionFenceResult, Self::Error> {
+            let mut values = self.values.lock().map_err(|_| "poisoned")?;
+            let Some(current) = values.get(&expected.execution_id) else {
+                return Ok(RecoveryExecutionFenceResult::MissingCurrentFence);
+            };
+
+            if current.execution_input_snapshot != expected.execution_input_snapshot {
+                return Ok(RecoveryExecutionFenceResult::FingerprintMismatch);
+            }
+
+            if current != expected {
+                return Ok(RecoveryExecutionFenceResult::StaleExpectedFence);
+            }
+
+            values.insert(expected.execution_id.clone(), successor.clone());
+            Ok(RecoveryExecutionFenceResult::Recovered)
+        }
+
+        fn load_fence(
+            &self,
+            execution_id: &str,
+        ) -> Result<Option<RecoveryExecutionFenceV1>, Self::Error> {
+            Ok(self
+                .values
+                .lock()
+                .map_err(|_| "poisoned")?
+                .get(execution_id)
+                .cloned())
+        }
+    }
     struct BrokenStore;
 
     impl RecoveryPolicyConsumptionStore for BrokenStore {
@@ -1827,6 +2133,124 @@ mod tests {
         );
     }
 
+    #[test]
+    fn initial_fence_is_acquired_once_and_replayed_idempotently() {
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let store = FencedExecutionMemoryStore::default();
+
+        assert_eq!(
+            acquire_execution_fence(&store, &fence).expect("acquire"),
+            RecoveryExecutionFenceResult::Acquired
+        );
+        assert_eq!(
+            acquire_execution_fence(&store, &fence).expect("replay"),
+            RecoveryExecutionFenceResult::AlreadyOwnedSameAttempt
+        );
+    }
+
+    #[test]
+    fn fenced_recovery_advances_epoch_and_stales_the_old_owner() {
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let recovered =
+            RecoveryExecutionFenceV1::for_recovery(&initial, "attempt-b").expect("recovery fence");
+        let store = FencedExecutionMemoryStore::default();
+
+        assert_eq!(
+            acquire_execution_fence(&store, &initial).expect("initial acquire"),
+            RecoveryExecutionFenceResult::Acquired
+        );
+        assert_eq!(
+            recover_execution_fence(&store, &initial, &recovered).expect("recover"),
+            RecoveryExecutionFenceResult::Recovered
+        );
+        assert_eq!(
+            check_execution_fence(recovered.fence_epoch, initial.fence_epoch),
+            RecoveryExecutionFenceCheck::Stale
+        );
+        assert_eq!(
+            check_execution_fence(recovered.fence_epoch, recovered.fence_epoch),
+            RecoveryExecutionFenceCheck::Current
+        );
+        assert_eq!(
+            reconcile_execution_fence(&store, &initial).expect("reconcile stale"),
+            RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence
+        );
+        assert_eq!(
+            reconcile_execution_fence(&store, &recovered).expect("reconcile current"),
+            RecoveryExecutionFenceReconciliationOutcome::ObservedCurrentOwnedByThisAttempt
+        );
+    }
+
+    #[test]
+    fn stale_recovery_cannot_replace_a_newer_owner() {
+        let claim_a = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim_a).expect("initial");
+        let recovered =
+            RecoveryExecutionFenceV1::for_recovery(&initial, "attempt-b").expect("recovery");
+        let recovered_again =
+            RecoveryExecutionFenceV1::for_recovery(&recovered, "attempt-c").expect("recovery 2");
+        let store = FencedExecutionMemoryStore::default();
+
+        assert_eq!(
+            acquire_execution_fence(&store, &initial).expect("acquire"),
+            RecoveryExecutionFenceResult::Acquired
+        );
+        assert_eq!(
+            recover_execution_fence(&store, &initial, &recovered).expect("recover"),
+            RecoveryExecutionFenceResult::Recovered
+        );
+        assert_eq!(
+            recover_execution_fence(&store, &recovered_again, &recovered).expect("stale"),
+            RecoveryExecutionFenceResult::StaleExpectedFence
+        );
+        assert_eq!(
+            reconcile_execution_fence(&store, &initial).expect("stale owner"),
+            RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence
+        );
+    }
+
+    #[test]
+    fn fenced_recovery_rejects_fingerprint_reuse_and_non_monotonic_successors() {
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial");
+        let different = execution_claim_fixture(
+            "attempt-b",
+            "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        );
+        let different_fence =
+            RecoveryExecutionFenceV1::for_initial_claim(&different).expect("different fence");
+        let store = FencedExecutionMemoryStore::default();
+
+        assert_eq!(
+            acquire_execution_fence(&store, &initial).expect("acquire"),
+            RecoveryExecutionFenceResult::Acquired
+        );
+        assert_eq!(
+            recover_execution_fence(&store, &initial, &different_fence).expect("fingerprint"),
+            RecoveryExecutionFenceResult::MalformedFence
+        );
+
+        let mut non_monotonic = initial.clone();
+        non_monotonic.attempt_id = "attempt-b".into();
+        assert_eq!(
+            recover_execution_fence(&store, &initial, &non_monotonic).expect("epoch"),
+            RecoveryExecutionFenceResult::MalformedFence
+        );
+    }
     #[test]
     fn concurrent_stale_contenders_race_on_the_same_loaded_version() {
         let (decision, execution, current) = fixture();
