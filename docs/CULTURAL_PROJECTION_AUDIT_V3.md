@@ -38,6 +38,8 @@ Changing the ontology term, mapping relation, ontology version, release status, 
 
 The V3 layer remains additive. V1 and V2 serialized audit contracts remain available for compatibility.
 
+For provenance verification, the ordinary V3 projection validator checks the audit against its current semantic envelope, while `validate_against_projection_and_semantic_context(...)` additionally requires the caller to supply the exact expected semantic envelope. This mirrors the broader rule that an object's own content hash proves integrity, but external reconstruction/witness data establishes what source artifact was actually used.
+
 ## External ontology boundary
 
 This does not make Sol Atlas an ontology authority. External standards remain interoperability vocabularies. In particular, CIDOC CRM 7.4 is currently listed as an August 2026 Draft, and its registry distinguishes Draft releases from Stable and Official releases. Draft status is therefore retained as explicit metadata rather than silently treated as an implementation-stable vocabulary.
