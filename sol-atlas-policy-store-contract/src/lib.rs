@@ -2224,6 +2224,61 @@ mod tests {
     }
 
     #[test]
+    fn concurrent_recovery_has_one_winner_for_the_same_expected_fence() {
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial");
+        let recovered_b =
+            RecoveryExecutionFenceV1::for_recovery(&initial, "attempt-b").expect("recovery b");
+        let recovered_c =
+            RecoveryExecutionFenceV1::for_recovery(&initial, "attempt-c").expect("recovery c");
+        let store = Arc::new(FencedExecutionMemoryStore::default());
+
+        assert_eq!(
+            acquire_execution_fence(store.as_ref(), &initial).expect("acquire"),
+            RecoveryExecutionFenceResult::Acquired
+        );
+
+        let left_store = Arc::clone(&store);
+        let left_expected = initial.clone();
+        let left_successor = recovered_b.clone();
+        let left = thread::spawn(move || {
+            recover_execution_fence(left_store.as_ref(), &left_expected, &left_successor)
+        });
+
+        let right_store = Arc::clone(&store);
+        let right_expected = initial.clone();
+        let right_successor = recovered_c.clone();
+        let right = thread::spawn(move || {
+            recover_execution_fence(right_store.as_ref(), &right_expected, &right_successor)
+        });
+
+        let outcomes = [
+            left.join().expect("left join").expect("left result"),
+            right.join().expect("right join").expect("right result"),
+        ];
+        assert_eq!(
+            outcomes
+                .iter()
+                .filter(|outcome| **outcome == RecoveryExecutionFenceResult::Recovered)
+                .count(),
+            1
+        );
+        assert_eq!(
+            outcomes
+                .iter()
+                .filter(|outcome| **outcome == RecoveryExecutionFenceResult::StaleExpectedFence)
+                .count(),
+            1
+        );
+        assert_eq!(
+            reconcile_execution_fence(&store, &initial).expect("reconcile old owner"),
+            RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence
+        );
+    }
+    #[test]
     fn fenced_recovery_rejects_fingerprint_reuse_and_non_monotonic_successors() {
         let claim = execution_claim_fixture(
             "attempt-a",
