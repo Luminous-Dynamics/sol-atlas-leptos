@@ -863,7 +863,10 @@ where
         || successor.execution_id != expected.execution_id
         || successor.execution_input_snapshot != expected.execution_input_snapshot
         || successor.attempt_id == expected.attempt_id
-        || successor.fence_epoch != expected.fence_epoch.saturating_add(1)
+        || expected
+            .fence_epoch
+            .checked_add(1)
+            .is_none_or(|next| successor.fence_epoch != next)
     {
         return Ok(RecoveryExecutionFenceResult::MalformedFence);
     }
