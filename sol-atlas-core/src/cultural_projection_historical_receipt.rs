@@ -58,7 +58,7 @@ impl V5HistoricalReplayReceiptV1 {
         frontier_id: &EvidenceFrontierId,
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<Self, ProjectionError> {
-        let prefix = Self::prefix_at(chain, frontier_id)?;
+        let prefix = chain.strict_prefix_through(frontier_id)?;
         let frontier = prefix
             .current()
             .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
@@ -93,7 +93,7 @@ impl V5HistoricalReplayReceiptV1 {
         chain: &EvidenceFrontierChainV1,
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<(), ProjectionError> {
-        let prefix = Self::prefix_at(chain, &self.selected_frontier)?;
+        let prefix = chain.strict_prefix_through(&self.selected_frontier)?;
         let frontier = prefix
             .current()
             .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
