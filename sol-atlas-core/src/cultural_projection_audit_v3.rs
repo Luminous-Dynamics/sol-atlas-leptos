@@ -181,7 +181,16 @@ mod tests {
             access_policy: crate::cultural_systems::AccessPolicyV1::Public,
             evidence_frontier: "frontier:1950".into(),
         });
-        CulturalProjectionAuditV2::from_projection(&projection)
+        let frontier = frontier();
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            qualification: QualificationStatus::Supported,
+            evidence_frontier: "frontier:1950".into(),
+        };
+        CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim)
+            .expect("frontier-safe audit")
     }
 
     fn semantic_context() -> ProjectionSemanticEnvelopeV1 {
