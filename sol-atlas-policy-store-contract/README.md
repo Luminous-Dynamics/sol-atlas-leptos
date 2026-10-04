@@ -53,9 +53,9 @@ The effect receipt is now explicitly fence-aware. A receipt must carry a non-zer
 
 `RecoveryExecutionEffectReceiptV2::in_progress_for_fence` derives the receipt identity directly from an established `RecoveryExecutionFenceV1`, avoiding a second caller-supplied copy of execution ID, fingerprint, attempt, and epoch.
 
-This closes the durable-receipt stale-owner gap, but it does not magically fence an arbitrary external API. The concrete effect adapter must propagate the same epoch/token to the protected resource and have that resource reject stale epochs. Google Chubby's sequencer design uses this same division: the client passes the sequencer to the server and the receiving server validates it before allowing the protected operation. citeturn227855search22turn227855search8
+This closes the durable-receipt stale-owner gap, but it does not magically fence an arbitrary external API. The concrete effect adapter must propagate the same epoch/token to the protected resource and have that resource reject stale epochs. Google Chubby's sequencer design uses this same division: the client passes the sequencer to the server and the receiving server validates it before allowing the protected operation.
 
-Where the external effect system cannot enforce such a token, automatic takeover remains unsafe; the adapter must use an idempotent effect contract or fail closed/manual recovery. Saga participants still require idempotency because saga orchestration does not provide distributed transaction isolation. citeturn411559search0turn411559search2
+Where the external effect system cannot enforce such a token, automatic takeover remains unsafe; the adapter must use an idempotent effect contract or fail closed/manual recovery. Saga participants still require idempotency because saga orchestration does not provide distributed transaction isolation.
 
 ## Orchestration recovery matrix (#29)
 
