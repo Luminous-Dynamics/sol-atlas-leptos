@@ -1348,6 +1348,25 @@ pub struct RecoveryPolicyConsumptionTransitionV1 {
 impl RecoveryPolicyConsumptionTransitionV1 {
     pub const SCHEMA: &'static str = "sol-atlas:recovery-policy-consumption-transition:v1";
 
+    /// Construct a one-time transition for the execution start event.
+    pub fn for_execution_admission(
+        current: &RecoveryPolicyConsumptionSnapshotV1,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        execution: &RecoveryExecution,
+    ) -> Option<Self> {
+        let next = current.consumed_at_execution_start(decision, execution)?;
+
+        Some(Self {
+            schema: Self::SCHEMA.into(),
+            decision_digest: current.decision_digest.clone(),
+            expected_snapshot_digest: current.digest(),
+            next_snapshot_digest: next.digest(),
+            execution_id: execution.execution_id.clone(),
+            consumed_at: execution.started_at.clone(),
+            claim_ceiling: current.claim_ceiling.clone(),
+        })
+    }
+
     pub fn for_successful_consumption(
         current: &RecoveryPolicyConsumptionSnapshotV1,
         decision: &RecoveryPolicyDecisionSnapshotV1,
