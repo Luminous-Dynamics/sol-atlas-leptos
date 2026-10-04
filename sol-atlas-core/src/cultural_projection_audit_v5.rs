@@ -68,18 +68,16 @@ impl CulturalProjectionAuditV5 {
         claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
         resolutions: Vec<crate::ontology_resolution::OntologyMappingResolutionV1>,
         argumentation: Vec<CulturalArgumentationRefV3>,
-    ) -> Option<Self> {
+    ) -> Result<Self, ProjectionError> {
         let base = CulturalProjectionAuditV4::from_projection_at(
             projection,
             frontier,
             claim,
             resolutions,
         )?;
-        let audit = Self::from_v4(base, argumentation).ok()?;
-        audit
-            .validate_strong_against_projection(projection, frontier, claim)
-            .ok()?;
-        Some(audit)
+        let audit = Self::from_v4(base, argumentation)?;
+        audit.validate_strong_against_projection(projection, frontier, claim)?;
+        Ok(audit)
     }
 
     pub fn validate(&self) -> Result<(), ProjectionError> {
@@ -561,7 +559,7 @@ mod tests {
                 v4.resolutions.clone(),
                 vec![unsafe_argumentation],
             )
-            .is_none()
+            .is_err()
         );
     }
 
