@@ -49,7 +49,7 @@ This deliberately leaves one hard systems boundary explicit: the effect must its
 
 ## Orchestration recovery matrix (#29)
 
-The policy, claim, and effect stores are separate local transaction boundaries. The contract therefore treats orchestration as a saga-like sequence rather than a distributed transaction. Current recommended ordering is: admit policy context → atomically acquire execution claim → atomically consume authorization → begin effect → perform effect → terminalize receipt. Saga participants must be idempotent when retries are possible. citeturn751713search0turn751713search2
+The policy, claim, and effect stores are separate local transaction boundaries. The contract therefore treats orchestration as a saga-like sequence rather than a distributed transaction. Current recommended ordering is: admit policy context → atomically acquire execution claim → atomically consume authorization → begin effect → perform effect → terminalize receipt. Saga participants must be idempotent when retries are possible. See AWS Prescriptive Guidance, “Saga patterns” and “Saga orchestration pattern.”
 
 | Observed state | Safe next action | What must not be inferred |
 | --- | --- | --- |
@@ -62,4 +62,4 @@ The policy, claim, and effect stores are separate local transaction boundaries. 
 | Effect `Succeeded` | Return/reuse the recorded result | A replay should re-run the external effect |
 | Effect `Failed` | Apply an explicit retry policy, normally with a new execution identity | A failure receipt is permission to repeat blindly |
 
-The matrix intentionally leaves abandoned claims and in-progress effects without automatic expiry. Automatic expiry can transfer ownership while the original external side effect is still live; a concrete adapter needs a stronger heartbeat/fencing protocol before making that safe. AWS guidance similarly calls out idempotency and transaction-isolation concerns in saga orchestration. citeturn751713search2turn751713search7
+The matrix intentionally leaves abandoned claims and in-progress effects without automatic expiry. Automatic expiry can transfer ownership while the original external side effect is still live; a concrete adapter needs a stronger heartbeat/fencing protocol before making that safe. AWS guidance similarly calls out idempotency and transaction-isolation concerns in saga orchestration; its Durable Execution guidance also distinguishes retry semantics from exactly-once side-effect claims.
