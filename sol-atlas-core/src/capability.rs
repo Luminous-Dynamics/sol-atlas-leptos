@@ -4526,6 +4526,9 @@ mod graph_tests {
         let mut plan_decision = decision.clone();
         plan_decision.plan_snapshot = plan.snapshot().digest();
         plan_decision.candidate_snapshot = plan.candidate_snapshot.clone();
+        plan_execution.authorization = Some(plan_decision.digest());
+        plan_execution.input_snapshot =
+            RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &plan_execution).digest();
         let plan_available =
             RecoveryPolicyConsumptionSnapshotV1::for_decision(&plan_decision);
         assert_eq!(
@@ -4556,6 +4559,36 @@ mod graph_tests {
             &plan_next,
         ));
 
+        assert_eq!(
+            plan_available.admission_outcome_for_execution_start_against_plan(
+                &plan_decision,
+                &plan,
+                &plan_execution,
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::Allowed
+        );
+        let plan_admission_next = plan_available
+            .consumed_at_execution_start_against_plan(
+                &plan_decision,
+                &plan,
+                &plan_execution,
+            )
+            .expect("plan admission successor");
+        let plan_admission_transition =
+            RecoveryPolicyConsumptionTransitionV1::for_execution_admission_against_plan(
+                &plan_available,
+                &plan_decision,
+                &plan,
+                &plan_execution,
+            )
+            .expect("plan admission transition");
+        assert!(plan_admission_transition.matches(
+            &plan_available,
+            &plan_decision,
+            &plan_execution,
+            &plan_admission_next,
+        ));
+
         let candidate = RecoveryCandidate {
             for_dependency: plan.unavailable.clone(),
             candidate: plan.candidate.clone(),
@@ -4578,6 +4611,13 @@ mod graph_tests {
         let mut candidate_decision = plan_decision.clone();
         candidate_decision.plan_snapshot = candidate_plan.snapshot().digest();
         candidate_decision.candidate_snapshot = candidate.snapshot().digest();
+        candidate_execution.authorization = Some(candidate_decision.digest());
+        candidate_execution.input_snapshot =
+            RecoveryExecutionSnapshotV1::from_plan_and_execution(
+                &candidate_plan,
+                &candidate_execution,
+            )
+            .digest();
         let candidate_available =
             RecoveryPolicyConsumptionSnapshotV1::for_decision(&candidate_decision);
         let candidate_transition =
@@ -4591,6 +4631,39 @@ mod graph_tests {
             )
             .expect("candidate-bound transition");
         assert!(candidate_transition.is_well_formed());
+
+        assert_eq!(
+            candidate_available.admission_outcome_for_execution_start_against_candidate(
+                &candidate_decision,
+                &candidate_plan,
+                &candidate,
+                &candidate_execution,
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::Allowed
+        );
+        let candidate_admission_transition =
+            RecoveryPolicyConsumptionTransitionV1::for_execution_admission_against_candidate(
+                &candidate_available,
+                &candidate_decision,
+                &candidate_plan,
+                &candidate,
+                &candidate_execution,
+            )
+            .expect("candidate admission transition");
+        let candidate_admission_next = candidate_available
+            .consumed_at_execution_start_against_candidate(
+                &candidate_decision,
+                &candidate_plan,
+                &candidate,
+                &candidate_execution,
+            )
+            .expect("candidate admission successor");
+        assert!(candidate_admission_transition.matches(
+            &candidate_available,
+            &candidate_decision,
+            &candidate_execution,
+            &candidate_admission_next,
+        ));
 
         let mut altered_candidate = candidate.clone();
         altered_candidate.claim_ceiling = "altered candidate".into();
