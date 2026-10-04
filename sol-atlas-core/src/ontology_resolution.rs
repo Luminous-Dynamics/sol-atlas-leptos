@@ -49,9 +49,7 @@ impl OntologyMappingResolutionV1 {
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> Result<Self, ProjectionError> {
-        if !mapping.is_frontier_safe(claim, frontier) {
-            return Err(ProjectionError::EmptyIdentifier);
-        }
+        mapping.validate_frontier_safe(claim, frontier)?;
         let context = OntologyMappingContextV1::from_mapping(mapping, relation)?;
         let mut resolution = Self {
             mapping: context,
@@ -137,28 +135,46 @@ impl OntologyMappingResolutionV1 {
         Ok(())
     }
 
+    /// Validates resolution provenance against the exact canonical claim and
+    /// strict frontier while preserving concrete lower-level failures.
+    pub fn validate_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        claim.validate_frontier_safe(frontier)?;
+        if self.claim_ref != claim.claim_ref {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        let mut claim_evidence = claim.evidence_refs.clone();
+        let mut claim_sources = claim.source_snapshots.clone();
+        claim_evidence.sort();
+        claim_sources.sort();
+        let mut resolution_evidence = self.evidence_refs.clone();
+        let mut resolution_sources = self.source_snapshots.clone();
+        resolution_evidence.sort();
+        resolution_sources.sort();
+
+        if resolution_evidence != claim_evidence
+            || resolution_sources != claim_sources
+            || self.qualification != claim.qualification
+            || self.evidence_frontier != frontier.frontier_id
+            || self.mapping.qualification != claim.qualification
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate().is_ok()
-            && claim.is_frontier_safe(frontier)
-            && self.claim_ref == claim.claim_ref
-            && {
-                let mut claim_evidence = claim.evidence_refs.clone();
-                let mut claim_sources = claim.source_snapshots.clone();
-                claim_evidence.sort();
-                claim_sources.sort();
-                let mut resolution_evidence = self.evidence_refs.clone();
-                let mut resolution_sources = self.source_snapshots.clone();
-                resolution_evidence.sort();
-                resolution_sources.sort();
-                resolution_evidence == claim_evidence && resolution_sources == claim_sources
-            }
-            && self.qualification == claim.qualification
-            && self.evidence_frontier == frontier.frontier_id
-            && self.mapping.qualification == claim.qualification
+        self.validate_frontier_safe(claim, frontier).is_ok()
     }
 }
 
@@ -228,6 +244,38 @@ mod tests {
         (mapping, claim, frontier)
     }
 
+    #[test]
+    fn resolution_constructor_preserves_frontier_validation_failure() {
+        let (mapping, claim, mut frontier) = fixture();
+        frontier.manifest_hash = "not-a-valid-sha256".into();
+
+        assert_eq!(
+            OntologyMappingResolutionV1::from_mapping(
+                &mapping,
+                OntologyMappingRelationV1::Exact,
+                &claim,
+                &frontier,
+            ),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn resolution_validation_preserves_evidence_path_failure() {
+        let (mapping, claim, frontier) = fixture();
+        let mut rebound = claim.clone();
+        rebound.evidence_refs = vec!["e:unadmitted".into()];
+
+        assert_eq!(
+            OntologyMappingResolutionV1::from_mapping(
+                &mapping,
+                OntologyMappingRelationV1::Exact,
+                &rebound,
+                &frontier,
+            ),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
     #[test]
     fn resolution_binds_mapping_to_exact_closure() {
         let (mapping, claim, frontier) = fixture();
