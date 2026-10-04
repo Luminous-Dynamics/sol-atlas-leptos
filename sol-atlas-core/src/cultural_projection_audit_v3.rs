@@ -326,6 +326,50 @@ mod tests {
     }
 
     #[test]
+    fn v3_strong_constructor_rejects_semantic_context_rebinding() {
+        let mut rebound = semantic_context();
+        rebound.claim_ref = "claim:other".into();
+        rebound
+            .recompute_hash()
+            .expect("rebound semantic envelope hash");
+
+        let projection = CulturalProjectionV1::Transmission(CulturalTransmissionV1 {
+            transmission_id: "transmission:1".into(),
+            source: "practice:source".into(),
+            target: "practice:target".into(),
+            mode: crate::cultural_systems::TransmissionMode::Translated,
+            event_time: YearInterval {
+                from: Some(1900),
+                to: Some(1950),
+            },
+            context: Some("documented".into()),
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            assessment: None,
+            qualification: QualificationStatus::Supported,
+            community_recognition: vec![],
+            access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+            evidence_frontier: "frontier:1950".into(),
+        });
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            qualification: QualificationStatus::Supported,
+            evidence_frontier: "frontier:1950".into(),
+        };
+
+        assert!(CulturalProjectionAuditV3::from_projection_at_with_semantic_context(
+            &projection,
+            &frontier(),
+            &claim,
+            rebound,
+        )
+        .is_err());
+    }
+
+    #[test]
     fn v3_audit_binds_semantic_context_to_v2_identity() {
         let value =
             CulturalProjectionAuditV3::from_v2(audit(), semantic_context()).expect("v3 audit");
