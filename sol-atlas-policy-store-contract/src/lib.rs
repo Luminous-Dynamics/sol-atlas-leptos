@@ -3229,6 +3229,7 @@ mod tests {
         );
     }
 
+    #[test]
     fn initial_fence_is_acquired_once_and_replayed_idempotently() {
         let claim = execution_claim_fixture(
             "attempt-a",
@@ -3277,7 +3278,7 @@ mod tests {
         assert_eq!(
             recover_execution_effect_for_established_fence(
                 &effect_store,
-                &RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&established.fence())
+                &RecoveryExecutionEffectReceiptV2::in_progress_for_fence(established.fence())
                     .expect("initial receipt"),
                 &successor,
             )
