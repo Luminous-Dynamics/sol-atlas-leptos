@@ -1126,6 +1126,20 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
     ///
     /// This is a pure decision function. It does not provide atomic
     /// compare-and-set semantics for concurrent consumers.
+    /// Stable canonical bytes for this consumption state.
+    ///
+    /// The digest is a version token for external stores; it does not itself
+    /// provide atomicity or authenticate the backing store.
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        serde_json::to_vec(self)
+            .expect("recovery policy consumption snapshot contains serializable primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
+    }
+
     pub fn permits_consumption(
         &self,
         decision: &RecoveryPolicyDecisionSnapshotV1,
@@ -3813,10 +3827,15 @@ mod graph_tests {
         );
         assert!(available.permits_consumption(&decision, &execution, "2026-10-02T08:00:00Z"));
 
+        let available_digest = available.digest();
         let consumed = available
             .consumed(&decision, &execution, "2026-10-02T08:00:00Z")
             .expect("valid one-time transition");
         assert!(consumed.is_well_formed());
+        assert_ne!(available_digest, consumed.digest());
+        let mut different_consumption_time = consumed.clone();
+        different_consumption_time.consumed_at = Some("2026-10-02T08:00:01Z".into());
+        assert_ne!(consumed.digest(), different_consumption_time.digest());
         assert_eq!(
             consumed.state,
             RecoveryPolicyConsumptionStateV1::Consumed
