@@ -26,8 +26,7 @@ pub fn validate_v5_at(
 ) -> Result<(), ProjectionError> {
     // Selection validates only identifier uniqueness; strict content
     // validation remains scoped to the selected historical prefix.
-    let prefix = chain.prefix_through(frontier_id)?;
-    prefix.validate_strict()?;
+    let prefix = chain.strict_prefix_through(frontier_id)?;
 
     let selected = prefix
         .current()
