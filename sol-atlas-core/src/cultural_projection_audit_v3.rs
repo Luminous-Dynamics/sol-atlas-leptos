@@ -60,8 +60,7 @@ impl CulturalProjectionAuditV3 {
         claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
         semantic_context: ProjectionSemanticEnvelopeV1,
     ) -> Result<Self, ProjectionError> {
-        let base = CulturalProjectionAuditV2::from_projection_at(projection, frontier, claim)
-            .ok_or(ProjectionError::AuditWithoutEvidencePath)?;
+        let base = CulturalProjectionAuditV2::from_projection_at(projection, frontier, claim)?;
         let audit = Self::from_v2_with_semantic_context(base, semantic_context)?;
         audit.validate_strong_against_projection(projection, frontier, claim)?;
         Ok(audit)
