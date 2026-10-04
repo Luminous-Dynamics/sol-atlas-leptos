@@ -1869,6 +1869,92 @@ mod tests {
     }
 
     #[test]
+    fn strict_prefix_selector_validates_only_through_requested_frontier() {
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1899),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:a".into(),
+                publication_time: Some(1899),
+                capture_time: None,
+                available_by: 1900,
+            }],
+            argumentation_metadata: vec![],
+        };
+        root.recompute_manifest_hash().unwrap();
+
+        let mut child = root.clone();
+        child.frontier_id = "frontier:1901".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(root.frontier_id.clone());
+        child.recompute_manifest_hash().unwrap();
+
+        let mut later = child.clone();
+        later.frontier_id = "frontier:1902".into();
+        later.known_by_year = 1902;
+        later.parent_frontier = Some(child.frontier_id.clone());
+        later.recompute_manifest_hash().unwrap();
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, child, later],
+        };
+        let prefix = chain
+            .strict_prefix_through(&"frontier:1901".into())
+            .expect("strict prefix");
+        assert_eq!(prefix.frontiers.len(), 2);
+        assert_eq!(prefix.current().unwrap().frontier_id, "frontier:1901".into());
+    }
+
+    #[test]
+    fn strict_prefix_selector_rejects_duplicate_id_outside_selected_prefix() {
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        root.recompute_manifest_hash().unwrap();
+
+        let mut child = root.clone();
+        child.frontier_id = "frontier:1901".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(root.frontier_id.clone());
+        child.recompute_manifest_hash().unwrap();
+
+        let mut duplicate = child.clone();
+        duplicate.frontier_id = root.frontier_id.clone();
+        duplicate.manifest_hash = "not-recomputed".into();
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, child, duplicate],
+        };
+        assert_eq!(
+            chain.strict_prefix_through(&"frontier:1901".into()),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
     fn strict_chain_rejects_legacy_ancestor_even_when_leaf_is_hashed() {
         let metadata = EvidenceTemporalMetadataV1 {
             evidence_id: "evidence:a".into(),
