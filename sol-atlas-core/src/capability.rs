@@ -4368,17 +4368,11 @@ mod graph_tests {
         assert!(decision.covers_execution(&bound_execution, "2026-10-02T08:00:00Z"));
         let mut different_execution = bound_execution.clone();
         different_execution.execution_id = "coverage-bound-other".into();
-        assert!(!decision.covers_execution(
-            &different_execution,
-            "2026-10-02T08:00:00Z"
-        ));
+        assert!(!decision.covers_execution(&different_execution, "2026-10-02T08:00:00Z"));
         let mut unbound_decision = decision.clone();
         unbound_decision.execution_id = None;
         assert_ne!(decision.digest(), unbound_decision.digest());
-        assert!(unbound_decision.covers_execution(
-            &different_execution,
-            "2026-10-02T08:00:00Z"
-        ));
+        assert!(unbound_decision.covers_execution(&different_execution, "2026-10-02T08:00:00Z"));
         let mut reversed_execution = bound_execution.clone();
         reversed_execution.ended_at = Some("2026-10-02T07:58:59Z".into());
         assert!(!decision.covers_execution(&reversed_execution, "2026-10-02T08:00:00Z"));
@@ -4410,18 +4404,16 @@ mod graph_tests {
                 "2026-10-02T08:00:00Z"
             )
         );
-        assert!(
-            verification.passes_with_bound_policy_decision_for_context(
-                &plan,
-                &candidate,
-                &decision,
-                &bound_execution,
-                "recovery.execute",
-                "operator-001",
-                "authority-record-001",
-                "2026-10-02T08:00:00Z"
-            )
-        );
+        assert!(verification.passes_with_bound_policy_decision_for_context(
+            &plan,
+            &candidate,
+            &decision,
+            &bound_execution,
+            "recovery.execute",
+            "operator-001",
+            "authority-record-001",
+            "2026-10-02T08:00:00Z"
+        ));
 
         assert!(
             !bound_execution.is_successful_with_bound_policy_decision_for_context(
@@ -4467,18 +4459,16 @@ mod graph_tests {
                 "2026-10-02T08:00:00Z"
             )
         );
-        assert!(
-            !verification.passes_with_bound_policy_decision_for_context(
-                &plan,
-                &candidate,
-                &decision,
-                &bound_execution,
-                "recovery.execute",
-                "",
-                "authority-record-001",
-                "2026-10-02T08:00:00Z"
-            )
-        );
+        assert!(!verification.passes_with_bound_policy_decision_for_context(
+            &plan,
+            &candidate,
+            &decision,
+            &bound_execution,
+            "recovery.execute",
+            "",
+            "authority-record-001",
+            "2026-10-02T08:00:00Z"
+        ));
 
         let mut wrong_purpose = decision.clone();
         wrong_purpose.purpose = "different-purpose".into();
