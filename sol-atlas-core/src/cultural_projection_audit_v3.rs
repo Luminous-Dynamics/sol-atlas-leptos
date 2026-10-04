@@ -322,8 +322,8 @@ mod tests {
 
     #[test]
     fn v3_reciprocal_validation_rejects_rebound_semantic_context() {
-        let audit = CulturalProjectionAuditV3::from_v2(audit(), semantic_context())
-            .expect("v3 audit");
+        let audit =
+            CulturalProjectionAuditV3::from_v2(audit(), semantic_context()).expect("v3 audit");
         let frontier = frontier();
         let projection = CulturalProjectionV1::Transmission(CulturalTransmissionV1 {
             transmission_id: "transmission:1".into(),
@@ -357,7 +357,9 @@ mod tests {
         rebound_context.mappings[0]
             .recompute_hash()
             .expect("rebound mapping hash");
-        rebound_context.recompute_hash().expect("rebound envelope hash");
+        rebound_context
+            .recompute_hash()
+            .expect("rebound envelope hash");
 
         assert_eq!(
             audit.validate_against_projection_and_semantic_context(
