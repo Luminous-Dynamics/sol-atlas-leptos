@@ -1037,6 +1037,7 @@ pub enum RecoveryPolicyConsumptionOutcomeV1 {
     PlanMismatch,
     ExecutionMismatch,
     DecisionRejected,
+    ExecutionAuthorizationMismatch,
     PlanBindingMismatch,
     CandidateBindingMismatch,
     ExecutionInputMismatch,
@@ -1119,6 +1120,9 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         }
         if decision.digest() != self.decision_digest {
             return RecoveryPolicyConsumptionOutcomeV1::DecisionMismatch;
+        }
+        if execution.authorization.as_deref() != Some(self.decision_digest.as_str()) {
+            return RecoveryPolicyConsumptionOutcomeV1::ExecutionAuthorizationMismatch;
         }
         if execution.plan_id != decision.plan_id {
             return RecoveryPolicyConsumptionOutcomeV1::PlanMismatch;
@@ -4002,7 +4006,7 @@ mod graph_tests {
             observed_preconditions: vec![],
             evidence: vec!["consumption-check".into()],
             resulting_state: CapabilityState::Demonstrated,
-            authorization: None,
+            authorization: Some("placeholder".into()),
             ai_assistance: None,
             input_snapshot: "sha256:execution-inputs".into(),
             failure_reason: None,
@@ -4024,6 +4028,8 @@ mod graph_tests {
             valid_until: "2026-10-02T08:10:00Z".into(),
             claim_ceiling: "Exact recovery admission only.".into(),
         };
+
+        execution.authorization = Some(decision.digest());
 
         let available = RecoveryPolicyConsumptionSnapshotV1::for_decision(&decision);
         assert!(available.is_well_formed());
@@ -4186,6 +4192,28 @@ mod graph_tests {
         assert!(consumed
             .consumed(&decision, &execution, "2026-10-02T08:01:00Z")
             .is_none());
+
+        let mut missing_authorization = execution.clone();
+        missing_authorization.authorization = None;
+        assert_eq!(
+            available.consumption_outcome(
+                &decision,
+                &missing_authorization,
+                "2026-10-02T08:00:00Z"
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::ExecutionAuthorizationMismatch
+        );
+
+        let mut wrong_authorization = execution.clone();
+        wrong_authorization.authorization = Some("sha256:wrong-authorization".into());
+        assert_eq!(
+            available.consumption_outcome(
+                &decision,
+                &wrong_authorization,
+                "2026-10-02T08:00:00Z"
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::ExecutionAuthorizationMismatch
+        );
 
         let mut malformed_execution = execution.clone();
         malformed_execution.execution_id.clear();
