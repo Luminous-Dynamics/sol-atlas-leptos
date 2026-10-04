@@ -303,8 +303,8 @@ mod tests {
             &_frontier,
         )
         .expect("resolution");
-        let mut audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution])
-            .expect("v4 audit");
+        let mut audit =
+            CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("v4 audit");
 
         let original = audit.semantic_hash.clone();
         audit.base.frontier_manifest_hash = "ab".repeat(32);
