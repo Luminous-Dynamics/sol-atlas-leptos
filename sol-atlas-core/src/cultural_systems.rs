@@ -1234,7 +1234,10 @@ mod tests {
             value.context = Some("semantically rebound".into());
         }
 
-        assert_ne!(original, rebound.semantic_hash().expect("rebound projection hash"));
+        assert_ne!(
+            original,
+            rebound.semantic_hash().expect("rebound projection hash")
+        );
     }
 
     #[test]
@@ -1289,8 +1292,6 @@ mod tests {
         );
     }
 
-
-
     #[test]
     fn v2_frontier_bound_records_without_projection_hash_remain_migratable() {
         let frontier = frontier();
@@ -1308,6 +1309,27 @@ mod tests {
 
         assert_eq!(
             audit.validate_against_projection(&projection, &frontier, &claim),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn v2_admission_frontier_bound_records_without_projection_hash_remain_migratable() {
+        let frontier = frontier();
+        let projection = CulturalProjectionV1::Transmission(transmission());
+        let transmission = match &projection {
+            CulturalProjectionV1::Transmission(value) => value,
+            CulturalProjectionV1::Transformation(_) => unreachable!(),
+        };
+        let claim = canonical_claim(transmission);
+        let mut admission =
+            CulturalProjectionAdmissionV2::from_projection(&projection, &frontier, &claim)
+                .expect("strong frontier-bound admission");
+
+        admission.projection_semantic_hash.clear();
+
+        assert_eq!(
+            admission.validate_against_projection(&projection, &frontier, &claim),
             Ok(())
         );
     }
