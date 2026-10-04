@@ -1351,6 +1351,20 @@ mod tests {
     }
 
     #[test]
+    fn v2_strong_constructor_preserves_origin_failure_diagnostics() {
+        let frontier = frontier();
+        let transmission = transmission();
+        let projection = CulturalProjectionV1::Transmission(transmission.clone());
+        let mut claim = canonical_claim(&transmission);
+        claim.claim_ref = "claim:rebound".into();
+
+        assert_eq!(
+            CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
+
+    #[test]
     fn v2_admission_frontier_bound_records_without_projection_hash_remain_migratable() {
         let frontier = frontier();
         let projection = CulturalProjectionV1::Transmission(transmission());
