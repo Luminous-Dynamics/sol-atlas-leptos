@@ -108,9 +108,46 @@ For stronger V2+ provenance, Sol Atlas carries an optional SHA-256 projection-se
 
 The current projection semantic canonicalization is intentionally narrow and explicit: primary `evidence_refs` and `source_snapshots` are treated as set-like membership and sorted before hashing, matching the replay receipt contract. Other projection vectors are not reordered by the hash function. Any future change to these equivalence rules should introduce an explicit versioned canonicalization contract rather than silently changing the meaning of existing hashes.
 
-## Next integration step
+## Construction and validation tiers
 
-The semantic envelope is intentionally additive. The next integration can add
-a semantic-context reference to `CulturalProjectionAuditV2` via a new audit
-version, preserving old serialized records while making "why shown?" audits
-replayable against the exact ontology vocabulary used at render time.
+The V4 and V5 audit layers now expose two deliberate provenance tiers:
+
+- `from_v2` / `from_v4` remain migration-compatible constructors for already
+  serialized or legacy-shaped records.
+- `CulturalProjectionAuditV4::from_projection_at(...)` and
+  `CulturalProjectionAuditV5::from_projection_at(...)` rebuild the audit chain
+  from the originating projection, canonical claim, frontier, and exact
+  resolution/argumentation closure. They therefore populate the originating
+  projection semantic commitment instead of inheriting an empty legacy field.
+- `validate_against_projection(...)` remains migration-compatible, while
+  `validate_strong_against_projection(...)` requires both frontier-manifest
+  identity and the originating projection semantic commitment to be present
+  and independently verified.
+
+This separation avoids a dangerous compatibility pattern: making legacy data
+unreadable just to obtain a stronger security invariant. Older records remain
+replayable under the compatibility gate, while new provenance-sensitive call
+sites can opt into an explicit strong gate.
+
+The underlying rule is consistent with established provenance practice: a
+self-consistent digest establishes content integrity, but provenance validation
+also needs the verifier to check that the asserted identity matches the
+expected source artifact. W3C PROV-O models qualified derivation by explicitly
+citing the source entity and the activity that produced the derived entity;
+SLSA likewise treats provenance as verifiable information connecting an output
+artifact back to its source. Sol Atlas is not claiming conformance to either
+model; these are design analogies for keeping identity and origin verification
+distinct.
+
+RFC 8785 similarly requires an invariant representation for cryptographic
+operations and deliberately preserves JSON array element order. Sol Atlas
+therefore changes only the vectors whose domain semantics explicitly say they
+are sets; it does not silently sort arbitrary projection vectors.
+
+## Remaining integration step
+
+The remaining work is call-site migration: new rendering/replay paths should
+prefer the strong V4/V5 constructors and strong reciprocal validator, while
+legacy deserialization paths should continue using the migration-compatible
+APIs until their stored records can be upgraded without changing historical
+meaning.
