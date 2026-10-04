@@ -159,6 +159,32 @@ impl CulturalProjectionAuditV3 {
         Ok(())
     }
 
+    /// Strong reciprocal validation with an explicit semantic expectation.
+    ///
+    /// This combines provenance commitments with the caller's exact semantic
+    /// envelope, preventing a self-consistent but unexpected vocabulary witness
+    /// from being accepted merely because it is internally well-formed.
+    pub fn validate_strong_against_projection_and_semantic_context(
+        &self,
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
+        expected_context: &ProjectionSemanticEnvelopeV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate_against_projection_and_semantic_context(
+            projection,
+            frontier,
+            claim,
+            expected_context,
+        )?;
+        if self.base.frontier_manifest_hash.is_empty()
+            || self.base.projection_semantic_hash.is_empty()
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        Ok(())
+    }
+
     pub fn argumentation(&self) -> Option<&CulturalArgumentationRefV1> {
         self.base.argumentation.as_ref()
     }
@@ -490,6 +516,54 @@ mod tests {
                 &frontier,
                 &claim,
                 &rebound_context,
+            ),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
+
+    #[test]
+    fn v3_strong_validation_rejects_unexpected_semantic_context() {
+        let audit =
+            CulturalProjectionAuditV3::from_v2(audit(), semantic_context()).expect("v3 audit");
+        let projection = CulturalProjectionV1::Transmission(CulturalTransmissionV1 {
+            transmission_id: "transmission:1".into(),
+            source: "practice:source".into(),
+            target: "practice:target".into(),
+            mode: crate::cultural_systems::TransmissionMode::Translated,
+            event_time: YearInterval {
+                from: Some(1900),
+                to: Some(1950),
+            },
+            context: Some("documented".into()),
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            assessment: None,
+            qualification: QualificationStatus::Supported,
+            community_recognition: vec![],
+            access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+            evidence_frontier: "frontier:1950".into(),
+        });
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            qualification: QualificationStatus::Supported,
+            evidence_frontier: "frontier:1950".into(),
+        };
+        let mut unexpected = semantic_context();
+        unexpected.mappings[0].external_term = "E8_Acquisition".into();
+        unexpected.mappings[0]
+            .recompute_hash()
+            .expect("mapping hash");
+        unexpected.recompute_hash().expect("envelope hash");
+
+        assert_eq!(
+            audit.validate_strong_against_projection_and_semantic_context(
+                &projection,
+                &frontier(),
+                &claim,
+                &unexpected,
             ),
             Err(ProjectionError::AuditWithoutEvidencePath)
         );
