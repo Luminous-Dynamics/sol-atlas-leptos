@@ -85,11 +85,30 @@ impl CulturalProjectionAuditV3 {
         frontier: &crate::civilizational::EvidenceFrontierV1,
         claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
     ) -> Result<(), ProjectionError> {
+        self.validate_against_projection_and_semantic_context(
+            projection,
+            frontier,
+            claim,
+            &self.semantic_context,
+        )
+    }
+
+    /// Reciprocal validation against the exact semantic context used by the
+    /// caller. The context remains externally owned, so source binding must be
+    /// supplied explicitly rather than inferred from its own content hash.
+    pub fn validate_against_projection_and_semantic_context(
+        &self,
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
+        expected_context: &ProjectionSemanticEnvelopeV1,
+    ) -> Result<(), ProjectionError> {
         self.validate()?;
         self.base
             .validate_against_projection(projection, frontier, claim)?;
 
-        if self.semantic_context.projection_id != self.base.projection_id
+        if self.semantic_context != *expected_context
+            || self.semantic_context.projection_id != self.base.projection_id
             || self.semantic_context.claim_ref != self.base.claim_ref
             || self.semantic_context.evidence_frontier != frontier.frontier_id
             || self.semantic_context.qualification != self.base.qualification
@@ -299,6 +318,56 @@ mod tests {
             .expect("mapping rehash");
         context.recompute_hash().expect("envelope rehash");
         assert!(CulturalProjectionAuditV3::from_v2(audit(), context).is_err());
+    }
+
+    #[test]
+    fn v3_reciprocal_validation_rejects_rebound_semantic_context() {
+        let audit = CulturalProjectionAuditV3::from_v2(audit(), semantic_context())
+            .expect("v3 audit");
+        let frontier = frontier();
+        let projection = CulturalProjectionV1::Transmission(CulturalTransmissionV1 {
+            transmission_id: "transmission:1".into(),
+            source: "practice:source".into(),
+            target: "practice:target".into(),
+            mode: crate::cultural_systems::TransmissionMode::Translated,
+            event_time: YearInterval {
+                from: Some(1900),
+                to: Some(1950),
+            },
+            context: Some("documented".into()),
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            assessment: None,
+            qualification: QualificationStatus::Supported,
+            community_recognition: vec![],
+            access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+            evidence_frontier: "frontier:1950".into(),
+        });
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            qualification: QualificationStatus::Supported,
+            evidence_frontier: "frontier:1950".into(),
+        };
+
+        let mut rebound_context = audit.semantic_context.clone();
+        rebound_context.mappings[0].external_term = "E8_Acquisition".into();
+        rebound_context.mappings[0]
+            .recompute_hash()
+            .expect("rebound mapping hash");
+        rebound_context.recompute_hash().expect("rebound envelope hash");
+
+        assert_eq!(
+            audit.validate_against_projection_and_semantic_context(
+                &projection,
+                &frontier,
+                &claim,
+                &rebound_context,
+            ),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
     }
 
     #[test]
