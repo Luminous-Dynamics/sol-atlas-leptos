@@ -312,4 +312,74 @@ mod tests {
         assert_ne!(original, a.computed_hash().expect("hash"));
         assert!(a.validate().is_err());
     }
+
+    #[test]
+    fn typed_argumentation_availability_must_match_frontier_metadata() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["e:1"].into_iter().map(Into::into).collect(),
+            admitted_sources: ["source:1"].into_iter().map(Into::into).collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "e:1".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: None,
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:1".into(),
+                publication_time: None,
+                capture_time: None,
+                available_by: 1940,
+            }],
+            argumentation_metadata: vec![crate::civilizational::ArgumentationTemporalMetadataV1 {
+                assessment: "assessment:1".into(),
+                interpretation: "interpretation:1".into(),
+                assessment_time: None,
+                interpretation_time: None,
+                available_by: 1940,
+            }],
+        };
+        frontier.recompute_manifest_hash().expect("hash");
+
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: "claim:1".into(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            qualification: crate::civilizational::QualificationStatus::Supported,
+            evidence_frontier: frontier.frontier_id.clone(),
+        };
+        let value = CulturalArgumentationRefV2 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            claim_ref: claim.claim_ref.clone(),
+            closure: CulturalArgumentationEvidenceClosureV1 {
+                claim_ref: claim.claim_ref.clone(),
+                evidence_refs: claim.evidence_refs.clone(),
+                source_snapshots: claim.source_snapshots.clone(),
+                evidence_frontier: frontier.frontier_id.clone(),
+            },
+            assessment_time: None,
+            interpretation_time: None,
+            available_by: 1940,
+        };
+        let mut argument = CulturalArgumentationRefV3::from_v2(
+            CulturalArgumentationKindV1::InferenceMaking,
+            value,
+            &frontier,
+        )
+        .expect("argumentation");
+        assert!(argument.is_frontier_safe(&claim, &frontier));
+
+        argument.available_by = 1939;
+        argument.recompute_hash().expect("rehash");
+        assert!(!argument.is_frontier_safe(&claim, &frontier));
+    }
+
 }
