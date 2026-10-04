@@ -1233,6 +1233,32 @@ impl RecoveryPolicyConsumptionTransitionV1 {
             && !self.claim_ceiling.is_empty()
     }
 
+    /// Whether this transition is exactly bound to the supplied pre-state,
+    /// admitted decision, and successor state.
+    ///
+    /// This is intentionally stronger than structural well-formedness: a
+    /// transition is useful as an audit/CAS contract only when every digest and
+    /// consumed metadata field agrees with the concrete records being changed.
+    pub fn matches(
+        &self,
+        current: &RecoveryPolicyConsumptionSnapshotV1,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        next: &RecoveryPolicyConsumptionSnapshotV1,
+    ) -> bool {
+        self.is_well_formed()
+            && current.is_well_formed()
+            && next.is_well_formed()
+            && next.state == RecoveryPolicyConsumptionStateV1::Consumed
+            && self.decision_digest == decision.digest()
+            && self.decision_digest == current.decision_digest
+            && self.expected_snapshot_digest == current.digest()
+            && self.next_snapshot_digest == next.digest()
+            && next.decision_digest == current.decision_digest
+            && next.consumed_execution_id.as_deref() == Some(self.execution_id.as_str())
+            && next.consumed_at.as_deref() == Some(self.consumed_at.as_str())
+            && next.claim_ceiling == self.claim_ceiling
+    }
+
     pub fn canonical_bytes(&self) -> Vec<u8> {
         serde_json::to_vec(self)
             .expect("recovery policy consumption transition contains serializable primitives")
@@ -3928,6 +3954,15 @@ mod graph_tests {
         let consumed = available
             .consumed(&decision, &execution, "2026-10-02T08:00:00Z")
             .expect("valid one-time transition");
+        assert!(transition.matches(&available, &decision, &consumed));
+
+        let mut altered_transition = transition.clone();
+        altered_transition.next_snapshot_digest = available.digest();
+        assert!(!altered_transition.matches(&available, &decision, &consumed));
+
+        let mut altered_consumed = consumed.clone();
+        altered_consumed.consumed_at = Some("2026-10-02T08:00:01Z".into());
+        assert!(!transition.matches(&available, &decision, &altered_consumed));
         assert!(consumed.is_well_formed());
         assert_ne!(available_digest, consumed.digest());
         let mut different_consumption_time = consumed.clone();
