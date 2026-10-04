@@ -1418,9 +1418,23 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
 /// prior snapshot version and exact successor snapshot version. An external
 /// store must enforce the expected_snapshot_digest atomically; the digest
 /// fields alone do not provide compare-and-set semantics.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryPolicyConsumptionTransitionModeV1 {
+    ExecutionAdmission,
+    CompletedConsumption,
+}
+
+impl Default for RecoveryPolicyConsumptionTransitionModeV1 {
+    fn default() -> Self {
+        Self::CompletedConsumption
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RecoveryPolicyConsumptionTransitionV1 {
     pub schema: String,
+    #[serde(default)]
+    pub mode: RecoveryPolicyConsumptionTransitionModeV1,
     pub decision_digest: String,
     pub expected_snapshot_digest: String,
     pub next_snapshot_digest: String,
@@ -1442,6 +1456,7 @@ impl RecoveryPolicyConsumptionTransitionV1 {
 
         Some(Self {
             schema: Self::SCHEMA.into(),
+            mode: RecoveryPolicyConsumptionTransitionModeV1::ExecutionAdmission,
             decision_digest: current.decision_digest.clone(),
             expected_snapshot_digest: current.digest(),
             next_snapshot_digest: next.digest(),
@@ -1509,6 +1524,7 @@ impl RecoveryPolicyConsumptionTransitionV1 {
 
         Some(Self {
             schema: Self::SCHEMA.into(),
+            mode: RecoveryPolicyConsumptionTransitionModeV1::CompletedConsumption,
             decision_digest: current.decision_digest.clone(),
             expected_snapshot_digest: current.digest(),
             next_snapshot_digest: next.digest(),
@@ -1579,7 +1595,15 @@ impl RecoveryPolicyConsumptionTransitionV1 {
         execution: &RecoveryExecution,
         next: &RecoveryPolicyConsumptionSnapshotV1,
     ) -> bool {
-        let Some(expected_next) = current.consumed(decision, execution, &self.consumed_at) else {
+        let expected_next = match self.mode {
+            RecoveryPolicyConsumptionTransitionModeV1::ExecutionAdmission => {
+                current.consumed_at_execution_start(decision, execution)
+            }
+            RecoveryPolicyConsumptionTransitionModeV1::CompletedConsumption => {
+                current.consumed(decision, execution, &self.consumed_at)
+            }
+        };
+        let Some(expected_next) = expected_next else {
             return false;
         };
 
@@ -4289,6 +4313,11 @@ mod graph_tests {
         ));
         assert_eq!(admission_transition.consumed_at, execution.started_at);
 
+        assert_eq!(
+            admission_transition.mode,
+            RecoveryPolicyConsumptionTransitionModeV1::ExecutionAdmission
+        );
+
         let mut future_execution = execution.clone();
         future_execution.started_at = "2026-10-02T08:11:00Z".into();
         assert_eq!(
@@ -4313,6 +4342,10 @@ mod graph_tests {
         assert_eq!(transition.next_snapshot_digest, consumed_preview.digest());
         assert_eq!(transition.execution_id, execution.execution_id);
         assert_eq!(transition.consumed_at, "2026-10-02T08:00:00Z");
+        assert_eq!(
+            transition.mode,
+            RecoveryPolicyConsumptionTransitionModeV1::CompletedConsumption
+        );
         assert_eq!(
             transition.digest(),
             RecoveryPolicyConsumptionTransitionV1::for_successful_consumption(
