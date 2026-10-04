@@ -560,12 +560,11 @@ pub struct EvidenceFrontierChainV1 {
 }
 
 impl EvidenceFrontierChainV1 {
-    /// Strict chain validation for reproducible replay. Every frontier in the
-    /// supplied ancestry must carry complete source availability metadata.
-    pub fn validate_strict(&self) -> Result<(), ProjectionError> {
-        if self.frontiers.is_empty() {
-            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
-        }
+    /// Reject duplicate frontier identifiers without validating the frontier
+    /// contents. Historical selectors depend on identifier uniqueness across
+    /// the full supplied sequence, even when later frontier contents are out
+    /// of historical replay scope.
+    pub(crate) fn validate_unique_frontier_ids(&self) -> Result<(), ProjectionError> {
         let mut frontier_ids = BTreeSet::new();
         if self
             .frontiers
@@ -574,6 +573,16 @@ impl EvidenceFrontierChainV1 {
         {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
+        Ok(())
+    }
+
+    /// Strict chain validation for reproducible replay. Every frontier in the
+    /// supplied ancestry must carry complete source availability metadata.
+    pub fn validate_strict(&self) -> Result<(), ProjectionError> {
+        if self.frontiers.is_empty() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        self.validate_unique_frontier_ids()?;
         if self.frontiers[0].parent_frontier.is_some() {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
@@ -592,14 +601,7 @@ impl EvidenceFrontierChainV1 {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
 
-        let mut frontier_ids = BTreeSet::new();
-        if self
-            .frontiers
-            .iter()
-            .any(|frontier| !frontier_ids.insert(frontier.frontier_id.clone()))
-        {
-            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
-        }
+        self.validate_unique_frontier_ids()?;
 
         if self.frontiers[0].parent_frontier.is_some() {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
