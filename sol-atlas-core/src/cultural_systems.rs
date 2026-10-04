@@ -888,8 +888,6 @@ impl CulturalProjectionAuditV2 {
                 .any(|id| !id.is_valid())
             || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid()
-            || has_duplicate_ids(&self.evidence_refs)
-            || has_duplicate_source_snapshots(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -1034,6 +1032,8 @@ impl CulturalProjectionAuditV1 {
                 .any(|id| !id.is_valid())
             || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid()
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_source_snapshots(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
