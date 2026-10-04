@@ -167,6 +167,26 @@ impl CulturalProjectionAuditV4 {
         Ok(())
     }
 
+    /// Strong reciprocal validation for new provenance paths.
+    ///
+    /// Unlike the migration-compatible validator, this gate requires both the
+    /// frontier manifest commitment and originating projection semantic hash
+    /// to be present and verified.
+    pub fn validate_strong_against_projection(
+        &self,
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate_against_projection(projection, frontier, claim)?;
+        if self.base.frontier_manifest_hash.is_empty()
+            || self.base.projection_semantic_hash.is_empty()
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        Ok(())
+    }
+
     pub fn projection_id(&self) -> &CulturalProjectionIdV1 {
         &self.base.projection_id
     }
@@ -366,6 +386,14 @@ mod tests {
         let legacy =
             CulturalProjectionAuditV4::from_v2(base, audit.resolutions.clone()).expect("legacy path");
         assert!(legacy.base.projection_semantic_hash.is_empty());
+        assert_eq!(
+            legacy.validate_strong_against_projection(&projection, &frontier, &claim),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+        assert_eq!(
+            audit.validate_strong_against_projection(&projection, &frontier, &claim),
+            Ok(())
+        );
     }
 
     #[test]
