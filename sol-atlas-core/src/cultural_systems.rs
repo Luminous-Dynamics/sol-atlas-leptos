@@ -888,6 +888,8 @@ impl CulturalProjectionAuditV2 {
                 .any(|id| !id.is_valid())
             || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
             || !self.evidence_frontier.is_valid()
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_source_snapshots(&self.source_snapshots)
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
@@ -1335,6 +1337,19 @@ mod tests {
                 .validate()
                 .is_ok()
         );
+    }
+
+    #[test]
+    fn projection_audit_rejects_duplicate_primary_provenance() {
+        let projection = CulturalProjectionV1::Transmission(transmission());
+        let mut audit = CulturalProjectionAuditV2::from_projection(&projection);
+
+        audit.evidence_refs.push("e:1".into());
+        assert_eq!(audit.validate(), Err(ProjectionError::EmptyIdentifier));
+
+        let mut audit = CulturalProjectionAuditV2::from_projection(&projection);
+        audit.source_snapshots.push("source:1".into());
+        assert_eq!(audit.validate(), Err(ProjectionError::EmptyIdentifier));
     }
 
     #[test]
