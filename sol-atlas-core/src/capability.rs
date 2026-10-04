@@ -1021,6 +1021,23 @@ pub enum RecoveryPolicyConsumptionStateV1 {
     Consumed,
 }
 
+/// Deterministic result of evaluating one-time authorization consumption.
+///
+/// These outcomes are intentionally narrower than transport/database errors.
+/// An external store may use `Allowed` as the precondition for an atomic
+/// compare-and-set and must preserve every other outcome as a failed attempt.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryPolicyConsumptionOutcomeV1 {
+    Allowed,
+    MalformedConsumptionState,
+    MalformedDecision,
+    DecisionMismatch,
+    AlreadyConsumed,
+    ExecutionMismatch,
+    DecisionNotValidAtConsumption,
+    ExecutionNotCovered,
+}
+
 /// Renderer-neutral record of one authorization's consumption state.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RecoveryPolicyConsumptionSnapshotV1 {
@@ -1069,6 +1086,42 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
             }
     }
 
+    /// Evaluate a one-time consumption attempt without mutating state.
+    ///
+    /// `Allowed` means the supplied authorization and execution are eligible
+    /// for an atomic consume-if-current operation by an external store.
+    pub fn consumption_outcome(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        execution: &RecoveryExecution,
+        now: &str,
+    ) -> RecoveryPolicyConsumptionOutcomeV1 {
+        if !self.is_well_formed() {
+            return RecoveryPolicyConsumptionOutcomeV1::MalformedConsumptionState;
+        }
+        if self.state != RecoveryPolicyConsumptionStateV1::Unconsumed {
+            return RecoveryPolicyConsumptionOutcomeV1::AlreadyConsumed;
+        }
+        if !decision.is_well_formed() {
+            return RecoveryPolicyConsumptionOutcomeV1::MalformedDecision;
+        }
+        if decision.digest() != self.decision_digest {
+            return RecoveryPolicyConsumptionOutcomeV1::DecisionMismatch;
+        }
+        if let Some(bound_execution_id) = decision.execution_id.as_deref() {
+            if bound_execution_id != execution.execution_id {
+                return RecoveryPolicyConsumptionOutcomeV1::ExecutionMismatch;
+            }
+        }
+        if !decision.is_valid_at(now) {
+            return RecoveryPolicyConsumptionOutcomeV1::DecisionNotValidAtConsumption;
+        }
+        if !decision.covers_execution(execution, now) {
+            return RecoveryPolicyConsumptionOutcomeV1::ExecutionNotCovered;
+        }
+        RecoveryPolicyConsumptionOutcomeV1::Allowed
+    }
+
     /// Whether the current state permits a one-time consumption transition.
     ///
     /// This is a pure decision function. It does not provide atomic
@@ -1079,11 +1132,8 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         execution: &RecoveryExecution,
         now: &str,
     ) -> bool {
-        self.is_well_formed()
-            && self.state == RecoveryPolicyConsumptionStateV1::Unconsumed
-            && decision.is_admitted()
-            && decision.digest() == self.decision_digest
-            && decision.covers_execution(execution, now)
+        self.consumption_outcome(decision, execution, now)
+            == RecoveryPolicyConsumptionOutcomeV1::Allowed
     }
 
     /// Construct the post-consumption state after a successful authorization use.
@@ -3757,6 +3807,10 @@ mod graph_tests {
 
         let available = RecoveryPolicyConsumptionSnapshotV1::for_decision(&decision);
         assert!(available.is_well_formed());
+        assert_eq!(
+            available.consumption_outcome(&decision, &execution, "2026-10-02T08:00:00Z"),
+            RecoveryPolicyConsumptionOutcomeV1::Allowed
+        );
         assert!(available.permits_consumption(&decision, &execution, "2026-10-02T08:00:00Z"));
 
         let consumed = available
@@ -3766,6 +3820,10 @@ mod graph_tests {
         assert_eq!(
             consumed.state,
             RecoveryPolicyConsumptionStateV1::Consumed
+        );
+        assert_eq!(
+            consumed.consumption_outcome(&decision, &execution, "2026-10-02T08:01:00Z"),
+            RecoveryPolicyConsumptionOutcomeV1::AlreadyConsumed
         );
         assert!(!consumed.permits_consumption(
             &decision,
@@ -3778,6 +3836,14 @@ mod graph_tests {
 
         let mut different_execution = execution.clone();
         different_execution.execution_id = "execution-other".into();
+        assert_eq!(
+            available.consumption_outcome(
+                &decision,
+                &different_execution,
+                "2026-10-02T08:00:00Z"
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::ExecutionMismatch
+        );
         assert!(!available.permits_consumption(
             &decision,
             &different_execution,
@@ -3787,12 +3853,28 @@ mod graph_tests {
         let mut malformed_digest = available.clone();
         malformed_digest.decision_digest = "sha256:not-a-digest".into();
         assert!(!malformed_digest.is_well_formed());
+        assert_eq!(
+            malformed_digest.consumption_outcome(
+                &decision,
+                &execution,
+                "2026-10-02T08:00:00Z"
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::MalformedConsumptionState
+        );
 
         let mut malformed_consumed = consumed.clone();
         malformed_consumed.consumed_at = None;
         assert!(!malformed_consumed.is_well_formed());
 
-        let mut expired = available.clone();
+        let expired = available.clone();
+        assert_eq!(
+            expired.consumption_outcome(
+                &decision,
+                &execution,
+                "2026-10-02T08:10:00Z"
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::DecisionNotValidAtConsumption
+        );
         assert!(!expired.permits_consumption(
             &decision,
             &execution,
