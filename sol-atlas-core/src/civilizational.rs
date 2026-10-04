@@ -1083,6 +1083,67 @@ pub enum ProjectionError {
     DuplicateArgumentationMetadata,
 }
 
+impl ProjectionError {
+    /// Stable machine-readable diagnostic code for logs, telemetry, and
+    /// cross-boundary error reporting.
+    pub const fn code(&self) -> &'static str {
+        match self {
+            Self::EmptyIdentifier => "empty_identifier",
+            Self::InvalidTimeInterval => "invalid_time_interval",
+            Self::MissingEvidenceFrontier => "missing_evidence_frontier",
+            Self::GeometryWithoutEvidence => "geometry_without_evidence",
+            Self::ApproximateGeometryMislabelled => "approximate_geometry_mislabelled",
+            Self::ContestedStatusMismatch => "contested_status_mismatch",
+            Self::MissingTransitionClass => "missing_transition_class",
+            Self::TransitionWithoutParticipants => "transition_without_participants",
+            Self::IrreversibleTransition => "irreversible_transition",
+            Self::SnapshotWithoutEvidencePath => "snapshot_without_evidence_path",
+            Self::TransitionWithoutEvidencePath => "transition_without_evidence_path",
+            Self::AuditWithoutEvidencePath => "audit_without_evidence_path",
+            Self::AuditWithoutSourcePath => "audit_without_source_path",
+            Self::InvalidSnapshot => "invalid_snapshot",
+            Self::InvalidTransition => "invalid_transition",
+            Self::InvalidEvidenceTemporalMetadata => "invalid_evidence_temporal_metadata",
+            Self::InvalidEvidenceFrontierManifest => "invalid_evidence_frontier_manifest",
+            Self::LaterEvidenceInFrontier => "later_evidence_in_frontier",
+            Self::UnadmittedEvidenceMetadata => "unadmitted_evidence_metadata",
+            Self::UnadmittedSourceMetadata => "unadmitted_source_metadata",
+            Self::DuplicateArgumentationMetadata => "duplicate_argumentation_metadata",
+        }
+    }
+}
+
+impl std::fmt::Display for ProjectionError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let message = match self {
+            Self::EmptyIdentifier => "empty identifier",
+            Self::InvalidTimeInterval => "invalid time interval",
+            Self::MissingEvidenceFrontier => "missing evidence frontier",
+            Self::GeometryWithoutEvidence => "geometry without evidence",
+            Self::ApproximateGeometryMislabelled => "approximate geometry mislabelled",
+            Self::ContestedStatusMismatch => "contested status mismatch",
+            Self::MissingTransitionClass => "missing transition class",
+            Self::TransitionWithoutParticipants => "transition without participants",
+            Self::IrreversibleTransition => "irreversible transition",
+            Self::SnapshotWithoutEvidencePath => "snapshot without evidence path",
+            Self::TransitionWithoutEvidencePath => "transition without evidence path",
+            Self::AuditWithoutEvidencePath => "audit without evidence path",
+            Self::AuditWithoutSourcePath => "audit without source path",
+            Self::InvalidSnapshot => "invalid snapshot",
+            Self::InvalidTransition => "invalid transition",
+            Self::InvalidEvidenceTemporalMetadata => "invalid evidence temporal metadata",
+            Self::InvalidEvidenceFrontierManifest => "invalid evidence frontier manifest",
+            Self::LaterEvidenceInFrontier => "later evidence in frontier",
+            Self::UnadmittedEvidenceMetadata => "unadmitted evidence metadata",
+            Self::UnadmittedSourceMetadata => "unadmitted source metadata",
+            Self::DuplicateArgumentationMetadata => "duplicate argumentation metadata",
+        };
+        formatter.write_str(message)
+    }
+}
+
+impl std::error::Error for ProjectionError {}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1144,6 +1205,19 @@ mod tests {
                 to: Some(1948),
             }),
         }
+    }
+
+    #[test]
+    fn projection_error_has_stable_machine_code_and_display() {
+        let error = ProjectionError::AuditWithoutEvidencePath;
+        assert_eq!(error.code(), "audit_without_evidence_path");
+        assert_eq!(error.to_string(), "audit without evidence path");
+    }
+
+    #[test]
+    fn projection_error_is_standard_thread_safe_error() {
+        fn assert_error<E: std::error::Error + Send + Sync + 'static>() {}
+        assert_error::<ProjectionError>();
     }
 
     #[test]
