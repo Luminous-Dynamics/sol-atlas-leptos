@@ -1921,6 +1921,7 @@ mod tests {
     fn argumentation_replay_allows_only_records_available_at_frontier() {
         let mut frontier = frontier();
         frontier.known_by_year = 1960;
+        frontier.argumentation_metadata[0].available_by = 1956;
         frontier.recompute_manifest_hash().expect("fixture hash");
         let value = transmission();
         let mut value = value;
