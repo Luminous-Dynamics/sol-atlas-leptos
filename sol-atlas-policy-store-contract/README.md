@@ -8,7 +8,7 @@ It defines the narrow persistence boundary for one-time RecoveryPolicyConsumptio
 2. validate the transition against the exact decision, execution, and successor;
 3. compare the expected snapshot digest with the stored version;
 4. ask the backing store to atomically compare-and-set the exact successor;
-5. report commit, conflict, replay, missing state, invalid transition, or store failure distinctly.
+5. report commit, conflict, replay, missing state, invalid transition, malformed semantic input/state, or store failure distinctly.
 
 The package does not select a database, transport, locking implementation, authority-authentication scheme, OAuth/DPoP profile, or proof-of-possession mechanism.
 
