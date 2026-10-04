@@ -2469,8 +2469,10 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
         let execution = fixture().1;
+        let mut claim = claim;
+        claim.execution_id = execution.execution_id.clone();
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
         let started =
             RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&fence)
                 .expect("started receipt");
@@ -2500,8 +2502,10 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
         let mut execution = fixture().1;
+        let mut claim = claim;
+        claim.execution_id = execution.execution_id.clone();
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
         execution.completed_steps.clear();
         execution.failed_steps = vec!["verify".into()];
         execution.failure_reason = Some("verification failed".into());
@@ -2535,8 +2539,10 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
         let mut execution = fixture().1;
+        let mut claim = claim;
+        claim.execution_id = execution.execution_id.clone();
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
         execution.input_snapshot =
             "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".into();
         let started =
