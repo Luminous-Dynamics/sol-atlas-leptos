@@ -381,6 +381,148 @@ mod tests {
     }
 
     #[test]
+    fn missing_state_is_reported_without_cas() {
+        struct MissingStore {
+            cas_called: Mutex<bool>,
+        }
+
+        impl RecoveryPolicyConsumptionStore for MissingStore {
+            type Error = &'static str;
+
+            fn load(
+                &self,
+                _decision_digest: &str,
+            ) -> Result<Option<RecoveryPolicyConsumptionSnapshotV1>, Self::Error> {
+                Ok(None)
+            }
+
+            fn compare_and_set(
+                &self,
+                _decision_digest: &str,
+                _expected_snapshot_digest: &str,
+                _next: &RecoveryPolicyConsumptionSnapshotV1,
+            ) -> Result<bool, Self::Error> {
+                *self.cas_called.lock().expect("cas lock") = true;
+                Ok(true)
+            }
+        }
+
+        let (decision, execution, current) = fixture();
+        let (transition, next) =
+            transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
+        let store = MissingStore {
+            cas_called: Mutex::new(false),
+        };
+
+        assert_eq!(
+            persist_consumption_transition(
+                &store,
+                &decision,
+                &execution,
+                &transition,
+                &next,
+            )
+            .expect("missing-state result"),
+            RecoveryPolicyConsumptionPersistenceOutcome::MissingState
+        );
+        assert!(!*store.cas_called.lock().expect("cas lock"));
+    }
+
+    #[test]
+    fn cas_rejection_is_conflict_and_not_commit() {
+        struct RejectingStore {
+            loaded: RecoveryPolicyConsumptionSnapshotV1,
+        }
+
+        impl RecoveryPolicyConsumptionStore for RejectingStore {
+            type Error = &'static str;
+
+            fn load(
+                &self,
+                _decision_digest: &str,
+            ) -> Result<Option<RecoveryPolicyConsumptionSnapshotV1>, Self::Error> {
+                Ok(Some(self.loaded.clone()))
+            }
+
+            fn compare_and_set(
+                &self,
+                _decision_digest: &str,
+                _expected_snapshot_digest: &str,
+                _next: &RecoveryPolicyConsumptionSnapshotV1,
+            ) -> Result<bool, Self::Error> {
+                Ok(false)
+            }
+        }
+
+        let (decision, execution, current) = fixture();
+        let (transition, next) =
+            transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
+        assert_eq!(
+            persist_consumption_transition(
+                &RejectingStore { loaded: current },
+                &decision,
+                &execution,
+                &transition,
+                &next,
+            )
+            .expect("CAS rejection result"),
+            RecoveryPolicyConsumptionPersistenceOutcome::Conflict
+        );
+    }
+
+    #[test]
+    fn stored_decision_binding_mismatch_blocks_cas() {
+        struct MismatchedStore {
+            loaded: RecoveryPolicyConsumptionSnapshotV1,
+            cas_called: Mutex<bool>,
+        }
+
+        impl RecoveryPolicyConsumptionStore for MismatchedStore {
+            type Error = &'static str;
+
+            fn load(
+                &self,
+                _decision_digest: &str,
+            ) -> Result<Option<RecoveryPolicyConsumptionSnapshotV1>, Self::Error> {
+                Ok(Some(self.loaded.clone()))
+            }
+
+            fn compare_and_set(
+                &self,
+                _decision_digest: &str,
+                _expected_snapshot_digest: &str,
+                _next: &RecoveryPolicyConsumptionSnapshotV1,
+            ) -> Result<bool, Self::Error> {
+                *self.cas_called.lock().expect("cas lock") = true;
+                Ok(true)
+            }
+        }
+
+        let (decision, execution, current) = fixture();
+        let (transition, next) =
+            transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
+        let mut loaded = current;
+        loaded.decision_digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into();
+        let store = MismatchedStore {
+            loaded,
+            cas_called: Mutex::new(false),
+        };
+
+        assert_eq!(
+            persist_consumption_transition(
+                &store,
+                &decision,
+                &execution,
+                &transition,
+                &next,
+            )
+            .expect("stored-decision mismatch result"),
+            RecoveryPolicyConsumptionPersistenceOutcome::InvalidTransition
+        );
+        assert!(!*store.cas_called.lock().expect("cas lock"));
+    }
+
+    #[test]
     fn malformed_stored_state_is_rejected_before_conflict_classification() {
         struct MalformedStore {
             state: RecoveryPolicyConsumptionSnapshotV1,
