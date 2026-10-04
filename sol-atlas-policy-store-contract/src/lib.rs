@@ -963,7 +963,7 @@ pub fn acquire_execution_fence<S>(
 where
     S: RecoveryExecutionFenceStore,
 {
-    if !fence.is_well_formed() {
+    if !fence.is_well_formed() || fence.fence_epoch != 1 {
         return Ok(RecoveryExecutionFenceResult::MalformedFence);
     }
 
@@ -2771,6 +2771,22 @@ mod tests {
         assert_eq!(
             reconcile_execution_claim(&store, &claim).expect("reconcile"),
             RecoveryExecutionClaimReconciliationOutcome::MissingClaim
+        );
+    }
+
+    #[test]
+    fn initial_fence_must_start_at_epoch_one() {
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let mut fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("fence");
+        fence.fence_epoch = 2;
+        let store = FencedExecutionMemoryStore::default();
+
+        assert_eq!(
+            acquire_execution_fence(&store, &fence).expect("invalid epoch"),
+            RecoveryExecutionFenceResult::MalformedFence
         );
     }
 
