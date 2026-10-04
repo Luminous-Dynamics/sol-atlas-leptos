@@ -674,6 +674,58 @@ mod tests {
     }
 
     #[test]
+    fn strict_constructor_rejects_same_id_frontier_reissuance() {
+        let (legacy_audit, claim, mut chain) = fixture();
+        let frontier = &chain.frontiers[0];
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: Some("assessment:1".into()),
+                qualification: QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: AccessPolicyV1::Public,
+                evidence_frontier: "frontier:1950".into(),
+            },
+        );
+        let strong_audit = CulturalProjectionAuditV5::from_projection_at(
+            &projection,
+            frontier,
+            &claim,
+            legacy_audit.base.resolutions.clone(),
+            legacy_audit.argumentation.clone(),
+        )
+        .expect("strong audit");
+
+        let mut reissued = chain.frontiers[0].clone();
+        reissued.policy_version = "reissued-policy".into();
+        reissued.recompute_manifest_hash().expect("reissued hash");
+        chain.frontiers[0] = reissued;
+
+        assert_ne!(chain.frontiers[0].manifest_hash, frontier.manifest_hash);
+        assert!(
+            V5HistoricalReplayReceiptV1::from_projection_at(
+                &projection,
+                &strong_audit,
+                &chain,
+                &"frontier:1950".into(),
+                &claim,
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
     fn strict_projection_validation_rejects_legacy_projection_identity() {
         let (audit, claim, chain) = fixture();
         let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
