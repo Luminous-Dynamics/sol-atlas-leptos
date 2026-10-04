@@ -74,7 +74,10 @@ Strict replay therefore requires all of the following:
 - source IDs in metadata to match the admitted source set exactly;
 - every evidence metadata record to reference an admitted source;
 - every ancestor frontier in the selected chain to satisfy the same strict
-  requirements, not merely the selected leaf.
+  requirements, not merely the selected leaf;
+- frontier identifiers to be unique across the full supplied sequence, because
+  historical selection is identifier-based even when later frontier contents
+  remain outside the selected replay prefix.
 
 This prevents a valid modern leaf from laundering a legacy or incomplete
 ancestor into a reproducible historical chain.
