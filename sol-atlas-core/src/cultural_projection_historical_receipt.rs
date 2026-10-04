@@ -604,7 +604,12 @@ mod tests {
         .expect("strict historical receipt");
 
         assert_eq!(
-            receipt.validate_strong_against_projection_at(&projection, &strong_audit, &chain, &claim),
+            receipt.validate_strong_against_projection_at(
+                &projection,
+                &strong_audit,
+                &chain,
+                &claim
+            ),
             Ok(())
         );
         assert_eq!(receipt.selected_frontier, "frontier:1950".into());
@@ -658,7 +663,12 @@ mod tests {
         .expect("strict historical receipt");
         assert_eq!(receipt.selected_frontier, "frontier:1950".into());
         assert_eq!(
-            receipt.validate_strong_against_projection_at(&projection, &strong_audit, &chain, &claim),
+            receipt.validate_strong_against_projection_at(
+                &projection,
+                &strong_audit,
+                &chain,
+                &claim
+            ),
             Ok(())
         );
     }
