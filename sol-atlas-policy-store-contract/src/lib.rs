@@ -260,6 +260,11 @@ pub enum RecoveryExecutionClaimResult {
 pub trait RecoveryExecutionClaimStore: Send + Sync {
     type Error;
 
+    /// Atomically establish the first durable owner for an execution identity.
+    ///
+    /// Implementations MUST reject malformed claims with MalformedClaim and
+    /// MUST NOT mutate state when rejecting them. An existing claim must never
+    /// be replaced by a different attempt or fingerprint.
     fn claim_if_absent(
         &self,
         claim: &RecoveryExecutionClaimV1,
@@ -487,11 +492,19 @@ pub enum RecoveryExecutionEffectRecoveryResult {
 pub trait RecoveryExecutionEffectStore: Send + Sync {
     type Error;
 
+    /// Atomically begin an effect receipt.
+    ///
+    /// Implementations MUST reject malformed receipts with MalformedReceipt
+    /// and MUST NOT mutate state when rejecting them.
     fn begin_effect(
         &self,
         receipt: &RecoveryExecutionEffectReceiptV2,
     ) -> Result<RecoveryExecutionEffectStartResult, Self::Error>;
 
+    /// Atomically record a terminal receipt owned by the exact live generation.
+    ///
+    /// Implementations MUST reject malformed or argument-mismatched terminal
+    /// receipts with MalformedReceipt and MUST NOT mutate state when rejecting.
     fn complete_effect(
         &self,
         execution_id: &str,
@@ -501,6 +514,10 @@ pub trait RecoveryExecutionEffectStore: Send + Sync {
         completed: &RecoveryExecutionEffectReceiptV2,
     ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error>;
 
+    /// Atomically transfer one InProgress receipt to an exact successor fence.
+    ///
+    /// Implementations MUST reject malformed or non-monotonic transitions with
+    /// MalformedReceipt and MUST NOT mutate state when rejecting them.
     fn recover_effect_if_current(
         &self,
         expected: &RecoveryExecutionEffectReceiptV2,
@@ -1207,11 +1224,19 @@ mod tests {
             &self,
             receipt: &RecoveryExecutionEffectReceiptV2,
         ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
+            if !receipt.is_well_formed() {
+                return Ok(RecoveryExecutionEffectStartResult::MalformedReceipt);
+            }
+
             let mut values = self.values.lock().map_err(|_| "poisoned")?;
             let Some(current) = values.get(&receipt.execution_id) else {
                 values.insert(receipt.execution_id.clone(), receipt.clone());
                 return Ok(RecoveryExecutionEffectStartResult::Started);
             };
+
+            if !current.is_well_formed() {
+                return Ok(RecoveryExecutionEffectStartResult::MalformedReceipt);
+            }
 
             if current.execution_input_snapshot != receipt.execution_input_snapshot {
                 return Ok(RecoveryExecutionEffectStartResult::FingerprintMismatch);
@@ -1238,10 +1263,10 @@ mod tests {
                 (RecoveryExecutionEffectStateV1::InProgress, false) => {
                     RecoveryExecutionEffectStartResult::AlreadyInProgressOtherAttempt
                 }
-                (RecoveryExecutionEffectStateV1::Succeeded, _ ) => {
+                (RecoveryExecutionEffectStateV1::Succeeded, _) => {
                     RecoveryExecutionEffectStartResult::AlreadySucceededSameRequest
                 }
-                (RecoveryExecutionEffectStateV1::Failed, _ ) => {
+                (RecoveryExecutionEffectStateV1::Failed, _) => {
                     RecoveryExecutionEffectStartResult::AlreadyFailedSameRequest
                 }
             })
@@ -1255,10 +1280,28 @@ mod tests {
             fence_epoch: u64,
             completed: &RecoveryExecutionEffectReceiptV2,
         ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
+            if execution_id.is_empty()
+                || !is_sha256_digest(execution_input_snapshot)
+                || attempt_id.is_empty()
+                || fence_epoch == 0
+                || !completed.is_well_formed()
+                || completed.execution_id != execution_id
+                || completed.execution_input_snapshot != execution_input_snapshot
+                || completed.attempt_id != attempt_id
+                || completed.fence_epoch != fence_epoch
+                || completed.state == RecoveryExecutionEffectStateV1::InProgress
+            {
+                return Ok(RecoveryExecutionEffectCompletionResult::MalformedReceipt);
+            }
+
             let mut values = self.values.lock().map_err(|_| "poisoned")?;
             let Some(current) = values.get(execution_id) else {
                 return Ok(RecoveryExecutionEffectCompletionResult::MissingReceipt);
             };
+
+            if !current.is_well_formed() {
+                return Ok(RecoveryExecutionEffectCompletionResult::MalformedReceipt);
+            }
 
             if current.execution_input_snapshot != execution_input_snapshot {
                 return Ok(RecoveryExecutionEffectCompletionResult::FingerprintMismatch);
@@ -1293,10 +1336,28 @@ mod tests {
             expected: &RecoveryExecutionEffectReceiptV2,
             successor: &RecoveryExecutionEffectReceiptV2,
         ) -> Result<RecoveryExecutionEffectRecoveryResult, Self::Error> {
+            let valid_successor_epoch = expected.fence_epoch.checked_add(1);
+            if !expected.is_well_formed()
+                || expected.state != RecoveryExecutionEffectStateV1::InProgress
+                || !successor.is_well_formed()
+                || successor.state != RecoveryExecutionEffectStateV1::InProgress
+                || successor.execution_id != expected.execution_id
+                || successor.execution_input_snapshot != expected.execution_input_snapshot
+                || successor.attempt_id == expected.attempt_id
+                || valid_successor_epoch
+                    .is_none_or(|epoch| successor.fence_epoch != epoch)
+            {
+                return Ok(RecoveryExecutionEffectRecoveryResult::MalformedReceipt);
+            }
+
             let mut values = self.values.lock().map_err(|_| "poisoned")?;
             let Some(current) = values.get(&expected.execution_id) else {
                 return Ok(RecoveryExecutionEffectRecoveryResult::MissingReceipt);
             };
+
+            if !current.is_well_formed() {
+                return Ok(RecoveryExecutionEffectRecoveryResult::MalformedReceipt);
+            }
 
             if current.execution_input_snapshot != expected.execution_input_snapshot {
                 return Ok(RecoveryExecutionEffectRecoveryResult::FingerprintMismatch);
@@ -1337,6 +1398,97 @@ mod tests {
             attempt_id,
             1,
         )
+    }
+
+    #[test]
+    fn effect_store_rejects_malformed_start_even_when_called_directly() {
+        let store = ExecutionEffectMemoryStore::default();
+        let mut receipt = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        receipt.outcome_digest = Some("not-a-digest".into());
+
+        assert_eq!(
+            store.begin_effect(&receipt).expect("direct malformed start"),
+            RecoveryExecutionEffectStartResult::MalformedReceipt
+        );
+        assert!(
+            store
+                .load_effect(&receipt.execution_id)
+                .expect("load after rejection")
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn effect_store_rejects_malformed_completion_without_mutating_state() {
+        let store = ExecutionEffectMemoryStore::default();
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let mut malformed = RecoveryExecutionEffectReceiptV2 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some(
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    .into(),
+            ),
+            ..started.clone()
+        };
+        malformed.outcome_digest = None;
+
+        assert_eq!(
+            store.begin_effect(&started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            store
+                .complete_effect(
+                    &started.execution_id,
+                    &started.execution_input_snapshot,
+                    &started.attempt_id,
+                    started.fence_epoch,
+                    &malformed,
+                )
+                .expect("direct malformed completion"),
+            RecoveryExecutionEffectCompletionResult::MalformedReceipt
+        );
+        assert_eq!(
+            store.load_effect(&started.execution_id).expect("load"),
+            Some(started)
+        );
+    }
+
+    #[test]
+    fn effect_store_rejects_non_monotonic_recovery_without_mutating_state() {
+        let store = ExecutionEffectMemoryStore::default();
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let mut successor = RecoveryExecutionEffectReceiptV2::in_progress(
+            started.execution_id.clone(),
+            started.execution_input_snapshot.clone(),
+            "attempt-b",
+            2,
+        );
+        successor.fence_epoch = 7;
+
+        assert_eq!(
+            store.begin_effect(&started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            store
+                .recover_effect_if_current(&started, &successor)
+                .expect("direct malformed recovery"),
+            RecoveryExecutionEffectRecoveryResult::MalformedReceipt
+        );
+        assert_eq!(
+            store.load_effect(&started.execution_id).expect("load"),
+            Some(started)
+        );
     }
 
     #[test]
@@ -2352,11 +2504,19 @@ mod tests {
             &self,
             claim: &RecoveryExecutionClaimV1,
         ) -> Result<RecoveryExecutionClaimResult, Self::Error> {
+            if !claim.is_well_formed() {
+                return Ok(RecoveryExecutionClaimResult::MalformedClaim);
+            }
+
             let mut values = self.values.lock().map_err(|_| "poisoned")?;
             let Some(current) = values.get(&claim.execution_id) else {
                 values.insert(claim.execution_id.clone(), claim.clone());
                 return Ok(RecoveryExecutionClaimResult::Acquired);
             };
+
+            if !current.is_well_formed() {
+                return Ok(RecoveryExecutionClaimResult::MalformedClaim);
+            }
 
             if current.execution_input_snapshot != claim.execution_input_snapshot {
                 return Ok(RecoveryExecutionClaimResult::ExecutionIdentityReuseMismatch);
@@ -2652,6 +2812,27 @@ mod tests {
         assert_eq!(
             claim_execution_start(&NoClaimStore, &claim).expect("malformed claim outcome"),
             RecoveryExecutionClaimResult::MalformedClaim
+        );
+    }
+
+    #[test]
+    fn claim_store_rejects_malformed_claim_even_when_called_directly() {
+        let store = ExecutionClaimMemoryStore::default();
+        let mut claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        claim.attempt_id.clear();
+
+        assert_eq!(
+            store.claim_if_absent(&claim).expect("direct claim"),
+            RecoveryExecutionClaimResult::MalformedClaim
+        );
+        assert!(
+            store
+                .load_claim(&claim.execution_id)
+                .expect("load after rejection")
+                .is_none()
         );
     }
 
