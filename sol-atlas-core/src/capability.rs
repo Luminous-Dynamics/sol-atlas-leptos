@@ -1033,6 +1033,7 @@ pub enum RecoveryPolicyConsumptionOutcomeV1 {
     MalformedDecision,
     DecisionMismatch,
     AlreadyConsumed,
+    PlanMismatch,
     ExecutionMismatch,
     DecisionNotValidAtConsumption,
     ExecutionNotCovered,
@@ -1107,6 +1108,9 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         }
         if decision.digest() != self.decision_digest {
             return RecoveryPolicyConsumptionOutcomeV1::DecisionMismatch;
+        }
+        if execution.plan_id != decision.plan_id {
+            return RecoveryPolicyConsumptionOutcomeV1::PlanMismatch;
         }
         if let Some(bound_execution_id) = decision.execution_id.as_deref() {
             if bound_execution_id != execution.execution_id {
@@ -1218,6 +1222,7 @@ impl RecoveryPolicyDecisionSnapshotV1 {
     /// and must remain valid at the point the record is consumed.
     pub fn covers_execution(&self, execution: &RecoveryExecution, now: &str) -> bool {
         self.is_valid_at(now)
+            && execution.plan_id == self.plan_id
             && execution.terminal_timestamps_are_well_formed()
             && execution
                 .ended_at
@@ -3853,6 +3858,22 @@ mod graph_tests {
             .consumed(&decision, &execution, "2026-10-02T08:01:00Z")
             .is_none());
 
+        let mut different_plan_execution = execution.clone();
+        different_plan_execution.plan_id = "plan-other".into();
+        assert_eq!(
+            available.consumption_outcome(
+                &decision,
+                &different_plan_execution,
+                "2026-10-02T08:00:00Z"
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::PlanMismatch
+        );
+        assert!(!available.permits_consumption(
+            &decision,
+            &different_plan_execution,
+            "2026-10-02T08:00:00Z"
+        ));
+
         let mut different_execution = execution.clone();
         different_execution.execution_id = "execution-other".into();
         assert_eq!(
@@ -3884,6 +3905,13 @@ mod graph_tests {
         let mut malformed_consumed = consumed.clone();
         malformed_consumed.consumed_at = None;
         assert!(!malformed_consumed.is_well_formed());
+
+        let mut decision_without_execution_binding = decision.clone();
+        decision_without_execution_binding.execution_id = None;
+        assert!(!decision_without_execution_binding.covers_execution(
+            &different_plan_execution,
+            "2026-10-02T08:00:00Z"
+        ));
 
         let expired = available.clone();
         assert_eq!(
