@@ -254,6 +254,31 @@ mod tests {
     }
 
     #[test]
+    fn duplicate_later_frontier_id_invalidates_historical_selection() {
+        let (audit, claim, mut chain) = fixture();
+        let mut duplicate = chain.frontiers[1].clone();
+        duplicate.frontier_id = chain.frontiers[0].frontier_id.clone();
+        duplicate.manifest_hash = "later-duplicate-unvalidated".into();
+        chain.frontiers[1] = duplicate;
+
+        assert_eq!(
+            validate_v5_at(
+                &audit,
+                &chain,
+                &chain.frontiers[0].frontier_id,
+                &claim,
+            ),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+        assert!(!is_v5_safe_at(
+            &audit,
+            &chain,
+            &chain.frontiers[0].frontier_id,
+            &claim,
+        ));
+    }
+
+    #[test]
     fn historical_replay_accepts_verified_prefix() {
         let (audit, claim, chain) = fixture();
         assert_eq!(
