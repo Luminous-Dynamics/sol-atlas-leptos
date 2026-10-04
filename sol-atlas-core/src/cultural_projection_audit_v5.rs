@@ -196,12 +196,8 @@ impl CulturalProjectionAuditV5 {
         self.base
             .validate_against_projection(projection, frontier, claim)?;
 
-        if self
-            .argumentation
-            .iter()
-            .any(|value| !value.is_frontier_safe(claim, frontier))
-        {
-            return Err(ProjectionError::AuditWithoutEvidencePath);
+        for value in &self.argumentation {
+            value.validate_frontier_safe(claim, frontier)?;
         }
 
         Ok(())
@@ -585,15 +581,15 @@ mod tests {
         unsafe_argumentation.closure.evidence_refs = vec!["e:unadmitted".into()];
         unsafe_argumentation.recompute_hash().expect("rehash");
 
-        assert!(
+        assert_eq!(
             CulturalProjectionAuditV5::from_projection_at(
                 &projection,
                 &frontier,
                 &claim,
                 v4.resolutions.clone(),
                 vec![unsafe_argumentation],
-            )
-            .is_err()
+            ),
+            Err(ProjectionError::AuditWithoutEvidencePath)
         );
     }
 
