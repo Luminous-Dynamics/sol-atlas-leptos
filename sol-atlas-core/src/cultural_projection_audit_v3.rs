@@ -47,6 +47,26 @@ impl CulturalProjectionAuditV3 {
         Self::from_v2(base, semantic_context)
     }
 
+    /// Creates a provenance-strong V3 audit from the exact originating projection,
+    /// canonical claim, temporal frontier, and externally resolved semantic context.
+    ///
+    /// The semantic context remains externally owned because ontology vocabulary is
+    /// an interoperability witness rather than canonical truth. This constructor
+    /// therefore verifies that the supplied context is exactly bound to the
+    /// originating projection/claim/frontier before returning the audit.
+    pub fn from_projection_at_with_semantic_context(
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
+        semantic_context: ProjectionSemanticEnvelopeV1,
+    ) -> Result<Self, ProjectionError> {
+        let base = CulturalProjectionAuditV2::from_projection_at(projection, frontier, claim)
+            .ok_or(ProjectionError::AuditWithoutEvidencePath)?;
+        let audit = Self::from_v2_with_semantic_context(base, semantic_context)?;
+        audit.validate_strong_against_projection(projection, frontier, claim)?;
+        Ok(audit)
+    }
+
     pub fn validate(&self) -> Result<(), ProjectionError> {
         self.base.validate()?;
         self.semantic_context.validate()?;
@@ -264,6 +284,45 @@ mod tests {
         };
         envelope.recompute_hash().expect("semantic hash");
         envelope
+    }
+
+    #[test]
+    fn v3_strong_constructor_binds_originating_projection_and_context() {
+        let value = CulturalProjectionAuditV3::from_projection_at_with_semantic_context(
+            &CulturalProjectionV1::Transmission(CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: None,
+                qualification: QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                evidence_frontier: "frontier:1950".into(),
+            }),
+            &frontier(),
+            &CanonicalClaimAdmissionV1 {
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into()],
+                source_snapshots: vec!["source:1".into()],
+                qualification: QualificationStatus::Supported,
+                evidence_frontier: "frontier:1950".into(),
+            },
+            semantic_context(),
+        )
+        .expect("strong v3 audit");
+
+        assert_eq!(value.base.frontier_manifest_hash, frontier().manifest_hash);
+        assert!(!value.base.projection_semantic_hash.is_empty());
+        assert!(value.validate().is_ok());
     }
 
     #[test]
