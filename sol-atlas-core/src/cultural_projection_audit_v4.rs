@@ -276,8 +276,7 @@ mod tests {
             &frontier,
         )
         .expect("resolution");
-        let audit =
-            CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
+        let audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
 
         let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
             crate::cultural_systems::CulturalTransmissionV1 {
