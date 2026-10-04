@@ -1037,6 +1037,7 @@ pub enum RecoveryPolicyConsumptionOutcomeV1 {
     PlanMismatch,
     ExecutionMismatch,
     DecisionRejected,
+    PolicyContextMismatch,
     ExecutionAuthorizationMismatch,
     PlanBindingMismatch,
     CandidateBindingMismatch,
@@ -1316,6 +1317,33 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         RecoveryPolicyConsumptionOutcomeV1::Allowed
     }
 
+    /// Evaluate execution-start consumption against the exact caller policy context.
+    pub fn admission_outcome_for_execution_start_for_context(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        execution: &RecoveryExecution,
+        expected_purpose: &str,
+        expected_consumer: &str,
+        expected_authority_reference: &str,
+    ) -> RecoveryPolicyConsumptionOutcomeV1 {
+        match self.admission_outcome_for_execution_start(decision, execution) {
+            RecoveryPolicyConsumptionOutcomeV1::Allowed => {}
+            outcome => return outcome,
+        }
+
+        if expected_purpose.is_empty()
+            || expected_consumer.is_empty()
+            || expected_authority_reference.is_empty()
+            || decision.purpose != expected_purpose
+            || decision.consumer != expected_consumer
+            || decision.authority_reference != expected_authority_reference
+        {
+            return RecoveryPolicyConsumptionOutcomeV1::PolicyContextMismatch;
+        }
+
+        RecoveryPolicyConsumptionOutcomeV1::Allowed
+    }
+
     /// Construct the consumed state at the exact execution start time.
     ///
     /// External storage must atomically persist this successor before allowing
@@ -1445,6 +1473,28 @@ pub struct RecoveryPolicyConsumptionTransitionV1 {
 
 impl RecoveryPolicyConsumptionTransitionV1 {
     pub const SCHEMA: &'static str = "sol-atlas:recovery-policy-consumption-transition:v2";
+
+    /// Construct a one-time transition only after binding the caller policy context.
+    pub fn for_execution_admission_for_context(
+        current: &RecoveryPolicyConsumptionSnapshotV1,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        execution: &RecoveryExecution,
+        expected_purpose: &str,
+        expected_consumer: &str,
+        expected_authority_reference: &str,
+    ) -> Option<Self> {
+        if current.admission_outcome_for_execution_start_for_context(
+            decision,
+            execution,
+            expected_purpose,
+            expected_consumer,
+            expected_authority_reference,
+        ) != RecoveryPolicyConsumptionOutcomeV1::Allowed
+        {
+            return None;
+        }
+        Self::for_execution_admission(current, decision, execution)
+    }
 
     /// Construct a one-time transition for the execution start event.
     pub fn for_execution_admission(
@@ -4291,6 +4341,27 @@ mod graph_tests {
             available.admission_outcome_for_execution_start(&decision, &execution),
             RecoveryPolicyConsumptionOutcomeV1::Allowed
         );
+        assert_eq!(
+            available.admission_outcome_for_execution_start_for_context(
+                &decision,
+                &execution,
+                "recovery.execute",
+                "operator-001",
+                "authority-record",
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::Allowed
+        );
+        let context_transition =
+            RecoveryPolicyConsumptionTransitionV1::for_execution_admission_for_context(
+                &available,
+                &decision,
+                &execution,
+                "recovery.execute",
+                "operator-001",
+                "authority-record",
+            )
+            .expect("context-bound transition");
+
         let admission_next = available
             .consumed_at_execution_start(&decision, &execution)
             .expect("execution-start consumption");
@@ -4312,6 +4383,40 @@ mod graph_tests {
             &admission_next,
         ));
         assert_eq!(admission_transition.consumed_at, execution.started_at);
+
+        let mut wrong_consumer = decision.clone();
+        wrong_consumer.consumer = "other-consumer".into();
+        assert_eq!(
+            available.admission_outcome_for_execution_start_for_context(
+                &wrong_consumer,
+                &execution,
+                "recovery.execute",
+                "operator-001",
+                "authority-record",
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::PolicyContextMismatch
+        );
+        assert_eq!(
+            available.admission_outcome_for_execution_start_for_context(
+                &decision,
+                &execution,
+                "other-purpose",
+                "operator-001",
+                "authority-record",
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::PolicyContextMismatch
+        );
+        assert_eq!(
+            available.admission_outcome_for_execution_start_for_context(
+                &decision,
+                &execution,
+                "recovery.execute",
+                "operator-001",
+                "other-authority",
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::PolicyContextMismatch
+        );
+        assert!(context_transition.is_well_formed());
 
         assert_eq!(
             admission_transition.mode,
