@@ -123,18 +123,34 @@ impl OntologyMappingV2 {
         Ok(())
     }
 
+    /// Validates mapping provenance against the exact canonical claim and
+    /// strict frontier while preserving concrete lower-level failures.
+    pub fn validate_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        claim.validate_frontier_safe(frontier)?;
+
+        if self.claim_ref != claim.claim_ref
+            || self.evidence_refs != claim.evidence_refs
+            || self.source_snapshots != claim.source_snapshots
+            || self.qualification != claim.qualification
+            || self.evidence_frontier != frontier.frontier_id
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate().is_ok()
-            && claim.is_frontier_safe(frontier)
-            && self.claim_ref == claim.claim_ref
-            && self.evidence_refs == claim.evidence_refs
-            && self.source_snapshots == claim.source_snapshots
-            && self.qualification == claim.qualification
-            && self.evidence_frontier == frontier.frontier_id
+        self.validate_frontier_safe(claim, frontier).is_ok()
     }
 }
 
@@ -239,6 +255,46 @@ mod tests {
         (c, frontier)
     }
 
+    #[test]
+    fn mapping_preserves_frontier_validation_failure() {
+        let (claim, mut frontier) = claim();
+        let mapping = OntologyMappingV2::from_claim(
+            "mapping:1",
+            OntologyMappingStandardV1::CidocCrm,
+            "7.4",
+            OntologyReleaseStatusV1::Draft,
+            "E7_Activity",
+            OntologyMappingKindV1::Class,
+            &claim,
+        );
+        frontier.manifest_hash = "not-a-valid-sha256".into();
+
+        assert_eq!(
+            mapping.validate_frontier_safe(&claim, &frontier),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn mapping_preserves_evidence_path_failure() {
+        let (claim, frontier) = claim();
+        let mapping = OntologyMappingV2::from_claim(
+            "mapping:1",
+            OntologyMappingStandardV1::CidocCrm,
+            "7.4",
+            OntologyReleaseStatusV1::Draft,
+            "E7_Activity",
+            OntologyMappingKindV1::Class,
+            &claim,
+        );
+        let mut rebound = claim.clone();
+        rebound.evidence_refs = vec!["e:unadmitted".into()];
+
+        assert_eq!(
+            mapping.validate_frontier_safe(&rebound, &frontier),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
     #[test]
     fn mapping_preserves_claim_qualification() {
         let (claim, frontier) = claim();
