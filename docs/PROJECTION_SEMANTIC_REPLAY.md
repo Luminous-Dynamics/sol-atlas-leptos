@@ -123,11 +123,21 @@ The V4 and V5 audit layers now expose two deliberate provenance tiers:
   `validate_strong_against_projection(...)` requires both frontier-manifest
   identity and the originating projection semantic commitment to be present
   and independently verified.
+- `V5ReplayReceiptV1::from_projection_and_chain(...)` is the strong producer
+  path for a current-leaf replay receipt. It refuses to construct a receipt
+  unless the audit is already strongly bound to the originating projection.
+- `V5HistoricalReplayReceiptV1::from_projection_at(...)` is the corresponding
+  strong producer path for an explicitly selected historical prefix. It binds
+  the receipt to the selected frontier before constructing or validating the
+  content-addressed receipt.
+- The compatibility constructors remain available for migration, but new
+  provenance-sensitive producers should use the strong constructors rather
+  than construct-then-hope-to-validate.
 
 This separation avoids a dangerous compatibility pattern: making legacy data
 unreadable just to obtain a stronger security invariant. Older records remain
 replayable under the compatibility gate, while new provenance-sensitive call
-sites can opt into an explicit strong gate.
+sites can opt into an explicit strong construction-and-validation path.
 
 The underlying rule is consistent with established provenance practice: a
 self-consistent digest establishes content integrity, but provenance validation
