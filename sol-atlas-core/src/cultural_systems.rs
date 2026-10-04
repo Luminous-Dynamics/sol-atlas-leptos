@@ -1340,11 +1340,6 @@ mod tests {
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
-::{
-        ArgumentationTemporalMetadataV1, EvidenceTemporalMetadataV1,
-        SourceSnapshotTemporalMetadataV1,
-    };
-
     fn frontier() -> EvidenceFrontierV1 {
         let mut frontier = EvidenceFrontierV1 {
             frontier_id: "frontier:1950".into(),
