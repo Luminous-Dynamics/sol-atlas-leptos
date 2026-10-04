@@ -587,12 +587,7 @@ mod tests {
         );
 
         assert_eq!(
-            receipt.validate_strong_against_projection(
-                &projection,
-                &audit,
-                &chain,
-                &claim
-            ),
+            receipt.validate_strong_against_projection(&projection, &audit, &chain, &claim),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
