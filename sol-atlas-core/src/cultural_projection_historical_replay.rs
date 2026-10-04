@@ -168,7 +168,6 @@ mod tests {
             source_snapshots: vec!["source:1".into()],
             qualification: QualificationStatus::Supported,
             evidence_frontier: root.frontier_id.clone(),
-            frontier_manifest_hash: root.manifest_hash.clone(),
         };
 
         let base = CulturalProjectionAuditV2 {
