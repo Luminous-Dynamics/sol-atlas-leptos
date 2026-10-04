@@ -1035,6 +1035,7 @@ pub enum RecoveryPolicyConsumptionOutcomeV1 {
     AlreadyConsumed,
     PlanMismatch,
     ExecutionMismatch,
+    DecisionRejected,
     DecisionNotValidAtConsumption,
     ExecutionNotCovered,
 }
@@ -1119,6 +1120,9 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
             if bound_execution_id != execution.execution_id {
                 return RecoveryPolicyConsumptionOutcomeV1::ExecutionMismatch;
             }
+        }
+        if decision.decision != RecoveryPolicyDecisionV1::Admitted {
+            return RecoveryPolicyConsumptionOutcomeV1::DecisionRejected;
         }
         if !decision.is_valid_at(now) {
             return RecoveryPolicyConsumptionOutcomeV1::DecisionNotValidAtConsumption;
@@ -4149,6 +4153,24 @@ mod graph_tests {
             ),
             RecoveryPolicyConsumptionOutcomeV1::DecisionNotValidAtConsumption
         );
+        let mut rejected_decision = decision.clone();
+        rejected_decision.decision = RecoveryPolicyDecisionV1::Rejected;
+        let rejected_available =
+            RecoveryPolicyConsumptionSnapshotV1::for_decision(&rejected_decision);
+        assert_eq!(
+            rejected_available.consumption_outcome(
+                &rejected_decision,
+                &execution,
+                "2026-10-02T08:00:00Z"
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::DecisionRejected
+        );
+        assert!(!rejected_available.permits_consumption(
+            &rejected_decision,
+            &execution,
+            "2026-10-02T08:00:00Z"
+        ));
+
         assert!(!expired.permits_consumption(
             &decision,
             &execution,
