@@ -665,6 +665,26 @@ where
         .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
 }
 
+/// Recover an effect from one established fence into a newer established fence.
+///
+/// Both fence generations must have been positively accepted by the authoritative
+/// fence store. The successor receipt is derived from that established fence,
+/// avoiding a caller-created copy of its execution identity, fingerprint, attempt,
+/// and epoch.
+pub fn recover_execution_effect_for_established_fence<S>(
+    store: &S,
+    expected: &RecoveryExecutionEffectReceiptV2,
+    successor_fence: &EstablishedRecoveryExecutionFenceV1,
+) -> Result<
+    RecoveryExecutionEffectRecoveryResult,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionEffectStore,
+{
+    recover_execution_effect(store, expected, successor_fence.fence())
+}
+
 /// Attempt to begin one external execution effect.
 pub fn begin_execution_effect<S>(
     store: &S,
@@ -3224,6 +3244,55 @@ mod tests {
         assert_eq!(
             acquire_execution_fence(&store, &fence).expect("replay"),
             RecoveryExecutionFenceResult::AlreadyOwnedSameAttempt
+        );
+    }
+
+    #[test]
+    fn stale_established_fence_cannot_begin_after_effect_recovery() {
+        let fence_store = FencedExecutionMemoryStore::default();
+        let effect_store = ExecutionEffectMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let established =
+            match establish_execution_fence(&fence_store, &initial).expect("establish") {
+                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+                _ => panic!("initial establishment must succeed"),
+            };
+        let successor =
+            match recover_established_execution_fence(&fence_store, &established, "attempt-b")
+                .expect("recover fence")
+            {
+                RecoveryExecutionFenceRecoveryEstablishmentV1::Established(fence) => fence,
+                _ => panic!("fence recovery must succeed"),
+            };
+
+        assert_eq!(
+            begin_execution_effect_for_established_fence(&effect_store, &established)
+                .expect("initial effect start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            recover_execution_effect_for_established_fence(
+                &effect_store,
+                &RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&established.fence())
+                    .expect("initial receipt"),
+                &successor,
+            )
+            .expect("effect recovery"),
+            RecoveryExecutionEffectRecoveryResult::Recovered
+        );
+        assert_eq!(
+            begin_execution_effect_for_established_fence(&effect_store, &established)
+                .expect("stale effect replay"),
+            RecoveryExecutionEffectStartResult::FenceMismatch
+        );
+        assert_eq!(
+            begin_execution_effect_for_established_fence(&effect_store, &successor)
+                .expect("current effect replay"),
+            RecoveryExecutionEffectStartResult::AlreadyInProgressSameAttempt
         );
     }
 
