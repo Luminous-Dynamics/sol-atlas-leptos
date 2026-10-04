@@ -46,6 +46,36 @@ impl V5HistoricalReplayReceiptV1 {
         Ok(receipt)
     }
 
+    /// Constructs a historical receipt through the strict provenance path.
+    ///
+    /// Unlike the legacy `from_audit_at` constructor, this path requires the
+    /// audit to carry a non-empty frontier manifest commitment and projection
+    /// semantic identity bound to the exact originating projection.
+    pub fn from_projection_at(
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        audit: &CulturalProjectionAuditV5,
+        chain: &EvidenceFrontierChainV1,
+        frontier_id: &EvidenceFrontierId,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<Self, ProjectionError> {
+        let index = chain
+            .frontiers
+            .iter()
+            .position(|frontier| &frontier.frontier_id == frontier_id)
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+        let prefix = EvidenceFrontierChainV1 {
+            frontiers: chain.frontiers[..=index].to_vec(),
+        };
+        let frontier = prefix
+            .current()
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+
+        audit.validate_strong_against_projection(projection, frontier, claim)?;
+        let receipt = Self::from_audit_at(audit, &prefix, frontier_id, claim)?;
+        receipt.validate_strong_against_projection_at(projection, audit, &prefix, claim)?;
+        Ok(receipt)
+    }
+
     /// Validates the historical receipt all the way back to the exact
     /// originating cultural projection, not only the selected audit prefix.
     pub fn validate_against_projection_at(
@@ -544,6 +574,63 @@ mod tests {
     }
 
     #[test]
+    fn strict_constructor_round_trips_against_originating_projection() {
+        let (audit, claim, chain) = fixture();
+        let frontier = &chain.frontiers[0];
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: Some("assessment:1".into()),
+                qualification: QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: AccessPolicyV1::Public,
+                evidence_frontier: "frontier:1950".into(),
+            },
+        );
+
+        let strong_audit = CulturalProjectionAuditV5::from_projection_at(
+            &projection,
+            frontier,
+            &claim,
+            audit.base.resolutions.clone(),
+            audit.argumentation.clone(),
+        )
+        .expect("strong audit");
+
+        let receipt = V5HistoricalReplayReceiptV1::from_projection_at(
+            &projection,
+            &strong_audit,
+            &chain,
+            &"frontier:1950".into(),
+            &claim,
+        )
+        .expect("strict historical receipt");
+
+        assert_eq!(
+            receipt.validate_strong_against_projection_at(
+                &projection,
+                &strong_audit,
+                &chain,
+                &claim,
+            ),
+            Ok(())
+        );
+        assert_eq!(receipt.selected_frontier, "frontier:1950".into());
+        assert_eq!(receipt.replay.leaf_frontier, "frontier:1950".into());
+    }
+
+    #[test]
     fn strict_projection_validation_rejects_legacy_projection_identity() {
         let (audit, claim, chain) = fixture();
         let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
@@ -567,7 +654,7 @@ mod tests {
                 claim_ref: "claim:1".into(),
                 evidence_refs: vec!["e:1".into()],
                 source_snapshots: vec!["source:1".into()],
-                assessment: None,
+                assessment: Some("assessment:1".into()),
                 qualification: QualificationStatus::Supported,
                 community_recognition: vec![],
                 access_policy: AccessPolicyV1::Public,
@@ -576,12 +663,7 @@ mod tests {
         );
 
         assert_eq!(
-            receipt.validate_strong_against_projection_at(
-                &projection,
-                &audit,
-                &chain,
-                &claim
-            ),
+            receipt.validate_strong_against_projection_at(&projection, &audit, &chain, &claim),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
