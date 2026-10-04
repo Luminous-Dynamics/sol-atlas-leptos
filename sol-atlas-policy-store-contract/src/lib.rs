@@ -1607,6 +1607,14 @@ mod tests {
                 )
             }
 
+            fn recover_effect_if_current(
+                &self,
+                expected: &RecoveryExecutionEffectReceiptV2,
+                successor: &RecoveryExecutionEffectReceiptV2,
+            ) -> Result<RecoveryExecutionEffectRecoveryResult, Self::Error> {
+                self.inner.recover_effect_if_current(expected, successor)
+            }
+
             fn load_effect(
                 &self,
                 execution_id: &str,
@@ -1781,6 +1789,14 @@ mod tests {
                 Ok(result)
             }
 
+            fn recover_effect_if_current(
+                &self,
+                expected: &RecoveryExecutionEffectReceiptV2,
+                successor: &RecoveryExecutionEffectReceiptV2,
+            ) -> Result<RecoveryExecutionEffectRecoveryResult, Self::Error> {
+                self.inner.recover_effect_if_current(expected, successor)
+            }
+
             fn load_effect(
                 &self,
                 execution_id: &str,
@@ -1851,6 +1867,14 @@ mod tests {
                 _completed: &RecoveryExecutionEffectReceiptV2,
             ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
                 Ok(RecoveryExecutionEffectCompletionResult::Indeterminate)
+            }
+
+            fn recover_effect_if_current(
+                &self,
+                expected: &RecoveryExecutionEffectReceiptV2,
+                successor: &RecoveryExecutionEffectReceiptV2,
+            ) -> Result<RecoveryExecutionEffectRecoveryResult, Self::Error> {
+                self.inner.recover_effect_if_current(expected, successor)
             }
 
             fn load_effect(
