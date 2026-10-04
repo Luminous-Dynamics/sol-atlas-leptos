@@ -373,6 +373,25 @@ mod tests {
     }
 
     #[test]
+    fn duplicate_later_frontier_id_invalidates_historical_receipt_selection() {
+        let (audit, claim, mut chain) = fixture();
+        let mut duplicate = chain.frontiers[1].clone();
+        duplicate.frontier_id = chain.frontiers[0].frontier_id.clone();
+        duplicate.manifest_hash = "later-duplicate-unvalidated".into();
+        chain.frontiers[1] = duplicate;
+
+        assert_eq!(
+            V5HistoricalReplayReceiptV1::from_audit_at(
+                &audit,
+                &chain,
+                &chain.frontiers[0].frontier_id,
+                &claim,
+            ),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
     fn independent_epoch_receipts_bind_to_their_exact_verified_prefixes() {
         let (root_audit, root_claim, chain) = fixture();
         let mut receipts = Vec::new();
