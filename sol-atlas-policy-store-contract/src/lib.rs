@@ -564,7 +564,7 @@ where
         );
     }
 
-    match current.state {
+    match &current.state {
         RecoveryExecutionEffectStateV1::Succeeded => {
             return Ok(RecoveryExecutionEffectReconciliationOutcome::ObservedSucceeded);
         }
@@ -1175,7 +1175,7 @@ mod tests {
                 return Ok(RecoveryExecutionEffectStartResult::FingerprintMismatch);
             }
 
-            match current.state {
+            match &current.state {
                 RecoveryExecutionEffectStateV1::Succeeded => {
                     return Ok(RecoveryExecutionEffectStartResult::AlreadySucceededSameRequest);
                 }
@@ -1431,6 +1431,56 @@ mod tests {
             )
             .expect("reconcile stale fence"),
             RecoveryExecutionEffectReconciliationOutcome::ObservedStaleFence
+        );
+    }
+
+    #[test]
+    fn terminal_effect_completion_replay_remains_observable_after_fence_advances() {
+        let store = ExecutionEffectMemoryStore::default();
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let success = RecoveryExecutionEffectReceiptV2 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some(
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    .into(),
+            ),
+            ..started.clone()
+        };
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial_fence =
+            RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let successor_fence =
+            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
+                .expect("successor fence");
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect(&store, &started, &success).expect("complete"),
+            RecoveryExecutionEffectCompletionResult::Completed
+        );
+
+        let replay_started =
+            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence)
+                .expect("replay receipt");
+        let replay_success = RecoveryExecutionEffectReceiptV2 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: success.outcome_digest.clone(),
+            ..replay_started.clone()
+        };
+
+        assert_eq!(
+            complete_execution_effect(&store, &replay_started, &replay_success)
+                .expect("terminal replay"),
+            RecoveryExecutionEffectCompletionResult::AlreadyCompletedSameOutcome
         );
     }
 
