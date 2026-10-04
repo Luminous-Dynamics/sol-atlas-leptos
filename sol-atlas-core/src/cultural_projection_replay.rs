@@ -573,6 +573,56 @@ mod tests {
     }
 
     #[test]
+    fn strict_constructor_rejects_corrupted_ancestry() {
+        let (legacy_audit, claim, mut chain) = fixture();
+        let frontier = chain.current().expect("leaf frontier").clone();
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into(), "e:2".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: Some("assessment:1".into()),
+                qualification: crate::civilizational::QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                evidence_frontier: frontier.frontier_id.clone(),
+            },
+        );
+        let strong_audit = CulturalProjectionAuditV5::from_projection_at(
+            &projection,
+            &frontier,
+            &claim,
+            legacy_audit.base.resolutions.clone(),
+            legacy_audit.argumentation.clone(),
+        )
+        .expect("strong audit");
+
+        chain.frontiers[0].policy_version = "rewritten-ancestor".into();
+        chain.frontiers[0]
+            .recompute_manifest_hash()
+            .expect("rewritten ancestor hash");
+
+        assert_eq!(
+            V5ReplayReceiptV1::from_projection_and_chain(
+                &projection,
+                &strong_audit,
+                &chain,
+                &claim
+            ),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
     fn receipt_round_trip_validates() {
         let (audit, claim, chain) = fixture();
         let receipt =
