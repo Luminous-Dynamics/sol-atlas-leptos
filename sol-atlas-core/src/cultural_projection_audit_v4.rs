@@ -44,6 +44,24 @@ impl CulturalProjectionAuditV4 {
         Ok(audit)
     }
 
+    /// Creates a provenance-strong V4 audit directly from the originating
+    /// cultural projection, canonical claim, and exact temporal frontier.
+    ///
+    /// Unlike from_v2, this constructor cannot accidentally preserve a legacy
+    /// V2 base with an empty projection semantic hash: the base is rebuilt from
+    /// the exact projection and frontier before the V4 resolution closure is
+    /// attached.
+    pub fn from_projection_at(
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+        resolutions: Vec<OntologyMappingResolutionV1>,
+    ) -> Option<Self> {
+        let base =
+            CulturalProjectionAuditV2::from_projection_at(projection, frontier, claim)?;
+        Self::from_v2(base, resolutions).ok()
+    }
+
     pub fn validate(&self) -> Result<(), ProjectionError> {
         self.base.validate()?;
         if self.resolutions.is_empty() || self.semantic_hash.trim().is_empty() {
@@ -288,6 +306,66 @@ mod tests {
         duplicate.recompute_hash().expect("resolution hash");
         let audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution, duplicate]);
         assert_eq!(audit, Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn v4_strong_constructor_binds_originating_projection_identity() {
+        let (base, claim, frontier, mapping) = fixture();
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: None,
+                qualification: QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                evidence_frontier: "frontier:1950".into(),
+            },
+        );
+        let resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier,
+        )
+        .expect("resolution");
+
+        let audit = CulturalProjectionAuditV4::from_projection_at(
+            &projection,
+            &frontier,
+            &claim,
+            vec![resolution],
+        )
+        .expect("strong v4 audit");
+
+        assert!(!audit.base.projection_semantic_hash.is_empty());
+        assert_eq!(
+            audit.validate_against_projection(&projection, &frontier, &claim),
+            Ok(())
+        );
+
+        let mut rebound = projection.clone();
+        if let crate::cultural_systems::CulturalProjectionV1::Transmission(value) = &mut rebound {
+            value.source = "practice:rebound".into();
+        }
+        assert_eq!(
+            audit.validate_against_projection(&rebound, &frontier, &claim),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+
+        let legacy =
+            CulturalProjectionAuditV4::from_v2(base, audit.resolutions.clone()).expect("legacy path");
+        assert!(legacy.base.projection_semantic_hash.is_empty());
     }
 
     #[test]
