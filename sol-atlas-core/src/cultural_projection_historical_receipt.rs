@@ -24,17 +24,7 @@ impl V5HistoricalReplayReceiptV1 {
         chain: &EvidenceFrontierChainV1,
         frontier_id: &EvidenceFrontierId,
     ) -> Result<EvidenceFrontierChainV1, ProjectionError> {
-        // Prefix selection is identifier-based; reject globally duplicated IDs
-        // before selecting the first matching historical frontier.
-        chain.validate_unique_frontier_ids()?;
-        let index = chain
-            .frontiers
-            .iter()
-            .position(|frontier| &frontier.frontier_id == frontier_id)
-            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
-        Ok(EvidenceFrontierChainV1 {
-            frontiers: chain.frontiers[..=index].to_vec(),
-        })
+        chain.prefix_through(frontier_id)
     }
 
     pub fn from_audit_at(
