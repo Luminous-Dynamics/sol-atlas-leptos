@@ -480,7 +480,10 @@ pub fn reconcile_execution_effect<S>(
 where
     S: RecoveryExecutionEffectStore,
 {
-    if execution_id.is_empty() || !is_sha256_digest(expected_input_snapshot) || attempt_id.is_empty() {
+    if execution_id.is_empty()
+        || !is_sha256_digest(expected_input_snapshot)
+        || attempt_id.is_empty()
+    {
         return Ok(RecoveryExecutionEffectReconciliationOutcome::InvalidReceipt);
     }
 
@@ -909,21 +912,33 @@ mod tests {
 
         let left_store = Arc::clone(&store);
         let left_receipt = first.clone();
-        let left = thread::spawn(move || begin_execution_effect(left_store.as_ref(), &left_receipt));
+        let left = thread::spawn(move || {
+            begin_execution_effect(left_store.as_ref(), &left_receipt)
+        });
         let right_store = Arc::clone(&store);
         let right_receipt = second.clone();
-        let right = thread::spawn(move || begin_execution_effect(right_store.as_ref(), &right_receipt));
+        let right = thread::spawn(move || {
+            begin_execution_effect(right_store.as_ref(), &right_receipt)
+        });
 
         let outcomes = [
             left.join().expect("left join").expect("left result"),
             right.join().expect("right join").expect("right result"),
         ];
         assert_eq!(
-            outcomes.iter().filter(|outcome| **outcome == RecoveryExecutionEffectStartResult::Started).count(),
+            outcomes
+                .iter()
+                .filter(|outcome| **outcome == RecoveryExecutionEffectStartResult::Started)
+                .count(),
             1
         );
         assert_eq!(
-            outcomes.iter().filter(|outcome| **outcome == RecoveryExecutionEffectStartResult::AlreadyInProgressOtherAttempt).count(),
+            outcomes
+                .iter()
+                .filter(|outcome| {
+                    **outcome == RecoveryExecutionEffectStartResult::AlreadyInProgressOtherAttempt
+                })
+                .count(),
             1
         );
     }
@@ -963,7 +978,10 @@ mod tests {
         };
         let foreign_success = RecoveryExecutionEffectReceiptV1 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
-            outcome_digest: Some("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into()),
+            outcome_digest: Some(
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    .into(),
+            ),
             ..foreign.clone()
         };
 
