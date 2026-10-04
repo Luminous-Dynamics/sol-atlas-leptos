@@ -33,6 +33,7 @@ pub enum RecoveryPolicyConsumptionPersistenceOutcome {
     MalformedDecision,
     MalformedTransition,
     MalformedSuccessor,
+    MalformedStoredState,
 }
 
 /// Storage failure is intentionally opaque to this contract package.
@@ -97,6 +98,10 @@ where
     else {
         return Ok(RecoveryPolicyConsumptionPersistenceOutcome::MissingState);
     };
+
+    if !current.is_well_formed() {
+        return Ok(RecoveryPolicyConsumptionPersistenceOutcome::MalformedStoredState);
+    }
 
     let decision_digest = decision.digest();
     if current.decision_digest != decision_digest {
@@ -372,6 +377,55 @@ mod tests {
         assert!(
             current.digest() == first.next_snapshot_digest
                 || current.digest() == second.next_snapshot_digest
+        );
+    }
+
+    #[test]
+    fn malformed_stored_state_is_rejected_before_conflict_classification() {
+        struct MalformedStore {
+            state: RecoveryPolicyConsumptionSnapshotV1,
+        }
+
+        impl RecoveryPolicyConsumptionStore for MalformedStore {
+            type Error = &'static str;
+
+            fn load(
+                &self,
+                _decision_digest: &str,
+            ) -> Result<Option<RecoveryPolicyConsumptionSnapshotV1>, Self::Error> {
+                Ok(Some(self.state.clone()))
+            }
+
+            fn compare_and_set(
+                &self,
+                _decision_digest: &str,
+                _expected_snapshot_digest: &str,
+                _next: &RecoveryPolicyConsumptionSnapshotV1,
+            ) -> Result<bool, Self::Error> {
+                Err("cas must not be reached")
+            }
+        }
+
+        let (decision, execution, _current) = fixture();
+        let mut malformed = RecoveryPolicyConsumptionSnapshotV1::for_decision(&decision);
+        malformed.claim_ceiling.clear();
+        let (transition, next) = transition_fixture(
+            &decision,
+            &execution,
+            &RecoveryPolicyConsumptionSnapshotV1::for_decision(&decision),
+            "2026-10-02T08:00:00Z",
+        );
+
+        assert_eq!(
+            persist_consumption_transition(
+                &MalformedStore { state: malformed },
+                &decision,
+                &execution,
+                &transition,
+                &next,
+            )
+            .expect("stored-state validation result"),
+            RecoveryPolicyConsumptionPersistenceOutcome::MalformedStoredState
         );
     }
 
