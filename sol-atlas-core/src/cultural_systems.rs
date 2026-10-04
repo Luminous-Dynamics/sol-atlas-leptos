@@ -663,9 +663,6 @@ impl CulturalProjectionV1 {
             Self::Transformation(value) => value.is_frontier_safe(claim, frontier),
         }
     }
-}
-
-    /// Content-addressed identity of the complete originating projection.
     pub fn semantic_hash(&self) -> Result<String, ProjectionError> {
         let payload = ("sol-atlas:cultural-projection-v1", self);
         let bytes = serde_json::to_vec(&payload)
@@ -673,6 +670,7 @@ impl CulturalProjectionV1 {
         let digest = Sha256::digest(bytes);
         Ok(digest.iter().map(|byte| format!("{byte:02x}")).collect())
     }
+}
 
 /// Stable identity of an admitted cultural projection without erasing its
 /// semantic relation class.
