@@ -1320,6 +1320,41 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
     ///
     /// External storage must atomically persist this successor before allowing
     /// execution to proceed when single-use semantics are required.
+    /// Construct the consumed state at execution start after binding the exact plan.
+    pub fn consumed_at_execution_start_against_plan(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        execution: &RecoveryExecution,
+    ) -> Option<Self> {
+        if self.admission_outcome_for_execution_start_against_plan(decision, plan, execution)
+            != RecoveryPolicyConsumptionOutcomeV1::Allowed
+        {
+            return None;
+        }
+        self.consumed_at_execution_start(decision, execution)
+    }
+
+    /// Construct the consumed state at execution start after binding the exact candidate.
+    pub fn consumed_at_execution_start_against_candidate(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        execution: &RecoveryExecution,
+    ) -> Option<Self> {
+        if self.admission_outcome_for_execution_start_against_candidate(
+            decision,
+            plan,
+            candidate,
+            execution,
+        ) != RecoveryPolicyConsumptionOutcomeV1::Allowed
+        {
+            return None;
+        }
+        self.consumed_at_execution_start(decision, execution)
+    }
+
     pub fn consumed_at_execution_start(
         &self,
         decision: &RecoveryPolicyDecisionSnapshotV1,
