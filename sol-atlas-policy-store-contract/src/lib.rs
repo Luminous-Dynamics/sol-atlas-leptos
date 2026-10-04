@@ -413,6 +413,16 @@ impl RecoveryExecutionEffectReceiptV2 {
         receipt.is_well_formed().then_some(receipt)
     }
 
+    /// Check that this receipt is bound exactly to an established execution fence.
+    pub fn matches_fence(&self, fence: &RecoveryExecutionFenceV1) -> bool {
+        self.is_well_formed()
+            && fence.is_well_formed()
+            && self.execution_id == fence.execution_id
+            && self.execution_input_snapshot == fence.execution_input_snapshot
+            && self.attempt_id == fence.attempt_id
+            && self.fence_epoch == fence.fence_epoch
+    }
+
     pub fn is_well_formed(&self) -> bool {
         self.schema == Self::SCHEMA
             && !self.execution_id.is_empty()
@@ -588,7 +598,7 @@ where
 pub fn recover_execution_effect<S>(
     store: &S,
     expected: &RecoveryExecutionEffectReceiptV2,
-    successor: &RecoveryExecutionEffectReceiptV2,
+    successor_fence: &RecoveryExecutionFenceV1,
 ) -> Result<
     RecoveryExecutionEffectRecoveryResult,
     RecoveryPolicyConsumptionPersistenceError<S::Error>,
@@ -597,10 +607,16 @@ where
     S: RecoveryExecutionEffectStore,
 {
     let valid_successor_epoch = expected.fence_epoch.checked_add(1);
+    let Some(successor) =
+        RecoveryExecutionEffectReceiptV2::in_progress_for_fence(successor_fence)
+    else {
+        return Ok(RecoveryExecutionEffectRecoveryResult::MalformedReceipt);
+    };
+
     if !expected.is_well_formed()
         || expected.state != RecoveryExecutionEffectStateV1::InProgress
-        || !successor.is_well_formed()
         || successor.state != RecoveryExecutionEffectStateV1::InProgress
+        || !successor.matches_fence(successor_fence)
         || successor.execution_id != expected.execution_id
         || successor.execution_input_snapshot != expected.execution_input_snapshot
         || successor.attempt_id == expected.attempt_id
@@ -611,7 +627,7 @@ where
     }
 
     store
-        .recover_effect_if_current(expected, successor)
+        .recover_effect_if_current(expected, &successor)
         .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
 }
 
@@ -1405,11 +1421,18 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let successor = RecoveryExecutionEffectReceiptV2 {
-            attempt_id: "attempt-b".into(),
-            fence_epoch: 2,
-            ..started.clone()
-        };
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial_fence =
+            RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let successor_fence =
+            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
+                .expect("successor fence");
+        let successor =
+            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence)
+                .expect("successor receipt");
         let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
@@ -1424,7 +1447,7 @@ mod tests {
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
-            recover_execution_effect(&store, &started, &successor).expect("recover"),
+            recover_execution_effect(&store, &started, &successor_fence).expect("recover"),
             RecoveryExecutionEffectRecoveryResult::Recovered
         );
         assert_eq!(
@@ -1505,11 +1528,18 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let successor = RecoveryExecutionEffectReceiptV2 {
-            attempt_id: "attempt-b".into(),
-            fence_epoch: 2,
-            ..started.clone()
-        };
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial_fence =
+            RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let successor_fence =
+            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
+                .expect("successor fence");
+        let successor =
+            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence)
+                .expect("successor receipt");
         let store = IndeterminateRecoveryStore {
             inner: ExecutionEffectMemoryStore::default(),
         };
@@ -1519,7 +1549,7 @@ mod tests {
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
-            recover_execution_effect(&store, &started, &successor).expect("unknown recovery"),
+            recover_execution_effect(&store, &started, &successor_fence).expect("unknown recovery"),
             RecoveryExecutionEffectRecoveryResult::Indeterminate
         );
         assert_eq!(
@@ -1546,16 +1576,24 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let successor_b = RecoveryExecutionEffectReceiptV2 {
-            attempt_id: "attempt-b".into(),
-            fence_epoch: 2,
-            ..started.clone()
-        };
-        let successor_c = RecoveryExecutionEffectReceiptV2 {
-            attempt_id: "attempt-c".into(),
-            fence_epoch: 2,
-            ..started.clone()
-        };
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial_fence =
+            RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let successor_fence_b =
+            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
+                .expect("successor fence b");
+        let successor_fence_c =
+            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-c")
+                .expect("successor fence c");
+        let successor_b =
+            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence_b)
+                .expect("successor receipt b");
+        let successor_c =
+            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence_c)
+                .expect("successor receipt c");
 
         assert_eq!(
             begin_execution_effect(&store, &started).expect("start"),
@@ -1566,14 +1604,14 @@ mod tests {
         let left_expected = started.clone();
         let left_successor = successor_b.clone();
         let left = thread::spawn(move || {
-            recover_execution_effect(left_store.as_ref(), &left_expected, &left_successor)
+            recover_execution_effect(left_store.as_ref(), &left_expected, &left_successor_fence)
         });
 
         let right_store = Arc::clone(&store);
         let right_expected = started.clone();
         let right_successor = successor_c.clone();
         let right = thread::spawn(move || {
-            recover_execution_effect(right_store.as_ref(), &right_expected, &right_successor)
+            recover_execution_effect(right_store.as_ref(), &right_expected, &right_successor_fence)
         });
 
         let outcomes = [
