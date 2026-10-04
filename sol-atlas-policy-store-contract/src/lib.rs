@@ -177,6 +177,151 @@ where
     Ok(RecoveryPolicyConsumptionReconciliationOutcome::ObservedDifferentState)
 }
 
+/// Durable idempotency/ownership record for one concrete execution identity.
+///
+/// The exact execution-input snapshot is the request fingerprint. The opaque
+/// attempt identifier distinguishes the caller/request that first acquired the
+/// execution claim from a later competing attempt. This record does not mean
+/// the external execution side effect has happened.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RecoveryExecutionClaimV1 {
+    pub schema: String,
+    pub execution_id: String,
+    pub execution_input_snapshot: String,
+    pub attempt_id: String,
+}
+
+impl RecoveryExecutionClaimV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-execution-claim:v1";
+
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA
+            && !self.execution_id.is_empty()
+            && is_sha256_digest(&self.execution_input_snapshot)
+            && !self.attempt_id.is_empty()
+    }
+}
+
+/// Result of the atomic execution-claim attempt.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionClaimResult {
+    /// This attempt atomically acquired the execution claim.
+    Acquired,
+    /// The same attempt already owns the exact same execution fingerprint.
+    ///
+    /// This is an idempotent replay of the same logical start request. It does
+    /// not establish that the external effect completed.
+    AlreadyClaimedSameAttempt,
+    /// Another attempt owns the exact same execution fingerprint.
+    AlreadyClaimedDifferentAttempt,
+    /// The execution identity is already bound to a different fingerprint.
+    ///
+    /// Reusing an execution identity for a different request is rejected
+    /// rather than silently mutating the meaning of the execution.
+    ExecutionIdentityReuseMismatch,
+    /// The store cannot determine whether the claim was acquired.
+    Indeterminate,
+}
+
+/// Storage-neutral boundary for one execution identity's durable claim.
+///
+/// Implementations MUST make claim_if_absent atomic for the same
+/// execution_id. A conforming implementation never replaces an existing
+/// claim with a different attempt or execution fingerprint.
+pub trait RecoveryExecutionClaimStore: Send + Sync {
+    type Error;
+
+    fn claim_if_absent(
+        &self,
+        claim: &RecoveryExecutionClaimV1,
+    ) -> Result<RecoveryExecutionClaimResult, Self::Error>;
+
+    fn load_claim(
+        &self,
+        execution_id: &str,
+    ) -> Result<Option<RecoveryExecutionClaimV1>, Self::Error>;
+}
+
+/// Typed reconciliation result after an indeterminate execution-claim
+/// acknowledgement. This is observation only; it never retries the claim.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionClaimReconciliationOutcome {
+    ObservedOwnedByThisAttempt,
+    ObservedOwnedByOtherAttempt,
+    ObservedDifferentFingerprint,
+    MissingClaim,
+    InvalidClaim,
+}
+
+/// Reconcile an indeterminate execution claim without mutating the store.
+///
+/// Observing the exact claim proves ownership of the durable claim record at
+/// reconciliation time. It does not prove that an external side effect has
+/// completed or that this caller's process is still the one performing it.
+pub fn reconcile_execution_claim<S>(
+    store: &S,
+    claim: &RecoveryExecutionClaimV1,
+) -> Result<
+    RecoveryExecutionClaimReconciliationOutcome,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionClaimStore,
+{
+    if !claim.is_well_formed() {
+        return Ok(RecoveryExecutionClaimReconciliationOutcome::InvalidClaim);
+    }
+
+    let Some(current) = store
+        .load_claim(&claim.execution_id)
+        .map_err(RecoveryPolicyConsumptionPersistenceError::Store)?
+    else {
+        return Ok(RecoveryExecutionClaimReconciliationOutcome::MissingClaim);
+    };
+
+    if !current.is_well_formed() {
+        return Ok(RecoveryExecutionClaimReconciliationOutcome::InvalidClaim);
+    }
+
+    if current.execution_input_snapshot != claim.execution_input_snapshot {
+        return Ok(
+            RecoveryExecutionClaimReconciliationOutcome::ObservedDifferentFingerprint,
+        );
+    }
+
+    if current.attempt_id == claim.attempt_id {
+        return Ok(
+            RecoveryExecutionClaimReconciliationOutcome::ObservedOwnedByThisAttempt,
+        );
+    }
+
+    Ok(RecoveryExecutionClaimReconciliationOutcome::ObservedOwnedByOtherAttempt)
+}
+
+/// Attempt to acquire an execution claim.
+///
+/// This helper is intentionally separate from policy authorization consumption:
+/// a persisted authorization winner and an execution-side-effect owner are
+/// distinct facts and must not be conflated.
+pub fn claim_execution_start<S>(
+    store: &S,
+    claim: &RecoveryExecutionClaimV1,
+) -> Result<
+    RecoveryExecutionClaimResult,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionClaimStore,
+{
+    if !claim.is_well_formed() {
+        return Ok(RecoveryExecutionClaimResult::ExecutionIdentityReuseMismatch);
+    }
+
+    store
+        .claim_if_absent(claim)
+        .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
+}
+
 /// Validate and persist one transition through the external CAS boundary.
 ///
 /// The helper deliberately performs load/validation/CAS as separate operations:
@@ -389,6 +534,48 @@ mod tests {
         }
     }
 
+    #[derive(Default)]
+    struct ExecutionClaimMemoryStore {
+        values: Mutex<BTreeMap<String, RecoveryExecutionClaimV1>>,
+    }
+
+    impl RecoveryExecutionClaimStore for ExecutionClaimMemoryStore {
+        type Error = &'static str;
+
+        fn claim_if_absent(
+            &self,
+            claim: &RecoveryExecutionClaimV1,
+        ) -> Result<RecoveryExecutionClaimResult, Self::Error> {
+            let mut values = self.values.lock().map_err(|_| "poisoned")?;
+            let Some(current) = values.get(&claim.execution_id) else {
+                values.insert(claim.execution_id.clone(), claim.clone());
+                return Ok(RecoveryExecutionClaimResult::Acquired);
+            };
+
+            if current.execution_input_snapshot != claim.execution_input_snapshot {
+                return Ok(RecoveryExecutionClaimResult::ExecutionIdentityReuseMismatch);
+            }
+
+            if current.attempt_id == claim.attempt_id {
+                return Ok(RecoveryExecutionClaimResult::AlreadyClaimedSameAttempt);
+            }
+
+            Ok(RecoveryExecutionClaimResult::AlreadyClaimedDifferentAttempt)
+        }
+
+        fn load_claim(
+            &self,
+            execution_id: &str,
+        ) -> Result<Option<RecoveryExecutionClaimV1>, Self::Error> {
+            Ok(self
+                .values
+                .lock()
+                .map_err(|_| "poisoned")?
+                .get(execution_id)
+                .cloned())
+        }
+    }
+
     struct BrokenStore;
 
     impl RecoveryPolicyConsumptionStore for BrokenStore {
@@ -509,6 +696,192 @@ mod tests {
         )
         .expect("valid transition");
         (transition, next)
+    }
+
+    fn execution_claim_fixture(attempt_id: &str, input_snapshot: &str) -> RecoveryExecutionClaimV1 {
+        RecoveryExecutionClaimV1 {
+            schema: RecoveryExecutionClaimV1::SCHEMA.into(),
+            execution_id: "execution-claim-001".into(),
+            execution_input_snapshot: input_snapshot.into(),
+            attempt_id: attempt_id.into(),
+        }
+    }
+
+    #[test]
+    fn first_execution_claim_is_acquired_atomically() {
+        let store = ExecutionClaimMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+
+        assert_eq!(
+            claim_execution_start(&store, &claim).expect("claim"),
+            RecoveryExecutionClaimResult::Acquired
+        );
+    }
+
+    #[test]
+    fn same_attempt_replay_is_idempotent_but_not_side_effect_success() {
+        let store = ExecutionClaimMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+
+        assert_eq!(
+            claim_execution_start(&store, &claim).expect("first claim"),
+            RecoveryExecutionClaimResult::Acquired
+        );
+        assert_eq!(
+            claim_execution_start(&store, &claim).expect("replay claim"),
+            RecoveryExecutionClaimResult::AlreadyClaimedSameAttempt
+        );
+    }
+
+    #[test]
+    fn competing_attempt_cannot_steal_the_same_execution() {
+        let store = Arc::new(ExecutionClaimMemoryStore::default());
+        let claim_a = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let claim_b = execution_claim_fixture(
+            "attempt-b",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+
+        let left_store = Arc::clone(&store);
+        let left_claim = claim_a.clone();
+        let left = thread::spawn(move || claim_execution_start(left_store.as_ref(), &left_claim));
+
+        let right_store = Arc::clone(&store);
+        let right_claim = claim_b.clone();
+        let right = thread::spawn(move || claim_execution_start(right_store.as_ref(), &right_claim));
+
+        let outcomes = [
+            left.join().expect("left join").expect("left result"),
+            right.join().expect("right join").expect("right result"),
+        ];
+        assert_eq!(
+            outcomes
+                .iter()
+                .filter(|outcome| **outcome == RecoveryExecutionClaimResult::Acquired)
+                .count(),
+            1
+        );
+        assert_eq!(
+            outcomes
+                .iter()
+                .filter(|outcome| {
+                    **outcome == RecoveryExecutionClaimResult::AlreadyClaimedDifferentAttempt
+                })
+                .count(),
+            1
+        );
+    }
+
+    #[test]
+    fn execution_identity_cannot_be_reused_for_a_different_fingerprint() {
+        let store = ExecutionClaimMemoryStore::default();
+        let first = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let different = execution_claim_fixture(
+            "attempt-a",
+            "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        );
+
+        assert_eq!(
+            claim_execution_start(&store, &first).expect("first claim"),
+            RecoveryExecutionClaimResult::Acquired
+        );
+        assert_eq!(
+            claim_execution_start(&store, &different).expect("reuse"),
+            RecoveryExecutionClaimResult::ExecutionIdentityReuseMismatch
+        );
+    }
+
+    #[test]
+    fn indeterminate_execution_claim_reconciles_to_this_attempt() {
+        struct IndeterminateClaimStore {
+            inner: ExecutionClaimMemoryStore,
+        }
+
+        impl RecoveryExecutionClaimStore for IndeterminateClaimStore {
+            type Error = &'static str;
+
+            fn claim_if_absent(
+                &self,
+                claim: &RecoveryExecutionClaimV1,
+            ) -> Result<RecoveryExecutionClaimResult, Self::Error> {
+                self.inner.claim_if_absent(claim)?;
+                Ok(RecoveryExecutionClaimResult::Indeterminate)
+            }
+
+            fn load_claim(
+                &self,
+                execution_id: &str,
+            ) -> Result<Option<RecoveryExecutionClaimV1>, Self::Error> {
+                self.inner.load_claim(execution_id)
+            }
+        }
+
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let store = IndeterminateClaimStore {
+            inner: ExecutionClaimMemoryStore::default(),
+        };
+
+        assert_eq!(
+            claim_execution_start(&store, &claim).expect("indeterminate claim"),
+            RecoveryExecutionClaimResult::Indeterminate
+        );
+        assert_eq!(
+            reconcile_execution_claim(&store, &claim).expect("reconcile"),
+            RecoveryExecutionClaimReconciliationOutcome::ObservedOwnedByThisAttempt
+        );
+    }
+
+    #[test]
+    fn indeterminate_execution_claim_can_reconcile_to_missing() {
+        struct NoCommitClaimStore;
+
+        impl RecoveryExecutionClaimStore for NoCommitClaimStore {
+            type Error = &'static str;
+
+            fn claim_if_absent(
+                &self,
+                _claim: &RecoveryExecutionClaimV1,
+            ) -> Result<RecoveryExecutionClaimResult, Self::Error> {
+                Ok(RecoveryExecutionClaimResult::Indeterminate)
+            }
+
+            fn load_claim(
+                &self,
+                _execution_id: &str,
+            ) -> Result<Option<RecoveryExecutionClaimV1>, Self::Error> {
+                Ok(None)
+            }
+        }
+
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let store = NoCommitClaimStore;
+
+        assert_eq!(
+            claim_execution_start(&store, &claim).expect("indeterminate claim"),
+            RecoveryExecutionClaimResult::Indeterminate
+        );
+        assert_eq!(
+            reconcile_execution_claim(&store, &claim).expect("reconcile"),
+            RecoveryExecutionClaimReconciliationOutcome::MissingClaim
+        );
     }
 
     #[test]
