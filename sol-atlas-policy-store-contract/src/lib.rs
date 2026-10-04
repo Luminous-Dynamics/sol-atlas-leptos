@@ -842,6 +842,26 @@ where
     complete_execution_effect(store, started, &completed)
 }
 
+/// Complete an effect from an established fence and the canonical execution
+/// result, keeping the strongest provenance-bearing path end-to-end.
+///
+/// The established fence prevents caller-minted fence-shaped data from being
+/// treated as authoritative ownership in the normal completion path.
+pub fn complete_execution_effect_for_established_fence<S>(
+    store: &S,
+    started: &RecoveryExecutionEffectReceiptV2,
+    execution: &RecoveryExecution,
+    fence: &EstablishedRecoveryExecutionFenceV1,
+) -> Result<
+    RecoveryExecutionEffectCompletionResult,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionEffectStore,
+{
+    complete_execution_effect_from_execution(store, started, execution, fence.fence())
+}
+
 /// Record a terminal external-effect outcome under the attempt that owns the
 /// InProgress receipt. This does not perform the external effect.
 pub fn complete_execution_effect<S>(
@@ -2460,6 +2480,51 @@ mod tests {
                 .count(),
             1
         );
+    }
+
+    #[test]
+    fn strongest_completion_path_uses_established_fence_and_canonical_result() {
+        let fence_store = FencedExecutionMemoryStore::default();
+        let effect_store = ExecutionEffectMemoryStore::default();
+        let execution = fixture().1;
+        let mut claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        claim.execution_id = execution.execution_id.clone();
+        let raw_fence =
+            RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let established =
+            match establish_execution_fence(&fence_store, &raw_fence).expect("establish") {
+                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+                _ => panic!("initial establishment must succeed"),
+            };
+        let started =
+            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(established.fence())
+                .expect("started receipt");
+
+        assert_eq!(
+            begin_execution_effect_for_established_fence(&effect_store, &established)
+                .expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect_for_established_fence(
+                &effect_store,
+                &started,
+                &execution,
+                &established,
+            )
+            .expect("complete"),
+            RecoveryExecutionEffectCompletionResult::Completed
+        );
+
+        let result = RecoveryExecutionResultSnapshotV1::from_execution(&execution);
+        let stored = effect_store
+            .load_effect(&started.execution_id)
+            .expect("load")
+            .expect("stored");
+        assert_eq!(stored.outcome_digest, Some(result.digest()));
     }
 
     #[test]
