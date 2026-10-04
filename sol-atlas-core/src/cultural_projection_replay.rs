@@ -566,12 +566,7 @@ mod tests {
         .expect("strict replay receipt");
 
         assert_eq!(
-            receipt.validate_strong_against_projection(
-                &projection,
-                &strong_audit,
-                &chain,
-                &claim
-            ),
+            receipt.validate_strong_against_projection(&projection, &strong_audit, &chain, &claim),
             Ok(())
         );
         assert_eq!(receipt.leaf_frontier, frontier.frontier_id);
