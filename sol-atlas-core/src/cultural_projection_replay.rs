@@ -388,7 +388,6 @@ mod tests {
             source_snapshots: vec!["source:1".into()],
             qualification: QualificationStatus::Supported,
             evidence_frontier: child.frontier_id.clone(),
-            frontier_manifest_hash: child.manifest_hash.clone(),
         };
 
         let base = crate::cultural_systems::CulturalProjectionAuditV2 {
