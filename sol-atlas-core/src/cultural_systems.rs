@@ -519,20 +519,40 @@ impl CulturalEvidenceClosureV1 {
         Ok(())
     }
 
+    /// Validates the complete claim/evidence/source closure against an exact
+    /// canonical claim and strict temporal frontier, preserving the first
+    /// concrete validation failure instead of collapsing it to a boolean.
+    pub fn validate_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        claim.validate()?;
+        frontier.validate_temporal_manifest_strict()?;
+
+        if self.claim_ref != claim.claim_ref
+            || self.evidence_refs != claim.evidence_refs
+            || self.source_snapshots != claim.source_snapshots
+            || self.qualification != claim.qualification
+            || self.evidence_frontier != frontier.frontier_id
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        if !claim.is_frontier_safe(frontier) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate().is_ok()
-            && claim.validate().is_ok()
-            && frontier.validate_temporal_manifest_strict().is_ok()
-            && self.claim_ref == claim.claim_ref
-            && self.evidence_refs == claim.evidence_refs
-            && self.source_snapshots == claim.source_snapshots
-            && self.qualification == claim.qualification
-            && self.evidence_frontier == frontier.frontier_id
-            && claim.is_frontier_safe(frontier)
+        self.validate_frontier_safe(claim, frontier).is_ok()
     }
 }
 
@@ -653,15 +673,55 @@ impl CulturalProjectionV1 {
         }
     }
 
+    /// Validates projection admission against the canonical claim and strict
+    /// temporal frontier while preserving concrete projection-side failures.
+    ///
+    /// This is the diagnostic counterpart of is_frontier_safe(). Strong
+    /// provenance constructors should use this method so structural, temporal,
+    /// and evidence-path failures do not collapse into the same boolean result.
+    pub fn validate_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        self.evidence_closure()
+            .validate_frontier_safe(claim, frontier)?;
+
+        let recognition_evidence_missing = match self {
+            Self::Transmission(value) => value
+                .community_recognition
+                .iter()
+                .any(|recognition| {
+                    recognition
+                        .evidence_refs
+                        .iter()
+                        .any(|id| !frontier.admits(id))
+                }),
+            Self::Transformation(value) => value
+                .community_recognition
+                .iter()
+                .any(|recognition| {
+                    recognition
+                        .evidence_refs
+                        .iter()
+                        .any(|id| !frontier.admits(id))
+                }),
+        };
+
+        if recognition_evidence_missing {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        match self {
-            Self::Transmission(value) => value.is_frontier_safe(claim, frontier),
-            Self::Transformation(value) => value.is_frontier_safe(claim, frontier),
-        }
+        self.validate_frontier_safe(claim, frontier).is_ok()
     }
     /// Computes the projection's content identity using the domain's explicit
     /// canonicalization rules. Primary evidence/source references are
@@ -925,9 +985,7 @@ impl CulturalProjectionAuditV2 {
         frontier: &EvidenceFrontierV1,
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<Self, ProjectionError> {
-        if !projection.is_frontier_safe(claim, frontier) {
-            return Err(ProjectionError::AuditWithoutEvidencePath);
-        }
+        projection.validate_frontier_safe(claim, frontier)?;
         let mut audit = Self::from_projection(projection);
         audit.frontier_manifest_hash = frontier.manifest_hash.clone();
         audit.projection_semantic_hash = projection.semantic_hash()?;
@@ -1017,9 +1075,7 @@ impl CulturalProjectionAuditV2 {
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<(), ProjectionError> {
         self.validate()?;
-        if !projection.is_frontier_safe(claim, frontier) {
-            return Err(ProjectionError::AuditWithoutEvidencePath);
-        }
+        projection.validate_frontier_safe(claim, frontier)?;
         if !self.frontier_manifest_hash.is_empty()
             && self.frontier_manifest_hash != frontier.manifest_hash
         {
@@ -1280,6 +1336,70 @@ mod tests {
         );
     }
 
+    #[test]
+    fn strong_v2_preserves_projection_validation_failure() {
+        let frontier = frontier();
+        let mut value = transmission();
+        value.event_time = YearInterval {
+            from: Some(1950),
+            to: Some(1949),
+        };
+        let projection = CulturalProjectionV1::Transmission(value.clone());
+        let claim = canonical_claim(&value);
+
+        assert_eq!(
+            CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim),
+            Err(ProjectionError::InvalidTimeInterval)
+        );
+    }
+
+    #[test]
+    fn strong_v2_preserves_claim_validation_failure() {
+        let frontier = frontier();
+        let projection = CulturalProjectionV1::Transmission(transmission());
+        let mut claim = canonical_claim(match &projection {
+            CulturalProjectionV1::Transmission(value) => value,
+            CulturalProjectionV1::Transformation(_) => unreachable!(),
+        });
+        claim.claim_ref = String::new();
+
+        assert_eq!(
+            CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim),
+            Err(ProjectionError::EmptyIdentifier)
+        );
+    }
+
+    #[test]
+    fn strong_v2_preserves_frontier_validation_failure() {
+        let mut frontier = frontier();
+        frontier.manifest_hash = "not-a-valid-sha256".into();
+        let projection = CulturalProjectionV1::Transmission(transmission());
+        let claim = canonical_claim(match &projection {
+            CulturalProjectionV1::Transmission(value) => value,
+            CulturalProjectionV1::Transformation(_) => unreachable!(),
+        });
+
+        assert_eq!(
+            CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn strong_v2_preserves_evidence_path_failure_as_audit_error() {
+        let frontier = frontier();
+        let projection = CulturalProjectionV1::Transmission(transmission());
+        let mut claim = canonical_claim(match &projection {
+            CulturalProjectionV1::Transmission(value) => value,
+            CulturalProjectionV1::Transformation(_) => unreachable!(),
+        });
+        claim.evidence_refs.reverse();
+
+        assert_eq!(
+            CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
     #[test]
     fn strong_v2_audit_rejects_same_id_projection_semantic_rebind() {
         let frontier = frontier();
