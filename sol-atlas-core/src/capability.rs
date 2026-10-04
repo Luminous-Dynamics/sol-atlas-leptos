@@ -1317,6 +1317,40 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         RecoveryPolicyConsumptionOutcomeV1::Allowed
     }
 
+    /// Evaluate execution-start consumption against the exact discovered candidate
+    /// and the exact caller policy context in one fail-closed gate.
+    ///
+    /// This is the strongest renderer-neutral admission predicate: callers do
+    /// not need to remember to compose candidate and context gates themselves.
+    pub fn admission_outcome_for_execution_start_against_candidate_for_context(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        execution: &RecoveryExecution,
+        expected_purpose: &str,
+        expected_consumer: &str,
+        expected_authority_reference: &str,
+    ) -> RecoveryPolicyConsumptionOutcomeV1 {
+        match self.admission_outcome_for_execution_start_against_candidate(
+            decision,
+            plan,
+            candidate,
+            execution,
+        ) {
+            RecoveryPolicyConsumptionOutcomeV1::Allowed => {}
+            outcome => return outcome,
+        }
+
+        self.admission_outcome_for_execution_start_for_context(
+            decision,
+            execution,
+            expected_purpose,
+            expected_consumer,
+            expected_authority_reference,
+        )
+    }
+
     /// Evaluate execution-start consumption against the exact caller policy context.
     pub fn admission_outcome_for_execution_start_for_context(
         &self,
@@ -1376,6 +1410,33 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
             plan,
             candidate,
             execution,
+        ) != RecoveryPolicyConsumptionOutcomeV1::Allowed
+        {
+            return None;
+        }
+        self.consumed_at_execution_start(decision, execution)
+    }
+
+    /// Construct the consumed state at execution start after binding the exact
+    /// candidate and caller policy context.
+    pub fn consumed_at_execution_start_against_candidate_for_context(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        execution: &RecoveryExecution,
+        expected_purpose: &str,
+        expected_consumer: &str,
+        expected_authority_reference: &str,
+    ) -> Option<Self> {
+        if self.admission_outcome_for_execution_start_against_candidate_for_context(
+            decision,
+            plan,
+            candidate,
+            execution,
+            expected_purpose,
+            expected_consumer,
+            expected_authority_reference,
         ) != RecoveryPolicyConsumptionOutcomeV1::Allowed
         {
             return None;
@@ -4813,6 +4874,74 @@ mod graph_tests {
             &candidate_execution,
             &candidate_admission_next,
         ));
+
+        assert_eq!(
+            candidate_available.admission_outcome_for_execution_start_against_candidate_for_context(
+                &candidate_decision,
+                &candidate_plan,
+                &candidate,
+                &candidate_execution,
+                "recovery.execute",
+                "operator-001",
+                "authority-record",
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::Allowed
+        );
+        let combined_admission_next = candidate_available
+            .consumed_at_execution_start_against_candidate_for_context(
+                &candidate_decision,
+                &candidate_plan,
+                &candidate,
+                &candidate_execution,
+                "recovery.execute",
+                "operator-001",
+                "authority-record",
+            )
+            .expect("candidate+context admission successor");
+        let combined_admission_transition =
+            RecoveryPolicyConsumptionTransitionV1::for_execution_admission_against_candidate_for_context(
+                &candidate_available,
+                &candidate_decision,
+                &candidate_plan,
+                &candidate,
+                &candidate_execution,
+                "recovery.execute",
+                "operator-001",
+                "authority-record",
+            )
+            .expect("candidate+context admission transition");
+        assert!(combined_admission_transition.matches(
+            &candidate_available,
+            &candidate_decision,
+            &candidate_execution,
+            &combined_admission_next,
+        ));
+
+        assert_eq!(
+            candidate_available.admission_outcome_for_execution_start_against_candidate_for_context(
+                &candidate_decision,
+                &candidate_plan,
+                &candidate,
+                &candidate_execution,
+                "recovery.execute",
+                "other-consumer",
+                "authority-record",
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::PolicyContextMismatch
+        );
+        assert!(
+            RecoveryPolicyConsumptionTransitionV1::for_execution_admission_against_candidate_for_context(
+                &candidate_available,
+                &candidate_decision,
+                &candidate_plan,
+                &candidate,
+                &candidate_execution,
+                "recovery.execute",
+                "other-consumer",
+                "authority-record",
+            )
+            .is_none()
+        );
 
         let mut altered_candidate = candidate.clone();
         altered_candidate.claim_ceiling = "altered candidate".into();
