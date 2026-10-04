@@ -841,11 +841,15 @@ mod tests {
             }
 
             if current.state != RecoveryExecutionEffectStateV1::InProgress {
-                return Ok(if current.outcome_digest == completed.outcome_digest {
-                    RecoveryExecutionEffectCompletionResult::AlreadyCompletedSameOutcome
-                } else {
-                    RecoveryExecutionEffectCompletionResult::AlreadyCompletedDifferentOutcome
-                });
+                return Ok(
+                    if current.state == completed.state
+                        && current.outcome_digest == completed.outcome_digest
+                    {
+                        RecoveryExecutionEffectCompletionResult::AlreadyCompletedSameOutcome
+                    } else {
+                        RecoveryExecutionEffectCompletionResult::AlreadyCompletedDifferentOutcome
+                    },
+                );
             }
 
             if current.attempt_id != attempt_id {
@@ -1093,6 +1097,42 @@ mod tests {
             )
             .expect("reconcile start"),
             RecoveryExecutionEffectReconciliationOutcome::ObservedInProgressOwnedByThisAttempt
+        );
+    }
+
+    #[test]
+    fn terminal_state_is_part_of_effect_outcome_identity() {
+        let store = ExecutionEffectMemoryStore::default();
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let success = RecoveryExecutionEffectReceiptV1 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some(
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    .into(),
+            ),
+            ..started.clone()
+        };
+        let failure_with_same_digest = RecoveryExecutionEffectReceiptV1 {
+            state: RecoveryExecutionEffectStateV1::Failed,
+            outcome_digest: success.outcome_digest.clone(),
+            ..started.clone()
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect(&store, &started, &success).expect("complete"),
+            RecoveryExecutionEffectCompletionResult::Completed
+        );
+        assert_eq!(
+            complete_execution_effect(&store, &started, &failure_with_same_digest)
+                .expect("different terminal outcome"),
+            RecoveryExecutionEffectCompletionResult::AlreadyCompletedDifferentOutcome
         );
     }
 
