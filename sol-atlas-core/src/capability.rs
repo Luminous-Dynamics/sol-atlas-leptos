@@ -3897,6 +3897,9 @@ mod graph_tests {
         assert!(available.permits_consumption(&decision, &execution, "2026-10-02T08:00:00Z"));
 
         let available_digest = available.digest();
+        let consumed_preview = available
+            .consumed(&decision, &execution, "2026-10-02T08:00:00Z")
+            .expect("valid one-time transition successor");
         let transition = RecoveryPolicyConsumptionTransitionV1::for_successful_consumption(
             &available,
             &decision,
@@ -3907,7 +3910,7 @@ mod graph_tests {
         assert!(transition.is_well_formed());
         assert_eq!(transition.decision_digest, decision.digest());
         assert_eq!(transition.expected_snapshot_digest, available_digest);
-        assert!(!transition.next_snapshot_digest.is_empty());
+        assert_eq!(transition.next_snapshot_digest, consumed_preview.digest());
         assert_eq!(transition.execution_id, execution.execution_id);
         assert_eq!(transition.consumed_at, "2026-10-02T08:00:00Z");
         assert_eq!(
