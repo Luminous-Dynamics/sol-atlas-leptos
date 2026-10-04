@@ -1050,6 +1050,13 @@ pub struct RecoveryPolicyConsumptionSnapshotV1 {
     pub claim_ceiling: String,
 }
 
+
+fn is_sha256_digest(value: &str) -> bool {
+    value.strip_prefix("sha256:").is_some_and(|hex| {
+        hex.len() == 64 && hex.bytes().all(|byte| byte.is_ascii_hexdigit())
+    })
+}
+
 impl RecoveryPolicyConsumptionSnapshotV1 {
     pub const SCHEMA: &'static str = "sol-atlas:recovery-policy-consumption-snapshot:v1";
 
@@ -1065,11 +1072,8 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
     }
 
     pub fn is_well_formed(&self) -> bool {
-        let digest = self.decision_digest.strip_prefix("sha256:");
         self.schema == Self::SCHEMA
-            && digest.is_some_and(|hex| {
-                hex.len() == 64 && hex.bytes().all(|byte| byte.is_ascii_hexdigit())
-            })
+            && is_sha256_digest(&self.decision_digest)
             && !self.claim_ceiling.is_empty()
             && match self.state {
                 RecoveryPolicyConsumptionStateV1::Unconsumed => {
@@ -1177,6 +1181,66 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
             consumed_at: Some(now.into()),
             claim_ceiling: self.claim_ceiling.clone(),
         })
+    }
+}
+
+/// Canonical intent/receipt for a successful single-use authorization transition.
+///
+/// The transition is renderer- and storage-neutral: it identifies the exact
+/// prior snapshot version and exact successor snapshot version. An external
+/// store must enforce the expected_snapshot_digest atomically; the digest
+/// fields alone do not provide compare-and-set semantics.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryPolicyConsumptionTransitionV1 {
+    pub schema: String,
+    pub decision_digest: String,
+    pub expected_snapshot_digest: String,
+    pub next_snapshot_digest: String,
+    pub execution_id: String,
+    pub consumed_at: String,
+    pub claim_ceiling: String,
+}
+
+impl RecoveryPolicyConsumptionTransitionV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-policy-consumption-transition:v1";
+
+    pub fn for_successful_consumption(
+        current: &RecoveryPolicyConsumptionSnapshotV1,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        execution: &RecoveryExecution,
+        now: &str,
+    ) -> Option<Self> {
+        let next = current.consumed(decision, execution, now)?;
+
+        Some(Self {
+            schema: Self::SCHEMA.into(),
+            decision_digest: current.decision_digest.clone(),
+            expected_snapshot_digest: current.digest(),
+            next_snapshot_digest: next.digest(),
+            execution_id: execution.execution_id.clone(),
+            consumed_at: now.into(),
+            claim_ceiling: current.claim_ceiling.clone(),
+        })
+    }
+
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA
+            && is_sha256_digest(&self.decision_digest)
+            && is_sha256_digest(&self.expected_snapshot_digest)
+            && is_sha256_digest(&self.next_snapshot_digest)
+            && !self.execution_id.is_empty()
+            && is_canonical_utc_timestamp(&self.consumed_at)
+            && !self.claim_ceiling.is_empty()
+    }
+
+    pub fn canonical_bytes(&self) -> Vec<u8> {
+        serde_json::to_vec(self)
+            .expect("recovery policy consumption transition contains serializable primitives")
+    }
+
+    pub fn digest(&self) -> String {
+        let digest = Sha256::digest(self.canonical_bytes());
+        format!("sha256:{digest:x}")
     }
 }
 
@@ -3833,6 +3897,31 @@ mod graph_tests {
         assert!(available.permits_consumption(&decision, &execution, "2026-10-02T08:00:00Z"));
 
         let available_digest = available.digest();
+        let transition = RecoveryPolicyConsumptionTransitionV1::for_successful_consumption(
+            &available,
+            &decision,
+            &execution,
+            "2026-10-02T08:00:00Z",
+        )
+        .expect("valid one-time transition intent");
+        assert!(transition.is_well_formed());
+        assert_eq!(transition.decision_digest, decision.digest());
+        assert_eq!(transition.expected_snapshot_digest, available_digest);
+        assert!(!transition.next_snapshot_digest.is_empty());
+        assert_eq!(transition.execution_id, execution.execution_id);
+        assert_eq!(transition.consumed_at, "2026-10-02T08:00:00Z");
+        assert_eq!(
+            transition.digest(),
+            RecoveryPolicyConsumptionTransitionV1::for_successful_consumption(
+                &available,
+                &decision,
+                &execution,
+                "2026-10-02T08:00:00Z",
+            )
+            .expect("same transition inputs are deterministic")
+            .digest()
+        );
+
         let consumed = available
             .consumed(&decision, &execution, "2026-10-02T08:00:00Z")
             .expect("valid one-time transition");
@@ -3905,6 +3994,10 @@ mod graph_tests {
         let mut malformed_consumed = consumed.clone();
         malformed_consumed.consumed_at = None;
         assert!(!malformed_consumed.is_well_formed());
+
+        let mut malformed_transition = transition.clone();
+        malformed_transition.expected_snapshot_digest = "sha256:not-a-digest".into();
+        assert!(!malformed_transition.is_well_formed());
 
         let mut decision_without_execution_binding = decision.clone();
         decision_without_execution_binding.execution_id = None;
