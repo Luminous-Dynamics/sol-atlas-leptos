@@ -398,7 +398,8 @@ mod tests {
     fn admission_rejects_qualification_drift() {
         let frontier = frontier();
         let statement = statement();
-        let mut admission = DkgProjectionAdmissionV1::from_statement(&statement, &frontier).unwrap();
+        let mut admission =
+            DkgProjectionAdmissionV1::from_statement(&statement, &frontier).unwrap();
         admission.qualification = QualificationStatus::Speculative;
 
         assert!(!admission.validate_against_statement(&statement, &frontier));
