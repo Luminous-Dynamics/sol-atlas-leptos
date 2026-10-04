@@ -16,7 +16,9 @@ use crate::ontology_context::OntologyMappingContextV1;
 
 fn has_duplicate_mapping_ids(mappings: &[OntologyMappingContextV1]) -> bool {
     let mut seen = std::collections::BTreeSet::new();
-    mappings.iter().any(|mapping| !seen.insert(mapping.mapping_id.clone()))
+    mappings
+        .iter()
+        .any(|mapping| !seen.insert(mapping.mapping_id.clone()))
 }
 
 /// Content-addressed semantic context attached to a projection render.
@@ -200,10 +202,7 @@ mod tests {
             .recompute_hash()
             .expect("rehashed mapping drift fixture");
         envelope.recompute_hash().expect("rehashed drift fixture");
-        assert_eq!(
-            envelope.validate(),
-            Err(ProjectionError::EmptyIdentifier)
-        );
+        assert_eq!(envelope.validate(), Err(ProjectionError::EmptyIdentifier));
     }
 
     #[test]
