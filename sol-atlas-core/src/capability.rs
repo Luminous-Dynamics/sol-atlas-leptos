@@ -1267,6 +1267,55 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         RecoveryPolicyConsumptionOutcomeV1::Allowed
     }
 
+    /// Evaluate execution-start consumption against the exact canonical plan.
+    pub fn admission_outcome_for_execution_start_against_plan(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        execution: &RecoveryExecution,
+    ) -> RecoveryPolicyConsumptionOutcomeV1 {
+        match self.admission_outcome_for_execution_start(decision, execution) {
+            RecoveryPolicyConsumptionOutcomeV1::Allowed => {}
+            outcome => return outcome,
+        }
+
+        if !plan.is_ready() || !plan.snapshot().is_well_formed() {
+            return RecoveryPolicyConsumptionOutcomeV1::PlanBindingMismatch;
+        }
+        if decision.plan_snapshot != plan.snapshot().digest()
+            || decision.candidate != plan.candidate
+            || decision.candidate_snapshot != plan.candidate_snapshot
+        {
+            return RecoveryPolicyConsumptionOutcomeV1::PlanBindingMismatch;
+        }
+        if !execution.input_snapshot_matches_plan(plan) {
+            return RecoveryPolicyConsumptionOutcomeV1::ExecutionInputMismatch;
+        }
+
+        RecoveryPolicyConsumptionOutcomeV1::Allowed
+    }
+
+    /// Evaluate execution-start consumption against the exact discovered candidate
+    /// as well as its canonical recovery plan.
+    pub fn admission_outcome_for_execution_start_against_candidate(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        execution: &RecoveryExecution,
+    ) -> RecoveryPolicyConsumptionOutcomeV1 {
+        match self.admission_outcome_for_execution_start_against_plan(decision, plan, execution) {
+            RecoveryPolicyConsumptionOutcomeV1::Allowed => {}
+            outcome => return outcome,
+        }
+
+        if !plan.is_ready_against_candidate_snapshot(candidate, &candidate.snapshot()) {
+            return RecoveryPolicyConsumptionOutcomeV1::CandidateBindingMismatch;
+        }
+
+        RecoveryPolicyConsumptionOutcomeV1::Allowed
+    }
+
     /// Construct the consumed state at the exact execution start time.
     ///
     /// External storage must atomically persist this successor before allowing
