@@ -63,3 +63,7 @@ The policy, claim, and effect stores are separate local transaction boundaries. 
 | Effect `Failed` | Apply an explicit retry policy, normally with a new execution identity | A failure receipt is permission to repeat blindly |
 
 The matrix intentionally leaves abandoned claims and in-progress effects without automatic expiry. Automatic expiry can transfer ownership while the original external side effect is still live; a concrete adapter needs a stronger heartbeat/fencing protocol before making that safe. AWS guidance similarly calls out idempotency and transaction-isolation concerns in saga orchestration; its Durable Execution guidance also distinguishes retry semantics from exactly-once side-effect claims.
+
+## Ownership is not authentication
+
+`execution_id` and `attempt_id` are durable correlation/ownership identifiers only. They are not credentials, proof of authorization, or proof-of-possession. A conforming store can establish which identifier owns a record, but it cannot establish that the caller presenting that identifier is entitled to act. Caller authentication, authority validation, and any sender-constraining or proof-of-possession mechanism belong to the external authorization adapter.
