@@ -1036,6 +1036,8 @@ pub enum RecoveryPolicyConsumptionOutcomeV1 {
     PlanMismatch,
     ExecutionMismatch,
     DecisionRejected,
+    PlanSnapshotMismatch,
+    ExecutionInputMismatch,
     DecisionNotValidAtConsumption,
     ExecutionNotCovered,
 }
@@ -1149,6 +1151,40 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
     pub fn digest(&self) -> String {
         let digest = Sha256::digest(self.canonical_bytes());
         format!("sha256:{digest:x}")
+    }
+
+    /// Stronger one-time consumption gate that binds the authorization to
+    /// the canonical recovery plan and the execution input snapshot, not only
+    /// the plan identifier.
+    ///
+    /// This still models eligibility only; it does not mutate persistence or
+    /// provide external authority authentication.
+    pub fn consumption_outcome_against_plan(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        execution: &RecoveryExecution,
+        now: &str,
+    ) -> RecoveryPolicyConsumptionOutcomeV1 {
+        match self.consumption_outcome(decision, execution, now) {
+            RecoveryPolicyConsumptionOutcomeV1::Allowed => {}
+            outcome => return outcome,
+        }
+
+        if !plan.is_ready() || !plan.snapshot().is_well_formed() {
+            return RecoveryPolicyConsumptionOutcomeV1::PlanSnapshotMismatch;
+        }
+        if decision.plan_snapshot != plan.snapshot().digest()
+            || decision.candidate != plan.candidate
+            || decision.candidate_snapshot != plan.candidate_snapshot
+        {
+            return RecoveryPolicyConsumptionOutcomeV1::PlanSnapshotMismatch;
+        }
+        if !execution.input_snapshot_matches_plan(plan) {
+            return RecoveryPolicyConsumptionOutcomeV1::ExecutionInputMismatch;
+        }
+
+        RecoveryPolicyConsumptionOutcomeV1::Allowed
     }
 
     pub fn permits_consumption(
@@ -4100,6 +4136,60 @@ mod graph_tests {
             &different_plan_execution,
             "2026-10-02T08:00:00Z"
         ));
+
+        let plan = RecoveryPlan {
+            id: "plan-consumption".into(),
+            unavailable: CapabilityId("water".into()),
+            candidate: CapabilityId("recovery".into()),
+            candidate_snapshot: decision.candidate_snapshot.clone(),
+            prerequisites: vec![],
+            steps: vec!["verify".into()],
+            preconditions: vec![],
+            expected_evidence: vec!["consumption-check".into()],
+            human_contribution: "operator".into(),
+            ai_contribution: "none".into(),
+            state: RecoveryPlanState::Ready,
+            claim_ceiling: "Exact recovery plan scope.".into(),
+        };
+        let mut plan_execution = execution.clone();
+        plan_execution.input_snapshot =
+            RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &plan_execution).digest();
+        let mut plan_decision = decision.clone();
+        plan_decision.plan_snapshot = plan.snapshot().digest();
+        plan_decision.candidate_snapshot = plan.candidate_snapshot.clone();
+        assert_eq!(
+            available.consumption_outcome_against_plan(
+                &plan_decision,
+                &plan,
+                &plan_execution,
+                "2026-10-02T08:00:00Z",
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::Allowed
+        );
+
+        let mut changed_plan = plan.clone();
+        changed_plan.steps.push("different".into());
+        assert_eq!(
+            available.consumption_outcome_against_plan(
+                &plan_decision,
+                &changed_plan,
+                &plan_execution,
+                "2026-10-02T08:00:00Z",
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::PlanSnapshotMismatch
+        );
+
+        let mut changed_input = plan_execution.clone();
+        changed_input.input_snapshot = "sha256:tampered-input-snapshot".into();
+        assert_eq!(
+            available.consumption_outcome_against_plan(
+                &plan_decision,
+                &plan,
+                &changed_input,
+                "2026-10-02T08:00:00Z",
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::ExecutionInputMismatch
+        );
 
         let mut different_execution = execution.clone();
         different_execution.execution_id = "execution-other".into();
