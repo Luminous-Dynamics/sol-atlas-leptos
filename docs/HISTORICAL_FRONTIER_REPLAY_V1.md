@@ -22,6 +22,10 @@ The API:
 5. Checks the canonical claim, audit, typed argumentation, and ontology closure against that selected frontier.
 
 Before selection, the supplied sequence's frontier IDs are required to be globally unique.
+Strict consumers then validate the complete prefix through the selected endpoint *before* using
+that frontier to validate an audit or receipt. This makes the strict path fail closed on malformed
+ancestry rather than interpreting a frontier before its lineage has been verified.
+
 Later frontier contents are still outside the validation scope: malformed content on a distinct
 later ID therefore cannot invalidate an otherwise valid earlier replay. Duplicate identity is
 different because it would make the historical selector itself ambiguous.
