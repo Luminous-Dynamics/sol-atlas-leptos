@@ -1245,7 +1245,9 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         // Execution-start admission is strictly pre-terminal: a record that
         // already carries an end marker belongs to completed-consumption
         // semantics and must not be admitted a second way.
-        if execution.ended_at.is_some() || !is_canonical_utc_timestamp(&execution.started_at) {
+        if execution.ended_at.is_some()
+            || !is_canonical_utc_timestamp(&execution.started_at)
+        {
             return RecoveryPolicyConsumptionOutcomeV1::MalformedExecution;
         }
         if decision.digest() != self.decision_digest {
