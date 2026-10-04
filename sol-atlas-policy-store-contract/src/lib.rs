@@ -1097,6 +1097,195 @@ mod tests {
     }
 
     #[test]
+    fn indeterminate_effect_completion_reconciles_to_terminal_success() {
+        struct IndeterminateCompletionStore {
+            inner: ExecutionEffectMemoryStore,
+        }
+
+        impl RecoveryExecutionEffectStore for IndeterminateCompletionStore {
+            type Error = &'static str;
+
+            fn begin_effect(
+                &self,
+                receipt: &RecoveryExecutionEffectReceiptV1,
+            ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
+                self.inner.begin_effect(receipt)
+            }
+
+            fn complete_effect(
+                &self,
+                execution_id: &str,
+                execution_input_snapshot: &str,
+                attempt_id: &str,
+                completed: &RecoveryExecutionEffectReceiptV1,
+            ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
+                let result = self.inner.complete_effect(
+                    execution_id,
+                    execution_input_snapshot,
+                    attempt_id,
+                    completed,
+                )?;
+                if result == RecoveryExecutionEffectCompletionResult::Completed {
+                    return Ok(RecoveryExecutionEffectCompletionResult::Indeterminate);
+                }
+                Ok(result)
+            }
+
+            fn load_effect(
+                &self,
+                execution_id: &str,
+            ) -> Result<Option<RecoveryExecutionEffectReceiptV1>, Self::Error> {
+                self.inner.load_effect(execution_id)
+            }
+        }
+
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let success = RecoveryExecutionEffectReceiptV1 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some(
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    .into(),
+            ),
+            ..started.clone()
+        };
+        let store = IndeterminateCompletionStore {
+            inner: ExecutionEffectMemoryStore::default(),
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect(&store, &started, &success).expect("unknown completion"),
+            RecoveryExecutionEffectCompletionResult::Indeterminate
+        );
+        assert_eq!(
+            reconcile_execution_effect(
+                &store,
+                &started.execution_id,
+                &started.execution_input_snapshot,
+                &started.attempt_id,
+            )
+            .expect("reconcile completion"),
+            RecoveryExecutionEffectReconciliationOutcome::ObservedSucceeded
+        );
+    }
+
+    #[test]
+    fn indeterminate_effect_completion_without_commit_remains_in_progress() {
+        struct NoCommitCompletionStore {
+            inner: ExecutionEffectMemoryStore,
+        }
+
+        impl RecoveryExecutionEffectStore for NoCommitCompletionStore {
+            type Error = &'static str;
+
+            fn begin_effect(
+                &self,
+                receipt: &RecoveryExecutionEffectReceiptV1,
+            ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
+                self.inner.begin_effect(receipt)
+            }
+
+            fn complete_effect(
+                &self,
+                _execution_id: &str,
+                _execution_input_snapshot: &str,
+                _attempt_id: &str,
+                _completed: &RecoveryExecutionEffectReceiptV1,
+            ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
+                Ok(RecoveryExecutionEffectCompletionResult::Indeterminate)
+            }
+
+            fn load_effect(
+                &self,
+                execution_id: &str,
+            ) -> Result<Option<RecoveryExecutionEffectReceiptV1>, Self::Error> {
+                self.inner.load_effect(execution_id)
+            }
+        }
+
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let success = RecoveryExecutionEffectReceiptV1 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some(
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    .into(),
+            ),
+            ..started.clone()
+        };
+        let store = NoCommitCompletionStore {
+            inner: ExecutionEffectMemoryStore::default(),
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect(&store, &started, &success).expect("unknown completion"),
+            RecoveryExecutionEffectCompletionResult::Indeterminate
+        );
+        assert_eq!(
+            reconcile_execution_effect(
+                &store,
+                &started.execution_id,
+                &started.execution_input_snapshot,
+                &started.attempt_id,
+            )
+            .expect("reconcile in-progress"),
+            RecoveryExecutionEffectReconciliationOutcome::ObservedInProgressOwnedByThisAttempt
+        );
+    }
+
+    #[test]
+    fn completed_failure_is_replayed_without_reexecution() {
+        let store = ExecutionEffectMemoryStore::default();
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let failed = RecoveryExecutionEffectReceiptV1 {
+            state: RecoveryExecutionEffectStateV1::Failed,
+            outcome_digest: Some(
+                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                    .into(),
+            ),
+            ..started.clone()
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect(&store, &started, &failed).expect("complete failure"),
+            RecoveryExecutionEffectCompletionResult::Completed
+        );
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("failure replay"),
+            RecoveryExecutionEffectStartResult::AlreadyFailedSameRequest
+        );
+        assert_eq!(
+            reconcile_execution_effect(
+                &store,
+                &started.execution_id,
+                &started.execution_input_snapshot,
+                &started.attempt_id,
+            )
+            .expect("reconcile failure"),
+            RecoveryExecutionEffectReconciliationOutcome::ObservedFailed
+        );
+    }
+
+    #[test]
     fn invalid_effect_completion_never_reaches_store() {
         let store = ExecutionEffectMemoryStore::default();
         let started = effect_receipt_fixture(
