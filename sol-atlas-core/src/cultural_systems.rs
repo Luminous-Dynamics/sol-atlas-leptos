@@ -924,14 +924,14 @@ impl CulturalProjectionAuditV2 {
         projection: &CulturalProjectionV1,
         frontier: &EvidenceFrontierV1,
         claim: &CanonicalClaimAdmissionV1,
-    ) -> Option<Self> {
+    ) -> Result<Self, ProjectionError> {
         if !projection.is_frontier_safe(claim, frontier) {
-            return None;
+            return Err(ProjectionError::AuditWithoutEvidencePath);
         }
         let mut audit = Self::from_projection(projection);
         audit.frontier_manifest_hash = frontier.manifest_hash.clone();
-        audit.projection_semantic_hash = projection.semantic_hash().ok()?;
-        Some(audit)
+        audit.projection_semantic_hash = projection.semantic_hash()?;
+        Ok(audit)
     }
 
     /// Attaches an externally resolved argumentation record without changing the
