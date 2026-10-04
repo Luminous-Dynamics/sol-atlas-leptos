@@ -3,10 +3,10 @@
 
 //! Historical V5 replay against an explicitly selected evidence frontier.
 //!
-//! This module validates only the append-only prefix ending at the requested
-//! frontier. Later frontiers are intentionally outside the validation scope,
-//! so a malformed or newly-added later frontier cannot contaminate an earlier
-//! historical replay.
+//! This module validates the append-only prefix ending at the requested
+//! frontier. Later frontier contents are intentionally outside the validation
+//! scope, but their identifiers are checked for global uniqueness because
+//! selection itself is identifier-based.
 
 use crate::civilizational::{EvidenceFrontierChainV1, EvidenceFrontierId, ProjectionError};
 use crate::cultural_projection_audit_v5::CulturalProjectionAuditV5;
