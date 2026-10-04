@@ -1143,7 +1143,6 @@ impl CulturalProjectionAdmissionV1 {
         }
         Ok(())
     }
-
 }
 
 #[cfg(test)]
