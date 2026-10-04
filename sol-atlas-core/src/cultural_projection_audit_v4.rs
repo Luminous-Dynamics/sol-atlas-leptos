@@ -58,7 +58,11 @@ impl CulturalProjectionAuditV4 {
         resolutions: Vec<OntologyMappingResolutionV1>,
     ) -> Option<Self> {
         let base = CulturalProjectionAuditV2::from_projection_at(projection, frontier, claim)?;
-        Self::from_v2(base, resolutions).ok()
+        let audit = Self::from_v2(base, resolutions).ok()?;
+        audit
+            .validate_strong_against_projection(projection, frontier, claim)
+            .ok()?;
+        Some(audit)
     }
 
     pub fn validate(&self) -> Result<(), ProjectionError> {
