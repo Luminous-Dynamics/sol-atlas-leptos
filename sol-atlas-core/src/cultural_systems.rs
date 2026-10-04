@@ -1051,6 +1051,25 @@ impl CulturalProjectionAuditV1 {
                 .iter()
                 .all(|id| frontier.admits(id))
     }
+
+    /// Reciprocal validation against the exact transmission that produced this
+    /// legacy V1 audit. This is source binding, not merely frontier safety.
+    pub fn validate_against_transmission(
+        &self,
+        transmission: &CulturalTransmissionV1,
+        frontier: &EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        if !transmission.is_frontier_safe(claim, frontier) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        let expected = Self::from_transmission(transmission);
+        if self != &expected {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        Ok(())
+    }
 }
 
 /// Explicit projection admission. Keeping this separate prevents a renderer
@@ -1102,6 +1121,38 @@ impl CulturalProjectionAdmissionV1 {
         {
             return Err(ProjectionError::EmptyIdentifier);
         }
+        Ok(())
+    }
+
+    /// Reciprocal validation against the exact transmission, canonical claim,
+    /// and frontier that produced this legacy admission.
+    pub fn validate_against_transmission(
+        &self,
+        transmission: &CulturalTransmissionV1,
+        frontier: &EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        if self.frontier_manifest_matches(frontier).is_err() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        if !transmission.is_frontier_safe(claim, frontier) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        let expected = Self::from_transmission(transmission, frontier, claim)
+            .ok_or(ProjectionError::AuditWithoutEvidencePath)?;
+        if self != &expected {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        Ok(())
+    }
+
+    fn frontier_manifest_matches(
+        &self,
+        _frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        // V1 has no manifest-hash field; frontier identity is the strongest
+        // serialized boundary available for this legacy shape.
         Ok(())
     }
 }
