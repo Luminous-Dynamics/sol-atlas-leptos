@@ -458,6 +458,18 @@ pub enum RecoveryExecutionEffectCompletionResult {
     Indeterminate,
 }
 
+/// Result of atomically transferring an InProgress effect receipt to a newer fence.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionEffectRecoveryResult {
+    Recovered,
+    AlreadyRecovered,
+    StaleExpectedReceipt,
+    MissingReceipt,
+    FingerprintMismatch,
+    MalformedReceipt,
+    Indeterminate,
+}
+
 /// Storage-neutral contract for durable external-effect idempotency receipts.
 pub trait RecoveryExecutionEffectStore: Send + Sync {
     type Error;
@@ -475,6 +487,12 @@ pub trait RecoveryExecutionEffectStore: Send + Sync {
         fence_epoch: u64,
         completed: &RecoveryExecutionEffectReceiptV2,
     ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error>;
+
+    fn recover_effect_if_current(
+        &self,
+        expected: &RecoveryExecutionEffectReceiptV2,
+        successor: &RecoveryExecutionEffectReceiptV2,
+    ) -> Result<RecoveryExecutionEffectRecoveryResult, Self::Error>;
 
     fn load_effect(
         &self,
@@ -558,6 +576,43 @@ where
             RecoveryExecutionEffectReconciliationOutcome::ObservedFailed
         }
     })
+}
+
+/// Atomically transfer one InProgress effect receipt to a newer fence generation.
+///
+/// The successor must preserve the exact execution identity and input fingerprint,
+/// be InProgress, use a different attempt identifier, and advance the fence epoch
+/// by exactly one. The backing store must enforce exact-current CAS semantics.
+/// This operation only transfers durable receipt ownership; the concrete external
+/// resource must itself enforce the same fence token to make stale work harmless.
+pub fn recover_execution_effect<S>(
+    store: &S,
+    expected: &RecoveryExecutionEffectReceiptV2,
+    successor: &RecoveryExecutionEffectReceiptV2,
+) -> Result<
+    RecoveryExecutionEffectRecoveryResult,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionEffectStore,
+{
+    let valid_successor_epoch = expected.fence_epoch.checked_add(1);
+    if !expected.is_well_formed()
+        || expected.state != RecoveryExecutionEffectStateV1::InProgress
+        || !successor.is_well_formed()
+        || successor.state != RecoveryExecutionEffectStateV1::InProgress
+        || successor.execution_id != expected.execution_id
+        || successor.execution_input_snapshot != expected.execution_input_snapshot
+        || successor.attempt_id == expected.attempt_id
+        || valid_successor_epoch
+            .is_none_or(|epoch| successor.fence_epoch != epoch)
+    {
+        return Ok(RecoveryExecutionEffectRecoveryResult::MalformedReceipt);
+    }
+
+    store
+        .recover_effect_if_current(expected, successor)
+        .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
 }
 
 /// Attempt to begin one external execution effect.
@@ -1155,6 +1210,32 @@ mod tests {
             Ok(RecoveryExecutionEffectCompletionResult::Completed)
         }
 
+        fn recover_effect_if_current(
+            &self,
+            expected: &RecoveryExecutionEffectReceiptV2,
+            successor: &RecoveryExecutionEffectReceiptV2,
+        ) -> Result<RecoveryExecutionEffectRecoveryResult, Self::Error> {
+            let mut values = self.values.lock().map_err(|_| "poisoned")?;
+            let Some(current) = values.get(&expected.execution_id) else {
+                return Ok(RecoveryExecutionEffectRecoveryResult::MissingReceipt);
+            };
+
+            if current.execution_input_snapshot != expected.execution_input_snapshot {
+                return Ok(RecoveryExecutionEffectRecoveryResult::FingerprintMismatch);
+            }
+
+            if current == successor {
+                return Ok(RecoveryExecutionEffectRecoveryResult::AlreadyRecovered);
+            }
+
+            if current != expected {
+                return Ok(RecoveryExecutionEffectRecoveryResult::StaleExpectedReceipt);
+            }
+
+            values.insert(expected.execution_id.clone(), successor.clone());
+            Ok(RecoveryExecutionEffectRecoveryResult::Recovered)
+        }
+
         fn load_effect(
             &self,
             execution_id: &str,
@@ -1314,6 +1395,115 @@ mod tests {
             )
             .expect("reconcile stale fence"),
             RecoveryExecutionEffectReconciliationOutcome::ObservedStaleFence
+        );
+    }
+
+    #[test]
+    fn fenced_effect_recovery_advances_receipt_epoch_and_stales_old_owner() {
+        let store = ExecutionEffectMemoryStore::default();
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let successor = RecoveryExecutionEffectReceiptV2 {
+            attempt_id: "attempt-b".into(),
+            fence_epoch: 2,
+            ..started.clone()
+        };
+        let success = RecoveryExecutionEffectReceiptV2 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some(
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    .into(),
+            ),
+            ..started.clone()
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            recover_execution_effect(&store, &started, &successor).expect("recover"),
+            RecoveryExecutionEffectRecoveryResult::Recovered
+        );
+        assert_eq!(
+            complete_execution_effect(&store, &started, &success).expect("stale owner"),
+            RecoveryExecutionEffectCompletionResult::FenceMismatch
+        );
+        assert_eq!(
+            reconcile_execution_effect(
+                &store,
+                &started.execution_id,
+                &started.execution_input_snapshot,
+                &started.attempt_id,
+                started.fence_epoch,
+            )
+            .expect("reconcile stale owner"),
+            RecoveryExecutionEffectReconciliationOutcome::ObservedStaleFence
+        );
+        assert_eq!(
+            begin_execution_effect(&store, &successor).expect("recovered owner"),
+            RecoveryExecutionEffectStartResult::AlreadyInProgressSameAttempt
+        );
+    }
+
+    #[test]
+    fn concurrent_fenced_effect_recovery_has_one_winner() {
+        let store = Arc::new(ExecutionEffectMemoryStore::default());
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let successor_b = RecoveryExecutionEffectReceiptV2 {
+            attempt_id: "attempt-b".into(),
+            fence_epoch: 2,
+            ..started.clone()
+        };
+        let successor_c = RecoveryExecutionEffectReceiptV2 {
+            attempt_id: "attempt-c".into(),
+            fence_epoch: 2,
+            ..started.clone()
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+
+        let left_store = Arc::clone(&store);
+        let left_expected = started.clone();
+        let left_successor = successor_b.clone();
+        let left = thread::spawn(move || {
+            recover_execution_effect(left_store.as_ref(), &left_expected, &left_successor)
+        });
+
+        let right_store = Arc::clone(&store);
+        let right_expected = started.clone();
+        let right_successor = successor_c.clone();
+        let right = thread::spawn(move || {
+            recover_execution_effect(right_store.as_ref(), &right_expected, &right_successor)
+        });
+
+        let outcomes = [
+            left.join().expect("left join").expect("left result"),
+            right.join().expect("right join").expect("right result"),
+        ];
+        assert_eq!(
+            outcomes
+                .iter()
+                .filter(|outcome| **outcome == RecoveryExecutionEffectRecoveryResult::Recovered)
+                .count(),
+            1
+        );
+        assert_eq!(
+            outcomes
+                .iter()
+                .filter(|outcome| {
+                    **outcome == RecoveryExecutionEffectRecoveryResult::StaleExpectedReceipt
+                })
+                .count(),
+            1
         );
     }
 
