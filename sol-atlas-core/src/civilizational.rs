@@ -597,6 +597,20 @@ impl EvidenceFrontierChainV1 {
         })
     }
 
+    /// Select and strictly validate an explicit frontier prefix.
+    ///
+    /// This is the fail-closed primitive for provenance consumers: selector
+    /// identity is checked first, then every frontier through the selected
+    /// endpoint is validated before callers inspect the selected frontier.
+    pub(crate) fn strict_prefix_through(
+        &self,
+        frontier_id: &EvidenceFrontierId,
+    ) -> Result<Self, ProjectionError> {
+        let prefix = self.prefix_through(frontier_id)?;
+        prefix.validate_strict()?;
+        Ok(prefix)
+    }
+
     /// Strict chain validation for reproducible replay. Every frontier in the
     /// supplied ancestry must carry complete source availability metadata.
     pub fn validate_strict(&self) -> Result<(), ProjectionError> {
