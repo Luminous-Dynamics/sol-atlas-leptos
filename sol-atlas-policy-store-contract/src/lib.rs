@@ -564,6 +564,16 @@ where
         );
     }
 
+    match current.state {
+        RecoveryExecutionEffectStateV1::Succeeded => {
+            return Ok(RecoveryExecutionEffectReconciliationOutcome::ObservedSucceeded);
+        }
+        RecoveryExecutionEffectStateV1::Failed => {
+            return Ok(RecoveryExecutionEffectReconciliationOutcome::ObservedFailed);
+        }
+        RecoveryExecutionEffectStateV1::InProgress => {}
+    }
+
     if current.fence_epoch > expected_fence_epoch {
         return Ok(RecoveryExecutionEffectReconciliationOutcome::ObservedStaleFence);
     }
@@ -1165,6 +1175,16 @@ mod tests {
                 return Ok(RecoveryExecutionEffectStartResult::FingerprintMismatch);
             }
 
+            match current.state {
+                RecoveryExecutionEffectStateV1::Succeeded => {
+                    return Ok(RecoveryExecutionEffectStartResult::AlreadySucceededSameRequest);
+                }
+                RecoveryExecutionEffectStateV1::Failed => {
+                    return Ok(RecoveryExecutionEffectStartResult::AlreadyFailedSameRequest);
+                }
+                RecoveryExecutionEffectStateV1::InProgress => {}
+            }
+
             if current.fence_epoch != receipt.fence_epoch {
                 return Ok(RecoveryExecutionEffectStartResult::FenceMismatch);
             }
@@ -1202,10 +1222,6 @@ mod tests {
                 return Ok(RecoveryExecutionEffectCompletionResult::FingerprintMismatch);
             }
 
-            if current.fence_epoch != fence_epoch || current.fence_epoch != completed.fence_epoch {
-                return Ok(RecoveryExecutionEffectCompletionResult::FenceMismatch);
-            }
-
             if current.state != RecoveryExecutionEffectStateV1::InProgress {
                 return Ok(
                     if current.state == completed.state
@@ -1216,6 +1232,10 @@ mod tests {
                         RecoveryExecutionEffectCompletionResult::AlreadyCompletedDifferentOutcome
                     },
                 );
+            }
+
+            if current.fence_epoch != fence_epoch || current.fence_epoch != completed.fence_epoch {
+                return Ok(RecoveryExecutionEffectCompletionResult::FenceMismatch);
             }
 
             if current.attempt_id != attempt_id {
@@ -1411,6 +1431,61 @@ mod tests {
             )
             .expect("reconcile stale fence"),
             RecoveryExecutionEffectReconciliationOutcome::ObservedStaleFence
+        );
+    }
+
+    #[test]
+    fn terminal_effect_result_remains_replayable_after_fence_advances() {
+        let store = ExecutionEffectMemoryStore::default();
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial_fence =
+            RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let successor_fence =
+            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
+                .expect("successor fence");
+        let success = RecoveryExecutionEffectReceiptV2 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some(
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    .into(),
+            ),
+            ..started.clone()
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect(&store, &started, &success).expect("complete"),
+            RecoveryExecutionEffectCompletionResult::Completed
+        );
+
+        let replay_at_new_epoch = RecoveryExecutionEffectReceiptV2::in_progress_for_fence(
+            &successor_fence,
+        )
+        .expect("new-epoch replay");
+        assert_eq!(
+            begin_execution_effect(&store, &replay_at_new_epoch).expect("terminal replay"),
+            RecoveryExecutionEffectStartResult::AlreadySucceededSameRequest
+        );
+        assert_eq!(
+            reconcile_execution_effect(
+                &store,
+                &replay_at_new_epoch.execution_id,
+                &replay_at_new_epoch.execution_input_snapshot,
+                &replay_at_new_epoch.attempt_id,
+                replay_at_new_epoch.fence_epoch,
+            )
+            .expect("terminal reconciliation"),
+            RecoveryExecutionEffectReconciliationOutcome::ObservedSucceeded
         );
     }
 
