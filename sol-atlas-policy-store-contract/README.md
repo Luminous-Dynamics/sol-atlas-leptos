@@ -41,7 +41,7 @@ The current IETF Idempotency-Key Internet-Draft follows the same fundamental rul
 
 ## External-effect receipt boundary (#30)
 
-The package models the durable receipt around an external effect as `InProgress`, `Succeeded`, or `Failed` in `RecoveryExecutionEffectReceiptV2`. Each receipt also carries the exact monotonic `fence_epoch` of the execution owner. Starting an effect is an atomic idempotency operation keyed by the stable execution identity, exact input fingerprint, and current fence generation. Only the attempt that owns the `InProgress` receipt at the same fence epoch may advance it to a terminal receipt.
+The package models the durable receipt around an external effect as `InProgress`, `Succeeded`, or `Failed` in `RecoveryExecutionEffectReceiptV2`. Each receipt also carries the exact monotonic `fence_epoch` of the execution owner. Starting an effect is an atomic idempotency operation keyed by the stable execution identity, exact input fingerprint, and current fence generation. Only the attempt that owns the `InProgress` receipt at the same fence epoch may advance it to a terminal receipt. Fence epochs protect live mutable ownership; once a receipt is `Succeeded` or `Failed`, that terminal record is immutable history and remains replayable even after a later fence generation takes ownership.
 
 A repeated request with the same execution identity and fingerprint is therefore classified instead of starting a second effect. A different fingerprint is rejected. An uncertain store acknowledgement is reconciled by reading the receipt; the receipt state itself is never treated as proof that the external action completed.
 
