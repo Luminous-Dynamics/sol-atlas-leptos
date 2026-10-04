@@ -24,24 +24,9 @@ pub fn validate_v5_at(
     frontier_id: &EvidenceFrontierId,
     claim: &CanonicalClaimAdmissionV1,
 ) -> Result<(), ProjectionError> {
-    // Selection by identifier is only unambiguous when the supplied sequence
-    // has globally unique frontier IDs. This does not validate later frontier
-    // contents, preserving the historical prefix boundary.
-    chain.validate_unique_frontier_ids()?;
-
-    let Some(index) = chain
-        .frontiers
-        .iter()
-        .position(|frontier| &frontier.frontier_id == frontier_id)
-    else {
-        return Err(ProjectionError::InvalidEvidenceFrontierManifest);
-    };
-
-    // Clone only the verified historical prefix. This deliberately excludes
-    // every later frontier from validation and replay eligibility.
-    let prefix = EvidenceFrontierChainV1 {
-        frontiers: chain.frontiers[..=index].to_vec(),
-    };
+    // Selection validates only identifier uniqueness; strict content
+    // validation remains scoped to the selected historical prefix.
+    let prefix = chain.prefix_through(frontier_id)?;
     prefix.validate_strict()?;
 
     let selected = prefix
