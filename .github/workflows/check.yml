@@ -102,6 +102,60 @@ jobs:
       - name: Build web bundle
         run: trunk build --release --locked --no-sri
 
+  provenance-construction:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert exact pull-request head
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          test -n "$EXPECTED_HEAD"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - name: Capture dependency identity
+        run: |
+          test -f Cargo.lock
+          sha256sum Cargo.lock | cut -d ' ' -f1 > /tmp/cargo-lock.sha256
+      - name: Inspect compiled core test inventory
+        run: |
+          cargo test -p sol-atlas-core --locked -- --list | tee /tmp/sol-atlas-core-tests.txt
+          for test_name in \
+            projection_error_has_stable_machine_code_and_display \
+            projection_error_is_standard_thread_safe_error \
+            canonical_claim_preserves_frontier_validation_failure \
+            canonical_claim_preserves_evidence_path_failure \
+            strong_v2_preserves_projection_validation_failure \
+            strong_v2_preserves_claim_validation_failure \
+            strong_v2_preserves_frontier_validation_failure \
+            strong_v2_preserves_evidence_path_failure_as_audit_error \
+            v3_strong_constructor_preserves_v2_projection_diagnostic \
+            v4_strong_constructor_preserves_v2_projection_diagnostic \
+            v4_validation_preserves_resolution_frontier_diagnostic \
+            v5_strong_constructor_preserves_v2_projection_diagnostic \
+            v5_strong_constructor_rejects_frontier_unsafe_argumentation \
+            v5_chain_replay_preserves_claim_frontier_diagnostic \
+            mapping_preserves_frontier_validation_failure \
+            mapping_preserves_evidence_path_failure \
+            resolution_constructor_preserves_frontier_validation_failure \
+            resolution_validation_preserves_evidence_path_failure; do
+              grep -Fq "$test_name" /tmp/sol-atlas-core-tests.txt
+            done
+      - name: Execute core package
+        run: cargo test -p sol-atlas-core --locked
+      - name: Assert dependency and checkout integrity
+        run: |
+          test "$(sha256sum Cargo.lock | cut -d ' ' -f1)" = "$(cat /tmp/cargo-lock.sha256)"
+          test -z "$(git status --porcelain)"
+
   test-native:
     runs-on: ubuntu-latest
     timeout-minutes: 20
