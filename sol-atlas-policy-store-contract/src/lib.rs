@@ -12,9 +12,9 @@
 //! primitive, or external authorization mechanism.
 
 use sol_atlas_core::{
-    RecoveryExecution, RecoveryPolicyConsumptionSnapshotV1,
-    RecoveryPolicyConsumptionStateV1, RecoveryPolicyConsumptionTransitionV1,
-    RecoveryPolicyDecisionSnapshotV1,
+    RecoveryExecution, RecoveryExecutionResultSnapshotV1,
+    RecoveryPolicyConsumptionSnapshotV1, RecoveryPolicyConsumptionStateV1,
+    RecoveryPolicyConsumptionTransitionV1, RecoveryPolicyDecisionSnapshotV1,
 };
 use std::collections::BTreeMap;
 use std::sync::Mutex;
@@ -443,6 +443,65 @@ impl RecoveryExecutionEffectReceiptV2 {
                     .is_some_and(is_sha256_digest),
             }
     }
+
+    /// Derive a terminal success receipt from the canonical execution-result
+    /// snapshot rather than accepting an independently supplied outcome digest.
+    ///
+    /// This is a stronger identity path, not proof that an external side effect
+    /// succeeded. The execution result must itself satisfy the core success
+    /// predicate, and its canonical digest becomes the receipt outcome identity.
+    pub fn succeeded_from_execution(
+        fence: &RecoveryExecutionFenceV1,
+        execution: &RecoveryExecution,
+    ) -> Option<Self> {
+        let result = RecoveryExecutionResultSnapshotV1::from_execution(execution);
+        if !execution.is_successful()
+            || !result.is_well_formed()
+            || result.execution_id != fence.execution_id
+            || result.input_snapshot != fence.execution_input_snapshot
+        {
+            return None;
+        }
+
+        let receipt = Self {
+            schema: Self::SCHEMA.into(),
+            execution_id: fence.execution_id.clone(),
+            execution_input_snapshot: fence.execution_input_snapshot.clone(),
+            attempt_id: fence.attempt_id.clone(),
+            fence_epoch: fence.fence_epoch,
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some(result.digest()),
+        };
+        receipt.is_well_formed().then_some(receipt)
+    }
+
+    /// Derive a terminal failure receipt from the canonical execution-result
+    /// snapshot. The result identity is content-addressed and bound to the
+    /// exact execution/fingerprint carried by the established fence.
+    pub fn failed_from_execution(
+        fence: &RecoveryExecutionFenceV1,
+        execution: &RecoveryExecution,
+    ) -> Option<Self> {
+        let result = RecoveryExecutionResultSnapshotV1::from_execution(execution);
+        if !execution.is_failed()
+            || !result.is_well_formed()
+            || result.execution_id != fence.execution_id
+            || result.input_snapshot != fence.execution_input_snapshot
+        {
+            return None;
+        }
+
+        let receipt = Self {
+            schema: Self::SCHEMA.into(),
+            execution_id: fence.execution_id.clone(),
+            execution_input_snapshot: fence.execution_input_snapshot.clone(),
+            attempt_id: fence.attempt_id.clone(),
+            fence_epoch: fence.fence_epoch,
+            state: RecoveryExecutionEffectStateV1::Failed,
+            outcome_digest: Some(result.digest()),
+        };
+        receipt.is_well_formed().then_some(receipt)
+    }
 }
 
 /// Result of atomically beginning an external effect.
@@ -743,6 +802,44 @@ where
     S: RecoveryExecutionEffectStore,
 {
     begin_execution_effect_for_fence(store, fence.fence())
+}
+
+/// Complete an effect with an outcome identity derived from the canonical
+/// execution-result snapshot.
+///
+/// The execution must be successful or failed according to core semantics and
+/// must be bound to the exact started receipt identity. This helper records the
+/// canonical result identity; it does not itself prove that the external side
+/// effect happened.
+pub fn complete_execution_effect_from_execution<S>(
+    store: &S,
+    started: &RecoveryExecutionEffectReceiptV2,
+    execution: &RecoveryExecution,
+    fence: &RecoveryExecutionFenceV1,
+) -> Result<
+    RecoveryExecutionEffectCompletionResult,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionEffectStore,
+{
+    if !started.matches_fence(fence) {
+        return Ok(RecoveryExecutionEffectCompletionResult::MalformedReceipt);
+    }
+
+    let completed = if execution.is_successful() {
+        RecoveryExecutionEffectReceiptV2::succeeded_from_execution(fence, execution)
+    } else if execution.is_failed() {
+        RecoveryExecutionEffectReceiptV2::failed_from_execution(fence, execution)
+    } else {
+        None
+    };
+
+    let Some(completed) = completed else {
+        return Ok(RecoveryExecutionEffectCompletionResult::MalformedReceipt);
+    };
+
+    complete_execution_effect(store, started, &completed)
 }
 
 /// Record a terminal external-effect outcome under the attempt that owns the
@@ -2362,6 +2459,102 @@ mod tests {
                 })
                 .count(),
             1
+        );
+    }
+
+    #[test]
+    fn canonical_execution_result_becomes_effect_outcome_identity() {
+        let store = ExecutionEffectMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let execution = fixture().1;
+        let started =
+            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&fence)
+                .expect("started receipt");
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect_from_execution(&store, &started, &execution, &fence)
+                .expect("complete from canonical result"),
+            RecoveryExecutionEffectCompletionResult::Completed
+        );
+
+        let result = RecoveryExecutionResultSnapshotV1::from_execution(&execution);
+        let stored = store
+            .load_effect(&started.execution_id)
+            .expect("load")
+            .expect("stored receipt");
+        assert_eq!(stored.outcome_digest, Some(result.digest()));
+    }
+
+    #[test]
+    fn canonical_failure_result_becomes_failed_effect_identity() {
+        let store = ExecutionEffectMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let mut execution = fixture().1;
+        execution.completed_steps.clear();
+        execution.failed_steps = vec!["verify".into()];
+        execution.failure_reason = Some("verification failed".into());
+        let started =
+            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&fence)
+                .expect("started receipt");
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect_from_execution(&store, &started, &execution, &fence)
+                .expect("complete failure"),
+            RecoveryExecutionEffectCompletionResult::Completed
+        );
+
+        let result = RecoveryExecutionResultSnapshotV1::from_execution(&execution);
+        let stored = store
+            .load_effect(&started.execution_id)
+            .expect("load")
+            .expect("stored receipt");
+        assert_eq!(stored.state, RecoveryExecutionEffectStateV1::Failed);
+        assert_eq!(stored.outcome_digest, Some(result.digest()));
+    }
+
+    #[test]
+    fn canonical_result_path_rejects_execution_fingerprint_mismatch() {
+        let store = ExecutionEffectMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let mut execution = fixture().1;
+        execution.input_snapshot =
+            "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".into();
+        let started =
+            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&fence)
+                .expect("started receipt");
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        assert_eq!(
+            complete_execution_effect_from_execution(&store, &started, &execution, &fence)
+                .expect("reject mismatch"),
+            RecoveryExecutionEffectCompletionResult::MalformedReceipt
+        );
+        assert_eq!(
+            store.load_effect(&started.execution_id).expect("load"),
+            Some(started)
         );
     }
 
