@@ -1047,9 +1047,11 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
     }
 
     pub fn is_well_formed(&self) -> bool {
+        let digest = self.decision_digest.strip_prefix("sha256:");
         self.schema == Self::SCHEMA
-            && self.decision_digest.starts_with("sha256:")
-            && self.decision_digest.len() > 7
+            && digest.is_some_and(|hex| {
+                hex.len() == 64 && hex.bytes().all(|byte| byte.is_ascii_hexdigit())
+            })
             && !self.claim_ceiling.is_empty()
             && match self.state {
                 RecoveryPolicyConsumptionStateV1::Unconsumed => {
