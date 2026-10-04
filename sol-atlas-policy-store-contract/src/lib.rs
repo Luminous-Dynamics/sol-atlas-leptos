@@ -366,31 +366,51 @@ pub enum RecoveryExecutionEffectStateV1 {
 /// receipt. Outcome identity is content-addressed; the receipt does not
 /// contain or imply the external side effect itself.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RecoveryExecutionEffectReceiptV1 {
+pub struct RecoveryExecutionEffectReceiptV2 {
     pub schema: String,
     pub execution_id: String,
     pub execution_input_snapshot: String,
     pub attempt_id: String,
+    pub fence_epoch: u64,
     pub state: RecoveryExecutionEffectStateV1,
     pub outcome_digest: Option<String>,
 }
 
-impl RecoveryExecutionEffectReceiptV1 {
-    pub const SCHEMA: &'static str = "sol-atlas:recovery-execution-effect-receipt:v1";
+impl RecoveryExecutionEffectReceiptV2 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-execution-effect-receipt:v2";
 
     pub fn in_progress(
         execution_id: impl Into<String>,
         execution_input_snapshot: impl Into<String>,
         attempt_id: impl Into<String>,
+        fence_epoch: u64,
     ) -> Self {
         Self {
             schema: Self::SCHEMA.into(),
             execution_id: execution_id.into(),
             execution_input_snapshot: execution_input_snapshot.into(),
             attempt_id: attempt_id.into(),
+            fence_epoch,
             state: RecoveryExecutionEffectStateV1::InProgress,
             outcome_digest: None,
         }
+    }
+
+    /// Construct an effect receipt from an already-established execution fence.
+    pub fn in_progress_for_fence(
+        fence: &RecoveryExecutionFenceV1,
+    ) -> Option<Self> {
+        if !fence.is_well_formed() {
+            return None;
+        }
+
+        let receipt = Self::in_progress(
+            fence.execution_id.clone(),
+            fence.execution_input_snapshot.clone(),
+            fence.attempt_id.clone(),
+            fence.fence_epoch,
+        );
+        receipt.is_well_formed().then_some(receipt)
     }
 
     pub fn is_well_formed(&self) -> bool {
@@ -398,6 +418,7 @@ impl RecoveryExecutionEffectReceiptV1 {
             && !self.execution_id.is_empty()
             && is_sha256_digest(&self.execution_input_snapshot)
             && !self.attempt_id.is_empty()
+            && self.fence_epoch > 0
             && match self.state {
                 RecoveryExecutionEffectStateV1::InProgress => self.outcome_digest.is_none(),
                 RecoveryExecutionEffectStateV1::Succeeded
@@ -418,6 +439,7 @@ pub enum RecoveryExecutionEffectStartResult {
     AlreadySucceededSameRequest,
     AlreadyFailedSameRequest,
     FingerprintMismatch,
+    FenceMismatch,
     MalformedReceipt,
     Indeterminate,
 }
@@ -441,7 +463,7 @@ pub trait RecoveryExecutionEffectStore: Send + Sync {
 
     fn begin_effect(
         &self,
-        receipt: &RecoveryExecutionEffectReceiptV1,
+        receipt: &RecoveryExecutionEffectReceiptV2,
     ) -> Result<RecoveryExecutionEffectStartResult, Self::Error>;
 
     fn complete_effect(
@@ -449,13 +471,13 @@ pub trait RecoveryExecutionEffectStore: Send + Sync {
         execution_id: &str,
         execution_input_snapshot: &str,
         attempt_id: &str,
-        completed: &RecoveryExecutionEffectReceiptV1,
+        completed: &RecoveryExecutionEffectReceiptV2,
     ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error>;
 
     fn load_effect(
         &self,
         execution_id: &str,
-    ) -> Result<Option<RecoveryExecutionEffectReceiptV1>, Self::Error>;
+    ) -> Result<Option<RecoveryExecutionEffectReceiptV2>, Self::Error>;
 }
 
 /// Point-in-time reconciliation result for an uncertain effect-start or
@@ -466,6 +488,8 @@ pub enum RecoveryExecutionEffectReconciliationOutcome {
     ObservedInProgressOwnedByOtherAttempt,
     ObservedSucceeded,
     ObservedFailed,
+    ObservedStaleFence,
+    ObservedOlderFence,
     ObservedDifferentFingerprint,
     MissingReceipt,
     InvalidReceipt,
@@ -477,6 +501,7 @@ pub fn reconcile_execution_effect<S>(
     execution_id: &str,
     expected_input_snapshot: &str,
     attempt_id: &str,
+    expected_fence_epoch: u64,
 ) -> Result<
     RecoveryExecutionEffectReconciliationOutcome,
     RecoveryPolicyConsumptionPersistenceError<S::Error>,
@@ -487,6 +512,7 @@ where
     if execution_id.is_empty()
         || !is_sha256_digest(expected_input_snapshot)
         || attempt_id.is_empty()
+        || expected_fence_epoch == 0
     {
         return Ok(RecoveryExecutionEffectReconciliationOutcome::InvalidReceipt);
     }
@@ -508,6 +534,14 @@ where
         );
     }
 
+    if current.fence_epoch > expected_fence_epoch {
+        return Ok(RecoveryExecutionEffectReconciliationOutcome::ObservedStaleFence);
+    }
+
+    if current.fence_epoch < expected_fence_epoch {
+        return Ok(RecoveryExecutionEffectReconciliationOutcome::ObservedOlderFence);
+    }
+
     Ok(match (&current.state, current.attempt_id == attempt_id) {
         (RecoveryExecutionEffectStateV1::InProgress, true) => {
             RecoveryExecutionEffectReconciliationOutcome::ObservedInProgressOwnedByThisAttempt
@@ -527,7 +561,7 @@ where
 /// Attempt to begin one external execution effect.
 pub fn begin_execution_effect<S>(
     store: &S,
-    receipt: &RecoveryExecutionEffectReceiptV1,
+    receipt: &RecoveryExecutionEffectReceiptV2,
 ) -> Result<
     RecoveryExecutionEffectStartResult,
     RecoveryPolicyConsumptionPersistenceError<S::Error>,
@@ -548,8 +582,8 @@ where
 /// InProgress receipt. This does not perform the external effect.
 pub fn complete_execution_effect<S>(
     store: &S,
-    started: &RecoveryExecutionEffectReceiptV1,
-    completed: &RecoveryExecutionEffectReceiptV1,
+    started: &RecoveryExecutionEffectReceiptV2,
+    completed: &RecoveryExecutionEffectReceiptV2,
 ) -> Result<
     RecoveryExecutionEffectCompletionResult,
     RecoveryPolicyConsumptionPersistenceError<S::Error>,
@@ -563,6 +597,7 @@ where
         || completed.execution_id != started.execution_id
         || completed.execution_input_snapshot != started.execution_input_snapshot
         || completed.attempt_id != started.attempt_id
+        || completed.fence_epoch != started.fence_epoch
         || completed.state == RecoveryExecutionEffectStateV1::InProgress
     {
         return Ok(RecoveryExecutionEffectCompletionResult::MalformedReceipt);
@@ -573,6 +608,7 @@ where
             &started.execution_id,
             &started.execution_input_snapshot,
             &started.attempt_id,
+            started.fence_epoch,
             completed,
         )
         .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
@@ -1036,7 +1072,7 @@ mod tests {
 
     #[derive(Default)]
     struct ExecutionEffectMemoryStore {
-        values: Mutex<BTreeMap<String, RecoveryExecutionEffectReceiptV1>>,
+        values: Mutex<BTreeMap<String, RecoveryExecutionEffectReceiptV2>>,
     }
 
     impl RecoveryExecutionEffectStore for ExecutionEffectMemoryStore {
@@ -1044,7 +1080,7 @@ mod tests {
 
         fn begin_effect(
             &self,
-            receipt: &RecoveryExecutionEffectReceiptV1,
+            receipt: &RecoveryExecutionEffectReceiptV2,
         ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
             let mut values = self.values.lock().map_err(|_| "poisoned")?;
             let Some(current) = values.get(&receipt.execution_id) else {
@@ -1054,6 +1090,10 @@ mod tests {
 
             if current.execution_input_snapshot != receipt.execution_input_snapshot {
                 return Ok(RecoveryExecutionEffectStartResult::FingerprintMismatch);
+            }
+
+            if current.fence_epoch != receipt.fence_epoch {
+                return Ok(RecoveryExecutionEffectStartResult::FenceMismatch);
             }
 
             Ok(match (&current.state, current.attempt_id == receipt.attempt_id) {
@@ -1077,7 +1117,8 @@ mod tests {
             execution_id: &str,
             execution_input_snapshot: &str,
             attempt_id: &str,
-            completed: &RecoveryExecutionEffectReceiptV1,
+            fence_epoch: u64,
+            completed: &RecoveryExecutionEffectReceiptV2,
         ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
             let mut values = self.values.lock().map_err(|_| "poisoned")?;
             let Some(current) = values.get(execution_id) else {
@@ -1086,6 +1127,10 @@ mod tests {
 
             if current.execution_input_snapshot != execution_input_snapshot {
                 return Ok(RecoveryExecutionEffectCompletionResult::FingerprintMismatch);
+            }
+
+            if current.fence_epoch != fence_epoch || current.fence_epoch != completed.fence_epoch {
+                return Ok(RecoveryExecutionEffectCompletionResult::FenceMismatch);
             }
 
             if current.state != RecoveryExecutionEffectStateV1::InProgress {
@@ -1111,7 +1156,7 @@ mod tests {
         fn load_effect(
             &self,
             execution_id: &str,
-        ) -> Result<Option<RecoveryExecutionEffectReceiptV1>, Self::Error> {
+        ) -> Result<Option<RecoveryExecutionEffectReceiptV2>, Self::Error> {
             Ok(self
                 .values
                 .lock()
@@ -1124,11 +1169,12 @@ mod tests {
     fn effect_receipt_fixture(
         attempt_id: &str,
         input_snapshot: &str,
-    ) -> RecoveryExecutionEffectReceiptV1 {
-        RecoveryExecutionEffectReceiptV1::in_progress(
+    ) -> RecoveryExecutionEffectReceiptV2 {
+        RecoveryExecutionEffectReceiptV2::in_progress(
             "effect-001",
             input_snapshot,
             attempt_id,
+            1,
         )
     }
 
@@ -1218,17 +1264,69 @@ mod tests {
     }
 
     #[test]
+    fn stale_effect_fence_cannot_complete_after_ownership_advances() {
+        let store = ExecutionEffectMemoryStore::default();
+        let started = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let current = RecoveryExecutionEffectReceiptV2 {
+            attempt_id: "attempt-b".into(),
+            fence_epoch: 2,
+            ..started.clone()
+        };
+        let success = RecoveryExecutionEffectReceiptV2 {
+            state: RecoveryExecutionEffectStateV1::Succeeded,
+            outcome_digest: Some(
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    .into(),
+            ),
+            ..started.clone()
+        };
+
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+        store
+            .values
+            .lock()
+            .expect("memory store")
+            .insert(started.execution_id.clone(), current);
+
+        assert_eq!(
+            complete_execution_effect(&store, &started, &success).expect("stale completion"),
+            RecoveryExecutionEffectCompletionResult::FenceMismatch
+        );
+        assert_eq!(
+            begin_execution_effect(&store, &started).expect("stale replay"),
+            RecoveryExecutionEffectStartResult::FenceMismatch
+        );
+        assert_eq!(
+            reconcile_execution_effect(
+                &store,
+                &started.execution_id,
+                &started.execution_input_snapshot,
+                &started.attempt_id,
+                started.fence_epoch,
+            )
+            .expect("reconcile stale fence"),
+            RecoveryExecutionEffectReconciliationOutcome::ObservedStaleFence
+        );
+    }
+
+    #[test]
     fn only_the_claim_owner_can_complete_an_effect() {
         let store = ExecutionEffectMemoryStore::default();
         let started = effect_receipt_fixture(
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let foreign = RecoveryExecutionEffectReceiptV1 {
+        let foreign = RecoveryExecutionEffectReceiptV2 {
             attempt_id: "attempt-b".into(),
             ..started.clone()
         };
-        let foreign_success = RecoveryExecutionEffectReceiptV1 {
+        let foreign_success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
                 "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
@@ -1254,7 +1352,7 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let success = RecoveryExecutionEffectReceiptV1 {
+        let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
                 "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
@@ -1289,7 +1387,7 @@ mod tests {
 
             fn begin_effect(
                 &self,
-                receipt: &RecoveryExecutionEffectReceiptV1,
+                receipt: &RecoveryExecutionEffectReceiptV2,
             ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
                 if self.commit {
                     let result = self.inner.begin_effect(receipt)?;
@@ -1305,12 +1403,14 @@ mod tests {
                 execution_id: &str,
                 execution_input_snapshot: &str,
                 attempt_id: &str,
-                completed: &RecoveryExecutionEffectReceiptV1,
+                fence_epoch: u64,
+                completed: &RecoveryExecutionEffectReceiptV2,
             ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
                 self.inner.complete_effect(
                     execution_id,
                     execution_input_snapshot,
                     attempt_id,
+                    fence_epoch,
                     completed,
                 )
             }
@@ -1318,7 +1418,7 @@ mod tests {
             fn load_effect(
                 &self,
                 execution_id: &str,
-            ) -> Result<Option<RecoveryExecutionEffectReceiptV1>, Self::Error> {
+            ) -> Result<Option<RecoveryExecutionEffectReceiptV2>, Self::Error> {
                 self.inner.load_effect(execution_id)
             }
         }
@@ -1342,6 +1442,7 @@ mod tests {
                 &receipt.execution_id,
                 &receipt.execution_input_snapshot,
                 &receipt.attempt_id,
+                receipt.fence_epoch,
             )
             .expect("reconcile start"),
             RecoveryExecutionEffectReconciliationOutcome::ObservedInProgressOwnedByThisAttempt
@@ -1355,7 +1456,7 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let success = RecoveryExecutionEffectReceiptV1 {
+        let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
                 "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
@@ -1363,7 +1464,7 @@ mod tests {
             ),
             ..started.clone()
         };
-        let failure = RecoveryExecutionEffectReceiptV1 {
+        let failure = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Failed,
             outcome_digest: Some(
                 "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
@@ -1422,7 +1523,7 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let success = RecoveryExecutionEffectReceiptV1 {
+        let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
                 "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
@@ -1430,7 +1531,7 @@ mod tests {
             ),
             ..started.clone()
         };
-        let failure_with_same_digest = RecoveryExecutionEffectReceiptV1 {
+        let failure_with_same_digest = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Failed,
             outcome_digest: success.outcome_digest.clone(),
             ..started.clone()
@@ -1462,7 +1563,7 @@ mod tests {
 
             fn begin_effect(
                 &self,
-                receipt: &RecoveryExecutionEffectReceiptV1,
+                receipt: &RecoveryExecutionEffectReceiptV2,
             ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
                 self.inner.begin_effect(receipt)
             }
@@ -1472,7 +1573,7 @@ mod tests {
                 execution_id: &str,
                 execution_input_snapshot: &str,
                 attempt_id: &str,
-                completed: &RecoveryExecutionEffectReceiptV1,
+                completed: &RecoveryExecutionEffectReceiptV2,
             ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
                 let result = self.inner.complete_effect(
                     execution_id,
@@ -1489,7 +1590,7 @@ mod tests {
             fn load_effect(
                 &self,
                 execution_id: &str,
-            ) -> Result<Option<RecoveryExecutionEffectReceiptV1>, Self::Error> {
+            ) -> Result<Option<RecoveryExecutionEffectReceiptV2>, Self::Error> {
                 self.inner.load_effect(execution_id)
             }
         }
@@ -1498,7 +1599,7 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let success = RecoveryExecutionEffectReceiptV1 {
+        let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
                 "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
@@ -1524,6 +1625,7 @@ mod tests {
                 &started.execution_id,
                 &started.execution_input_snapshot,
                 &started.attempt_id,
+                started.fence_epoch,
             )
             .expect("reconcile completion"),
             RecoveryExecutionEffectReconciliationOutcome::ObservedSucceeded
@@ -1541,7 +1643,7 @@ mod tests {
 
             fn begin_effect(
                 &self,
-                receipt: &RecoveryExecutionEffectReceiptV1,
+                receipt: &RecoveryExecutionEffectReceiptV2,
             ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
                 self.inner.begin_effect(receipt)
             }
@@ -1551,7 +1653,7 @@ mod tests {
                 _execution_id: &str,
                 _execution_input_snapshot: &str,
                 _attempt_id: &str,
-                _completed: &RecoveryExecutionEffectReceiptV1,
+                _completed: &RecoveryExecutionEffectReceiptV2,
             ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
                 Ok(RecoveryExecutionEffectCompletionResult::Indeterminate)
             }
@@ -1559,7 +1661,7 @@ mod tests {
             fn load_effect(
                 &self,
                 execution_id: &str,
-            ) -> Result<Option<RecoveryExecutionEffectReceiptV1>, Self::Error> {
+            ) -> Result<Option<RecoveryExecutionEffectReceiptV2>, Self::Error> {
                 self.inner.load_effect(execution_id)
             }
         }
@@ -1568,7 +1670,7 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let success = RecoveryExecutionEffectReceiptV1 {
+        let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
                 "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
@@ -1594,6 +1696,7 @@ mod tests {
                 &started.execution_id,
                 &started.execution_input_snapshot,
                 &started.attempt_id,
+                started.fence_epoch,
             )
             .expect("reconcile in-progress"),
             RecoveryExecutionEffectReconciliationOutcome::ObservedInProgressOwnedByThisAttempt
@@ -1607,7 +1710,7 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let failed = RecoveryExecutionEffectReceiptV1 {
+        let failed = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Failed,
             outcome_digest: Some(
                 "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
@@ -1634,6 +1737,7 @@ mod tests {
                 &started.execution_id,
                 &started.execution_input_snapshot,
                 &started.attempt_id,
+                started.fence_epoch,
             )
             .expect("reconcile failure"),
             RecoveryExecutionEffectReconciliationOutcome::ObservedFailed
@@ -1647,7 +1751,7 @@ mod tests {
             "attempt-a",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
-        let success = RecoveryExecutionEffectReceiptV1 {
+        let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
                 "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
@@ -1655,7 +1759,7 @@ mod tests {
             ),
             ..started.clone()
         };
-        let malformed_started = RecoveryExecutionEffectReceiptV1 {
+        let malformed_started = RecoveryExecutionEffectReceiptV2 {
             attempt_id: "attempt-b".into(),
             ..started
         };
