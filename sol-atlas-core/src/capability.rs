@@ -1286,8 +1286,6 @@ impl RecoveryPolicyConsumptionTransitionV1 {
         })
     }
 
-    /// Construct a consumption transition only after binding the authorization
-    /// to the exact canonical plan and execution-input snapshot.
     /// Construct a transition only after binding the authorization to the exact
     /// discovered candidate, canonical plan, and execution-input snapshot.
     pub fn for_successful_consumption_against_candidate(
@@ -4263,6 +4261,13 @@ mod graph_tests {
         };
         let mut candidate_plan = plan.clone();
         candidate_plan.candidate_snapshot = candidate.snapshot().digest();
+        let mut candidate_execution = plan_execution.clone();
+        candidate_execution.input_snapshot =
+            RecoveryExecutionSnapshotV1::from_plan_and_execution(
+                &candidate_plan,
+                &candidate_execution,
+            )
+            .digest();
         let mut candidate_decision = plan_decision.clone();
         candidate_decision.plan_snapshot = candidate_plan.snapshot().digest();
         candidate_decision.candidate_snapshot = candidate.snapshot().digest();
@@ -4274,7 +4279,7 @@ mod graph_tests {
                 &candidate_decision,
                 &candidate_plan,
                 &candidate,
-                &plan_execution,
+                &candidate_execution,
                 "2026-10-02T08:00:00Z",
             )
             .expect("candidate-bound transition");
@@ -4287,7 +4292,7 @@ mod graph_tests {
                 &candidate_decision,
                 &candidate_plan,
                 &altered_candidate,
-                &plan_execution,
+                &candidate_execution,
                 "2026-10-02T08:00:00Z",
             ),
             RecoveryPolicyConsumptionOutcomeV1::CandidateBindingMismatch
