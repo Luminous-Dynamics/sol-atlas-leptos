@@ -4509,7 +4509,7 @@ mod graph_tests {
             &admission_next,
         ));
 
-        let mut future_execution = execution.clone();
+        let mut future_execution = start_execution.clone();
         future_execution.started_at = "2026-10-02T08:11:00Z".into();
         assert_eq!(
             available.admission_outcome_for_execution_start(&decision, &future_execution),
