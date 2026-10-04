@@ -562,7 +562,7 @@ mod tests {
     #[test]
     fn strict_constructor_round_trips_against_originating_projection() {
         let (audit, claim, chain) = fixture();
-        let frontier = &chain.frontiers[0];
+        let frontier = chain.frontiers[0].clone();
         let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
             crate::cultural_systems::CulturalTransmissionV1 {
                 transmission_id: "transmission:1".into(),
@@ -587,7 +587,7 @@ mod tests {
 
         let strong_audit = CulturalProjectionAuditV5::from_projection_at(
             &projection,
-            frontier,
+            &frontier,
             &claim,
             audit.base.resolutions.clone(),
             audit.argumentation.clone(),
