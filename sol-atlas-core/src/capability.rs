@@ -4946,7 +4946,7 @@ mod graph_tests {
         assert!(combined_admission_transition.matches(
             &candidate_available,
             &candidate_decision,
-            &candidate_execution,
+            &candidate_start_execution,
             &combined_admission_next,
         ));
 
