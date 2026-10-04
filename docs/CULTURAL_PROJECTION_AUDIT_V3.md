@@ -38,7 +38,7 @@ Changing the ontology term, mapping relation, ontology version, release status, 
 
 The V3 layer remains additive. V1 and V2 serialized audit contracts remain available for compatibility.
 
-For provenance verification, the ordinary V3 projection validator checks the audit against its current semantic envelope, while `validate_against_projection_and_semantic_context(...)` additionally requires the caller to supply the exact expected semantic envelope. This mirrors the broader rule that an object's own content hash proves integrity, but external reconstruction/witness data establishes what source artifact was actually used.
+For provenance verification, the ordinary V3 projection validator checks the audit against its current semantic envelope, while `validate_against_projection_and_semantic_context(...)` additionally requires the caller to supply the exact expected semantic envelope. The additive `validate_strong_against_projection(...)` gate further requires non-empty frontier-manifest and originating projection-semantic commitments, matching the stronger V4/V5 provenance tiers. This mirrors the broader rule that an object's own content hash proves integrity, but external reconstruction/witness data establishes what source artifact was actually used.
 
 ## External ontology boundary
 
