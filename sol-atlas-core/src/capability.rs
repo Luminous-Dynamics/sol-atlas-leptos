@@ -1009,6 +1009,107 @@ pub enum RecoveryPolicyDecisionV1 {
     Rejected,
 }
 
+/// Explicit consumption state for a policy authorization.
+///
+/// This is deliberately separate from authorization validity: a decision may
+/// remain time-valid while its one-time consumption state has already changed.
+/// Persisting the transition atomically is the responsibility of the external
+/// policy/authorization store.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryPolicyConsumptionStateV1 {
+    Unconsumed,
+    Consumed,
+}
+
+/// Renderer-neutral record of one authorization's consumption state.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryPolicyConsumptionSnapshotV1 {
+    pub schema: String,
+    pub decision_digest: String,
+    pub state: RecoveryPolicyConsumptionStateV1,
+    pub consumed_execution_id: Option<String>,
+    pub consumed_at: Option<String>,
+    pub claim_ceiling: String,
+}
+
+impl RecoveryPolicyConsumptionSnapshotV1 {
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-policy-consumption-snapshot:v1";
+
+    pub fn for_decision(decision: &RecoveryPolicyDecisionSnapshotV1) -> Self {
+        Self {
+            schema: Self::SCHEMA.into(),
+            decision_digest: decision.digest(),
+            state: RecoveryPolicyConsumptionStateV1::Unconsumed,
+            consumed_execution_id: None,
+            consumed_at: None,
+            claim_ceiling: "Exact authorization consumption state only.".into(),
+        }
+    }
+
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA
+            && self.decision_digest.starts_with("sha256:")
+            && self.decision_digest.len() > 7
+            && !self.claim_ceiling.is_empty()
+            && match self.state {
+                RecoveryPolicyConsumptionStateV1::Unconsumed => {
+                    self.consumed_execution_id.is_none() && self.consumed_at.is_none()
+                }
+                RecoveryPolicyConsumptionStateV1::Consumed => {
+                    self.consumed_execution_id
+                        .as_ref()
+                        .is_some_and(|execution_id| !execution_id.is_empty())
+                        && self
+                            .consumed_at
+                            .as_deref()
+                            .is_some_and(is_canonical_utc_timestamp)
+                }
+            }
+    }
+
+    /// Whether the current state permits a one-time consumption transition.
+    ///
+    /// This is a pure decision function. It does not provide atomic
+    /// compare-and-set semantics for concurrent consumers.
+    pub fn permits_consumption(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        execution: &RecoveryExecution,
+        now: &str,
+    ) -> bool {
+        self.is_well_formed()
+            && self.state == RecoveryPolicyConsumptionStateV1::Unconsumed
+            && decision.is_admitted()
+            && decision.digest() == self.decision_digest
+            && decision.covers_execution(execution, now)
+    }
+
+    /// Construct the post-consumption state after a successful authorization use.
+    ///
+    /// Callers must persist this exact successor state with an atomic
+    /// compare-and-set against the prior snapshot when single-use semantics
+    /// are required.
+    pub fn consumed(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        execution: &RecoveryExecution,
+        now: &str,
+    ) -> Option<Self> {
+        if !self.permits_consumption(decision, execution, now) {
+            return None;
+        }
+
+        Some(Self {
+            schema: Self::SCHEMA.into(),
+            decision_digest: self.decision_digest.clone(),
+            state: RecoveryPolicyConsumptionStateV1::Consumed,
+            consumed_execution_id: Some(execution.execution_id.clone()),
+            consumed_at: Some(now.into()),
+            claim_ceiling: self.claim_ceiling.clone(),
+        })
+    }
+}
+
 impl RecoveryPolicyDecisionSnapshotV1 {
     pub const SCHEMA: &'static str = "sol-atlas:recovery-policy-decision-snapshot:v1";
 
@@ -3614,6 +3715,81 @@ mod graph_tests {
                 ai: String::new(),
             },
         }
+    }
+
+    #[test]
+    fn one_time_policy_consumption_is_explicit_and_replay_safe() {
+        let execution = RecoveryExecution {
+            plan_id: "plan-consumption".into(),
+            execution_id: "execution-consumption".into(),
+            started_at: "2026-10-02T07:59:00Z".into(),
+            ended_at: Some("2026-10-02T08:00:00Z".into()),
+            attempted_steps: vec!["verify".into()],
+            completed_steps: vec!["verify".into()],
+            failed_steps: vec![],
+            observed_preconditions: vec![],
+            evidence: vec!["consumption-check".into()],
+            resulting_state: CapabilityState::Demonstrated,
+            authorization: None,
+            ai_assistance: None,
+            input_snapshot: "sha256:execution-inputs".into(),
+            failure_reason: None,
+            claim_ceiling: "Exact execution scope only.".into(),
+        };
+        let decision = RecoveryPolicyDecisionSnapshotV1 {
+            schema: RecoveryPolicyDecisionSnapshotV1::SCHEMA.into(),
+            id: "permit-consumption".into(),
+            decision: RecoveryPolicyDecisionV1::Admitted,
+            purpose: "recovery.execute".into(),
+            consumer: "operator-001".into(),
+            plan_id: "plan-consumption".into(),
+            plan_snapshot: "sha256:plan".into(),
+            candidate: CapabilityId("recovery".into()),
+            candidate_snapshot: "sha256:candidate".into(),
+            execution_id: Some(execution.execution_id.clone()),
+            authority_reference: "authority-record".into(),
+            issued_at: "2026-10-02T07:50:00Z".into(),
+            valid_until: "2026-10-02T08:10:00Z".into(),
+            claim_ceiling: "Exact recovery admission only.".into(),
+        };
+
+        let available = RecoveryPolicyConsumptionSnapshotV1::for_decision(&decision);
+        assert!(available.is_well_formed());
+        assert!(available.permits_consumption(&decision, &execution, "2026-10-02T08:00:00Z"));
+
+        let consumed = available
+            .consumed(&decision, &execution, "2026-10-02T08:00:00Z")
+            .expect("valid one-time transition");
+        assert!(consumed.is_well_formed());
+        assert_eq!(
+            consumed.state,
+            RecoveryPolicyConsumptionStateV1::Consumed
+        );
+        assert!(!consumed.permits_consumption(
+            &decision,
+            &execution,
+            "2026-10-02T08:01:00Z"
+        ));
+        assert!(consumed
+            .consumed(&decision, &execution, "2026-10-02T08:01:00Z")
+            .is_none());
+
+        let mut different_execution = execution.clone();
+        different_execution.execution_id = "execution-other".into();
+        assert!(!available.permits_consumption(
+            &decision,
+            &different_execution,
+            "2026-10-02T08:00:00Z"
+        ));
+
+        let mut different_decision = decision.clone();
+        different_decision.id = "permit-other".into();
+        assert_ne!(decision.digest(), different_decision.digest());
+        assert!(!available.permits_consumption(
+            &different_decision,
+            &execution,
+            "2026-10-02T08:00:00Z"
+        ));
     }
 
     #[test]
