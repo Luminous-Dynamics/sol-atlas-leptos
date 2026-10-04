@@ -869,6 +869,7 @@ impl CulturalProjectionAuditV2 {
             qualification,
             access_policy,
             evidence_frontier,
+            frontier_manifest_hash: String::new(),
         }
     }
 
