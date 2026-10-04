@@ -57,8 +57,7 @@ impl CulturalProjectionAuditV4 {
         claim: &CanonicalClaimAdmissionV1,
         resolutions: Vec<OntologyMappingResolutionV1>,
     ) -> Option<Self> {
-        let base =
-            CulturalProjectionAuditV2::from_projection_at(projection, frontier, claim)?;
+        let base = CulturalProjectionAuditV2::from_projection_at(projection, frontier, claim)?;
         Self::from_v2(base, resolutions).ok()
     }
 
@@ -383,8 +382,8 @@ mod tests {
             Err(ProjectionError::AuditWithoutEvidencePath)
         );
 
-        let legacy =
-            CulturalProjectionAuditV4::from_v2(base, audit.resolutions.clone()).expect("legacy path");
+        let legacy = CulturalProjectionAuditV4::from_v2(base, audit.resolutions.clone())
+            .expect("legacy path");
         assert!(legacy.base.projection_semantic_hash.is_empty());
         assert_eq!(
             legacy.validate_strong_against_projection(&projection, &frontier, &claim),
