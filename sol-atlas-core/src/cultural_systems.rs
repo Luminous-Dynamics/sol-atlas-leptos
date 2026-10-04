@@ -84,11 +84,28 @@ impl CanonicalClaimAdmissionV1 {
         Ok(())
     }
 
+    /// Validates this canonical claim against the exact strict frontier,
+    /// preserving structural and temporal frontier failures for callers.
+    pub fn validate_frontier_safe(
+        &self,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        frontier.validate_temporal_manifest_strict()?;
+
+        if self.evidence_frontier != frontier.frontier_id {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        if !frontier.admits_evidence_path(&self.evidence_refs, &self.source_snapshots) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(&self, frontier: &EvidenceFrontierV1) -> bool {
-        self.validate().is_ok()
-            && frontier.validate_temporal_manifest_strict().is_ok()
-            && self.evidence_frontier == frontier.frontier_id
-            && frontier.admits_evidence_path(&self.evidence_refs, &self.source_snapshots)
+        self.validate_frontier_safe(frontier).is_ok()
     }
 }
 
@@ -528,8 +545,7 @@ impl CulturalEvidenceClosureV1 {
         frontier: &EvidenceFrontierV1,
     ) -> Result<(), ProjectionError> {
         self.validate()?;
-        claim.validate()?;
-        frontier.validate_temporal_manifest_strict()?;
+        claim.validate_frontier_safe(frontier)?;
 
         if self.claim_ref != claim.claim_ref
             || self.evidence_refs != claim.evidence_refs
@@ -1299,6 +1315,33 @@ mod tests {
         SourceSnapshotTemporalMetadataV1,
     };
 
+    #[test]
+    fn canonical_claim_preserves_frontier_validation_failure() {
+        let mut frontier = frontier();
+        frontier.manifest_hash = "not-a-valid-sha256".into();
+        let projection = CulturalProjectionV1::Transmission(transmission());
+        let claim = canonical_claim(match &projection {
+            CulturalProjectionV1::Transmission(value) => value,
+            CulturalProjectionV1::Transformation(_) => unreachable!(),
+        });
+
+        assert_eq!(
+            claim.validate_frontier_safe(&frontier),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn canonical_claim_preserves_evidence_path_failure() {
+        let frontier = frontier();
+        let mut claim = canonical_claim(&transmission());
+        claim.evidence_refs = vec!["e:unadmitted".into()];
+
+        assert_eq!(
+            claim.validate_frontier_safe(&frontier),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
     #[test]
     fn projection_semantic_hash_covers_semantics_omitted_by_legacy_receipts() {
         let projection = CulturalProjectionV1::Transmission(transmission());
