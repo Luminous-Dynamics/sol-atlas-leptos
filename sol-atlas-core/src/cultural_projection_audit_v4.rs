@@ -95,6 +95,7 @@ impl CulturalProjectionAuditV4 {
             &self.base.claim_ref,
             &self.base.evidence_frontier,
             &self.base.qualification,
+            &self.base.projection_semantic_hash,
             &resolutions,
         );
         let bytes = serde_json::to_vec(&payload)
@@ -236,6 +237,7 @@ mod tests {
             access_policy: crate::cultural_systems::AccessPolicyV1::Public,
             evidence_frontier: frontier.frontier_id.clone(),
             frontier_manifest_hash: frontier.manifest_hash.clone(),
+            projection_semantic_hash: String::new(),
         };
         let mapping = OntologyMappingV2::from_claim(
             "mapping:1",
