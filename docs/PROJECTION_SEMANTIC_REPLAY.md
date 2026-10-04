@@ -131,8 +131,10 @@ The V3, V4, and V5 audit layers now expose deliberate provenance tiers:
 - `CulturalProjectionAuditV4::from_projection_at(...)` and
   `CulturalProjectionAuditV5::from_projection_at(...)` rebuild the audit chain
   from the originating projection, canonical claim, frontier, and exact
-  resolution/argumentation closure. They therefore populate the originating
-  projection semantic commitment instead of inheriting an empty legacy field.
+  resolution/argumentation closure. They return `Result` so concrete
+  construction failures are preserved instead of collapsed into an ambiguous
+  `None`. They therefore populate the originating projection semantic
+  commitment instead of inheriting an empty legacy field.
 - `validate_against_projection(...)` remains migration-compatible, while
   `validate_strong_against_projection(...)` requires both frontier-manifest
   identity and the originating projection semantic commitment to be present
