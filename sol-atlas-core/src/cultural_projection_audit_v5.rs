@@ -432,8 +432,7 @@ mod tests {
     #[test]
     fn v5_reciprocal_validation_rejects_projection_rebinding() {
         let (v4, claim, frontier, argumentation) = fixture();
-        let audit =
-            CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
+        let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
 
         let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
             crate::cultural_systems::CulturalTransmissionV1 {
@@ -458,8 +457,7 @@ mod tests {
         );
 
         let mut tampered = audit;
-        tampered.base.base.access_policy =
-            crate::cultural_systems::AccessPolicyV1::Sensitive;
+        tampered.base.base.access_policy = crate::cultural_systems::AccessPolicyV1::Sensitive;
         tampered.recompute_hash().expect("audit rehash");
         assert_eq!(
             tampered.validate_against_projection(&projection, &frontier, &claim),
