@@ -1242,7 +1242,10 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         if execution.execution_id.is_empty() || execution.plan_id.is_empty() {
             return RecoveryPolicyConsumptionOutcomeV1::MalformedExecution;
         }
-        if !is_canonical_utc_timestamp(&execution.started_at) {
+        // Execution-start admission is strictly pre-terminal: a record that
+        // already carries an end marker belongs to completed-consumption
+        // semantics and must not be admitted a second way.
+        if execution.ended_at.is_some() || !is_canonical_utc_timestamp(&execution.started_at) {
             return RecoveryPolicyConsumptionOutcomeV1::MalformedExecution;
         }
         if decision.digest() != self.decision_digest {
@@ -4398,14 +4401,25 @@ mod graph_tests {
         );
         assert!(available.permits_consumption(&decision, &execution, "2026-10-02T08:00:00Z"));
 
+        let mut start_execution = execution.clone();
+        start_execution.ended_at = None;
         assert_eq!(
-            available.admission_outcome_for_execution_start(&decision, &execution),
+            available.admission_outcome_for_execution_start(&decision, &start_execution),
             RecoveryPolicyConsumptionOutcomeV1::Allowed
+        );
+        let mut terminalized_start_execution = start_execution.clone();
+        terminalized_start_execution.ended_at = Some("2026-10-02T08:00:00Z".into());
+        assert_eq!(
+            available.admission_outcome_for_execution_start(
+                &decision,
+                &terminalized_start_execution,
+            ),
+            RecoveryPolicyConsumptionOutcomeV1::MalformedExecution
         );
         assert_eq!(
             available.admission_outcome_for_execution_start_for_context(
                 &decision,
-                &execution,
+                &start_execution,
                 "recovery.execute",
                 "operator-001",
                 "authority-record",
@@ -4416,7 +4430,7 @@ mod graph_tests {
             RecoveryPolicyConsumptionTransitionV1::for_execution_admission_for_context(
                 &available,
                 &decision,
-                &execution,
+                &start_execution,
                 "recovery.execute",
                 "operator-001",
                 "authority-record",
@@ -4424,33 +4438,33 @@ mod graph_tests {
             .expect("context-bound transition");
 
         let admission_next = available
-            .consumed_at_execution_start(&decision, &execution)
+            .consumed_at_execution_start(&decision, &start_execution)
             .expect("execution-start consumption");
         assert_eq!(
             admission_next.consumed_at,
-            Some(execution.started_at.clone())
+            Some(start_execution.started_at.clone())
         );
         let admission_transition =
             RecoveryPolicyConsumptionTransitionV1::for_execution_admission(
                 &available,
                 &decision,
-                &execution,
+                &start_execution,
             )
             .expect("execution-start transition");
         assert!(admission_transition.matches(
             &available,
             &decision,
-            &execution,
+            &start_execution,
             &admission_next,
         ));
-        assert_eq!(admission_transition.consumed_at, execution.started_at);
+        assert_eq!(admission_transition.consumed_at, start_execution.started_at);
 
         let mut wrong_consumer = decision.clone();
         wrong_consumer.consumer = "other-consumer".into();
         assert_eq!(
             available.admission_outcome_for_execution_start_for_context(
                 &wrong_consumer,
-                &execution,
+                &start_execution,
                 "recovery.execute",
                 "operator-001",
                 "authority-record",
@@ -4460,7 +4474,7 @@ mod graph_tests {
         assert_eq!(
             available.admission_outcome_for_execution_start_for_context(
                 &decision,
-                &execution,
+                &start_execution,
                 "other-purpose",
                 "operator-001",
                 "authority-record",
@@ -4470,7 +4484,7 @@ mod graph_tests {
         assert_eq!(
             available.admission_outcome_for_execution_start_for_context(
                 &decision,
-                &execution,
+                &start_execution,
                 "recovery.execute",
                 "operator-001",
                 "other-authority",
@@ -4491,7 +4505,7 @@ mod graph_tests {
         assert!(!wrong_admission_mode.matches(
             &available,
             &decision,
-            &execution,
+            &start_execution,
             &admission_next,
         ));
 
@@ -4769,11 +4783,17 @@ mod graph_tests {
             &plan_next,
         ));
 
+        let mut plan_start_execution = plan_execution.clone();
+        plan_start_execution.ended_at = None;
+        plan_start_execution.input_snapshot =
+            RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &plan_start_execution)
+                .digest();
+
         assert_eq!(
             plan_available.admission_outcome_for_execution_start_against_plan(
                 &plan_decision,
                 &plan,
-                &plan_execution,
+                &plan_start_execution,
             ),
             RecoveryPolicyConsumptionOutcomeV1::Allowed
         );
@@ -4781,7 +4801,7 @@ mod graph_tests {
             .consumed_at_execution_start_against_plan(
                 &plan_decision,
                 &plan,
-                &plan_execution,
+                &plan_start_execution,
             )
             .expect("plan admission successor");
         let plan_admission_transition =
@@ -4789,13 +4809,13 @@ mod graph_tests {
                 &plan_available,
                 &plan_decision,
                 &plan,
-                &plan_execution,
+                &plan_start_execution,
             )
             .expect("plan admission transition");
         assert!(plan_admission_transition.matches(
             &plan_available,
             &plan_decision,
-            &plan_execution,
+            &plan_start_execution,
             &plan_admission_next,
         ));
 
@@ -4842,12 +4862,21 @@ mod graph_tests {
             .expect("candidate-bound transition");
         assert!(candidate_transition.is_well_formed());
 
+        let mut candidate_start_execution = candidate_execution.clone();
+        candidate_start_execution.ended_at = None;
+        candidate_start_execution.input_snapshot =
+            RecoveryExecutionSnapshotV1::from_plan_and_execution(
+                &candidate_plan,
+                &candidate_start_execution,
+            )
+            .digest();
+
         assert_eq!(
             candidate_available.admission_outcome_for_execution_start_against_candidate(
                 &candidate_decision,
                 &candidate_plan,
                 &candidate,
-                &candidate_execution,
+                &candidate_start_execution,
             ),
             RecoveryPolicyConsumptionOutcomeV1::Allowed
         );
@@ -4857,7 +4886,7 @@ mod graph_tests {
                 &candidate_decision,
                 &candidate_plan,
                 &candidate,
-                &candidate_execution,
+                &candidate_start_execution,
             )
             .expect("candidate admission transition");
         let candidate_admission_next = candidate_available
@@ -4865,13 +4894,13 @@ mod graph_tests {
                 &candidate_decision,
                 &candidate_plan,
                 &candidate,
-                &candidate_execution,
+                &candidate_start_execution,
             )
             .expect("candidate admission successor");
         assert!(candidate_admission_transition.matches(
             &candidate_available,
             &candidate_decision,
-            &candidate_execution,
+            &candidate_start_execution,
             &candidate_admission_next,
         ));
 
@@ -4880,7 +4909,7 @@ mod graph_tests {
                 &candidate_decision,
                 &candidate_plan,
                 &candidate,
-                &candidate_execution,
+                &candidate_start_execution,
                 "recovery.execute",
                 "operator-001",
                 "authority-record",
@@ -4892,7 +4921,7 @@ mod graph_tests {
                 &candidate_decision,
                 &candidate_plan,
                 &candidate,
-                &candidate_execution,
+                &candidate_start_execution,
                 "recovery.execute",
                 "operator-001",
                 "authority-record",
@@ -4904,7 +4933,7 @@ mod graph_tests {
                 &candidate_decision,
                 &candidate_plan,
                 &candidate,
-                &candidate_execution,
+                &candidate_start_execution,
                 "recovery.execute",
                 "operator-001",
                 "authority-record",
@@ -4922,7 +4951,7 @@ mod graph_tests {
                 &candidate_decision,
                 &candidate_plan,
                 &candidate,
-                &candidate_execution,
+                &candidate_start_execution,
                 "recovery.execute",
                 "other-consumer",
                 "authority-record",
@@ -4935,7 +4964,7 @@ mod graph_tests {
                 &candidate_decision,
                 &candidate_plan,
                 &candidate,
-                &candidate_execution,
+                &candidate_start_execution,
                 "recovery.execute",
                 "other-consumer",
                 "authority-record",
