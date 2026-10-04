@@ -64,6 +64,18 @@ The policy, claim, and effect stores are separate local transaction boundaries. 
 
 The matrix intentionally leaves abandoned claims and in-progress effects without automatic expiry. Automatic expiry can transfer ownership while the original external side effect is still live; a concrete adapter needs a stronger heartbeat/fencing protocol before making that safe. AWS guidance similarly calls out idempotency and transaction-isolation concerns in saga orchestration; its Durable Execution guidance also distinguishes retry semantics from exactly-once side-effect claims.
 
+## Fenced recovery for abandoned execution ownership (#31)
+
+`RecoveryExecutionFenceV1` adds an explicit recovery-capable ownership generation. The first fenced claim starts at epoch `1`; recovery is an atomic compare-and-set from one exact current fence to a successor with the same execution identity and fingerprint and exactly `epoch + 1`.
+
+`recover_execution_fence` never guesses ownership from elapsed time. A stale recovery attempt is rejected when its expected fence no longer matches the durable current fence. `reconcile_execution_fence` is read-only and distinguishes current ownership, another owner at the same generation, a stale generation, an older observed generation, fingerprint drift, missing state, and malformed state.
+
+The fence epoch is a fencing capability, not authentication. After takeover, the old process may still be alive, so any correctness-sensitive protected resource must actively compare the supplied epoch with its current epoch and reject stale epochs. `check_execution_fence` makes that resource-side predicate explicit: only `Current` is admissible; `Stale`, `Future`, and `Invalid` are rejected.
+
+The reference `FencedExecutionMemoryStore` demonstrates atomic acquisition and recovery, stale-owner rejection, fingerprint binding, and non-monotonic-successor rejection. It is test evidence only, not production persistence.
+
+Important claim ceiling: a fence protects only resources that actually enforce it. A lease or epoch record cannot retroactively cancel an arbitrary external API call. Where the external effect system supports fencing tokens, the token must cross the adapter boundary and be enforced there; where it does not, recovery remains fail-closed/manual rather than assuming takeover is safe.
+
 ## Ownership is not authentication
 
 `execution_id` and `attempt_id` are durable correlation/ownership identifiers only. They are not credentials, proof of authorization, or proof-of-possession. A conforming store can establish which identifier owns a record, but it cannot establish that the caller presenting that identifier is entitled to act. Caller authentication, authority validation, and any sender-constraining or proof-of-possession mechanism belong to the external authorization adapter.
