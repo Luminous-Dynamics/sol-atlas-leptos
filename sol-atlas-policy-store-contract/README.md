@@ -104,6 +104,8 @@ The fence epoch is a fencing capability, not authentication. After takeover, the
 
 For a stronger caller-side provenance boundary, `establish_execution_fence` returns an `EstablishedRecoveryExecutionFenceV1` only after the authoritative store returns `Acquired` or an exact same-attempt replay. An indeterminate acknowledgement is never promoted into that type. `recover_established_execution_fence` derives the next generation from the established handle and returns another established handle only after a positive recovery acknowledgement. This does not prove that the handle remains current after another actor recovers it; the store/resource fencing checks still establish current ownership.
 
+`reconcile_established_execution_fence` provides the corresponding read-only freshness check. It reports whether that established generation is currently observed, stale, missing, or malformed. This is deliberately a point-in-time observation: it does not reserve the generation across a subsequent effect-store write and therefore does not eliminate the cross-store TOCTOU window tracked in #32.
+
 The reference `FencedExecutionMemoryStore` demonstrates atomic acquisition and recovery, stale-owner rejection, fingerprint binding, and non-monotonic-successor rejection. It is test evidence only, not production persistence.
 
 Important claim ceiling: a fence protects only resources that actually enforce it. A lease or epoch record cannot retroactively cancel an arbitrary external API call. Where the external effect system supports fencing tokens, the token must cross the adapter boundary and be enforced there; where it does not, recovery remains fail-closed/manual rather than assuming takeover is safe.
