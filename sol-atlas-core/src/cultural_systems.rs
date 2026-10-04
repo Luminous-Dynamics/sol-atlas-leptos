@@ -776,7 +776,9 @@ impl CulturalProjectionAdmissionV2 {
         if !self.frontier_manifest_hash.is_empty() && !is_sha256_hex(&self.frontier_manifest_hash) {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
-        if !self.projection_semantic_hash.is_empty() && !is_sha256_hex(&self.projection_semantic_hash) {
+        if !self.projection_semantic_hash.is_empty()
+            && !is_sha256_hex(&self.projection_semantic_hash)
+        {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
         Ok(())
@@ -960,7 +962,9 @@ impl CulturalProjectionAuditV2 {
         if !self.frontier_manifest_hash.is_empty() && !is_sha256_hex(&self.frontier_manifest_hash) {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
-        if !self.projection_semantic_hash.is_empty() && !is_sha256_hex(&self.projection_semantic_hash) {
+        if !self.projection_semantic_hash.is_empty()
+            && !is_sha256_hex(&self.projection_semantic_hash)
+        {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
         if let Some(argumentation) = &self.argumentation {
@@ -1270,7 +1274,9 @@ mod tests {
 
         assert_eq!(
             original,
-            reordered.semantic_hash().expect("reordered projection hash")
+            reordered
+                .semantic_hash()
+                .expect("reordered projection hash")
         );
     }
 
@@ -1307,12 +1313,9 @@ mod tests {
             CulturalProjectionV1::Transformation(_) => unreachable!(),
         };
         let claim = canonical_claim(transmission);
-        let admission = CulturalProjectionAdmissionV2::from_projection(
-            &projection,
-            &frontier,
-            &claim,
-        )
-        .expect("strong frontier-bound admission");
+        let admission =
+            CulturalProjectionAdmissionV2::from_projection(&projection, &frontier, &claim)
+                .expect("strong frontier-bound admission");
 
         let mut rebound = projection.clone();
         if let CulturalProjectionV1::Transmission(value) = &mut rebound {
