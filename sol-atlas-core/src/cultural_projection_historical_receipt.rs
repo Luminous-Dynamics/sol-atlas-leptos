@@ -619,7 +619,8 @@ mod tests {
     #[test]
     fn strict_constructor_ignores_corrupted_later_descendants() {
         let (legacy_audit, claim, mut chain) = fixture();
-        let frontier = &chain.frontiers[0];
+        let frontier = chain.frontiers[0].clone();
+        let original_manifest_hash = frontier.manifest_hash.clone();
         let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
             crate::cultural_systems::CulturalTransmissionV1 {
                 transmission_id: "transmission:1".into(),
@@ -643,7 +644,7 @@ mod tests {
         );
         let strong_audit = CulturalProjectionAuditV5::from_projection_at(
             &projection,
-            frontier,
+            &frontier,
             &claim,
             legacy_audit.base.resolutions.clone(),
             legacy_audit.argumentation.clone(),
@@ -712,7 +713,7 @@ mod tests {
         reissued.recompute_manifest_hash().expect("reissued hash");
         chain.frontiers[0] = reissued;
 
-        assert_ne!(chain.frontiers[0].manifest_hash, frontier.manifest_hash);
+        assert_ne!(chain.frontiers[0].manifest_hash, original_manifest_hash);
         assert!(
             V5HistoricalReplayReceiptV1::from_projection_at(
                 &projection,
