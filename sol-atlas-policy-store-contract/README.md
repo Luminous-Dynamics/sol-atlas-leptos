@@ -38,3 +38,11 @@ The package also defines a storage-neutral execution claim boundary. A claim bin
 An `Indeterminate` claim acknowledgement is reconciled by a read-only lookup. Seeing the same attempt's claim proves durable claim ownership at observation time, not completion of an external side effect. The external effect therefore still needs either idempotent semantics keyed by the same execution identity/fingerprint or its own transactional ownership boundary.
 
 The current IETF Idempotency-Key Internet-Draft follows the same fundamental rule: an idempotency key must not be reused with a different request payload, and retries/concurrent requests require explicit handling. The draft is currently expired rather than an RFC, so it is treated here as design guidance rather than a normative standard.
+
+## External-effect receipt boundary (#30)
+
+The package now models the durable receipt around an external effect as `InProgress`, `Succeeded`, or `Failed`. Starting an effect is an atomic idempotency operation keyed by the stable execution identity and exact input fingerprint. Only the attempt that owns the `InProgress` receipt may advance it to a terminal receipt.
+
+A repeated request with the same execution identity and fingerprint is therefore classified instead of starting a second effect. A different fingerprint is rejected. An uncertain store acknowledgement is reconciled by reading the receipt; the receipt state itself is never treated as proof that the external action completed.
+
+This deliberately leaves one hard systems boundary explicit: the effect must itself be idempotent or transactionally coupled to the receipt if retries after an uncertain outcome are expected to be safe. AWS guidance recommends unique idempotency tokens and persisted operation state, while Stripe documents replaying the stored first result for a repeated idempotency key. These references guide the contract shape; they are not claims that Sol Atlas interoperates with either API.
