@@ -161,6 +161,10 @@ impl V5ReplayReceiptV1 {
         chain: &EvidenceFrontierChainV1,
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<(), ProjectionError> {
+        // Leaf selection is identifier-based. Require uniqueness across the
+        // supplied sequence before selecting a prefix so a later duplicate
+        // cannot hide behind an otherwise valid historical-looking prefix.
+        chain.validate_unique_frontier_ids()?;
         let index = chain
             .frontiers
             .iter()
@@ -521,6 +525,61 @@ mod tests {
                 frontiers: vec![root, child],
             },
         )
+    }
+
+    fn projection_fixture() -> crate::cultural_systems::CulturalProjectionV1 {
+        crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into(), "e:2".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: Some("assessment:1".into()),
+                qualification: QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                evidence_frontier: "frontier:1951".into(),
+            },
+        )
+    }
+
+    #[test]
+    fn projection_validation_rejects_duplicate_later_frontier_identity() {
+        let (audit, claim, chain) = fixture();
+        let receipt =
+            V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim).expect("receipt");
+
+        let mut extended = chain.clone();
+        let mut duplicate = extended.frontiers[0].clone();
+        duplicate.manifest_hash = "duplicate-later-unvalidated".into();
+        extended.frontiers.push(duplicate);
+
+        assert_eq!(
+            receipt.validate_against_projection(
+                &projection_fixture(),
+                &audit,
+                &extended,
+                &claim,
+            ),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+        assert_eq!(
+            receipt.validate_strong_against_projection(
+                &projection_fixture(),
+                &audit,
+                &extended,
+                &claim,
+            ),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
     }
 
     #[test]
