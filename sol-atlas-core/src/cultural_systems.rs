@@ -1444,6 +1444,46 @@ mod tests {
         );
     }
     #[test]
+    fn strong_v2_error_precedence_is_projection_first() {
+        let mut value = transmission();
+        value.event_time = YearInterval {
+            from: Some(1950),
+            to: Some(1949),
+        };
+        let projection = CulturalProjectionV1::Transmission(value);
+        let mut frontier = frontier();
+        frontier.manifest_hash = "not-a-valid-sha256".into();
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: String::new(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            qualification: QualificationStatus::Supported,
+            evidence_frontier: "frontier:1950".into(),
+        };
+
+        assert_eq!(
+            CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim),
+            Err(ProjectionError::InvalidTimeInterval)
+        );
+    }
+
+    #[test]
+    fn strong_v2_error_precedence_is_claim_before_frontier() {
+        let projection = CulturalProjectionV1::Transmission(transmission());
+        let mut frontier = frontier();
+        frontier.manifest_hash = "not-a-valid-sha256".into();
+        let mut claim = canonical_claim(match &projection {
+            CulturalProjectionV1::Transmission(value) => value,
+            CulturalProjectionV1::Transformation(_) => unreachable!(),
+        });
+        claim.claim_ref = String::new();
+
+        assert_eq!(
+            CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim),
+            Err(ProjectionError::EmptyIdentifier)
+        );
+    }
+    #[test]
     fn strong_v2_audit_rejects_same_id_projection_semantic_rebind() {
         let frontier = frontier();
         let projection = CulturalProjectionV1::Transmission(transmission());
