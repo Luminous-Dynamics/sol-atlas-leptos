@@ -72,7 +72,14 @@ Where the external effect system cannot enforce such a token, automatic takeover
 
 ## Orchestration recovery matrix (#29)
 
-The policy, claim, and effect stores are separate local transaction boundaries. The contract therefore treats orchestration as a saga-like sequence rather than a distributed transaction. Current recommended ordering is: admit policy context → atomically acquire execution claim → atomically consume authorization → begin effect → perform effect → terminalize receipt. Saga participants must be idempotent when retries are possible. See AWS Prescriptive Guidance, “Saga patterns” and “Saga orchestration pattern.”
+The matrix is now encoded as pure, non-mutating decision functions in the contract package:
+- `RecoveryAuthorizationOrchestrationStateV1::next_action()` models the safe claim/authorization progression;
+- `RecoveryEffectOrchestrationStateV1::next_action()` models the safe effect replay/recovery progression.
+
+The functions classify observations; they do not perform the next action and therefore do not imply a cross-store transaction.
+
+
+The policy, claim, and effect stores are separate local transaction boundaries. The contract therefore treats orchestration as a saga-like sequence rather than a distributed transaction. The pure decision matrix keeps the permitted recovery behavior machine-checkable while preserving that boundary. Current recommended ordering is: admit policy context → atomically acquire execution claim → atomically consume authorization → begin effect → perform effect → terminalize receipt. Saga participants must be idempotent when retries are possible. See AWS Prescriptive Guidance, “Saga patterns” and “Saga orchestration pattern.”
 
 | Observed state | Safe next action | What must not be inferred |
 | --- | --- | --- |
