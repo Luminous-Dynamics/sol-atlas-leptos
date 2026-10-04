@@ -1036,7 +1036,7 @@ pub enum RecoveryPolicyConsumptionOutcomeV1 {
     PlanMismatch,
     ExecutionMismatch,
     DecisionRejected,
-    PlanSnapshotMismatch,
+    PlanBindingMismatch,
     ExecutionInputMismatch,
     DecisionNotValidAtConsumption,
     ExecutionNotCovered,
@@ -1172,13 +1172,13 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         }
 
         if !plan.is_ready() || !plan.snapshot().is_well_formed() {
-            return RecoveryPolicyConsumptionOutcomeV1::PlanSnapshotMismatch;
+            return RecoveryPolicyConsumptionOutcomeV1::PlanBindingMismatch;
         }
         if decision.plan_snapshot != plan.snapshot().digest()
             || decision.candidate != plan.candidate
             || decision.candidate_snapshot != plan.candidate_snapshot
         {
-            return RecoveryPolicyConsumptionOutcomeV1::PlanSnapshotMismatch;
+            return RecoveryPolicyConsumptionOutcomeV1::PlanBindingMismatch;
         }
         if !execution.input_snapshot_matches_plan(plan) {
             return RecoveryPolicyConsumptionOutcomeV1::ExecutionInputMismatch;
@@ -1260,6 +1260,23 @@ impl RecoveryPolicyConsumptionTransitionV1 {
             consumed_at: now.into(),
             claim_ceiling: current.claim_ceiling.clone(),
         })
+    }
+
+    /// Construct a consumption transition only after binding the authorization
+    /// to the exact canonical plan and execution-input snapshot.
+    pub fn for_successful_consumption_against_plan(
+        current: &RecoveryPolicyConsumptionSnapshotV1,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        execution: &RecoveryExecution,
+        now: &str,
+    ) -> Option<Self> {
+        if current.consumption_outcome_against_plan(decision, plan, execution, now)
+            != RecoveryPolicyConsumptionOutcomeV1::Allowed
+        {
+            return None;
+        }
+        Self::for_successful_consumption(current, decision, execution, now)
     }
 
     pub fn is_well_formed(&self) -> bool {
@@ -4168,6 +4185,24 @@ mod graph_tests {
             ),
             RecoveryPolicyConsumptionOutcomeV1::Allowed
         );
+        let plan_transition =
+            RecoveryPolicyConsumptionTransitionV1::for_successful_consumption_against_plan(
+                &plan_available,
+                &plan_decision,
+                &plan,
+                &plan_execution,
+                "2026-10-02T08:00:00Z",
+            )
+            .expect("plan-bound transition");
+        let plan_next = plan_available
+            .consumed(&plan_decision, &plan_execution, "2026-10-02T08:00:00Z")
+            .expect("plan-bound successor");
+        assert!(plan_transition.matches(
+            &plan_available,
+            &plan_decision,
+            &plan_execution,
+            &plan_next,
+        ));
 
         let mut changed_plan = plan.clone();
         changed_plan.steps.push("different".into());
@@ -4178,7 +4213,7 @@ mod graph_tests {
                 &plan_execution,
                 "2026-10-02T08:00:00Z",
             ),
-            RecoveryPolicyConsumptionOutcomeV1::PlanSnapshotMismatch
+            RecoveryPolicyConsumptionOutcomeV1::PlanBindingMismatch
         );
 
         let mut changed_input = plan_execution.clone();
