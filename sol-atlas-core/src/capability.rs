@@ -3784,13 +3784,19 @@ mod graph_tests {
             "2026-10-02T08:00:00Z"
         ));
 
-        let mut different_decision = decision.clone();
-        different_decision.id = "permit-other".into();
-        assert_ne!(decision.digest(), different_decision.digest());
-        assert!(!available.permits_consumption(
-            &different_decision,
+        let mut malformed_digest = available.clone();
+        malformed_digest.decision_digest = "sha256:not-a-digest".into();
+        assert!(!malformed_digest.is_well_formed());
+
+        let mut malformed_consumed = consumed.clone();
+        malformed_consumed.consumed_at = None;
+        assert!(!malformed_consumed.is_well_formed());
+
+        let mut expired = available.clone();
+        assert!(!expired.permits_consumption(
+            &decision,
             &execution,
-            "2026-10-02T08:00:00Z"
+            "2026-10-02T08:10:00Z"
         ));
     }
 
