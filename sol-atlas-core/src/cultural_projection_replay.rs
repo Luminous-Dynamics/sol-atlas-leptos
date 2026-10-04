@@ -131,6 +131,27 @@ impl V5ReplayReceiptV1 {
         Ok(receipt)
     }
 
+    /// Constructs a replay receipt through the strict provenance path.
+    ///
+    /// This binds the receipt to the exact originating projection as well as
+    /// the verified chain leaf. The compatibility constructor remains available
+    /// for legacy records.
+    pub fn from_projection_and_chain(
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        audit: &CulturalProjectionAuditV5,
+        chain: &EvidenceFrontierChainV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<Self, ProjectionError> {
+        let frontier = chain
+            .current()
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+        audit.validate_strong_against_projection(projection, frontier, claim)?;
+
+        let receipt = Self::from_audit_and_chain(audit, chain, claim)?;
+        receipt.validate_strong_against_projection(projection, audit, chain, claim)?;
+        Ok(receipt)
+    }
+
     /// Validates the receipt all the way back to the exact originating
     /// cultural projection, canonical claim, and verified frontier chain.
     pub fn validate_against_projection(
@@ -500,6 +521,60 @@ mod tests {
                 frontiers: vec![root, child],
             },
         )
+    }
+
+    #[test]
+    fn strict_constructor_round_trips_against_originating_projection() {
+        let (audit, claim, chain) = fixture();
+        let frontier = chain.current().expect("leaf frontier");
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into(), "e:2".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: Some("assessment:1".into()),
+                qualification: crate::civilizational::QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                evidence_frontier: frontier.frontier_id.clone(),
+            },
+        );
+
+        let strong_audit = CulturalProjectionAuditV5::from_projection_at(
+            &projection,
+            frontier,
+            &claim,
+            audit.base.resolutions.clone(),
+            audit.argumentation.clone(),
+        )
+        .expect("strong audit");
+        let receipt = V5ReplayReceiptV1::from_projection_and_chain(
+            &projection,
+            &strong_audit,
+            &chain,
+            &claim,
+        )
+        .expect("strict replay receipt");
+
+        assert_eq!(
+            receipt.validate_strong_against_projection(
+                &projection,
+                &strong_audit,
+                &chain,
+                &claim
+            ),
+            Ok(())
+        );
+        assert_eq!(receipt.leaf_frontier, frontier.frontier_id);
     }
 
     #[test]
