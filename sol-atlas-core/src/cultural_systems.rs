@@ -2358,5 +2358,4 @@ mod tests {
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
-
 }
