@@ -1243,22 +1243,27 @@ impl RecoveryPolicyConsumptionTransitionV1 {
         &self,
         current: &RecoveryPolicyConsumptionSnapshotV1,
         decision: &RecoveryPolicyDecisionSnapshotV1,
+        execution: &RecoveryExecution,
         next: &RecoveryPolicyConsumptionSnapshotV1,
     ) -> bool {
+        let Some(expected_next) = current.consumed(decision, execution, &self.consumed_at) else {
+            return false;
+        };
+
         self.is_well_formed()
             && current.is_well_formed()
+            && decision.is_admitted()
             && next.is_well_formed()
             && next.state == RecoveryPolicyConsumptionStateV1::Consumed
             && self.decision_digest == decision.digest()
             && self.decision_digest == current.decision_digest
             && self.expected_snapshot_digest == current.digest()
             && self.next_snapshot_digest == next.digest()
-            && next.decision_digest == current.decision_digest
+            && expected_next == *next
             && next.consumed_execution_id.as_deref() == Some(self.execution_id.as_str())
             && next.consumed_at.as_deref() == Some(self.consumed_at.as_str())
             && next.claim_ceiling == self.claim_ceiling
     }
-
     pub fn canonical_bytes(&self) -> Vec<u8> {
         serde_json::to_vec(self)
             .expect("recovery policy consumption transition contains serializable primitives")
