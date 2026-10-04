@@ -156,7 +156,11 @@ impl CulturalArgumentationRefV3 {
             && self.closure.is_frontier_safe(claim, frontier)
             && self.evidence_frontier == frontier.frontier_id
             && self.available_by <= frontier.known_by_year
-            && frontier.admits_argumentation(&self.assessment, &self.interpretation)
+            && frontier.admits_argumentation_at(
+                &self.assessment,
+                &self.interpretation,
+                self.available_by,
+            )
     }
 }
 
