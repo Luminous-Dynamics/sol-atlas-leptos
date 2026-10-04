@@ -152,7 +152,7 @@ impl V5ReplayReceiptV1 {
             .current()
             .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
         audit.validate_against_projection(projection, frontier, claim)?;
-        self.validate_against_audit_and_chain(audit, chain, claim)
+        self.validate_against_audit_and_chain(audit, &prefix, claim)
     }
 
     pub fn validate_against_audit_and_chain(
