@@ -55,6 +55,29 @@ impl CulturalProjectionAuditV5 {
         Ok(audit)
     }
 
+    /// Creates a provenance-strong V5 audit from the exact originating
+    /// cultural projection, canonical claim, temporal frontier, ontology
+    /// resolution closure, and typed argumentation records.
+    ///
+    /// This is the preferred constructor for new replay/provenance paths.
+    /// The legacy from_v4 constructor remains available for deserialization
+    /// and staged migration of older V4 records.
+    pub fn from_projection_at(
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
+        resolutions: Vec<crate::ontology_resolution::OntologyMappingResolutionV1>,
+        argumentation: Vec<CulturalArgumentationRefV3>,
+    ) -> Option<Self> {
+        let base = CulturalProjectionAuditV4::from_projection_at(
+            projection,
+            frontier,
+            claim,
+            resolutions,
+        )?;
+        Self::from_v4(base, argumentation).ok()
+    }
+
     pub fn validate(&self) -> Result<(), ProjectionError> {
         self.base.validate()?;
         if self.semantic_hash.trim().is_empty()
@@ -429,6 +452,56 @@ mod tests {
         let audit = CulturalProjectionAuditV5::from_v4(v4, vec![argumentation]).expect("v5 audit");
         assert!(audit.validate().is_ok());
         assert!(audit.is_frontier_safe(&frontier, &claim));
+    }
+
+    #[test]
+    fn v5_strong_constructor_retains_projection_semantic_identity() {
+        let (legacy_v4, claim, frontier, argumentation) = fixture();
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into(), "e:2".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: Some("assessment:1".into()),
+                qualification: QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                evidence_frontier: "frontier:1950".into(),
+            },
+        );
+
+        let audit = CulturalProjectionAuditV5::from_projection_at(
+            &projection,
+            &frontier,
+            &claim,
+            legacy_v4.resolutions.clone(),
+            vec![argumentation],
+        )
+        .expect("strong v5 audit");
+
+        assert!(!audit.base.base.projection_semantic_hash.is_empty());
+        assert_eq!(
+            audit.validate_against_projection(&projection, &frontier, &claim),
+            Ok(())
+        );
+
+        let mut rebound = projection.clone();
+        if let crate::cultural_systems::CulturalProjectionV1::Transmission(value) = &mut rebound {
+            value.target = "practice:rebound-target".into();
+        }
+        assert_eq!(
+            audit.validate_against_projection(&rebound, &frontier, &claim),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
     }
 
     #[test]
