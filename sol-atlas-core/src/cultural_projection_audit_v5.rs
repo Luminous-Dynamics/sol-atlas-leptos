@@ -248,9 +248,7 @@ impl CulturalProjectionAuditV5 {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
 
-        if !claim.is_frontier_safe(frontier) {
-            return Err(ProjectionError::AuditWithoutEvidencePath);
-        }
+        claim.validate_frontier_safe(frontier)?;
 
         self.validate()?;
         if !self.is_frontier_safe(frontier, claim) {
@@ -789,6 +787,16 @@ mod tests {
         assert!(!audit.is_chain_safe(&chain, &claim));
     }
 
+    #[test]
+    fn v5_chain_replay_preserves_claim_frontier_diagnostic() {
+        let (audit, claim, mut chain) = fixture();
+        chain.frontiers[0].manifest_hash = "not-a-valid-sha256".into();
+
+        assert_eq!(
+            audit.validate_against_frontier_chain(&chain, &claim),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
     #[test]
     fn v5_chain_replay_accepts_complete_same_leaf_closure() {
         let (v4, claim, frontier, argumentation) = fixture();
