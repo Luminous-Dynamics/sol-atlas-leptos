@@ -715,15 +715,15 @@ mod tests {
         chain.frontiers[0] = reissued;
 
         assert_ne!(chain.frontiers[0].manifest_hash, original_manifest_hash);
-        assert!(
+        assert_eq!(
             V5HistoricalReplayReceiptV1::from_projection_at(
                 &projection,
                 &strong_audit,
                 &chain,
                 &"frontier:1950".into(),
                 &claim,
-            )
-            .is_err()
+            ),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
 
