@@ -88,6 +88,90 @@ pub trait RecoveryPolicyConsumptionStore: Send + Sync {
     ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error>;
 }
 
+/// Point-in-time result of reconciling an indeterminate CAS acknowledgement.
+///
+/// These outcomes describe what a subsequent load observed. They intentionally
+/// do not turn a generic read into a durable guarantee about future state.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryPolicyConsumptionReconciliationOutcome {
+    /// The exact successor state is currently stored.
+    ObservedCommitted,
+    /// The exact expected pre-state is currently stored.
+    ObservedExpected,
+    /// A different valid state is currently stored.
+    ///
+    /// Another contender may have won, or an adapter-specific mutation may
+    /// have replaced the state. The generic contract does not infer which.
+    ObservedDifferentState,
+    MissingState,
+    InvalidTransition,
+    MalformedStoredState,
+}
+
+/// Reconcile an indeterminate persistence acknowledgement using the exact
+/// successor's content digest as the unique observable side effect.
+///
+/// This function performs only a read. It never retries CAS and never mutates
+/// the store. If the successor is observed, the caller can safely conclude
+/// that this exact successor is present at reconciliation time. If the expected
+/// pre-state is observed, the caller only knows that the successor is not
+/// currently present; an adapter may require stronger store-specific guarantees
+/// before treating that as a definitive non-commit result.
+pub fn reconcile_indeterminate_consumption<S>(
+    store: &S,
+    decision: &RecoveryPolicyDecisionSnapshotV1,
+    transition: &RecoveryPolicyConsumptionTransitionV1,
+    next: &RecoveryPolicyConsumptionSnapshotV1,
+) -> Result<
+    RecoveryPolicyConsumptionReconciliationOutcome,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryPolicyConsumptionStore,
+{
+    if !decision.is_well_formed()
+        || !transition.is_well_formed()
+        || !next.is_well_formed()
+        || transition.decision_digest != decision.digest()
+        || transition.next_snapshot_digest != next.digest()
+    {
+        return Ok(RecoveryPolicyConsumptionReconciliationOutcome::InvalidTransition);
+    }
+
+    let Some(current) = store
+        .load(&decision.digest())
+        .map_err(RecoveryPolicyConsumptionPersistenceError::Store)?
+    else {
+        return Ok(RecoveryPolicyConsumptionReconciliationOutcome::MissingState);
+    };
+
+    if !current.is_well_formed() {
+        return Ok(
+            RecoveryPolicyConsumptionReconciliationOutcome::MalformedStoredState
+        );
+    }
+
+    if current.decision_digest != decision.digest() {
+        return Ok(
+            RecoveryPolicyConsumptionReconciliationOutcome::InvalidTransition
+        );
+    }
+
+    if current.digest() == next.digest() {
+        return Ok(
+            RecoveryPolicyConsumptionReconciliationOutcome::ObservedCommitted
+        );
+    }
+
+    if current.digest() == transition.expected_snapshot_digest {
+        return Ok(
+            RecoveryPolicyConsumptionReconciliationOutcome::ObservedExpected
+        );
+    }
+
+    Ok(RecoveryPolicyConsumptionReconciliationOutcome::ObservedDifferentState)
+}
+
 /// Validate and persist one transition through the external CAS boundary.
 ///
 /// The helper deliberately performs load/validation/CAS as separate operations:
@@ -585,6 +669,102 @@ mod tests {
         assert_ne!(
             outcome,
             RecoveryPolicyConsumptionPersistenceOutcome::Committed
+        );
+    }
+
+    #[test]
+    fn reconciliation_observes_exact_successor_without_mutation() {
+        let (decision, execution, current) = fixture();
+        let (transition, next) =
+            transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
+
+        let store = MemoryStore::new(&decision);
+        assert_eq!(
+            reconcile_indeterminate_consumption(&store, &decision, &transition, &next)
+                .expect("expected pre-state"),
+            RecoveryPolicyConsumptionReconciliationOutcome::ObservedExpected
+        );
+
+        assert_eq!(
+            persist_consumption_transition(
+                &store,
+                &decision,
+                &execution,
+                &transition,
+                &next,
+            )
+            .expect("commit"),
+            RecoveryPolicyConsumptionPersistenceOutcome::Committed
+        );
+
+        assert_eq!(
+            reconcile_indeterminate_consumption(&store, &decision, &transition, &next)
+                .expect("committed successor"),
+            RecoveryPolicyConsumptionReconciliationOutcome::ObservedCommitted
+        );
+    }
+
+    #[test]
+    fn reconciliation_classifies_a_different_successor_without_guessing_why() {
+        let (decision, execution, current) = fixture();
+        let (first, first_next) =
+            transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
+        let (second, second_next) =
+            transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:01Z");
+        let store = MemoryStore::new(&decision);
+
+        assert_eq!(
+            persist_consumption_transition(
+                &store,
+                &decision,
+                &execution,
+                &first,
+                &first_next,
+            )
+            .expect("first commit"),
+            RecoveryPolicyConsumptionPersistenceOutcome::Committed
+        );
+
+        assert_eq!(
+            reconcile_indeterminate_consumption(&store, &decision, &second, &second_next)
+                .expect("different successor"),
+            RecoveryPolicyConsumptionReconciliationOutcome::ObservedDifferentState
+        );
+    }
+
+    #[test]
+    fn reconciliation_validates_inputs_before_reading_store() {
+        let (decision, execution, current) = fixture();
+        let (mut transition, next) =
+            transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
+        transition.next_snapshot_digest = "sha256:tampered".into();
+
+        struct NoReadStore;
+
+        impl RecoveryPolicyConsumptionStore for NoReadStore {
+            type Error = &'static str;
+
+            fn load(
+                &self,
+                _decision_digest: &str,
+            ) -> Result<Option<RecoveryPolicyConsumptionSnapshotV1>, Self::Error> {
+                Err("read must not be reached")
+            }
+
+            fn compare_and_set(
+                &self,
+                _decision_digest: &str,
+                _expected_snapshot_digest: &str,
+                _next: &RecoveryPolicyConsumptionSnapshotV1,
+            ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
+                unreachable!("reconciliation never performs CAS")
+            }
+        }
+
+        assert_eq!(
+            reconcile_indeterminate_consumption(&NoReadStore, &decision, &transition, &next)
+                .expect("invalid transition outcome"),
+            RecoveryPolicyConsumptionReconciliationOutcome::InvalidTransition
         );
     }
 
