@@ -3959,15 +3959,39 @@ mod graph_tests {
         let consumed = available
             .consumed(&decision, &execution, "2026-10-02T08:00:00Z")
             .expect("valid one-time transition");
-        assert!(transition.matches(&available, &decision, &consumed));
+        assert!(transition.matches(
+            &available,
+            &decision,
+            &execution,
+            &consumed,
+        ));
 
         let mut altered_transition = transition.clone();
         altered_transition.next_snapshot_digest = available.digest();
-        assert!(!altered_transition.matches(&available, &decision, &consumed));
+        assert!(!altered_transition.matches(
+            &available,
+            &decision,
+            &execution,
+            &consumed,
+        ));
 
         let mut altered_consumed = consumed.clone();
         altered_consumed.consumed_at = Some("2026-10-02T08:00:01Z".into());
-        assert!(!transition.matches(&available, &decision, &altered_consumed));
+        assert!(!transition.matches(
+            &available,
+            &decision,
+            &execution,
+            &altered_consumed,
+        ));        let mut different_execution_for_transition = execution.clone();
+        different_execution_for_transition.execution_id = "execution-transition-other".into();
+        assert!(!transition.matches(
+            &available,
+            &decision,
+            &different_execution_for_transition,
+            &consumed,
+        ));
+
+
         assert!(consumed.is_well_formed());
         assert_ne!(available_digest, consumed.digest());
         let mut different_consumption_time = consumed.clone();
