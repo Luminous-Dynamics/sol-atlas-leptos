@@ -1,0 +1,11 @@
+# Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+# SPDX-License-Identifier: AGPL-3.0-or-later
+[package]
+name = "sol-atlas-policy-store-contract"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Storage-neutral atomic consumption contract for Sol Atlas policy authorizations"
+
+[dependencies]
+sol-atlas-core = { path = "../sol-atlas-core" }
