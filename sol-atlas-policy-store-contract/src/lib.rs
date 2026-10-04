@@ -222,7 +222,7 @@ impl RecoveryAuthorizationOrchestrationStateV1 {
                 RecoveryAuthorizationOrchestrationActionV1::ReconcileAndContinueExecution
             }
             Self::AuthorizationConsumedNoClaim => {
-                RecoveryAuthorizationOrchestrationActionV1::\
+                RecoveryAuthorizationOrchestrationActionV1::
                     ReconcileExecutionAndEffectBeforeIrreversibleWork
             }
             Self::AuthorizationConsumptionIndeterminate => {
@@ -3276,8 +3276,9 @@ mod tests {
             RecoveryAuthorizationOrchestrationActionV1::ReconcileAndContinueExecution
         );
         assert_eq!(
-            RecoveryAuthorizationOrchestrationStateV1::AuthorizationConsumedNoClaim.next_action(),
-            RecoveryAuthorizationOrchestrationActionV1::\
+            RecoveryAuthorizationOrchestrationStateV1::AuthorizationConsumedNoClaim
+                .next_action(),
+            RecoveryAuthorizationOrchestrationActionV1::
                 ReconcileExecutionAndEffectBeforeIrreversibleWork
         );
         assert_eq!(
