@@ -20,6 +20,20 @@ pub struct V5HistoricalReplayReceiptV1 {
 }
 
 impl V5HistoricalReplayReceiptV1 {
+    fn prefix_at(
+        chain: &EvidenceFrontierChainV1,
+        frontier_id: &EvidenceFrontierId,
+    ) -> Result<EvidenceFrontierChainV1, ProjectionError> {
+        let index = chain
+            .frontiers
+            .iter()
+            .position(|frontier| &frontier.frontier_id == frontier_id)
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+        Ok(EvidenceFrontierChainV1 {
+            frontiers: chain.frontiers[..=index].to_vec(),
+        })
+    }
+
     pub fn from_audit_at(
         audit: &CulturalProjectionAuditV5,
         chain: &EvidenceFrontierChainV1,
@@ -27,14 +41,7 @@ impl V5HistoricalReplayReceiptV1 {
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<Self, ProjectionError> {
         validate_v5_at(audit, chain, frontier_id, claim)?;
-        let index = chain
-            .frontiers
-            .iter()
-            .position(|f| &f.frontier_id == frontier_id)
-            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
-        let prefix = EvidenceFrontierChainV1 {
-            frontiers: chain.frontiers[..=index].to_vec(),
-        };
+        let prefix = Self::prefix_at(chain, frontier_id)?;
         let replay = V5ReplayReceiptV1::from_audit_and_chain(audit, &prefix, claim)?;
         let mut receipt = Self {
             selected_frontier: frontier_id.clone(),
@@ -58,14 +65,7 @@ impl V5HistoricalReplayReceiptV1 {
         frontier_id: &EvidenceFrontierId,
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<Self, ProjectionError> {
-        let index = chain
-            .frontiers
-            .iter()
-            .position(|frontier| &frontier.frontier_id == frontier_id)
-            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
-        let prefix = EvidenceFrontierChainV1 {
-            frontiers: chain.frontiers[..=index].to_vec(),
-        };
+        let prefix = Self::prefix_at(chain, frontier_id)?;
         let frontier = prefix
             .current()
             .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
@@ -100,14 +100,7 @@ impl V5HistoricalReplayReceiptV1 {
         chain: &EvidenceFrontierChainV1,
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<(), ProjectionError> {
-        let index = chain
-            .frontiers
-            .iter()
-            .position(|frontier| frontier.frontier_id == self.selected_frontier)
-            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
-        let prefix = EvidenceFrontierChainV1 {
-            frontiers: chain.frontiers[..=index].to_vec(),
-        };
+        let prefix = Self::prefix_at(chain, &self.selected_frontier)?;
         let frontier = prefix
             .current()
             .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
@@ -126,14 +119,7 @@ impl V5HistoricalReplayReceiptV1 {
         if self.replay.leaf_frontier != self.selected_frontier {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
-        let index = chain
-            .frontiers
-            .iter()
-            .position(|f| f.frontier_id == self.selected_frontier)
-            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
-        let prefix = EvidenceFrontierChainV1 {
-            frontiers: chain.frontiers[..=index].to_vec(),
-        };
+        let prefix = Self::prefix_at(chain, &self.selected_frontier)?;
         self.replay
             .validate_against_audit_and_chain(audit, &prefix, claim)?;
         if self.receipt_hash != self.computed_hash()? {
