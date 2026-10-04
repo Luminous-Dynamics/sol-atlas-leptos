@@ -961,10 +961,10 @@ mod tests {
             attempt_id: "attempt-b".into(),
             ..started.clone()
         };
-        let success = RecoveryExecutionEffectReceiptV1 {
+        let foreign_success = RecoveryExecutionEffectReceiptV1 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into()),
-            ..started.clone()
+            ..foreign.clone()
         };
 
         assert_eq!(
@@ -972,7 +972,7 @@ mod tests {
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
-            complete_execution_effect(&store, &foreign, &success).expect("owner check"),
+            complete_execution_effect(&store, &foreign, &foreign_success).expect("owner check"),
             RecoveryExecutionEffectCompletionResult::MalformedReceipt
         );
     }
