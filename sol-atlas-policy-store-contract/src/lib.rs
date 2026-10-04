@@ -2265,6 +2265,39 @@ mod tests {
     }
 
     #[test]
+    fn effect_receipt_can_be_derived_from_the_current_fence() {
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let receipt = RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&fence)
+            .expect("fenced effect receipt");
+
+        assert!(receipt.is_well_formed());
+        assert_eq!(receipt.execution_id, fence.execution_id);
+        assert_eq!(receipt.execution_input_snapshot, fence.execution_input_snapshot);
+        assert_eq!(receipt.attempt_id, fence.attempt_id);
+        assert_eq!(receipt.fence_epoch, fence.fence_epoch);
+    }
+
+    #[test]
+    fn effect_receipt_zero_fence_epoch_fails_closed() {
+        let mut receipt = effect_receipt_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        receipt.fence_epoch = 0;
+        let store = ExecutionEffectMemoryStore::default();
+
+        assert!(!receipt.is_well_formed());
+        assert_eq!(
+            begin_execution_effect(&store, &receipt).expect("malformed fence"),
+            RecoveryExecutionEffectStartResult::MalformedReceipt
+        );
+    }
+
+    #[test]
     fn fenced_recovery_advances_epoch_and_stales_the_old_owner() {
         let claim = execution_claim_fixture(
             "attempt-a",
