@@ -142,6 +142,7 @@ impl V5ReplayReceiptV1 {
         chain: &EvidenceFrontierChainV1,
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<Self, ProjectionError> {
+        chain.validate_strict()?;
         let frontier = chain
             .current()
             .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
@@ -163,7 +164,7 @@ impl V5ReplayReceiptV1 {
     ) -> Result<(), ProjectionError> {
         // Leaf selection is identifier-based; use the shared selector so a
         // later duplicate cannot hide behind an otherwise valid prefix.
-        let prefix = chain.prefix_through(&self.leaf_frontier)?;
+        let prefix = chain.strict_prefix_through(&self.leaf_frontier)?;
         let frontier = prefix
             .current()
             .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
@@ -185,7 +186,7 @@ impl V5ReplayReceiptV1 {
         // identifier-based leaf selection must be globally unambiguous.
         chain.validate_unique_frontier_ids()?;
         // Keep the strong path on the same globally-unique selector primitive.
-        let prefix = chain.prefix_through(&self.leaf_frontier)?;
+        let prefix = chain.strict_prefix_through(&self.leaf_frontier)?;
         let frontier = prefix
             .current()
             .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
