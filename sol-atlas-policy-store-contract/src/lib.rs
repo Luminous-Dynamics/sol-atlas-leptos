@@ -453,6 +453,7 @@ pub enum RecoveryExecutionEffectCompletionResult {
     NotOwner,
     MissingReceipt,
     FingerprintMismatch,
+    FenceMismatch,
     MalformedReceipt,
     Indeterminate,
 }
@@ -471,6 +472,7 @@ pub trait RecoveryExecutionEffectStore: Send + Sync {
         execution_id: &str,
         execution_input_snapshot: &str,
         attempt_id: &str,
+        fence_epoch: u64,
         completed: &RecoveryExecutionEffectReceiptV2,
     ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error>;
 
@@ -1579,6 +1581,7 @@ mod tests {
                     execution_id,
                     execution_input_snapshot,
                     attempt_id,
+                    fence_epoch,
                     completed,
                 )?;
                 if result == RecoveryExecutionEffectCompletionResult::Completed {
