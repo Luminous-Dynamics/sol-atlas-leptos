@@ -1588,13 +1588,6 @@ mod tests {
         let successor_fence_c =
             RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-c")
                 .expect("successor fence c");
-        let successor_b =
-            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence_b)
-                .expect("successor receipt b");
-        let successor_c =
-            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence_c)
-                .expect("successor receipt c");
-
         assert_eq!(
             begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
@@ -1602,16 +1595,24 @@ mod tests {
 
         let left_store = Arc::clone(&store);
         let left_expected = started.clone();
-        let left_successor = successor_b.clone();
+        let left_successor_fence = successor_fence_b.clone();
         let left = thread::spawn(move || {
-            recover_execution_effect(left_store.as_ref(), &left_expected, &left_successor_fence)
+            recover_execution_effect(
+                left_store.as_ref(),
+                &left_expected,
+                &left_successor_fence,
+            )
         });
 
         let right_store = Arc::clone(&store);
         let right_expected = started.clone();
-        let right_successor = successor_c.clone();
+        let right_successor_fence = successor_fence_c.clone();
         let right = thread::spawn(move || {
-            recover_execution_effect(right_store.as_ref(), &right_expected, &right_successor_fence)
+            recover_execution_effect(
+                right_store.as_ref(),
+                &right_expected,
+                &right_successor_fence,
+            )
         });
 
         let outcomes = [
