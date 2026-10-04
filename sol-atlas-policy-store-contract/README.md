@@ -41,11 +41,21 @@ The current IETF Idempotency-Key Internet-Draft follows the same fundamental rul
 
 ## External-effect receipt boundary (#30)
 
-The package now models the durable receipt around an external effect as `InProgress`, `Succeeded`, or `Failed`. Starting an effect is an atomic idempotency operation keyed by the stable execution identity and exact input fingerprint. Only the attempt that owns the `InProgress` receipt may advance it to a terminal receipt.
+The package models the durable receipt around an external effect as `InProgress`, `Succeeded`, or `Failed` in `RecoveryExecutionEffectReceiptV2`. Each receipt also carries the exact monotonic `fence_epoch` of the execution owner. Starting an effect is an atomic idempotency operation keyed by the stable execution identity, exact input fingerprint, and current fence generation. Only the attempt that owns the `InProgress` receipt at the same fence epoch may advance it to a terminal receipt.
 
 A repeated request with the same execution identity and fingerprint is therefore classified instead of starting a second effect. A different fingerprint is rejected. An uncertain store acknowledgement is reconciled by reading the receipt; the receipt state itself is never treated as proof that the external action completed.
 
 This deliberately leaves one hard systems boundary explicit: the effect must itself be idempotent or transactionally coupled to the receipt if retries after an uncertain outcome are expected to be safe. AWS guidance recommends unique idempotency tokens and persisted operation state, while Stripe documents replaying the stored first result for a repeated idempotency key. These references guide the contract shape; they are not claims that Sol Atlas interoperates with either API.
+
+### Effect-fence propagation
+
+The effect receipt is now explicitly fence-aware. A receipt must carry a non-zero `fence_epoch`, and `complete_execution_effect` supplies that epoch to the storage boundary. A stale owner whose execution fence has been superseded is therefore rejected rather than being allowed to terminalize the durable effect receipt.
+
+`RecoveryExecutionEffectReceiptV2::in_progress_for_fence` derives the receipt identity directly from an established `RecoveryExecutionFenceV1`, avoiding a second caller-supplied copy of execution ID, fingerprint, attempt, and epoch.
+
+This closes the durable-receipt stale-owner gap, but it does not magically fence an arbitrary external API. The concrete effect adapter must propagate the same epoch/token to the protected resource and have that resource reject stale epochs. Google Chubby's sequencer design uses this same division: the client passes the sequencer to the server and the receiving server validates it before allowing the protected operation. citeturn227855search22turn227855search8
+
+Where the external effect system cannot enforce such a token, automatic takeover remains unsafe; the adapter must use an idempotent effect contract or fail closed/manual recovery. Saga participants still require idempotency because saga orchestration does not provide distributed transaction isolation. citeturn411559search0turn411559search2
 
 ## Orchestration recovery matrix (#29)
 
