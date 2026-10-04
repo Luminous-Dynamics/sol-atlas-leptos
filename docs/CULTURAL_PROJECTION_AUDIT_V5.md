@@ -49,6 +49,16 @@ A later frontier cannot admit an earlier audit merely because the same claim or
 argumentation identifiers exist. Frontier validation remains the authority for
 temporal availability.
 
+## Construction boundary
+
+New provenance-sensitive V5 producers should use
+`CulturalProjectionAuditV5::from_projection_at(...)`. The strong constructor
+returns `Result<CulturalProjectionAuditV5, ProjectionError>`, preserving the
+specific failure from V4 resolution construction or V5 argumentation/identity
+validation rather than collapsing all failures into `None`. The compatibility
+`from_v4(...) -> Result<...>` path remains appropriate for already-serialized
+or staged migration inputs.
+
 ## Why V5 is additive
 
 V3 and V4 remain usable by callers that do not yet carry typed argumentation.
