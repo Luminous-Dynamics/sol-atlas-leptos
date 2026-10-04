@@ -106,6 +106,8 @@ A projection identifier is not, by itself, a commitment to every semantic field 
 
 For stronger V2+ provenance, Sol Atlas carries an optional SHA-256 projection-semantic commitment derived from the complete `CulturalProjectionV1` value. Strong constructors populate the commitment, and reciprocal validation recomputes it against the originating projection. Legacy empty values remain readable for migration. The commitment uses an application-defined serde_json payload and is not claimed to be RFC 8785/JCS-compatible.
 
+The current projection semantic canonicalization is intentionally narrow and explicit: primary `evidence_refs` and `source_snapshots` are treated as set-like membership and sorted before hashing, matching the replay receipt contract. Other projection vectors are not reordered by the hash function. Any future change to these equivalence rules should introduce an explicit versioned canonicalization contract rather than silently changing the meaning of existing hashes.
+
 ## Next integration step
 
 The semantic envelope is intentionally additive. The next integration can add
