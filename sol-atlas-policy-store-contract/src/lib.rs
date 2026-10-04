@@ -208,6 +208,10 @@ impl RecoveryExecutionClaimV1 {
         execution: &RecoveryExecution,
         attempt_id: impl Into<String>,
     ) -> Option<Self> {
+        if execution.ended_at.is_some() {
+            return None;
+        }
+
         let claim = Self {
             schema: Self::SCHEMA.into(),
             execution_id: execution.execution_id.clone(),
@@ -1524,6 +1528,14 @@ mod tests {
             execution_input_snapshot: input_snapshot.into(),
             attempt_id: attempt_id.into(),
         }
+    }
+
+    #[test]
+    fn terminal_execution_cannot_acquire_a_start_claim() {
+        let execution = fixture().1;
+        assert!(
+            RecoveryExecutionClaimV1::for_execution(&execution, "attempt-a").is_none()
+        );
     }
 
     #[test]
