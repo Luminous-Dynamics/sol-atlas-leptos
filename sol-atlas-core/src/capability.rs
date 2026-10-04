@@ -3982,13 +3982,80 @@ mod graph_tests {
             &decision,
             &execution,
             &altered_consumed,
-        ));        let mut different_execution_for_transition = execution.clone();
+        ));
+
+        let mut different_execution_for_transition = execution.clone();
         different_execution_for_transition.execution_id = "execution-transition-other".into();
         assert!(!transition.matches(
             &available,
             &decision,
             &different_execution_for_transition,
             &consumed,
+        ));
+
+        assert!(!transition.matches(
+            &consumed,
+            &decision,
+            &execution,
+            &consumed,
+        ));
+
+        let mut unbound_decision = decision.clone();
+        unbound_decision.execution_id = None;
+        let unbound_available =
+            RecoveryPolicyConsumptionSnapshotV1::for_decision(&unbound_decision);
+        let mut alternate_execution = execution.clone();
+        alternate_execution.execution_id = "execution-alternate".into();
+        let first_race = RecoveryPolicyConsumptionTransitionV1::for_successful_consumption(
+            &unbound_available,
+            &unbound_decision,
+            &execution,
+            "2026-10-02T08:00:00Z",
+        )
+        .expect("first contender is independently eligible");
+        let second_race = RecoveryPolicyConsumptionTransitionV1::for_successful_consumption(
+            &unbound_available,
+            &unbound_decision,
+            &alternate_execution,
+            "2026-10-02T08:00:00Z",
+        )
+        .expect("second contender is independently eligible");
+        assert_ne!(
+            first_race.next_snapshot_digest,
+            second_race.next_snapshot_digest
+        );
+        assert_eq!(
+            first_race.expected_snapshot_digest,
+            second_race.expected_snapshot_digest
+        );
+        assert_ne!(first_race.execution_id, second_race.execution_id);
+        let first_next = unbound_available
+            .consumed(&unbound_decision, &execution, "2026-10-02T08:00:00Z")
+            .expect("first successor");
+        let second_next = unbound_available
+            .consumed(
+                &unbound_decision,
+                &alternate_execution,
+                "2026-10-02T08:00:00Z",
+            )
+            .expect("second successor");
+        assert!(first_race.matches(
+            &unbound_available,
+            &unbound_decision,
+            &execution,
+            &first_next,
+        ));
+        assert!(second_race.matches(
+            &unbound_available,
+            &unbound_decision,
+            &alternate_execution,
+            &second_next,
+        ));
+        assert!(!first_race.matches(
+            &unbound_available,
+            &unbound_decision,
+            &alternate_execution,
+            &second_next,
         ));
 
 
