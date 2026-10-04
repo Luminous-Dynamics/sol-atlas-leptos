@@ -100,6 +100,12 @@ the current V1 hash contract would require an explicit versioned migration.
 - the projection envelope preserves the projection's qualification rather than
   recomputing or upgrading it
 
+## Projection identity boundary
+
+A projection identifier is not, by itself, a commitment to every semantic field of the originating projection. Legacy V1 audit/admission schemas intentionally omit some projection fields, so their reciprocal validators can only reconstruct the semantics those schemas represent.
+
+For stronger V2+ provenance, Sol Atlas carries an optional SHA-256 projection-semantic commitment derived from the complete `CulturalProjectionV1` value. Strong constructors populate the commitment, and reciprocal validation recomputes it against the originating projection. Legacy empty values remain readable for migration. The commitment uses an application-defined serde_json payload and is not claimed to be RFC 8785/JCS-compatible.
+
 ## Next integration step
 
 The semantic envelope is intentionally additive. The next integration can add
