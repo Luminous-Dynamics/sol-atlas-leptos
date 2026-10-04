@@ -762,9 +762,6 @@ impl CulturalProjectionAdmissionV2 {
         if !self.projection_semantic_hash.is_empty() && !is_sha256_hex(&self.projection_semantic_hash) {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
-        if !self.frontier_manifest_hash.is_empty() && self.projection_semantic_hash.is_empty() {
-            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
-        }
         Ok(())
     }
 
@@ -947,9 +944,6 @@ impl CulturalProjectionAuditV2 {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
         if !self.projection_semantic_hash.is_empty() && !is_sha256_hex(&self.projection_semantic_hash) {
-            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
-        }
-        if !self.frontier_manifest_hash.is_empty() && self.projection_semantic_hash.is_empty() {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
         }
         if let Some(argumentation) = &self.argumentation {
@@ -1222,6 +1216,12 @@ impl CulturalProjectionAdmissionV1 {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::civilizational::{
+        ArgumentationTemporalMetadataV1, EvidenceTemporalMetadataV1,
+        SourceSnapshotTemporalMetadataV1,
+    };
+
     #[test]
     fn projection_semantic_hash_covers_semantics_omitted_by_legacy_receipts() {
         let projection = CulturalProjectionV1::Transmission(transmission());
@@ -1290,8 +1290,57 @@ mod tests {
     }
 
 
-    use super::*;
-    use crate::civilizational::{
+
+    #[test]
+    fn v2_frontier_bound_records_without_projection_hash_remain_migratable() {
+        let frontier = frontier();
+        let projection = CulturalProjectionV1::Transmission(transmission());
+        let transmission = match &projection {
+            CulturalProjectionV1::Transmission(value) => value,
+            CulturalProjectionV1::Transformation(_) => unreachable!(),
+        };
+        let claim = canonical_claim(transmission);
+        let mut audit =
+            CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim)
+                .expect("strong frontier-bound audit");
+
+        audit.projection_semantic_hash.clear();
+
+        assert_eq!(
+            audit.validate_against_projection(&projection, &frontier, &claim),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn v2_projection_hash_format_is_strict_when_present() {
+        let frontier = frontier();
+        let projection = CulturalProjectionV1::Transmission(transmission());
+        let transmission = match &projection {
+            CulturalProjectionV1::Transmission(value) => value,
+            CulturalProjectionV1::Transformation(_) => unreachable!(),
+        };
+        let claim = canonical_claim(transmission);
+
+        let mut audit =
+            CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim)
+                .expect("strong frontier-bound audit");
+        audit.projection_semantic_hash = "abcd".into();
+        assert_eq!(
+            audit.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        let mut admission =
+            CulturalProjectionAdmissionV2::from_projection(&projection, &frontier, &claim)
+                .expect("strong frontier-bound admission");
+        admission.projection_semantic_hash = "abcd".into();
+        assert_eq!(
+            admission.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+::{
         ArgumentationTemporalMetadataV1, EvidenceTemporalMetadataV1,
         SourceSnapshotTemporalMetadataV1,
     };
