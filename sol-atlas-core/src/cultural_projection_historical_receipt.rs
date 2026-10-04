@@ -60,6 +60,32 @@ impl V5HistoricalReplayReceiptV1 {
         self.validate_against_audit_at(audit, chain, claim)
     }
 
+    /// Strict historical provenance gate: validates the receipt against the
+    /// exact originating projection and the selected frontier prefix, while
+    /// requiring the strong V5 projection identity commitment.
+    pub fn validate_strong_against_projection_at(
+        &self,
+        projection: &crate::cultural_systems::CulturalProjectionV1,
+        audit: &CulturalProjectionAuditV5,
+        chain: &EvidenceFrontierChainV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        let index = chain
+            .frontiers
+            .iter()
+            .position(|frontier| frontier.frontier_id == self.selected_frontier)
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+        let prefix = EvidenceFrontierChainV1 {
+            frontiers: chain.frontiers[..=index].to_vec(),
+        };
+        let frontier = prefix
+            .current()
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+
+        audit.validate_strong_against_projection(projection, frontier, claim)?;
+        self.validate_against_audit_at(audit, &prefix, claim)
+    }
+
     pub fn validate_against_audit_at(
         &self,
         audit: &CulturalProjectionAuditV5,
@@ -514,6 +540,49 @@ mod tests {
             receipt
                 .validate_against_audit_at(&audit, &chain, &claim)
                 .is_err()
+        );
+    }
+
+    #[test]
+    fn strict_projection_validation_rejects_legacy_projection_identity() {
+        let (audit, claim, chain) = fixture();
+        let receipt = V5HistoricalReplayReceiptV1::from_audit_at(
+            &audit,
+            &chain,
+            &"frontier:1950".into(),
+            &claim,
+        )
+        .expect("historical receipt");
+        let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
+            crate::cultural_systems::CulturalTransmissionV1 {
+                transmission_id: "transmission:1".into(),
+                source: "practice:source".into(),
+                target: "practice:target".into(),
+                mode: crate::cultural_systems::TransmissionMode::Translated,
+                event_time: YearInterval {
+                    from: Some(1900),
+                    to: Some(1950),
+                },
+                context: Some("documented".into()),
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into()],
+                source_snapshots: vec!["source:1".into()],
+                assessment: None,
+                qualification: QualificationStatus::Supported,
+                community_recognition: vec![],
+                access_policy: AccessPolicyV1::Public,
+                evidence_frontier: "frontier:1950".into(),
+            },
+        );
+
+        assert_eq!(
+            receipt.validate_strong_against_projection_at(
+                &projection,
+                &audit,
+                &chain,
+                &claim
+            ),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
 
