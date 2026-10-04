@@ -1050,7 +1050,6 @@ pub struct RecoveryPolicyConsumptionSnapshotV1 {
     pub claim_ceiling: String,
 }
 
-
 fn is_sha256_digest(value: &str) -> bool {
     value.strip_prefix("sha256:").is_some_and(|hex| {
         hex.len() == 64 && hex.bytes().all(|byte| byte.is_ascii_hexdigit())
@@ -1264,6 +1263,7 @@ impl RecoveryPolicyConsumptionTransitionV1 {
             && next.consumed_at.as_deref() == Some(self.consumed_at.as_str())
             && next.claim_ceiling == self.claim_ceiling
     }
+
     pub fn canonical_bytes(&self) -> Vec<u8> {
         serde_json::to_vec(self)
             .expect("recovery policy consumption transition contains serializable primitives")
