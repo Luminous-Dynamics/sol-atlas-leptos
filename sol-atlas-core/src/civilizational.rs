@@ -906,7 +906,6 @@ impl EvidenceFrontierV1 {
         })
     }
 
-
     /// Returns whether an argumentation record is admitted and its declared availability exactly matches the frontier's committed metadata.
     pub(crate) fn admits_argumentation_at(
         &self,
