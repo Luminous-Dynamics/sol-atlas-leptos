@@ -685,12 +685,11 @@ where
         .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
 }
 
-/// Attempt to begin an effect using a single established fence as the source
-/// of execution identity, fingerprint, attempt, and fence epoch.
+/// Attempt to begin an effect using a single fence record as the source of
+/// execution identity, fingerprint, attempt, and fence epoch.
 ///
-/// The helper eliminates a caller-created second copy of those fields. The
-/// fence still has to come from a successful acquisition/recovery path; this
-/// helper does not prove that a raw fence value is currently authoritative.
+/// The stronger established-fence helper below should be preferred when the
+/// caller has positively acquired ownership from the authoritative fence store.
 pub fn begin_execution_effect_for_fence<S>(
     store: &S,
     fence: &RecoveryExecutionFenceV1,
@@ -706,6 +705,24 @@ where
     };
 
     begin_execution_effect(store, &receipt)
+}
+
+/// Attempt to begin an effect from a provenance-bearing established fence.
+///
+/// The wrapped fence cannot be fabricated through the public type constructor,
+/// closing the normal-path confusion between fence-shaped data and a generation
+/// positively accepted by the authoritative store.
+pub fn begin_execution_effect_for_established_fence<S>(
+    store: &S,
+    fence: &EstablishedRecoveryExecutionFenceV1,
+) -> Result<
+    RecoveryExecutionEffectStartResult,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionEffectStore,
+{
+    begin_execution_effect_for_fence(store, fence.fence())
 }
 
 /// Record a terminal external-effect outcome under the attempt that owns the
@@ -906,6 +923,56 @@ pub enum RecoveryExecutionFenceResult {
     Indeterminate,
 }
 
+/// Provenance-bearing capability produced only after the authoritative fence
+/// store positively accepts an initial generation for this exact execution.
+///
+/// The wrapped fence is private so callers cannot fabricate an "established"
+/// handle by merely constructing a structurally valid fence value.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EstablishedRecoveryExecutionFenceV1 {
+    fence: RecoveryExecutionFenceV1,
+}
+
+impl EstablishedRecoveryExecutionFenceV1 {
+    fn from_authoritative(fence: RecoveryExecutionFenceV1) -> Self {
+        Self { fence }
+    }
+
+    pub fn execution_id(&self) -> &str {
+        &self.fence.execution_id
+    }
+
+    pub fn execution_input_snapshot(&self) -> &str {
+        &self.fence.execution_input_snapshot
+    }
+
+    pub fn attempt_id(&self) -> &str {
+        &self.fence.attempt_id
+    }
+
+    pub fn fence_epoch(&self) -> u64 {
+        self.fence.fence_epoch
+    }
+
+    fn fence(&self) -> &RecoveryExecutionFenceV1 {
+        &self.fence
+    }
+}
+
+/// Outcome of the stronger initial-fence acquisition path.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RecoveryExecutionFenceEstablishmentV1 {
+    Established(EstablishedRecoveryExecutionFenceV1),
+    Rejected(RecoveryExecutionFenceResult),
+}
+
+/// Outcome of recovering an already-established fence into a new generation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RecoveryExecutionFenceRecoveryEstablishmentV1 {
+    Established(EstablishedRecoveryExecutionFenceV1),
+    Rejected(RecoveryExecutionFenceResult),
+}
+
 /// Storage-neutral contract for monotonic execution fencing.
 ///
 /// recover_if_current MUST be atomic for the same execution identity. A
@@ -1052,6 +1119,66 @@ where
     store
         .recover_if_current(expected, successor)
         .map_err(RecoveryPolicyConsumptionPersistenceError::Store)
+}
+
+/// Acquire the initial fence and, when the authoritative store confirms the
+/// acquisition or exact same-attempt replay, return a provenance-bearing handle.
+///
+/// Indeterminate does not produce an established handle because the caller has
+/// no positive acknowledgement that durable ownership exists.
+pub fn establish_execution_fence<S>(
+    store: &S,
+    fence: &RecoveryExecutionFenceV1,
+) -> Result<
+    RecoveryExecutionFenceEstablishmentV1,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionFenceStore,
+{
+    match acquire_execution_fence(store, fence)? {
+        RecoveryExecutionFenceResult::Acquired
+        | RecoveryExecutionFenceResult::AlreadyOwnedSameAttempt => {
+            Ok(RecoveryExecutionFenceEstablishmentV1::Established(
+                EstablishedRecoveryExecutionFenceV1::from_authoritative(fence.clone()),
+            ))
+        }
+        outcome => Ok(RecoveryExecutionFenceEstablishmentV1::Rejected(outcome)),
+    }
+}
+
+/// Recover an already-established fence and, only after a positive recovery
+/// acknowledgement, produce the next provenance-bearing generation.
+///
+/// The successor is derived from the established handle, avoiding another
+/// caller-supplied copy of execution identity, fingerprint, and current epoch.
+pub fn recover_established_execution_fence<S>(
+    store: &S,
+    current: &EstablishedRecoveryExecutionFenceV1,
+    new_attempt_id: impl Into<String>,
+) -> Result<
+    RecoveryExecutionFenceRecoveryEstablishmentV1,
+    RecoveryPolicyConsumptionPersistenceError<S::Error>,
+>
+where
+    S: RecoveryExecutionFenceStore,
+{
+    let Some(successor) =
+        RecoveryExecutionFenceV1::for_recovery(current.fence(), new_attempt_id)
+    else {
+        return Ok(RecoveryExecutionFenceRecoveryEstablishmentV1::Rejected(
+            RecoveryExecutionFenceResult::MalformedFence,
+        ));
+    };
+
+    match recover_execution_fence(store, current.fence(), &successor)? {
+        RecoveryExecutionFenceResult::Recovered => Ok(
+            RecoveryExecutionFenceRecoveryEstablishmentV1::Established(
+                EstablishedRecoveryExecutionFenceV1::from_authoritative(successor),
+            ),
+        ),
+        outcome => Ok(RecoveryExecutionFenceRecoveryEstablishmentV1::Rejected(outcome)),
+    }
 }
 
 /// Validate the numeric fencing invariant at a protected resource.
@@ -3097,6 +3224,134 @@ mod tests {
         assert_eq!(
             acquire_execution_fence(&store, &fence).expect("replay"),
             RecoveryExecutionFenceResult::AlreadyOwnedSameAttempt
+        );
+    }
+
+    #[test]
+    fn established_fence_can_start_an_effect_without_reconstructing_the_receipt() {
+        let fence_store = FencedExecutionMemoryStore::default();
+        let effect_store = ExecutionEffectMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let established =
+            match establish_execution_fence(&fence_store, &initial).expect("establish") {
+                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+                _ => panic!("initial establishment must succeed"),
+            };
+
+        assert_eq!(
+            begin_execution_effect_for_established_fence(&effect_store, &established)
+                .expect("effect start"),
+            RecoveryExecutionEffectStartResult::Started
+        );
+    }
+
+    #[test]
+    fn established_fence_requires_positive_store_acknowledgement() {
+        struct IndeterminateFenceStore;
+
+        impl RecoveryExecutionFenceStore for IndeterminateFenceStore {
+            type Error = &'static str;
+
+            fn acquire_fence(
+                &self,
+                _fence: &RecoveryExecutionFenceV1,
+            ) -> Result<RecoveryExecutionFenceResult, Self::Error> {
+                Ok(RecoveryExecutionFenceResult::Indeterminate)
+            }
+
+            fn recover_if_current(
+                &self,
+                _expected: &RecoveryExecutionFenceV1,
+                _successor: &RecoveryExecutionFenceV1,
+            ) -> Result<RecoveryExecutionFenceResult, Self::Error> {
+                unreachable!("recovery is not reached")
+            }
+
+            fn load_fence(
+                &self,
+                _execution_id: &str,
+            ) -> Result<Option<RecoveryExecutionFenceV1>, Self::Error> {
+                Ok(None)
+            }
+        }
+
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+
+        assert_eq!(
+            establish_execution_fence(&IndeterminateFenceStore, &fence).expect("indeterminate"),
+            RecoveryExecutionFenceEstablishmentV1::Rejected(
+                RecoveryExecutionFenceResult::Indeterminate
+            )
+        );
+    }
+
+    #[test]
+    fn established_fence_can_advance_without_recopying_identity_fields() {
+        let store = FencedExecutionMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let established =
+            match establish_execution_fence(&store, &initial).expect("establish") {
+                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+                _ => panic!("initial establishment must succeed"),
+            };
+
+        let successor =
+            match recover_established_execution_fence(&store, &established, "attempt-b")
+                .expect("recover")
+            {
+                RecoveryExecutionFenceRecoveryEstablishmentV1::Established(fence) => fence,
+                RecoveryExecutionFenceRecoveryEstablishmentV1::Rejected(outcome) => {
+                    panic!("unexpected rejection: {outcome:?}")
+                }
+            };
+
+        assert_eq!(successor.execution_id(), established.execution_id());
+        assert_eq!(
+            successor.execution_input_snapshot(),
+            established.execution_input_snapshot()
+        );
+        assert_eq!(successor.attempt_id(), "attempt-b");
+        assert_eq!(successor.fence_epoch(), established.fence_epoch() + 1);
+    }
+
+    #[test]
+    fn stale_established_fence_cannot_be_recovered_twice() {
+        let store = FencedExecutionMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let established =
+            match establish_execution_fence(&store, &initial).expect("establish") {
+                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+                _ => panic!("initial establishment must succeed"),
+            };
+
+        assert!(matches!(
+            recover_established_execution_fence(&store, &established, "attempt-b")
+                .expect("first recovery"),
+            RecoveryExecutionFenceRecoveryEstablishmentV1::Established(_)
+        ));
+
+        assert_eq!(
+            recover_established_execution_fence(&store, &established, "attempt-c")
+                .expect("stale recovery"),
+            RecoveryExecutionFenceRecoveryEstablishmentV1::Rejected(
+                RecoveryExecutionFenceResult::StaleExpectedFence
+            )
         );
     }
 
