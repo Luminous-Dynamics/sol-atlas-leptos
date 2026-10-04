@@ -183,6 +183,90 @@ where
     Ok(RecoveryPolicyConsumptionReconciliationOutcome::ObservedDifferentState)
 }
 
+/// Pure authorization/claim orchestration observation.
+///
+/// These states describe only what the caller has observed across the separate
+/// authorization and execution-claim stores. They do not imply cross-store
+/// atomicity.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryAuthorizationOrchestrationStateV1 {
+    AuthorizationUnconsumedNoClaim,
+    AuthorizationUnconsumedSameClaim,
+    AuthorizationConsumedSameClaim,
+    AuthorizationConsumedNoClaim,
+    AuthorizationConsumptionIndeterminate,
+}
+
+/// Safe next action for the authorization/claim boundary.
+///
+/// This is deliberately a decision table, not a mutating operation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryAuthorizationOrchestrationActionV1 {
+    AcquireExecutionClaim,
+    ConsumeAuthorization,
+    ReconcileAndContinueExecution,
+    ReconcileExecutionAndEffectBeforeIrreversibleWork,
+    ReconcileAuthorizationConsumption,
+}
+
+impl RecoveryAuthorizationOrchestrationStateV1 {
+    pub fn next_action(self) -> RecoveryAuthorizationOrchestrationActionV1 {
+        match self {
+            Self::AuthorizationUnconsumedNoClaim => {
+                RecoveryAuthorizationOrchestrationActionV1::AcquireExecutionClaim
+            }
+            Self::AuthorizationUnconsumedSameClaim => {
+                RecoveryAuthorizationOrchestrationActionV1::ConsumeAuthorization
+            }
+            Self::AuthorizationConsumedSameClaim => {
+                RecoveryAuthorizationOrchestrationActionV1::ReconcileAndContinueExecution
+            }
+            Self::AuthorizationConsumedNoClaim => {
+                RecoveryAuthorizationOrchestrationActionV1::ReconcileExecutionAndEffectBeforeIrreversibleWork
+            }
+            Self::AuthorizationConsumptionIndeterminate => {
+                RecoveryAuthorizationOrchestrationActionV1::ReconcileAuthorizationConsumption
+            }
+        }
+    }
+}
+
+/// Pure effect orchestration observation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryEffectOrchestrationStateV1 {
+    InProgressSameAttempt,
+    InProgressOtherAttempt,
+    Succeeded,
+    Failed,
+}
+
+/// Safe next action for the external-effect boundary.
+///
+/// Terminal outcomes are replayable history. Only InProgress is live mutable
+/// ownership and therefore requires attempt/fence handling.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryEffectOrchestrationActionV1 {
+    ReconcileWithoutRestart,
+    FailClosedOrUseAdapterSpecificRecovery,
+    ReturnRecordedSuccess,
+    ApplyExplicitRetryPolicy,
+}
+
+impl RecoveryEffectOrchestrationStateV1 {
+    pub fn next_action(self) -> RecoveryEffectOrchestrationActionV1 {
+        match self {
+            Self::InProgressSameAttempt => {
+                RecoveryEffectOrchestrationActionV1::ReconcileWithoutRestart
+            }
+            Self::InProgressOtherAttempt => {
+                RecoveryEffectOrchestrationActionV1::FailClosedOrUseAdapterSpecificRecovery
+            }
+            Self::Succeeded => RecoveryEffectOrchestrationActionV1::ReturnRecordedSuccess,
+            Self::Failed => RecoveryEffectOrchestrationActionV1::ApplyExplicitRetryPolicy,
+        }
+    }
+}
+
 /// Durable idempotency/ownership record for one concrete execution identity.
 ///
 /// The exact execution-input snapshot is the request fingerprint. The opaque
@@ -3173,6 +3257,51 @@ mod tests {
             execution_input_snapshot: input_snapshot.into(),
             attempt_id: attempt_id.into(),
         }
+    }
+
+    #[test]
+    fn authorization_orchestration_matrix_is_fail_closed_and_exhaustive() {
+        assert_eq!(
+            RecoveryAuthorizationOrchestrationStateV1::AuthorizationUnconsumedNoClaim.next_action(),
+            RecoveryAuthorizationOrchestrationActionV1::AcquireExecutionClaim
+        );
+        assert_eq!(
+            RecoveryAuthorizationOrchestrationStateV1::AuthorizationUnconsumedSameClaim.next_action(),
+            RecoveryAuthorizationOrchestrationActionV1::ConsumeAuthorization
+        );
+        assert_eq!(
+            RecoveryAuthorizationOrchestrationStateV1::AuthorizationConsumedSameClaim.next_action(),
+            RecoveryAuthorizationOrchestrationActionV1::ReconcileAndContinueExecution
+        );
+        assert_eq!(
+            RecoveryAuthorizationOrchestrationStateV1::AuthorizationConsumedNoClaim.next_action(),
+            RecoveryAuthorizationOrchestrationActionV1::ReconcileExecutionAndEffectBeforeIrreversibleWork
+        );
+        assert_eq!(
+            RecoveryAuthorizationOrchestrationStateV1::AuthorizationConsumptionIndeterminate
+                .next_action(),
+            RecoveryAuthorizationOrchestrationActionV1::ReconcileAuthorizationConsumption
+        );
+    }
+
+    #[test]
+    fn effect_orchestration_matrix_preserves_terminal_replay_and_live_ownership_boundaries() {
+        assert_eq!(
+            RecoveryEffectOrchestrationStateV1::InProgressSameAttempt.next_action(),
+            RecoveryEffectOrchestrationActionV1::ReconcileWithoutRestart
+        );
+        assert_eq!(
+            RecoveryEffectOrchestrationStateV1::InProgressOtherAttempt.next_action(),
+            RecoveryEffectOrchestrationActionV1::FailClosedOrUseAdapterSpecificRecovery
+        );
+        assert_eq!(
+            RecoveryEffectOrchestrationStateV1::Succeeded.next_action(),
+            RecoveryEffectOrchestrationActionV1::ReturnRecordedSuccess
+        );
+        assert_eq!(
+            RecoveryEffectOrchestrationStateV1::Failed.next_action(),
+            RecoveryEffectOrchestrationActionV1::ApplyExplicitRetryPolicy
+        );
     }
 
     #[test]
