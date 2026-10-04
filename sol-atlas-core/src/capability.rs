@@ -1219,6 +1219,79 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         RecoveryPolicyConsumptionOutcomeV1::Allowed
     }
 
+    /// Evaluate a one-time authorization at the moment execution begins.
+    ///
+    /// Unlike the completed-execution consumption path, this does not require
+    /// an end marker. An external policy store can use the result for an atomic
+    /// consume-before-execute operation.
+    pub fn admission_outcome_for_execution_start(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        execution: &RecoveryExecution,
+    ) -> RecoveryPolicyConsumptionOutcomeV1 {
+        if !self.is_well_formed() {
+            return RecoveryPolicyConsumptionOutcomeV1::MalformedConsumptionState;
+        }
+        if self.state != RecoveryPolicyConsumptionStateV1::Unconsumed {
+            return RecoveryPolicyConsumptionOutcomeV1::AlreadyConsumed;
+        }
+        if !decision.is_well_formed() {
+            return RecoveryPolicyConsumptionOutcomeV1::MalformedDecision;
+        }
+        if execution.execution_id.is_empty() || execution.plan_id.is_empty() {
+            return RecoveryPolicyConsumptionOutcomeV1::MalformedExecution;
+        }
+        if !is_canonical_utc_timestamp(&execution.started_at) {
+            return RecoveryPolicyConsumptionOutcomeV1::MalformedExecution;
+        }
+        if decision.digest() != self.decision_digest {
+            return RecoveryPolicyConsumptionOutcomeV1::DecisionMismatch;
+        }
+        if execution.authorization.as_deref() != Some(self.decision_digest.as_str()) {
+            return RecoveryPolicyConsumptionOutcomeV1::ExecutionAuthorizationMismatch;
+        }
+        if execution.plan_id != decision.plan_id {
+            return RecoveryPolicyConsumptionOutcomeV1::PlanMismatch;
+        }
+        if let Some(bound_execution_id) = decision.execution_id.as_deref() {
+            if bound_execution_id != execution.execution_id {
+                return RecoveryPolicyConsumptionOutcomeV1::ExecutionMismatch;
+            }
+        }
+        if decision.decision != RecoveryPolicyDecisionV1::Admitted {
+            return RecoveryPolicyConsumptionOutcomeV1::DecisionRejected;
+        }
+        if !decision.is_valid_at(&execution.started_at) {
+            return RecoveryPolicyConsumptionOutcomeV1::DecisionNotValidAtConsumption;
+        }
+        RecoveryPolicyConsumptionOutcomeV1::Allowed
+    }
+
+    /// Construct the consumed state at the exact execution start time.
+    ///
+    /// External storage must atomically persist this successor before allowing
+    /// execution to proceed when single-use semantics are required.
+    pub fn consumed_at_execution_start(
+        &self,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        execution: &RecoveryExecution,
+    ) -> Option<Self> {
+        if self.admission_outcome_for_execution_start(decision, execution)
+            != RecoveryPolicyConsumptionOutcomeV1::Allowed
+        {
+            return None;
+        }
+
+        Some(Self {
+            schema: Self::SCHEMA.into(),
+            decision_digest: self.decision_digest.clone(),
+            state: RecoveryPolicyConsumptionStateV1::Consumed,
+            consumed_execution_id: Some(execution.execution_id.clone()),
+            consumed_at: Some(execution.started_at.clone()),
+            claim_ceiling: self.claim_ceiling.clone(),
+        })
+    }
+
     pub fn permits_consumption(
         &self,
         decision: &RecoveryPolicyDecisionSnapshotV1,
