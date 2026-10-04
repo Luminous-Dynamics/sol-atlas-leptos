@@ -186,6 +186,8 @@ mod tests {
             qualification: claim.qualification,
             access_policy: AccessPolicyV1::Public,
             evidence_frontier: root.frontier_id.clone(),
+            frontier_manifest_hash: String::new(),
+            projection_semantic_hash: String::new(),
         };
 
         let mapping = OntologyMappingV2::from_claim(
