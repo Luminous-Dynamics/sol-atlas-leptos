@@ -134,6 +134,11 @@ where
         || !next.is_well_formed()
         || transition.decision_digest != decision.digest()
         || transition.next_snapshot_digest != next.digest()
+        || next.decision_digest != decision.digest()
+        || next.state != RecoveryPolicyConsumptionStateV1::Consumed
+        || next.consumed_execution_id.as_deref() != Some(transition.execution_id.as_str())
+        || next.consumed_at.as_deref() != Some(transition.consumed_at.as_str())
+        || next.claim_ceiling != transition.claim_ceiling
     {
         return Ok(RecoveryPolicyConsumptionReconciliationOutcome::InvalidTransition);
     }
@@ -729,6 +734,21 @@ mod tests {
             reconcile_indeterminate_consumption(&store, &decision, &second, &second_next)
                 .expect("different successor"),
             RecoveryPolicyConsumptionReconciliationOutcome::ObservedDifferentState
+        );
+    }
+
+    #[test]
+    fn reconciliation_requires_successor_to_match_transition_metadata() {
+        let (decision, execution, current) = fixture();
+        let (mut transition, next) =
+            transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
+        transition.execution_id = "different-execution".into();
+
+        let store = MemoryStore::new(&decision);
+        assert_eq!(
+            reconcile_indeterminate_consumption(&store, &decision, &transition, &next)
+                .expect("binding result"),
+            RecoveryPolicyConsumptionReconciliationOutcome::InvalidTransition
         );
     }
 
