@@ -95,6 +95,7 @@ impl CulturalProjectionAuditV4 {
             &self.base.claim_ref,
             &self.base.evidence_frontier,
             &self.base.qualification,
+            &self.base.frontier_manifest_hash,
             &self.base.projection_semantic_hash,
             &resolutions,
         );
@@ -249,6 +250,26 @@ mod tests {
             &claim,
         );
         (base, claim, frontier, mapping)
+    }
+
+    #[test]
+    fn v4_semantic_hash_covers_frontier_manifest_identity() {
+        let (base, _claim, _frontier, mapping) = fixture();
+        let resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &_claim,
+            &_frontier,
+        )
+        .expect("resolution");
+        let mut audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution])
+            .expect("v4 audit");
+
+        let original = audit.semantic_hash.clone();
+        audit.base.frontier_manifest_hash = "ab".repeat(32);
+        audit.recompute_hash().expect("rebound frontier hash");
+
+        assert_ne!(original, audit.semantic_hash);
     }
 
     #[test]
