@@ -4204,6 +4204,17 @@ mod graph_tests {
             &plan_next,
         ));
 
+        assert!(
+            RecoveryPolicyConsumptionTransitionV1::for_successful_consumption_against_plan(
+                &plan_available,
+                &plan_decision,
+                &plan,
+                &changed_input,
+                "2026-10-02T08:00:00Z",
+            )
+            .is_none()
+        );
+
         let mut changed_plan = plan.clone();
         changed_plan.steps.push("different".into());
         assert_eq!(
