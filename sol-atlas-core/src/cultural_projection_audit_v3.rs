@@ -551,7 +551,18 @@ mod tests {
             qualification: QualificationStatus::Supported,
             evidence_frontier: "frontier:1950".into(),
         };
-        let mut unexpected = semantic_context();
+        let expected = semantic_context();
+        assert_eq!(
+            audit.validate_strong_against_projection_and_semantic_context(
+                &projection,
+                &frontier(),
+                &claim,
+                &expected,
+            ),
+            Ok(())
+        );
+
+        let mut unexpected = expected;
         unexpected.mappings[0].external_term = "E8_Acquisition".into();
         unexpected.mappings[0]
             .recompute_hash()
