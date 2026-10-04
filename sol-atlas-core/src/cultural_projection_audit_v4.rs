@@ -157,12 +157,8 @@ impl CulturalProjectionAuditV4 {
         self.base
             .validate_against_projection(projection, frontier, claim)?;
 
-        if self
-            .resolutions
-            .iter()
-            .any(|resolution| !resolution.is_frontier_safe(claim, frontier))
-        {
-            return Err(ProjectionError::AuditWithoutEvidencePath);
+        for resolution in &self.resolutions {
+            resolution.validate_frontier_safe(claim, frontier)?;
         }
 
         Ok(())
@@ -430,6 +426,49 @@ mod tests {
                 vec![],
             ),
             Err(ProjectionError::InvalidTimeInterval)
+        );
+    }
+    #[test]
+    fn v4_validation_preserves_resolution_frontier_diagnostic() {
+        let (base, claim, mut frontier, mapping) = fixture();
+        frontier.manifest_hash = "not-a-valid-sha256".into();
+        let resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &fixture().2,
+        )
+        .expect("resolution");
+        let audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution])
+            .expect("v4 audit");
+
+        assert_eq!(
+            audit.validate_against_projection(
+                &crate::cultural_systems::CulturalProjectionV1::Transmission(
+                    crate::cultural_systems::CulturalTransmissionV1 {
+                        transmission_id: "transmission:1".into(),
+                        source: "practice:source".into(),
+                        target: "practice:target".into(),
+                        mode: crate::cultural_systems::TransmissionMode::Translated,
+                        event_time: YearInterval {
+                            from: Some(1900),
+                            to: Some(1950),
+                        },
+                        context: Some("documented".into()),
+                        claim_ref: claim.claim_ref.clone(),
+                        evidence_refs: claim.evidence_refs.clone(),
+                        source_snapshots: claim.source_snapshots.clone(),
+                        assessment: None,
+                        qualification: claim.qualification,
+                        community_recognition: vec![],
+                        access_policy: crate::cultural_systems::AccessPolicyV1::Public,
+                        evidence_frontier: claim.evidence_frontier.clone(),
+                    },
+                ),
+                &frontier,
+                &claim,
+            ),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
     #[test]
