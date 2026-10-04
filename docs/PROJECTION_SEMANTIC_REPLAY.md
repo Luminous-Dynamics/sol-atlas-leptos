@@ -119,9 +119,13 @@ The V3, V4, and V5 audit layers now expose deliberate provenance tiers:
   `from_projection_at_with_semantic_context(...)` is the preferred strong
   producer for new V3 records. It rebuilds the V2 identity commitments from the
   originating projection/claim/frontier and verifies the externally resolved
-  semantic envelope before returning. `validate_strong_against_projection(...)`
+  semantic envelope before returning. Strong consumers may use
+  `validate_strong_against_projection_and_semantic_context(...)` when they have
+  an explicit expected semantic envelope; it combines provenance commitments
+  with exact context expectation. `validate_strong_against_projection(...)`
   remains the additive strong-consumer gate requiring the V2 frontier-manifest
-  and projection-semantic commitments.
+  and projection-semantic commitments when the recorded envelope itself is the
+  intended expectation.
 - `from_v2` / `from_v4` remain migration-compatible constructors for already
   serialized or legacy-shaped records.
 - `CulturalProjectionAuditV4::from_projection_at(...)` and
