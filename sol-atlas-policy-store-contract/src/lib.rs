@@ -1004,7 +1004,10 @@ mod tests {
         );
         let success = RecoveryExecutionEffectReceiptV1 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
-            outcome_digest: Some("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into()),
+            outcome_digest: Some(
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    .into(),
+            ),
             ..started.clone()
         };
 
@@ -1102,7 +1105,10 @@ mod tests {
         );
         let success = RecoveryExecutionEffectReceiptV1 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
-            outcome_digest: Some("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into()),
+            outcome_digest: Some(
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    .into(),
+            ),
             ..started.clone()
         };
         let malformed_started = RecoveryExecutionEffectReceiptV1 {
