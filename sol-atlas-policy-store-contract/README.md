@@ -199,6 +199,31 @@ input, not as a cryptographic proof that an external service behaved honestly.
 #37 remains open until the real adapter qualification path stores and reviews
 these reports as part of its CI/evidence workflow.
 
+## Source-bound reference qualification
+
+The repository now contains a checked-in reference qualification report at
+`conformance/reference_effect_report_v1.json` and an executable integration
+harness under `tests/`. The harness runs the reference protected resource
+rather than asserting evidence flags directly, including:
+
+- current, stale, and future fence behavior at the mutation boundary;
+- same-key replay and same-key/different-request rejection;
+- changed idempotency-key rejection;
+- concurrent stale/current fencing;
+- a deliberate lost-ack simulation followed by read-only exact reconciliation;
+- a point-in-time read-back that can change after a later mutation.
+
+The report binds to the Git blob IDs of the exact adapter and harness source
+files. CI executes the harness and compares those IDs, the exact safety-profile
+digest, the evidence digest, and the observed evidence. A source or profile
+change therefore invalidates the checked-in qualification until new evidence is
+produced deliberately.
+
+The Git object IDs provide repository-local source binding; they are not
+authentication or an attestation that a third-party service behaved honestly.
+GitHub's artifact-attestation facility can add CI-issued build provenance when
+the qualification artifact needs a stronger external provenance chain.
+
 ## Ownership is not authentication
 
 `execution_id` and `attempt_id` are durable correlation/ownership identifiers only. They are not credentials, proof of authorization, or proof-of-possession. A conforming store can establish which identifier owns a record, but it cannot establish that the caller presenting that identifier is entitled to act. Caller authentication, authority validation, and any sender-constraining or proof-of-possession mechanism belong to the external authorization adapter.
