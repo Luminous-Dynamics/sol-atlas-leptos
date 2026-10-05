@@ -26,6 +26,7 @@ REQUIRED_KEYS = {
     "workflow_ref",
     "workflow_sha",
     "checked_out_workflow_file_sha256",
+    "verifier_sha256",
     "run_id",
     "run_attempt",
     "job_name",
