@@ -1732,6 +1732,28 @@ mod tests {
     }
 
     #[test]
+    fn protected_mutation_rejects_an_empty_idempotency_key() {
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        );
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("fence");
+        let store = FencedExecutionMemoryStore::default();
+        let established = match establish_execution_fence(&store, &fence).expect("establish") {
+            RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+            _ => panic!("fence must establish"),
+        };
+
+        assert!(
+            RecoveryExecutionProtectedMutationV1::from_established_fence(
+                &established,
+                Some(String::new()),
+            )
+            .is_none()
+        );
+    }
+
+    #[test]
     fn protected_resource_accepts_only_the_current_fence_atomically() {
         let resource = FencedResourceMemoryStore::default();
         resource.set_epoch(2);
