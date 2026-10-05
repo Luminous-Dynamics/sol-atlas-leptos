@@ -52,6 +52,8 @@ def provider_parts(resource: str) -> tuple[str, str, str]:
         raise AssertionError("invalid workload identity provider resource")
     if parts[4] != "workloadIdentityPools" or parts[6] != "providers":
         raise AssertionError("invalid workload identity provider resource")
+    if not parts[1] or not parts[5] or not parts[7]:
+        raise AssertionError("workload identity provider resource has empty identifiers")
     if parts[3] != "global":
         raise AssertionError("only global GitHub OIDC providers are supported")
     return parts[1], parts[5], parts[7]
