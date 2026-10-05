@@ -17,6 +17,7 @@ pub struct ReferenceFencedResource {
 struct ReferenceResourceState {
     current_epoch: u64,
     applied: BTreeMap<String, AppliedMutation>,
+    idempotency_index: BTreeMap<String, String>,
 }
 
 #[derive(Clone)]
@@ -67,6 +68,16 @@ impl RecoveryExecutionFencedResource for ReferenceFencedResource {
             return Ok(RecoveryExecutionProtectedMutationResult::RejectedFutureFence);
         }
 
+        if let Some(idempotency_key) = mutation.idempotency_key.as_deref() {
+            if let Some(existing_execution_id) = state.idempotency_index.get(idempotency_key) {
+                if existing_execution_id != &mutation.execution_id {
+                    return Ok(
+                        RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch,
+                    );
+                }
+            }
+        }
+
         let key = mutation.execution_id.clone();
         if let Some(existing) = state.applied.get(&key) {
             if existing.execution_input_snapshot != mutation.execution_input_snapshot {
@@ -101,6 +112,11 @@ impl RecoveryExecutionFencedResource for ReferenceFencedResource {
                 idempotency_key: mutation.idempotency_key.clone(),
             },
         );
+        if let Some(idempotency_key) = mutation.idempotency_key.as_deref() {
+            state
+                .idempotency_index
+                .insert(idempotency_key.to_owned(), mutation.execution_id.clone());
+        }
         Ok(RecoveryExecutionProtectedMutationResult::Applied)
     }
 }
@@ -125,6 +141,17 @@ impl RecoveryExecutionProtectedMutationReconciler for ReferenceFencedResource {
         }
 
         let state = self.state.lock().map_err(|_| "poisoned")?;
+        if let Some(idempotency_key) = mutation.idempotency_key.as_deref() {
+            if let Some(existing_execution_id) = state.idempotency_index.get(idempotency_key) {
+                if existing_execution_id != &mutation.execution_id {
+                    return Ok(
+                        RecoveryExecutionProtectedMutationReconciliationOutcome::
+                            ObservedDifferentRequest,
+                    );
+                }
+            }
+        }
+
         let Some(existing) = state.applied.get(&mutation.execution_id) else {
             return Ok(
                 RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedNotApplied,
