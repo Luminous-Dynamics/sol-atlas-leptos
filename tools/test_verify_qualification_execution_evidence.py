@@ -234,7 +234,7 @@ def main() -> int:
         if result.returncode == 0:
             raise SystemExit("verifier accepted a reordered qualification command inventory")
 
-                tampered_verifier = root / "tampered-verifier.py"
+        tampered_verifier = root / "tampered-verifier.py"
         tampered_verifier.write_bytes(VERIFIER.read_bytes() + b"\\n# adversarial fixture mutation\\n")
         result = run_verifier(
             packet,
