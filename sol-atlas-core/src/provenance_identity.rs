@@ -37,7 +37,7 @@ impl ProvenanceDigestV1 {
     pub fn validate(&self) -> Result<(), ProjectionError> {
         if self.algorithm != SHA256_ALGORITHM_V1
             || self.canonicalization != SERDE_JSON_TUPLE_CANONICALIZATION_V1
-            || self.domain.trim().is_empty()
+            || self.domain != V5_REPLAY_RECEIPT_DIGEST_DOMAIN_V1
             || !is_sha256_hex(&self.digest)
         {
             return Err(ProjectionError::InvalidEvidenceFrontierManifest);
@@ -211,6 +211,20 @@ mod tests {
 
         assert_eq!(
             V5PortableReplayIdentityV1::from_receipt(&receipt),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn portable_digest_domain_tamper_is_rejected() {
+        let mut receipt = fixture();
+        receipt.recompute_hash().expect("receipt hash");
+        let mut identity = V5PortableReplayIdentityV1::from_receipt(&receipt)
+            .expect("portable identity");
+        identity.content_digest.domain = "other-domain".into();
+
+        assert_eq!(
+            identity.validate(),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
