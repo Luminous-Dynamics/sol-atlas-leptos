@@ -40,14 +40,15 @@ The packet is emitted only after:
 The V2 verifier is invoked with the current GitHub execution context and checks:
 
 - exact schema and key set;
-- source/base/workflow/run/check-run bindings;
+- source/base/workflow/workflow-file-path/run/check-run bindings;
 - SHA-256 recomputation of all recorded repository file identities;
 - the workflow-run URL;
 - the exact qualification command inventory;
 - the packet SHA-256 sidecar.
 
-The adversarial self-test exercises both stale-sidecar rejection and verifier
-identity mismatch rejection.
+The adversarial self-test exercises stale-sidecar rejection, verifier identity
+mismatch rejection, and independent tamper rejection for the workflow file,
+verifier file, Cargo.lock, and test inventory.
 
 A missing packet cannot be interpreted as a successful qualification.
 
