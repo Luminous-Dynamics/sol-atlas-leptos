@@ -68,6 +68,26 @@ def case_ids(case_set: dict[str, object]) -> list[str]:
     return [case["id"] for case in case_set["cases"]]
 
 
+def validate_case_set() -> str:
+    case_set = load_case_set()
+    for case in case_set["cases"]:
+        if (
+            not isinstance(case, dict)
+            or not isinstance(case.get("id"), str)
+            or not isinstance(case.get("semantic"), str)
+            or not case["semantic"].strip()
+        ):
+            raise AssertionError("GCS case-set contains an incomplete case")
+    case_set_digest = digest(case_set)
+    print(
+        "verified case-set: "
+        + EXPECTED_CASE_SET
+        + " "
+        + case_set_digest
+    )
+    return case_set_digest
+
+
 def git_sha(path: str) -> str:
     result = subprocess.run(
         ["git", "rev-parse", "HEAD:" + path],
@@ -582,6 +602,7 @@ def verify_report(path: str) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
+    sub.add_parser("validate-case-set")
     qualify = sub.add_parser("qualify")
     qualify.add_argument("--bucket", required=True)
     qualify.add_argument("--object-prefix", default="sol-atlas/qualification")
@@ -589,6 +610,10 @@ def main() -> int:
     verify = sub.add_parser("verify")
     verify.add_argument("--report", required=True)
     args = parser.parse_args()
+
+    if args.command == "validate-case-set":
+        validate_case_set()
+        return 0
 
     if args.command == "verify":
         verify_report(args.report)
