@@ -1,6 +1,6 @@
 {
   "schema": "sol-atlas:gcs-wif-trust-profile:v1",
   "status": "superseded",
-  "superseded_by": "gcs_wif_trust_profile_v3.json",
+  "superseded_by": "gcs_wif_trust_profile_v4.json",
   "claim_ceiling": "Historical profile only; not accepted by the current verifier."
 }
