@@ -17,10 +17,14 @@ use std::process::Command;
 use std::sync::{Arc, Barrier};
 use std::thread;
 
-const ADAPTER_PATH: &str = "sol-atlas-policy-store-contract/tests/"
-      + "reference_effect_adapter.rs";
-const HARNESS_PATH: &str = "sol-atlas-policy-store-contract/tests/"
-      + "reference_effect_conformance.rs";
+const ADAPTER_PATH: &str = concat!(
+    "sol-atlas-policy-store-contract/tests/",
+    "reference_effect_adapter.rs"
+);
+const HARNESS_PATH: &str = concat!(
+    "sol-atlas-policy-store-contract/tests/",
+    "reference_effect_conformance.rs"
+);
 fn qualified_profile() -> RecoveryExecutionEffectSafetyProfileV1 {
     RecoveryExecutionEffectSafetyProfileV1 {
         schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
