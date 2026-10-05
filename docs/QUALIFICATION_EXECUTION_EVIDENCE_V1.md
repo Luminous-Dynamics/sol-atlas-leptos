@@ -54,16 +54,10 @@ The workflow definition SHA is recorded from the GitHub Actions github.workflow_
 context. The checked-out workflow file is separately hashed so consumers can
 distinguish the workflow definition identity from the source-tree copy.
 
-The artifact is uploaded only after the qualification job has passed. Before
-publication, the workflow invokes the repository's independent verifier at
-tools/verify_qualification_execution_evidence.py with the current GitHub
-execution context. The verifier checks the exact schema, execution bindings, SHA shapes, run URL, qualification command inventory,
-independent SHA-256 recomputation of the checked-out workflow/Cargo.lock/test
-inventory files, and the JSON sidecar digest. This keeps packet production and
-packet validation as separate implementations.
-The upload contains both qualification-execution-v1.json and a SHA-256 sidecar
-named qualification-execution-v1.json.sha256, allowing the JSON bytes to be
-archived and checked independently of GitHub's artifact container.
+V1 packet semantics are intentionally preserved without the V2 verifier
+identity extension. The current workflow emits the additive V2 packet instead;
+V1 remains the compatibility contract for previously emitted V1 evidence.
+The V1 schema therefore does not acquire new required fields retroactively.
 
 Failure to publish the packet fails the qualification job rather than silently
 degrading to an unrecorded pass.
