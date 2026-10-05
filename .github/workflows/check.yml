@@ -188,7 +188,8 @@ jobs:
           WORKFLOW_FILE_SHA256="$(sha256sum .github/workflows/check.yml | cut -d ' ' -f1)"
           CARGO_LOCK_SHA256="$(cat /tmp/cargo-lock.sha256)"
           TEST_INVENTORY_SHA256="$(sha256sum /tmp/sol-atlas-core-tests.txt | cut -d ' ' -f1)"
-          export WORKFLOW_FILE_SHA256 CARGO_LOCK_SHA256 TEST_INVENTORY_SHA256
+          VERIFIER_SHA256="$(sha256sum tools/verify_qualification_execution_evidence.py | cut -d ' ' -f1)"
+          export WORKFLOW_FILE_SHA256 CARGO_LOCK_SHA256 TEST_INVENTORY_SHA256 VERIFIER_SHA256
           python3 - <<'PY'
           import json
           import os
@@ -210,6 +211,7 @@ jobs:
               "workflow_ref": os.environ["QUALIFICATION_WORKFLOW_REF"],
               "workflow_sha": os.environ["QUALIFICATION_WORKFLOW_SHA"],
               "checked_out_workflow_file_sha256": os.environ["WORKFLOW_FILE_SHA256"],
+              "verifier_sha256": os.environ["VERIFIER_SHA256"],
               "run_id": os.environ["QUALIFICATION_RUN_ID"],
               "run_attempt": os.environ["QUALIFICATION_RUN_ATTEMPT"],
               "job_name": os.environ["QUALIFICATION_JOB_NAME"],
@@ -239,6 +241,7 @@ jobs:
             /tmp/qualification-execution-v1.json \
             /tmp/qualification-execution-v1.json.sha256 \
             --workflow-file ".github/workflows/check.yml" \
+            --verifier-file "tools/verify_qualification_execution_evidence.py" \
             --cargo-lock "Cargo.lock" \
             --test-inventory "/tmp/sol-atlas-core-tests.txt" \
             --repository "${{ github.repository }}" \
