@@ -134,6 +134,43 @@ The profile is also consumed by `RecoveryExecutionEffectSafetyProfileV1::next_ac
 
 Important claim ceiling: a fence protects only resources that actually enforce it. A lease or epoch record cannot retroactively cancel an arbitrary external API call. Where the external effect system supports fencing tokens, the token must cross the adapter boundary and be enforced there; where it does not, recovery remains fail-closed/manual rather than assuming takeover is safe.
 
+## External-effect adapter conformance (#36)
+
+The safety profile is only a capability declaration until an adapter-specific
+conformance suite demonstrates the declared behavior. The conformance evidence
+record is kept separate from the profile itself so a declaration cannot prove
+its own truth.
+
+For the StableKey capability, the concrete mutation must also carry a
+non-empty stable idempotency key. `next_action_for_mutation()` is the
+request-specific admission path; the generic profile action does not infer a
+key that is not present on the request.
+
+The reference resource now exercises the evidence path for:
+
+- current-fence acceptance;
+- stale/future-fence rejection;
+- same-key exact replay;
+- different-request rejection under the same key;
+- exact read-back of the applied request.
+
+This still is not evidence about an arbitrary third-party service. A real
+adapter must run the same conformance boundary against the actual protected
+resource and preserve the evidence under CI/qualification.
+
+External systems illustrate why this boundary belongs in the adapter. AWS
+documents that retries can execute an operation more than once and recommends
+stable idempotency keys for replay-safe work; conditional database writes can
+also make an otherwise uncertain retry safe when the condition makes the
+operation effectively idempotent. Google Cloud Storage exposes generation and
+metageneration preconditions that let a resource reject stale writes. Chubby
+uses a sequencer passed to the protected server, which validates the sequence
+before accepting the operation. These are patterns for adapter design, not
+claims of interoperability or exactly-once execution here.
+
+#36 remains open until an actual external-effect adapter supplies
+resource-specific conformance evidence.
+
 ## Ownership is not authentication
 
 `execution_id` and `attempt_id` are durable correlation/ownership identifiers only. They are not credentials, proof of authorization, or proof-of-possession. A conforming store can establish which identifier owns a record, but it cannot establish that the caller presenting that identifier is entitled to act. Caller authentication, authority validation, and any sender-constraining or proof-of-possession mechanism belong to the external authorization adapter.
