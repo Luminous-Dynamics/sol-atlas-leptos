@@ -141,9 +141,10 @@ def verify(
 ) -> dict[str, object]:
     profile = load_profile()
     provider_project, pool_id, provider_id = provider_parts(provider_resource)
-    if provider_project != configured_project_id:
+    number = project_number(configured_project_id)
+    if provider_project != number:
         raise AssertionError(
-            "WIF provider project does not match configured GCP project"
+            "WIF provider project number does not match configured GCP project"
         )
 
     provider = describe_provider(
@@ -165,7 +166,6 @@ def verify(
     if not condition_is_exact(profile, condition):
         raise AssertionError("attribute condition differs from frozen profile")
 
-    number = project_number(configured_project_id)
     binding = profile["required_service_account_binding"]
     expected_member = str(binding["member_template"]).format(
         project_number=number,
@@ -191,6 +191,7 @@ def verify(
     return {
         "schema": "sol-atlas:gcs-wif-trust-verification:v2",
         "provider_resource": provider_resource,
+        "provider_project_number": number,
         "provider_digest": provider_digest,
         "profile_path": PROFILE_PATH,
         "profile_digest": digest(profile),
