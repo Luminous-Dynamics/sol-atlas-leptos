@@ -1527,6 +1527,42 @@ mod tests {
     use std::sync::{Arc, Barrier};
     use std::thread;
 
+    #[test]
+    fn protected_resource_fence_check_is_fail_closed_for_invalid_and_future_epochs() {
+        assert_eq!(
+            check_execution_fence(0, 1),
+            RecoveryExecutionFenceCheck::Invalid
+        );
+        assert_eq!(
+            check_execution_fence(2, 0),
+            RecoveryExecutionFenceCheck::Invalid
+        );
+        assert_eq!(
+            check_execution_fence(2, 3),
+            RecoveryExecutionFenceCheck::Future
+        );
+    }
+
+    #[test]
+    fn protected_resource_fence_check_accepts_only_the_current_epoch() {
+        assert_eq!(
+            check_execution_fence(2, 1),
+            RecoveryExecutionFenceCheck::Stale
+        );
+        assert_eq!(
+            check_execution_fence(2, 2),
+            RecoveryExecutionFenceCheck::Current
+        );
+        assert_ne!(
+            check_execution_fence(2, 1),
+            RecoveryExecutionFenceCheck::Current
+        );
+        assert_ne!(
+            check_execution_fence(2, 3),
+            RecoveryExecutionFenceCheck::Current
+        );
+    }
+
     struct IndeterminateOutcomeStore {
         inner: MemoryStore,
         commit_before_indeterminate: bool,
