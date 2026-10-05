@@ -2219,6 +2219,94 @@ mod tests {
     }
 
     #[test]
+    fn reference_resource_produces_conformance_evidence_for_its_profile() {
+        let resource = FencedResourceMemoryStore::default();
+        resource.set_epoch(2);
+
+        let current = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-conformance-current".into(),
+            execution_input_snapshot:
+                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd".into(),
+            attempt_id: "attempt-conformance".into(),
+            fence_epoch: 2,
+            idempotency_key: Some("conformance-key".into()),
+        };
+        let stale = RecoveryExecutionProtectedMutationV1 {
+            fence_epoch: 1,
+            ..current.clone()
+        };
+        let future = RecoveryExecutionProtectedMutationV1 {
+            fence_epoch: 3,
+            ..current.clone()
+        };
+        let changed_same_key = RecoveryExecutionProtectedMutationV1 {
+            execution_input_snapshot:
+                "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+                    .into(),
+            ..current.clone()
+        };
+
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&current)
+                .expect("current mutation"),
+            RecoveryExecutionProtectedMutationResult::Applied,
+        );
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&current)
+                .expect("same-key replay"),
+            RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest,
+        );
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&stale)
+                .expect("stale mutation"),
+            RecoveryExecutionProtectedMutationResult::RejectedStaleFence,
+        );
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&future)
+                .expect("future mutation"),
+            RecoveryExecutionProtectedMutationResult::RejectedFutureFence,
+        );
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&changed_same_key)
+                .expect("different request with same key"),
+            RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch,
+        );
+        assert_eq!(
+            resource
+                .reconcile_mutation(&current)
+                .expect("exact reconciliation"),
+            RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest,
+        );
+
+        let evidence = RecoveryExecutionEffectConformanceEvidenceV1 {
+            current_fence_accepted: true,
+            stale_fence_rejected: true,
+            future_fence_rejected: true,
+            concurrent_fencing_preserved: true,
+            stable_key_replay_safe: true,
+            different_request_same_key_rejected: true,
+            transactionally_coupled_retry_safe: false,
+            exact_reconciliation: true,
+            strong_read_back_verified: true,
+            eventually_consistent_read_back_verified: false,
+        };
+        let profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::StableKey,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::StrongReadBack,
+            claim_ceiling: "Reference adapter evidence only.".into(),
+        };
+
+        assert!(profile.supported_by_conformance_evidence(&evidence));
+    }
+
+    #[test]
     fn external_effect_safety_profile_wires_capabilities_into_actions() {
         let profile = RecoveryExecutionEffectSafetyProfileV1 {
             schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
@@ -2230,6 +2318,22 @@ mod tests {
 
         assert_eq!(
             profile.next_action(
+                RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedNotApplied,
+            ),
+            RecoveryExecutionProtectedMutationNextActionV1::RequireIdempotencyOrManualRecovery,
+        );
+
+        let mutation = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-profile-action".into(),
+            execution_input_snapshot:
+                "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into(),
+            attempt_id: "attempt-profile-action".into(),
+            fence_epoch: 2,
+            idempotency_key: Some("stable-profile-action".into()),
+        };
+        assert_eq!(
+            profile.next_action_for_mutation(
+                &mutation,
                 RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedNotApplied,
             ),
             RecoveryExecutionProtectedMutationNextActionV1::RetryWithDeclaredIdempotency,
