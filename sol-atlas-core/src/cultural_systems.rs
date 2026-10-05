@@ -1306,15 +1306,46 @@ impl CulturalProjectionAuditV1 {
         Ok(())
     }
 
+    /// Validates this legacy V1 audit against an exact canonical claim and
+    /// strict frontier while preserving concrete temporal/evidence diagnostics.
+    pub fn validate_frontier_safe(
+        &self,
+        frontier: &EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        frontier.validate_temporal_manifest_strict()?;
+
+        if self.claim_ref != claim.claim_ref
+            || self.evidence_refs != claim.evidence_refs
+            || self.source_snapshots != claim.source_snapshots
+            || self.qualification != claim.qualification
+            || self.evidence_frontier != frontier.frontier_id
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        claim.validate_frontier_safe(frontier)?;
+        if self
+            .community_recognition_evidence
+            .iter()
+            .any(|id| !frontier.admits(id))
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(&self, frontier: &EvidenceFrontierV1) -> bool {
-        self.validate().is_ok()
-            && frontier.validate_temporal_manifest_strict().is_ok()
-            && self.evidence_frontier == frontier.frontier_id
-            && frontier.admits_evidence_path(&self.evidence_refs, &self.source_snapshots)
-            && self
-                .community_recognition_evidence
-                .iter()
-                .all(|id| frontier.admits(id))
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: self.claim_ref.clone(),
+            evidence_refs: self.evidence_refs.clone(),
+            source_snapshots: self.source_snapshots.clone(),
+            qualification: self.qualification,
+            evidence_frontier: self.evidence_frontier.clone(),
+        };
+        self.validate_frontier_safe(frontier, &claim).is_ok()
     }
 
     /// Validates this legacy V1 audit against the exact transmission that
@@ -1961,6 +1992,22 @@ mod tests {
         let mut audit = CulturalProjectionAuditV2::from_projection(&projection);
         audit.source_snapshots.push("source:1".into());
         assert_eq!(audit.validate(), Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn legacy_audit_frontier_validator_preserves_frontier_diagnostic() {
+        let transmission = transmission();
+        let audit = CulturalProjectionAuditV1::from_transmission(&transmission);
+        let claim = canonical_claim(&transmission);
+        let mut frontier = frontier();
+        frontier.known_by_year = 1941;
+        frontier.recompute_manifest_hash().expect("fixture hash");
+
+        assert_eq!(
+            audit.validate_frontier_safe(&frontier, &claim),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
+        assert!(!audit.is_frontier_safe(&frontier));
     }
 
     #[test]
