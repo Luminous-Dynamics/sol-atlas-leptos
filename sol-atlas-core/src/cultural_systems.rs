@@ -821,7 +821,7 @@ impl CulturalProjectionAdmissionV2 {
                 v.access_policy,
             ),
             CulturalProjectionV1::Transformation(v) => (
-                CulturalProjectionIdV1::Transformation(v.transmission_id.clone()),
+                CulturalProjectionIdV1::Transformation(v.transformation_id.clone()),
                 v.access_policy,
             ),
         };
