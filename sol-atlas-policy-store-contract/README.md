@@ -67,7 +67,7 @@ This closes the durable-receipt stale-owner gap, but it does not magically fence
 
 Receipt recovery is also an explicit compare-and-set operation: `recover_execution_effect(expected, successor_fence)` derives the successor receipt directly from the established execution fence and only accepts an `InProgress` receipt whose successor preserves the exact execution identity/fingerprint, changes the attempt, and advances the fence epoch by exactly one. Concurrent recovery therefore has a single durable winner, and an indeterminate recovery acknowledgement is reconciled by observing the resulting receipt rather than blindly repeating the transfer.
 
-An important ordering constraint remains: execution-fence takeover must be established before effect-resource takeover. The two stores are separate local transaction boundaries. The design therefore does not claim cross-store atomicity or exactly-once external execution.
+An important ordering constraint remains: execution-fence takeover must be established before effect-resource takeover. The two stores are separate local transaction boundaries. The new fence-revalidated start helper improves the ordering boundary by rejecting already-stale ownership before the effect-store mutation, but it cannot make the two writes atomic. The design therefore does not claim cross-store atomicity or exactly-once external execution.
 Where the external effect system cannot enforce such a token, automatic takeover remains unsafe; the adapter must use an idempotent effect contract or fail closed/manual recovery. Saga participants still require idempotency because saga orchestration does not provide distributed transaction isolation.
 
 ## Orchestration recovery matrix (#29)
@@ -104,7 +104,9 @@ The fence epoch is a fencing capability, not authentication. After takeover, the
 
 For a stronger caller-side provenance boundary, `establish_execution_fence` returns an `EstablishedRecoveryExecutionFenceV1` only after the authoritative store returns `Acquired` or an exact same-attempt replay. An indeterminate acknowledgement is never promoted into that type. `recover_established_execution_fence` derives the next generation from the established handle and returns another established handle only after a positive recovery acknowledgement. This does not prove that the handle remains current after another actor recovers it; the store/resource fencing checks still establish current ownership.
 
-`reconcile_established_execution_fence` provides the corresponding read-only freshness check. It reports whether that established generation is currently observed, stale, missing, or malformed. This is deliberately a point-in-time observation: it does not reserve the generation across a subsequent effect-store write and therefore does not eliminate the cross-store TOCTOU window tracked in #32.
+`reconcile_established_execution_fence` provides the corresponding read-only freshness check. It reports whether that established generation is currently observed, stale, missing, or malformed. `begin_execution_effect_after_fence_revalidation` composes that observation with an immediate effect-store start attempt and returns a typed result that distinguishes authoritative fence rejection from an effect mutation attempted after a positive point-in-time observation.
+
+This remains deliberately advisory rather than transactional: the fence store and effect store are separate transaction boundaries, so a fence can advance after the freshness read and before the effect-store mutation. The composed helper therefore makes the race explicit instead of silently treating an established handle as permanently current; it does not claim cross-store atomicity or exactly-once execution.
 
 The reference `FencedExecutionMemoryStore` demonstrates atomic acquisition and recovery, stale-owner rejection, fingerprint binding, and non-monotonic-successor rejection. It is test evidence only, not production persistence.
 
