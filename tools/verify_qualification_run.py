@@ -30,6 +30,8 @@ EXPECTED_WORKFLOW = "Check"
 EXPECTED_WORKFLOW_FILE = ".github/workflows/check.yml"
 EXPECTED_JOB = "provenance-construction"
 EXPECTED_TOOLCHAIN = "1.99.0"
+EXPECTED_CHECK_WORKFLOW_BLOB_SHA1 = "d7755372feaa9545e23b3e2dac73525caaedc25d"
+EXPECTED_PR_VERIFIER_BLOB_SHA1 = "017938532986ca5261036f3ecde811c44e0f51d5"
 
 EXPECTED_COMMANDS = [
     "cargo test -p sol-atlas-core --locked -- --list",
@@ -133,6 +135,11 @@ def api_get(url: str, token: str) -> object:
 
 def digest(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
+
+
+def git_blob_sha1(value: bytes) -> str:
+    header = f"blob {len(value)}\\0".encode("ascii")
+    return hashlib.sha1(header + value).hexdigest()
 
 
 def reject_duplicate_keys(
@@ -404,6 +411,10 @@ def verify_source_bindings(
         api_url, source_repository, "Cargo.lock", source_revision, token
     )
 
+    if git_blob_sha1(workflow) != EXPECTED_CHECK_WORKFLOW_BLOB_SHA1:
+        fail("PR workflow is not the trusted qualification workflow revision")
+    if git_blob_sha1(verifier) != EXPECTED_PR_VERIFIER_BLOB_SHA1:
+        fail("PR verifier is not the trusted qualification verifier revision")
     if digest(workflow) != packet["checked_out_workflow_file_sha256"]:
         fail("PR workflow bytes do not match packet hash")
     if digest(verifier) != packet["verifier_sha256"]:
