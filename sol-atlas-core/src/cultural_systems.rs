@@ -2339,6 +2339,39 @@ mod tests {
     }
 
     #[test]
+    fn argumentation_closure_preserves_frontier_validation_failure() {
+        let frontier = frontier();
+        let value = transmission();
+        let claim = canonical_claim(&value);
+        let mut closure = CulturalArgumentationEvidenceClosureV1 {
+            claim_ref: claim.claim_ref.clone(),
+            evidence_refs: vec!["e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            evidence_frontier: frontier.frontier_id.clone(),
+        };
+
+        closure.claim_ref = "claim:other".into();
+        assert_eq!(
+            closure.validate_frontier_safe(&claim, &frontier),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+
+        closure.claim_ref = claim.claim_ref.clone();
+        closure.evidence_refs = vec!["e:unadmitted".into()];
+        assert_eq!(
+            closure.validate_frontier_safe(&claim, &frontier),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+
+        closure.evidence_refs = vec!["e:1".into()];
+        closure.claim_ref = ClaimId(String::new());
+        assert_eq!(
+            closure.validate_frontier_safe(&claim, &frontier),
+            Err(ProjectionError::EmptyIdentifier)
+        );
+    }
+
+    #[test]
     fn argumentation_set_rejects_duplicate_identity() {
         let frontier = frontier();
         let value = transmission();
