@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Adversarial self-test for the qualification evidence verifier."""
+"""Adversarial self-test for the qualification evidence V2 verifier."""
 
 from __future__ import annotations
 
@@ -82,7 +82,7 @@ def main() -> int:
         inventory.write_text("fixture-test-one\nfixture-test-two\n", encoding="utf-8")
 
         evidence = {
-            "schema": "sol-atlas:qualification-execution-evidence:v1",
+            "schema": "sol-atlas:qualification-execution-evidence:v2",
             "qualification_kind": "sol_atlas_core_provenance_construction",
             "status": "passed",
             "repository": "Luminous-Dynamics/sol-atlas-leptos",
