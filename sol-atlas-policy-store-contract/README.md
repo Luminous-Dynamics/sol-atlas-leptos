@@ -180,7 +180,10 @@ resource-specific conformance evidence.
 the exact safety-profile digest, adapter identity/revision, and harness
 identity/revision that produced the report. The evidence payload itself is
 content-addressed, and the report digest covers the complete provenance
-binding.
+binding. The evidence digest also includes the stable case-set identifier
+`sol-atlas:recovery-execution-effect-conformance-cases:v1`; changing the
+defined behavioral-vector set therefore invalidates old evidence instead of
+silently reinterpreting it.
 
 `supports_profile()` therefore rejects:
 
