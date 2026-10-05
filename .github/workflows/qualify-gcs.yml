@@ -60,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           gcloud auth list --filter=status:ACTIVE --format="value(account)"
-          test "\$(gcloud config get-value project)" = "$GCP_PROJECT_ID"
+          test "$(gcloud config get-value project)" = "$GCP_PROJECT_ID"
 
       - name: Run live GCS qualification
         run: |
