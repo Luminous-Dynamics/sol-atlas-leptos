@@ -313,9 +313,8 @@ mod tests {
 
     #[test]
     fn v3_strong_constructor_binds_originating_projection_and_context() {
-        let value =
-            CulturalProjectionAuditV3::from_projection_at_with_semantic_context(
-                &CulturalProjectionV1::Transmission(CulturalTransmissionV1 {
+        let value = CulturalProjectionAuditV3::from_projection_at_with_semantic_context(
+            &CulturalProjectionV1::Transmission(CulturalTransmissionV1 {
                 transmission_id: "transmission:1".into(),
                 source: "practice:source".into(),
                 target: "practice:target".into(),
@@ -333,18 +332,18 @@ mod tests {
                 community_recognition: vec![],
                 access_policy: crate::cultural_systems::AccessPolicyV1::Public,
                 evidence_frontier: "frontier:1950".into(),
-                }),
-                &frontier(),
-                &CanonicalClaimAdmissionV1 {
-                    claim_ref: "claim:1".into(),
-                    evidence_refs: vec!["e:1".into()],
-                    source_snapshots: vec!["source:1".into()],
-                    qualification: QualificationStatus::Supported,
-                    evidence_frontier: "frontier:1950".into(),
-                },
-                semantic_context(),
-            )
-            .expect("strong v3 audit");
+            }),
+            &frontier(),
+            &CanonicalClaimAdmissionV1 {
+                claim_ref: "claim:1".into(),
+                evidence_refs: vec!["e:1".into()],
+                source_snapshots: vec!["source:1".into()],
+                qualification: QualificationStatus::Supported,
+                evidence_frontier: "frontier:1950".into(),
+            },
+            semantic_context(),
+        )
+        .expect("strong v3 audit");
 
         assert_eq!(value.base.frontier_manifest_hash, frontier().manifest_hash);
         assert!(!value.base.projection_semantic_hash.is_empty());
