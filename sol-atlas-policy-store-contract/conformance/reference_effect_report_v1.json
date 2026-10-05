@@ -3,10 +3,10 @@
   "adapter_id": "reference-memory-resource",
   "adapter_revision": "91989045a0efc97fe44d293abe37d5250be8368b",
   "harness_id": "sol-atlas-protected-effect-conformance",
-  "harness_revision": "e7a2255642787b75467a447a663fe0f6f860acec",
+  "harness_revision": "9cb44e002e8bc395caa48189a13cd661dcc5e11c",
   "profile_digest": "sha256:aad6fb3dcca35f7427626ddea15b03853a7672708fed5c39c0427448f9d07af2",
   "evidence_digest": "sha256:81fe8a94499a66d08e3254b14c8bb560d18b4bf0e5a6de6f6ee571bce641f2d9",
-  "report_digest": "sha256:567c86d5cc346a71bc814c8e1b27d97a974c541bf86889aa5b526db4aaeb4b3d",
+  "report_digest": "sha256:a0dd95b8cfed050fcfc34b01f1bdd9f331846bf2ee91a1011f68ecde7d35c4a0",
   "evidence": {
     "current_fence_accepted": true,
     "stale_fence_rejected": true,
