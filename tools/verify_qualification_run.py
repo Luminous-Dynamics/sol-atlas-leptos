@@ -30,8 +30,6 @@ EXPECTED_WORKFLOW = "Check"
 EXPECTED_WORKFLOW_FILE = ".github/workflows/check.yml"
 EXPECTED_JOB = "provenance-construction"
 EXPECTED_TOOLCHAIN = "1.99.0"
-EXPECTED_CHECK_WORKFLOW_BLOB_SHA1 = "d7755372feaa9545e23b3e2dac73525caaedc25d"
-EXPECTED_PR_VERIFIER_BLOB_SHA1 = "94553d235db403fbcc0a3a0a9377ec1108a91510"
 
 EXPECTED_COMMANDS = [
     "cargo test -p sol-atlas-core --locked -- --list",
