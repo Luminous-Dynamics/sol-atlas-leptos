@@ -140,9 +140,10 @@ def main() -> int:
 
     original_fetch_file = v.fetch_file
     calls: list[tuple[str, str, str]] = []
-    source_workflow = b"trusted-source-workflow"
     source_verifier = b"pr-verifier"
     source_lock = b"cargo-lock"
+
+    source_workflow = policy_source.encode("utf-8")
     executed_workflow = source_workflow
 
     def fake_fetch(api_url, repository, path, ref, token):
