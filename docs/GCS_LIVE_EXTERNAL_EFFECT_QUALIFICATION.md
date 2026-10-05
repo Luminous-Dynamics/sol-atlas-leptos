@@ -147,3 +147,30 @@ that branch, run it first from the trusted default-branch workflow, then use a
 GitHub API/CLI dispatch against a specific trusted ref when exact-head
 qualification is required. Do not change this lane to a pull-request trigger
 merely to make credentials available to review code.
+
+## WIF trust profile
+
+The checked-in trust profile requires the Google Workload Identity Federation
+provider to map the following GitHub claims:
+
+- `attribute.repository -> assertion.repository`
+- `attribute.repository_id -> assertion.repository_id`
+- `attribute.repository_owner_id -> assertion.repository_owner_id`
+- `attribute.environment -> assertion.environment`
+- `attribute.workflow -> assertion.workflow`
+- `attribute.event_name -> assertion.event_name`
+
+The provider condition must include exact restrictions for repository ID
+`1195997641`, owner ID `216969177`, repository
+`Luminous-Dynamics/sol-atlas-leptos`, environment
+`sol-atlas-gcs-qualification`, workflow `Qualify GCS external effect`, and
+event `workflow_dispatch`.
+
+Additional conditions are allowed and only tighten the boundary. The verifier
+also requires the issuer URI to be
+`https://token.actions.githubusercontent.com`.
+
+The numeric repository/owner identifiers are intentionally used alongside the
+names because GitHub documents immutable repository/owner ID claims as a
+stronger identity anchor than names alone. The workflow's protected environment
+then supplies a separate human-approval boundary.
