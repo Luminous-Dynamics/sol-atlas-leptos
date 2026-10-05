@@ -149,6 +149,13 @@ def main() -> int:
             raise SystemExit("verifier accepted a packet with a stale sidecar")
 
         tampered = dict(evidence)
+        tampered["workflow_file_path"] = ".github/workflows/deploy.yml"
+        write_packet(tampered)
+        result = run_verifier(packet, sidecar, inventory, VERIFIER)
+        if result.returncode == 0:
+            raise SystemExit("verifier accepted a workflow-file-path context mismatch")
+
+        tampered = dict(evidence)
         tampered["verifier_sha256"] = "0" * 64
         write_packet(tampered)
         result = run_verifier(packet, sidecar, inventory, VERIFIER)
