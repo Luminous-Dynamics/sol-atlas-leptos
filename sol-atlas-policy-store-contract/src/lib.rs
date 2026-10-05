@@ -1626,6 +1626,49 @@ pub trait RecoveryExecutionProtectedMutationReconciler: Send + Sync {
     ) -> Result<RecoveryExecutionProtectedMutationReconciliationOutcome, Self::Error>;
 }
 
+/// Safe next-action classification for protected-resource recovery.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionProtectedMutationNextActionV1 {
+    ReturnRecordedOutcome,
+    ReconcileIndeterminateMutation,
+    RequireIdempotencyOrManualRecovery,
+    FailClosed,
+}
+
+/// Pure orchestration state for an ambiguous protected-resource mutation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionProtectedMutationOrchestrationStateV1 {
+    AppliedSameRequest,
+    Indeterminate,
+    ObservedAppliedSameRequest,
+    ObservedNotApplied,
+    ObservedDifferentRequest,
+    MissingState,
+    InvalidState,
+}
+
+impl RecoveryExecutionProtectedMutationOrchestrationStateV1 {
+    pub fn next_action(self) -> RecoveryExecutionProtectedMutationNextActionV1 {
+        match self {
+            Self::AppliedSameRequest | Self::ObservedAppliedSameRequest => {
+                RecoveryExecutionProtectedMutationNextActionV1::ReturnRecordedOutcome
+            }
+            Self::Indeterminate => {
+                RecoveryExecutionProtectedMutationNextActionV1::ReconcileIndeterminateMutation
+            }
+            Self::ObservedNotApplied => {
+                RecoveryExecutionProtectedMutationNextActionV1::RequireIdempotencyOrManualRecovery
+            }
+            Self::ObservedDifferentRequest | Self::MissingState | Self::InvalidState => {
+                RecoveryExecutionProtectedMutationNextActionV1::FailClosed
+            }
+        }
+    }
+}
+
+/// Validate a protected mutation request against the established fence before
+/// crossing the resource boundary.
+
 /// Validate a protected mutation request against the established fence before
 /// crossing the resource boundary.
 pub fn validate_protected_mutation_request(
@@ -1805,6 +1848,43 @@ mod tests {
                 ),
             );
             Ok(RecoveryExecutionProtectedMutationResult::Applied)
+        }
+    }
+
+    #[test]
+    fn protected_mutation_orchestration_is_fail_closed_after_indeterminate_recovery() {
+        assert_eq!(
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::Indeterminate
+                .next_action(),
+            RecoveryExecutionProtectedMutationNextActionV1::ReconcileIndeterminateMutation,
+        );
+        assert_eq!(
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedNotApplied
+                .next_action(),
+            RecoveryExecutionProtectedMutationNextActionV1::RequireIdempotencyOrManualRecovery,
+        );
+        assert_eq!(
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedAppliedSameRequest
+                .next_action(),
+            RecoveryExecutionProtectedMutationNextActionV1::ReturnRecordedOutcome,
+        );
+        assert_eq!(
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedDifferentRequest
+                .next_action(),
+            RecoveryExecutionProtectedMutationNextActionV1::FailClosed,
+        );
+    }
+
+    #[test]
+    fn protected_mutation_orchestration_fails_closed_for_missing_or_invalid_state() {
+        for state in [
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::MissingState,
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::InvalidState,
+        ] {
+            assert_eq!(
+                state.next_action(),
+                RecoveryExecutionProtectedMutationNextActionV1::FailClosed,
+            );
         }
     }
 
