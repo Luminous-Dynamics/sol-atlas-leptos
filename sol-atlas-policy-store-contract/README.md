@@ -120,6 +120,8 @@ The reference result distinguishes applied work, exact same-request replay, stal
 
 The validation helper returns `Valid`/`Invalid` only for structural binding against an established fence. It deliberately does not report that a protected mutation occurred.
 
+`RecoveryExecutionProtectedMutationReconciler` is the corresponding read-only boundary for an `Indeterminate` resource acknowledgement. It can report an exact request as observed applied, not currently observed, different, missing, or invalid. `ObservedNotApplied` is explicitly a point-in-time observation and is not proof that a prior indeterminate network request never took effect. When reliable reconciliation is unavailable, callers must remain fail-closed/manual unless the external system supplies an independent idempotency guarantee.
+
 Important claim ceiling: a fence protects only resources that actually enforce it. A lease or epoch record cannot retroactively cancel an arbitrary external API call. Where the external effect system supports fencing tokens, the token must cross the adapter boundary and be enforced there; where it does not, recovery remains fail-closed/manual rather than assuming takeover is safe.
 
 ## Ownership is not authentication
