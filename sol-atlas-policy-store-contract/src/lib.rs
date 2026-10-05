@@ -1933,11 +1933,13 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
                 RecoveryExecutionReconciliationCapabilityV1::StrongReadBack => {
                     evidence.exact_reconciliation
                         && evidence.point_in_time_semantics_explicit
+                        && evidence.indeterminate_ack_reconciled
                         && evidence.strong_read_back_verified
                 }
                 RecoveryExecutionReconciliationCapabilityV1::EventuallyConsistentReadBack => {
                     evidence.exact_reconciliation
                         && evidence.point_in_time_semantics_explicit
+                        && evidence.indeterminate_ack_reconciled
                         && evidence.eventually_consistent_read_back_verified
                 }
                 RecoveryExecutionReconciliationCapabilityV1::NotSupported => true,
@@ -1960,6 +1962,8 @@ pub struct RecoveryExecutionEffectConformanceEvidenceV1 {
     pub stable_key_replay_safe: bool,
     pub different_request_same_key_rejected: bool,
     pub changed_idempotency_key_rejected: bool,
+    /// A mutation whose acknowledgement was lost was reconciled without replaying the effect.
+    pub indeterminate_ack_reconciled: bool,
     pub transactionally_coupled_retry_safe: bool,
     pub exact_reconciliation: bool,
     pub point_in_time_semantics_explicit: bool,
@@ -1978,6 +1982,7 @@ impl RecoveryExecutionEffectConformanceEvidenceV1 {
             self.stable_key_replay_safe,
             self.different_request_same_key_rejected,
             self.changed_idempotency_key_rejected,
+            self.indeterminate_ack_reconciled,
             self.transactionally_coupled_retry_safe,
             self.exact_reconciliation,
             self.point_in_time_semantics_explicit,
@@ -2323,6 +2328,7 @@ mod tests {
             stable_key_replay_safe: true,
             different_request_same_key_rejected: true,
             changed_idempotency_key_rejected: true,
+            indeterminate_ack_reconciled: true,
             transactionally_coupled_retry_safe: false,
             exact_reconciliation: true,
             point_in_time_semantics_explicit: true,
@@ -2377,6 +2383,7 @@ mod tests {
             stable_key_replay_safe: false,
             different_request_same_key_rejected: false,
             changed_idempotency_key_rejected: false,
+            indeterminate_ack_reconciled: false,
             transactionally_coupled_retry_safe: false,
             exact_reconciliation: false,
             point_in_time_semantics_explicit: false,
@@ -2679,6 +2686,7 @@ mod tests {
             stable_key_replay_safe,
             different_request_same_key_rejected,
             changed_idempotency_key_rejected,
+            indeterminate_ack_reconciled,
             transactionally_coupled_retry_safe: false,
             exact_reconciliation,
             point_in_time_semantics_explicit: true,
