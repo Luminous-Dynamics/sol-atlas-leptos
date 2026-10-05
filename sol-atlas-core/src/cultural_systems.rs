@@ -467,19 +467,35 @@ impl CulturalTransformationV1 {
         Ok(())
     }
 
+    /// Validates transmission admission against the exact canonical claim
+    /// and strict frontier while preserving recognition/evidence diagnostics.
+    pub fn validate_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        self.evidence_closure()
+            .validate_frontier_safe(claim, frontier)?;
+
+        if self.community_recognition.iter().any(|recognition| {
+            recognition
+                .evidence_refs
+                .iter()
+                .any(|id| !frontier.admits(id))
+        }) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate().is_ok()
-            && self.evidence_closure().is_frontier_safe(claim, frontier)
-            && self.community_recognition.iter().all(|recognition| {
-                recognition
-                    .evidence_refs
-                    .iter()
-                    .all(|id| frontier.admits(id))
-            })
+        self.validate_frontier_safe(claim, frontier).is_ok()
     }
 }
 
@@ -1270,8 +1286,8 @@ impl CulturalProjectionAuditV1 {
                 .all(|id| frontier.admits(id))
     }
 
-    /// Reciprocal validation against the exact transmission that produced this
-    /// legacy V1 audit. This is source binding, not merely frontier safety.
+    /// Validates this legacy V1 audit against the exact transmission that
+    /// produced it while preserving typed frontier diagnostics.
     pub fn validate_against_transmission(
         &self,
         transmission: &CulturalTransmissionV1,
@@ -1279,9 +1295,7 @@ impl CulturalProjectionAuditV1 {
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<(), ProjectionError> {
         self.validate()?;
-        if !transmission.is_frontier_safe(claim, frontier) {
-            return Err(ProjectionError::AuditWithoutEvidencePath);
-        }
+        transmission.validate_frontier_safe(claim, frontier)?;
         let expected = Self::from_transmission(transmission);
         if self != &expected {
             return Err(ProjectionError::AuditWithoutEvidencePath);
@@ -1345,7 +1359,8 @@ impl CulturalProjectionAdmissionV1 {
     }
 
     /// Reciprocal validation against the exact transmission, canonical claim,
-    /// and frontier that produced this legacy admission.
+    /// and frontier that produced this legacy admission, preserving typed
+    /// transmission/frontier diagnostics.
     pub fn validate_against_transmission(
         &self,
         transmission: &CulturalTransmissionV1,
@@ -1353,9 +1368,7 @@ impl CulturalProjectionAdmissionV1 {
         claim: &CanonicalClaimAdmissionV1,
     ) -> Result<(), ProjectionError> {
         self.validate()?;
-        if !transmission.is_frontier_safe(claim, frontier) {
-            return Err(ProjectionError::AuditWithoutEvidencePath);
-        }
+        transmission.validate_frontier_safe(claim, frontier)?;
         let expected = Self::from_transmission(transmission, frontier, claim)
             .ok_or(ProjectionError::AuditWithoutEvidencePath)?;
         if self != &expected {
@@ -2182,6 +2195,34 @@ mod tests {
         assert_eq!(
             public_admission.qualification,
             restricted_admission.qualification
+        );
+    }
+
+    #[test]
+    fn legacy_reciprocal_validation_preserves_frontier_diagnostic() {
+        let mut frontier = frontier();
+        frontier.manifest_hash = "not-a-valid-sha256".into();
+        let value = transmission();
+        let claim = canonical_claim(&value);
+        let audit = CulturalProjectionAuditV1::from_transmission(&value);
+
+        assert_eq!(
+            audit.validate_against_transmission(&value, &frontier, &claim),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        let admission = CulturalProjectionAdmissionV1 {
+            transmission_id: value.transmission_id.clone(),
+            claim_ref: value.claim_ref.clone(),
+            evidence_refs: value.evidence_refs.clone(),
+            source_snapshots: value.source_snapshots.clone(),
+            evidence_frontier: value.evidence_frontier.clone(),
+            qualification: value.qualification,
+            access_policy: value.access_policy,
+        };
+        assert_eq!(
+            admission.validate_against_transmission(&value, &frontier, &claim),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
 
