@@ -35,6 +35,10 @@
       "semantic": "An already-applied execution identity cannot silently change its stable idempotency key."
     },
     {
+      "id": "metadata_readback_coherence",
+      "semantic": "A metadata change between the metadata and media reads is detected by metageneration preconditions and retried to return one coherent object snapshot."
+    },
+    {
       "id": "indeterminate_ack_reconciled",
       "semantic": "An acknowledgement-discarded mutation is reconciled using read-back without blind replay, preserving point-in-time uncertainty."
     },
