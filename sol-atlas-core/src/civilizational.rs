@@ -1990,7 +1990,10 @@ mod tests {
             .strict_prefix_through(&"frontier:1901".into())
             .expect("strict prefix");
         assert_eq!(prefix.frontiers.len(), 2);
-        assert_eq!(prefix.current().unwrap().frontier_id, "frontier:1901".into());
+        assert_eq!(
+            prefix.current().unwrap().frontier_id,
+            "frontier:1901".into()
+        );
     }
 
     #[test]
