@@ -152,6 +152,7 @@ jobs:
             v5_chain_replay_preserves_claim_frontier_diagnostic \
             mapping_preserves_frontier_validation_failure \
             mapping_preserves_evidence_path_failure \
+            mapping_v1_typed_validator_preserves_frontier_diagnostic \
             resolution_constructor_preserves_frontier_validation_failure \
             resolution_validation_preserves_evidence_path_failure \
             standalone_receipt_validation_checks_content_integrity \
