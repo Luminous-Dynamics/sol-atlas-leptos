@@ -11,6 +11,7 @@
 //! The contract deliberately does not choose a database, transport, locking
 //! primitive, or external authorization mechanism.
 
+use serde::{Deserialize, Serialize};
 use sol_atlas_core::{
     RecoveryExecution, RecoveryExecutionResultSnapshotV1,
     RecoveryPolicyConsumptionSnapshotV1, RecoveryPolicyConsumptionStateV1,
@@ -1554,6 +1555,12 @@ impl RecoveryExecutionProtectedMutationV1 {
         })
     }
 
+    /// Returns whether this request carries a usable stable external
+    /// idempotency key.
+    pub fn has_stable_idempotency_key(&self) -> bool {
+        self.idempotency_key.as_deref().is_some_and(|key| !key.is_empty())
+    }
+
     pub fn matches_fence(&self, fence: &EstablishedRecoveryExecutionFenceV1) -> bool {
         self.execution_id == fence.execution_id()
             && self.execution_input_snapshot == fence.fence().execution_input_snapshot
@@ -1755,6 +1762,29 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
     ///
     /// This is pure policy classification. It never performs reconciliation,
     /// retries, takeover, or the external mutation itself.
+    pub fn automatic_retry_safe_for(
+        &self,
+        mutation: &RecoveryExecutionProtectedMutationV1,
+    ) -> bool {
+        self.automatic_retry_safe()
+            && match self.idempotency {
+                RecoveryExecutionIdempotencyCapabilityV1::StableKey => {
+                    mutation.has_stable_idempotency_key()
+                }
+                RecoveryExecutionIdempotencyCapabilityV1::TransactionallyCoupled => true,
+                RecoveryExecutionIdempotencyCapabilityV1::NotSupported
+                | RecoveryExecutionIdempotencyCapabilityV1::Unknown => false,
+            }
+    }
+
+    pub fn automatic_takeover_safe_for(
+        &self,
+        mutation: &RecoveryExecutionProtectedMutationV1,
+    ) -> bool {
+        self.automatic_takeover_safe()
+            && self.automatic_retry_safe_for(mutation)
+    }
+
     pub fn next_action(
         &self,
         state: RecoveryExecutionProtectedMutationOrchestrationStateV1,
@@ -1765,17 +1795,14 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
 
         match state {
             RecoveryExecutionProtectedMutationOrchestrationStateV1::AppliedSameRequest
-            | RecoveryExecutionProtectedMutationOrchestrationStateV1::
-                ObservedAppliedSameRequest => {
+            | RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedAppliedSameRequest => {
                 RecoveryExecutionProtectedMutationNextActionV1::ReturnRecordedOutcome
             }
             RecoveryExecutionProtectedMutationOrchestrationStateV1::Indeterminate => {
                 match self.reconciliation {
                     RecoveryExecutionReconciliationCapabilityV1::StrongReadBack
-                    | RecoveryExecutionReconciliationCapabilityV1::
-                        EventuallyConsistentReadBack => {
-                        RecoveryExecutionProtectedMutationNextActionV1::
-                            ReconcileIndeterminateMutation
+                    | RecoveryExecutionReconciliationCapabilityV1::EventuallyConsistentReadBack => {
+                        RecoveryExecutionProtectedMutationNextActionV1::ReconcileIndeterminateMutation
                     }
                     RecoveryExecutionReconciliationCapabilityV1::NotSupported
                     | RecoveryExecutionReconciliationCapabilityV1::Unknown => {
@@ -1784,29 +1811,112 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
                 }
             }
             RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedNotApplied => {
-                if self.automatic_retry_safe() {
-                    RecoveryExecutionProtectedMutationNextActionV1::
-                        RetryWithDeclaredIdempotency
-                } else {
-                    RecoveryExecutionProtectedMutationNextActionV1::
-                        RequireIdempotencyOrManualRecovery
+                match self.idempotency {
+                    RecoveryExecutionIdempotencyCapabilityV1::TransactionallyCoupled => {
+                        RecoveryExecutionProtectedMutationNextActionV1::RetryWithDeclaredIdempotency
+                    }
+                    RecoveryExecutionIdempotencyCapabilityV1::StableKey
+                    | RecoveryExecutionIdempotencyCapabilityV1::NotSupported
+                    | RecoveryExecutionIdempotencyCapabilityV1::Unknown => {
+                        RecoveryExecutionProtectedMutationNextActionV1::RequireIdempotencyOrManualRecovery
+                    }
                 }
             }
-            RecoveryExecutionProtectedMutationOrchestrationStateV1::
-                ObservedDifferentRequest
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedDifferentRequest
             | RecoveryExecutionProtectedMutationOrchestrationStateV1::MissingState
             | RecoveryExecutionProtectedMutationOrchestrationStateV1::InvalidState => {
                 RecoveryExecutionProtectedMutationNextActionV1::FailClosed
             }
         }
     }
+
+    /// Apply the safety profile to the exact mutation being considered.
+    pub fn next_action_for_mutation(
+        &self,
+        mutation: &RecoveryExecutionProtectedMutationV1,
+        state: RecoveryExecutionProtectedMutationOrchestrationStateV1,
+    ) -> RecoveryExecutionProtectedMutationNextActionV1 {
+        if !self.is_well_formed()
+            || mutation.execution_id.is_empty()
+            || !is_sha256_digest(&mutation.execution_input_snapshot)
+            || mutation.attempt_id.is_empty()
+            || mutation.fence_epoch == 0
+            || mutation.idempotency_key.as_deref().is_some_and(str::is_empty)
+        {
+            return RecoveryExecutionProtectedMutationNextActionV1::FailClosed;
+        }
+
+        match state {
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedNotApplied => {
+                if self.automatic_retry_safe_for(mutation) {
+                    RecoveryExecutionProtectedMutationNextActionV1::RetryWithDeclaredIdempotency
+                } else {
+                    RecoveryExecutionProtectedMutationNextActionV1::RequireIdempotencyOrManualRecovery
+                }
+            }
+            _ => self.next_action(state),
+        }
+    }
+
+    /// Qualify an adapter capability declaration against executable evidence.
+    pub fn supported_by_conformance_evidence(
+        &self,
+        evidence: &RecoveryExecutionEffectConformanceEvidenceV1,
+    ) -> bool {
+        self.is_well_formed()
+            && match self.fencing {
+                RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary => {
+                    evidence.current_fence_accepted
+                        && evidence.stale_fence_rejected
+                        && evidence.future_fence_rejected
+                        && evidence.concurrent_fencing_preserved
+                }
+                RecoveryExecutionFencingCapabilityV1::NotSupported => true,
+                RecoveryExecutionFencingCapabilityV1::Unknown => false,
+            }
+            && match self.idempotency {
+                RecoveryExecutionIdempotencyCapabilityV1::StableKey => {
+                    evidence.stable_key_replay_safe
+                        && evidence.different_request_same_key_rejected
+                }
+                RecoveryExecutionIdempotencyCapabilityV1::TransactionallyCoupled => {
+                    evidence.transactionally_coupled_retry_safe
+                }
+                RecoveryExecutionIdempotencyCapabilityV1::NotSupported => true,
+                RecoveryExecutionIdempotencyCapabilityV1::Unknown => false,
+            }
+            && match self.reconciliation {
+                RecoveryExecutionReconciliationCapabilityV1::StrongReadBack => {
+                    evidence.exact_reconciliation && evidence.strong_read_back_verified
+                }
+                RecoveryExecutionReconciliationCapabilityV1::EventuallyConsistentReadBack => {
+                    evidence.exact_reconciliation
+                        && evidence.eventually_consistent_read_back_verified
+                }
+                RecoveryExecutionReconciliationCapabilityV1::NotSupported => true,
+                RecoveryExecutionReconciliationCapabilityV1::Unknown => false,
+            }
+    }
+
 }
 
-/// Validate a protected mutation request against the established fence before
-/// crossing the resource boundary.
-
-/// Validate a protected mutation request against the established fence before
-/// crossing the resource boundary.
+/// Runtime evidence emitted by an adapter-specific protected-effect conformance suite.
+///
+/// The evidence records concrete behaviors exercised against the actual adapter.
+/// A capability declaration cannot satisfy this contract by referring to itself.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RecoveryExecutionEffectConformanceEvidenceV1 {
+    pub current_fence_accepted: bool,
+    pub stale_fence_rejected: bool,
+    pub future_fence_rejected: bool,
+    pub concurrent_fencing_preserved: bool,
+    pub stable_key_replay_safe: bool,
+    pub different_request_same_key_rejected: bool,
+    pub transactionally_coupled_retry_safe: bool,
+    pub exact_reconciliation: bool,
+    pub strong_read_back_verified: bool,
+    pub eventually_consistent_read_back_verified: bool,
+}
 
 /// Validate a protected mutation request against the established fence before
 /// crossing the resource boundary.
@@ -1988,6 +2098,124 @@ mod tests {
             );
             Ok(RecoveryExecutionProtectedMutationResult::Applied)
         }
+    }
+
+    #[test]
+    fn external_effect_safety_profile_requires_request_key_for_stable_key_retry() {
+        let profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::StableKey,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::StrongReadBack,
+            claim_ceiling: "Adapter capability declaration only.".into(),
+        };
+        let mutation = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-profile-key".into(),
+            execution_input_snapshot:
+                "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into(),
+            attempt_id: "attempt-profile-key".into(),
+            fence_epoch: 2,
+            idempotency_key: None,
+        };
+
+        assert_eq!(
+            profile.next_action(
+                RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedNotApplied,
+            ),
+            RecoveryExecutionProtectedMutationNextActionV1::RequireIdempotencyOrManualRecovery,
+        );
+        assert_eq!(
+            profile.next_action_for_mutation(
+                &mutation,
+                RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedNotApplied,
+            ),
+            RecoveryExecutionProtectedMutationNextActionV1::RequireIdempotencyOrManualRecovery,
+        );
+
+        let keyed = RecoveryExecutionProtectedMutationV1 {
+            idempotency_key: Some("stable-effect-key".into()),
+            ..mutation
+        };
+        assert_eq!(
+            profile.next_action_for_mutation(
+                &keyed,
+                RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedNotApplied,
+            ),
+            RecoveryExecutionProtectedMutationNextActionV1::RetryWithDeclaredIdempotency,
+        );
+        assert!(profile.automatic_retry_safe_for(&keyed));
+        assert!(profile.automatic_takeover_safe_for(&keyed));
+    }
+
+    #[test]
+    fn transactionally_coupled_retry_does_not_require_a_key() {
+        let profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::TransactionallyCoupled,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::StrongReadBack,
+            claim_ceiling: "Adapter capability declaration only.".into(),
+        };
+        let mutation = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-transactional".into(),
+            execution_input_snapshot:
+                "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".into(),
+            attempt_id: "attempt-transactional".into(),
+            fence_epoch: 2,
+            idempotency_key: None,
+        };
+
+        assert!(profile.automatic_retry_safe_for(&mutation));
+        assert!(profile.automatic_takeover_safe_for(&mutation));
+        assert_eq!(
+            profile.next_action_for_mutation(
+                &mutation,
+                RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedNotApplied,
+            ),
+            RecoveryExecutionProtectedMutationNextActionV1::RetryWithDeclaredIdempotency,
+        );
+    }
+
+    #[test]
+    fn external_effect_profile_requires_executable_conformance_evidence() {
+        let profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::StableKey,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::StrongReadBack,
+            claim_ceiling: "Adapter-specific evidence required.".into(),
+        };
+        let complete = RecoveryExecutionEffectConformanceEvidenceV1 {
+            current_fence_accepted: true,
+            stale_fence_rejected: true,
+            future_fence_rejected: true,
+            concurrent_fencing_preserved: true,
+            stable_key_replay_safe: true,
+            different_request_same_key_rejected: true,
+            transactionally_coupled_retry_safe: false,
+            exact_reconciliation: true,
+            strong_read_back_verified: true,
+            eventually_consistent_read_back_verified: false,
+        };
+        assert!(profile.supported_by_conformance_evidence(&complete));
+
+        let missing_stale = RecoveryExecutionEffectConformanceEvidenceV1 {
+            stale_fence_rejected: false,
+            ..complete
+        };
+        assert!(!profile.supported_by_conformance_evidence(&missing_stale));
+
+        let missing_key_replay = RecoveryExecutionEffectConformanceEvidenceV1 {
+            stable_key_replay_safe: false,
+            ..complete
+        };
+        assert!(!profile.supported_by_conformance_evidence(&missing_key_replay));
+
+        let missing_readback = RecoveryExecutionEffectConformanceEvidenceV1 {
+            exact_reconciliation: false,
+            ..complete
+        };
+        assert!(!profile.supported_by_conformance_evidence(&missing_readback));
     }
 
     #[test]
@@ -2186,6 +2414,39 @@ mod tests {
                 .expect("applied observation"),
             RecoveryExecutionProtectedMutationReconciliationOutcome::
                 ObservedAppliedSameRequest,
+        );
+    }
+
+    #[test]
+    fn protected_mutation_indeterminate_ack_reconciles_without_retry() {
+        let resource = FencedResourceMemoryStore::default();
+        resource.set_epoch(2);
+        let mutation = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-lost-ack".into(),
+            execution_input_snapshot:
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
+            attempt_id: "attempt-lost-ack".into(),
+            fence_epoch: 2,
+            idempotency_key: Some("stable-lost-ack".into()),
+        };
+
+        let applied = resource
+            .mutate_if_fence_is_current(&mutation)
+            .expect("apply before simulated response loss");
+        assert_eq!(applied, RecoveryExecutionProtectedMutationResult::Applied);
+
+        assert_eq!(
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::Indeterminate
+                .next_action(),
+            RecoveryExecutionProtectedMutationNextActionV1::ReconcileIndeterminateMutation,
+        );
+        assert_eq!(
+            resource.reconcile_mutation(&mutation).expect("reconcile"),
+            RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest,
+        );
+        assert_eq!(
+            resource.reconcile_mutation(&mutation).expect("second read remains read-only"),
+            RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest,
         );
     }
 
