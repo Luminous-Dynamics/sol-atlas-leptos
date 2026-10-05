@@ -12,6 +12,7 @@
 //! primitive, or external authorization mechanism.
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use sol_atlas_core::{
     RecoveryExecution, RecoveryExecutionResultSnapshotV1,
     RecoveryPolicyConsumptionSnapshotV1, RecoveryPolicyConsumptionStateV1,
@@ -1731,6 +1732,44 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
         self.schema == Self::SCHEMA && !self.claim_ceiling.is_empty()
     }
 
+    /// Canonical content binding for provenance and drift detection.
+    pub fn digest(&self) -> String {
+        let fencing = match self.fencing {
+            RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary => "enforced",
+            RecoveryExecutionFencingCapabilityV1::NotSupported => "unsupported",
+            RecoveryExecutionFencingCapabilityV1::Unknown => "unknown",
+        };
+        let idempotency = match self.idempotency {
+            RecoveryExecutionIdempotencyCapabilityV1::StableKey => "stable-key",
+            RecoveryExecutionIdempotencyCapabilityV1::TransactionallyCoupled => {
+                "transactionally-coupled"
+            }
+            RecoveryExecutionIdempotencyCapabilityV1::NotSupported => "unsupported",
+            RecoveryExecutionIdempotencyCapabilityV1::Unknown => "unknown",
+        };
+        let reconciliation = match self.reconciliation {
+            RecoveryExecutionReconciliationCapabilityV1::StrongReadBack => "strong-read-back",
+            RecoveryExecutionReconciliationCapabilityV1::EventuallyConsistentReadBack => {
+                "eventually-consistent-read-back"
+            }
+            RecoveryExecutionReconciliationCapabilityV1::NotSupported => "unsupported",
+            RecoveryExecutionReconciliationCapabilityV1::Unknown => "unknown",
+        };
+        let material = format!(
+            "schema={}:{}|fencing={}|idempotency={}|reconciliation={}|claim={}:{}",
+            self.schema.len(),
+            self.schema,
+            fencing,
+            idempotency,
+            reconciliation,
+            self.claim_ceiling.len(),
+            self.claim_ceiling
+        );
+        let mut hasher = Sha256::new();
+        hasher.update(material.as_bytes());
+        format!("sha256:{:x}", hasher.finalize())
+    }
+
     pub fn automatic_retry_safe(&self) -> bool {
         self.is_well_formed()
             && matches!(
@@ -1928,6 +1967,143 @@ pub struct RecoveryExecutionEffectConformanceEvidenceV1 {
     pub eventually_consistent_read_back_verified: bool,
 }
 
+impl RecoveryExecutionEffectConformanceEvidenceV1 {
+    /// Content digest for the concrete behavioral evidence.
+    pub fn digest(&self) -> String {
+        let flags = [
+            self.current_fence_accepted,
+            self.stale_fence_rejected,
+            self.future_fence_rejected,
+            self.concurrent_fencing_preserved,
+            self.stable_key_replay_safe,
+            self.different_request_same_key_rejected,
+            self.changed_idempotency_key_rejected,
+            self.transactionally_coupled_retry_safe,
+            self.exact_reconciliation,
+            self.point_in_time_semantics_explicit,
+            self.strong_read_back_verified,
+            self.eventually_consistent_read_back_verified,
+        ];
+        let material: String = flags
+            .into_iter()
+            .map(|flag| if flag { '1' } else { '0' })
+            .collect();
+        let mut hasher = Sha256::new();
+        hasher.update(material.as_bytes());
+        format!("sha256:{:x}", hasher.finalize())
+    }
+}
+
+/// Provenance-bearing conformance artifact.
+///
+/// The artifact binds the observed evidence to one exact safety profile, the
+/// adapter revision that was exercised, and the harness revision that produced
+/// the evidence. These bindings detect drift; they are not authentication,
+/// proof-of-possession, or proof that an external service is truthful.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryExecutionEffectConformanceReportV1 {
+    pub schema: String,
+    pub adapter_id: String,
+    pub adapter_revision: String,
+    pub harness_id: String,
+    pub harness_revision: String,
+    pub profile_digest: String,
+    pub evidence_digest: String,
+    pub report_digest: String,
+    pub evidence: RecoveryExecutionEffectConformanceEvidenceV1,
+}
+
+impl RecoveryExecutionEffectConformanceReportV1 {
+    pub const SCHEMA: &'static str =
+        "sol-atlas:recovery-execution-effect-conformance-report:v1";
+
+    fn identity_material(&self) -> String {
+        format!(
+            "schema={}:{}|adapter={}:{}|adapter-revision={}:{}|harness={}:{}|harness-revision={}:{}|profile={}|evidence={}|evidence-body={}",
+            self.schema.len(),
+            self.schema,
+            self.adapter_id.len(),
+            self.adapter_id,
+            self.adapter_revision.len(),
+            self.adapter_revision,
+            self.harness_id.len(),
+            self.harness_id,
+            self.harness_revision.len(),
+            self.harness_revision,
+            self.profile_digest,
+            self.evidence_digest,
+            self.evidence.digest(),
+        )
+    }
+
+    pub fn digest(&self) -> String {
+        let mut hasher = Sha256::new();
+        hasher.update(self.identity_material().as_bytes());
+        format!("sha256:{:x}", hasher.finalize())
+    }
+
+    pub fn from_parts(
+        adapter_id: impl Into<String>,
+        adapter_revision: impl Into<String>,
+        harness_id: impl Into<String>,
+        harness_revision: impl Into<String>,
+        profile: &RecoveryExecutionEffectSafetyProfileV1,
+        evidence: RecoveryExecutionEffectConformanceEvidenceV1,
+    ) -> Option<Self> {
+        if !profile.is_well_formed() {
+            return None;
+        }
+        let adapter_id = adapter_id.into();
+        let adapter_revision = adapter_revision.into();
+        let harness_id = harness_id.into();
+        let harness_revision = harness_revision.into();
+        if adapter_id.is_empty()
+            || adapter_revision.is_empty()
+            || harness_id.is_empty()
+            || harness_revision.is_empty()
+        {
+            return None;
+        }
+        let mut report = Self {
+            schema: Self::SCHEMA.into(),
+            adapter_id,
+            adapter_revision,
+            harness_id,
+            harness_revision,
+            profile_digest: profile.digest(),
+            evidence_digest: evidence.digest(),
+            report_digest: String::new(),
+            evidence,
+        };
+        report.report_digest = report.digest();
+        Some(report)
+    }
+
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA
+            && !self.adapter_id.is_empty()
+            && !self.adapter_revision.is_empty()
+            && !self.harness_id.is_empty()
+            && !self.harness_revision.is_empty()
+            && is_sha256_digest(&self.profile_digest)
+            && is_sha256_digest(&self.evidence_digest)
+            && is_sha256_digest(&self.report_digest)
+            && self.evidence_digest == self.evidence.digest()
+            && self.report_digest == self.digest()
+    }
+
+    /// Qualify the report against the exact profile it claims to exercise.
+    ///
+    /// The profile digest prevents evidence from another capability declaration
+    /// from being silently reused after the profile changes.
+    pub fn supports_profile(&self, profile: &RecoveryExecutionEffectSafetyProfileV1) -> bool {
+        self.is_well_formed()
+            && profile.is_well_formed()
+            && self.profile_digest == profile.digest()
+            && profile.supported_by_conformance_evidence(&self.evidence)
+    }
+}
+
 /// Validate a protected mutation request against the established fence before
 /// crossing the resource boundary.
 pub fn validate_protected_mutation_request(
@@ -2109,6 +2285,71 @@ mod tests {
             );
             Ok(RecoveryExecutionProtectedMutationResult::Applied)
         }
+    }
+
+    #[test]
+    fn safety_profile_digest_changes_on_profile_drift() {
+        let profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::StableKey,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::StrongReadBack,
+            claim_ceiling: "Adapter-specific evidence required.".into(),
+        };
+        let original = profile.digest();
+        let mut drifted = profile.clone();
+        drifted.claim_ceiling = "Different claim ceiling.".into();
+
+        assert_ne!(original, drifted.digest());
+    }
+
+    #[test]
+    fn conformance_report_binds_exact_profile_and_provenance() {
+        let profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::StableKey,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::StrongReadBack,
+            claim_ceiling: "Adapter-specific evidence required.".into(),
+        };
+        let evidence = RecoveryExecutionEffectConformanceEvidenceV1 {
+            current_fence_accepted: true,
+            stale_fence_rejected: true,
+            future_fence_rejected: true,
+            concurrent_fencing_preserved: true,
+            stable_key_replay_safe: true,
+            different_request_same_key_rejected: true,
+            changed_idempotency_key_rejected: true,
+            transactionally_coupled_retry_safe: false,
+            exact_reconciliation: true,
+            point_in_time_semantics_explicit: true,
+            strong_read_back_verified: true,
+            eventually_consistent_read_back_verified: false,
+        };
+        let report = RecoveryExecutionEffectConformanceReportV1::from_parts(
+            "reference-resource",
+            "adapter-revision-1",
+            "sol-atlas-protected-effect-conformance",
+            "harness-revision-1",
+            &profile,
+            evidence,
+        )
+        .expect("report");
+        assert!(report.is_well_formed());
+        assert!(report.supports_profile(&profile));
+
+        let mut drifted = profile.clone();
+        drifted.claim_ceiling = "Changed profile.".into();
+        assert!(!report.supports_profile(&drifted));
+
+        let mut altered_revision = report.clone();
+        altered_revision.adapter_revision = "adapter-revision-2".into();
+        assert!(!altered_revision.is_well_formed());
+        assert_ne!(report.digest(), altered_revision.digest());
+
+        let mut altered_evidence = report.clone();
+        altered_evidence.evidence.current_fence_accepted = false;
+        assert!(!altered_evidence.is_well_formed());
     }
 
     #[test]
