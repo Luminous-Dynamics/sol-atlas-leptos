@@ -62,6 +62,14 @@ jobs:
           gcloud auth list --filter=status:ACTIVE --format="value(account)"
           test "$(gcloud config get-value project)" = "$GCP_PROJECT_ID"
 
+      - name: Verify effective GCS WIF trust policy
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          python3 scripts/verify_gcs_wif_provider.py \
+            --provider-resource "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
+            --output artifacts/gcs-wif-trust-verification.json
+
       - name: Run live GCS qualification
         run: |
           set -euo pipefail
@@ -69,6 +77,7 @@ jobs:
           python3 scripts/qualify_gcs_external_effect.py \
             qualify \
             --bucket "$GCS_QUALIFICATION_BUCKET" \
+            --wif-verification artifacts/gcs-wif-trust-verification.json \
             --output artifacts/gcs-external-effect-report.json
 
       - name: Re-verify qualification artifact
