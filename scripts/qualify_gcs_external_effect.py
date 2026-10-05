@@ -111,7 +111,7 @@ def github_execution_context() -> dict[str, str]:
 
 def load_wif_verification(path: str) -> dict[str, object]:
     verification = json.loads(Path(path).read_text(encoding="utf-8"))
-    if verification.get("schema") != "sol-atlas:gcs-wif-trust-verification:v3":
+    if verification.get("schema") != "sol-atlas:gcs-wif-trust-verification:v4":
         raise AssertionError("wrong WIF trust verification schema")
     if not verification.get("attribute_mapping_verified"):
         raise AssertionError("WIF attribute mapping was not verified")
@@ -121,6 +121,8 @@ def load_wif_verification(path: str) -> dict[str, object]:
         raise AssertionError("WIF service-account binding was not verified")
     if not verification.get("provider_pool_exclusive"):
         raise AssertionError("WIF provider pool was not verified exclusive")
+    if not verification.get("service_account_project_verified"):
+        raise AssertionError("WIF service account project was not verified")
     return verification
 
 
