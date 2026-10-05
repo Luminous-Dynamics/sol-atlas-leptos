@@ -722,22 +722,36 @@ impl CulturalTransmissionV1 {
         Ok(())
     }
 
-    /// Admission is intentionally stronger than structural validation:
-    /// the canonical claim and its complete evidence/source closure must be
-    /// represented, and every referenced object must be in the same frontier.
+    /// Typed frontier validation for the legacy transmission contract.
+    /// This preserves canonical-claim, temporal, and recognition diagnostics
+    /// rather than composing lower-level boolean gates.
+    pub fn validate_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        self.evidence_closure()
+            .validate_frontier_safe(claim, frontier)?;
+
+        if self.community_recognition.iter().any(|recognition| {
+            recognition
+                .evidence_refs
+                .iter()
+                .any(|id| !frontier.admits(id))
+        }) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate().is_ok()
-            && self.evidence_closure().is_frontier_safe(claim, frontier)
-            && self.community_recognition.iter().all(|recognition| {
-                recognition
-                    .evidence_refs
-                    .iter()
-                    .all(|id| frontier.admits(id))
-            })
+        self.validate_frontier_safe(claim, frontier).is_ok()
     }
 }
 
@@ -1949,6 +1963,21 @@ mod tests {
             qualification: value.qualification,
             evidence_frontier: value.evidence_frontier.clone(),
         }
+    }
+
+    #[test]
+    fn transmission_typed_validator_preserves_frontier_diagnostic() {
+        let transmission = transmission();
+        let claim = canonical_claim(&transmission);
+        let mut frontier = frontier();
+        frontier.known_by_year = 1941;
+        frontier.recompute_manifest_hash().expect("fixture hash");
+
+        assert_eq!(
+            transmission.validate_frontier_safe(&claim, &frontier),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
+        assert!(!transmission.is_frontier_safe(&claim, &frontier));
     }
 
     #[test]
