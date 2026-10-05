@@ -48,9 +48,10 @@ The V2 verifier is invoked with the current GitHub execution context and checks:
 - the packet SHA-256 sidecar.
 
 The adversarial self-test exercises stale-sidecar rejection, workflow-file-path
-context mismatch rejection, verifier identity mismatch rejection, and independent
-tamper rejection for the workflow file, verifier file, Cargo.lock, and test
-inventory.
+context mismatch rejection, mutation of every packet execution-context scalar,
+required-key-set rejection, command-inventory ordering rejection, verifier identity
+mismatch rejection, and independent tamper rejection for the workflow file,
+verifier file, Cargo.lock, and test inventory.
 
 A missing packet cannot be interpreted as a successful qualification.
 
