@@ -5,8 +5,8 @@
   "harness_id": "sol-atlas-protected-effect-conformance",
   "harness_revision": "0d6294000484f55074413a623376df0e74d78db5",
   "profile_digest": "sha256:aad6fb3dcca35f7427626ddea15b03853a7672708fed5c39c0427448f9d07af2",
-  "evidence_digest": "sha256:c657798a013d371e4fbf09f51463206cb284fc7ed6975798b8da2387ec9aa540",
-  "report_digest": "sha256:9048aea606f370415a90ce5a201e0c003cbd60b95c59112342c37fa62e6595ca",
+  "evidence_digest": "sha256:0bfdf18d980109472544bb0c32f60467430d60392c4ca326a3ff0c4545f32c69",
+  "report_digest": "sha256:68dec1769c5bcb9430131dbdbbd2711a78c0c45c38d9beb5bdcd125a45cf6336",
   "evidence": {
     "current_fence_accepted": true,
     "stale_fence_rejected": true,
