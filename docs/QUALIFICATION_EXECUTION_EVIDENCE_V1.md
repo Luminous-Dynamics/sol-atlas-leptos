@@ -55,7 +55,11 @@ context. The checked-out workflow file is separately hashed so consumers can
 distinguish the workflow definition identity from the source-tree copy.
 
 The artifact is uploaded only after the qualification job has passed. Before
-publication, the workflow validates the packet's required fields and bindings.
+publication, the workflow invokes the repository's independent verifier at
+tools/verify_qualification_execution_evidence.py with the current GitHub
+execution context. The verifier checks the exact schema, execution bindings,
+SHA shapes, run URL, qualification command inventory, and JSON sidecar digest.
+This keeps packet production and packet validation as separate implementations.
 The upload contains both qualification-execution-v1.json and a SHA-256 sidecar
 named qualification-execution-v1.json.sha256, allowing the JSON bytes to be
 archived and checked independently of GitHub's artifact container.
