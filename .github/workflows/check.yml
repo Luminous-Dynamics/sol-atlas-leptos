@@ -175,6 +175,7 @@ jobs:
           QUALIFICATION_WORKFLOW_SHA: ${{ github.workflow_sha }}
           QUALIFICATION_RUN_ID: ${{ github.run_id }}
           QUALIFICATION_RUN_ATTEMPT: ${{ github.run_attempt }}
+          QUALIFICATION_JOB_NAME: ${{ github.job }}
           QUALIFICATION_RUNNER_OS: ${{ runner.os }}
           QUALIFICATION_RUNNER_ARCH: ${{ runner.arch }}
         run: |
@@ -206,6 +207,8 @@ jobs:
               "checked_out_workflow_file_sha256": os.environ["WORKFLOW_FILE_SHA256"],
               "run_id": os.environ["QUALIFICATION_RUN_ID"],
               "run_attempt": os.environ["QUALIFICATION_RUN_ATTEMPT"],
+              "job_name": os.environ["QUALIFICATION_JOB_NAME"],
+              "workflow_run_url": os.environ["GITHUB_SERVER_URL"] + "/" + os.environ["GITHUB_REPOSITORY"] + "/actions/runs/" + os.environ["QUALIFICATION_RUN_ID"],
               "runner_os": os.environ["QUALIFICATION_RUNNER_OS"],
               "runner_arch": os.environ["QUALIFICATION_RUNNER_ARCH"],
               "rust_toolchain": os.environ["RUST_TOOLCHAIN"],
@@ -223,11 +226,14 @@ jobs:
               encoding="utf-8",
           )
           PY
+          sha256sum /tmp/qualification-execution-v1.json | awk '{print $1}' > /tmp/qualification-execution-v1.json.sha256
       - name: Publish qualification execution evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sol-atlas-qualification-execution-v1
-          path: /tmp/qualification-execution-v1.json
+          path: |
+            /tmp/qualification-execution-v1.json
+            /tmp/qualification-execution-v1.json.sha256
           if-no-files-found: error
 
   test-native:
