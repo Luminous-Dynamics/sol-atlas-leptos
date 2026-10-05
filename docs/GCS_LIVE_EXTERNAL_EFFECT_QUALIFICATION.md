@@ -10,6 +10,8 @@ The qualified profile is intentionally narrow:
 - Cloud Storage object generation is the mutation-time fence.
 - Object metadata carries the exact execution identity, input fingerprint,
   attempt identity, fence generation, and stable idempotency key.
+- Replay protection applies while that live object identity state remains retained;
+  delete/recreate is outside the qualified replay guarantee.
 - The adapter performs an exact read-back after mutation and after an
   acknowledgement-discarded request.
 - The evidence applies only to the tested adapter, bucket, object API, and
