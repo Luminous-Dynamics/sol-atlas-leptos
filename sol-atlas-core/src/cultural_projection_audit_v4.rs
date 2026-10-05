@@ -419,12 +419,7 @@ mod tests {
         );
 
         assert_eq!(
-            CulturalProjectionAuditV4::from_projection_at(
-                &projection,
-                &frontier,
-                &claim,
-                vec![],
-            ),
+            CulturalProjectionAuditV4::from_projection_at(&projection, &frontier, &claim, vec![],),
             Err(ProjectionError::InvalidTimeInterval)
         );
     }
@@ -438,10 +433,12 @@ mod tests {
             &frontier,
         )
         .expect("resolution");
-        let mut audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution])
-            .expect("v4 audit");
+        let mut audit =
+            CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("v4 audit");
         audit.resolutions[0].evidence_refs = vec!["e:unadmitted".into()];
-        audit.resolutions[0].recompute_hash().expect("resolution hash");
+        audit.resolutions[0]
+            .recompute_hash()
+            .expect("resolution hash");
 
         let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
             crate::cultural_systems::CulturalTransmissionV1 {
@@ -496,12 +493,7 @@ mod tests {
         );
 
         assert_eq!(
-            CulturalProjectionAuditV4::from_projection_at(
-                &projection,
-                &frontier,
-                &claim,
-                vec![],
-            ),
+            CulturalProjectionAuditV4::from_projection_at(&projection, &frontier, &claim, vec![],),
             Err(ProjectionError::EmptyIdentifier)
         );
     }
