@@ -207,7 +207,8 @@ harness under `tests/`. The harness runs the reference protected resource
 rather than asserting evidence flags directly, including:
 
 - current, stale, and future fence behavior at the mutation boundary;
-- same-key replay and same-key/different-request rejection;
+- same-key replay and same-key/different-request rejection, including
+  cross-execution key collision;
 - changed idempotency-key rejection;
 - concurrent stale/current fencing;
 - a deliberate lost-ack simulation followed by read-only exact reconciliation;
