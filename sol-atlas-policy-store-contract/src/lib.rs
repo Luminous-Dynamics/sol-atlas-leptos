@@ -1882,6 +1882,7 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
                 RecoveryExecutionIdempotencyCapabilityV1::StableKey => {
                     evidence.stable_key_replay_safe
                         && evidence.different_request_same_key_rejected
+                        && evidence.changed_idempotency_key_rejected
                 }
                 RecoveryExecutionIdempotencyCapabilityV1::TransactionallyCoupled => {
                     evidence.transactionally_coupled_retry_safe
@@ -1891,10 +1892,13 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
             }
             && match self.reconciliation {
                 RecoveryExecutionReconciliationCapabilityV1::StrongReadBack => {
-                    evidence.exact_reconciliation && evidence.strong_read_back_verified
+                    evidence.exact_reconciliation
+                        && evidence.point_in_time_semantics_explicit
+                        && evidence.strong_read_back_verified
                 }
                 RecoveryExecutionReconciliationCapabilityV1::EventuallyConsistentReadBack => {
                     evidence.exact_reconciliation
+                        && evidence.point_in_time_semantics_explicit
                         && evidence.eventually_consistent_read_back_verified
                 }
                 RecoveryExecutionReconciliationCapabilityV1::NotSupported => true,
@@ -1916,8 +1920,10 @@ pub struct RecoveryExecutionEffectConformanceEvidenceV1 {
     pub concurrent_fencing_preserved: bool,
     pub stable_key_replay_safe: bool,
     pub different_request_same_key_rejected: bool,
+    pub changed_idempotency_key_rejected: bool,
     pub transactionally_coupled_retry_safe: bool,
     pub exact_reconciliation: bool,
+    pub point_in_time_semantics_explicit: bool,
     pub strong_read_back_verified: bool,
     pub eventually_consistent_read_back_verified: bool,
 }
@@ -2197,8 +2203,10 @@ mod tests {
             concurrent_fencing_preserved: true,
             stable_key_replay_safe: true,
             different_request_same_key_rejected: true,
+            changed_idempotency_key_rejected: true,
             transactionally_coupled_retry_safe: false,
             exact_reconciliation: true,
+            point_in_time_semantics_explicit: true,
             strong_read_back_verified: true,
             eventually_consistent_read_back_verified: false,
         };
@@ -2221,6 +2229,14 @@ mod tests {
             ..complete
         };
         assert!(!profile.supported_by_conformance_evidence(&missing_readback));
+
+        let missing_point_in_time = RecoveryExecutionEffectConformanceEvidenceV1 {
+            point_in_time_semantics_explicit: false,
+            ..complete
+        };
+        assert!(!profile.supported_by_conformance_evidence(
+            &missing_point_in_time
+        ));
     }
 
     #[test]
@@ -2250,54 +2266,104 @@ mod tests {
                     .into(),
             ..current.clone()
         };
+        let changed_idempotency_key = RecoveryExecutionProtectedMutationV1 {
+            idempotency_key: Some("different-key".into()),
+            ..current.clone()
+        };
 
-        assert_eq!(
-            resource
-                .mutate_if_fence_is_current(&current)
-                .expect("current mutation"),
-            RecoveryExecutionProtectedMutationResult::Applied,
-        );
-        assert_eq!(
-            resource
-                .mutate_if_fence_is_current(&current)
-                .expect("same-key replay"),
-            RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest,
-        );
-        assert_eq!(
-            resource
-                .mutate_if_fence_is_current(&stale)
-                .expect("stale mutation"),
-            RecoveryExecutionProtectedMutationResult::RejectedStaleFence,
-        );
-        assert_eq!(
-            resource
-                .mutate_if_fence_is_current(&future)
-                .expect("future mutation"),
-            RecoveryExecutionProtectedMutationResult::RejectedFutureFence,
-        );
-        assert_eq!(
-            resource
-                .mutate_if_fence_is_current(&changed_same_key)
-                .expect("different request with same key"),
-            RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch,
-        );
-        assert_eq!(
-            resource
-                .reconcile_mutation(&current)
-                .expect("exact reconciliation"),
-            RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest,
-        );
+        let current_fence_accepted = resource
+            .mutate_if_fence_is_current(&current)
+            .expect("current mutation")
+            == RecoveryExecutionProtectedMutationResult::Applied;
+        let stable_key_replay_safe = resource
+            .mutate_if_fence_is_current(&current)
+            .expect("same-key replay")
+            == RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest;
+        let stale_fence_rejected = resource
+            .mutate_if_fence_is_current(&stale)
+            .expect("stale mutation")
+            == RecoveryExecutionProtectedMutationResult::RejectedStaleFence;
+        let future_fence_rejected = resource
+            .mutate_if_fence_is_current(&future)
+            .expect("future mutation")
+            == RecoveryExecutionProtectedMutationResult::RejectedFutureFence;
+        let different_request_same_key_rejected = resource
+            .mutate_if_fence_is_current(&changed_same_key)
+            .expect("different request with same key")
+            == RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch;
+        let changed_idempotency_key_rejected = resource
+            .mutate_if_fence_is_current(&changed_idempotency_key)
+            .expect("changed idempotency key")
+            == RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch;
+        let exact_reconciliation = resource
+            .reconcile_mutation(&current)
+            .expect("exact reconciliation")
+            == RecoveryExecutionProtectedMutationReconciliationOutcome::
+                ObservedAppliedSameRequest;
+
+        let concurrent = Arc::new(FencedResourceMemoryStore::default());
+        concurrent.set_epoch(2);
+        let barrier = Arc::new(Barrier::new(32));
+        let stale = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-conformance-concurrent-stale".into(),
+            execution_input_snapshot:
+                "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into(),
+            attempt_id: "attempt-stale".into(),
+            fence_epoch: 1,
+            idempotency_key: None,
+        };
+        let current_concurrent = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-conformance-concurrent-current".into(),
+            execution_input_snapshot:
+                "sha256:abababababababababababababababababababababababababababababababab"
+                    .into(),
+            attempt_id: "attempt-current".into(),
+            fence_epoch: 2,
+            idempotency_key: None,
+        };
+        let mut joins = Vec::new();
+        for index in 0..32 {
+            let store = Arc::clone(&concurrent);
+            let gate = Arc::clone(&barrier);
+            let request = if index == 0 {
+                current_concurrent.clone()
+            } else {
+                stale.clone()
+            };
+            joins.push(thread::spawn(move || {
+                gate.wait();
+                store.mutate_if_fence_is_current(&request)
+            }));
+        }
+        let mut stale_rejected_count = 0usize;
+        let mut current_applied_count = 0usize;
+        for join in joins {
+            match join.expect("concurrent thread").expect("concurrent result") {
+                RecoveryExecutionProtectedMutationResult::RejectedStaleFence => {
+                    stale_rejected_count += 1;
+                }
+                RecoveryExecutionProtectedMutationResult::Applied => {
+                    current_applied_count += 1;
+                }
+                RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest => {}
+                other => panic!("unexpected concurrent outcome: {other:?}"),
+            }
+        }
+        let concurrent_fencing_preserved =
+            current_applied_count == 1 && stale_rejected_count == 31;
 
         let evidence = RecoveryExecutionEffectConformanceEvidenceV1 {
-            current_fence_accepted: true,
-            stale_fence_rejected: true,
-            future_fence_rejected: true,
-            concurrent_fencing_preserved: true,
-            stable_key_replay_safe: true,
-            different_request_same_key_rejected: true,
+            current_fence_accepted,
+            stale_fence_rejected,
+            future_fence_rejected,
+            concurrent_fencing_preserved,
+            stable_key_replay_safe,
+            different_request_same_key_rejected,
+            changed_idempotency_key_rejected,
             transactionally_coupled_retry_safe: false,
-            exact_reconciliation: true,
-            strong_read_back_verified: true,
+            exact_reconciliation,
+            point_in_time_semantics_explicit: true,
+            strong_read_back_verified: exact_reconciliation,
             eventually_consistent_read_back_verified: false,
         };
         let profile = RecoveryExecutionEffectSafetyProfileV1 {
