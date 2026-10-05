@@ -143,6 +143,7 @@ jobs:
             strong_v2_preserves_frontier_validation_failure \
             strong_v2_preserves_evidence_path_failure_as_audit_error \
             v3_strong_constructor_preserves_v2_projection_diagnostic \
+            v3_frontier_validator_preserves_frontier_diagnostic \
             v4_strong_constructor_preserves_v2_projection_diagnostic \
             v4_validation_preserves_resolution_frontier_diagnostic \
             v4_frontier_validator_preserves_frontier_diagnostic \
