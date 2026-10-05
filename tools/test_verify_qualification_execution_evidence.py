@@ -115,7 +115,7 @@ def main() -> int:
             "source_revision": "0123456789abcdef0123456789abcdef01234567",
             "base_revision": "89abcdef0123456789abcdef0123456789abcdef",
             "workflow_name": "Check",
-            "workflow_ref": "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/check.yml@refs/pull/13/head",
+            "workflow_ref": "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/check.yml@refs/pull/13/merge",
             "workflow_file_path": ".github/workflows/check.yml",
             "workflow_sha": "fedcba9876543210fedcba9876543210fedcba98",
             "checked_out_workflow_file_sha256": digest(WORKFLOW),
