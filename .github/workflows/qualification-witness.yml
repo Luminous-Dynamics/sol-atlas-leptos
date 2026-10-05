@@ -32,6 +32,9 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
+      - name: Self-test trusted qualification verifier
+        run: python3 tools/test_verify_qualification_run.py
+
       - name: Verify completed qualification independently
         env:
           GH_TOKEN: ${{ github.token }}
