@@ -137,6 +137,12 @@ def main() -> int:
         fail(f"qualification requires workflow {EXPECTED_WORKFLOW_NAME!r}")
     if args.workflow_file_path != EXPECTED_WORKFLOW_FILE_PATH:
         fail(f"qualification requires workflow file {EXPECTED_WORKFLOW_FILE_PATH!r}")
+    expected_workflow_ref = (
+        f"{args.repository}/{EXPECTED_WORKFLOW_FILE_PATH}@refs/pull/"
+        f"{args.pull_request_number}/merge"
+    )
+    if args.workflow_ref != expected_workflow_ref:
+        fail("qualification workflow_ref does not match the canonical pull_request merge ref")
     if args.job_name != EXPECTED_JOB_NAME:
         fail(f"qualification requires job {EXPECTED_JOB_NAME!r}")
 
@@ -207,8 +213,8 @@ def main() -> int:
         fail("qualification command inventory does not match the V2 contract")
 
     packet_digest = hashlib.sha256(args.packet.read_bytes()).hexdigest()
-    sidecar = args.sidecar.read_text(encoding="utf-8").strip()
-    if sidecar != packet_digest:
+    sidecar = args.sidecar.read_text(encoding="utf-8")
+    if sidecar != packet_digest + "\n":
         fail("SHA-256 sidecar does not match packet bytes")
 
     print(
