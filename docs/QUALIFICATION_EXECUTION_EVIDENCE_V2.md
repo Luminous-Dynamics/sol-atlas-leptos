@@ -74,7 +74,8 @@ values alongside the separate SHA-256 of the checked-out workflow bytes.
 
 The packet uses JSON and SHA-256 for ordinary machine inspection. Duplicate
 JSON object keys are rejected to keep every packet field semantically
-unambiguous. The qualification contract pins Rust 1.99.0, and the verifier
-rejects a self-consistent packet that claims another Rust release. The schema
+unambiguous. The qualification contract pins Rust 1.99.0 and the `Check` / `.github/workflows/check.yml` /
+`provenance-construction` workflow identity. The verifier rejects a self-consistent
+packet that claims another Rust release or renames that qualification boundary. The schema
 is application-defined and versioned. It does not claim RFC 8785/JCS canonical
 JSON compatibility.
