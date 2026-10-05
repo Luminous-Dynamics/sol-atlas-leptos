@@ -1666,6 +1666,93 @@ impl RecoveryExecutionProtectedMutationOrchestrationStateV1 {
     }
 }
 
+/// Capability of an external resource to enforce fencing at its mutation boundary.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryExecutionFencingCapabilityV1 {
+    EnforcedAtMutationBoundary,
+    NotSupported,
+    Unknown,
+}
+
+/// Capability of an external effect to make repeated identical requests safe.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryExecutionIdempotencyCapabilityV1 {
+    StableKey,
+    TransactionallyCoupled,
+    NotSupported,
+    Unknown,
+}
+
+/// Read-back capability after an uncertain external-resource mutation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryExecutionReconciliationCapabilityV1 {
+    StrongReadBack,
+    EventuallyConsistentReadBack,
+    NotSupported,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecoveryExecutionEffectRecoveryModeV1 {
+    AutomaticTakeover,
+    AutomaticRetryOnly,
+    ManualRecoveryOnly,
+}
+
+/// Explicit external-effect safety profile.
+///
+/// Unknown capabilities never increase the derived recovery permission.
+/// The profile describes adapter guarantees; it does not establish
+/// authentication, proof-of-possession, exactly-once execution, or truth of
+/// the external resource state.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecoveryExecutionEffectSafetyProfileV1 {
+    pub schema: String,
+    pub fencing: RecoveryExecutionFencingCapabilityV1,
+    pub idempotency: RecoveryExecutionIdempotencyCapabilityV1,
+    pub reconciliation: RecoveryExecutionReconciliationCapabilityV1,
+    pub claim_ceiling: String,
+}
+
+impl RecoveryExecutionEffectSafetyProfileV1 {
+    pub const SCHEMA: &'static str =
+        "sol-atlas:recovery-execution-effect-safety-profile:v1";
+
+    pub fn is_well_formed(&self) -> bool {
+        self.schema == Self::SCHEMA && !self.claim_ceiling.is_empty()
+    }
+
+    pub fn automatic_retry_safe(&self) -> bool {
+        self.is_well_formed()
+            && matches!(
+                self.idempotency,
+                RecoveryExecutionIdempotencyCapabilityV1::StableKey
+                    | RecoveryExecutionIdempotencyCapabilityV1::TransactionallyCoupled
+            )
+    }
+
+    pub fn automatic_takeover_safe(&self) -> bool {
+        self.automatic_retry_safe()
+            && matches!(
+                self.fencing,
+                RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary
+            )
+    }
+
+    pub fn recovery_mode(&self) -> RecoveryExecutionEffectRecoveryModeV1 {
+        if self.automatic_takeover_safe() {
+            RecoveryExecutionEffectRecoveryModeV1::AutomaticTakeover
+        } else if self.automatic_retry_safe() {
+            RecoveryExecutionEffectRecoveryModeV1::AutomaticRetryOnly
+        } else {
+            RecoveryExecutionEffectRecoveryModeV1::ManualRecoveryOnly
+        }
+    }
+}
+
+/// Validate a protected mutation request against the established fence before
+/// crossing the resource boundary.
+
 /// Validate a protected mutation request against the established fence before
 /// crossing the resource boundary.
 
@@ -1849,6 +1936,98 @@ mod tests {
             );
             Ok(RecoveryExecutionProtectedMutationResult::Applied)
         }
+    }
+
+    #[test]
+    fn external_effect_safety_profile_derives_conservative_recovery_mode() {
+        let profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::StableKey,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::StrongReadBack,
+            claim_ceiling: "Adapter capability declaration only.".into(),
+        };
+
+        assert!(profile.is_well_formed());
+        assert!(profile.automatic_retry_safe());
+        assert!(profile.automatic_takeover_safe());
+        assert_eq!(
+            profile.recovery_mode(),
+            RecoveryExecutionEffectRecoveryModeV1::AutomaticTakeover,
+        );
+    }
+
+    #[test]
+    fn external_effect_safety_profile_without_fencing_allows_retry_but_not_takeover() {
+        let profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::NotSupported,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::StableKey,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::StrongReadBack,
+            claim_ceiling: "Adapter capability declaration only.".into(),
+        };
+
+        assert!(profile.automatic_retry_safe());
+        assert!(!profile.automatic_takeover_safe());
+        assert_eq!(
+            profile.recovery_mode(),
+            RecoveryExecutionEffectRecoveryModeV1::AutomaticRetryOnly,
+        );
+    }
+
+    #[test]
+    fn external_effect_safety_profile_without_idempotency_fails_closed() {
+        let profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::NotSupported,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::StrongReadBack,
+            claim_ceiling: "Adapter capability declaration only.".into(),
+        };
+
+        assert!(!profile.automatic_retry_safe());
+        assert!(!profile.automatic_takeover_safe());
+        assert_eq!(
+            profile.recovery_mode(),
+            RecoveryExecutionEffectRecoveryModeV1::ManualRecoveryOnly,
+        );
+    }
+
+    #[test]
+    fn unknown_external_effect_capabilities_never_expand_recovery_permission() {
+        let profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::Unknown,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::Unknown,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::Unknown,
+            claim_ceiling: "Adapter capability declaration only.".into(),
+        };
+
+        assert!(!profile.automatic_retry_safe());
+        assert!(!profile.automatic_takeover_safe());
+        assert_eq!(
+            profile.recovery_mode(),
+            RecoveryExecutionEffectRecoveryModeV1::ManualRecoveryOnly,
+        );
+    }
+
+    #[test]
+    fn malformed_external_effect_safety_profile_fails_closed() {
+        let mut profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::StableKey,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::StrongReadBack,
+            claim_ceiling: "Adapter capability declaration only.".into(),
+        };
+        profile.schema = "wrong-schema".into();
+
+        assert!(!profile.is_well_formed());
+        assert!(!profile.automatic_retry_safe());
+        assert_eq!(
+            profile.recovery_mode(),
+            RecoveryExecutionEffectRecoveryModeV1::ManualRecoveryOnly,
+        );
     }
 
     #[test]
