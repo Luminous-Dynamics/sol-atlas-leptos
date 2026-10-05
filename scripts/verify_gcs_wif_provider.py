@@ -14,7 +14,7 @@ from pathlib import Path
 
 PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
-    "gcs_wif_trust_profile_v3.json"
+    "gcs_wif_trust_profile_v4.json"
 )
 
 
@@ -33,7 +33,7 @@ def digest(value: object) -> str:
 
 def load_profile() -> dict[str, object]:
     profile = json.loads(Path(PROFILE_PATH).read_text(encoding="utf-8"))
-    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v3":
+    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v4":
         raise AssertionError("wrong WIF trust profile schema")
     if not profile.get("exact_attribute_condition"):
         raise AssertionError("WIF trust profile has no exact condition")
@@ -43,6 +43,8 @@ def load_profile() -> dict[str, object]:
         raise AssertionError("WIF profile does not require an exclusive provider pool")
     if profile.get("service_account_binding_is_exclusive") is not True:
         raise AssertionError("WIF profile does not require an exclusive service-account binding")
+    if profile.get("service_account_must_reside_in_project") is not True:
+        raise AssertionError("WIF profile does not require same-project service account")
     return profile
 
 
@@ -153,6 +155,32 @@ def project_number(project_id: str) -> str:
     return str(number)
 
 
+def service_account_project(service_account: str) -> str:
+    result = run_json(
+        [
+            "gcloud",
+            "iam",
+            "service-accounts",
+            "describe",
+            service_account,
+            "--format=json",
+        ]
+    )
+    if not isinstance(result, dict):
+        raise AssertionError("service account response is not an object")
+    project = result.get("projectId")
+    if not project:
+        raise AssertionError("service account has no projectId")
+    return str(project)
+
+
+def service_account_is_in_project(
+    service_account_project_id: str,
+    expected_project_id: str,
+) -> bool:
+    return service_account_project_id == expected_project_id
+
+
 def service_account_policy(service_account: str) -> dict[str, object]:
     return run_json(
         [
@@ -228,6 +256,10 @@ def verify(
         project_number=number,
         pool_id=pool_id,
     )
+    sa_project = service_account_project(service_account)
+    if not service_account_is_in_project(sa_project, configured_project_id):
+        raise AssertionError("service account is outside configured GCP project")
+
     policy = service_account_policy(service_account)
     role = str(binding["role"])
     if not binding_is_exclusive(policy, role, expected_member):
@@ -248,13 +280,15 @@ def verify(
         }
     )
     return {
-        "schema": "sol-atlas:gcs-wif-trust-verification:v3",
+        "schema": "sol-atlas:gcs-wif-trust-verification:v4",
         "provider_resource": provider_resource,
         "provider_project_number": number,
         "provider_digest": provider_digest,
         "profile_path": PROFILE_PATH,
         "profile_digest": digest(profile),
         "service_account": service_account,
+        "service_account_project": sa_project,
+        "service_account_project_verified": True,
         "service_account_binding_verified": True,
         "provider_pool_exclusive": True,
         "attribute_mapping_verified": True,
