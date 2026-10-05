@@ -146,9 +146,12 @@ class GcsGenerationFencedObject:
             size=int(document.get("size", "0")),
         )
 
-    def data(self) -> bytes:
+    def data(self, generation: int | None = None) -> bytes:
         path = self._json_path() + "?alt=media"
-        result = self._request("GET", path)
+        headers = {}
+        if generation is not None:
+            headers["x-goog-if-generation-match"] = str(generation)
+        result = self._request("GET", path, headers=headers)
         if result.status != 200:
             raise RuntimeError(
                 f"GCS media GET failed: HTTP {result.status}: "
@@ -157,17 +160,24 @@ class GcsGenerationFencedObject:
         return result.body
 
     def state(self) -> ObjectState | None:
-        metadata = self.metadata()
-        if metadata is None:
-            return None
-        body = self.data()
-        return ObjectState(
-            generation=metadata.generation,
-            metageneration=metadata.metageneration,
-            data_sha256=sha256_prefixed(body),
-            metadata=metadata.metadata,
-            size=len(body),
-        )
+        for _attempt in range(3):
+            metadata = self.metadata()
+            if metadata is None:
+                return None
+            try:
+                body = self.data(metadata.generation)
+            except RuntimeError as error:
+                if "HTTP 412" not in str(error):
+                    raise
+                continue
+            return ObjectState(
+                generation=metadata.generation,
+                metageneration=metadata.metageneration,
+                data_sha256=sha256_prefixed(body),
+                metadata=metadata.metadata,
+                size=len(body),
+            )
+        raise RuntimeError("GCS object changed during bounded read-back")
 
     def raw_put(
         self,
