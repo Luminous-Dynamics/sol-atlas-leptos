@@ -201,8 +201,10 @@ def run_qualification(bucket: str, object_prefix: str) -> dict[str, object]:
     )
     main_name = root + "/main.bin"
     point_name = root + "/point-in-time.bin"
+    race_name = root + "/metadata-race.bin"
     resource = GcsGenerationFencedObject(bucket, main_name, token)
     point_resource = GcsGenerationFencedObject(bucket, point_name, token)
+    race_resource = GcsGenerationFencedObject(bucket, race_name, token)
     cases: list[dict[str, object]] = []
 
     try:
@@ -399,6 +401,67 @@ def run_qualification(bucket: str, object_prefix: str) -> dict[str, object]:
             raise AssertionError("concurrent winner was not observable")
         generation = winning_state.generation
 
+        race_generation = create_setup(race_resource, "metadata-race")
+        baseline = race_resource.state()
+        if baseline is None:
+            raise AssertionError("metadata-race setup was not observable")
+
+        def mutate_metadata(observed):
+            result = race_resource.update_metadata(
+                observed.generation,
+                observed.metageneration,
+                {"reconciliation-marker": "race-v1"},
+            )
+            if result.status != 200:
+                raise AssertionError(
+                    f"metadata race update failed: HTTP {result.status}"
+                )
+
+        coherent_state = race_resource.state(
+            between_metadata_and_data=mutate_metadata
+        )
+        metadata_coherence_ok = (
+            coherent_state is not None
+            and coherent_state.generation == race_generation
+            and coherent_state.metageneration > baseline.metageneration
+            and coherent_state.metadata.get("reconciliation-marker") == "race-v1"
+            and coherent_state.data_sha256 == baseline.data_sha256
+        )
+        cases.append(
+            record(
+                "metadata_readback_coherence",
+                metadata_coherence_ok,
+                {
+                    "generation_unchanged": (
+                        coherent_state.generation == baseline.generation
+                        if coherent_state
+                        else False
+                    ),
+                    "metageneration_before": baseline.metageneration,
+                    "metageneration_after": (
+                        coherent_state.metageneration
+                        if coherent_state
+                        else None
+                    ),
+                    "marker_observed": (
+                        coherent_state.metadata.get("reconciliation-marker")
+                        if coherent_state
+                        else None
+                    ),
+                    "body_digest_unchanged": (
+                        coherent_state.data_sha256 == baseline.data_sha256
+                        if coherent_state
+                        else False
+                    ),
+                    "retry_on_precondition_mismatch": True
+                },
+            )
+        )
+        if not metadata_coherence_ok:
+            raise AssertionError(
+                "metadata/data read-back did not converge to one coherent snapshot"
+            )
+
         lost_ack = request(
             "lost-ack",
             generation,
@@ -509,7 +572,7 @@ def run_qualification(bucket: str, object_prefix: str) -> dict[str, object]:
         }
     finally:
         cleanup_errors = []
-        for target in (resource, point_resource):
+        for target in (resource, point_resource, race_resource):
             try:
                 state = target.state()
                 if state is not None:
