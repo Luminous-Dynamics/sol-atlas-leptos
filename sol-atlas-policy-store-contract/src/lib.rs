@@ -1972,6 +1972,13 @@ pub struct RecoveryExecutionEffectConformanceEvidenceV1 {
 }
 
 impl RecoveryExecutionEffectConformanceEvidenceV1 {
+    /// Stable identity for the named behavioral-vector set represented by v1.
+    ///
+    /// Adding, removing, or reordering cases requires a new case-set identity;
+    /// that intentionally invalidates previously issued evidence.
+    pub const CASE_SET: &'static str =
+        "sol-atlas:recovery-execution-effect-conformance-cases:v1";
+
     /// Content digest for the concrete behavioral evidence.
     pub fn digest(&self) -> String {
         let flags = [
@@ -1989,10 +1996,16 @@ impl RecoveryExecutionEffectConformanceEvidenceV1 {
             self.strong_read_back_verified,
             self.eventually_consistent_read_back_verified,
         ];
-        let material: String = flags
+        let results: String = flags
             .into_iter()
             .map(|flag| if flag { '1' } else { '0' })
             .collect();
+        let material = format!(
+            "case-set={}:{}|results={}",
+            Self::CASE_SET.len(),
+            Self::CASE_SET,
+            results
+        );
         let mut hasher = Sha256::new();
         hasher.update(material.as_bytes());
         format!("sha256:{:x}", hasher.finalize())
