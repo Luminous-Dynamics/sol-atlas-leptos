@@ -25,10 +25,15 @@ from scripts.gcs_generation_fenced_adapter import (
 
 
 SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v1"
-CASE_SET = (
+CASE_SET_PATH = (
+    "sol-atlas-policy-store-contract/conformance/"
+    "gcs_external_effect_cases_v1.json"
+)
+EXPECTED_CASE_SET = (
     "sol-atlas:recovery-execution-effect-external-conformance-cases:"
     "gcs-generation-v1"
 )
+CASE_SET_SCHEMA = "sol-atlas:recovery-execution-effect-case-set:v1"
 ADAPTER_PATH = "scripts/gcs_generation_fenced_adapter.py"
 HARNESS_PATH = "scripts/qualify_gcs_external_effect.py"
 WORKFLOW_PATH = ".github/workflows/qualify-gcs.yml"
@@ -37,18 +42,30 @@ HARNESS_ID = "sol-atlas-gcs-external-conformance"
 CLAIM_CEILING = (
     "GCS generation-precondition evidence only; no universal exactly-once claim."
 )
-CASE_IDS = [
-    "current_fence_accepted",
-    "stable_key_replay_safe",
-    "stale_fence_rejected",
-    "future_fence_rejected",
-    "concurrent_fencing_preserved",
-    "different_request_same_key_rejected",
-    "changed_request_same_key_rejected",
-    "changed_idempotency_key_rejected",
-    "indeterminate_ack_reconciled",
-    "point_in_time_semantics_explicit",
-]
+def load_case_set() -> dict[str, object]:
+    case_set = json.loads(
+        Path(CASE_SET_PATH).read_text(encoding="utf-8")
+    )
+    if (
+        case_set.get("schema") != CASE_SET_SCHEMA
+        or case_set.get("case_set") != EXPECTED_CASE_SET
+    ):
+        raise AssertionError("invalid GCS case-set identity")
+    cases = case_set.get("cases")
+    if not isinstance(cases, list) or not cases:
+        raise AssertionError("GCS case-set has no cases")
+    case_ids = [case.get("id") for case in cases if isinstance(case, dict)]
+    if (
+        len(case_ids) != len(cases)
+        or any(not isinstance(case_id, str) or not case_id for case_id in case_ids)
+        or len(set(case_ids)) != len(case_ids)
+    ):
+        raise AssertionError("GCS case-set has invalid or duplicate case IDs")
+    return case_set
+
+
+def case_ids(case_set: dict[str, object]) -> list[str]:
+    return [case["id"] for case in case_set["cases"]]
 
 
 def git_sha(path: str) -> str:
@@ -153,6 +170,7 @@ def record(case_id: str, passed: bool, observed: dict[str, object]) -> dict[str,
 
 
 def run_qualification(bucket: str, object_prefix: str) -> dict[str, object]:
+    case_set = load_case_set()
     token = access_token()
     run_id = os.environ.get("GITHUB_RUN_ID", "local")
     run_attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "1")
@@ -438,11 +456,12 @@ def run_qualification(bucket: str, object_prefix: str) -> dict[str, object]:
         if not point_ok:
             raise AssertionError("point-in-time reconciliation semantics changed")
 
-        if [case["id"] for case in cases] != CASE_IDS:
+        if [case["id"] for case in cases] != case_ids(case_set):
             raise AssertionError("case-set execution order drifted")
 
         evidence = {
-            "case_set": CASE_SET,
+            "case_set": EXPECTED_CASE_SET,
+            "case_set_digest": digest(case_set),
             "cases": cases,
             "all_passed": all(bool(case["passed"]) for case in cases),
             "cleanup_succeeded": False,
@@ -461,7 +480,9 @@ def run_qualification(bucket: str, object_prefix: str) -> dict[str, object]:
             "profile": profile(),
             "profile_digest": profile_digest(profile()),
             "evidence_digest": digest(evidence),
-            "case_set": CASE_SET,
+            "case_set": EXPECTED_CASE_SET,
+            "case_set_digest": digest(case_set),
+            "case_set_path": CASE_SET_PATH,
             "object_names": [main_name, point_name],
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "evidence": evidence,
@@ -507,12 +528,18 @@ def write_report(path: str, report: dict[str, object]) -> None:
 
 def verify_report(path: str) -> None:
     report = json.loads(Path(path).read_text(encoding="utf-8"))
+    expected_case_set = load_case_set()
     if report.get("schema") != SCHEMA:
         raise AssertionError("wrong report schema")
     if report.get("status") != "qualified":
         raise AssertionError("report is not qualified")
-    if report.get("case_set") != CASE_SET:
+    if report.get("case_set") != EXPECTED_CASE_SET:
         raise AssertionError("wrong case-set identity")
+    if report.get("case_set_path") != CASE_SET_PATH:
+        raise AssertionError("wrong case-set path")
+    expected_case_set_digest = digest(expected_case_set)
+    if report.get("case_set_digest") != expected_case_set_digest:
+        raise AssertionError("case-set digest mismatch")
     if report.get("adapter_revision") != git_sha(ADAPTER_PATH):
         raise AssertionError("adapter revision drift detected")
     if report.get("harness_revision") != git_sha(HARNESS_PATH):
@@ -531,8 +558,13 @@ def verify_report(path: str) -> None:
     evidence = report.get("evidence")
     if not isinstance(evidence, dict):
         raise AssertionError("missing evidence")
-    if [case.get("id") for case in evidence.get("cases", [])] != CASE_IDS:
+    expected_ids = case_ids(expected_case_set)
+    if [case.get("id") for case in evidence.get("cases", [])] != expected_ids:
         raise AssertionError("case-set vector mismatch")
+    if evidence.get("case_set") != EXPECTED_CASE_SET:
+        raise AssertionError("evidence case-set identity mismatch")
+    if evidence.get("case_set_digest") != expected_case_set_digest:
+        raise AssertionError("evidence case-set digest mismatch")
     if not evidence.get("cleanup_succeeded"):
         raise AssertionError("cleanup was not successful")
     if not evidence.get("all_passed"):
