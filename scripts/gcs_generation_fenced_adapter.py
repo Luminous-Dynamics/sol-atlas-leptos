@@ -146,12 +146,20 @@ class GcsGenerationFencedObject:
             size=int(document.get("size", "0")),
         )
 
-    def data(self, generation: int | None = None) -> bytes:
+    def data(
+        self,
+        generation: int | None = None,
+        metageneration: int | None = None,
+    ) -> bytes:
         path = self._json_path() + "?alt=media"
-        headers = {}
+        query = []
         if generation is not None:
-            headers["x-goog-if-generation-match"] = str(generation)
-        result = self._request("GET", path, headers=headers)
+            query.append("ifGenerationMatch=" + str(generation))
+        if metageneration is not None:
+            query.append("ifMetagenerationMatch=" + str(metageneration))
+        if query:
+            path += "&" + "&".join(query)
+        result = self._request("GET", path)
         if result.status != 200:
             raise RuntimeError(
                 f"GCS media GET failed: HTTP {result.status}: "
@@ -165,7 +173,10 @@ class GcsGenerationFencedObject:
             if metadata is None:
                 return None
             try:
-                body = self.data(metadata.generation)
+                body = self.data(
+                    metadata.generation,
+                    metadata.metageneration,
+                )
             except RuntimeError as error:
                 if "HTTP 412" not in str(error):
                     raise
