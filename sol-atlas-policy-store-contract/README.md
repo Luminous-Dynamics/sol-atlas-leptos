@@ -174,6 +174,31 @@ claims of interoperability or exactly-once execution here.
 #36 remains open until an actual external-effect adapter supplies
 resource-specific conformance evidence.
 
+## Conformance provenance (#37)
+
+`RecoveryExecutionEffectConformanceReportV1` binds conformance evidence to
+the exact safety-profile digest, adapter identity/revision, and harness
+identity/revision that produced the report. The evidence payload itself is
+content-addressed, and the report digest covers the complete provenance
+binding.
+
+`supports_profile()` therefore rejects:
+
+- a report produced for a different safety profile;
+- a modified evidence payload whose digest no longer matches;
+- a report whose adapter or harness revision was changed without recomputing
+  the report identity;
+- missing or malformed provenance fields.
+
+This is deliberately provenance, not authentication. A caller can still
+forge a complete report unless the surrounding qualification system protects
+the evidence source and verifies the claimed adapter revision. The contract
+therefore treats the report as a tamper/drift detector and qualification
+input, not as a cryptographic proof that an external service behaved honestly.
+
+#37 remains open until the real adapter qualification path stores and reviews
+these reports as part of its CI/evidence workflow.
+
 ## Ownership is not authentication
 
 `execution_id` and `attempt_id` are durable correlation/ownership identifiers only. They are not credentials, proof of authorization, or proof-of-possession. A conforming store can establish which identifier owns a record, but it cannot establish that the caller presenting that identifier is entitled to act. Caller authentication, authority validation, and any sender-constraining or proof-of-possession mechanism belong to the external authorization adapter.
