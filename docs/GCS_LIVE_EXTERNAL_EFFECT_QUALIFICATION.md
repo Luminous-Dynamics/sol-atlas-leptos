@@ -14,6 +14,9 @@ The qualified profile is intentionally narrow:
   delete/recreate is outside the qualified replay guarantee.
 - The adapter performs an exact read-back after mutation and after an
   acknowledgement-discarded request.
+- Media read-back is conditional on both generation and metageneration, and a
+  bounded retry handles concurrent metadata churn without accepting a torn
+  metadata/data snapshot.
 - The evidence applies only to the tested adapter, bucket, object API, and
   captured run. It is not a universal exactly-once claim.
 
@@ -35,8 +38,11 @@ The frozen case set is:
 6. an idempotency key cannot be reused by another execution;
 7. an execution identity cannot change the request under the same key;
 8. an execution identity cannot silently change its idempotency key;
-9. an acknowledgement-discarded mutation is reconciled by exact read-back;
-10. reconciliation distinguishes the pre-application point from the applied
+9. a metadata change between metadata and media reads is detected through
+   metageneration preconditions and the read-back converges to one coherent
+   snapshot;
+10. an acknowledgement-discarded mutation is reconciled by exact read-back;
+11. reconciliation distinguishes the pre-application point from the applied
     point without treating absence as proof of non-commit.
 
 Adding, removing, reordering, or redefining these cases requires a new case-set
