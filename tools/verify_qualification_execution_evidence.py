@@ -53,6 +53,15 @@ def fail(message: str) -> "NoReturn":
     raise SystemExit(f"qualification evidence verification failed: {message}")
 
 
+def reject_duplicate_object_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            fail(f"packet contains duplicate JSON object key: {key}")
+        result[key] = value
+    return result
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("packet", type=Path)
@@ -98,7 +107,10 @@ def main() -> int:
             fail(f"{label} does not exist: {path}")
 
     try:
-        evidence = json.loads(args.packet.read_text(encoding="utf-8"))
+        evidence = json.loads(
+            args.packet.read_text(encoding="utf-8"),
+            object_pairs_hook=reject_duplicate_object_keys,
+        )
         if not isinstance(evidence, dict):
             fail("packet JSON root is not an object")
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
