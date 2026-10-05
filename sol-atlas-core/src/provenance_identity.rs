@@ -10,8 +10,8 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use crate::cultural_projection_replay::V5ReplayReceiptV1;
 use crate::civilizational::ProjectionError;
+use crate::cultural_projection_replay::V5ReplayReceiptV1;
 
 pub const PORTABLE_PROVENANCE_IDENTITY_SCHEMA_V1: &str =
     "sol-atlas:portable-provenance-identity:v1";
@@ -60,16 +60,12 @@ pub struct V5PortableReplayIdentityV1 {
 }
 
 impl V5PortableReplayIdentityV1 {
-    pub fn from_receipt(
-        receipt: &V5ReplayReceiptV1,
-    ) -> Result<Self, ProjectionError> {
+    pub fn from_receipt(receipt: &V5ReplayReceiptV1) -> Result<Self, ProjectionError> {
         receipt.validate()?;
         Self::from_validated_receipt(receipt)
     }
 
-    fn from_validated_receipt(
-        receipt: &V5ReplayReceiptV1,
-    ) -> Result<Self, ProjectionError> {
+    fn from_validated_receipt(receipt: &V5ReplayReceiptV1) -> Result<Self, ProjectionError> {
         let payload = (
             V5_REPLAY_RECEIPT_DIGEST_DOMAIN_V1,
             SERDE_JSON_TUPLE_CANONICALIZATION_V1,
@@ -106,10 +102,7 @@ impl V5PortableReplayIdentityV1 {
         self.content_digest.validate()
     }
 
-    pub fn computed_digest(
-        &self,
-        receipt: &V5ReplayReceiptV1,
-    ) -> Result<String, ProjectionError> {
+    pub fn computed_digest(&self, receipt: &V5ReplayReceiptV1) -> Result<String, ProjectionError> {
         receipt.validate()?;
         let payload = (
             V5_REPLAY_RECEIPT_DIGEST_DOMAIN_V1,
@@ -164,14 +157,11 @@ mod tests {
     fn portable_identity_is_self_describing() {
         let mut receipt = fixture();
         receipt.recompute_hash().expect("receipt hash");
-        let identity = V5PortableReplayIdentityV1::from_receipt(&receipt)
-            .expect("portable identity");
+        let identity =
+            V5PortableReplayIdentityV1::from_receipt(&receipt).expect("portable identity");
         assert_eq!(identity.schema, PORTABLE_PROVENANCE_IDENTITY_SCHEMA_V1);
         assert_eq!(identity.payload_kind, "v5_replay_receipt");
-        assert_eq!(
-            identity.content_digest.algorithm,
-            SHA256_ALGORITHM_V1
-        );
+        assert_eq!(identity.content_digest.algorithm, SHA256_ALGORITHM_V1);
         assert_eq!(
             identity.content_digest.canonicalization,
             SERDE_JSON_TUPLE_CANONICALIZATION_V1
@@ -180,10 +170,7 @@ mod tests {
             identity.content_digest.domain,
             V5_REPLAY_RECEIPT_DIGEST_DOMAIN_V1
         );
-        assert_eq!(
-            identity.source_receipt_hash,
-            receipt.receipt_hash
-        );
+        assert_eq!(identity.source_receipt_hash, receipt.receipt_hash);
         assert!(identity.validate_against_receipt(&receipt).is_ok());
     }
 
@@ -191,8 +178,8 @@ mod tests {
     fn portable_identity_rejects_receipt_rebinding() {
         let mut receipt = fixture();
         receipt.recompute_hash().expect("receipt hash");
-        let identity = V5PortableReplayIdentityV1::from_receipt(&receipt)
-            .expect("portable identity");
+        let identity =
+            V5PortableReplayIdentityV1::from_receipt(&receipt).expect("portable identity");
 
         let mut rebound = receipt.clone();
         rebound.leaf_frontier = "frontier:other".into();
@@ -219,8 +206,8 @@ mod tests {
     fn portable_digest_domain_tamper_is_rejected() {
         let mut receipt = fixture();
         receipt.recompute_hash().expect("receipt hash");
-        let mut identity = V5PortableReplayIdentityV1::from_receipt(&receipt)
-            .expect("portable identity");
+        let mut identity =
+            V5PortableReplayIdentityV1::from_receipt(&receipt).expect("portable identity");
         identity.content_digest.domain = "other-domain".into();
 
         assert_eq!(
@@ -233,8 +220,8 @@ mod tests {
     fn portable_digest_metadata_tamper_is_rejected() {
         let mut receipt = fixture();
         receipt.recompute_hash().expect("receipt hash");
-        let mut identity = V5PortableReplayIdentityV1::from_receipt(&receipt)
-            .expect("portable identity");
+        let mut identity =
+            V5PortableReplayIdentityV1::from_receipt(&receipt).expect("portable identity");
         identity.content_digest.algorithm = "sha512".into();
 
         assert_eq!(
