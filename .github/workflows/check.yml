@@ -79,3 +79,10 @@ jobs:
           cargo test
           --manifest-path sol-atlas-policy-store-contract/Cargo.toml
           --test reference_effect_conformance
+      - name: Check external qualification tooling
+        run: |
+          python3 -m py_compile scripts/gcs_generation_fenced_adapter.py
+          python3 -m py_compile scripts/qualify_gcs_external_effect.py
+          awk 'length($0) > 100 { print FNR ":" length($0) ":" $0; exit 1 }' \
+            scripts/gcs_generation_fenced_adapter.py \
+            scripts/qualify_gcs_external_effect.py
