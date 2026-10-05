@@ -4035,7 +4035,11 @@ impl RecoveryExecutionResultSnapshotV1 {
                 .ended_at
                 .as_deref()
                 .is_some_and(is_canonical_utc_timestamp)
-            && !self.attempted_steps.is_empty()
+            && (!self.attempted_steps.is_empty()
+                || self
+                    .failure_reason
+                    .as_ref()
+                    .is_some_and(|reason| !reason.is_empty()))
             && self.attempted_steps.iter().all(|step| !step.is_empty())
             && unique_nonempty_strings(&self.attempted_steps)
             && self.completed_steps.iter().all(|step| !step.is_empty())
@@ -4291,6 +4295,8 @@ impl RecoveryExecution {
             && !self.plan_id.is_empty()
             && !self.execution_id.is_empty()
             && self.completed_and_failed_steps_are_consistent()
+            && self.metadata_is_well_formed()
+            && !self.input_snapshot.is_empty()
             && (self.failed_steps.iter().any(|step| !step.is_empty())
                 || self
                     .failure_reason
@@ -5433,6 +5439,56 @@ mod graph_tests {
         let mut malformed_time = execution.clone();
         malformed_time.started_at = "yesterday".into();
         assert!(!malformed_time.is_successful());
+    }
+
+    #[test]
+    fn failed_execution_can_fail_before_any_step_and_produce_a_result_snapshot() {
+        let execution = RecoveryExecution {
+            plan_id: "plan-failure-before-step".into(),
+            execution_id: "execution-failure-before-step".into(),
+            started_at: "2026-10-02T09:00:00Z".into(),
+            ended_at: Some("2026-10-02T09:00:01Z".into()),
+            attempted_steps: vec![],
+            completed_steps: vec![],
+            failed_steps: vec![],
+            observed_preconditions: vec![],
+            evidence: vec![],
+            resulting_state: CapabilityState::Conceptual,
+            authorization: None,
+            ai_assistance: None,
+            input_snapshot: "sha256:execution-inputs".into(),
+            failure_reason: Some("precondition failed before first step".into()),
+            claim_ceiling: "Exact failure record only.".into(),
+        };
+
+        assert!(execution.is_failed());
+
+        let result = RecoveryExecutionResultSnapshotV1::from_execution(&execution);
+        assert!(result.is_well_formed());
+    }
+
+    #[test]
+    fn failed_execution_without_steps_or_reason_is_not_a_terminal_result() {
+        let execution = RecoveryExecution {
+            plan_id: "plan-failure-empty".into(),
+            execution_id: "execution-failure-empty".into(),
+            started_at: "2026-10-02T09:00:00Z".into(),
+            ended_at: Some("2026-10-02T09:00:01Z".into()),
+            attempted_steps: vec![],
+            completed_steps: vec![],
+            failed_steps: vec![],
+            observed_preconditions: vec![],
+            evidence: vec![],
+            resulting_state: CapabilityState::Conceptual,
+            authorization: None,
+            ai_assistance: None,
+            input_snapshot: "sha256:execution-inputs".into(),
+            failure_reason: None,
+            claim_ceiling: "Exact failure record only.".into(),
+        };
+
+        assert!(!execution.is_failed());
+        assert!(!RecoveryExecutionResultSnapshotV1::from_execution(&execution).is_well_formed());
     }
 
     #[test]
