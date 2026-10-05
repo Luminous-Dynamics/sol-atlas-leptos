@@ -1685,8 +1685,13 @@ mod tests {
 
     #[derive(Default)]
     struct FencedResourceMemoryStore {
-        current_epoch: Mutex<u64>,
-        applied: Mutex<BTreeMap<String, (String, String, u64, Option<String>)>>,
+        state: Mutex<FencedResourceMemoryState>,
+    }
+
+    #[derive(Default)]
+    struct FencedResourceMemoryState {
+        current_epoch: u64,
+        applied: BTreeMap<String, (String, String, u64, Option<String>)>,
     }
 
     impl RecoveryExecutionProtectedMutationReconciler for FencedResourceMemoryStore {
@@ -1710,9 +1715,9 @@ mod tests {
                 );
             }
 
-            let applied = self.applied.lock().map_err(|_| "poisoned")?;
+            let state = self.state.lock().map_err(|_| "poisoned")?;
             let Some((fingerprint, attempt_id, epoch, idempotency_key)) =
-                applied.get(&mutation.execution_id)
+                state.applied.get(&mutation.execution_id)
             else {
                 return Ok(
                     RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedNotApplied,
@@ -1738,7 +1743,7 @@ mod tests {
 
     impl FencedResourceMemoryStore {
         fn set_epoch(&self, epoch: u64) {
-            *self.current_epoch.lock().expect("epoch lock") = epoch;
+            self.state.lock().expect("resource state lock").current_epoch = epoch;
         }
     }
 
@@ -1757,8 +1762,8 @@ mod tests {
                 return Ok(RecoveryExecutionProtectedMutationResult::RejectedInvalidFence);
             }
 
-            let mut applied = self.applied.lock().map_err(|_| "poisoned")?;
-            let current_epoch = *self.current_epoch.lock().map_err(|_| "poisoned")?;
+            let mut state = self.state.lock().map_err(|_| "poisoned")?;
+            let current_epoch = state.current_epoch;
             if mutation.fence_epoch < current_epoch {
                 return Ok(RecoveryExecutionProtectedMutationResult::RejectedStaleFence);
             }
@@ -1767,7 +1772,8 @@ mod tests {
             }
 
             let key = mutation.execution_id.clone();
-            if let Some((fingerprint, attempt_id, epoch, idempotency_key)) = applied.get(&key) {
+            if let Some((fingerprint, attempt_id, epoch, idempotency_key)) =
+                state.applied.get(&key)
                 if fingerprint != &mutation.execution_input_snapshot {
                     return Ok(
                         RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch,
@@ -1789,7 +1795,7 @@ mod tests {
                 return Ok(RecoveryExecutionProtectedMutationResult::RejectedStaleFence);
             }
 
-            applied.insert(
+            state.applied.insert(
                 key,
                 (
                     mutation.execution_input_snapshot.clone(),
@@ -1905,6 +1911,74 @@ mod tests {
             )
             .is_none()
         );
+    }
+
+    #[test]
+    fn protected_resource_concurrent_mutations_preserve_fence_invariant() {
+        let resource = Arc::new(FencedResourceMemoryStore::default());
+        resource.set_epoch(2);
+
+        let current = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-concurrent-current".into(),
+            execution_input_snapshot:
+                "sha256:3333333333333333333333333333333333333333333333333333333333333333".into(),
+            attempt_id: "attempt-current".into(),
+            fence_epoch: 2,
+            idempotency_key: None,
+        };
+        let stale = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-concurrent-stale".into(),
+            execution_input_snapshot:
+                "sha256:4444444444444444444444444444444444444444444444444444444444444444".into(),
+            attempt_id: "attempt-stale".into(),
+            fence_epoch: 1,
+            idempotency_key: None,
+        };
+
+        let mut joins = Vec::new();
+        for _ in 0..32 {
+            let resource = Arc::clone(&resource);
+            let request = current.clone();
+            joins.push(thread::spawn(move || {
+                resource.mutate_if_fence_is_current(&request)
+            }));
+        }
+        for _ in 0..32 {
+            let resource = Arc::clone(&resource);
+            let request = stale.clone();
+            joins.push(thread::spawn(move || {
+                resource.mutate_if_fence_is_current(&request)
+            }));
+        }
+
+        for join in joins {
+            let _ = join
+                .join()
+                .expect("resource mutation thread")
+                .expect("resource result");
+        }
+
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&current)
+                .expect("current replay"),
+            RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest,
+        );
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&stale)
+                .expect("stale rejection"),
+            RecoveryExecutionProtectedMutationResult::RejectedStaleFence,
+        );
+
+        let state = resource.state.lock().expect("resource state lock");
+        assert!(
+            state
+                .applied
+                .values()
+                .all(|(_, _, epoch, _)| *epoch <= state.current_epoch),
+        );
+        assert!(!state.applied.contains_key(&stale.execution_id));
     }
 
     #[test]
