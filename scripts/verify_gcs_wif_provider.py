@@ -14,7 +14,7 @@ from pathlib import Path
 
 PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
-    "gcs_wif_trust_profile_v2.json"
+    "gcs_wif_trust_profile_v3.json"
 )
 
 
@@ -39,6 +39,10 @@ def load_profile() -> dict[str, object]:
         raise AssertionError("WIF trust profile has no exact condition")
     if not profile.get("required_service_account_binding"):
         raise AssertionError("WIF profile has no service-account binding")
+    if profile.get("pool_is_exclusive") is not True:
+        raise AssertionError("WIF profile does not require an exclusive provider pool")
+    if profile.get("service_account_binding_is_exclusive") is not True:
+        raise AssertionError("WIF profile does not require an exclusive service-account binding")
     return profile
 
 
@@ -82,6 +86,52 @@ def describe_provider(
             f"--workload-identity-pool={pool_id}",
             "--format=json",
         ]
+    )
+
+
+def providers_in_pool(
+    project_id: str,
+    pool_id: str,
+) -> list[dict[str, object]]:
+    result = run_json(
+        [
+            "gcloud",
+            "iam",
+            "workload-identity-pools",
+            "providers",
+            "list",
+            "--project=" + project_id,
+            "--location=global",
+            f"--workload-identity-pool={pool_id}",
+            "--format=json",
+        ]
+    )
+    if not isinstance(result, list):
+        raise AssertionError("provider list response is not a list")
+    return result
+
+
+def providers_are_exclusive(
+    providers: list[dict[str, object]],
+    expected_name: str,
+) -> bool:
+    return len(providers) == 1 and providers[0].get("name") == expected_name
+
+
+def binding_is_exclusive(
+    policy: dict[str, object],
+    role: str,
+    member: str,
+) -> bool:
+    bindings = [
+        binding
+        for binding in policy.get("bindings", [])
+        if binding.get("role") == role
+    ]
+    return (
+        len(bindings) == 1
+        and bindings[0].get("members") == [member]
+        and "condition" not in bindings[0]
     )
 
 
@@ -152,6 +202,11 @@ def verify(
         pool_id,
         provider_id,
     )
+    providers = providers_in_pool(configured_project_id, pool_id)
+    provider_name = str(provider.get("name") or "")
+    if not providers_are_exclusive(providers, provider_name):
+        raise AssertionError("WIF provider pool contains another provider")
+
     mappings = provider.get("attributeMapping") or {}
     condition = str(provider.get("attributeCondition") or "")
     if provider.get("issuerUri") != "https://token.actions.githubusercontent.com":
@@ -173,8 +228,10 @@ def verify(
     )
     policy = service_account_policy(service_account)
     role = str(binding["role"])
-    if not binding_is_present(policy, role, expected_member):
-        raise AssertionError("required service-account WIF binding is missing")
+    if not binding_is_exclusive(policy, role, expected_member):
+        raise AssertionError(
+            "service-account WIF binding is missing or non-exclusive"
+        )
 
     provider_digest = digest(
         {
@@ -189,7 +246,7 @@ def verify(
         }
     )
     return {
-        "schema": "sol-atlas:gcs-wif-trust-verification:v2",
+        "schema": "sol-atlas:gcs-wif-trust-verification:v3",
         "provider_resource": provider_resource,
         "provider_project_number": number,
         "provider_digest": provider_digest,
@@ -197,6 +254,7 @@ def verify(
         "profile_digest": digest(profile),
         "service_account": service_account,
         "service_account_binding_verified": True,
+        "provider_pool_exclusive": True,
         "attribute_mapping_verified": True,
         "attribute_condition_verified": True,
     }
