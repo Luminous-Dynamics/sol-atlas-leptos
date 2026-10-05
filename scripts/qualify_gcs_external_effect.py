@@ -70,6 +70,40 @@ def case_ids(case_set: dict[str, object]) -> list[str]:
     return [case["id"] for case in case_set["cases"]]
 
 
+def github_execution_context() -> dict[str, str]:
+    required = {
+        "repository": os.environ.get("GITHUB_REPOSITORY", ""),
+        "repository_id": os.environ.get("GITHUB_REPOSITORY_ID", ""),
+        "environment": os.environ.get("GITHUB_ENVIRONMENT", ""),
+        "workflow": os.environ.get("GITHUB_WORKFLOW", ""),
+        "workflow_ref": os.environ.get("GITHUB_WORKFLOW_REF", ""),
+        "workflow_sha": os.environ.get("GITHUB_WORKFLOW_SHA", ""),
+        "event": os.environ.get("GITHUB_EVENT_NAME", ""),
+        "ref": os.environ.get("GITHUB_REF", ""),
+        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+    }
+    missing = [name for name, value in required.items() if not value]
+    if missing:
+        raise AssertionError(
+            "missing GitHub execution context: " + ", ".join(missing)
+        )
+    expected = {
+        "repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "repository_id": "1195997641",
+        "environment": "sol-atlas-gcs-qualification",
+        "workflow": "Qualify GCS external effect",
+        "event": "workflow_dispatch",
+    }
+    for name, expected_value in expected.items():
+        if required[name] != expected_value:
+            raise AssertionError(
+                f"GitHub execution context drift for {name}: "
+                f"{required[name]!r} != {expected_value!r}"
+            )
+    return required
+
+
 def load_wif_verification(path: str) -> dict[str, object]:
     verification = json.loads(Path(path).read_text(encoding="utf-8"))
     if verification.get("schema") != "sol-atlas:gcs-wif-trust-verification:v1":
@@ -209,6 +243,7 @@ def run_qualification(
 ) -> dict[str, object]:
     case_set = load_case_set()
     wif_verification = load_wif_verification(wif_verification_path)
+    github_context = github_execution_context()
     token = access_token()
     run_id = os.environ.get("GITHUB_RUN_ID", "local")
     run_attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "1")
@@ -571,6 +606,8 @@ def run_qualification(
             "schema": SCHEMA,
             "wif_verification": wif_verification,
             "wif_verification_digest": digest(wif_verification),
+            "github_execution_context": github_context,
+            "github_execution_context_digest": digest(github_context),
             "status": "qualified",
             "service": "Google Cloud Storage",
             "adapter_id": ADAPTER_ID,
@@ -646,6 +683,23 @@ def verify_report(path: str) -> None:
     wif_verification = report.get("wif_verification")
     if not isinstance(wif_verification, dict):
         raise AssertionError("missing WIF trust verification")
+    github_context = report.get("github_execution_context")
+    if not isinstance(github_context, dict):
+        raise AssertionError("missing GitHub execution context")
+    expected_context = {
+        "repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "repository_id": "1195997641",
+        "environment": "sol-atlas-gcs-qualification",
+        "workflow": "Qualify GCS external effect",
+        "event": "workflow_dispatch",
+    }
+    for name, expected_value in expected_context.items():
+        if github_context.get(name) != expected_value:
+            raise AssertionError(
+                f"GitHub execution context mismatch for {name}"
+            )
+    if report.get("github_execution_context_digest") != digest(github_context):
+        raise AssertionError("GitHub execution context digest mismatch")
     if report.get("wif_verification_digest") != digest(wif_verification):
         raise AssertionError("WIF verification digest mismatch")
     if report.get("adapter_revision") != git_sha(ADAPTER_PATH):
