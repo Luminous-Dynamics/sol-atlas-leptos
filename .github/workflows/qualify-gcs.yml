@@ -17,10 +17,10 @@ jobs:
       id-token: write
       attestations: write
     env:
-      GCP_PROJECT_ID: \${{ vars.SOL_ATLAS_GCP_PROJECT_ID }}
-      GCP_WORKLOAD_IDENTITY_PROVIDER: \${{ vars.SOL_ATLAS_GCP_WORKLOAD_IDENTITY_PROVIDER }}
-      GCP_SERVICE_ACCOUNT: \${{ vars.SOL_ATLAS_GCP_SERVICE_ACCOUNT }}
-      GCS_QUALIFICATION_BUCKET: \${{ vars.SOL_ATLAS_GCS_QUALIFICATION_BUCKET }}
+      GCP_PROJECT_ID: ${{ vars.SOL_ATLAS_GCP_PROJECT_ID }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.SOL_ATLAS_GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ vars.SOL_ATLAS_GCP_SERVICE_ACCOUNT }}
+      GCS_QUALIFICATION_BUCKET: ${{ vars.SOL_ATLAS_GCS_QUALIFICATION_BUCKET }}
 
     steps:
       - uses: actions/checkout@v7
@@ -37,8 +37,8 @@ jobs:
             GCP_SERVICE_ACCOUNT \
             GCS_QUALIFICATION_BUCKET
           do
-            if [ -z "\${!value}" ]; then
-              echo "::error::\$value is not configured"
+            if [ -z "${!value}" ]; then
+              echo "::error::$value is not configured"
               exit 1
             fi
           done
@@ -46,9 +46,9 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
-          project_id: \${{ env.GCP_PROJECT_ID }}
-          workload_identity_provider: \${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: \${{ env.GCP_SERVICE_ACCOUNT }}
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v3
@@ -60,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           gcloud auth list --filter=status:ACTIVE --format="value(account)"
-          test "\$(gcloud config get-value project)" = "\$GCP_PROJECT_ID"
+          test "\$(gcloud config get-value project)" = "$GCP_PROJECT_ID"
 
       - name: Run live GCS qualification
         run: |
@@ -68,7 +68,7 @@ jobs:
           mkdir -p artifacts
           python3 scripts/qualify_gcs_external_effect.py \
             qualify \
-            --bucket "\$GCS_QUALIFICATION_BUCKET" \
+            --bucket "$GCS_QUALIFICATION_BUCKET" \
             --output artifacts/gcs-external-effect-report.json
 
       - name: Re-verify qualification artifact
@@ -79,7 +79,7 @@ jobs:
             --report artifacts/gcs-external-effect-report.json
 
       - name: Upload qualification evidence
-        if: \${{ always() }}
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: sol-atlas-gcs-external-effect-qualification
@@ -88,7 +88,7 @@ jobs:
           retention-days: 90
 
       - name: Attest qualification artifact provenance
-        if: \${{ success() }}
+        if: ${{ success() }}
         uses: actions/attest@v4
         with:
           subject-path: artifacts/gcs-external-effect-report.json
