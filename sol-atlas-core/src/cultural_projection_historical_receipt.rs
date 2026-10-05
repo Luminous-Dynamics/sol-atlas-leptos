@@ -625,7 +625,7 @@ mod tests {
     fn strict_constructor_ignores_corrupted_later_descendants() {
         let (legacy_audit, claim, mut chain) = fixture();
         let frontier = chain.frontiers[0].clone();
-        let original_manifest_hash = frontier.manifest_hash.clone();
+        let _original_manifest_hash = frontier.manifest_hash.clone();
         let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
             crate::cultural_systems::CulturalTransmissionV1 {
                 transmission_id: "transmission:1".into(),
@@ -683,7 +683,7 @@ mod tests {
     fn strict_constructor_rejects_same_id_frontier_reissuance() {
         let (legacy_audit, claim, mut chain) = fixture();
         let frontier = chain.frontiers[0].clone();
-        let original_manifest_hash = frontier.manifest_hash.clone();
+        let _original_manifest_hash = frontier.manifest_hash.clone();
         let projection = crate::cultural_systems::CulturalProjectionV1::Transmission(
             crate::cultural_systems::CulturalTransmissionV1 {
                 transmission_id: "transmission:1".into(),
