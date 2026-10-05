@@ -45,6 +45,9 @@ REQUIRED_KEYS = {
 
 EXPECTED_RUST_TOOLCHAIN = "1.99.0"
 EXPECTED_RUSTC_PREFIX = "rustc 1.99.0 "
+EXPECTED_WORKFLOW_NAME = "Check"
+EXPECTED_WORKFLOW_FILE_PATH = ".github/workflows/check.yml"
+EXPECTED_JOB_NAME = "provenance-construction"
 
 EXPECTED_COMMANDS = [
     "cargo test -p sol-atlas-core --locked -- --list",
@@ -130,6 +133,12 @@ def main() -> int:
         fail("status is not passed")
     if args.rust_toolchain != EXPECTED_RUST_TOOLCHAIN:
         fail(f"qualification requires Rust toolchain {EXPECTED_RUST_TOOLCHAIN}")
+    if args.workflow_name != EXPECTED_WORKFLOW_NAME:
+        fail(f"qualification requires workflow {EXPECTED_WORKFLOW_NAME!r}")
+    if args.workflow_file_path != EXPECTED_WORKFLOW_FILE_PATH:
+        fail(f"qualification requires workflow file {EXPECTED_WORKFLOW_FILE_PATH!r}")
+    if args.job_name != EXPECTED_JOB_NAME:
+        fail(f"qualification requires job {EXPECTED_JOB_NAME!r}")
 
     expected_scalars = {
         "repository": args.repository,
