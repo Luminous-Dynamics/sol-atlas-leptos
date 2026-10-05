@@ -155,6 +155,28 @@ def main() -> int:
         if result.returncode == 0:
             raise SystemExit("verifier accepted a workflow-file-path context mismatch")
 
+        scalar_mutations = {
+            "repository": "Luminous-Dynamics/other-repo",
+            "pull_request_number": evidence["pull_request_number"] + 1,
+            "source_revision": "f" * 40,
+            "base_revision": "e" * 40,
+            "workflow_name": "Other Workflow",
+            "workflow_ref": "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/other.yml@refs/heads/main",
+            "workflow_sha": "d" * 40,
+            "run_id": evidence["run_id"] + 1,
+            "run_attempt": evidence["run_attempt"] + 1,
+            "job_name": "other-job",
+            "check_run_id": evidence["check_run_id"] + 1,
+            "workflow_run_url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/1",
+        }
+        for field, value in scalar_mutations.items():
+            tampered = dict(evidence)
+            tampered[field] = value
+            write_packet(tampered)
+            result = run_verifier(packet, sidecar, inventory, VERIFIER)
+            if result.returncode == 0:
+                raise SystemExit(f"verifier accepted a context mismatch for {field}")
+
         tampered = dict(evidence)
         tampered["verifier_sha256"] = "0" * 64
         write_packet(tampered)
@@ -198,7 +220,21 @@ def main() -> int:
         if result.returncode == 0:
             raise SystemExit("verifier accepted a test-inventory hash mismatch")
 
-        tampered_verifier = root / "tampered-verifier.py"
+        tampered = dict(evidence)
+        tampered.pop("job_name")
+        write_packet(tampered)
+        result = run_verifier(packet, sidecar, inventory, VERIFIER)
+        if result.returncode == 0:
+            raise SystemExit("verifier accepted a packet with a missing required key")
+
+        tampered = dict(evidence)
+        tampered["qualification_commands"] = [EXPECTED_COMMANDS[1], EXPECTED_COMMANDS[0]]
+        write_packet(tampered)
+        result = run_verifier(packet, sidecar, inventory, VERIFIER)
+        if result.returncode == 0:
+            raise SystemExit("verifier accepted a reordered qualification command inventory")
+
+                tampered_verifier = root / "tampered-verifier.py"
         tampered_verifier.write_bytes(VERIFIER.read_bytes() + b"\\n# adversarial fixture mutation\\n")
         result = run_verifier(
             packet,
