@@ -1,7 +1,6 @@
 mod reference_effect_adapter;
 
 use reference_effect_adapter::{LostAckResource, ReferenceFencedResource};
-use serde_json;
 use sol_atlas_policy_store_contract::{
     RecoveryExecutionEffectConformanceEvidenceV1,
     RecoveryExecutionEffectConformanceReportV1,
