@@ -266,6 +266,9 @@ jobs:
           VERIFY_JOB_NAME: ${{ github.job }}
           VERIFY_CHECK_RUN_ID: ${{ job.check_run_id }}
           VERIFY_SERVER_URL: ${{ github.server_url }}
+          VERIFY_RUNNER_OS: ${{ runner.os }}
+          VERIFY_RUNNER_ARCH: ${{ runner.arch }}
+          VERIFY_RUST_TOOLCHAIN: ${{ env.RUST_TOOLCHAIN }}
         run: |
           python3 tools/verify_qualification_execution_evidence.py \
             /tmp/qualification-execution-v2.json \
@@ -286,7 +289,12 @@ jobs:
             --run-attempt "$VERIFY_RUN_ATTEMPT" \
             --job-name "$VERIFY_JOB_NAME" \
             --check-run-id "$VERIFY_CHECK_RUN_ID" \
-            --server-url "$VERIFY_SERVER_URL"
+            --server-url "$VERIFY_SERVER_URL" \
+            --runner-os "$VERIFY_RUNNER_OS" \
+            --runner-arch "$VERIFY_RUNNER_ARCH" \
+            --rust-toolchain "$VERIFY_RUST_TOOLCHAIN" \
+            --rustc-version-verbose "$(rustc +\"$VERIFY_RUST_TOOLCHAIN\" --version --verbose)" \
+            --cargo-version-verbose "$(cargo --version --verbose)"
       - name: Publish qualification execution evidence
 
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
