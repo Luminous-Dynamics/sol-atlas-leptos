@@ -219,6 +219,8 @@ jobs:
               "qualification_kind": "sol_atlas_core_provenance_construction",
               "status": "passed",
               "repository": os.environ["GITHUB_REPOSITORY"],
+              "event_name": os.environ["GITHUB_EVENT_NAME"],
+              "ref": os.environ["GITHUB_REF"],
               "pull_request_number": int(os.environ["QUALIFICATION_PR_NUMBER"]),
               "source_revision": os.environ["QUALIFICATION_SOURCE_REVISION"],
               "base_revision": os.environ["QUALIFICATION_BASE_REVISION"],
@@ -254,6 +256,8 @@ jobs:
       - name: Validate qualification execution evidence independently
         env:
           VERIFY_REPOSITORY: ${{ github.repository }}
+          VERIFY_EVENT_NAME: ${{ github.event_name }}
+          VERIFY_REF: ${{ github.ref }}
           VERIFY_PR_NUMBER: ${{ github.event.pull_request.number }}
           VERIFY_SOURCE_REVISION: ${{ github.event.pull_request.head.sha }}
           VERIFY_BASE_REVISION: ${{ github.event.pull_request.base.sha }}
@@ -278,6 +282,8 @@ jobs:
             --cargo-lock "Cargo.lock" \
             --test-inventory "/tmp/sol-atlas-core-tests.txt" \
             --repository "$VERIFY_REPOSITORY" \
+            --event-name "$VERIFY_EVENT_NAME" \
+            --ref "$VERIFY_REF" \
             --pull-request-number "$VERIFY_PR_NUMBER" \
             --source-revision "$VERIFY_SOURCE_REVISION" \
             --base-revision "$VERIFY_BASE_REVISION" \
