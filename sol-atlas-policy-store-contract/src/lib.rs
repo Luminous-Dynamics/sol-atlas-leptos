@@ -2070,6 +2070,7 @@ mod tests {
             let key = mutation.execution_id.clone();
             if let Some((fingerprint, attempt_id, epoch, idempotency_key)) =
                 state.applied.get(&key)
+            {
                 if fingerprint != &mutation.execution_input_snapshot {
                     return Ok(
                         RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch,
