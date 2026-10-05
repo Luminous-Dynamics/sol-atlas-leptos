@@ -39,11 +39,7 @@ pub fn validate_v5_at(
     }
 
     claim.validate_frontier_safe(selected)?;
-
-    audit.validate()?;
-    if !audit.is_frontier_safe(selected, claim) {
-        return Err(ProjectionError::AuditWithoutEvidencePath);
-    }
+    audit.validate_frontier_safe(selected, claim)?;
 
     Ok(())
 }
@@ -281,6 +277,20 @@ mod tests {
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
+    #[test]
+    fn historical_replay_preserves_audit_frontier_diagnostic() {
+        let (audit, claim, mut chain) = fixture();
+        chain.frontiers[0].known_by_year = 1941;
+        chain.frontiers[0]
+            .recompute_manifest_hash()
+            .expect("late root frontier hash");
+
+        assert_eq!(
+            validate_v5_at(&audit, &chain, &"frontier:1950".into(), &claim),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
+    }
+
     #[test]
     fn historical_replay_accepts_verified_prefix() {
         let (audit, claim, chain) = fixture();
