@@ -43,6 +43,9 @@ REQUIRED_KEYS = {
     "qualification_commands",
 }
 
+EXPECTED_RUST_TOOLCHAIN = "1.99.0"
+EXPECTED_RUSTC_PREFIX = "rustc 1.99.0 "
+
 EXPECTED_COMMANDS = [
     "cargo test -p sol-atlas-core --locked -- --list",
     "cargo test -p sol-atlas-core --locked",
@@ -125,6 +128,8 @@ def main() -> int:
         fail("unexpected qualification kind")
     if evidence["status"] != "passed":
         fail("status is not passed")
+    if args.rust_toolchain != EXPECTED_RUST_TOOLCHAIN:
+        fail(f"qualification requires Rust toolchain {EXPECTED_RUST_TOOLCHAIN}")
 
     expected_scalars = {
         "repository": args.repository,
@@ -186,6 +191,8 @@ def main() -> int:
     for key in ("runner_os", "runner_arch", "rust_toolchain", "rustc_version_verbose", "cargo_version_verbose"):
         if not isinstance(evidence[key], str) or not evidence[key]:
             fail(f"{key} is not a non-empty string")
+    if not evidence["rustc_version_verbose"].startswith(EXPECTED_RUSTC_PREFIX):
+        fail("rustc_version_verbose does not identify the required Rust toolchain")
 
     if evidence["qualification_commands"] != EXPECTED_COMMANDS:
         fail("qualification command inventory does not match the V2 contract")
