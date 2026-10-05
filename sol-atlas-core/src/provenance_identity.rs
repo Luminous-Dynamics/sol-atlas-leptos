@@ -60,8 +60,18 @@ pub struct V5PortableReplayIdentityV1 {
 }
 
 impl V5PortableReplayIdentityV1 {
-    pub fn from_receipt(receipt: &V5ReplayReceiptV1) -> Result<Self, ProjectionError> {
+    fn validate_canonical_receipt(receipt: &V5ReplayReceiptV1) -> Result<(), ProjectionError> {
         receipt.validate()?;
+        let mut canonical = receipt.clone();
+        canonical.canonicalize();
+        if canonical != *receipt {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        Ok(())
+    }
+
+    pub fn from_receipt(receipt: &V5ReplayReceiptV1) -> Result<Self, ProjectionError> {
+        Self::validate_canonical_receipt(receipt)?;
         Self::from_validated_receipt(receipt)
     }
 
@@ -103,7 +113,7 @@ impl V5PortableReplayIdentityV1 {
     }
 
     pub fn computed_digest(&self, receipt: &V5ReplayReceiptV1) -> Result<String, ProjectionError> {
-        receipt.validate()?;
+        Self::validate_canonical_receipt(receipt)?;
         let payload = (
             V5_REPLAY_RECEIPT_DIGEST_DOMAIN_V1,
             SERDE_JSON_TUPLE_CANONICALIZATION_V1,
@@ -121,7 +131,7 @@ impl V5PortableReplayIdentityV1 {
         receipt: &V5ReplayReceiptV1,
     ) -> Result<(), ProjectionError> {
         self.validate()?;
-        receipt.validate()?;
+        Self::validate_canonical_receipt(receipt)?;
         if self.source_receipt_hash != receipt.receipt_hash
             || self.content_digest.digest != self.computed_digest(receipt)?
         {
@@ -172,6 +182,18 @@ mod tests {
         );
         assert_eq!(identity.source_receipt_hash, receipt.receipt_hash);
         assert!(identity.validate_against_receipt(&receipt).is_ok());
+    }
+
+    #[test]
+    fn portable_identity_rejects_noncanonical_receipt_ordering() {
+        let mut receipt = fixture();
+        receipt.evidence_refs = vec!["e:2".into(), "e:1".into()];
+        receipt.recompute_hash().expect("receipt hash");
+
+        assert_eq!(
+            V5PortableReplayIdentityV1::from_receipt(&receipt),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
     }
 
     #[test]
