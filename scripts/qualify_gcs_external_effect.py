@@ -70,6 +70,17 @@ def case_ids(case_set: dict[str, object]) -> list[str]:
     return [case["id"] for case in case_set["cases"]]
 
 
+def load_wif_verification(path: str) -> dict[str, object]:
+    verification = json.loads(Path(path).read_text(encoding="utf-8"))
+    if verification.get("schema") != "sol-atlas:gcs-wif-trust-verification:v1":
+        raise AssertionError("wrong WIF trust verification schema")
+    if not verification.get("attribute_mapping_verified"):
+        raise AssertionError("WIF attribute mapping was not verified")
+    if not verification.get("attribute_condition_verified"):
+        raise AssertionError("WIF attribute condition was not verified")
+    return verification
+
+
 def validate_case_set() -> str:
     case_set = load_case_set()
     for case in case_set["cases"]:
@@ -191,8 +202,13 @@ def record(case_id: str, passed: bool, observed: dict[str, object]) -> dict[str,
     }
 
 
-def run_qualification(bucket: str, object_prefix: str) -> dict[str, object]:
+def run_qualification(
+    bucket: str,
+    object_prefix: str,
+    wif_verification_path: str,
+) -> dict[str, object]:
     case_set = load_case_set()
+    wif_verification = load_wif_verification(wif_verification_path)
     token = access_token()
     run_id = os.environ.get("GITHUB_RUN_ID", "local")
     run_attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "1")
@@ -553,6 +569,8 @@ def run_qualification(bucket: str, object_prefix: str) -> dict[str, object]:
         }
         return {
             "schema": SCHEMA,
+            "wif_verification": wif_verification,
+            "wif_verification_digest": digest(wif_verification),
             "status": "qualified",
             "service": "Google Cloud Storage",
             "adapter_id": ADAPTER_ID,
@@ -625,6 +643,11 @@ def verify_report(path: str) -> None:
     expected_case_set_digest = digest(expected_case_set)
     if report.get("case_set_digest") != expected_case_set_digest:
         raise AssertionError("case-set digest mismatch")
+    wif_verification = report.get("wif_verification")
+    if not isinstance(wif_verification, dict):
+        raise AssertionError("missing WIF trust verification")
+    if report.get("wif_verification_digest") != digest(wif_verification):
+        raise AssertionError("WIF verification digest mismatch")
     if report.get("adapter_revision") != git_sha(ADAPTER_PATH):
         raise AssertionError("adapter revision drift detected")
     if report.get("harness_revision") != git_sha(HARNESS_PATH):
@@ -671,6 +694,7 @@ def main() -> int:
     qualify = sub.add_parser("qualify")
     qualify.add_argument("--bucket", required=True)
     qualify.add_argument("--object-prefix", default="sol-atlas/qualification")
+    qualify.add_argument("--wif-verification", required=True)
     qualify.add_argument("--output", required=True)
     verify = sub.add_parser("verify")
     verify.add_argument("--report", required=True)
@@ -684,7 +708,11 @@ def main() -> int:
         verify_report(args.report)
         return 0
 
-    report = run_qualification(args.bucket, args.object_prefix)
+    report = run_qualification(
+        args.bucket,
+        args.object_prefix,
+        args.wif_verification,
+    )
     report = finalize_report(report)
     write_report(args.output, report)
     verify_report(args.output)
