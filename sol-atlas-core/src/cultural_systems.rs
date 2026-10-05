@@ -301,19 +301,37 @@ impl CulturalArgumentationRefV2 {
         Ok(())
     }
 
+    /// Validates this V2 argumentation record against the exact canonical
+    /// claim and frontier while preserving temporal diagnostics.
+    pub fn validate_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        self.closure.validate_frontier_safe(claim, frontier)?;
+
+        if self.available_by > frontier.known_by_year {
+            return Err(ProjectionError::LaterEvidenceInFrontier);
+        }
+
+        if !frontier.admits_argumentation_at(
+            &self.assessment,
+            &self.interpretation,
+            self.available_by,
+        ) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate().is_ok()
-            && self.closure.is_frontier_safe(claim, frontier)
-            && self.available_by <= frontier.known_by_year
-            && frontier.admits_argumentation_at(
-                &self.assessment,
-                &self.interpretation,
-                self.available_by,
-            )
+        self.validate_frontier_safe(claim, frontier).is_ok()
     }
 }
 
@@ -350,18 +368,31 @@ impl CulturalArgumentationSetV1 {
         Ok(())
     }
 
+    /// Validates every contemporaneous alternative while preserving the
+    /// first typed argumentation failure rather than collapsing it to bool.
+    pub fn validate_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        if self.claim_ref != claim.claim_ref
+            || self.evidence_frontier != frontier.frontier_id
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        for argumentation in &self.alternatives {
+            argumentation.validate_frontier_safe(claim, frontier)?;
+        }
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate().is_ok()
-            && self.claim_ref == claim.claim_ref
-            && self.evidence_frontier == frontier.frontier_id
-            && self
-                .alternatives
-                .iter()
-                .all(|argumentation| argumentation.is_frontier_safe(claim, frontier))
+        self.validate_frontier_safe(claim, frontier).is_ok()
     }
 
     /// Canonicalizes storage order by argument identity. This is not an epistemic ranking.
@@ -1319,19 +1350,16 @@ pub struct CulturalProjectionAdmissionV1 {
 }
 
 impl CulturalProjectionAdmissionV1 {
-    /// Creates the legacy transmission-shaped admission record. New consumers
-    /// should prefer the generic projection union when they need both relation
-    /// classes.
-    pub fn from_transmission(
+    /// Typed constructor for new reciprocal paths. The legacy Option-returning
+    /// constructor below remains available for migration compatibility.
+    pub fn try_from_transmission(
         transmission: &CulturalTransmissionV1,
         frontier: &EvidenceFrontierV1,
         claim: &CanonicalClaimAdmissionV1,
-    ) -> Option<Self> {
-        if !transmission.is_frontier_safe(claim, frontier) {
-            return None;
-        }
+    ) -> Result<Self, ProjectionError> {
+        transmission.validate_frontier_safe(claim, frontier)?;
 
-        Some(Self {
+        Ok(Self {
             transmission_id: transmission.transmission_id.clone(),
             claim_ref: transmission.claim_ref.clone(),
             evidence_refs: transmission.evidence_refs.clone(),
@@ -1340,6 +1368,17 @@ impl CulturalProjectionAdmissionV1 {
             qualification: transmission.qualification,
             access_policy: transmission.access_policy,
         })
+    }
+
+    /// Creates the legacy transmission-shaped admission record. New consumers
+    /// should prefer the generic projection union when they need both relation
+    /// classes.
+    pub fn from_transmission(
+        transmission: &CulturalTransmissionV1,
+        frontier: &EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Option<Self> {
+        Self::try_from_transmission(transmission, frontier, claim).ok()
     }
 
     pub fn validate(&self) -> Result<(), ProjectionError> {
@@ -2224,6 +2263,14 @@ mod tests {
             admission.validate_against_transmission(&value, &frontier, &claim),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
+        assert_eq!(
+            CulturalProjectionAdmissionV1::try_from_transmission(&value, &frontier, &claim),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+        assert!(CulturalProjectionAdmissionV1::from_transmission(
+            &value, &frontier, &claim
+        )
+        .is_none());
     }
 
     #[test]
@@ -2387,6 +2434,38 @@ mod tests {
         assert_eq!(admission.transmission_id, "transmission:1".into());
         assert_eq!(admission.evidence_frontier, "frontier:1950".into());
     }
+    #[test]
+    fn argumentation_v2_typed_validator_preserves_late_evidence_diagnostic() {
+        let frontier = frontier();
+        let value = transmission();
+        let claim = canonical_claim(&value);
+        let argumentation = CulturalArgumentationRefV2 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            claim_ref: value.claim_ref.clone(),
+            closure: CulturalArgumentationEvidenceClosureV1 {
+                claim_ref: value.claim_ref.clone(),
+                evidence_refs: value.evidence_refs.clone(),
+                source_snapshots: value.source_snapshots.clone(),
+            },
+            assessment_time: Some(YearInterval {
+                from: Some(1948),
+                to: Some(1948),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1949),
+                to: Some(1949),
+            }),
+            available_by: frontier.known_by_year + 1,
+        };
+
+        assert_eq!(
+            argumentation.validate_frontier_safe(&claim, &frontier),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
+        assert!(!argumentation.is_frontier_safe(&claim, &frontier));
+    }
+
     #[test]
     fn argumentation_v2_can_use_subset_of_canonical_evidence() {
         let frontier = frontier();
