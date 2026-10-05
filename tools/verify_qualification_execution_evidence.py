@@ -56,6 +56,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("packet", type=Path)
     parser.add_argument("sidecar", type=Path)
     parser.add_argument("--workflow-file", type=Path, required=True)
+    parser.add_argument("--verifier-file", type=Path, required=True)
     parser.add_argument("--cargo-lock", type=Path, required=True)
     parser.add_argument("--test-inventory", type=Path, required=True)
     parser.add_argument("--repository", required=True)
@@ -81,6 +82,7 @@ def main() -> int:
     for label, path in (
         ("sidecar", args.sidecar),
         ("workflow file", args.workflow_file),
+        ("verifier file", args.verifier_file),
         ("Cargo.lock", args.cargo_lock),
         ("test inventory", args.test_inventory),
     ):
@@ -127,6 +129,7 @@ def main() -> int:
 
     for key in (
         "checked_out_workflow_file_sha256",
+        "verifier_sha256",
         "cargo_lock_sha256",
         "test_inventory_sha256",
     ):
@@ -135,6 +138,7 @@ def main() -> int:
 
     file_bindings = {
         "checked_out_workflow_file_sha256": args.workflow_file,
+        "verifier_sha256": args.verifier_file,
         "cargo_lock_sha256": args.cargo_lock,
         "test_inventory_sha256": args.test_inventory,
     }
