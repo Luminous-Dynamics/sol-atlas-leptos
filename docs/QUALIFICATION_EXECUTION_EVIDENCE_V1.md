@@ -24,7 +24,8 @@ The packet records:
 - the base revision used by the pull request;
 - GitHub workflow name/ref/definition SHA;
 - the SHA-256 of the checked-out workflow file;
-- GitHub run ID and attempt;
+- GitHub run ID, attempt, and qualification job name;
+- a direct workflow-run URL;
 - runner OS and architecture;
 - requested Rust toolchain plus full rustc --version --verbose;
 - full Cargo version;
@@ -53,9 +54,13 @@ The workflow definition SHA is recorded from the GitHub Actions github.workflow_
 context. The checked-out workflow file is separately hashed so consumers can
 distinguish the workflow definition identity from the source-tree copy.
 
-The artifact is uploaded only after the qualification job has passed. Failure to
-publish the packet fails the qualification job rather than silently degrading
-to an unrecorded pass.
+The artifact is uploaded only after the qualification job has passed. The upload
+contains both `qualification-execution-v1.json` and a SHA-256 sidecar named
+`qualification-execution-v1.json.sha256`, allowing the JSON bytes to be archived
+and checked independently of GitHub's artifact container.
+
+Failure to publish the packet fails the qualification job rather than silently
+degrading to an unrecorded pass.
 
 ## Interoperability
 
