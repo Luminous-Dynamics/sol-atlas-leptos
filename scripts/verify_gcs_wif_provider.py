@@ -48,6 +48,8 @@ def provider_parts(resource: str) -> tuple[str, str, str]:
         raise AssertionError("invalid workload identity provider resource")
     if parts[4] != "workloadIdentityPools" or parts[6] != "providers":
         raise AssertionError("invalid workload identity provider resource")
+    if parts[3] != "global":
+        raise AssertionError("only global GitHub OIDC providers are supported")
     return parts[1], parts[5], parts[7]
 
 
@@ -61,6 +63,7 @@ def describe_provider(resource: str) -> dict[str, object]:
             "providers",
             "describe",
             provider_id,
+            "--project=" + project_id,
             "--location=global",
             f"--workload-identity-pool={pool_id}",
             "--format=json",
@@ -78,6 +81,8 @@ def verify(provider_resource: str) -> dict[str, object]:
     provider = describe_provider(provider_resource)
     mappings = provider.get("attributeMapping") or {}
     condition = str(provider.get("attributeCondition") or "")
+    if provider.get("issuerUri") != "https://token.actions.githubusercontent.com":
+        raise AssertionError("unexpected GitHub OIDC issuer")
     required_mappings = profile["required_attribute_mappings"]
 
     for name, expected in required_mappings.items():
