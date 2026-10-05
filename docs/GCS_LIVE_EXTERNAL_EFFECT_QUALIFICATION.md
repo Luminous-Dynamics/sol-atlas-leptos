@@ -22,7 +22,7 @@ The qualified profile is intentionally narrow:
 
 ## GCP trust boundary
 
-WIF profile v2 is exact rather than substring-matched. It requires google.subject
+WIF profile v3 is exact rather than substring-matched. It requires google.subject
 and the repository, repository ID, repository owner ID, environment, event,
 workflow, ref, and workflow_ref mappings. The provider attribute condition must
 equal the frozen conjunction in the profile.
@@ -37,7 +37,9 @@ The project number and workload identity pool ID are derived from the trusted
 provider resource.
 
 This is trust configuration evidence only. It does not prove workflow source
-immutability, environment approval honesty, or Cloud Storage behavior.
+immutability, environment approval honesty, or Cloud Storage behavior. The
+qualification pool is intentionally single-provider, and the service-account
+WIF binding is intentionally exclusive to the repository-ID principal.
 
 ## Qualification cases
 
