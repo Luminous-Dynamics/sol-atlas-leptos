@@ -369,15 +369,17 @@ def run_qualification(bucket: str, object_prefix: str) -> dict[str, object]:
             body=b"sol-atlas:gcs:lost-ack:v1",
         )
         before_lost_ack = resource.state()
+        if before_lost_ack is None:
+            raise AssertionError("lost-ack object disappeared before the request")
         resource.raw_put(lost_ack, discard_response=True)
         reconciled = resource.reconcile(lost_ack)
         after_lost_ack = resource.state()
-        no_second_mutation = (
-            before_lost_ack is not None
-            and after_lost_ack is not None
-            and after_lost_ack.generation == before_lost_ack.generation
-            or reconciled == "ObservedAppliedSameRequest"
-        )
+        if after_lost_ack is None:
+            raise AssertionError("lost-ack object disappeared during reconciliation")
+        if reconciled == "ObservedAppliedSameRequest":
+            no_second_mutation = after_lost_ack.generation != before_lost_ack.generation
+        else:
+            no_second_mutation = after_lost_ack.generation == before_lost_ack.generation
         lost_ack_observation_ok = reconciled in {
             "ObservedAppliedSameRequest",
             "ObservedNotApplied",
@@ -395,12 +397,8 @@ def run_qualification(bucket: str, object_prefix: str) -> dict[str, object]:
                         if reconciled == "ObservedAppliedSameRequest"
                         else "indeterminate_at_reconciliation"
                     ),
-                    "generation_before": (
-                        before_lost_ack.generation if before_lost_ack else None
-                    ),
-                    "generation_after": (
-                        after_lost_ack.generation if after_lost_ack else None
-                    ),
+                    "generation_before": before_lost_ack.generation,
+                    "generation_after": after_lost_ack.generation,
                     "absence_is_not_non_commit": True,
                     "blind_retry_performed": False,
                 },
