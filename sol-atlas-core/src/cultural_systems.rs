@@ -805,27 +805,27 @@ pub struct CulturalProjectionAdmissionV2 {
 }
 
 impl CulturalProjectionAdmissionV2 {
-    pub fn from_projection(
+    /// Typed constructor for new provenance paths. The legacy Option-returning
+    /// constructor below remains available for migration compatibility.
+    pub fn try_from_projection(
         projection: &CulturalProjectionV1,
         frontier: &EvidenceFrontierV1,
         claim: &CanonicalClaimAdmissionV1,
-    ) -> Option<Self> {
-        if !projection.is_frontier_safe(claim, frontier) {
-            return None;
-        }
+    ) -> Result<Self, ProjectionError> {
+        projection.validate_frontier_safe(claim, frontier)?;
         let closure = projection.evidence_closure();
-        let projection_semantic_hash = projection.semantic_hash().ok()?;
+        let projection_semantic_hash = projection.semantic_hash()?;
         let (projection_id, access_policy) = match projection {
             CulturalProjectionV1::Transmission(v) => (
                 CulturalProjectionIdV1::Transmission(v.transmission_id.clone()),
                 v.access_policy,
             ),
             CulturalProjectionV1::Transformation(v) => (
-                CulturalProjectionIdV1::Transformation(v.transformation_id.clone()),
+                CulturalProjectionIdV1::Transformation(v.transmission_id.clone()),
                 v.access_policy,
             ),
         };
-        Some(Self {
+        Ok(Self {
             projection_id,
             claim_ref: closure.claim_ref,
             evidence_refs: closure.evidence_refs,
@@ -836,6 +836,14 @@ impl CulturalProjectionAdmissionV2 {
             qualification: closure.qualification,
             access_policy,
         })
+    }
+
+    pub fn from_projection(
+        projection: &CulturalProjectionV1,
+        frontier: &EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Option<Self> {
+        Self::try_from_projection(projection, frontier, claim).ok()
     }
 
     pub fn validate(&self) -> Result<(), ProjectionError> {
@@ -1154,10 +1162,10 @@ impl CulturalProjectionAuditV2 {
                     || argumentation.source_snapshots != self.source_snapshots
                     || argumentation.evidence_frontier != self.evidence_frontier
                     || self.assessment.as_ref() != Some(&argumentation.assessment)
-                    || !argumentation.is_frontier_safe(claim, frontier)
                 {
                     return Err(ProjectionError::AuditWithoutEvidencePath);
                 }
+                argumentation.validate_frontier_safe(claim, frontier)?;
             }
             (None, Some(_)) => unreachable!("from_projection never creates argumentation"),
         }
@@ -1357,6 +1365,32 @@ mod tests {
             claim.validate_frontier_safe(&frontier),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
+    }
+
+    #[test]
+    fn admission_try_from_projection_preserves_frontier_diagnostic() {
+        let projection = CulturalProjectionV1::Transmission(transmission());
+        let claim = canonical_claim(match &projection {
+            CulturalProjectionV1::Transmission(value) => value,
+            CulturalProjectionV1::Transformation(_) => unreachable!(),
+        });
+        let mut bad_frontier = frontier();
+        bad_frontier.manifest_hash = "not-a-valid-sha256".into();
+
+        assert_eq!(
+            CulturalProjectionAdmissionV2::try_from_projection(
+                &projection,
+                &bad_frontier,
+                &claim
+            ),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+        assert!(CulturalProjectionAdmissionV2::from_projection(
+            &projection,
+            &bad_frontier,
+            &claim
+        )
+        .is_none());
     }
 
     #[test]
