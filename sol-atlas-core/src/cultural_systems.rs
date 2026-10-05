@@ -163,23 +163,45 @@ impl CulturalArgumentationRefV1 {
         Ok(())
     }
 
+    /// Validates V1 argumentation against the exact canonical claim and
+    /// strict frontier while preserving temporal/evidence diagnostics.
+    pub fn validate_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        claim.validate_frontier_safe(frontier)?;
+
+        if self.claim_ref != claim.claim_ref
+            || self.evidence_refs != claim.evidence_refs
+            || self.source_snapshots != claim.source_snapshots
+            || self.evidence_frontier != frontier.frontier_id
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        if self.available_by > frontier.known_by_year {
+            return Err(ProjectionError::LaterEvidenceInFrontier);
+        }
+
+        if !frontier.admits_argumentation_at(
+            &self.assessment,
+            &self.interpretation,
+            self.available_by,
+        ) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate().is_ok()
-            && claim.is_frontier_safe(frontier)
-            && self.claim_ref == claim.claim_ref
-            && self.evidence_refs == claim.evidence_refs
-            && self.source_snapshots == claim.source_snapshots
-            && self.evidence_frontier == frontier.frontier_id
-            && self.available_by <= frontier.known_by_year
-            && frontier.admits_argumentation_at(
-                &self.assessment,
-                &self.interpretation,
-                self.available_by,
-            )
+        self.validate_frontier_safe(claim, frontier).is_ok()
     }
 }
 
@@ -2186,6 +2208,36 @@ mod tests {
         let mut audit = CulturalProjectionAuditV1::from_transmission(&value);
         audit.community_recognition_evidence.push("e:late".into());
         assert!(!audit.is_frontier_safe(&frontier));
+    }
+
+    #[test]
+    fn argumentation_typed_validator_preserves_late_evidence_diagnostic() {
+        let frontier = frontier();
+        let value = transmission();
+        let claim = canonical_claim(&value);
+        let argumentation = CulturalArgumentationRefV1 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            claim_ref: value.claim_ref.clone(),
+            evidence_refs: value.evidence_refs.clone(),
+            source_snapshots: value.source_snapshots.clone(),
+            assessment_time: Some(YearInterval {
+                from: Some(1948),
+                to: Some(1948),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1949),
+                to: Some(1949),
+            }),
+            available_by: frontier.known_by_year + 1,
+            evidence_frontier: frontier.frontier_id.clone(),
+        };
+
+        assert_eq!(
+            argumentation.validate_frontier_safe(&claim, &frontier),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
+        assert!(!argumentation.is_frontier_safe(&claim, &frontier));
     }
 
     #[test]
