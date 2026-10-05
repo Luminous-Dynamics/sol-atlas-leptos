@@ -33,6 +33,9 @@ def run_verifier(
     verifier: Path,
     workflow: Path = WORKFLOW,
     cargo_lock: Path = CARGO_LOCK,
+    rust_toolchain: str = "1.99.0",
+    rustc_version_verbose: str = "fixture",
+    cargo_version_verbose: str = "fixture",
 ) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [
@@ -79,11 +82,11 @@ def run_verifier(
             "--runner-arch",
             "X64",
             "--rust-toolchain",
-            "1.99.0",
+            rust_toolchain,
             "--rustc-version-verbose",
-            "fixture",
+            rustc_version_verbose,
             "--cargo-version-verbose",
-            "fixture",
+            cargo_version_verbose,
         ],
         text=True,
         capture_output=True,
@@ -179,6 +182,21 @@ def main() -> int:
         result = run_verifier(packet, sidecar, inventory, VERIFIER)
         if result.returncode == 0:
             raise SystemExit("verifier accepted a workflow-file-path context mismatch")
+
+        tampered = dict(evidence)
+        tampered["rust_toolchain"] = "1.98.0"
+        tampered["rustc_version_verbose"] = "rustc 1.98.0 fixture"
+        write_packet(tampered)
+        result = run_verifier(
+            packet,
+            sidecar,
+            inventory,
+            VERIFIER,
+            rust_toolchain="1.98.0",
+            rustc_version_verbose="rustc 1.98.0 fixture",
+        )
+        if result.returncode == 0:
+            raise SystemExit("verifier accepted a self-consistent unsupported Rust toolchain")
 
         scalar_mutations = {
             "repository": "Luminous-Dynamics/other-repo",
