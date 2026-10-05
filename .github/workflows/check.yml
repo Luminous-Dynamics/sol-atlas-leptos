@@ -155,7 +155,9 @@ jobs:
             mapping_preserves_frontier_validation_failure \
             mapping_preserves_evidence_path_failure \
             mapping_v1_typed_validator_preserves_frontier_diagnostic \
+            dkg_typed_validator_preserves_structural_diagnostic \
             dkg_typed_validator_preserves_frontier_diagnostic \
+            dkg_admission_typed_validator_preserves_structural_diagnostic \
             dkg_admission_try_from_statement_preserves_frontier_diagnostic \
             historical_replay_preserves_audit_frontier_diagnostic \
             resolution_constructor_preserves_frontier_validation_failure \
