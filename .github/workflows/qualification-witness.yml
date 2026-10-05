@@ -37,6 +37,6 @@ jobs:
 
       - name: Verify completed qualification independently
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          python3 tools/verify_qualification_run.py             --artifact-dir /tmp/qualification-execution-v2             --run-id "${{ github.event.workflow_run.id }}"             --repository "${{ github.repository }}"             --server-url "${{ github.server_url }}"             --api-url "${{ github.api_url }}"             --token "$GH_TOKEN"
+          python3 tools/verify_qualification_run.py             --artifact-dir /tmp/qualification-execution-v2             --run-id "${{ github.event.workflow_run.id }}"             --repository "${{ github.repository }}"             --server-url "${{ github.server_url }}"             --api-url "${{ github.api_url }}"
