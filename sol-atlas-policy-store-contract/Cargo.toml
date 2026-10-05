@@ -9,3 +9,4 @@ description = "Storage-neutral atomic consumption contract for Sol Atlas policy 
 
 [dependencies]
 sol-atlas-core = { path = "../sol-atlas-core" }
+serde = { version = "1", features = ["derive"] }
