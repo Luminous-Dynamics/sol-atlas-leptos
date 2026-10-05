@@ -12,7 +12,7 @@ The qualified profile is intentionally narrow:
   attempt identity, fence generation, and stable idempotency key.
 - Replay protection applies while that live object identity state remains retained;
   delete/recreate is outside the qualified replay guarantee.
-- The adapter performs an exact read-back after mutation and after an
+- The adapter performs exact read-back after mutation and after an
   acknowledgement-discarded request.
 - Media read-back is conditional on both generation and metageneration, and a
   bounded retry handles concurrent metadata churn without accepting a torn
@@ -20,10 +20,24 @@ The qualified profile is intentionally narrow:
 - The evidence applies only to the tested adapter, bucket, object API, and
   captured run. It is not a universal exactly-once claim.
 
-Cloud Storage documents ifGenerationMatch as a service-side precondition:
-a mutation proceeds only when the target generation matches, otherwise the
-service returns HTTP 412. Cloud Storage also documents generation-preconditioned
-object mutations as conditionally idempotent/retry-safe.
+## GCP trust boundary
+
+WIF profile v2 is exact rather than substring-matched. It requires google.subject
+and the repository, repository ID, repository owner ID, environment, event,
+workflow, ref, and workflow_ref mappings. The provider attribute condition must
+equal the frozen conjunction in the profile.
+
+The condition binds the live identity to refs/heads/main and the exact workflow
+path on that ref. The workflow job independently refuses to run on any other
+ref.
+
+The verifier also checks the target service account IAM policy for a
+roles/iam.workloadIdentityUser binding to the repository ID principal set.
+The project number and workload identity pool ID are derived from the trusted
+provider resource.
+
+This is trust configuration evidence only. It does not prove workflow source
+immutability, environment approval honesty, or Cloud Storage behavior.
 
 ## Qualification cases
 
@@ -45,132 +59,50 @@ The frozen case set is:
 11. reconciliation distinguishes the pre-application point from the applied
     point without treating absence as proof of non-commit.
 
-Adding, removing, reordering, or redefining these cases requires a new case-set
-identity.
-
-## GCP setup
-
-Use a dedicated qualification bucket. The service account needs object read,
-create, overwrite, and delete capability only on that bucket. Cloud Storage
-currently documents roles/storage.objectUser as providing create, read, update,
-and delete access to objects; a narrower custom role is also suitable.
-
-Configure GitHub repository or protected-environment variables:
-
-- SOL_ATLAS_GCP_PROJECT_ID
-- SOL_ATLAS_GCP_WORKLOAD_IDENTITY_PROVIDER
-- SOL_ATLAS_GCP_SERVICE_ACCOUNT
-- SOL_ATLAS_GCS_QUALIFICATION_BUCKET
-
-Create the GitHub environment named sol-atlas-gcs-qualification and require
-approval for it before granting access to the live qualification.
-
-Use GitHub OIDC / Google Workload Identity Federation rather than a long-lived
-service-account key. The trust policy should at minimum constrain:
-
-- repository identity;
-- the protected qualification environment;
-- the expected workflow path;
-- the expected event/ref policy.
-
-Do not authorize arbitrary pull-request code to obtain the GCP identity.
+Adding, removing, reordering, or redefining these cases requires a new case-set identity.
 
 ## Evidence handling
 
-The workflow produces a JSON report that binds:
-
-- exact source commit;
-- exact adapter Git blob;
-- exact harness Git blob;
-- exact workflow Git blob;
-- exact profile digest;
-- exact case-set identity;
-- ordered observed case results;
-- evidence digest;
-- report digest.
+The workflow report binds exact source commit, adapter/harness/workflow blobs,
+WIF verification/profile digest, case-set identity, ordered observed results,
+evidence digest, and report digest.
 
 The artifact is also emitted through GitHub artifact attestation. That
-attestation is build provenance for the report; it does not prove that the
-Cloud Storage service is truthful.
+attestation is provenance for the report; it does not prove that Cloud Storage
+is truthful.
 
-A queued GitHub Actions run is not qualification evidence. The live claim only
-advances when the workflow executes the complete case vector and the generated
-report re-verifies against the exact checked-out source.
+A queued Actions run is not qualification evidence. The live claim advances
+only when the complete case vector executes and the generated report
+re-verifies against the exact checked-out source.
 
-## Local operation
+## Operations
 
-A local operator with gcloud authentication can run:
+Use a dedicated qualification bucket and a protected GitHub environment named
+sol-atlas-gcs-qualification. Keep GCP values in protected environment/repository
+variables.
 
-    python3 scripts/qualify_gcs_external_effect.py \
-      qualify \
-      --bucket QUALIFICATION_BUCKET \
-      --output artifacts/gcs-external-effect-report.json
+The live workflow remains workflow_dispatch-only and intentionally runs only
+from refs/heads/main. It has id-token and attestations permissions and pins
+third-party actions to immutable release commit SHAs.
 
-Then verify the captured artifact:
+Google documents that google.subject is required for workload identity
+providers and that service-account impersonation uses
+roles/iam.workloadIdentityUser, which can be scoped to a principalSet based on
+a mapped custom attribute. GitHub documents repository_id, repository_owner_id,
+environment, event_name, workflow, ref, and workflow_ref claims for cloud
+trust conditions.
 
-    python3 scripts/qualify_gcs_external_effect.py \
-      verify \
-      --report artifacts/gcs-external-effect-report.json
+## Frozen case corpus
 
-The object names are unique to the run and are deleted with an exact generation
-precondition after qualification. A cleanup failure makes the qualification
-run fail rather than silently reporting success.
+The live case definitions are checked in at
+sol-atlas-policy-store-contract/conformance/gcs_external_effect_cases_v1.json.
+The qualifier hashes the complete corpus, including descriptions and order,
+and stores that digest in both evidence and report. A change to case meaning,
+order, or membership therefore invalidates prior external evidence.
 
 ## Why GCS first
 
-Cloud Storage exposes the exact primitive this boundary needs: a resource-side
-generation guard checked when the mutation occurs. This is stronger evidence
-than a client-side compare followed by a write, because a stale resumed caller
-cannot bypass the fence merely by observing a fresh state earlier.
-
-The adapter still keeps idempotency identity and reconciliation semantics above
-that primitive. GCS generation fencing therefore qualifies one concrete
-resource boundary without being mistaken for a general external-effect
-transaction protocol.
-
-## Frozen case corpus and source execution
-
-The live case definitions are checked in at
-`sol-atlas-policy-store-contract/conformance/gcs_external_effect_cases_v1.json`.
-The qualifier hashes the complete corpus, including case descriptions, and
-stores that digest in both the evidence and report. A change to case meaning,
-order, or membership therefore invalidates prior external evidence even when
-its case-set name is unchanged.
-
-The qualification workflow pins its GitHub Actions dependencies to immutable
-release commit SHAs. The live lane is manual and protected rather than
-pull-request triggered because it has authority to obtain a real GCP identity.
-
-GitHub documents that `workflow_dispatch` only receives events when the
-workflow file exists on the default branch. After this workflow is merged to
-that branch, run it first from the trusted default-branch workflow, then use a
-GitHub API/CLI dispatch against a specific trusted ref when exact-head
-qualification is required. Do not change this lane to a pull-request trigger
-merely to make credentials available to review code.
-
-## WIF trust profile
-
-The checked-in trust profile requires the Google Workload Identity Federation
-provider to map the following GitHub claims:
-
-- `attribute.repository -> assertion.repository`
-- `attribute.repository_id -> assertion.repository_id`
-- `attribute.repository_owner_id -> assertion.repository_owner_id`
-- `attribute.environment -> assertion.environment`
-- `attribute.workflow -> assertion.workflow`
-- `attribute.event_name -> assertion.event_name`
-
-The provider condition must include exact restrictions for repository ID
-`1195997641`, owner ID `216969177`, repository
-`Luminous-Dynamics/sol-atlas-leptos`, environment
-`sol-atlas-gcs-qualification`, workflow `Qualify GCS external effect`, and
-event `workflow_dispatch`.
-
-Additional conditions are allowed and only tighten the boundary. The verifier
-also requires the issuer URI to be
-`https://token.actions.githubusercontent.com`.
-
-The numeric repository/owner identifiers are intentionally used alongside the
-names because GitHub documents immutable repository/owner ID claims as a
-stronger identity anchor than names alone. The workflow's protected environment
-then supplies a separate human-approval boundary.
+Cloud Storage exposes a resource-side generation guard checked at mutation time.
+The adapter keeps idempotency identity and reconciliation semantics above that
+primitive, so the qualification is one concrete resource boundary, not a
+general exactly-once external-effect proof.
