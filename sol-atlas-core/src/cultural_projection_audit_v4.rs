@@ -129,20 +129,36 @@ impl CulturalProjectionAuditV4 {
         Ok(())
     }
 
+    /// Validates this V4 audit against an exact canonical claim and strict frontier,
+    /// preserving typed frontier and ontology-resolution diagnostics.
+    pub fn validate_frontier_safe(
+        &self,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        self.base.validate_frontier_safe(frontier, claim)?;
+
+        if claim.claim_ref != self.base.claim_ref
+            || self.base.evidence_refs != claim.evidence_refs
+            || self.base.source_snapshots != claim.source_snapshots
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        for resolution in &self.resolutions {
+            resolution.validate_frontier_safe(claim, frontier)?;
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         frontier: &crate::civilizational::EvidenceFrontierV1,
         claim: &CanonicalClaimAdmissionV1,
     ) -> bool {
-        self.validate().is_ok()
-            && self.base.is_frontier_safe(frontier)
-            && claim.claim_ref == self.base.claim_ref
-            && self.base.evidence_refs == claim.evidence_refs
-            && self.base.source_snapshots == claim.source_snapshots
-            && self
-                .resolutions
-                .iter()
-                .all(|resolution| resolution.is_frontier_safe(claim, frontier))
+        self.validate_frontier_safe(frontier, claim).is_ok()
     }
 
     /// Reciprocal validation against the exact cultural projection,
@@ -574,6 +590,25 @@ mod tests {
             .expect("frontier hash");
 
         assert!(!audit.is_frontier_safe(&rebound_frontier, &claim));
+    }
+
+    #[test]
+    fn v4_frontier_validator_preserves_frontier_diagnostic() {
+        let (base, claim, mut frontier, mapping) = fixture();
+        frontier.manifest_hash = "not-a-valid-sha256".into();
+        let resolution = OntologyMappingResolutionV1::from_mapping(
+            &mapping,
+            OntologyMappingRelationV1::Exact,
+            &claim,
+            &frontier(),
+        )
+        .expect("resolution");
+        let audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
+
+        assert_eq!(
+            audit.validate_frontier_safe(&frontier, &claim),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
     }
 
     #[test]
