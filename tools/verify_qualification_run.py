@@ -389,6 +389,7 @@ def verify_artifact(
 def verify_source_bindings(
     api_url: str,
     source_repository: str,
+    base_repository: str,
     source_revision: str,
     packet: dict[str, object],
     token: str,
@@ -398,7 +399,7 @@ def verify_source_bindings(
     )
     executed_workflow = fetch_file(
         api_url,
-        source_repository,
+        base_repository,
         EXPECTED_WORKFLOW_FILE,
         packet["workflow_sha"],
         token,
@@ -481,6 +482,7 @@ def main() -> int:
     verify_source_bindings(
         args.api_url,
         head_repository,
+        args.repository,
         packet["source_revision"],
         packet,
         args.token,
