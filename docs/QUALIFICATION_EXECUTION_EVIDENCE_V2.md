@@ -54,8 +54,9 @@ The V2 verifier is invoked with the current GitHub execution context and checks:
 
 The adversarial self-test exercises stale-sidecar rejection, workflow-file-path
 context mismatch rejection, mutation of every packet execution-context scalar,
-required-key-set rejection, command-inventory ordering rejection, verifier identity
-mismatch rejection, and independent tamper rejection for duplicate JSON keys, the workflow file,
+required-key-set rejection, command-inventory ordering rejection, canonical pull-request workflow-ref
+rejection, verifier identity mismatch rejection, and independent tamper rejection
+for duplicate JSON keys, the workflow file,
 verifier file, Cargo.lock, and test inventory.
 
 A missing packet cannot be interpreted as a successful qualification.
@@ -75,7 +76,9 @@ values alongside the separate SHA-256 of the checked-out workflow bytes.
 The packet uses JSON and SHA-256 for ordinary machine inspection. Duplicate
 JSON object keys are rejected to keep every packet field semantically
 unambiguous. The qualification contract pins Rust 1.99.0 and the `Check` / `.github/workflows/check.yml` /
-`provenance-construction` workflow identity. The verifier rejects a self-consistent
+`provenance-construction` workflow identity. The recorded `workflow_ref` must
+also be the canonical GitHub `pull_request` merge-ref form for this repository
+and PR (`.../.github/workflows/check.yml@refs/pull/<number>/merge`). The verifier rejects a self-consistent
 packet that claims another Rust release or renames that qualification boundary. The schema
 is application-defined and versioned. It does not claim RFC 8785/JCS canonical
 JSON compatibility.
