@@ -74,6 +74,16 @@ def run_verifier(
             "888888888",
             "--server-url",
             "https://github.com",
+            "--runner-os",
+            "Linux",
+            "--runner-arch",
+            "X64",
+            "--rust-toolchain",
+            "1.99.0",
+            "--rustc-version-verbose",
+            "fixture",
+            "--cargo-version-verbose",
+            "fixture",
         ],
         text=True,
         capture_output=True,
@@ -168,6 +178,11 @@ def main() -> int:
             "job_name": "other-job",
             "check_run_id": evidence["check_run_id"] + 1,
             "workflow_run_url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/1",
+            "runner_os": "Windows",
+            "runner_arch": "ARM64",
+            "rust_toolchain": "stable",
+            "rustc_version_verbose": "tampered-rustc",
+            "cargo_version_verbose": "tampered-cargo",
         }
         for field, value in scalar_mutations.items():
             tampered = dict(evidence)
