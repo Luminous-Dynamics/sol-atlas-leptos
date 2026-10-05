@@ -293,7 +293,7 @@ jobs:
             --runner-os "$VERIFY_RUNNER_OS" \
             --runner-arch "$VERIFY_RUNNER_ARCH" \
             --rust-toolchain "$VERIFY_RUST_TOOLCHAIN" \
-            --rustc-version-verbose "$(rustc +\"$VERIFY_RUST_TOOLCHAIN\" --version --verbose)" \
+            --rustc-version-verbose "$(rustc +"$VERIFY_RUST_TOOLCHAIN" --version --verbose)" \
             --cargo-version-verbose "$(cargo --version --verbose)"
       - name: Publish qualification execution evidence
 
