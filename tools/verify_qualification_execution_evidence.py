@@ -74,6 +74,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--job-name", required=True)
     parser.add_argument("--check-run-id", required=True, type=int)
     parser.add_argument("--server-url", required=True)
+    parser.add_argument("--runner-os", required=True)
+    parser.add_argument("--runner-arch", required=True)
+    parser.add_argument("--rust-toolchain", required=True)
+    parser.add_argument("--rustc-version-verbose", required=True)
+    parser.add_argument("--cargo-version-verbose", required=True)
     return parser.parse_args()
 
 
@@ -122,6 +127,11 @@ def main() -> int:
         "run_attempt": args.run_attempt,
         "job_name": args.job_name,
         "check_run_id": args.check_run_id,
+        "runner_os": args.runner_os,
+        "runner_arch": args.runner_arch,
+        "rust_toolchain": args.rust_toolchain,
+        "rustc_version_verbose": args.rustc_version_verbose,
+        "cargo_version_verbose": args.cargo_version_verbose,
     }
     for key, expected in expected_scalars.items():
         if evidence[key] != expected:
@@ -160,6 +170,10 @@ def main() -> int:
     )
     if evidence["workflow_run_url"] != expected_url:
         fail("workflow_run_url does not bind to the current run")
+
+    for key in ("runner_os", "runner_arch", "rust_toolchain", "rustc_version_verbose", "cargo_version_verbose"):
+        if not isinstance(evidence[key], str) or not evidence[key]:
+            fail(f"{key} is not a non-empty string")
 
     if evidence["qualification_commands"] != EXPECTED_COMMANDS:
         fail("qualification command inventory does not match the V2 contract")
