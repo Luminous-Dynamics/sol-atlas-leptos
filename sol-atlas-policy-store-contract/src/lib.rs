@@ -55,6 +55,15 @@ pub enum RecoveryPolicyConsumptionPersistenceError<E> {
     Store(E),
 }
 
+/// Error boundary for one operation that reads the authoritative fence store
+/// and then mutates a separate effect store. The stores remain independent
+/// transaction boundaries; this type does not imply a cross-store transaction.
+#[derive(Debug)]
+pub enum RecoveryExecutionCrossStorePersistenceError<FenceError, EffectError> {
+    FenceStore(FenceError),
+    EffectStore(EffectError),
+}
+
 /// Result of the single atomic persistence decision.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RecoveryPolicyConsumptionCasResult {
@@ -1263,6 +1272,66 @@ where
     S: RecoveryExecutionFenceStore,
 {
     reconcile_execution_fence(store, expected.fence())
+}
+
+/// Result of the explicit fence-freshness preflight for an effect start.
+///
+/// RejectedByFence is a negative authoritative observation. AttemptedAfterCurrentFenceObservation
+/// means the fence was observed current immediately before the effect-store call; it does not
+/// make that separate mutation atomic with the fence read or prove that the fence remained current.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionEffectFenceAdmissionResult {
+    RejectedByFence(RecoveryExecutionFenceReconciliationOutcome),
+    AttemptedAfterCurrentFenceObservation(RecoveryExecutionEffectStartResult),
+}
+
+/// Revalidate a provenance-bearing fence immediately before attempting an effect-store start.
+///
+/// This closes the admission ambiguity where an established handle could be passed directly
+/// to an effect store after authoritative ownership had already advanced. It remains a
+/// point-in-time preflight because the fence store and effect store are separate transaction
+/// boundaries; a fence can advance after this read and before the effect mutation.
+pub fn begin_execution_effect_after_fence_revalidation<F, E>(
+    fence_store: &F,
+    effect_store: &E,
+    fence: &EstablishedRecoveryExecutionFenceV1,
+) -> Result<
+    RecoveryExecutionEffectFenceAdmissionResult,
+    RecoveryExecutionCrossStorePersistenceError<F::Error, E::Error>,
+>
+where
+    F: RecoveryExecutionFenceStore,
+    E: RecoveryExecutionEffectStore,
+{
+    let observation = reconcile_established_execution_fence(fence_store, fence).map_err(
+        |error| match error {
+            RecoveryPolicyConsumptionPersistenceError::Store(error) => {
+                RecoveryExecutionCrossStorePersistenceError::FenceStore(error)
+            }
+        },
+    )?;
+
+    if observation
+        != RecoveryExecutionFenceReconciliationOutcome::ObservedCurrentOwnedByThisAttempt
+    {
+        return Ok(RecoveryExecutionEffectFenceAdmissionResult::RejectedByFence(
+            observation,
+        ));
+    }
+
+    let result = begin_execution_effect_for_established_fence(effect_store, fence).map_err(
+        |error| match error {
+            RecoveryPolicyConsumptionPersistenceError::Store(error) => {
+                RecoveryExecutionCrossStorePersistenceError::EffectStore(error)
+            }
+        },
+    )?;
+
+    Ok(
+        RecoveryExecutionEffectFenceAdmissionResult::AttemptedAfterCurrentFenceObservation(
+            result,
+        ),
+    )
 }
 
 /// Reconcile a fenced ownership acknowledgement without mutating the store.
@@ -3660,6 +3729,75 @@ mod tests {
         assert_eq!(
             acquire_execution_fence(&store, &fence).expect("replay"),
             RecoveryExecutionFenceResult::AlreadyOwnedSameAttempt
+        );
+    }
+
+    #[test]
+    fn fence_revalidated_effect_start_rejects_stale_authority_before_mutating_effect_store() {
+        let fence_store = FencedExecutionMemoryStore::default();
+        let effect_store = ExecutionEffectMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let established =
+            match establish_execution_fence(&fence_store, &initial).expect("establish") {
+                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+                _ => panic!("initial establishment must succeed"),
+            };
+
+        match recover_established_execution_fence(&fence_store, &established, "attempt-b")
+            .expect("recover fence")
+        {
+            RecoveryExecutionFenceRecoveryEstablishmentV1::Established(_) => {}
+            _ => panic!("fence recovery must succeed"),
+        }
+
+        assert_eq!(
+            begin_execution_effect_after_fence_revalidation(
+                &fence_store,
+                &effect_store,
+                &established,
+            )
+            .expect("stale admission"),
+            RecoveryExecutionEffectFenceAdmissionResult::RejectedByFence(
+                RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence,
+            )
+        );
+        assert!(
+            effect_store
+                .load_effect(&established.execution_id())
+                .expect("effect load")
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn fence_revalidated_effect_start_marks_success_as_point_in_time_observation() {
+        let fence_store = FencedExecutionMemoryStore::default();
+        let effect_store = ExecutionEffectMemoryStore::default();
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let established =
+            match establish_execution_fence(&fence_store, &initial).expect("establish") {
+                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+                _ => panic!("initial establishment must succeed"),
+            };
+
+        assert_eq!(
+            begin_execution_effect_after_fence_revalidation(
+                &fence_store,
+                &effect_store,
+                &established,
+            )
+            .expect("admission"),
+            RecoveryExecutionEffectFenceAdmissionResult::AttemptedAfterCurrentFenceObservation(
+                RecoveryExecutionEffectStartResult::Started,
+            )
         );
     }
 
