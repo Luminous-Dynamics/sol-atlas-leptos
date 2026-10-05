@@ -288,6 +288,72 @@ impl V5ReplayReceiptV1 {
         Ok(receipt)
     }
 
+    /// Validates the receipt's standalone structural and content-addressed
+    /// integrity without claiming that its external audit/chain provenance is
+    /// valid. Use the reciprocal validators for that stronger claim.
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        fn is_sha256_hex(value: &str) -> bool {
+            value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+        }
+
+        if !is_sha256_hex(&self.audit_semantic_hash)
+            || !self.projection_id.is_valid()
+            || !self.claim_ref.is_valid()
+            || self.evidence_refs.is_empty()
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || {
+                let mut seen = std::collections::BTreeSet::new();
+                self.evidence_refs.iter().any(|id| !seen.insert(id))
+            }
+            || self.source_snapshots.is_empty()
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || {
+                let mut seen = std::collections::BTreeSet::new();
+                self.source_snapshots.iter().any(|id| !seen.insert(id))
+            }
+            || self.frontier_lineage.is_empty()
+            || !self.leaf_frontier.is_valid()
+            || !self.receipt_hash.is_empty() && !is_sha256_hex(&self.receipt_hash)
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        let mut frontier_ids = std::collections::BTreeSet::new();
+        for (frontier_id, manifest_hash) in &self.frontier_lineage {
+            if !frontier_id.is_valid()
+                || !is_sha256_hex(manifest_hash)
+                || !frontier_ids.insert(frontier_id)
+            {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            }
+        }
+
+        if self.frontier_lineage.last().map(|(id, _)| id) != Some(&self.leaf_frontier) {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        for value in &self.argumentation {
+            if !value.assessment.is_valid()
+                || !value.interpretation.is_valid()
+                || !is_sha256_hex(&value.semantic_hash)
+            {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            }
+        }
+
+        for value in &self.ontology_resolutions {
+            if value.mapping_id.trim().is_empty() || !is_sha256_hex(&value.resolution_hash) {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            }
+        }
+
+        if self.receipt_hash != self.computed_hash()? {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        Ok(())
+    }
+
     pub fn computed_hash(&self) -> Result<String, ProjectionError> {
         let payload = (
             &self.audit_semantic_hash,
@@ -538,6 +604,31 @@ mod tests {
                 evidence_frontier: "frontier:1951".into(),
             },
         )
+    }
+
+    #[test]
+    fn standalone_receipt_validation_checks_content_integrity() {
+        let mut receipt = fixture();
+        receipt.recompute_hash().expect("receipt hash");
+        assert_eq!(receipt.validate(), Ok(()));
+
+        receipt.leaf_frontier = "frontier:other".into();
+        assert_eq!(
+            receipt.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn standalone_receipt_validation_rejects_bad_digest_shape() {
+        let mut receipt = fixture();
+        receipt.recompute_hash().expect("receipt hash");
+        receipt.audit_semantic_hash = "not-a-sha256".into();
+        receipt.recompute_hash().expect("recomputed receipt hash");
+        assert_eq!(
+            receipt.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
     }
 
     #[test]
