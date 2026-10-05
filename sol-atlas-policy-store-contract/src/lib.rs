@@ -1632,6 +1632,8 @@ pub enum RecoveryExecutionProtectedMutationNextActionV1 {
     ReturnRecordedOutcome,
     ReconcileIndeterminateMutation,
     RequireIdempotencyOrManualRecovery,
+    RetryWithDeclaredIdempotency,
+    ManualRecoveryOnly,
     FailClosed,
 }
 
@@ -1746,6 +1748,56 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
             RecoveryExecutionEffectRecoveryModeV1::AutomaticRetryOnly
         } else {
             RecoveryExecutionEffectRecoveryModeV1::ManualRecoveryOnly
+        }
+    }
+
+    /// Apply declared adapter capabilities to an observed mutation state.
+    ///
+    /// This is pure policy classification. It never performs reconciliation,
+    /// retries, takeover, or the external mutation itself.
+    pub fn next_action(
+        &self,
+        state: RecoveryExecutionProtectedMutationOrchestrationStateV1,
+    ) -> RecoveryExecutionProtectedMutationNextActionV1 {
+        if !self.is_well_formed() {
+            return RecoveryExecutionProtectedMutationNextActionV1::FailClosed;
+        }
+
+        match state {
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::AppliedSameRequest
+            | RecoveryExecutionProtectedMutationOrchestrationStateV1::
+                ObservedAppliedSameRequest => {
+                RecoveryExecutionProtectedMutationNextActionV1::ReturnRecordedOutcome
+            }
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::Indeterminate => {
+                match self.reconciliation {
+                    RecoveryExecutionReconciliationCapabilityV1::StrongReadBack
+                    | RecoveryExecutionReconciliationCapabilityV1::
+                        EventuallyConsistentReadBack => {
+                        RecoveryExecutionProtectedMutationNextActionV1::
+                            ReconcileIndeterminateMutation
+                    }
+                    RecoveryExecutionReconciliationCapabilityV1::NotSupported
+                    | RecoveryExecutionReconciliationCapabilityV1::Unknown => {
+                        RecoveryExecutionProtectedMutationNextActionV1::ManualRecoveryOnly
+                    }
+                }
+            }
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedNotApplied => {
+                if self.automatic_retry_safe() {
+                    RecoveryExecutionProtectedMutationNextActionV1::
+                        RetryWithDeclaredIdempotency
+                } else {
+                    RecoveryExecutionProtectedMutationNextActionV1::
+                        RequireIdempotencyOrManualRecovery
+                }
+            }
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::
+                ObservedDifferentRequest
+            | RecoveryExecutionProtectedMutationOrchestrationStateV1::MissingState
+            | RecoveryExecutionProtectedMutationOrchestrationStateV1::InvalidState => {
+                RecoveryExecutionProtectedMutationNextActionV1::FailClosed
+            }
         }
     }
 }
@@ -1936,6 +1988,42 @@ mod tests {
             );
             Ok(RecoveryExecutionProtectedMutationResult::Applied)
         }
+    }
+
+    #[test]
+    fn external_effect_safety_profile_wires_capabilities_into_actions() {
+        let profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::StableKey,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::StrongReadBack,
+            claim_ceiling: "Adapter capability declaration only.".into(),
+        };
+
+        assert_eq!(
+            profile.next_action(
+                RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedNotApplied,
+            ),
+            RecoveryExecutionProtectedMutationNextActionV1::RetryWithDeclaredIdempotency,
+        );
+        assert_eq!(
+            profile.next_action(
+                RecoveryExecutionProtectedMutationOrchestrationStateV1::Indeterminate,
+            ),
+            RecoveryExecutionProtectedMutationNextActionV1::ReconcileIndeterminateMutation,
+        );
+
+        let no_reconciliation = RecoveryExecutionEffectSafetyProfileV1 {
+            reconciliation:
+                RecoveryExecutionReconciliationCapabilityV1::NotSupported,
+            ..profile
+        };
+        assert_eq!(
+            no_reconciliation.next_action(
+                RecoveryExecutionProtectedMutationOrchestrationStateV1::Indeterminate,
+            ),
+            RecoveryExecutionProtectedMutationNextActionV1::ManualRecoveryOnly,
+        );
     }
 
     #[test]
