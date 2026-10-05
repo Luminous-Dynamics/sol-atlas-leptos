@@ -23,9 +23,10 @@ In addition to the V1 bindings, the V2 packet records:
 - the explicit workflow file path reported by the running GitHub job;
 - the SHA-256 of `tools/verify_qualification_execution_evidence.py`.
 
-The verifier independently recomputes the workflow-file, verifier, Cargo.lock,
-and test-inventory digests rather than trusting only the packet's declared
-values. It also binds runner OS, runner architecture, Rust toolchain, rustc
+The verifier rejects duplicate JSON object keys so the packet has a single
+unambiguous value for each field. It independently recomputes the workflow-file,
+verifier, Cargo.lock, and test-inventory digests rather than trusting only the
+packet's declared values. It also binds runner OS, runner architecture, Rust toolchain, rustc
 version output, and cargo version output to the current qualification job;
 the latter two are recomputed during verification rather than accepted solely
 from the packet.
@@ -54,7 +55,7 @@ The V2 verifier is invoked with the current GitHub execution context and checks:
 The adversarial self-test exercises stale-sidecar rejection, workflow-file-path
 context mismatch rejection, mutation of every packet execution-context scalar,
 required-key-set rejection, command-inventory ordering rejection, verifier identity
-mismatch rejection, and independent tamper rejection for the workflow file,
+mismatch rejection, and independent tamper rejection for duplicate JSON keys, the workflow file,
 verifier file, Cargo.lock, and test inventory.
 
 A missing packet cannot be interpreted as a successful qualification.
