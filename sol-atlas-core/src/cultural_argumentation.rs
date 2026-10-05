@@ -156,9 +156,7 @@ impl CulturalArgumentationRefV3 {
         self.validate()?;
         self.closure.validate_frontier_safe(claim, frontier)?;
 
-        if self.claim_ref != claim.claim_ref
-            || self.evidence_frontier != frontier.frontier_id
-        {
+        if self.claim_ref != claim.claim_ref || self.evidence_frontier != frontier.frontier_id {
             return Err(ProjectionError::AuditWithoutEvidencePath);
         }
 
