@@ -128,7 +128,7 @@ def main() -> int:
             "runner_os": "Linux",
             "runner_arch": "X64",
             "rust_toolchain": "1.99.0",
-            "rustc_version_verbose": "fixture",
+            "rustc_version_verbose": "rustc 1.99.0 (fixture)",
             "cargo_version_verbose": "fixture",
             "cargo_lock_sha256": digest(CARGO_LOCK),
             "test_inventory_sha256": digest(inventory),
