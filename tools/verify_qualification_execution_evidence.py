@@ -50,6 +50,8 @@ EXPECTED_RUSTC_PREFIX = "rustc 1.99.0 "
 EXPECTED_WORKFLOW_NAME = "Check"
 EXPECTED_WORKFLOW_FILE_PATH = ".github/workflows/check.yml"
 EXPECTED_JOB_NAME = "provenance-construction"
+EXPECTED_RUNNER_OS = "Linux"
+EXPECTED_RUNNER_ARCH = "X64"
 
 EXPECTED_COMMANDS = [
     "cargo test -p sol-atlas-core --locked -- --list",
@@ -154,6 +156,10 @@ def main() -> int:
         fail("qualification workflow_ref does not match the canonical pull_request merge ref")
     if args.job_name != EXPECTED_JOB_NAME:
         fail(f"qualification requires job {EXPECTED_JOB_NAME!r}")
+    if args.runner_os != EXPECTED_RUNNER_OS:
+        fail(f"qualification requires runner OS {EXPECTED_RUNNER_OS!r}")
+    if args.runner_arch != EXPECTED_RUNNER_ARCH:
+        fail(f"qualification requires runner architecture {EXPECTED_RUNNER_ARCH!r}")
 
     expected_scalars = {
         "repository": args.repository,
