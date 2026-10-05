@@ -26,7 +26,14 @@ def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def run_verifier(packet: Path, sidecar: Path, inventory: Path, verifier: Path) -> subprocess.CompletedProcess[str]:
+def run_verifier(
+    packet: Path,
+    sidecar: Path,
+    inventory: Path,
+    verifier: Path,
+    workflow: Path = WORKFLOW,
+    cargo_lock: Path = CARGO_LOCK,
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [
             sys.executable,
@@ -34,11 +41,11 @@ def run_verifier(packet: Path, sidecar: Path, inventory: Path, verifier: Path) -
             str(packet),
             str(sidecar),
             "--workflow-file",
-            str(WORKFLOW),
+            str(workflow),
             "--verifier-file",
             str(verifier),
             "--cargo-lock",
-            str(CARGO_LOCK),
+            str(cargo_lock),
             "--test-inventory",
             str(inventory),
             "--repository",
@@ -147,6 +154,53 @@ def main() -> int:
         result = run_verifier(packet, sidecar, inventory, VERIFIER)
         if result.returncode == 0:
             raise SystemExit("verifier accepted a verifier-identity mismatch")
+
+        tampered_workflow = root / "tampered-check.yml"
+        tampered_workflow.write_bytes(WORKFLOW.read_bytes() + b"\\n# adversarial fixture mutation\\n")
+        write_packet(evidence)
+        result = run_verifier(
+            packet,
+            sidecar,
+            inventory,
+            VERIFIER,
+            workflow=tampered_workflow,
+        )
+        if result.returncode == 0:
+            raise SystemExit("verifier accepted a workflow-file hash mismatch")
+
+        tampered_cargo_lock = root / "tampered-Cargo.lock"
+        tampered_cargo_lock.write_bytes(CARGO_LOCK.read_bytes() + b"\\n# adversarial fixture mutation\\n")
+        result = run_verifier(
+            packet,
+            sidecar,
+            inventory,
+            VERIFIER,
+            cargo_lock=tampered_cargo_lock,
+        )
+        if result.returncode == 0:
+            raise SystemExit("verifier accepted a Cargo.lock hash mismatch")
+
+        tampered_inventory = root / "tampered-test-inventory.txt"
+        tampered_inventory.write_bytes(inventory.read_bytes() + b"fixture-test-three\\n")
+        result = run_verifier(
+            packet,
+            sidecar,
+            tampered_inventory,
+            VERIFIER,
+        )
+        if result.returncode == 0:
+            raise SystemExit("verifier accepted a test-inventory hash mismatch")
+
+        tampered_verifier = root / "tampered-verifier.py"
+        tampered_verifier.write_bytes(VERIFIER.read_bytes() + b"\\n# adversarial fixture mutation\\n")
+        result = run_verifier(
+            packet,
+            sidecar,
+            inventory,
+            tampered_verifier,
+        )
+        if result.returncode == 0:
+            raise SystemExit("verifier accepted a verifier-file hash mismatch")
 
         print("qualification evidence verifier adversarial self-test passed")
         return 0
