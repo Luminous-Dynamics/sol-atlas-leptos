@@ -1,0 +1,94 @@
+name: Qualify GCS external effect
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: sol-atlas-gcs-qualification
+  cancel-in-progress: false
+
+jobs:
+  qualify:
+    name: Live GCS qualification
+    runs-on: ubuntu-latest
+    environment: sol-atlas-gcs-qualification
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    env:
+      GCP_PROJECT_ID: \${{ vars.SOL_ATLAS_GCP_PROJECT_ID }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: \${{ vars.SOL_ATLAS_GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: \${{ vars.SOL_ATLAS_GCP_SERVICE_ACCOUNT }}
+      GCS_QUALIFICATION_BUCKET: \${{ vars.SOL_ATLAS_GCS_QUALIFICATION_BUCKET }}
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Validate qualification configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for value in \
+            GCP_PROJECT_ID \
+            GCP_WORKLOAD_IDENTITY_PROVIDER \
+            GCP_SERVICE_ACCOUNT \
+            GCS_QUALIFICATION_BUCKET
+          do
+            if [ -z "\${!value}" ]; then
+              echo "::error::\$value is not configured"
+              exit 1
+            fi
+          done
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: \${{ env.GCP_PROJECT_ID }}
+          workload_identity_provider: \${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: \${{ env.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v3
+        with:
+          version: ">= 363.0.0"
+
+      - name: Verify caller identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud auth list --filter=status:ACTIVE --format="value(account)"
+          test "\$(gcloud config get-value project)" = "\$GCP_PROJECT_ID"
+
+      - name: Run live GCS qualification
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          python3 scripts/qualify_gcs_external_effect.py \
+            qualify \
+            --bucket "\$GCS_QUALIFICATION_BUCKET" \
+            --output artifacts/gcs-external-effect-report.json
+
+      - name: Re-verify qualification artifact
+        run: |
+          set -euo pipefail
+          python3 scripts/qualify_gcs_external_effect.py \
+            verify \
+            --report artifacts/gcs-external-effect-report.json
+
+      - name: Upload qualification evidence
+        if: \${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sol-atlas-gcs-external-effect-qualification
+          path: artifacts/gcs-external-effect-report.json
+          if-no-files-found: ignore
+          retention-days: 90
+
+      - name: Attest qualification artifact provenance
+        if: \${{ success() }}
+        uses: actions/attest@v4
+        with:
+          subject-path: artifacts/gcs-external-effect-report.json
