@@ -2019,7 +2019,8 @@ impl RecoveryExecutionEffectConformanceReportV1 {
 
     fn identity_material(&self) -> String {
         format!(
-            "schema={}:{}|adapter={}:{}|adapter-revision={}:{}|harness={}:{}|harness-revision={}:{}|profile={}|evidence={}|evidence-body={}",
+            "schema={}:{}|adapter={}:{}|adapter-revision={}:{}|",
+            "harness={}:{}|harness-revision={}:{}|profile={}|evidence={}|evidence-body={}",
             self.schema.len(),
             self.schema,
             self.adapter_id.len(),
