@@ -19,6 +19,8 @@ REQUIRED_KEYS = {
     "qualification_kind",
     "status",
     "repository",
+    "event_name",
+    "ref",
     "pull_request_number",
     "source_revision",
     "base_revision",
@@ -77,6 +79,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cargo-lock", type=Path, required=True)
     parser.add_argument("--test-inventory", type=Path, required=True)
     parser.add_argument("--repository", required=True)
+    parser.add_argument("--event-name", required=True)
+    parser.add_argument("--ref", required=True)
     parser.add_argument("--pull-request-number", required=True, type=int)
     parser.add_argument("--source-revision", required=True)
     parser.add_argument("--base-revision", required=True)
@@ -133,6 +137,11 @@ def main() -> int:
         fail("status is not passed")
     if args.rust_toolchain != EXPECTED_RUST_TOOLCHAIN:
         fail(f"qualification requires Rust toolchain {EXPECTED_RUST_TOOLCHAIN}")
+    if args.event_name != "pull_request":
+        fail("qualification requires a pull_request workflow event")
+    expected_ref = f"refs/pull/{args.pull_request_number}/merge"
+    if args.ref != expected_ref:
+        fail("qualification ref does not match the current pull_request merge ref")
     if args.workflow_name != EXPECTED_WORKFLOW_NAME:
         fail(f"qualification requires workflow {EXPECTED_WORKFLOW_NAME!r}")
     if args.workflow_file_path != EXPECTED_WORKFLOW_FILE_PATH:
@@ -148,6 +157,8 @@ def main() -> int:
 
     expected_scalars = {
         "repository": args.repository,
+        "event_name": args.event_name,
+        "ref": args.ref,
         "pull_request_number": args.pull_request_number,
         "source_revision": args.source_revision,
         "base_revision": args.base_revision,
