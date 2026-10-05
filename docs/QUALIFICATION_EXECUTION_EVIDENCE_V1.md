@@ -24,7 +24,6 @@ The packet records:
 - the base revision used by the pull request;
 - GitHub workflow name/ref/definition SHA;
 - the SHA-256 of the checked-out workflow file;
-- the SHA-256 identity of the independent repository verifier;
 - GitHub run ID, attempt, qualification job name, and check-run ID;
 - a direct workflow-run URL;
 - runner OS and architecture;
@@ -40,9 +39,8 @@ The packet is emitted only after:
 1. exact pull-request head verification;
 2. test inventory inspection;
 3. cargo test -p sol-atlas-core --locked;
-4. adversarial self-tests of the independent qualification verifier;
-5. Cargo.lock immutability verification;
-6. clean working-tree verification.
+4. Cargo.lock immutability verification;
+5. clean working-tree verification.
 
 A missing packet therefore cannot be interpreted as a successful qualification.
 
@@ -60,11 +58,9 @@ The artifact is uploaded only after the qualification job has passed. Before
 publication, the workflow invokes the repository's independent verifier at
 tools/verify_qualification_execution_evidence.py with the current GitHub
 execution context. The verifier checks the exact schema, execution bindings, SHA shapes, run URL, qualification command inventory,
-independent SHA-256 recomputation of the checked-out workflow, verifier,
-Cargo.lock, and test-inventory files, plus adversarial self-tests for stale
-sidecars and verifier-identity tampering. This keeps packet production and
-packet validation as separate implementations and makes the verifier itself
-part of the recorded execution context.
+independent SHA-256 recomputation of the checked-out workflow/Cargo.lock/test
+inventory files, and the JSON sidecar digest. This keeps packet production and
+packet validation as separate implementations.
 The upload contains both qualification-execution-v1.json and a SHA-256 sidecar
 named qualification-execution-v1.json.sha256, allowing the JSON bytes to be
 archived and checked independently of GitHub's artifact container.
