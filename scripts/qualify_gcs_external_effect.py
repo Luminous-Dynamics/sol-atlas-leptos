@@ -44,6 +44,7 @@ CASE_IDS = [
     "future_fence_rejected",
     "concurrent_fencing_preserved",
     "different_request_same_key_rejected",
+    "changed_request_same_key_rejected",
     "changed_idempotency_key_rejected",
     "indeterminate_ack_reconciled",
     "point_in_time_semantics_explicit",
