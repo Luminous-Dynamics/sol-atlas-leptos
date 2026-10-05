@@ -84,3 +84,32 @@ and PR (`.../.github/workflows/check.yml@refs/pull/<number>/merge`). The verifie
 packet that claims another Rust release or renames that qualification boundary. The schema
 is application-defined and versioned. It does not claim RFC 8785/JCS canonical
 JSON compatibility.
+
+
+## Trusted post-run witness
+
+The PR-local V2 verifier is intentionally not treated as the final trust
+anchor: a malicious PR could change that verifier together with the workflow.
+A separate Qualification Witness workflow therefore runs on the default
+branch after a successful Check workflow run.
+
+The witness:
+
+- executes only the trusted default-branch copy of
+  tools/verify_qualification_run.py;
+- reads the qualification artifact as untrusted data and never executes code
+  from that artifact or the PR;
+- independently checks the GitHub workflow-run result, PR association,
+  provenance job, and required successful qualification steps;
+- fetches the exact PR workflow, verifier, and Cargo.lock at the recorded
+  source revision and recomputes their SHA-256 digests;
+- checks the qualification workflow against a trusted policy, including the
+  exact-head checkout, required qualification commands, pinned action refs, and
+  absence of OIDC/attestation write privileges.
+
+Because workflow_run uses the workflow version present on the default branch,
+this witness is a post-merge trust anchor for subsequent runs, not a claim
+that the current PR-local verifier can authenticate its own execution. GitHub
+documents that workflow_run executes from the default branch and exposes the
+completed workflow's run metadata; workflow-job APIs expose individual step
+conclusions for independent inspection.
