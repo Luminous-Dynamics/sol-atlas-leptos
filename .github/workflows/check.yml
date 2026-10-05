@@ -165,6 +165,8 @@ jobs:
             done
       - name: Execute core package
         run: cargo test -p sol-atlas-core --locked
+      - name: Adversarially self-test qualification verifier
+        run: python3 tools/test_verify_qualification_execution_evidence.py
       - name: Assert dependency and checkout integrity
         run: |
           test "$(sha256sum Cargo.lock | cut -d ' ' -f1)" = "$(cat /tmp/cargo-lock.sha256)"
