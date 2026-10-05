@@ -396,6 +396,13 @@ def verify_source_bindings(
     workflow = fetch_file(
         api_url, source_repository, EXPECTED_WORKFLOW_FILE, source_revision, token
     )
+    executed_workflow = fetch_file(
+        api_url,
+        source_repository,
+        EXPECTED_WORKFLOW_FILE,
+        packet["workflow_sha"],
+        token,
+    )
     verifier = fetch_file(
         api_url,
         source_repository,
@@ -409,12 +416,14 @@ def verify_source_bindings(
 
     if digest(workflow) != packet["checked_out_workflow_file_sha256"]:
         fail("PR workflow bytes do not match packet hash")
+    if workflow != executed_workflow:
+        fail("workflow bytes at PR head differ from the GitHub workflow definition commit")
     if digest(verifier) != packet["verifier_sha256"]:
         fail("PR verifier bytes do not match packet hash")
     if digest(cargo_lock) != packet["cargo_lock_sha256"]:
         fail("PR Cargo.lock bytes do not match packet hash")
 
-    workflow_text = workflow.decode("utf-8", errors="strict")
+    workflow_text = executed_workflow.decode("utf-8", errors="strict")
     for snippet in REQUIRED_WORKFLOW_SNIPPETS:
         if snippet not in workflow_text:
             fail(f"required workflow policy is missing: {snippet!r}")
