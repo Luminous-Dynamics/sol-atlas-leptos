@@ -232,45 +232,23 @@ jobs:
           )
           PY
           sha256sum /tmp/qualification-execution-v1.json | awk '{print $1}' > /tmp/qualification-execution-v1.json.sha256
-      - name: Validate qualification execution evidence
+      - name: Validate qualification execution evidence independently
         run: |
-          python3 - <<'PY'
-          import hashlib
-          import json
-          import re
-          from pathlib import Path
-
-          path = Path('/tmp/qualification-execution-v1.json')
-          evidence = json.loads(path.read_text(encoding='utf-8'))
-          required = {
-              'schema', 'qualification_kind', 'status', 'repository',
-              'pull_request_number', 'source_revision', 'base_revision',
-              'workflow_name', 'workflow_ref', 'workflow_sha',
-              'checked_out_workflow_file_sha256', 'run_id', 'run_attempt',
-              'job_name', 'check_run_id', 'workflow_run_url', 'runner_os',
-              'runner_arch', 'rust_toolchain', 'rustc_version_verbose',
-              'cargo_version_verbose', 'cargo_lock_sha256', 'test_inventory_sha256',
-              'qualification_commands',
-          }
-          assert set(evidence) == required
-          assert evidence['schema'] == 'sol-atlas:qualification-execution-evidence:v1'
-          assert evidence['status'] == 'passed'
-          for key in ('source_revision', 'base_revision', 'workflow_sha'):
-              assert re.fullmatch(r'[0-9a-f]{40}', evidence[key])
-          for key in ('checked_out_workflow_file_sha256', 'cargo_lock_sha256', 'test_inventory_sha256'):
-              assert re.fullmatch(r'[0-9a-f]{64}', evidence[key])
-          digest = hashlib.sha256(path.read_bytes()).hexdigest()
-          assert digest == Path('/tmp/qualification-execution-v1.json.sha256').read_text().strip()
-          assert evidence['source_revision'] == '${{ github.event.pull_request.head.sha }}'
-          assert evidence['pull_request_number'] == int('${{ github.event.pull_request.number }}')
-          assert evidence['run_id'] == '${{ github.run_id }}'
-          assert evidence['check_run_id'] == int('${{ job.check_run_id }}')
-          assert evidence['workflow_run_url'].endswith('/actions/runs/${{ github.run_id }}')
-          assert evidence['qualification_commands'] == [
-              'cargo test -p sol-atlas-core --locked -- --list',
-              'cargo test -p sol-atlas-core --locked',
-          ]
-          PY
+          python3 tools/verify_qualification_execution_evidence.py \
+            /tmp/qualification-execution-v1.json \
+            /tmp/qualification-execution-v1.json.sha256 \
+            --repository "${{ github.repository }}" \
+            --pull-request-number "${{ github.event.pull_request.number }}" \
+            --source-revision "${{ github.event.pull_request.head.sha }}" \
+            --base-revision "${{ github.event.pull_request.base.sha }}" \
+            --workflow-name "${{ github.workflow }}" \
+            --workflow-ref "${{ github.workflow_ref }}" \
+            --workflow-sha "${{ github.workflow_sha }}" \
+            --run-id "${{ github.run_id }}" \
+            --run-attempt "${{ github.run_attempt }}" \
+            --job-name "${{ github.job }}" \
+            --check-run-id "${{ job.check_run_id }}" \
+            --server-url "${{ github.server_url }}"
       - name: Publish qualification execution evidence
 
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
