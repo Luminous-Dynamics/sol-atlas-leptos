@@ -1,0 +1,46 @@
+{
+  "schema": "sol-atlas:recovery-execution-effect-case-set:v1",
+  "case_set": "sol-atlas:recovery-execution-effect-external-conformance-cases:gcs-generation-v1",
+  "cases": [
+    {
+      "id": "current_fence_accepted",
+      "semantic": "A mutation using the exact live object generation is accepted by Cloud Storage."
+    },
+    {
+      "id": "stable_key_replay_safe",
+      "semantic": "Replaying the exact same execution request is recognized without a second object-generation mutation."
+    },
+    {
+      "id": "stale_fence_rejected",
+      "semantic": "A mutation using an older object generation is rejected by Cloud Storage with HTTP 412."
+    },
+    {
+      "id": "future_fence_rejected",
+      "semantic": "A mutation using an unestablished future object generation is rejected by Cloud Storage with HTTP 412."
+    },
+    {
+      "id": "concurrent_fencing_preserved",
+      "semantic": "Two concurrent mutations against one generation permit exactly one Cloud Storage winner."
+    },
+    {
+      "id": "different_request_same_key_rejected",
+      "semantic": "A stable idempotency key cannot be reused by a different execution identity."
+    },
+    {
+      "id": "changed_request_same_key_rejected",
+      "semantic": "An execution identity cannot change its request fingerprint while retaining the same stable idempotency key."
+    },
+    {
+      "id": "changed_idempotency_key_rejected",
+      "semantic": "An already-applied execution identity cannot silently change its stable idempotency key."
+    },
+    {
+      "id": "indeterminate_ack_reconciled",
+      "semantic": "An acknowledgement-discarded mutation is reconciled using read-back without blind replay, preserving point-in-time uncertainty."
+    },
+    {
+      "id": "point_in_time_semantics_explicit",
+      "semantic": "Reconciliation distinguishes pre-application state from exact post-application state without treating absence as proof of non-commit."
+    }
+  ]
+}
