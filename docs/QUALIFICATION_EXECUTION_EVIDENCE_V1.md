@@ -42,7 +42,7 @@ The packet is emitted only after:
 3. cargo test -p sol-atlas-core --locked;
 4. adversarial self-tests of the independent qualification verifier;
 5. Cargo.lock immutability verification;
-5. clean working-tree verification.
+6. clean working-tree verification.
 
 A missing packet therefore cannot be interpreted as a successful qualification.
 
