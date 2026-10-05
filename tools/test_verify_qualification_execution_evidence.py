@@ -65,7 +65,7 @@ def run_verifier(
             "--workflow-name",
             workflow_name,
             "--workflow-ref",
-            "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/check.yml@refs/pull/13/head",
+            "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/check.yml@refs/pull/13/merge",
             "--workflow-file-path",
             workflow_file_path,
             "--workflow-sha",
@@ -155,6 +155,13 @@ def main() -> int:
             raise SystemExit(f"valid packet rejected: {result.stderr}")
 
         tampered = dict(evidence)
+        tampered["workflow_ref"] = tampered["workflow_ref"].replace("/merge", "/head")
+        write_packet(tampered)
+        result = run_verifier(packet, sidecar, inventory, VERIFIER)
+        if result.returncode == 0:
+            raise SystemExit("verifier accepted a non-canonical pull_request workflow_ref")
+
+        tampered = dict(evidence)
         tampered["run_id"] += 1
         write_packet(tampered)
         stale_sidecar = sidecar.read_text(encoding="utf-8")
@@ -168,6 +175,17 @@ def main() -> int:
         if result.returncode == 0:
             raise SystemExit("verifier accepted a packet with a stale sidecar")
 
+        tampered = dict(evidence)
+        packet.write_text(
+            json.dumps(tampered, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        sidecar.write_text(digest(packet) + "  \n", encoding="utf-8")
+        result = run_verifier(packet, sidecar, inventory, VERIFIER)
+        if result.returncode == 0:
+            raise SystemExit("verifier accepted a sidecar with non-canonical trailing whitespace")
+
+        write_packet(evidence)
         duplicate_key_packet = json.dumps(
             evidence, sort_keys=True, separators=(",", ":"), ensure_ascii=False
         )
