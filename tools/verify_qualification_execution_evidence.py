@@ -55,6 +55,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("packet", type=Path)
     parser.add_argument("sidecar", type=Path)
+    parser.add_argument("--workflow-file", type=Path, required=True)
+    parser.add_argument("--cargo-lock", type=Path, required=True)
+    parser.add_argument("--test-inventory", type=Path, required=True)
     parser.add_argument("--repository", required=True)
     parser.add_argument("--pull-request-number", required=True, type=int)
     parser.add_argument("--source-revision", required=True)
@@ -75,11 +78,19 @@ def main() -> int:
 
     if not args.packet.is_file():
         fail(f"packet does not exist: {args.packet}")
-    if not args.sidecar.is_file():
-        fail(f"sidecar does not exist: {args.sidecar}")
+    for label, path in (
+        ("sidecar", args.sidecar),
+        ("workflow file", args.workflow_file),
+        ("Cargo.lock", args.cargo_lock),
+        ("test inventory", args.test_inventory),
+    ):
+        if not path.is_file():
+            fail(f"{label} does not exist: {path}")
 
     try:
         evidence = json.loads(args.packet.read_text(encoding="utf-8"))
+        if not isinstance(evidence, dict):
+            fail("packet JSON root is not an object")
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         fail(f"packet is not valid UTF-8 JSON: {exc}")
 
@@ -121,6 +132,16 @@ def main() -> int:
     ):
         if not SHA256.fullmatch(evidence[key]):
             fail(f"{key} is not a lowercase 64-character SHA-256 hex value")
+
+    file_bindings = {
+        "checked_out_workflow_file_sha256": args.workflow_file,
+        "cargo_lock_sha256": args.cargo_lock,
+        "test_inventory_sha256": args.test_inventory,
+    }
+    for key, path in file_bindings.items():
+        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        if evidence[key] != actual:
+            fail(f"{key} does not match {path}")
 
     for key in ("pull_request_number", "run_id", "run_attempt", "check_run_id"):
         if not isinstance(evidence[key], int) or isinstance(evidence[key], bool) or evidence[key] <= 0:
