@@ -76,7 +76,7 @@ values alongside the separate SHA-256 of the checked-out workflow bytes.
 
 The packet uses JSON and SHA-256 for ordinary machine inspection. Duplicate
 JSON object keys are rejected to keep every packet field semantically
-unambiguous. The qualification contract pins Rust 1.99.0 and the `Check` / `.github/workflows/check.yml` /
+unambiguous. The qualification contract pins Rust 1.99.0, Linux/x64 runner execution, and the `Check` / `.github/workflows/check.yml` /
 `provenance-construction` workflow identity. The event is pinned to
 `pull_request` and its ref to `refs/pull/<number>/merge`. The recorded `workflow_ref` must
 also be the canonical GitHub `pull_request` merge-ref form for this repository
