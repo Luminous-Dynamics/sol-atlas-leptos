@@ -601,6 +601,11 @@ mod tests {
         )
     }
 
+    fn receipt_fixture() -> V5ReplayReceiptV1 {
+        let (audit, claim, chain) = fixture();
+        V5ReplayReceiptV1::from_audit_and_chain(&audit, &chain, &claim).expect("receipt")
+    }
+
     fn projection_fixture() -> crate::cultural_systems::CulturalProjectionV1 {
         crate::cultural_systems::CulturalProjectionV1::Transmission(
             crate::cultural_systems::CulturalTransmissionV1 {
@@ -627,7 +632,7 @@ mod tests {
 
     #[test]
     fn standalone_receipt_validation_checks_content_integrity() {
-        let mut receipt = fixture();
+        let mut receipt = receipt_fixture();
         receipt.recompute_hash().expect("receipt hash");
         assert_eq!(receipt.validate(), Ok(()));
 
@@ -640,7 +645,7 @@ mod tests {
 
     #[test]
     fn standalone_receipt_validation_rejects_duplicate_replay_identity() {
-        let mut receipt = fixture();
+        let mut receipt = receipt_fixture();
         receipt.recompute_hash().expect("receipt hash");
         receipt.argumentation.push(ReplayArgumentationIdentityV1 {
             kind: crate::cultural_argumentation::CulturalArgumentationKindV1::InferenceMaking,
@@ -663,7 +668,7 @@ mod tests {
 
     #[test]
     fn standalone_receipt_validation_rejects_bad_digest_shape() {
-        let mut receipt = fixture();
+        let mut receipt = receipt_fixture();
         receipt.recompute_hash().expect("receipt hash");
         receipt.audit_semantic_hash = "not-a-sha256".into();
         receipt.recompute_hash().expect("recomputed receipt hash");
@@ -685,12 +690,7 @@ mod tests {
         extended.frontiers.push(duplicate);
 
         assert_eq!(
-            receipt.validate_against_projection(
-                &projection_fixture(),
-                &audit,
-                &extended,
-                &claim,
-            ),
+            receipt.validate_against_projection(&projection_fixture(), &audit, &extended, &claim,),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
         assert_eq!(
