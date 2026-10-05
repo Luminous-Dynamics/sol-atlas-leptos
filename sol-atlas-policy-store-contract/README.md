@@ -152,7 +152,10 @@ The reference resource now exercises the evidence path for:
 - stale/future-fence rejection;
 - same-key exact replay;
 - different-request rejection under the same key;
-- exact read-back of the applied request.
+- changed-idempotency-key rejection;
+- exact read-back of the applied request;
+- explicit point-in-time reconciliation semantics;
+- concurrent stale/current fencing behavior.
 
 This still is not evidence about an arbitrary third-party service. A real
 adapter must run the same conformance boundary against the actual protected
