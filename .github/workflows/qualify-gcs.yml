@@ -21,6 +21,9 @@ jobs:
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.SOL_ATLAS_GCP_WORKLOAD_IDENTITY_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ vars.SOL_ATLAS_GCP_SERVICE_ACCOUNT }}
       GCS_QUALIFICATION_BUCKET: ${{ vars.SOL_ATLAS_GCS_QUALIFICATION_BUCKET }}
+      # GitHub does not expose a default GITHUB_ENVIRONMENT variable.
+      # Keep this explicit value aligned with the protected job environment.
+      GITHUB_ENVIRONMENT: sol-atlas-gcs-qualification
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
