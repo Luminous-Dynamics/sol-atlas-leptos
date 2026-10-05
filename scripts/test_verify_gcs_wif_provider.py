@@ -51,6 +51,24 @@ def main() -> None:
         "(" + EXPECTED + ") || true",
     )
 
+    assert module.binding_is_exclusive(
+        binding_policy("expected"),
+        "roles/iam.workloadIdentityUser",
+        "expected",
+    )
+    assert not module.binding_is_exclusive(
+        {
+            "bindings": [
+                {
+                    "role": "roles/iam.workloadIdentityUser",
+                    "members": ["expected", "other"],
+                }
+            ]
+        },
+        "roles/iam.workloadIdentityUser",
+        "expected",
+    )
+
     assert module.binding_is_present(
         binding_policy("expected"),
         "roles/iam.workloadIdentityUser",
@@ -76,6 +94,15 @@ def main() -> None:
         pass
     else:
         raise AssertionError("non-global provider was accepted")
+
+    assert module.providers_are_exclusive(
+        [{"name": "expected"}],
+        "expected",
+    )
+    assert not module.providers_are_exclusive(
+        [{"name": "expected"}, {"name": "other"}],
+        "expected",
+    )
 
     print("offline WIF verifier semantic checks: PASS")
 
