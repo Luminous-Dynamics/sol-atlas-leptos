@@ -594,19 +594,20 @@ mod tests {
 
     #[test]
     fn v4_frontier_validator_preserves_frontier_diagnostic() {
-        let (base, claim, mut frontier, mapping) = fixture();
-        frontier.manifest_hash = "not-a-valid-sha256".into();
+        let (base, claim, _valid_frontier, mapping) = fixture();
+        let mut bad_frontier = frontier();
+        bad_frontier.manifest_hash = "not-a-valid-sha256".into();
         let resolution = OntologyMappingResolutionV1::from_mapping(
             &mapping,
             OntologyMappingRelationV1::Exact,
             &claim,
-            &frontier(),
+            &_valid_frontier,
         )
         .expect("resolution");
         let audit = CulturalProjectionAuditV4::from_v2(base, vec![resolution]).expect("audit");
 
         assert_eq!(
-            audit.validate_frontier_safe(&frontier, &claim),
+            audit.validate_frontier_safe(&bad_frontier, &claim),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
