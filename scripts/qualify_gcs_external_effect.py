@@ -40,7 +40,9 @@ WORKFLOW_PATH = ".github/workflows/qualify-gcs.yml"
 ADAPTER_ID = "gcs-generation-fenced-object"
 HARNESS_ID = "sol-atlas-gcs-external-conformance"
 CLAIM_CEILING = (
-    "GCS generation-precondition evidence only; replay safety applies while the qualified live object state remains retained; no universal exactly-once claim."
+    "GCS generation-precondition evidence only; replay safety applies while "
+    "the qualified live object state remains retained; no universal "
+    "exactly-once claim."
 )
 def load_case_set() -> dict[str, object]:
     case_set = json.loads(
