@@ -2350,9 +2350,84 @@ mod tests {
         assert!(!altered_revision.is_well_formed());
         assert_ne!(report.digest(), altered_revision.digest());
 
+        let mut altered_harness = report.clone();
+        altered_harness.harness_revision = "harness-revision-2".into();
+        assert!(!altered_harness.is_well_formed());
+        assert_ne!(report.digest(), altered_harness.digest());
+
         let mut altered_evidence = report.clone();
         altered_evidence.evidence.current_fence_accepted = false;
         assert!(!altered_evidence.is_well_formed());
+    }
+
+    #[test]
+    fn conformance_report_requires_complete_provenance_fields() {
+        let profile = RecoveryExecutionEffectSafetyProfileV1 {
+            schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
+            fencing: RecoveryExecutionFencingCapabilityV1::NotSupported,
+            idempotency: RecoveryExecutionIdempotencyCapabilityV1::NotSupported,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::NotSupported,
+            claim_ceiling: "No automatic external recovery.".into(),
+        };
+        let evidence = RecoveryExecutionEffectConformanceEvidenceV1 {
+            current_fence_accepted: false,
+            stale_fence_rejected: false,
+            future_fence_rejected: false,
+            concurrent_fencing_preserved: false,
+            stable_key_replay_safe: false,
+            different_request_same_key_rejected: false,
+            changed_idempotency_key_rejected: false,
+            transactionally_coupled_retry_safe: false,
+            exact_reconciliation: false,
+            point_in_time_semantics_explicit: false,
+            strong_read_back_verified: false,
+            eventually_consistent_read_back_verified: false,
+        };
+
+        assert!(
+            RecoveryExecutionEffectConformanceReportV1::from_parts(
+                "",
+                "adapter-revision",
+                "harness",
+                "harness-revision",
+                &profile,
+                evidence,
+            )
+            .is_none()
+        );
+        assert!(
+            RecoveryExecutionEffectConformanceReportV1::from_parts(
+                "adapter",
+                "",
+                "harness",
+                "harness-revision",
+                &profile,
+                evidence,
+            )
+            .is_none()
+        );
+        assert!(
+            RecoveryExecutionEffectConformanceReportV1::from_parts(
+                "adapter",
+                "adapter-revision",
+                "",
+                "harness-revision",
+                &profile,
+                evidence,
+            )
+            .is_none()
+        );
+        assert!(
+            RecoveryExecutionEffectConformanceReportV1::from_parts(
+                "adapter",
+                "adapter-revision",
+                "harness",
+                "",
+                &profile,
+                evidence,
+            )
+            .is_none()
+        );
     }
 
     #[test]
