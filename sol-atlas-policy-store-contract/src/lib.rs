@@ -1602,6 +1602,30 @@ pub trait RecoveryExecutionFencedResource: Send + Sync {
     ) -> Result<RecoveryExecutionProtectedMutationResult, Self::Error>;
 }
 
+/// Point-in-time reconciliation observation for an indeterminate protected mutation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionProtectedMutationReconciliationOutcome {
+    ObservedAppliedSameRequest,
+    ObservedNotApplied,
+    ObservedDifferentRequest,
+    MissingState,
+    InvalidState,
+}
+
+/// Optional read-only reconciliation contract for protected resources.
+///
+/// Reconciliation never retries or mutates the resource. ObservedNotApplied
+/// means only that the exact mutation is not observed at this read; it must not
+/// be interpreted as proof that a prior indeterminate request never took effect.
+pub trait RecoveryExecutionProtectedMutationReconciler: Send + Sync {
+    type Error;
+
+    fn reconcile_mutation(
+        &self,
+        mutation: &RecoveryExecutionProtectedMutationV1,
+    ) -> Result<RecoveryExecutionProtectedMutationReconciliationOutcome, Self::Error>;
+}
+
 /// Validate a protected mutation request against the established fence before
 /// crossing the resource boundary.
 pub fn validate_protected_mutation_request(
@@ -1663,6 +1687,53 @@ mod tests {
     struct FencedResourceMemoryStore {
         current_epoch: Mutex<u64>,
         applied: Mutex<BTreeMap<String, (String, String, u64, Option<String>)>>,
+    }
+
+    impl RecoveryExecutionProtectedMutationReconciler for FencedResourceMemoryStore {
+        type Error = &'static str;
+
+        fn reconcile_mutation(
+            &self,
+            mutation: &RecoveryExecutionProtectedMutationV1,
+        ) -> Result<
+            RecoveryExecutionProtectedMutationReconciliationOutcome,
+            Self::Error,
+        > {
+            if mutation.execution_id.is_empty()
+                || !is_sha256_digest(&mutation.execution_input_snapshot)
+                || mutation.attempt_id.is_empty()
+                || mutation.fence_epoch == 0
+                || mutation.idempotency_key.as_deref().is_some_and(str::is_empty)
+            {
+                return Ok(
+                    RecoveryExecutionProtectedMutationReconciliationOutcome::InvalidState,
+                );
+            }
+
+            let applied = self.applied.lock().map_err(|_| "poisoned")?;
+            let Some((fingerprint, attempt_id, epoch, idempotency_key)) =
+                applied.get(&mutation.execution_id)
+            else {
+                return Ok(
+                    RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedNotApplied,
+                );
+            };
+
+            if fingerprint == &mutation.execution_input_snapshot
+                && attempt_id == &mutation.attempt_id
+                && *epoch == mutation.fence_epoch
+                && idempotency_key == &mutation.idempotency_key
+            {
+                return Ok(
+                    RecoveryExecutionProtectedMutationReconciliationOutcome::
+                        ObservedAppliedSameRequest,
+                );
+            }
+
+            Ok(
+                RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedDifferentRequest,
+            )
+        }
     }
 
     impl FencedResourceMemoryStore {
@@ -1729,6 +1800,89 @@ mod tests {
             );
             Ok(RecoveryExecutionProtectedMutationResult::Applied)
         }
+    }
+
+    #[test]
+    fn protected_mutation_reconciliation_is_read_only_and_exact() {
+        let resource = FencedResourceMemoryStore::default();
+        resource.set_epoch(2);
+        let mutation = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-reconcile".into(),
+            execution_input_snapshot:
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111".into(),
+            attempt_id: "attempt-a".into(),
+            fence_epoch: 2,
+            idempotency_key: Some("stable-key".into()),
+        };
+
+        assert_eq!(
+            resource
+                .reconcile_mutation(&mutation)
+                .expect("missing observation"),
+            RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedNotApplied,
+        );
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&mutation)
+                .expect("apply"),
+            RecoveryExecutionProtectedMutationResult::Applied,
+        );
+        assert_eq!(
+            resource
+                .reconcile_mutation(&mutation)
+                .expect("applied observation"),
+            RecoveryExecutionProtectedMutationReconciliationOutcome::
+                ObservedAppliedSameRequest,
+        );
+    }
+
+    #[test]
+    fn protected_mutation_reconciliation_rejects_identity_drift() {
+        let resource = FencedResourceMemoryStore::default();
+        resource.set_epoch(2);
+        let mutation = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-reconcile-drift".into(),
+            execution_input_snapshot:
+                "sha256:2222222222222222222222222222222222222222222222222222222222222222".into(),
+            attempt_id: "attempt-a".into(),
+            fence_epoch: 2,
+            idempotency_key: Some("stable-key".into()),
+        };
+
+        resource
+            .mutate_if_fence_is_current(&mutation)
+            .expect("apply");
+        let drifted = RecoveryExecutionProtectedMutationV1 {
+            idempotency_key: Some("changed-key".into()),
+            ..mutation
+        };
+
+        assert_eq!(
+            resource
+                .reconcile_mutation(&drifted)
+                .expect("identity drift"),
+            RecoveryExecutionProtectedMutationReconciliationOutcome::
+                ObservedDifferentRequest,
+        );
+    }
+
+    #[test]
+    fn protected_mutation_reconciliation_rejects_malformed_input() {
+        let resource = FencedResourceMemoryStore::default();
+        let mutation = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-reconcile-invalid".into(),
+            execution_input_snapshot: "not-a-digest".into(),
+            attempt_id: "attempt-a".into(),
+            fence_epoch: 1,
+            idempotency_key: None,
+        };
+
+        assert_eq!(
+            resource
+                .reconcile_mutation(&mutation)
+                .expect("invalid observation"),
+            RecoveryExecutionProtectedMutationReconciliationOutcome::InvalidState,
+        );
     }
 
     #[test]
