@@ -20,9 +20,10 @@ fn has_duplicate_ids<T: Ord>(ids: &[T]) -> bool {
 }
 
 use crate::civilizational::{
-    ClaimId, EntityId, EvidenceFrontierId, EvidenceFrontierV1, EvidenceId, QualificationStatus,
-    SourceSnapshotId, YearInterval,
+    ClaimId, EntityId, EvidenceFrontierId, EvidenceFrontierV1, EvidenceId, ProjectionError,
+    QualificationStatus, SourceSnapshotId, YearInterval,
 };
+use crate::cultural_systems::CanonicalClaimAdmissionV1;
 
 /// Stable reference to a record in an external/federated decentralized graph.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -74,9 +75,32 @@ impl DkgStatementV1 {
 
     /// A DKG statement crosses into the temporal projection layer only when
     /// its evidence path is admitted as a closed evidence -> source path.
+    /// Typed frontier validation for the DKG -> canonical-claim boundary.
+    /// The canonical claim validator supplies the concrete temporal/evidence
+    /// diagnostic instead of reducing every rejection to false.
+    pub fn validate_frontier_safe(
+        &self,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        if !self.validate() {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        frontier.validate_temporal_manifest_strict()?;
+
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: self.claim_ref.clone(),
+            evidence_refs: self.evidence_refs.clone(),
+            source_snapshots: self.source_snapshots.clone(),
+            qualification: self.qualification,
+            evidence_frontier: frontier.frontier_id.clone(),
+        };
+        claim.validate_frontier_safe(frontier)?;
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(&self, frontier: &EvidenceFrontierV1) -> bool {
-        self.validate()
-            && frontier.admits_evidence_path(&self.evidence_refs, &self.source_snapshots)
+        self.validate_frontier_safe(frontier).is_ok()
     }
 }
 
@@ -98,15 +122,13 @@ pub struct DkgProjectionAdmissionV1 {
 }
 
 impl DkgProjectionAdmissionV1 {
-    pub fn from_statement(
+    pub fn try_from_statement(
         statement: &DkgStatementV1,
         frontier: &EvidenceFrontierV1,
-    ) -> Option<Self> {
-        if !statement.is_frontier_safe(frontier) {
-            return None;
-        }
+    ) -> Result<Self, ProjectionError> {
+        statement.validate_frontier_safe(frontier)?;
 
-        Some(Self {
+        Ok(Self {
             record: statement.record.clone(),
             claim_ref: statement.claim_ref.clone(),
             evidence_refs: statement.evidence_refs.clone(),
@@ -115,6 +137,15 @@ impl DkgProjectionAdmissionV1 {
             frontier_manifest_hash: frontier.manifest_hash.clone(),
             qualification: statement.qualification,
         })
+    }
+
+    /// Legacy Option constructor retained as a compatibility wrapper around
+    /// the typed admission boundary.
+    pub fn from_statement(
+        statement: &DkgStatementV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Option<Self> {
+        Self::try_from_statement(statement, frontier).ok()
     }
 
     pub fn validate(&self) -> bool {
@@ -139,20 +170,34 @@ impl DkgProjectionAdmissionV1 {
     /// that produced this admission. The receipt is descriptive provenance, not
     /// an independent authority, so every receipt field must reconstruct exactly
     /// from the admitted statement and selected frontier.
+    pub fn validate_against_statement_typed(
+        &self,
+        statement: &DkgStatementV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        if !self.validate() {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        statement.validate_frontier_safe(frontier)?;
+        if self.evidence_frontier != frontier.frontier_id
+            || self.frontier_manifest_hash != frontier.manifest_hash
+            || self.record != statement.record
+            || self.claim_ref != statement.claim_ref
+            || self.evidence_refs != statement.evidence_refs
+            || self.source_snapshots != statement.source_snapshots
+            || self.qualification != statement.qualification
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        Ok(())
+    }
+
     pub fn validate_against_statement(
         &self,
         statement: &DkgStatementV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate()
-            && statement.is_frontier_safe(frontier)
-            && self.evidence_frontier == frontier.frontier_id
-            && self.frontier_manifest_hash == frontier.manifest_hash
-            && self.record == statement.record
-            && self.claim_ref == statement.claim_ref
-            && self.evidence_refs == statement.evidence_refs
-            && self.source_snapshots == statement.source_snapshots
-            && self.qualification == statement.qualification
+        self.validate_against_statement_typed(statement, frontier).is_ok()
     }
 }
 
@@ -202,6 +247,83 @@ mod tests {
         let mut record = statement().record;
         record.content_hash.clear();
         assert!(!record.is_valid());
+    }
+
+    #[test]
+    fn dkg_typed_validator_preserves_frontier_diagnostic() {
+        let mut frontier = frontier();
+        frontier.evidence_metadata = vec![
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:1".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
+            },
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:2".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1941),
+                capture_time: None,
+                available_by: 1941,
+                validity_time: None,
+            },
+        ];
+        frontier.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:1".into(),
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+        }];
+        frontier.known_by_year = 1941;
+        frontier.recompute_manifest_hash().expect("late frontier hash");
+
+        assert_eq!(
+            statement().validate_frontier_safe(&frontier),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
+        assert!(!statement().is_frontier_safe(&frontier));
+    }
+
+    #[test]
+    fn dkg_admission_try_from_statement_preserves_frontier_diagnostic() {
+        let mut frontier = frontier();
+        frontier.evidence_metadata = vec![
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:1".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+                validity_time: None,
+            },
+            EvidenceTemporalMetadataV1 {
+                evidence_id: "e:2".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1941),
+                capture_time: None,
+                available_by: 1941,
+                validity_time: None,
+            },
+        ];
+        frontier.source_metadata = vec![SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:1".into(),
+            publication_time: Some(1940),
+            capture_time: None,
+            available_by: 1940,
+        }];
+        frontier.known_by_year = 1941;
+        frontier.recompute_manifest_hash().expect("late frontier hash");
+
+        assert_eq!(
+            DkgProjectionAdmissionV1::try_from_statement(&statement(), &frontier),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
     }
 
     #[test]
