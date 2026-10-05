@@ -81,6 +81,7 @@ def github_execution_context() -> dict[str, str]:
         "event": os.environ.get("GITHUB_EVENT_NAME", ""),
         "ref": os.environ.get("GITHUB_REF", ""),
         "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "sha": os.environ.get("GITHUB_SHA", ""),
         "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
     }
     missing = [name for name, value in required.items() if not value]
@@ -107,6 +108,18 @@ def github_execution_context() -> dict[str, str]:
                 f"{required[name]!r} != {expected_value!r}"
             )
     return required
+
+
+def verify_checked_out_source_commit() -> str:
+    expected = os.environ.get("GITHUB_SHA", "")
+    if not expected:
+        raise AssertionError("GITHUB_SHA is missing")
+    actual = git_head()
+    if actual != expected:
+        raise AssertionError(
+            f"checked-out source drift: {actual!r} != GITHUB_SHA {expected!r}"
+        )
+    return actual
 
 
 def load_wif_verification(path: str) -> dict[str, object]:
@@ -255,6 +268,7 @@ def run_qualification(
     case_set = load_case_set()
     wif_verification = load_wif_verification(wif_verification_path)
     github_context = github_execution_context()
+    source_commit = verify_checked_out_source_commit()
     token = access_token()
     run_id = os.environ.get("GITHUB_RUN_ID", "local")
     run_attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "1")
@@ -619,6 +633,7 @@ def run_qualification(
             "wif_verification_digest": digest(wif_verification),
             "github_execution_context": github_context,
             "github_execution_context_digest": digest(github_context),
+            "checked_out_source_commit": source_commit,
             "status": "qualified",
             "service": "Google Cloud Storage",
             "adapter_id": ADAPTER_ID,
@@ -711,6 +726,11 @@ def verify_report(path: str) -> None:
             )
     if report.get("github_execution_context_digest") != digest(github_context):
         raise AssertionError("GitHub execution context digest mismatch")
+    checked_out_source = report.get("checked_out_source_commit")
+    if checked_out_source != github_context.get("sha"):
+        raise AssertionError("checked-out source does not match GITHUB_SHA")
+    if checked_out_source != git_head():
+        raise AssertionError("checked-out source drift detected")
     if report.get("wif_verification_digest") != digest(wif_verification):
         raise AssertionError("WIF verification digest mismatch")
     if report.get("adapter_revision") != git_sha(ADAPTER_PATH):
