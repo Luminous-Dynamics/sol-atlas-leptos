@@ -28,6 +28,7 @@ pub mod ontology_context;
 pub mod ontology_mapping;
 pub mod ontology_resolution;
 pub mod projection_semantics;
+pub mod provenance_identity;
 pub mod temporal_projection;
 // pub mod relativity_viz;
 pub mod geometry;
