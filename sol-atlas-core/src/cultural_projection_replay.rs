@@ -341,8 +341,27 @@ impl V5ReplayReceiptV1 {
             }
         }
 
+        let mut argumentation_ids = std::collections::BTreeSet::new();
+        for value in &self.argumentation {
+            if !value.assessment.is_valid()
+                || !value.interpretation.is_valid()
+                || !is_sha256_hex(&value.semantic_hash)
+                || !argumentation_ids.insert((
+                    value.kind,
+                    value.assessment.clone(),
+                    value.interpretation.clone(),
+                ))
+            {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            }
+        }
+
+        let mut resolution_ids = std::collections::BTreeSet::new();
         for value in &self.ontology_resolutions {
-            if value.mapping_id.trim().is_empty() || !is_sha256_hex(&value.resolution_hash) {
+            if value.mapping_id.trim().is_empty()
+                || !is_sha256_hex(&value.resolution_hash)
+                || !resolution_ids.insert(value.mapping_id.clone())
+            {
                 return Err(ProjectionError::InvalidEvidenceFrontierManifest);
             }
         }
@@ -613,6 +632,29 @@ mod tests {
         assert_eq!(receipt.validate(), Ok(()));
 
         receipt.leaf_frontier = "frontier:other".into();
+        assert_eq!(
+            receipt.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn standalone_receipt_validation_rejects_duplicate_replay_identity() {
+        let mut receipt = fixture();
+        receipt.recompute_hash().expect("receipt hash");
+        receipt.argumentation.push(ReplayArgumentationIdentityV1 {
+            kind: crate::cultural_argumentation::CulturalArgumentationKindV1::InferenceMaking,
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            semantic_hash: "d".repeat(64),
+        });
+        receipt.argumentation.push(ReplayArgumentationIdentityV1 {
+            kind: crate::cultural_argumentation::CulturalArgumentationKindV1::InferenceMaking,
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            semantic_hash: "e".repeat(64),
+        });
+        receipt.recompute_hash().expect("receipt hash");
         assert_eq!(
             receipt.validate(),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
