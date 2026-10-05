@@ -20,6 +20,7 @@ test inventory produced the qualification result.
 
 In addition to the V1 bindings, the V2 packet records:
 
+- the explicit workflow file path reported by the running GitHub job;
 - the SHA-256 of `tools/verify_qualification_execution_evidence.py`.
 
 The verifier independently recomputes the workflow-file, verifier, Cargo.lock,
@@ -46,9 +47,10 @@ The V2 verifier is invoked with the current GitHub execution context and checks:
 - the exact qualification command inventory;
 - the packet SHA-256 sidecar.
 
-The adversarial self-test exercises stale-sidecar rejection, verifier identity
-mismatch rejection, and independent tamper rejection for the workflow file,
-verifier file, Cargo.lock, and test inventory.
+The adversarial self-test exercises stale-sidecar rejection, workflow-file-path
+context mismatch rejection, verifier identity mismatch rejection, and independent
+tamper rejection for the workflow file, verifier file, Cargo.lock, and test
+inventory.
 
 A missing packet cannot be interpreted as a successful qualification.
 
