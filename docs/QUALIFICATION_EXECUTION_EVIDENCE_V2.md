@@ -103,9 +103,8 @@ The witness:
   provenance job, and required successful qualification steps;
 - fetches the exact PR workflow, verifier, and Cargo.lock at the recorded
   source revision and recomputes their SHA-256 digests;
-- additionally pins the Git blob identities of the qualification workflow and
-  verifier, preventing a later PR from changing both while remaining
-  self-consistent;
+- independently recomputes the PR workflow, verifier, and Cargo.lock digests;
+  it does not treat the PR-local verifier as a trusted authority;
 - checks the qualification workflow against a trusted policy, including the
   exact-head checkout, required qualification commands, pinned action refs, and
   absence of OIDC/attestation write privileges.
