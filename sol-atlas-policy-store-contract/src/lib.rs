@@ -1662,7 +1662,7 @@ mod tests {
     #[derive(Default)]
     struct FencedResourceMemoryStore {
         current_epoch: Mutex<u64>,
-        applied: Mutex<BTreeMap<String, (String, String, u64)>>,
+        applied: Mutex<BTreeMap<String, (String, String, u64, Option<String>)>>,
     }
 
     impl FencedResourceMemoryStore {
@@ -1696,11 +1696,18 @@ mod tests {
             }
 
             let key = mutation.execution_id.clone();
-            if let Some((fingerprint, attempt_id, epoch)) = applied.get(&key) {
+            if let Some((fingerprint, attempt_id, epoch, idempotency_key)) = applied.get(&key) {
                 if fingerprint != &mutation.execution_input_snapshot {
-                    return Ok(RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch);
+                    return Ok(
+                        RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch,
+                    );
                 }
                 if *epoch == mutation.fence_epoch && attempt_id == &mutation.attempt_id {
+                    if idempotency_key != &mutation.idempotency_key {
+                        return Ok(
+                            RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch,
+                        );
+                    }
                     return Ok(
                         RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest,
                     );
@@ -1717,6 +1724,7 @@ mod tests {
                     mutation.execution_input_snapshot.clone(),
                     mutation.attempt_id.clone(),
                     mutation.fence_epoch,
+                    mutation.idempotency_key.clone(),
                 ),
             );
             Ok(RecoveryExecutionProtectedMutationResult::Applied)
@@ -1747,6 +1755,38 @@ mod tests {
                 .mutate_if_fence_is_current(&mutation)
                 .expect("same request replay"),
             RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest
+        );
+    }
+
+    #[test]
+    fn protected_resource_rejects_a_changed_idempotency_key_on_replay() {
+        let resource = FencedResourceMemoryStore::default();
+        resource.set_epoch(2);
+        let first = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-protected-idempotency".into(),
+            execution_input_snapshot:
+                "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+                    .into(),
+            attempt_id: "attempt-a".into(),
+            fence_epoch: 2,
+            idempotency_key: Some("stable-key-a".into()),
+        };
+        let changed = RecoveryExecutionProtectedMutationV1 {
+            idempotency_key: Some("stable-key-b".into()),
+            ..first.clone()
+        };
+
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&first)
+                .expect("first mutation"),
+            RecoveryExecutionProtectedMutationResult::Applied,
+        );
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&changed)
+                .expect("changed idempotency key"),
+            RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch,
         );
     }
 
