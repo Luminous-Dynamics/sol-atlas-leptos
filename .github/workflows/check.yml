@@ -181,6 +181,7 @@ jobs:
           QUALIFICATION_BASE_REVISION: ${{ github.event.pull_request.base.sha }}
           QUALIFICATION_WORKFLOW_NAME: ${{ github.workflow }}
           QUALIFICATION_WORKFLOW_REF: ${{ github.workflow_ref }}
+          QUALIFICATION_WORKFLOW_FILE_PATH: ${{ job.workflow_file_path }}
           QUALIFICATION_WORKFLOW_SHA: ${{ github.workflow_sha }}
           QUALIFICATION_RUN_ID: ${{ github.run_id }}
           QUALIFICATION_RUN_ATTEMPT: ${{ github.run_attempt }}
@@ -214,6 +215,7 @@ jobs:
               "base_revision": os.environ["QUALIFICATION_BASE_REVISION"],
               "workflow_name": os.environ["QUALIFICATION_WORKFLOW_NAME"],
               "workflow_ref": os.environ["QUALIFICATION_WORKFLOW_REF"],
+              "workflow_file_path": os.environ["QUALIFICATION_WORKFLOW_FILE_PATH"],
               "workflow_sha": os.environ["QUALIFICATION_WORKFLOW_SHA"],
               "checked_out_workflow_file_sha256": os.environ["WORKFLOW_FILE_SHA256"],
               "verifier_sha256": os.environ["VERIFIER_SHA256"],
@@ -248,6 +250,7 @@ jobs:
           VERIFY_BASE_REVISION: ${{ github.event.pull_request.base.sha }}
           VERIFY_WORKFLOW_NAME: ${{ github.workflow }}
           VERIFY_WORKFLOW_REF: ${{ github.workflow_ref }}
+          VERIFY_WORKFLOW_FILE_PATH: ${{ job.workflow_file_path }}
           VERIFY_WORKFLOW_SHA: ${{ github.workflow_sha }}
           VERIFY_RUN_ID: ${{ github.run_id }}
           VERIFY_RUN_ATTEMPT: ${{ github.run_attempt }}
@@ -268,6 +271,7 @@ jobs:
             --base-revision "$VERIFY_BASE_REVISION" \
             --workflow-name "$VERIFY_WORKFLOW_NAME" \
             --workflow-ref "$VERIFY_WORKFLOW_REF" \
+            --workflow-file-path "$VERIFY_WORKFLOW_FILE_PATH" \
             --workflow-sha "$VERIFY_WORKFLOW_SHA" \
             --run-id "$VERIFY_RUN_ID" \
             --run-attempt "$VERIFY_RUN_ATTEMPT" \
