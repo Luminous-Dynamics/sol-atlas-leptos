@@ -133,6 +133,7 @@ jobs:
             projection_error_is_standard_thread_safe_error \
             canonical_claim_preserves_frontier_validation_failure \
             canonical_claim_preserves_evidence_path_failure \
+            audit_v2_frontier_validator_preserves_frontier_diagnostic \
             strong_v2_preserves_projection_validation_failure \
             strong_v2_preserves_claim_validation_failure \
             strong_v2_preserves_frontier_validation_failure \
@@ -140,6 +141,7 @@ jobs:
             v3_strong_constructor_preserves_v2_projection_diagnostic \
             v4_strong_constructor_preserves_v2_projection_diagnostic \
             v4_validation_preserves_resolution_frontier_diagnostic \
+            v4_frontier_validator_preserves_frontier_diagnostic \
             v5_strong_constructor_preserves_v2_projection_diagnostic \
             v5_strong_constructor_rejects_frontier_unsafe_argumentation \
             v5_chain_replay_preserves_claim_frontier_diagnostic \
@@ -156,7 +158,8 @@ jobs:
             portable_identity_is_self_describing \
             portable_identity_rejects_receipt_rebinding \
             portable_identity_construction_failures_are_not_hashed \
-            portable_digest_metadata_tamper_is_rejected; do
+            portable_digest_metadata_tamper_is_rejected \
+            v5_chain_replay_preserves_argumentation_temporal_diagnostic; do
               grep -Fq "$test_name" /tmp/sol-atlas-core-tests.txt
             done
       - name: Execute core package
