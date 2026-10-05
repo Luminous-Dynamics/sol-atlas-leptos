@@ -171,17 +171,30 @@ impl CulturalProjectionAuditV5 {
         });
     }
 
+    /// Validates the complete V5 audit against an exact canonical claim and
+    /// strict frontier while preserving typed failures from the V4 audit and
+    /// each independent argumentation closure.
+    pub fn validate_frontier_safe(
+        &self,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        self.base.validate_frontier_safe(frontier, claim)?;
+
+        for value in &self.argumentation {
+            value.validate_frontier_safe(claim, frontier)?;
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         frontier: &crate::civilizational::EvidenceFrontierV1,
         claim: &crate::cultural_systems::CanonicalClaimAdmissionV1,
     ) -> bool {
-        self.validate().is_ok()
-            && self.base.is_frontier_safe(frontier, claim)
-            && self
-                .argumentation
-                .iter()
-                .all(|value| value.is_frontier_safe(claim, frontier))
+        self.validate_frontier_safe(frontier, claim).is_ok()
     }
 
     /// Reciprocal validation against the exact cultural projection and
@@ -245,11 +258,7 @@ impl CulturalProjectionAuditV5 {
         }
 
         claim.validate_frontier_safe(frontier)?;
-
-        self.validate()?;
-        if !self.is_frontier_safe(frontier, claim) {
-            return Err(ProjectionError::AuditWithoutEvidencePath);
-        }
+        self.validate_frontier_safe(frontier, claim)?;
 
         Ok(())
     }
@@ -793,6 +802,21 @@ mod tests {
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
+    #[test]
+    fn v5_chain_replay_preserves_argumentation_temporal_diagnostic() {
+        let (mut audit, claim, chain) = fixture();
+        let leaf = chain.current().expect("leaf frontier");
+        audit.argumentation[0].available_by = leaf.known_by_year + 1;
+        audit.argumentation[0]
+            .recompute_hash()
+            .expect("argumentation hash");
+
+        assert_eq!(
+            audit.validate_against_frontier_chain(&chain, &claim),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
+    }
+
     #[test]
     fn v5_chain_replay_accepts_complete_same_leaf_closure() {
         let (v4, claim, frontier, argumentation) = fixture();
