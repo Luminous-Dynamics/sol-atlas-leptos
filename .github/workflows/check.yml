@@ -133,6 +133,7 @@ jobs:
             projection_error_is_standard_thread_safe_error \
             canonical_claim_preserves_frontier_validation_failure \
             canonical_claim_preserves_evidence_path_failure \
+            admission_try_from_projection_preserves_frontier_diagnostic \
             audit_v2_frontier_validator_preserves_frontier_diagnostic \
             strong_v2_preserves_projection_validation_failure \
             strong_v2_preserves_claim_validation_failure \
