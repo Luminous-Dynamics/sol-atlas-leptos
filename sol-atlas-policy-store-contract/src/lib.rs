@@ -1576,7 +1576,14 @@ pub enum RecoveryExecutionProtectedMutationResult {
     RejectedFutureFence,
     RejectedInvalidFence,
     RejectedIdentityMismatch,
+    RejectedOtherAttempt,
     Indeterminate,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionProtectedMutationValidation {
+    Valid,
+    Invalid,
 }
 
 /// Contract for a resource that can enforce an execution fence at its own
@@ -1600,12 +1607,12 @@ pub trait RecoveryExecutionFencedResource: Send + Sync {
 pub fn validate_protected_mutation_request(
     mutation: &RecoveryExecutionProtectedMutationV1,
     fence: &EstablishedRecoveryExecutionFenceV1,
-) -> RecoveryExecutionProtectedMutationResult {
-    if !mutation.matches_fence(fence) {
-        return RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch;
+) -> RecoveryExecutionProtectedMutationValidation {
+    if mutation.matches_fence(fence) {
+        RecoveryExecutionProtectedMutationValidation::Valid
+    } else {
+        RecoveryExecutionProtectedMutationValidation::Invalid
     }
-
-    RecoveryExecutionProtectedMutationResult::Applied
 }
 #[cfg(test)]
 mod tests {
@@ -1655,7 +1662,7 @@ mod tests {
     #[derive(Default)]
     struct FencedResourceMemoryStore {
         current_epoch: Mutex<u64>,
-        applied: Mutex<BTreeMap<String, (String, u64)>>,
+        applied: Mutex<BTreeMap<String, (String, String, u64)>>,
     }
 
     impl FencedResourceMemoryStore {
@@ -1689,19 +1696,29 @@ mod tests {
             }
 
             let key = mutation.execution_id.clone();
-            if let Some((fingerprint, epoch)) = applied.get(&key) {
+            if let Some((fingerprint, attempt_id, epoch)) = applied.get(&key) {
                 if fingerprint != &mutation.execution_input_snapshot {
                     return Ok(RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch);
                 }
-                if *epoch == mutation.fence_epoch {
+                if *epoch == mutation.fence_epoch && attempt_id == &mutation.attempt_id {
                     return Ok(
                         RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest,
                     );
                 }
+                if *epoch == mutation.fence_epoch {
+                    return Ok(RecoveryExecutionProtectedMutationResult::RejectedOtherAttempt);
+                }
                 return Ok(RecoveryExecutionProtectedMutationResult::RejectedStaleFence);
             }
 
-            applied.insert(key, (mutation.execution_input_snapshot.clone(), mutation.fence_epoch));
+            applied.insert(
+                key,
+                (
+                    mutation.execution_input_snapshot.clone(),
+                    mutation.attempt_id.clone(),
+                    mutation.fence_epoch,
+                ),
+            );
             Ok(RecoveryExecutionProtectedMutationResult::Applied)
         }
     }
@@ -1730,6 +1747,38 @@ mod tests {
                 .mutate_if_fence_is_current(&mutation)
                 .expect("same request replay"),
             RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest
+        );
+    }
+
+    #[test]
+    fn protected_resource_rejects_a_different_attempt_at_the_same_epoch() {
+        let resource = FencedResourceMemoryStore::default();
+        resource.set_epoch(2);
+        let first = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-protected-owner".into(),
+            execution_input_snapshot:
+                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                    .into(),
+            attempt_id: "attempt-a".into(),
+            fence_epoch: 2,
+            idempotency_key: Some("effect-key".into()),
+        };
+        let second = RecoveryExecutionProtectedMutationV1 {
+            attempt_id: "attempt-b".into(),
+            ..first.clone()
+        };
+
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&first)
+                .expect("first mutation"),
+            RecoveryExecutionProtectedMutationResult::Applied
+        );
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&second)
+                .expect("different attempt"),
+            RecoveryExecutionProtectedMutationResult::RejectedOtherAttempt
         );
     }
 
@@ -1785,7 +1834,7 @@ mod tests {
 
         assert_eq!(
             validate_protected_mutation_request(&mutation, &established),
-            RecoveryExecutionProtectedMutationResult::Applied
+            RecoveryExecutionProtectedMutationValidation::Valid
         );
 
         let detached = RecoveryExecutionProtectedMutationV1 {
