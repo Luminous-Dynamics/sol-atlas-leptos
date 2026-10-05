@@ -36,6 +36,9 @@ def run_verifier(
     rust_toolchain: str = "1.99.0",
     rustc_version_verbose: str = "fixture",
     cargo_version_verbose: str = "fixture",
+    workflow_name: str = "Check",
+    workflow_file_path: str = ".github/workflows/check.yml",
+    job_name: str = "provenance-construction",
 ) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [
@@ -60,11 +63,11 @@ def run_verifier(
             "--base-revision",
             "89abcdef0123456789abcdef0123456789abcdef",
             "--workflow-name",
-            "Check",
+            workflow_name,
             "--workflow-ref",
             "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/check.yml@refs/pull/13/head",
             "--workflow-file-path",
-            ".github/workflows/check.yml",
+            workflow_file_path,
             "--workflow-sha",
             "fedcba9876543210fedcba9876543210fedcba98",
             "--run-id",
@@ -72,7 +75,7 @@ def run_verifier(
             "--run-attempt",
             "1",
             "--job-name",
-            "provenance-construction",
+            job_name,
             "--check-run-id",
             "888888888",
             "--server-url",
@@ -182,6 +185,26 @@ def main() -> int:
         result = run_verifier(packet, sidecar, inventory, VERIFIER)
         if result.returncode == 0:
             raise SystemExit("verifier accepted a workflow-file-path context mismatch")
+
+        for field, value in (
+            ("workflow_name", "Renamed Check"),
+            ("workflow_file_path", ".github/workflows/other.yml"),
+            ("job_name", "renamed-provenance-construction"),
+        ):
+            tampered = dict(evidence)
+            tampered[field] = value
+            write_packet(tampered)
+            result = run_verifier(
+                packet,
+                sidecar,
+                inventory,
+                VERIFIER,
+                workflow_name=tampered["workflow_name"],
+                workflow_file_path=tampered["workflow_file_path"],
+                job_name=tampered["job_name"],
+            )
+            if result.returncode == 0:
+                raise SystemExit(f"verifier accepted self-consistent qualification identity drift for {field}")
 
         tampered = dict(evidence)
         tampered["rust_toolchain"] = "1.98.0"
