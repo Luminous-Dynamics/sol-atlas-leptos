@@ -73,3 +73,9 @@ jobs:
       - name: Test policy-store contract
         if: ${{ always() }}
         run: cargo test --manifest-path sol-atlas-policy-store-contract/Cargo.toml
+      - name: Qualify source-bound protected-effect evidence
+        if: ${{ always() }}
+        run: >
+          cargo test
+          --manifest-path sol-atlas-policy-store-contract/Cargo.toml
+          --test reference_effect_conformance
