@@ -205,7 +205,7 @@ jobs:
               return subprocess.check_output(args, text=True).strip()
 
           evidence = {
-              "schema": "sol-atlas:qualification-execution-evidence:v1",
+              "schema": "sol-atlas:qualification-execution-evidence:v2",
               "qualification_kind": "sol_atlas_core_provenance_construction",
               "status": "passed",
               "repository": os.environ["GITHUB_REPOSITORY"],
@@ -234,12 +234,12 @@ jobs:
                   "cargo test -p sol-atlas-core --locked",
               ],
           }
-          Path("/tmp/qualification-execution-v1.json").write_text(
+          Path("/tmp/qualification-execution-v2.json").write_text(
               json.dumps(evidence, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n",
               encoding="utf-8",
           )
           PY
-          sha256sum /tmp/qualification-execution-v1.json | awk '{print $1}' > /tmp/qualification-execution-v1.json.sha256
+          sha256sum /tmp/qualification-execution-v2.json | awk '{print $1}' > /tmp/qualification-execution-v2.json.sha256
       - name: Validate qualification execution evidence independently
         env:
           VERIFY_REPOSITORY: ${{ github.repository }}
@@ -256,8 +256,8 @@ jobs:
           VERIFY_SERVER_URL: ${{ github.server_url }}
         run: |
           python3 tools/verify_qualification_execution_evidence.py \
-            /tmp/qualification-execution-v1.json \
-            /tmp/qualification-execution-v1.json.sha256 \
+            /tmp/qualification-execution-v2.json \
+            /tmp/qualification-execution-v2.json.sha256 \
             --workflow-file ".github/workflows/check.yml" \
             --verifier-file "tools/verify_qualification_execution_evidence.py" \
             --cargo-lock "Cargo.lock" \
@@ -278,10 +278,10 @@ jobs:
 
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: sol-atlas-qualification-execution-v1
+          name: sol-atlas-qualification-execution-v2
           path: |
-            /tmp/qualification-execution-v1.json
-            /tmp/qualification-execution-v1.json.sha256
+            /tmp/qualification-execution-v2.json
+            /tmp/qualification-execution-v2.json.sha256
           if-no-files-found: error
 
   test-native:
