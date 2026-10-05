@@ -42,6 +42,11 @@ def binding_policy(member: str) -> dict[str, object]:
 
 
 def main() -> None:
+    profile = module.load_profile()
+    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v3"
+    assert profile["pool_is_exclusive"] is True
+    assert profile["service_account_binding_is_exclusive"] is True
+
     assert module.condition_is_exact(
         {"exact_attribute_condition": EXPECTED},
         EXPECTED,
