@@ -1,5 +1,8 @@
 name: Check
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
@@ -10,58 +13,322 @@ concurrency:
   group: check-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  RUST_TOOLCHAIN: 1.99.0
+  TRUNK_VERSION: 0.21.14
+
 jobs:
+  supply-chain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Enforce immutable action references
+        run: |
+          if grep -RInE '^[[:space:]-]*uses:[[:space:]]*[^@[:space:]]+@' .github/workflows               | grep -vE '@[0-9a-f]{40}([[:space:]]|$)'; then
+            echo "All GitHub Actions must use full 40-character commit SHAs."
+            exit 1
+          fi
+      - name: Enforce pinned Trunk install
+        run: |
+          if grep -RInE 'cargo install trunk --locked([[:space:]]|$)' .github/workflows               | grep -v -- '--version'; then
+            echo "Trunk installs must pin an explicit release version."
+            exit 1
+          fi
+
   fmt:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: rustfmt
       - run: cargo fmt --all --check
 
   check-wasm:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           targets: wasm32-unknown-unknown
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-wasm-${{ hashFiles('**/Cargo.lock') }}
-      # The actual deploy target (see deploy.yml) — if this doesn't build,
-      # the site can't ship. This is the check that caught a real bug
-      # (a closure type-inference error in layer_panel.rs) before it
-      # would otherwise have shipped, 2026-07-10.
-      - run: cargo check --target wasm32-unknown-unknown
+          key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-cargo-wasm-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
+      - run: cargo check --workspace --locked --target wasm32-unknown-unknown
+
+  build-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          targets: wasm32-unknown-unknown
+      - name: Cache cargo
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-trunk-${{ env.TRUNK_VERSION }}-check-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
+      - name: Install Trunk
+        run: cargo install trunk --locked --version "${{ env.TRUNK_VERSION }}" --force
+      - name: Build web bundle
+        run: trunk build --release --locked --no-sri
+
+  provenance-construction:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert exact pull-request head
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          test -n "$EXPECTED_HEAD"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - name: Capture dependency identity
+        run: |
+          test -f Cargo.lock
+          sha256sum Cargo.lock | cut -d ' ' -f1 > /tmp/cargo-lock.sha256
+      - name: Inspect compiled core test inventory
+        run: |
+          cargo test -p sol-atlas-core --locked -- --list | tee /tmp/sol-atlas-core-tests.txt
+          for test_name in \
+            projection_error_has_stable_machine_code_and_display \
+            projection_error_is_standard_thread_safe_error \
+            canonical_claim_preserves_frontier_validation_failure \
+            canonical_claim_preserves_evidence_path_failure \
+            argumentation_typed_validator_preserves_late_evidence_diagnostic \
+            argumentation_v2_typed_validator_preserves_late_evidence_diagnostic \
+            legacy_reciprocal_validation_preserves_frontier_diagnostic \
+            legacy_audit_frontier_validator_preserves_frontier_diagnostic \
+            transmission_typed_validator_preserves_frontier_diagnostic \
+            admission_try_from_projection_preserves_frontier_diagnostic \
+            audit_v2_frontier_validator_preserves_frontier_diagnostic \
+            strong_v2_preserves_projection_validation_failure \
+            strong_v2_preserves_claim_validation_failure \
+            strong_v2_preserves_frontier_validation_failure \
+            strong_v2_preserves_evidence_path_failure_as_audit_error \
+            v3_strong_constructor_preserves_v2_projection_diagnostic \
+            v3_frontier_validator_preserves_frontier_diagnostic \
+            v4_strong_constructor_preserves_v2_projection_diagnostic \
+            v4_validation_preserves_resolution_frontier_diagnostic \
+            v4_frontier_validator_preserves_frontier_diagnostic \
+            v5_strong_constructor_preserves_v2_projection_diagnostic \
+            v5_strong_constructor_rejects_frontier_unsafe_argumentation \
+            v5_chain_replay_preserves_claim_frontier_diagnostic \
+            mapping_preserves_frontier_validation_failure \
+            mapping_preserves_evidence_path_failure \
+            mapping_v1_typed_validator_preserves_frontier_diagnostic \
+            dkg_typed_validator_preserves_structural_diagnostic \
+            dkg_typed_validator_preserves_frontier_diagnostic \
+            dkg_admission_typed_validator_preserves_structural_diagnostic \
+            dkg_admission_try_from_statement_preserves_frontier_diagnostic \
+            historical_replay_preserves_audit_frontier_diagnostic \
+            resolution_constructor_preserves_frontier_validation_failure \
+            resolution_validation_preserves_evidence_path_failure \
+            standalone_receipt_validation_checks_content_integrity \
+            standalone_receipt_validation_rejects_bad_digest_shape \
+            standalone_receipt_validation_rejects_duplicate_replay_identity \
+            argumentation_closure_preserves_frontier_validation_failure \
+            portable_identity_rejects_noncanonical_receipt_ordering \
+            portable_digest_domain_tamper_is_rejected \
+            portable_identity_is_self_describing \
+            portable_identity_rejects_receipt_rebinding \
+            portable_identity_construction_failures_are_not_hashed \
+            portable_digest_metadata_tamper_is_rejected \
+            v5_chain_replay_preserves_argumentation_temporal_diagnostic; do
+              grep -Fq "$test_name" /tmp/sol-atlas-core-tests.txt
+            done
+      - name: Execute core package
+        run: cargo test -p sol-atlas-core --locked
+      - name: Adversarially self-test qualification verifier
+        run: python3 tools/test_verify_qualification_execution_evidence.py
+      - name: Assert dependency and checkout integrity
+        run: |
+          test "$(sha256sum Cargo.lock | cut -d ' ' -f1)" = "$(cat /tmp/cargo-lock.sha256)"
+          test -z "$(git status --porcelain)"
+      - name: Emit qualification execution evidence
+        env:
+          QUALIFICATION_PR_NUMBER: ${{ github.event.pull_request.number }}
+          QUALIFICATION_SOURCE_REVISION: ${{ github.event.pull_request.head.sha }}
+          QUALIFICATION_BASE_REVISION: ${{ github.event.pull_request.base.sha }}
+          QUALIFICATION_WORKFLOW_NAME: ${{ github.workflow }}
+          QUALIFICATION_WORKFLOW_REF: ${{ github.workflow_ref }}
+          QUALIFICATION_WORKFLOW_FILE_PATH: ${{ job.workflow_file_path }}
+          QUALIFICATION_WORKFLOW_SHA: ${{ github.workflow_sha }}
+          QUALIFICATION_RUN_ID: ${{ github.run_id }}
+          QUALIFICATION_RUN_ATTEMPT: ${{ github.run_attempt }}
+          QUALIFICATION_JOB_NAME: ${{ github.job }}
+          QUALIFICATION_CHECK_RUN_ID: ${{ job.check_run_id }}
+          QUALIFICATION_RUNNER_OS: ${{ runner.os }}
+          QUALIFICATION_RUNNER_ARCH: ${{ runner.arch }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$QUALIFICATION_SOURCE_REVISION"
+          WORKFLOW_FILE_SHA256="$(sha256sum .github/workflows/check.yml | cut -d ' ' -f1)"
+          CARGO_LOCK_SHA256="$(cat /tmp/cargo-lock.sha256)"
+          TEST_INVENTORY_SHA256="$(sha256sum /tmp/sol-atlas-core-tests.txt | cut -d ' ' -f1)"
+          VERIFIER_SHA256="$(sha256sum tools/verify_qualification_execution_evidence.py | cut -d ' ' -f1)"
+          export WORKFLOW_FILE_SHA256 CARGO_LOCK_SHA256 TEST_INVENTORY_SHA256 VERIFIER_SHA256
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          def command(*args):
+              return subprocess.check_output(args, text=True).strip()
+
+          evidence = {
+              "schema": "sol-atlas:qualification-execution-evidence:v2",
+              "qualification_kind": "sol_atlas_core_provenance_construction",
+              "status": "passed",
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "event_name": os.environ["GITHUB_EVENT_NAME"],
+              "ref": os.environ["GITHUB_REF"],
+              "pull_request_number": int(os.environ["QUALIFICATION_PR_NUMBER"]),
+              "source_revision": os.environ["QUALIFICATION_SOURCE_REVISION"],
+              "base_revision": os.environ["QUALIFICATION_BASE_REVISION"],
+              "workflow_name": os.environ["QUALIFICATION_WORKFLOW_NAME"],
+              "workflow_ref": os.environ["QUALIFICATION_WORKFLOW_REF"],
+              "workflow_file_path": os.environ["QUALIFICATION_WORKFLOW_FILE_PATH"],
+              "workflow_sha": os.environ["QUALIFICATION_WORKFLOW_SHA"],
+              "checked_out_workflow_file_sha256": os.environ["WORKFLOW_FILE_SHA256"],
+              "verifier_sha256": os.environ["VERIFIER_SHA256"],
+              "run_id": os.environ["QUALIFICATION_RUN_ID"],
+              "run_attempt": os.environ["QUALIFICATION_RUN_ATTEMPT"],
+              "job_name": os.environ["QUALIFICATION_JOB_NAME"],
+              "check_run_id": int(os.environ["QUALIFICATION_CHECK_RUN_ID"]),
+              "workflow_run_url": os.environ["GITHUB_SERVER_URL"] + "/" + os.environ["GITHUB_REPOSITORY"] + "/actions/runs/" + os.environ["QUALIFICATION_RUN_ID"],
+              "runner_os": os.environ["QUALIFICATION_RUNNER_OS"],
+              "runner_arch": os.environ["QUALIFICATION_RUNNER_ARCH"],
+              "rust_toolchain": os.environ["RUST_TOOLCHAIN"],
+              "rustc_version_verbose": command("rustc", "+" + os.environ["RUST_TOOLCHAIN"], "--version", "--verbose"),
+              "cargo_version_verbose": command("cargo", "--version", "--verbose"),
+              "cargo_lock_sha256": os.environ["CARGO_LOCK_SHA256"],
+              "test_inventory_sha256": os.environ["TEST_INVENTORY_SHA256"],
+              "qualification_commands": [
+                  "cargo test -p sol-atlas-core --locked -- --list",
+                  "cargo test -p sol-atlas-core --locked",
+              ],
+          }
+          Path("/tmp/qualification-execution-v2.json").write_text(
+              json.dumps(evidence, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n",
+              encoding="utf-8",
+          )
+          PY
+          sha256sum /tmp/qualification-execution-v2.json | awk '{print $1}' > /tmp/qualification-execution-v2.json.sha256
+      - name: Validate qualification execution evidence independently
+        env:
+          VERIFY_REPOSITORY: ${{ github.repository }}
+          VERIFY_EVENT_NAME: ${{ github.event_name }}
+          VERIFY_REF: ${{ github.ref }}
+          VERIFY_PR_NUMBER: ${{ github.event.pull_request.number }}
+          VERIFY_SOURCE_REVISION: ${{ github.event.pull_request.head.sha }}
+          VERIFY_BASE_REVISION: ${{ github.event.pull_request.base.sha }}
+          VERIFY_WORKFLOW_NAME: ${{ github.workflow }}
+          VERIFY_WORKFLOW_REF: ${{ github.workflow_ref }}
+          VERIFY_WORKFLOW_FILE_PATH: ${{ job.workflow_file_path }}
+          VERIFY_WORKFLOW_SHA: ${{ github.workflow_sha }}
+          VERIFY_RUN_ID: ${{ github.run_id }}
+          VERIFY_RUN_ATTEMPT: ${{ github.run_attempt }}
+          VERIFY_JOB_NAME: ${{ github.job }}
+          VERIFY_CHECK_RUN_ID: ${{ job.check_run_id }}
+          VERIFY_SERVER_URL: ${{ github.server_url }}
+          VERIFY_RUNNER_OS: ${{ runner.os }}
+          VERIFY_RUNNER_ARCH: ${{ runner.arch }}
+          VERIFY_RUST_TOOLCHAIN: ${{ env.RUST_TOOLCHAIN }}
+        run: |
+          python3 tools/verify_qualification_execution_evidence.py \
+            /tmp/qualification-execution-v2.json \
+            /tmp/qualification-execution-v2.json.sha256 \
+            --workflow-file ".github/workflows/check.yml" \
+            --verifier-file "tools/verify_qualification_execution_evidence.py" \
+            --cargo-lock "Cargo.lock" \
+            --test-inventory "/tmp/sol-atlas-core-tests.txt" \
+            --repository "$VERIFY_REPOSITORY" \
+            --event-name "$VERIFY_EVENT_NAME" \
+            --ref "$VERIFY_REF" \
+            --pull-request-number "$VERIFY_PR_NUMBER" \
+            --source-revision "$VERIFY_SOURCE_REVISION" \
+            --base-revision "$VERIFY_BASE_REVISION" \
+            --workflow-name "$VERIFY_WORKFLOW_NAME" \
+            --workflow-ref "$VERIFY_WORKFLOW_REF" \
+            --workflow-file-path "$VERIFY_WORKFLOW_FILE_PATH" \
+            --workflow-sha "$VERIFY_WORKFLOW_SHA" \
+            --run-id "$VERIFY_RUN_ID" \
+            --run-attempt "$VERIFY_RUN_ATTEMPT" \
+            --job-name "$VERIFY_JOB_NAME" \
+            --check-run-id "$VERIFY_CHECK_RUN_ID" \
+            --server-url "$VERIFY_SERVER_URL" \
+            --runner-os "$VERIFY_RUNNER_OS" \
+            --runner-arch "$VERIFY_RUNNER_ARCH" \
+            --rust-toolchain "$VERIFY_RUST_TOOLCHAIN" \
+            --rustc-version-verbose "$(rustc +"$VERIFY_RUST_TOOLCHAIN" --version --verbose)" \
+            --cargo-version-verbose "$(cargo --version --verbose)"
+      - name: Publish qualification execution evidence
+
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sol-atlas-qualification-execution-v2
+          path: |
+            /tmp/qualification-execution-v2.json
+            /tmp/qualification-execution-v2.json.sha256
+          if-no-files-found: error
 
   test-native:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
-      # This crate is a wasm-bindgen-heavy [[bin]] with no [lib] target —
-      # native `cargo test` still works (verified 2026-07-11) and is much
-      # faster than a wasm test harness for the pure-logic unit tests
-      # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
-      # `cargo test --lib` fails with "no library targets found".
-      - run: cargo test --bin sol-atlas-leptos
+          key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-cargo-native-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
+      - run: cargo test --workspace --locked

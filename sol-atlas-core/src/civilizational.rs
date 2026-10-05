@@ -1,0 +1,3031 @@
+// Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+//! Evidence-reversible, temporal projection contracts for civilizational and
+//! state-formation views. These types describe what a renderer may display;
+//! they do not adjudicate canonical historical truth.
+
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::collections::BTreeSet;
+
+macro_rules! id_type {
+    ($name:ident) => {
+        #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+        #[serde(transparent)]
+        pub struct $name(pub String);
+
+        impl From<&str> for $name {
+            fn from(value: &str) -> Self {
+                Self(value.to_owned())
+            }
+        }
+
+        impl $name {
+            pub fn is_valid(&self) -> bool {
+                !self.0.trim().is_empty()
+            }
+        }
+    };
+}
+
+id_type!(EntityId);
+id_type!(SnapshotId);
+id_type!(TransitionId);
+id_type!(ClaimId);
+id_type!(EvidenceId);
+id_type!(SourceSnapshotId);
+id_type!(EvidenceFrontierId);
+id_type!(HypothesisId);
+id_type!(InterpretationId);
+id_type!(AssessmentId);
+id_type!(GeometryRef);
+
+fn has_duplicate_ids<T: Ord>(ids: &[T]) -> bool {
+    let mut seen = BTreeSet::new();
+    ids.iter().any(|id| !seen.insert(id))
+}
+
+/// Year-based interval; bounds are inclusive and may be open-ended.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct YearInterval {
+    pub from: Option<i32>,
+    pub to: Option<i32>,
+}
+
+impl YearInterval {
+    pub fn is_valid(&self) -> bool {
+        matches!((self.from, self.to), (Some(a), Some(b)) if a <= b)
+            || self.from.is_none()
+            || self.to.is_none()
+    }
+
+    pub fn contains(&self, year: i32) -> bool {
+        self.from.is_none_or(|from| year >= from) && self.to.is_none_or(|to| year <= to)
+    }
+
+    /// Returns whether two inclusive intervals share any year.
+    pub fn overlaps(&self, other: &Self) -> bool {
+        self.is_valid()
+            && other.is_valid()
+            && self
+                .to
+                .is_none_or(|to| other.from.is_none_or(|from| from <= to))
+            && other
+                .to
+                .is_none_or(|to| self.from.is_none_or(|from| from <= to))
+    }
+}
+
+/// Epistemic qualification is display metadata, never a truth probability.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum QualificationStatus {
+    Established,
+    Supported,
+    Contested,
+    Speculative,
+    Refuted,
+    Unresolved,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SpatialSemantics {
+    DeFactoControl,
+    DeJureClaim,
+    TreatyRecognizedBoundary,
+    AdministrativeBoundary,
+    HistoricalCulturalRegion,
+    ApproximateExtent,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TransitionClass {
+    Formation,
+    Dissolution,
+    Succession,
+    Merger,
+    Federation,
+    Partition,
+    Secession,
+    Conquest,
+    Annexation,
+    Colonization,
+    Decolonization,
+    ConstitutionalTransformation,
+    AdministrativeTransfer,
+    TreatySettlement,
+    BoundaryRevision,
+    InstitutionalContinuation,
+    InstitutionalReplacement,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GeometryProjection {
+    pub geometry_ref: GeometryRef,
+    pub semantics: SpatialSemantics,
+    /// True only when source evidence supports the represented precision.
+    pub exact: bool,
+    pub evidence: Vec<EvidenceId>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct QualificationSummary {
+    pub status: QualificationStatus,
+    pub assessment: Option<AssessmentId>,
+    pub claim_refs: Vec<ClaimId>,
+    pub unresolved: Vec<String>,
+    pub contested: bool,
+}
+
+/// A point-in-time projection of an entity's historically evidenced state.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct StateSnapshotV1 {
+    pub entity_id: EntityId,
+    pub snapshot_id: SnapshotId,
+    pub valid_time: YearInterval,
+    pub geometries: Vec<GeometryProjection>,
+    pub institution_refs: Vec<EntityId>,
+    pub constitutional_refs: Vec<EntityId>,
+    pub relation_refs: Vec<ClaimId>,
+    /// Direct evidence path for claims that make the snapshot itself visible.
+    pub evidence_refs: Vec<EvidenceId>,
+    /// Source snapshots for the snapshot-level evidence path.
+    pub source_snapshots: Vec<SourceSnapshotId>,
+    pub evidence_frontier: EvidenceFrontierId,
+    pub qualification: QualificationSummary,
+}
+
+impl StateSnapshotV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.entity_id.is_valid() || !self.snapshot_id.is_valid() {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if !self.valid_time.is_valid() {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        if !self.evidence_frontier.is_valid() {
+            return Err(ProjectionError::MissingEvidenceFrontier);
+        }
+        if self.evidence_refs.is_empty() || self.source_snapshots.is_empty() {
+            return Err(ProjectionError::SnapshotWithoutEvidencePath);
+        }
+        if self.relation_refs.iter().any(|id| !id.is_valid())
+            || self
+                .qualification
+                .claim_refs
+                .iter()
+                .any(|id| !id.is_valid())
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || self.institution_refs.iter().any(|id| !id.is_valid())
+            || self.constitutional_refs.iter().any(|id| !id.is_valid())
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_ids(&self.source_snapshots)
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        for geometry in &self.geometries {
+            if !geometry.geometry_ref.is_valid() {
+                return Err(ProjectionError::EmptyIdentifier);
+            }
+            if geometry.evidence.is_empty() {
+                return Err(ProjectionError::GeometryWithoutEvidence);
+            }
+            if geometry.evidence.iter().any(|id| !id.is_valid()) {
+                return Err(ProjectionError::EmptyIdentifier);
+            }
+            if !geometry.exact && geometry.semantics != SpatialSemantics::ApproximateExtent {
+                return Err(ProjectionError::ApproximateGeometryMislabelled);
+            }
+        }
+        if self.qualification.contested
+            && self.qualification.status != QualificationStatus::Contested
+        {
+            return Err(ProjectionError::ContestedStatusMismatch);
+        }
+        Ok(())
+    }
+}
+
+/// Explicit event connecting one or more historical entities, without
+/// assuming a single linear predecessor/successor lineage.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct HistoricalTransitionV1 {
+    pub transition_id: TransitionId,
+    pub event_time: YearInterval,
+    pub classes: BTreeSet<TransitionClass>,
+    pub source_entities: Vec<EntityId>,
+    pub target_entities: Vec<EntityId>,
+    pub spatial_scope: Vec<GeometryProjection>,
+    pub mechanism: Option<String>,
+    pub claim_refs: Vec<ClaimId>,
+    pub evidence_refs: Vec<EvidenceId>,
+    pub source_snapshots: Vec<SourceSnapshotId>,
+    pub competing_hypotheses: Vec<HypothesisId>,
+    pub assessment: Option<AssessmentId>,
+    pub qualification: QualificationStatus,
+    /// Uncertainty bounds are descriptive year ranges, not confidence scores.
+    pub uncertainty: Option<YearInterval>,
+}
+
+impl HistoricalTransitionV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.transition_id.is_valid()
+            || self.source_entities.iter().any(|id| !id.is_valid())
+            || self.target_entities.iter().any(|id| !id.is_valid())
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if !self.event_time.is_valid() || self.uncertainty.is_some_and(|v| !v.is_valid()) {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        if self.classes.is_empty() {
+            return Err(ProjectionError::MissingTransitionClass);
+        }
+        if self.source_entities.is_empty() && self.target_entities.is_empty() {
+            return Err(ProjectionError::TransitionWithoutParticipants);
+        }
+        if self.claim_refs.is_empty()
+            || self.evidence_refs.is_empty()
+            || self.source_snapshots.is_empty()
+        {
+            return Err(ProjectionError::TransitionWithoutEvidencePath);
+        }
+        if self.claim_refs.iter().any(|id| !id.is_valid())
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || self.competing_hypotheses.iter().any(|id| !id.is_valid())
+            || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_ids(&self.source_snapshots)
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        for geometry in &self.spatial_scope {
+            if !geometry.geometry_ref.is_valid() {
+                return Err(ProjectionError::EmptyIdentifier);
+            }
+            if geometry.evidence.is_empty() {
+                return Err(ProjectionError::GeometryWithoutEvidence);
+            }
+            if geometry.evidence.iter().any(|id| !id.is_valid()) {
+                return Err(ProjectionError::EmptyIdentifier);
+            }
+            if !geometry.exact && geometry.semantics != SpatialSemantics::ApproximateExtent {
+                return Err(ProjectionError::ApproximateGeometryMislabelled);
+            }
+        }
+        Ok(())
+    }
+}
+
+/// Identifies exactly what a renderer is showing and preserves the route back
+/// to claims, evidence, source snapshots, temporal scope, qualification, and
+/// the evidence frontier used for admission.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ProjectionRef {
+    Snapshot(SnapshotId),
+    Transition(TransitionId),
+}
+
+impl ProjectionRef {
+    pub fn is_valid(&self) -> bool {
+        match self {
+            Self::Snapshot(id) => id.is_valid(),
+            Self::Transition(id) => id.is_valid(),
+        }
+    }
+}
+
+/// An executable "why is this visible?" audit record. It is a projection-level
+/// object, not a claim that the underlying history is settled.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ProjectionAuditV1 {
+    pub projection: ProjectionRef,
+    pub claim_refs: Vec<ClaimId>,
+    pub evidence_refs: Vec<EvidenceId>,
+    pub source_snapshots: Vec<SourceSnapshotId>,
+    pub hypothesis_refs: Vec<HypothesisId>,
+    pub assessment: Option<AssessmentId>,
+    pub temporal_scope: YearInterval,
+    pub qualification: QualificationStatus,
+    pub evidence_frontier: EvidenceFrontierId,
+}
+
+impl ProjectionAuditV1 {
+    fn geometry_evidence(geometries: &[GeometryProjection]) -> Vec<EvidenceId> {
+        geometries
+            .iter()
+            .flat_map(|geometry| geometry.evidence.iter().cloned())
+            .collect()
+    }
+
+    pub fn for_snapshot(snapshot: &StateSnapshotV1) -> Self {
+        let mut evidence_refs = snapshot
+            .evidence_refs
+            .iter()
+            .chain(Self::geometry_evidence(&snapshot.geometries).iter())
+            .cloned()
+            .collect::<Vec<_>>();
+        let mut seen_evidence = BTreeSet::new();
+        evidence_refs.retain(|id| seen_evidence.insert(id.clone()));
+        let claim_refs = snapshot
+            .relation_refs
+            .iter()
+            .chain(snapshot.qualification.claim_refs.iter())
+            .cloned()
+            .collect::<Vec<_>>();
+
+        Self {
+            projection: ProjectionRef::Snapshot(snapshot.snapshot_id.clone()),
+            claim_refs,
+            evidence_refs,
+            source_snapshots: snapshot.source_snapshots.clone(),
+            hypothesis_refs: Vec::new(),
+            assessment: snapshot.qualification.assessment.clone(),
+            temporal_scope: snapshot.valid_time,
+            qualification: snapshot.qualification.status,
+            evidence_frontier: snapshot.evidence_frontier.clone(),
+        }
+    }
+
+    pub fn for_transition(
+        transition: &HistoricalTransitionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Self {
+        let mut evidence_refs = transition
+            .evidence_refs
+            .iter()
+            .chain(
+                transition
+                    .spatial_scope
+                    .iter()
+                    .flat_map(|geometry| geometry.evidence.iter()),
+            )
+            .cloned()
+            .collect::<Vec<_>>();
+        let mut seen_evidence = BTreeSet::new();
+        evidence_refs.retain(|id| seen_evidence.insert(id.clone()));
+
+        Self {
+            projection: ProjectionRef::Transition(transition.transition_id.clone()),
+            claim_refs: transition.claim_refs.clone(),
+            evidence_refs,
+            source_snapshots: transition.source_snapshots.clone(),
+            hypothesis_refs: transition.competing_hypotheses.clone(),
+            assessment: transition.assessment.clone(),
+            temporal_scope: transition.event_time,
+            qualification: transition.qualification,
+            evidence_frontier: frontier.frontier_id.clone(),
+        }
+    }
+
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.projection.is_valid()
+            || self.claim_refs.iter().any(|id| !id.is_valid())
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || self.hypothesis_refs.iter().any(|id| !id.is_valid())
+            || self.assessment.as_ref().is_some_and(|id| !id.is_valid())
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_ids(&self.source_snapshots)
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if !self.temporal_scope.is_valid() {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        if !self.evidence_frontier.is_valid() {
+            return Err(ProjectionError::MissingEvidenceFrontier);
+        }
+        if self.claim_refs.is_empty() || self.evidence_refs.is_empty() {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        if self.source_snapshots.is_empty() {
+            return Err(ProjectionError::AuditWithoutSourcePath);
+        }
+        Ok(())
+    }
+}
+
+/// Temporal provenance metadata for an evidence item.
+///
+/// These timestamps are deliberately separate: an artifact may be ancient while
+/// its publication, capture, or availability to an evidence pipeline is much later.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceTemporalMetadataV1 {
+    pub evidence_id: EvidenceId,
+    pub source_snapshot: SourceSnapshotId,
+    pub artifact_time: Option<YearInterval>,
+    pub publication_time: Option<i32>,
+    pub capture_time: Option<i32>,
+    pub available_by: i32,
+    pub validity_time: Option<YearInterval>,
+}
+
+impl EvidenceTemporalMetadataV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.evidence_id.is_valid() || !self.source_snapshot.is_valid() {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if self.available_by < self.publication_time.unwrap_or(self.available_by)
+            || self.available_by < self.capture_time.unwrap_or(self.available_by)
+        {
+            return Err(ProjectionError::InvalidEvidenceTemporalMetadata);
+        }
+        if self.artifact_time.is_some_and(|v| !v.is_valid())
+            || self.validity_time.is_some_and(|v| !v.is_valid())
+        {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        Ok(())
+    }
+
+    /// Whether this evidence could have been available at the requested frontier.
+    pub fn available_at(&self, known_by_year: i32) -> bool {
+        self.validate().is_ok() && self.available_by <= known_by_year
+    }
+}
+
+/// Temporal availability metadata for an immutable source snapshot.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SourceSnapshotTemporalMetadataV1 {
+    pub source_snapshot: SourceSnapshotId,
+    pub publication_time: Option<i32>,
+    pub capture_time: Option<i32>,
+    pub available_by: i32,
+}
+
+impl SourceSnapshotTemporalMetadataV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.source_snapshot.is_valid() {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if self.available_by < self.publication_time.unwrap_or(self.available_by)
+            || self.available_by < self.capture_time.unwrap_or(self.available_by)
+        {
+            return Err(ProjectionError::InvalidEvidenceTemporalMetadata);
+        }
+        Ok(())
+    }
+
+    pub fn available_at(&self, known_by_year: i32) -> bool {
+        self.validate().is_ok() && self.available_by <= known_by_year
+    }
+}
+
+/// Temporal metadata for externally-owned assessment/interpretation records.
+///
+/// The frontier commits this metadata so historical replay cannot silently use a
+/// later scholarly assessment or interpretation merely because its evidence is old.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ArgumentationTemporalMetadataV1 {
+    pub assessment: AssessmentId,
+    pub interpretation: InterpretationId,
+    pub assessment_time: Option<YearInterval>,
+    pub interpretation_time: Option<YearInterval>,
+    pub available_by: i32,
+}
+
+impl ArgumentationTemporalMetadataV1 {
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if !self.assessment.is_valid() || !self.interpretation.is_valid() {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if self.assessment_time.is_some_and(|v| !v.is_valid())
+            || self.interpretation_time.is_some_and(|v| !v.is_valid())
+        {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        // V1 treats available_by as availability of the completed external
+        // argumentation record. Thus an explicit temporal end must not occur
+        // after the record becomes available; an open-ended extent still cannot
+        // begin after that availability boundary.
+        if self.available_by
+            < self
+                .assessment_time
+                .and_then(|v| v.to)
+                .or(self.assessment_time.and_then(|v| v.from))
+                .unwrap_or(self.available_by)
+            || self.available_by
+                < self
+                    .interpretation_time
+                    .and_then(|v| v.to)
+                    .or(self.interpretation_time.and_then(|v| v.from))
+                    .unwrap_or(self.available_by)
+        {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        Ok(())
+    }
+
+    pub fn available_at(&self, known_by_year: i32) -> bool {
+        self.validate().is_ok() && self.available_by <= known_by_year
+    }
+}
+
+/// A projection can be reconstructed only from evidence admitted by this
+/// frontier; callers must filter derived assessments by the same boundary.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceFrontierV1 {
+    pub frontier_id: EvidenceFrontierId,
+    pub known_by_year: i32,
+    /// Parent frontier creates an append-only temporal lineage.
+    pub parent_frontier: Option<EvidenceFrontierId>,
+    /// Version of the admission policy used to construct this frontier.
+    pub policy_version: String,
+    /// SHA-256 over the canonical manifest fields excluding this hash.
+    pub manifest_hash: String,
+    pub admitted_evidence: BTreeSet<EvidenceId>,
+    pub admitted_sources: BTreeSet<SourceSnapshotId>,
+    /// Immutable temporal metadata used to verify that admission is not anachronistic.
+    pub evidence_metadata: Vec<EvidenceTemporalMetadataV1>,
+    pub source_metadata: Vec<SourceSnapshotTemporalMetadataV1>,
+    /// Immutable temporal metadata for assessment/interpretation records used by projections.
+    pub argumentation_metadata: Vec<ArgumentationTemporalMetadataV1>,
+}
+
+/// An ordered, verifiable lineage of temporal evidence frontiers.
+///
+/// The chain is deliberately supplied as an explicit sequence: a frontier stores only
+/// its parent's stable ID and cannot dereference repository state by itself.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceFrontierChainV1 {
+    pub frontiers: Vec<EvidenceFrontierV1>,
+}
+
+impl EvidenceFrontierChainV1 {
+    /// Reject duplicate frontier identifiers without validating the frontier
+    /// contents. Historical selectors depend on identifier uniqueness across
+    /// the full supplied sequence, even when later frontier contents are out
+    /// of historical replay scope.
+    pub(crate) fn validate_unique_frontier_ids(&self) -> Result<(), ProjectionError> {
+        let mut frontier_ids = BTreeSet::new();
+        if self
+            .frontiers
+            .iter()
+            .any(|frontier| !frontier_ids.insert(frontier.frontier_id.clone()))
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        Ok(())
+    }
+
+    /// Select an explicit frontier by globally unique ID and return only the
+    /// supplied sequence prefix ending at that frontier.
+    ///
+    /// This validates selector identity but deliberately does not validate
+    /// frontier contents. Callers choose migration or strict validation for
+    /// the returned prefix.
+    pub(crate) fn prefix_through(
+        &self,
+        frontier_id: &EvidenceFrontierId,
+    ) -> Result<Self, ProjectionError> {
+        self.validate_unique_frontier_ids()?;
+        let index = self
+            .frontiers
+            .iter()
+            .position(|frontier| &frontier.frontier_id == frontier_id)
+            .ok_or(ProjectionError::InvalidEvidenceFrontierManifest)?;
+        Ok(Self {
+            frontiers: self.frontiers[..=index].to_vec(),
+        })
+    }
+
+    /// Select and strictly validate an explicit frontier prefix.
+    ///
+    /// This is the fail-closed primitive for provenance consumers: selector
+    /// identity is checked first, then every frontier through the selected
+    /// endpoint is validated before callers inspect the selected frontier.
+    pub(crate) fn strict_prefix_through(
+        &self,
+        frontier_id: &EvidenceFrontierId,
+    ) -> Result<Self, ProjectionError> {
+        let prefix = self.prefix_through(frontier_id)?;
+        prefix.validate_strict()?;
+        Ok(prefix)
+    }
+
+    /// Strict chain validation for reproducible replay. Every frontier in the
+    /// supplied ancestry must carry complete source availability metadata.
+    pub fn validate_strict(&self) -> Result<(), ProjectionError> {
+        if self.frontiers.is_empty() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        self.validate_unique_frontier_ids()?;
+        if self.frontiers[0].parent_frontier.is_some() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        self.frontiers[0].validate_temporal_manifest_strict()?;
+        for pair in self.frontiers.windows(2) {
+            let parent = &pair[0];
+            let child = &pair[1];
+            child.validate_temporal_manifest_strict()?;
+            child.validate_extension_of(parent)?;
+        }
+        Ok(())
+    }
+
+    pub fn validate(&self) -> Result<(), ProjectionError> {
+        if self.frontiers.is_empty() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        self.validate_unique_frontier_ids()?;
+
+        if self.frontiers[0].parent_frontier.is_some() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        self.frontiers[0].validate_temporal_manifest()?;
+
+        for pair in self.frontiers.windows(2) {
+            let parent = &pair[0];
+            let child = &pair[1];
+            child.validate_extension_of(parent)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn current(&self) -> Option<&EvidenceFrontierV1> {
+        self.frontiers.last()
+    }
+}
+
+/// Explicit version of the canonicalization contract used by frontier manifests.
+///
+/// V1 intentionally canonicalizes evidence/source metadata ordering but preserves
+/// argumentation metadata ordering. That behavior is compatibility-sensitive because
+/// existing manifest hashes are content-addressed artifacts.
+///
+/// A future canonicalization change MUST introduce a new versioned contract rather
+/// than silently changing the meaning of an existing manifest hash.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceFrontierManifestCanonicalizationV1;
+
+impl EvidenceFrontierManifestCanonicalizationV1 {
+    pub const VERSION: &'static str = "evidence-frontier-manifest-c14n-v1";
+}
+
+impl EvidenceFrontierV1 {
+    fn validate_identity_shape(&self) -> Result<(), ProjectionError> {
+        if !self.frontier_id.is_valid()
+            || self.policy_version.trim().is_empty()
+            || self
+                .parent_frontier
+                .as_ref()
+                .is_some_and(|id| !id.is_valid() || id == &self.frontier_id)
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        Ok(())
+    }
+
+    /// Computes the content hash using the explicitly versioned V1 manifest
+    /// canonicalization contract.
+    pub fn computed_manifest_hash(&self) -> Result<String, ProjectionError> {
+        self.computed_manifest_hash_with(EvidenceFrontierManifestCanonicalizationV1)
+    }
+
+    pub fn computed_manifest_hash_with(
+        &self,
+        _canonicalization: EvidenceFrontierManifestCanonicalizationV1,
+    ) -> Result<String, ProjectionError> {
+        // Metadata is a vector for serialization compatibility, but V1 manifest
+        // identity must not depend on caller-provided ordering for evidence/source
+        // metadata. Argumentation metadata remains order-sensitive in V1. The
+        // version label is deliberately not included in the payload so V1
+        // reproduces the already-issued manifest hashes byte-for-byte.
+        let mut canonical_metadata = self.evidence_metadata.clone();
+        canonical_metadata.sort_by(|a, b| a.evidence_id.cmp(&b.evidence_id));
+        let mut canonical_source_metadata = self.source_metadata.clone();
+        canonical_source_metadata.sort_by(|a, b| a.source_snapshot.cmp(&b.source_snapshot));
+
+        let payload = (
+            &self.known_by_year,
+            &self.parent_frontier,
+            &self.policy_version,
+            &self.admitted_evidence,
+            &self.admitted_sources,
+            &canonical_metadata,
+            &canonical_source_metadata,
+            &self.argumentation_metadata,
+        );
+        let bytes = serde_json::to_vec(&payload)
+            .map_err(|_| ProjectionError::InvalidEvidenceFrontierManifest)?;
+        let digest = Sha256::digest(bytes);
+        Ok(digest.iter().map(|byte| format!("{byte:02x}")).collect())
+    }
+
+    pub fn verify_manifest_hash(&self) -> Result<(), ProjectionError> {
+        if self.manifest_hash != self.computed_manifest_hash()? {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        Ok(())
+    }
+
+    /// Recomputes the manifest hash after constructing or extending a frontier.
+    pub fn recompute_manifest_hash(&mut self) -> Result<(), ProjectionError> {
+        self.manifest_hash = self.computed_manifest_hash()?;
+        Ok(())
+    }
+
+    /// Validates that this frontier is a strict append-only extension of its parent.
+    ///
+    /// The parent must be supplied by the caller because the frontier itself stores only
+    /// the parent's stable identifier. A valid extension may advance the evidence horizon
+    /// and add evidence/sources, but it may not rewrite already-admitted metadata.
+    pub fn validate_extension_of(&self, parent: &Self) -> Result<(), ProjectionError> {
+        if !self
+            .parent_frontier
+            .as_ref()
+            .is_some_and(|id| id == &parent.frontier_id)
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        parent.validate_temporal_manifest()?;
+        self.validate_temporal_manifest()?;
+
+        if self.known_by_year < parent.known_by_year
+            || self.policy_version != parent.policy_version
+            || !self
+                .admitted_evidence
+                .is_superset(&parent.admitted_evidence)
+            || !self.admitted_sources.is_superset(&parent.admitted_sources)
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        for parent_metadata in &parent.evidence_metadata {
+            let Some(child_metadata) = self
+                .evidence_metadata
+                .iter()
+                .find(|metadata| metadata.evidence_id == parent_metadata.evidence_id)
+            else {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            };
+            if child_metadata != parent_metadata {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            }
+        }
+
+        for parent_metadata in &parent.source_metadata {
+            let Some(child_metadata) = self
+                .source_metadata
+                .iter()
+                .find(|metadata| metadata.source_snapshot == parent_metadata.source_snapshot)
+            else {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            };
+            if child_metadata != parent_metadata {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            }
+        }
+
+        // V1 argumentation metadata is representation-sensitive. Inherited
+        // argumentation therefore has to remain an exact prefix: reordering an
+        // inherited record is a historical rewrite, not an append-only extension.
+        if !self
+            .argumentation_metadata
+            .starts_with(&parent.argumentation_metadata)
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        Ok(())
+    }
+
+    pub fn admits(&self, evidence: &EvidenceId) -> bool {
+        if !self.admitted_evidence.contains(evidence) {
+            return false;
+        }
+        // Legacy manifests remain readable during migration; populated metadata
+        // turns on the stronger temporal eligibility check.
+        if self.evidence_metadata.is_empty() {
+            return true;
+        }
+        self.evidence_metadata.iter().any(|m| {
+            if &m.evidence_id != evidence || !m.available_at(self.known_by_year) {
+                return false;
+            }
+            self.source_metadata.is_empty()
+                || self.source_metadata.iter().any(|source| {
+                    source.source_snapshot == m.source_snapshot
+                        && source.available_at(self.known_by_year)
+                })
+        })
+    }
+
+    /// Strict validation for reproducible replay. Unlike the migration-compatible
+    /// validator, this requires temporal metadata for every admitted source snapshot.
+    pub fn validate_temporal_manifest_strict(&self) -> Result<(), ProjectionError> {
+        self.validate_temporal_manifest()?;
+        if self.manifest_hash.trim().is_empty() || self.verify_manifest_hash().is_err() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        if self.source_metadata.len() != self.admitted_sources.len() {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        let source_ids = self
+            .source_metadata
+            .iter()
+            .map(|metadata| metadata.source_snapshot.clone())
+            .collect::<BTreeSet<_>>();
+        if source_ids.len() != self.admitted_sources.len() || source_ids != self.admitted_sources {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+
+        for evidence_metadata in &self.evidence_metadata {
+            if !source_ids.contains(&evidence_metadata.source_snapshot) {
+                return Err(ProjectionError::UnadmittedSourceMetadata);
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Validates the frontier's admission manifest against its temporal metadata.
+    pub fn validate_temporal_manifest(&self) -> Result<(), ProjectionError> {
+        self.validate_identity_shape()?;
+        // Migration-compatible validation permits legacy manifests that predate
+        // content-addressed hashes. Strict replay validation below requires a
+        // non-empty, self-consistent manifest hash before admitting the frontier.
+        if !self.manifest_hash.trim().is_empty() {
+            self.verify_manifest_hash()?;
+        }
+        if self.evidence_metadata.is_empty() {
+            if !self.admitted_evidence.is_empty() {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            }
+        } else {
+            if self.evidence_metadata.len() != self.admitted_evidence.len()
+                || self
+                    .evidence_metadata
+                    .iter()
+                    .map(|m| &m.evidence_id)
+                    .collect::<BTreeSet<_>>()
+                    .len()
+                    != self.evidence_metadata.len()
+            {
+                return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+            }
+            for metadata in &self.evidence_metadata {
+                metadata.validate()?;
+                if metadata.available_by > self.known_by_year {
+                    return Err(ProjectionError::LaterEvidenceInFrontier);
+                }
+                if !self.admitted_evidence.contains(&metadata.evidence_id) {
+                    return Err(ProjectionError::UnadmittedEvidenceMetadata);
+                }
+                if !self.admitted_sources.contains(&metadata.source_snapshot) {
+                    return Err(ProjectionError::UnadmittedSourceMetadata);
+                }
+            }
+        }
+
+        if !self.source_metadata.is_empty() {
+            let mut seen_sources = BTreeSet::new();
+            for metadata in &self.source_metadata {
+                metadata.validate()?;
+                if metadata.available_by > self.known_by_year {
+                    return Err(ProjectionError::LaterEvidenceInFrontier);
+                }
+                if !self.admitted_sources.contains(&metadata.source_snapshot)
+                    || !seen_sources.insert(metadata.source_snapshot.clone())
+                {
+                    return Err(ProjectionError::UnadmittedSourceMetadata);
+                }
+            }
+        }
+
+        if !self.argumentation_metadata.is_empty() {
+            let mut seen_argumentation = BTreeSet::new();
+            for metadata in &self.argumentation_metadata {
+                metadata.validate()?;
+                if metadata.available_by > self.known_by_year
+                    || !seen_argumentation
+                        .insert((metadata.assessment.clone(), metadata.interpretation.clone()))
+                {
+                    return Err(if metadata.available_by > self.known_by_year {
+                        ProjectionError::LaterEvidenceInFrontier
+                    } else {
+                        ProjectionError::DuplicateArgumentationMetadata
+                    });
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Whether an externally-owned assessment/interpretation pair is committed to and
+    /// available at this frontier.
+    ///
+    /// This is intentionally pair-scoped rather than claim-scoped: the frontier records
+    /// temporal availability of the external argumentation record. Claim-specific binding
+    /// is enforced by CulturalArgumentationRefV3 and its evidence closure, so frontier
+    /// admission must not be mistaken for permission to reuse an argument for another claim.
+    pub fn admits_argumentation(
+        &self,
+        assessment: &AssessmentId,
+        interpretation: &InterpretationId,
+    ) -> bool {
+        self.argumentation_metadata.iter().any(|metadata| {
+            &metadata.assessment == assessment
+                && &metadata.interpretation == interpretation
+                && metadata.available_at(self.known_by_year)
+        })
+    }
+
+    /// Returns whether an argumentation record is admitted and its declared availability exactly matches the frontier's committed metadata.
+    pub(crate) fn admits_argumentation_at(
+        &self,
+        assessment: &AssessmentId,
+        interpretation: &InterpretationId,
+        available_by: i32,
+    ) -> bool {
+        self.argumentation_metadata.iter().any(|metadata| {
+            &metadata.assessment == assessment
+                && &metadata.interpretation == interpretation
+                && metadata.available_by == available_by
+                && metadata.available_at(self.known_by_year)
+        })
+    }
+    /// A projection is frontier-safe only when every referenced evidence and
+    /// source snapshot has been admitted, and temporal evidence metadata binds
+    /// each evidence reference to one of the projection's declared sources.
+    ///
+    /// This closes the provenance path instead of merely checking two independent
+    /// sets: an admitted evidence item cannot silently resolve to source A while
+    /// the projection declares only source B.
+    pub(crate) fn admits_evidence_path(
+        &self,
+        evidence_ids: &[EvidenceId],
+        source_snapshots: &[SourceSnapshotId],
+    ) -> bool {
+        // Preserve the legacy ID-only frontier form, but still require its
+        // identity envelope to be structurally sound. Populated manifests retain
+        // the full temporal/structural validation below.
+        if self.validate_identity_shape().is_err() {
+            return false;
+        }
+        let is_legacy_id_only = self.manifest_hash.trim().is_empty()
+            && self.evidence_metadata.is_empty()
+            && self.source_metadata.is_empty()
+            && self.argumentation_metadata.is_empty();
+        if !is_legacy_id_only && self.validate_temporal_manifest().is_err() {
+            return false;
+        }
+        if !source_snapshots.iter().all(|id| self.admits_source(id)) {
+            return false;
+        }
+
+        evidence_ids.iter().all(|id| {
+            self.admits(id)
+                && (self.evidence_metadata.is_empty()
+                    || self.evidence_metadata.iter().any(|metadata| {
+                        &metadata.evidence_id == id
+                            && source_snapshots.contains(&metadata.source_snapshot)
+                    }))
+        })
+    }
+
+    pub fn admits_transition(&self, transition: &HistoricalTransitionV1) -> bool {
+        let evidence_ids = transition
+            .evidence_refs
+            .iter()
+            .chain(
+                transition
+                    .spatial_scope
+                    .iter()
+                    .flat_map(|geometry| geometry.evidence.iter()),
+            )
+            .cloned()
+            .collect::<Vec<_>>();
+        self.admits_evidence_path(&evidence_ids, &transition.source_snapshots)
+    }
+
+    pub(crate) fn admits_source(&self, source: &SourceSnapshotId) -> bool {
+        if !self.admitted_sources.contains(source) {
+            return false;
+        }
+        self.source_metadata.is_empty()
+            || self.source_metadata.iter().any(|metadata| {
+                &metadata.source_snapshot == source && metadata.available_at(self.known_by_year)
+            })
+    }
+
+    pub fn admits_snapshot(&self, snapshot: &StateSnapshotV1) -> bool {
+        let evidence_ids = snapshot
+            .evidence_refs
+            .iter()
+            .chain(
+                snapshot
+                    .geometries
+                    .iter()
+                    .flat_map(|geometry| geometry.evidence.iter()),
+            )
+            .cloned()
+            .collect::<Vec<_>>();
+        snapshot.evidence_frontier == self.frontier_id
+            && self.admits_evidence_path(&evidence_ids, &snapshot.source_snapshots)
+    }
+
+    pub fn admits_audit(&self, audit: &ProjectionAuditV1) -> bool {
+        audit.evidence_frontier == self.frontier_id
+            && self.admits_evidence_path(&audit.evidence_refs, &audit.source_snapshots)
+    }
+
+    /// Returns true when every evidence reference carried by a snapshot,
+    /// including spatial evidence, is admitted by this frontier.
+    pub fn admits_snapshot_evidence(&self, snapshot: &StateSnapshotV1) -> bool {
+        snapshot
+            .evidence_refs
+            .iter()
+            .chain(
+                snapshot
+                    .geometries
+                    .iter()
+                    .flat_map(|geometry| geometry.evidence.iter()),
+            )
+            .all(|id| self.admits(id))
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ProjectionError {
+    EmptyIdentifier,
+    InvalidTimeInterval,
+    MissingEvidenceFrontier,
+    GeometryWithoutEvidence,
+    ApproximateGeometryMislabelled,
+    ContestedStatusMismatch,
+    MissingTransitionClass,
+    TransitionWithoutParticipants,
+    IrreversibleTransition,
+    SnapshotWithoutEvidencePath,
+    TransitionWithoutEvidencePath,
+    AuditWithoutEvidencePath,
+    AuditWithoutSourcePath,
+    InvalidSnapshot,
+    InvalidTransition,
+    InvalidEvidenceTemporalMetadata,
+    InvalidEvidenceFrontierManifest,
+    LaterEvidenceInFrontier,
+    UnadmittedEvidenceMetadata,
+    UnadmittedSourceMetadata,
+    DuplicateArgumentationMetadata,
+}
+
+impl ProjectionError {
+    /// Stable machine-readable diagnostic code for logs, telemetry, and
+    /// cross-boundary error reporting.
+    pub const fn code(&self) -> &'static str {
+        match self {
+            Self::EmptyIdentifier => "empty_identifier",
+            Self::InvalidTimeInterval => "invalid_time_interval",
+            Self::MissingEvidenceFrontier => "missing_evidence_frontier",
+            Self::GeometryWithoutEvidence => "geometry_without_evidence",
+            Self::ApproximateGeometryMislabelled => "approximate_geometry_mislabelled",
+            Self::ContestedStatusMismatch => "contested_status_mismatch",
+            Self::MissingTransitionClass => "missing_transition_class",
+            Self::TransitionWithoutParticipants => "transition_without_participants",
+            Self::IrreversibleTransition => "irreversible_transition",
+            Self::SnapshotWithoutEvidencePath => "snapshot_without_evidence_path",
+            Self::TransitionWithoutEvidencePath => "transition_without_evidence_path",
+            Self::AuditWithoutEvidencePath => "audit_without_evidence_path",
+            Self::AuditWithoutSourcePath => "audit_without_source_path",
+            Self::InvalidSnapshot => "invalid_snapshot",
+            Self::InvalidTransition => "invalid_transition",
+            Self::InvalidEvidenceTemporalMetadata => "invalid_evidence_temporal_metadata",
+            Self::InvalidEvidenceFrontierManifest => "invalid_evidence_frontier_manifest",
+            Self::LaterEvidenceInFrontier => "later_evidence_in_frontier",
+            Self::UnadmittedEvidenceMetadata => "unadmitted_evidence_metadata",
+            Self::UnadmittedSourceMetadata => "unadmitted_source_metadata",
+            Self::DuplicateArgumentationMetadata => "duplicate_argumentation_metadata",
+        }
+    }
+}
+
+impl std::fmt::Display for ProjectionError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let message = match self {
+            Self::EmptyIdentifier => "empty identifier",
+            Self::InvalidTimeInterval => "invalid time interval",
+            Self::MissingEvidenceFrontier => "missing evidence frontier",
+            Self::GeometryWithoutEvidence => "geometry without evidence",
+            Self::ApproximateGeometryMislabelled => "approximate geometry mislabelled",
+            Self::ContestedStatusMismatch => "contested status mismatch",
+            Self::MissingTransitionClass => "missing transition class",
+            Self::TransitionWithoutParticipants => "transition without participants",
+            Self::IrreversibleTransition => "irreversible transition",
+            Self::SnapshotWithoutEvidencePath => "snapshot without evidence path",
+            Self::TransitionWithoutEvidencePath => "transition without evidence path",
+            Self::AuditWithoutEvidencePath => "audit without evidence path",
+            Self::AuditWithoutSourcePath => "audit without source path",
+            Self::InvalidSnapshot => "invalid snapshot",
+            Self::InvalidTransition => "invalid transition",
+            Self::InvalidEvidenceTemporalMetadata => "invalid evidence temporal metadata",
+            Self::InvalidEvidenceFrontierManifest => "invalid evidence frontier manifest",
+            Self::LaterEvidenceInFrontier => "later evidence in frontier",
+            Self::UnadmittedEvidenceMetadata => "unadmitted evidence metadata",
+            Self::UnadmittedSourceMetadata => "unadmitted source metadata",
+            Self::DuplicateArgumentationMetadata => "duplicate argumentation metadata",
+        };
+        formatter.write_str(message)
+    }
+}
+
+impl std::error::Error for ProjectionError {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn geometry(semantics: SpatialSemantics, exact: bool) -> GeometryProjection {
+        GeometryProjection {
+            geometry_ref: "geom:1".into(),
+            semantics,
+            exact,
+            evidence: vec!["evidence:1".into()],
+        }
+    }
+
+    fn snapshot() -> StateSnapshotV1 {
+        StateSnapshotV1 {
+            entity_id: "state:alpha".into(),
+            snapshot_id: "snapshot:alpha:1900".into(),
+            valid_time: YearInterval {
+                from: Some(1900),
+                to: Some(1949),
+            },
+            geometries: vec![geometry(SpatialSemantics::AdministrativeBoundary, true)],
+            institution_refs: vec![],
+            constitutional_refs: vec![],
+            relation_refs: vec!["claim:relation".into()],
+            evidence_refs: vec!["evidence:1".into()],
+            source_snapshots: vec!["source-snapshot:archive".into()],
+            evidence_frontier: "frontier:1949".into(),
+            qualification: QualificationSummary {
+                status: QualificationStatus::Supported,
+                assessment: Some("assessment:1".into()),
+                claim_refs: vec!["claim:qualification".into()],
+                unresolved: vec![],
+                contested: false,
+            },
+        }
+    }
+
+    fn transition() -> HistoricalTransitionV1 {
+        HistoricalTransitionV1 {
+            transition_id: "transition:1".into(),
+            event_time: YearInterval {
+                from: Some(1947),
+                to: Some(1947),
+            },
+            classes: [TransitionClass::Partition].into_iter().collect(),
+            source_entities: vec!["polity:old".into(), "territory:shared".into()],
+            target_entities: vec!["state:new-a".into(), "state:new-b".into()],
+            spatial_scope: vec![geometry(SpatialSemantics::ApproximateExtent, false)],
+            mechanism: Some("documented constitutional and territorial process".into()),
+            claim_refs: vec!["claim:transition".into()],
+            evidence_refs: vec!["evidence:partition".into()],
+            source_snapshots: vec!["source-snapshot:archive".into()],
+            competing_hypotheses: vec!["hypothesis:a".into(), "hypothesis:b".into()],
+            assessment: None,
+            qualification: QualificationStatus::Contested,
+            uncertainty: Some(YearInterval {
+                from: Some(1946),
+                to: Some(1948),
+            }),
+        }
+    }
+
+    #[test]
+    fn projection_error_has_stable_machine_code_and_display() {
+        let error = ProjectionError::AuditWithoutEvidencePath;
+        assert_eq!(error.code(), "audit_without_evidence_path");
+        assert_eq!(error.to_string(), "audit without evidence path");
+    }
+
+    #[test]
+    fn projection_error_is_standard_thread_safe_error() {
+        fn assert_error<E: std::error::Error + Send + Sync + 'static>() {}
+        assert_error::<ProjectionError>();
+    }
+
+    #[test]
+    fn snapshot_rejects_invalid_interval_and_missing_frontier() {
+        let mut value = snapshot();
+        value.valid_time = YearInterval {
+            from: Some(1950),
+            to: Some(1900),
+        };
+        assert_eq!(value.validate(), Err(ProjectionError::InvalidTimeInterval));
+        let mut value = snapshot();
+        value.evidence_frontier = "".into();
+        assert_eq!(
+            value.validate(),
+            Err(ProjectionError::MissingEvidenceFrontier)
+        );
+    }
+
+    #[test]
+    fn snapshot_reports_missing_evidence_path_distinctly() {
+        let mut value = snapshot();
+        value.evidence_refs.clear();
+        assert_eq!(
+            value.validate(),
+            Err(ProjectionError::SnapshotWithoutEvidencePath)
+        );
+    }
+
+    #[test]
+    fn transition_reports_missing_evidence_path_distinctly() {
+        let mut value = transition();
+        value.evidence_refs.clear();
+        assert_eq!(
+            value.validate(),
+            Err(ProjectionError::TransitionWithoutEvidencePath)
+        );
+    }
+
+    #[test]
+    fn spatial_precision_must_be_explicit_and_supported() {
+        let mut value = snapshot();
+        value.geometries = vec![geometry(SpatialSemantics::AdministrativeBoundary, false)];
+        assert_eq!(
+            value.validate(),
+            Err(ProjectionError::ApproximateGeometryMislabelled)
+        );
+        value.geometries = vec![geometry(SpatialSemantics::ApproximateExtent, false)];
+        assert_eq!(value.validate(), Ok(()));
+    }
+
+    #[test]
+    fn transition_supports_many_to_many_and_competing_hypotheses() {
+        let value = transition();
+        assert_eq!(value.source_entities.len(), 2);
+        assert_eq!(value.target_entities.len(), 2);
+        assert_eq!(value.competing_hypotheses.len(), 2);
+        assert_eq!(value.validate(), Ok(()));
+    }
+
+    #[test]
+    fn transition_requires_reversible_evidence_path() {
+        let mut value = transition();
+        value.source_snapshots.clear();
+        assert_eq!(
+            value.validate(),
+            Err(ProjectionError::TransitionWithoutEvidencePath)
+        );
+    }
+
+    #[test]
+    fn evidence_availability_is_distinct_from_artifact_time() {
+        let metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:old".into(),
+            source_snapshot: "source:archive".into(),
+            artifact_time: Some(YearInterval {
+                from: Some(1200),
+                to: Some(1200),
+            }),
+            publication_time: Some(1800),
+            capture_time: Some(1900),
+            available_by: 1950,
+            validity_time: Some(YearInterval {
+                from: Some(1200),
+                to: Some(1200),
+            }),
+        };
+        assert!(metadata.available_at(1950));
+        assert!(!metadata.available_at(1940));
+    }
+
+    #[test]
+    fn argumentation_availability_requires_temporal_extent_to_be_available() {
+        let base = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            assessment_time: Some(YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1941),
+                to: Some(1949),
+            }),
+            available_by: 1950,
+        };
+        assert_eq!(base.validate(), Ok(()));
+
+        let mut before_end = base.clone();
+        before_end.available_by = 1949;
+        assert_eq!(
+            before_end.validate(),
+            Err(ProjectionError::InvalidTimeInterval)
+        );
+    }
+
+    #[test]
+    fn argumentation_open_ended_extent_still_requires_known_start_before_availability() {
+        let mut value = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            assessment_time: Some(YearInterval {
+                from: Some(1950),
+                to: None,
+            }),
+            interpretation_time: None,
+            available_by: 1950,
+        };
+        assert_eq!(value.validate(), Ok(()));
+
+        value.available_by = 1949;
+        assert_eq!(value.validate(), Err(ProjectionError::InvalidTimeInterval));
+    }
+
+    #[test]
+    fn evidence_availability_at_frontier_is_inclusive() {
+        let metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:cutoff".into(),
+            source_snapshot: "source:cutoff".into(),
+            artifact_time: Some(YearInterval {
+                from: Some(1800),
+                to: Some(1800),
+            }),
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1950,
+            validity_time: None,
+        };
+        assert!(!metadata.available_at(1949));
+        assert!(metadata.available_at(1950));
+        assert!(metadata.available_at(1951));
+    }
+
+    #[test]
+    fn source_snapshot_availability_at_frontier_is_inclusive() {
+        let metadata = SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:cutoff".into(),
+            publication_time: Some(1940),
+            capture_time: Some(1950),
+            available_by: 1950,
+        };
+        assert!(!metadata.available_at(1949));
+        assert!(metadata.available_at(1950));
+    }
+
+    #[test]
+    fn argumentation_frontier_admission_uses_record_availability_not_temporal_extent() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: Some(YearInterval {
+                    from: Some(1200),
+                    to: Some(1200),
+                }),
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1950,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:a".into(),
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1950,
+            }],
+            argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
+                assessment: "assessment:old".into(),
+                interpretation: "interpretation:old".into(),
+                assessment_time: Some(YearInterval {
+                    from: Some(1200),
+                    to: Some(1200),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1300),
+                    to: Some(1300),
+                }),
+                available_by: 1950,
+            }],
+        };
+        frontier.recompute_manifest_hash().unwrap();
+
+        assert!(
+            frontier.admits_argumentation(&"assessment:old".into(), &"interpretation:old".into())
+        );
+
+        frontier.known_by_year = 1949;
+        assert!(
+            !frontier.admits_argumentation(&"assessment:old".into(), &"interpretation:old".into())
+        );
+    }
+
+    #[test]
+    fn later_frontier_horizon_does_not_make_earlier_metadata_available() {
+        let metadata = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:later".into(),
+            interpretation: "interpretation:later".into(),
+            assessment_time: Some(YearInterval {
+                from: Some(1800),
+                to: Some(1800),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1800),
+                to: Some(1800),
+            }),
+            available_by: 1951,
+        };
+        assert!(!metadata.available_at(1950));
+        assert!(metadata.available_at(1951));
+    }
+
+    #[test]
+    fn argumentation_availability_can_be_unknown_until_a_later_frontier() {
+        let value = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:1".into(),
+            interpretation: "interpretation:1".into(),
+            assessment_time: Some(YearInterval {
+                from: Some(1940),
+                to: Some(1950),
+            }),
+            interpretation_time: None,
+            available_by: 1950,
+        };
+        assert!(!value.available_at(1949));
+        assert!(value.available_at(1950));
+    }
+
+    #[test]
+    fn legacy_frontier_rejects_malformed_identity_shape() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:legacy".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:old"].into_iter().map(Into::into).collect(),
+            admitted_sources: ["source:archive"].into_iter().map(Into::into).collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+
+        frontier.policy_version.clear();
+        assert_eq!(
+            frontier.admits_evidence_path(&["evidence:old".into()], &["source:archive".into()]),
+            false
+        );
+
+        frontier.policy_version = "v1".into();
+        frontier.parent_frontier = Some("".into());
+        assert!(
+            !frontier.admits_evidence_path(&["evidence:old".into()], &["source:archive".into()])
+        );
+    }
+
+    #[test]
+    fn frontier_temporal_manifest_blocks_anachronistic_evidence() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:old".into()].into_iter().collect(),
+            admitted_sources: ["source:archive".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:old".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: Some(YearInterval {
+                    from: Some(1200),
+                    to: Some(1200),
+                }),
+                publication_time: Some(1800),
+                capture_time: None,
+                available_by: 1800,
+                validity_time: None,
+            }],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        assert_eq!(frontier.validate_temporal_manifest(), Ok(()));
+        assert!(frontier.admits(&"evidence:old".into()));
+    }
+
+    #[test]
+    fn frontier_rejects_metadata_discovered_after_frontier() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:later".into()].into_iter().collect(),
+            admitted_sources: ["source:archive".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:later".into(),
+                source_snapshot: "source:archive".into(),
+                artifact_time: Some(YearInterval {
+                    from: Some(1200),
+                    to: Some(1200),
+                }),
+                publication_time: Some(1950),
+                capture_time: None,
+                available_by: 1950,
+                validity_time: None,
+            }],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        assert_eq!(
+            frontier.validate_temporal_manifest(),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
+        assert!(!frontier.admits(&"evidence:later".into()));
+    }
+
+    fn evidence_closure_frontier() -> EvidenceFrontierV1 {
+        EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:1", "evidence:partition"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            admitted_sources: ["source-snapshot:archive", "source-snapshot:other"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            evidence_metadata: vec![
+                EvidenceTemporalMetadataV1 {
+                    evidence_id: "evidence:1".into(),
+                    source_snapshot: "source-snapshot:archive".into(),
+                    artifact_time: None,
+                    publication_time: Some(1940),
+                    capture_time: None,
+                    available_by: 1940,
+                    validity_time: None,
+                },
+                EvidenceTemporalMetadataV1 {
+                    evidence_id: "evidence:partition".into(),
+                    source_snapshot: "source-snapshot:archive".into(),
+                    artifact_time: None,
+                    publication_time: Some(1945),
+                    capture_time: None,
+                    available_by: 1945,
+                    validity_time: None,
+                },
+            ],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        }
+    }
+
+    #[test]
+    fn evidence_source_closure_cannot_be_bypassed_by_declaring_another_admitted_source() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:1", "evidence:partition"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            admitted_sources: ["source-snapshot:archive", "source-snapshot:other"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            evidence_metadata: vec![
+                EvidenceTemporalMetadataV1 {
+                    evidence_id: "evidence:1".into(),
+                    source_snapshot: "source-snapshot:archive".into(),
+                    artifact_time: None,
+                    publication_time: Some(1940),
+                    capture_time: None,
+                    available_by: 1940,
+                    validity_time: None,
+                },
+                EvidenceTemporalMetadataV1 {
+                    evidence_id: "evidence:partition".into(),
+                    source_snapshot: "source-snapshot:archive".into(),
+                    artifact_time: None,
+                    publication_time: Some(1945),
+                    capture_time: None,
+                    available_by: 1945,
+                    validity_time: None,
+                },
+            ],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+
+        let mut admitted_snapshot = snapshot();
+        admitted_snapshot.evidence_frontier = frontier.frontier_id.clone();
+        assert!(frontier.admits_snapshot(&admitted_snapshot));
+
+        let mut mismatched_snapshot = admitted_snapshot.clone();
+        mismatched_snapshot.source_snapshots = vec!["source-snapshot:other".into()];
+        assert!(!frontier.admits_snapshot(&mismatched_snapshot));
+
+        let admitted_transition = transition();
+        assert!(frontier.admits_transition(&admitted_transition));
+
+        let mut mismatched_transition = admitted_transition.clone();
+        mismatched_transition.source_snapshots = vec!["source-snapshot:other".into()];
+        assert!(!frontier.admits_transition(&mismatched_transition));
+
+        let admitted_audit = ProjectionAuditV1::for_snapshot(&admitted_snapshot);
+        assert!(frontier.admits_audit(&admitted_audit));
+
+        let mismatched_audit = ProjectionAuditV1 {
+            source_snapshots: vec!["source-snapshot:other".into()],
+            ..admitted_audit
+        };
+        assert!(!frontier.admits_audit(&mismatched_audit));
+    }
+
+    #[test]
+    fn evidence_source_closure_rejects_corrupt_present_frontier_manifest() {
+        let mut frontier = evidence_closure_frontier();
+        frontier.recompute_manifest_hash().unwrap();
+        frontier.manifest_hash = "corrupt-present-manifest".into();
+
+        let mut value = snapshot();
+        value.evidence_frontier = frontier.frontier_id.clone();
+        assert!(!frontier.admits_snapshot(&value));
+    }
+
+    #[test]
+    fn evidence_source_closure_rejects_structurally_invalid_populated_manifest() {
+        let mut frontier = evidence_closure_frontier();
+        frontier.source_metadata = vec![
+            SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source-snapshot:archive".into(),
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+            },
+            SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source-snapshot:archive".into(),
+                publication_time: Some(1940),
+                capture_time: None,
+                available_by: 1940,
+            },
+        ];
+        frontier.recompute_manifest_hash().unwrap();
+
+        let mut value = snapshot();
+        value.evidence_frontier = frontier.frontier_id.clone();
+        assert!(!frontier.admits_snapshot(&value));
+    }
+
+    #[test]
+    fn frontier_excludes_later_evidence_unless_admitted() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:old".into()].into_iter().collect(),
+            admitted_sources: ["source-snapshot:archive".into()].into_iter().collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        assert!(frontier.admits(&"evidence:old".into()));
+        assert!(!frontier.admits(&"evidence:discovered-later".into()));
+    }
+
+    #[test]
+    fn frontier_rejects_transition_with_later_evidence_or_source() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:old".into()].into_iter().collect(),
+            admitted_sources: ["source:old".into()].into_iter().collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        let mut value = transition();
+        value.spatial_scope.clear();
+        value.evidence_refs = vec!["evidence:old".into()];
+        value.source_snapshots = vec!["source:later".into()];
+        assert!(!frontier.admits_transition(&value));
+
+        value.source_snapshots = vec!["source-snapshot:archive".into()];
+        frontier.admitted_sources = ["source-snapshot:archive".into()].into_iter().collect();
+        assert!(frontier.admits_transition(&value));
+    }
+
+    #[test]
+    fn snapshot_frontier_identity_is_explicit() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1949".into(),
+            known_by_year: 1949,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:1".into()].into_iter().collect(),
+            admitted_sources: ["source:1".into()].into_iter().collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        let mut admitted_snapshot = snapshot();
+        admitted_snapshot.source_snapshots = vec!["source:1".into()];
+        assert!(frontier.admits_snapshot(&admitted_snapshot));
+
+        let mut later = snapshot();
+        later.evidence_frontier = "frontier:1950".into();
+        assert!(!frontier.admits_snapshot(&later));
+    }
+
+    #[test]
+    fn audit_is_reversible_and_frontier_safe() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1949".into(),
+            known_by_year: 1949,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:1".into(), "evidence:partition".into()]
+                .into_iter()
+                .collect(),
+            admitted_sources: ["source-snapshot:archive"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+
+        let snapshot_audit = ProjectionAuditV1::for_snapshot(&snapshot());
+        assert_eq!(snapshot_audit.validate(), Ok(()));
+        assert_eq!(snapshot_audit.claim_refs.len(), 2);
+        assert!(frontier.admits_audit(&snapshot_audit));
+
+        let transition_audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
+        assert_eq!(transition_audit.validate(), Ok(()));
+        assert_eq!(transition_audit.evidence_refs.len(), 2);
+        assert!(frontier.admits_audit(&transition_audit));
+
+        let mut later = transition_audit;
+        later.evidence_refs.push("evidence:discovered-later".into());
+        assert!(!frontier.admits_audit(&later));
+    }
+
+    #[test]
+    fn audit_requires_evidence_path() {
+        let mut audit = ProjectionAuditV1::for_snapshot(&snapshot());
+        audit.evidence_refs.clear();
+        assert_eq!(
+            audit.validate(),
+            Err(ProjectionError::AuditWithoutEvidencePath)
+        );
+    }
+
+    #[test]
+    fn transition_audit_requires_source_snapshot() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1949".into(),
+            known_by_year: 1949,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:partition"].into_iter().map(Into::into).collect(),
+            admitted_sources: ["source-snapshot:archive"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        let mut audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
+        audit.source_snapshots.clear();
+        assert_eq!(
+            audit.validate(),
+            Err(ProjectionError::AuditWithoutSourcePath)
+        );
+    }
+
+    #[test]
+    fn transition_audit_cannot_hide_spatial_evidence() {
+        let frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1949".into(),
+            known_by_year: 1949,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:partition"].into_iter().map(Into::into).collect(),
+            admitted_sources: ["source-snapshot:archive"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        let audit = ProjectionAuditV1::for_transition(&transition(), &frontier);
+        assert!(!frontier.admits_audit(&audit));
+    }
+
+    #[test]
+    fn snapshot_audit_includes_relation_claims() {
+        let audit = ProjectionAuditV1::for_snapshot(&snapshot());
+        assert!(audit.claim_refs.contains(&"claim:relation".into()));
+        assert!(audit.claim_refs.contains(&"claim:qualification".into()));
+    }
+
+    #[test]
+    fn frontier_chain_validates_transitive_append_only_lineage() {
+        let metadata = |evidence_id: &str, source: &str, year: i32| EvidenceTemporalMetadataV1 {
+            evidence_id: evidence_id.into(),
+            source_snapshot: source.into(),
+            artifact_time: None,
+            publication_time: Some(year),
+            capture_time: None,
+            available_by: year,
+            validity_time: None,
+        };
+
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata("evidence:a", "source:a", 1900)],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        root.recompute_manifest_hash().unwrap();
+
+        let mut middle = EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: Some(root.frontier_id.clone()),
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into(), "evidence:b".into()]
+                .into_iter()
+                .collect(),
+            admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
+            evidence_metadata: vec![
+                metadata("evidence:a", "source:a", 1900),
+                metadata("evidence:b", "source:b", 1950),
+            ],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        middle.recompute_manifest_hash().unwrap();
+
+        let mut current = EvidenceFrontierV1 {
+            frontier_id: "frontier:2000".into(),
+            known_by_year: 2000,
+            parent_frontier: Some(middle.frontier_id.clone()),
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: [
+                "evidence:a".into(),
+                "evidence:b".into(),
+                "evidence:c".into(),
+            ]
+            .into_iter()
+            .collect(),
+            admitted_sources: ["source:a".into(), "source:b".into(), "source:c".into()]
+                .into_iter()
+                .collect(),
+            evidence_metadata: vec![
+                metadata("evidence:a", "source:a", 1900),
+                metadata("evidence:b", "source:b", 1950),
+                metadata("evidence:c", "source:c", 2000),
+            ],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        current.recompute_manifest_hash().unwrap();
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, middle, current],
+        };
+        assert_eq!(chain.validate(), Ok(()));
+        assert_eq!(chain.current().unwrap().frontier_id, "frontier:2000".into());
+    }
+
+    #[test]
+    fn strict_prefix_selector_validates_only_through_requested_frontier() {
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1899),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:a".into(),
+                publication_time: Some(1899),
+                capture_time: None,
+                available_by: 1900,
+            }],
+            argumentation_metadata: vec![],
+        };
+        root.recompute_manifest_hash().unwrap();
+
+        let mut child = root.clone();
+        child.frontier_id = "frontier:1901".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(root.frontier_id.clone());
+        child.recompute_manifest_hash().unwrap();
+
+        let mut later = child.clone();
+        later.frontier_id = "frontier:1902".into();
+        later.known_by_year = 1902;
+        later.parent_frontier = Some(child.frontier_id.clone());
+        later.recompute_manifest_hash().unwrap();
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, child, later],
+        };
+        let prefix = chain
+            .strict_prefix_through(&"frontier:1901".into())
+            .expect("strict prefix");
+        assert_eq!(prefix.frontiers.len(), 2);
+        assert_eq!(
+            prefix.current().unwrap().frontier_id,
+            "frontier:1901".into()
+        );
+    }
+
+    #[test]
+    fn strict_prefix_selector_rejects_duplicate_id_outside_selected_prefix() {
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1899),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:a".into(),
+                publication_time: Some(1899),
+                capture_time: None,
+                available_by: 1900,
+            }],
+            argumentation_metadata: vec![],
+        };
+        root.recompute_manifest_hash().unwrap();
+
+        let mut child = root.clone();
+        child.frontier_id = "frontier:1901".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(root.frontier_id.clone());
+        child.recompute_manifest_hash().unwrap();
+
+        let mut duplicate = child.clone();
+        duplicate.frontier_id = root.frontier_id.clone();
+        duplicate.manifest_hash = "not-recomputed".into();
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, child, duplicate],
+        };
+        assert_eq!(
+            chain.strict_prefix_through(&"frontier:1901".into()),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn strict_chain_rejects_legacy_ancestor_even_when_leaf_is_hashed() {
+        let metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:a".into(),
+            source_snapshot: "source:a".into(),
+            artifact_time: None,
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+        let source = SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:a".into(),
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1900,
+        };
+
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata.clone()],
+            source_metadata: vec![source.clone()],
+            argumentation_metadata: vec![],
+        };
+        root.recompute_manifest_hash().unwrap();
+        let mut child = root.clone();
+        child.frontier_id = "frontier:1901".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(root.frontier_id.clone());
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(root.validate_temporal_manifest_strict(), Ok(()));
+        assert_eq!(child.validate_temporal_manifest_strict(), Ok(()));
+
+        root.manifest_hash.clear();
+        assert_eq!(
+            root.validate_temporal_manifest_strict(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, child],
+        };
+        assert_eq!(
+            chain.validate_strict(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn frontier_chain_rejects_rewritten_ancestor() {
+        let metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:a".into(),
+            source_snapshot: "source:a".into(),
+            artifact_time: None,
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata.clone()],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        root.recompute_manifest_hash().unwrap();
+
+        let mut child = EvidenceFrontierV1 {
+            frontier_id: "frontier:1950".into(),
+            known_by_year: 1950,
+            parent_frontier: Some(root.frontier_id.clone()),
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        child.recompute_manifest_hash().unwrap();
+
+        root.policy_version = "rewritten".into();
+        root.recompute_manifest_hash().unwrap();
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, child],
+        };
+        assert_eq!(
+            chain.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn manifest_hash_is_independent_of_metadata_order() {
+        let metadata_a = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:a".into(),
+            source_snapshot: "source:a".into(),
+            artifact_time: None,
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+        let metadata_b = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:b".into(),
+            source_snapshot: "source:b".into(),
+            artifact_time: None,
+            publication_time: Some(1901),
+            capture_time: None,
+            available_by: 1901,
+            validity_time: None,
+        };
+
+        let mut first = EvidenceFrontierV1 {
+            frontier_id: "frontier:1901".into(),
+            known_by_year: 1901,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into(), "evidence:b".into()]
+                .into_iter()
+                .collect(),
+            admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata_a.clone(), metadata_b.clone()],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        let mut second = first.clone();
+        second.evidence_metadata.reverse();
+
+        first.recompute_manifest_hash().unwrap();
+        second.recompute_manifest_hash().unwrap();
+
+        assert_eq!(first.manifest_hash, second.manifest_hash);
+        assert_eq!(first.validate_temporal_manifest(), Ok(()));
+        assert_eq!(second.validate_temporal_manifest(), Ok(()));
+    }
+
+    #[test]
+    fn manifest_hash_is_state_identity_not_frontier_id_identity() {
+        let metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:a".into(),
+            source_snapshot: "source:a".into(),
+            artifact_time: None,
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+        let mut first = EvidenceFrontierV1 {
+            frontier_id: "frontier:state-a".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata.clone()],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        first.recompute_manifest_hash().unwrap();
+
+        let mut second = first.clone();
+        second.frontier_id = "frontier:state-b".into();
+        second.recompute_manifest_hash().unwrap();
+
+        assert_eq!(first.manifest_hash, second.manifest_hash);
+        assert_ne!(first.frontier_id, second.frontier_id);
+
+        second.parent_frontier = Some(first.frontier_id.clone());
+        second.recompute_manifest_hash().unwrap();
+        assert_ne!(first.manifest_hash, second.manifest_hash);
+    }
+
+    #[test]
+    fn manifest_hash_detects_policy_and_admission_tampering() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:1901".into(),
+            known_by_year: 1901,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        frontier.recompute_manifest_hash().unwrap();
+
+        frontier.policy_version = "v2".into();
+        assert_eq!(
+            frontier.verify_manifest_hash(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        frontier.policy_version = "v1".into();
+        frontier.admitted_evidence.insert("evidence:b".into());
+        assert_eq!(
+            frontier.verify_manifest_hash(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn manifest_canonicalization_v1_is_explicit_and_argumentation_order_sensitive() {
+        let metadata = |assessment: &str, interpretation: &str| ArgumentationTemporalMetadataV1 {
+            assessment: assessment.into(),
+            interpretation: interpretation.into(),
+            assessment_time: Some(YearInterval {
+                from: Some(1990),
+                to: Some(1990),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1995),
+                to: Some(1995),
+            }),
+            available_by: 1996,
+        };
+
+        let mut first = EvidenceFrontierV1 {
+            frontier_id: "frontier:c14n-v1".into(),
+            known_by_year: 2000,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![
+                metadata("assessment:a", "interpretation:a"),
+                metadata("assessment:b", "interpretation:b"),
+            ],
+        };
+        let mut second = first.clone();
+        second.argumentation_metadata.reverse();
+
+        let first_hash = first
+            .computed_manifest_hash_with(EvidenceFrontierManifestCanonicalizationV1)
+            .unwrap();
+        let second_hash = second
+            .computed_manifest_hash_with(EvidenceFrontierManifestCanonicalizationV1)
+            .unwrap();
+
+        assert_eq!(
+            EvidenceFrontierManifestCanonicalizationV1::VERSION,
+            "evidence-frontier-manifest-c14n-v1"
+        );
+        assert_ne!(first_hash, second_hash);
+
+        first.recompute_manifest_hash().unwrap();
+        assert_eq!(first.manifest_hash, first_hash);
+    }
+
+    #[test]
+    fn duplicate_argumentation_metadata_has_a_dedicated_validation_error() {
+        let metadata = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:a".into(),
+            interpretation: "interpretation:a".into(),
+            assessment_time: Some(YearInterval {
+                from: Some(1990),
+                to: Some(1990),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1995),
+                to: Some(1995),
+            }),
+            available_by: 1996,
+        };
+
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:duplicate-argumentation".into(),
+            known_by_year: 2000,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1990),
+                capture_time: None,
+                available_by: 1990,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:a".into(),
+                publication_time: Some(1990),
+                capture_time: None,
+                available_by: 1990,
+            }],
+            argumentation_metadata: vec![metadata.clone(), metadata],
+        };
+        frontier.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            frontier.validate_temporal_manifest(),
+            Err(ProjectionError::DuplicateArgumentationMetadata)
+        );
+    }
+
+    #[test]
+    fn argumentation_metadata_is_committed_to_frontier_hash() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:2000".into(),
+            known_by_year: 2000,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:a".into(),
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1900,
+            }],
+            argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
+                assessment: "assessment:a".into(),
+                interpretation: "interpretation:a".into(),
+                assessment_time: Some(YearInterval {
+                    from: Some(1990),
+                    to: Some(1990),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1995),
+                    to: Some(1995),
+                }),
+                available_by: 1996,
+            }],
+        };
+        frontier.recompute_manifest_hash().unwrap();
+        assert!(frontier.admits_argumentation(&"assessment:a".into(), &"interpretation:a".into()));
+
+        frontier.argumentation_metadata[0].available_by = 2001;
+        assert_eq!(
+            frontier.verify_manifest_hash(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn frontier_extension_is_append_only_and_metadata_immutable() {
+        let parent_metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:a".into(),
+            source_snapshot: "source:a".into(),
+            artifact_time: None,
+            publication_time: Some(1900),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![parent_metadata.clone()],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let child_metadata = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:b".into(),
+            source_snapshot: "source:b".into(),
+            artifact_time: None,
+            publication_time: Some(1901),
+            capture_time: None,
+            available_by: 1901,
+            validity_time: None,
+        };
+        let mut child = EvidenceFrontierV1 {
+            frontier_id: "frontier:1901".into(),
+            known_by_year: 1901,
+            parent_frontier: Some(parent.frontier_id.clone()),
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into(), "evidence:b".into()]
+                .into_iter()
+                .collect(),
+            admitted_sources: ["source:a".into(), "source:b".into()].into_iter().collect(),
+            evidence_metadata: vec![parent_metadata.clone(), child_metadata],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(child.validate_extension_of(&parent), Ok(()));
+
+        child.evidence_metadata[0].available_by = 1901;
+        child.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        child.evidence_metadata[0] = parent_metadata;
+        child.parent_frontier = Some("frontier:wrong".into());
+        child.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn frontier_chain_rejects_duplicate_frontier_identity() {
+        let mut root = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["e:1".into()].into_iter().collect(),
+            admitted_sources: ["source:1".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "e:1".into(),
+                source_snapshot: "source:1".into(),
+                artifact_time: None,
+                publication_time: Some(1890),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:1".into(),
+                publication_time: Some(1890),
+                capture_time: None,
+                available_by: 1900,
+            }],
+            argumentation_metadata: vec![],
+        };
+        root.recompute_manifest_hash().unwrap();
+
+        let mut child = root.clone();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(root.frontier_id.clone());
+        // Same frontier ID, but a valid-looking independently hashed manifest.
+        child.admitted_evidence.insert("e:2".into());
+        child.evidence_metadata.push(EvidenceTemporalMetadataV1 {
+            evidence_id: "e:2".into(),
+            source_snapshot: "source:1".into(),
+            artifact_time: None,
+            publication_time: Some(1891),
+            capture_time: None,
+            available_by: 1901,
+            validity_time: None,
+        });
+        child.recompute_manifest_hash().unwrap();
+
+        let chain = EvidenceFrontierChainV1 {
+            frontiers: vec![root, child],
+        };
+
+        assert_eq!(
+            chain.validate(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+        assert_eq!(
+            chain.validate_strict(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn frontier_extension_preserves_inherited_source_and_argumentation_metadata() {
+        let inherited_source = SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:archive".into(),
+            publication_time: Some(1890),
+            capture_time: Some(1895),
+            available_by: 1900,
+        };
+        let inherited_argumentation = ArgumentationTemporalMetadataV1 {
+            assessment: "assessment:old".into(),
+            interpretation: "interpretation:old".into(),
+            assessment_time: Some(YearInterval {
+                from: Some(1880),
+                to: Some(1880),
+            }),
+            interpretation_time: Some(YearInterval {
+                from: Some(1885),
+                to: Some(1885),
+            }),
+            available_by: 1900,
+        };
+        let evidence = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:archive".into(),
+            source_snapshot: inherited_source.source_snapshot.clone(),
+            artifact_time: None,
+            publication_time: Some(1890),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:archive".into()].into_iter().collect(),
+            admitted_sources: ["source:archive".into()].into_iter().collect(),
+            evidence_metadata: vec![evidence.clone()],
+            source_metadata: vec![inherited_source.clone()],
+            argumentation_metadata: vec![inherited_argumentation.clone()],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let mut child = parent.clone();
+        child.frontier_id = "frontier:1910".into();
+        child.known_by_year = 1910;
+        child.parent_frontier = Some(parent.frontier_id.clone());
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(child.validate_extension_of(&parent), Ok(()));
+        assert_eq!(child.source_metadata[0], inherited_source);
+        assert_eq!(child.argumentation_metadata[0], inherited_argumentation);
+
+        child.source_metadata[0].available_by = 1905;
+        child.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        child.source_metadata[0] = inherited_source;
+        child.argumentation_metadata[0].assessment_time = Some(YearInterval {
+            from: Some(1881),
+            to: Some(1881),
+        });
+        child.recompute_manifest_hash().unwrap();
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+
+        child.source_metadata[0] = parent.source_metadata[0].clone();
+        child.argumentation_metadata[0] = parent.argumentation_metadata[0].clone();
+        child.evidence_metadata = vec![evidence];
+        child.recompute_manifest_hash().unwrap();
+        assert_eq!(child.validate_extension_of(&parent), Ok(()));
+    }
+
+    #[test]
+    fn argumentation_metadata_is_validated_when_evidence_metadata_is_absent() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:argumentation-only".into(),
+            known_by_year: 1950,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: BTreeSet::new(),
+            admitted_sources: BTreeSet::new(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![ArgumentationTemporalMetadataV1 {
+                assessment: "assessment:later".into(),
+                interpretation: "interpretation:later".into(),
+                assessment_time: Some(YearInterval {
+                    from: Some(1940),
+                    to: Some(1940),
+                }),
+                interpretation_time: Some(YearInterval {
+                    from: Some(1940),
+                    to: Some(1940),
+                }),
+                available_by: 1951,
+            }],
+        };
+        frontier.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            frontier.validate_temporal_manifest(),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
+    }
+
+    #[test]
+    fn frontier_extension_allows_canonical_metadata_reordering() {
+        let metadata_a = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:a".into(),
+            source_snapshot: "source:a".into(),
+            artifact_time: None,
+            publication_time: Some(1890),
+            capture_time: None,
+            available_by: 1900,
+            validity_time: None,
+        };
+        let metadata_b = EvidenceTemporalMetadataV1 {
+            evidence_id: "evidence:b".into(),
+            source_snapshot: "source:b".into(),
+            artifact_time: None,
+            publication_time: Some(1891),
+            capture_time: None,
+            available_by: 1901,
+            validity_time: None,
+        };
+        let source_a = SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:a".into(),
+            publication_time: Some(1890),
+            capture_time: None,
+            available_by: 1900,
+        };
+        let source_b = SourceSnapshotTemporalMetadataV1 {
+            source_snapshot: "source:b".into(),
+            publication_time: Some(1891),
+            capture_time: None,
+            available_by: 1901,
+        };
+
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:c14n-parent".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![metadata_a.clone()],
+            source_metadata: vec![source_a.clone()],
+            argumentation_metadata: vec![],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let mut child = EvidenceFrontierV1 {
+            frontier_id: "frontier:c14n-child".into(),
+            known_by_year: 1901,
+            parent_frontier: Some(parent.frontier_id.clone()),
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a", "evidence:b"]
+                .into_iter()
+                .map(EvidenceId::from)
+                .collect(),
+            admitted_sources: ["source:a", "source:b"]
+                .into_iter()
+                .map(SourceSnapshotId::from)
+                .collect(),
+            evidence_metadata: vec![metadata_b, metadata_a],
+            source_metadata: vec![source_b, source_a],
+            argumentation_metadata: vec![],
+        };
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(child.validate_extension_of(&parent), Ok(()));
+        assert_eq!(
+            child.verify_manifest_hash(),
+            Ok(()),
+            "canonical metadata reordering must remain self-consistent"
+        );
+    }
+
+    #[test]
+    fn frontier_extension_rejects_policy_version_change() {
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:policy-parent".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: BTreeSet::new(),
+            admitted_sources: BTreeSet::new(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let mut child = parent.clone();
+        child.frontier_id = "frontier:policy-child".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(parent.frontier_id.clone());
+        child.policy_version = "v2".into();
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn frontier_extension_rejects_known_by_year_regression() {
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:horizon-parent".into(),
+            known_by_year: 1901,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: BTreeSet::new(),
+            admitted_sources: BTreeSet::new(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let mut child = parent.clone();
+        child.frontier_id = "frontier:horizon-child".into();
+        child.known_by_year = 1900;
+        child.parent_frontier = Some(parent.frontier_id.clone());
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn snapshot_rejects_duplicate_provenance_ids() {
+        let mut value = StateSnapshotV1 {
+            entity_id: "state:1".into(),
+            snapshot_id: "snapshot:1".into(),
+            valid_time: YearInterval {
+                from: Some(1900),
+                to: Some(1900),
+            },
+            geometries: vec![],
+            institution_refs: vec![],
+            constitutional_refs: vec![],
+            relation_refs: vec!["claim:1".into()],
+            evidence_refs: vec!["e:1".into(), "e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            evidence_frontier: "frontier:1".into(),
+            qualification: QualificationSummary {
+                status: QualificationStatus::Supported,
+                assessment: None,
+                claim_refs: vec!["claim:1".into()],
+                unresolved: vec![],
+                contested: false,
+            },
+        };
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+        value.evidence_refs = vec!["e:1".into()];
+        value.source_snapshots = vec!["source:1".into(), "source:1".into()];
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn transition_rejects_duplicate_provenance_ids() {
+        let value = HistoricalTransitionV1 {
+            transition_id: "transition:1".into(),
+            event_time: YearInterval {
+                from: Some(1900),
+                to: Some(1900),
+            },
+            classes: [TransitionClass::Formation].into_iter().collect(),
+            source_entities: vec!["state:old".into()],
+            target_entities: vec!["state:new".into()],
+            spatial_scope: vec![],
+            mechanism: None,
+            claim_refs: vec!["claim:1".into()],
+            evidence_refs: vec!["e:1".into(), "e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            competing_hypotheses: vec![],
+            assessment: None,
+            qualification: QualificationStatus::Supported,
+            uncertainty: None,
+        };
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn audit_rejects_duplicate_provenance_ids() {
+        let value = ProjectionAuditV1 {
+            projection: ProjectionRef::Transition("transition:1".into()),
+            claim_refs: vec!["claim:1".into()],
+            evidence_refs: vec!["e:1".into(), "e:1".into()],
+            source_snapshots: vec!["source:1".into()],
+            hypothesis_refs: vec![],
+            assessment: None,
+            temporal_scope: YearInterval {
+                from: Some(1900),
+                to: Some(1900),
+            },
+            qualification: QualificationStatus::Supported,
+            evidence_frontier: "frontier:1".into(),
+        };
+        assert_eq!(value.validate(), Err(ProjectionError::EmptyIdentifier));
+    }
+
+    #[test]
+    fn audit_constructor_collapses_cross_channel_evidence_reuse() {
+        let snapshot = StateSnapshotV1 {
+            entity_id: "state:shared".into(),
+            snapshot_id: "snapshot:shared".into(),
+            valid_time: YearInterval {
+                from: Some(1900),
+                to: Some(1900),
+            },
+            geometries: vec![GeometryProjection {
+                geometry_ref: "geom:shared".into(),
+                semantics: SpatialSemantics::AdministrativeBoundary,
+                exact: true,
+                evidence: vec!["e:shared".into()],
+            }],
+            institution_refs: vec![],
+            constitutional_refs: vec![],
+            relation_refs: vec!["claim:shared".into()],
+            evidence_refs: vec!["e:shared".into()],
+            source_snapshots: vec!["source:shared".into()],
+            evidence_frontier: "frontier:shared".into(),
+            qualification: QualificationSummary {
+                status: QualificationStatus::Supported,
+                assessment: None,
+                claim_refs: vec!["claim:shared".into()],
+                unresolved: vec![],
+                contested: false,
+            },
+        };
+
+        let audit = ProjectionAuditV1::for_snapshot(&snapshot);
+        assert_eq!(audit.evidence_refs, vec!["e:shared".into()]);
+        assert_eq!(audit.validate(), Ok(()));
+    }
+
+    #[test]
+    fn frontier_extension_requires_admission_sets_to_be_monotonic() {
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:admission-parent".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: ["evidence:a".into()].into_iter().collect(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![EvidenceTemporalMetadataV1 {
+                evidence_id: "evidence:a".into(),
+                source_snapshot: "source:a".into(),
+                artifact_time: None,
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1900,
+                validity_time: None,
+            }],
+            source_metadata: vec![SourceSnapshotTemporalMetadataV1 {
+                source_snapshot: "source:a".into(),
+                publication_time: Some(1900),
+                capture_time: None,
+                available_by: 1900,
+            }],
+            argumentation_metadata: vec![],
+        };
+        parent.recompute_manifest_hash().unwrap();
+
+        let mut child = parent.clone();
+        child.frontier_id = "frontier:admission-child".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(parent.frontier_id.clone());
+        child.admitted_evidence.clear();
+        child.evidence_metadata.clear();
+        child.admitted_sources.clear();
+        child.source_metadata.clear();
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn strict_validation_requires_complete_source_temporal_metadata() {
+        let mut frontier = EvidenceFrontierV1 {
+            frontier_id: "frontier:strict-source-metadata".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: BTreeSet::new(),
+            admitted_sources: ["source:a".into()].into_iter().collect(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![],
+        };
+        frontier.recompute_manifest_hash().unwrap();
+
+        // Migration-compatible validation permits legacy frontiers that have
+        // admitted sources but predate complete source temporal metadata.
+        assert_eq!(frontier.validate_temporal_manifest(), Ok(()));
+
+        // New/reproducible validation must close that migration gap: every
+        // admitted source needs exactly one temporal metadata record.
+        assert_eq!(
+            frontier.validate_temporal_manifest_strict(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+
+    #[test]
+    fn frontier_extension_rejects_reordering_inherited_argumentation() {
+        let mut parent = EvidenceFrontierV1 {
+            frontier_id: "frontier:1900".into(),
+            known_by_year: 1900,
+            parent_frontier: None,
+            policy_version: "v1".into(),
+            manifest_hash: String::new(),
+            admitted_evidence: BTreeSet::new(),
+            admitted_sources: BTreeSet::new(),
+            evidence_metadata: vec![],
+            source_metadata: vec![],
+            argumentation_metadata: vec![
+                ArgumentationTemporalMetadataV1 {
+                    assessment: "assessment:a".into(),
+                    interpretation: "interpretation:a".into(),
+                    assessment_time: Some(YearInterval {
+                        from: Some(1800),
+                        to: Some(1800),
+                    }),
+                    interpretation_time: Some(YearInterval {
+                        from: Some(1800),
+                        to: Some(1800),
+                    }),
+                    available_by: 1900,
+                },
+                ArgumentationTemporalMetadataV1 {
+                    assessment: "assessment:b".into(),
+                    interpretation: "interpretation:b".into(),
+                    assessment_time: Some(YearInterval {
+                        from: Some(1801),
+                        to: Some(1801),
+                    }),
+                    interpretation_time: Some(YearInterval {
+                        from: Some(1801),
+                        to: Some(1801),
+                    }),
+                    available_by: 1900,
+                },
+            ],
+        };
+        parent.recompute_manifest_hash().unwrap();
+        let mut child = parent.clone();
+        child.frontier_id = "frontier:1901".into();
+        child.known_by_year = 1901;
+        child.parent_frontier = Some(parent.frontier_id.clone());
+        child.argumentation_metadata.reverse();
+        child.recompute_manifest_hash().unwrap();
+
+        assert_eq!(
+            child.validate_extension_of(&parent),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+    }
+}

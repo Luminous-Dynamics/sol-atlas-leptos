@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2024"
 description = "Leptos WebGL globe for Sol Atlas — energy infrastructure, Resontia vaults, maglev corridors"
 
+[workspace]
+members = ["sol-atlas-core"]
+
 [dependencies]
 sol-atlas-core = { path = "sol-atlas-core" }
 h3o = "0.10"
