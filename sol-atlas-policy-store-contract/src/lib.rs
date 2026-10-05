@@ -2514,8 +2514,120 @@ mod tests {
         }
     }
 
-    fn effect_receipt_fixture(
-        attempt_id: &str,
+    struct FenceAdvancingEffectStore {
+        inner: ExecutionEffectMemoryStore,
+        fence_store: Arc<FencedExecutionMemoryStore>,
+        expected_fence: RecoveryExecutionFenceV1,
+        successor_fence: RecoveryExecutionFenceV1,
+    }
+
+    impl RecoveryExecutionEffectStore for FenceAdvancingEffectStore {
+        type Error = &'static str;
+
+        fn begin_effect(
+            &self,
+            receipt: &RecoveryExecutionEffectReceiptV2,
+        ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
+            let outcome = recover_execution_fence(
+                self.fence_store.as_ref(),
+                &self.expected_fence,
+                &self.successor_fence,
+            )?;
+            assert_eq!(outcome, RecoveryExecutionFenceResult::Recovered);
+            self.inner.begin_effect(receipt)
+        }
+
+        fn complete_effect(
+            &self,
+            execution_id: &str,
+            execution_input_snapshot: &str,
+            attempt_id: &str,
+            fence_epoch: u64,
+            completed: &RecoveryExecutionEffectReceiptV2,
+        ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
+            self.inner.complete_effect(
+                execution_id,
+                execution_input_snapshot,
+                attempt_id,
+                fence_epoch,
+                completed,
+            )
+        }
+
+        fn recover_effect_if_current(
+            &self,
+            expected: &RecoveryExecutionEffectReceiptV2,
+            successor: &RecoveryExecutionEffectReceiptV2,
+        ) -> Result<RecoveryExecutionEffectRecoveryResult, Self::Error> {
+            self.inner.recover_effect_if_current(expected, successor)
+        }
+
+        fn load_effect(
+            &self,
+            execution_id: &str,
+        ) -> Result<Option<RecoveryExecutionEffectReceiptV2>, Self::Error> {
+            self.inner.load_effect(execution_id)
+        }
+    }
+
+    #[test]
+    fn cross_store_revalidation_exposes_race_without_claiming_atomicity() {
+        let fence_store = Arc::new(FencedExecutionMemoryStore::default());
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        );
+        let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let established =
+            match establish_execution_fence(fence_store.as_ref(), &initial).expect("establish") {
+                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+                _ => panic!("initial establishment must succeed"),
+            };
+        let successor = match recover_established_execution_fence(
+            fence_store.as_ref(),
+            &established,
+            "attempt-b",
+        )
+        .expect("successor")
+        {
+            RecoveryExecutionFenceRecoveryEstablishmentV1::Established(fence) => fence,
+            _ => panic!("successor must establish"),
+        };
+        let effect_store = FenceAdvancingEffectStore {
+            inner: ExecutionEffectMemoryStore::default(),
+            fence_store: Arc::clone(&fence_store),
+            expected_fence: established.fence().clone(),
+            successor_fence: successor.fence().clone(),
+        };
+
+        let outcome = begin_execution_effect_after_fence_revalidation(
+            fence_store.as_ref(),
+            &effect_store,
+            &established,
+        )
+        .expect("cross-store admission");
+
+        assert_eq!(
+            outcome,
+            RecoveryExecutionEffectFenceAdmissionResult::AttemptedAfterCurrentFenceObservation(
+                RecoveryExecutionEffectStartResult::Started,
+            ),
+        );
+        assert_eq!(
+            reconcile_established_execution_fence(fence_store.as_ref(), &established)
+                .expect("stale original fence"),
+            RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence,
+        );
+        assert_eq!(
+            effect_store
+                .load_effect(&established.execution_id())
+                .expect("effect load")
+                .map(|receipt| receipt.fence_epoch),
+            Some(established.fence_epoch()),
+        );
+    }
+
+    fn effect_receipt_fixture(        attempt_id: &str,
         input_snapshot: &str,
     ) -> RecoveryExecutionEffectReceiptV2 {
         RecoveryExecutionEffectReceiptV2::in_progress(
