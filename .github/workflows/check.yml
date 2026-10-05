@@ -134,6 +134,7 @@ jobs:
             canonical_claim_preserves_frontier_validation_failure \
             canonical_claim_preserves_evidence_path_failure \
             argumentation_typed_validator_preserves_late_evidence_diagnostic \
+            argumentation_v2_typed_validator_preserves_late_evidence_diagnostic \
             legacy_reciprocal_validation_preserves_frontier_diagnostic \
             admission_try_from_projection_preserves_frontier_diagnostic \
             audit_v2_frontier_validator_preserves_frontier_diagnostic \
