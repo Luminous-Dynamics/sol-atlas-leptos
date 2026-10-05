@@ -2528,11 +2528,9 @@ mod tests {
             &self,
             receipt: &RecoveryExecutionEffectReceiptV2,
         ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
-            let outcome = recover_execution_fence(
-                self.fence_store.as_ref(),
-                &self.expected_fence,
-                &self.successor_fence,
-            )?;
+            let outcome = self
+                .fence_store
+                .recover_if_current(&self.expected_fence, &self.successor_fence)?;
             assert_eq!(outcome, RecoveryExecutionFenceResult::Recovered);
             self.inner.begin_effect(receipt)
         }
