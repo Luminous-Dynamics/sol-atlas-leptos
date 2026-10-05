@@ -122,6 +122,14 @@ The validation helper returns `Valid`/`Invalid` only for structural binding agai
 
 `RecoveryExecutionProtectedMutationReconciler` is the corresponding read-only boundary for an `Indeterminate` resource acknowledgement. It can report an exact request as observed applied, not currently observed, different, missing, or invalid. `ObservedNotApplied` is explicitly a point-in-time observation and is not proof that a prior indeterminate network request never took effect. When reliable reconciliation is unavailable, callers must remain fail-closed/manual unless the external system supplies an independent idempotency guarantee.
 
+## External-effect safety profile (#35)
+
+`RecoveryExecutionEffectSafetyProfileV1` makes adapter capabilities explicit instead of inferring recovery safety from the existence of a fence or receipt. Fencing, idempotency, and reconciliation are independent capability declarations, and unknown capabilities are deliberately non-permissive.
+
+The derived modes are conservative: stable-key or transactionally coupled idempotency permits automatic retry; automatic takeover additionally requires fencing enforced at the protected-resource mutation boundary. A profile without both properties resolves to `ManualRecoveryOnly`. This profile describes adapter guarantees only; it does not establish authentication, proof-of-possession, cross-store atomicity, exactly-once execution, or truth of the external state.
+
+The reference tests cover automatic takeover, retry-only operation without fencing, manual recovery without idempotency, unknown-capability fail-closed behavior, and malformed-profile fail-closed behavior.
+
 Important claim ceiling: a fence protects only resources that actually enforce it. A lease or epoch record cannot retroactively cancel an arbitrary external API call. Where the external effect system supports fencing tokens, the token must cross the adapter boundary and be enforced there; where it does not, recovery remains fail-closed/manual rather than assuming takeover is safe.
 
 ## Ownership is not authentication
