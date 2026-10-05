@@ -150,6 +150,7 @@ jobs:
             standalone_receipt_validation_checks_content_integrity \
             standalone_receipt_validation_rejects_bad_digest_shape \
             standalone_receipt_validation_rejects_duplicate_replay_identity \
+            argumentation_closure_preserves_frontier_validation_failure \
             portable_identity_is_self_describing \
             portable_identity_rejects_receipt_rebinding \
             portable_identity_construction_failures_are_not_hashed \
