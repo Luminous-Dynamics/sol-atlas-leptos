@@ -43,9 +43,10 @@ def binding_policy(member: str) -> dict[str, object]:
 
 def main() -> None:
     profile = module.load_profile()
-    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v3"
+    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v4"
     assert profile["pool_is_exclusive"] is True
     assert profile["service_account_binding_is_exclusive"] is True
+    assert profile["service_account_must_reside_in_project"] is True
 
     assert module.condition_is_exact(
         {"exact_attribute_condition": EXPECTED},
@@ -55,6 +56,9 @@ def main() -> None:
         {"exact_attribute_condition": EXPECTED},
         "(" + EXPECTED + ") || true",
     )
+
+    assert module.service_account_is_in_project("project-a", "project-a")
+    assert not module.service_account_is_in_project("project-b", "project-a")
 
     assert module.binding_is_exclusive(
         binding_policy("expected"),
