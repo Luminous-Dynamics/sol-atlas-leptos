@@ -244,12 +244,7 @@ mod tests {
         chain.frontiers[1] = duplicate;
 
         assert_eq!(
-            validate_v5_at(
-                &audit,
-                &chain,
-                &chain.frontiers[0].frontier_id,
-                &claim,
-            ),
+            validate_v5_at(&audit, &chain, &chain.frontiers[0].frontier_id, &claim,),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
         assert!(!is_v5_safe_at(
@@ -275,7 +270,14 @@ mod tests {
         );
         claim.evidence_frontier = "frontier:other".into();
         assert_eq!(
-            validate_v5_at(&audit, &EvidenceFrontierChainV1 { frontiers: chain.frontiers.clone() }, &"frontier:1950".into(), &claim),
+            validate_v5_at(
+                &audit,
+                &EvidenceFrontierChainV1 {
+                    frontiers: chain.frontiers.clone()
+                },
+                &"frontier:1950".into(),
+                &claim
+            ),
             Err(ProjectionError::InvalidEvidenceFrontierManifest)
         );
     }
