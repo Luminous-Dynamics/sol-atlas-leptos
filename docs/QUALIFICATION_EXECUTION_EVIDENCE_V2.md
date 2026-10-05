@@ -99,11 +99,15 @@ The witness:
   tools/verify_qualification_run.py;
 - reads the qualification artifact as untrusted data and never executes code
   from that artifact or the PR;
+- self-tests its trusted verifier before processing the PR artifact;
 - independently checks the GitHub workflow-run result, PR association,
   provenance job, and required successful qualification steps;
-- fetches the exact PR workflow, verifier, and Cargo.lock at the recorded
-  source revision and recomputes their SHA-256 digests;
-- independently recomputes the PR workflow, verifier, and Cargo.lock digests;
+- fetches the exact PR workflow, verifier, and Cargo.lock from the PR head
+  repository at the recorded source revision and recomputes their SHA-256 digests;
+- separately fetches the workflow file from the base repository at the
+  recorded `workflow_sha`, which is the workflow definition GitHub actually
+  identified for the run;
+- requires the PR-head workflow bytes to equal the executed workflow definition;
   it does not treat the PR-local verifier as a trusted authority;
 - checks the qualification workflow against a trusted policy, including the
   exact-head checkout, required qualification commands, pinned action refs, and
