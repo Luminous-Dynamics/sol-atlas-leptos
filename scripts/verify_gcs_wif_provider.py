@@ -2,7 +2,7 @@
 # Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""Fail-closed verifier for the trusted GCS GitHub OIDC provider configuration."""
+"""Fail-closed verifier for the trusted GCS GitHub OIDC path."""
 
 from __future__ import annotations
 
@@ -12,10 +12,9 @@ import json
 import subprocess
 from pathlib import Path
 
-
 PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
-    "gcs_wif_trust_profile_v1.json"
+    "gcs_wif_trust_profile_v2.json"
 )
 
 
@@ -34,15 +33,16 @@ def digest(value: object) -> str:
 
 def load_profile() -> dict[str, object]:
     profile = json.loads(Path(PROFILE_PATH).read_text(encoding="utf-8"))
-    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v1":
+    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v2":
         raise AssertionError("wrong WIF trust profile schema")
-    if not profile.get("required_condition_terms"):
-        raise AssertionError("WIF trust profile has no required conditions")
+    if not profile.get("exact_attribute_condition"):
+        raise AssertionError("WIF trust profile has no exact condition")
+    if not profile.get("required_service_account_binding"):
+        raise AssertionError("WIF profile has no service-account binding")
     return profile
 
 
 def provider_parts(resource: str) -> tuple[str, str, str]:
-    prefix = "projects/"
     parts = resource.split("/")
     if len(parts) != 8 or parts[0] != "projects" or parts[2] != "locations":
         raise AssertionError("invalid workload identity provider resource")
@@ -53,9 +53,23 @@ def provider_parts(resource: str) -> tuple[str, str, str]:
     return parts[1], parts[5], parts[7]
 
 
-def describe_provider(resource: str) -> dict[str, object]:
-    _, pool_id, provider_id = provider_parts(resource)
+def run_json(command: list[str]) -> dict[str, object]:
     result = subprocess.run(
+        command,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    return json.loads(result.stdout)
+
+
+def describe_provider(
+    project_id: str,
+    pool_id: str,
+    provider_id: str,
+) -> dict[str, object]:
+    return run_json(
         [
             "gcloud",
             "iam",
@@ -67,35 +81,100 @@ def describe_provider(resource: str) -> dict[str, object]:
             "--location=global",
             f"--workload-identity-pool={pool_id}",
             "--format=json",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-        timeout=30,
+        ]
     )
-    return json.loads(result.stdout)
 
 
-def verify(provider_resource: str) -> dict[str, object]:
+def project_number(project_id: str) -> str:
+    result = run_json(
+        [
+            "gcloud",
+            "projects",
+            "describe",
+            project_id,
+            "--format=json",
+        ]
+    )
+    number = result.get("projectNumber")
+    if not number:
+        raise AssertionError("project has no numeric projectNumber")
+    return str(number)
+
+
+def service_account_policy(service_account: str) -> dict[str, object]:
+    return run_json(
+        [
+            "gcloud",
+            "iam",
+            "service-accounts",
+            "get-iam-policy",
+            service_account,
+            "--format=json",
+        ]
+    )
+
+
+def binding_is_present(
+    policy: dict[str, object],
+    role: str,
+    member: str,
+) -> bool:
+    for binding in policy.get("bindings", []):
+        if binding.get("role") != role:
+            continue
+        if member in binding.get("members", []):
+            return True
+    return False
+
+
+def condition_is_exact(
+    profile: dict[str, object],
+    condition: str,
+) -> bool:
+    return condition == str(profile["exact_attribute_condition"])
+
+
+def verify(
+    provider_resource: str,
+    configured_project_id: str,
+    service_account: str,
+) -> dict[str, object]:
     profile = load_profile()
-    provider = describe_provider(provider_resource)
+    provider_project, pool_id, provider_id = provider_parts(provider_resource)
+    if provider_project != configured_project_id:
+        raise AssertionError(
+            "WIF provider project does not match configured GCP project"
+        )
+
+    provider = describe_provider(
+        configured_project_id,
+        pool_id,
+        provider_id,
+    )
     mappings = provider.get("attributeMapping") or {}
     condition = str(provider.get("attributeCondition") or "")
     if provider.get("issuerUri") != "https://token.actions.githubusercontent.com":
         raise AssertionError("unexpected GitHub OIDC issuer")
-    required_mappings = profile["required_attribute_mappings"]
 
-    for name, expected in required_mappings.items():
+    for name, expected in profile["required_attribute_mappings"].items():
         if mappings.get(name) != expected:
             raise AssertionError(
                 f"attribute mapping drift: {name!r} != {expected!r}"
             )
 
-    for term in profile["required_condition_terms"]:
-        if term not in condition:
-            raise AssertionError(
-                f"attribute condition is missing required term: {term}"
-            )
+    if not condition_is_exact(profile, condition):
+        raise AssertionError("attribute condition differs from frozen profile")
+
+    number = project_number(configured_project_id)
+    binding = profile["required_service_account_binding"]
+    expected_member = str(binding["member_template"]).format(
+        project_number=number,
+        pool_id=pool_id,
+    )
+    policy = service_account_policy(service_account)
+    role = str(binding["role"])
+    if not binding_is_present(policy, role, expected_member):
+        raise AssertionError("required service-account WIF binding is missing")
 
     provider_digest = digest(
         {
@@ -103,15 +182,20 @@ def verify(provider_resource: str) -> dict[str, object]:
             "attributeMapping": mappings,
             "attributeCondition": condition,
             "issuerUri": provider.get("issuerUri"),
+            "serviceAccount": service_account,
+            "serviceAccountRole": role,
+            "serviceAccountMember": expected_member,
             "attributeConditionProfile": profile,
         }
     )
     return {
-        "schema": "sol-atlas:gcs-wif-trust-verification:v1",
+        "schema": "sol-atlas:gcs-wif-trust-verification:v2",
         "provider_resource": provider_resource,
         "provider_digest": provider_digest,
         "profile_path": PROFILE_PATH,
         "profile_digest": digest(profile),
+        "service_account": service_account,
+        "service_account_binding_verified": True,
         "attribute_mapping_verified": True,
         "attribute_condition_verified": True,
     }
@@ -120,10 +204,16 @@ def verify(provider_resource: str) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--provider-resource", required=True)
+    parser.add_argument("--project-id", required=True)
+    parser.add_argument("--service-account", required=True)
     parser.add_argument("--output")
     args = parser.parse_args()
 
-    result = verify(args.provider_resource)
+    result = verify(
+        args.provider_resource,
+        args.project_id,
+        args.service_account,
+    )
     payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
     if args.output:
         Path(args.output).parent.mkdir(parents=True, exist_ok=True)
