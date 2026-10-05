@@ -94,6 +94,11 @@ def github_execution_context() -> dict[str, str]:
         "environment": "sol-atlas-gcs-qualification",
         "workflow": "Qualify GCS external effect",
         "event": "workflow_dispatch",
+        "ref": "refs/heads/main",
+        "workflow_ref": (
+            "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/"
+            "qualify-gcs.yml@refs/heads/main"
+        ),
     }
     for name, expected_value in expected.items():
         if required[name] != expected_value:
@@ -106,12 +111,16 @@ def github_execution_context() -> dict[str, str]:
 
 def load_wif_verification(path: str) -> dict[str, object]:
     verification = json.loads(Path(path).read_text(encoding="utf-8"))
-    if verification.get("schema") != "sol-atlas:gcs-wif-trust-verification:v1":
+    if verification.get("schema") != "sol-atlas:gcs-wif-trust-verification:v3":
         raise AssertionError("wrong WIF trust verification schema")
     if not verification.get("attribute_mapping_verified"):
         raise AssertionError("WIF attribute mapping was not verified")
     if not verification.get("attribute_condition_verified"):
         raise AssertionError("WIF attribute condition was not verified")
+    if not verification.get("service_account_binding_verified"):
+        raise AssertionError("WIF service-account binding was not verified")
+    if not verification.get("provider_pool_exclusive"):
+        raise AssertionError("WIF provider pool was not verified exclusive")
     return verification
 
 
