@@ -119,3 +119,23 @@ The adapter still keeps idempotency identity and reconciliation semantics above
 that primitive. GCS generation fencing therefore qualifies one concrete
 resource boundary without being mistaken for a general external-effect
 transaction protocol.
+
+## Frozen case corpus and source execution
+
+The live case definitions are checked in at
+`sol-atlas-policy-store-contract/conformance/gcs_external_effect_cases_v1.json`.
+The qualifier hashes the complete corpus, including case descriptions, and
+stores that digest in both the evidence and report. A change to case meaning,
+order, or membership therefore invalidates prior external evidence even when
+its case-set name is unchanged.
+
+The qualification workflow pins its GitHub Actions dependencies to immutable
+release commit SHAs. The live lane is manual and protected rather than
+pull-request triggered because it has authority to obtain a real GCP identity.
+
+GitHub documents that `workflow_dispatch` only receives events when the
+workflow file exists on the default branch. After this workflow is merged to
+that branch, run it first from the trusted default-branch workflow, then use a
+GitHub API/CLI dispatch against a specific trusted ref when exact-head
+qualification is required. Do not change this lane to a pull-request trigger
+merely to make credentials available to review code.
