@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independent verifier for QualificationExecutionEvidenceV1 packets."""
+"""Independent verifier for QualificationExecutionEvidenceV2 packets."""
 
 from __future__ import annotations
 
@@ -98,9 +98,9 @@ def main() -> int:
         fail(f"packet is not valid UTF-8 JSON: {exc}")
 
     if set(evidence) != REQUIRED_KEYS:
-        fail("packet key set does not exactly match QualificationExecutionEvidenceV1")
+        fail("packet key set does not exactly match QualificationExecutionEvidenceV2")
 
-    if evidence["schema"] != "sol-atlas:qualification-execution-evidence:v1":
+    if evidence["schema"] != "sol-atlas:qualification-execution-evidence:v2":
         fail("unexpected schema")
     if evidence["qualification_kind"] != "sol_atlas_core_provenance_construction":
         fail("unexpected qualification kind")
@@ -159,7 +159,7 @@ def main() -> int:
         fail("workflow_run_url does not bind to the current run")
 
     if evidence["qualification_commands"] != EXPECTED_COMMANDS:
-        fail("qualification command inventory does not match the V1 contract")
+        fail("qualification command inventory does not match the V2 contract")
 
     packet_digest = hashlib.sha256(args.packet.read_bytes()).hexdigest()
     sidecar = args.sidecar.read_text(encoding="utf-8").strip()
