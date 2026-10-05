@@ -8,7 +8,7 @@
     },
     {
       "id": "stable_key_replay_safe",
-      "semantic": "Replaying the exact same execution request is recognized without a second object-generation mutation."
+      "semantic": "Replaying the exact same execution request is recognized without a second object-generation mutation while the original live object state remains retained."
     },
     {
       "id": "stale_fence_rejected",
