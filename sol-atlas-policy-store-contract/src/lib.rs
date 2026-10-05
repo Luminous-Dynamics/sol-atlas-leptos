@@ -1795,14 +1795,16 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
 
         match state {
             RecoveryExecutionProtectedMutationOrchestrationStateV1::AppliedSameRequest
-            | RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedAppliedSameRequest => {
+            | RecoveryExecutionProtectedMutationOrchestrationStateV1::
+                ObservedAppliedSameRequest => {
                 RecoveryExecutionProtectedMutationNextActionV1::ReturnRecordedOutcome
             }
             RecoveryExecutionProtectedMutationOrchestrationStateV1::Indeterminate => {
                 match self.reconciliation {
                     RecoveryExecutionReconciliationCapabilityV1::StrongReadBack
                     | RecoveryExecutionReconciliationCapabilityV1::EventuallyConsistentReadBack => {
-                        RecoveryExecutionProtectedMutationNextActionV1::ReconcileIndeterminateMutation
+                        RecoveryExecutionProtectedMutationNextActionV1::
+                            ReconcileIndeterminateMutation
                     }
                     RecoveryExecutionReconciliationCapabilityV1::NotSupported
                     | RecoveryExecutionReconciliationCapabilityV1::Unknown => {
@@ -1818,7 +1820,8 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
                     RecoveryExecutionIdempotencyCapabilityV1::StableKey
                     | RecoveryExecutionIdempotencyCapabilityV1::NotSupported
                     | RecoveryExecutionIdempotencyCapabilityV1::Unknown => {
-                        RecoveryExecutionProtectedMutationNextActionV1::RequireIdempotencyOrManualRecovery
+                        RecoveryExecutionProtectedMutationNextActionV1::
+                            RequireIdempotencyOrManualRecovery
                     }
                 }
             }
@@ -1851,7 +1854,8 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
                 if self.automatic_retry_safe_for(mutation) {
                     RecoveryExecutionProtectedMutationNextActionV1::RetryWithDeclaredIdempotency
                 } else {
-                    RecoveryExecutionProtectedMutationNextActionV1::RequireIdempotencyOrManualRecovery
+                    RecoveryExecutionProtectedMutationNextActionV1::
+                        RequireIdempotencyOrManualRecovery
                 }
             }
             _ => self.next_action(state),
