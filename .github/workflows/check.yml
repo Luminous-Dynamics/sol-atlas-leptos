@@ -83,7 +83,9 @@ jobs:
         run: |
           python3 -m py_compile scripts/gcs_generation_fenced_adapter.py
           python3 -m py_compile scripts/qualify_gcs_external_effect.py
+          python3 -m py_compile scripts/verify_gcs_wif_provider.py
           python3 scripts/qualify_gcs_external_effect.py validate-case-set
           awk 'length($0) > 100 { print FNR ":" length($0) ":" $0; exit 1 }' \
             scripts/gcs_generation_fenced_adapter.py \
-            scripts/qualify_gcs_external_effect.py
+            scripts/qualify_gcs_external_effect.py \
+            scripts/verify_gcs_wif_provider.py
