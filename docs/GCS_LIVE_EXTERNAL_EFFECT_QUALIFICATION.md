@@ -22,7 +22,7 @@ The qualified profile is intentionally narrow:
 
 ## GCP trust boundary
 
-WIF profile v3 is exact rather than substring-matched. It requires google.subject
+WIF profile v4 is exact rather than substring-matched. It requires google.subject
 and the repository, repository ID, repository owner ID, environment, event,
 workflow, ref, and workflow_ref mappings. The provider attribute condition must
 equal the frozen conjunction in the profile.
@@ -31,10 +31,11 @@ The condition binds the live identity to refs/heads/main and the exact workflow
 path on that ref. The workflow job independently refuses to run on any other
 ref.
 
-The verifier also checks the target service account IAM policy for a
-roles/iam.workloadIdentityUser binding to the repository ID principal set.
-The project number and workload identity pool ID are derived from the trusted
-provider resource.
+The verifier also checks the target service account identity and IAM policy:
+the service account must reside in the configured GCP project, and its only
+Workload Identity User binding must be the repository-ID principal set for the
+trusted pool. The project number and workload identity pool ID are derived from
+the trusted provider resource.
 
 This is trust configuration evidence only. It does not prove workflow source
 immutability, environment approval honesty, or Cloud Storage behavior. The
