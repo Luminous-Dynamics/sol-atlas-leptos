@@ -238,6 +238,9 @@ jobs:
           python3 tools/verify_qualification_execution_evidence.py \
             /tmp/qualification-execution-v1.json \
             /tmp/qualification-execution-v1.json.sha256 \
+            --workflow-file ".github/workflows/check.yml" \
+            --cargo-lock "Cargo.lock" \
+            --test-inventory "/tmp/sol-atlas-core-tests.txt" \
             --repository "${{ github.repository }}" \
             --pull-request-number "${{ github.event.pull_request.number }}" \
             --source-revision "${{ github.event.pull_request.head.sha }}" \
