@@ -56,6 +56,10 @@ def run_verifier(
             str(inventory),
             "--repository",
             "Luminous-Dynamics/sol-atlas-leptos",
+            "--event-name",
+            "pull_request",
+            "--ref",
+            "refs/pull/13/merge",
             "--pull-request-number",
             "13",
             "--source-revision",
@@ -111,6 +115,8 @@ def main() -> int:
             "qualification_kind": "sol_atlas_core_provenance_construction",
             "status": "passed",
             "repository": "Luminous-Dynamics/sol-atlas-leptos",
+            "event_name": "pull_request",
+            "ref": "refs/pull/13/merge",
             "pull_request_number": 13,
             "source_revision": "0123456789abcdef0123456789abcdef01234567",
             "base_revision": "89abcdef0123456789abcdef0123456789abcdef",
@@ -205,6 +211,8 @@ def main() -> int:
             raise SystemExit("verifier accepted a workflow-file-path context mismatch")
 
         for field, value in (
+            ("event_name", "push"),
+            ("ref", "refs/heads/main"),
             ("workflow_name", "Renamed Check"),
             ("workflow_file_path", ".github/workflows/other.yml"),
             ("job_name", "renamed-provenance-construction"),
