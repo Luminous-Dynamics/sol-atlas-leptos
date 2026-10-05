@@ -59,18 +59,28 @@ pub struct DkgStatementV1 {
 
 impl DkgStatementV1 {
     pub fn validate(&self) -> bool {
-        self.record.is_valid()
-            && self.subject.is_valid()
-            && self.object.is_valid()
-            && !self.predicate.trim().is_empty()
-            && self.claim_ref.is_valid()
-            && !self.evidence_refs.is_empty()
-            && self.evidence_refs.iter().all(|id| id.is_valid())
-            && !self.source_snapshots.is_empty()
-            && self.source_snapshots.iter().all(|id| id.is_valid())
-            && !has_duplicate_ids(&self.evidence_refs)
-            && !has_duplicate_ids(&self.source_snapshots)
-            && self.temporal_scope.is_valid()
+        self.validate_typed().is_ok()
+    }
+
+    pub fn validate_typed(&self) -> Result<(), ProjectionError> {
+        if !self.record.is_valid()
+            || !self.subject.is_valid()
+            || !self.object.is_valid()
+            || self.predicate.trim().is_empty()
+            || !self.claim_ref.is_valid()
+            || self.evidence_refs.is_empty()
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.is_empty()
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_ids(&self.source_snapshots)
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if !self.temporal_scope.is_valid() {
+            return Err(ProjectionError::InvalidTimeInterval);
+        }
+        Ok(())
     }
 
     /// A DKG statement crosses into the temporal projection layer only when
@@ -82,9 +92,7 @@ impl DkgStatementV1 {
         &self,
         frontier: &EvidenceFrontierV1,
     ) -> Result<(), ProjectionError> {
-        if !self.validate() {
-            return Err(ProjectionError::AuditWithoutEvidencePath);
-        }
+        self.validate_typed()?;
         frontier.validate_temporal_manifest_strict()?;
 
         let claim = CanonicalClaimAdmissionV1 {
@@ -122,6 +130,28 @@ pub struct DkgProjectionAdmissionV1 {
 }
 
 impl DkgProjectionAdmissionV1 {
+    pub fn validate_typed(&self) -> Result<(), ProjectionError> {
+        if !self.record.is_valid()
+            || !self.claim_ref.is_valid()
+            || self.evidence_refs.is_empty()
+            || self.evidence_refs.iter().any(|id| !id.is_valid())
+            || self.source_snapshots.is_empty()
+            || self.source_snapshots.iter().any(|id| !id.is_valid())
+            || has_duplicate_ids(&self.evidence_refs)
+            || has_duplicate_ids(&self.source_snapshots)
+            || !self.evidence_frontier.is_valid()
+        {
+            return Err(ProjectionError::EmptyIdentifier);
+        }
+        if !self.frontier_manifest_hash.is_empty()
+            && (self.frontier_manifest_hash.len() != 64
+                || !self.frontier_manifest_hash.bytes().all(|byte| byte.is_ascii_hexdigit()))
+        {
+            return Err(ProjectionError::InvalidEvidenceFrontierManifest);
+        }
+        Ok(())
+    }
+
     pub fn try_from_statement(
         statement: &DkgStatementV1,
         frontier: &EvidenceFrontierV1,
@@ -149,21 +179,7 @@ impl DkgProjectionAdmissionV1 {
     }
 
     pub fn validate(&self) -> bool {
-        self.record.is_valid()
-            && self.claim_ref.is_valid()
-            && !self.evidence_refs.is_empty()
-            && self.evidence_refs.iter().all(|id| id.is_valid())
-            && !self.source_snapshots.is_empty()
-            && self.source_snapshots.iter().all(|id| id.is_valid())
-            && !has_duplicate_ids(&self.evidence_refs)
-            && !has_duplicate_ids(&self.source_snapshots)
-            && self.evidence_frontier.is_valid()
-            && (self.frontier_manifest_hash.is_empty()
-                || (self.frontier_manifest_hash.len() == 64
-                    && self
-                        .frontier_manifest_hash
-                        .bytes()
-                        .all(|byte| byte.is_ascii_hexdigit())))
+        self.validate_typed().is_ok()
     }
 
     /// Reciprocal validation against the exact canonical statement and frontier
@@ -175,9 +191,7 @@ impl DkgProjectionAdmissionV1 {
         statement: &DkgStatementV1,
         frontier: &EvidenceFrontierV1,
     ) -> Result<(), ProjectionError> {
-        if !self.validate() {
-            return Err(ProjectionError::AuditWithoutEvidencePath);
-        }
+        self.validate_typed()?;
         statement.validate_frontier_safe(frontier)?;
         if self.evidence_frontier != frontier.frontier_id
             || self.frontier_manifest_hash != frontier.manifest_hash
@@ -250,6 +264,21 @@ mod tests {
     }
 
     #[test]
+    fn dkg_typed_validator_preserves_structural_diagnostic() {
+        let mut value = statement();
+        value.temporal_scope = YearInterval {
+            from: Some(1951),
+            to: Some(1950),
+        };
+
+        assert_eq!(
+            value.validate_frontier_safe(&frontier()),
+            Err(ProjectionError::InvalidTimeInterval)
+        );
+        assert!(!value.is_frontier_safe(&frontier()));
+    }
+
+    #[test]
     fn dkg_typed_validator_preserves_frontier_diagnostic() {
         let mut frontier = frontier();
         frontier.evidence_metadata = vec![
@@ -286,6 +315,19 @@ mod tests {
             Err(ProjectionError::LaterEvidenceInFrontier)
         );
         assert!(!statement().is_frontier_safe(&frontier));
+    }
+
+    #[test]
+    fn dkg_admission_typed_validator_preserves_structural_diagnostic() {
+        let mut admission =
+            DkgProjectionAdmissionV1::from_statement(&statement(), &frontier()).unwrap();
+        admission.frontier_manifest_hash = "not-a-sha256".into();
+
+        assert_eq!(
+            admission.validate_typed(),
+            Err(ProjectionError::InvalidEvidenceFrontierManifest)
+        );
+        assert!(!admission.validate());
     }
 
     #[test]
