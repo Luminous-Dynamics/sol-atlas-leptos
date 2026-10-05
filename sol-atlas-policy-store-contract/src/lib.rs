@@ -1951,7 +1951,7 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
 ///
 /// The evidence records concrete behaviors exercised against the actual adapter.
 /// A capability declaration cannot satisfy this contract by referring to itself.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RecoveryExecutionEffectConformanceEvidenceV1 {
     pub current_fence_accepted: bool,
     pub stale_fence_rejected: bool,
@@ -2019,8 +2019,11 @@ impl RecoveryExecutionEffectConformanceReportV1 {
 
     fn identity_material(&self) -> String {
         format!(
-            "schema={}:{}|adapter={}:{}|adapter-revision={}:{}|",
-            "harness={}:{}|harness-revision={}:{}|profile={}|evidence={}|evidence-body={}",
+            concat!(
+                "schema={}:{}|adapter={}:{}|adapter-revision={}:{}|",
+                "harness={}:{}|harness-revision={}:{}|",
+                "profile={}|evidence={}|evidence-body={}"
+            ),
             self.schema.len(),
             self.schema,
             self.adapter_id.len(),
@@ -2036,7 +2039,6 @@ impl RecoveryExecutionEffectConformanceReportV1 {
             self.evidence.digest(),
         )
     }
-
     pub fn digest(&self) -> String {
         let mut hasher = Sha256::new();
         hasher.update(self.identity_material().as_bytes());
