@@ -6,6 +6,10 @@ use sol_atlas_policy_store_contract::{
     RecoveryExecutionEffectConformanceEvidenceV1,
     RecoveryExecutionEffectConformanceReportV1,
     RecoveryExecutionEffectSafetyProfileV1,
+    RecoveryExecutionFencingCapabilityV1,
+    RecoveryExecutionIdempotencyCapabilityV1,
+    RecoveryExecutionReconciliationCapabilityV1,
+    RecoveryExecutionProtectedMutationNextActionV1,
     RecoveryExecutionProtectedMutationOrchestrationStateV1,
     RecoveryExecutionProtectedMutationReconciliationOutcome,
     RecoveryExecutionProtectedMutationResult,
@@ -28,12 +32,9 @@ const HARNESS_PATH: &str = concat!(
 fn qualified_profile() -> RecoveryExecutionEffectSafetyProfileV1 {
     RecoveryExecutionEffectSafetyProfileV1 {
         schema: RecoveryExecutionEffectSafetyProfileV1::SCHEMA.into(),
-        fencing: sol_atlas_policy_store_contract::RecoveryExecutionFencingCapabilityV1::
-            EnforcedAtMutationBoundary,
-        idempotency: sol_atlas_policy_store_contract::RecoveryExecutionIdempotencyCapabilityV1::
-            StableKey,
-        reconciliation: sol_atlas_policy_store_contract::RecoveryExecutionReconciliationCapabilityV1::
-            StrongReadBack,
+        fencing: RecoveryExecutionFencingCapabilityV1::EnforcedAtMutationBoundary,
+        idempotency: RecoveryExecutionIdempotencyCapabilityV1::StableKey,
+        reconciliation: RecoveryExecutionReconciliationCapabilityV1::StrongReadBack,
         claim_ceiling: "Reference adapter evidence only.".into(),
     }
 }
@@ -263,8 +264,7 @@ fn reference_conformance_report_is_bound_to_current_source_and_profile() {
             ),
             state,
         ),
-        sol_atlas_policy_store_contract::RecoveryExecutionProtectedMutationNextActionV1::
-            RequireIdempotencyOrManualRecovery
+        RecoveryExecutionProtectedMutationNextActionV1::RequireIdempotencyOrManualRecovery
     );
 }
 
