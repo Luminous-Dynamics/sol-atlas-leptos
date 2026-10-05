@@ -100,6 +100,13 @@ fn run_reference_conformance() -> RecoveryExecutionEffectConformanceEvidenceV1 {
         idempotency_key: Some("different-key".into()),
         ..current.clone()
     };
+    let same_key_other_execution = mutation(
+        "execution-conformance-other",
+        "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "attempt-other",
+        2,
+        Some("conformance-key"),
+    );
 
     let current_fence_accepted =
         resource.mutate_if_fence_is_current(&current).expect("current")
@@ -113,9 +120,16 @@ fn run_reference_conformance() -> RecoveryExecutionEffectConformanceEvidenceV1 {
     let future_fence_rejected =
         resource.mutate_if_fence_is_current(&future).expect("future")
             == RecoveryExecutionProtectedMutationResult::RejectedFutureFence;
-    let different_request_same_key_rejected =
+    let same_execution_different_request_rejected =
         resource.mutate_if_fence_is_current(&changed_same_key).expect("changed request")
             == RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch;
+    let different_execution_same_key_rejected =
+        resource
+            .mutate_if_fence_is_current(&same_key_other_execution)
+            .expect("cross-execution key collision")
+            == RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch;
+    let different_request_same_key_rejected =
+        same_execution_different_request_rejected && different_execution_same_key_rejected;
     let changed_idempotency_key_rejected =
         resource
             .mutate_if_fence_is_current(&changed_idempotency_key)
@@ -125,6 +139,12 @@ fn run_reference_conformance() -> RecoveryExecutionEffectConformanceEvidenceV1 {
     let exact_reconciliation =
         resource.reconcile_mutation(&current).expect("exact read-back")
             == RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest;
+    assert_eq!(
+        resource
+            .reconcile_mutation(&same_key_other_execution)
+            .expect("cross-execution key reconciliation"),
+        RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedDifferentRequest
+    );
 
     let point_in_time = mutation(
         "execution-point-in-time",
