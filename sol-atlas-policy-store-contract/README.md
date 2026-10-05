@@ -116,7 +116,7 @@ The reference `FencedExecutionMemoryStore` demonstrates atomic acquisition and r
 
 `RecoveryExecutionFencedResource::mutate_if_fence_is_current` is the resource-local enforcement contract. A conforming implementation must validate the supplied fence and make the protected mutation as one resource-local atomic decision. It must not implement the boundary as a separate read of the current epoch followed by a later mutation.
 
-The reference result distinguishes applied work, exact same-request replay, stale ownership, future/unestablished epochs, malformed fences, identity mismatch, and a residual indeterminate outcome. Fencing alone does not imply retry idempotency; adapters must use an idempotency key or another idempotent operation contract when replay can repeat an external effect.
+The reference result distinguishes applied work, exact same-request replay, stale ownership, future/unestablished epochs, malformed fences, identity mismatch, different-attempt ownership, and a residual indeterminate outcome. When an idempotency key is supplied, it is part of replay identity and changing it is rejected. Fencing alone does not imply retry idempotency; adapters must use a stable idempotency key or another idempotent operation contract when replay can repeat an external effect.
 
 The validation helper returns `Valid`/`Invalid` only for structural binding against an established fence. It deliberately does not report that a protected mutation occurred.
 
