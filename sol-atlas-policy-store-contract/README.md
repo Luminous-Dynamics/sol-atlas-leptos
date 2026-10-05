@@ -130,6 +130,8 @@ The derived modes are conservative: stable-key or transactionally coupled idempo
 
 The reference tests cover automatic takeover, retry-only operation without fencing, manual recovery without idempotency, unknown-capability fail-closed behavior, and malformed-profile fail-closed behavior.
 
+The profile is also consumed by `RecoveryExecutionEffectSafetyProfileV1::next_action`, which maps observed protected-mutation states to permitted recovery actions. Thus a caller cannot obtain an automatic retry action from an adapter that has not declared idempotency, and an indeterminate mutation becomes manual recovery when the adapter has not declared read-back reconciliation.
+
 Important claim ceiling: a fence protects only resources that actually enforce it. A lease or epoch record cannot retroactively cancel an arbitrary external API call. Where the external effect system supports fencing tokens, the token must cross the adapter boundary and be enforced there; where it does not, recovery remains fail-closed/manual rather than assuming takeover is safe.
 
 ## Ownership is not authentication
