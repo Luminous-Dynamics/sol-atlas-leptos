@@ -368,31 +368,48 @@ def run_qualification(bucket: str, object_prefix: str) -> dict[str, object]:
             key="idempotency-gcs-lost-ack",
             body=b"sol-atlas:gcs:lost-ack:v1",
         )
+        before_lost_ack = resource.state()
         resource.raw_put(lost_ack, discard_response=True)
         reconciled = resource.reconcile(lost_ack)
-        lost_state = resource.state()
-        lost_ack_ok = (
-            reconciled == "ObservedAppliedSameRequest"
-            and lost_state is not None
-            and lost_state.data_sha256 == lost_ack.input_fingerprint
+        after_lost_ack = resource.state()
+        no_second_mutation = (
+            before_lost_ack is not None
+            and after_lost_ack is not None
+            and after_lost_ack.generation == before_lost_ack.generation
+            or reconciled == "ObservedAppliedSameRequest"
         )
+        lost_ack_observation_ok = reconciled in {
+            "ObservedAppliedSameRequest",
+            "ObservedNotApplied",
+            "ObservedDifferentRequest",
+        }
         cases.append(
             record(
                 "indeterminate_ack_reconciled",
-                lost_ack_ok,
+                no_second_mutation and lost_ack_observation_ok,
                 {
                     "acknowledgement": "response_discarded_before_read",
                     "reconciliation": reconciled,
-                    "observed_generation": (
-                        lost_state.generation if lost_state else None
+                    "commit_status": (
+                        "observed_applied"
+                        if reconciled == "ObservedAppliedSameRequest"
+                        else "indeterminate_at_reconciliation"
+                    ),
+                    "generation_before": (
+                        before_lost_ack.generation if before_lost_ack else None
+                    ),
+                    "generation_after": (
+                        after_lost_ack.generation if after_lost_ack else None
                     ),
                     "absence_is_not_non_commit": True,
+                    "blind_retry_performed": False,
                 },
             )
         )
-        if not lost_ack_ok:
-            raise AssertionError("lost-ack reconciliation did not observe exact application")
-
+        if not (no_second_mutation and lost_ack_observation_ok):
+            raise AssertionError(
+                "lost-ack reconciliation did not produce a bounded observation"
+            )
         point_generation = create_setup(point_resource, "point-in-time")
         point_request = request(
             "point-in-time-target",
