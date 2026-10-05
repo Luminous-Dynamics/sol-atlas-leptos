@@ -1518,6 +1518,95 @@ pub fn check_execution_fence(
         RecoveryExecutionFenceCheck::Future
     }
 }
+
+/// Mutation request presented to a protected external resource.
+///
+/// The request copies only the identity needed by the protected resource.
+/// The authoritative fence must still be enforced by the resource at mutation
+/// time; this value is not itself proof that the caller is authenticated.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RecoveryExecutionProtectedMutationV1 {
+    pub execution_id: String,
+    pub execution_input_snapshot: String,
+    pub attempt_id: String,
+    pub fence_epoch: u64,
+    /// Optional stable external idempotency key.
+    ///
+    /// Absence means the adapter must not infer retry safety from fencing alone.
+    pub idempotency_key: Option<String>,
+}
+
+impl RecoveryExecutionProtectedMutationV1 {
+    pub fn from_established_fence(
+        fence: &EstablishedRecoveryExecutionFenceV1,
+        idempotency_key: Option<String>,
+    ) -> Option<Self> {
+        if idempotency_key.as_deref().is_some_and(str::is_empty) {
+            return None;
+        }
+
+        Some(Self {
+            execution_id: fence.execution_id().to_owned(),
+            execution_input_snapshot: fence.fence().execution_input_snapshot.clone(),
+            attempt_id: fence.attempt_id().to_owned(),
+            fence_epoch: fence.fence_epoch(),
+            idempotency_key,
+        })
+    }
+
+    pub fn matches_fence(&self, fence: &EstablishedRecoveryExecutionFenceV1) -> bool {
+        self.execution_id == fence.execution_id()
+            && self.execution_input_snapshot == fence.fence().execution_input_snapshot
+            && self.attempt_id == fence.attempt_id()
+            && self.fence_epoch == fence.fence_epoch()
+            && !self.execution_id.is_empty()
+            && is_sha256_digest(&self.execution_input_snapshot)
+            && !self.attempt_id.is_empty()
+            && self.fence_epoch > 0
+            && self.idempotency_key.as_deref().is_none_or(|key| !key.is_empty())
+    }
+}
+
+/// Result of a protected-resource mutation that atomically enforces fencing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryExecutionProtectedMutationResult {
+    Applied,
+    AlreadyAppliedSameRequest,
+    RejectedStaleFence,
+    RejectedFutureFence,
+    RejectedInvalidFence,
+    RejectedIdentityMismatch,
+    Indeterminate,
+}
+
+/// Contract for a resource that can enforce an execution fence at its own
+/// mutation boundary.
+///
+/// `mutate_if_fence_is_current` MUST validate the supplied fence and perform
+/// the protected mutation as one resource-local atomic decision. An adapter
+/// must not implement this by reading its current epoch in one operation and
+/// mutating in a later independent operation.
+pub trait RecoveryExecutionFencedResource: Send + Sync {
+    type Error;
+
+    fn mutate_if_fence_is_current(
+        &self,
+        mutation: &RecoveryExecutionProtectedMutationV1,
+    ) -> Result<RecoveryExecutionProtectedMutationResult, Self::Error>;
+}
+
+/// Validate a protected mutation request against the established fence before
+/// crossing the resource boundary.
+pub fn validate_protected_mutation_request(
+    mutation: &RecoveryExecutionProtectedMutationV1,
+    fence: &EstablishedRecoveryExecutionFenceV1,
+) -> RecoveryExecutionProtectedMutationResult {
+    if !mutation.matches_fence(fence) {
+        return RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch;
+    }
+
+    RecoveryExecutionProtectedMutationResult::Applied
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1560,6 +1649,152 @@ mod tests {
         assert_ne!(
             check_execution_fence(2, 3),
             RecoveryExecutionFenceCheck::Current
+        );
+    }
+
+    #[derive(Default)]
+    struct FencedResourceMemoryStore {
+        current_epoch: Mutex<u64>,
+        applied: Mutex<BTreeMap<String, (String, u64)>>,
+    }
+
+    impl FencedResourceMemoryStore {
+        fn set_epoch(&self, epoch: u64) {
+            *self.current_epoch.lock().expect("epoch lock") = epoch;
+        }
+    }
+
+    impl RecoveryExecutionFencedResource for FencedResourceMemoryStore {
+        type Error = &'static str;
+
+        fn mutate_if_fence_is_current(
+            &self,
+            mutation: &RecoveryExecutionProtectedMutationV1,
+        ) -> Result<RecoveryExecutionProtectedMutationResult, Self::Error> {
+            if mutation.execution_id.is_empty()
+                || !is_sha256_digest(&mutation.execution_input_snapshot)
+                || mutation.attempt_id.is_empty()
+                || mutation.fence_epoch == 0
+            {
+                return Ok(RecoveryExecutionProtectedMutationResult::RejectedInvalidFence);
+            }
+
+            let mut applied = self.applied.lock().map_err(|_| "poisoned")?;
+            let current_epoch = *self.current_epoch.lock().map_err(|_| "poisoned")?;
+            if mutation.fence_epoch < current_epoch {
+                return Ok(RecoveryExecutionProtectedMutationResult::RejectedStaleFence);
+            }
+            if mutation.fence_epoch > current_epoch {
+                return Ok(RecoveryExecutionProtectedMutationResult::RejectedFutureFence);
+            }
+
+            let key = mutation.execution_id.clone();
+            if let Some((fingerprint, epoch)) = applied.get(&key) {
+                if fingerprint != &mutation.execution_input_snapshot {
+                    return Ok(RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch);
+                }
+                if *epoch == mutation.fence_epoch {
+                    return Ok(
+                        RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest,
+                    );
+                }
+                return Ok(RecoveryExecutionProtectedMutationResult::RejectedStaleFence);
+            }
+
+            applied.insert(key, (mutation.execution_input_snapshot.clone(), mutation.fence_epoch));
+            Ok(RecoveryExecutionProtectedMutationResult::Applied)
+        }
+    }
+
+    #[test]
+    fn protected_resource_accepts_only_the_current_fence_atomically() {
+        let resource = FencedResourceMemoryStore::default();
+        resource.set_epoch(2);
+        let mutation = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-protected".into(),
+            execution_input_snapshot:
+                "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into(),
+            attempt_id: "attempt-b".into(),
+            fence_epoch: 2,
+            idempotency_key: Some("effect-key".into()),
+        };
+
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&mutation)
+                .expect("current mutation"),
+            RecoveryExecutionProtectedMutationResult::Applied
+        );
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&mutation)
+                .expect("same request replay"),
+            RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest
+        );
+    }
+
+    #[test]
+    fn protected_resource_rejects_stale_and_future_fences() {
+        let resource = FencedResourceMemoryStore::default();
+        resource.set_epoch(2);
+        let base = RecoveryExecutionProtectedMutationV1 {
+            execution_id: "execution-protected-boundary".into(),
+            execution_input_snapshot:
+                "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".into(),
+            attempt_id: "attempt-a".into(),
+            fence_epoch: 1,
+            idempotency_key: None,
+        };
+
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&base)
+                .expect("stale mutation"),
+            RecoveryExecutionProtectedMutationResult::RejectedStaleFence
+        );
+
+        let future = RecoveryExecutionProtectedMutationV1 {
+            fence_epoch: 3,
+            ..base
+        };
+        assert_eq!(
+            resource
+                .mutate_if_fence_is_current(&future)
+                .expect("future mutation"),
+            RecoveryExecutionProtectedMutationResult::RejectedFutureFence
+        );
+    }
+
+    #[test]
+    fn protected_mutation_request_cannot_detach_from_established_fence() {
+        let claim = execution_claim_fixture(
+            "attempt-a",
+            "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        );
+        let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("fence");
+        let store = FencedExecutionMemoryStore::default();
+        let established = match establish_execution_fence(&store, &fence).expect("establish") {
+            RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+            _ => panic!("fence must establish"),
+        };
+        let mutation = RecoveryExecutionProtectedMutationV1::from_established_fence(
+            &established,
+            Some("stable-effect-key".into()),
+        )
+        .expect("mutation");
+
+        assert_eq!(
+            validate_protected_mutation_request(&mutation, &established),
+            RecoveryExecutionProtectedMutationResult::Applied
+        );
+
+        let detached = RecoveryExecutionProtectedMutationV1 {
+            fence_epoch: established.fence_epoch() + 1,
+            ..mutation
+        };
+        assert_eq!(
+            validate_protected_mutation_request(&detached, &established),
+            RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch
         );
     }
 
