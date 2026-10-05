@@ -139,6 +139,10 @@ def main() -> int:
             )
             sidecar.write_text(digest(packet) + "\n", encoding="utf-8")
 
+        def write_raw_packet(value: str) -> None:
+            packet.write_text(value, encoding="utf-8")
+            sidecar.write_text(digest(packet) + "\n", encoding="utf-8")
+
         write_packet(evidence)
         result = run_verifier(packet, sidecar, inventory, VERIFIER)
         if result.returncode != 0:
@@ -157,6 +161,17 @@ def main() -> int:
         result = run_verifier(packet, sidecar, inventory, VERIFIER)
         if result.returncode == 0:
             raise SystemExit("verifier accepted a packet with a stale sidecar")
+
+        duplicate_key_packet = json.dumps(
+            evidence, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+        )
+        duplicate_key_packet = duplicate_key_packet.replace(
+            '"status":"passed"', '"status":"passed","status":"passed"', 1
+        ) + "\n"
+        write_raw_packet(duplicate_key_packet)
+        result = run_verifier(packet, sidecar, inventory, VERIFIER)
+        if result.returncode == 0:
+            raise SystemExit("verifier accepted a packet with duplicate JSON object keys")
 
         tampered = dict(evidence)
         tampered["workflow_file_path"] = ".github/workflows/deploy.yml"
