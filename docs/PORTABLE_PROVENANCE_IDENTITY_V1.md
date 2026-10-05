@@ -50,6 +50,10 @@ That stronger relationship remains the responsibility of:
 `V5PortableReplayIdentityV1::from_receipt(...)` requires the standalone receipt
 integrity gate before calculating the portable digest.
 
+Receipt validation also rejects duplicate frontier identifiers, duplicate
+argumentation identities, and duplicate ontology-resolution identities before
+the portable digest is calculated.
+
 Therefore construction errors are returned before identity materialization. A
 `ProjectionError` variant, its display text, and its machine-readable error
 code are not inputs to the portable digest.
