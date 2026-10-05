@@ -90,10 +90,36 @@ impl CulturalProjectionAuditV3 {
         Ok(())
     }
 
+    /// Validates this V3 audit against the exact canonical claim and strict
+    /// frontier, preserving underlying V2 frontier diagnostics instead of
+    /// collapsing them into a boolean.
+    pub fn validate_frontier_safe(
+        &self,
+        frontier: &crate::civilizational::EvidenceFrontierV1,
+        claim: &CanonicalClaimAdmissionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        self.base.validate_frontier_safe(frontier, claim)?;
+
+        if self.semantic_context.claim_ref != claim.claim_ref
+            || self.semantic_context.evidence_frontier != frontier.frontier_id
+            || self.semantic_context.qualification != claim.qualification
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(&self, frontier: &crate::civilizational::EvidenceFrontierV1) -> bool {
-        self.validate().is_ok()
-            && self.base.is_frontier_safe(frontier)
-            && self.semantic_context.evidence_frontier == frontier.frontier_id
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: self.base.claim_ref.clone(),
+            evidence_refs: self.base.evidence_refs.clone(),
+            source_snapshots: self.base.source_snapshots.clone(),
+            qualification: self.base.qualification,
+            evidence_frontier: self.base.evidence_frontier.clone(),
+        };
+        self.validate_frontier_safe(frontier, &claim).is_ok()
     }
 
     /// Reciprocal validation against the exact projection, canonical claim,
@@ -433,6 +459,28 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    #[test]
+    fn v3_frontier_validator_preserves_frontier_diagnostic() {
+        let value =
+            CulturalProjectionAuditV3::from_v2(audit(), semantic_context()).expect("v3 audit");
+        let claim = CanonicalClaimAdmissionV1 {
+            claim_ref: value.base.claim_ref.clone(),
+            evidence_refs: value.base.evidence_refs.clone(),
+            source_snapshots: value.base.source_snapshots.clone(),
+            qualification: value.base.qualification,
+            evidence_frontier: value.base.evidence_frontier.clone(),
+        };
+        let mut frontier = frontier();
+        frontier.known_by_year = 1941;
+        frontier.recompute_manifest_hash().expect("fixture hash");
+
+        assert_eq!(
+            value.validate_frontier_safe(&frontier, &claim),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
+        assert!(!value.is_frontier_safe(&frontier));
     }
 
     #[test]
