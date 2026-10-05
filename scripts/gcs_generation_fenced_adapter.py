@@ -18,7 +18,7 @@ import http.client
 import json
 import subprocess
 from dataclasses import dataclass
-from typing import Mapping
+from typing import Callable, Mapping
 from urllib.parse import quote
 
 
@@ -167,11 +167,51 @@ class GcsGenerationFencedObject:
             )
         return result.body
 
-    def state(self) -> ObjectState | None:
+    def update_metadata(
+        self,
+        generation: int,
+        metageneration: int,
+        updates: Mapping[str, str],
+    ) -> HttpResult:
+        if generation <= 0 or metageneration <= 0 or not updates:
+            raise ValueError("generation, metageneration, and updates are required")
+        metadata = {
+            key.removeprefix(META_PREFIX): value
+            for key, value in updates.items()
+        }
+        path = (
+            self._json_path()
+            + "?ifGenerationMatch="
+            + str(generation)
+            + "&ifMetagenerationMatch="
+            + str(metageneration)
+        )
+        return self._request(
+            "PATCH",
+            path,
+            body=json.dumps({"metadata": metadata}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+
+    def state(
+        self,
+        between_metadata_and_data: Callable[[ObjectState], None] | None = None,
+    ) -> ObjectState | None:
+        hook = between_metadata_and_data
         for _attempt in range(3):
             metadata = self.metadata()
             if metadata is None:
                 return None
+            observed = ObjectState(
+                generation=metadata.generation,
+                metageneration=metadata.metageneration,
+                data_sha256="",
+                metadata=metadata.metadata,
+                size=metadata.size,
+            )
+            if hook is not None:
+                hook(observed)
+                hook = None
             try:
                 body = self.data(
                     metadata.generation,
