@@ -190,18 +190,34 @@ impl OntologyMappingV1 {
         Ok(())
     }
 
+    /// Validates mapping provenance against the exact canonical claim and
+    /// strict frontier while preserving concrete lower-level diagnostics.
+    pub fn validate_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        claim.validate_frontier_safe(frontier)?;
+
+        if self.claim_ref != claim.claim_ref
+            || self.evidence_refs != claim.evidence_refs
+            || self.source_snapshots != claim.source_snapshots
+            || self.qualification != claim.qualification
+            || self.evidence_frontier != frontier.frontier_id
+        {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate().is_ok()
-            && claim.is_frontier_safe(frontier)
-            && self.claim_ref == claim.claim_ref
-            && self.evidence_refs == claim.evidence_refs
-            && self.source_snapshots == claim.source_snapshots
-            && self.qualification == claim.qualification
-            && self.evidence_frontier == frontier.frontier_id
+        self.validate_frontier_safe(claim, frontier).is_ok()
     }
 }
 
@@ -295,6 +311,26 @@ mod tests {
             Err(ProjectionError::AuditWithoutEvidencePath)
         );
     }
+    #[test]
+    fn mapping_v1_typed_validator_preserves_frontier_diagnostic() {
+        let (claim, mut frontier) = claim();
+        let mapping = OntologyMappingV1::from_claim(
+            "mapping:1",
+            OntologyMappingStandardV1::CidocCrm,
+            "E7_Activity",
+            OntologyMappingKindV1::Class,
+            &claim,
+        );
+        frontier.known_by_year = 1941;
+        frontier.recompute_manifest_hash().expect("fixture hash");
+
+        assert_eq!(
+            mapping.validate_frontier_safe(&claim, &frontier),
+            Err(ProjectionError::LaterEvidenceInFrontier)
+        );
+        assert!(!mapping.is_frontier_safe(&claim, &frontier));
+    }
+
     #[test]
     fn mapping_preserves_claim_qualification() {
         let (claim, frontier) = claim();
