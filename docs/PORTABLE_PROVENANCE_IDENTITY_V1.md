@@ -20,6 +20,10 @@ The portable identity declares:
 - digest domain:
   `sol-atlas:v5-replay-receipt:portable-identity:v1`
 
+Before portable hashing, the receipt must already be in the canonical order
+defined by V5ReplayReceiptV1::canonicalize(). A non-canonical but otherwise
+self-consistent receipt is rejected rather than silently normalized.
+
 The portable content digest is SHA-256 over the serialized tuple:
 
 1. the fixed digest-domain string;
