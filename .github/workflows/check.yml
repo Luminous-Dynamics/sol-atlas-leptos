@@ -238,6 +238,19 @@ jobs:
           PY
           sha256sum /tmp/qualification-execution-v1.json | awk '{print $1}' > /tmp/qualification-execution-v1.json.sha256
       - name: Validate qualification execution evidence independently
+        env:
+          VERIFY_REPOSITORY: ${{ github.repository }}
+          VERIFY_PR_NUMBER: ${{ github.event.pull_request.number }}
+          VERIFY_SOURCE_REVISION: ${{ github.event.pull_request.head.sha }}
+          VERIFY_BASE_REVISION: ${{ github.event.pull_request.base.sha }}
+          VERIFY_WORKFLOW_NAME: ${{ github.workflow }}
+          VERIFY_WORKFLOW_REF: ${{ github.workflow_ref }}
+          VERIFY_WORKFLOW_SHA: ${{ github.workflow_sha }}
+          VERIFY_RUN_ID: ${{ github.run_id }}
+          VERIFY_RUN_ATTEMPT: ${{ github.run_attempt }}
+          VERIFY_JOB_NAME: ${{ github.job }}
+          VERIFY_CHECK_RUN_ID: ${{ job.check_run_id }}
+          VERIFY_SERVER_URL: ${{ github.server_url }}
         run: |
           python3 tools/verify_qualification_execution_evidence.py \
             /tmp/qualification-execution-v1.json \
@@ -246,18 +259,18 @@ jobs:
             --verifier-file "tools/verify_qualification_execution_evidence.py" \
             --cargo-lock "Cargo.lock" \
             --test-inventory "/tmp/sol-atlas-core-tests.txt" \
-            --repository "${{ github.repository }}" \
-            --pull-request-number "${{ github.event.pull_request.number }}" \
-            --source-revision "${{ github.event.pull_request.head.sha }}" \
-            --base-revision "${{ github.event.pull_request.base.sha }}" \
-            --workflow-name "${{ github.workflow }}" \
-            --workflow-ref "${{ github.workflow_ref }}" \
-            --workflow-sha "${{ github.workflow_sha }}" \
-            --run-id "${{ github.run_id }}" \
-            --run-attempt "${{ github.run_attempt }}" \
-            --job-name "${{ github.job }}" \
-            --check-run-id "${{ job.check_run_id }}" \
-            --server-url "${{ github.server_url }}"
+            --repository "$VERIFY_REPOSITORY" \
+            --pull-request-number "$VERIFY_PR_NUMBER" \
+            --source-revision "$VERIFY_SOURCE_REVISION" \
+            --base-revision "$VERIFY_BASE_REVISION" \
+            --workflow-name "$VERIFY_WORKFLOW_NAME" \
+            --workflow-ref "$VERIFY_WORKFLOW_REF" \
+            --workflow-sha "$VERIFY_WORKFLOW_SHA" \
+            --run-id "$VERIFY_RUN_ID" \
+            --run-attempt "$VERIFY_RUN_ATTEMPT" \
+            --job-name "$VERIFY_JOB_NAME" \
+            --check-run-id "$VERIFY_CHECK_RUN_ID" \
+            --server-url "$VERIFY_SERVER_URL"
       - name: Publish qualification execution evidence
 
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
