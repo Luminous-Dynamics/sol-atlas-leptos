@@ -1,0 +1,24 @@
+{
+  "schema": "sol-atlas:gcs-wif-trust-profile:v1",
+  "repository": "Luminous-Dynamics/sol-atlas-leptos",
+  "repository_id": "1195997641",
+  "environment": "sol-atlas-gcs-qualification",
+  "workflow": "Qualify GCS external effect",
+  "event": "workflow_dispatch",
+  "workflow_path": ".github/workflows/qualify-gcs.yml",
+  "required_attribute_mappings": {
+    "repository": "assertion.repository",
+    "repository_id": "assertion.repository_id",
+    "environment": "assertion.environment",
+    "workflow": "assertion.workflow",
+    "event_name": "assertion.event_name"
+  },
+  "required_condition_terms": [
+    "assertion.repository_id=='1195997641'",
+    "assertion.repository=='Luminous-Dynamics/sol-atlas-leptos'",
+    "assertion.environment=='sol-atlas-gcs-qualification'",
+    "assertion.workflow=='Qualify GCS external effect'",
+    "assertion.event_name=='workflow_dispatch'"
+  ],
+  "claim_ceiling": "Identity trust profile only; does not prove workflow source integrity or resource behavior."
+}
