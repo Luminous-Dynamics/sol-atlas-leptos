@@ -25,7 +25,10 @@ In addition to the V1 bindings, the V2 packet records:
 
 The verifier independently recomputes the workflow-file, verifier, Cargo.lock,
 and test-inventory digests rather than trusting only the packet's declared
-values.
+values. It also binds runner OS, runner architecture, Rust toolchain, rustc
+version output, and cargo version output to the current qualification job;
+the latter two are recomputed during verification rather than accepted solely
+from the packet.
 
 ## Emission and verification boundary
 
@@ -43,6 +46,7 @@ The V2 verifier is invoked with the current GitHub execution context and checks:
 - exact schema and key set;
 - source/base/workflow/workflow-file-path/run/check-run bindings;
 - SHA-256 recomputation of all recorded repository file identities;
+- current runner and toolchain identity/observation bindings;
 - the workflow-run URL;
 - the exact qualification command inventory;
 - the packet SHA-256 sidecar.
