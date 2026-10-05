@@ -24,6 +24,7 @@ REQUIRED_KEYS = {
     "base_revision",
     "workflow_name",
     "workflow_ref",
+    "workflow_file_path",
     "workflow_sha",
     "checked_out_workflow_file_sha256",
     "verifier_sha256",
@@ -66,6 +67,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-revision", required=True)
     parser.add_argument("--workflow-name", required=True)
     parser.add_argument("--workflow-ref", required=True)
+    parser.add_argument("--workflow-file-path", required=True)
     parser.add_argument("--workflow-sha", required=True)
     parser.add_argument("--run-id", required=True, type=int)
     parser.add_argument("--run-attempt", required=True, type=int)
@@ -114,6 +116,7 @@ def main() -> int:
         "base_revision": args.base_revision,
         "workflow_name": args.workflow_name,
         "workflow_ref": args.workflow_ref,
+        "workflow_file_path": args.workflow_file_path,
         "workflow_sha": args.workflow_sha,
         "run_id": args.run_id,
         "run_attempt": args.run_attempt,
