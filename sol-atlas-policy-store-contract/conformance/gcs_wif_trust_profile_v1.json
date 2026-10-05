@@ -7,12 +7,12 @@
   "event": "workflow_dispatch",
   "workflow_path": ".github/workflows/qualify-gcs.yml",
   "required_attribute_mappings": {
-    "environment": "assertion.environment",
-    "event_name": "assertion.event_name",
-    "repository": "assertion.repository",
-    "repository_id": "assertion.repository_id",
-    "repository_owner_id": "assertion.repository_owner_id",
-    "workflow": "assertion.workflow"
+    "attribute.environment": "assertion.environment",
+    "attribute.event_name": "assertion.event_name",
+    "attribute.repository": "assertion.repository",
+    "attribute.repository_id": "assertion.repository_id",
+    "attribute.repository_owner_id": "assertion.repository_owner_id",
+    "attribute.workflow": "assertion.workflow"
   },
   "required_condition_terms": [
     "assertion.environment=='sol-atlas-gcs-qualification'",
