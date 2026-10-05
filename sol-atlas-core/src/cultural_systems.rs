@@ -210,16 +210,28 @@ impl CulturalArgumentationEvidenceClosureV1 {
         Ok(())
     }
 
+    pub fn validate_frontier_safe(
+        &self,
+        claim: &CanonicalClaimAdmissionV1,
+        frontier: &EvidenceFrontierV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        claim.validate_frontier_safe(frontier)?;
+        if self.claim_ref != claim.claim_ref || self.evidence_frontier != frontier.frontier_id {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        if !frontier.admits_evidence_path(&self.evidence_refs, &self.source_snapshots) {
+            return Err(ProjectionError::AuditWithoutEvidencePath);
+        }
+        Ok(())
+    }
+
     pub fn is_frontier_safe(
         &self,
         claim: &CanonicalClaimAdmissionV1,
         frontier: &EvidenceFrontierV1,
     ) -> bool {
-        self.validate().is_ok()
-            && claim.is_frontier_safe(frontier)
-            && self.claim_ref == claim.claim_ref
-            && self.evidence_frontier == frontier.frontier_id
-            && frontier.admits_evidence_path(&self.evidence_refs, &self.source_snapshots)
+        self.validate_frontier_safe(claim, frontier).is_ok()
     }
 }
 
@@ -705,24 +717,18 @@ impl CulturalProjectionV1 {
             .validate_frontier_safe(claim, frontier)?;
 
         let recognition_evidence_missing = match self {
-            Self::Transmission(value) => value
-                .community_recognition
-                .iter()
-                .any(|recognition| {
-                    recognition
-                        .evidence_refs
-                        .iter()
-                        .any(|id| !frontier.admits(id))
-                }),
-            Self::Transformation(value) => value
-                .community_recognition
-                .iter()
-                .any(|recognition| {
-                    recognition
-                        .evidence_refs
-                        .iter()
-                        .any(|id| !frontier.admits(id))
-                }),
+            Self::Transmission(value) => value.community_recognition.iter().any(|recognition| {
+                recognition
+                    .evidence_refs
+                    .iter()
+                    .any(|id| !frontier.admits(id))
+            }),
+            Self::Transformation(value) => value.community_recognition.iter().any(|recognition| {
+                recognition
+                    .evidence_refs
+                    .iter()
+                    .any(|id| !frontier.admits(id))
+            }),
         };
 
         if recognition_evidence_missing {
@@ -1404,7 +1410,7 @@ mod tests {
             CulturalProjectionV1::Transmission(value) => value,
             CulturalProjectionV1::Transformation(_) => unreachable!(),
         });
-        claim.claim_ref = String::new();
+        claim.claim_ref = ClaimId(String::new());
 
         assert_eq!(
             CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim),
@@ -1454,7 +1460,7 @@ mod tests {
         let mut frontier = frontier();
         frontier.manifest_hash = "not-a-valid-sha256".into();
         let claim = CanonicalClaimAdmissionV1 {
-            claim_ref: String::new(),
+            claim_ref: ClaimId(String::new()),
             evidence_refs: vec!["e:1".into()],
             source_snapshots: vec!["source:1".into()],
             qualification: QualificationStatus::Supported,
@@ -1476,7 +1482,7 @@ mod tests {
             CulturalProjectionV1::Transmission(value) => value,
             CulturalProjectionV1::Transformation(_) => unreachable!(),
         });
-        claim.claim_ref = String::new();
+        claim.claim_ref = ClaimId(String::new());
 
         assert_eq!(
             CulturalProjectionAuditV2::from_projection_at(&projection, &frontier, &claim),
