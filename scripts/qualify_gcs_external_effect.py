@@ -988,6 +988,35 @@ def verify_report(path: str) -> None:
         raise AssertionError("wrong case-set path")
     verify_resource_identity(report)
     expected_case_set_digest = digest(expected_case_set)
+    github_run_verification = report.get("github_workflow_run_verification")
+    if not isinstance(github_run_verification, dict):
+        raise AssertionError("missing GitHub workflow-run verification")
+    if report.get("github_workflow_run_verification_digest") != digest(
+        github_run_verification
+    ):
+        raise AssertionError("GitHub workflow-run verification digest mismatch")
+    load_github_workflow_run_verification_from_report = (
+        github_run_verification
+    )
+    if (
+        load_github_workflow_run_verification_from_report.get("run_id")
+        != os.environ.get("GITHUB_RUN_ID")
+    ):
+        raise AssertionError("GitHub workflow-run ID does not match current run")
+    if (
+        load_github_workflow_run_verification_from_report.get("run_attempt")
+        != os.environ.get("GITHUB_RUN_ATTEMPT")
+    ):
+        raise AssertionError(
+            "GitHub workflow-run attempt does not match current run"
+        )
+    if (
+        load_github_workflow_run_verification_from_report.get("head_sha")
+        != report.get("checked_out_source_commit")
+    ):
+        raise AssertionError(
+            "GitHub server workflow-run SHA does not match checked-out source"
+        )
     if report.get("case_set_digest") != expected_case_set_digest:
         raise AssertionError("case-set digest mismatch")
     wif_verification = report.get("wif_verification")
