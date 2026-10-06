@@ -121,7 +121,7 @@ trust conditions.
 ## Frozen case corpus
 
 The live case definitions are checked in at
-sol-atlas-policy-store-contract/conformance/gcs_external_effect_cases_v1.json.
+sol-atlas-policy-store-contract/conformance/gcs_external_effect_cases_v2.json.
 The qualifier hashes the complete corpus, including descriptions and order,
 and stores that digest in both evidence and report. A change to case meaning,
 order, or membership therefore invalidates prior external evidence.
