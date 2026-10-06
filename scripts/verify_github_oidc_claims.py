@@ -74,6 +74,7 @@ def runtime_context() -> dict[str, str]:
         "GITHUB_SHA",
         "GITHUB_RUN_ID",
         "GITHUB_RUN_ATTEMPT",
+        "RUNNER_ENVIRONMENT",
     ]
     values = {name: os.environ.get(name, "") for name in names}
     missing = [name for name, value in values.items() if not value]
@@ -89,6 +90,8 @@ def runtime_context() -> dict[str, str]:
         raise AssertionError("GITHUB_RUN_ID is not a decimal run identifier")
     if not DECIMAL.fullmatch(values["GITHUB_RUN_ATTEMPT"]):
         raise AssertionError("GITHUB_RUN_ATTEMPT is not a decimal attempt identifier")
+    if values["RUNNER_ENVIRONMENT"] != "github-hosted":
+        raise AssertionError("OIDC verifier requires a GitHub-hosted runner")
     return values
 
 
@@ -109,6 +112,7 @@ def expected_claims(audience: str, context: dict[str, str]) -> dict[str, str]:
         "sha": context["GITHUB_SHA"],
         "run_id": context["GITHUB_RUN_ID"],
         "run_attempt": context["GITHUB_RUN_ATTEMPT"],
+        "runner_environment": context["RUNNER_ENVIRONMENT"],
     }
 
 
