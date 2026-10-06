@@ -166,6 +166,10 @@ def validate_qualification_policy(
         errors.append(
             f"{path}: qualification must explicitly allowlist the four evidence files"
         )
+    if "            artifacts/\n" in qualify_text:
+        errors.append(
+            f"{path}: qualification must not upload the broad artifacts directory"
+        )
     if "actions/upload-artifact@" in publish_text:
         errors.append(f"{path}: publish must not upload a second evidence artifact")
 
