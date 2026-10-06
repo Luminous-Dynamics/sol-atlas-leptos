@@ -181,6 +181,7 @@ def main() -> None:
             "sha": CONTEXT["GITHUB_SHA"],
             "run_id": CONTEXT["GITHUB_RUN_ID"],
             "run_attempt": CONTEXT["GITHUB_RUN_ATTEMPT"],
+            "runner_environment": CONTEXT["RUNNER_ENVIRONMENT"],
         },
         AUDIENCE,
     )
@@ -207,6 +208,7 @@ def main() -> None:
                     "sha": CONTEXT["GITHUB_SHA"],
                     "run_id": CONTEXT["GITHUB_RUN_ID"],
                     "run_attempt": CONTEXT["GITHUB_RUN_ATTEMPT"],
+                    "runner_environment": CONTEXT["RUNNER_ENVIRONMENT"],
                 },
                 AUDIENCE,
             )
