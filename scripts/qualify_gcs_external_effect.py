@@ -171,6 +171,16 @@ def git_sha(path: str) -> str:
     return result.stdout.strip()
 
 
+def git_sha_at_commit(commit: str, path: str) -> str:
+    result = subprocess.run(
+        ["git", "rev-parse", f"{commit}:{path}"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
 def git_head() -> str:
     result = subprocess.run(
         ["git", "rev-parse", "HEAD"],
@@ -720,6 +730,11 @@ def verify_report(path: str) -> None:
         "environment": "sol-atlas-gcs-qualification",
         "workflow": "Qualify GCS external effect",
         "event": "workflow_dispatch",
+        "ref": "refs/heads/main",
+        "workflow_ref": (
+            "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/"
+            "qualify-gcs.yml@refs/heads/main"
+        ),
     }
     for name, expected_value in expected_context.items():
         if github_context.get(name) != expected_value:
@@ -733,6 +748,17 @@ def verify_report(path: str) -> None:
         raise AssertionError("checked-out source does not match GITHUB_SHA")
     if checked_out_source != git_head():
         raise AssertionError("checked-out source drift detected")
+    workflow_sha = github_context.get("workflow_sha")
+    if (
+        not isinstance(workflow_sha, str)
+        or len(workflow_sha) != 40
+        or any(char not in "0123456789abcdef" for char in workflow_sha)
+    ):
+        raise AssertionError("invalid GITHUB_WORKFLOW_SHA in report")
+    workflow_at_claim = git_sha_at_commit(workflow_sha, WORKFLOW_PATH)
+    workflow_at_checkout = git_sha(WORKFLOW_PATH)
+    if workflow_at_claim != workflow_at_checkout:
+        raise AssertionError("workflow source drift detected")
     if report.get("wif_verification_digest") != digest(wif_verification):
         raise AssertionError("WIF verification digest mismatch")
     if report.get("adapter_revision") != git_sha(ADAPTER_PATH):
