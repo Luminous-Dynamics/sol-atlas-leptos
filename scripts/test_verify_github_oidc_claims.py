@@ -119,11 +119,15 @@ def main() -> None:
     )
 
     oidc_artifact = {
+        "schema": module.SCHEMA,
+        "audience": AUDIENCE,
         "claims": expected,
         "temporal_claims_valid": True,
         "verified_at_unix": NOW,
         "verified_at": "2025-06-15T15:06:40+00:00",
         "clock_skew_seconds": module.OIDC_CLOCK_SKEW_SECONDS,
+        "cryptographic_verification": "not_performed_locally",
+        "wif_exchange_token_is_separately_requested_by_auth_action": True,
     }
     qualifier.verify_oidc_temporal_evidence(oidc_artifact)
     qualifier.verify_oidc_claim_identity(
