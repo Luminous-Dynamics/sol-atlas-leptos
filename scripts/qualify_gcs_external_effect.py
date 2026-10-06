@@ -146,7 +146,7 @@ def verify_checked_out_source_commit() -> str:
 
 def load_wif_verification(path: str) -> dict[str, object]:
     verification = json.loads(Path(path).read_text(encoding="utf-8"))
-    if verification.get("schema") != "sol-atlas:gcs-wif-trust-verification:v5":
+    if verification.get("schema") != "sol-atlas:gcs-wif-trust-verification:v6":
         raise AssertionError("wrong WIF trust verification schema")
     if not verification.get("attribute_mapping_verified"):
         raise AssertionError("WIF attribute mapping was not verified")
