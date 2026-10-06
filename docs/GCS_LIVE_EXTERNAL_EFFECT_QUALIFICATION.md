@@ -35,12 +35,17 @@ Before cloud authentication, the workflow requests a real GitHub OIDC JWT for
 the exact Google provider-resource audience. A local parser checks the issuer,
 audience, repository identity, protected environment, event, main ref,
 workflow identity, workflow_ref, workflow_sha, source SHA, run ID, run attempt,
-and branch type against the runner context. The parser records only those safe
-claims and explicitly delegates JWT signature acceptance to the subsequent
-Google WIF exchange; decoding the JWT locally is not itself cryptographic
-verification. The selected claims and their digest are embedded in the final
-qualification report, so later report verification can prove that the captured
-run's token claims matched the recorded workflow/source context.
+and branch type against the runner context. The parser also requires the
+standard JWT `iat`, `nbf`, and `exp` NumericDate claims to describe a
+non-empty validity interval and validates them at token receipt with a bounded
+60-second clock-skew allowance. The verifier records the verification timestamp
+and temporal-validation result in the OIDC evidence. The parser records only
+those safe claims and explicitly delegates JWT signature acceptance to the
+subsequent Google WIF exchange; decoding the JWT locally is not itself
+cryptographic verification. The selected claims and their digest are embedded
+in the final qualification report, so later report verification can prove that
+the captured run's token claims matched the recorded workflow/source context
+and that the recorded token was temporally valid when it was checked.
 
 The verifier also requires the provider's OIDC `allowedAudiences` to be empty,
 which activates Google's provider-resource default audience rule. The workflow
@@ -126,6 +131,12 @@ roles/iam.workloadIdentityUser, which can be scoped to a principalSet based on
 a mapped custom attribute. GitHub documents repository_id, repository_owner_id,
 environment, event_name, workflow, ref, and workflow_ref claims for cloud
 trust conditions.
+
+## OIDC evidence version
+
+The live OIDC evidence format is `sol-atlas:github-oidc-claims:v2`; the prior
+OIDC v1 format is historical. The outer GCS qualification report is schema v3
+because its embedded OIDC evidence contract changed.
 
 ## Frozen case corpus
 
