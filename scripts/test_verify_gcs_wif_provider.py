@@ -45,6 +45,7 @@ def binding_policy(member: str) -> dict[str, object]:
 def main() -> None:
     profile = module.load_profile()
     assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v6"
+    assert profile["supersedes"] == "sol-atlas:gcs-wif-trust-profile:v5"
     assert profile["exact_attribute_condition"] == EXPECTED
     assert profile["required_attribute_mappings"]["attribute.runner_environment"] == "assertion.runner_environment"
     assert profile["pool_is_exclusive"] is True
