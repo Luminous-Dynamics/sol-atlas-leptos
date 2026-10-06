@@ -58,6 +58,7 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --signer-workflow \
               "$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml" \
+            --signer-digest "$GITHUB_WORKFLOW_SHA" \
             --source-digest "$GITHUB_SHA" \
             --source-ref "$GITHUB_REF" \
             --cert-oidc-issuer \
