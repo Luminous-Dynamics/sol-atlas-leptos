@@ -154,6 +154,10 @@ def load_wif_verification(path: str) -> dict[str, object]:
         raise AssertionError("WIF attribute condition was not verified")
     if not verification.get("service_account_binding_verified"):
         raise AssertionError("WIF service-account binding was not verified")
+    if not verification.get("forbidden_direct_service_account_roles_absent"):
+        raise AssertionError(
+            "WIF direct service-account alternate authority roles were not excluded"
+        )
     if not verification.get("provider_pool_exclusive"):
         raise AssertionError("WIF provider pool was not verified exclusive")
     if not verification.get("service_account_project_verified"):
