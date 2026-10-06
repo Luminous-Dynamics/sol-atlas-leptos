@@ -118,8 +118,13 @@ non-secret `artifacts/` directory through the pinned GitHub artifact action and
 attests the report. The uploader's unique artifact ID is passed as a small job
 output to a separate publication job. Publication has only `contents: read`,
 downloads by that exact artifact ID with digest-mismatch failure enabled, and
-re-verifies the report against the exact source checkout. Publication cannot
-request a GitHub OIDC token.
+re-verifies the report against the exact source checkout. Publication has
+only `contents: read` and `attestations: read`; it cannot request a GitHub
+OIDC token. Publication then runs `gh attestation verify` against the
+downloaded report, requiring the exact qualification workflow as signer, the
+captured `GITHUB_SHA` as source digest, the captured ref, and the GitHub OIDC
+issuer. This turns the attestation from a generated side artifact into an
+independently checked evidence boundary.
 
 A queued Actions run is not qualification evidence. The live claim advances
 only when the complete case vector executes and the generated report
@@ -139,9 +144,10 @@ Cloud SDK is also pinned to the exact published version 586.0.0 rather than a
 floating version constraint. Before cloud authentication it checks both the
 triggering commit and workflow-file provenance. The setup-gcloud action runs
 before OIDC token materialization. After token materialization, no external
-action executes until transient credentials are removed; the only later
-qualification action is the pinned artifact upload. Publication is a separate
-job without `id-token: write`.
+action executes until transient credentials are removed. The pinned artifact
+upload and attestation occur only after cleanup. Publication is a separate job
+without `id-token: write`, and its attestation verification uses read-only
+attestation access.
 
 Google documents that google.subject is required for workload identity
 providers and that service-account impersonation uses
