@@ -58,6 +58,7 @@ OIDC_CLAIMS_SCHEMA = "sol-atlas:github-oidc-claims:v4"
 WIF_CREDENTIAL_CONFIG_SCHEMA = (
     "sol-atlas:gcp-wif-credential-config-verification:v1"
 )
+GITHUB_RUN_VERIFICATION_SCHEMA = "sol-atlas:github-workflow-run-verification:v1"
 CLAIM_CEILING = (
     "GCS generation-precondition evidence only; replay safety applies while "
     "the qualified live object state remains retained; no universal "
@@ -142,6 +143,37 @@ def verify_checked_out_source_commit() -> str:
             f"checked-out source drift: {actual!r} != GITHUB_SHA {expected!r}"
         )
     return actual
+
+
+def load_github_workflow_run_verification(path: str) -> dict[str, object]:
+    verification = json.loads(Path(path).read_text(encoding="utf-8"))
+    if verification.get("schema") != GITHUB_RUN_VERIFICATION_SCHEMA:
+        raise AssertionError("wrong GitHub workflow-run verification schema")
+    required = {
+        "repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "repository_id": "1195997641",
+        "workflow_name": "Qualify GCS external effect",
+        "workflow_path": ".github/workflows/qualify-gcs.yml",
+        "head_branch": "main",
+        "event": "workflow_dispatch",
+        "github_server": "github.com",
+    }
+    for name, expected in required.items():
+        if verification.get(name) != expected:
+            raise AssertionError(
+                f"GitHub workflow-run verification mismatch for {name}"
+            )
+    if verification.get("context_sha_matches_server") is not True:
+        raise AssertionError("GitHub workflow-run SHA was not server-verified")
+    if verification.get("context_run_attempt_matches_server") is not True:
+        raise AssertionError(
+            "GitHub workflow-run attempt was not server-verified"
+        )
+    if verification.get("referenced_workflows") not in ([], None):
+        raise AssertionError(
+            "unexpected reusable workflow evidence in direct qualification run"
+        )
+    return verification
 
 
 def load_wif_verification(path: str) -> dict[str, object]:
@@ -439,9 +471,13 @@ def run_qualification(
     wif_verification_path: str,
     oidc_claims_path: str,
     wif_credential_config_verification_path: str,
+    github_run_verification_path: str,
 ) -> dict[str, object]:
     case_set = load_case_set()
     wif_verification = load_wif_verification(wif_verification_path)
+    github_run_verification = load_github_workflow_run_verification(
+        github_run_verification_path
+    )
     github_context = github_execution_context()
     oidc_claims = load_oidc_claims(oidc_claims_path)
     oidc_audience = wif_verification.get("oidc_expected_audience")
@@ -843,6 +879,10 @@ def run_qualification(
             "wif_verification_digest": digest(wif_verification),
             "github_execution_context": github_context,
             "github_execution_context_digest": digest(github_context),
+            "github_workflow_run_verification": github_run_verification,
+            "github_workflow_run_verification_digest": digest(
+                github_run_verification
+            ),
             "github_oidc_claims": oidc_claims,
             "github_oidc_claims_digest": digest(oidc_claims),
             "wif_credential_config_verification": (
@@ -953,6 +993,24 @@ def verify_report(path: str) -> None:
     wif_verification = report.get("wif_verification")
     if not isinstance(wif_verification, dict):
         raise AssertionError("missing WIF trust verification")
+    github_run_verification = report.get("github_workflow_run_verification")
+    if not isinstance(github_run_verification, dict):
+        raise AssertionError("missing GitHub workflow-run verification")
+    if report.get("github_workflow_run_verification_digest") != digest(
+        github_run_verification
+    ):
+        raise AssertionError("GitHub workflow-run verification digest mismatch")
+    load_github_workflow_run_verification_from_report = github_run_verification
+    if (
+        load_github_workflow_run_verification_from_report.get("run_id")
+        != os.environ.get("GITHUB_RUN_ID")
+    ):
+        raise AssertionError("GitHub workflow-run ID does not match current run")
+    if (
+        load_github_workflow_run_verification_from_report.get("run_attempt")
+        != os.environ.get("GITHUB_RUN_ATTEMPT")
+    ):
+        raise AssertionError("GitHub workflow-run attempt does not match current run")
     github_context = report.get("github_execution_context")
     if not isinstance(github_context, dict):
         raise AssertionError("missing GitHub execution context")
@@ -1108,6 +1166,7 @@ def main() -> int:
     qualify.add_argument("--object-prefix", default="sol-atlas/qualification")
     qualify.add_argument("--wif-verification", required=True)
     qualify.add_argument("--oidc-claims", required=True)
+    qualify.add_argument("--github-run-verification", required=True)
     qualify.add_argument(
         "--wif-credential-config-verification",
         required=True,
@@ -1131,6 +1190,7 @@ def main() -> int:
         args.wif_verification,
         args.oidc_claims,
         args.wif_credential_config_verification,
+        args.github_run_verification,
     )
     report = finalize_report(report)
     write_report(args.output, report)
