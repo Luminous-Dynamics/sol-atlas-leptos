@@ -838,6 +838,8 @@ def run_qualification(
             "checked_out_source_commit": source_commit,
             "status": "qualified",
             "service": "Google Cloud Storage",
+            "bucket": bucket,
+            "object_prefix": object_prefix,
             "adapter_id": ADAPTER_ID,
             "adapter_revision": git_sha(ADAPTER_PATH),
             "harness_id": HARNESS_ID,
@@ -851,7 +853,7 @@ def run_qualification(
             "case_set": EXPECTED_CASE_SET,
             "case_set_digest": digest(case_set),
             "case_set_path": CASE_SET_PATH,
-            "object_names": [main_name, point_name],
+            "object_names": [main_name, point_name, race_name],
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "evidence": evidence,
         }
@@ -905,6 +907,26 @@ def verify_report(path: str) -> None:
         raise AssertionError("wrong case-set identity")
     if report.get("case_set_path") != CASE_SET_PATH:
         raise AssertionError("wrong case-set path")
+    if report.get("service") != "Google Cloud Storage":
+        raise AssertionError("wrong external service")
+    bucket = report.get("bucket")
+    object_prefix = report.get("object_prefix")
+    object_names = report.get("object_names")
+    if not isinstance(bucket, str) or not bucket:
+        raise AssertionError("missing GCS bucket identity")
+    if not isinstance(object_prefix, str) or not object_prefix:
+        raise AssertionError("missing GCS object prefix")
+    if (
+        not isinstance(object_names, list)
+        or len(object_names) != 3
+        or any(
+            not isinstance(name, str)
+            or not name.startswith(object_prefix.rstrip("/") + "/")
+            for name in object_names
+        )
+        or len(set(object_names)) != len(object_names)
+    ):
+        raise AssertionError("GCS object identities are incomplete or drifted")
     expected_case_set_digest = digest(expected_case_set)
     if report.get("case_set_digest") != expected_case_set_digest:
         raise AssertionError("case-set digest mismatch")
