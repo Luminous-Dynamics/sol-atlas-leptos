@@ -123,8 +123,9 @@ only `contents: read` and `attestations: read`; it cannot request a GitHub
 OIDC token. Publication then runs `gh attestation verify` against the
 downloaded report, requiring the exact qualification workflow as signer, the
 captured `GITHUB_SHA` as source digest, the captured ref, and the GitHub OIDC
-issuer. This turns the attestation from a generated side artifact into an
-independently checked evidence boundary.
+issuer, the explicit SLSA provenance predicate, and a GitHub-hosted-runner
+requirement. This turns the attestation from a generated side artifact into
+an independently checked evidence boundary.
 
 A queued Actions run is not qualification evidence. The live claim advances
 only when the complete case vector executes and the generated report
