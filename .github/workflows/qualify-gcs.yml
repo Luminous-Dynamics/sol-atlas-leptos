@@ -31,11 +31,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify checked-out source commit
+      - name: Verify checked-out source and workflow commits
         shell: bash
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -n "$GITHUB_WORKFLOW_SHA"
+          workflow_at_claim="$(git rev-parse "$GITHUB_WORKFLOW_SHA:.github/workflows/qualify-gcs.yml")"
+          workflow_at_checkout="$(git rev-parse "HEAD:.github/workflows/qualify-gcs.yml")"
+          test "$workflow_at_claim" = "$workflow_at_checkout"
 
       - name: Validate qualification configuration
         shell: bash
@@ -58,6 +62,7 @@ jobs:
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
           workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          audience: https://iam.googleapis.com/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
 
       - name: Set up Google Cloud SDK
