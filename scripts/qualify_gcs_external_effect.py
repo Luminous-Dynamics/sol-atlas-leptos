@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import subprocess
 import uuid
@@ -172,7 +173,9 @@ def verify_oidc_temporal_evidence(claims: dict[str, object]) -> None:
         or not isinstance(verified_at, (int, float))
         or isinstance(clock_skew, bool)
         or not isinstance(clock_skew, (int, float))
-        or float(clock_skew) < 0
+        or not math.isfinite(float(verified_at))
+        or not math.isfinite(float(clock_skew))
+        or float(clock_skew) != 60.0
     ):
         raise AssertionError("invalid OIDC temporal verification metadata")
     verified_at = float(verified_at)
@@ -186,6 +189,13 @@ def verify_oidc_temporal_evidence(claims: dict[str, object]) -> None:
         raise AssertionError("OIDC verification timestamp is not ISO-8601") from exc
     if parsed_recorded_at.tzinfo is None:
         raise AssertionError("OIDC verification timestamp has no timezone")
+    if not math.isclose(
+        parsed_recorded_at.timestamp(),
+        verified_at,
+        rel_tol=0.0,
+        abs_tol=1e-6,
+    ):
+        raise AssertionError("OIDC verification timestamps disagree")
     if values["exp"] <= values["iat"] or values["nbf"] > values["exp"]:
         raise AssertionError("OIDC temporal claims have no valid interval")
     if values["iat"] > verified_at + clock_skew:
@@ -194,6 +204,45 @@ def verify_oidc_temporal_evidence(claims: dict[str, object]) -> None:
         raise AssertionError("OIDC nbf is later than the recorded verification time")
     if values["exp"] <= verified_at - clock_skew:
         raise AssertionError("OIDC exp predates the recorded verification time")
+
+
+def verify_oidc_claim_identity(
+    observed_claims: dict[str, object],
+    github_context: dict[str, str],
+    audience: str,
+) -> None:
+    context = {
+        "GITHUB_WORKFLOW_SHA": github_context["workflow_sha"],
+        "GITHUB_SHA": github_context["sha"],
+        "GITHUB_RUN_ID": github_context["run_id"],
+        "GITHUB_RUN_ATTEMPT": github_context["run_attempt"],
+    }
+    expected = {
+        "iss": "https://token.actions.githubusercontent.com",
+        "aud": audience,
+        "repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "repository_id": "1195997641",
+        "repository_owner_id": "216969177",
+        "environment": "sol-atlas-gcs-qualification",
+        "event_name": "workflow_dispatch",
+        "workflow": "Qualify GCS external effect",
+        "ref": "refs/heads/main",
+        "ref_type": "branch",
+        "workflow_ref": (
+            "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/"
+            "qualify-gcs.yml@refs/heads/main"
+        ),
+        "workflow_sha": context["GITHUB_WORKFLOW_SHA"],
+        "sha": context["GITHUB_SHA"],
+        "run_id": context["GITHUB_RUN_ID"],
+        "run_attempt": context["GITHUB_RUN_ATTEMPT"],
+    }
+    for name, expected_value in expected.items():
+        if observed_claims.get(name) != expected_value:
+            raise AssertionError(
+                f"OIDC claim mismatch in report for {name}: "
+                f"{observed_claims.get(name)!r} != {expected_value!r}"
+            )
 
 
 def load_oidc_claims(path: str) -> dict[str, object]:
@@ -356,8 +405,17 @@ def run_qualification(
 ) -> dict[str, object]:
     case_set = load_case_set()
     wif_verification = load_wif_verification(wif_verification_path)
-    oidc_claims = load_oidc_claims(oidc_claims_path)
     github_context = github_execution_context()
+    oidc_claims = load_oidc_claims(oidc_claims_path)
+    oidc_audience = wif_verification.get("oidc_expected_audience")
+    if not isinstance(oidc_audience, str) or not oidc_audience:
+        raise AssertionError("WIF verification has no OIDC expected audience")
+    observed_claims = oidc_claims.get("claims")
+    if not isinstance(observed_claims, dict):
+        raise AssertionError("missing observed GitHub OIDC claims")
+    if oidc_claims.get("audience") != observed_claims.get("aud"):
+        raise AssertionError("OIDC artifact audience does not match its claims")
+    verify_oidc_claim_identity(observed_claims, github_context, oidc_audience)
     source_commit = verify_checked_out_source_commit()
     token = access_token()
     run_id = os.environ.get("GITHUB_RUN_ID", "local")
@@ -844,6 +902,12 @@ def verify_report(path: str) -> None:
     verify_oidc_temporal_evidence(oidc_claims)
     if report.get("github_oidc_claims_digest") != digest(oidc_claims):
         raise AssertionError("GitHub OIDC artifact digest mismatch")
+    oidc_audience = wif_verification.get("oidc_expected_audience")
+    if not isinstance(oidc_audience, str) or not oidc_audience:
+        raise AssertionError("WIF verification has no OIDC expected audience")
+    if oidc_claims.get("audience") != observed_claims.get("aud"):
+        raise AssertionError("OIDC artifact audience does not match its claims")
+    verify_oidc_claim_identity(observed_claims, github_context, oidc_audience)
     if observed_claims.get("workflow_sha") != github_context.get("workflow_sha"):
         raise AssertionError("OIDC workflow_sha does not match GITHUB_WORKFLOW_SHA")
     if observed_claims.get("sha") != github_context.get("sha"):
