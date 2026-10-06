@@ -27,11 +27,11 @@ from scripts.gcs_generation_fenced_adapter import (
 SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v2"
 CASE_SET_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
-    "gcs_external_effect_cases_v1.json"
+    "gcs_external_effect_cases_v2.json"
 )
 EXPECTED_CASE_SET = (
     "sol-atlas:recovery-execution-effect-external-conformance-cases:"
-    "gcs-generation-v1"
+    "gcs-generation-v2"
 )
 CASE_SET_SCHEMA = "sol-atlas:recovery-execution-effect-case-set:v1"
 ADAPTER_PATH = "scripts/gcs_generation_fenced_adapter.py"
@@ -620,7 +620,7 @@ def run_qualification(
             raise AssertionError(
                 "lost-ack reconciliation did not produce a bounded observation"
             )
-        point_generation = create_setup(point_resource, "point-in-time")
+        point_generation = 0
         point_request = request(
             "point-in-time-target",
             point_generation,
