@@ -61,6 +61,8 @@ jobs:
             --signer-digest "$GITHUB_WORKFLOW_SHA" \
             --source-digest "$GITHUB_SHA" \
             --source-ref "$GITHUB_REF" \
+            --predicate-type "https://slsa.dev/provenance/v1" \
+            --deny-self-hosted-runners \
             --cert-oidc-issuer \
               "https://token.actions.githubusercontent.com"
 """.strip()
@@ -138,6 +140,28 @@ def main() -> None:
             "",
         )
         expect(path, root, bad, "attestation verification must bind signer digest")
+
+        bad = GOOD.replace(
+            '            --predicate-type "https://slsa.dev/provenance/v1" \\\n',
+            "",
+        )
+        expect(
+            path,
+            root,
+            bad,
+            "attestation verification must pin the SLSA provenance predicate",
+        )
+
+        bad = GOOD.replace(
+            '            --deny-self-hosted-runners \\\n',
+            "",
+        )
+        expect(
+            path,
+            root,
+            bad,
+            "attestation verification must reject self-hosted runners",
+        )
 
         bad = GOOD.replace("  publish:", "    evidence_bundle: unsafe\n  publish:")
         expect(path, root, bad, "oversized job-output handoff")
