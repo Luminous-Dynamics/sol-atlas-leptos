@@ -37,7 +37,8 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test -n "$GITHUB_WORKFLOW_SHA"
-          workflow_at_claim="$(git rev-parse "$GITHUB_WORKFLOW_SHA:.github/workflows/qualify-gcs.yml")"
+          workflow_claim_spec="$GITHUB_WORKFLOW_SHA:.github/workflows/qualify-gcs.yml"
+          workflow_at_claim="$(git rev-parse "$workflow_claim_spec")"
           workflow_at_checkout="$(git rev-parse "HEAD:.github/workflows/qualify-gcs.yml")"
           test "$workflow_at_claim" = "$workflow_at_checkout"
 
@@ -62,7 +63,8 @@ jobs:
 
       - name: Verify GitHub OIDC claims
         env:
-          EXPECTED_OIDC_AUDIENCE: https://iam.googleapis.com/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          EXPECTED_OIDC_AUDIENCE: >-
+            https://iam.googleapis.com/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
         run: |
           set -euo pipefail
           mkdir -p artifacts
