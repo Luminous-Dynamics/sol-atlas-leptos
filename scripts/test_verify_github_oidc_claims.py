@@ -56,6 +56,13 @@ def expect_rejection(payload: dict[str, object], message: str) -> None:
 
 
 def main() -> None:
+    with TemporaryDirectory() as tmp:
+        token_path = Path(tmp) / "verified.jwt"
+        token = "header.payload.signature"
+        module.write_token(token, str(token_path))
+        assert token_path.read_bytes() == token.encode("ascii")
+        assert oct(token_path.stat().st_mode & 0o777) == "0o600"
+
     expected = module.expected_claims(AUDIENCE, CONTEXT)
     expected.update(
         {
