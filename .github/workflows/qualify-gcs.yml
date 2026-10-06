@@ -158,6 +158,14 @@ jobs:
             "$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt" \
             "$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
           rm -rf "$CLOUDSDK_CONFIG"
+      - name: Upload qualification evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a0 # v7.0.1
+        with:
+          name: sol-atlas-gcs-external-effect-qualification
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 90
 
   publish:
     name: Publish qualification evidence
