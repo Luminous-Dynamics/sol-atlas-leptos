@@ -124,8 +124,10 @@ def validate_qualification_policy(
     if "--signer-workflow" not in publish_text:
         errors.append(f"{path}: attestation verification must pin the signer workflow")
     if (
-        '--signer-workflow \\n'
-        '              "$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml"'
+        (
+            '--signer-workflow \\\n'
+            '              "$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml"'
+        )
         not in publish_text
     ):
         errors.append(
