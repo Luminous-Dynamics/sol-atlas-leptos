@@ -77,6 +77,8 @@ def validate_qualification_policy(
         errors.append(f"{path}: publish must not grant id-token: write")
     if "      attestations: write" in publish:
         errors.append(f"{path}: publish must not grant attestations: write")
+    if "      attestations: read" not in publish:
+        errors.append(f"{path}: publish must grant attestations: read")
     if "    needs: qualify" not in publish:
         errors.append(f"{path}: publish must depend on qualify")
 
@@ -115,6 +117,18 @@ def validate_qualification_policy(
         errors.append(f"{path}: qualify must attest the report")
     if "actions/attest@" in publish_text:
         errors.append(f"{path}: publish must not attest the report")
+    if "gh attestation verify" not in publish_text:
+        errors.append(f"{path}: publish must cryptographically verify the report attestation")
+    if "artifacts/gcs-external-effect-report.json" not in publish_text:
+        errors.append(f"{path}: attestation verification must target the report")
+    if "--signer-workflow" not in publish_text:
+        errors.append(f"{path}: attestation verification must pin the signer workflow")
+    if "--source-digest \"$GITHUB_SHA\"" not in publish_text:
+        errors.append(f"{path}: attestation verification must bind source digest to GITHUB_SHA")
+    if "--source-ref \"$GITHUB_REF\"" not in publish_text:
+        errors.append(f"{path}: attestation verification must bind source ref to GITHUB_REF")
+    if "--cert-oidc-issuer" not in publish_text:
+        errors.append(f"{path}: attestation verification must pin the GitHub OIDC issuer")
     if "actions/upload-artifact@" not in qualify_text:
         errors.append(f"{path}: qualify must upload evidence")
     if "actions/upload-artifact@" in publish_text:
@@ -142,6 +156,22 @@ def validate_qualification_policy(
             i
             for i, line in enumerate(lines)
             if "uses: actions/upload-artifact@" in line
+        ),
+        None,
+    )
+    attest_line = next(
+        (
+            i
+            for i, line in enumerate(lines)
+            if "uses: actions/attest@" in line
+        ),
+        None,
+    )
+    verify_attestation_line = next(
+        (
+            i
+            for i, line in enumerate(lines)
+            if line.strip() == "gh attestation verify \\"
         ),
         None,
     )
@@ -174,13 +204,19 @@ def validate_qualification_policy(
     if (
         upload_line is None
         or cleanup_line is None
+        or attest_line is None
         or publish_line is None
         or upload_line <= cleanup_line
-        or upload_line >= publish_line
+        or upload_line >= attest_line
+        or attest_line >= publish_line
     ):
         errors.append(
-            f"{path}: evidence upload must occur after cleanup and in qualify"
+            f"{path}: evidence upload and attestation must occur after cleanup in qualify"
         )
+    if verify_attestation_line is None:
+        errors.append(f"{path}: attestation verification command is required")
+    elif verify_attestation_line <= publish_line:
+        errors.append(f"{path}: attestation verification must occur inside publish")
 
     return errors
 
