@@ -35,7 +35,7 @@ else:
     from verify_github_oidc_claims import expected_claims
 
 
-SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v4"
+SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v5"
 CASE_SET_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
     "gcs_external_effect_cases_v2.json"
@@ -54,7 +54,7 @@ HARNESS_PATH = "scripts/qualify_gcs_external_effect.py"
 WORKFLOW_PATH = ".github/workflows/qualify-gcs.yml"
 ADAPTER_ID = "gcs-generation-fenced-object"
 HARNESS_ID = "sol-atlas-gcs-external-conformance"
-OIDC_CLAIMS_SCHEMA = "sol-atlas:github-oidc-claims:v3"
+OIDC_CLAIMS_SCHEMA = "sol-atlas:github-oidc-claims:v4"
 CLAIM_CEILING = (
     "GCS generation-precondition evidence only; replay safety applies while "
     "the qualified live object state remains retained; no universal "
@@ -241,8 +241,8 @@ def load_oidc_claims(path: str) -> dict[str, object]:
         raise AssertionError("GitHub OIDC claims digest mismatch")
     if claims.get("cryptographic_verification") != "not_performed_locally":
         raise AssertionError("unexpected local OIDC cryptographic-verification mode")
-    if claims.get("wif_exchange_token_is_separately_requested_by_auth_action") is not True:
-        raise AssertionError("OIDC evidence did not declare separate auth-token acquisition")
+    if claims.get("wif_exchange_uses_this_exact_verified_token") is not True:
+        raise AssertionError("OIDC evidence is not bound to the WIF token source")
     if claims.get("workflow_sha_matches_runner") is not True:
         raise AssertionError("OIDC workflow_sha does not match runner context")
     if claims.get("source_sha_matches_runner") is not True:
@@ -880,8 +880,8 @@ def verify_report(path: str) -> None:
         raise AssertionError("GitHub OIDC claims digest mismatch in report")
     if oidc_claims.get("cryptographic_verification") != "not_performed_locally":
         raise AssertionError("unexpected local OIDC cryptographic-verification mode in report")
-    if oidc_claims.get("wif_exchange_token_is_separately_requested_by_auth_action") is not True:
-        raise AssertionError("report did not declare separate auth-token acquisition")
+    if oidc_claims.get("wif_exchange_uses_this_exact_verified_token") is not True:
+        raise AssertionError("report is not bound to the verified WIF token")
     if oidc_claims.get("workflow_sha_matches_runner") is not True:
         raise AssertionError("report OIDC workflow_sha mismatch")
     if oidc_claims.get("source_sha_matches_runner") is not True:
