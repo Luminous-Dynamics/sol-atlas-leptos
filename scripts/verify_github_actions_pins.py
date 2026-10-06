@@ -132,6 +132,10 @@ def validate_qualification_policy(
         errors.append(f"{path}: attestation verification must bind source digest to GITHUB_SHA")
     if "--source-ref \"$GITHUB_REF\"" not in publish_text:
         errors.append(f"{path}: attestation verification must bind source ref to GITHUB_REF")
+    if "--predicate-type \"https://slsa.dev/provenance/v1\"" not in publish_text:
+        errors.append(f"{path}: attestation verification must pin the SLSA provenance predicate")
+    if "--deny-self-hosted-runners" not in publish_text:
+        errors.append(f"{path}: attestation verification must reject self-hosted runners")
     if "--cert-oidc-issuer" not in publish_text:
         errors.append(f"{path}: attestation verification must pin the GitHub OIDC issuer")
     if "actions/upload-artifact@" not in qualify_text:
