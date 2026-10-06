@@ -14,7 +14,7 @@ from pathlib import Path
 
 PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
-    "gcs_wif_trust_profile_v6.json"
+    "gcs_wif_trust_profile_v7.json"
 )
 
 
@@ -33,7 +33,7 @@ def digest(value: object) -> str:
 
 def load_profile() -> dict[str, object]:
     profile = json.loads(Path(PROFILE_PATH).read_text(encoding="utf-8"))
-    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v6":
+    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v7":
         raise AssertionError("wrong WIF trust profile schema")
     if profile.get("supersedes") != "sol-atlas:gcs-wif-trust-profile:v5":
         raise AssertionError("WIF trust profile lineage is missing")
@@ -198,6 +198,26 @@ def service_account_policy(service_account: str) -> dict[str, object]:
     )
 
 
+def forbidden_direct_roles(profile: dict[str, object]) -> set[str]:
+    roles = profile.get("forbidden_direct_service_account_roles")
+    if not isinstance(roles, list) or any(
+        not isinstance(role, str) or not role for role in roles
+    ):
+        raise AssertionError("WIF profile has invalid forbidden direct roles")
+    return set(roles)
+
+
+def direct_policy_has_forbidden_roles(
+    policy: dict[str, object],
+    forbidden_roles: set[str],
+) -> bool:
+    return any(
+        isinstance(binding, dict)
+        and binding.get("role") in forbidden_roles
+        for binding in policy.get("bindings", [])
+    )
+
+
 def binding_is_present(
     policy: dict[str, object],
     role: str,
@@ -276,6 +296,11 @@ def verify(
         raise AssertionError(
             "service-account WIF binding is missing or non-exclusive"
         )
+    forbidden_roles = forbidden_direct_roles(profile)
+    if direct_policy_has_forbidden_roles(policy, forbidden_roles):
+        raise AssertionError(
+            "service-account direct policy contains an alternate authority role"
+        )
 
     provider_digest = digest(
         {
@@ -288,11 +313,12 @@ def verify(
             "serviceAccount": service_account,
             "serviceAccountRole": role,
             "serviceAccountMember": expected_member,
+            "forbiddenDirectServiceAccountRoles": sorted(forbidden_roles),
             "attributeConditionProfile": profile,
         }
     )
     return {
-        "schema": "sol-atlas:gcs-wif-trust-verification:v6",
+        "schema": "sol-atlas:gcs-wif-trust-verification:v7",
         "provider_resource": provider_resource,
         "provider_project_number": number,
         "provider_digest": provider_digest,
@@ -302,6 +328,7 @@ def verify(
         "service_account_project": sa_project,
         "service_account_project_verified": True,
         "service_account_binding_verified": True,
+        "forbidden_direct_service_account_roles_absent": True,
         "provider_pool_exclusive": True,
         "attribute_mapping_verified": True,
         "attribute_condition_verified": True,
