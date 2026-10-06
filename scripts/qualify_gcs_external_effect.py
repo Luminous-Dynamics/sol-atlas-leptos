@@ -169,6 +169,15 @@ def verify_oidc_temporal_evidence(claims: dict[str, object]) -> None:
         raise AssertionError("invalid OIDC temporal verification metadata")
     verified_at = float(verified_at)
     clock_skew = float(clock_skew)
+    recorded_at = claims.get("verified_at")
+    if not isinstance(recorded_at, str) or not recorded_at:
+        raise AssertionError("missing OIDC verification timestamp")
+    try:
+        parsed_recorded_at = datetime.fromisoformat(recorded_at)
+    except ValueError as exc:
+        raise AssertionError("OIDC verification timestamp is not ISO-8601") from exc
+    if parsed_recorded_at.tzinfo is None:
+        raise AssertionError("OIDC verification timestamp has no timezone")
     if values["exp"] <= values["iat"] or values["nbf"] > values["exp"]:
         raise AssertionError("OIDC temporal claims have no valid interval")
     if values["iat"] > verified_at + clock_skew:
@@ -822,6 +831,9 @@ def verify_report(path: str) -> None:
         raise AssertionError("report OIDC workflow_sha mismatch")
     if oidc_claims.get("source_sha_matches_runner") is not True:
         raise AssertionError("report OIDC source sha mismatch")
+    if oidc_claims.get("temporal_claims_valid") is not True:
+        raise AssertionError("report OIDC temporal claims were not validated")
+    verify_oidc_temporal_evidence(oidc_claims)
     if report.get("github_oidc_claims_digest") != digest(oidc_claims):
         raise AssertionError("GitHub OIDC artifact digest mismatch")
     if observed_claims.get("workflow_sha") != github_context.get("workflow_sha"):
