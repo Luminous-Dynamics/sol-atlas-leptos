@@ -235,8 +235,7 @@ def validate_qualification_policy(
         errors.append(
             f"{path}: evidence upload and attestation must occur after cleanup in qualify"
         )
-    publish_lines = "
-".join(publish)
+    publish_lines = "\n".join(publish)
     if "python3 scripts/qualify_gcs_external_effect.py" not in publish_lines:
         errors.append(
             f"{path}: publication must re-verify the qualification report"
