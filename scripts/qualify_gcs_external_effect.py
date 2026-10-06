@@ -896,17 +896,7 @@ def write_report(path: str, report: dict[str, object]) -> None:
     )
 
 
-def verify_report(path: str) -> None:
-    report = json.loads(Path(path).read_text(encoding="utf-8"))
-    expected_case_set = load_case_set()
-    if report.get("schema") != SCHEMA:
-        raise AssertionError("wrong report schema")
-    if report.get("status") != "qualified":
-        raise AssertionError("report is not qualified")
-    if report.get("case_set") != EXPECTED_CASE_SET:
-        raise AssertionError("wrong case-set identity")
-    if report.get("case_set_path") != CASE_SET_PATH:
-        raise AssertionError("wrong case-set path")
+def verify_resource_identity(report: dict[str, object]) -> None:
     if report.get("service") != "Google Cloud Storage":
         raise AssertionError("wrong external service")
     bucket = report.get("bucket")
@@ -927,6 +917,20 @@ def verify_report(path: str) -> None:
         or len(set(object_names)) != len(object_names)
     ):
         raise AssertionError("GCS object identities are incomplete or drifted")
+
+
+def verify_report(path: str) -> None:
+    report = json.loads(Path(path).read_text(encoding="utf-8"))
+    expected_case_set = load_case_set()
+    if report.get("schema") != SCHEMA:
+        raise AssertionError("wrong report schema")
+    if report.get("status") != "qualified":
+        raise AssertionError("report is not qualified")
+    if report.get("case_set") != EXPECTED_CASE_SET:
+        raise AssertionError("wrong case-set identity")
+    if report.get("case_set_path") != CASE_SET_PATH:
+        raise AssertionError("wrong case-set path")
+    verify_resource_identity(report)
     expected_case_set_digest = digest(expected_case_set)
     if report.get("case_set_digest") != expected_case_set_digest:
         raise AssertionError("case-set digest mismatch")
