@@ -24,7 +24,7 @@ from scripts.gcs_generation_fenced_adapter import (
 )
 
 
-SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v2"
+SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v3"
 CASE_SET_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
     "gcs_external_effect_cases_v2.json"
