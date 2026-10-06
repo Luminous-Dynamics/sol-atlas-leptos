@@ -16,12 +16,20 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
-from scripts.gcs_generation_fenced_adapter import (
-    GcsGenerationFencedObject,
-    MutationRequest,
-    access_token,
-    sha256_prefixed,
-)
+if __package__:
+    from .gcs_generation_fenced_adapter import (
+        GcsGenerationFencedObject,
+        MutationRequest,
+        access_token,
+        sha256_prefixed,
+    )
+else:
+    from gcs_generation_fenced_adapter import (
+        GcsGenerationFencedObject,
+        MutationRequest,
+        access_token,
+        sha256_prefixed,
+    )
 
 
 SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v3"
