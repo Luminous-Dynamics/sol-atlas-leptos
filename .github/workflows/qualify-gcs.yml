@@ -110,6 +110,7 @@ jobs:
           set -euo pipefail
           gcloud auth login \
             --cred-file="$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
+          gcloud config set project "$GCP_PROJECT_ID"
       - name: Verify caller identity
         shell: bash
         run: |
