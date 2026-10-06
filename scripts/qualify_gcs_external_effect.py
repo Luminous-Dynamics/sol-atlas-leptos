@@ -24,6 +24,7 @@ if __package__:
         access_token,
         sha256_prefixed,
     )
+    from .verify_github_oidc_claims import expected_claims
 else:
     from gcs_generation_fenced_adapter import (
         GcsGenerationFencedObject,
@@ -31,6 +32,7 @@ else:
         access_token,
         sha256_prefixed,
     )
+    from verify_github_oidc_claims import expected_claims
 
 
 SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v3"
@@ -217,26 +219,7 @@ def verify_oidc_claim_identity(
         "GITHUB_RUN_ID": github_context["run_id"],
         "GITHUB_RUN_ATTEMPT": github_context["run_attempt"],
     }
-    expected = {
-        "iss": "https://token.actions.githubusercontent.com",
-        "aud": audience,
-        "repository": "Luminous-Dynamics/sol-atlas-leptos",
-        "repository_id": "1195997641",
-        "repository_owner_id": "216969177",
-        "environment": "sol-atlas-gcs-qualification",
-        "event_name": "workflow_dispatch",
-        "workflow": "Qualify GCS external effect",
-        "ref": "refs/heads/main",
-        "ref_type": "branch",
-        "workflow_ref": (
-            "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/"
-            "qualify-gcs.yml@refs/heads/main"
-        ),
-        "workflow_sha": context["GITHUB_WORKFLOW_SHA"],
-        "sha": context["GITHUB_SHA"],
-        "run_id": context["GITHUB_RUN_ID"],
-        "run_attempt": context["GITHUB_RUN_ATTEMPT"],
-    }
+    expected = expected_claims(audience, context)
     for name, expected_value in expected.items():
         if observed_claims.get(name) != expected_value:
             raise AssertionError(
