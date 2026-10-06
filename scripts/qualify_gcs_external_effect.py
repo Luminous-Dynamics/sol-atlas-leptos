@@ -235,6 +235,8 @@ def load_oidc_claims(path: str) -> dict[str, object]:
     observed = claims.get("claims")
     if not isinstance(observed, dict) or not observed:
         raise AssertionError("missing GitHub OIDC claims")
+    if claims.get("audience") != observed.get("aud"):
+        raise AssertionError("OIDC artifact audience does not match its claims")
     if claims.get("claims_digest") != digest(observed):
         raise AssertionError("GitHub OIDC claims digest mismatch")
     if claims.get("cryptographic_verification") != "not_performed_locally":
