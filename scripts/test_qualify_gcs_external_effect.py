@@ -28,6 +28,9 @@ def expect_rejection(report: dict[str, object], message: str) -> None:
 
 
 def main() -> None:
+    assert module.SCHEMA == (
+        "sol-atlas:recovery-execution-effect-external-report:v6"
+    )
     good = {
         "service": "Google Cloud Storage",
         "bucket": "sol-atlas-qualification",
