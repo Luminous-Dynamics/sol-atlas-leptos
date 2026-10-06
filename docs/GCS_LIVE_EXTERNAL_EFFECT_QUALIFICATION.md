@@ -113,7 +113,7 @@ Adding, removing, reordering, or redefining these cases requires a new case-set 
 
 ## Evidence handling
 
-The workflow report (schema v5) binds the exact checked-out source commit
+The workflow report (schema v6) binds the exact checked-out source commit
 (`GITHUB_SHA`), the workflow SHA/ref, adapter/harness/workflow blobs, GitHub
 server workflow-run verification/digest, WIF verification/profile digest,
 case-set identity, ordered observed results, OIDC
