@@ -187,6 +187,37 @@ jobs:
             for error in errors
         )
 
+        workflow.write_text(
+            """
+jobs:
+  qualify:
+    permissions:
+      id-token: write
+    outputs:
+      artifact_id: ${{ steps.upload_evidence.outputs.artifact-id }}
+    steps:
+      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
+      - name: cleanup
+        run: rm -f "$RUNNER_TEMP/token.jwt"
+      - name: upload
+        id: upload_evidence
+        uses: actions/upload-artifact@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  publish:
+    needs: qualify
+    permissions:
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@cccccccccccccccccccccccccccccccccccccccc
+        with:
+          artifact-ids: ${{ needs.qualify.outputs.artifact_id }}
+      - uses: actions/attest@dddddddddddddddddddddddddddddddddddddddd
+""".strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        errors = module.validate(root)
+        assert errors == [], errors
+
     print("offline GitHub Actions hardening checks: PASS")
 
 

@@ -114,7 +114,8 @@ authentication, and report verification checks the same equality.
 
 
 After transient-credential cleanup, the qualification job uploads only the
-non-secret `artifacts/` directory through the pinned GitHub artifact action.
+non-secret `artifacts/` directory through the pinned GitHub artifact action. The
+uploader's artifact ID is passed as a small job output to publication.
 The separate publication job downloads that artifact, re-verifies the report
 against the exact source checkout, and then attests it. The publication job has
 no `id-token: write` permission and cannot request a new GitHub OIDC token

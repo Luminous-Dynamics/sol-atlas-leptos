@@ -86,7 +86,14 @@ def validate_qualification_handoff(
         errors.append(
             f"{path}: qualification evidence must use the native artifact handoff"
         )
-    cleanup_line = next(
+    if "artifact_id: ${ steps.upload_evidence.outputs.artifact-id }}" not in text:
+        errors.append(
+            f"{path}: qualification must expose the exact uploaded artifact ID"
+        )
+    if "artifact-ids: ${ needs.qualify.outputs.artifact_id }}" not in text:
+        errors.append(
+            f"{path}: publication must download by exact qualification artifact ID"
+        )    cleanup_line = next(
         (index for index, line in enumerate(lines, 1)
          if line.strip() == "- name: Remove transient OIDC credentials"),
         None,
