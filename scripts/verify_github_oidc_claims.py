@@ -10,13 +10,16 @@ import argparse
 import base64
 import hashlib
 import json
+import math
 import os
 import re
+import time
 import urllib.parse
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA = "sol-atlas:github-oidc-claims:v1"
+SCHEMA = "sol-atlas:github-oidc-claims:v2"
 ISSUER = "https://token.actions.githubusercontent.com"
 REPO = "Luminous-Dynamics/sol-atlas-leptos"
 REPOSITORY_ID = "1195997641"
@@ -30,6 +33,8 @@ WORKFLOW_REF = (
     "qualify-gcs.yml@refs/heads/main"
 )
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
+DECIMAL = re.compile(r"^[0-9]+$")
+OIDC_CLOCK_SKEW_SECONDS = 60
 
 
 def canonical(value: object) -> bytes:
@@ -79,6 +84,10 @@ def runtime_context() -> dict[str, str]:
         raise AssertionError("GITHUB_WORKFLOW_SHA is not a lowercase 40-hex commit")
     if not HEX40.fullmatch(values["GITHUB_SHA"]):
         raise AssertionError("GITHUB_SHA is not a lowercase 40-hex commit")
+    if not DECIMAL.fullmatch(values["GITHUB_RUN_ID"]):
+        raise AssertionError("GITHUB_RUN_ID is not a decimal run identifier")
+    if not DECIMAL.fullmatch(values["GITHUB_RUN_ATTEMPT"]):
+        raise AssertionError("GITHUB_RUN_ATTEMPT is not a decimal attempt identifier")
     return values
 
 
@@ -102,13 +111,52 @@ def expected_claims(audience: str, context: dict[str, str]) -> dict[str, str]:
     }
 
 
+def numeric_date(payload: dict[str, object], name: str) -> float:
+    value = payload.get(name)
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(float(value))
+    ):
+        raise AssertionError(f"OIDC claim {name!r} is missing or not a finite number")
+    return float(value)
+
+
+def verify_temporal_claims(
+    payload: dict[str, object],
+    *,
+    now: float,
+    clock_skew: float = OIDC_CLOCK_SKEW_SECONDS,
+) -> dict[str, object]:
+    if not math.isfinite(now) or not math.isfinite(clock_skew) or clock_skew < 0:
+        raise AssertionError("OIDC verifier clock parameters are invalid")
+    issued_at = numeric_date(payload, "iat")
+    expires_at = numeric_date(payload, "exp")
+    not_before = numeric_date(payload, "nbf")
+    if expires_at <= issued_at:
+        raise AssertionError("OIDC exp must be later than iat")
+    if issued_at > now + clock_skew:
+        raise AssertionError("OIDC token is issued in the future")
+    if not_before > now + clock_skew:
+        raise AssertionError("OIDC token is not yet valid")
+    if expires_at <= now - clock_skew:
+        raise AssertionError("OIDC token is expired")
+    return {
+        "iat": payload["iat"],
+        "exp": payload["exp"],
+        "nbf": payload["nbf"],
+    }
+
+
 def verify_claims(
     payload: dict[str, object],
     audience: str,
     context: dict[str, str],
-) -> dict[str, str]:
+    *,
+    now: float,
+) -> dict[str, object]:
     expected = expected_claims(audience, context)
-    observed: dict[str, str] = {}
+    observed: dict[str, object] = {}
     for name, expected_value in expected.items():
         value = payload.get(name)
         if not isinstance(value, str):
@@ -118,6 +166,7 @@ def verify_claims(
                 f"OIDC claim drift for {name}: {value!r} != {expected_value!r}"
             )
         observed[name] = value
+    observed.update(verify_temporal_claims(payload, now=now))
     return observed
 
 
@@ -168,13 +217,25 @@ def verify(
     if not audience.startswith("https://iam.googleapis.com/projects/"):
         raise AssertionError("OIDC audience is not a Google provider resource")
     context = runtime_context()
+    verification_time = time.time()
     token = request_token(audience)
-    claims = verify_claims(decode_payload(token), audience, context)
+    claims = verify_claims(
+        decode_payload(token),
+        audience,
+        context,
+        now=verification_time,
+    )
     result: dict[str, object] = {
         "schema": SCHEMA,
         "audience": audience,
         "claims": claims,
         "claims_digest": digest(claims),
+        "temporal_claims_valid": True,
+        "verified_at_unix": verification_time,
+        "verified_at": datetime.fromtimestamp(
+            verification_time, timezone.utc
+        ).isoformat(),
+        "clock_skew_seconds": OIDC_CLOCK_SKEW_SECONDS,
         "workflow_sha_matches_runner": (
             claims["workflow_sha"] == context["GITHUB_WORKFLOW_SHA"]
         ),
