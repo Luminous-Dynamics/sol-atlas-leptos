@@ -38,20 +38,19 @@ workflow identity, workflow_ref, workflow_sha, source SHA, run ID, run attempt,
 and branch type against the runner context. The parser also requires the
 standard JWT `iat`, `nbf`, and `exp` NumericDate claims to describe a
 non-empty validity interval and validates them at token receipt with a bounded
-60-second clock-skew allowance. The verifier records the verification timestamp
-and temporal-validation result in the OIDC evidence. The parser records only
-those safe claims and explicitly delegates JWT signature acceptance to the
-subsequent Google WIF exchange; decoding the JWT locally is not itself
-cryptographic verification. The selected claims and their digest are embedded
-in the final qualification report, so later report verification can prove that
-the captured run's token claims matched the recorded workflow/source context
-and that the recorded token was temporally valid when it was checked. The
-request endpoint itself must resolve to GitHub's HTTPS OIDC issuer host, and
-pre-existing audience query parameters are replaced rather than duplicated.
-The verifier does not perform local JWT signature verification. The pinned
-Google auth action obtains a separate OIDC token for the WIF exchange, so the
-preflight JWT is not claimed to be the exact byte sequence exchanged with
-Google.
+60-second clock-skew allowance. The verifier records a SHA-256 fingerprint of
+the exact JWT bytes and writes the raw token only to the runner's transient
+temp directory.
+
+The verifier does not perform local JWT signature verification. The workflow
+constructs a Google external-account credential configuration whose
+file-sourced subject token is that exact JWT file. A dedicated verifier checks
+the generated configuration's provider audience, JWT subject-token type, STS
+URL, token-file path, and service-account impersonation URL, and checks that
+the token-file fingerprint equals the fingerprint from the parsed JWT. The
+workflow then runs `gcloud auth login --cred-file` against that configuration,
+so the WIF exchange consumes the same verified JWT bytes rather than requesting
+a second OIDC token.
 
 The verifier also requires the provider's OIDC `allowedAudiences` to be empty,
 which activates Google's provider-resource default audience rule. The workflow
@@ -105,12 +104,14 @@ Adding, removing, reordering, or redefining these cases requires a new case-set 
 
 ## Evidence handling
 
-The workflow report binds the exact checked-out source commit (`GITHUB_SHA`),
-the workflow SHA/ref, adapter/harness/workflow blobs, WIF verification/profile
-digest, case-set identity, ordered observed results, OIDC claim record/digest,
-evidence digest, and report digest. The live workflow asserts that
-`git rev-parse HEAD` equals `GITHUB_SHA` before cloud authentication, and
-report verification checks the same equality.
+The workflow report (schema v5) binds the exact checked-out source commit
+(`GITHUB_SHA`), the workflow SHA/ref, adapter/harness/workflow blobs, WIF
+verification/profile digest, case-set identity, ordered observed results, OIDC
+v4 claim record/digest, exact-token fingerprint, WIF credential-config
+verification/digest, evidence digest, and report digest. The live workflow
+asserts that `git rev-parse HEAD` equals `GITHUB_SHA` before cloud
+authentication, and report verification checks the same equality.
+
 
 The artifact is also emitted through GitHub artifact attestation. That
 attestation is provenance for the report; it does not prove that Cloud Storage
@@ -143,9 +144,11 @@ trust conditions.
 
 ## OIDC evidence version
 
-The live OIDC evidence format is `sol-atlas:github-oidc-claims:v3`; the prior
-OIDC v1 and v2 formats are historical. The outer GCS qualification report is
-schema v4 because its embedded OIDC evidence contract changed.
+The live OIDC evidence format is `sol-atlas:github-oidc-claims:v4`; OIDC v1,
+v2, and v3 formats are historical. The outer GCS qualification report is schema
+v5 because it now binds the exact verified JWT to the file-sourced WIF
+credential configuration used for the exchange.
+
 
 ## Frozen case corpus
 
