@@ -129,7 +129,7 @@ def main() -> None:
         "verified_at": "2025-06-15T15:06:40+00:00",
         "clock_skew_seconds": module.OIDC_CLOCK_SKEW_SECONDS,
         "cryptographic_verification": "not_performed_locally",
-        "wif_exchange_token_is_separately_requested_by_auth_action": True,
+        "wif_exchange_uses_this_exact_verified_token": True,
         "claims_digest": qualifier.digest(expected),
     }
     with TemporaryDirectory() as tmp:
@@ -146,7 +146,7 @@ def main() -> None:
                 "delegated_to_gcp_wif_exchange",
             ),
             (
-                "wif_exchange_token_is_separately_requested_by_auth_action",
+                "wif_exchange_uses_this_exact_verified_token",
                 False,
             ),
             ("audience", "https://iam.googleapis.com/projects/tampered"),
