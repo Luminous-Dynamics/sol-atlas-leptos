@@ -85,7 +85,6 @@ jobs:
             for error in errors
         )
 
-
         workflow.write_text(
             """
 jobs:
@@ -133,6 +132,61 @@ jobs:
             "publication job must not receive id-token: write" in error
             for error in errors
         )
+
+        workflow.write_text(
+            """
+jobs:
+  qualify:
+    permissions:
+      id-token: write
+    steps:
+      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
+      - name: cleanup
+        run: rm -f "$RUNNER_TEMP/token.jwt"
+      - uses: actions/upload-artifact@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  publish:
+    needs: qualify
+    permissions:
+      attestations: write
+    steps:
+      - uses: actions/checkout@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      - uses: actions/download-artifact@cccccccccccccccccccccccccccccccccccccccc
+      - uses: actions/attest@dddddddddddddddddddddddddddddddddddddddd
+""".strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        errors = module.validate(root)
+        assert errors == [], errors
+
+        workflow.write_text(
+            """
+jobs:
+  qualify:
+    permissions:
+      id-token: write
+    outputs:
+      evidence_bundle: unsafe
+    steps:
+      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
+      - name: cleanup
+        run: rm -f "$RUNNER_TEMP/token.jwt"
+      - uses: actions/upload-artifact@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  publish:
+    needs: qualify
+    permissions:
+      attestations: write
+    steps: []
+""".strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        errors = module.validate(root)
+        assert any(
+            "native artifact handoff" in error
+            for error in errors
+        )
+
     print("offline GitHub Actions hardening checks: PASS")
 
 

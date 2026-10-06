@@ -62,6 +62,47 @@ def validate_qualification_permission_isolation(
         errors.append(f"{path}: publication job must depend on qualification")
     return errors
 
+def validate_qualification_handoff(
+    path: Path,
+    lines: list[str],
+) -> list[str]:
+    if path.name != "qualify-gcs.yml":
+        return []
+    text = "\n".join(lines)
+    errors: list[str] = []
+    if "evidence_bundle:" in text or "base64 -w0" in text:
+        errors.append(
+            f"{path}: qualification evidence must use the native artifact handoff"
+        )
+    cleanup_line = next(
+        (index for index, line in enumerate(lines, 1)
+         if line.strip() == "- name: Remove transient OIDC credentials"),
+        None,
+    )
+    upload_line = next(
+        (index for index, line in enumerate(lines, 1)
+         if "actions/upload-artifact@" in line),
+        None,
+    )
+    publish_line = next(
+        (index for index, line in enumerate(lines, 1)
+         if line == "  publish:"),
+        None,
+    )
+    if cleanup_line is None:
+        errors.append(f"{path}: transient-credential cleanup is required")
+    if upload_line is None or (cleanup_line is not None and upload_line <= cleanup_line):
+        errors.append(f"{path}: qualification artifact upload must occur after cleanup")
+    if publish_line is None:
+        errors.append(f"{path}: publication job is required")
+    else:
+        publish_text = "\n".join(lines[publish_line - 1:])
+        if "actions/download-artifact@" not in publish_text:
+            errors.append(f"{path}: publication job must download the qualification artifact")
+        if "actions/attest@" not in publish_text:
+            errors.append(f"{path}: publication job must attest the qualification report")
+    return errors
+
 def validate_qualification_secret_order(
     path: Path,
     lines: list[str],
@@ -144,6 +185,7 @@ def validate(root: Path) -> list[str]:
                     f"{path}:{line_number}: external action ref is not immutable: {ref}"
                 )
         workflow_lines = path.read_text(encoding="utf-8").splitlines()
+        errors.extend(validate_qualification_handoff(path, workflow_lines))
         errors.extend(validate_qualification_secret_order(path, workflow_lines))
         errors.extend(validate_qualification_permission_isolation(path, workflow_lines))
     return errors

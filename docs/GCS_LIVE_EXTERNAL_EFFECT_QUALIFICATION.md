@@ -117,10 +117,12 @@ The artifact is also emitted through GitHub artifact attestation. That
 attestation is provenance for the report; it does not prove that Cloud Storage
 is truthful.
 
-The qualification job packages only the non-secret `artifacts/` directory
-after transient-credential cleanup into a bounded job output. The separate
-publication job has no `id-token: write` permission and is therefore unable to
-request a new GitHub OIDC token while uploading or attesting evidence.
+After transient-credential cleanup, the qualification job uploads only the
+non-secret `artifacts/` directory through the pinned GitHub artifact action.
+The separate publication job downloads that artifact, re-verifies the report
+against the exact source checkout, and then attests it. The publication job has
+no `id-token: write` permission and cannot request a new GitHub OIDC token
+while downloading or attesting evidence.
 
 A queued Actions run is not qualification evidence. The live claim advances
 only when the complete case vector executes and the generated report
@@ -133,15 +135,16 @@ sol-atlas-gcs-qualification. Keep GCP values in protected environment/repository
 variables.
 
 The live workflow remains workflow_dispatch-only and intentionally runs only
-from refs/heads/main. It has id-token and attestations permissions, passes the
-provider-resource URL as the explicit OIDC audience, and pins third-party
-actions to immutable release commit SHAs. The Cloud SDK is also pinned to the
-exact published version 586.0.0 rather than a floating version constraint.
-Before cloud authentication it checks both the triggering commit and
-workflow-file provenance. The setup-gcloud action runs before OIDC token
-materialization. The qualification job then has no external action between
-OIDC token creation and transient-credential cleanup; publication occurs in a
-separate job without `id-token: write`.
+from refs/heads/main. The qualification job has only `contents: read` and
+`id-token: write`; it passes the provider-resource URL as the explicit OIDC
+audience and pins third-party actions to immutable release commit SHAs. The
+Cloud SDK is also pinned to the exact published version 586.0.0 rather than a
+floating version constraint. Before cloud authentication it checks both the
+triggering commit and workflow-file provenance. The setup-gcloud action runs
+before OIDC token materialization. After token materialization, no external
+action executes until transient credentials are removed; the only later
+qualification action is the pinned artifact upload. Publication is a separate
+job without `id-token: write`.
 
 Google documents that google.subject is required for workload identity
 providers and that service-account impersonation uses
