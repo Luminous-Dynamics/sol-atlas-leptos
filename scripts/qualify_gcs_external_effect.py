@@ -43,7 +43,7 @@ HARNESS_PATH = "scripts/qualify_gcs_external_effect.py"
 WORKFLOW_PATH = ".github/workflows/qualify-gcs.yml"
 ADAPTER_ID = "gcs-generation-fenced-object"
 HARNESS_ID = "sol-atlas-gcs-external-conformance"
-OIDC_CLAIMS_SCHEMA = "sol-atlas:github-oidc-claims:v1"
+OIDC_CLAIMS_SCHEMA = "sol-atlas:github-oidc-claims:v2"
 CLAIM_CEILING = (
     "GCS generation-precondition evidence only; replay safety applies while "
     "the qualified live object state remains retained; no universal "
@@ -147,6 +147,38 @@ def load_wif_verification(path: str) -> dict[str, object]:
     return verification
 
 
+def verify_oidc_temporal_evidence(claims: dict[str, object]) -> None:
+    observed = claims.get("claims")
+    if not isinstance(observed, dict):
+        raise AssertionError("missing observed temporal OIDC claims")
+    values = {}
+    for name in ("iat", "exp", "nbf"):
+        value = observed.get(name)
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise AssertionError(f"OIDC {name} claim is not numeric")
+        values[name] = float(value)
+    verified_at = claims.get("verified_at_unix")
+    clock_skew = claims.get("clock_skew_seconds")
+    if (
+        isinstance(verified_at, bool)
+        or not isinstance(verified_at, (int, float))
+        or isinstance(clock_skew, bool)
+        or not isinstance(clock_skew, (int, float))
+        or float(clock_skew) < 0
+    ):
+        raise AssertionError("invalid OIDC temporal verification metadata")
+    verified_at = float(verified_at)
+    clock_skew = float(clock_skew)
+    if values["exp"] <= values["iat"] or values["nbf"] > values["exp"]:
+        raise AssertionError("OIDC temporal claims have no valid interval")
+    if values["iat"] > verified_at + clock_skew:
+        raise AssertionError("OIDC iat is later than the recorded verification time")
+    if values["nbf"] > verified_at + clock_skew:
+        raise AssertionError("OIDC nbf is later than the recorded verification time")
+    if values["exp"] <= verified_at - clock_skew:
+        raise AssertionError("OIDC exp predates the recorded verification time")
+
+
 def load_oidc_claims(path: str) -> dict[str, object]:
     claims = json.loads(Path(path).read_text(encoding="utf-8"))
     if claims.get("schema") != OIDC_CLAIMS_SCHEMA:
@@ -162,6 +194,9 @@ def load_oidc_claims(path: str) -> dict[str, object]:
         raise AssertionError("OIDC workflow_sha does not match runner context")
     if claims.get("source_sha_matches_runner") is not True:
         raise AssertionError("OIDC sha does not match runner context")
+    if claims.get("temporal_claims_valid") is not True:
+        raise AssertionError("OIDC temporal claims were not validated")
+    verify_oidc_temporal_evidence(claims)
     return claims
 
 
