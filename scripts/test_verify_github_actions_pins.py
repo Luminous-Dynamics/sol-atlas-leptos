@@ -141,6 +141,19 @@ def main() -> None:
         expect(path, root, bad, "attestation verification must bind source digest")
 
         bad = GOOD.replace(
+            '            --signer-workflow \\\n'
+            '              "$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml" \\\n',
+            '            --signer-workflow \\\n'
+            '              "$GITHUB_REPOSITORY/.github/workflows/other.yml" \\\n',
+        )
+        expect(
+            path,
+            root,
+            bad,
+            "attestation verification must use the exact qualification workflow signer",
+        )
+
+        bad = GOOD.replace(
             '            --signer-digest "$GITHUB_WORKFLOW_SHA" \\\n',
             "",
         )
