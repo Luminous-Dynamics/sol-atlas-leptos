@@ -149,6 +149,7 @@ def main() -> None:
                 "wif_exchange_token_is_separately_requested_by_auth_action",
                 False,
             ),
+            ("audience", "https://iam.googleapis.com/projects/tampered"),
         ):
             tampered = dict(oidc_artifact, **{field: value})
             artifact_path.write_text(
