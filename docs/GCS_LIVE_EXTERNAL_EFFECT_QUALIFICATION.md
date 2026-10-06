@@ -35,7 +35,8 @@ Before cloud authentication, the workflow requests a real GitHub OIDC JWT for
 the exact Google provider-resource audience. A local parser checks the issuer,
 audience, repository identity, protected environment, event, main ref,
 workflow identity, workflow_ref, workflow_sha, source SHA, run ID, run attempt,
-and branch type against the runner context. The parser also requires the
+runner environment, and branch type against the runner context. The accepted
+runner environment is exactly `github-hosted`. The parser also requires the
 standard JWT `iat`, `nbf`, and `exp` NumericDate claims to describe a
 non-empty validity interval and validates them at token receipt with a bounded
 60-second clock-skew allowance. The verifier records a SHA-256 fingerprint of
@@ -124,8 +125,9 @@ OIDC token. Publication then runs `gh attestation verify` against the
 downloaded report, requiring the exact qualification workflow as signer, the
 captured `GITHUB_SHA` as source digest, the captured ref, and the GitHub OIDC
 issuer, the explicit SLSA provenance predicate, and a GitHub-hosted-runner
-requirement. This turns the attestation from a generated side artifact into
-an independently checked evidence boundary.
+requirement. The OIDC evidence itself also records and verifies the
+`runner_environment` claim as `github-hosted`. This turns the attestation from
+a generated side artifact into an independently checked evidence boundary.
 
 A queued Actions run is not qualification evidence. The live claim advances
 only when the complete case vector executes and the generated report
