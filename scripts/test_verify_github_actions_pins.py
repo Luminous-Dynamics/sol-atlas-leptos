@@ -40,6 +40,12 @@ jobs:
       - name: upload
         id: upload_evidence
         uses: actions/upload-artifact@UPLOAD
+        with:
+          path: |
+            artifacts/github-oidc-claims.json
+            artifacts/gcs-wif-credential-config-verification.json
+            artifacts/gcs-wif-trust-verification.json
+            artifacts/gcs-external-effect-report.json
       - uses: actions/attest@ATTEST
   publish:
     needs: qualify
@@ -204,10 +210,19 @@ def main() -> None:
             "attestation verification must follow report re-verification",
         )
         bad = GOOD.replace(
-            "          digest-mismatch: error",
-            "          path: artifacts/\\n          digest-mismatch: error",
+            "          path: |\n"
+            "            artifacts/github-oidc-claims.json\n"
+            "            artifacts/gcs-wif-credential-config-verification.json\n"
+            "            artifacts/gcs-wif-trust-verification.json\n"
+            "            artifacts/gcs-external-effect-report.json",
+            "          path: artifacts/",
         )
-        expect(path, root, bad, "qualification must explicitly allowlist evidence files")
+        expect(
+            path,
+            root,
+            bad,
+            "qualification must explicitly allowlist the four evidence files",
+        )
 
         bad = GOOD.replace("  publish:", "    evidence_bundle: unsafe\n  publish:")
         expect(path, root, bad, "oversized job-output handoff")
