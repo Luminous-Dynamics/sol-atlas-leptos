@@ -114,12 +114,12 @@ authentication, and report verification checks the same equality.
 
 
 After transient-credential cleanup, the qualification job uploads only the
-non-secret `artifacts/` directory through the pinned GitHub artifact action. The
-uploader's artifact ID is passed as a small job output to publication.
-The separate publication job downloads that artifact, re-verifies the report
-against the exact source checkout, and then attests it. The publication job has
-no `id-token: write` permission and cannot request a new GitHub OIDC token
-while downloading or attesting evidence.
+non-secret `artifacts/` directory through the pinned GitHub artifact action and
+attests the report. The uploader's unique artifact ID is passed as a small job
+output to a separate publication job. Publication has only `contents: read`,
+downloads by that exact artifact ID with digest-mismatch failure enabled, and
+re-verifies the report against the exact source checkout. Publication cannot
+request a GitHub OIDC token.
 
 A queued Actions run is not qualification evidence. The live claim advances
 only when the complete case vector executes and the generated report

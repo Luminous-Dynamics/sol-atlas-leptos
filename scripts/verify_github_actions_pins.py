@@ -2,7 +2,7 @@
 # Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""Fail-closed check that external GitHub Actions use immutable commit refs."""
+"""Fail-closed checks for GitHub Actions workflow hardening."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 
 SHA_REF = re.compile(
-    r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@(?P<sha>[0-9a-f]{40})$"
+    r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[0-9a-f]{40}$"
 )
 USES_LINE = re.compile(r"^\s*(?:-\s*)?uses:\s*(?P<ref>[^\s#]+)")
 
@@ -20,119 +20,110 @@ def workflow_paths(root: Path) -> list[Path]:
     workflow_dir = root / ".github" / "workflows"
     return sorted(
         path
-        for path in [*workflow_dir.glob("*.yml"), *workflow_dir.glob("*.yaml")]
+        for path in (
+            *workflow_dir.glob("*.yml"),
+            *workflow_dir.glob("*.yaml"),
+        )
         if path.is_file()
     )
 
 
-
-def validate_qualification_permission_isolation(
-    path: Path,
-    lines: list[str],
-) -> list[str]:
-    if path.name != "qualify-gcs.yml":
-        return []
-
-    qualify_line = next(
-        (index for index, line in enumerate(lines, 1) if line == "  qualify:"),
+def job_bounds(lines: list[str], job: str) -> tuple[int, int] | None:
+    start = next(
+        (i for i, line in enumerate(lines) if line == f"  {job}:"),
         None,
     )
-    publish_line = next(
-        (index for index, line in enumerate(lines, 1) if line == "  publish:"),
-        None,
-    )
-    if qualify_line is None or publish_line is None:
-        return [f"{path}: qualification and publication jobs must both exist"]
-    id_token_lines = [
-        index for index, line in enumerate(lines, 1)
-        if "id-token: write" in line
-    ]
-    errors: list[str] = []
-    if not any(qualify_line < index < publish_line for index in id_token_lines):
-        errors.append(
-            f"{path}: id-token: write must be scoped to the qualification job"
-        )
-    if any(
-        index > publish_line for index in job_id_token_lines
-    ):
-        errors.append(
-            f"{path}: publication job must not receive id-token: write"
-        )
-    qualification_attestations = [
-        index
-        for index, line in enumerate(lines, 1)
-        if line == "      attestations: write"
-        and qualify_line < index < publish_line
-    ]
-    if qualification_attestations:
-        errors.append(
-            f"{path}: qualification job must not receive attestations: write"
-        )
-    if not any(
-        line.strip() == "needs: qualify" for line in lines[publish_line - 1:]
-    ):
-        errors.append(f"{path}: publication job must depend on qualification")
-    return errors
-
-def validate_qualification_handoff(
-    path: Path,
-    lines: list[str],
-) -> list[str]:
-    if path.name != "qualify-gcs.yml":
-        return []
-    text = "\n".join(lines)
-    errors: list[str] = []
-    if "evidence_bundle:" in text or "base64 -w0" in text:
-        errors.append(
-            f"{path}: qualification evidence must use the native artifact handoff"
-        )
-    if "artifact_id: ${ steps.upload_evidence.outputs.artifact-id }}" not in text:
-        errors.append(
-            f"{path}: qualification must expose the exact uploaded artifact ID"
-        )
-    if "artifact-ids: ${ needs.qualify.outputs.artifact_id }}" not in text:
-        errors.append(
-            f"{path}: publication must download by exact qualification artifact ID"
-        )    cleanup_line = next(
-        (index for index, line in enumerate(lines, 1)
-         if line.strip() == "- name: Remove transient OIDC credentials"),
-        None,
-    )
-    upload_line = next(
-        (index for index, line in enumerate(lines, 1)
-         if "actions/upload-artifact@" in line),
-        None,
-    )
-    publish_line = next(
-        (index for index, line in enumerate(lines, 1)
-         if line == "  publish:"),
-        None,
-    )
-    if cleanup_line is None:
-        errors.append(f"{path}: transient-credential cleanup is required")
-    if upload_line is None or (cleanup_line is not None and upload_line <= cleanup_line):
-        errors.append(f"{path}: qualification artifact upload must occur after cleanup")
-    if publish_line is None:
-        errors.append(f"{path}: publication job is required")
-    else:
-        publish_text = "\n".join(lines[publish_line - 1:])
-        if "actions/download-artifact@" not in publish_text:
-            errors.append(f"{path}: publication job must download the qualification artifact")
-        if "actions/attest@" not in publish_text:
-            errors.append(f"{path}: publication job must attest the qualification report")
-    return errors
-
-def validate_qualification_secret_order(
-    path: Path,
-    lines: list[str],
-) -> list[str]:
-    if path.name != "qualify-gcs.yml":
-        return []
-
-    token_output_line = next(
+    if start is None:
+        return None
+    end = next(
         (
-            index
-            for index, line in enumerate(lines, 1)
+            i
+            for i in range(start + 1, len(lines))
+            if lines[i].startswith("  ")
+            and not lines[i].startswith("    ")
+        ),
+        len(lines),
+    )
+    return start, end
+
+
+def section(lines: list[str], job: str) -> list[str]:
+    bounds = job_bounds(lines, job)
+    return [] if bounds is None else lines[bounds[0] : bounds[1]]
+
+
+def validate_qualification_policy(
+    path: Path,
+    lines: list[str],
+) -> list[str]:
+    if path.name != "qualify-gcs.yml":
+        return []
+
+    errors: list[str] = []
+    qualify = section(lines, "qualify")
+    publish = section(lines, "publish")
+    if not qualify:
+        errors.append(f"{path}: missing qualify job")
+        return errors
+    if not publish:
+        errors.append(f"{path}: missing publish job")
+        return errors
+
+    if "      id-token: write" not in qualify:
+        errors.append(f"{path}: qualify must grant id-token: write")
+    if "      attestations: write" not in qualify:
+        errors.append(f"{path}: qualify must grant attestations: write")
+    if "      id-token: write" in publish:
+        errors.append(f"{path}: publish must not grant id-token: write")
+    if "      attestations: write" in publish:
+        errors.append(f"{path}: publish must not grant attestations: write")
+    if "    needs: qualify" not in publish:
+        errors.append(f"{path}: publish must depend on qualify")
+
+    workflow_text = "\n".join(lines)
+    if "evidence_bundle:" in workflow_text:
+        errors.append(f"{path}: oversized job-output handoff is forbidden")
+    if "base64 -w0" in workflow_text:
+        errors.append(f"{path}: base64 job-output handoff is forbidden")
+
+    if (
+        "artifact_id: ${{ steps.upload_evidence.outputs.artifact-id }}"
+        not in workflow_text
+    ):
+        errors.append(
+            f"{path}: qualify must expose the exact uploaded artifact ID"
+        )
+    if (
+        "artifact-ids: ${{ needs.qualify.outputs.artifact_id }}"
+        not in "\n".join(publish)
+    ):
+        errors.append(
+            f"{path}: publish must download by exact qualification artifact ID"
+        )
+    if "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" not in (
+        "\n".join(publish)
+    ):
+        errors.append(f"{path}: publish must pin download-artifact v8.0.1")
+    if "digest-mismatch: error" not in "\n".join(publish):
+        errors.append(
+            f"{path}: publish must fail on artifact digest mismatch"
+        )
+
+    qualify_text = "\n".join(qualify)
+    publish_text = "\n".join(publish)
+    if "actions/attest@" not in qualify_text:
+        errors.append(f"{path}: qualify must attest the report")
+    if "actions/attest@" in publish_text:
+        errors.append(f"{path}: publish must not attest the report")
+    if "actions/upload-artifact@" not in qualify_text:
+        errors.append(f"{path}: qualify must upload evidence")
+    if "actions/upload-artifact@" in publish_text:
+        errors.append(f"{path}: publish must not upload a second evidence artifact")
+
+    token_line = next(
+        (
+            i
+            for i, line in enumerate(lines)
             if "--token-output" in line
             and "sol-atlas-github-oidc-token.jwt" in line
         ),
@@ -140,48 +131,57 @@ def validate_qualification_secret_order(
     )
     cleanup_line = next(
         (
-            index
-            for index, line in enumerate(lines, 1)
+            i
+            for i, line in enumerate(lines)
             if line.strip() == "- name: Remove transient OIDC credentials"
         ),
         None,
     )
-    if token_output_line is None:
-        return []
-    if cleanup_line is None or cleanup_line <= token_output_line:
-        return [
-            f"{path}: token cleanup must occur after OIDC token materialization"
-        ]
-
-    errors: list[str] = []
-    for line_number in range(token_output_line + 1, cleanup_line):
-        match = USES_LINE.match(lines[line_number - 1])
-        if not match or match.group("ref").startswith("./"):
-            continue
-        errors.append(
-            f"{path}:{line_number}: external action executes while "
-            "OIDC token is materialized; move it before token creation or "
-            "after credential cleanup"
-        )
-
     upload_line = next(
         (
-            index
-            for index, line in enumerate(lines, 1)
-            if "actions/upload-artifact@" in line
+            i
+            for i, line in enumerate(lines)
+            if "uses: actions/upload-artifact@" in line
         ),
         None,
     )
+    publish_line = next(
+        (i for i, line in enumerate(lines) if line == "  publish:"),
+        None,
+    )
+    if token_line is None:
+        errors.append(f"{path}: OIDC token materialization is required")
+    if cleanup_line is None:
+        errors.append(f"{path}: transient credential cleanup is required")
+    if (
+        token_line is not None
+        and cleanup_line is not None
+        and cleanup_line <= token_line
+    ):
+        errors.append(f"{path}: cleanup must follow OIDC token materialization")
+    if (
+        token_line is not None
+        and cleanup_line is not None
+        and any(
+            (match := USES_LINE.match(line))
+            and not match.group("ref").startswith("./")
+            for line in lines[token_line + 1 : cleanup_line]
+        )
+    ):
+        errors.append(
+            f"{path}: no external action may run in the OIDC secret window"
+        )
     if (
         upload_line is None
         or cleanup_line is None
+        or publish_line is None
         or upload_line <= cleanup_line
         or upload_line >= publish_line
     ):
         errors.append(
-            f"{path}: qualification artifact upload must occur after "
-            "credential cleanup and before publication"
+            f"{path}: evidence upload must occur after cleanup and in qualify"
         )
+
     return errors
 
 
@@ -192,9 +192,8 @@ def validate(root: Path) -> list[str]:
 
     errors: list[str] = []
     for path in paths:
-        for line_number, raw_line in enumerate(
-            path.read_text(encoding="utf-8").splitlines(), 1
-        ):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for line_number, raw_line in enumerate(lines, 1):
             stripped = raw_line.strip()
             if not stripped or stripped.startswith("#"):
                 continue
@@ -208,10 +207,7 @@ def validate(root: Path) -> list[str]:
                 errors.append(
                     f"{path}:{line_number}: external action ref is not immutable: {ref}"
                 )
-        workflow_lines = path.read_text(encoding="utf-8").splitlines()
-        errors.extend(validate_qualification_handoff(path, workflow_lines))
-        errors.extend(validate_qualification_secret_order(path, workflow_lines))
-        errors.extend(validate_qualification_permission_isolation(path, workflow_lines))
+        errors.extend(validate_qualification_policy(path, lines))
     return errors
 
 
@@ -225,7 +221,7 @@ def main() -> int:
         print("\n".join(errors))
         return 1
 
-    print("verified: all external GitHub Actions use 40-hex immutable refs")
+    print("verified: GitHub Actions workflow hardening policy")
     return 0
 
 

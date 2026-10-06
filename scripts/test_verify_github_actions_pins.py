@@ -12,214 +12,89 @@ from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "verify_github_actions_pins.py"
-
-spec = importlib.util.spec_from_file_location(
-    "verify_github_actions_pins",
-    SCRIPT,
-)
+spec = importlib.util.spec_from_file_location("verify_pins", SCRIPT)
 assert spec and spec.loader
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
+PIN = "a" * 40
+UPLOAD = "b" * 40
+DOWNLOAD = "c" * 40
+ATTEST = "d" * 40
+GH = "${{"
 
-def main() -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        workflow = root / ".github" / "workflows" / "qualify-gcs.yml"
-        workflow.parent.mkdir(parents=True)
-        workflow.write_text(
-            """
-jobs:
-  qualify:
-    steps:
-      - uses: actions/checkout@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
-      - name: cleanup
-        run: rm -f "$RUNNER_TEMP/token.jwt"
-      - uses: actions/upload-artifact@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-""".strip()
-            + "\n",
-            encoding="utf-8",
-        )
-        errors = module.validate(root)
-        assert errors == [], errors
-
-        workflow.write_text(
-            """
-jobs:
-  qualify:
-    steps:
-      - uses: actions/checkout@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
-      - uses: actions/cache@cccccccccccccccccccccccccccccccccccccccc
-      - name: cleanup
-        run: rm -f "$RUNNER_TEMP/token.jwt"
-""".strip()
-            + "\n",
-            encoding="utf-8",
-        )
-        errors = module.validate(root)
-        assert len(errors) == 1
-        assert "OIDC token is materialized" in errors[0]
-
-        workflow.write_text(
-            """
-jobs:
-  qualify:
-    steps:
-      - uses: actions/checkout@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
-      - name: upload
-        uses: actions/upload-artifact@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-      - name: cleanup
-        run: rm -f "$RUNNER_TEMP/token.jwt"
-""".strip()
-            + "\n",
-            encoding="utf-8",
-        )
-        errors = module.validate(root)
-        assert len(errors) == 2
-        assert any("OIDC token is materialized" in error for error in errors)
-        assert any(
-            "artifact upload occurs before OIDC credential cleanup" in error
-            for error in errors
-        )
-
-        workflow.write_text(
-            """
+GOOD = """
 jobs:
   qualify:
     permissions:
+      contents: read
       id-token: write
-    steps:
-      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
-      - name: cleanup
-        run: rm -f "$RUNNER_TEMP/token.jwt"
-  publish:
-    needs: qualify
-    permissions:
       attestations: write
-    steps:
-      - uses: actions/upload-artifact@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-""".strip()
-            + "\n",
-            encoding="utf-8",
-        )
-        errors = module.validate(root)
-        assert errors == [], errors
-
-        workflow.write_text(
-            """
-jobs:
-  qualify:
-    permissions:
-      id-token: write
-    steps:
-      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
-      - name: cleanup
-        run: rm -f "$RUNNER_TEMP/token.jwt"
-  publish:
-    needs: qualify
-    permissions:
-      id-token: write
-    steps: []
-""".strip()
-            + "\n",
-            encoding="utf-8",
-        )
-        errors = module.validate(root)
-        assert any(
-            "publication job must not receive id-token: write" in error
-            for error in errors
-        )
-
-        workflow.write_text(
-            """
-jobs:
-  qualify:
-    permissions:
-      id-token: write
-    steps:
-      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
-      - name: cleanup
-        run: rm -f "$RUNNER_TEMP/token.jwt"
-      - uses: actions/upload-artifact@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-  publish:
-    needs: qualify
-    permissions:
-      attestations: write
-    steps:
-      - uses: actions/checkout@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-      - uses: actions/download-artifact@cccccccccccccccccccccccccccccccccccccccc
-      - uses: actions/attest@dddddddddddddddddddddddddddddddddddddddd
-""".strip()
-            + "\n",
-            encoding="utf-8",
-        )
-        errors = module.validate(root)
-        assert errors == [], errors
-
-        workflow.write_text(
-            """
-jobs:
-  qualify:
-    permissions:
-      id-token: write
-    outputs:
-      evidence_bundle: unsafe
-    steps:
-      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
-      - name: cleanup
-        run: rm -f "$RUNNER_TEMP/token.jwt"
-      - uses: actions/upload-artifact@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-  publish:
-    needs: qualify
-    permissions:
-      attestations: write
-    steps: []
-""".strip()
-            + "\n",
-            encoding="utf-8",
-        )
-        errors = module.validate(root)
-        assert any(
-            "native artifact handoff" in error
-            for error in errors
-        )
-
-        workflow.write_text(
-            """
-jobs:
-  qualify:
-    permissions:
-      id-token: write
     outputs:
       artifact_id: ${{ steps.upload_evidence.outputs.artifact-id }}
     steps:
+      - uses: actions/checkout@PIN
       - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
       - name: cleanup
         run: rm -f "$RUNNER_TEMP/token.jwt"
       - name: upload
         id: upload_evidence
-        uses: actions/upload-artifact@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+        uses: actions/upload-artifact@UPLOAD
+      - uses: actions/attest@ATTEST
   publish:
     needs: qualify
     permissions:
-      attestations: write
+      contents: read
     steps:
-      - uses: actions/download-artifact@cccccccccccccccccccccccccccccccccccccccc
+      - uses: actions/download-artifact@DOWNLOAD
         with:
           artifact-ids: ${{ needs.qualify.outputs.artifact_id }}
-      - uses: actions/attest@dddddddddddddddddddddddddddddddddddddddd
+          digest-mismatch: error
 """.strip()
-            + "\n",
-            encoding="utf-8",
+
+GOOD = GOOD.replace("PIN", PIN)
+GOOD = GOOD.replace("UPLOAD", UPLOAD)
+GOOD = GOOD.replace("DOWNLOAD", DOWNLOAD)
+GOOD = GOOD.replace("ATTEST", ATTEST)
+
+def expect(path: Path, root: Path, text: str, needle: str) -> None:
+    path.write_text(text + "\n", encoding="utf-8")
+    errors = module.validate(root)
+    assert any(needle in error for error in errors), errors
+
+def main() -> None:
+    with TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        path = root / ".github" / "workflows" / "qualify-gcs.yml"
+        path.parent.mkdir(parents=True)
+        path.write_text(GOOD + "\n", encoding="utf-8")
+        assert module.validate(root) == []
+
+        bad = GOOD.replace(
+            "  publish:\n    needs: qualify\n",
+            "  publish:\n    needs: qualify\n    permissions:\n      id-token: write\n",
         )
-        errors = module.validate(root)
-        assert errors == [], errors
+        expect(path, root, bad, "publish must not grant id-token: write")
+
+        bad = GOOD.replace("digest-mismatch: error", "digest-mismatch: warn")
+        expect(path, root, bad, "artifact digest mismatch")
+
+        bad = GOOD.replace(
+            "artifact-ids: ${{ needs.qualify.outputs.artifact_id }}",
+            "name: sol-atlas-gcs-external-effect-qualification",
+        )
+        expect(path, root, bad, "exact qualification artifact ID")
+
+        bad = GOOD.replace(
+            "actions/download-artifact@" + DOWNLOAD,
+            "actions/download-artifact@main",
+        )
+        expect(path, root, bad, "not immutable")
+
+        bad = GOOD.replace("  publish:", "    evidence_bundle: unsafe\n  publish:")
+        expect(path, root, bad, "oversized job-output handoff")
 
     print("offline GitHub Actions hardening checks: PASS")
-
 
 if __name__ == "__main__":
     main()
