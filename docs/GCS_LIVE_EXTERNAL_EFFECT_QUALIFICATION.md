@@ -125,8 +125,8 @@ variables.
 The live workflow remains workflow_dispatch-only and intentionally runs only
 from refs/heads/main. It has id-token and attestations permissions, passes the
 provider-resource URL as the explicit OIDC audience, and pins third-party
-actions to immutable release commit SHAs. The Cloud SDK is also pinned to an
-exact published version (586.0.0) rather than a floating version constraint.
+actions to immutable release commit SHAs. The Cloud SDK is also pinned to the exact published version 586.0.0 rather
+than a floating version constraint.
 Before cloud authentication it checks both the triggering commit and
 workflow-file provenance.
 
@@ -139,9 +139,9 @@ trust conditions.
 
 ## OIDC evidence version
 
-The live OIDC evidence format is `sol-atlas:github-oidc-claims:v2`; the prior
-OIDC v1 format is historical. The outer GCS qualification report is schema v3
-because its embedded OIDC evidence contract changed.
+The live OIDC evidence format is `sol-atlas:github-oidc-claims:v3`; the prior
+OIDC v1 and v2 formats are historical. The outer GCS qualification report is
+schema v4 because its embedded OIDC evidence contract changed.
 
 ## Frozen case corpus
 
