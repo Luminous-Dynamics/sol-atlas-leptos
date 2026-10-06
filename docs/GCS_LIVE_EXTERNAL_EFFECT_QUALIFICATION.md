@@ -48,6 +48,10 @@ the captured run's token claims matched the recorded workflow/source context
 and that the recorded token was temporally valid when it was checked. The
 request endpoint itself must resolve to GitHub's HTTPS OIDC issuer host, and
 pre-existing audience query parameters are replaced rather than duplicated.
+The verifier does not perform local JWT signature verification. The pinned
+Google auth action obtains a separate OIDC token for the WIF exchange, so the
+preflight JWT is not claimed to be the exact byte sequence exchanged with
+Google.
 
 The verifier also requires the provider's OIDC `allowedAudiences` to be empty,
 which activates Google's provider-resource default audience rule. The workflow
