@@ -92,13 +92,11 @@ def gh_api(path: str) -> object:
         raise AssertionError("GitHub API returned invalid JSON") from exc
 
 
-def verify(output: str | None) -> dict[str, object]:
-    context = runtime_context()
-    run = gh_api(
-        f"/repos/{REPO}/actions/runs/{context['GITHUB_RUN_ID']}"
-    )
-    if not isinstance(run, dict):
-        raise AssertionError("workflow-run API response is not an object")
+def verify_run_record(
+    context: dict[str, str],
+    run: dict[str, object],
+    workflow: dict[str, object],
+) -> dict[str, object]:
     workflow_id = run.get("workflow_id")
     if not isinstance(workflow_id, int) or workflow_id <= 0:
         raise AssertionError("workflow-run record has no valid workflow ID")
@@ -128,16 +126,11 @@ def verify(output: str | None) -> dict[str, object]:
         raise AssertionError(
             "unexpected reusable workflows in direct qualification run"
         )
-    workflow = gh_api(
-        f"/repos/{REPO}/actions/workflows/{workflow_id}"
-    )
-    if not isinstance(workflow, dict):
-        raise AssertionError("workflow API response is not an object")
     if workflow.get("name") != WORKFLOW_NAME:
         raise AssertionError("workflow server name mismatch")
     if workflow.get("path") != WORKFLOW_PATH:
         raise AssertionError("workflow server path mismatch")
-    result = {
+    return {
         "schema": "sol-atlas:github-workflow-run-verification:v1",
         "repository": REPO,
         "repository_id": REPOSITORY_ID,
@@ -161,6 +154,24 @@ def verify(output: str | None) -> dict[str, object]:
             run.get("run_attempt") == int(context["GITHUB_RUN_ATTEMPT"])
         ),
     }
+
+
+def verify(output: str | None) -> dict[str, object]:
+    context = runtime_context()
+    run = gh_api(
+        f"/repos/{REPO}/actions/runs/{context['GITHUB_RUN_ID']}"
+    )
+    if not isinstance(run, dict):
+        raise AssertionError("workflow-run API response is not an object")
+    workflow_id = run.get("workflow_id")
+    if not isinstance(workflow_id, int) or workflow_id <= 0:
+        raise AssertionError("workflow-run record has no valid workflow ID")
+    workflow = gh_api(
+        f"/repos/{REPO}/actions/workflows/{workflow_id}"
+    )
+    if not isinstance(workflow, dict):
+        raise AssertionError("workflow API response is not an object")
+    result = verify_run_record(context, run, workflow)
     if output:
         destination = Path(output)
         destination.parent.mkdir(parents=True, exist_ok=True)
