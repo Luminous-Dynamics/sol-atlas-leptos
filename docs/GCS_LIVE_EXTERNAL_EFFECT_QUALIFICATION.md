@@ -45,7 +45,9 @@ subsequent Google WIF exchange; decoding the JWT locally is not itself
 cryptographic verification. The selected claims and their digest are embedded
 in the final qualification report, so later report verification can prove that
 the captured run's token claims matched the recorded workflow/source context
-and that the recorded token was temporally valid when it was checked.
+and that the recorded token was temporally valid when it was checked. The
+request endpoint itself must resolve to GitHub's HTTPS OIDC issuer host, and
+pre-existing audience query parameters are replaced rather than duplicated.
 
 The verifier also requires the provider's OIDC `allowedAudiences` to be empty,
 which activates Google's provider-resource default audience rule. The workflow
