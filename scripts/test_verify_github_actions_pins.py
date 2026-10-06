@@ -113,6 +113,17 @@ def main() -> None:
         bad = GOOD.replace("      actions: read\n", "")
         expect(path, root, bad, "qualify must grant actions: read")
 
+        bad = GOOD.replace(
+            "            --output artifacts/github-workflow-run-verification.json\n",
+            "            --output artifacts/other.json\n",
+        )
+        expect(
+            path,
+            root,
+            bad,
+            "GitHub server verification must write the exact evidence file",
+        )
+
         expect(path, root, bad, "artifact digest mismatch")
 
         bad = GOOD.replace(
