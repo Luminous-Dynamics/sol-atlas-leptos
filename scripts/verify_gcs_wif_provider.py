@@ -45,6 +45,8 @@ def load_profile() -> dict[str, object]:
         raise AssertionError("WIF profile does not require an exclusive service-account binding")
     if profile.get("service_account_must_reside_in_project") is not True:
         raise AssertionError("WIF profile does not require same-project service account")
+    if profile.get("oidc_audience_mode") != "provider_resource_default":
+        raise AssertionError("WIF profile does not require the provider default audience")
     return profile
 
 
@@ -234,6 +236,8 @@ def verify(
     )
     providers = providers_in_pool(configured_project_id, pool_id)
     provider_name = str(provider.get("name") or "")
+    if provider_name != provider_resource:
+        raise AssertionError("provider resource does not match canonical provider name")
     if not providers_are_exclusive(providers, provider_name):
         raise AssertionError("WIF provider pool contains another provider")
 
