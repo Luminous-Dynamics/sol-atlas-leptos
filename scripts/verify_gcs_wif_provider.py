@@ -35,6 +35,8 @@ def load_profile() -> dict[str, object]:
     profile = json.loads(Path(PROFILE_PATH).read_text(encoding="utf-8"))
     if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v6":
         raise AssertionError("wrong WIF trust profile schema")
+    if profile.get("supersedes") != "sol-atlas:gcs-wif-trust-profile:v5":
+        raise AssertionError("WIF trust profile lineage is missing")
     if not profile.get("exact_attribute_condition"):
         raise AssertionError("WIF trust profile has no exact condition")
     if not profile.get("required_service_account_binding"):
