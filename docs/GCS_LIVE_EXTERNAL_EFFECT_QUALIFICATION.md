@@ -102,8 +102,9 @@ Adding, removing, reordering, or redefining these cases requires a new case-set 
 The workflow report binds the exact checked-out source commit (`GITHUB_SHA`),
 the workflow SHA/ref, adapter/harness/workflow blobs, WIF verification/profile
 digest, case-set identity, ordered observed results, OIDC claim record/digest,
-evidence digest, and report digest. The live workflow asserts that `git rev-parse HEAD` equals `GITHUB_SHA`
-before cloud authentication, and report verification checks the same equality.
+evidence digest, and report digest. The live workflow asserts that
+`git rev-parse HEAD` equals `GITHUB_SHA` before cloud authentication, and
+report verification checks the same equality.
 
 The artifact is also emitted through GitHub artifact attestation. That
 attestation is provenance for the report; it does not prove that Cloud Storage
