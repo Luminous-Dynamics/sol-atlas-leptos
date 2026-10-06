@@ -149,7 +149,7 @@ sol-atlas-gcs-qualification. Keep GCP values in protected environment/repository
 variables.
 
 The live workflow remains workflow_dispatch-only and intentionally runs only
-from refs/heads/main. The qualification job has only `contents: read` and
+from refs/heads/main. The qualification job has only `contents: read`, `actions: read`, and
 `id-token: write`; it passes the provider-resource URL as the explicit OIDC
 audience and pins third-party actions to immutable release commit SHAs. The
 Cloud SDK is also pinned to the exact published version 586.0.0 rather than a
