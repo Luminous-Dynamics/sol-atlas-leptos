@@ -123,11 +123,19 @@ def main() -> None:
     )
     module.validate_oidc_request_url(valid_request_url)
 
+    rewritten = module.with_audience(
+        "https://token.actions.githubusercontent.com/?audience=wrong&token=runner",
+        AUDIENCE,
+    )
+    assert rewritten.count("audience=") == 1
+    assert f"audience={AUDIENCE}" in rewritten
+
     for url in (
         "http://token.actions.githubusercontent.com/?token=runner-token",
         "https://evil.example/?token=runner-token",
         "https://user:pass@token.actions.githubusercontent.com/?token=runner-token",
         "https://token.actions.githubusercontent.com:444/?token=runner-token",
+        "https://token.actions.githubusercontent.com:invalid/?token=runner-token",
         "https://token.actions.githubusercontent.com/#fragment",
     ):
         try:
