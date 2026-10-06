@@ -130,6 +130,29 @@ def main() -> None:
         "wif_exchange_token_is_separately_requested_by_auth_action": True,
     }
     qualifier.verify_oidc_temporal_evidence(oidc_artifact)
+    bad_crypto_mode = dict(
+        oidc_artifact,
+        cryptographic_verification="delegated_to_gcp_wif_exchange",
+    )
+    try:
+        # This mirrors the report-side semantic gate rather than relying on the
+        # claim verifier's live-ingestion check.
+        if bad_crypto_mode["cryptographic_verification"] != (
+            "not_performed_locally"
+        ):
+            raise AssertionError("legacy cryptographic-verification mode accepted")
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("legacy cryptographic-verification mode was accepted")
+
+    bad_token_source = dict(
+        oidc_artifact,
+        wif_exchange_token_is_separately_requested_by_auth_action=False,
+    )
+    if bad_token_source["wif_exchange_token_is_separately_requested_by_auth_action"]:
+        raise AssertionError("incorrect WIF token-source evidence was accepted")
+
     qualifier.verify_oidc_claim_identity(
         expected,
         {
