@@ -24,7 +24,7 @@ from scripts.gcs_generation_fenced_adapter import (
 )
 
 
-SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v1"
+SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v2"
 CASE_SET_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
     "gcs_external_effect_cases_v1.json"
@@ -39,6 +39,7 @@ HARNESS_PATH = "scripts/qualify_gcs_external_effect.py"
 WORKFLOW_PATH = ".github/workflows/qualify-gcs.yml"
 ADAPTER_ID = "gcs-generation-fenced-object"
 HARNESS_ID = "sol-atlas-gcs-external-conformance"
+OIDC_CLAIMS_SCHEMA = "sol-atlas:github-oidc-claims:v1"
 CLAIM_CEILING = (
     "GCS generation-precondition evidence only; replay safety applies while "
     "the qualified live object state remains retained; no universal "
@@ -139,6 +140,24 @@ def load_wif_verification(path: str) -> dict[str, object]:
     if not verification.get("oidc_audience_verified"):
         raise AssertionError("WIF OIDC audience was not verified")
     return verification
+
+
+def load_oidc_claims(path: str) -> dict[str, object]:
+    claims = json.loads(Path(path).read_text(encoding="utf-8"))
+    if claims.get("schema") != OIDC_CLAIMS_SCHEMA:
+        raise AssertionError("wrong GitHub OIDC claims schema")
+    observed = claims.get("claims")
+    if not isinstance(observed, dict) or not observed:
+        raise AssertionError("missing GitHub OIDC claims")
+    if claims.get("claims_digest") != digest(observed):
+        raise AssertionError("GitHub OIDC claims digest mismatch")
+    if claims.get("signature_verification") != "delegated_to_gcp_wif_exchange":
+        raise AssertionError("unexpected GitHub OIDC signature-verification mode")
+    if claims.get("workflow_sha_matches_runner") is not True:
+        raise AssertionError("OIDC workflow_sha does not match runner context")
+    if claims.get("source_sha_matches_runner") is not True:
+        raise AssertionError("OIDC sha does not match runner context")
+    return claims
 
 
 def validate_case_set() -> str:
@@ -276,9 +295,11 @@ def run_qualification(
     bucket: str,
     object_prefix: str,
     wif_verification_path: str,
+    oidc_claims_path: str,
 ) -> dict[str, object]:
     case_set = load_case_set()
     wif_verification = load_wif_verification(wif_verification_path)
+    oidc_claims = load_oidc_claims(oidc_claims_path)
     github_context = github_execution_context()
     source_commit = verify_checked_out_source_commit()
     token = access_token()
@@ -645,6 +666,8 @@ def run_qualification(
             "wif_verification_digest": digest(wif_verification),
             "github_execution_context": github_context,
             "github_execution_context_digest": digest(github_context),
+            "github_oidc_claims": oidc_claims,
+            "github_oidc_claims_digest": digest(oidc_claims),
             "checked_out_source_commit": source_commit,
             "status": "qualified",
             "service": "Google Cloud Storage",
@@ -743,6 +766,30 @@ def verify_report(path: str) -> None:
             )
     if report.get("github_execution_context_digest") != digest(github_context):
         raise AssertionError("GitHub execution context digest mismatch")
+    oidc_claims = report.get("github_oidc_claims")
+    if not isinstance(oidc_claims, dict):
+        raise AssertionError("missing GitHub OIDC claims")
+    if oidc_claims.get("schema") != OIDC_CLAIMS_SCHEMA:
+        raise AssertionError("wrong GitHub OIDC claims schema in report")
+    observed_claims = oidc_claims.get("claims")
+    if not isinstance(observed_claims, dict):
+        raise AssertionError("missing observed GitHub OIDC claims")
+    if oidc_claims.get("claims_digest") != digest(observed_claims):
+        raise AssertionError("GitHub OIDC claims digest mismatch in report")
+    if oidc_claims.get("signature_verification") != "delegated_to_gcp_wif_exchange":
+        raise AssertionError("unexpected OIDC signature-verification mode in report")
+    if oidc_claims.get("workflow_sha_matches_runner") is not True:
+        raise AssertionError("report OIDC workflow_sha mismatch")
+    if oidc_claims.get("source_sha_matches_runner") is not True:
+        raise AssertionError("report OIDC source sha mismatch")
+    if report.get("github_oidc_claims_digest") != digest(oidc_claims):
+        raise AssertionError("GitHub OIDC artifact digest mismatch")
+    if observed_claims.get("workflow_sha") != github_context.get("workflow_sha"):
+        raise AssertionError("OIDC workflow_sha does not match GITHUB_WORKFLOW_SHA")
+    if observed_claims.get("sha") != github_context.get("sha"):
+        raise AssertionError("OIDC sha does not match GITHUB_SHA")
+    if observed_claims.get("aud") != wif_verification.get("oidc_expected_audience"):
+        raise AssertionError("OIDC audience does not match WIF expected audience")
     checked_out_source = report.get("checked_out_source_commit")
     if checked_out_source != github_context.get("sha"):
         raise AssertionError("checked-out source does not match GITHUB_SHA")
@@ -808,6 +855,7 @@ def main() -> int:
     qualify.add_argument("--bucket", required=True)
     qualify.add_argument("--object-prefix", default="sol-atlas/qualification")
     qualify.add_argument("--wif-verification", required=True)
+    qualify.add_argument("--oidc-claims", required=True)
     qualify.add_argument("--output", required=True)
     verify = sub.add_parser("verify")
     verify.add_argument("--report", required=True)
@@ -825,6 +873,7 @@ def main() -> int:
         args.bucket,
         args.object_prefix,
         args.wif_verification,
+        args.oidc_claims,
     )
     report = finalize_report(report)
     write_report(args.output, report)

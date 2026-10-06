@@ -31,6 +31,17 @@ The condition binds the live identity to refs/heads/main and the exact workflow
 path on that ref. The workflow job independently refuses to run on any other
 ref.
 
+Before cloud authentication, the workflow requests a real GitHub OIDC JWT for
+the exact Google provider-resource audience. A local parser checks the issuer,
+audience, repository identity, protected environment, event, main ref,
+workflow identity, workflow_ref, workflow_sha, source SHA, run ID, run attempt,
+and branch type against the runner context. The parser records only those safe
+claims and explicitly delegates JWT signature acceptance to the subsequent
+Google WIF exchange; decoding the JWT locally is not itself cryptographic
+verification. The selected claims and their digest are embedded in the final
+qualification report, so later report verification can prove that the captured
+run's token claims matched the recorded workflow/source context.
+
 The verifier also requires the provider's OIDC `allowedAudiences` to be empty,
 which activates Google's provider-resource default audience rule. The workflow
 passes that exact provider URL as its explicit audience, so an alternate
