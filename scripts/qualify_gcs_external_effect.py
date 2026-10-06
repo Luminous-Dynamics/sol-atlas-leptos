@@ -55,6 +55,9 @@ WORKFLOW_PATH = ".github/workflows/qualify-gcs.yml"
 ADAPTER_ID = "gcs-generation-fenced-object"
 HARNESS_ID = "sol-atlas-gcs-external-conformance"
 OIDC_CLAIMS_SCHEMA = "sol-atlas:github-oidc-claims:v4"
+WIF_CREDENTIAL_CONFIG_SCHEMA = (
+    "sol-atlas:gcp-wif-credential-config-verification:v1"
+)
 CLAIM_CEILING = (
     "GCS generation-precondition evidence only; replay safety applies while "
     "the qualified live object state remains retained; no universal "
@@ -206,6 +209,33 @@ def verify_oidc_temporal_evidence(claims: dict[str, object]) -> None:
         raise AssertionError("OIDC nbf is later than the recorded verification time")
     if values["exp"] <= verified_at - clock_skew:
         raise AssertionError("OIDC exp predates the recorded verification time")
+
+
+def load_wif_credential_config_verification(
+    path: str,
+    wif_verification: dict[str, object],
+    oidc_claims: dict[str, object],
+) -> dict[str, object]:
+    verification = json.loads(Path(path).read_text(encoding="utf-8"))
+    if verification.get("schema") != WIF_CREDENTIAL_CONFIG_SCHEMA:
+        raise AssertionError("wrong WIF credential-config verification schema")
+    if verification.get("exact_verified_token_bound") is not True:
+        raise AssertionError("WIF credential config is not bound to the verified token")
+    if verification.get("provider_resource") != wif_verification.get(
+        "provider_resource"
+    ):
+        raise AssertionError("WIF credential config provider resource drift")
+    if verification.get("service_account") != wif_verification.get(
+        "service_account"
+    ):
+        raise AssertionError("WIF credential config service-account drift")
+    if verification.get("credential_audience") != wif_verification.get(
+        "oidc_expected_audience"
+    ):
+        raise AssertionError("WIF credential config audience drift")
+    if verification.get("token_digest") != oidc_claims.get("token_digest"):
+        raise AssertionError("WIF credential config token digest drift")
+    return verification
 
 
 def verify_oidc_claim_identity(
@@ -389,6 +419,7 @@ def run_qualification(
     object_prefix: str,
     wif_verification_path: str,
     oidc_claims_path: str,
+    wif_credential_config_verification_path: str,
 ) -> dict[str, object]:
     case_set = load_case_set()
     wif_verification = load_wif_verification(wif_verification_path)
@@ -403,6 +434,13 @@ def run_qualification(
     if oidc_claims.get("audience") != observed_claims.get("aud"):
         raise AssertionError("OIDC artifact audience does not match its claims")
     verify_oidc_claim_identity(observed_claims, github_context, oidc_audience)
+    wif_credential_config_verification = (
+        load_wif_credential_config_verification(
+            wif_credential_config_verification_path,
+            wif_verification,
+            oidc_claims,
+        )
+    )
     source_commit = verify_checked_out_source_commit()
     token = access_token()
     run_id = os.environ.get("GITHUB_RUN_ID", "local")
@@ -770,6 +808,12 @@ def run_qualification(
             "github_execution_context_digest": digest(github_context),
             "github_oidc_claims": oidc_claims,
             "github_oidc_claims_digest": digest(oidc_claims),
+            "wif_credential_config_verification": (
+                wif_credential_config_verification
+            ),
+            "wif_credential_config_verification_digest": digest(
+                wif_credential_config_verification
+            ),
             "checked_out_source_commit": source_commit,
             "status": "qualified",
             "service": "Google Cloud Storage",
@@ -891,6 +935,37 @@ def verify_report(path: str) -> None:
     verify_oidc_temporal_evidence(oidc_claims)
     if report.get("github_oidc_claims_digest") != digest(oidc_claims):
         raise AssertionError("GitHub OIDC artifact digest mismatch")
+    wif_credential_config_verification = report.get(
+        "wif_credential_config_verification"
+    )
+    if not isinstance(wif_credential_config_verification, dict):
+        raise AssertionError("missing WIF credential-config verification")
+    if report.get("wif_credential_config_verification_digest") != digest(
+        wif_credential_config_verification
+    ):
+        raise AssertionError("WIF credential-config verification digest mismatch")
+    if wif_credential_config_verification.get("schema") != (
+        WIF_CREDENTIAL_CONFIG_SCHEMA
+    ):
+        raise AssertionError("wrong WIF credential-config schema in report")
+    if wif_credential_config_verification.get("exact_verified_token_bound") is not True:
+        raise AssertionError("report WIF token binding is not exact")
+    if wif_credential_config_verification.get("token_digest") != oidc_claims.get(
+        "token_digest"
+    ):
+        raise AssertionError("report WIF token digest mismatch")
+    if wif_credential_config_verification.get("provider_resource") != wif_verification.get(
+        "provider_resource"
+    ):
+        raise AssertionError("report WIF provider resource mismatch")
+    if wif_credential_config_verification.get("service_account") != wif_verification.get(
+        "service_account"
+    ):
+        raise AssertionError("report WIF service account mismatch")
+    if wif_credential_config_verification.get("credential_audience") != wif_verification.get(
+        "oidc_expected_audience"
+    ):
+        raise AssertionError("report WIF audience mismatch")
     oidc_audience = wif_verification.get("oidc_expected_audience")
     if not isinstance(oidc_audience, str) or not oidc_audience:
         raise AssertionError("WIF verification has no OIDC expected audience")
@@ -969,6 +1044,10 @@ def main() -> int:
     qualify.add_argument("--object-prefix", default="sol-atlas/qualification")
     qualify.add_argument("--wif-verification", required=True)
     qualify.add_argument("--oidc-claims", required=True)
+    qualify.add_argument(
+        "--wif-credential-config-verification",
+        required=True,
+    )
     qualify.add_argument("--output", required=True)
     verify = sub.add_parser("verify")
     verify.add_argument("--report", required=True)
@@ -987,6 +1066,7 @@ def main() -> int:
         args.object_prefix,
         args.wif_verification,
         args.oidc_claims,
+        args.wif_credential_config_verification,
     )
     report = finalize_report(report)
     write_report(args.output, report)
