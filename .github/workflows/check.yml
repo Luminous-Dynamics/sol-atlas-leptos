@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: check-\${{ github.ref }}
+  group: check-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -44,7 +44,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: \${{ runner.os }}-cargo-wasm-\${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-wasm-${{ hashFiles('**/Cargo.lock') }}
       # The actual deploy target (see deploy.yml) — if this doesn't build,
       # the site can't ship. This is the check that caught a real bug
       # (a closure type-inference error in layer_panel.rs) before it
@@ -65,7 +65,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: \${{ runner.os }}-cargo-native-\${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
       # The application crate is a wasm-bindgen-heavy [[bin]] with no [lib] target.
       # Test its binary explicitly, but also test sol-atlas-core as a separate
       # package so core semantic/unit tests actually execute in CI rather than
@@ -73,13 +73,13 @@ jobs:
       - name: Test sol-atlas-core
         run: cargo test -p sol-atlas-core --lib
       - name: Test application binary
-        if: \${{ always() }}
+        if: ${{ always() }}
         run: cargo test --bin sol-atlas-leptos
       - name: Test policy-store contract
-        if: \${{ always() }}
+        if: ${{ always() }}
         run: cargo test --manifest-path sol-atlas-policy-store-contract/Cargo.toml
       - name: Qualify source-bound protected-effect evidence
-        if: \${{ always() }}
+        if: ${{ always() }}
         run: >
           cargo test
           --manifest-path sol-atlas-policy-store-contract/Cargo.toml
