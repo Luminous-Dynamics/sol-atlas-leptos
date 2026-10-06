@@ -173,10 +173,14 @@ def verify_claims(
 
 def validate_oidc_request_url(url: str) -> None:
     parsed = urllib.parse.urlsplit(url)
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise AssertionError("GitHub OIDC request URL has an invalid port") from exc
     if (
         parsed.scheme != "https"
         or parsed.hostname != OIDC_REQUEST_HOST
-        or parsed.port not in (None, 443)
+        or port not in (None, 443)
         or parsed.username is not None
         or parsed.password is not None
         or parsed.fragment
@@ -186,7 +190,14 @@ def validate_oidc_request_url(url: str) -> None:
 
 def with_audience(url: str, audience: str) -> str:
     parsed = urllib.parse.urlsplit(url)
-    query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
+    query = [
+        (name, value)
+        for name, value in urllib.parse.parse_qsl(
+            parsed.query,
+            keep_blank_values=True,
+        )
+        if name != "audience"
+    ]
     query.append(("audience", audience))
     return urllib.parse.urlunsplit(
         (
