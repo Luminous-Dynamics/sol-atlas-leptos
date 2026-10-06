@@ -80,6 +80,13 @@ def verify(
     observed_claims = oidc.get("claims")
     if not isinstance(observed_claims, dict):
         raise AssertionError("OIDC evidence contains no claims")
+    if oidc.get("audience") != observed_claims.get("aud"):
+        raise AssertionError("OIDC evidence audience does not match its claims")
+    expected_oidc_audience = (
+        "https://iam.googleapis.com/" + provider_resource
+    )
+    if observed_claims.get("aud") != expected_oidc_audience:
+        raise AssertionError("OIDC claim audience does not match provider resource")
     token_digest = oidc.get("token_digest")
     if not isinstance(token_digest, str):
         raise AssertionError("OIDC evidence contains no token digest")
