@@ -19,7 +19,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA = "sol-atlas:github-oidc-claims:v2"
+SCHEMA = "sol-atlas:github-oidc-claims:v3"
 ISSUER = "https://token.actions.githubusercontent.com"
 OIDC_REQUEST_HOST = "token.actions.githubusercontent.com"
 REPO = "Luminous-Dynamics/sol-atlas-leptos"
@@ -266,7 +266,8 @@ def verify(
             claims["workflow_sha"] == context["GITHUB_WORKFLOW_SHA"]
         ),
         "source_sha_matches_runner": claims["sha"] == context["GITHUB_SHA"],
-        "signature_verification": "delegated_to_gcp_wif_exchange",
+        "cryptographic_verification": "not_performed_locally",
+        "wif_exchange_token_is_separately_requested_by_auth_action": True,
     }
     if output:
         destination = Path(output)
