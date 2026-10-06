@@ -29,7 +29,12 @@ PROVIDER = (
 SERVICE_ACCOUNT = "sol-atlas@project.iam.gserviceaccount.com"
 
 
-def expect_rejection(config: dict[str, object], path: Path, token: Path, oidc: Path) -> None:
+def expect_rejection(
+    config: dict[str, object],
+    path: Path,
+    token: Path,
+    oidc: Path,
+) -> None:
     path.write_text(json.dumps(config), encoding="utf-8")
     try:
         module.verify(
@@ -56,7 +61,7 @@ def main() -> None:
         token_digest = module.bytes_digest(token)
         oidc_document = {
             "schema": "sol-atlas:github-oidc-claims:v4",
-            "claims": {"aud": "https://example.invalid"},
+            "audience": "https://iam.googleapis.com/" + PROVIDER,
             "token_digest": token_digest,
         }
         oidc.write_text(json.dumps(oidc_document), encoding="utf-8")
@@ -82,6 +87,27 @@ def main() -> None:
         )
         assert result["exact_verified_token_bound"] is True
         assert result["token_digest"] == token_digest
+
+        tampered_oidc = dict(
+            oidc_document,
+            audience="https://iam.googleapis.com/projects/tampered",
+            claims={"aud": "https://iam.googleapis.com/projects/tampered"},
+        )
+        oidc.write_text(json.dumps(tampered_oidc), encoding="utf-8")
+        try:
+            module.verify(
+                str(config),
+                str(token),
+                str(oidc),
+                PROVIDER,
+                SERVICE_ACCOUNT,
+                None,
+            )
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("WIF verifier accepted tampered OIDC audience")
+        oidc.write_text(json.dumps(oidc_document), encoding="utf-8")
 
         for field, value in (
             ("audience", "https://iam.googleapis.com/projects/tampered"),
