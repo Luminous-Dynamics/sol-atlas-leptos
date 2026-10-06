@@ -184,6 +184,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      attestations: read
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -205,4 +206,20 @@ jobs:
           python3 scripts/qualify_gcs_external_effect.py \
             verify \
             --report artifacts/gcs-external-effect-report.json
+
+      - name: Verify GitHub artifact attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh attestation verify \
+            artifacts/gcs-external-effect-report.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow \
+              "$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml" \
+            --source-digest "$GITHUB_SHA" \
+            --source-ref "$GITHUB_REF" \
+            --cert-oidc-issuer \
+              "https://token.actions.githubusercontent.com"
 
