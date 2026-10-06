@@ -133,8 +133,8 @@ def verify_temporal_claims(
     issued_at = numeric_date(payload, "iat")
     expires_at = numeric_date(payload, "exp")
     not_before = numeric_date(payload, "nbf")
-    if expires_at <= issued_at:
-        raise AssertionError("OIDC exp must be later than iat")
+    if expires_at <= issued_at or not_before > expires_at:
+        raise AssertionError("OIDC temporal claims have no valid interval")
     if issued_at > now + clock_skew:
         raise AssertionError("OIDC token is issued in the future")
     if not_before > now + clock_skew:
@@ -217,8 +217,8 @@ def verify(
     if not audience.startswith("https://iam.googleapis.com/projects/"):
         raise AssertionError("OIDC audience is not a Google provider resource")
     context = runtime_context()
-    verification_time = time.time()
     token = request_token(audience)
+    verification_time = time.time()
     claims = verify_claims(
         decode_payload(token),
         audience,
