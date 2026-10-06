@@ -176,6 +176,14 @@ def validate_qualification_policy(
         ),
         None,
     )
+    report_verify_line = next(
+        (
+            i
+            for i, line in enumerate(lines)
+            if "python3 scripts/qualify_gcs_external_effect.py" in line
+        ),
+        None,
+    )
     verify_attestation_line = next(
         (
             i
@@ -222,10 +230,24 @@ def validate_qualification_policy(
         errors.append(
             f"{path}: evidence upload and attestation must occur after cleanup in qualify"
         )
+    publish_lines = "
+".join(publish)
+    if "python3 scripts/qualify_gcs_external_effect.py" not in publish_lines:
+        errors.append(
+            f"{path}: publication must re-verify the qualification report"
+        )
     if verify_attestation_line is None:
         errors.append(f"{path}: attestation verification command is required")
     elif verify_attestation_line <= publish_line:
         errors.append(f"{path}: attestation verification must occur inside publish")
+    if (
+        report_verify_line is not None
+        and verify_attestation_line is not None
+        and verify_attestation_line <= report_verify_line
+    ):
+        errors.append(
+            f"{path}: attestation verification must follow report re-verification"
+        )
 
     return errors
 
