@@ -248,6 +248,7 @@ def verify_oidc_claim_identity(
         "GITHUB_SHA": github_context["sha"],
         "GITHUB_RUN_ID": github_context["run_id"],
         "GITHUB_RUN_ATTEMPT": github_context["run_attempt"],
+        "RUNNER_ENVIRONMENT": github_context["runner_environment"],
     }
     expected = expected_claims(audience, context)
     for name, expected_value in expected.items():
