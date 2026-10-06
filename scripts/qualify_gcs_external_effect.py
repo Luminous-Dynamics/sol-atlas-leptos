@@ -103,6 +103,7 @@ def github_execution_context() -> dict[str, str]:
         "run_id": os.environ.get("GITHUB_RUN_ID", ""),
         "sha": os.environ.get("GITHUB_SHA", ""),
         "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+        "runner_environment": os.environ.get("RUNNER_ENVIRONMENT", ""),
     }
     missing = [name for name, value in required.items() if not value]
     if missing:
@@ -116,6 +117,7 @@ def github_execution_context() -> dict[str, str]:
         "workflow": "Qualify GCS external effect",
         "event": "workflow_dispatch",
         "ref": "refs/heads/main",
+        "runner_environment": "github-hosted",
         "workflow_ref": (
             "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/"
             "qualify-gcs.yml@refs/heads/main"
