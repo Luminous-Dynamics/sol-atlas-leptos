@@ -40,6 +40,22 @@ def main() -> None:
     }
     module.verify_resource_identity(good)
 
+    assert module.point_in_time_semantics(
+        "ObservedNotApplied",
+        "Applied",
+        "ObservedAppliedSameRequest",
+    )
+    assert not module.point_in_time_semantics(
+        "ObservedDifferentRequest",
+        "Applied",
+        "ObservedAppliedSameRequest",
+    )
+    assert not module.point_in_time_semantics(
+        "ObservedNotApplied",
+        "RejectedPrecondition",
+        "ObservedNotApplied",
+    )
+
     expect_rejection(
         dict(good, service="Other service"),
         "wrong external service was accepted",
