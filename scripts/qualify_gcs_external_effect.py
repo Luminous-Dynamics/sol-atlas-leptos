@@ -33,6 +33,10 @@ EXPECTED_CASE_SET = (
     "sol-atlas:recovery-execution-effect-external-conformance-cases:"
     "gcs-generation-v2"
 )
+EXPECTED_PREVIOUS_CASE_SET = (
+    "sol-atlas:recovery-execution-effect-external-conformance-cases:"
+    "gcs-generation-v1"
+)
 CASE_SET_SCHEMA = "sol-atlas:recovery-execution-effect-case-set:v1"
 ADAPTER_PATH = "scripts/gcs_generation_fenced_adapter.py"
 HARNESS_PATH = "scripts/qualify_gcs_external_effect.py"
@@ -52,8 +56,9 @@ def load_case_set() -> dict[str, object]:
     if (
         case_set.get("schema") != CASE_SET_SCHEMA
         or case_set.get("case_set") != EXPECTED_CASE_SET
+        or case_set.get("supersedes") != EXPECTED_PREVIOUS_CASE_SET
     ):
-        raise AssertionError("invalid GCS case-set identity")
+        raise AssertionError("invalid GCS case-set identity or lineage")
     cases = case_set.get("cases")
     if not isinstance(cases, list) or not cases:
         raise AssertionError("GCS case-set has no cases")
