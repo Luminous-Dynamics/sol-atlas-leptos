@@ -135,6 +135,9 @@ jobs:
             qualify \
             --bucket "$GCS_QUALIFICATION_BUCKET" \
             --wif-verification artifacts/gcs-wif-trust-verification.json \
+            --oidc-claims artifacts/github-oidc-claims.json \
+            --wif-credential-config-verification \
+              artifacts/gcs-wif-credential-config-verification.json \
             --output artifacts/gcs-external-effect-report.json
 
       - name: Re-verify qualification artifact
