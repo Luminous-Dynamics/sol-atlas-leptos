@@ -395,6 +395,18 @@ def request(
     )
 
 
+def point_in_time_semantics(
+    before: str,
+    mutation: str,
+    after: str,
+) -> bool:
+    return (
+        before == "ObservedNotApplied"
+        and mutation == "Applied"
+        and after == "ObservedAppliedSameRequest"
+    )
+
+
 def create_setup(resource: GcsGenerationFencedObject, name: str) -> int:
     setup = request(
         name,
@@ -796,10 +808,10 @@ def run_qualification(
         before = point_resource.reconcile(point_request)
         applied_point = point_resource.apply(point_request)
         after = point_resource.reconcile(point_request)
-        point_ok = (
-            before == "ObservedDifferentRequest"
-            and applied_point == "Applied"
-            and after == "ObservedAppliedSameRequest"
+        point_ok = point_in_time_semantics(
+            before,
+            applied_point,
+            after,
         )
         cases.append(
             record(
