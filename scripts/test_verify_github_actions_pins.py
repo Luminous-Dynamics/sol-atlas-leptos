@@ -203,6 +203,12 @@ def main() -> None:
             bad,
             "attestation verification must follow report re-verification",
         )
+        bad = GOOD.replace(
+            "          digest-mismatch: error",
+            "          path: artifacts/\\n          digest-mismatch: error",
+        )
+        expect(path, root, bad, "qualification must explicitly allowlist evidence files")
+
         bad = GOOD.replace("  publish:", "    evidence_bundle: unsafe\n  publish:")
         expect(path, root, bad, "oversized job-output handoff")
 
