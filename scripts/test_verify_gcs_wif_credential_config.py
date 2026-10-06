@@ -58,6 +58,7 @@ def main() -> None:
         config = root / "credentials.json"
         oidc = root / "oidc.json"
         token.write_text("header.payload.signature\n", encoding="ascii")
+        token.chmod(0o600)
         token_digest = module.bytes_digest(token)
         oidc_document = {
             "schema": "sol-atlas:github-oidc-claims:v4",
@@ -77,6 +78,7 @@ def main() -> None:
             ),
         }
         config.write_text(json.dumps(expected), encoding="utf-8")
+        config.chmod(0o600)
         result = module.verify(
             str(config),
             str(token),
@@ -87,6 +89,38 @@ def main() -> None:
         )
         assert result["exact_verified_token_bound"] is True
         assert result["token_digest"] == token_digest
+
+        token.chmod(0o644)
+        try:
+            module.verify(
+                str(config),
+                str(token),
+                str(oidc),
+                PROVIDER,
+                SERVICE_ACCOUNT,
+                None,
+            )
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("WIF verifier accepted a world-readable token")
+        token.chmod(0o600)
+
+        config.chmod(0o644)
+        try:
+            module.verify(
+                str(config),
+                str(token),
+                str(oidc),
+                PROVIDER,
+                SERVICE_ACCOUNT,
+                None,
+            )
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("WIF verifier accepted a world-readable config")
+        config.chmod(0o600)
 
         tampered_oidc = dict(
             oidc_document,

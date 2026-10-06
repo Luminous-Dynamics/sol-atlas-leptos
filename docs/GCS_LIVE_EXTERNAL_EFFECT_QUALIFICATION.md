@@ -117,6 +117,11 @@ The artifact is also emitted through GitHub artifact attestation. That
 attestation is provenance for the report; it does not prove that Cloud Storage
 is truthful.
 
+The qualification job packages only the non-secret `artifacts/` directory
+after transient-credential cleanup into a bounded job output. The separate
+publication job has no `id-token: write` permission and is therefore unable to
+request a new GitHub OIDC token while uploading or attesting evidence.
+
 A queued Actions run is not qualification evidence. The live claim advances
 only when the complete case vector executes and the generated report
 re-verifies against the exact checked-out source.
@@ -133,7 +138,10 @@ provider-resource URL as the explicit OIDC audience, and pins third-party
 actions to immutable release commit SHAs. The Cloud SDK is also pinned to the
 exact published version 586.0.0 rather than a floating version constraint.
 Before cloud authentication it checks both the triggering commit and
-workflow-file provenance.
+workflow-file provenance. The setup-gcloud action runs before OIDC token
+materialization. The qualification job then has no external action between
+OIDC token creation and transient-credential cleanup; publication occurs in a
+separate job without `id-token: write`.
 
 Google documents that google.subject is required for workload identity
 providers and that service-account impersonation uses

@@ -16,7 +16,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      attestations: write
+    outputs:
+      evidence_bundle: ${{ steps.package.outputs.evidence_bundle }}
     env:
       GCP_PROJECT_ID: ${{ vars.SOL_ATLAS_GCP_PROJECT_ID }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.SOL_ATLAS_GCP_WORKLOAD_IDENTITY_PROVIDER }}
@@ -158,18 +159,50 @@ jobs:
             "$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt" \
             "$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
           rm -rf "$CLOUDSDK_CONFIG"
-      - name: Upload qualification evidence
+
+      - name: Package qualification evidence
+        id: package
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          bundle="$RUNNER_TEMP/sol-atlas-gcs-evidence.tar.gz"
+          rm -f "$bundle"
+          tar -C artifacts -czf "$bundle" .
+          test "$(wc -c < "$bundle")" -lt 700000
+          bundle_b64="$(base64 -w0 "$bundle")"
+          printf "evidence_bundle=%s\n" "$bundle_b64" >> "$GITHUB_OUTPUT"
+
+  publish:
+    name: Publish qualification evidence
+    needs: qualify
+    if: ${{ needs.qualify.result == "success" }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      attestations: write
+    env:
+      EVIDENCE_BUNDLE: ${{ needs.qualify.outputs.evidence_bundle }}
+    steps:
+      - name: Reconstruct qualification evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          test -n "$EVIDENCE_BUNDLE"
+          printf "%s" "$EVIDENCE_BUNDLE" | base64 --decode | tar -xz -C artifacts
+          test -s artifacts/gcs-external-effect-report.json
+
+      - name: Upload qualification evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a0 # v7.0.1
         with:
           name: sol-atlas-gcs-external-effect-qualification
           path: artifacts/
-          if-no-files-found: ignore
+          if-no-files-found: error
           retention-days: 90
 
-
       - name: Attest qualification artifact provenance
-        if: ${{ success() }}
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: artifacts/gcs-external-effect-report.json

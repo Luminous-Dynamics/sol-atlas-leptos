@@ -80,8 +80,59 @@ jobs:
         errors = module.validate(root)
         assert len(errors) == 2
         assert any("OIDC token is materialized" in error for error in errors)
-        assert any("artifact upload occurs before OIDC credential cleanup" in error for error in errors)
+        assert any(
+            "artifact upload occurs before OIDC credential cleanup" in error
+            for error in errors
+        )
 
+
+        workflow.write_text(
+            """
+jobs:
+  qualify:
+    permissions:
+      id-token: write
+    steps:
+      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
+      - name: cleanup
+        run: rm -f "$RUNNER_TEMP/token.jwt"
+  publish:
+    needs: qualify
+    permissions:
+      attestations: write
+    steps:
+      - uses: actions/upload-artifact@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+""".strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        errors = module.validate(root)
+        assert errors == [], errors
+
+        workflow.write_text(
+            """
+jobs:
+  qualify:
+    permissions:
+      id-token: write
+    steps:
+      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
+      - name: cleanup
+        run: rm -f "$RUNNER_TEMP/token.jwt"
+  publish:
+    needs: qualify
+    permissions:
+      id-token: write
+    steps: []
+""".strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        errors = module.validate(root)
+        assert any(
+            "publication job must not receive id-token: write" in error
+            for error in errors
+        )
     print("offline GitHub Actions hardening checks: PASS")
 
 

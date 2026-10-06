@@ -25,6 +25,43 @@ def workflow_paths(root: Path) -> list[Path]:
     )
 
 
+
+def validate_qualification_permission_isolation(
+    path: Path,
+    lines: list[str],
+) -> list[str]:
+    if path.name != "qualify-gcs.yml":
+        return []
+
+    qualify_line = next(
+        (index for index, line in enumerate(lines, 1) if line == "  qualify:"),
+        None,
+    )
+    publish_line = next(
+        (index for index, line in enumerate(lines, 1) if line == "  publish:"),
+        None,
+    )
+    if qualify_line is None or publish_line is None:
+        return [f"{path}: qualification and publication jobs must both exist"]
+    id_token_lines = [
+        index for index, line in enumerate(lines, 1)
+        if "id-token: write" in line
+    ]
+    errors: list[str] = []
+    if not any(qualify_line < index < publish_line for index in id_token_lines):
+        errors.append(
+            f"{path}: id-token: write must be scoped to the qualification job"
+        )
+    if any(index > publish_line for index in id_token_lines):
+        errors.append(
+            f"{path}: publication job must not receive id-token: write"
+        )
+    if not any(
+        line.strip() == "needs: qualify" for line in lines[publish_line - 1:]
+    ):
+        errors.append(f"{path}: publication job must depend on qualification")
+    return errors
+
 def validate_qualification_secret_order(
     path: Path,
     lines: list[str],
@@ -106,12 +143,9 @@ def validate(root: Path) -> list[str]:
                 errors.append(
                     f"{path}:{line_number}: external action ref is not immutable: {ref}"
                 )
-        errors.extend(
-            validate_qualification_secret_order(
-                path,
-                path.read_text(encoding="utf-8").splitlines(),
-            )
-        )
+        workflow_lines = path.read_text(encoding="utf-8").splitlines()
+        errors.extend(validate_qualification_secret_order(path, workflow_lines))
+        errors.extend(validate_qualification_permission_isolation(path, workflow_lines))
     return errors
 
 

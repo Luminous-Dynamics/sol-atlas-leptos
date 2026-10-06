@@ -33,6 +33,14 @@ def bytes_digest(path: Path) -> str:
     return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+
+def require_private_file(path: Path) -> None:
+    mode = path.stat().st_mode & 0o077
+    if mode:
+        raise AssertionError(
+            f"credential file {path} is accessible by group or other users"
+        )
+
 def expected_audience(provider_resource: str) -> str:
     if not provider_resource.startswith("projects/"):
         raise AssertionError("WIF provider resource is not a full project resource")
@@ -71,6 +79,8 @@ def verify(
     if not oidc_file.is_file():
         raise AssertionError("OIDC evidence file is missing")
 
+    require_private_file(config_file)
+    require_private_file(token_file)
     config = json.loads(config_file.read_text(encoding="utf-8"))
     oidc = json.loads(oidc_file.read_text(encoding="utf-8"))
     if config.get("type") != "external_account":
