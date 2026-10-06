@@ -124,7 +124,10 @@ def validate_qualification_policy(
     if "--signer-workflow" not in publish_text:
         errors.append(f"{path}: attestation verification must pin the signer workflow")
     if "--signer-digest \"$GITHUB_WORKFLOW_SHA\"" not in publish_text:
-        errors.append(f"{path}: attestation verification must bind signer digest to GITHUB_WORKFLOW_SHA")
+        errors.append(
+            f"{path}: attestation verification must bind signer digest "
+            "to GITHUB_WORKFLOW_SHA"
+        )
     if "--source-digest \"$GITHUB_SHA\"" not in publish_text:
         errors.append(f"{path}: attestation verification must bind source digest to GITHUB_SHA")
     if "--source-ref \"$GITHUB_REF\"" not in publish_text:
