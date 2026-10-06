@@ -22,7 +22,7 @@ The qualified profile is intentionally narrow:
 
 ## GCP trust boundary
 
-WIF profile v4 is exact rather than substring-matched. It requires google.subject
+WIF profile v5 is exact rather than substring-matched. It requires google.subject
 and the repository, repository ID, repository owner ID, environment, event,
 workflow, ref, and workflow_ref mappings. The provider attribute condition must
 equal the frozen conjunction in the profile.
@@ -31,14 +31,22 @@ The condition binds the live identity to refs/heads/main and the exact workflow
 path on that ref. The workflow job independently refuses to run on any other
 ref.
 
+The verifier also requires the provider's OIDC `allowedAudiences` to be empty,
+which activates Google's provider-resource default audience rule. The workflow
+passes that exact provider URL as its explicit audience, so an alternate
+configured audience cannot silently widen the trust surface.
+
 The verifier also checks the target service account identity and IAM policy:
 the service account must reside in the configured GCP project, and its only
 Workload Identity User binding must be the repository-ID principal set for the
 trusted pool. The project number and workload identity pool ID are derived from
 the trusted provider resource.
 
-This is trust configuration evidence only. It does not prove workflow source
-immutability, environment approval honesty, or Cloud Storage behavior. The
+This is trust configuration evidence only. It does not prove environment
+approval honesty or Cloud Storage behavior. The workflow separately verifies
+that `GITHUB_WORKFLOW_SHA` resolves to the same checked-out workflow blob, and
+then verifies `GITHUB_SHA` against the checkout. These are source-provenance
+gates for the captured run, not an IAM condition binding future workflow bytes. The
 qualification pool is intentionally single-provider, and the service-account
 WIF binding is intentionally exclusive to the repository-ID principal.
 
@@ -87,8 +95,10 @@ sol-atlas-gcs-qualification. Keep GCP values in protected environment/repository
 variables.
 
 The live workflow remains workflow_dispatch-only and intentionally runs only
-from refs/heads/main. It has id-token and attestations permissions and pins
-third-party actions to immutable release commit SHAs.
+from refs/heads/main. It has id-token and attestations permissions, passes the
+provider-resource URL as the explicit OIDC audience, and pins third-party
+actions to immutable release commit SHAs. Before cloud authentication it
+checks both the triggering commit and workflow-file provenance.
 
 Google documents that google.subject is required for workload identity
 providers and that service-account impersonation uses
