@@ -71,6 +71,9 @@ def validate_qualification_policy(
 
     if "      actions: read" not in qualify:
         errors.append(f"{path}: qualify must grant actions: read")
+    server_output = (
+        "            --output artifacts/github-workflow-run-verification.json"
+    )
     if "      id-token: write" not in qualify:
         errors.append(f"{path}: qualify must grant id-token: write")
     if "      attestations: write" not in qualify:
@@ -244,6 +247,13 @@ def validate_qualification_policy(
     )
     if server_verification_line is None:
         errors.append(f"{path}: GitHub server workflow-run verification is required")
+    if (
+        server_verification_line is not None
+        and server_output not in qualify_text
+    ):
+        errors.append(
+            f"{path}: GitHub server verification must write the exact evidence file"
+        )
     if (
         server_verification_line is not None
         and token_line is not None
