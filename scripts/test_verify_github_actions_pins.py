@@ -51,6 +51,11 @@ jobs:
         with:
           artifact-ids: ${{ needs.qualify.outputs.artifact_id }}
           digest-mismatch: error
+      - name: Re-verify qualification artifact
+        run: |
+          python3 scripts/qualify_gcs_external_effect.py \
+            verify \
+            --report artifacts/gcs-external-effect-report.json
       - name: Verify GitHub artifact attestation
         run: |
           gh attestation verify \
