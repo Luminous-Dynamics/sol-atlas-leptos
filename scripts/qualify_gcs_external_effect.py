@@ -35,7 +35,7 @@ else:
     from verify_github_oidc_claims import expected_claims
 
 
-SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v5"
+SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v6"
 CASE_SET_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
     "gcs_external_effect_cases_v2.json"
