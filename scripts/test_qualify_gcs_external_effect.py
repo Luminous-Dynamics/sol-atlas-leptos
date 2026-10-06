@@ -40,6 +40,47 @@ def main() -> None:
     }
     module.verify_resource_identity(good)
 
+    server_good = {
+        "schema": module.GITHUB_RUN_VERIFICATION_SCHEMA,
+        "repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "repository_id": "1195997641",
+        "workflow_name": "Qualify GCS external effect",
+        "workflow_path": ".github/workflows/qualify-gcs.yml",
+        "head_branch": "main",
+        "event": "workflow_dispatch",
+        "github_server": "github.com",
+        "context_sha_matches_server": True,
+        "context_run_attempt_matches_server": True,
+        "referenced_workflows": [],
+        "run_id": "12345",
+        "run_attempt": "1",
+        "head_sha": "a" * 40,
+    }
+    with TemporaryDirectory() as tmp:
+        verification_path = Path(tmp) / "github-run.json"
+        verification_path.write_text(json.dumps(server_good), encoding="utf-8")
+        module.load_github_workflow_run_verification(
+            str(verification_path)
+        )
+        bad_server = dict(
+            server_good,
+            context_sha_matches_server=False,
+        )
+        verification_path.write_text(
+            json.dumps(bad_server),
+            encoding="utf-8",
+        )
+        try:
+            module.load_github_workflow_run_verification(
+                str(verification_path)
+            )
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(
+                "report loader accepted unverified GitHub server SHA"
+            )
+
     assert module.point_in_time_semantics(
         "ObservedNotApplied",
         "Applied",
