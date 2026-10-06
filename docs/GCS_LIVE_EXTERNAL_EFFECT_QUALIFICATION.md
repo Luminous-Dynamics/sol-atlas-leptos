@@ -113,10 +113,6 @@ asserts that `git rev-parse HEAD` equals `GITHUB_SHA` before cloud
 authentication, and report verification checks the same equality.
 
 
-The artifact is also emitted through GitHub artifact attestation. That
-attestation is provenance for the report; it does not prove that Cloud Storage
-is truthful.
-
 After transient-credential cleanup, the qualification job uploads only the
 non-secret `artifacts/` directory through the pinned GitHub artifact action.
 The separate publication job downloads that artifact, re-verifies the report

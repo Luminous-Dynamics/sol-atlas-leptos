@@ -52,9 +52,21 @@ def validate_qualification_permission_isolation(
         errors.append(
             f"{path}: id-token: write must be scoped to the qualification job"
         )
-    if any(index > publish_line for index in id_token_lines):
+    if any(
+        index > publish_line for index in job_id_token_lines
+    ):
         errors.append(
             f"{path}: publication job must not receive id-token: write"
+        )
+    qualification_attestations = [
+        index
+        for index, line in enumerate(lines, 1)
+        if line == "      attestations: write"
+        and qualify_line < index < publish_line
+    ]
+    if qualification_attestations:
+        errors.append(
+            f"{path}: qualification job must not receive attestations: write"
         )
     if not any(
         line.strip() == "needs: qualify" for line in lines[publish_line - 1:]
@@ -153,10 +165,15 @@ def validate_qualification_secret_order(
         ),
         None,
     )
-    if upload_line is not None and upload_line < cleanup_line:
+    if (
+        upload_line is None
+        or cleanup_line is None
+        or upload_line <= cleanup_line
+        or upload_line >= publish_line
+    ):
         errors.append(
-            f"{path}:{upload_line}: artifact upload occurs before OIDC "
-            "credential cleanup"
+            f"{path}: qualification artifact upload must occur after "
+            "credential cleanup and before publication"
         )
     return errors
 
