@@ -28,12 +28,17 @@ jobs:
   qualify:
     permissions:
       contents: read
+      actions: read
       id-token: write
       attestations: write
     outputs:
       artifact_id: ${{ steps.upload_evidence.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@PIN
+      - name: Verify GitHub server workflow-run provenance
+        run: |
+          python3 scripts/verify_github_workflow_run.py \
+            --output artifacts/github-workflow-run-verification.json
       - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
       - name: cleanup
         run: rm -f "$RUNNER_TEMP/token.jwt"
@@ -45,6 +50,7 @@ jobs:
             artifacts/github-oidc-claims.json
             artifacts/gcs-wif-credential-config-verification.json
             artifacts/gcs-wif-trust-verification.json
+            artifacts/github-workflow-run-verification.json
             artifacts/gcs-external-effect-report.json
       - uses: actions/attest@ATTEST
   publish:
@@ -103,6 +109,10 @@ def main() -> None:
         expect(path, root, bad, "publish must not grant id-token: write")
 
         bad = GOOD.replace("digest-mismatch: error", "digest-mismatch: warn")
+
+        bad = GOOD.replace("      actions: read\n", "")
+        expect(path, root, bad, "qualify must grant actions: read")
+
         expect(path, root, bad, "artifact digest mismatch")
 
         bad = GOOD.replace(
