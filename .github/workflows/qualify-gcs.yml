@@ -66,7 +66,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifacts
-          python3 scripts/verify_github_oidc_claims.py             --audience "$EXPECTED_OIDC_AUDIENCE"             --output artifacts/github-oidc-claims.json
+          python3 scripts/verify_github_oidc_claims.py \
+            --audience "$EXPECTED_OIDC_AUDIENCE" \
+            --output artifacts/github-oidc-claims.json
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
@@ -79,7 +81,7 @@ jobs:
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
         with:
-          version: ">= 363.0.0"
+          version: "586.0.0"
 
       - name: Verify caller identity
         shell: bash
