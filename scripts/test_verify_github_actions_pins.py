@@ -45,11 +45,23 @@ jobs:
     needs: qualify
     permissions:
       contents: read
+      attestations: read
     steps:
       - uses: actions/download-artifact@DOWNLOAD
         with:
           artifact-ids: ${{ needs.qualify.outputs.artifact_id }}
           digest-mismatch: error
+      - name: Verify GitHub artifact attestation
+        run: |
+          gh attestation verify \
+            artifacts/gcs-external-effect-report.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow \
+              "$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml" \
+            --source-digest "$GITHUB_SHA" \
+            --source-ref "$GITHUB_REF" \
+            --cert-oidc-issuer \
+              "https://token.actions.githubusercontent.com"
 """.strip()
 
 GOOD = GOOD.replace("PIN", PIN)
@@ -90,6 +102,34 @@ def main() -> None:
             "actions/download-artifact@main",
         )
         expect(path, root, bad, "not immutable")
+
+        bad = GOOD.replace(
+            "attestations: read",
+            "attestations: none",
+        )
+        expect(path, root, bad, "publish must grant attestations: read")
+
+        bad = GOOD.replace(
+            "      - name: Verify GitHub artifact attestation\n"
+            "        run: |\n"
+            "          gh attestation verify \\\n"
+            "            artifacts/gcs-external-effect-report.json \\\n"
+            "            --repo \\\"$GITHUB_REPOSITORY\\\" \\\n"
+            "            --signer-workflow \\\n"
+            "              \\\"$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml\\\" \\\n"
+            "            --source-digest \\\"$GITHUB_SHA\\\" \\\n"
+            "            --source-ref \\\"$GITHUB_REF\\\" \\\n"
+            "            --cert-oidc-issuer \\\n"
+            "              \\\"https://token.actions.githubusercontent.com\\\"",
+            "      - name: Verify GitHub artifact attestation\n"
+            "        run: |\n"
+            "          gh attestation verify \\\n"
+            "            artifacts/gcs-external-effect-report.json \\\n"
+            "            --repo \\\"$GITHUB_REPOSITORY\\\" \\\n"
+            "            --signer-workflow \\\n"
+            "              \\\"$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml\\\"",
+        )
+        expect(path, root, bad, "attestation verification must bind source digest")
 
         bad = GOOD.replace("  publish:", "    evidence_bundle: unsafe\n  publish:")
         expect(path, root, bad, "oversized job-output handoff")
