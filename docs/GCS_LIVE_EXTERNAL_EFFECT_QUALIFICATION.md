@@ -125,8 +125,10 @@ variables.
 The live workflow remains workflow_dispatch-only and intentionally runs only
 from refs/heads/main. It has id-token and attestations permissions, passes the
 provider-resource URL as the explicit OIDC audience, and pins third-party
-actions to immutable release commit SHAs. Before cloud authentication it
-checks both the triggering commit and workflow-file provenance.
+actions to immutable release commit SHAs. The Cloud SDK is also pinned to an
+exact published version (586.0.0) rather than a floating version constraint.
+Before cloud authentication it checks both the triggering commit and
+workflow-file provenance.
 
 Google documents that google.subject is required for workload identity
 providers and that service-account impersonation uses
