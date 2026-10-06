@@ -69,6 +69,8 @@ def validate_qualification_policy(
         errors.append(f"{path}: missing publish job")
         return errors
 
+    if "      actions: read" not in qualify:
+        errors.append(f"{path}: qualify must grant actions: read")
     if "      id-token: write" not in qualify:
         errors.append(f"{path}: qualify must grant id-token: write")
     if "      attestations: write" not in qualify:
@@ -155,6 +157,7 @@ def validate_qualification_policy(
         "            artifacts/github-oidc-claims.json\n"
         "            artifacts/gcs-wif-credential-config-verification.json\n"
         "            artifacts/gcs-wif-trust-verification.json\n"
+        "            artifacts/github-workflow-run-verification.json\n"
         "            artifacts/gcs-external-effect-report.json"
     )
     upload_actions = qualify_text.count("actions/upload-artifact@")
@@ -164,7 +167,7 @@ def validate_qualification_policy(
         )
     if expected_artifact_path not in qualify_text:
         errors.append(
-            f"{path}: qualification must explicitly allowlist the four evidence files"
+            f"{path}: qualification must explicitly allowlist the five evidence files"
         )
     if "            artifacts/\n" in qualify_text:
         errors.append(
@@ -173,6 +176,14 @@ def validate_qualification_policy(
     if "actions/upload-artifact@" in publish_text:
         errors.append(f"{path}: publish must not upload a second evidence artifact")
 
+    server_verification_line = next(
+        (
+            i
+            for i, line in enumerate(lines)
+            if line.strip() == "python3 scripts/verify_github_workflow_run.py \\"
+        ),
+        None,
+    )
     token_line = next(
         (
             i
@@ -231,6 +242,16 @@ def validate_qualification_policy(
         ),
         None,
     )
+    if server_verification_line is None:
+        errors.append(f"{path}: GitHub server workflow-run verification is required")
+    if (
+        server_verification_line is not None
+        and token_line is not None
+        and server_verification_line >= token_line
+    ):
+        errors.append(
+            f"{path}: GitHub server workflow-run verification must precede OIDC token materialization"
+        )
     if token_line is None:
         errors.append(f"{path}: OIDC token materialization is required")
     if cleanup_line is None:
