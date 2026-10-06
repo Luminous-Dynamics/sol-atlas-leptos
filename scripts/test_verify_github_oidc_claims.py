@@ -21,6 +21,7 @@ AUDIENCE = (
     "https://iam.googleapis.com/projects/123/locations/global/"
     "workloadIdentityPools/sol-atlas/providers/github"
 )
+NOW = 1_750_000_000.0
 CONTEXT = {
     "GITHUB_WORKFLOW_SHA": "1" * 40,
     "GITHUB_SHA": "2" * 40,
@@ -29,22 +30,69 @@ CONTEXT = {
 }
 
 
+def expect_rejection(payload: dict[str, object], message: str) -> None:
+    try:
+        module.verify_claims(
+            payload,
+            AUDIENCE,
+            CONTEXT,
+            now=NOW,
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(message)
+
+
 def main() -> None:
     expected = module.expected_claims(AUDIENCE, CONTEXT)
-    assert module.verify_claims(expected, AUDIENCE, CONTEXT) == expected
+    expected.update(
+        {
+            "iat": NOW - 10,
+            "exp": NOW + 100,
+            "nbf": NOW - 10,
+        }
+    )
+    assert module.verify_claims(
+        expected,
+        AUDIENCE,
+        CONTEXT,
+        now=NOW,
+    ) == expected
 
     for name in ("aud", "workflow_sha", "sha", "workflow_ref"):
         mutated = dict(expected)
         mutated[name] = "tampered"
-        try:
-            module.verify_claims(mutated, AUDIENCE, CONTEXT)
-        except AssertionError:
-            pass
-        else:
-            raise AssertionError(f"tampered {name} claim was accepted")
+        expect_rejection(mutated, f"tampered {name} claim was accepted")
 
+    expired = dict(expected, exp=NOW - 61)
+    expect_rejection(expired, "expired OIDC token was accepted")
+
+    future_issued = dict(expected, iat=NOW + 61)
+    expect_rejection(future_issued, "future-issued OIDC token was accepted")
+
+    not_yet_valid = dict(expected, nbf=NOW + 61)
+    expect_rejection(not_yet_valid, "not-yet-valid OIDC token was accepted")
+
+    inconsistent_lifetime = dict(
+        expected,
+        iat=NOW + 10,
+        exp=NOW + 5,
+    )
+    expect_rejection(
+        inconsistent_lifetime,
+        "OIDC token with exp <= iat was accepted",
+    )
+
+    non_numeric = dict(expected, exp="not-a-number")
+    expect_rejection(
+        non_numeric,
+        "OIDC token with non-numeric exp was accepted",
+    )
+
+    malformed = "not-a-jwt"
     try:
-        module.decode_payload("not-a-jwt")
+        module.decode_payload(malformed)
     except AssertionError:
         pass
     else:
