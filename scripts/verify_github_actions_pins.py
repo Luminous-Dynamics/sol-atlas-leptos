@@ -123,6 +123,14 @@ def validate_qualification_policy(
         errors.append(f"{path}: attestation verification must target the report")
     if "--signer-workflow" not in publish_text:
         errors.append(f"{path}: attestation verification must pin the signer workflow")
+    if (
+        '--signer-workflow \\n'
+        '              "$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml"'
+        not in publish_text
+    ):
+        errors.append(
+            f"{path}: attestation verification must use the exact qualification workflow signer"
+        )
     if "--signer-digest \"$GITHUB_WORKFLOW_SHA\"" not in publish_text:
         errors.append(
             f"{path}: attestation verification must bind signer digest "
