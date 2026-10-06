@@ -44,8 +44,8 @@ def binding_policy(member: str) -> dict[str, object]:
 
 def main() -> None:
     profile = module.load_profile()
-    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v6"
-    assert profile["supersedes"] == "sol-atlas:gcs-wif-trust-profile:v5"
+    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v7"
+    assert profile["supersedes"] == "sol-atlas:gcs-wif-trust-profile:v6"
     assert profile["exact_attribute_condition"] == EXPECTED
     assert (
         profile["required_attribute_mappings"]["attribute.runner_environment"]
@@ -111,6 +111,21 @@ def main() -> None:
         pass
     else:
         raise AssertionError("non-global provider was accepted")
+
+    forbidden = module.forbidden_direct_roles(profile)
+    assert "roles/iam.serviceAccountTokenCreator" in forbidden
+    assert module.direct_policy_has_forbidden_roles(
+        {"bindings": [{"role": "roles/iam.serviceAccountTokenCreator"}]},
+        forbidden,
+    )
+    assert module.direct_policy_has_forbidden_roles(
+        {"bindings": [{"role": "roles/iam.serviceAccountKeyAdmin"}]},
+        forbidden,
+    )
+    assert not module.direct_policy_has_forbidden_roles(
+        binding_policy("expected"),
+        forbidden,
+    )
 
     assert module.providers_are_exclusive(
         [{"name": "expected"}],
