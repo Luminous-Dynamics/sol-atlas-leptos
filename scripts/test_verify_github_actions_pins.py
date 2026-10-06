@@ -210,12 +210,15 @@ def main() -> None:
             "attestation verification must follow report re-verification",
         )
         bad = GOOD.replace(
-            "          path: |\n"
-            "            artifacts/github-oidc-claims.json\n"
-            "            artifacts/gcs-wif-credential-config-verification.json\n"
-            "            artifacts/gcs-wif-trust-verification.json\n"
             "            artifacts/gcs-external-effect-report.json",
-            "          path: artifacts/",
+            "            artifacts/gcs-external-effect-report.json\n"
+            "            artifacts/",
+        )
+        expect(
+            path,
+            root,
+            bad,
+            "qualification must not upload the broad artifacts directory",
         )
         expect(
             path,
