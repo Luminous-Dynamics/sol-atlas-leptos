@@ -38,6 +38,7 @@ CONTEXT = {
     "GITHUB_SHA": "2" * 40,
     "GITHUB_RUN_ID": "12345",
     "GITHUB_RUN_ATTEMPT": "1",
+    "RUNNER_ENVIRONMENT": "github-hosted",
 }
 
 
@@ -78,7 +79,7 @@ def main() -> None:
         now=NOW,
     ) == expected
 
-    for name in ("aud", "workflow_sha", "sha", "workflow_ref"):
+    for name in ("aud", "workflow_sha", "sha", "workflow_ref", "runner_environment"):
         mutated = dict(expected)
         mutated[name] = "tampered"
         expect_rejection(mutated, f"tampered {name} claim was accepted")
