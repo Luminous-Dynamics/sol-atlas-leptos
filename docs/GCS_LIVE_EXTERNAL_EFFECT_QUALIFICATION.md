@@ -115,10 +115,10 @@ asserts that `git rev-parse HEAD` equals `GITHUB_SHA` before cloud
 authentication, and report verification checks the same equality.
 
 
-After transient-credential cleanup, the qualification job uploads only the
-non-secret `artifacts/` directory through the pinned GitHub artifact action and
-attests the report. The uploader's unique artifact ID is passed as a small job
-output to a separate publication job. Publication has only `contents: read`,
+After transient-credential cleanup, the qualification job uploads only an
+explicit four-file allowlist of non-secret evidence through the pinned GitHub
+artifact action and attests the report. The uploader's unique artifact ID is
+passed as a small job output to a separate publication job. Publication has only `contents: read`,
 downloads by that exact artifact ID with digest-mismatch failure enabled, and
 re-verifies the report against the exact source checkout. Publication has
 only `contents: read` and `attestations: read`; it cannot request a GitHub
