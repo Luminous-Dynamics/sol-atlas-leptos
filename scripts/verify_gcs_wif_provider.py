@@ -14,7 +14,7 @@ from pathlib import Path
 
 PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
-    "gcs_wif_trust_profile_v4.json"
+    "gcs_wif_trust_profile_v5.json"
 )
 
 
@@ -33,7 +33,7 @@ def digest(value: object) -> str:
 
 def load_profile() -> dict[str, object]:
     profile = json.loads(Path(PROFILE_PATH).read_text(encoding="utf-8"))
-    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v4":
+    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v5":
         raise AssertionError("wrong WIF trust profile schema")
     if not profile.get("exact_attribute_condition"):
         raise AssertionError("WIF trust profile has no exact condition")
@@ -239,8 +239,12 @@ def verify(
 
     mappings = provider.get("attributeMapping") or {}
     condition = str(provider.get("attributeCondition") or "")
+    allowed_audiences = provider.get("allowedAudiences") or []
     if provider.get("issuerUri") != "https://token.actions.githubusercontent.com":
         raise AssertionError("unexpected GitHub OIDC issuer")
+    if allowed_audiences != []:
+        raise AssertionError("WIF provider permits non-default OIDC audiences")
+    expected_audience = "https://iam.googleapis.com/" + provider_resource
 
     for name, expected in profile["required_attribute_mappings"].items():
         if mappings.get(name) != expected:
@@ -273,6 +277,8 @@ def verify(
             "attributeMapping": mappings,
             "attributeCondition": condition,
             "issuerUri": provider.get("issuerUri"),
+            "allowedAudiences": allowed_audiences,
+            "expectedAudience": expected_audience,
             "serviceAccount": service_account,
             "serviceAccountRole": role,
             "serviceAccountMember": expected_member,
@@ -280,7 +286,7 @@ def verify(
         }
     )
     return {
-        "schema": "sol-atlas:gcs-wif-trust-verification:v4",
+        "schema": "sol-atlas:gcs-wif-trust-verification:v5",
         "provider_resource": provider_resource,
         "provider_project_number": number,
         "provider_digest": provider_digest,
@@ -293,6 +299,9 @@ def verify(
         "provider_pool_exclusive": True,
         "attribute_mapping_verified": True,
         "attribute_condition_verified": True,
+        "oidc_audience_verified": True,
+        "oidc_audience_mode": str(profile["oidc_audience_mode"]),
+        "oidc_expected_audience": expected_audience,
     }
 
 
