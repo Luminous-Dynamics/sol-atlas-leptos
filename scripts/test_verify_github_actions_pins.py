@@ -168,6 +168,28 @@ def main() -> None:
             "attestation verification must reject self-hosted runners",
         )
 
+        verify_marker = (
+            "      - name: Re-verify qualification artifact\n"
+            "        run: |\n"
+            "          python3 scripts/qualify_gcs_external_effect.py \\\n"
+            "            verify \\\n"
+            "            --report artifacts/gcs-external-effect-report.json\n"
+        )
+        attest_marker = (
+            "      - name: Verify GitHub artifact attestation\n"
+            "        run: |\n"
+            "          gh attestation verify \\\n"
+        )
+        bad = GOOD.replace(
+            verify_marker + attest_marker,
+            attest_marker + verify_marker,
+        )
+        expect(
+            path,
+            root,
+            bad,
+            "attestation verification must follow report re-verification",
+        )
         bad = GOOD.replace("  publish:", "    evidence_bundle: unsafe\n  publish:")
         expect(path, root, bad, "oversized job-output handoff")
 
