@@ -73,6 +73,27 @@ def main() -> None:
         "duplicate object identity was accepted",
     )
 
+
+    forbidden = {
+        "schema": "sol-atlas:gcs-wif-trust-verification:v7",
+        "service_account_binding_verified": True,
+        "forbidden_direct_service_account_roles_absent": False,
+        "attribute_mapping_verified": True,
+        "attribute_condition_verified": True,
+        "provider_pool_exclusive": True,
+        "service_account_project_verified": True,
+        "oidc_audience_verified": True,
+    }
+    with TemporaryDirectory() as tmp:
+        verification_path = Path(tmp) / "wif.json"
+        verification_path.write_text(json.dumps(forbidden), encoding="utf-8")
+        try:
+            module.load_wif_verification(str(verification_path))
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("report loader accepted missing alternate-authority exclusion")
+
     print("offline GCS report resource-identity checks: PASS")
 
 
