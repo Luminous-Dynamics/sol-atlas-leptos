@@ -31,7 +31,14 @@ The condition binds the live identity to refs/heads/main and the exact workflow
 path on that ref. The workflow job independently refuses to run on any other
 ref.
 
-Before cloud authentication, the workflow requests a real GitHub OIDC JWT for
+Before cloud authentication, the workflow first queries GitHub's server-side
+workflow-run record with the read-only Actions API and verifies the exact run ID,
+run attempt, repository ID, source SHA, branch, event, workflow identity, and
+absence of unexpected reusable workflows. It also resolves the server-side
+workflow record and verifies the exact workflow path and name. This evidence is
+stored and later bound into the qualification report.
+
+The workflow then requests a real GitHub OIDC JWT for
 the exact Google provider-resource audience. A local parser checks the issuer,
 audience, repository identity, protected environment, event, main ref,
 workflow identity, workflow_ref, workflow_sha, source SHA, run ID, run attempt,
@@ -107,8 +114,9 @@ Adding, removing, reordering, or redefining these cases requires a new case-set 
 ## Evidence handling
 
 The workflow report (schema v5) binds the exact checked-out source commit
-(`GITHUB_SHA`), the workflow SHA/ref, adapter/harness/workflow blobs, WIF
-verification/profile digest, case-set identity, ordered observed results, OIDC
+(`GITHUB_SHA`), the workflow SHA/ref, adapter/harness/workflow blobs, GitHub
+server workflow-run verification/digest, WIF verification/profile digest,
+case-set identity, ordered observed results, OIDC
 v4 claim record/digest, exact-token fingerprint, WIF credential-config
 verification/digest, evidence digest, and report digest. The live workflow
 asserts that `git rev-parse HEAD` equals `GITHUB_SHA` before cloud
@@ -116,7 +124,7 @@ authentication, and report verification checks the same equality.
 
 
 After transient-credential cleanup, the qualification job uploads only an
-explicit four-file allowlist of non-secret evidence through the pinned GitHub
+explicit five-file allowlist of non-secret evidence through the pinned GitHub
 artifact action and attests the report. The uploader's unique artifact ID is
 passed as a small job output to a separate publication job. Publication has only `contents: read`,
 downloads by that exact artifact ID with digest-mismatch failure enabled, and
