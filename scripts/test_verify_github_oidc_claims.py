@@ -7,7 +7,9 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "verify_github_oidc_claims.py"
@@ -128,31 +130,41 @@ def main() -> None:
         "clock_skew_seconds": module.OIDC_CLOCK_SKEW_SECONDS,
         "cryptographic_verification": "not_performed_locally",
         "wif_exchange_token_is_separately_requested_by_auth_action": True,
+        "claims_digest": qualifier.digest(expected),
     }
-    qualifier.verify_oidc_temporal_evidence(oidc_artifact)
-    bad_crypto_mode = dict(
-        oidc_artifact,
-        cryptographic_verification="delegated_to_gcp_wif_exchange",
-    )
-    try:
-        # This mirrors the report-side semantic gate rather than relying on the
-        # claim verifier's live-ingestion check.
-        if bad_crypto_mode["cryptographic_verification"] != (
-            "not_performed_locally"
+    with TemporaryDirectory() as tmp:
+        artifact_path = Path(tmp) / "oidc.json"
+        artifact_path.write_text(
+            json.dumps(oidc_artifact),
+            encoding="utf-8",
+        )
+        assert qualifier.load_oidc_claims(str(artifact_path)) == oidc_artifact
+
+        for field, value in (
+            (
+                "cryptographic_verification",
+                "delegated_to_gcp_wif_exchange",
+            ),
+            (
+                "wif_exchange_token_is_separately_requested_by_auth_action",
+                False,
+            ),
         ):
-            raise AssertionError("legacy cryptographic-verification mode accepted")
-    except AssertionError:
-        pass
-    else:
-        raise AssertionError("legacy cryptographic-verification mode was accepted")
+            tampered = dict(oidc_artifact, **{field: value})
+            artifact_path.write_text(
+                json.dumps(tampered),
+                encoding="utf-8",
+            )
+            try:
+                qualifier.load_oidc_claims(str(artifact_path))
+            except AssertionError:
+                pass
+            else:
+                raise AssertionError(
+                    f"report loader accepted tampered OIDC {field} evidence"
+                )
 
-    bad_token_source = dict(
-        oidc_artifact,
-        wif_exchange_token_is_separately_requested_by_auth_action=False,
-    )
-    if bad_token_source["wif_exchange_token_is_separately_requested_by_auth_action"]:
-        raise AssertionError("incorrect WIF token-source evidence was accepted")
-
+    qualifier.verify_oidc_temporal_evidence(oidc_artifact)
     qualifier.verify_oidc_claim_identity(
         expected,
         {
@@ -199,6 +211,9 @@ def main() -> None:
     expired_artifact = dict(
         oidc_artifact,
         claims=dict(expected, exp=NOW - 61),
+        claims_digest=qualifier.digest(
+            dict(expected, exp=NOW - 61),
+        ),
     )
     try:
         qualifier.verify_oidc_temporal_evidence(expired_artifact)
