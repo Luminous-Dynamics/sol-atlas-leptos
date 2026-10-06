@@ -264,6 +264,9 @@ def verify(
         "audience": audience,
         "claims": claims,
         "claims_digest": digest(claims),
+        "token_digest": "sha256:" + hashlib.sha256(
+            token.encode("ascii"),
+        ).hexdigest(),
         "temporal_claims_valid": True,
         "verified_at_unix": verification_time,
         "verified_at": datetime.fromtimestamp(
