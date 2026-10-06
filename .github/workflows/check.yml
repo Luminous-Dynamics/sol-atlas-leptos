@@ -92,6 +92,7 @@ jobs:
           python3 -m py_compile scripts/verify_github_actions_pins.py
           python3 -m py_compile scripts/verify_github_oidc_claims.py
           python3 -m py_compile scripts/verify_gcs_wif_credential_config.py
+          python3 -m py_compile scripts/test_qualify_gcs_external_effect.py
           python3 scripts/test_verify_gcs_wif_provider.py
           python3 scripts/test_verify_github_oidc_claims.py
           python3 scripts/test_verify_github_actions_pins.py
