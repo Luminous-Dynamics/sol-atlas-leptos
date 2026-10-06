@@ -117,6 +117,26 @@ def main() -> None:
     else:
         raise AssertionError("malformed JWT was accepted")
 
+    valid_request_url = (
+        "https://token.actions.githubusercontent.com/"
+        "?token=runner-token"
+    )
+    module.validate_oidc_request_url(valid_request_url)
+
+    for url in (
+        "http://token.actions.githubusercontent.com/?token=runner-token",
+        "https://evil.example/?token=runner-token",
+        "https://user:pass@token.actions.githubusercontent.com/?token=runner-token",
+        "https://token.actions.githubusercontent.com:444/?token=runner-token",
+        "https://token.actions.githubusercontent.com/#fragment",
+    ):
+        try:
+            module.validate_oidc_request_url(url)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(f"unapproved OIDC request URL was accepted: {url}")
+
     print("offline GitHub OIDC verifier semantic checks: PASS")
 
 
