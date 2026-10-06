@@ -43,10 +43,11 @@ def binding_policy(member: str) -> dict[str, object]:
 
 def main() -> None:
     profile = module.load_profile()
-    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v4"
+    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v5"
     assert profile["pool_is_exclusive"] is True
     assert profile["service_account_binding_is_exclusive"] is True
     assert profile["service_account_must_reside_in_project"] is True
+    assert profile["oidc_audience_mode"] == "provider_resource_default"
 
     assert module.condition_is_exact(
         {"exact_attribute_condition": EXPECTED},
