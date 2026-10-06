@@ -26,7 +26,8 @@ EXPECTED = (
     "assertion.workflow=='Qualify GCS external effect' && "
     "assertion.ref=='refs/heads/main' && "
     "assertion.workflow_ref=='Luminous-Dynamics/sol-atlas-leptos/"
-    ".github/workflows/qualify-gcs.yml@refs/heads/main'"
+    ".github/workflows/qualify-gcs.yml@refs/heads/main' && "
+    "assertion.runner_environment=='github-hosted'"
 )
 
 
@@ -43,7 +44,7 @@ def binding_policy(member: str) -> dict[str, object]:
 
 def main() -> None:
     profile = module.load_profile()
-    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v5"
+    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v6"
     assert profile["pool_is_exclusive"] is True
     assert profile["service_account_binding_is_exclusive"] is True
     assert profile["service_account_must_reside_in_project"] is True
