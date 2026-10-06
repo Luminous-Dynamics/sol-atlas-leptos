@@ -260,7 +260,8 @@ def validate_qualification_policy(
         and server_verification_line >= token_line
     ):
         errors.append(
-            f"{path}: GitHub server workflow-run verification must precede OIDC token materialization"
+            f"{path}: GitHub server workflow-run verification must precede "
+            "OIDC token materialization"
         )
     if token_line is None:
         errors.append(f"{path}: OIDC token materialization is required")
