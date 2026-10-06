@@ -66,11 +66,12 @@ derived from the trusted provider resource.
 
 This is intentionally a direct resource-policy assertion, not a proof of
 effective IAM uniqueness across the Google Cloud resource hierarchy. Google
-Cloud allow policies inherit from organizations and folders into projects and
-resources, so an ancestor binding can affect effective access without appearing
-in the service account's direct IAM policy. Covering that hierarchy requires a
-separate privileged policy-analysis lane; this qualification does not silently
-claim that stronger property.
+Cloud allow policies can apply at the project, folder, organization, and other
+ancestor levels, so an inherited binding can affect effective access without
+appearing in the service account's direct IAM policy. Covering that hierarchy
+requires a separate privileged policy-analysis lane; this qualification does not
+silently claim that stronger property. Freezing the exact provider-resource and
+service-account identities is also tracked separately in #41.
 
 This is trust configuration evidence only. It does not prove environment
 approval honesty or Cloud Storage behavior. The workflow separately verifies
