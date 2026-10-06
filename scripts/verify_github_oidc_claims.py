@@ -239,7 +239,7 @@ def request_token(audience: str) -> str:
 def write_token(token: str, output: str) -> None:
     destination = Path(output)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(token + "\n", encoding="ascii")
+    destination.write_text(token, encoding="ascii")
     destination.chmod(0o600)
 
 
