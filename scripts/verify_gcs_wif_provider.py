@@ -290,7 +290,7 @@ def verify(
         }
     )
     return {
-        "schema": "sol-atlas:gcs-wif-trust-verification:v5",
+        "schema": "sol-atlas:gcs-wif-trust-verification:v6",
         "provider_resource": provider_resource,
         "provider_project_number": number,
         "provider_digest": provider_digest,
