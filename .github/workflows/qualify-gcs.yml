@@ -70,21 +70,35 @@ jobs:
           mkdir -p artifacts
           python3 scripts/verify_github_oidc_claims.py \
             --audience "$EXPECTED_OIDC_AUDIENCE" \
-            --output artifacts/github-oidc-claims.json
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
-        with:
-          project_id: ${{ env.GCP_PROJECT_ID }}
-          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          audience: https://iam.googleapis.com/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+            --output artifacts/github-oidc-claims.json \
+            --token-output "$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt"
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
         with:
           version: "586.0.0"
 
+      - name: Create WIF credential configuration from verified OIDC token
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt"
+          rm -f "$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
+          gcloud iam workload-identity-pools create-cred-config \
+            "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
+            --service-account="$GCP_SERVICE_ACCOUNT" \
+            --subject-token-type="urn:ietf:params:oauth:token-type:jwt" \
+            --credential-source-file="$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt" \
+            --output-file="$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
+          test -s "$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
+          chmod 600 "$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
+
+      - name: Authenticate to Google Cloud with verified token
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud auth login \
+            --cred-file="$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
       - name: Verify caller identity
         shell: bash
         run: |
@@ -127,6 +141,15 @@ jobs:
           path: artifacts/
           if-no-files-found: ignore
           retention-days: 90
+
+      - name: Remove transient OIDC credentials
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f \
+            "$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt" \
+            "$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
 
       - name: Attest qualification artifact provenance
         if: ${{ success() }}
