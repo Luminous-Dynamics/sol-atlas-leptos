@@ -198,6 +198,7 @@ def main() -> None:
         "workflow_ref",
         "run_id",
         "run_attempt",
+        "runner_environment",
     ):
         mutated = dict(expected, **{name: "tampered"})
         try:
