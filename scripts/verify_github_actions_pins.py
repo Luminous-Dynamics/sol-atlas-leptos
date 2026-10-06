@@ -176,11 +176,20 @@ def validate_qualification_policy(
         ),
         None,
     )
+    publish_line = next(
+        (i for i, line in enumerate(lines) if line == "  publish:"),
+        None,
+    )
     report_verify_line = next(
         (
             i
             for i, line in enumerate(lines)
-            if "python3 scripts/qualify_gcs_external_effect.py" in line
+            if (
+                publish_line is not None
+                and i > publish_line
+                and "python3 scripts/qualify_gcs_external_effect.py"
+                in line
+            )
         ),
         None,
     )
@@ -190,10 +199,6 @@ def validate_qualification_policy(
             for i, line in enumerate(lines)
             if line.strip() == "gh attestation verify \\"
         ),
-        None,
-    )
-    publish_line = next(
-        (i for i, line in enumerate(lines) if line == "  publish:"),
         None,
     )
     if token_line is None:
