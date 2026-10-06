@@ -84,6 +84,25 @@ def main() -> None:
         "OIDC token with exp <= iat was accepted",
     )
 
+    inverted_validity = dict(
+        expected,
+        nbf=NOW + 50,
+        exp=NOW + 40,
+    )
+    expect_rejection(
+        inverted_validity,
+        "OIDC token with nbf > exp was accepted",
+    )
+
+    skew_boundary = dict(
+        expected,
+        exp=NOW - module.OIDC_CLOCK_SKEW_SECONDS,
+    )
+    expect_rejection(
+        skew_boundary,
+        "OIDC token at the expiration skew boundary was accepted",
+    )
+
     non_numeric = dict(expected, exp="not-a-number")
     expect_rejection(
         non_numeric,
