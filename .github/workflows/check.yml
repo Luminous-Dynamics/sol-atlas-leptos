@@ -96,6 +96,7 @@ jobs:
           python3 scripts/test_verify_github_oidc_claims.py
           python3 scripts/test_verify_github_actions_pins.py
           python3 scripts/test_verify_gcs_wif_credential_config.py
+          python3 scripts/test_qualify_gcs_external_effect.py
           python3 scripts/qualify_gcs_external_effect.py validate-case-set
           awk 'length($0) > 100 { print FNR ":" length($0) ":" $0; exit 1 }' \
             scripts/gcs_generation_fenced_adapter.py \
@@ -106,3 +107,6 @@ jobs:
             scripts/verify_gcs_wif_credential_config.py \
             scripts/test_verify_github_actions_pins.py \
             scripts/test_verify_gcs_wif_credential_config.py
+            scripts/test_verify_gcs_wif_provider.py
+            scripts/test_verify_github_oidc_claims.py
+            scripts/test_qualify_gcs_external_effect.py
