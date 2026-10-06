@@ -17,6 +17,15 @@ assert spec and spec.loader
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
+QUALIFIER = ROOT / "scripts" / "qualify_gcs_external_effect.py"
+qualifier_spec = importlib.util.spec_from_file_location(
+    "qualify_gcs_external_effect",
+    QUALIFIER,
+)
+assert qualifier_spec and qualifier_spec.loader
+qualifier = importlib.util.module_from_spec(qualifier_spec)
+qualifier_spec.loader.exec_module(qualifier)
+
 AUDIENCE = (
     "https://iam.googleapis.com/projects/123/locations/global/"
     "workloadIdentityPools/sol-atlas/providers/github"
@@ -108,6 +117,37 @@ def main() -> None:
         non_numeric,
         "OIDC token with non-numeric exp was accepted",
     )
+
+    oidc_artifact = {
+        "claims": expected,
+        "temporal_claims_valid": True,
+        "verified_at_unix": NOW,
+        "verified_at": "2025-06-15T15:06:40+00:00",
+        "clock_skew_seconds": module.OIDC_CLOCK_SKEW_SECONDS,
+    }
+    qualifier.verify_oidc_temporal_evidence(oidc_artifact)
+
+    expired_artifact = dict(
+        oidc_artifact,
+        claims=dict(expected, exp=NOW - 61),
+    )
+    try:
+        qualifier.verify_oidc_temporal_evidence(expired_artifact)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("report verifier accepted expired OIDC evidence")
+
+    naive_timestamp = dict(
+        oidc_artifact,
+        verified_at="2025-06-15T15:06:40",
+    )
+    try:
+        qualifier.verify_oidc_temporal_evidence(naive_timestamp)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("report verifier accepted a naive timestamp")
 
     malformed = "not-a-jwt"
     try:
