@@ -117,6 +117,7 @@ def main() -> None:
             "            --repo \\\"$GITHUB_REPOSITORY\\\" \\\n"
             "            --signer-workflow \\\n"
             "              \\\"$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml\\\" \\\n"
+            "            --signer-digest \\\"$GITHUB_WORKFLOW_SHA\\\" \\\n"
             "            --source-digest \\\"$GITHUB_SHA\\\" \\\n"
             "            --source-ref \\\"$GITHUB_REF\\\" \\\n"
             "            --cert-oidc-issuer \\\n"
@@ -130,6 +131,12 @@ def main() -> None:
             "              \\\"$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml\\\"",
         )
         expect(path, root, bad, "attestation verification must bind source digest")
+
+        bad = GOOD.replace(
+            '            --signer-digest "$GITHUB_WORKFLOW_SHA" \\\n',
+            "",
+        )
+        expect(path, root, bad, "attestation verification must bind signer digest")
 
         bad = GOOD.replace("  publish:", "    evidence_bundle: unsafe\n  publish:")
         expect(path, root, bad, "oversized job-output handoff")
