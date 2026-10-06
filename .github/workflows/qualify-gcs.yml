@@ -93,6 +93,17 @@ jobs:
           test -s "$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
           chmod 600 "$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
 
+      - name: Verify exact WIF credential binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_gcs_wif_credential_config.py \
+            --config "$RUNNER_TEMP/sol-atlas-gcp-credentials.json" \
+            --token-file "$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt" \
+            --oidc-claims artifacts/github-oidc-claims.json \
+            --provider-resource "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
+            --service-account "$GCP_SERVICE_ACCOUNT" \
+            --output artifacts/gcs-wif-credential-config-verification.json
       - name: Authenticate to Google Cloud with verified token
         shell: bash
         run: |
