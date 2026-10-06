@@ -14,7 +14,7 @@ from pathlib import Path
 
 PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
-    "gcs_wif_trust_profile_v5.json"
+    "gcs_wif_trust_profile_v6.json"
 )
 
 
@@ -33,7 +33,7 @@ def digest(value: object) -> str:
 
 def load_profile() -> dict[str, object]:
     profile = json.loads(Path(PROFILE_PATH).read_text(encoding="utf-8"))
-    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v5":
+    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v6":
         raise AssertionError("wrong WIF trust profile schema")
     if not profile.get("exact_attribute_condition"):
         raise AssertionError("WIF trust profile has no exact condition")
