@@ -126,6 +126,48 @@ def main() -> None:
         "clock_skew_seconds": module.OIDC_CLOCK_SKEW_SECONDS,
     }
     qualifier.verify_oidc_temporal_evidence(oidc_artifact)
+    qualifier.verify_oidc_claim_identity(
+        expected,
+        {
+            "workflow_sha": CONTEXT["GITHUB_WORKFLOW_SHA"],
+            "sha": CONTEXT["GITHUB_SHA"],
+            "run_id": CONTEXT["GITHUB_RUN_ID"],
+            "run_attempt": CONTEXT["GITHUB_RUN_ATTEMPT"],
+        },
+        AUDIENCE,
+    )
+
+    for name in (
+        "repository",
+        "repository_id",
+        "repository_owner_id",
+        "environment",
+        "event_name",
+        "workflow",
+        "ref",
+        "ref_type",
+        "workflow_ref",
+        "run_id",
+        "run_attempt",
+    ):
+        mutated = dict(expected, **{name: "tampered"})
+        try:
+            qualifier.verify_oidc_claim_identity(
+                mutated,
+                {
+                    "workflow_sha": CONTEXT["GITHUB_WORKFLOW_SHA"],
+                    "sha": CONTEXT["GITHUB_SHA"],
+                    "run_id": CONTEXT["GITHUB_RUN_ID"],
+                    "run_attempt": CONTEXT["GITHUB_RUN_ATTEMPT"],
+                },
+                AUDIENCE,
+            )
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(
+                f"report verifier accepted tampered OIDC {name} claim"
+            )
 
     expired_artifact = dict(
         oidc_artifact,
@@ -137,6 +179,28 @@ def main() -> None:
         pass
     else:
         raise AssertionError("report verifier accepted expired OIDC evidence")
+
+    wrong_clock_skew = dict(
+        oidc_artifact,
+        clock_skew_seconds=61,
+    )
+    try:
+        qualifier.verify_oidc_temporal_evidence(wrong_clock_skew)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("report verifier accepted a widened clock-skew policy")
+
+    wrong_timestamp = dict(
+        oidc_artifact,
+        verified_at_unix=NOW + 1,
+    )
+    try:
+        qualifier.verify_oidc_temporal_evidence(wrong_timestamp)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("report verifier accepted inconsistent timestamps")
 
     naive_timestamp = dict(
         oidc_artifact,
