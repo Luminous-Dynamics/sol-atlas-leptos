@@ -903,6 +903,7 @@ def verify_report(path: str) -> None:
         "workflow": "Qualify GCS external effect",
         "event": "workflow_dispatch",
         "ref": "refs/heads/main",
+        "runner_environment": "github-hosted",
         "workflow_ref": (
             "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/"
             "qualify-gcs.yml@refs/heads/main"
