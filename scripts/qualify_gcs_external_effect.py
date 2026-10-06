@@ -651,8 +651,26 @@ def run_qualification(
                 f"expected exactly one GCS 200 and one 412, got {statuses}"
             )
         winning_state = resource.state()
-        if winning_state is None:
-            raise AssertionError("concurrent winner was not observable")
+        winner_coherent = (
+            winning_state is not None
+            and winning_state.metadata.get("execution-id")
+            == winning_request.execution_id
+            and winning_state.metadata.get("input-fingerprint")
+            == winning_request.input_fingerprint
+            and winning_state.metadata.get("attempt-id")
+            == winning_request.attempt_id
+            and winning_state.metadata.get("fence-generation")
+            == str(winning_request.fence_generation)
+            and winning_state.metadata.get("idempotency-key")
+            == winning_request.idempotency_key
+            and winning_state.data_sha256 == sha256_prefixed(winning_request.body)
+        )
+        if not winner_coherent:
+            raise AssertionError(
+                "concurrent winner state does not match the successful request"
+            )
+        cases[-1]["passed"] = concurrency_ok and winner_coherent
+        cases[-1]["observed"]["winner_state_coherent"] = winner_coherent
         generation = winning_state.generation
 
         race_generation = create_setup(race_resource, "metadata-race")
