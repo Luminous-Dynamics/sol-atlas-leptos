@@ -19,7 +19,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA = "sol-atlas:github-oidc-claims:v3"
+SCHEMA = "sol-atlas:github-oidc-claims:v4"
 ISSUER = "https://token.actions.githubusercontent.com"
 OIDC_REQUEST_HOST = "token.actions.githubusercontent.com"
 REPO = "Luminous-Dynamics/sol-atlas-leptos"
@@ -236,9 +236,17 @@ def request_token(audience: str) -> str:
     return token
 
 
+def write_token(token: str, output: str) -> None:
+    destination = Path(output)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(token + "\n", encoding="ascii")
+    destination.chmod(0o600)
+
+
 def verify(
     audience: str,
     output: str | None,
+    token_output: str | None,
 ) -> dict[str, object]:
     if not audience.startswith("https://iam.googleapis.com/projects/"):
         raise AssertionError("OIDC audience is not a Google provider resource")
@@ -267,7 +275,7 @@ def verify(
         ),
         "source_sha_matches_runner": claims["sha"] == context["GITHUB_SHA"],
         "cryptographic_verification": "not_performed_locally",
-        "wif_exchange_token_is_separately_requested_by_auth_action": True,
+        "wif_exchange_uses_this_exact_verified_token": True,
     }
     if output:
         destination = Path(output)
@@ -276,6 +284,8 @@ def verify(
             json.dumps(result, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
         )
+    if token_output:
+        write_token(token, token_output)
     return result
 
 
@@ -283,8 +293,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--audience", required=True)
     parser.add_argument("--output")
+    parser.add_argument("--token-output")
     args = parser.parse_args()
-    result = verify(args.audience, args.output)
+    result = verify(args.audience, args.output, args.token_output)
     print(
         "verified GitHub OIDC claims: "
         + result["claims_digest"]
