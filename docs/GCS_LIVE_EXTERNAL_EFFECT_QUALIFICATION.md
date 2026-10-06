@@ -47,11 +47,19 @@ which activates Google's provider-resource default audience rule. The workflow
 passes that exact provider URL as its explicit audience, so an alternate
 configured audience cannot silently widen the trust surface.
 
-The verifier also checks the target service account identity and IAM policy:
-the service account must reside in the configured GCP project, and its only
-Workload Identity User binding must be the repository-ID principal set for the
-trusted pool. The project number and workload identity pool ID are derived from
-the trusted provider resource.
+The verifier also checks the target service account identity and its direct IAM
+policy: the service account must reside in the configured GCP project, and its
+only direct Workload Identity User binding must be the repository-ID principal
+set for the trusted pool. The project number and workload identity pool ID are
+derived from the trusted provider resource.
+
+This is intentionally a direct resource-policy assertion, not a proof of
+effective IAM uniqueness across the Google Cloud resource hierarchy. Google
+Cloud allow policies inherit from organizations and folders into projects and
+resources, so an ancestor binding can affect effective access without appearing
+in the service account's direct IAM policy. Covering that hierarchy requires a
+separate privileged policy-analysis lane; this qualification does not silently
+claim that stronger property.
 
 This is trust configuration evidence only. It does not prove environment
 approval honesty or Cloud Storage behavior. The workflow separately verifies
@@ -63,7 +71,7 @@ WIF binding is intentionally exclusive to the repository-ID principal.
 
 ## Qualification cases
 
-The frozen case set is:
+The active frozen case set is v2; v1 remains historical and is superseded:
 
 1. current fence accepted;
 2. exact stable-key replay does not mutate again;
@@ -78,8 +86,9 @@ The frozen case set is:
    metageneration preconditions and the read-back converges to one coherent
    snapshot;
 10. an acknowledgement-discarded mutation is reconciled by exact read-back;
-11. reconciliation distinguishes the pre-application point from the applied
-    point without treating absence as proof of non-commit.
+11. reconciliation distinguishes a genuinely absent pre-application point from
+    the exact applied point; absence in the indeterminate-ack path remains
+    insufficient to prove non-commit.
 
 Adding, removing, reordering, or redefining these cases requires a new case-set identity.
 
@@ -87,7 +96,7 @@ Adding, removing, reordering, or redefining these cases requires a new case-set 
 
 The workflow report binds the exact checked-out source commit (`GITHUB_SHA`),
 the workflow SHA/ref, adapter/harness/workflow blobs, WIF verification/profile
-digest, case-set identity, ordered observed results, evidence digest, and report
+digest, case-set identity, ordered observed results, OIDC claim record/digest, evidence digest, and report
 digest. The live workflow asserts that `git rev-parse HEAD` equals `GITHUB_SHA`
 before cloud authentication, and report verification checks the same equality.
 
