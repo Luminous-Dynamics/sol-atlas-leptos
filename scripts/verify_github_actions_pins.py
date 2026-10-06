@@ -150,27 +150,22 @@ def validate_qualification_policy(
         errors.append(f"{path}: attestation verification must pin the GitHub OIDC issuer")
     if "actions/upload-artifact@" not in qualify_text:
         errors.append(f"{path}: qualify must upload evidence")
-    expected_artifacts = (
-        "artifacts/github-oidc-claims.json",
-        "artifacts/gcs-wif-credential-config-verification.json",
-        "artifacts/gcs-wif-trust-verification.json",
-        "artifacts/gcs-external-effect-report.json",
+    expected_artifact_path = (
+        "          path: |\n"
+        "            artifacts/github-oidc-claims.json\n"
+        "            artifacts/gcs-wif-credential-config-verification.json\n"
+        "            artifacts/gcs-wif-trust-verification.json\n"
+        "            artifacts/gcs-external-effect-report.json"
     )
-    if any(
-        f'"{name}"' in qualify_text
-        or f"'{name}'" in qualify_text
-        for name in expected_artifacts
-    ):
-        missing_artifacts = [
-            name for name in expected_artifacts if name not in qualify_text
-        ]
-        if missing_artifacts:
-            errors.append(
-                f"{path}: qualification artifact allowlist is incomplete: "
-                + ", ".join(missing_artifacts)
-            )
-    else:
-        errors.append(f"{path}: qualification must explicitly allowlist evidence files")
+    upload_actions = qualify_text.count("actions/upload-artifact@")
+    if upload_actions != 1:
+        errors.append(
+            f"{path}: qualification must contain exactly one evidence uploader"
+        )
+    if expected_artifact_path not in qualify_text:
+        errors.append(
+            f"{path}: qualification must explicitly allowlist the four evidence files"
+        )
     if "actions/upload-artifact@" in publish_text:
         errors.append(f"{path}: publish must not upload a second evidence artifact")
 
