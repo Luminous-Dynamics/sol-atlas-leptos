@@ -21,6 +21,7 @@ from pathlib import Path
 
 SCHEMA = "sol-atlas:github-oidc-claims:v2"
 ISSUER = "https://token.actions.githubusercontent.com"
+OIDC_REQUEST_HOST = "token.actions.githubusercontent.com"
 REPO = "Luminous-Dynamics/sol-atlas-leptos"
 REPOSITORY_ID = "1195997641"
 REPOSITORY_OWNER_ID = "216969177"
@@ -170,6 +171,19 @@ def verify_claims(
     return observed
 
 
+def validate_oidc_request_url(url: str) -> None:
+    parsed = urllib.parse.urlsplit(url)
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname != OIDC_REQUEST_HOST
+        or parsed.port not in (None, 443)
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.fragment
+    ):
+        raise AssertionError("GitHub OIDC request URL is not an approved HTTPS origin")
+
+
 def with_audience(url: str, audience: str) -> str:
     parsed = urllib.parse.urlsplit(url)
     query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
@@ -190,6 +204,7 @@ def request_token(audience: str) -> str:
     request_token_value = os.environ.get("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "")
     if not request_url or not request_token_value:
         raise AssertionError("GitHub OIDC request environment is unavailable")
+    validate_oidc_request_url(request_url)
 
     request = urllib.request.Request(
         with_audience(request_url, audience),
