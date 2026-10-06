@@ -1,5 +1,6 @@
 {
   "schema": "sol-atlas:gcs-wif-trust-profile:v6",
+  "supersedes": "sol-atlas:gcs-wif-trust-profile:v5",
   "repository": "Luminous-Dynamics/sol-atlas-leptos",
   "repository_id": "1195997641",
   "repository_owner_id": "216969177",
