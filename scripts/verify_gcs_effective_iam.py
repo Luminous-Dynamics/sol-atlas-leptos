@@ -238,10 +238,14 @@ def load_immutable_oidc_subject(path: str) -> str:
         if claims.get(name) != value:
             raise AssertionError("OIDC evidence identity drift for " + name)
     subject = claims.get("sub")
-    if not isinstance(subject, str) or not subject.startswith(
+    expected_subject = (
         OIDC_IMMUTABLE_SUBJECT_PREFIX
-    ):
-        raise AssertionError("OIDC evidence is not an immutable repository subject")
+        + "environment:sol-atlas-gcs-qualification"
+    )
+    if subject != expected_subject:
+        raise AssertionError(
+            "OIDC evidence does not use the frozen immutable environment subject"
+        )
     return subject
 
 
