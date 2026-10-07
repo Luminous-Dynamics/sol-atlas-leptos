@@ -26,6 +26,10 @@ QUALIFICATION = (
     "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
     "qualification@sol-atlas.iam.gserviceaccount.com"
 )
+OIDC_SUBJECT = (
+    "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
+    "ref:refs/heads/main"
+)
 OTHER_SERVICE_ACCOUNT = (
     "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
     "privileged@sol-atlas.iam.gserviceaccount.com"
@@ -78,6 +82,7 @@ def expect_failure(data: dict[str, object], label: str) -> None:
             data,
             PRINCIPAL,
             QUALIFICATION,
+            OIDC_SUBJECT,
         )
     except AssertionError:
         return
@@ -96,6 +101,7 @@ def main() -> None:
         envelope([clean]),
         PRINCIPAL,
         QUALIFICATION,
+        OIDC_SUBJECT,
     ) == []
 
     expect_failure(
@@ -208,6 +214,7 @@ def main() -> None:
         ]),
         PRINCIPAL,
         QUALIFICATION,
+        OIDC_SUBJECT,
     ) == []
 
     mixed = finding(
