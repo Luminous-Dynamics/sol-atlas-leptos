@@ -171,7 +171,7 @@ def principal_set_prefix(expected_principal: str) -> str:
 
 
 def expected_workload_principal_sets(expected_principal: str) -> set[str]:
-    profile_path = Path(WIF_PROFILE_PATH)
+    profile_path = Path(__file__).resolve().parents[1] / WIF_PROFILE_PATH
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
     if profile.get("schema") != WIF_PROFILE_SCHEMA:
         raise AssertionError("WIF trust profile schema drift")
@@ -736,7 +736,9 @@ def verify(
         "wif_profile_path": WIF_PROFILE_PATH,
         "wif_profile_digest": digest(
             json.loads(
-                Path(WIF_PROFILE_PATH).read_text(encoding="utf-8")
+                Path(__file__).resolve().parents[1].joinpath(
+                    WIF_PROFILE_PATH
+                ).read_text(encoding="utf-8")
             )
         ),
         "matched_workload_principal_sets": sorted(
