@@ -96,6 +96,9 @@ jobs:
           python3 -m py_compile scripts/verify_github_workflow_run.py
           python3 -m py_compile scripts/verify_gcs_effective_iam.py
           python3 -m py_compile scripts/verify_gcs_broad_sa_impersonation.py
+          python3 -m py_compile scripts/verify_github_governance_root.py
+          python3 -m py_compile scripts/test_verify_github_governance_root.py
+          python3 -m py_compile scripts/test_verify_github_governance_root_integration.py
           python3 -m py_compile scripts/test_verify_gcs_effective_iam_integration.py
           python3 -m py_compile scripts/test_verify_gcs_broad_sa_impersonation_integration.py
           python3 -m py_compile scripts/test_verify_gcs_effective_iam_pivots.py
@@ -111,6 +114,8 @@ jobs:
           python3 scripts/test_verify_gcs_effective_iam.py
           python3 scripts/test_verify_gcs_effective_iam_pivots.py
           python3 scripts/test_verify_gcs_broad_sa_impersonation.py
+          python3 scripts/test_verify_github_governance_root.py
+          python3 scripts/test_verify_github_governance_root_integration.py
           python3 scripts/test_verify_gcs_effective_iam_integration.py
           python3 scripts/test_verify_gcs_broad_sa_impersonation_integration.py
           python3 scripts/qualify_gcs_external_effect.py validate-case-set
@@ -129,6 +134,9 @@ jobs:
             scripts/verify_github_workflow_run.py \
             scripts/verify_gcs_effective_iam.py \
             scripts/verify_gcs_broad_sa_impersonation.py \
+            scripts/verify_github_governance_root.py \
+            scripts/test_verify_github_governance_root.py \
+            scripts/test_verify_github_governance_root_integration.py \
             scripts/test_verify_gcs_broad_sa_impersonation.py \
             scripts/test_verify_gcs_effective_iam_integration.py \
             scripts/test_verify_gcs_broad_sa_impersonation_integration.py \
