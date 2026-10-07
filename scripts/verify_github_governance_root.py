@@ -17,6 +17,8 @@ REPO = "Luminous-Dynamics/sol-atlas-leptos"
 DEFAULT_BRANCH = "main"
 REQUIRED_CHECK = "Check"
 REQUIRED_CHECK_INTEGRATION_ID = 15368
+EXPECTED_RULESET_NAME = "Sol Atlas main governance root"
+EXPECTED_REPOSITORY_ID = 1195997641
 REQUIRED_RULESET_SOURCE_TYPE = "Organization"
 REQUIRED_RULESET_SOURCE = "Luminous-Dynamics"
 API_VERSION = "2026-03-10"
@@ -103,6 +105,25 @@ def targets_default_branch(ruleset: dict[str, object]) -> bool:
     )
 
 
+def targets_exact_repository(ruleset: dict[str, object]) -> bool:
+    conditions = ruleset.get("conditions")
+    if not isinstance(conditions, dict):
+        return False
+    repository_id = conditions.get("repository_id")
+    ref_name = conditions.get("ref_name")
+    if not isinstance(repository_id, dict) or not isinstance(ref_name, dict):
+        return False
+    return (
+        repository_id.get("include") == [EXPECTED_REPOSITORY_ID]
+        and repository_id.get("exclude") == []
+        and ref_name.get("include") == ["refs/heads/" + DEFAULT_BRANCH]
+        and ref_name.get("exclude") == []
+    )
+
+
+def matches_expected_name(ruleset: dict[str, object]) -> bool:
+    return ruleset.get("name") == EXPECTED_RULESET_NAME
+
 def has_rule(
     rules: list[dict[str, object]],
     rule_type: str,
@@ -128,8 +149,10 @@ def verify_ruleset(
         raise AssertionError("governance root is not organization-owned")
     if ruleset.get("source") != REQUIRED_RULESET_SOURCE:
         raise AssertionError("governance root organization mismatch")
-    if not targets_default_branch(ruleset):
-        raise AssertionError("governance ruleset does not target main")
+    if not targets_exact_repository(ruleset):
+        raise AssertionError("governance ruleset does not target exact repository and main")
+    if not matches_expected_name(ruleset):
+        raise AssertionError("governance ruleset name does not match frozen root")
 
     raw_rules = ruleset.get("rules")
     if not isinstance(raw_rules, list):
