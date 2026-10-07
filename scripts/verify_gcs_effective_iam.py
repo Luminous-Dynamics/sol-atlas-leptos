@@ -897,6 +897,12 @@ def verify(
             else None
         ),
         "observer_identity_verified": wif_identity is not None,
+        "oidc_claims_path": oidc_claims,
+        "oidc_claims_digest": digest(
+            json.loads(
+                Path(oidc_claims).read_text(encoding="utf-8")
+            )
+        ),
         "wif_profile_digest": digest(
             json.loads(
                 Path(__file__).resolve().parents[1].joinpath(
