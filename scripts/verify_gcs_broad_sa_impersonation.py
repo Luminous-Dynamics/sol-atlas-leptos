@@ -400,6 +400,11 @@ def verify(
             else None
         ),
         "observer_identity_verified": wif_identity is not None,
+        "oidc_claims_digest": module.digest(
+            json.loads(
+                Path(oidc_claims).read_text(encoding="utf-8")
+            )
+        ),
         "queried_permissions": list(PERMISSIONS),
         "intended_qualification_binding_allowed": True,
         "broad_impersonation_findings": [],
