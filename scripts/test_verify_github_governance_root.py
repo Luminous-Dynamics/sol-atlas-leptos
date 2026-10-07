@@ -29,8 +29,8 @@ def good_ruleset():
     return {
         "id": 77,
         "name": "Protected main governance root",
-        "source_type": "Repository",
-        "source": module.REPO,
+        "source_type": "Organization",
+        "source": module.REQUIRED_RULESET_SOURCE,
         "enforcement": "active",
         "target": "branch",
         "conditions": {
@@ -85,7 +85,9 @@ def expect_failure(ruleset, label: str):
 def main():
     verified = module.verify_ruleset(good_ruleset())
     assert verified["required_check"] == "Check"
-    assert verified["required_check_integration_id"] == 15368
+    assert verified["required_check_integration_id"] == module.REQUIRED_CHECK_INTEGRATION_ID
+    assert verified["required_ruleset_source_type"] == "Organization"
+    assert verified["required_ruleset_source"] == "Luminous-Dynamics"
 
     for rule_type in (
         "pull_request",
@@ -118,6 +120,17 @@ def main():
     broken["conditions"]["ref_name"]["include"] = ["refs/heads/dev"]
     expect_failure(broken, "wrong target")
 
+    broken = good_ruleset()
+    broken["source_type"] = "Repository"
+    expect_failure(broken, "repository-owned root")
+
+    broken = good_ruleset()
+    broken["source"] = "other-org"
+    expect_failure(broken, "wrong root organization")
+
+    broken = good_ruleset()
+    broken["enforcement"] = "enabled"
+    expect_failure(broken, "non-active enforcement mode")
     broken = good_ruleset()
     broken["enforcement"] = "evaluate"
     expect_failure(broken, "non-active")
