@@ -86,6 +86,9 @@ It also checks explicit negative permissions so the execution principal does not
 silently acquire IAM policy inspection or mutation privileges intended for the
 separate observer. The parser accepts the legitimate direct service-account
 policy attachment as well as project/folder/organization ancestor attachments.
+It also audits the project target for `cloudbuild.builds.create` and
+`deploymentmanager.deployments.create`, failing closed if the exact expected
+principal has either active pivot permission in the selected scope.
 
 The audit accepts an explicit Cloud Asset scope (`projects/...`,
 `folders/...`, or `organizations/...`) and queries the exact expected
