@@ -59,6 +59,11 @@ WIF_CREDENTIAL_CONFIG_SCHEMA = (
     "sol-atlas:gcp-wif-credential-config-verification:v1"
 )
 GITHUB_RUN_VERIFICATION_SCHEMA = "sol-atlas:github-workflow-run-verification:v1"
+WIF_TRUST_PROFILE_PATH = (
+    "sol-atlas-policy-store-contract/conformance/"
+    "gcs_wif_trust_profile_v8.json"
+)
+WIF_TRUST_PROFILE_SCHEMA = "sol-atlas:gcs-wif-trust-profile:v8"
 CLAIM_CEILING = (
     "GCS generation-precondition evidence only; replay safety applies while "
     "the qualified live object state remains retained; no universal "
@@ -179,6 +184,15 @@ def load_github_workflow_run_verification(path: str) -> dict[str, object]:
 def validate_wif_verification(verification: dict[str, object]) -> None:
     if verification.get("schema") != "sol-atlas:gcs-wif-trust-verification:v8":
         raise AssertionError("wrong WIF trust verification schema")
+    if verification.get("profile_path") != WIF_TRUST_PROFILE_PATH:
+        raise AssertionError("WIF verification profile path drift")
+    profile = json.loads(
+        Path(WIF_TRUST_PROFILE_PATH).read_text(encoding="utf-8")
+    )
+    if profile.get("schema") != WIF_TRUST_PROFILE_SCHEMA:
+        raise AssertionError("checked-in WIF trust profile schema drift")
+    if verification.get("profile_digest") != digest(profile):
+        raise AssertionError("WIF verification profile digest drift")
     if not verification.get("attribute_mapping_verified"):
         raise AssertionError("WIF attribute mapping was not verified")
     if not verification.get("attribute_condition_verified"):
