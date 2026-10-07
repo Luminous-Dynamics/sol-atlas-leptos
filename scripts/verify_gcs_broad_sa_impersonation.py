@@ -22,6 +22,7 @@ PERMISSIONS = (
     "iam.serviceAccounts.signJwt",
     "iam.serviceAccounts.implicitDelegation",
     "iam.serviceAccountKeys.create",
+    "iam.serviceAccounts.setIamPolicy",
 )
 
 
