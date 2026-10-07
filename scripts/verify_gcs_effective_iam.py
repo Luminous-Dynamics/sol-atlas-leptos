@@ -303,6 +303,14 @@ def required_permissions_are_present(observed_permissions: list[str]) -> bool:
     )
 
 
+def execution_permissions_are_clean(
+    observed_permissions: list[str],
+) -> bool:
+    return not set(observed_permissions).intersection(
+        FORBIDDEN_EXECUTION_PERMISSIONS
+    )
+
+
 def verify(
     scope: str,
     project_id: str,
@@ -323,12 +331,12 @@ def verify(
             for permission in finding["permissions"]
         }
     )
-    forbidden_observed = sorted(
-        set(observed_permissions).intersection(
-            FORBIDDEN_EXECUTION_PERMISSIONS
+    if not execution_permissions_are_clean(observed_permissions):
+        forbidden_observed = sorted(
+            set(observed_permissions).intersection(
+                FORBIDDEN_EXECUTION_PERMISSIONS
+            )
         )
-    )
-    if forbidden_observed:
         raise AssertionError(
             "execution principal has observer policy privileges: "
             + ", ".join(forbidden_observed)
