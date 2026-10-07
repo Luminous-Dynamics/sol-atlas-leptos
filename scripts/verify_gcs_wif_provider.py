@@ -404,6 +404,7 @@ def verify(
         "profile_path": PROFILE_PATH,
         "profile_digest": digest(profile),
         "service_account": service_account,
+        "service_account_binding_member": expected_member,
         "observer_service_account": observer_service_account,
         "observer_identity_verified": observer_service_account is not None,
         "service_account_project": sa_project,
