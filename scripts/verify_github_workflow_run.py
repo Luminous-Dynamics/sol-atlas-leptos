@@ -17,6 +17,8 @@ REPO = "Luminous-Dynamics/sol-atlas-leptos"
 REPOSITORY_ID = "1195997641"
 WORKFLOW_NAME = "Qualify GCS external effect"
 WORKFLOW_PATH = ".github/workflows/qualify-gcs.yml"
+WORKFLOW_ID = 311325850
+REPOSITORY_OWNER_ID = "216969177"
 EVENT = "workflow_dispatch"
 REF = "refs/heads/main"
 RUNNER_HOST = "github.com"
@@ -98,8 +100,8 @@ def verify_run_record(
     workflow: dict[str, object],
 ) -> dict[str, object]:
     workflow_id = run.get("workflow_id")
-    if not isinstance(workflow_id, int) or workflow_id <= 0:
-        raise AssertionError("workflow-run record has no valid workflow ID")
+    if workflow_id != WORKFLOW_ID:
+        raise AssertionError("workflow-run workflow ID mismatch")
     repository = run.get("repository")
     if not isinstance(repository, dict):
         raise AssertionError("workflow-run record has no repository object")
@@ -107,6 +109,11 @@ def verify_run_record(
         raise AssertionError("workflow-run repository mismatch")
     if str(repository.get("id")) != REPOSITORY_ID:
         raise AssertionError("workflow-run repository ID mismatch")
+    owner = repository.get("owner")
+    if not isinstance(owner, dict):
+        raise AssertionError("workflow-run repository owner is missing")
+    if str(owner.get("id")) != REPOSITORY_OWNER_ID:
+        raise AssertionError("workflow-run repository owner ID mismatch")
     expected_run = {
         "id": int(context["GITHUB_RUN_ID"]),
         "run_attempt": int(context["GITHUB_RUN_ATTEMPT"]),
@@ -114,6 +121,7 @@ def verify_run_record(
         "head_branch": "main",
         "event": EVENT,
         "name": WORKFLOW_NAME,
+        "path": WORKFLOW_PATH + "@" + REF,
     }
     for name, expected in expected_run.items():
         if run.get(name) != expected:
