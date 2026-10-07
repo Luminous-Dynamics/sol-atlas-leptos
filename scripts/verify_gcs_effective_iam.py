@@ -215,7 +215,7 @@ def valid_project_attachment(
             isinstance(resource, str)
             and bool(
                 re.fullmatch(
-                    r"//cloudresourcemanager\\.googleapis\\.com/"
+                    r"//cloudresourcemanager\.googleapis\.com/"
                     r"(folders|organizations)/[A-Za-z0-9._-]+",
                     resource,
                 )
