@@ -206,6 +206,13 @@ def extract_findings(
     return findings
 
 
+def required_permissions_are_present(observed_permissions: list[str]) -> bool:
+    return all(
+        permission in observed_permissions
+        for permission in REQUIRED_PERMISSIONS
+    )
+
+
 def verify(
     project_id: str,
     service_account: str,
@@ -224,12 +231,16 @@ def verify(
             for permission in finding["permissions"]
         }
     )
-    for permission in REQUIRED_PERMISSIONS:
-        if permission not in observed_permissions:
-            raise AssertionError(
-                "Policy Analyzer did not observe the required WIF permission: "
-                + permission
-            )
+    if not required_permissions_are_present(observed_permissions):
+        missing = [
+            permission
+            for permission in REQUIRED_PERMISSIONS
+            if permission not in observed_permissions
+        ]
+        raise AssertionError(
+            "Policy Analyzer did not observe required WIF permissions: "
+            + ", ".join(missing)
+        )
     observed_roles = sorted(
         {str(finding["role"]) for finding in findings}
     )
