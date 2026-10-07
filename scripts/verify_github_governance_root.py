@@ -114,8 +114,7 @@ def targets_exact_repository(ruleset: dict[str, object]) -> bool:
     if not isinstance(repository_id, dict) or not isinstance(ref_name, dict):
         return False
     return (
-        repository_id.get("include") == [EXPECTED_REPOSITORY_ID]
-        and repository_id.get("exclude") == []
+        repository_id.get("repository_ids") == [EXPECTED_REPOSITORY_ID]
         and ref_name.get("include") == ["refs/heads/" + DEFAULT_BRANCH]
         and ref_name.get("exclude") == []
     )
