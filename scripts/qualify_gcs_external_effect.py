@@ -157,8 +157,11 @@ def load_github_workflow_run_verification(path: str) -> dict[str, object]:
     required = {
         "repository": "Luminous-Dynamics/sol-atlas-leptos",
         "repository_id": "1195997641",
+        "repository_owner_id": "216969177",
         "workflow_name": "Qualify GCS external effect",
         "workflow_path": ".github/workflows/qualify-gcs.yml",
+        "workflow_id_frozen": 311325850,
+        "run_path_verified": ".github/workflows/qualify-gcs.yml@refs/heads/main",
         "head_branch": "main",
         "event": "workflow_dispatch",
         "github_server": "github.com",
