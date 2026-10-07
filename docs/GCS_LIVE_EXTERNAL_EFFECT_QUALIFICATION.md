@@ -77,7 +77,7 @@ Cloud allow policies can apply at the project, folder, organization, and other
 ancestor levels, so an inherited binding can affect effective access without
 appearing in the service account's direct IAM policy.
 
-The repository now carries a separate `verify_gcs_effective_iam.py` v5 audit
+The repository now carries a separate `verify_gcs_effective_iam.py` v6 audit
 tool for this remaining boundary. It uses Google Cloud Policy Analyzer to inspect
 effective allow-policy access to the service account for credential-capability
 permissions, and fails closed on alternate effective roles, members, identities,
@@ -87,8 +87,9 @@ silently acquire IAM policy inspection or mutation privileges intended for the
 separate observer. The parser accepts the legitimate direct service-account
 policy attachment as well as project/folder/organization ancestor attachments.
 It also audits the project target for `cloudbuild.builds.create` and
-`deploymentmanager.deployments.create`, failing closed if the exact expected
-principal has either active pivot permission in the selected scope.
+`deploymentmanager.deployments.create`, failing closed if the expected workload
+identity or any frozen principal set that contains that identity has either
+active pivot permission in the selected scope.
 
 The audit accepts an explicit Cloud Asset scope (`projects/...`,
 `folders/...`, or `organizations/...`) and queries the exact expected
@@ -101,7 +102,10 @@ deliberately not part of the normal qualification lane: the observer needs Cloud
 Asset/IAM analysis permissions and must be governed separately from the workload
 identity used to perform the external effect.
 
-The effective-IAM audit has a narrower claim ceiling than a perfect snapshot:
+The effective-IAM audit has a narrower claim ceiling than a perfect snapshot. For
+workload identity, the v6 parser derives the principal-set containment candidates
+from the checked-in v8 trust profile rather than duplicating those values in the
+verifier:
 Policy Analyzer automatically considers relevant inherited allow policies, but
 Cloud Asset Inventory data is best-effort and can lag recent policy changes. The
 audit also does not prove deny-policy or Principal Access Boundary effects,
