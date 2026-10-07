@@ -319,6 +319,12 @@ def execution_permissions_are_clean(
     )
 
 
+def validate_permission_ceiling(
+    findings: list[dict[str, object]],
+) -> list[str]:
+    observed_permissions = validate_permission_ceiling(findings)    return observed_permissions
+
+
 def verify(
     scope: str,
     project_id: str,
