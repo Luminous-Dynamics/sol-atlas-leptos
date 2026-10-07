@@ -27,6 +27,8 @@ def main() -> None:
     result = module.verify(good, None)
     assert result["schema"] == module.SCHEMA
     assert result["use_immutable_subject"] is True
+    assert result["default_template_required"] is True
+    assert result["custom_claim_keys_forbidden"] is True
     assert result["configuration_digest"] == module.digest(good)
 
     for bad in (
@@ -38,7 +40,18 @@ def main() -> None:
         },
         {
             "use_default": True,
+            "include_claim_keys": [],
             "use_immutable_subject": False,
+        },
+        {
+            "use_default": False,
+            "include_claim_keys": [],
+            "use_immutable_subject": True,
+        },
+        {
+            "use_default": True,
+            "include_claim_keys": ["repository_id"],
+            "use_immutable_subject": True,
         },
     ):
         try:
