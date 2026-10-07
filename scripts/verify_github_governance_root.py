@@ -247,9 +247,11 @@ def verify(
         )
 
     verified_candidates = []
+    verified_details = []
     for candidate in candidates:
         try:
             verified_candidates.append(verify_ruleset(candidate))
+            verified_details.append(candidate)
         except AssertionError:
             continue
     if not verified_candidates:
@@ -267,7 +269,10 @@ def verify(
         "verified": True,
         "rulesets": verified_candidates,
         "ruleset": verified,
-        "ruleset_response_digest": digest(candidates[0]),
+        "ruleset_response_digest": digest(verified_details[0]),
+        "qualifying_ruleset_response_digests": [
+            digest(detail) for detail in verified_details
+        ],
         "all_rulesets_response_digest": digest(
             {"summaries": summaries, "details": details}
         ),
