@@ -151,6 +151,7 @@ def extract_findings(
             )
 
         accesses: set[str] = set()
+        resource_seen = False
         access_lists = result.get("accessControlLists")
         if not isinstance(access_lists, list) or not access_lists:
             raise AssertionError(
@@ -175,12 +176,18 @@ def extract_findings(
                     raise AssertionError(
                         "Policy Analyzer result targeted a different resource"
                     )
+                resource_seen = True
             for access in access_list.get("accesses") or []:
                 if not isinstance(access, dict):
                     continue
                 permission = access.get("permission")
                 if isinstance(permission, str):
                     accesses.add(permission)
+
+        if not resource_seen:
+            raise AssertionError(
+                f"analysis result {index} has no target resource"
+            )
 
         findings.append(
             {
@@ -192,8 +199,10 @@ def extract_findings(
                 "fully_explored": True,
             }
         )
-    if not findings:
-        raise AssertionError("Policy Analyzer produced no accepted findings")
+    if len(findings) != 1:
+        raise AssertionError(
+            "Policy Analyzer observed more than one effective binding path"
+        )
     return findings
 
 
