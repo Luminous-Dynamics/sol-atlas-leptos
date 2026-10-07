@@ -23,6 +23,10 @@ PRINCIPAL = (
     "attribute.repository_id/1195997641"
 )
 PROJECT = "//cloudresourcemanager.googleapis.com/projects/sol-atlas"
+OIDC_SUBJECT = (
+    "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
+    "environment:sol-atlas-gcs-qualification"
+)
 
 
 def pivot(
@@ -58,36 +62,33 @@ def envelope(results: list[dict[str, object]]) -> dict[str, object]:
     }
 
 
+def extract(data: dict[str, object]) -> list[dict[str, object]]:
+    return module.extract_project_pivot_findings(
+        data,
+        PRINCIPAL,
+        PROJECT,
+        OIDC_SUBJECT,
+    )
+
 def expect_failure(data: dict[str, object], label: str) -> None:
     try:
-        module.extract_project_pivot_findings(
-            data,
-            PRINCIPAL,
-            PROJECT,
-        )
+        extract(data)
     except AssertionError:
         return
     raise AssertionError("accepted invalid pivot evidence: " + label)
 
 
 def main() -> None:
-    clean = module.extract_project_pivot_findings(
-        envelope([]),
-        PRINCIPAL,
-        PROJECT,
-    )
+    clean = extract(envelope([]))
     assert clean == []
 
-    unrelated = module.extract_project_pivot_findings(
-        envelope([
+    unrelated = extract(envelope([
             pivot(
                 "cloudbuild.builds.create",
                 principal="principalSet://iam.googleapis.com/unrelated",
             )
         ]),
-        PRINCIPAL,
-        PROJECT,
-    )
+    ))
     assert unrelated == []
 
     expected_sets = module.expected_workload_principal_sets(PRINCIPAL)
