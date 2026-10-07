@@ -657,6 +657,9 @@ def run_qualification(
     oidc_claims_path: str,
     wif_credential_config_verification_path: str,
     github_run_verification_path: str,
+    observer_oidc_claims_path: str,
+    effective_iam_audit_path: str,
+    broad_sa_audit_path: str,
 ) -> dict[str, object]:
     case_set = load_case_set()
     wif_verification = load_wif_verification(wif_verification_path)
@@ -665,6 +668,30 @@ def run_qualification(
     )
     github_context = github_execution_context()
     oidc_claims = load_oidc_claims(oidc_claims_path)
+    observer_oidc_claims = load_observer_oidc_claims(
+        observer_oidc_claims_path
+    )
+    validate_observer_oidc_claims(
+        observer_oidc_claims,
+        github_context,
+        wif_verification,
+    )
+    effective_iam_audit = json.loads(
+        Path(effective_iam_audit_path).read_text(encoding="utf-8")
+    )
+    broad_sa_audit = json.loads(
+        Path(broad_sa_audit_path).read_text(encoding="utf-8")
+    )
+    validate_effective_iam_audit(
+        effective_iam_audit,
+        wif_verification,
+        observer_oidc_claims,
+    )
+    validate_broad_sa_audit(
+        broad_sa_audit,
+        wif_verification,
+        observer_oidc_claims,
+    )
     oidc_audience = wif_verification.get("oidc_expected_audience")
     if not isinstance(oidc_audience, str) or not oidc_audience:
         raise AssertionError("WIF verification has no OIDC expected audience")
@@ -1068,6 +1095,14 @@ def run_qualification(
             "github_workflow_run_verification_digest": digest(
                 github_run_verification
             ),
+            "observer_github_oidc_claims": observer_oidc_claims,
+            "observer_github_oidc_claims_digest": digest(
+                observer_oidc_claims
+            ),
+            "effective_iam_audit": effective_iam_audit,
+            "effective_iam_audit_digest": digest(effective_iam_audit),
+            "broad_sa_impersonation_audit": broad_sa_audit,
+            "broad_sa_impersonation_audit_digest": digest(broad_sa_audit),
             "github_oidc_claims": oidc_claims,
             "github_oidc_claims_digest": digest(oidc_claims),
             "wif_credential_config_verification": (
@@ -1386,6 +1421,9 @@ def main() -> int:
         "--wif-credential-config-verification",
         required=True,
     )
+    qualify.add_argument("--observer-oidc-claims", required=True)
+    qualify.add_argument("--effective-iam-audit", required=True)
+    qualify.add_argument("--broad-sa-audit", required=True)
     qualify.add_argument("--output", required=True)
     verify = sub.add_parser("verify")
     verify.add_argument("--report", required=True)
@@ -1406,6 +1444,9 @@ def main() -> int:
         args.oidc_claims,
         args.wif_credential_config_verification,
         args.github_run_verification,
+        args.observer_oidc_claims,
+        args.effective_iam_audit,
+        args.broad_sa_audit,
     )
     report = finalize_report(report)
     write_report(args.output, report)
