@@ -142,6 +142,7 @@ def verify_run_record(
         "schema": "sol-atlas:github-workflow-run-verification:v1",
         "repository": REPO,
         "repository_id": REPOSITORY_ID,
+        "repository_owner_id": REPOSITORY_OWNER_ID,
         "run_id": context["GITHUB_RUN_ID"],
         "run_attempt": context["GITHUB_RUN_ATTEMPT"],
         "workflow_id": workflow_id,
