@@ -155,17 +155,7 @@ WIF_PROFILE_PATH = (
     "gcs_wif_trust_profile_v8.json"
 )
 WIF_PROFILE_SCHEMA = "sol-atlas:gcs-wif-trust-profile:v8"
-WIF_ATTRIBUTE_NAMES = (
-    "environment",
-    "event_name",
-    "repository",
-    "repository_id",
-    "repository_owner_id",
-    "workflow",
-    "ref",
-    "workflow_ref",
-    "runner_environment",
-)
+
 
 
 def principal_set_prefix(expected_principal: str) -> str:
@@ -195,17 +185,24 @@ def expected_workload_principal_sets(expected_principal: str) -> set[str]:
         name, value = clause.split("==", 1)
         value = value.strip().strip("'")
         condition_values[name.removeprefix("assertion.")] = value
-    missing = set(WIF_ATTRIBUTE_NAMES) - set(condition_values)
+    mapped = profile.get("required_attribute_mappings")
+    if not isinstance(mapped, dict):
+        raise AssertionError("WIF trust profile mappings are missing")
+    missing = set(condition_values) - {
+        key.removeprefix("attribute.")
+        for key in mapped
+        if key.startswith("attribute.")
+    }
     if missing:
-        raise AssertionError("WIF trust profile condition is incomplete")
+        raise AssertionError("WIF trust profile mappings are incomplete")
     prefix = principal_set_prefix(expected_principal)
     suffix = expected_principal.split(prefix + "/", 1)[1]
     repository_id = suffix.split("/", 1)[1]
     if condition_values["repository_id"] != repository_id:
         raise AssertionError("expected principal repository ID disagrees with WIF profile")
     members = {prefix + "/*", expected_principal}
-    for attribute in WIF_ATTRIBUTE_NAMES:
-        members.add(prefix + "/attribute." + attribute + "/" + condition_values[attribute])
+    for attribute, value in condition_values.items():
+        members.add(prefix + "/attribute." + attribute + "/" + value)
     return members
 
 
