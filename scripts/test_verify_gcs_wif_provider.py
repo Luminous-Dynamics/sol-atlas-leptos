@@ -44,8 +44,8 @@ def binding_policy(member: str) -> dict[str, object]:
 
 def main() -> None:
     profile = module.load_profile()
-    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v8"
-    assert profile["supersedes"] == "sol-atlas:gcs-wif-trust-profile:v7"
+    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v9"
+    assert profile["supersedes"] == "sol-atlas:gcs-wif-trust-profile:v8"
     assert profile["exact_attribute_condition"] == EXPECTED
     assert (
         profile["required_attribute_mappings"]["attribute.runner_environment"]
@@ -54,6 +54,7 @@ def main() -> None:
     assert profile["pool_is_exclusive"] is True
     assert profile["service_account_binding_is_exclusive"] is True
     assert profile["service_account_direct_policy_is_exact"] is True
+    assert profile["attribute_mapping_is_exact"] is True
     assert profile["service_account_must_reside_in_project"] is True
     assert profile["oidc_audience_mode"] == "provider_resource_default"
 
