@@ -73,6 +73,7 @@ def main() -> None:
     ) is None
     for bad_url in (
         "https://example.com/token",
+        "https://pipelines.evil.actions.githubusercontent.com/token",
         "https://pipelines.actions.githubusercontent.com.evil.example/token",
         "http://pipelines.actions.githubusercontent.com/token",
         "https://pipelines.actions.githubusercontent.com:444/token",
