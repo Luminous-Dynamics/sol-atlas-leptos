@@ -13,11 +13,15 @@ import re
 import subprocess
 from pathlib import Path
 
-SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v2"
+SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v3"
 EXPECTED_ROLE = "roles/iam.workloadIdentityUser"
 REQUIRED_PERMISSIONS = (
     "iam.serviceAccounts.getAccessToken",
     "iam.serviceAccounts.getOpenIdToken",
+)
+FORBIDDEN_EXECUTION_PERMISSIONS = (
+    "iam.serviceAccounts.getIamPolicy",
+    "iam.serviceAccounts.setIamPolicy",
 )
 CRITICAL_PERMISSIONS = (
     "iam.serviceAccounts.getAccessToken",
@@ -27,6 +31,7 @@ CRITICAL_PERMISSIONS = (
     "iam.serviceAccounts.implicitDelegation",
     "iam.serviceAccounts.actAs",
     "iam.serviceAccountKeys.create",
+    *FORBIDDEN_EXECUTION_PERMISSIONS,
 )
 SCOPE_PATTERN = re.compile(r"^(projects|folders|organizations)/[A-Za-z0-9._-]+$")
 ANCESTOR_PATTERN = re.compile(
@@ -318,6 +323,16 @@ def verify(
             for permission in finding["permissions"]
         }
     )
+    forbidden_observed = sorted(
+        set(observed_permissions).intersection(
+            FORBIDDEN_EXECUTION_PERMISSIONS
+        )
+    )
+    if forbidden_observed:
+        raise AssertionError(
+            "execution principal has observer policy privileges: "
+            + ", ".join(forbidden_observed)
+        )
     if not required_permissions_are_present(observed_permissions):
         missing = [
             permission
@@ -347,6 +362,10 @@ def verify(
         "expected_principal": expected_principal,
         "expected_role": EXPECTED_ROLE,
         "queried_permissions": list(CRITICAL_PERMISSIONS),
+        "forbidden_execution_permissions": list(
+            FORBIDDEN_EXECUTION_PERMISSIONS
+        ),
+        "forbidden_execution_permissions_absent": True,
         "required_permissions_verified": True,
         "observed_permissions": observed_permissions,
         "observed_roles": observed_roles,
