@@ -65,6 +65,29 @@ def main() -> None:
         assert oct(token_path.stat().st_mode & 0o777) == "0o600"
 
     expected = module.expected_claims(AUDIENCE, CONTEXT)
+    assert module.validate_oidc_request_url(
+        "https://pipelines.actions.githubusercontent.com/abc/token"
+    ) is None
+    assert module.validate_oidc_request_url(
+        "https://pipelinesghubeus13.actions.githubusercontent.com/abc/token"
+    ) is None
+    for bad_url in (
+        "https://example.com/token",
+        "https://pipelines.actions.githubusercontent.com.evil.example/token",
+        "http://pipelines.actions.githubusercontent.com/token",
+        "https://pipelines.actions.githubusercontent.com:444/token",
+        "https://user@pipelines.actions.githubusercontent.com/token",
+        "https://pipelines.actions.githubusercontent.com/token#fragment",
+    ):
+        try:
+            module.validate_oidc_request_url(bad_url)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(
+                "unapproved GitHub OIDC request origin was accepted"
+            )
+
     expected["sub"] = module.IMMUTABLE_SUBJECT
     expected.update(
         {
@@ -101,7 +124,7 @@ def main() -> None:
         "wrong immutable OIDC environment subject was accepted",
     )
 
-for name in (
+    for name in (
         "aud",
         "workflow_sha",
         "sha",
