@@ -14,7 +14,7 @@ from pathlib import Path
 
 PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
-    "gcs_wif_trust_profile_v8.json"
+    "gcs_wif_trust_profile_v9.json"
 )
 
 
@@ -33,9 +33,9 @@ def digest(value: object) -> str:
 
 def load_profile() -> dict[str, object]:
     profile = json.loads(Path(PROFILE_PATH).read_text(encoding="utf-8"))
-    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v8":
+    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v9":
         raise AssertionError("wrong WIF trust profile schema")
-    if profile.get("supersedes") != "sol-atlas:gcs-wif-trust-profile:v7":
+    if profile.get("supersedes") != "sol-atlas:gcs-wif-trust-profile:v8":
         raise AssertionError("WIF trust profile lineage is missing")
     if not profile.get("exact_attribute_condition"):
         raise AssertionError("WIF trust profile has no exact condition")
@@ -49,6 +49,8 @@ def load_profile() -> dict[str, object]:
         raise AssertionError("WIF profile does not require same-project service account")
     if profile.get("service_account_direct_policy_is_exact") is not True:
         raise AssertionError("WIF profile does not require an exact service-account policy")
+    if profile.get("attribute_mapping_is_exact") is not True:
+        raise AssertionError("WIF profile does not freeze the complete attribute mapping")
     if profile.get("oidc_audience_mode") != "provider_resource_default":
         raise AssertionError("WIF profile does not require the provider default audience")
     return profile
@@ -291,11 +293,11 @@ def verify(
         raise AssertionError("WIF provider permits non-default OIDC audiences")
     expected_audience = "https://iam.googleapis.com/" + provider_resource
 
-    for name, expected in profile["required_attribute_mappings"].items():
-        if mappings.get(name) != expected:
-            raise AssertionError(
-                f"attribute mapping drift: {name!r} != {expected!r}"
-            )
+    expected_mappings = profile["required_attribute_mappings"]
+    if not isinstance(expected_mappings, dict):
+        raise AssertionError("WIF profile mappings are not an object")
+    if mappings != expected_mappings:
+        raise AssertionError("WIF provider attribute mapping set drift")
 
     if not condition_is_exact(profile, condition):
         raise AssertionError("attribute condition differs from frozen profile")
@@ -338,7 +340,7 @@ def verify(
         }
     )
     return {
-        "schema": "sol-atlas:gcs-wif-trust-verification:v8",
+        "schema": "sol-atlas:gcs-wif-trust-verification:v9",
         "provider_resource": provider_resource,
         "provider_project_number": number,
         "provider_digest": provider_digest,
