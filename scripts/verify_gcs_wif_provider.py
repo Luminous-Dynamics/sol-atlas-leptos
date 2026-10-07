@@ -14,7 +14,7 @@ from pathlib import Path
 
 PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
-    "gcs_wif_trust_profile_v7.json"
+    "gcs_wif_trust_profile_v8.json"
 )
 
 
@@ -33,9 +33,9 @@ def digest(value: object) -> str:
 
 def load_profile() -> dict[str, object]:
     profile = json.loads(Path(PROFILE_PATH).read_text(encoding="utf-8"))
-    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v7":
+    if profile.get("schema") != "sol-atlas:gcs-wif-trust-profile:v8":
         raise AssertionError("wrong WIF trust profile schema")
-    if profile.get("supersedes") != "sol-atlas:gcs-wif-trust-profile:v5":
+    if profile.get("supersedes") != "sol-atlas:gcs-wif-trust-profile:v7":
         raise AssertionError("WIF trust profile lineage is missing")
     if not profile.get("exact_attribute_condition"):
         raise AssertionError("WIF trust profile has no exact condition")
@@ -47,6 +47,8 @@ def load_profile() -> dict[str, object]:
         raise AssertionError("WIF profile does not require an exclusive service-account binding")
     if profile.get("service_account_must_reside_in_project") is not True:
         raise AssertionError("WIF profile does not require same-project service account")
+    if profile.get("service_account_direct_policy_is_exact") is not True:
+        raise AssertionError("WIF profile does not require an exact service-account policy")
     if profile.get("oidc_audience_mode") != "provider_resource_default":
         raise AssertionError("WIF profile does not require the provider default audience")
     return profile
@@ -207,14 +209,20 @@ def forbidden_direct_roles(profile: dict[str, object]) -> set[str]:
     return set(roles)
 
 
-def direct_policy_has_forbidden_roles(
+def direct_policy_is_exact(
     policy: dict[str, object],
-    forbidden_roles: set[str],
+    role: str,
+    member: str,
 ) -> bool:
-    return any(
+    bindings = policy.get("bindings")
+    if not isinstance(bindings, list) or len(bindings) != 1:
+        return False
+    binding = bindings[0]
+    return (
         isinstance(binding, dict)
-        and binding.get("role") in forbidden_roles
-        for binding in policy.get("bindings", [])
+        and binding.get("role") == role
+        and binding.get("members") == [member]
+        and "condition" not in binding
     )
 
 
@@ -292,14 +300,14 @@ def verify(
 
     policy = service_account_policy(service_account)
     role = str(binding["role"])
-    if not binding_is_exclusive(policy, role, expected_member):
+    if not direct_policy_is_exact(policy, role, expected_member):
         raise AssertionError(
-            "service-account WIF binding is missing or non-exclusive"
+            "service-account direct policy is not exactly the frozen WIF binding"
         )
     forbidden_roles = forbidden_direct_roles(profile)
     if direct_policy_has_forbidden_roles(policy, forbidden_roles):
         raise AssertionError(
-            "service-account direct policy contains an alternate authority role"
+            "service-account direct policy contains a forbidden authority role"
         )
 
     provider_digest = digest(
@@ -313,12 +321,13 @@ def verify(
             "serviceAccount": service_account,
             "serviceAccountRole": role,
             "serviceAccountMember": expected_member,
+            "serviceAccountDirectPolicyExact": True,
             "forbiddenDirectServiceAccountRoles": sorted(forbidden_roles),
             "attributeConditionProfile": profile,
         }
     )
     return {
-        "schema": "sol-atlas:gcs-wif-trust-verification:v7",
+        "schema": "sol-atlas:gcs-wif-trust-verification:v8",
         "provider_resource": provider_resource,
         "provider_project_number": number,
         "provider_digest": provider_digest,
@@ -328,6 +337,7 @@ def verify(
         "service_account_project": sa_project,
         "service_account_project_verified": True,
         "service_account_binding_verified": True,
+        "service_account_direct_policy_exact_verified": True,
         "forbidden_direct_service_account_roles_absent": True,
         "provider_pool_exclusive": True,
         "attribute_mapping_verified": True,
