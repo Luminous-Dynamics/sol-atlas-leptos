@@ -36,8 +36,7 @@ def good_ruleset():
         "target": "branch",
         "conditions": {
             "repository_id": {
-                "include": [1195997641],
-                "exclude": [],
+                "repository_ids": [1195997641],
             },
             "ref_name": {
                 "include": ["refs/heads/main"],
@@ -144,7 +143,7 @@ def main():
     assert verified_layered["id"] == 78
 
     broken = good_ruleset()
-    broken["conditions"]["repository_id"]["include"] = [999]
+    broken["conditions"]["repository_id"]["repository_ids"] = [999]
     expect_failure(broken, "wrong repository")
     broken = good_ruleset()
     broken["conditions"]["ref_name"]["include"] = ["refs/heads/dev"]
