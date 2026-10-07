@@ -21,7 +21,8 @@ from pathlib import Path
 
 SCHEMA = "sol-atlas:github-oidc-claims:v5"
 ISSUER = "https://token.actions.githubusercontent.com"
-OIDC_REQUEST_HOST = "token.actions.githubusercontent.com"
+OIDC_REQUEST_HOST_SUFFIX = ".actions.githubusercontent.com"
+OIDC_REQUEST_HOST_PREFIX = "pipelines"
 REPO = "Luminous-Dynamics/sol-atlas-leptos"
 REPOSITORY_ID = "1195997641"
 REPOSITORY_OWNER_ID = "216969177"
@@ -198,15 +199,20 @@ def validate_oidc_request_url(url: str) -> None:
         port = parsed.port
     except ValueError as exc:
         raise AssertionError("GitHub OIDC request URL has an invalid port") from exc
+    hostname = (parsed.hostname or "").lower()
+    is_github_runner_host = (
+        hostname.startswith(OIDC_REQUEST_HOST_PREFIX)
+        and hostname.endswith(OIDC_REQUEST_HOST_SUFFIX)
+    )
     if (
         parsed.scheme != "https"
-        or parsed.hostname != OIDC_REQUEST_HOST
+        or not is_github_runner_host
         or port not in (None, 443)
         or parsed.username is not None
         or parsed.password is not None
         or parsed.fragment
     ):
-        raise AssertionError("GitHub OIDC request URL is not an approved HTTPS origin")
+        raise AssertionError("GitHub OIDC request URL is not an approved runner origin")
 
 
 def with_audience(url: str, audience: str) -> str:
