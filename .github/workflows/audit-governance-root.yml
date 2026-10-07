@@ -20,7 +20,7 @@ jobs:
 
       - name: Audit GitHub governance root
         env:
-          GH_TOKEN: ${{ secrets.GOVERNANCE_AUDIT_GH_TOKEN || github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           mkdir -p artifacts
