@@ -7,7 +7,9 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "qualify_gcs_external_effect.py"
@@ -133,6 +135,29 @@ def main() -> None:
         "duplicate object identity was accepted",
     )
 
+
+    valid_wif = dict(
+        schema="sol-atlas:gcs-wif-trust-verification:v8",
+        attribute_mapping_verified=True,
+        attribute_condition_verified=True,
+        service_account_binding_verified=True,
+        service_account_direct_policy_exact_verified=True,
+        forbidden_direct_service_account_roles_absent=True,
+        provider_pool_exclusive=True,
+        service_account_project_verified=True,
+        oidc_audience_verified=True,
+    )
+    module.validate_wif_verification(valid_wif)
+    weakened_wif = dict(
+        valid_wif,
+        service_account_direct_policy_exact_verified=False,
+    )
+    try:
+        module.validate_wif_verification(weakened_wif)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("report WIF validator accepted weakened exact-policy evidence")
 
     forbidden = {
         "schema": "sol-atlas:gcs-wif-trust-verification:v8",
