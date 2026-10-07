@@ -145,7 +145,8 @@ def valid_attached_resource(
         1,
     ).split("/serviceAccounts/", 1)[0]
     return (
-        resource == expected_project_resource
+        resource == expected_resource
+        or resource == expected_project_resource
         or bool(
             re.fullmatch(
                 r"//cloudresourcemanager\.googleapis\.com/"
