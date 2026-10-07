@@ -113,6 +113,7 @@ def main() -> None:
                 "sol-atlas",
                 "qualification@sol-atlas.iam.gserviceaccount.com",
                 PRINCIPAL,
+                "unused-oidc.json",
                 None,
             )
         except AssertionError:
