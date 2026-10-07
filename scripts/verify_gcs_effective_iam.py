@@ -181,6 +181,8 @@ def expected_workload_principal_sets(expected_principal: str) -> set[str]:
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
     if profile.get("schema") != WIF_PROFILE_SCHEMA:
         raise AssertionError("WIF trust profile schema drift")
+    if profile.get("attribute_mapping_is_exact") is not True:
+        raise AssertionError("WIF trust profile does not freeze attribute mappings")
     condition = profile.get("exact_attribute_condition")
     if not isinstance(condition, str):
         raise AssertionError("WIF trust profile condition is missing")
