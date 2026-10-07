@@ -842,6 +842,19 @@ def verify(
         resource,
         oidc_subject,
     )
+    if len(findings) != 1:
+        raise AssertionError(
+            "effective IAM audit did not resolve exactly one WIF binding"
+        )
+    intended_finding = findings[0]
+    if intended_finding.get("members") != [expected_principal]:
+        raise AssertionError(
+            "effective IAM audit resolved a broad WIF principal set"
+        )
+    if intended_finding.get("principal_match_kinds") != ["exact"]:
+        raise AssertionError(
+            "effective IAM audit resolved a non-exact WIF identity"
+        )
     observed_permissions = validate_permission_ceiling(findings)
 
     project_target = project_resource(project_id)
