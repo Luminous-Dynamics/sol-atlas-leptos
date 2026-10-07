@@ -13,7 +13,7 @@ import re
 import subprocess
 from pathlib import Path
 
-SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v3"
+SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v5"
 EXPECTED_ROLE = "roles/iam.workloadIdentityUser"
 REQUIRED_PERMISSIONS = (
     "iam.serviceAccounts.getAccessToken",
@@ -98,7 +98,6 @@ def scope_flag(scope: str) -> tuple[str, str]:
 def run_analysis(
     scope: str,
     resource: str,
-    expected_principal: str,
 ) -> dict[str, object]:
     flag, identifier = scope_flag(scope)
     result = subprocess.run(
@@ -108,7 +107,6 @@ def run_analysis(
             "analyze-iam-policy",
             flag + "=" + identifier,
             "--full-resource-name=" + resource,
-            "--identity=" + expected_principal,
             "--permissions=" + ",".join(CRITICAL_PERMISSIONS),
             "--format=json",
         ],
@@ -172,8 +170,8 @@ def extract_findings(
     results = payload.get("analysisResults")
     if not isinstance(results, list):
         raise AssertionError("Policy Analyzer analysisResults is not a list")
+
     findings: list[dict[str, object]] = []
-    seen_bindings: set[tuple[str, str, tuple[str, ...]]] = set()
     for index, result in enumerate(results):
         if not isinstance(result, dict):
             raise AssertionError(f"analysis result {index} is not an object")
@@ -181,6 +179,32 @@ def extract_findings(
             raise AssertionError(
                 f"analysis result {index} is not fully explored"
             )
+
+        identity_list = result.get("identityList")
+        if not isinstance(identity_list, dict):
+            raise AssertionError(
+                f"analysis result {index} has invalid identity list"
+            )
+        identities = identity_list.get("identities")
+        if not isinstance(identities, list):
+            raise AssertionError(
+                f"analysis result {index} has invalid identities"
+            )
+        identity_names = []
+        for identity in identities:
+            if not isinstance(identity, dict):
+                raise AssertionError(
+                    f"analysis result {index} has invalid identity"
+                )
+            name = identity.get("name")
+            if not isinstance(name, str) or not name:
+                raise AssertionError(
+                    f"analysis result {index} has invalid identity name"
+                )
+            identity_names.append(name)
+
+        if expected_principal not in identity_names:
+            continue
 
         binding = result.get("iamBinding")
         if not isinstance(binding, dict):
@@ -192,40 +216,15 @@ def extract_findings(
         attached = result.get("attachedResourceFullName")
         if role != EXPECTED_ROLE:
             raise AssertionError(
-                f"unexpected effective role: {role!r}"
+                f"unexpected effective role for expected principal: {role!r}"
             )
         if members != [expected_principal]:
             raise AssertionError(
-                f"unexpected effective IAM members: {members!r}"
+                "expected principal is covered by a non-exact IAM binding"
             )
         if not valid_attached_resource(attached, expected_resource):
             raise AssertionError(
                 f"invalid effective IAM policy attachment: {attached!r}"
-            )
-
-        binding_key = (
-            str(attached),
-            str(role),
-            tuple(str(member) for member in members),
-        )
-        if binding_key in seen_bindings:
-            raise AssertionError("duplicate effective IAM binding result")
-        seen_bindings.add(binding_key)
-
-        identity_list = result.get("identityList")
-        if not isinstance(identity_list, dict):
-            raise AssertionError(
-                f"analysis result {index} has invalid identity list"
-            )
-        identities = identity_list.get("identities")
-        if not isinstance(identities, list) or len(identities) != 1:
-            raise AssertionError(
-                f"analysis result {index} has unexpected identity count"
-            )
-        identity = identities[0]
-        if not isinstance(identity, dict) or identity.get("name") != expected_principal:
-            raise AssertionError(
-                f"analysis result {index} identity mismatch"
             )
 
         accesses: set[str] = set()
@@ -291,7 +290,8 @@ def extract_findings(
                 "attached_resource": attached,
                 "role": role,
                 "members": list(members),
-                "identities": [expected_principal],
+                "identities": identity_names,
+                "expected_principal_resolved": True,
                 "permissions": sorted(accesses),
                 "fully_explored": True,
             }
@@ -299,7 +299,7 @@ def extract_findings(
 
     if len(findings) != 1:
         raise AssertionError(
-            "Policy Analyzer observed multiple effective binding paths"
+            "Policy Analyzer did not resolve exactly one binding for expected principal"
         )
     return findings
 
@@ -330,7 +330,7 @@ def verify(
     resource = service_account_resource(project_id, service_account)
     if not expected_principal:
         raise AssertionError("expected principal is required")
-    payload = run_analysis(scope, resource, expected_principal)
+    payload = run_analysis(scope, resource)
     findings = extract_findings(payload, expected_principal, resource)
     observed_permissions = sorted(
         {
@@ -383,6 +383,7 @@ def verify(
         ),
         "forbidden_execution_permissions_absent": True,
         "required_permissions_verified": True,
+        "principal_selection_mode": "permission_query_with_local_exact_principal_filter",
         "observed_permissions": observed_permissions,
         "observed_roles": observed_roles,
         "observed_attached_resources": attached_resources,
