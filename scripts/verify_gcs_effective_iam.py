@@ -26,6 +26,7 @@ FORBIDDEN_EXECUTION_PERMISSIONS = (
 PROJECT_PIVOT_PERMISSIONS = (
     "cloudbuild.builds.create",
     "deploymentmanager.deployments.create",
+    "resourcemanager.projects.setIamPolicy",
 )
 CRITICAL_PERMISSIONS = (
     "iam.serviceAccounts.getAccessToken",
