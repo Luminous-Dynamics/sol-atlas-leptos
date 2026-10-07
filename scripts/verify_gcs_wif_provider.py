@@ -232,8 +232,15 @@ def active_identity() -> str:
     return value
 
 
-def observer_identity_is_exact(expected: str) -> bool:
-    return active_identity() == expected
+def observer_identity_is_exact(
+    expected: str,
+    target_service_account: str,
+) -> bool:
+    return (
+        expected
+        and expected != target_service_account
+        and active_identity() == expected
+    )
 
 def forbidden_direct_roles(profile: dict[str, object]) -> set[str]:
     roles = profile.get("forbidden_direct_service_account_roles")
@@ -343,8 +350,13 @@ def verify(
         raise AssertionError("service account is outside configured GCP project")
 
     if observer_service_account is not None:
-        if not observer_identity_is_exact(observer_service_account):
-            raise AssertionError("active observer identity mismatch")
+        if not observer_identity_is_exact(
+            observer_service_account,
+            service_account,
+        ):
+            raise AssertionError(
+                "active observer identity mismatch or equals effect identity"
+            )
     policy = service_account_policy(service_account)
     role = str(binding["role"])
     if not direct_policy_is_exact(policy, role, expected_member):
