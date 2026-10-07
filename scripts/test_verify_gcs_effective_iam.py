@@ -17,9 +17,19 @@ assert spec and spec.loader
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
-PRINCIPAL = "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/attribute.repository_id/1195997641"
-RESOURCE = "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/qualification@sol-atlas.iam.gserviceaccount.com"
-OIDC_SUBJECT = "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:ref:refs/heads/main"
+PRINCIPAL = (
+    "principalSet://iam.googleapis.com/projects/123456789/"
+    "locations/global/workloadIdentityPools/github/"
+    "attribute.repository_id/1195997641"
+)
+RESOURCE = (
+    "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
+    "qualification@sol-atlas.iam.gserviceaccount.com"
+)
+OIDC_SUBJECT = (
+    "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
+    "ref:refs/heads/main"
+)
 
 
 def finding(
