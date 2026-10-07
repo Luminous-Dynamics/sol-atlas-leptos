@@ -115,7 +115,7 @@ Adding, removing, reordering, or redefining these cases requires a new case-set 
 
 The workflow report (schema v6) binds the exact checked-out source commit
 (`GITHUB_SHA`), the workflow SHA/ref, adapter/harness/workflow blobs, GitHub
-server workflow-run verification/digest, WIF verification/profile digest,
+server workflow-run verification/digest, WIF verification/profile digest and revalidates the embedded WIF record against the checked-in v8 profile,
 case-set identity, ordered observed results, OIDC
 v4 claim record/digest, exact-token fingerprint, WIF credential-config
 verification/digest, evidence digest, and report digest. The live workflow
