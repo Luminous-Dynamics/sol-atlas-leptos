@@ -31,7 +31,7 @@ QUALIFICATION = (
 )
 OIDC_SUBJECT = (
     "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
-    "ref:refs/heads/main"
+    "environment:sol-atlas-gcs-qualification"
 )
 
 OTHER = (
