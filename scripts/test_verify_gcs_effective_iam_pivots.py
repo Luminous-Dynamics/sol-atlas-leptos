@@ -2,7 +2,7 @@
 # Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""Regression tests for project-level execution pivots."""
+"""Regression tests for project-level service-account execution pivots."""
 
 from __future__ import annotations
 
@@ -25,13 +25,14 @@ PRINCIPAL = (
 PROJECT = "//cloudresourcemanager.googleapis.com/projects/sol-atlas"
 OIDC_SUBJECT = (
     "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
-    "environment:sol-atlas-gcs-qualification"
+    "ref:refs/heads/main"
 )
 
 
 def pivot(
     permission: str,
     principal: str = PRINCIPAL,
+    *,
     condition: str | None = None,
     attached: str = PROJECT,
     members: list[str] | None = None,
@@ -54,10 +55,15 @@ def pivot(
     }
 
 
-def envelope(results: list[dict[str, object]]) -> dict[str, object]:
+def envelope(
+    results: list[dict[str, object]],
+    *,
+    complete: bool = True,
+    errors: list[object] | None = None,
+) -> dict[str, object]:
     return {
-        "fullyExplored": True,
-        "nonCriticalErrors": [],
+        "fullyExplored": complete,
+        "nonCriticalErrors": errors or [],
         "analysisResults": results,
     }
 
@@ -70,6 +76,7 @@ def extract(data: dict[str, object]) -> list[dict[str, object]]:
         OIDC_SUBJECT,
     )
 
+
 def expect_failure(data: dict[str, object], label: str) -> None:
     try:
         extract(data)
@@ -79,69 +86,69 @@ def expect_failure(data: dict[str, object], label: str) -> None:
 
 
 def main() -> None:
-    clean = extract(envelope([]))
-    assert clean == []
+    assert extract(envelope([])) == []
 
-    unrelated = extract(envelope([
+    unrelated = extract(
+        envelope([
             pivot(
                 "cloudbuild.builds.create",
-                principal="principalSet://iam.googleapis.com/unrelated",
+                "principalSet://iam.googleapis.com/unrelated",
             )
-        ]),
-    ))
+        ])
+    )
     assert unrelated == []
 
     expected_sets = module.expected_workload_principal_sets(PRINCIPAL)
-    for containing_member in (
-        next(
-            member for member in expected_sets
-            if member.endswith("/*")
-        ),
-        next(
-            member for member in expected_sets
-            if "/attribute.repository/" in member
-        ),
-    ):
-        broadened = module.extract_project_pivot_findings(
+    containment_candidates = [
+        value for value in expected_sets
+        if value.endswith("/*") or "/attribute.repository/" in value
+    ]
+    assert len(containment_candidates) == 2
+
+    for candidate in containment_candidates:
+        detected = extract(
             envelope([
                 pivot(
                     "cloudbuild.builds.create",
-                    principal=containing_member,
+                    candidate,
                 )
-            ]),
-            PRINCIPAL,
-            PROJECT,
+            ])
         )
-        assert broadened[0]["principal_match_kinds"] == [
+        assert detected[0]["principal_match_kinds"] == [
             "containing-principal-set"
         ]
-    detected = module.extract_project_pivot_findings(
-        envelope([pivot("cloudbuild.builds.create")]),
-        PRINCIPAL,
-        PROJECT,
+
+    subject = module.subject_principal(PRINCIPAL, OIDC_SUBJECT)
+    expect_failure(
+        envelope([
+            pivot(
+                "cloudbuild.builds.create",
+                subject,
+            )
+        ]),
+        "immutable subject principal",
+    )
+
+    detected = extract(
+        envelope([pivot("cloudbuild.builds.create")])
     )
     assert detected[0]["permissions"] == ["cloudbuild.builds.create"]
 
-    detected_deploy = module.extract_project_pivot_findings(
-        envelope([pivot("deploymentmanager.deployments.create")]),
-        PRINCIPAL,
-        PROJECT,
+    detected = extract(
+        envelope([pivot("deploymentmanager.deployments.create")])
     )
-    assert detected_deploy[0]["permissions"] == [
+    assert detected[0]["permissions"] == [
         "deploymentmanager.deployments.create"
     ]
 
-    false_condition = module.extract_project_pivot_findings(
+    assert extract(
         envelope([
             pivot(
                 "cloudbuild.builds.create",
                 condition="FALSE",
             )
-        ]),
-        PRINCIPAL,
-        PROJECT,
-    )
-    assert false_condition == []
+        ])
+    ) == []
 
     expect_failure(
         envelope([
@@ -150,33 +157,41 @@ def main() -> None:
                 condition="CONDITIONAL",
             )
         ]),
-        "conditional grant",
+        "conditional pivot",
     )
     expect_failure(
         envelope([
             pivot(
                 "cloudbuild.builds.create",
-                attached="//cloudresourcemanager.googleapis.com/projects/other",
+                attached=(
+                    "//cloudresourcemanager.googleapis.com/projects/other"
+                ),
             )
         ]),
-        "wrong attachment",
+        "wrong project attachment",
     )
     expect_failure(
         envelope([
             pivot(
                 "cloudbuild.builds.create",
-                members=[PRINCIPAL, "group:unexpected@example.com"],
+                members=[
+                    PRINCIPAL,
+                    "group:unexpected@example.com",
+                ],
             )
         ]),
-        "unexpected binding members",
+        "mixed binding",
     )
     expect_failure(
-        {
-            "fullyExplored": False,
-            "nonCriticalErrors": [],
-            "analysisResults": [],
-        },
+        envelope([], complete=False),
         "incomplete response",
+    )
+    expect_failure(
+        envelope(
+            [],
+            errors=[{"code": "PERMISSION_DENIED"}],
+        ),
+        "analysis error",
     )
 
     assert module.valid_project_attachment(PROJECT, PROJECT)
