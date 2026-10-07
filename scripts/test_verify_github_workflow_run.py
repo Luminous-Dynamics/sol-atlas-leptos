@@ -71,9 +71,17 @@ def main() -> None:
     assert result["context_sha_matches_server"] is True
     assert result["context_run_attempt_matches_server"] is True
     assert result["referenced_workflows"] == []
+    assert result["workflow_id"] == module.WORKFLOW_ID
+    assert result["workflow_id_frozen"] == module.WORKFLOW_ID
+    assert result["repository_owner_id"] == module.REPOSITORY_OWNER_ID
+    assert result["run_path_verified"] == module.WORKFLOW_PATH + "@" + module.REF
 
     reject(dict(RUN, workflow_id=1234), WORKFLOW, "workflow_id")
-    reject(dict(RUN, path=".github/workflows/other.yml@refs/heads/main"), WORKFLOW, "run_path")
+    reject(
+        dict(RUN, path=".github/workflows/other.yml@refs/heads/main"),
+        WORKFLOW,
+        "run_path",
+    )
     reject(dict(RUN, head_sha="c" * 40), WORKFLOW, "head_sha")
     reject(dict(RUN, run_attempt=1), WORKFLOW, "run_attempt")
     reject(dict(RUN, event="push"), WORKFLOW, "event")
