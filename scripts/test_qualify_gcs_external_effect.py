@@ -136,8 +136,16 @@ def main() -> None:
     )
 
 
+    profile_path = (
+        "sol-atlas-policy-store-contract/conformance/"
+        "gcs_wif_trust_profile_v8.json"
+    )
     valid_wif = dict(
         schema="sol-atlas:gcs-wif-trust-verification:v8",
+        profile_path=profile_path,
+        profile_digest=module.digest(
+            json.loads(Path(profile_path).read_text(encoding="utf-8"))
+        ),
         attribute_mapping_verified=True,
         attribute_condition_verified=True,
         service_account_binding_verified=True,
