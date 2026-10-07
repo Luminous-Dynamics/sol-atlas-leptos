@@ -77,17 +77,22 @@ Cloud allow policies can apply at the project, folder, organization, and other
 ancestor levels, so an inherited binding can affect effective access without
 appearing in the service account's direct IAM policy.
 
-The repository now carries a separate `verify_gcs_effective_iam.py` audit tool
-for this remaining boundary. It uses Google Cloud Policy Analyzer to inspect
+The repository now carries a separate `verify_gcs_effective_iam.py` v3 audit
+tool for this remaining boundary. It uses Google Cloud Policy Analyzer to inspect
 effective allow-policy access to the service account for credential-capability
 permissions, and fails closed on alternate effective roles, members, identities,
 multiple effective binding paths, conditional access, and incomplete analysis.
+It also checks explicit negative permissions so the execution principal does not
+silently acquire IAM policy inspection or mutation privileges intended for the
+separate observer.
 
 The audit accepts an explicit Cloud Asset scope (`projects/...`,
 `folders/...`, or `organizations/...`) and queries the exact expected
 repository principal. To cover folder- or organization-level inheritance, the
 observer must use a scope that actually contains the qualification project;
-project scope alone cannot see policies attached above the project. This audit is
+project scope alone cannot see policies attached above the project. The audit
+therefore cannot claim full ancestor coverage unless its configured folder or
+organization scope actually contains the qualification project. This audit is
 deliberately not part of the normal qualification lane: the observer needs Cloud
 Asset/IAM analysis permissions and must be governed separately from the workload
 identity used to perform the external effect.
