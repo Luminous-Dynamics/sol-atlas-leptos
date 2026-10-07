@@ -77,7 +77,7 @@ Cloud allow policies can apply at the project, folder, organization, and other
 ancestor levels, so an inherited binding can affect effective access without
 appearing in the service account's direct IAM policy.
 
-The repository now carries a separate `verify_gcs_effective_iam.py` v4 audit
+The repository now carries a separate `verify_gcs_effective_iam.py` v5 audit
 tool for this remaining boundary. It uses Google Cloud Policy Analyzer to inspect
 effective allow-policy access to the service account for credential-capability
 permissions, and fails closed on alternate effective roles, members, identities,
