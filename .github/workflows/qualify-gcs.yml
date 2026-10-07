@@ -8,8 +8,139 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  observe-wif-trust:
+    name: Observe GCS WIF trust
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: sol-atlas-gcs-qualification
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    outputs:
+      artifact_id: ${{ steps.upload_wif_evidence.outputs.artifact-id }}
+
+    env:
+      GCP_PROJECT_ID: ${{ vars.SOL_ATLAS_GCP_PROJECT_ID }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.SOL_ATLAS_GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ vars.SOL_ATLAS_GCP_SERVICE_ACCOUNT }}
+      GCP_IAM_OBSERVER_SERVICE_ACCOUNT: ${{ vars.SOL_ATLAS_GCP_IAM_OBSERVER_SERVICE_ACCOUNT }}
+      CLOUDSDK_CONFIG: ${{ runner.temp }}/sol-atlas-gcloud-observer-config
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Verify GitHub server workflow-run provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/verify_github_workflow_run.py
+
+      - name: Verify immutable GitHub OIDC subject configuration
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/verify_github_oidc_subject_configuration.py
+
+      - name: Verify checked-out source and workflow commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          workflow_claim_spec="$GITHUB_WORKFLOW_SHA:.github/workflows/qualify-gcs.yml"
+          test "$(git rev-parse "$workflow_claim_spec")" = "$(git rev-parse "HEAD:.github/workflows/qualify-gcs.yml")"
+
+      - name: Validate observer configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for value in GCP_PROJECT_ID GCP_WORKLOAD_IDENTITY_PROVIDER GCP_SERVICE_ACCOUNT GCP_IAM_OBSERVER_SERVICE_ACCOUNT; do
+            if [ -z "${!value}" ]; then
+              echo "::error::$value is not configured"
+              exit 1
+            fi
+          done
+          test "$GCP_SERVICE_ACCOUNT" != "$GCP_IAM_OBSERVER_SERVICE_ACCOUNT"
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+        with:
+          version: "586.0.0"
+
+      - name: Verify GitHub OIDC claims for observer
+        env:
+          EXPECTED_OIDC_AUDIENCE: >-
+            https://iam.googleapis.com/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        run: |
+          set -euo pipefail
+          mkdir -p observer-artifacts
+          python3 scripts/verify_github_oidc_claims.py \
+            --audience "$EXPECTED_OIDC_AUDIENCE" \
+            --output observer-artifacts/github-oidc-claims.json \
+            --token-output "$RUNNER_TEMP/sol-atlas-observer-oidc-token.jwt"
+
+      - name: Create observer WIF credential configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud iam workload-identity-pools create-cred-config \
+            "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
+            --service-account="$GCP_IAM_OBSERVER_SERVICE_ACCOUNT" \
+            --subject-token-type="urn:ietf:params:oauth:token-type:jwt" \
+            --credential-source-file="$RUNNER_TEMP/sol-atlas-observer-oidc-token.jwt" \
+            --output-file="$RUNNER_TEMP/sol-atlas-observer-credentials.json"
+          chmod 600 "$RUNNER_TEMP/sol-atlas-observer-credentials.json"
+
+      - name: Verify observer credential binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_gcs_wif_credential_config.py \
+            --config "$RUNNER_TEMP/sol-atlas-observer-credentials.json" \
+            --token-file "$RUNNER_TEMP/sol-atlas-observer-oidc-token.jwt" \
+            --oidc-claims observer-artifacts/github-oidc-claims.json \
+            --provider-resource "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
+            --service-account "$GCP_IAM_OBSERVER_SERVICE_ACCOUNT"
+
+      - name: Authenticate observer to Google Cloud
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud auth login --cred-file="$RUNNER_TEMP/sol-atlas-observer-credentials.json"
+          gcloud config set project "$GCP_PROJECT_ID"
+
+      - name: Verify effect service-account trust policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          python3 scripts/verify_gcs_wif_provider.py \
+            --provider-resource "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
+            --project-id "$GCP_PROJECT_ID" \
+            --service-account "$GCP_SERVICE_ACCOUNT" \
+            --observer-service-account "$GCP_IAM_OBSERVER_SERVICE_ACCOUNT" \
+            --output artifacts/gcs-wif-trust-verification.json
+
+      - name: Remove transient observer credentials
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f "$RUNNER_TEMP/sol-atlas-observer-oidc-token.jwt" "$RUNNER_TEMP/sol-atlas-observer-credentials.json"
+          rm -rf "$CLOUDSDK_CONFIG"
+
+      - name: Upload WIF trust evidence
+        id: upload_wif_evidence
+        if: ${{ success() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sol-atlas-gcs-wif-trust-observer
+          path: artifacts/gcs-wif-trust-verification.json
+          if-no-files-found: error
+          retention-days: 90
   qualify:
     name: Live GCS qualification
+    needs: observe-wif-trust
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment: sol-atlas-gcs-qualification
@@ -125,6 +256,12 @@ jobs:
             --provider-resource "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
             --service-account "$GCP_SERVICE_ACCOUNT" \
             --output artifacts/gcs-wif-credential-config-verification.json
+      - name: Download observed WIF trust evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.observe-wif-trust.outputs.artifact_id }}
+          path: artifacts/wif-observer/
+          merge-multiple: true
       - name: Authenticate to Google Cloud with verified token
         shell: bash
         run: |
@@ -139,15 +276,6 @@ jobs:
           gcloud auth list --filter=status:ACTIVE --format="value(account)"
           test "$(gcloud config get-value project)" = "$GCP_PROJECT_ID"
 
-      - name: Verify effective GCS WIF trust policy
-        run: |
-          set -euo pipefail
-          mkdir -p artifacts
-          python3 scripts/verify_gcs_wif_provider.py \
-            --provider-resource "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
-            --project-id "$GCP_PROJECT_ID" \
-            --service-account "$GCP_SERVICE_ACCOUNT" \
-            --output artifacts/gcs-wif-trust-verification.json
 
       - name: Run live GCS qualification
         run: |
@@ -156,7 +284,7 @@ jobs:
           python3 scripts/qualify_gcs_external_effect.py \
             qualify \
             --bucket "$GCS_QUALIFICATION_BUCKET" \
-            --wif-verification artifacts/gcs-wif-trust-verification.json \
+            --wif-verification artifacts/wif-observer/gcs-wif-trust-verification.json \
             --oidc-claims artifacts/github-oidc-claims.json \
             --github-run-verification \
               artifacts/github-workflow-run-verification.json \
