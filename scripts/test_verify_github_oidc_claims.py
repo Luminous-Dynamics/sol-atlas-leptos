@@ -65,11 +65,7 @@ def main() -> None:
         assert oct(token_path.stat().st_mode & 0o777) == "0o600"
 
     expected = module.expected_claims(AUDIENCE, CONTEXT)
-    expected["sub"] = (
-        "repo:Luminous-Dynamics@216969177/"
-        "sol-atlas-leptos@1195997641:"
-        "ref:refs/heads/main"
-    )
+    expected["sub"] = module.IMMUTABLE_SUBJECT
     expected.update(
         {
             "iat": NOW - 10,
@@ -85,8 +81,24 @@ def main() -> None:
     ) == expected
 
     expect_rejection(
-        dict(expected, sub="repo:Luminous-Dynamics/sol-atlas:environment:tampered"),
-        "mutable OIDC subject was accepted",
+        dict(
+            expected,
+            sub=(
+                "repo:Luminous-Dynamics@216969177/"
+                "sol-atlas-leptos@1195997641:ref:refs/heads/main"
+            ),
+        ),
+        "branch-context immutable OIDC subject was accepted",
+    )
+    expect_rejection(
+        dict(
+            expected,
+            sub=(
+                "repo:Luminous-Dynamics@216969177/"
+                "sol-atlas-leptos@1195997641:environment:other"
+            ),
+        ),
+        "wrong immutable OIDC environment subject was accepted",
     )
 
 for name in (
