@@ -28,7 +28,7 @@ QUALIFICATION = (
 )
 OIDC_SUBJECT = (
     "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
-    "ref:refs/heads/main"
+    "environment:sol-atlas-gcs-qualification"
 )
 OTHER_SERVICE_ACCOUNT = (
     "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
@@ -189,6 +189,7 @@ def main() -> None:
         ]),
         PRINCIPAL,
         QUALIFICATION,
+        OIDC_SUBJECT,
     ) == []
 
     expect_failure(
