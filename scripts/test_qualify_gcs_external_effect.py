@@ -161,6 +161,16 @@ def main() -> None:
         observer_identity_verified=True,
     )
     module.validate_wif_verification(valid_wif)
+    same_identity = dict(
+        valid_wif,
+        observer_service_account="qualification@sol-atlas.iam.gserviceaccount.com",
+    )
+    try:
+        module.validate_wif_verification(same_identity)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("report accepted effect identity as observer")
     weakened_wif = dict(
         valid_wif,
         service_account_direct_policy_exact_verified=False,
