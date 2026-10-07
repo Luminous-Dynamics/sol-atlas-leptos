@@ -86,7 +86,7 @@ def main() -> None:
             pass
         else:
             raise AssertionError(
-                "report loader accepted unverified GitHub server SHA"
+                "report loader accepted tampered GitHub workflow identity"
             )
 
     assert module.point_in_time_semantics(
