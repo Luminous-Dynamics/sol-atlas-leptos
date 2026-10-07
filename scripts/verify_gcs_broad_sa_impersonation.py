@@ -12,7 +12,7 @@ import json
 import subprocess
 from pathlib import Path
 
-SCHEMA = "sol-atlas:gcs-broad-service-account-impersonation-audit:v1"
+SCHEMA = "sol-atlas:gcs-broad-service-account-impersonation-audit:v2"
 EXPECTED_ROLE = "roles/iam.workloadIdentityUser"
 PERMISSIONS = (
     "iam.serviceAccounts.actAs",
@@ -89,6 +89,7 @@ def extract_findings(
     payload: dict[str, object],
     expected_principal: str,
     qualification_resource_name: str,
+    oidc_subject: str,
 ) -> list[dict[str, object]]:
     if payload.get("fullyExplored") is not True:
         raise AssertionError("impersonation analysis is not fully explored")
@@ -141,8 +142,21 @@ def extract_findings(
                 )
             identity_names.append(name)
 
+        match_pairs = [
+            (
+                name,
+                module.principal_matches_expected(
+                    name,
+                    expected_principal,
+                    oidc_subject,
+                ),
+            )
+            for name in identity_names
+        ]
         matches = [
-            name for name in identity_names if name in expected_sets
+            (name, kind)
+            for name, kind in match_pairs
+            if kind is not None
         ]
         if not matches:
             continue
@@ -232,7 +246,9 @@ def extract_findings(
             continue
 
         intended = (
-            role == EXPECTED_ROLE
+            len(matches) == 1
+            and matches[0][1] == "exact"
+            and role == EXPECTED_ROLE
             and members == [expected_principal]
             and result.get("attachedResourceFullName")
             == qualification_resource_name
@@ -252,10 +268,8 @@ def extract_findings(
                 "members": list(members),
                 "identities": identity_names,
                 "principal_match_kinds": [
-                    "containing-principal-set"
-                    if name != expected_principal
-                    else "exact"
-                    for name in matches
+                    kind
+                    for _, kind in matches
                 ],
                 "permissions": sorted(permissions),
                 "resources": sorted(resources),
@@ -271,6 +285,7 @@ def verify(
     project_id: str,
     service_account: str,
     expected_principal: str,
+    oidc_claims: str,
     output: str | None,
 ) -> dict[str, object]:
     module = load_effective_iam_module()
@@ -285,12 +300,14 @@ def verify(
     )
     if not expected_principal:
         raise AssertionError("expected principal is required")
+    oidc_subject = module.load_immutable_oidc_subject(oidc_claims)
 
     payload = run_analysis(scope)
     findings = extract_findings(
         payload,
         expected_principal,
         qualification,
+        oidc_subject,
     )
     if findings:
         raise AssertionError(
@@ -304,6 +321,8 @@ def verify(
         "service_account": service_account,
         "qualification_resource": qualification,
         "expected_principal": expected_principal,
+        "oidc_subject": oidc_subject,
+        "oidc_claims_path": oidc_claims,
         "wif_profile_path": module.WIF_PROFILE_PATH,
         "wif_profile_digest": module.digest(profile),
         "queried_permissions": list(PERMISSIONS),
@@ -337,6 +356,7 @@ def main() -> int:
     parser.add_argument("--project-id", required=True)
     parser.add_argument("--service-account", required=True)
     parser.add_argument("--expected-principal", required=True)
+    parser.add_argument("--oidc-claims", required=True)
     parser.add_argument("--output")
     args = parser.parse_args()
     result = verify(
