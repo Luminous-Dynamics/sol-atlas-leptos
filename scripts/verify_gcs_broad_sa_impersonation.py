@@ -299,9 +299,10 @@ def verify(
     scope: str,
     project_id: str,
     service_account: str,
-    expected_principal: str,
+    expected_principal: str | None,
     oidc_claims: str,
     output: str | None,
+    wif_verification: str | None = None,
 ) -> dict[str, object]:
     module = load_effective_iam_module()
     scope = module.validate_scope(scope)
@@ -313,6 +314,17 @@ def verify(
         project_id,
         service_account,
     )
+    wif_identity = None
+    if wif_verification:
+        wif_identity, verified_member = load_wif_identity(
+            wif_verification,
+            service_account,
+        )
+        if expected_principal and expected_principal != verified_member:
+            raise AssertionError(
+                "CLI principal disagrees with verified WIF identity"
+            )
+        expected_principal = verified_member
     if not expected_principal:
         raise AssertionError("expected principal is required")
     oidc_subject = module.load_immutable_oidc_subject(oidc_claims)
@@ -340,6 +352,17 @@ def verify(
         "oidc_claims_path": oidc_claims,
         "wif_profile_path": module.WIF_PROFILE_PATH,
         "wif_profile_digest": module.digest(profile),
+        "wif_verification_digest": (
+            module.digest(wif_identity)
+            if wif_identity is not None
+            else None
+        ),
+        "observer_service_account": (
+            wif_identity.get("observer_service_account")
+            if wif_identity is not None
+            else None
+        ),
+        "observer_identity_verified": wif_identity is not None,
         "queried_permissions": list(PERMISSIONS),
         "intended_qualification_binding_allowed": True,
         "broad_impersonation_findings": [],
@@ -370,8 +393,9 @@ def main() -> int:
     parser.add_argument("--scope", required=True)
     parser.add_argument("--project-id", required=True)
     parser.add_argument("--service-account", required=True)
-    parser.add_argument("--expected-principal", required=True)
+    parser.add_argument("--expected-principal")
     parser.add_argument("--oidc-claims", required=True)
+    parser.add_argument("--wif-verification")
     parser.add_argument("--output")
     args = parser.parse_args()
     result = verify(
@@ -379,7 +403,9 @@ def main() -> int:
         args.project_id,
         args.service_account,
         args.expected_principal,
+        args.oidc_claims,
         args.output,
+        args.wif_verification,
     )
     print(
         "verified broad service-account impersonation audit: "
