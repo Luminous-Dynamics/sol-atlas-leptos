@@ -24,7 +24,7 @@ if __package__:
         access_token,
         sha256_prefixed,
     )
-    from .verify_github_oidc_claims import expected_claims
+    from .verify_github_oidc_claims import expected_claims, verify_immutable_subject
 else:
     from gcs_generation_fenced_adapter import (
         GcsGenerationFencedObject,
@@ -32,7 +32,7 @@ else:
         access_token,
         sha256_prefixed,
     )
-    from verify_github_oidc_claims import expected_claims
+    from verify_github_oidc_claims import expected_claims, verify_immutable_subject
 
 
 SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v6"
@@ -54,7 +54,7 @@ HARNESS_PATH = "scripts/qualify_gcs_external_effect.py"
 WORKFLOW_PATH = ".github/workflows/qualify-gcs.yml"
 ADAPTER_ID = "gcs-generation-fenced-object"
 HARNESS_ID = "sol-atlas-gcs-external-conformance"
-OIDC_CLAIMS_SCHEMA = "sol-atlas:github-oidc-claims:v4"
+OIDC_CLAIMS_SCHEMA = "sol-atlas:github-oidc-claims:v5"
 WIF_CREDENTIAL_CONFIG_SCHEMA = (
     "sol-atlas:gcp-wif-credential-config-verification:v1"
 )
@@ -323,6 +323,9 @@ def verify_oidc_claim_identity(
                 f"OIDC claim mismatch in report for {name}: "
                 f"{observed_claims.get(name)!r} != {expected_value!r}"
             )
+    if not isinstance(observed_claims.get("sub"), str):
+        raise AssertionError("OIDC immutable subject is missing from report")
+    verify_immutable_subject(observed_claims)
 
 
 def load_oidc_claims(path: str) -> dict[str, object]:
@@ -334,6 +337,7 @@ def load_oidc_claims(path: str) -> dict[str, object]:
         raise AssertionError("missing GitHub OIDC claims")
     if claims.get("audience") != observed.get("aud"):
         raise AssertionError("OIDC artifact audience does not match its claims")
+    verify_immutable_subject(observed)
     if claims.get("claims_digest") != digest(observed):
         raise AssertionError("GitHub OIDC claims digest mismatch")
     if claims.get("cryptographic_verification") != "not_performed_locally":
