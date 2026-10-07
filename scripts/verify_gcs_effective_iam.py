@@ -13,7 +13,7 @@ import re
 import subprocess
 from pathlib import Path
 
-SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v6"
+SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v7"
 EXPECTED_ROLE = "roles/iam.workloadIdentityUser"
 REQUIRED_PERMISSIONS = (
     "iam.serviceAccounts.getAccessToken",
@@ -157,6 +157,10 @@ WIF_PROFILE_PATH = (
     "gcs_wif_trust_profile_v8.json"
 )
 WIF_PROFILE_SCHEMA = "sol-atlas:gcs-wif-trust-profile:v8"
+OIDC_CLAIMS_SCHEMA = "sol-atlas:github-oidc-claims:v5"
+OIDC_IMMUTABLE_SUBJECT_PREFIX = (
+    "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
+)
 
 
 
@@ -208,12 +212,54 @@ def expected_workload_principal_sets(expected_principal: str) -> set[str]:
     return members
 
 
+def load_immutable_oidc_subject(path: str) -> str:
+    document = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(document, dict):
+        raise AssertionError("OIDC evidence is not an object")
+    if document.get("schema") != OIDC_CLAIMS_SCHEMA:
+        raise AssertionError("OIDC evidence schema drift")
+    claims = document.get("claims")
+    if not isinstance(claims, dict):
+        raise AssertionError("OIDC evidence has no claims object")
+    if document.get("claims_digest") != digest(claims):
+        raise AssertionError("OIDC evidence claims digest drift")
+    expected = {
+        "repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "repository_id": "1195997641",
+        "repository_owner_id": "216969177",
+        "environment": "sol-atlas-gcs-qualification",
+        "workflow": "Qualify GCS external effect",
+        "event_name": "workflow_dispatch",
+        "ref": "refs/heads/main",
+    }
+    for name, value in expected.items():
+        if claims.get(name) != value:
+            raise AssertionError("OIDC evidence identity drift for " + name)
+    subject = claims.get("sub")
+    if not isinstance(subject, str) or not subject.startswith(
+        OIDC_IMMUTABLE_SUBJECT_PREFIX
+    ):
+        raise AssertionError("OIDC evidence is not an immutable repository subject")
+    return subject
+
+
+def subject_principal(expected_principal: str, subject: str) -> str:
+    return (
+        expected_principal.split("/attribute.repository_id/", 1)[0]
+        .replace("principalSet://", "principal://", 1)
+        + "/subject/"
+        + subject
+    )
+
 def principal_matches_expected(
     identity: str,
     expected_principal: str,
+    oidc_subject: str,
 ) -> str | None:
     if identity == expected_principal:
         return "exact"
+    if identity == subject_principal(expected_principal, oidc_subject):
+        return "immutable-subject"
     if identity in expected_workload_principal_sets(expected_principal):
         return "containing-principal-set"
     return None
@@ -346,7 +392,11 @@ def extract_findings(
             identity_names.append(name)
 
         matches = [
-            principal_matches_expected(name, expected_principal)
+            principal_matches_expected(
+                name,
+                expected_principal,
+                oidc_subject,
+            )
             for name in identity_names
         ]
         match_kinds = [match for match in matches if match is not None]
@@ -368,7 +418,11 @@ def extract_findings(
                 f"unexpected effective role for expected principal: {role!r}"
             )
         member_matches = [
-            principal_matches_expected(member, expected_principal)
+            principal_matches_expected(
+                member,
+                expected_principal,
+                oidc_subject,
+            )
             for member in members
             if isinstance(member, str)
         ]
@@ -691,6 +745,7 @@ def verify(
     project_id: str,
     service_account: str,
     expected_principal: str,
+    oidc_claims: str,
     output: str | None,
 ) -> dict[str, object]:
     scope = validate_scope(scope)
@@ -698,8 +753,14 @@ def verify(
     if not expected_principal:
         raise AssertionError("expected principal is required")
 
+    oidc_subject = load_immutable_oidc_subject(oidc_claims)
     payload = run_analysis(scope, resource)
-    findings = extract_findings(payload, expected_principal, resource)
+    findings = extract_findings(
+        payload,
+        expected_principal,
+        resource,
+        oidc_subject,
+    )
     observed_permissions = validate_permission_ceiling(findings)
 
     project_target = project_resource(project_id)
@@ -711,6 +772,7 @@ def verify(
         project_pivot_payload,
         expected_principal,
         project_target,
+        oidc_subject,
     )
     if project_pivots:
         raise AssertionError(
@@ -785,6 +847,7 @@ def main() -> int:
     parser.add_argument("--project-id", required=True)
     parser.add_argument("--service-account", required=True)
     parser.add_argument("--expected-principal", required=True)
+    parser.add_argument("--oidc-claims", required=True)
     parser.add_argument("--output")
     args = parser.parse_args()
     result = verify(
