@@ -736,6 +736,15 @@ def verify(
         "principal_selection_mode": (
             "permission_query_with_frozen_workload_principal_set_filter"
         ),
+        "wif_profile_path": WIF_PROFILE_PATH,
+        "wif_profile_digest": digest(
+            json.loads(
+                Path(WIF_PROFILE_PATH).read_text(encoding="utf-8")
+            )
+        ),
+        "matched_workload_principal_sets": sorted(
+            expected_workload_principal_sets(expected_principal)
+        ),
         "observed_permissions": observed_permissions,
         "observed_roles": observed_roles,
         "observed_attached_resources": attached_resources,
