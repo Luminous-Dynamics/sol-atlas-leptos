@@ -106,6 +106,10 @@ def main() -> None:
     )
 
     assert module.valid_attached_resource(
+        RESOURCE,
+        RESOURCE,
+    )
+    assert module.valid_attached_resource(
         "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
         RESOURCE,
     )
