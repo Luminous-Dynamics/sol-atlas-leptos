@@ -178,6 +178,19 @@ def main() -> None:
         "actAs on qualification account via alternate role",
     )
 
+    for universal in module.load_effective_iam_module().FORBIDDEN_UNIVERSAL_PRINCIPALS:
+        expect_failure(
+            envelope([
+                finding(
+                    role="roles/iam.serviceAccountTokenCreator",
+                    permission="iam.serviceAccounts.getAccessToken",
+                    principal=universal,
+                    resource=OTHER_SERVICE_ACCOUNT,
+                )
+            ]),
+            "universal principal on another service account",
+        )
+
     assert module.extract_findings(
         envelope([
             finding(
