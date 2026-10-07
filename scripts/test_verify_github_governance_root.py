@@ -29,12 +29,16 @@ def rule(rule_type: str, parameters=None):
 def good_ruleset():
     return {
         "id": 77,
-        "name": "Protected main governance root",
+        "name": "Sol Atlas main governance root",
         "source_type": "Organization",
         "source": module.REQUIRED_RULESET_SOURCE,
         "enforcement": "active",
         "target": "branch",
         "conditions": {
+            "repository_id": {
+                "include": [1195997641],
+                "exclude": [],
+            },
             "ref_name": {
                 "include": ["refs/heads/main"],
                 "exclude": [],
@@ -47,6 +51,8 @@ def good_ruleset():
                     "required_approving_review_count": 1,
                     "dismiss_stale_reviews_on_push": True,
                     "require_last_push_approval": True,
+                    "required_review_thread_resolution": True,
+                    "allowed_merge_methods": ["squash"],
                 },
             ),
             rule("required_signatures"),
@@ -55,6 +61,7 @@ def good_ruleset():
             rule(
                 "required_status_checks",
                 {
+                    "do_not_enforce_on_create": False,
                     "strict_required_status_checks_policy": True,
                     "required_status_checks": [
                         {
@@ -65,13 +72,7 @@ def good_ruleset():
                 },
             ),
         ],
-        "bypass_actors": [
-            {
-                "actor_id": 42,
-                "actor_type": "Team",
-                "bypass_mode": "pull_request",
-            }
-        ],
+        "bypass_actors": [],
     }
 
 
@@ -143,8 +144,14 @@ def main():
     assert verified_layered["id"] == 78
 
     broken = good_ruleset()
+    broken["conditions"]["repository_id"]["include"] = [999]
+    expect_failure(broken, "wrong repository")
+    broken = good_ruleset()
     broken["conditions"]["ref_name"]["include"] = ["refs/heads/dev"]
     expect_failure(broken, "wrong target")
+    broken = good_ruleset()
+    broken["bypass_actors"] = [{"actor_id": 42, "actor_type": "Team", "bypass_mode": "pull_request"}]
+    expect_failure(broken, "unexpected bypass actor")
 
     broken = good_ruleset()
     broken["source_type"] = "Repository"
@@ -164,6 +171,18 @@ def main():
     broken = good_ruleset()
     broken["rules"][-1]["parameters"]["strict_required_status_checks_policy"] = False
     expect_failure(broken, "non-strict status checks")
+
+    broken = good_ruleset()
+    broken["rules"][-1]["parameters"]["do_not_enforce_on_create"] = True
+    expect_failure(broken, "status checks not enforced on creation")
+
+    broken = good_ruleset()
+    broken["rules"][0]["parameters"]["required_review_thread_resolution"] = False
+    expect_failure(broken, "unresolved review threads")
+
+    broken = good_ruleset()
+    broken["rules"][0]["parameters"]["allowed_merge_methods"] = ["merge"]
+    expect_failure(broken, "non-squash merge")
 
     broken = good_ruleset()
     broken["rules"][-1]["parameters"]["required_status_checks"][0][
