@@ -262,6 +262,14 @@ jobs:
           artifact-ids: ${{ needs.observe-wif-trust.outputs.artifact_id }}
           path: artifacts/wif-observer/
           merge-multiple: true
+          digest-mismatch: error
+      - name: Promote observed WIF trust evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s artifacts/wif-observer/gcs-wif-trust-verification.json
+          cp artifacts/wif-observer/gcs-wif-trust-verification.json             artifacts/gcs-wif-trust-verification.json
+
       - name: Authenticate to Google Cloud with verified token
         shell: bash
         run: |
