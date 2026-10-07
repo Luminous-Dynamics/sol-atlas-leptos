@@ -151,6 +151,7 @@ def run_analysis(
     return payload
 
 
+FORBIDDEN_UNIVERSAL_PRINCIPALS = ("allUsers", "allAuthenticatedUsers")
 WIF_PRINCIPAL_SET_PREFIX = "principalSet://iam.googleapis.com/projects/"
 WIF_PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
@@ -421,6 +422,18 @@ def extract_findings(
             )
         role = binding.get("role")
         members = binding.get("members")
+        if not isinstance(members, list):
+            raise AssertionError(
+                f"analysis result {index} has invalid binding members"
+            )
+        if any(
+            member in FORBIDDEN_UNIVERSAL_PRINCIPALS
+            for member in members
+            if isinstance(member, str)
+        ):
+            raise AssertionError(
+                "universal principal has service-account credential access"
+            )
         attached = result.get("attachedResourceFullName")
         if role != EXPECTED_ROLE:
             raise AssertionError(
@@ -589,7 +602,19 @@ def extract_project_pivot_findings(
             raise AssertionError(
                 f"project pivot result {index} has invalid role"
             )
-        if not isinstance(members, list) or not any(
+        if not isinstance(members, list):
+            raise AssertionError(
+                "project pivot binding has invalid members"
+            )
+        if any(
+            member in FORBIDDEN_UNIVERSAL_PRINCIPALS
+            for member in members
+            if isinstance(member, str)
+        ):
+            raise AssertionError(
+                "universal principal has project execution pivot access"
+            )
+        if not any(
             principal_matches_expected(
                 member,
                 expected_principal,
