@@ -90,19 +90,30 @@ def main() -> None:
     )
     assert unrelated == []
 
-    containing_member = next(iter(
-        module.expected_workload_principal_sets(PRINCIPAL) - {PRINCIPAL}
-    ))
-    broadened = module.extract_project_pivot_findings(
-        envelope([
-            pivot("cloudbuild.builds.create", principal=containing_member)
-        ]),
-        PRINCIPAL,
-        PROJECT,
-    )
-    assert broadened[0]["principal_match_kinds"] == [
-        "containing-principal-set"
-    ]
+    expected_sets = module.expected_workload_principal_sets(PRINCIPAL)
+    for containing_member in (
+        next(
+            member for member in expected_sets
+            if member.endswith("/*")
+        ),
+        next(
+            member for member in expected_sets
+            if "/attribute.repository/" in member
+        ),
+    ):
+        broadened = module.extract_project_pivot_findings(
+            envelope([
+                pivot(
+                    "cloudbuild.builds.create",
+                    principal=containing_member,
+                )
+            ]),
+            PRINCIPAL,
+            PROJECT,
+        )
+        assert broadened[0]["principal_match_kinds"] == [
+            "containing-principal-set"
+        ]
     detected = module.extract_project_pivot_findings(
         envelope([pivot("cloudbuild.builds.create")]),
         PRINCIPAL,
