@@ -176,8 +176,7 @@ def load_github_workflow_run_verification(path: str) -> dict[str, object]:
     return verification
 
 
-def load_wif_verification(path: str) -> dict[str, object]:
-    verification = json.loads(Path(path).read_text(encoding="utf-8"))
+def validate_wif_verification(verification: dict[str, object]) -> None:
     if verification.get("schema") != "sol-atlas:gcs-wif-trust-verification:v8":
         raise AssertionError("wrong WIF trust verification schema")
     if not verification.get("attribute_mapping_verified"):
@@ -200,6 +199,13 @@ def load_wif_verification(path: str) -> dict[str, object]:
         raise AssertionError("WIF service account project was not verified")
     if not verification.get("oidc_audience_verified"):
         raise AssertionError("WIF OIDC audience was not verified")
+
+
+def load_wif_verification(path: str) -> dict[str, object]:
+    verification = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(verification, dict):
+        raise AssertionError("WIF trust verification is not an object")
+    validate_wif_verification(verification)
     return verification
 
 
@@ -1026,6 +1032,7 @@ def verify_report(path: str) -> None:
     wif_verification = report.get("wif_verification")
     if not isinstance(wif_verification, dict):
         raise AssertionError("missing WIF trust verification")
+    validate_wif_verification(wif_verification)
     github_run_verification = report.get("github_workflow_run_verification")
     if not isinstance(github_run_verification, dict):
         raise AssertionError("missing GitHub workflow-run verification")
