@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+# Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+"""Offline tests for GitHub immutable subject configuration."""
+
+from __future__ import annotations
+
+import importlib.util
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = ROOT / "scripts" / "verify_github_oidc_subject_configuration.py"
+
+spec = importlib.util.spec_from_file_location("oidc_subject_config", SCRIPT)
+assert spec and spec.loader
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+
+
+def main() -> None:
+    good = {
+        "use_default": True,
+        "include_claim_keys": [],
+        "use_immutable_subject": True,
+    }
+    result = module.verify(good, None)
+    assert result["schema"] == module.SCHEMA
+    assert result["use_immutable_subject"] is True
+    assert result["configuration_digest"] == module.digest(good)
+
+    for bad in (
+        {"use_default": True, "include_claim_keys": []},
+        {
+            "use_default": False,
+            "include_claim_keys": ["repo", "context"],
+            "use_immutable_subject": False,
+        },
+        {
+            "use_default": True,
+            "use_immutable_subject": False,
+        },
+    ):
+        try:
+            module.verify(bad, None)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("non-immutable OIDC configuration was accepted")
+
+    print("offline immutable OIDC subject configuration checks: PASS")
+
+
+if __name__ == "__main__":
+    main()
