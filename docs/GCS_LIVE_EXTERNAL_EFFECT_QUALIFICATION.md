@@ -22,7 +22,7 @@ The qualified profile is intentionally narrow:
 
 ## GCP trust boundary
 
-WIF profile v8 is exact rather than substring-matched. It requires google.subject
+WIF profile v9 is exact rather than substring-matched. It requires google.subject
 and the repository, repository ID, repository owner ID, environment, event,
 workflow, ref, and workflow_ref mappings. The provider attribute condition must
 equal the frozen conjunction in the profile.
@@ -89,7 +89,7 @@ binding on the qualification service account. This closes project/folder-level
 service-account impersonation and credential pivots without expanding the effect
 identity's observer permissions.
 
-The repository now carries a separate `verify_gcs_effective_iam.py` v6 audit
+The repository now carries a separate `verify_gcs_effective_iam.py` v7 audit
 tool for this remaining boundary. It uses Google Cloud Policy Analyzer to inspect
 effective allow-policy access to the service account for credential-capability
 permissions, and fails closed on alternate effective roles, members, identities,
@@ -115,8 +115,8 @@ Asset/IAM analysis permissions and must be governed separately from the workload
 identity used to perform the external effect.
 
 The effective-IAM audit has a narrower claim ceiling than a perfect snapshot. For
-workload identity, the v6 parser derives the principal-set containment candidates
-from the checked-in v8 trust profile rather than duplicating those values in the
+workload identity, the v7 parser derives the principal-set containment candidates
+from the checked-in v9 trust profile rather than duplicating those values in the
 verifier:
 Policy Analyzer automatically considers relevant inherited allow policies, but
 Cloud Asset Inventory data is best-effort and can lag recent policy changes. The
@@ -125,7 +125,7 @@ transitive service-account impersonation chains, or an immutable IAM state.
 Freezing the exact provider-resource and service-account identities is also
 tracked separately in #41.
 
-The credentialed workflow now separates the effect execution identity from the IAM observer identity: `SOL_ATLAS_GCP_IAM_OBSERVER_SERVICE_ACCOUNT` must be configured as a distinct service account. The observer job authenticates first, verifies the effect service account's live WIF/provider policy, uploads that evidence as an immutable artifact, and the effect job consumes it by exact artifact ID. The effect identity therefore has no requirement for `iam.serviceAccounts.getIamPolicy`.
+The credentialed workflow now separates the effect execution identity from the IAM observer identity: `SOL_ATLAS_GCP_IAM_OBSERVER_SERVICE_ACCOUNT` must be configured as a distinct service account. The observer job authenticates first, verifies the effect service account's live WIF/provider policy, performs the effective-IAM and broad service-account audits under the observer identity, uploads those exact JSON records plus the observer OIDC evidence as an immutable artifact, and the effect job consumes that artifact by exact artifact ID. The final report embeds and revalidates those observer records. The effect identity therefore has no requirement for `iam.serviceAccounts.getIamPolicy`.
 
 This is trust configuration evidence only. It does not prove environment
 approval honesty or Cloud Storage behavior. The workflow separately verifies
@@ -160,7 +160,7 @@ Adding, removing, reordering, or redefining these cases requires a new case-set 
 
 ## Evidence handling
 
-The workflow report (schema v6) binds the exact checked-out source commit
+The workflow report (schema v7) binds the exact checked-out source commit
 (`GITHUB_SHA`), the workflow SHA/ref, adapter/harness/workflow blobs, GitHub
 server workflow-run verification/digest, WIF verification/profile digest and revalidates the embedded WIF record against the checked-in v9 profile,
 case-set identity, ordered observed results, OIDC
@@ -219,7 +219,7 @@ trust conditions.
 
 The live OIDC evidence format is `sol-atlas:github-oidc-claims:v4`; OIDC v1,
 v2, and v3 formats are historical. The outer GCS qualification report is schema
-v6 and binds the exact verified JWT to the file-sourced WIF credential
+v7 and binds the exact verified JWT to the file-sourced WIF credential
 configuration used for the exchange.
 
 
