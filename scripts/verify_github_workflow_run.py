@@ -148,6 +148,8 @@ def verify_run_record(
         "workflow_id": workflow_id,
         "workflow_name": workflow.get("name"),
         "workflow_path": workflow.get("path"),
+        "workflow_id_frozen": WORKFLOW_ID,
+        "run_path_verified": run.get("path"),
         "head_sha": run.get("head_sha"),
         "head_branch": run.get("head_branch"),
         "event": run.get("event"),
