@@ -106,6 +106,7 @@ jobs:
           python3 -m py_compile scripts/test_verify_github_governance_root_integration.py
           python3 -m py_compile scripts/test_verify_gcs_effective_iam_integration.py
           python3 -m py_compile scripts/test_verify_gcs_broad_sa_impersonation_integration.py
+          python3 -m py_compile scripts/test_validate_observer_audit_evidence.py
           python3 -m py_compile scripts/test_verify_gcs_effective_iam_pivots.py
           python3 -m py_compile scripts/test_verify_gcs_effective_iam.py
           python3 scripts/test_verify_gcs_wif_provider.py
@@ -126,6 +127,7 @@ jobs:
           python3 scripts/test_verify_github_governance_root_integration.py
           python3 scripts/test_verify_gcs_effective_iam_integration.py
           python3 scripts/test_verify_gcs_broad_sa_impersonation_integration.py
+          python3 scripts/test_validate_observer_audit_evidence.py
           python3 scripts/qualify_gcs_external_effect.py validate-case-set
           awk 'length($0) > 100 { print FNR ":" length($0) ":" $0; exit 1 }' \
             scripts/gcs_generation_fenced_adapter.py \
@@ -157,3 +159,4 @@ jobs:
             scripts/test_verify_gcs_effective_iam.py \
             scripts/test_verify_gcs_effective_iam_v2.py \
             scripts/test_verify_gcs_effective_iam_v3.py
+            scripts/test_validate_observer_audit_evidence.py
