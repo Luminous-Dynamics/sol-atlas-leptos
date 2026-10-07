@@ -131,9 +131,10 @@ def main() -> None:
             )
             assert result["schema"] == module.SCHEMA
             assert result["project_pivot_permissions_absent"] is True
-            assert result["broad_impersonation_findings"] if (
-                "broad_impersonation_findings" in result
-            ) else True
+            assert result["project_pivot_response_digest"].startswith(
+                "sha256:"
+            )
+            assert result["wif_profile_digest"].startswith("sha256:")
             written = json.loads(Path(output).read_text(encoding="utf-8"))
             assert written["schema"] == module.SCHEMA
             assert written["wif_profile_path"] == module.WIF_PROFILE_PATH
