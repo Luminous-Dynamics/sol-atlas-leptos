@@ -622,6 +622,9 @@ def verify(
         "fully_explored": True,
         "non_critical_errors": [],
         "findings": findings,
+        "project_pivot_permissions": list(PROJECT_PIVOT_PERMISSIONS),
+        "project_pivot_findings": project_pivots,
+        "project_pivot_permissions_absent": True,
         "policy_analyzer_response_digest": digest(payload),
         "claim_ceiling": CLAIM_CEILING,
     }
