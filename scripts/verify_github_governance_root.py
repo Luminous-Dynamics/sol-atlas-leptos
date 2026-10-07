@@ -16,6 +16,9 @@ SCHEMA = "sol-atlas:github-governance-root-audit:v1"
 REPO = "Luminous-Dynamics/sol-atlas-leptos"
 DEFAULT_BRANCH = "main"
 REQUIRED_CHECK = "Check"
+REQUIRED_CHECK_INTEGRATION_ID = 15368
+REQUIRED_RULESET_SOURCE_TYPE = "Organization"
+REQUIRED_RULESET_SOURCE = "Luminous-Dynamics"
 API_VERSION = "2026-03-10"
 
 
@@ -119,8 +122,12 @@ def verify_ruleset(
 ) -> dict[str, object]:
     if ruleset.get("target") != "branch":
         raise AssertionError("governance ruleset is not a branch ruleset")
-    if ruleset.get("enforcement") not in ("active", "enabled"):
+    if ruleset.get("enforcement") != "active":
         raise AssertionError("governance ruleset is not active")
+    if ruleset.get("source_type") != REQUIRED_RULESET_SOURCE_TYPE:
+        raise AssertionError("governance root is not organization-owned")
+    if ruleset.get("source") != REQUIRED_RULESET_SOURCE:
+        raise AssertionError("governance root organization mismatch")
     if not targets_default_branch(ruleset):
         raise AssertionError("governance ruleset does not target main")
 
@@ -179,9 +186,9 @@ def verify_ruleset(
             "exactly one required Check context is required"
         )
     integration_id = matching_checks[0].get("integration_id")
-    if not isinstance(integration_id, int) or integration_id <= 0:
+    if integration_id != REQUIRED_CHECK_INTEGRATION_ID:
         raise AssertionError(
-            "required Check must be bound to a specific GitHub App"
+            "required Check is not bound to the GitHub Actions App"
         )
 
     bypass = ruleset.get("bypass_actors")
@@ -206,6 +213,8 @@ def verify_ruleset(
         "target": ruleset.get("target"),
         "required_check": REQUIRED_CHECK,
         "required_check_integration_id": integration_id,
+        "required_ruleset_source_type": REQUIRED_RULESET_SOURCE_TYPE,
+        "required_ruleset_source": REQUIRED_RULESET_SOURCE,
         "bypass_actor_count": len(bypass),
         "rules": sorted(
             str(rule.get("type"))
