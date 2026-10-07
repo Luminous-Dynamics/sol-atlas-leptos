@@ -39,6 +39,10 @@ OIDC_CLOCK_SKEW_SECONDS = 60
 IMMUTABLE_SUBJECT_PREFIX = (
     "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
 )
+IMMUTABLE_SUBJECT = (
+    IMMUTABLE_SUBJECT_PREFIX
+    + "environment:sol-atlas-gcs-qualification"
+)
 
 
 def canonical(value: object) -> bytes:
@@ -158,15 +162,10 @@ def verify_temporal_claims(
 
 def verify_immutable_subject(payload: dict[str, object]) -> str:
     subject = payload.get("sub")
-    if not isinstance(subject, str) or not subject:
-        raise AssertionError("OIDC subject claim is missing or not a string")
-    if not subject.startswith(IMMUTABLE_SUBJECT_PREFIX):
+    if subject != IMMUTABLE_SUBJECT:
         raise AssertionError(
-            "OIDC subject does not use the immutable owner/repository-ID format"
+            "OIDC subject does not match the frozen immutable environment subject"
         )
-    suffix = subject[len(IMMUTABLE_SUBJECT_PREFIX):]
-    if not suffix:
-        raise AssertionError("OIDC immutable subject has no execution context")
     return subject
 
 
