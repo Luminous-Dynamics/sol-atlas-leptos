@@ -30,6 +30,11 @@ RESOURCE = (
     "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
     + SERVICE_ACCOUNT
 )
+OIDC_SUBJECT = (
+    "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
+    "ref:refs/heads/main"
+)
+
 
 
 def service_account_payload(permissions=None):
@@ -113,6 +118,7 @@ def pivot_payload():
 def main() -> None:
     original_run = module.run_analysis
     original_pivot = module.run_project_pivot_analysis
+    original_subject = module.load_immutable_oidc_subject
     try:
         module.run_analysis = lambda scope, resource: (
             service_account_payload()
@@ -120,6 +126,7 @@ def main() -> None:
         module.run_project_pivot_analysis = lambda scope, resource: (
             empty_pivot_payload()
         )
+        module.load_immutable_oidc_subject = lambda path: OIDC_SUBJECT
         with TemporaryDirectory() as tmp:
             output = str(Path(tmp) / "effective.json")
             result = module.verify(
@@ -127,6 +134,7 @@ def main() -> None:
                 PROJECT,
                 SERVICE_ACCOUNT,
                 PRINCIPAL,
+                "unused-oidc.json",
                 output,
             )
             assert result["schema"] == module.SCHEMA
@@ -148,6 +156,7 @@ def main() -> None:
                 PROJECT,
                 SERVICE_ACCOUNT,
                 PRINCIPAL,
+                "unused-oidc.json",
                 None,
             )
         except AssertionError:
@@ -157,6 +166,7 @@ def main() -> None:
     finally:
         module.run_analysis = original_run
         module.run_project_pivot_analysis = original_pivot
+        module.load_immutable_oidc_subject = original_subject
 
     print("effective IAM integration checks: PASS")
 
