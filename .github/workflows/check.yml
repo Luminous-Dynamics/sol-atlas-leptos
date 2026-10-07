@@ -119,4 +119,5 @@ jobs:
             scripts/test_qualify_gcs_external_effect.py \
             scripts/verify_github_workflow_run.py \
             scripts/verify_gcs_effective_iam.py \
-            scripts/test_verify_gcs_effective_iam.py
+            scripts/test_verify_gcs_effective_iam.py \
+            scripts/test_verify_gcs_effective_iam_v2.py
