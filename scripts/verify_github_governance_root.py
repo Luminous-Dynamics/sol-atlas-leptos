@@ -198,25 +198,21 @@ def verify_ruleset(
     strict = parameters.get("strict_required_status_checks_policy")
     if strict is not True:
         raise AssertionError("required status checks are not strict")
+    if parameters.get("do_not_enforce_on_create") is not False:
+        raise AssertionError("required status checks must apply on creation")
 
     checks = parameters.get("required_status_checks")
-    if not isinstance(checks, list):
-        raise AssertionError("required status check list is missing")
-    matching_checks = [
-        check
-        for check in checks
-        if isinstance(check, dict)
-        and check.get("context") == REQUIRED_CHECK
+    expected_checks = [
+        {
+            "context": REQUIRED_CHECK,
+            "integration_id": REQUIRED_CHECK_INTEGRATION_ID,
+        }
     ]
-    if len(matching_checks) != 1:
+    if checks != expected_checks:
         raise AssertionError(
-            "exactly one required Check context is required"
+            "required status-check set does not match the frozen governance root"
         )
-    integration_id = matching_checks[0].get("integration_id")
-    if integration_id != REQUIRED_CHECK_INTEGRATION_ID:
-        raise AssertionError(
-            "required Check is not bound to the GitHub Actions App"
-        )
+    integration_id = REQUIRED_CHECK_INTEGRATION_ID
 
     bypass = ruleset.get("bypass_actors")
     if not isinstance(bypass, list):
