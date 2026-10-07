@@ -212,6 +212,31 @@ def validate_wif_verification(verification: dict[str, object]) -> None:
         raise AssertionError(
             "WIF trust evidence lacks exact service-account binding member"
         )
+    provider_resource = verification.get("provider_resource")
+    if not isinstance(provider_resource, str):
+        raise AssertionError("WIF provider resource is missing")
+    provider_parts = provider_resource.split("/")
+    if (
+        len(provider_parts) != 8
+        or provider_parts[0] != "projects"
+        or provider_parts[2] != "locations"
+        or provider_parts[3] != "global"
+        or provider_parts[4] != "workloadIdentityPools"
+        or provider_parts[6] != "providers"
+    ):
+        raise AssertionError("WIF provider resource shape drift")
+    binding = profile.get("required_service_account_binding")
+    if not isinstance(binding, dict):
+        raise AssertionError("WIF profile binding is missing")
+    template = binding.get("member_template")
+    if not isinstance(template, str):
+        raise AssertionError("WIF profile member template is missing")
+    expected_member = template.format(
+        project_number=provider_parts[1],
+        pool_id=provider_parts[5],
+    )
+    if binding_member != expected_member:
+        raise AssertionError("WIF service-account binding member drift")
     if not verification.get("service_account_direct_policy_exact_verified"):
         raise AssertionError(
             "WIF direct service-account policy was not verified exact"
@@ -226,6 +251,8 @@ def validate_wif_verification(verification: dict[str, object]) -> None:
         raise AssertionError("WIF service account project was not verified")
     observer = verification.get("observer_service_account")
     target = verification.get("service_account")
+    if observer == target:
+        raise AssertionError("WIF observer and effect identities must differ")
     if (
         verification.get("observer_identity_verified") is not True
         or not isinstance(observer, str)
