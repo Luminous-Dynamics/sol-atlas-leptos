@@ -172,6 +172,58 @@ def valid_attached_resource(
     )
 
 
+def run_project_pivot_analysis(
+    scope: str,
+    project_target: str,
+) -> dict[str, object]:
+    flag, identifier = scope_flag(scope)
+    result = subprocess.run(
+        [
+            "gcloud",
+            "asset",
+            "analyze-iam-policy",
+            flag + "=" + identifier,
+            "--full-resource-name=" + project_target,
+            "--permissions=" + ",".join(PROJECT_PIVOT_PERMISSIONS),
+            "--format=json",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    payload = json.loads(result.stdout)
+    if not isinstance(payload, dict):
+        raise AssertionError("project pivot response is not an object")
+    if payload.get("fullyExplored") is not True:
+        raise AssertionError("project pivot response is not fully explored")
+    if payload.get("nonCriticalErrors") or []:
+        raise AssertionError("project pivot response has non-critical errors")
+    results = payload.get("analysisResults")
+    if not isinstance(results, list):
+        raise AssertionError("project pivot analysisResults is not a list")
+    return payload
+
+
+def valid_project_attachment(
+    resource: object,
+    expected_project_resource: str,
+) -> bool:
+    return (
+        resource == expected_project_resource
+        or (
+            isinstance(resource, str)
+            and bool(
+                re.fullmatch(
+                    r"//cloudresourcemanager\\.googleapis\\.com/"
+                    r"(folders|organizations)/[A-Za-z0-9._-]+",
+                    resource,
+                )
+            )
+        )
+    )
+
+
 def extract_findings(
     payload: dict[str, object],
     expected_principal: str,
@@ -391,10 +443,9 @@ def extract_project_pivot_findings(
         attachments = result.get("attachedResourceFullName")
         if (
             not isinstance(attachments, str)
-            or not valid_attached_resource(
+            or not valid_project_attachment(
                 attachments,
-                expected_project_resource
-                + "/serviceAccounts/not-used",
+                expected_project_resource,
             )
         ):
             raise AssertionError(
