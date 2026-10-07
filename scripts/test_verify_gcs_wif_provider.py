@@ -57,6 +57,11 @@ def main() -> None:
     assert profile["attribute_mapping_is_exact"] is True
     assert profile["service_account_must_reside_in_project"] is True
     assert profile["oidc_audience_mode"] == "provider_resource_default"
+    mappings = profile["required_attribute_mappings"]
+    assert module.attribute_mappings_are_exact(mappings, profile)
+    widened_mappings = dict(mappings)
+    widened_mappings["attribute.unexpected"] = "assertion.repository_visibility"
+    assert not module.attribute_mappings_are_exact(widened_mappings, profile)
 
     assert module.condition_is_exact(
         {"exact_attribute_condition": EXPECTED},
