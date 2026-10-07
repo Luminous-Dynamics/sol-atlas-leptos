@@ -164,12 +164,44 @@ def main() -> None:
         payload([result(condition="FALSE")]),
         "false access",
     )
-    must_fail(
-        payload([result(permissions=[
-            "iam.serviceAccounts.getAccessToken"
-        ])]),
-        "missing second WIF permission",
+    incomplete = module.extract_findings(
+        payload([
+            result(
+                permissions=["iam.serviceAccounts.getAccessToken"]
+            )
+        ]),
+        PRINCIPAL,
+        RESOURCE,
     )
+    try:
+        module.validate_permission_ceiling(incomplete)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "missing required WIF permission was accepted"
+        )
+
+    forbidden = module.extract_findings(
+        payload([
+            result(
+                permissions=[
+                    "iam.serviceAccounts.getAccessToken",
+                    "iam.serviceAccounts.getIamPolicy",
+                ]
+            )
+        ]),
+        PRINCIPAL,
+        RESOURCE,
+    )
+    try:
+        module.validate_permission_ceiling(forbidden)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "forbidden observer permission was accepted"
+        )
     must_fail(
         payload([result()], complete=False),
         "incomplete top-level result",
@@ -200,6 +232,19 @@ def main() -> None:
         }]),
         "missing target resource",
     )
+
+    # Permission-only queries may contain unrelated principals. They are
+    # ignored until the exact expected principal is resolved.
+    unrelated = result(
+        members=["principalSet://iam.googleapis.com/unrelated"],
+        identities=["principalSet://iam.googleapis.com/unrelated"],
+    )
+    selected = module.extract_findings(
+        payload([unrelated, result()]),
+        PRINCIPAL,
+        RESOURCE,
+    )
+    assert len(selected) == 1
 
     print("effective IAM v2 semantic checks: PASS")
 
