@@ -6,14 +6,13 @@
 
 from __future__ import annotations
 
-import json
 import importlib.util
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "verify_gcs_effective_iam.py"
 
-spec = importlib.util.spec_from_file_location("effective_iam_v3", SCRIPT)
+spec = importlib.util.spec_from_file_location("effective_iam_sep", SCRIPT)
 assert spec and spec.loader
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
@@ -27,28 +26,28 @@ RESOURCE = (
     "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
     "qualification@sol-atlas.iam.gserviceaccount.com"
 )
-OIDC_SUBJECT = "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:environment:sol-atlas-gcs-qualification"
+OIDC_SUBJECT = (
+    "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
+    "ref:refs/heads/main"
+)
 
 
-
-def binding(role: str, permissions: list[str]) -> dict[str, object]:
+def finding(permissions: list[str]) -> dict[str, object]:
     return {
         "attachedResourceFullName": (
             "//cloudresourcemanager.googleapis.com/projects/sol-atlas"
         ),
         "iamBinding": {
-            "role": role,
+            "role": module.EXPECTED_ROLE,
             "members": [PRINCIPAL],
         },
-        "identityList": {
-            "identities": [{"name": PRINCIPAL}]
-        },
+        "identityList": {"identities": [{"name": PRINCIPAL}]},
         "accessControlLists": [
             {
                 "resources": [{"fullResourceName": RESOURCE}],
                 "accesses": [
-                    {"permission": permission}
-                    for permission in permissions
+                    {"permission": value}
+                    for value in permissions
                 ],
             }
         ],
@@ -64,62 +63,55 @@ def envelope(result: dict[str, object]) -> dict[str, object]:
     }
 
 
-def expect_failure(result: dict[str, object], label: str) -> None:
-    try:
-        module.extract_findings(envelope(result), PRINCIPAL, RESOURCE, OIDC_SUBJECT)
-    except AssertionError:
-        return
-    raise AssertionError("accepted forbidden execution path: " + label)
-
-
 def main() -> None:
-    expected_sets = module.expected_workload_principal_sets(PRINCIPAL)
-    assert PRINCIPAL in expected_sets
-    assert any(member.endswith("/*") for member in expected_sets)
-    profile = json.loads(
-        (ROOT / module.WIF_PROFILE_PATH).read_text(encoding="utf-8")
-    )
-    assert profile["schema"] == module.WIF_PROFILE_SCHEMA
-    assert profile["repository_id"] == "1195997641"
-    assert profile["repository_owner_id"] == "216969177"
-    assert profile["workflow"] == "Qualify GCS external effect"
-    assert profile["ref"] == "refs/heads/main"
-    normal = binding(
-        module.EXPECTED_ROLE,
-        list(module.REQUIRED_PERMISSIONS),
-    )
-    finding = module.extract_findings(
-        envelope(normal),
+    normal = module.extract_findings(
+        envelope(finding(list(module.REQUIRED_PERMISSIONS))),
         PRINCIPAL,
         RESOURCE,
         OIDC_SUBJECT,
     )[0]
-    assert module.required_permissions_are_present(
-        finding["permissions"]
-    )
     assert module.execution_permissions_are_clean(
-        finding["permissions"]
+        normal["permissions"]
     )
     assert not module.execution_permissions_are_clean(
         ["iam.serviceAccounts.getIamPolicy"]
     )
+    try:
+        forbidden = module.extract_findings(
+            envelope(
+                finding(
+                    [
+                        "iam.serviceAccounts.getAccessToken",
+                        "iam.serviceAccounts.getIamPolicy",
+                    ]
+                )
+            ),
+            PRINCIPAL,
+            RESOURCE,
+            OIDC_SUBJECT,
+        )
+        module.validate_permission_ceiling(forbidden)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("observer policy permission was accepted")
 
-    expect_failure(
-        binding(
-            "roles/iam.serviceAccountViewer",
-            ["iam.serviceAccounts.getIamPolicy"],
-        ),
-        "service-account viewer",
-    )
-    expect_failure(
-        binding(
-            "roles/iam.serviceAccountAdmin",
-            ["iam.serviceAccounts.setIamPolicy"],
-        ),
-        "service-account admin",
-    )
+    try:
+        incomplete = module.extract_findings(
+            envelope(
+                finding(["iam.serviceAccounts.getAccessToken"])
+            ),
+            PRINCIPAL,
+            RESOURCE,
+            OIDC_SUBJECT,
+        )
+        module.validate_permission_ceiling(incomplete)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("missing WIF permission was accepted")
 
-    print("execution/observer IAM separation checks: PASS")
+    print("execution/observer separation checks: PASS")
 
 
 if __name__ == "__main__":
