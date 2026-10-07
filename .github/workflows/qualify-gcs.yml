@@ -25,6 +25,7 @@ jobs:
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.SOL_ATLAS_GCP_WORKLOAD_IDENTITY_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ vars.SOL_ATLAS_GCP_SERVICE_ACCOUNT }}
       GCP_IAM_OBSERVER_SERVICE_ACCOUNT: ${{ vars.SOL_ATLAS_GCP_IAM_OBSERVER_SERVICE_ACCOUNT }}
+      GCP_IAM_ANALYSIS_SCOPE: ${{ vars.SOL_ATLAS_GCP_IAM_ANALYSIS_SCOPE }}
       CLOUDSDK_CONFIG: ${{ runner.temp }}/sol-atlas-gcloud-observer-config
 
     steps:
@@ -54,7 +55,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for value in GCP_PROJECT_ID GCP_WORKLOAD_IDENTITY_PROVIDER GCP_SERVICE_ACCOUNT GCP_IAM_OBSERVER_SERVICE_ACCOUNT; do
+          for value in GCP_PROJECT_ID GCP_WORKLOAD_IDENTITY_PROVIDER GCP_SERVICE_ACCOUNT GCP_IAM_OBSERVER_SERVICE_ACCOUNT GCP_IAM_ANALYSIS_SCOPE; do
             if [ -z "${!value}" ]; then
               echo "::error::$value is not configured"
               exit 1
