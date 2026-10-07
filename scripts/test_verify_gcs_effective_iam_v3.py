@@ -27,6 +27,8 @@ RESOURCE = (
     "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
     "qualification@sol-atlas.iam.gserviceaccount.com"
 )
+OIDC_SUBJECT = "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:environment:sol-atlas-gcs-qualification"
+
 
 
 def binding(role: str, permissions: list[str]) -> dict[str, object]:
@@ -90,6 +92,7 @@ def main() -> None:
         envelope(normal),
         PRINCIPAL,
         RESOURCE,
+        OIDC_SUBJECT,
     )[0]
     assert module.required_permissions_are_present(
         finding["permissions"]
