@@ -116,6 +116,25 @@ def main() -> None:
         "token creator on another service account",
     )
 
+    for permission in (
+        "iam.serviceAccounts.getOpenIdToken",
+        "iam.serviceAccounts.signBlob",
+        "iam.serviceAccounts.signJwt",
+        "iam.serviceAccounts.implicitDelegation",
+        "iam.serviceAccountKeys.create",
+    ):
+        expect_failure(
+            envelope([
+                finding(
+                    role="roles/iam.serviceAccountTokenCreator",
+                    permission=permission,
+                    resource=OTHER_SERVICE_ACCOUNT,
+                )
+            ]),
+            "credential capability on another service account: " + permission,
+        )
+
+
     expected_sets = module.load_effective_iam_module().expected_workload_principal_sets(
         PRINCIPAL
     )
