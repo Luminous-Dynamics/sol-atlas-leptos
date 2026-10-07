@@ -90,6 +90,15 @@ def extract_findings(
     expected_principal: str,
     qualification_resource_name: str,
 ) -> list[dict[str, object]]:
+    if payload.get("fullyExplored") is not True:
+        raise AssertionError("impersonation analysis is not fully explored")
+    errors = payload.get("nonCriticalErrors")
+    if errors is not None and (
+        not isinstance(errors, list) or errors
+    ):
+        raise AssertionError(
+            "impersonation analysis reported invalid or non-critical errors"
+        )
     module = load_effective_iam_module()
     expected_sets = module.expected_workload_principal_sets(
         expected_principal
