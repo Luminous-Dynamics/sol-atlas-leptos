@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import json
 import importlib.util
 from pathlib import Path
 
@@ -83,6 +84,31 @@ def expect_failure(ruleset, label: str):
 
 
 def main():
+    manifest = json.loads(
+        (ROOT / ".github/governance/protect-main.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert manifest["target"] == "branch"
+    assert manifest["enforcement"] == "active"
+    assert manifest["conditions"]["repository_id"]["include"] == [
+        "1195997641"
+    ]
+    assert manifest["conditions"]["ref_name"]["include"] == [
+        "refs/heads/main"
+    ]
+    assert manifest["bypass_actors"] == []
+    status_rules = [
+        item for item in manifest["rules"]
+        if item["type"] == "required_status_checks"
+    ]
+    assert len(status_rules) == 1
+    assert status_rules[0]["parameters"]["required_status_checks"] == [
+        {
+            "context": "Check",
+            "integration_id": module.REQUIRED_CHECK_INTEGRATION_ID,
+        }
+    ]
     verified = module.verify_ruleset(good_ruleset())
     assert verified["required_check"] == "Check"
     assert verified["required_check_integration_id"] == module.REQUIRED_CHECK_INTEGRATION_ID
