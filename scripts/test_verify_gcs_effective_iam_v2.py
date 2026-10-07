@@ -26,6 +26,8 @@ RESOURCE = (
     "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
     "qualification@sol-atlas.iam.gserviceaccount.com"
 )
+OIDC_SUBJECT = "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:environment:sol-atlas-gcs-qualification"
+
 
 
 def result(
@@ -74,7 +76,7 @@ def payload(results: list[dict[str, object]], errors=None, complete=True):
 
 def must_fail(data, label: str) -> None:
     try:
-        module.extract_findings(data, PRINCIPAL, RESOURCE)
+        module.extract_findings(data, PRINCIPAL, RESOURCE, OIDC_SUBJECT)
     except AssertionError:
         return
     raise AssertionError("accepted invalid evidence: " + label)
@@ -85,6 +87,7 @@ def main() -> None:
         payload([result()]),
         PRINCIPAL,
         RESOURCE,
+        OIDC_SUBJECT,
     )
     assert len(good) == 1
     assert good[0]["role"] == module.EXPECTED_ROLE
@@ -202,6 +205,7 @@ def main() -> None:
         ]),
         PRINCIPAL,
         RESOURCE,
+        OIDC_SUBJECT,
     )
     try:
         module.validate_permission_ceiling(incomplete)
@@ -223,6 +227,7 @@ def main() -> None:
         ]),
         PRINCIPAL,
         RESOURCE,
+        OIDC_SUBJECT,
     )
     try:
         module.validate_permission_ceiling(forbidden)
@@ -273,6 +278,7 @@ def main() -> None:
         payload([unrelated, result()]),
         PRINCIPAL,
         RESOURCE,
+        OIDC_SUBJECT,
     )
     assert len(selected) == 1
 
