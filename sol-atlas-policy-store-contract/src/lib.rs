@@ -3954,7 +3954,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         store
@@ -3968,7 +3968,7 @@ mod tests {
             RecoveryExecutionEffectCompletionResult::FenceMismatch
         );
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("stale replay"),
+            begin_execution_effect(&store, &started).expect("stale replay"),
             RecoveryExecutionEffectStartResult::FenceMismatch
         );
         assert_eq!(
@@ -4013,7 +4013,7 @@ mod tests {
                 .expect("new epoch replay");
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4063,7 +4063,7 @@ mod tests {
                 .expect("successor fence");
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4113,7 +4113,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4171,7 +4171,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4273,7 +4273,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4386,7 +4386,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4412,7 +4412,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4420,7 +4420,7 @@ mod tests {
             RecoveryExecutionEffectCompletionResult::Completed
         );
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("replay"),
+            begin_execution_effect(&store, &started).expect("replay"),
             RecoveryExecutionEffectStartResult::AlreadySucceededSameRequest
         );
     }
@@ -4635,7 +4635,7 @@ mod tests {
                 .expect("started receipt");
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4671,7 +4671,7 @@ mod tests {
                 .expect("started receipt");
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4707,7 +4707,7 @@ mod tests {
                 .expect("started receipt");
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4743,7 +4743,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4827,7 +4827,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4907,7 +4907,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4944,7 +4944,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("start"),
+            begin_execution_effect(&store, &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4952,7 +4952,7 @@ mod tests {
             RecoveryExecutionEffectCompletionResult::Completed
         );
         assert_eq!(
-            begin_execution_effect(store.as_ref(), &started).expect("failure replay"),
+            begin_execution_effect(&store, &started).expect("failure replay"),
             RecoveryExecutionEffectStartResult::AlreadyFailedSameRequest
         );
         assert_eq!(
@@ -6084,7 +6084,7 @@ mod tests {
             RecoveryExecutionFenceCheck::Current
         );
         assert_eq!(
-            reconcile_execution_fence(store.as_ref(), &initial).expect("reconcile stale"),
+            reconcile_execution_fence(&store, &initial).expect("reconcile stale"),
             RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence
         );
         assert_eq!(
@@ -6119,7 +6119,7 @@ mod tests {
             RecoveryExecutionFenceResult::StaleExpectedFence
         );
         assert_eq!(
-            reconcile_execution_fence(store.as_ref(), &initial).expect("stale owner"),
+            reconcile_execution_fence(&store, &initial).expect("stale owner"),
             RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence
         );
     }
