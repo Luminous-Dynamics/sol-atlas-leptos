@@ -19,7 +19,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA = "sol-atlas:github-oidc-claims:v4"
+SCHEMA = "sol-atlas:github-oidc-claims:v5"
 ISSUER = "https://token.actions.githubusercontent.com"
 OIDC_REQUEST_HOST = "token.actions.githubusercontent.com"
 REPO = "Luminous-Dynamics/sol-atlas-leptos"
@@ -36,6 +36,9 @@ WORKFLOW_REF = (
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 DECIMAL = re.compile(r"^[0-9]+$")
 OIDC_CLOCK_SKEW_SECONDS = 60
+IMMUTABLE_SUBJECT_PREFIX = (
+    "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
+)
 
 
 def canonical(value: object) -> bytes:
@@ -153,6 +156,20 @@ def verify_temporal_claims(
     }
 
 
+def verify_immutable_subject(payload: dict[str, object]) -> str:
+    subject = payload.get("sub")
+    if not isinstance(subject, str) or not subject:
+        raise AssertionError("OIDC subject claim is missing or not a string")
+    if not subject.startswith(IMMUTABLE_SUBJECT_PREFIX):
+        raise AssertionError(
+            "OIDC subject does not use the immutable owner/repository-ID format"
+        )
+    suffix = subject[len(IMMUTABLE_SUBJECT_PREFIX):]
+    if not suffix:
+        raise AssertionError("OIDC immutable subject has no execution context")
+    return subject
+
+
 def verify_claims(
     payload: dict[str, object],
     audience: str,
@@ -172,6 +189,7 @@ def verify_claims(
             )
         observed[name] = value
     observed.update(verify_temporal_claims(payload, now=now))
+    observed["sub"] = verify_immutable_subject(payload)
     return observed
 
 
