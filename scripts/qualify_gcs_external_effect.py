@@ -215,6 +215,17 @@ def validate_wif_verification(verification: dict[str, object]) -> None:
         raise AssertionError("WIF provider pool was not verified exclusive")
     if not verification.get("service_account_project_verified"):
         raise AssertionError("WIF service account project was not verified")
+    observer = verification.get("observer_service_account")
+    target = verification.get("service_account")
+    if (
+        verification.get("observer_identity_verified") is not True
+        or not isinstance(observer, str)
+        or not observer
+        or observer == target
+    ):
+        raise AssertionError(
+            "WIF trust evidence lacks a distinct verified IAM observer"
+        )
     if not verification.get("oidc_audience_verified"):
         raise AssertionError("WIF OIDC audience was not verified")
 
