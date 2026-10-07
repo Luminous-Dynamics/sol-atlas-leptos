@@ -59,7 +59,7 @@ WIF_CREDENTIAL_CONFIG_SCHEMA = (
     "sol-atlas:gcp-wif-credential-config-verification:v1"
 )
 GITHUB_RUN_VERIFICATION_SCHEMA = "sol-atlas:github-workflow-run-verification:v1"
-EFFECTIVE_IAM_AUDIT_SCHEMA = "sol-atlas:gcs-effective-iam-audit:v7"
+EFFECTIVE_IAM_AUDIT_SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v7"
 BROAD_SA_AUDIT_SCHEMA = (
     "sol-atlas:gcs-broad-service-account-impersonation-audit:v2"
 )
