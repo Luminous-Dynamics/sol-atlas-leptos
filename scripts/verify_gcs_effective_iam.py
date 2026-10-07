@@ -128,8 +128,27 @@ def run_analysis(
     return payload
 
 
-def valid_attached_resource(resource: object) -> bool:
-    return isinstance(resource, str) and bool(ANCESTOR_PATTERN.fullmatch(resource))
+def valid_attached_resource(
+    resource: object,
+    expected_resource: str,
+) -> bool:
+    if not isinstance(resource, str):
+        return False
+    expected_project_resource = expected_resource.replace(
+        "//iam.googleapis.com/projects/",
+        "//cloudresourcemanager.googleapis.com/projects/",
+        1,
+    ).split("/serviceAccounts/", 1)[0]
+    return (
+        resource == expected_project_resource
+        or bool(
+            re.fullmatch(
+                r"//cloudresourcemanager\\.googleapis\\.com/"
+                r"(folders|organizations)/[A-Za-z0-9._-]+",
+                resource,
+            )
+        )
+    )
 
 
 def extract_findings(
@@ -166,7 +185,7 @@ def extract_findings(
             raise AssertionError(
                 f"unexpected effective IAM members: {members!r}"
             )
-        if not valid_attached_resource(attached):
+        if not valid_attached_resource(attached, expected_resource):
             raise AssertionError(
                 f"invalid effective IAM policy attachment: {attached!r}"
             )
