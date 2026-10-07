@@ -29,6 +29,11 @@ QUALIFICATION = (
     "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
     "qualification@sol-atlas.iam.gserviceaccount.com"
 )
+OIDC_SUBJECT = (
+    "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
+    "ref:refs/heads/main"
+)
+
 OTHER = (
     "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
     "privileged@sol-atlas.iam.gserviceaccount.com"
@@ -86,6 +91,8 @@ def forbidden():
 
 def main() -> None:
     original = module.run_analysis
+    original_subject = module.load_immutable_oidc_subject
+    module.load_immutable_oidc_subject = lambda path: OIDC_SUBJECT
     try:
         module.run_analysis = lambda scope: envelope(intended())
         result = module.verify(
@@ -93,6 +100,7 @@ def main() -> None:
             "sol-atlas",
             "qualification@sol-atlas.iam.gserviceaccount.com",
             PRINCIPAL,
+            "unused-oidc.json",
             None,
         )
         assert result["broad_impersonation_absent"] is True
@@ -115,6 +123,7 @@ def main() -> None:
             )
     finally:
         module.run_analysis = original
+        module.load_immutable_oidc_subject = original_subject
 
     print("broad service-account integration checks: PASS")
 
