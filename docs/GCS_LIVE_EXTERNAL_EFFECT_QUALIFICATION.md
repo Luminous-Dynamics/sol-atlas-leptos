@@ -22,7 +22,7 @@ The qualified profile is intentionally narrow:
 
 ## GCP trust boundary
 
-WIF profile v7 is exact rather than substring-matched. It requires google.subject
+WIF profile v8 is exact rather than substring-matched. It requires google.subject
 and the repository, repository ID, repository owner ID, environment, event,
 workflow, ref, and workflow_ref mappings. The provider attribute condition must
 equal the frozen conjunction in the profile.
