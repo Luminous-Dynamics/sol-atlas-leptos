@@ -149,7 +149,9 @@ def main():
     broken["conditions"]["ref_name"]["include"] = ["refs/heads/dev"]
     expect_failure(broken, "wrong target")
     broken = good_ruleset()
-    broken["bypass_actors"] = [{"actor_id": 42, "actor_type": "Team", "bypass_mode": "pull_request"}]
+    broken["bypass_actors"] = [
+        {"actor_id": 42, "actor_type": "Team", "bypass_mode": "pull_request"}
+    ]
     expect_failure(broken, "unexpected bypass actor")
 
     broken = good_ruleset()
