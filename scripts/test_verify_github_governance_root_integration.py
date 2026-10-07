@@ -27,8 +27,8 @@ def good_ruleset(ruleset_id: int = 77):
     return {
         "id": ruleset_id,
         "name": "Protected main governance root",
-        "source_type": "Repository",
-        "source": module.REPO,
+        "source_type": "Organization",
+        "source": module.REQUIRED_RULESET_SOURCE,
         "enforcement": "active",
         "target": "branch",
         "conditions": {
@@ -56,7 +56,7 @@ def good_ruleset(ruleset_id: int = 77):
                     "required_status_checks": [
                         {
                             "context": "Check",
-                            "integration_id": 15368,
+                            "integration_id": module.REQUIRED_CHECK_INTEGRATION_ID,
                         }
                     ],
                 },
