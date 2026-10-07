@@ -125,6 +125,8 @@ transitive service-account impersonation chains, or an immutable IAM state.
 Freezing the exact provider-resource and service-account identities is also
 tracked separately in #41.
 
+The credentialed workflow now separates the effect execution identity from the IAM observer identity: `SOL_ATLAS_GCP_IAM_OBSERVER_SERVICE_ACCOUNT` must be configured as a distinct service account. The observer job authenticates first, verifies the effect service account's live WIF/provider policy, uploads that evidence as an immutable artifact, and the effect job consumes it by exact artifact ID. The effect identity therefore has no requirement for `iam.serviceAccounts.getIamPolicy`.
+
 This is trust configuration evidence only. It does not prove environment
 approval honesty or Cloud Storage behavior. The workflow separately verifies
 that `GITHUB_WORKFLOW_SHA` resolves to the same checked-out workflow blob, and
@@ -160,9 +162,9 @@ Adding, removing, reordering, or redefining these cases requires a new case-set 
 
 The workflow report (schema v6) binds the exact checked-out source commit
 (`GITHUB_SHA`), the workflow SHA/ref, adapter/harness/workflow blobs, GitHub
-server workflow-run verification/digest, WIF verification/profile digest and revalidates the embedded WIF record against the checked-in v8 profile,
+server workflow-run verification/digest, WIF verification/profile digest and revalidates the embedded WIF record against the checked-in v9 profile,
 case-set identity, ordered observed results, OIDC
-v4 claim record/digest, exact-token fingerprint, WIF credential-config
+v5 claim record/digest, exact-token fingerprint, WIF credential-config
 verification/digest, evidence digest, and report digest. The live workflow
 asserts that `git rev-parse HEAD` equals `GITHUB_SHA` before cloud
 authentication, and report verification checks the same equality.
