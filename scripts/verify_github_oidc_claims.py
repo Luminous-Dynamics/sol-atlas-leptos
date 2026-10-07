@@ -21,8 +21,9 @@ from pathlib import Path
 
 SCHEMA = "sol-atlas:github-oidc-claims:v5"
 ISSUER = "https://token.actions.githubusercontent.com"
-OIDC_REQUEST_HOST_SUFFIX = ".actions.githubusercontent.com"
-OIDC_REQUEST_HOST_PREFIX = "pipelines"
+OIDC_REQUEST_HOST_PATTERN = re.compile(
+    r"^pipelines[a-z0-9-]*\.actions\.githubusercontent\.com$"
+)
 REPO = "Luminous-Dynamics/sol-atlas-leptos"
 REPOSITORY_ID = "1195997641"
 REPOSITORY_OWNER_ID = "216969177"
@@ -200,9 +201,8 @@ def validate_oidc_request_url(url: str) -> None:
     except ValueError as exc:
         raise AssertionError("GitHub OIDC request URL has an invalid port") from exc
     hostname = (parsed.hostname or "").lower()
-    is_github_runner_host = (
-        hostname.startswith(OIDC_REQUEST_HOST_PREFIX)
-        and hostname.endswith(OIDC_REQUEST_HOST_SUFFIX)
+    is_github_runner_host = bool(
+        OIDC_REQUEST_HOST_PATTERN.fullmatch(hostname)
     )
     if (
         parsed.scheme != "https"
