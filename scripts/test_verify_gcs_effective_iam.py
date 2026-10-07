@@ -100,13 +100,26 @@ def main() -> None:
     )
     reject(
         analysis(attached="//cloudresourcemanager.googleapis.com/projects/other"),
-        "unexpected attached resource is allowed by analyzer semantics",
+        "unexpected attached resource",
+    )
+    reject(
+        {
+            **analysis(),
+            "accessControlLists": [
+                {"resources": [], "accesses": []}
+            ],
+        },
+        "missing target resource",
     )
     reject(
         analysis(
             permissions=["iam.serviceAccounts.getAccessToken"],
         ),
         "missing required permission",
+    )
+    reject(
+        {"analysisResults": []},
+        "empty analysis",
     )
 
     try:
