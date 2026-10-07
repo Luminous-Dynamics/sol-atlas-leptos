@@ -65,7 +65,15 @@ def analysis(
 
 def reject(result: dict[str, object], name: str) -> None:
     try:
-        module.extract_findings({"analysisResults": [result]}, PRINCIPAL, RESOURCE)
+        module.extract_findings(
+            {
+                "fullyExplored": True,
+                "nonCriticalErrors": [],
+                "analysisResults": [result],
+            },
+            PRINCIPAL,
+            RESOURCE,
+        )
     except AssertionError:
         return
     raise AssertionError(f"tampered Policy Analyzer result was accepted: {name}")
@@ -73,7 +81,15 @@ def reject(result: dict[str, object], name: str) -> None:
 
 def main() -> None:
     payload = {"analysisResults": [analysis()]}
-    findings = module.extract_findings(payload, PRINCIPAL, RESOURCE)
+    findings = module.extract_findings(
+        {
+            "fullyExplored": True,
+            "nonCriticalErrors": [],
+            **payload,
+        },
+        PRINCIPAL,
+        RESOURCE,
+    )
     assert findings[0]["role"] == module.EXPECTED_ROLE
     assert module.REQUIRED_PERMISSIONS[0] in findings[0]["permissions"]
     assert module.required_permissions_are_present(
@@ -120,7 +136,11 @@ def main() -> None:
         permissions=["iam.serviceAccounts.getAccessToken"],
     )
     incomplete_findings = module.extract_findings(
-        {"analysisResults": [incomplete]},
+        {
+            "fullyExplored": True,
+            "nonCriticalErrors": [],
+            "analysisResults": [incomplete],
+        },
         PRINCIPAL,
         RESOURCE,
     )
@@ -128,7 +148,11 @@ def main() -> None:
         incomplete_findings[0]["permissions"]
     )
     reject(
-        {"analysisResults": []},
+        {
+            "fullyExplored": True,
+            "nonCriticalErrors": [],
+            "analysisResults": [],
+        },
         "empty analysis",
     )
 
