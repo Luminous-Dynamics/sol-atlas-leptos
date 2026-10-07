@@ -26,16 +26,19 @@ spec.loader.exec_module(module)
 def good_ruleset(ruleset_id: int = 77):
     return {
         "id": ruleset_id,
-        "name": "Protected main governance root",
+        "name": "Sol Atlas main governance root",
         "source_type": "Organization",
         "source": module.REQUIRED_RULESET_SOURCE,
         "enforcement": "active",
         "target": "branch",
         "conditions": {
+            "repository_id": {
+                "repository_ids": [1195997641],
+            },
             "ref_name": {
                 "include": ["refs/heads/main"],
                 "exclude": [],
-            }
+            },
         },
         "rules": [
             {
@@ -44,6 +47,8 @@ def good_ruleset(ruleset_id: int = 77):
                     "required_approving_review_count": 1,
                     "dismiss_stale_reviews_on_push": True,
                     "require_last_push_approval": True,
+                    "required_review_thread_resolution": True,
+                    "allowed_merge_methods": ["squash"],
                 },
             },
             {"type": "required_signatures"},
@@ -52,6 +57,7 @@ def good_ruleset(ruleset_id: int = 77):
             {
                 "type": "required_status_checks",
                 "parameters": {
+                    "do_not_enforce_on_create": False,
                     "strict_required_status_checks_policy": True,
                     "required_status_checks": [
                         {
