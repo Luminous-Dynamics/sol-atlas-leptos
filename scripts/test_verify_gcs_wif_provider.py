@@ -57,6 +57,7 @@ def main() -> None:
     assert profile["attribute_mapping_is_exact"] is True
     assert profile["service_account_must_reside_in_project"] is True
     assert profile["oidc_audience_mode"] == "provider_resource_default"
+    assert module.load_profile()["required_service_account_binding"]["role"] == "roles/iam.workloadIdentityUser"
     mappings = profile["required_attribute_mappings"]
     assert module.attribute_mappings_are_exact(mappings, profile)
     widened_mappings = dict(mappings)
@@ -182,6 +183,10 @@ def main() -> None:
         binding_policy("expected"),
         "roles/iam.workloadIdentityUser",
         "expected",
+    )
+    assert module.observer_identity_is_exact(
+        "observer@sol-atlas.iam.gserviceaccount.com",
+        "effect@sol-atlas.iam.gserviceaccount.com",
     )
     assert not module.binding_is_present(
         binding_policy("other"),
