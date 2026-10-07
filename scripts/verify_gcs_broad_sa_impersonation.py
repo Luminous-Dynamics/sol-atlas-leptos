@@ -39,6 +39,43 @@ def load_effective_iam_module():
     return module
 
 
+def load_wif_identity(
+    path: str,
+    service_account: str,
+) -> tuple[dict[str, object], str]:
+    module = load_effective_iam_module()
+    document = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(document, dict):
+        raise AssertionError("WIF trust evidence is not an object")
+    if document.get("schema") != "sol-atlas:gcs-wif-trust-verification:v9":
+        raise AssertionError("WIF trust evidence schema drift")
+    if document.get("profile_path") != module.WIF_PROFILE_PATH:
+        raise AssertionError("WIF trust profile path drift")
+    profile_path = Path(module.__file__).resolve().parents[1] / module.WIF_PROFILE_PATH
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    if profile.get("schema") != module.WIF_PROFILE_SCHEMA:
+        raise AssertionError("WIF profile schema drift")
+    if document.get("profile_digest") != module.digest(profile):
+        raise AssertionError("WIF profile digest drift")
+    if document.get("service_account") != service_account:
+        raise AssertionError("WIF service account identity drift")
+    observer = document.get("observer_service_account")
+    if (
+        document.get("observer_identity_verified") is not True
+        or not isinstance(observer, str)
+        or not observer
+    ):
+        raise AssertionError("WIF observer identity evidence is missing")
+    if module.active_identity() != observer:
+        raise AssertionError(
+            "broad IAM audit is not running as the verified observer"
+        )
+    member = document.get("service_account_binding_member")
+    if not isinstance(member, str) or not member:
+        raise AssertionError("WIF binding member evidence is missing")
+    return document, member
+
+
 def qualification_resource(
     project_id: str,
     service_account: str,
