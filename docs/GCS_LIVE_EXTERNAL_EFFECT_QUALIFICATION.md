@@ -75,10 +75,24 @@ This is intentionally a direct resource-policy assertion, not a proof of
 effective IAM uniqueness across the Google Cloud resource hierarchy. Google
 Cloud allow policies can apply at the project, folder, organization, and other
 ancestor levels, so an inherited binding can affect effective access without
-appearing in the service account's direct IAM policy. Covering that hierarchy
-requires a separate privileged policy-analysis lane; this qualification does not
-silently claim that stronger property. Freezing the exact provider-resource and
-service-account identities is also tracked separately in #41.
+appearing in the service account's direct IAM policy.
+
+The repository now carries a separate `verify_gcs_effective_iam.py` audit tool
+for this remaining boundary. It uses Google Cloud Policy Analyzer to inspect
+effective allow-policy access to the service account for credential-capability
+permissions, and fails closed on alternate effective roles, members, identities,
+or partially explored results. This audit is deliberately not part of the
+normal qualification lane: the observer needs Cloud Asset/IAM analysis
+permissions and must be governed separately from the workload identity used to
+perform the external effect.
+
+The effective-IAM audit has a narrower claim ceiling than a perfect snapshot:
+Policy Analyzer automatically considers relevant inherited allow policies, but
+Cloud Asset Inventory data is best-effort and can lag recent policy changes. The
+audit also does not prove deny-policy or Principal Access Boundary effects,
+transitive service-account impersonation chains, or an immutable IAM state.
+Freezing the exact provider-resource and service-account identities is also
+tracked separately in #41.
 
 This is trust configuration evidence only. It does not prove environment
 approval honesty or Cloud Storage behavior. The workflow separately verifies
@@ -172,8 +186,8 @@ trust conditions.
 
 The live OIDC evidence format is `sol-atlas:github-oidc-claims:v4`; OIDC v1,
 v2, and v3 formats are historical. The outer GCS qualification report is schema
-v5 because it now binds the exact verified JWT to the file-sourced WIF
-credential configuration used for the exchange.
+v6 and binds the exact verified JWT to the file-sourced WIF credential
+configuration used for the exchange.
 
 
 ## Frozen case corpus
