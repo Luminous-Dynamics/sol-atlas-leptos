@@ -89,6 +89,9 @@ def main() -> None:
         role=module.EXPECTED_ROLE,
         permission="iam.serviceAccounts.getAccessToken",
     )
+    clean["accessControlLists"][0]["accesses"].append({
+        "permission": "iam.serviceAccounts.getOpenIdToken"
+    })
     assert module.extract_findings(
         envelope([clean]),
         PRINCIPAL,
