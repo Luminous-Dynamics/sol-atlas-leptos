@@ -77,6 +77,18 @@ Cloud allow policies can apply at the project, folder, organization, and other
 ancestor levels, so an inherited binding can affect effective access without
 appearing in the service account's direct IAM policy.
 
+The repository also carries a separate `verify_gcs_broad_sa_impersonation.py`
+observer audit for service-account pivots. It queries the configured scope without
+restricting the resource, then fails closed on the expected workload identity or
+any frozen containing principal set receiving `iam.serviceAccounts.actAs`,
+`iam.serviceAccounts.getAccessToken`, `iam.serviceAccounts.getOpenIdToken`,
+`iam.serviceAccounts.signBlob`, `iam.serviceAccounts.signJwt`,
+`iam.serviceAccounts.implicitDelegation`, or
+`iam.serviceAccountKeys.create` for anything other than the exact intended WIF
+binding on the qualification service account. This closes project/folder-level
+service-account impersonation and credential pivots without expanding the effect
+identity's observer permissions.
+
 The repository now carries a separate `verify_gcs_effective_iam.py` v6 audit
 tool for this remaining boundary. It uses Google Cloud Policy Analyzer to inspect
 effective allow-policy access to the service account for credential-capability
