@@ -215,17 +215,8 @@ def verify_ruleset(
     integration_id = REQUIRED_CHECK_INTEGRATION_ID
 
     bypass = ruleset.get("bypass_actors")
-    if not isinstance(bypass, list):
-        raise AssertionError(
-            "bypass actors are not observable; governance audit is incomplete"
-        )
-    for actor in bypass:
-        if not isinstance(actor, dict):
-            raise AssertionError("invalid bypass actor")
-        if actor.get("bypass_mode") != "pull_request":
-            raise AssertionError(
-                "governance bypass must require a pull request"
-            )
+    if bypass != []:
+        raise AssertionError("governance root must have no bypass actors")
 
     return {
         "id": ruleset.get("id"),
