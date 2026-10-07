@@ -490,7 +490,14 @@ def extract_project_pivot_findings(
                 )
             names.append(name)
 
-        if expected_principal not in names:
+        pivot_matches = [
+            principal_matches_expected(name, expected_principal)
+            for name in names
+        ]
+        pivot_match_kinds = [
+            match for match in pivot_matches if match is not None
+        ]
+        if not pivot_match_kinds:
             continue
 
         binding = result.get("iamBinding")
@@ -504,9 +511,13 @@ def extract_project_pivot_findings(
             raise AssertionError(
                 f"project pivot result {index} has invalid role"
             )
-        if not isinstance(members, list) or expected_principal not in members:
+        if not isinstance(members, list) or not any(
+            principal_matches_expected(member, expected_principal)
+            for member in members
+            if isinstance(member, str)
+        ):
             raise AssertionError(
-                "project pivot binding does not explicitly contain expected principal"
+                "project pivot binding does not contain expected principal set"
             )
 
         attachments = result.get("attachedResourceFullName")
@@ -597,6 +608,7 @@ def extract_project_pivot_findings(
                 "role": role,
                 "members": list(members),
                 "identities": names,
+                "principal_match_kinds": sorted(set(pivot_match_kinds)),
                 "permissions": sorted(observed_permissions),
                 "fully_explored": True,
             }
