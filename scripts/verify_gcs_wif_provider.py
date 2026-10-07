@@ -214,6 +214,27 @@ def service_account_policy(service_account: str) -> dict[str, object]:
     )
 
 
+def active_identity() -> str:
+    result = run_json(
+        [
+            "gcloud",
+            "auth",
+            "list",
+            "--filter=status:ACTIVE",
+            "--format=value(account)",
+        ]
+    )
+    if not isinstance(result, str):
+        raise AssertionError("active gcloud identity response is invalid")
+    value = result.strip()
+    if not value:
+        raise AssertionError("no active gcloud identity")
+    return value
+
+
+def observer_identity_is_exact(expected: str) -> bool:
+    return active_identity() == expected
+
 def forbidden_direct_roles(profile: dict[str, object]) -> set[str]:
     roles = profile.get("forbidden_direct_service_account_roles")
     if not isinstance(roles, list) or any(
@@ -275,6 +296,7 @@ def verify(
     provider_resource: str,
     configured_project_id: str,
     service_account: str,
+    observer_service_account: str | None,
 ) -> dict[str, object]:
     profile = load_profile()
     provider_project, pool_id, provider_id = provider_parts(provider_resource)
@@ -320,6 +342,9 @@ def verify(
     if not service_account_is_in_project(sa_project, configured_project_id):
         raise AssertionError("service account is outside configured GCP project")
 
+    if observer_service_account is not None:
+        if not observer_identity_is_exact(observer_service_account):
+            raise AssertionError("active observer identity mismatch")
     policy = service_account_policy(service_account)
     role = str(binding["role"])
     if not direct_policy_is_exact(policy, role, expected_member):
@@ -356,6 +381,8 @@ def verify(
         "profile_path": PROFILE_PATH,
         "profile_digest": digest(profile),
         "service_account": service_account,
+        "observer_service_account": observer_service_account,
+        "observer_identity_verified": observer_service_account is not None,
         "service_account_project": sa_project,
         "service_account_project_verified": True,
         "service_account_binding_verified": True,
@@ -375,6 +402,7 @@ def main() -> int:
     parser.add_argument("--provider-resource", required=True)
     parser.add_argument("--project-id", required=True)
     parser.add_argument("--service-account", required=True)
+    parser.add_argument("--observer-service-account")
     parser.add_argument("--output")
     args = parser.parse_args()
 
@@ -382,6 +410,7 @@ def main() -> int:
         args.provider_resource,
         args.project_id,
         args.service_account,
+        args.observer_service_account,
     )
     payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
     if args.output:
