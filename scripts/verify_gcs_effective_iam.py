@@ -400,10 +400,12 @@ def extract_findings(
             for name in identity_names
         ]
         match_kinds = [match for match in matches if match is not None]
-        if match_kinds != ["exact"]:
+        if any(match != "exact" for match in match_kinds):
             raise AssertionError(
-                "service-account binding matched a broader workload principal set"
+                "service-account binding matched a broader or alternate workload identity"
             )
+        if not match_kinds:
+            continue
 
         binding = result.get("iamBinding")
         if not isinstance(binding, dict):
@@ -417,21 +419,10 @@ def extract_findings(
             raise AssertionError(
                 f"unexpected effective role for expected principal: {role!r}"
             )
-        member_matches = [
-            principal_matches_expected(
-                member,
-                expected_principal,
-                oidc_subject,
-            )
-            for member in members
-            if isinstance(member, str)
-        ]
         if members != [expected_principal]:
-            if any(match is not None for match in member_matches):
-                raise AssertionError(
-                    "broader or mixed workload principal binding detected"
-                )
-            continue
+            raise AssertionError(
+                "service-account binding is not an exact expected-principal binding"
+            )
         if not valid_attached_resource(attached, expected_resource):
             raise AssertionError(
                 f"invalid effective IAM policy attachment: {attached!r}"
