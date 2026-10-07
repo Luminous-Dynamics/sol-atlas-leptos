@@ -35,7 +35,7 @@ else:
     from verify_github_oidc_claims import expected_claims, verify_immutable_subject
 
 
-SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v6"
+SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v7"
 CASE_SET_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
     "gcs_external_effect_cases_v2.json"
@@ -59,6 +59,10 @@ WIF_CREDENTIAL_CONFIG_SCHEMA = (
     "sol-atlas:gcp-wif-credential-config-verification:v1"
 )
 GITHUB_RUN_VERIFICATION_SCHEMA = "sol-atlas:github-workflow-run-verification:v1"
+EFFECTIVE_IAM_AUDIT_SCHEMA = "sol-atlas:gcs-effective-iam-audit:v7"
+BROAD_SA_AUDIT_SCHEMA = (
+    "sol-atlas:gcs-broad-service-account-impersonation-audit:v2"
+)
 WIF_TRUST_PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
     "gcs_wif_trust_profile_v9.json"
@@ -241,6 +245,139 @@ def load_wif_verification(path: str) -> dict[str, object]:
         raise AssertionError("WIF trust verification is not an object")
     validate_wif_verification(verification)
     return verification
+
+
+def validate_effective_iam_audit(
+    audit: dict[str, object],
+    wif_verification: dict[str, object],
+    observer_oidc_claims: dict[str, object],
+) -> None:
+    if audit.get("schema") != EFFECTIVE_IAM_AUDIT_SCHEMA:
+        raise AssertionError("wrong effective-IAM audit schema")
+    if audit.get("wif_verification_digest") != digest(wif_verification):
+        raise AssertionError("effective-IAM WIF evidence digest drift")
+    if audit.get("wif_profile_path") != WIF_TRUST_PROFILE_PATH:
+        raise AssertionError("effective-IAM profile path drift")
+    if audit.get("wif_profile_digest") != wif_verification.get(
+        "profile_digest"
+    ):
+        raise AssertionError("effective-IAM profile digest drift")
+    if audit.get("service_account") != wif_verification.get(
+        "service_account"
+    ):
+        raise AssertionError("effective-IAM service-account drift")
+    if audit.get("observer_service_account") != wif_verification.get(
+        "observer_service_account"
+    ):
+        raise AssertionError("effective-IAM observer identity drift")
+    if audit.get("observer_identity_verified") is not True:
+        raise AssertionError("effective-IAM observer identity was not verified")
+    if audit.get("expected_principal") != wif_verification.get(
+        "service_account_binding_member"
+    ):
+        raise AssertionError("effective-IAM principal root drift")
+    if audit.get("oidc_claims_digest") != digest(observer_oidc_claims):
+        raise AssertionError("effective-IAM OIDC evidence digest drift")
+    if audit.get("fully_explored") is not True:
+        raise AssertionError("effective-IAM audit was not fully explored")
+    if audit.get("non_critical_errors") not in ([], None):
+        raise AssertionError("effective-IAM audit contains errors")
+    if audit.get("forbidden_execution_permissions_absent") is not True:
+        raise AssertionError("effective-IAM observer permissions were not excluded")
+    if audit.get("required_permissions_verified") is not True:
+        raise AssertionError("effective-IAM required permissions were not verified")
+    if audit.get("project_pivot_permissions_absent") is not True:
+        raise AssertionError("effective-IAM project pivots were not excluded")
+    if audit.get("project_pivot_findings") != []:
+        raise AssertionError("effective-IAM contains project pivot findings")
+    findings = audit.get("findings")
+    if not isinstance(findings, list) or len(findings) != 1:
+        raise AssertionError("effective-IAM does not have exactly one intended binding")
+    finding = findings[0]
+    if not isinstance(finding, dict):
+        raise AssertionError("effective-IAM finding is not an object")
+    if finding.get("role") != "roles/iam.workloadIdentityUser":
+        raise AssertionError("effective-IAM intended binding role drift")
+    if finding.get("members") != [wif_verification.get(
+        "service_account_binding_member"
+    )]:
+        raise AssertionError("effective-IAM intended binding member drift")
+
+
+def validate_broad_sa_audit(
+    audit: dict[str, object],
+    wif_verification: dict[str, object],
+    observer_oidc_claims: dict[str, object],
+) -> None:
+    if audit.get("schema") != BROAD_SA_AUDIT_SCHEMA:
+        raise AssertionError("wrong broad service-account audit schema")
+    if audit.get("wif_verification_digest") != digest(wif_verification):
+        raise AssertionError("broad-SA WIF evidence digest drift")
+    if audit.get("wif_profile_path") != WIF_TRUST_PROFILE_PATH:
+        raise AssertionError("broad-SA profile path drift")
+    if audit.get("wif_profile_digest") != wif_verification.get(
+        "profile_digest"
+    ):
+        raise AssertionError("broad-SA profile digest drift")
+    if audit.get("service_account") != wif_verification.get(
+        "service_account"
+    ):
+        raise AssertionError("broad-SA service-account drift")
+    if audit.get("observer_service_account") != wif_verification.get(
+        "observer_service_account"
+    ):
+        raise AssertionError("broad-SA observer identity drift")
+    if audit.get("observer_identity_verified") is not True:
+        raise AssertionError("broad-SA observer identity was not verified")
+    if audit.get("expected_principal") != wif_verification.get(
+        "service_account_binding_member"
+    ):
+        raise AssertionError("broad-SA principal root drift")
+    if audit.get("oidc_claims_digest") != digest(observer_oidc_claims):
+        raise AssertionError("broad-SA OIDC evidence digest drift")
+    if audit.get("broad_impersonation_absent") is not True:
+        raise AssertionError("broad-SA impersonation was not excluded")
+    if audit.get("broad_impersonation_findings") != []:
+        raise AssertionError("broad-SA contains impersonation findings")
+    queried = audit.get("queried_permissions")
+    required = {
+        "iam.serviceAccounts.actAs",
+        "iam.serviceAccounts.getAccessToken",
+        "iam.serviceAccounts.getOpenIdToken",
+        "iam.serviceAccounts.signBlob",
+        "iam.serviceAccounts.signJwt",
+        "iam.serviceAccounts.implicitDelegation",
+        "iam.serviceAccountKeys.create",
+        "iam.serviceAccounts.setIamPolicy",
+    }
+    if not isinstance(queried, list) or not required.issubset(set(queried)):
+        raise AssertionError("broad-SA audit permission set is incomplete")
+
+
+def validate_observer_oidc_claims(
+    claims: dict[str, object],
+    github_context: dict[str, str],
+    wif_verification: dict[str, object],
+) -> None:
+    oidc_audience = wif_verification.get("oidc_expected_audience")
+    if not isinstance(oidc_audience, str) or not oidc_audience:
+        raise AssertionError("observer WIF audience is missing")
+    observed = claims.get("claims")
+    if not isinstance(observed, dict):
+        raise AssertionError("missing observer OIDC claims")
+    if claims.get("schema") != OIDC_CLAIMS_SCHEMA:
+        raise AssertionError("wrong observer OIDC claims schema")
+    if claims.get("claims_digest") != digest(observed):
+        raise AssertionError("observer OIDC claims digest mismatch")
+    if claims.get("audience") != observed.get("aud"):
+        raise AssertionError("observer OIDC audience mismatch")
+    verify_oidc_claim_identity(observed, github_context, oidc_audience)
+    verify_oidc_temporal_evidence(claims)
+
+
+def load_observer_oidc_claims(path: str) -> dict[str, object]:
+    claims = load_oidc_claims(path)
+    return claims
 
 
 def verify_oidc_temporal_evidence(claims: dict[str, object]) -> None:
