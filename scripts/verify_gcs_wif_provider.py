@@ -209,6 +209,17 @@ def forbidden_direct_roles(profile: dict[str, object]) -> set[str]:
     return set(roles)
 
 
+def direct_policy_has_forbidden_roles(
+    policy: dict[str, object],
+    forbidden_roles: set[str],
+) -> bool:
+    return any(
+        isinstance(binding, dict)
+        and binding.get("role") in forbidden_roles
+        for binding in policy.get("bindings", [])
+    )
+
+
 def direct_policy_is_exact(
     policy: dict[str, object],
     role: str,
