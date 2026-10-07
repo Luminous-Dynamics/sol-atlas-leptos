@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import json
 import importlib.util
 from pathlib import Path
 
@@ -70,6 +71,18 @@ def expect_failure(result: dict[str, object], label: str) -> None:
 
 
 def main() -> None:
+    expected_sets = module.expected_workload_principal_sets(PRINCIPAL)
+    assert PRINCIPAL in expected_sets
+    assert any(member.endswith("/*") for member in expected_sets)
+    profile = json.loads(
+        (ROOT / module.WIF_PROFILE_PATH).read_text(encoding="utf-8")
+    )
+    assert profile["schema"] == module.WIF_PROFILE_SCHEMA
+    assert module.digest(profile) == module.digest(
+        json.loads(
+            (ROOT / module.WIF_PROFILE_PATH).read_text(encoding="utf-8")
+        )
+    )
     normal = binding(
         module.EXPECTED_ROLE,
         list(module.REQUIRED_PERMISSIONS),
