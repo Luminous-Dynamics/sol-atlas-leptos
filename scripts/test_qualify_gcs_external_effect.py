@@ -31,7 +31,7 @@ def expect_rejection(report: dict[str, object], message: str) -> None:
 
 def main() -> None:
     assert module.SCHEMA == (
-        "sol-atlas:recovery-execution-effect-external-report:v6"
+        "sol-atlas:recovery-execution-effect-external-report:v7"
     )
     good = {
         "service": "Google Cloud Storage",
@@ -152,6 +152,10 @@ def main() -> None:
         attribute_mapping_verified=True,
         attribute_condition_verified=True,
         service_account_binding_verified=True,
+        service_account_binding_member=(
+            "principalSet://iam.googleapis.com/projects/123/locations/global/"
+            "workloadIdentityPools/pool/attribute.repository_id/1195997641"
+        ),
         service_account_direct_policy_exact_verified=True,
         forbidden_direct_service_account_roles_absent=True,
         provider_pool_exclusive=True,
