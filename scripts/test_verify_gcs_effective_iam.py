@@ -76,7 +76,12 @@ def main() -> None:
     findings = module.extract_findings(payload, PRINCIPAL, RESOURCE)
     assert findings[0]["role"] == module.EXPECTED_ROLE
     assert module.REQUIRED_PERMISSIONS[0] in findings[0]["permissions"]
-    result = module.verify  # keep module import and public API covered
+    assert module.required_permissions_are_present(
+        list(module.REQUIRED_PERMISSIONS)
+    )
+    assert not module.required_permissions_are_present(
+        [module.REQUIRED_PERMISSIONS[0]]
+    )
 
     reject(
         analysis(role="roles/iam.serviceAccountTokenCreator"),
@@ -111,11 +116,16 @@ def main() -> None:
         },
         "missing target resource",
     )
-    reject(
-        analysis(
-            permissions=["iam.serviceAccounts.getAccessToken"],
-        ),
-        "missing required permission",
+    incomplete = analysis(
+        permissions=["iam.serviceAccounts.getAccessToken"],
+    )
+    incomplete_findings = module.extract_findings(
+        {"analysisResults": [incomplete]},
+        PRINCIPAL,
+        RESOURCE,
+    )
+    assert not module.required_permissions_are_present(
+        incomplete_findings[0]["permissions"]
     )
     reject(
         {"analysisResults": []},
