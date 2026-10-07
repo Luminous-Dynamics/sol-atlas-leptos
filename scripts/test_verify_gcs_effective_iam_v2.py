@@ -122,6 +122,20 @@ def main() -> None:
         RESOURCE,
     )
 
+    broad_member = next(member for member in module.expected_workload_principal_sets(PRINCIPAL) if member.endswith("/*"))
+
+    must_fail(
+        payload([
+            result(members=[PRINCIPAL, broad_member]),
+        ]),
+        "mixed exact and broad principal members",
+    )
+    must_fail(
+        payload([
+            result(members=[broad_member]),
+        ]),
+        "broad principal member",
+    )
     must_fail(
         payload([result(role="roles/iam.serviceAccountTokenCreator")]),
         "alternate role",
