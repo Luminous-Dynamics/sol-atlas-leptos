@@ -81,10 +81,16 @@ The repository now carries a separate `verify_gcs_effective_iam.py` audit tool
 for this remaining boundary. It uses Google Cloud Policy Analyzer to inspect
 effective allow-policy access to the service account for credential-capability
 permissions, and fails closed on alternate effective roles, members, identities,
-or partially explored results. This audit is deliberately not part of the
-normal qualification lane: the observer needs Cloud Asset/IAM analysis
-permissions and must be governed separately from the workload identity used to
-perform the external effect.
+multiple effective binding paths, conditional access, and incomplete analysis.
+
+The audit accepts an explicit Cloud Asset scope (`projects/...`,
+`folders/...`, or `organizations/...`) and queries the exact expected
+repository principal. To cover folder- or organization-level inheritance, the
+observer must use a scope that actually contains the qualification project;
+project scope alone cannot see policies attached above the project. This audit is
+deliberately not part of the normal qualification lane: the observer needs Cloud
+Asset/IAM analysis permissions and must be governed separately from the workload
+identity used to perform the external effect.
 
 The effective-IAM audit has a narrower claim ceiling than a perfect snapshot:
 Policy Analyzer automatically considers relevant inherited allow policies, but
