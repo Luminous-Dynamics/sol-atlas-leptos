@@ -49,8 +49,11 @@ def main() -> None:
         "schema": module.GITHUB_RUN_VERIFICATION_SCHEMA,
         "repository": "Luminous-Dynamics/sol-atlas-leptos",
         "repository_id": "1195997641",
+        "repository_owner_id": "216969177",
         "workflow_name": "Qualify GCS external effect",
         "workflow_path": ".github/workflows/qualify-gcs.yml",
+        "workflow_id_frozen": 311325850,
+        "run_path_verified": ".github/workflows/qualify-gcs.yml@refs/heads/main",
         "head_branch": "main",
         "event": "workflow_dispatch",
         "github_server": "github.com",
@@ -69,7 +72,7 @@ def main() -> None:
         )
         bad_server = dict(
             server_good,
-            context_sha_matches_server=False,
+            workflow_id_frozen=999999,
         )
         verification_path.write_text(
             json.dumps(bad_server),
