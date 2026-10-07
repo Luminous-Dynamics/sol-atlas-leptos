@@ -78,11 +78,10 @@ def main() -> None:
         (ROOT / module.WIF_PROFILE_PATH).read_text(encoding="utf-8")
     )
     assert profile["schema"] == module.WIF_PROFILE_SCHEMA
-    assert module.digest(profile) == module.digest(
-        json.loads(
-            (ROOT / module.WIF_PROFILE_PATH).read_text(encoding="utf-8")
-        )
-    )
+    assert profile["repository_id"] == "1195997641"
+    assert profile["repository_owner_id"] == "216969177"
+    assert profile["workflow"] == "Qualify GCS external effect"
+    assert profile["ref"] == "refs/heads/main"
     normal = binding(
         module.EXPECTED_ROLE,
         list(module.REQUIRED_PERMISSIONS),
