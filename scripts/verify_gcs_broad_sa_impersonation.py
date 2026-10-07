@@ -298,7 +298,7 @@ def verify(
             "No broad service-account impersonation allow-policy path was "
             "observed for the expected workload identity or frozen principal "
             "sets within the selected Policy Analyzer scope. The intended "
-            "exact WIF getAccessToken binding on the qualification service "
+            "exact WIF token-creation binding on the qualification service "
             "account is explicitly allowed. This does not prove deny/PAB "
             "effects, arbitrary service-triggered privilege, transitive "
             "impersonation, or immutable IAM state."
