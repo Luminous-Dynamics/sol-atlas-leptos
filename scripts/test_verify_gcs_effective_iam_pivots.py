@@ -129,6 +129,17 @@ def main() -> None:
         "immutable subject principal",
     )
 
+    for universal in module.FORBIDDEN_UNIVERSAL_PRINCIPALS:
+        expect_failure(
+            envelope([
+                pivot(
+                    "cloudbuild.builds.create",
+                    universal,
+                )
+            ]),
+            "universal principal",
+        )
+
     detected = extract(
         envelope([pivot("cloudbuild.builds.create")])
     )
