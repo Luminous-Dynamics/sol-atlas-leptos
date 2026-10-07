@@ -141,10 +141,10 @@ def main() -> None:
 
     profile_path = (
         "sol-atlas-policy-store-contract/conformance/"
-        "gcs_wif_trust_profile_v8.json"
+        "gcs_wif_trust_profile_v9.json"
     )
     valid_wif = dict(
-        schema="sol-atlas:gcs-wif-trust-verification:v8",
+        schema="sol-atlas:gcs-wif-trust-verification:v9",
         profile_path=profile_path,
         profile_digest=module.digest(
             json.loads(Path(profile_path).read_text(encoding="utf-8"))
@@ -171,7 +171,7 @@ def main() -> None:
         raise AssertionError("report WIF validator accepted weakened exact-policy evidence")
 
     forbidden = {
-        "schema": "sol-atlas:gcs-wif-trust-verification:v8",
+        "schema": "sol-atlas:gcs-wif-trust-verification:v9",
         "service_account_binding_verified": True,
         "service_account_direct_policy_exact_verified": False,
         "forbidden_direct_service_account_roles_absent": False,
