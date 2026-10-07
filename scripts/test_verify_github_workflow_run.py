@@ -48,6 +48,7 @@ RUN = {
     "repository": {
         "full_name": "Luminous-Dynamics/sol-atlas-leptos",
         "id": 1195997641,
+        "owner": {"id": 216969177},
     },
 }
 
@@ -71,6 +72,8 @@ def main() -> None:
     assert result["context_run_attempt_matches_server"] is True
     assert result["referenced_workflows"] == []
 
+    reject(dict(RUN, workflow_id=1234), WORKFLOW, "workflow_id")
+    reject(dict(RUN, path=".github/workflows/other.yml@refs/heads/main"), WORKFLOW, "run_path")
     reject(dict(RUN, head_sha="c" * 40), WORKFLOW, "head_sha")
     reject(dict(RUN, run_attempt=1), WORKFLOW, "run_attempt")
     reject(dict(RUN, event="push"), WORKFLOW, "event")
