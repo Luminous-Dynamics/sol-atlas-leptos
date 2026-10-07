@@ -1284,6 +1284,40 @@ def verify_report(path: str) -> None:
             )
     if report.get("github_execution_context_digest") != digest(github_context):
         raise AssertionError("GitHub execution context digest mismatch")
+    observer_oidc_claims = report.get("observer_github_oidc_claims")
+    if not isinstance(observer_oidc_claims, dict):
+        raise AssertionError("missing observer GitHub OIDC claims")
+    validate_observer_oidc_claims(
+        observer_oidc_claims,
+        github_context,
+        wif_verification,
+    )
+    if report.get("observer_github_oidc_claims_digest") != digest(
+        observer_oidc_claims
+    ):
+        raise AssertionError("observer OIDC artifact digest mismatch")
+    effective_iam_audit = report.get("effective_iam_audit")
+    if not isinstance(effective_iam_audit, dict):
+        raise AssertionError("missing effective-IAM audit")
+    validate_effective_iam_audit(
+        effective_iam_audit,
+        wif_verification,
+        observer_oidc_claims,
+    )
+    if report.get("effective_iam_audit_digest") != digest(effective_iam_audit):
+        raise AssertionError("effective-IAM audit digest mismatch")
+    broad_sa_audit = report.get("broad_sa_impersonation_audit")
+    if not isinstance(broad_sa_audit, dict):
+        raise AssertionError("missing broad service-account audit")
+    validate_broad_sa_audit(
+        broad_sa_audit,
+        wif_verification,
+        observer_oidc_claims,
+    )
+    if report.get("broad_sa_impersonation_audit_digest") != digest(
+        broad_sa_audit
+    ):
+        raise AssertionError("broad service-account audit digest mismatch")
     oidc_claims = report.get("github_oidc_claims")
     if not isinstance(oidc_claims, dict):
         raise AssertionError("missing GitHub OIDC claims")
