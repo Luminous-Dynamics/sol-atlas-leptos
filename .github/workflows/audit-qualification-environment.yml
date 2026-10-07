@@ -1,0 +1,38 @@
+name: Audit GCS qualification environment
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  audit:
+    name: Audit protected qualification environment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Verify workflow action pins
+        run: python3 scripts/verify_github_actions_pins.py
+
+      - name: Audit qualification environment
+        env:
+          GH_TOKEN: ${{ secrets.GOVERNANCE_AUDIT_GH_TOKEN || github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          python3 scripts/verify_github_qualification_environment.py \
+            --output artifacts/github-qualification-environment-audit.json
+
+      - name: Upload environment evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sol-atlas-github-qualification-environment-audit
+          path: artifacts/github-qualification-environment-audit.json
+          if-no-files-found: warn
+          retention-days: 30
