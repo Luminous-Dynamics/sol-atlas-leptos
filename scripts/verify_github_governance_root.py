@@ -185,6 +185,10 @@ def verify_ruleset(
         raise AssertionError("stale approvals must be dismissed on push")
     if pr_parameters.get("require_last_push_approval") is not True:
         raise AssertionError("latest push requires independent approval")
+    if pr_parameters.get("required_review_thread_resolution") is not True:
+        raise AssertionError("review threads must be resolved before merge")
+    if pr_parameters.get("allowed_merge_methods") != ["squash"]:
+        raise AssertionError("governance root must permit squash merges only")
 
     status_rule = has_rule(rules, "required_status_checks")
     assert status_rule is not None
