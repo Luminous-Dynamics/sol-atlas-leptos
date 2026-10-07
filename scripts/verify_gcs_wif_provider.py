@@ -214,8 +214,19 @@ def service_account_policy(service_account: str) -> dict[str, object]:
     )
 
 
+def run_text(command: list[str]) -> str:
+    result = subprocess.run(
+        command,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    return result.stdout
+
+
 def active_identity() -> str:
-    result = run_json(
+    value = run_text(
         [
             "gcloud",
             "auth",
@@ -223,13 +234,13 @@ def active_identity() -> str:
             "--filter=status:ACTIVE",
             "--format=value(account)",
         ]
-    )
-    if not isinstance(result, str):
-        raise AssertionError("active gcloud identity response is invalid")
-    value = result.strip()
+    ).strip()
     if not value:
         raise AssertionError("no active gcloud identity")
-    return value
+    lines = [line.strip() for line in value.splitlines() if line.strip()]
+    if len(lines) != 1:
+        raise AssertionError("multiple active gcloud identities")
+    return lines[0]
 
 
 def observer_identity_is_exact(
