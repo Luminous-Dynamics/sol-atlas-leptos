@@ -135,8 +135,9 @@ def main() -> None:
 
 
     forbidden = {
-        "schema": "sol-atlas:gcs-wif-trust-verification:v7",
+        "schema": "sol-atlas:gcs-wif-trust-verification:v8",
         "service_account_binding_verified": True,
+        "service_account_direct_policy_exact_verified": False,
         "forbidden_direct_service_account_roles_absent": False,
         "attribute_mapping_verified": True,
         "attribute_condition_verified": True,
