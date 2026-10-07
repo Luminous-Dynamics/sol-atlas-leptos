@@ -68,7 +68,7 @@ def main() -> None:
     expected["sub"] = (
         "repo:Luminous-Dynamics@216969177/"
         "sol-atlas-leptos@1195997641:"
-        "environment:sol-atlas-gcs-qualification"
+        "ref:refs/heads/main"
     )
     expected.update(
         {
@@ -89,9 +89,19 @@ def main() -> None:
         "mutable OIDC subject was accepted",
     )
 
-for name in ("aud", "workflow_sha", "sha", "workflow_ref", "runner_environment"):        mutated = dict(expected)
+for name in (
+        "aud",
+        "workflow_sha",
+        "sha",
+        "workflow_ref",
+        "runner_environment",
+    ):
+        mutated = dict(expected)
         mutated[name] = "tampered"
-        expect_rejection(mutated, f"tampered {name} claim was accepted")
+        expect_rejection(
+            mutated,
+            f"tampered {name} claim was accepted",
+        )
 
     expired = dict(expected, exp=NOW - 61)
     expect_rejection(expired, "expired OIDC token was accepted")
