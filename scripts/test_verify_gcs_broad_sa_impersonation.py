@@ -222,6 +222,14 @@ def main() -> None:
     )
 
     expect_failure(
+        {
+            "fullyExplored": True,
+            "nonCriticalErrors": "malformed",
+            "analysisResults": [],
+        },
+        "malformed error envelope",
+    )
+    expect_failure(
         envelope([], complete=False),
         "incomplete analyzer response",
     )
