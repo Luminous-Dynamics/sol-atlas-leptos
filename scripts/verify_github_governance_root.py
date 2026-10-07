@@ -127,7 +127,9 @@ def verify_ruleset(
     raw_rules = ruleset.get("rules")
     if not isinstance(raw_rules, list):
         raise AssertionError("governance rules are not a list")
-    rules = [rule for rule in raw_rules if isinstance(rule, dict)]
+    if any(not isinstance(rule, dict) for rule in raw_rules):
+        raise AssertionError("governance rules contain malformed entries")
+    rules = list(raw_rules)
 
     for required in (
         "pull_request",
@@ -146,7 +148,8 @@ def verify_ruleset(
     pr_parameters = pr_rule.get("parameters")
     if not isinstance(pr_parameters, dict):
         raise AssertionError("pull request parameters missing")
-    if pr_parameters.get("required_approving_review_count", 0) < 1:
+    approvals = pr_parameters.get("required_approving_review_count")
+    if not isinstance(approvals, int) or approvals < 1:
         raise AssertionError("governance root requires at least one approval")
     if pr_parameters.get("dismiss_stale_reviews_on_push") is not True:
         raise AssertionError("stale approvals must be dismissed on push")
