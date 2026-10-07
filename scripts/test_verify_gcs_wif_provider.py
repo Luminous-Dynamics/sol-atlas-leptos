@@ -75,6 +75,27 @@ def main() -> None:
     assert module.service_account_is_in_project("project-a", "project-a")
     assert not module.service_account_is_in_project("project-b", "project-a")
 
+    original_text = module.run_text
+    module.run_text = lambda command: (
+        "observer@sol-atlas.iam.gserviceaccount.com\n"
+    )
+    try:
+        assert module.active_identity() == (
+            "observer@sol-atlas.iam.gserviceaccount.com"
+        )
+        module.run_text = lambda command: (
+            "observer@sol-atlas.iam.gserviceaccount.com\n"
+            "second@sol-atlas.iam.gserviceaccount.com\n"
+        )
+        try:
+            module.active_identity()
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("multiple active identities were accepted")
+    finally:
+        module.run_text = original_text
+
     original_identity = module.active_identity
     module.active_identity = lambda: "observer@sol-atlas.iam.gserviceaccount.com"
     try:
