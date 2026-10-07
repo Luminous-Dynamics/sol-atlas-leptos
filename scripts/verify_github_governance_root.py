@@ -111,6 +111,8 @@ def targets_exact_repository(ruleset: dict[str, object]) -> bool:
         return False
     repository_id = conditions.get("repository_id")
     ref_name = conditions.get("ref_name")
+    if set(conditions) != {"repository_id", "ref_name"}:
+        return False
     if not isinstance(repository_id, dict) or not isinstance(ref_name, dict):
         return False
     return (
@@ -251,12 +253,13 @@ def verify(
         detail
         for detail in details
         if detail.get("target") == "branch"
-        and detail.get("enforcement") in ("active", "enabled")
-        and targets_default_branch(detail)
+        and detail.get("enforcement") == "active"
+        and matches_expected_name(detail)
+        and targets_exact_repository(detail)
     ]
     if not candidates:
         raise AssertionError(
-            "at least one active governance ruleset must target main"
+            "the exact organization governance root for main is missing"
         )
 
     verified_candidates = []
