@@ -345,6 +345,7 @@ def extract_findings(
     payload: dict[str, object],
     expected_principal: str,
     expected_resource: str,
+    oidc_subject: str,
 ) -> list[dict[str, object]]:
     if payload.get("fullyExplored") is not True:
         raise AssertionError("Policy Analyzer response is not fully explored")
@@ -558,7 +559,11 @@ def extract_project_pivot_findings(
             names.append(name)
 
         pivot_matches = [
-            principal_matches_expected(name, expected_principal)
+            principal_matches_expected(
+                name,
+                expected_principal,
+                oidc_subject,
+            )
             for name in names
         ]
         pivot_match_kinds = [
@@ -579,7 +584,11 @@ def extract_project_pivot_findings(
                 f"project pivot result {index} has invalid role"
             )
         if not isinstance(members, list) or not any(
-            principal_matches_expected(member, expected_principal)
+            principal_matches_expected(
+                member,
+                expected_principal,
+                oidc_subject,
+            )
             for member in members
             if isinstance(member, str)
         ):
