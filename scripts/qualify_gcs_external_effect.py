@@ -203,6 +203,11 @@ def validate_wif_verification(verification: dict[str, object]) -> None:
         raise AssertionError("WIF attribute condition was not verified")
     if not verification.get("service_account_binding_verified"):
         raise AssertionError("WIF service-account binding was not verified")
+    binding_member = verification.get("service_account_binding_member")
+    if not isinstance(binding_member, str) or not binding_member:
+        raise AssertionError(
+            "WIF trust evidence lacks exact service-account binding member"
+        )
     if not verification.get("service_account_direct_policy_exact_verified"):
         raise AssertionError(
             "WIF direct service-account policy was not verified exact"
