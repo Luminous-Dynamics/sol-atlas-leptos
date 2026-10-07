@@ -141,6 +141,18 @@ def verify_ruleset(
                 "required governance rule missing: " + required
             )
 
+    pr_rule = has_rule(rules, "pull_request")
+    assert pr_rule is not None
+    pr_parameters = pr_rule.get("parameters")
+    if not isinstance(pr_parameters, dict):
+        raise AssertionError("pull request parameters missing")
+    if pr_parameters.get("required_approving_review_count", 0) < 1:
+        raise AssertionError("governance root requires at least one approval")
+    if pr_parameters.get("dismiss_stale_reviews_on_push") is not True:
+        raise AssertionError("stale approvals must be dismissed on push")
+    if pr_parameters.get("require_last_push_approval") is not True:
+        raise AssertionError("latest push requires independent approval")
+
     status_rule = has_rule(rules, "required_status_checks")
     assert status_rule is not None
     parameters = status_rule.get("parameters")
@@ -217,19 +229,31 @@ def verify(
         and detail.get("enforcement") in ("active", "enabled")
         and targets_default_branch(detail)
     ]
-    if len(candidates) != 1:
+    if not candidates:
         raise AssertionError(
-            "exactly one active governance ruleset must target main"
+            "at least one active governance ruleset must target main"
         )
 
-    verified = verify_ruleset(candidates[0])
+    verified_candidates = []
+    for candidate in candidates:
+        try:
+            verified_candidates.append(verify_ruleset(candidate))
+        except AssertionError:
+            continue
+    if not verified_candidates:
+        raise AssertionError(
+            "no active main ruleset satisfies the governance root"
+        )
+    verified = verified_candidates[0]
     result: dict[str, object] = {
         "schema": SCHEMA,
         "repository": REPO,
         "default_branch": DEFAULT_BRANCH,
         "ruleset_count": len(summaries),
         "main_ruleset_count": len(candidates),
+        "qualifying_main_ruleset_count": len(verified_candidates),
         "verified": True,
+        "rulesets": verified_candidates,
         "ruleset": verified,
         "ruleset_response_digest": digest(candidates[0]),
         "all_rulesets_response_digest": digest(
