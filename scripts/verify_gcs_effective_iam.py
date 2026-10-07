@@ -9,10 +9,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 from pathlib import Path
 
-SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v1"
+SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v2"
 EXPECTED_ROLE = "roles/iam.workloadIdentityUser"
 REQUIRED_PERMISSIONS = (
     "iam.serviceAccounts.getAccessToken",
@@ -27,12 +28,18 @@ CRITICAL_PERMISSIONS = (
     "iam.serviceAccounts.actAs",
     "iam.serviceAccountKeys.create",
 )
+SCOPE_PATTERN = re.compile(r"^(projects|folders|organizations)/[A-Za-z0-9._-]+$")
+ANCESTOR_PATTERN = re.compile(
+    r"^//cloudresourcemanager\.googleapis\.com/"
+    r"(projects|folders|organizations)/[A-Za-z0-9._-]+$"
+)
 CLAIM_CEILING = (
     "Policy Analyzer-observed effective IAM allow-policy access for the selected "
-    "service account and listed credential-capability permissions; the result is "
-    "best-effort and may lag recent policy changes. It does not prove deny-policy "
-    "or Principal Access Boundary effects, transitive impersonation chains, or "
-    "a globally immutable IAM state."
+    "service account and listed credential-capability permissions. The analysis "
+    "must be fully explored and is scoped by the configured project, folder, or "
+    "organization. Data is best-effort and may lag recent policy changes. This "
+    "does not prove deny-policy or Principal Access Boundary effects, transitive "
+    "impersonation chains, or a globally immutable IAM state."
 )
 
 
@@ -59,6 +66,8 @@ def service_account_resource(
         or "/" in project_id
         or not service_account
         or service_account.count("@") != 1
+        or service_account.startswith("@")
+        or service_account.endswith("@")
     ):
         raise AssertionError("invalid project or service-account identity")
     return (
@@ -69,17 +78,32 @@ def service_account_resource(
     )
 
 
+def validate_scope(scope: str) -> str:
+    if not SCOPE_PATTERN.fullmatch(scope):
+        raise AssertionError("invalid Cloud Asset scope")
+    return scope
+
+
+def scope_flag(scope: str) -> tuple[str, str]:
+    scope = validate_scope(scope)
+    kind, identifier = scope.split("/", 1)
+    return "--" + kind[:-1], identifier
+
+
 def run_analysis(
-    project_id: str,
+    scope: str,
     resource: str,
+    expected_principal: str,
 ) -> dict[str, object]:
+    flag, identifier = scope_flag(scope)
     result = subprocess.run(
         [
             "gcloud",
             "asset",
             "analyze-iam-policy",
-            "--projects=" + project_id,
+            flag + "=" + identifier,
             "--full-resource-name=" + resource,
+            "--identity=" + expected_principal,
             "--permissions=" + ",".join(CRITICAL_PERMISSIONS),
             "--format=json",
         ],
@@ -91,10 +115,21 @@ def run_analysis(
     payload = json.loads(result.stdout)
     if not isinstance(payload, dict):
         raise AssertionError("Policy Analyzer response is not an object")
+    if payload.get("fullyExplored") is not True:
+        raise AssertionError("Policy Analyzer response is not fully explored")
+    errors = payload.get("nonCriticalErrors") or []
+    if errors:
+        raise AssertionError(
+            "Policy Analyzer reported non-critical errors; audit is fail-closed"
+        )
     results = payload.get("analysisResults")
     if not isinstance(results, list) or not results:
         raise AssertionError("Policy Analyzer returned no analysis results")
     return payload
+
+
+def valid_attached_resource(resource: object) -> bool:
+    return isinstance(resource, str) and bool(ANCESTOR_PATTERN.fullmatch(resource))
 
 
 def extract_findings(
@@ -106,6 +141,7 @@ def extract_findings(
     if not isinstance(results, list):
         raise AssertionError("Policy Analyzer analysisResults is not a list")
     findings: list[dict[str, object]] = []
+    seen_bindings: set[tuple[str, str, tuple[str, ...]]] = set()
     for index, result in enumerate(results):
         if not isinstance(result, dict):
             raise AssertionError(f"analysis result {index} is not an object")
@@ -121,6 +157,7 @@ def extract_findings(
             )
         role = binding.get("role")
         members = binding.get("members")
+        attached = result.get("attachedResourceFullName")
         if role != EXPECTED_ROLE:
             raise AssertionError(
                 f"unexpected effective role: {role!r}"
@@ -129,25 +166,34 @@ def extract_findings(
             raise AssertionError(
                 f"unexpected effective IAM members: {members!r}"
             )
+        if not valid_attached_resource(attached):
+            raise AssertionError(
+                f"invalid effective IAM policy attachment: {attached!r}"
+            )
 
-        identity_list = result.get("identityList") or {}
+        binding_key = (
+            str(attached),
+            str(role),
+            tuple(str(member) for member in members),
+        )
+        if binding_key in seen_bindings:
+            raise AssertionError("duplicate effective IAM binding result")
+        seen_bindings.add(binding_key)
+
+        identity_list = result.get("identityList")
         if not isinstance(identity_list, dict):
             raise AssertionError(
                 f"analysis result {index} has invalid identity list"
             )
-        identities = identity_list.get("identities") or []
-        if not isinstance(identities, list):
+        identities = identity_list.get("identities")
+        if not isinstance(identities, list) or len(identities) != 1:
             raise AssertionError(
-                f"analysis result {index} has invalid identities"
+                f"analysis result {index} has unexpected identity count"
             )
-        identity_names = [
-            identity.get("name")
-            for identity in identities
-            if isinstance(identity, dict)
-        ]
-        if identity_names != [expected_principal]:
+        identity = identities[0]
+        if not isinstance(identity, dict) or identity.get("name") != expected_principal:
             raise AssertionError(
-                f"unexpected analyzed identities: {identity_names!r}"
+                f"analysis result {index} identity mismatch"
             )
 
         accesses: set[str] = set()
@@ -162,8 +208,8 @@ def extract_findings(
                 raise AssertionError(
                     f"analysis result {index} has invalid access list"
                 )
-            resources = access_list.get("resources") or []
-            if not isinstance(resources, list):
+            resources = access_list.get("resources")
+            if not isinstance(resources, list) or not resources:
                 raise AssertionError(
                     f"analysis result {index} has invalid resources"
                 )
@@ -177,9 +223,28 @@ def extract_findings(
                         "Policy Analyzer result targeted a different resource"
                     )
                 resource_seen = True
-            for access in access_list.get("accesses") or []:
+
+            condition = access_list.get("conditionEvaluation")
+            if condition is not None:
+                if not isinstance(condition, dict):
+                    raise AssertionError(
+                        f"analysis result {index} has invalid condition evaluation"
+                    )
+                if condition.get("evaluationValue") != "TRUE":
+                    raise AssertionError(
+                        "conditional effective IAM access is not admitted"
+                    )
+
+            access_entries = access_list.get("accesses")
+            if not isinstance(access_entries, list) or not access_entries:
+                raise AssertionError(
+                    f"analysis result {index} has no accesses"
+                )
+            for access in access_entries:
                 if not isinstance(access, dict):
-                    continue
+                    raise AssertionError(
+                        f"analysis result {index} has invalid access"
+                    )
                 permission = access.get("permission")
                 if isinstance(permission, str):
                     accesses.add(permission)
@@ -191,17 +256,18 @@ def extract_findings(
 
         findings.append(
             {
-                "attached_resource": result.get("attachedResourceFullName"),
+                "attached_resource": attached,
                 "role": role,
                 "members": list(members),
-                "identities": identity_names,
+                "identities": [expected_principal],
                 "permissions": sorted(accesses),
                 "fully_explored": True,
             }
         )
+
     if len(findings) != 1:
         raise AssertionError(
-            "Policy Analyzer observed more than one effective binding path"
+            "Policy Analyzer observed multiple effective binding paths"
         )
     return findings
 
@@ -214,15 +280,17 @@ def required_permissions_are_present(observed_permissions: list[str]) -> bool:
 
 
 def verify(
+    scope: str,
     project_id: str,
     service_account: str,
     expected_principal: str,
     output: str | None,
 ) -> dict[str, object]:
+    scope = validate_scope(scope)
     resource = service_account_resource(project_id, service_account)
     if not expected_principal:
         raise AssertionError("expected principal is required")
-    payload = run_analysis(project_id, resource)
+    payload = run_analysis(scope, resource, expected_principal)
     findings = extract_findings(payload, expected_principal, resource)
     observed_permissions = sorted(
         {
@@ -253,6 +321,7 @@ def verify(
     )
     result: dict[str, object] = {
         "schema": SCHEMA,
+        "scope": scope,
         "project_id": project_id,
         "service_account": service_account,
         "service_account_resource": resource,
@@ -265,6 +334,7 @@ def verify(
         "observed_attached_resources": attached_resources,
         "finding_count": len(findings),
         "fully_explored": True,
+        "non_critical_errors": [],
         "findings": findings,
         "policy_analyzer_response_digest": digest(payload),
         "claim_ceiling": CLAIM_CEILING,
@@ -281,12 +351,14 @@ def verify(
 
 def main() -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--scope", required=True)
     parser.add_argument("--project-id", required=True)
     parser.add_argument("--service-account", required=True)
     parser.add_argument("--expected-principal", required=True)
     parser.add_argument("--output")
     args = parser.parse_args()
     result = verify(
+        args.scope,
         args.project_id,
         args.service_account,
         args.expected_principal,
@@ -294,6 +366,8 @@ def main() -> int:
     )
     print(
         "verified effective IAM allow-policy audit: "
+        + result["scope"]
+        + " "
         + result["service_account_resource"]
         + " "
         + str(result["finding_count"])
