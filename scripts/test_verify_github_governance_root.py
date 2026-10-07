@@ -40,7 +40,14 @@ def good_ruleset():
             }
         },
         "rules": [
-            rule("pull_request"),
+            rule(
+                "pull_request",
+                {
+                    "required_approving_review_count": 1,
+                    "dismiss_stale_reviews_on_push": True,
+                    "require_last_push_approval": True,
+                },
+            ),
             rule("required_signatures"),
             rule("deletion"),
             rule("non_fast_forward"),
@@ -93,6 +100,19 @@ def main():
             if r["type"] != rule_type
         ]
         expect_failure(broken, "missing " + rule_type)
+
+    broken = good_ruleset()
+    broken["rules"][0]["parameters"]["required_approving_review_count"] = "1"
+    expect_failure(broken, "non-integer approval count")
+
+    broken = good_ruleset()
+    broken["rules"].append(None)
+    expect_failure(broken, "malformed rule entry")
+
+    layered = good_ruleset()
+    layered["id"] = 78
+    verified_layered = module.verify_ruleset(layered)
+    assert verified_layered["id"] == 78
 
     broken = good_ruleset()
     broken["conditions"]["ref_name"]["include"] = ["refs/heads/dev"]
