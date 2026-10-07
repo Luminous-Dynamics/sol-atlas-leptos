@@ -510,6 +510,7 @@ def extract_project_pivot_findings(
     payload: dict[str, object],
     expected_principal: str,
     expected_project_resource: str,
+    oidc_subject: str,
 ) -> list[dict[str, object]]:
     if payload.get("fullyExplored") is not True:
         raise AssertionError("project pivot analysis is not fully explored")
