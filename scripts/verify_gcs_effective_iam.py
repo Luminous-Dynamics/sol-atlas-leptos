@@ -138,10 +138,12 @@ def run_analysis(
         raise AssertionError("Policy Analyzer response is not an object")
     if payload.get("fullyExplored") is not True:
         raise AssertionError("Policy Analyzer response is not fully explored")
-    errors = payload.get("nonCriticalErrors") or []
-    if errors:
+    errors = payload.get("nonCriticalErrors")
+    if errors is not None and (
+        not isinstance(errors, list) or errors
+    ):
         raise AssertionError(
-            "Policy Analyzer reported non-critical errors; audit is fail-closed"
+            "Policy Analyzer reported invalid or non-critical errors"
         )
     results = payload.get("analysisResults")
     if not isinstance(results, list) or not results:
@@ -300,10 +302,12 @@ def extract_findings(
 ) -> list[dict[str, object]]:
     if payload.get("fullyExplored") is not True:
         raise AssertionError("Policy Analyzer response is not fully explored")
-    errors = payload.get("nonCriticalErrors") or []
-    if errors:
+    errors = payload.get("nonCriticalErrors")
+    if errors is not None and (
+        not isinstance(errors, list) or errors
+    ):
         raise AssertionError(
-            "Policy Analyzer reported non-critical errors; audit is fail-closed"
+            "Policy Analyzer reported invalid or non-critical errors"
         )
     results = payload.get("analysisResults")
     if not isinstance(results, list):
@@ -459,10 +463,12 @@ def extract_project_pivot_findings(
 ) -> list[dict[str, object]]:
     if payload.get("fullyExplored") is not True:
         raise AssertionError("project pivot analysis is not fully explored")
-    errors = payload.get("nonCriticalErrors") or []
-    if errors:
+    errors = payload.get("nonCriticalErrors")
+    if errors is not None and (
+        not isinstance(errors, list) or errors
+    ):
         raise AssertionError(
-            "project pivot analysis reported non-critical errors"
+            "project pivot analysis reported invalid or non-critical errors"
         )
     results = payload.get("analysisResults")
     if not isinstance(results, list):
