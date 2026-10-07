@@ -217,7 +217,7 @@ fn run_reference_conformance() -> RecoveryExecutionEffectConformanceEvidenceV1 {
     let mut stale_rejected_count = 0usize;
     let mut current_applied_count = 0usize;
     for join in joins {
-        match join.expect("concurrent join").expect("concurrent result") {
+        match join.join().expect("concurrent join").expect("concurrent result") {
             RecoveryExecutionProtectedMutationResult::RejectedStaleFence => {
                 stale_rejected_count += 1;
             }
