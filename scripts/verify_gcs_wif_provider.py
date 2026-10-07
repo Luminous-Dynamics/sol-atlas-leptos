@@ -147,6 +147,18 @@ def binding_is_exclusive(
     )
 
 
+def attribute_mappings_are_exact(
+    observed: object,
+    profile: dict[str, object],
+) -> bool:
+    expected = profile.get("required_attribute_mappings")
+    return (
+        isinstance(observed, dict)
+        and isinstance(expected, dict)
+        and observed == expected
+    )
+
+
 def project_number(project_id: str) -> str:
     result = run_json(
         [
@@ -293,10 +305,7 @@ def verify(
         raise AssertionError("WIF provider permits non-default OIDC audiences")
     expected_audience = "https://iam.googleapis.com/" + provider_resource
 
-    expected_mappings = profile["required_attribute_mappings"]
-    if not isinstance(expected_mappings, dict):
-        raise AssertionError("WIF profile mappings are not an object")
-    if mappings != expected_mappings:
+    if not attribute_mappings_are_exact(mappings, profile):
         raise AssertionError("WIF provider attribute mapping set drift")
 
     if not condition_is_exact(profile, condition):
