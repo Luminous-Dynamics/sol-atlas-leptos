@@ -136,6 +136,22 @@ def main() -> None:
         ]),
         "broad principal member",
     )
+    subject_result = result(
+        members=["principal://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/subject/repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:environment:sol-atlas-gcs-qualification"],
+        identities=["principal://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/subject/repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:environment:sol-atlas-gcs-qualification"],
+    )
+    must_fail(
+        payload([subject_result]),
+        "immutable subject binding",
+    )
+    mixed_result = result(
+        members=[PRINCIPAL, "group:unexpected@example.com"],
+    )
+    must_fail(
+        payload([mixed_result]),
+        "mixed exact-principal binding",
+    )
+
     must_fail(
         payload([result(role="roles/iam.serviceAccountTokenCreator")]),
         "alternate role",
