@@ -1632,6 +1632,40 @@ impl RecoveryPolicyConsumptionTransitionV1 {
         })
     }
 
+    /// Construct an execution-start transition bound to the exact candidate
+    /// and caller policy context.
+    pub fn for_execution_admission_against_candidate_for_context(
+        current: &RecoveryPolicyConsumptionSnapshotV1,
+        decision: &RecoveryPolicyDecisionSnapshotV1,
+        plan: &RecoveryPlan,
+        candidate: &RecoveryCandidate,
+        execution: &RecoveryExecution,
+        expected_purpose: &str,
+        expected_consumer: &str,
+        expected_authority_reference: &str,
+    ) -> Option<Self> {
+        let next = current.consumed_at_execution_start_against_candidate_for_context(
+            decision,
+            plan,
+            candidate,
+            execution,
+            expected_purpose,
+            expected_consumer,
+            expected_authority_reference,
+        )?;
+
+        Some(Self {
+            schema: Self::SCHEMA.into(),
+            mode: RecoveryPolicyConsumptionTransitionModeV1::ExecutionAdmission,
+            decision_digest: current.decision_digest.clone(),
+            expected_snapshot_digest: current.digest(),
+            next_snapshot_digest: next.digest(),
+            execution_id: execution.execution_id.clone(),
+            consumed_at: execution.started_at.clone(),
+            claim_ceiling: current.claim_ceiling.clone(),
+        })
+    }
+
     pub fn for_successful_consumption(
         current: &RecoveryPolicyConsumptionSnapshotV1,
         decision: &RecoveryPolicyDecisionSnapshotV1,
