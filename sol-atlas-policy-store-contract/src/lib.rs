@@ -5583,7 +5583,6 @@ mod tests {
     }
 
     #[test]
-    #[test]
     fn fence_store_rejects_non_initial_epoch_even_when_called_directly() {
         let claim = execution_claim_fixture(
             "attempt-a",
