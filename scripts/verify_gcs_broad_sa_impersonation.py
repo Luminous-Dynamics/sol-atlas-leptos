@@ -119,6 +119,25 @@ def extract_findings(
                 f"impersonation result {index} is not fully explored"
             )
 
+        binding = result.get("iamBinding")
+        if not isinstance(binding, dict):
+            raise AssertionError(
+                f"impersonation result {index} has no IAM binding"
+            )
+        pre_members = binding.get("members")
+        if not isinstance(pre_members, list):
+            raise AssertionError(
+                f"impersonation result {index} has invalid binding members"
+            )
+        if any(
+            member in module.FORBIDDEN_UNIVERSAL_PRINCIPALS
+            for member in pre_members
+            if isinstance(member, str)
+        ):
+            raise AssertionError(
+                "universal principal has broad service-account access"
+            )
+
         identity_list = result.get("identityList")
         if not isinstance(identity_list, dict):
             raise AssertionError(
@@ -161,11 +180,6 @@ def extract_findings(
         if not matches:
             continue
 
-        binding = result.get("iamBinding")
-        if not isinstance(binding, dict):
-            raise AssertionError(
-                f"impersonation result {index} has no IAM binding"
-            )
         role = binding.get("role")
         members = binding.get("members")
         if not isinstance(members, list):
