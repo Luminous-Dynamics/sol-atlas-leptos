@@ -61,7 +61,17 @@ def audit_workflow(path: Path, expected_permissions: tuple[str, ...]) -> dict[st
     text = path.read_text(encoding="utf-8")
     if not text.startswith("name:"):
         raise AssertionError("audit workflow name is missing")
-    if "on:\n  workflow_dispatch:\n" not in text:
+    try:
+        trigger_start = text.index("on:\n") + len("on:\n")
+        trigger_end = text.index("permissions:\n")
+    except ValueError as exc:
+        raise AssertionError("workflow trigger/permissions sections are missing") from exc
+    trigger_lines = [
+        line.strip()
+        for line in text[trigger_start:trigger_end].splitlines()
+        if line.strip()
+    ]
+    if trigger_lines != ["workflow_dispatch:"]:
         raise AssertionError("audit workflow must use workflow_dispatch only")
     for forbidden in FORBIDDEN:
         if forbidden in text:
