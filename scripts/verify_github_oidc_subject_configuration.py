@@ -57,6 +57,14 @@ def verify(payload: dict[str, object], output: str | None) -> dict[str, object]:
         raise AssertionError(
             "OIDC immutable subject mode is not explicitly enabled"
         )
+    if payload.get("use_default") is not True:
+        raise AssertionError(
+            "OIDC subject configuration must use the default template"
+        )
+    if payload.get("include_claim_keys") != []:
+        raise AssertionError(
+            "OIDC subject configuration must not customize claim keys"
+        )
 
     result: dict[str, object] = {
         "schema": SCHEMA,
@@ -64,6 +72,8 @@ def verify(payload: dict[str, object], output: str | None) -> dict[str, object]:
         "use_default": payload.get("use_default"),
         "include_claim_keys": payload.get("include_claim_keys"),
         "use_immutable_subject": payload.get("use_immutable_subject"),
+        "default_template_required": True,
+        "custom_claim_keys_forbidden": True,
         "configuration_digest": digest(payload),
         "claim_ceiling": (
             "GitHub repository OIDC subject customization is explicitly configured "
