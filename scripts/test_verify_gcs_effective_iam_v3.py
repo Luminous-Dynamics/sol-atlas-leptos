@@ -66,7 +66,7 @@ def envelope(result: dict[str, object]) -> dict[str, object]:
 
 def expect_failure(result: dict[str, object], label: str) -> None:
     try:
-        module.extract_findings(envelope(result), PRINCIPAL, RESOURCE)
+        module.extract_findings(envelope(result), PRINCIPAL, RESOURCE, OIDC_SUBJECT)
     except AssertionError:
         return
     raise AssertionError("accepted forbidden execution path: " + label)
