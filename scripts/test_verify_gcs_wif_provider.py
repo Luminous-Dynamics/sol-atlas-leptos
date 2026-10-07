@@ -44,8 +44,8 @@ def binding_policy(member: str) -> dict[str, object]:
 
 def main() -> None:
     profile = module.load_profile()
-    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v7"
-    assert profile["supersedes"] == "sol-atlas:gcs-wif-trust-profile:v6"
+    assert profile["schema"] == "sol-atlas:gcs-wif-trust-profile:v8"
+    assert profile["supersedes"] == "sol-atlas:gcs-wif-trust-profile:v7"
     assert profile["exact_attribute_condition"] == EXPECTED
     assert (
         profile["required_attribute_mappings"]["attribute.runner_environment"]
@@ -53,6 +53,7 @@ def main() -> None:
     )
     assert profile["pool_is_exclusive"] is True
     assert profile["service_account_binding_is_exclusive"] is True
+    assert profile["service_account_direct_policy_is_exact"] is True
     assert profile["service_account_must_reside_in_project"] is True
     assert profile["oidc_audience_mode"] == "provider_resource_default"
 
@@ -70,6 +71,52 @@ def main() -> None:
 
     assert module.binding_is_exclusive(
         binding_policy("expected"),
+        "roles/iam.workloadIdentityUser",
+        "expected",
+    )
+    assert module.direct_policy_is_exact(
+        binding_policy("expected"),
+        "roles/iam.workloadIdentityUser",
+        "expected",
+    )
+    assert not module.direct_policy_is_exact(
+        {
+            "bindings": [
+                {
+                    "role": "roles/iam.workloadIdentityUser",
+                    "members": ["expected"],
+                },
+                {
+                    "role": "roles/viewer",
+                    "members": ["expected"],
+                },
+            ]
+        },
+        "roles/iam.workloadIdentityUser",
+        "expected",
+    )
+    assert not module.direct_policy_is_exact(
+        {
+            "bindings": [
+                {
+                    "role": "customRoles/alternate",
+                    "members": ["expected"],
+                }
+            ]
+        },
+        "roles/iam.workloadIdentityUser",
+        "expected",
+    )
+    assert not module.direct_policy_is_exact(
+        {
+            "bindings": [
+                {
+                    "role": "roles/iam.workloadIdentityUser",
+                    "members": ["expected"],
+                    "condition": {"title": "unexpected"},
+                }
+            ]
+        },
         "roles/iam.workloadIdentityUser",
         "expected",
     )
