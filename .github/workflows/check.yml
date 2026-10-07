@@ -95,6 +95,8 @@ jobs:
           python3 -m py_compile scripts/test_qualify_gcs_external_effect.py
           python3 -m py_compile scripts/verify_github_workflow_run.py
           python3 -m py_compile scripts/verify_gcs_effective_iam.py
+          python3 -m py_compile scripts/verify_github_oidc_subject_configuration.py
+          python3 -m py_compile scripts/test_verify_github_oidc_subject_configuration.py
           python3 -m py_compile scripts/verify_gcs_broad_sa_impersonation.py
           python3 -m py_compile scripts/verify_github_governance_root.py
           python3 -m py_compile scripts/verify_github_qualification_environment.py
@@ -114,6 +116,7 @@ jobs:
           python3 scripts/test_verify_github_workflow_run.py
           python3 scripts/test_verify_gcs_effective_iam_v2.py
           python3 scripts/test_verify_gcs_effective_iam_v3.py
+          python3 scripts/test_verify_github_oidc_subject_configuration.py
           python3 scripts/test_verify_gcs_effective_iam.py
           python3 scripts/test_verify_gcs_effective_iam_pivots.py
           python3 scripts/test_verify_gcs_broad_sa_impersonation.py
@@ -138,6 +141,8 @@ jobs:
             scripts/test_qualify_gcs_external_effect.py \
             scripts/verify_github_workflow_run.py \
             scripts/verify_gcs_effective_iam.py \
+            scripts/verify_github_oidc_subject_configuration.py \
+            scripts/test_verify_github_oidc_subject_configuration.py \
             scripts/verify_gcs_broad_sa_impersonation.py \
             scripts/verify_github_governance_root.py \
             scripts/verify_github_qualification_environment.py \
