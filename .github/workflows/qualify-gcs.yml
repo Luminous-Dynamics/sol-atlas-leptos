@@ -45,6 +45,12 @@ jobs:
           mkdir -p artifacts
           python3 scripts/verify_github_workflow_run.py \
             --output artifacts/github-workflow-run-verification.json
+      - name: Verify immutable GitHub OIDC subject configuration
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: python3 scripts/verify_github_oidc_subject_configuration.py
+
 
       - name: Verify checked-out source and workflow commits
         shell: bash
