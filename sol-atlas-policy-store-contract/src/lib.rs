@@ -18,7 +18,9 @@ use sol_atlas_core::{
     RecoveryPolicyConsumptionSnapshotV1, RecoveryPolicyConsumptionStateV1,
     RecoveryPolicyConsumptionTransitionV1, RecoveryPolicyDecisionSnapshotV1,
 };
+#[cfg(test)]
 use std::collections::BTreeMap;
+#[cfg(test)]
 use std::sync::Mutex;
 
 fn is_sha256_digest(value: &str) -> bool {
@@ -2543,6 +2545,7 @@ mod tests {
             stable_key_replay_safe: true,
             different_request_same_key_rejected: true,
             changed_idempotency_key_rejected: true,
+            indeterminate_ack_reconciled: true,
             transactionally_coupled_retry_safe: false,
             exact_reconciliation: true,
             point_in_time_semantics_explicit: true,
@@ -2677,7 +2680,7 @@ mod tests {
         let mut stale_rejected_count = 0usize;
         let mut current_applied_count = 0usize;
         for join in joins {
-            match join.expect("concurrent thread").expect("concurrent result") {
+            match join.join().expect("concurrent thread").expect("concurrent result") {
                 RecoveryExecutionProtectedMutationResult::RejectedStaleFence => {
                     stale_rejected_count += 1;
                 }
@@ -2690,6 +2693,80 @@ mod tests {
         }
         let concurrent_fencing_preserved =
             current_applied_count == 1 && stale_rejected_count == 31;
+
+        let indeterminate_ack_reconciled = {
+            struct IndeterminateEvidenceStore {
+                inner: ExecutionEffectMemoryStore,
+            }
+
+            impl RecoveryExecutionEffectStore for IndeterminateEvidenceStore {
+                type Error = &'static str;
+
+                fn begin_effect(
+                    &self,
+                    receipt: &RecoveryExecutionEffectReceiptV2,
+                ) -> Result<RecoveryExecutionEffectStartResult, Self::Error> {
+                    let result = self.inner.begin_effect(receipt)?;
+                    if result != RecoveryExecutionEffectStartResult::Started {
+                        return Ok(result);
+                    }
+                    Ok(RecoveryExecutionEffectStartResult::Indeterminate)
+                }
+
+                fn complete_effect(
+                    &self,
+                    execution_id: &str,
+                    execution_input_snapshot: &str,
+                    attempt_id: &str,
+                    fence_epoch: u64,
+                    completed: &RecoveryExecutionEffectReceiptV2,
+                ) -> Result<RecoveryExecutionEffectCompletionResult, Self::Error> {
+                    self.inner.complete_effect(
+                        execution_id,
+                        execution_input_snapshot,
+                        attempt_id,
+                        fence_epoch,
+                        completed,
+                    )
+                }
+
+                fn recover_effect_if_current(
+                    &self,
+                    expected: &RecoveryExecutionEffectReceiptV2,
+                    successor: &RecoveryExecutionEffectReceiptV2,
+                ) -> Result<RecoveryExecutionEffectRecoveryResult, Self::Error> {
+                    self.inner.recover_effect_if_current(expected, successor)
+                }
+
+                fn load_effect(
+                    &self,
+                    execution_id: &str,
+                ) -> Result<Option<RecoveryExecutionEffectReceiptV2>, Self::Error> {
+                    self.inner.load_effect(execution_id)
+                }
+            }
+
+            let receipt = effect_receipt_fixture(
+                "attempt-conformance-indeterminate",
+                "sha256:1212121212121212121212121212121212121212121212121212121212121212",
+            );
+            let store = IndeterminateEvidenceStore {
+                inner: ExecutionEffectMemoryStore::default(),
+            };
+            begin_execution_effect(&store, &receipt)
+                .expect("indeterminate evidence start")
+                == RecoveryExecutionEffectStartResult::Indeterminate
+                && reconcile_execution_effect(
+                    &store,
+                    &receipt.execution_id,
+                    &receipt.execution_input_snapshot,
+                    &receipt.attempt_id,
+                    receipt.fence_epoch,
+                )
+                .expect("indeterminate evidence reconciliation")
+                    == RecoveryExecutionEffectReconciliationOutcome::
+                        ObservedInProgressOwnedByThisAttempt
+        };
 
         let evidence = RecoveryExecutionEffectConformanceEvidenceV1 {
             current_fence_accepted,
@@ -3256,7 +3333,7 @@ mod tests {
         };
         assert_eq!(
             validate_protected_mutation_request(&detached, &established),
-            RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch
+            RecoveryExecutionProtectedMutationValidation::Invalid
         );
     }
 
@@ -3877,7 +3954,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         store
@@ -3891,7 +3968,7 @@ mod tests {
             RecoveryExecutionEffectCompletionResult::FenceMismatch
         );
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("stale replay"),
+            begin_execution_effect(store.as_ref(), &started).expect("stale replay"),
             RecoveryExecutionEffectStartResult::FenceMismatch
         );
         assert_eq!(
@@ -3936,7 +4013,7 @@ mod tests {
                 .expect("new epoch replay");
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -3986,7 +4063,7 @@ mod tests {
                 .expect("successor fence");
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4036,7 +4113,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4094,7 +4171,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4196,7 +4273,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4240,7 +4317,7 @@ mod tests {
             RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-c")
                 .expect("successor fence c");
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
 
@@ -4309,7 +4386,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4335,7 +4412,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4343,7 +4420,7 @@ mod tests {
             RecoveryExecutionEffectCompletionResult::Completed
         );
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("replay"),
+            begin_execution_effect(store.as_ref(), &started).expect("replay"),
             RecoveryExecutionEffectStartResult::AlreadySucceededSameRequest
         );
     }
@@ -4455,7 +4532,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
 
@@ -4463,14 +4540,14 @@ mod tests {
         let left_started = started.clone();
         let left_success = success.clone();
         let left = thread::spawn(move || {
-            complete_execution_effect(&left_store, &left_started, &left_success)
+            complete_execution_effect(left_store.as_ref(), &left_started, &left_success)
         });
 
         let right_store = Arc::clone(&store);
         let right_started = started.clone();
         let right_failure = failure.clone();
         let right = thread::spawn(move || {
-            complete_execution_effect(&right_store, &right_started, &right_failure)
+            complete_execution_effect(right_store.as_ref(), &right_started, &right_failure)
         });
 
         let outcomes = [
@@ -4558,7 +4635,7 @@ mod tests {
                 .expect("started receipt");
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4594,7 +4671,7 @@ mod tests {
                 .expect("started receipt");
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4630,7 +4707,7 @@ mod tests {
                 .expect("started receipt");
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4666,7 +4743,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4750,7 +4827,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4830,7 +4907,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4867,7 +4944,7 @@ mod tests {
         };
 
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("start"),
+            begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
         );
         assert_eq!(
@@ -4875,7 +4952,7 @@ mod tests {
             RecoveryExecutionEffectCompletionResult::Completed
         );
         assert_eq!(
-            begin_execution_effect(&store, &started).expect("failure replay"),
+            begin_execution_effect(store.as_ref(), &started).expect("failure replay"),
             RecoveryExecutionEffectStartResult::AlreadyFailedSameRequest
         );
         assert_eq!(
@@ -6007,7 +6084,7 @@ mod tests {
             RecoveryExecutionFenceCheck::Current
         );
         assert_eq!(
-            reconcile_execution_fence(&store, &initial).expect("reconcile stale"),
+            reconcile_execution_fence(store.as_ref(), &initial).expect("reconcile stale"),
             RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence
         );
         assert_eq!(
@@ -6042,7 +6119,7 @@ mod tests {
             RecoveryExecutionFenceResult::StaleExpectedFence
         );
         assert_eq!(
-            reconcile_execution_fence(&store, &initial).expect("stale owner"),
+            reconcile_execution_fence(store.as_ref(), &initial).expect("stale owner"),
             RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence
         );
     }
@@ -6098,7 +6175,7 @@ mod tests {
             1
         );
         assert_eq!(
-            reconcile_execution_fence(&store, &initial).expect("reconcile old owner"),
+            reconcile_execution_fence(store.as_ref(), &initial).expect("reconcile old owner"),
             RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence
         );
     }
