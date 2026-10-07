@@ -454,6 +454,7 @@ def extract_project_pivot_findings(
 
         observed_permissions: set[str] = set()
         uncertain = False
+        active_acl_seen = False
         access_lists = result.get("accessControlLists")
         if not isinstance(access_lists, list) or not access_lists:
             raise AssertionError(
@@ -489,10 +490,14 @@ def extract_project_pivot_findings(
                     uncertain = True
                 elif value == "FALSE":
                     continue
-                elif value != "TRUE":
+                elif value == "TRUE":
+                    active_acl_seen = True
+                else:
                     raise AssertionError(
                         "project pivot result has unknown condition state"
                     )
+            if condition is None:
+                active_acl_seen = True
             accesses = access_list.get("accesses")
             if not isinstance(accesses, list) or not accesses:
                 raise AssertionError(
@@ -511,6 +516,8 @@ def extract_project_pivot_findings(
             raise AssertionError(
                 "project pivot access could not be determined"
             )
+        if not active_acl_seen:
+            continue
         if not observed_permissions.intersection(PROJECT_PIVOT_PERMISSIONS):
             raise AssertionError(
                 "project pivot result does not contain a queried pivot permission"
