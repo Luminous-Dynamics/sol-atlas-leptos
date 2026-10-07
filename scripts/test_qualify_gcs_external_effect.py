@@ -157,6 +157,8 @@ def main() -> None:
         provider_pool_exclusive=True,
         service_account_project_verified=True,
         oidc_audience_verified=True,
+        observer_service_account="observer@sol-atlas.iam.gserviceaccount.com",
+        observer_identity_verified=True,
     )
     module.validate_wif_verification(valid_wif)
     weakened_wif = dict(
