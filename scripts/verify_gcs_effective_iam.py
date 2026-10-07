@@ -47,8 +47,9 @@ CLAIM_CEILING = (
     "service account and listed credential-capability permissions. The analysis "
     "must be fully explored and is scoped by the configured project, folder, or "
     "organization. Data is best-effort and may lag recent policy changes. This "
-    "does not prove deny-policy or Principal Access Boundary effects, transitive "
-    "impersonation chains, or a globally immutable IAM state."
+    "does not prove deny-policy or Principal Access Boundary effects, arbitrary "
+    "service-triggered privilege paths, transitive impersonation chains, or a "
+    "globally immutable IAM state."
 )
 
 
@@ -633,6 +634,7 @@ def verify(
         "project_pivot_permissions": list(PROJECT_PIVOT_PERMISSIONS),
         "project_pivot_findings": project_pivots,
         "project_pivot_permissions_absent": True,
+        "project_pivot_response_digest": digest(project_pivot_payload),
         "policy_analyzer_response_digest": digest(payload),
         "claim_ceiling": CLAIM_CEILING,
     }
