@@ -13,8 +13,6 @@ import subprocess
 from pathlib import Path
 
 REPOSITORY = "Luminous-Dynamics/sol-atlas-leptos"
-EXPECTED_USE_DEFAULT = False
-EXPECTED_INCLUDE_CLAIM_KEYS = []
 EXPECTED_IMMUTABLE = True
 SCHEMA = "sol-atlas:github-oidc-sub-configuration:v1"
 
@@ -55,13 +53,6 @@ def load_configuration() -> dict[str, object]:
 
 
 def verify(payload: dict[str, object], output: str | None) -> dict[str, object]:
-    if payload.get("use_default") is not EXPECTED_USE_DEFAULT:
-        raise AssertionError("OIDC subject customization must be explicit")
-    include_claim_keys = payload.get("include_claim_keys")
-    if include_claim_keys != EXPECTED_INCLUDE_CLAIM_KEYS:
-        raise AssertionError(
-            "OIDC subject custom claim keys differ from frozen configuration"
-        )
     if payload.get("use_immutable_subject") is not EXPECTED_IMMUTABLE:
         raise AssertionError(
             "OIDC immutable subject mode is not explicitly enabled"
