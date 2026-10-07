@@ -1058,9 +1058,9 @@ pub struct RecoveryPolicyConsumptionSnapshotV1 {
 }
 
 fn is_sha256_digest(value: &str) -> bool {
-    value.strip_prefix("sha256:").is_some_and(|hex| {
-        hex.len() == 64 && hex.bytes().all(|byte| byte.is_ascii_hexdigit())
-    })
+    value
+        .strip_prefix("sha256:")
+        .is_some_and(|hex| hex.len() == 64 && hex.bytes().all(|byte| byte.is_ascii_hexdigit()))
 }
 
 impl RecoveryPolicyConsumptionSnapshotV1 {
@@ -1245,9 +1245,7 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         // Execution-start admission is strictly pre-terminal: a record that
         // already carries an end marker belongs to completed-consumption
         // semantics and must not be admitted a second way.
-        if execution.ended_at.is_some()
-            || !is_canonical_utc_timestamp(&execution.started_at)
-        {
+        if execution.ended_at.is_some() || !is_canonical_utc_timestamp(&execution.started_at) {
             return RecoveryPolicyConsumptionOutcomeV1::MalformedExecution;
         }
         if decision.digest() != self.decision_digest {
@@ -1338,10 +1336,7 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         expected_authority_reference: &str,
     ) -> RecoveryPolicyConsumptionOutcomeV1 {
         match self.admission_outcome_for_execution_start_against_candidate(
-            decision,
-            plan,
-            candidate,
-            execution,
+            decision, plan, candidate, execution,
         ) {
             RecoveryPolicyConsumptionOutcomeV1::Allowed => {}
             outcome => return outcome,
@@ -1411,10 +1406,7 @@ impl RecoveryPolicyConsumptionSnapshotV1 {
         execution: &RecoveryExecution,
     ) -> Option<Self> {
         if self.admission_outcome_for_execution_start_against_candidate(
-            decision,
-            plan,
-            candidate,
-            execution,
+            decision, plan, candidate, execution,
         ) != RecoveryPolicyConsumptionOutcomeV1::Allowed
         {
             return None;
@@ -1589,8 +1581,7 @@ impl RecoveryPolicyConsumptionTransitionV1 {
         plan: &RecoveryPlan,
         execution: &RecoveryExecution,
     ) -> Option<Self> {
-        let next =
-            current.consumed_at_execution_start_against_plan(decision, plan, execution)?;
+        let next = current.consumed_at_execution_start_against_plan(decision, plan, execution)?;
 
         Some(Self {
             schema: Self::SCHEMA.into(),
@@ -1612,13 +1603,8 @@ impl RecoveryPolicyConsumptionTransitionV1 {
         candidate: &RecoveryCandidate,
         execution: &RecoveryExecution,
     ) -> Option<Self> {
-        let next =
-            current.consumed_at_execution_start_against_candidate(
-                decision,
-                plan,
-                candidate,
-                execution,
-            )?;
+        let next = current
+            .consumed_at_execution_start_against_candidate(decision, plan, candidate, execution)?;
 
         Some(Self {
             schema: Self::SCHEMA.into(),
@@ -1696,13 +1682,8 @@ impl RecoveryPolicyConsumptionTransitionV1 {
         execution: &RecoveryExecution,
         now: &str,
     ) -> Option<Self> {
-        if current.consumption_outcome_against_candidate(
-            decision,
-            plan,
-            candidate,
-            execution,
-            now,
-        ) != RecoveryPolicyConsumptionOutcomeV1::Allowed
+        if current.consumption_outcome_against_candidate(decision, plan, candidate, execution, now)
+            != RecoveryPolicyConsumptionOutcomeV1::Allowed
         {
             return None;
         }
@@ -4454,10 +4435,8 @@ mod graph_tests {
         let mut terminalized_start_execution = start_execution.clone();
         terminalized_start_execution.ended_at = Some("2026-10-02T08:00:00Z".into());
         assert_eq!(
-            available.admission_outcome_for_execution_start(
-                &decision,
-                &terminalized_start_execution,
-            ),
+            available
+                .admission_outcome_for_execution_start(&decision, &terminalized_start_execution,),
             RecoveryPolicyConsumptionOutcomeV1::MalformedExecution
         );
         assert_eq!(
@@ -4488,13 +4467,12 @@ mod graph_tests {
             admission_next.consumed_at,
             Some(start_execution.started_at.clone())
         );
-        let admission_transition =
-            RecoveryPolicyConsumptionTransitionV1::for_execution_admission(
-                &available,
-                &decision,
-                &start_execution,
-            )
-            .expect("execution-start transition");
+        let admission_transition = RecoveryPolicyConsumptionTransitionV1::for_execution_admission(
+            &available,
+            &decision,
+            &start_execution,
+        )
+        .expect("execution-start transition");
         assert!(admission_transition.matches(
             &available,
             &decision,
@@ -4543,8 +4521,7 @@ mod graph_tests {
         );
 
         let mut wrong_admission_mode = admission_transition.clone();
-        wrong_admission_mode.mode =
-            RecoveryPolicyConsumptionTransitionModeV1::CompletedConsumption;
+        wrong_admission_mode.mode = RecoveryPolicyConsumptionTransitionModeV1::CompletedConsumption;
         assert_ne!(admission_transition.digest(), wrong_admission_mode.digest());
         assert!(!wrong_admission_mode.matches(
             &available,
@@ -4596,30 +4573,15 @@ mod graph_tests {
         let consumed = available
             .consumed(&decision, &execution, "2026-10-02T08:00:00Z")
             .expect("valid one-time transition");
-        assert!(transition.matches(
-            &available,
-            &decision,
-            &execution,
-            &consumed,
-        ));
+        assert!(transition.matches(&available, &decision, &execution, &consumed,));
 
         let mut altered_transition = transition.clone();
         altered_transition.next_snapshot_digest = available.digest();
-        assert!(!altered_transition.matches(
-            &available,
-            &decision,
-            &execution,
-            &consumed,
-        ));
+        assert!(!altered_transition.matches(&available, &decision, &execution, &consumed,));
 
         let mut altered_consumed = consumed.clone();
         altered_consumed.consumed_at = Some("2026-10-02T08:00:01Z".into());
-        assert!(!transition.matches(
-            &available,
-            &decision,
-            &execution,
-            &altered_consumed,
-        ));
+        assert!(!transition.matches(&available, &decision, &execution, &altered_consumed,));
 
         let mut different_execution_for_transition = execution.clone();
         different_execution_for_transition.execution_id = "execution-transition-other".into();
@@ -4630,12 +4592,7 @@ mod graph_tests {
             &consumed,
         ));
 
-        assert!(!transition.matches(
-            &consumed,
-            &decision,
-            &execution,
-            &consumed,
-        ));
+        assert!(!transition.matches(&consumed, &decision, &execution, &consumed,));
 
         let mut unbound_decision = decision.clone();
         unbound_decision.execution_id = None;
@@ -4695,28 +4652,22 @@ mod graph_tests {
             &second_next,
         ));
 
-
         assert!(consumed.is_well_formed());
         assert_ne!(available_digest, consumed.digest());
         let mut different_consumption_time = consumed.clone();
         different_consumption_time.consumed_at = Some("2026-10-02T08:00:01Z".into());
         assert_ne!(consumed.digest(), different_consumption_time.digest());
-        assert_eq!(
-            consumed.state,
-            RecoveryPolicyConsumptionStateV1::Consumed
-        );
+        assert_eq!(consumed.state, RecoveryPolicyConsumptionStateV1::Consumed);
         assert_eq!(
             consumed.consumption_outcome(&decision, &execution, "2026-10-02T08:01:00Z"),
             RecoveryPolicyConsumptionOutcomeV1::AlreadyConsumed
         );
-        assert!(!consumed.permits_consumption(
-            &decision,
-            &execution,
-            "2026-10-02T08:01:00Z"
-        ));
-        assert!(consumed
-            .consumed(&decision, &execution, "2026-10-02T08:01:00Z")
-            .is_none());
+        assert!(!consumed.permits_consumption(&decision, &execution, "2026-10-02T08:01:00Z"));
+        assert!(
+            consumed
+                .consumed(&decision, &execution, "2026-10-02T08:01:00Z")
+                .is_none()
+        );
 
         let mut missing_authorization = execution.clone();
         missing_authorization.authorization = None;
@@ -4732,31 +4683,25 @@ mod graph_tests {
         let mut wrong_authorization = execution.clone();
         wrong_authorization.authorization = Some("sha256:wrong-authorization".into());
         assert_eq!(
-            available.consumption_outcome(
-                &decision,
-                &wrong_authorization,
-                "2026-10-02T08:00:00Z"
-            ),
+            available.consumption_outcome(&decision, &wrong_authorization, "2026-10-02T08:00:00Z"),
             RecoveryPolicyConsumptionOutcomeV1::ExecutionAuthorizationMismatch
         );
 
         let mut malformed_execution = execution.clone();
         malformed_execution.execution_id.clear();
         assert_eq!(
-            available.consumption_outcome(
-                &decision,
-                &malformed_execution,
-                "2026-10-02T08:00:00Z"
-            ),
+            available.consumption_outcome(&decision, &malformed_execution, "2026-10-02T08:00:00Z"),
             RecoveryPolicyConsumptionOutcomeV1::MalformedExecution
         );
-        assert!(RecoveryPolicyConsumptionTransitionV1::for_successful_consumption(
-            &available,
-            &decision,
-            &malformed_execution,
-            "2026-10-02T08:00:00Z",
-        )
-        .is_none());
+        assert!(
+            RecoveryPolicyConsumptionTransitionV1::for_successful_consumption(
+                &available,
+                &decision,
+                &malformed_execution,
+                "2026-10-02T08:00:00Z",
+            )
+            .is_none()
+        );
 
         let mut different_plan_execution = execution.clone();
         different_plan_execution.plan_id = "plan-other".into();
@@ -4797,8 +4742,7 @@ mod graph_tests {
         plan_execution.authorization = Some(plan_decision.digest());
         plan_execution.input_snapshot =
             RecoveryExecutionSnapshotV1::from_plan_and_execution(&plan, &plan_execution).digest();
-        let plan_available =
-            RecoveryPolicyConsumptionSnapshotV1::for_decision(&plan_decision);
+        let plan_available = RecoveryPolicyConsumptionSnapshotV1::for_decision(&plan_decision);
         assert_eq!(
             plan_available.consumption_outcome_against_plan(
                 &plan_decision,
@@ -4842,11 +4786,7 @@ mod graph_tests {
             RecoveryPolicyConsumptionOutcomeV1::Allowed
         );
         let plan_admission_next = plan_available
-            .consumed_at_execution_start_against_plan(
-                &plan_decision,
-                &plan,
-                &plan_start_execution,
-            )
+            .consumed_at_execution_start_against_plan(&plan_decision, &plan, &plan_start_execution)
             .expect("plan admission successor");
         let plan_admission_transition =
             RecoveryPolicyConsumptionTransitionV1::for_execution_admission_against_plan(
@@ -4876,22 +4816,20 @@ mod graph_tests {
         let mut candidate_plan = plan.clone();
         candidate_plan.candidate_snapshot = candidate.snapshot().digest();
         let mut candidate_execution = plan_execution.clone();
-        candidate_execution.input_snapshot =
-            RecoveryExecutionSnapshotV1::from_plan_and_execution(
-                &candidate_plan,
-                &candidate_execution,
-            )
-            .digest();
+        candidate_execution.input_snapshot = RecoveryExecutionSnapshotV1::from_plan_and_execution(
+            &candidate_plan,
+            &candidate_execution,
+        )
+        .digest();
         let mut candidate_decision = plan_decision.clone();
         candidate_decision.plan_snapshot = candidate_plan.snapshot().digest();
         candidate_decision.candidate_snapshot = candidate.snapshot().digest();
         candidate_execution.authorization = Some(candidate_decision.digest());
-        candidate_execution.input_snapshot =
-            RecoveryExecutionSnapshotV1::from_plan_and_execution(
-                &candidate_plan,
-                &candidate_execution,
-            )
-            .digest();
+        candidate_execution.input_snapshot = RecoveryExecutionSnapshotV1::from_plan_and_execution(
+            &candidate_plan,
+            &candidate_execution,
+        )
+        .digest();
         let candidate_available =
             RecoveryPolicyConsumptionSnapshotV1::for_decision(&candidate_decision);
         let candidate_transition =
@@ -4949,15 +4887,16 @@ mod graph_tests {
         ));
 
         assert_eq!(
-            candidate_available.admission_outcome_for_execution_start_against_candidate_for_context(
-                &candidate_decision,
-                &candidate_plan,
-                &candidate,
-                &candidate_start_execution,
-                "recovery.execute",
-                "operator-001",
-                "authority-record",
-            ),
+            candidate_available
+                .admission_outcome_for_execution_start_against_candidate_for_context(
+                    &candidate_decision,
+                    &candidate_plan,
+                    &candidate,
+                    &candidate_start_execution,
+                    "recovery.execute",
+                    "operator-001",
+                    "authority-record",
+                ),
             RecoveryPolicyConsumptionOutcomeV1::Allowed
         );
         let combined_admission_next = candidate_available
@@ -4991,15 +4930,16 @@ mod graph_tests {
         ));
 
         assert_eq!(
-            candidate_available.admission_outcome_for_execution_start_against_candidate_for_context(
-                &candidate_decision,
-                &candidate_plan,
-                &candidate,
-                &candidate_start_execution,
-                "recovery.execute",
-                "other-consumer",
-                "authority-record",
-            ),
+            candidate_available
+                .admission_outcome_for_execution_start_against_candidate_for_context(
+                    &candidate_decision,
+                    &candidate_plan,
+                    &candidate,
+                    &candidate_start_execution,
+                    "recovery.execute",
+                    "other-consumer",
+                    "authority-record",
+                ),
             RecoveryPolicyConsumptionOutcomeV1::PolicyContextMismatch
         );
         assert!(
@@ -5067,11 +5007,7 @@ mod graph_tests {
         let mut different_execution = execution.clone();
         different_execution.execution_id = "execution-other".into();
         assert_eq!(
-            available.consumption_outcome(
-                &decision,
-                &different_execution,
-                "2026-10-02T08:00:00Z"
-            ),
+            available.consumption_outcome(&decision, &different_execution, "2026-10-02T08:00:00Z"),
             RecoveryPolicyConsumptionOutcomeV1::ExecutionMismatch
         );
         assert!(!available.permits_consumption(
@@ -5084,11 +5020,7 @@ mod graph_tests {
         malformed_digest.decision_digest = "sha256:not-a-digest".into();
         assert!(!malformed_digest.is_well_formed());
         assert_eq!(
-            malformed_digest.consumption_outcome(
-                &decision,
-                &execution,
-                "2026-10-02T08:00:00Z"
-            ),
+            malformed_digest.consumption_outcome(&decision, &execution, "2026-10-02T08:00:00Z"),
             RecoveryPolicyConsumptionOutcomeV1::MalformedConsumptionState
         );
 
@@ -5102,18 +5034,14 @@ mod graph_tests {
 
         let mut decision_without_execution_binding = decision.clone();
         decision_without_execution_binding.execution_id = None;
-        assert!(!decision_without_execution_binding.covers_execution(
-            &different_plan_execution,
-            "2026-10-02T08:00:00Z"
-        ));
+        assert!(
+            !decision_without_execution_binding
+                .covers_execution(&different_plan_execution, "2026-10-02T08:00:00Z")
+        );
 
         let expired = available.clone();
         assert_eq!(
-            expired.consumption_outcome(
-                &decision,
-                &execution,
-                "2026-10-02T08:10:00Z"
-            ),
+            expired.consumption_outcome(&decision, &execution, "2026-10-02T08:10:00Z"),
             RecoveryPolicyConsumptionOutcomeV1::DecisionNotValidAtConsumption
         );
         let mut rejected_decision = decision.clone();
@@ -5134,11 +5062,7 @@ mod graph_tests {
             "2026-10-02T08:00:00Z"
         ));
 
-        assert!(!expired.permits_consumption(
-            &decision,
-            &execution,
-            "2026-10-02T08:10:00Z"
-        ));
+        assert!(!expired.permits_consumption(&decision, &execution, "2026-10-02T08:10:00Z"));
     }
 
     #[test]
@@ -5968,27 +5892,27 @@ mod graph_tests {
             "2026-10-02T08:00:00Z"
         ));
 
-        assert!(bound_execution.is_successful_with_bound_policy_decision_for_context(
-            &plan,
-            &candidate,
-            &decision,
-            "recovery.execute",
-            "operator-001",
-            "authority-record-001",
-            "2026-10-02T08:00:00Z"
-        ));
         assert!(
-            verification.passes_with_bound_policy_decision_for_context(
+            bound_execution.is_successful_with_bound_policy_decision_for_context(
                 &plan,
                 &candidate,
                 &decision,
-                &bound_execution,
                 "recovery.execute",
                 "operator-001",
                 "authority-record-001",
                 "2026-10-02T08:00:00Z"
             )
         );
+        assert!(verification.passes_with_bound_policy_decision_for_context(
+            &plan,
+            &candidate,
+            &decision,
+            &bound_execution,
+            "recovery.execute",
+            "operator-001",
+            "authority-record-001",
+            "2026-10-02T08:00:00Z"
+        ));
 
         assert!(
             !bound_execution.is_successful_with_bound_policy_decision_for_context(
@@ -6034,18 +5958,16 @@ mod graph_tests {
                 "2026-10-02T08:00:00Z"
             )
         );
-        assert!(
-            !verification.passes_with_bound_policy_decision_for_context(
-                &plan,
-                &candidate,
-                &decision,
-                &bound_execution,
-                "recovery.execute",
-                "",
-                "authority-record-001",
-                "2026-10-02T08:00:00Z"
-            )
-        );
+        assert!(!verification.passes_with_bound_policy_decision_for_context(
+            &plan,
+            &candidate,
+            &decision,
+            &bound_execution,
+            "recovery.execute",
+            "",
+            "authority-record-001",
+            "2026-10-02T08:00:00Z"
+        ));
 
         let mut wrong_purpose = decision.clone();
         wrong_purpose.purpose = "different-purpose".into();
