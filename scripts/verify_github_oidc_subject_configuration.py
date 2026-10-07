@@ -62,7 +62,7 @@ def verify(payload: dict[str, object], output: str | None) -> dict[str, object]:
         "schema": SCHEMA,
         "repository": REPOSITORY,
         "use_default": payload.get("use_default"),
-        "include_claim_keys": include_claim_keys,
+        "include_claim_keys": payload.get("include_claim_keys"),
         "use_immutable_subject": payload.get("use_immutable_subject"),
         "configuration_digest": digest(payload),
         "claim_ceiling": (
