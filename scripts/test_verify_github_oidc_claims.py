@@ -65,6 +65,11 @@ def main() -> None:
         assert oct(token_path.stat().st_mode & 0o777) == "0o600"
 
     expected = module.expected_claims(AUDIENCE, CONTEXT)
+    expected["sub"] = (
+        "repo:Luminous-Dynamics@216969177/"
+        "sol-atlas-leptos@1195997641:"
+        "environment:sol-atlas-gcs-qualification"
+    )
     expected.update(
         {
             "iat": NOW - 10,
@@ -79,8 +84,12 @@ def main() -> None:
         now=NOW,
     ) == expected
 
-    for name in ("aud", "workflow_sha", "sha", "workflow_ref", "runner_environment"):
-        mutated = dict(expected)
+    expect_rejection(
+        dict(expected, sub="repo:Luminous-Dynamics/sol-atlas:environment:tampered"),
+        "mutable OIDC subject was accepted",
+    )
+
+for name in ("aud", "workflow_sha", "sha", "workflow_ref", "runner_environment"):        mutated = dict(expected)
         mutated[name] = "tampered"
         expect_rejection(mutated, f"tampered {name} claim was accepted")
 
