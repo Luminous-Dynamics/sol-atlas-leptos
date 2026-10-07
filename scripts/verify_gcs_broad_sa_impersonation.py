@@ -275,6 +275,10 @@ def verify(
 ) -> dict[str, object]:
     module = load_effective_iam_module()
     scope = module.validate_scope(scope)
+    profile_path = Path(module.__file__).resolve().parents[1] / module.WIF_PROFILE_PATH
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    if profile.get("schema") != module.WIF_PROFILE_SCHEMA:
+        raise AssertionError("WIF trust profile schema drift")
     qualification = qualification_resource(
         project_id,
         service_account,
@@ -300,6 +304,8 @@ def verify(
         "service_account": service_account,
         "qualification_resource": qualification,
         "expected_principal": expected_principal,
+        "wif_profile_path": module.WIF_PROFILE_PATH,
+        "wif_profile_digest": module.digest(profile),
         "queried_permissions": list(PERMISSIONS),
         "intended_qualification_binding_allowed": True,
         "broad_impersonation_findings": [],
