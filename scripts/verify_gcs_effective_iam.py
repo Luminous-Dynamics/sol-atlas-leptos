@@ -23,6 +23,10 @@ FORBIDDEN_EXECUTION_PERMISSIONS = (
     "iam.serviceAccounts.getIamPolicy",
     "iam.serviceAccounts.setIamPolicy",
 )
+PROJECT_PIVOT_PERMISSIONS = (
+    "cloudbuild.builds.create",
+    "deploymentmanager.deployments.create",
+)
 CRITICAL_PERMISSIONS = (
     "iam.serviceAccounts.getAccessToken",
     "iam.serviceAccounts.getOpenIdToken",
@@ -59,6 +63,19 @@ def canonical(value: object) -> bytes:
 
 def digest(value: object) -> str:
     return "sha256:" + hashlib.sha256(canonical(value)).hexdigest()
+
+
+def project_resource(project_id: str) -> str:
+    if (
+        not project_id
+        or project_id.startswith("-")
+        or "/" in project_id
+    ):
+        raise AssertionError("invalid project identity")
+    return (
+        "//cloudresourcemanager.googleapis.com/projects/"
+        + project_id
+    )
 
 
 def service_account_resource(
@@ -301,6 +318,163 @@ def extract_findings(
         raise AssertionError(
             "Policy Analyzer did not resolve exactly one binding for expected principal"
         )
+    return findings
+
+
+def extract_project_pivot_findings(
+    payload: dict[str, object],
+    expected_principal: str,
+    expected_project_resource: str,
+) -> list[dict[str, object]]:
+    if payload.get("fullyExplored") is not True:
+        raise AssertionError("project pivot analysis is not fully explored")
+    errors = payload.get("nonCriticalErrors") or []
+    if errors:
+        raise AssertionError(
+            "project pivot analysis reported non-critical errors"
+        )
+    results = payload.get("analysisResults")
+    if not isinstance(results, list):
+        raise AssertionError("project pivot analysisResults is not a list")
+
+    findings: list[dict[str, object]] = []
+    for index, result in enumerate(results):
+        if not isinstance(result, dict):
+            raise AssertionError(f"project pivot result {index} is not an object")
+        if result.get("fullyExplored") is not True:
+            raise AssertionError(
+                f"project pivot result {index} is not fully explored"
+            )
+
+        identities = result.get("identityList")
+        if not isinstance(identities, dict):
+            raise AssertionError(
+                f"project pivot result {index} has invalid identity list"
+            )
+        identity_entries = identities.get("identities")
+        if not isinstance(identity_entries, list):
+            raise AssertionError(
+                f"project pivot result {index} has invalid identities"
+            )
+        names = []
+        for identity in identity_entries:
+            if not isinstance(identity, dict):
+                raise AssertionError(
+                    f"project pivot result {index} has invalid identity"
+                )
+            name = identity.get("name")
+            if not isinstance(name, str) or not name:
+                raise AssertionError(
+                    f"project pivot result {index} has invalid identity name"
+                )
+            names.append(name)
+
+        if expected_principal not in names:
+            continue
+
+        binding = result.get("iamBinding")
+        if not isinstance(binding, dict):
+            raise AssertionError(
+                f"project pivot result {index} has no IAM binding"
+            )
+        role = binding.get("role")
+        members = binding.get("members")
+        if not isinstance(role, str) or not role:
+            raise AssertionError(
+                f"project pivot result {index} has invalid role"
+            )
+        if not isinstance(members, list) or expected_principal not in members:
+            raise AssertionError(
+                "project pivot binding does not explicitly contain expected principal"
+            )
+
+        attachments = result.get("attachedResourceFullName")
+        if (
+            not isinstance(attachments, str)
+            or not valid_attached_resource(
+                attachments,
+                expected_project_resource
+                + "/serviceAccounts/not-used",
+            )
+        ):
+            raise AssertionError(
+                f"invalid project pivot attachment: {attachments!r}"
+            )
+
+        observed_permissions: set[str] = set()
+        uncertain = False
+        access_lists = result.get("accessControlLists")
+        if not isinstance(access_lists, list) or not access_lists:
+            raise AssertionError(
+                f"project pivot result {index} has no access-control list"
+            )
+        for access_list in access_lists:
+            if not isinstance(access_list, dict):
+                raise AssertionError(
+                    f"project pivot result {index} has invalid access list"
+                )
+            resources = access_list.get("resources")
+            if not isinstance(resources, list) or not resources:
+                raise AssertionError(
+                    f"project pivot result {index} has invalid resources"
+                )
+            for resource in resources:
+                if not isinstance(resource, dict):
+                    raise AssertionError(
+                        f"project pivot result {index} has invalid resource"
+                    )
+                if resource.get("fullResourceName") != expected_project_resource:
+                    raise AssertionError(
+                        "project pivot result targeted a different project"
+                    )
+            condition = access_list.get("conditionEvaluation")
+            if condition is not None:
+                if not isinstance(condition, dict):
+                    raise AssertionError(
+                        f"project pivot result {index} has invalid condition"
+                    )
+                value = condition.get("evaluationValue")
+                if value == "CONDITIONAL":
+                    uncertain = True
+                elif value == "FALSE":
+                    continue
+                elif value != "TRUE":
+                    raise AssertionError(
+                        "project pivot result has unknown condition state"
+                    )
+            accesses = access_list.get("accesses")
+            if not isinstance(accesses, list) or not accesses:
+                raise AssertionError(
+                    f"project pivot result {index} has no accesses"
+                )
+            for access in accesses:
+                if not isinstance(access, dict):
+                    raise AssertionError(
+                        f"project pivot result {index} has invalid access"
+                    )
+                permission = access.get("permission")
+                if isinstance(permission, str):
+                    observed_permissions.add(permission)
+
+        if uncertain:
+            raise AssertionError(
+                "project pivot access could not be determined"
+            )
+        if not observed_permissions.intersection(PROJECT_PIVOT_PERMISSIONS):
+            raise AssertionError(
+                "project pivot result does not contain a queried pivot permission"
+            )
+        findings.append(
+            {
+                "attached_resource": attachments,
+                "role": role,
+                "members": list(members),
+                "identities": names,
+                "permissions": sorted(observed_permissions),
+                "fully_explored": True,
+            }
+        )
+
     return findings
 
 
