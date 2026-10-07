@@ -17,6 +17,11 @@ EXPECTED_ROLE = "roles/iam.workloadIdentityUser"
 PERMISSIONS = (
     "iam.serviceAccounts.actAs",
     "iam.serviceAccounts.getAccessToken",
+    "iam.serviceAccounts.getOpenIdToken",
+    "iam.serviceAccounts.signBlob",
+    "iam.serviceAccounts.signJwt",
+    "iam.serviceAccounts.implicitDelegation",
+    "iam.serviceAccountKeys.create",
 )
 
 
@@ -221,7 +226,10 @@ def extract_findings(
             and result.get("attachedResourceFullName")
             == qualification_resource_name
             and resources == {qualification_resource_name}
-            and permissions == {"iam.serviceAccounts.getAccessToken"}
+            and permissions == {
+                "iam.serviceAccounts.getAccessToken",
+                "iam.serviceAccounts.getOpenIdToken",
+            }
         )
         if intended:
             continue
@@ -271,7 +279,7 @@ def verify(
     )
     if findings:
         raise AssertionError(
-            "broad service-account impersonation path detected"
+            "broad service account credential permissions detected"
         )
 
     result: dict[str, object] = {
