@@ -154,9 +154,9 @@ def run_analysis(
 WIF_PRINCIPAL_SET_PREFIX = "principalSet://iam.googleapis.com/projects/"
 WIF_PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
-    "gcs_wif_trust_profile_v8.json"
+    "gcs_wif_trust_profile_v9.json"
 )
-WIF_PROFILE_SCHEMA = "sol-atlas:gcs-wif-trust-profile:v8"
+WIF_PROFILE_SCHEMA = "sol-atlas:gcs-wif-trust-profile:v9"
 OIDC_CLAIMS_SCHEMA = "sol-atlas:github-oidc-claims:v5"
 OIDC_IMMUTABLE_SUBJECT_PREFIX = (
     "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
