@@ -150,6 +150,11 @@ def run_analysis(
 
 
 WIF_PRINCIPAL_SET_PREFIX = "principalSet://iam.googleapis.com/projects/"
+WIF_PROFILE_PATH = (
+    "sol-atlas-policy-store-contract/conformance/"
+    "gcs_wif_trust_profile_v8.json"
+)
+WIF_PROFILE_SCHEMA = "sol-atlas:gcs-wif-trust-profile:v8"
 WIF_ATTRIBUTE_NAMES = (
     "environment",
     "event_name",
@@ -176,20 +181,28 @@ def principal_set_prefix(expected_principal: str) -> str:
 
 
 def expected_workload_principal_sets(expected_principal: str) -> set[str]:
+    profile_path = Path(WIF_PROFILE_PATH)
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    if profile.get("schema") != WIF_PROFILE_SCHEMA:
+        raise AssertionError("WIF trust profile schema drift")
+    condition = profile.get("exact_attribute_condition")
+    if not isinstance(condition, str):
+        raise AssertionError("WIF trust profile condition is missing")
+    condition_values = {}
+    for clause in condition.split(" && "):
+        if not clause.startswith("assertion.") or "==" not in clause:
+            continue
+        name, value = clause.split("==", 1)
+        value = value.strip().strip("'")
+        condition_values[name.removeprefix("assertion.")] = value
+    missing = set(WIF_ATTRIBUTE_NAMES) - set(condition_values)
+    if missing:
+        raise AssertionError("WIF trust profile condition is incomplete")
     prefix = principal_set_prefix(expected_principal)
     suffix = expected_principal.split(prefix + "/", 1)[1]
     repository_id = suffix.split("/", 1)[1]
-    condition_values = {
-        "environment": "sol-atlas-gcs-qualification",
-        "event_name": "workflow_dispatch",
-        "repository": "Luminous-Dynamics/sol-atlas-leptos",
-        "repository_id": repository_id,
-        "repository_owner_id": "216969177",
-        "workflow": "Qualify GCS external effect",
-        "ref": "refs/heads/main",
-        "workflow_ref": "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/qualify-gcs.yml@refs/heads/main",
-        "runner_environment": "github-hosted",
-    }
+    if condition_values["repository_id"] != repository_id:
+        raise AssertionError("expected principal repository ID disagrees with WIF profile")
     members = {prefix + "/*", expected_principal}
     for attribute in WIF_ATTRIBUTE_NAMES:
         members.add(prefix + "/attribute." + attribute + "/" + condition_values[attribute])
