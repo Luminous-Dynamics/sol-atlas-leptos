@@ -13,7 +13,7 @@ import re
 import subprocess
 from pathlib import Path
 
-SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v5"
+SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v6"
 EXPECTED_ROLE = "roles/iam.workloadIdentityUser"
 REQUIRED_PERMISSIONS = (
     "iam.serviceAccounts.getAccessToken",
@@ -149,6 +149,64 @@ def run_analysis(
     return payload
 
 
+WIF_PRINCIPAL_SET_PREFIX = "principalSet://iam.googleapis.com/projects/"
+WIF_ATTRIBUTE_NAMES = (
+    "environment",
+    "event_name",
+    "repository",
+    "repository_id",
+    "repository_owner_id",
+    "workflow",
+    "ref",
+    "workflow_ref",
+    "runner_environment",
+)
+
+
+def principal_set_prefix(expected_principal: str) -> str:
+    marker = "/attribute.repository_id/"
+    if marker not in expected_principal:
+        raise AssertionError(
+            "expected principal is not the frozen repository-id principal set"
+        )
+    prefix = expected_principal.split(marker, 1)[0]
+    if not prefix.startswith(WIF_PRINCIPAL_SET_PREFIX):
+        raise AssertionError("expected principal has invalid WIF principal-set prefix")
+    return prefix
+
+
+def expected_workload_principal_sets(expected_principal: str) -> set[str]:
+    prefix = principal_set_prefix(expected_principal)
+    suffix = expected_principal.split(prefix + "/", 1)[1]
+    repository_id = suffix.split("/", 1)[1]
+    condition_values = {
+        "environment": "sol-atlas-gcs-qualification",
+        "event_name": "workflow_dispatch",
+        "repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "repository_id": repository_id,
+        "repository_owner_id": "216969177",
+        "workflow": "Qualify GCS external effect",
+        "ref": "refs/heads/main",
+        "workflow_ref": "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/qualify-gcs.yml@refs/heads/main",
+        "runner_environment": "github-hosted",
+    }
+    members = {prefix + "/*", expected_principal}
+    for attribute in WIF_ATTRIBUTE_NAMES:
+        members.add(prefix + "/attribute." + attribute + "/" + condition_values[attribute])
+    return members
+
+
+def principal_matches_expected(
+    identity: str,
+    expected_principal: str,
+) -> str | None:
+    if identity == expected_principal:
+        return "exact"
+    if identity in expected_workload_principal_sets(expected_principal):
+        return "containing-principal-set"
+    return None
+
+
 def valid_attached_resource(
     resource: object,
     expected_resource: str,
@@ -273,7 +331,12 @@ def extract_findings(
                 )
             identity_names.append(name)
 
-        if expected_principal not in identity_names:
+        matches = [
+            principal_matches_expected(name, expected_principal)
+            for name in identity_names
+        ]
+        match_kinds = [match for match in matches if match is not None]
+        if not match_kinds:
             continue
 
         binding = result.get("iamBinding")
@@ -288,9 +351,13 @@ def extract_findings(
             raise AssertionError(
                 f"unexpected effective role for expected principal: {role!r}"
             )
-        if members != [expected_principal]:
+        if not any(
+            principal_matches_expected(member, expected_principal)
+            for member in members
+            if isinstance(member, str)
+        ):
             raise AssertionError(
-                "expected principal is covered by a non-exact IAM binding"
+                "binding does not contain the expected workload principal set"
             )
         if not valid_attached_resource(attached, expected_resource):
             raise AssertionError(
@@ -362,6 +429,7 @@ def extract_findings(
                 "members": list(members),
                 "identities": identity_names,
                 "expected_principal_resolved": True,
+                "principal_match_kinds": sorted(set(match_kinds)),
                 "permissions": sorted(accesses),
                 "fully_explored": True,
             }
@@ -640,7 +708,9 @@ def verify(
         ),
         "forbidden_execution_permissions_absent": True,
         "required_permissions_verified": True,
-        "principal_selection_mode": "permission_query_with_local_exact_principal_filter",
+        "principal_selection_mode": (
+            "permission_query_with_frozen_workload_principal_set_filter"
+        ),
         "observed_permissions": observed_permissions,
         "observed_roles": observed_roles,
         "observed_attached_resources": attached_resources,
