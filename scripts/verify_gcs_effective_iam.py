@@ -555,23 +555,6 @@ def execution_permissions_are_clean(
 def validate_permission_ceiling(
     findings: list[dict[str, object]],
 ) -> list[str]:
-    observed_permissions = validate_permission_ceiling(findings)
-    return observed_permissions
-
-
-def verify(
-    scope: str,
-    project_id: str,
-    service_account: str,
-    expected_principal: str,
-    output: str | None,
-) -> dict[str, object]:
-    scope = validate_scope(scope)
-    resource = service_account_resource(project_id, service_account)
-    if not expected_principal:
-        raise AssertionError("expected principal is required")
-    payload = run_analysis(scope, resource)
-    findings = extract_findings(payload, expected_principal, resource)
     observed_permissions = sorted(
         {
             permission
@@ -599,6 +582,40 @@ def verify(
             "Policy Analyzer did not observe required WIF permissions: "
             + ", ".join(missing)
         )
+    return observed_permissions
+
+
+def verify(
+    scope: str,
+    project_id: str,
+    service_account: str,
+    expected_principal: str,
+    output: str | None,
+) -> dict[str, object]:
+    scope = validate_scope(scope)
+    resource = service_account_resource(project_id, service_account)
+    if not expected_principal:
+        raise AssertionError("expected principal is required")
+
+    payload = run_analysis(scope, resource)
+    findings = extract_findings(payload, expected_principal, resource)
+    observed_permissions = validate_permission_ceiling(findings)
+
+    project_target = project_resource(project_id)
+    project_pivot_payload = run_project_pivot_analysis(
+        scope,
+        project_target,
+    )
+    project_pivots = extract_project_pivot_findings(
+        project_pivot_payload,
+        expected_principal,
+        project_target,
+    )
+    if project_pivots:
+        raise AssertionError(
+            "execution principal has a project-level service-account execution pivot"
+        )
+
     observed_roles = sorted(
         {str(finding["role"]) for finding in findings}
     )
