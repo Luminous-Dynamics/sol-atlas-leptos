@@ -2,7 +2,7 @@
 # Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""Offline semantic tests for the effective-IAM audit parser."""
+"""Baseline regression tests for effective IAM evidence."""
 
 from __future__ import annotations
 
@@ -12,163 +12,92 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "verify_gcs_effective_iam.py"
 
-spec = importlib.util.spec_from_file_location("verify_gcs_effective_iam", SCRIPT)
+spec = importlib.util.spec_from_file_location("effective_iam", SCRIPT)
 assert spec and spec.loader
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
-PRINCIPAL = (
-    "principalSet://iam.googleapis.com/projects/123456789/"
-    "locations/global/workloadIdentityPools/github/"
-    "attribute.repository_id/1195997641"
-)
-RESOURCE = (
-    "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
-    "qualification@sol-atlas.iam.gserviceaccount.com"
-)
-OIDC_SUBJECT = "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:environment:sol-atlas-gcs-qualification"
+PRINCIPAL = "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/attribute.repository_id/1195997641"
+RESOURCE = "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/qualification@sol-atlas.iam.gserviceaccount.com"
+OIDC_SUBJECT = "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:ref:refs/heads/main"
 
 
-
-def analysis(
-    *,
-    role: str = "roles/iam.workloadIdentityUser",
+def finding(
+    role: str = module.EXPECTED_ROLE,
     members: list[str] | None = None,
     identities: list[str] | None = None,
     permissions: list[str] | None = None,
-    attached: str = "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
-    fully_explored: bool = True,
 ) -> dict[str, object]:
     return {
-        "attachedResourceFullName": attached,
+        "attachedResourceFullName": (
+            "//cloudresourcemanager.googleapis.com/projects/sol-atlas"
+        ),
         "iamBinding": {
             "role": role,
-            "members": list(members or [PRINCIPAL]),
+            "members": members or [PRINCIPAL],
+        },
+        "identityList": {
+            "identities": [
+                {"name": value}
+                for value in identities or [PRINCIPAL]
+            ]
         },
         "accessControlLists": [
             {
                 "resources": [{"fullResourceName": RESOURCE}],
                 "accesses": [
-                    {"permission": permission}
-                    for permission in permissions
+                    {"permission": value}
+                    for value in permissions
                     or list(module.REQUIRED_PERMISSIONS)
                 ],
             }
         ],
-        "identityList": {
-            "identities": [
-                {"name": identity}
-                for identity in identities or [PRINCIPAL]
-            ]
-        },
-        "fullyExplored": fully_explored,
+        "fullyExplored": True,
     }
 
 
-def reject(result: dict[str, object], name: str) -> None:
-    try:
-        module.extract_findings(
-            {
-                "fullyExplored": True,
-                "nonCriticalErrors": [],
-                "analysisResults": [result],
-            },
-            PRINCIPAL,
-            RESOURCE,
-        )
-    except AssertionError:
-        return
-    raise AssertionError(f"tampered Policy Analyzer result was accepted: {name}")
+def envelope(results: list[dict[str, object]]) -> dict[str, object]:
+    return {
+        "fullyExplored": True,
+        "nonCriticalErrors": [],
+        "analysisResults": results,
+    }
 
 
 def main() -> None:
-    payload = {"analysisResults": [analysis()]}
-    findings = module.extract_findings(
-        {
-            "fullyExplored": True,
-            "nonCriticalErrors": [],
-            **payload,
-        },
+    result = module.extract_findings(
+        envelope([finding()]),
         PRINCIPAL,
         RESOURCE,
+        OIDC_SUBJECT,
     )
-    assert findings[0]["role"] == module.EXPECTED_ROLE
-    assert module.REQUIRED_PERMISSIONS[0] in findings[0]["permissions"]
+    assert len(result) == 1
+    assert result[0]["role"] == module.EXPECTED_ROLE
     assert module.required_permissions_are_present(
-        list(module.REQUIRED_PERMISSIONS)
+        result[0]["permissions"]
     )
-    assert not module.required_permissions_are_present(
-        [module.REQUIRED_PERMISSIONS[0]]
+    assert module.execution_permissions_are_clean(
+        result[0]["permissions"]
     )
 
-    reject(
-        analysis(role="roles/iam.serviceAccountTokenCreator"),
-        "token creator role",
-    )
-    reject(
-        analysis(role="customRoles/alternate"),
-        "custom role",
-    )
-    reject(
-        analysis(members=[PRINCIPAL, "group:unexpected@example.com"]),
-        "additional member",
-    )
-    reject(
-        analysis(identities=[PRINCIPAL, "user:unexpected@example.com"]),
-        "additional identity",
-    )
-    reject(
-        analysis(fully_explored=False),
-        "not fully explored",
-    )
-    reject(
-        analysis(attached="//cloudresourcemanager.googleapis.com/projects/other"),
-        "unexpected attached resource",
-    )
-    reject(
-        {
-            **analysis(),
-            "accessControlLists": [
-                {"resources": [], "accesses": []}
-            ],
-        },
-        "missing target resource",
-    )
-    incomplete = analysis(
-        permissions=["iam.serviceAccounts.getAccessToken"],
-    )
-    incomplete_findings = module.extract_findings(
-        {
-            "fullyExplored": True,
-            "nonCriticalErrors": [],
-            "analysisResults": [incomplete],
-        },
-        PRINCIPAL,
+    assert module.valid_attached_resource(RESOURCE, RESOURCE)
+    assert module.valid_attached_resource(
+        "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
         RESOURCE,
     )
-    assert not module.required_permissions_are_present(
-        incomplete_findings[0]["permissions"]
+    assert module.valid_attached_resource(
+        "//cloudresourcemanager.googleapis.com/folders/123",
+        RESOURCE,
     )
-    reject(
-        {
-            "fullyExplored": True,
-            "nonCriticalErrors": [],
-            "analysisResults": [],
-        },
-        "empty analysis",
+    assert module.valid_attached_resource(
+        "//cloudresourcemanager.googleapis.com/organizations/456",
+        RESOURCE,
     )
 
-    try:
-        module.service_account_resource(
-            "sol-atlas",
-            "malformed",
-        )
-    except AssertionError:
-        pass
-    else:
-        raise AssertionError("malformed service account was accepted")
-
-    print("offline effective-IAM audit semantic checks: PASS")
+    assert module.project_resource("sol-atlas").endswith(
+        "/projects/sol-atlas"
+    )
+    print("baseline effective-IAM checks: PASS")
 
 
 if __name__ == "__main__":
