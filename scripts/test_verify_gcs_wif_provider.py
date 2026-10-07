@@ -75,6 +75,24 @@ def main() -> None:
     assert module.service_account_is_in_project("project-a", "project-a")
     assert not module.service_account_is_in_project("project-b", "project-a")
 
+    original_identity = module.active_identity
+    module.active_identity = lambda: "observer@sol-atlas.iam.gserviceaccount.com"
+    try:
+        assert module.observer_identity_is_exact(
+            "observer@sol-atlas.iam.gserviceaccount.com",
+            "effect@sol-atlas.iam.gserviceaccount.com",
+        )
+        assert not module.observer_identity_is_exact(
+            "effect@sol-atlas.iam.gserviceaccount.com",
+            "effect@sol-atlas.iam.gserviceaccount.com",
+        )
+        assert not module.observer_identity_is_exact(
+            "other@sol-atlas.iam.gserviceaccount.com",
+            "effect@sol-atlas.iam.gserviceaccount.com",
+        )
+    finally:
+        module.active_identity = original_identity
+
     assert module.binding_is_exclusive(
         binding_policy("expected"),
         "roles/iam.workloadIdentityUser",
