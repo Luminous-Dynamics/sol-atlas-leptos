@@ -4382,7 +4382,7 @@ mod graph_tests {
 
     #[test]
     fn one_time_policy_consumption_is_explicit_and_replay_safe() {
-        let execution = RecoveryExecution {
+        let mut execution = RecoveryExecution {
             plan_id: "plan-consumption".into(),
             execution_id: "execution-consumption".into(),
             started_at: "2026-10-02T07:59:00Z".into(),
