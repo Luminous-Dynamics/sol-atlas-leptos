@@ -162,6 +162,13 @@ def extract_findings(
     expected_principal: str,
     expected_resource: str,
 ) -> list[dict[str, object]]:
+    if payload.get("fullyExplored") is not True:
+        raise AssertionError("Policy Analyzer response is not fully explored")
+    errors = payload.get("nonCriticalErrors") or []
+    if errors:
+        raise AssertionError(
+            "Policy Analyzer reported non-critical errors; audit is fail-closed"
+        )
     results = payload.get("analysisResults")
     if not isinstance(results, list):
         raise AssertionError("Policy Analyzer analysisResults is not a list")
