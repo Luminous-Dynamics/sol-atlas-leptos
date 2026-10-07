@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import json
 import importlib.util
 from pathlib import Path
 
@@ -56,6 +57,18 @@ def expect_failure(fn, label: str):
 
 
 def main():
+    manifest = json.loads(
+        (ROOT / ".github/governance/protected-qualification-environment.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert manifest["name"] == module.ENVIRONMENT
+    assert manifest["required_reviewer_count_min"] == 1
+    assert manifest["prevent_self_review"] is True
+    assert manifest["deployment_branch_policy"]["custom_branch_policies"] is True
+    assert manifest["deployment_branch_policy"]["allowed_branch_patterns"] == [
+        "main"
+    ]
     verified = module.verify_environment(good_environment())
     assert verified["prevent_self_review"] is True
     assert verified["reviewer_count"] == 1
