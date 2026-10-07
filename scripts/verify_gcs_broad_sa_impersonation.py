@@ -70,10 +70,12 @@ def run_analysis(scope: str) -> dict[str, object]:
         raise AssertionError("Policy Analyzer response is not an object")
     if payload.get("fullyExplored") is not True:
         raise AssertionError("impersonation analysis is not fully explored")
-    errors = payload.get("nonCriticalErrors") or []
-    if errors:
+    errors = payload.get("nonCriticalErrors")
+    if errors is not None and (
+        not isinstance(errors, list) or errors
+    ):
         raise AssertionError(
-            "impersonation analysis reported non-critical errors"
+            "impersonation analysis reported invalid or non-critical errors"
         )
     results = payload.get("analysisResults")
     if not isinstance(results, list):
