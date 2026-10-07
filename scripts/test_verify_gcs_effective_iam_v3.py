@@ -82,8 +82,11 @@ def main() -> None:
     assert module.required_permissions_are_present(
         finding["permissions"]
     )
-    assert not set(finding["permissions"]).intersection(
-        module.FORBIDDEN_EXECUTION_PERMISSIONS
+    assert module.execution_permissions_are_clean(
+        finding["permissions"]
+    )
+    assert not module.execution_permissions_are_clean(
+        ["iam.serviceAccounts.getIamPolicy"]
     )
 
     expect_failure(
