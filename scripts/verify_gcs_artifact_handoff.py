@@ -16,6 +16,15 @@ OBSERVER_FILES = (
     "artifacts/gcs-observer-isolation-verification.json",
     "artifacts/gcs-policy-effect-verification.json",
 )
+PROMOTION_MAP = (
+    ("gcs-wif-trust-verification.json", "gcs-wif-trust-verification.json"),
+    ("github-oidc-claims.json", "observer-github-oidc-claims.json"),
+    ("github-oidc-subject-configuration.json", "github-oidc-subject-configuration.json"),
+    ("gcs-effective-iam-verification.json", "gcs-effective-iam-verification.json"),
+    ("gcs-broad-sa-impersonation-verification.json", "gcs-broad-sa-impersonation-verification.json"),
+    ("gcs-observer-isolation-verification.json", "gcs-observer-isolation-verification.json"),
+    ("gcs-policy-effect-verification.json", "gcs-policy-effect-verification.json"),
+)
 FINAL_FILES = (
     "artifacts/github-oidc-claims.json",
     "artifacts/github-oidc-subject-configuration.json",
@@ -53,46 +62,6 @@ def path_entries(block: str) -> tuple[str, ...]:
     return entries
 
 
-def require(block: str, needles: tuple[str, ...], label: str) -> None:
-    missing = [needle for needle in needles if needle not in block]
-    if missing:
-        raise AssertionError(label + " missing: " + ", ".join(missing))
-
-def path_entries(block: str) -> tuple[str, ...]:
-    marker = "          path: |\n"
-    start = block.find(marker)
-    if start < 0:
-        raise AssertionError("artifact upload path block is missing")
-    start += len(marker)
-    end = block.find("\n          if-no-files-found:", start)
-    if end < 0:
-        raise AssertionError("artifact upload path termination is missing")
-    entries = tuple(
-        line.strip()
-        for line in block[start:end].splitlines()
-        if line.strip()
-    )
-    if not entries:
-        raise AssertionError("artifact upload path is empty")
-    return entries
-
-
-def path_entries(block: str) -> tuple[str, ...]:
-    marker = "          path: |\n"
-    start = block.find(marker)
-    if start < 0:
-        raise AssertionError("artifact upload path block is missing")
-    start += len(marker)
-    end = block.find("\n          if-no-files-found:", start)
-    if end < 0:
-        raise AssertionError("artifact upload path termination is missing")
-    return tuple(
-        line.strip()
-        for line in block[start:end].splitlines()
-        if line.strip()
-    )
-
-
 def verify(workflow: str) -> dict[str, object]:
     observer = step(workflow, "Upload WIF trust evidence")
     if path_entries(observer) != OBSERVER_FILES:
@@ -102,6 +71,32 @@ def verify(workflow: str) -> dict[str, object]:
         ("if-no-files-found: error", "id: upload_wif_evidence"),
         "observer upload controls",
     )
+    promotion = step(
+        workflow,
+        "Promote observed WIF trust evidence",
+    )
+    promotion_tests = tuple(
+        "test -s artifacts/wif-observer/" + source
+        for source, _ in PROMOTION_MAP
+    )
+    require(
+        promotion,
+        promotion_tests,
+        "observer evidence promotion",
+    )
+    promotion_copies = tuple(
+        "cp artifacts/wif-observer/"
+        + source
+        + " artifacts/"
+        + destination
+        for source, destination in PROMOTION_MAP
+    )
+    require(
+        promotion,
+        promotion_copies,
+        "observer evidence promotion copy",
+    )
+
     download_observer = step(workflow, "Download observed WIF trust evidence")
     require(
         download_observer,
