@@ -196,6 +196,11 @@ def main() -> None:
         observer_identity_verified=True,
         project_id="sol-atlas",
         service_account="qualification@sol-atlas.iam.gserviceaccount.com",
+        service_account_binding_member=(
+            "principalSet://iam.googleapis.com/projects/123456789/"
+            "locations/global/workloadIdentityPools/github/"
+            "attribute.repository_id/1195997641"
+        ),
     )
     policy_targets = []
     project = (
@@ -296,6 +301,71 @@ def main() -> None:
     else:
         raise AssertionError(
             "Policy Troubleshooter validator accepted tampered state"
+        )
+
+    observer_oidc = {
+        "schema": module.OIDC_CLAIMS_SCHEMA,
+        "claims": {"sub": (
+            "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
+            "environment:sol-atlas-gcs-qualification"
+        )},
+    }
+    expected_sets = module.expected_effective_workload_principal_sets(
+        valid_wif["service_account_binding_member"],
+        json.loads(
+            (
+                ROOT / module.WIF_TRUST_PROFILE_PATH
+            ).read_text(encoding="utf-8")
+        ),
+    )
+    effective_audit = {
+        "schema": module.EFFECTIVE_IAM_AUDIT_SCHEMA,
+        "wif_verification_digest": module.digest(valid_wif),
+        "wif_profile_path": module.WIF_TRUST_PROFILE_PATH,
+        "wif_profile_digest": valid_wif["profile_digest"],
+        "principal_selection_mode": (
+            "permission_query_with_frozen_workload_principal_set_filter"
+        ),
+        "matched_workload_principal_sets": expected_sets,
+        "service_account": valid_wif["service_account"],
+        "observer_service_account": valid_wif["observer_service_account"],
+        "observer_identity_verified": True,
+        "expected_principal": valid_wif["service_account_binding_member"],
+        "oidc_subject": observer_oidc["claims"]["sub"],
+        "oidc_claims_digest": module.digest(observer_oidc),
+        "fully_explored": True,
+        "non_critical_errors": [],
+        "forbidden_execution_permissions_absent": True,
+        "required_permissions_verified": True,
+        "project_pivot_permissions_absent": True,
+        "project_pivot_findings": [],
+        "findings": [{
+            "role": "roles/iam.workloadIdentityUser",
+            "members": [valid_wif["service_account_binding_member"]],
+            "principal_match_kinds": ["exact"],
+            "identities": [valid_wif["service_account_binding_member"]],
+        }],
+        "project_pivot_permissions": module.EFFECTIVE_IAM_PROJECT_PIVOT_PERMISSIONS,
+        "project_pivot_response_digest": "sha256:" + "1" * 64,
+        "policy_analyzer_response_digest": "sha256:" + "2" * 64,
+    }
+    module.validate_effective_iam_audit(
+        effective_audit,
+        valid_wif,
+        observer_oidc,
+    )
+    tampered_subject = dict(effective_audit, oidc_subject="different")
+    try:
+        module.validate_effective_iam_audit(
+            tampered_subject,
+            valid_wif,
+            observer_oidc,
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "effective-IAM validator accepted immutable-subject drift"
         )
 
     module.validate_wif_verification(valid_wif)
