@@ -148,7 +148,7 @@ def main() -> None:
         "sol-atlas/qualification/run-123-attempt-1/main.bin"
     )
 
-    v2_manifest = {
+    v3_manifest = {
         "schema": module.TARGET_MANIFEST_SCHEMA,
         "targets": [
             {
@@ -162,7 +162,7 @@ def main() -> None:
         ],
     }
     with TemporaryDirectory() as tmp:
-        manifest_path = Path(tmp) / "targets-v2.json"
+        manifest_path = Path(tmp) / "targets-v3.json"
         manifest_path.write_text(
             json.dumps(v2_manifest),
             encoding="utf-8",
@@ -200,7 +200,7 @@ def main() -> None:
                 pass
             else:
                 raise AssertionError(
-                    "accepted v2 target manifest without required bindings"
+                    "accepted v3 target manifest without required bindings"
                 )
 
     with TemporaryDirectory() as tmp:
@@ -281,7 +281,7 @@ def main() -> None:
         ROOT
         / "sol-atlas-policy-store-contract"
         / "conformance"
-        / "gcs_policy_troubleshooter_targets_v2.json"
+        / "gcs_policy_troubleshooter_targets_v3.json"
     )
     bound_path, bound_digest = module.validate_target_manifest_binding(
         str(canonical_path.relative_to(ROOT))
@@ -290,7 +290,7 @@ def main() -> None:
     assert bound_digest.startswith("sha256:")
 
     with TemporaryDirectory() as tmp:
-        alternate = Path(tmp) / "alternate-v2.json"
+        alternate = Path(tmp) / "alternate-v3.json"
         alternate.write_text(
             json.dumps(
                 {
@@ -313,7 +313,7 @@ def main() -> None:
             pass
         else:
             raise AssertionError(
-                "accepted alternate v2 manifest before external calls"
+                "accepted alternate v3 manifest before external calls"
             )
 
     frozen_shape = [
