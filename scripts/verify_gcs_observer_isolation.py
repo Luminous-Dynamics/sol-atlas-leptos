@@ -110,6 +110,7 @@ def extract(
     payload: dict[str, object],
     observer_principal: str,
     effect_resource: str,
+    forbidden_permissions: tuple[str, ...],
 ) -> dict[str, object]:
     if payload.get("fullyExplored") is not True:
         raise AssertionError("observer analysis is not fully explored")
@@ -147,6 +148,38 @@ def extract(
                 "universal principal grants effect-account access"
             )
 
+        access_lists = result.get("accessControlLists")
+        if not isinstance(access_lists, list) or not access_lists:
+            raise AssertionError(
+                f"observer result {index} has no access-control list"
+            )
+        preliminary_permissions = set()
+        for access_list in access_lists:
+            if not isinstance(access_list, dict):
+                raise AssertionError(
+                    f"observer result {index} has invalid access list"
+                )
+            accesses = access_list.get("accesses")
+            if not isinstance(accesses, list) or not accesses:
+                raise AssertionError(
+                    f"observer result {index} has invalid accesses"
+                )
+            for access in accesses:
+                if not isinstance(access, dict):
+                    raise AssertionError(
+                        f"observer result {index} has invalid access"
+                    )
+                permission = access.get("permission")
+                if not isinstance(permission, str):
+                    raise AssertionError(
+                        f"observer result {index} has invalid permission"
+                    )
+                preliminary_permissions.add(permission)
+        if preliminary_permissions.intersection(forbidden_permissions):
+            raise AssertionError(
+                "observer binding carries a forbidden effect permission"
+            )
+
         identities = result.get("identityList")
         if not isinstance(identities, dict):
             raise AssertionError(
@@ -174,11 +207,6 @@ def extract(
         observer_seen = True
 
         resources_seen = set()
-        access_lists = result.get("accessControlLists")
-        if not isinstance(access_lists, list) or not access_lists:
-            raise AssertionError(
-                f"observer result {index} has no access-control list"
-            )
         for access_list in access_lists:
             if not isinstance(access_list, dict):
                 raise AssertionError(
@@ -283,6 +311,7 @@ def verify(
         payload,
         observer_principal,
         effect_resource,
+        FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS,
     )
     result.update(
         {
@@ -292,6 +321,8 @@ def verify(
             "observer_service_account": observer_service_account,
             "effect_service_account": effect_service_account,
             "policy_analyzer_response_digest": digest(payload),
+            "project_pivot_permissions": list(PROJECT_PIVOT_PERMISSIONS),
+            "project_pivot_permissions_absent": True,
             "claim_ceiling": (
                 "The configured IAM observer was positively observed with "
                 "service-account IAM policy-read access and no listed effect "
