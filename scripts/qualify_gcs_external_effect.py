@@ -272,6 +272,16 @@ def validate_wif_verification(verification: dict[str, object]) -> None:
         raise AssertionError(
             "WIF trust evidence lacks a distinct verified IAM observer"
         )
+    if not verification.get("observer_service_account_project_verified"):
+        raise AssertionError(
+            "WIF observer service-account project was not verified"
+        )
+    if not verification.get(
+        "observer_service_account_direct_policy_exact_verified"
+    ):
+        raise AssertionError(
+            "WIF observer service-account direct policy was not verified exact"
+        )
     if not verification.get("oidc_audience_verified"):
         raise AssertionError("WIF OIDC audience was not verified")
 
