@@ -204,6 +204,7 @@ jobs:
           path: |
             artifacts/gcs-wif-trust-verification.json
             observer-artifacts/github-oidc-claims.json
+            observer-artifacts/github-oidc-subject-configuration.json
             artifacts/gcs-effective-iam-verification.json
             artifacts/gcs-broad-sa-impersonation-verification.json
             artifacts/gcs-observer-isolation-verification.json
