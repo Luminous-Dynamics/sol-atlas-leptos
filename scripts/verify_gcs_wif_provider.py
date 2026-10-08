@@ -360,6 +360,8 @@ def verify(
     if not service_account_is_in_project(sa_project, configured_project_id):
         raise AssertionError("service account is outside configured GCP project")
 
+    observer_project = None
+    observer_direct_policy_exact_verified = False
     if observer_service_account is not None:
         if not observer_identity_is_exact(
             observer_service_account,
@@ -368,6 +370,28 @@ def verify(
             raise AssertionError(
                 "active observer identity mismatch or equals effect identity"
             )
+        observer_project = service_account_project(
+            observer_service_account
+        )
+        if not service_account_is_in_project(
+            observer_project,
+            configured_project_id,
+        ):
+            raise AssertionError(
+                "observer service account is outside configured GCP project"
+            )
+        observer_policy = service_account_policy(observer_service_account)
+        if not direct_policy_is_exact(
+            observer_policy,
+            role,
+            expected_member,
+        ):
+            raise AssertionError(
+                "observer service-account WIF policy is not exactly the "
+                "frozen repository binding"
+            )
+        observer_direct_policy_exact_verified = True
+
     policy = service_account_policy(service_account)
     role = str(binding["role"])
     if not direct_policy_is_exact(policy, role, expected_member):
@@ -407,6 +431,15 @@ def verify(
         "service_account_binding_member": expected_member,
         "observer_service_account": observer_service_account,
         "observer_identity_verified": observer_service_account is not None,
+        "observer_service_account_project": observer_project,
+        "observer_service_account_project_verified": (
+            observer_project == configured_project_id
+            if observer_service_account is not None
+            else False
+        ),
+        "observer_service_account_direct_policy_exact_verified": (
+            observer_direct_policy_exact_verified
+        ),
         "service_account_project": sa_project,
         "service_account_project_verified": True,
         "service_account_binding_verified": True,
