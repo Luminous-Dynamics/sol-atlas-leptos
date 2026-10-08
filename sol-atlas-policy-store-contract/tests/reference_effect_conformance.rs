@@ -2,19 +2,15 @@ mod reference_effect_adapter;
 
 use reference_effect_adapter::{LostAckResource, ReferenceFencedResource};
 use sol_atlas_policy_store_contract::{
-    RecoveryExecutionEffectConformanceEvidenceV1,
-    RecoveryExecutionEffectConformanceReportV1,
-    RecoveryExecutionEffectSafetyProfileV1,
-    RecoveryExecutionFencingCapabilityV1,
-    RecoveryExecutionIdempotencyCapabilityV1,
-    RecoveryExecutionReconciliationCapabilityV1,
+    RecoveryExecutionEffectConformanceEvidenceV1, RecoveryExecutionEffectConformanceReportV1,
+    RecoveryExecutionEffectSafetyProfileV1, RecoveryExecutionFencedResource,
+    RecoveryExecutionFencingCapabilityV1, RecoveryExecutionIdempotencyCapabilityV1,
     RecoveryExecutionProtectedMutationNextActionV1,
     RecoveryExecutionProtectedMutationOrchestrationStateV1,
-    RecoveryExecutionProtectedMutationReconciliationOutcome,
-    RecoveryExecutionProtectedMutationResult,
-    RecoveryExecutionProtectedMutationV1,
-    RecoveryExecutionFencedResource,
     RecoveryExecutionProtectedMutationReconciler,
+    RecoveryExecutionProtectedMutationReconciliationOutcome,
+    RecoveryExecutionProtectedMutationResult, RecoveryExecutionProtectedMutationV1,
+    RecoveryExecutionReconciliationCapabilityV1,
 };
 use std::process::Command;
 use std::sync::{Arc, Barrier};
@@ -108,37 +104,39 @@ fn run_reference_conformance() -> RecoveryExecutionEffectConformanceEvidenceV1 {
         Some("conformance-key"),
     );
 
-    let current_fence_accepted =
-        resource.mutate_if_fence_is_current(&current).expect("current")
-            == RecoveryExecutionProtectedMutationResult::Applied;
-    let stable_key_replay_safe =
-        resource.mutate_if_fence_is_current(&current).expect("replay")
-            == RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest;
-    let stale_fence_rejected =
-        resource.mutate_if_fence_is_current(&stale).expect("stale")
-            == RecoveryExecutionProtectedMutationResult::RejectedStaleFence;
-    let future_fence_rejected =
-        resource.mutate_if_fence_is_current(&future).expect("future")
-            == RecoveryExecutionProtectedMutationResult::RejectedFutureFence;
-    let same_execution_different_request_rejected =
-        resource.mutate_if_fence_is_current(&changed_same_key).expect("changed request")
-            == RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch;
-    let different_execution_same_key_rejected =
-        resource
-            .mutate_if_fence_is_current(&same_key_other_execution)
-            .expect("cross-execution key collision")
-            == RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch;
+    let current_fence_accepted = resource
+        .mutate_if_fence_is_current(&current)
+        .expect("current")
+        == RecoveryExecutionProtectedMutationResult::Applied;
+    let stable_key_replay_safe = resource
+        .mutate_if_fence_is_current(&current)
+        .expect("replay")
+        == RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest;
+    let stale_fence_rejected = resource.mutate_if_fence_is_current(&stale).expect("stale")
+        == RecoveryExecutionProtectedMutationResult::RejectedStaleFence;
+    let future_fence_rejected = resource
+        .mutate_if_fence_is_current(&future)
+        .expect("future")
+        == RecoveryExecutionProtectedMutationResult::RejectedFutureFence;
+    let same_execution_different_request_rejected = resource
+        .mutate_if_fence_is_current(&changed_same_key)
+        .expect("changed request")
+        == RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch;
+    let different_execution_same_key_rejected = resource
+        .mutate_if_fence_is_current(&same_key_other_execution)
+        .expect("cross-execution key collision")
+        == RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch;
     let different_request_same_key_rejected =
         same_execution_different_request_rejected && different_execution_same_key_rejected;
-    let changed_idempotency_key_rejected =
-        resource
-            .mutate_if_fence_is_current(&changed_idempotency_key)
-            .expect("changed idempotency key")
-            == RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch;
+    let changed_idempotency_key_rejected = resource
+        .mutate_if_fence_is_current(&changed_idempotency_key)
+        .expect("changed idempotency key")
+        == RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch;
 
-    let exact_reconciliation =
-        resource.reconcile_mutation(&current).expect("exact read-back")
-            == RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest;
+    let exact_reconciliation = resource
+        .reconcile_mutation(&current)
+        .expect("exact read-back")
+        == RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest;
     assert_eq!(
         resource
             .reconcile_mutation(&same_key_other_execution)
@@ -153,18 +151,20 @@ fn run_reference_conformance() -> RecoveryExecutionEffectConformanceEvidenceV1 {
         2,
         None,
     );
-    let observed_before_apply =
-        resource.reconcile_mutation(&point_in_time).expect("point-in-time before")
-            == RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedNotApplied;
+    let observed_before_apply = resource
+        .reconcile_mutation(&point_in_time)
+        .expect("point-in-time before")
+        == RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedNotApplied;
     assert_eq!(
         resource
             .mutate_if_fence_is_current(&point_in_time)
             .expect("point-in-time apply"),
         RecoveryExecutionProtectedMutationResult::Applied
     );
-    let observed_after_apply =
-        resource.reconcile_mutation(&point_in_time).expect("point-in-time after")
-            == RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest;
+    let observed_after_apply = resource
+        .reconcile_mutation(&point_in_time)
+        .expect("point-in-time after")
+        == RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest;
     let point_in_time_semantics_explicit = observed_before_apply && observed_after_apply;
 
     let lost_ack = LostAckResource::default();
@@ -176,11 +176,10 @@ fn run_reference_conformance() -> RecoveryExecutionEffectConformanceEvidenceV1 {
     let lost_ack_reconciled = lost_ack
         .reconcile_mutation(&current)
         .expect("lost-ack reconciliation");
-    let indeterminate_ack_reconciled =
-        lost_ack_result == RecoveryExecutionProtectedMutationResult::Indeterminate
-            && lost_ack_reconciled
-                == RecoveryExecutionProtectedMutationReconciliationOutcome::
-                    ObservedAppliedSameRequest;
+    let indeterminate_ack_reconciled = lost_ack_result
+        == RecoveryExecutionProtectedMutationResult::Indeterminate
+        && lost_ack_reconciled
+            == RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest;
 
     let concurrent = Arc::new(ReferenceFencedResource::default());
     concurrent.set_epoch(2);
@@ -217,7 +216,11 @@ fn run_reference_conformance() -> RecoveryExecutionEffectConformanceEvidenceV1 {
     let mut stale_rejected_count = 0usize;
     let mut current_applied_count = 0usize;
     for join in joins {
-        match join.join().expect("concurrent join").expect("concurrent result") {
+        match join
+            .join()
+            .expect("concurrent join")
+            .expect("concurrent result")
+        {
             RecoveryExecutionProtectedMutationResult::RejectedStaleFence => {
                 stale_rejected_count += 1;
             }
@@ -227,8 +230,7 @@ fn run_reference_conformance() -> RecoveryExecutionEffectConformanceEvidenceV1 {
             other => panic!("unexpected concurrent outcome: {other:?}"),
         }
     }
-    let concurrent_fencing_preserved =
-        current_applied_count == 1 && stale_rejected_count == 31;
+    let concurrent_fencing_preserved = current_applied_count == 1 && stale_rejected_count == 31;
 
     RecoveryExecutionEffectConformanceEvidenceV1 {
         current_fence_accepted,
@@ -250,9 +252,10 @@ fn run_reference_conformance() -> RecoveryExecutionEffectConformanceEvidenceV1 {
 #[test]
 fn reference_conformance_report_is_bound_to_current_source_and_profile() {
     let profile = qualified_profile();
-    let report: RecoveryExecutionEffectConformanceReportV1 =
-        serde_json::from_str(include_str!("../conformance/reference_effect_report_v1.json"))
-            .expect("checked-in report must be valid JSON");
+    let report: RecoveryExecutionEffectConformanceReportV1 = serde_json::from_str(include_str!(
+        "../conformance/reference_effect_report_v1.json"
+    ))
+    .expect("checked-in report must be valid JSON");
 
     assert!(report.is_well_formed());
     assert_eq!(report.adapter_id, "reference-memory-resource");
@@ -270,8 +273,7 @@ fn reference_conformance_report_is_bound_to_current_source_and_profile() {
     drifted_profile.claim_ceiling = "Profile drift must not widen permission.".into();
     assert!(!report.supports_profile(&drifted_profile));
 
-    let state = RecoveryExecutionProtectedMutationOrchestrationStateV1::
-        ObservedNotApplied;
+    let state = RecoveryExecutionProtectedMutationOrchestrationStateV1::ObservedNotApplied;
     assert_eq!(
         profile.next_action_for_mutation(
             &mutation(
