@@ -40,10 +40,10 @@ RUN = {
     "head_branch": "main",
     "event": "workflow_dispatch",
     "name": "Qualify GCS external effect",
-    "workflow_id": 9876,
+    "workflow_id": 311325850,
     "status": "in_progress",
     "conclusion": None,
-    "path": ".github/workflows/qualify-gcs.yml@refs/heads/main",
+    "path": ".github/workflows/qualify-gcs.yml",
     "referenced_workflows": [],
     "repository": {
         "full_name": "Luminous-Dynamics/sol-atlas-leptos",
@@ -74,11 +74,11 @@ def main() -> None:
     assert result["workflow_id"] == module.WORKFLOW_ID
     assert result["workflow_id_frozen"] == module.WORKFLOW_ID
     assert result["repository_owner_id"] == module.REPOSITORY_OWNER_ID
-    assert result["run_path_verified"] == module.WORKFLOW_PATH + "@" + module.REF
+    assert result["run_path_verified"] == module.WORKFLOW_PATH
 
     reject(dict(RUN, workflow_id=1234), WORKFLOW, "workflow_id")
     reject(
-        dict(RUN, path=".github/workflows/other.yml@refs/heads/main"),
+        dict(RUN, path=".github/workflows/other.yml"),
         WORKFLOW,
         "run_path",
     )
