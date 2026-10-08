@@ -18,7 +18,8 @@ assert spec and spec.loader
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
-PREFIX = "sol-atlas/qualification/run-1-attempt-1-abc"
+OBJECT_PREFIX = "sol-atlas/qualification"
+OBJECT_ROOT = OBJECT_PREFIX + "/run-1-attempt-1-abc"
 
 
 def expect_rejection(report: dict[str, object], message: str) -> None:
@@ -31,7 +32,7 @@ def expect_rejection(report: dict[str, object], message: str) -> None:
 
 def main() -> None:
     assert module.SCHEMA == (
-        "sol-atlas:recovery-execution-effect-external-report:v7"
+        "sol-atlas:recovery-execution-effect-external-report:v8"
     )
     assert module.EFFECTIVE_IAM_AUDIT_SCHEMA == (
         "sol-atlas:gcs-wif-effective-iam-audit:v8"
@@ -48,11 +49,12 @@ def main() -> None:
     good = {
         "service": "Google Cloud Storage",
         "bucket": "sol-atlas-qualification",
-        "object_prefix": PREFIX,
+        "object_prefix": OBJECT_PREFIX,
+        "object_root": OBJECT_ROOT,
         "object_names": [
-            PREFIX + "/main.bin",
-            PREFIX + "/point-in-time.bin",
-            PREFIX + "/metadata-race.bin",
+            OBJECT_ROOT + "/main.bin",
+            OBJECT_ROOT + "/point-in-time.bin",
+            OBJECT_ROOT + "/metadata-race.bin",
         ],
     }
     module.verify_resource_identity(good)
@@ -136,17 +138,17 @@ def main() -> None:
     )
     expect_rejection(
         dict(good, object_names=[
-            PREFIX + "/main.bin",
-            PREFIX + "/point-in-time.bin",
+            OBJECT_ROOT + "/main.bin",
+            OBJECT_ROOT + "/point-in-time.bin",
             "other-prefix/metadata-race.bin",
         ]),
         "object prefix drift was accepted",
     )
     expect_rejection(
         dict(good, object_names=[
-            PREFIX + "/main.bin",
-            PREFIX + "/main.bin",
-            PREFIX + "/metadata-race.bin",
+            OBJECT_ROOT + "/main.bin",
+            OBJECT_ROOT + "/main.bin",
+            OBJECT_ROOT + "/metadata-race.bin",
         ]),
         "duplicate object identity was accepted",
     )
@@ -172,7 +174,95 @@ def main() -> None:
         oidc_audience_verified=True,
         observer_service_account="observer@sol-atlas.iam.gserviceaccount.com",
         observer_identity_verified=True,
+        project_id="sol-atlas",
+        service_account="qualification@sol-atlas.iam.gserviceaccount.com",
     )
+    policy_targets = []
+    project = (
+        "//cloudresourcemanager.googleapis.com/projects/"
+        "sol-atlas"
+    )
+    service_account = (
+        "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
+        "qualification@sol-atlas.iam.gserviceaccount.com"
+    )
+    negative_targets = [
+        (project, "cloudbuild.builds.create"),
+        (project, "deploymentmanager.deployments.create"),
+        (service_account, "iam.serviceAccountKeys.create"),
+        (service_account, "iam.serviceAccounts.getIamPolicy"),
+        (service_account, "iam.serviceAccounts.setIamPolicy"),
+    ]
+    for resource, permission in negative_targets:
+        policy_targets.append(
+            {
+                "resource": resource,
+                "permission": permission,
+                "expected_overall_access_state": "CANNOT_ACCESS",
+                "overall_access_state": "CANNOT_ACCESS",
+                "allow_access_state": "ALLOW_ACCESS_STATE_NOT_GRANTED",
+                "deny_access_state": "DENY_ACCESS_STATE_NOT_DENIED",
+                "pab_access_state": "PAB_ACCESS_STATE_NOT_ENFORCED",
+                "response_digest": "sha256:" + "0" * 64,
+            }
+        )
+    for object_name in good["object_names"]:
+        resource = (
+            "//storage.googleapis.com/projects/_/buckets/"
+            + good["bucket"]
+            + "/objects/"
+            + object_name
+        )
+        for permission in (
+            "storage.objects.create",
+            "storage.objects.get",
+            "storage.objects.delete",
+        ):
+            policy_targets.append(
+                {
+                    "resource": resource,
+                    "permission": permission,
+                    "expected_overall_access_state": "CAN_ACCESS",
+                    "overall_access_state": "CAN_ACCESS",
+                    "allow_access_state": "ALLOW_ACCESS_STATE_GRANTED",
+                    "deny_access_state": "DENY_ACCESS_STATE_NOT_DENIED",
+                    "pab_access_state": "PAB_ACCESS_STATE_NOT_ENFORCED",
+                    "response_digest": "sha256:" + "0" * 64,
+                }
+            )
+    policy_audit = {
+        "schema": module.POLICY_EFFECT_AUDIT_SCHEMA,
+        "api_version": "v3beta",
+        "principal": valid_wif["service_account"],
+        "target_count": len(policy_targets),
+        "targets": policy_targets,
+        "all_targets_verified": True,
+    }
+    module.validate_policy_effect_audit(
+        policy_audit,
+        valid_wif,
+        good["bucket"],
+        good["object_names"],
+        "sol-atlas",
+    )
+    assert len(policy_targets) == 14
+    tampered_policy = json.loads(json.dumps(policy_audit))
+    tampered_policy["targets"][0]["overall_access_state"] = "CAN_ACCESS"
+    try:
+        module.validate_policy_effect_audit(
+            tampered_policy,
+            valid_wif,
+            good["bucket"],
+            good["object_names"],
+            "sol-atlas",
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "Policy Troubleshooter validator accepted tampered state"
+        )
+
     module.validate_wif_verification(valid_wif)
     same_identity = dict(
         valid_wif,
