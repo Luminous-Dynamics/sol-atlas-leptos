@@ -111,6 +111,8 @@ jobs:
           python3 -m py_compile scripts/test_verify_gcs_broad_sa_impersonation_integration.py
           python3 -m py_compile scripts/test_validate_observer_audit_evidence.py
           python3 -m py_compile scripts/test_verify_gcs_effective_iam_pivots.py
+          python3 -m py_compile scripts/verify_gcs_artifact_handoff.py
+          python3 -m py_compile scripts/test_verify_gcs_artifact_handoff.py
           python3 -m py_compile scripts/test_verify_gcs_effective_iam.py
           python3 scripts/test_verify_gcs_wif_provider.py
           python3 scripts/test_verify_github_oidc_claims.py
@@ -124,6 +126,7 @@ jobs:
           python3 scripts/test_verify_gcs_effective_iam.py
           python3 scripts/test_verify_gcs_policy_effect.py
           python3 scripts/test_verify_gcs_effective_iam_pivots.py
+          python3 scripts/test_verify_gcs_artifact_handoff.py
           python3 scripts/test_verify_gcs_broad_sa_impersonation.py
           python3 scripts/test_verify_gcs_observer_isolation.py
           python3 scripts/test_verify_github_governance_root.py
@@ -168,6 +171,8 @@ jobs:
             scripts/test_verify_gcs_effective_iam.py \
             scripts/test_verify_gcs_effective_iam_v2.py \
             scripts/test_verify_gcs_effective_iam_v3.py \
+            scripts/verify_gcs_artifact_handoff.py \
+            scripts/test_verify_gcs_artifact_handoff.py \
             scripts/test_verify_gcs_effective_iam_pivots.py \
             scripts/test_validate_observer_audit_evidence.py \
             scripts/test_verify_gcs_policy_effect.py
