@@ -178,6 +178,119 @@ def main() -> None:
         "group-mediated observer access",
     )
 
+    lateral_clean = module.extract_lateral_service_account_permissions(
+        envelope([]),
+        OBSERVER_PRINCIPAL,
+    )
+    assert lateral_clean == []
+
+    lateral_exact = finding(
+        [module.FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS[1]],
+    )
+    lateral_exact["accessControlLists"][0]["resources"] = [{
+        "fullResourceName": (
+            "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
+            "other@sol-atlas.iam.gserviceaccount.com"
+        )
+    }]
+    lateral_exact_result = module.extract_lateral_service_account_permissions(
+        envelope([lateral_exact]),
+        OBSERVER_PRINCIPAL,
+    )
+    assert lateral_exact_result[0]["permissions"] == [
+        module.FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS[1]
+    ]
+
+    lateral_false = finding(
+        [module.FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS[1]],
+        condition="FALSE",
+    )
+    lateral_false["accessControlLists"][0]["resources"] = [{
+        "fullResourceName": (
+            "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
+            "other@sol-atlas.iam.gserviceaccount.com"
+        )
+    }]
+    assert module.extract_lateral_service_account_permissions(
+        envelope([lateral_false]),
+        OBSERVER_PRINCIPAL,
+    ) == []
+
+    expect_lateral_failure = lambda data, label: (
+        (lambda: (
+            module.extract_lateral_service_account_permissions(
+                data,
+                OBSERVER_PRINCIPAL,
+            )
+        ))()
+    )
+
+    lateral_conditional = finding(
+        [module.FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS[1]],
+        condition="CONDITIONAL",
+    )
+    lateral_conditional["accessControlLists"][0]["resources"] = [{
+        "fullResourceName": (
+            "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
+            "other@sol-atlas.iam.gserviceaccount.com"
+        )
+    }]
+    try:
+        expect_lateral_failure(
+            envelope([lateral_conditional]),
+            "conditional lateral access",
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "conditional lateral service-account access was accepted"
+        )
+
+    lateral_broad = finding(
+        [module.FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS[1]],
+        member="group:observer-auditors@example.com",
+    )
+    lateral_broad["accessControlLists"][0]["resources"] = [{
+        "fullResourceName": (
+            "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
+            "other@sol-atlas.iam.gserviceaccount.com"
+        )
+    }]
+    try:
+        expect_lateral_failure(
+            envelope([lateral_broad]),
+            "broader lateral access",
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "broader lateral service-account access was accepted"
+        )
+
+    universal_lateral = finding(
+        [module.FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS[1]],
+        member="allAuthenticatedUsers",
+    )
+    universal_lateral["accessControlLists"][0]["resources"] = [{
+        "fullResourceName": (
+            "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
+            "other@sol-atlas.iam.gserviceaccount.com"
+        )
+    }]
+    try:
+        expect_lateral_failure(
+            envelope([universal_lateral]),
+            "universal lateral access",
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "universal lateral service-account access was accepted"
+        )
+
     authority_clean = module.extract_observer_authority(
         envelope([]),
         OBSERVER_PRINCIPAL,
