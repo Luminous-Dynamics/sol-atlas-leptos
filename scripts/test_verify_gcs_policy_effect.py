@@ -21,6 +21,8 @@ spec.loader.exec_module(module)
 
 PRINCIPAL = "qualification@sol-atlas.iam.gserviceaccount.com"
 RESOURCE = "//cloudresourcemanager.googleapis.com/projects/sol-atlas"
+BUCKET = "sol-atlas-qualification"
+OBJECT_ROOT = "sol-atlas/qualification/run-123-attempt-1"
 
 
 def response(
@@ -125,6 +127,71 @@ def main() -> None:
         pass
     else:
         raise AssertionError("accepted workload identity principal")
+
+    object_resource = module.object_resource(
+        BUCKET,
+        OBJECT_ROOT + "/main.bin",
+    )
+    assert object_resource == (
+        "//storage.googleapis.com/projects/_/buckets/"
+        "sol-atlas-qualification/objects/"
+        "sol-atlas/qualification/run-123-attempt-1/main.bin"
+    )
+
+    v2_manifest = {
+        "schema": module.TARGET_MANIFEST_SCHEMA,
+        "targets": [
+            {
+                "resource_template": (
+                    "//storage.googleapis.com/projects/_/buckets/{bucket}/"
+                    "objects/{object_root}/main.bin"
+                ),
+                "permission": "storage.objects.create",
+                "expected_overall_access_state": "CAN_ACCESS",
+            }
+        ],
+    }
+    with TemporaryDirectory() as tmp:
+        manifest_path = Path(tmp) / "targets-v2.json"
+        manifest_path.write_text(
+            json.dumps(v2_manifest),
+            encoding="utf-8",
+        )
+        expanded = module.load_targets(
+            str(manifest_path),
+            "sol-atlas",
+            PRINCIPAL,
+            BUCKET,
+            OBJECT_ROOT,
+        )
+        assert expanded[0]["resource"] == object_resource
+
+        for kwargs in (
+            {
+                "project_id": "sol-atlas",
+                "service_account": PRINCIPAL,
+                "object_root": OBJECT_ROOT,
+            },
+            {
+                "project_id": "sol-atlas",
+                "service_account": PRINCIPAL,
+                "bucket": BUCKET,
+            },
+        ):
+            try:
+                module.load_targets(
+                    str(manifest_path),
+                    kwargs["project_id"],
+                    kwargs["service_account"],
+                    kwargs.get("bucket"),
+                    kwargs.get("object_root"),
+                )
+            except AssertionError:
+                pass
+            else:
+                raise AssertionError(
+                    "accepted v2 target manifest without required bindings"
+                )
 
     targets = [
         {
