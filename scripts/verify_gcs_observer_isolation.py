@@ -14,51 +14,64 @@ import subprocess
 from pathlib import Path
 
 SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v2"
-FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS = (
-    "iam.serviceAccounts.actAs",
-    "iam.serviceAccounts.getAccessToken",
-    "iam.serviceAccounts.getOpenIdToken",
-    "iam.serviceAccounts.implicitDelegation",
-    "iam.serviceAccounts.signBlob",
-    "iam.serviceAccounts.signJwt",
-    "iam.serviceAccountKeys.create",
-    "iam.serviceAccounts.setIamPolicy",
+OBSERVER_PROFILE_PATH = (
+    "sol-atlas-policy-store-contract/conformance/"
+    "gcs_iam_observer_profile_v1.json"
 )
-REQUIRED_OBSERVER_PERMISSION = "iam.serviceAccounts.getIamPolicy"
-OBSERVER_FORBIDDEN_PROJECT_PERMISSIONS = (
-    "resourcemanager.projects.setIamPolicy",
-    "resourcemanager.projects.update",
-    "resourcemanager.projects.delete",
-    "iam.roles.create",
-    "iam.roles.update",
-    "iam.roles.delete",
-    "iam.denypolicies.create",
-    "iam.denypolicies.update",
-    "iam.denypolicies.delete",
-    "iam.workloadIdentityPools.create",
-    "iam.workloadIdentityPools.update",
-    "iam.workloadIdentityPools.delete",
-    "iam.workloadIdentityPools.setIamPolicy",
-    "iam.workloadIdentityPoolProviders.create",
-    "iam.workloadIdentityPoolProviders.update",
-    "iam.workloadIdentityPoolProviders.delete",
-    "iam.serviceAccounts.create",
-    "iam.serviceAccounts.disable",
-    "iam.serviceAccounts.delete",
-    "iam.serviceAccounts.enable",
-    "iam.serviceAccounts.setIamPolicy",
-)
+OBSERVER_PROFILE_SCHEMA = "sol-atlas:gcs-iam-observer-profile:v1"
 
 
-PROJECT_PIVOT_PERMISSIONS = (
-    "cloudbuild.builds.create",
-    "deploymentmanager.deployments.create",
-    "compute.instances.create",
-    "run.services.create",
-    "run.jobs.create",
-    "cloudfunctions.functions.create",
-    "resourcemanager.projects.setIamPolicy",
+def load_observer_profile() -> dict[str, object]:
+    path = Path(__file__).resolve().parents[1] / OBSERVER_PROFILE_PATH
+    profile = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(profile, dict):
+        raise AssertionError("observer profile is not an object")
+    if profile.get("schema") != OBSERVER_PROFILE_SCHEMA:
+        raise AssertionError("observer profile schema drift")
+    list_fields = (
+        "forbidden_service_account_permissions",
+        "forbidden_project_permissions",
+        "project_pivot_permissions",
+    )
+    for field in list_fields:
+        values = profile.get(field)
+        if (
+            not isinstance(values, list)
+            or not values
+            or any(not isinstance(value, str) or not value for value in values)
+        ):
+            raise AssertionError(
+                "observer profile field is malformed: " + field
+            )
+    required = profile.get("required_observer_permission")
+    if not isinstance(required, str) or not required:
+        raise AssertionError("observer profile required permission is malformed")
+    trust_path = profile.get("trust_profile_path")
+    trust_schema = profile.get("trust_profile_schema")
+    if trust_path != (
+        "sol-atlas-policy-store-contract/conformance/"
+        "gcs_wif_trust_profile_v9.json"
+    ):
+        raise AssertionError("observer trust profile path drift")
+    if trust_schema != "sol-atlas:gcs-wif-trust-profile:v9":
+        raise AssertionError("observer trust profile schema drift")
+    return profile
+
+
+OBSERVER_PROFILE = load_observer_profile()
+FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS = tuple(
+    OBSERVER_PROFILE["forbidden_service_account_permissions"]
 )
+REQUIRED_OBSERVER_PERMISSION = OBSERVER_PROFILE[
+    "required_observer_permission"
+]
+OBSERVER_FORBIDDEN_PROJECT_PERMISSIONS = tuple(
+    OBSERVER_PROFILE["forbidden_project_permissions"]
+)
+PROJECT_PIVOT_PERMISSIONS = tuple(
+    OBSERVER_PROFILE["project_pivot_permissions"]
+)
+
 
 
 def load_effective_iam_module():
