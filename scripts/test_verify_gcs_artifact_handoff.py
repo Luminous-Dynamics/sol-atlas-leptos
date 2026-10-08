@@ -68,6 +68,30 @@ def main() -> None:
     assert good["observer_file_count"] == 7
     assert good["final_file_count"] == 6
 
+    duplicate_step = workflow() + step(
+        "Upload WIF trust evidence",
+        "        id: decoy\n",
+    )
+    expect_failure(
+        duplicate_step,
+        "duplicate observer upload step",
+    )
+    reordered = workflow()
+    marker_a = step(
+        "Download observed WIF trust evidence",
+        "        decoy: true\n",
+    )
+    marker_b = step(
+        "Promote observed WIF trust evidence",
+        "        decoy: true\n",
+    )
+    reordered = reordered.replace(marker_a, "")
+    reordered = reordered.replace(marker_b, marker_a, 1)
+    expect_failure(
+        reordered,
+        "observer download/promotion order drift",
+    )
+
     expect_failure(
         workflow().replace(OBSERVER_FILES[0], "artifacts/missing.json"),
         "missing observer evidence",
