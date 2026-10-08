@@ -96,6 +96,42 @@ def main() -> None:
             "forbidden permission " + permission,
         )
 
+    pivot_clean = {
+        "fullyExplored": True,
+        "nonCriticalErrors": [],
+        "analysisResults": [],
+    }
+    assert module.extract_project_pivots(
+        pivot_clean,
+        "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
+    ) == set()
+
+    pivot_result = {
+        "fullyExplored": True,
+        "identityList": {
+            "identities": [{"name": OBSERVER_PRINCIPAL}]
+        },
+        "accessControlLists": [{
+            "resources": [{
+                "fullResourceName":
+                    "//cloudresourcemanager.googleapis.com/projects/sol-atlas"
+            }],
+            "accesses": [{
+                "permission": "cloudbuild.builds.create"
+            }],
+        }],
+    }
+    observed_pivot = module.extract_project_pivots(
+        {
+            "fullyExplored": True,
+            "nonCriticalErrors": [],
+            "analysisResults": [pivot_result],
+        },
+        "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
+    )
+    assert observed_pivot == {"cloudbuild.builds.create"}
+
+
     for universal in ("allUsers", "allAuthenticatedUsers"):
         expect_failure(
             envelope([
@@ -148,6 +184,19 @@ def main() -> None:
         raise AssertionError("malformed observer identity was accepted")
 
     assert module.service_account_principal(OBSERVER) == OBSERVER_PRINCIPAL
+    try:
+        module.extract_project_pivots(
+            {
+                "fullyExplored": True,
+                "nonCriticalErrors": [{"code": "DENIED"}],
+                "analysisResults": [],
+            },
+            "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("project pivot analyzer accepted an error response")
     print("observer isolation checks: PASS")
 
 
