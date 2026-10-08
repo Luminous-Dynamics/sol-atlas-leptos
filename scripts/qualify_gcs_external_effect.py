@@ -649,6 +649,15 @@ def validate_broad_sa_audit(
         raise AssertionError("broad-SA principal root drift")
     if audit.get("oidc_claims_digest") != digest(observer_oidc_claims):
         raise AssertionError("broad-SA OIDC evidence digest drift")
+    observed_claims = observer_oidc_claims.get("claims")
+    if not isinstance(observed_claims, dict):
+        raise AssertionError("broad-SA observer OIDC claims are missing")
+    if audit.get("oidc_subject") != observed_claims.get("sub"):
+        raise AssertionError("broad-SA immutable subject drift")
+    if audit.get("expected_principal") != wif_verification.get(
+        "service_account_binding_member"
+    ):
+        raise AssertionError("broad-SA principal root drift")
     if audit.get("broad_impersonation_absent") is not True:
         raise AssertionError("broad-SA impersonation was not excluded")
     if audit.get("broad_impersonation_findings") != []:
