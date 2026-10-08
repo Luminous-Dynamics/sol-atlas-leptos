@@ -80,10 +80,9 @@ EFFECTIVE = {
     "non_critical_errors": [],
     "forbidden_execution_permissions_absent": True,
     "required_permissions_verified": True,
-    "project_pivot_permissions": [
-        "cloudbuild.builds.create",
-        "deploymentmanager.deployments.create",
-    ],
+    "project_pivot_permissions": list(
+        module.EFFECTIVE_IAM_PROJECT_PIVOT_PERMISSIONS
+    ),
     "project_pivot_response_digest": "sha256:" + "a" * 64,
     "policy_analyzer_response_digest": "sha256:" + "b" * 64,
     "project_pivot_permissions_absent": True,
@@ -103,6 +102,48 @@ EFFECTIVE = {
         ],
     }],
 }
+OBSERVER_ISOLATION = {
+    "schema": module.OBSERVER_ISOLATION_AUDIT_SCHEMA,
+    "observer_principal": "serviceAccount:" + OBSERVER,
+    "observer_service_account": OBSERVER,
+    "effect_service_account": EFFECT,
+    "observed_permissions": [
+        "iam.serviceAccounts.getIamPolicy"
+    ],
+    "required_observer_permission_verified": True,
+    "forbidden_effect_permissions_absent": True,
+    "forbidden_permissions": [
+        "iam.serviceAccounts.actAs",
+        "iam.serviceAccounts.getAccessToken",
+        "iam.serviceAccounts.getOpenIdToken",
+        "iam.serviceAccounts.implicitDelegation",
+        "iam.serviceAccounts.signBlob",
+        "iam.serviceAccounts.signJwt",
+        "iam.serviceAccountKeys.create",
+        "iam.serviceAccounts.setIamPolicy",
+    ],
+    "policy_analyzer_response_digest": "sha256:" + "d" * 64,
+    "project_pivot_permissions": list(
+        module.OBSERVER_ISOLATION_AUDIT_PROJECT_PIVOT_PERMISSIONS
+        if hasattr(
+            module,
+            "OBSERVER_ISOLATION_AUDIT_PROJECT_PIVOT_PERMISSIONS",
+        )
+        else module.PROJECT_PIVOT_PERMISSIONS
+    ),
+    "project_pivot_permissions_absent": True,
+    "project_pivot_observed_permissions": [],
+    "project_pivot_response_digest": "sha256:" + "e" * 64,
+    "observer_authority_permissions": (
+        module.OBSERVER_AUTHORITY_FORBIDDEN_PROJECT_PERMISSIONS
+    ),
+    "observer_authority_permissions_absent": True,
+    "observer_authority_observed_permissions": [],
+    "observer_authority_response_digest": "sha256:" + "f" * 64,
+    "claim_ceiling": "observer audit bounded",
+}
+
+
 BROAD = {
     "schema": module.BROAD_SA_AUDIT_SCHEMA,
     "wif_verification_digest": module.digest(WIF),
@@ -136,6 +177,19 @@ def rejects(fn, value, label: str) -> None:
     raise AssertionError("accepted tampered observer evidence: " + label)
 
 
+def reject_observer_isolation(value, label: str) -> None:
+    try:
+        module.validate_observer_isolation_audit(
+            value,
+            WIF,
+        )
+    except AssertionError:
+        return
+    raise AssertionError(
+        "accepted tampered observer isolation evidence: " + label
+    )
+
+
 def main() -> None:
     module.validate_effective_iam_audit(
         EFFECTIVE,
@@ -147,6 +201,20 @@ def main() -> None:
         WIF,
         OBSERVER_OIDC,
     )
+
+    module.validate_observer_isolation_audit(
+        OBSERVER_ISOLATION,
+        WIF,
+    )
+
+    for field, value in (
+        ("observer_authority_permissions", []),
+        ("observer_authority_response_digest", "sha256:tampered"),
+        ("project_pivot_permissions", []),
+    ):
+        tampered = dict(OBSERVER_ISOLATION)
+        tampered[field] = value
+        reject_observer_isolation(value=tampered, label=field)
 
     for field, value in (
         ("wif_verification_digest", "sha256:tampered"),
