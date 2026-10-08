@@ -454,39 +454,55 @@ impl CapabilityGraph {
             return Err(CapabilityGraphError::MissingRoot(root.clone()));
         }
 
-        let mut visiting = BTreeSet::new();
+        // Iterative DFS avoids stack overflow on long, valid bootstrap chains.
+        // 0/None = unseen, 1 = active on the current DFS path, 2 = complete.
+        let mut colors: BTreeMap<CapabilityId, u8> = BTreeMap::new();
         let mut visited = BTreeSet::new();
-        self.visit(root, &mut visiting, &mut visited)?;
+        let mut stack = vec![(root.clone(), false)];
+
+        while let Some((id, exiting)) = stack.pop() {
+            if exiting {
+                colors.insert(id.clone(), 2);
+                visited.insert(id);
+                continue;
+            }
+
+            match colors.get(&id).copied() {
+                Some(2) => continue,
+                Some(1) => {
+                    return Err(CapabilityGraphError::Cycle { capability: id });
+                }
+                _ => {}
+            }
+
+            colors.insert(id.clone(), 1);
+            stack.push((id.clone(), true));
+
+            let capability = self
+                .capabilities
+                .get(&id)
+                .expect("validated by CapabilityGraph::new");
+
+            // Reverse push preserves ascending DFS traversal even though the
+            // final closure is sorted independently for a stable public result.
+            for dependency in capability
+                .sorted_required_dependencies()
+                .into_iter()
+                .rev()
+            {
+                match colors.get(&dependency).copied() {
+                    Some(1) => {
+                        return Err(CapabilityGraphError::Cycle {
+                            capability: dependency,
+                        });
+                    }
+                    Some(2) => {}
+                    _ => stack.push((dependency, false)),
+                }
+            }
+        }
+
         Ok(visited.into_iter().collect())
-    }
-
-    fn visit(
-        &self,
-        id: &CapabilityId,
-        visiting: &mut BTreeSet<CapabilityId>,
-        visited: &mut BTreeSet<CapabilityId>,
-    ) -> Result<(), CapabilityGraphError> {
-        if visited.contains(id) {
-            return Ok(());
-        }
-        if !visiting.insert(id.clone()) {
-            return Err(CapabilityGraphError::Cycle {
-                capability: id.clone(),
-            });
-        }
-
-        let capability = self
-            .capabilities
-            .get(id)
-            .expect("validated by CapabilityGraph::new");
-
-        for dependency in capability.sorted_required_dependencies() {
-            self.visit(&dependency, visiting, visited)?;
-        }
-
-        visiting.remove(id);
-        visited.insert(id.clone());
-        Ok(())
     }
 
     pub fn deterministic_json(&self) -> Result<String, serde_json::Error> {
@@ -705,6 +721,34 @@ mod tests {
             ]
         );
         assert_eq!(g1.required_closure(&root), g2.required_closure(&root));
+    }
+
+    #[test]
+    fn required_closure_handles_deep_chains_without_recursion() {
+        const DEPTH: usize = 10_000;
+        let capabilities = (0..DEPTH)
+            .map(|index| {
+                let dependency = (index + 1 < DEPTH)
+                    .then(|| CapabilityId::new(format!("cap-{index_plus_one:05}", index_plus_one = index + 1)).unwrap());
+                Capability {
+                    id: CapabilityId::new(format!("cap-{index:05}")).unwrap(),
+                    name: format!("Capability {index}"),
+                    description: "deep-chain regression fixture".into(),
+                    required_dependencies: dependency.into_iter().collect(),
+                    alternatives: vec![],
+                    evidence: vec![],
+                    human_ai: HumanAiContribution {
+                        human_role: "test".into(),
+                        ai_role: "test".into(),
+                    },
+                    provenance: CapabilityProvenance::synthetic_fixture(),
+                    claim_ceiling: "test-only".into(),
+                }
+            })
+            .collect::<Vec<_>>();
+        let graph = CapabilityGraph::new(capabilities).unwrap();
+        let root = CapabilityId::new("cap-00000").unwrap();
+        assert_eq!(graph.required_closure(&root).unwrap().len(), DEPTH);
     }
 
     #[test]
