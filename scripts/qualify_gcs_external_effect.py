@@ -63,6 +63,7 @@ EFFECTIVE_IAM_AUDIT_SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v7"
 BROAD_SA_AUDIT_SCHEMA = (
     "sol-atlas:gcs-broad-service-account-impersonation-audit:v2"
 )
+OBSERVER_ISOLATION_AUDIT_SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v1"
 WIF_TRUST_PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
     "gcs_wif_trust_profile_v9.json"
@@ -432,6 +433,47 @@ def validate_effective_iam_audit(
         raise AssertionError("effective-IAM analyzer response digest is malformed")
 
 
+def validate_observer_isolation_audit(
+    audit: dict[str, object],
+    wif_verification: dict[str, object],
+) -> None:
+    if audit.get("schema") != OBSERVER_ISOLATION_AUDIT_SCHEMA:
+        raise AssertionError("wrong observer isolation audit schema")
+    observer = wif_verification.get("observer_service_account")
+    effect = wif_verification.get("service_account")
+    if audit.get("observer_service_account") != observer:
+        raise AssertionError("observer isolation observer identity drift")
+    if audit.get("effect_service_account") != effect:
+        raise AssertionError("observer isolation effect identity drift")
+    if not isinstance(observer, str) or not observer:
+        raise AssertionError("WIF observer identity is missing")
+    expected_principal = "serviceAccount:" + observer
+    if audit.get("observer_principal") != expected_principal:
+        raise AssertionError("observer isolation principal drift")
+    if audit.get("required_observer_permission_verified") is not True:
+        raise AssertionError("observer IAM read privilege was not verified")
+    if audit.get("forbidden_effect_permissions_absent") is not True:
+        raise AssertionError("observer effect privileges were not excluded")
+    observed = audit.get("observed_permissions")
+    if not isinstance(observed, list):
+        raise AssertionError("observer isolation permissions are malformed")
+    if "iam.serviceAccounts.getIamPolicy" not in observed:
+        raise AssertionError("observer IAM policy-read permission is missing")
+    forbidden = audit.get("forbidden_permissions")
+    if not isinstance(forbidden, list):
+        raise AssertionError("observer forbidden permission list is malformed")
+    if set(observed).intersection(
+        str(permission) for permission in forbidden
+    ):
+        raise AssertionError("observer isolation contains forbidden permissions")
+    digest_value = audit.get("policy_analyzer_response_digest")
+    if not is_sha256_digest(digest_value):
+        raise AssertionError("observer isolation response digest is malformed")
+    claim = audit.get("claim_ceiling")
+    if not isinstance(claim, str) or not claim:
+        raise AssertionError("observer isolation claim ceiling is missing")
+
+
 def validate_broad_sa_audit(
     audit: dict[str, object],
     wif_verification: dict[str, object],
@@ -788,6 +830,7 @@ def run_qualification(
     observer_oidc_claims_path: str,
     effective_iam_audit_path: str,
     broad_sa_audit_path: str,
+    observer_isolation_audit_path: str,
 ) -> dict[str, object]:
     case_set = load_case_set()
     wif_verification = load_wif_verification(wif_verification_path)
@@ -810,6 +853,9 @@ def run_qualification(
     broad_sa_audit = json.loads(
         Path(broad_sa_audit_path).read_text(encoding="utf-8")
     )
+    observer_isolation_audit = json.loads(
+        Path(observer_isolation_audit_path).read_text(encoding="utf-8")
+    )
     validate_effective_iam_audit(
         effective_iam_audit,
         wif_verification,
@@ -819,6 +865,10 @@ def run_qualification(
         broad_sa_audit,
         wif_verification,
         observer_oidc_claims,
+    )
+    validate_observer_isolation_audit(
+        observer_isolation_audit,
+        wif_verification,
     )
     oidc_audience = wif_verification.get("oidc_expected_audience")
     if not isinstance(oidc_audience, str) or not oidc_audience:
@@ -1231,6 +1281,8 @@ def run_qualification(
             "effective_iam_audit_digest": digest(effective_iam_audit),
             "broad_sa_impersonation_audit": broad_sa_audit,
             "broad_sa_impersonation_audit_digest": digest(broad_sa_audit),
+            "observer_isolation_audit": observer_isolation_audit,
+            "observer_isolation_audit_digest": digest(observer_isolation_audit),
             "github_oidc_claims": oidc_claims,
             "github_oidc_claims_digest": digest(oidc_claims),
             "wif_credential_config_verification": (
