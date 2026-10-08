@@ -140,6 +140,12 @@ def main() -> None:
         ]),
         "mixed exact and unrelated members",
     )
+    for universal in module.FORBIDDEN_UNIVERSAL_PRINCIPALS:
+        expect_reject(
+            payload([result(members=[universal], identities=[universal])]),
+            "universal principal",
+        )
+
     expect_reject(
         payload([result(role="roles/iam.serviceAccountTokenCreator")]),
         "alternate predefined role",
