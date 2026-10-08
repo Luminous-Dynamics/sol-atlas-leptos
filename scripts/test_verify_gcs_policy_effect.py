@@ -7,7 +7,9 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "verify_gcs_policy_effect.py"
@@ -131,6 +133,46 @@ def main() -> None:
             "expected_overall_access_state": "CANNOT_ACCESS",
         }
     ]
+    manifest = {
+        "schema": "sol-atlas:gcs-policy-troubleshooter-targets:v1",
+        "targets": [
+            {
+                "resource_template": (
+                    "//cloudresourcemanager.googleapis.com/projects/{project_id}"
+                ),
+                "permission": "cloudbuild.builds.create",
+                "expected_overall_access_state": "CANNOT_ACCESS",
+            },
+            {
+                "resource_template": (
+                    "//iam.googleapis.com/projects/{project_id}/"
+                    "serviceAccounts/{service_account}"
+                ),
+                "permission": "iam.serviceAccountKeys.create",
+                "expected_overall_access_state": "CANNOT_ACCESS",
+            },
+        ],
+    }
+    with TemporaryDirectory() as tmp:
+        manifest_path = Path(tmp) / "targets.json"
+        manifest_path.write_text(
+            json.dumps(manifest),
+            encoding="utf-8",
+        )
+        expanded = module.load_targets(
+            str(manifest_path),
+            "sol-atlas",
+            PRINCIPAL,
+        )
+        assert expanded[0]["resource"] == RESOURCE.split(
+            "/serviceAccounts/",
+            1,
+        )[0] if False else (
+            "//cloudresourcemanager.googleapis.com/projects/sol-atlas"
+        )
+        assert expanded[1]["resource"].endswith(
+            "/qualification@sol-atlas.iam.gserviceaccount.com"
+        )
     assert module.validate_target(targets[0]) == (
         RESOURCE,
         "cloudbuild.builds.create",
