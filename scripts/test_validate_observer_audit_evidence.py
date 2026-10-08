@@ -76,15 +76,31 @@ EFFECTIVE = {
     "observer_identity_verified": True,
     "expected_principal": PRINCIPAL,
     "oidc_claims_digest": module.digest(OBSERVER_OIDC),
+    "principal_selection_mode": (
+        "permission_query_with_frozen_workload_principal_set_filter"
+    ),
+    "matched_workload_principal_sets": EXPECTED_PRINCIPAL_SET_MEMBERS,
     "fully_explored": True,
     "non_critical_errors": [],
     "forbidden_execution_permissions_absent": True,
     "required_permissions_verified": True,
+    "project_pivot_permissions": [
+        "cloudbuild.builds.create",
+        "deploymentmanager.deployments.create",
+    ],
+    "project_pivot_response_digest": "sha256:" + "a" * 64,
+    "policy_analyzer_response_digest": "sha256:" + "b" * 64,
     "project_pivot_permissions_absent": True,
     "project_pivot_findings": [],
     "findings": [{
         "role": "roles/iam.workloadIdentityUser",
         "members": [PRINCIPAL],
+        "identities": [PRINCIPAL],
+        "principal_match_kinds": ["exact"],
+        "permissions": [
+            "iam.serviceAccounts.getAccessToken",
+            "iam.serviceAccounts.getOpenIdToken",
+        ],
     }],
 }
 BROAD = {
