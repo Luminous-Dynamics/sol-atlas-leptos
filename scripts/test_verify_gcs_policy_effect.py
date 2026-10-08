@@ -164,7 +164,7 @@ def main() -> None:
     with TemporaryDirectory() as tmp:
         manifest_path = Path(tmp) / "targets-v3.json"
         manifest_path.write_text(
-            json.dumps(v2_manifest),
+            json.dumps(v3_manifest),
             encoding="utf-8",
         )
         expanded = module.load_targets(
