@@ -140,7 +140,7 @@ def main() -> None:
         ]),
         "mixed exact and unrelated members",
     )
-    for universal in module.FORBIDDEN_UNIVERSAL_PRINCIPALS:
+    for universal in module.FORBIDDEN_WORKLOAD_UNIVERSAL_PRINCIPALS:
         expect_reject(
             payload([result(members=[universal], identities=[universal])]),
             "universal principal",
