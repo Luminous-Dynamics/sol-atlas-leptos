@@ -413,7 +413,9 @@ def extract_observer_authority(
         raise AssertionError(
             "observer authority analysisResults is not a list"
         )
+
     observed: set[str] = set()
+    module = load_effective_iam_module()
     for index, result in enumerate(results):
         if not isinstance(result, dict):
             raise AssertionError(
@@ -423,7 +425,55 @@ def extract_observer_authority(
             raise AssertionError(
                 f"observer authority result {index} is not fully explored"
             )
-        identities = result.get("identityList"),        if not isinstance(identities, dict):,            raise AssertionError(,                f"observer authority result {index} has invalid identities",            ),        identity_entries = identities.get("identities"),        if not isinstance(identity_entries, list):,            raise AssertionError(,                f"observer authority result {index} has invalid identities",            ),        identity_names = [],        for identity in identity_entries:,            if not isinstance(identity, dict):,                raise AssertionError(,                    f"observer authority result {index} has invalid identity",                ),            name = identity.get("name"),            if not isinstance(name, str) or not name:,                raise AssertionError(,                    f"observer authority result {index} has invalid identity name",                ),            identity_names.append(name),        if observer_principal not in identity_names:,            continue,        binding = result.get("iamBinding"),        if not isinstance(binding, dict):,            raise AssertionError(,                f"observer authority result {index} has no binding",            ),        members = binding.get("members"),        if not isinstance(members, list):,            raise AssertionError(,                f"observer authority result {index} has invalid members",            ),        module = load_effective_iam_module(),        if any(,            member in module.FORBIDDEN_UNIVERSAL_PRINCIPALS,            for member in members,            if isinstance(member, str),        ):,            raise AssertionError(,                "observer authority is granted through a universal principal",            )
+
+        identities = result.get("identityList")
+        if not isinstance(identities, dict):
+            raise AssertionError(
+                f"observer authority result {index} has invalid identities"
+            )
+        identity_entries = identities.get("identities")
+        if not isinstance(identity_entries, list):
+            raise AssertionError(
+                f"observer authority result {index} has invalid identity list"
+            )
+        identity_names: list[str] = []
+        for identity in identity_entries:
+            if not isinstance(identity, dict):
+                raise AssertionError(
+                    f"observer authority result {index} has invalid identity"
+                )
+            name = identity.get("name")
+            if not isinstance(name, str) or not name:
+                raise AssertionError(
+                    f"observer authority result {index} has invalid identity name"
+                )
+            identity_names.append(name)
+        if observer_principal not in identity_names:
+            continue
+
+        binding = result.get("iamBinding")
+        if not isinstance(binding, dict):
+            raise AssertionError(
+                f"observer authority result {index} has no binding"
+            )
+        members = binding.get("members")
+        if not isinstance(members, list):
+            raise AssertionError(
+                f"observer authority result {index} has invalid members"
+            )
+        if members != [observer_principal]:
+            raise AssertionError(
+                "observer authority is granted through a broader IAM member"
+            )
+        if any(
+            member in module.FORBIDDEN_UNIVERSAL_PRINCIPALS
+            for member in members
+            if isinstance(member, str)
+        ):
+            raise AssertionError(
+                "observer authority is granted through a universal principal"
+            )
+
         access_lists = result.get("accessControlLists")
         if not isinstance(access_lists, list) or not access_lists:
             raise AssertionError(
@@ -478,6 +528,7 @@ def extract_observer_authority(
                     )
                 if permission in OBSERVER_FORBIDDEN_PROJECT_PERMISSIONS:
                     observed.add(permission)
+
     return observed
 
 
