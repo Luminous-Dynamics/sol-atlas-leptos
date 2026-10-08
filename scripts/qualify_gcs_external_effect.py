@@ -1498,6 +1498,17 @@ def verify_report(path: str) -> None:
         broad_sa_audit
     ):
         raise AssertionError("broad service-account audit digest mismatch")
+    observer_isolation_audit = report.get("observer_isolation_audit")
+    if not isinstance(observer_isolation_audit, dict):
+        raise AssertionError("missing observer isolation audit")
+    validate_observer_isolation_audit(
+        observer_isolation_audit,
+        wif_verification,
+    )
+    if report.get("observer_isolation_audit_digest") != digest(
+        observer_isolation_audit
+    ):
+        raise AssertionError("observer isolation audit digest mismatch")
     oidc_claims = report.get("github_oidc_claims")
     if not isinstance(oidc_claims, dict):
         raise AssertionError("missing GitHub OIDC claims")
@@ -1661,6 +1672,7 @@ def main() -> int:
         args.observer_oidc_claims,
         args.effective_iam_audit,
         args.broad_sa_audit,
+        args.observer_isolation_audit,
     )
     report = finalize_report(report)
     write_report(args.output, report)
