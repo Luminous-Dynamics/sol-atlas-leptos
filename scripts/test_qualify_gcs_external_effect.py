@@ -137,6 +137,10 @@ def main() -> None:
         "incomplete object identity list was accepted",
     )
     expect_rejection(
+        dict(good, object_root="other/run-1-attempt-1"),
+        "object root prefix drift was accepted",
+    )
+    expect_rejection(
         dict(good, object_names=[
             OBJECT_ROOT + "/main.bin",
             OBJECT_ROOT + "/point-in-time.bin",
@@ -196,6 +200,7 @@ def main() -> None:
     for resource, permission in negative_targets:
         policy_targets.append(
             {
+                "principal": valid_wif["service_account"],
                 "resource": resource,
                 "permission": permission,
                 "expected_overall_access_state": "CANNOT_ACCESS",
@@ -220,9 +225,10 @@ def main() -> None:
         ):
             policy_targets.append(
                 {
-                    "resource": resource,
-                    "permission": permission,
-                    "expected_overall_access_state": "CAN_ACCESS",
+                    "principal": valid_wif["service_account"],
+                "resource": resource,
+                "permission": permission,
+                "expected_overall_access_state": "CAN_ACCESS",
                     "overall_access_state": "CAN_ACCESS",
                     "allow_access_state": "ALLOW_ACCESS_STATE_GRANTED",
                     "deny_access_state": "DENY_ACCESS_STATE_NOT_DENIED",
@@ -230,9 +236,18 @@ def main() -> None:
                     "response_digest": "sha256:" + "0" * 64,
                 }
             )
+    manifest_path = (
+        "sol-atlas-policy-store-contract/conformance/"
+        "gcs_policy_troubleshooter_targets_v2.json"
+    )
+    manifest = json.loads(
+        (ROOT / manifest_path).read_text(encoding="utf-8")
+    )
     policy_audit = {
         "schema": module.POLICY_EFFECT_AUDIT_SCHEMA,
         "api_version": "v3beta",
+        "target_manifest_path": manifest_path,
+        "target_manifest_digest": module.digest(manifest),
         "principal": valid_wif["service_account"],
         "target_count": len(policy_targets),
         "targets": policy_targets,
