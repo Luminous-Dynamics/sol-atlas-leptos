@@ -3701,16 +3701,11 @@ mod tests {
                 RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
                 _ => panic!("initial establishment must succeed"),
             };
-        let successor = match recover_established_execution_fence(
-            fence_store.as_ref(),
-            &established,
+        let successor = RecoveryExecutionFenceV1::for_recovery(
+            established.fence(),
             "attempt-b",
         )
-        .expect("successor")
-        {
-            RecoveryExecutionFenceRecoveryEstablishmentV1::Established(fence) => fence,
-            _ => panic!("successor must establish"),
-        };
+        .expect("successor");
         let effect_store = FenceAdvancingEffectStore {
             inner: ExecutionEffectMemoryStore::default(),
             fence_store: Arc::clone(&fence_store),
@@ -3745,11 +3740,12 @@ mod tests {
         );
     }
 
-    fn effect_receipt_fixture(        attempt_id: &str,
+    fn effect_receipt_fixture(
+        attempt_id: &str,
         input_snapshot: &str,
     ) -> RecoveryExecutionEffectReceiptV2 {
         RecoveryExecutionEffectReceiptV2::in_progress(
-            "effect-001",
+            "execution-claim-001",
             input_snapshot,
             attempt_id,
             1,
@@ -5325,7 +5321,8 @@ mod tests {
 
     #[test]
     fn execution_claim_uses_the_existing_execution_input_fingerprint() {
-        let execution = fixture().1;
+        let mut execution = fixture().1;
+        execution.ended_at = None;
         let claim = RecoveryExecutionClaimV1::for_execution(&execution, "attempt-a")
             .expect("well-formed execution claim");
         assert_eq!(claim.execution_id, execution.execution_id);
@@ -6114,7 +6111,12 @@ mod tests {
             RecoveryExecutionFenceResult::Recovered
         );
         assert_eq!(
-            recover_execution_fence(&store, &recovered_again, &recovered).expect("stale"),
+            recover_execution_fence(&store, &recovered, &recovered_again)
+                .expect("recover again"),
+            RecoveryExecutionFenceResult::Recovered
+        );
+        assert_eq!(
+            recover_execution_fence(&store, &initial, &recovered).expect("stale"),
             RecoveryExecutionFenceResult::StaleExpectedFence
         );
         assert_eq!(
@@ -6554,7 +6556,8 @@ mod tests {
         let (decision, execution, current) = fixture();
         let (mut transition, next) =
             transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
-        transition.next_snapshot_digest = "sha256:tampered".into();
+        transition.next_snapshot_digest =
+            "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee".into();
 
         struct NoReadStore;
 
