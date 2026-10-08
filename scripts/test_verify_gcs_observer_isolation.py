@@ -216,14 +216,17 @@ def main() -> None:
         OBSERVER_PRINCIPAL,
     ) == []
 
-    expect_lateral_failure = lambda data, label: (
-        (lambda: (
+    def expect_lateral_failure(data, label: str) -> None:
+        try:
             module.extract_lateral_service_account_permissions(
                 data,
                 OBSERVER_PRINCIPAL,
             )
-        ))()
-    )
+        except AssertionError:
+            return
+        raise AssertionError(
+            "accepted invalid lateral access: " + label
+        )
 
     lateral_conditional = finding(
         [module.FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS[1]],
@@ -246,6 +249,19 @@ def main() -> None:
         raise AssertionError(
             "conditional lateral service-account access was accepted"
         )
+
+    lateral_invalid_resource = finding(
+        [module.FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS[1]],
+    )
+    lateral_invalid_resource["accessControlLists"][0]["resources"] = [{
+        "fullResourceName": (
+            "//cloudresourcemanager.googleapis.com/projects/sol-atlas"
+        )
+    }]
+    expect_lateral_failure(
+        envelope([lateral_invalid_resource]),
+        "non-service-account resource",
+    )
 
     lateral_broad = finding(
         [module.FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS[1]],
