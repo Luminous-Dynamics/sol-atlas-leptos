@@ -413,6 +413,25 @@ def extract_findings(
                 f"analysis result {index} is not fully explored"
             )
 
+        binding = result.get("iamBinding")
+        if not isinstance(binding, dict):
+            raise AssertionError(
+                f"analysis result {index} has no IAM binding"
+            )
+        members = binding.get("members")
+        if not isinstance(members, list):
+            raise AssertionError(
+                f"analysis result {index} has invalid binding members"
+            )
+        if any(
+            member in FORBIDDEN_UNIVERSAL_PRINCIPALS
+            for member in members
+            if isinstance(member, str)
+        ):
+            raise AssertionError(
+                "universal principal has effective access to the target resource"
+            )
+
         identity_list = result.get("identityList")
         if not isinstance(identity_list, dict):
             raise AssertionError(
@@ -452,25 +471,7 @@ def extract_findings(
         if not match_kinds:
             continue
 
-        binding = result.get("iamBinding")
-        if not isinstance(binding, dict):
-            raise AssertionError(
-                f"analysis result {index} has no IAM binding"
-            )
         role = binding.get("role")
-        members = binding.get("members")
-        if not isinstance(members, list):
-            raise AssertionError(
-                f"analysis result {index} has invalid binding members"
-            )
-        if any(
-            member in FORBIDDEN_UNIVERSAL_PRINCIPALS
-            for member in members
-            if isinstance(member, str)
-        ):
-            raise AssertionError(
-                "universal principal has service-account credential access"
-            )
         attached = result.get("attachedResourceFullName")
         if role != EXPECTED_ROLE:
             raise AssertionError(
@@ -591,6 +592,25 @@ def extract_project_pivot_findings(
                 f"project pivot result {index} is not fully explored"
             )
 
+        binding = result.get("iamBinding")
+        if not isinstance(binding, dict):
+            raise AssertionError(
+                f"project pivot result {index} has no IAM binding"
+            )
+        members = binding.get("members")
+        if not isinstance(members, list):
+            raise AssertionError(
+                "project pivot binding has invalid members"
+            )
+        if any(
+            member in FORBIDDEN_UNIVERSAL_PRINCIPALS
+            for member in members
+            if isinstance(member, str)
+        ):
+            raise AssertionError(
+                "universal principal has project execution pivot access"
+            )
+
         identities = result.get("identityList")
         if not isinstance(identities, dict):
             raise AssertionError(
@@ -628,29 +648,13 @@ def extract_project_pivot_findings(
         if not pivot_match_kinds:
             continue
 
-        binding = result.get("iamBinding")
-        if not isinstance(binding, dict):
-            raise AssertionError(
-                f"project pivot result {index} has no IAM binding"
-            )
-        role = binding.get("role")
-        members = binding.get("members")
-        if not isinstance(role, str) or not role:
+        role = None
+        binding_role = binding.get("role")
+        if not isinstance(binding_role, str) or not binding_role:
             raise AssertionError(
                 f"project pivot result {index} has invalid role"
             )
-        if not isinstance(members, list):
-            raise AssertionError(
-                "project pivot binding has invalid members"
-            )
-        if any(
-            member in FORBIDDEN_UNIVERSAL_PRINCIPALS
-            for member in members
-            if isinstance(member, str)
-        ):
-            raise AssertionError(
-                "universal principal has project execution pivot access"
-            )
+        role = binding_role
         if not any(
             principal_matches_expected(
                 member,
