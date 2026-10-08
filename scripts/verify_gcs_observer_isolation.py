@@ -268,6 +268,10 @@ def extract(
             raise AssertionError(
                 "observer identity query returned an unrelated IAM binding"
             )
+        if members != [observer_principal]:
+            raise AssertionError(
+                "observer access is granted through a broader IAM member"
+            )
         observer_seen = True
 
         resources_seen = set()
