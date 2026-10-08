@@ -274,6 +274,74 @@ def load_wif_verification(path: str) -> dict[str, object]:
     return verification
 
 
+def expected_effective_workload_principal_sets(
+    expected_principal: str,
+    profile: dict[str, object],
+) -> list[str]:
+    marker = "/attribute.repository_id/"
+    if marker not in expected_principal:
+        raise AssertionError("effective-IAM principal is not repository-ID based")
+    prefix = expected_principal.split(marker, 1)[0]
+    suffix = expected_principal.split(prefix + "/", 1)[1]
+    repository_id = suffix.split("/", 1)[1]
+
+    condition = profile.get("exact_attribute_condition")
+    mappings = profile.get("required_attribute_mappings")
+    if not isinstance(condition, str) or not isinstance(mappings, dict):
+        raise AssertionError("WIF profile principal-set inputs are incomplete")
+
+    mapped_names = {
+        key.removeprefix("attribute.")
+        for key in mappings
+        if isinstance(key, str) and key.startswith("attribute.")
+    }
+    values: dict[str, str] = {}
+    for clause in condition.split(" && "):
+        if not clause.startswith("assertion.") or "==" not in clause:
+            raise AssertionError("WIF profile condition contains an unexpected clause")
+        name, value = clause.split("==", 1)
+        key = name.removeprefix("assertion.")
+        values[key] = value.strip().strip("'")
+
+    required_names = {
+        "environment",
+        "event_name",
+        "repository",
+        "repository_id",
+        "repository_owner_id",
+        "workflow",
+        "ref",
+        "workflow_ref",
+        "runner_environment",
+    }
+    if required_names - set(values):
+        raise AssertionError("WIF profile principal-set condition is incomplete")
+    if required_names - mapped_names:
+        raise AssertionError("WIF profile attribute mapping is incomplete")
+    if values["repository_id"] != repository_id:
+        raise AssertionError("effective-IAM principal disagrees with WIF profile")
+
+    members = {expected_principal, prefix + "/*"}
+    for name in sorted(required_names):
+        members.add(
+            prefix
+            + "/attribute."
+            + name
+            + "/"
+            + values[name]
+        )
+    return sorted(members)
+
+
+def is_sha256_digest(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 71
+        and value.startswith("sha256:")
+        and all(character in "0123456789abcdef" for character in value[7:])
+    )
+
+
 def validate_effective_iam_audit(
     audit: dict[str, object],
     wif_verification: dict[str, object],
@@ -285,10 +353,27 @@ def validate_effective_iam_audit(
         raise AssertionError("effective-IAM WIF evidence digest drift")
     if audit.get("wif_profile_path") != WIF_TRUST_PROFILE_PATH:
         raise AssertionError("effective-IAM profile path drift")
+    profile_path = Path(WIF_TRUST_PROFILE_PATH)
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    if profile.get("schema") != WIF_TRUST_PROFILE_SCHEMA:
+        raise AssertionError("effective-IAM WIF profile schema drift")
+    expected_profile_digest = digest(profile)
+    if audit.get("wif_profile_digest") != expected_profile_digest:
+        raise AssertionError("effective-IAM profile digest drift")
     if audit.get("wif_profile_digest") != wif_verification.get(
         "profile_digest"
     ):
-        raise AssertionError("effective-IAM profile digest drift")
+        raise AssertionError("effective-IAM WIF profile digest disagreement")
+    if audit.get("principal_selection_mode") != (
+        "permission_query_with_frozen_workload_principal_set_filter"
+    ):
+        raise AssertionError("effective-IAM principal selection mode drift")
+    expected_sets = expected_effective_workload_principal_sets(
+        wif_verification.get("service_account_binding_member", ""),
+        profile,
+    )
+    if audit.get("matched_workload_principal_sets") != expected_sets:
+        raise AssertionError("effective-IAM principal-set universe drift")
     if audit.get("service_account") != wif_verification.get(
         "service_account"
     ):
@@ -329,6 +414,22 @@ def validate_effective_iam_audit(
         "service_account_binding_member"
     )]:
         raise AssertionError("effective-IAM intended binding member drift")
+    if finding.get("principal_match_kinds") != ["exact"]:
+        raise AssertionError("effective-IAM intended binding principal match drift")
+    if finding.get("identities") != [
+        wif_verification.get("service_account_binding_member")
+    ]:
+        raise AssertionError("effective-IAM intended identity drift")
+
+    if audit.get("project_pivot_permissions") != [
+        "cloudbuild.builds.create",
+        "deploymentmanager.deployments.create",
+    ]:
+        raise AssertionError("effective-IAM pivot permission set drift")
+    if not is_sha256_digest(audit.get("project_pivot_response_digest")):
+        raise AssertionError("effective-IAM pivot response digest is malformed")
+    if not is_sha256_digest(audit.get("policy_analyzer_response_digest")):
+        raise AssertionError("effective-IAM analyzer response digest is malformed")
 
 
 def validate_broad_sa_audit(
