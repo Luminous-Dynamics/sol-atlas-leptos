@@ -237,10 +237,43 @@ def validate_qualification_policy(
         ),
         None,
     )
+    qualify_token_line = next(
+        (
+            i
+            for i, line in enumerate(qualify)
+            if "--token-output" in line
+            and "sol-atlas-github-oidc-token.jwt" in line
+        ),
+        None,
+    )
+    qualify_cleanup_line = next(
+        (
+            i
+            for i, line in enumerate(qualify)
+            if line.strip() == "- name: Remove transient credentials"
+        ),
+        None,
+    )
+    qualify_upload_line = next(
+        (
+            i
+            for i, line in enumerate(qualify)
+            if "uses: actions/upload-artifact@" in line
+        ),
+        None,
+    )
+    qualify_attest_line = next(
+        (
+            i
+            for i, line in enumerate(qualify)
+            if "uses: actions/attest@" in line
+        ),
+        None,
+    )
     verify_attestation_line = next(
         (
             i
-            for i, line in enumerate(lines)
+            for i, line in enumerate(publish)
             if line.strip() == "gh attestation verify \\"
         ),
         None,
@@ -286,13 +319,11 @@ def validate_qualification_policy(
             f"{path}: no external action may run in the OIDC secret window"
         )
     if (
-        upload_line is None
-        or cleanup_line is None
-        or attest_line is None
-        or publish_line is None
-        or upload_line <= cleanup_line
-        or upload_line >= attest_line
-        or attest_line >= publish_line
+        qualify_upload_line is None
+        or qualify_cleanup_line is None
+        or qualify_attest_line is None
+        or qualify_upload_line <= qualify_cleanup_line
+        or qualify_attest_line <= qualify_upload_line
     ):
         errors.append(
             f"{path}: evidence upload and attestation must occur after cleanup in qualify"
