@@ -246,6 +246,25 @@ jobs:
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
         with:
           version: "586.0.0"
+      - name: Download observed WIF trust evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.observe-wif-trust.outputs.artifact_id }}
+          path: artifacts/wif-observer/
+          merge-multiple: true
+          digest-mismatch: error
+      - name: Promote observed WIF trust evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s artifacts/wif-observer/gcs-wif-trust-verification.json
+          test -s artifacts/wif-observer/github-oidc-claims.json
+          test -s artifacts/wif-observer/gcs-effective-iam-verification.json
+          test -s artifacts/wif-observer/gcs-broad-sa-impersonation-verification.json
+          cp artifacts/wif-observer/gcs-wif-trust-verification.json artifacts/gcs-wif-trust-verification.json
+          cp artifacts/wif-observer/github-oidc-claims.json artifacts/observer-github-oidc-claims.json
+          cp artifacts/wif-observer/gcs-effective-iam-verification.json artifacts/gcs-effective-iam-verification.json
+          cp artifacts/wif-observer/gcs-broad-sa-impersonation-verification.json artifacts/gcs-broad-sa-impersonation-verification.json
       - name: Verify GitHub OIDC claims
         env:
           EXPECTED_OIDC_AUDIENCE: >-
@@ -285,25 +304,6 @@ jobs:
             --provider-resource "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
             --service-account "$GCP_SERVICE_ACCOUNT" \
             --output artifacts/gcs-wif-credential-config-verification.json
-      - name: Download observed WIF trust evidence
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          artifact-ids: ${{ needs.observe-wif-trust.outputs.artifact_id }}
-          path: artifacts/wif-observer/
-          merge-multiple: true
-          digest-mismatch: error
-      - name: Promote observed WIF trust evidence
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -s artifacts/wif-observer/gcs-wif-trust-verification.json
-          test -s artifacts/wif-observer/github-oidc-claims.json
-          test -s artifacts/wif-observer/gcs-effective-iam-verification.json
-          test -s artifacts/wif-observer/gcs-broad-sa-impersonation-verification.json
-          cp artifacts/wif-observer/gcs-wif-trust-verification.json artifacts/gcs-wif-trust-verification.json
-          cp artifacts/wif-observer/github-oidc-claims.json artifacts/observer-github-oidc-claims.json
-          cp artifacts/wif-observer/gcs-effective-iam-verification.json artifacts/gcs-effective-iam-verification.json
-          cp artifacts/wif-observer/gcs-broad-sa-impersonation-verification.json artifacts/gcs-broad-sa-impersonation-verification.json
 
       - name: Authenticate to Google Cloud with verified token
         shell: bash
