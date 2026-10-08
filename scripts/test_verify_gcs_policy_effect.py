@@ -267,6 +267,45 @@ def main() -> None:
         "CANNOT_ACCESS",
     )
 
+    canonical_path = (
+        ROOT
+        / "sol-atlas-policy-store-contract"
+        / "conformance"
+        / "gcs_policy_troubleshooter_targets_v2.json"
+    )
+    bound_path, bound_digest = module.validate_target_manifest_binding(
+        str(canonical_path.relative_to(ROOT))
+    )
+    assert bound_path == module.TARGET_MANIFEST_PATH
+    assert bound_digest.startswith("sha256:")
+
+    with TemporaryDirectory() as tmp:
+        alternate = Path(tmp) / "alternate-v2.json"
+        alternate.write_text(
+            json.dumps(
+                {
+                    "schema": module.TARGET_MANIFEST_SCHEMA,
+                    "targets": list(manifest["targets"])
+                    + [
+                        {
+                            "resource_template": RESOURCE,
+                            "permission": "storage.objects.create",
+                            "expected_overall_access_state": "CAN_ACCESS",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        try:
+            module.validate_target_manifest_binding(str(alternate))
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(
+                "accepted alternate v2 manifest before external calls"
+            )
+
     try:
         module.verify_targets(PRINCIPAL, [], None)
     except AssertionError:
