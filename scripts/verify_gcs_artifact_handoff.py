@@ -58,9 +58,26 @@ def require(block: str, needles: tuple[str, ...], label: str) -> None:
     if missing:
         raise AssertionError(label + " missing: " + ", ".join(missing))
 
+def path_entries(block: str) -> tuple[str, ...]:
+    marker = "          path: |\n"
+    start = block.find(marker)
+    if start < 0:
+        raise AssertionError("artifact upload path block is missing")
+    start += len(marker)
+    end = block.find("\n          if-no-files-found:", start)
+    if end < 0:
+        raise AssertionError("artifact upload path termination is missing")
+    return tuple(
+        line.strip()
+        for line in block[start:end].splitlines()
+        if line.strip()
+    )
+
+
 def verify(workflow: str) -> dict[str, object]:
     observer = step(workflow, "Upload WIF trust evidence")
-    require(observer, OBSERVER_FILES, "observer artifact allowlist")
+    if path_entries(observer) != OBSERVER_FILES:
+        raise AssertionError("observer artifact allowlist drift")
     require(
         observer,
         ("if-no-files-found: error", "id: upload_wif_evidence"),
@@ -76,7 +93,8 @@ def verify(workflow: str) -> dict[str, object]:
         "observer artifact handoff",
     )
     final = step(workflow, "Upload qualification evidence")
-    require(final, FINAL_FILES, "final artifact allowlist")
+    if path_entries(final) != FINAL_FILES:
+        raise AssertionError("final artifact allowlist drift")
     require(
         final,
         ("if-no-files-found: error", "id: upload_evidence"),
