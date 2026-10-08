@@ -74,6 +74,7 @@ def verify(payload: dict[str, object], output: str | None) -> dict[str, object]:
         "use_immutable_subject": payload.get("use_immutable_subject"),
         "default_template_required": True,
         "custom_claim_keys_forbidden": True,
+        "configuration": payload,
         "configuration_digest": digest(payload),
         "claim_ceiling": (
             "GitHub repository OIDC subject customization is explicitly configured "
