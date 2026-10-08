@@ -21,6 +21,14 @@ spec.loader.exec_module(module)
 PROFILE_PATH = ROOT / "sol-atlas-policy-store-contract/conformance/gcs_wif_trust_profile_v9.json"
 PROFILE = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
 PROFILE_DIGEST = module.digest(PROFILE)
+OBSERVER_PROFILE_PATH = ROOT / (
+    "sol-atlas-policy-store-contract/conformance/"
+    "gcs_iam_observer_profile_v1.json"
+)
+OBSERVER_PROFILE = json.loads(
+    OBSERVER_PROFILE_PATH.read_text(encoding="utf-8")
+)
+OBSERVER_PROFILE_DIGEST = module.digest(OBSERVER_PROFILE)
 PRINCIPAL = (
     "principalSet://iam.googleapis.com/projects/123456789/"
     "locations/global/workloadIdentityPools/github/"
@@ -104,6 +112,8 @@ EFFECTIVE = {
 }
 OBSERVER_ISOLATION = {
     "schema": module.OBSERVER_ISOLATION_AUDIT_SCHEMA,
+    "observer_profile_path": module.OBSERVER_PROFILE_PATH,
+    "observer_profile_digest": OBSERVER_PROFILE_DIGEST,
     "observer_principal": "serviceAccount:" + OBSERVER,
     "observer_service_account": OBSERVER,
     "effect_service_account": EFFECT,
@@ -124,12 +134,7 @@ OBSERVER_ISOLATION = {
     ],
     "policy_analyzer_response_digest": "sha256:" + "d" * 64,
     "project_pivot_permissions": list(
-        module.OBSERVER_ISOLATION_AUDIT_PROJECT_PIVOT_PERMISSIONS
-        if hasattr(
-            module,
-            "OBSERVER_ISOLATION_AUDIT_PROJECT_PIVOT_PERMISSIONS",
-        )
-        else module.PROJECT_PIVOT_PERMISSIONS
+        module.PROJECT_PIVOT_PERMISSIONS
     ),
     "project_pivot_permissions_absent": True,
     "project_pivot_observed_permissions": [],
@@ -206,6 +211,17 @@ def main() -> None:
         OBSERVER_ISOLATION,
         WIF,
     )
+
+    for field, value in (
+        ("observer_profile_path", "tampered"),
+        ("observer_profile_digest", "sha256:tampered"),
+    ):
+        tampered = dict(OBSERVER_ISOLATION)
+        tampered[field] = value
+        reject_observer_isolation(
+            value=tampered,
+            label=field,
+        )
 
     for field, value in (
         ("observer_authority_permissions", []),
