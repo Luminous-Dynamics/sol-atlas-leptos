@@ -18,6 +18,7 @@ REPOSITORY_ID = "1195997641"
 WORKFLOW_NAME = "Qualify GCS external effect"
 WORKFLOW_PATH = ".github/workflows/qualify-gcs.yml"
 WORKFLOW_ID = 311325850
+RUN_PATH = WORKFLOW_PATH + "@main"
 REPOSITORY_OWNER_ID = "216969177"
 EVENT = "workflow_dispatch"
 REF = "refs/heads/main"
