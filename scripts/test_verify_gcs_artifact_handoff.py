@@ -111,6 +111,20 @@ def main() -> None:
         "unexpected final evidence",
     )
     expect_failure(
+        workflow().replace(
+            "path: artifacts/wif-observer/",
+            "path: artifacts/wrong-observer/",
+        ),
+        "observer download namespace drift",
+    )
+    expect_failure(
+        workflow().replace(
+            "merge-multiple: true",
+            "merge-multiple: false",
+        ),
+        "observer merge semantics drift",
+    )
+    expect_failure(
         workflow().replace("needs.qualify.outputs.artifact_id", "wrong-id"),
         "publish artifact ID drift",
     )
