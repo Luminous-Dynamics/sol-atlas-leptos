@@ -75,7 +75,7 @@ BROAD_SA_AUDIT_SCHEMA = (
     "sol-atlas:gcs-broad-service-account-impersonation-audit:v2"
 )
 OBSERVER_ISOLATION_AUDIT_SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v2"
-POLICY_EFFECT_AUDIT_SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v2"
+POLICY_EFFECT_AUDIT_SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v3"
 DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 OBSERVER_PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
