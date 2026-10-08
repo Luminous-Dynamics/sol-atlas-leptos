@@ -75,7 +75,7 @@ BROAD_SA_AUDIT_SCHEMA = (
     "sol-atlas:gcs-broad-service-account-impersonation-audit:v2"
 )
 OBSERVER_ISOLATION_AUDIT_SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v2"
-POLICY_EFFECT_AUDIT_SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v3"
+POLICY_EFFECT_AUDIT_SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v4"
 DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 POLICY_TROUBLESHOOTER_UNKNOWN_STATES = {
     "ALLOW_ACCESS_STATE_UNSPECIFIED",
@@ -613,6 +613,27 @@ def validate_observer_isolation_audit(
         raise AssertionError(
             "observer authority response digest is malformed"
         )
+    lateral_permissions = observer_profile.get(
+        "forbidden_service_account_permissions"
+    )
+    if audit.get("lateral_service_account_permissions") != (
+        lateral_permissions
+    ):
+        raise AssertionError("lateral observer permission set drift")
+    if audit.get("lateral_service_account_permissions_absent") is not True:
+        raise AssertionError(
+            "lateral observer service-account permissions were not excluded"
+        )
+    if audit.get("lateral_service_account_findings") != []:
+        raise AssertionError(
+            "lateral observer service-account findings were present"
+        )
+    if not is_sha256_digest(
+        audit.get("lateral_service_account_response_digest")
+    ):
+        raise AssertionError(
+            "lateral observer service-account response digest is malformed"
+        )
     claim = audit.get("claim_ceiling")
     if not isinstance(claim, str) or not claim:
         raise AssertionError("observer isolation claim ceiling is missing")
@@ -649,6 +670,11 @@ def validate_broad_sa_audit(
         raise AssertionError("broad-SA principal root drift")
     if audit.get("oidc_claims_digest") != digest(observer_oidc_claims):
         raise AssertionError("broad-SA OIDC evidence digest drift")
+    observed_claims = observer_oidc_claims.get("claims")
+    if not isinstance(observed_claims, dict):
+        raise AssertionError("broad-SA observer OIDC claims are missing")
+    if audit.get("oidc_subject") != observed_claims.get("sub"):
+        raise AssertionError("broad-SA immutable subject drift")
     if audit.get("broad_impersonation_absent") is not True:
         raise AssertionError("broad-SA impersonation was not excluded")
     if audit.get("broad_impersonation_findings") != []:
@@ -1609,12 +1635,12 @@ def validate_policy_effect_audit(
         raise AssertionError("wrong Policy Troubleshooter API version")
     manifest_path = (
         "sol-atlas-policy-store-contract/conformance/"
-        "gcs_policy_troubleshooter_targets_v2.json"
+        "gcs_policy_troubleshooter_targets_v3.json"
     )
     manifest = json.loads(
         Path(manifest_path).read_text(encoding="utf-8")
     )
-    if manifest.get("schema") != "sol-atlas:gcs-policy-troubleshooter-targets:v2":
+    if manifest.get("schema") != "sol-atlas:gcs-policy-troubleshooter-targets:v3":
         raise AssertionError("Policy Troubleshooter target manifest schema drift")
     if audit.get("target_manifest_path") != manifest_path:
         raise AssertionError("Policy Troubleshooter target manifest path drift")
@@ -1625,7 +1651,7 @@ def validate_policy_effect_audit(
     if audit.get("all_targets_verified") is not True:
         raise AssertionError("Policy Troubleshooter targets were not all verified")
     targets = audit.get("targets")
-    if not isinstance(targets, list) or len(targets) != 14:
+    if not isinstance(targets, list) or len(targets) != 19:
         raise AssertionError("Policy Troubleshooter target vector drift")
     project_resource = "//cloudresourcemanager.googleapis.com/projects/" + project_id
     service_account = wif_verification.get("service_account")
@@ -1642,6 +1668,17 @@ def validate_policy_effect_audit(
         (
             project_resource,
             "deploymentmanager.deployments.create",
+        ): "CANNOT_ACCESS",
+        (project_resource, "compute.instances.create"): "CANNOT_ACCESS",
+        (project_resource, "run.services.create"): "CANNOT_ACCESS",
+        (project_resource, "run.jobs.create"): "CANNOT_ACCESS",
+        (
+            project_resource,
+            "cloudfunctions.functions.create",
+        ): "CANNOT_ACCESS",
+        (
+            project_resource,
+            "resourcemanager.projects.setIamPolicy",
         ): "CANNOT_ACCESS",
         (
             sa_resource,
@@ -1665,7 +1702,7 @@ def validate_policy_effect_audit(
         resource = object_resource_name(bucket, object_name)
         for permission in object_permissions:
             expected[(resource, permission)] = "CAN_ACCESS"
-    if len(expected) != 14:
+    if len(expected) != 19:
         raise AssertionError("Policy Troubleshooter expected target vector is malformed")
     seen: set[tuple[str, str]] = set()
     for target in targets:
