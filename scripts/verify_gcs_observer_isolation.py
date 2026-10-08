@@ -223,7 +223,9 @@ def extract(
                 )
             names.append(name)
         if observer_principal not in names:
-            continue
+            raise AssertionError(
+                "observer identity query returned an unrelated IAM binding"
+            )
         observer_seen = True
 
         resources_seen = set()
