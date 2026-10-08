@@ -129,7 +129,7 @@ def main() -> None:
         "immutable subject principal",
     )
 
-    for universal in module.FORBIDDEN_UNIVERSAL_PRINCIPALS:
+    for universal in module.FORBIDDEN_WORKLOAD_UNIVERSAL_PRINCIPALS:
         expect_failure(
             envelope([
                 pivot(
