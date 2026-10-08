@@ -432,6 +432,25 @@ def extract_findings(
                 "universal principal has effective access to the target resource"
             )
 
+        binding = result.get("iamBinding")
+        if not isinstance(binding, dict):
+            raise AssertionError(
+                f"analysis result {index} has no IAM binding"
+            )
+        pre_members = binding.get("members")
+        if not isinstance(pre_members, list):
+            raise AssertionError(
+                f"analysis result {index} has invalid binding members"
+            )
+        if any(
+            member in FORBIDDEN_UNIVERSAL_PRINCIPALS
+            for member in pre_members
+            if isinstance(member, str)
+        ):
+            raise AssertionError(
+                "universal principal has effective target access"
+            )
+
         identity_list = result.get("identityList")
         if not isinstance(identity_list, dict):
             raise AssertionError(
@@ -609,6 +628,25 @@ def extract_project_pivot_findings(
         ):
             raise AssertionError(
                 "universal principal has project execution pivot access"
+            )
+
+        binding = result.get("iamBinding")
+        if not isinstance(binding, dict):
+            raise AssertionError(
+                f"project pivot result {index} has no IAM binding"
+            )
+        pre_members = binding.get("members")
+        if not isinstance(pre_members, list):
+            raise AssertionError(
+                f"project pivot result {index} has invalid binding members"
+            )
+        if any(
+            member in FORBIDDEN_UNIVERSAL_PRINCIPALS
+            for member in pre_members
+            if isinstance(member, str)
+        ):
+            raise AssertionError(
+                "universal principal has project pivot access"
             )
 
         identities = result.get("identityList")
