@@ -60,6 +60,15 @@ WIF_CREDENTIAL_CONFIG_SCHEMA = (
 )
 GITHUB_RUN_VERIFICATION_SCHEMA = "sol-atlas:github-workflow-run-verification:v1"
 EFFECTIVE_IAM_AUDIT_SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v8"
+EFFECTIVE_IAM_PROJECT_PIVOT_PERMISSIONS = [
+    "cloudbuild.builds.create",
+    "deploymentmanager.deployments.create",
+    "compute.instances.create",
+    "run.services.create",
+    "run.jobs.create",
+    "cloudfunctions.functions.create",
+    "resourcemanager.projects.setIamPolicy",
+]
 BROAD_SA_AUDIT_SCHEMA = (
     "sol-atlas:gcs-broad-service-account-impersonation-audit:v2"
 )
@@ -433,16 +442,9 @@ def validate_effective_iam_audit(
     ]:
         raise AssertionError("effective-IAM intended identity drift")
 
-    expected_pivots = [
-        "cloudbuild.builds.create",
-        "deploymentmanager.deployments.create",
-        "compute.instances.create",
-        "run.services.create",
-        "run.jobs.create",
-        "cloudfunctions.functions.create",
-        "resourcemanager.projects.setIamPolicy",
-    ]
-    if audit.get("project_pivot_permissions") != expected_pivots:
+    if audit.get("project_pivot_permissions") != (
+        EFFECTIVE_IAM_PROJECT_PIVOT_PERMISSIONS
+    ):
         raise AssertionError("effective-IAM pivot permission set drift")
     if not is_sha256_digest(audit.get("project_pivot_response_digest")):
         raise AssertionError("effective-IAM pivot response digest is malformed")
