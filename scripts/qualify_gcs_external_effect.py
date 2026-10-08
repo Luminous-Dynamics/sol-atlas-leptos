@@ -472,6 +472,10 @@ def validate_observer_isolation_audit(
     if audit.get("project_pivot_permissions") != [
         "cloudbuild.builds.create",
         "deploymentmanager.deployments.create",
+        "compute.instances.create",
+        "run.services.create",
+        "run.jobs.create",
+        "cloudfunctions.functions.create",
         "resourcemanager.projects.setIamPolicy",
     ]:
         raise AssertionError("observer isolation pivot permission set drift")
