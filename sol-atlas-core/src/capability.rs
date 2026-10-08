@@ -729,7 +729,7 @@ mod tests {
         let capabilities = (0..DEPTH)
             .map(|index| {
                 let dependency = (index + 1 < DEPTH)
-                    .then(|| CapabilityId::new(format!("cap-{index_plus_one:05}", index_plus_one = index + 1)).unwrap());
+                    .then(|| CapabilityId::new(format!("cap-{:05}", index + 1)).unwrap());
                 Capability {
                     id: CapabilityId::new(format!("cap-{index:05}")).unwrap(),
                     name: format!("Capability {index}"),
