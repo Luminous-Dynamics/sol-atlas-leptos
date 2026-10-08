@@ -1,0 +1,49 @@
+{
+  "schema": "sol-atlas:gcs-iam-observer-profile:v1",
+  "trust_profile_path": "sol-atlas-policy-store-contract/conformance/gcs_wif_trust_profile_v9.json",
+  "trust_profile_schema": "sol-atlas:gcs-wif-trust-profile:v9",
+  "required_observer_permission": "iam.serviceAccounts.getIamPolicy",
+  "forbidden_service_account_permissions": [
+    "iam.serviceAccounts.actAs",
+    "iam.serviceAccounts.getAccessToken",
+    "iam.serviceAccounts.getOpenIdToken",
+    "iam.serviceAccounts.implicitDelegation",
+    "iam.serviceAccounts.signBlob",
+    "iam.serviceAccounts.signJwt",
+    "iam.serviceAccountKeys.create",
+    "iam.serviceAccounts.setIamPolicy"
+  ],
+  "forbidden_project_permissions": [
+    "resourcemanager.projects.setIamPolicy",
+    "resourcemanager.projects.update",
+    "resourcemanager.projects.delete",
+    "iam.roles.create",
+    "iam.roles.update",
+    "iam.roles.delete",
+    "iam.denypolicies.create",
+    "iam.denypolicies.update",
+    "iam.denypolicies.delete",
+    "iam.workloadIdentityPools.create",
+    "iam.workloadIdentityPools.update",
+    "iam.workloadIdentityPools.delete",
+    "iam.workloadIdentityPools.setIamPolicy",
+    "iam.workloadIdentityPoolProviders.create",
+    "iam.workloadIdentityPoolProviders.update",
+    "iam.workloadIdentityPoolProviders.delete",
+    "iam.serviceAccounts.create",
+    "iam.serviceAccounts.disable",
+    "iam.serviceAccounts.delete",
+    "iam.serviceAccounts.enable",
+    "iam.serviceAccounts.setIamPolicy"
+  ],
+  "project_pivot_permissions": [
+    "cloudbuild.builds.create",
+    "deploymentmanager.deployments.create",
+    "compute.instances.create",
+    "run.services.create",
+    "run.jobs.create",
+    "cloudfunctions.functions.create",
+    "resourcemanager.projects.setIamPolicy"
+  ],
+  "claim_ceiling": "Observer read authority is bounded to service-account IAM policy inspection and the explicitly audited Cloud Asset analysis surface. The observer is required to lack the listed service-account execution/mutation permissions and listed project IAM/trust-root mutation permissions within the selected analysis scope. This does not prove absence of unrelated Google Cloud administration, deny-policy/PAB effects, transitive impersonation, or immutable IAM state."
+}
