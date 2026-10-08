@@ -52,6 +52,20 @@ OBSERVER_OIDC = {
     "audience": "aud",
 }
 
+EXPECTED_PRINCIPAL_SET_MEMBERS = [
+    PRINCIPAL,
+    "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/*",
+    "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/attribute.environment/sol-atlas-gcs-qualification",
+    "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/attribute.event_name/workflow_dispatch",
+    "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/attribute.repository/Luminous-Dynamics/sol-atlas-leptos",
+    "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/attribute.repository_id/1195997641",
+    "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/attribute.repository_owner_id/216969177",
+    "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/attribute.workflow/Qualify GCS external effect",
+    "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/attribute.ref/refs/heads/main",
+    "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/attribute.workflow_ref/Luminous-Dynamics/sol-atlas-leptos/.github/workflows/qualify-gcs.yml@refs/heads/main",
+    "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/github/attribute.runner_environment/github-hosted",
+]
+
 EFFECTIVE = {
     "schema": module.EFFECTIVE_IAM_AUDIT_SCHEMA,
     "wif_verification_digest": module.digest(WIF),
