@@ -127,6 +127,20 @@ def main() -> None:
             "unconstrained google.groups mapping was accepted"
         )
 
+    bad_mapping_value = dict(profile)
+    bad_mapping_value["required_attribute_mappings"] = dict(
+        profile["required_attribute_mappings"],
+        **{"attribute.repository_id": "assertion.repository"},
+    )
+    try:
+        module.validate_profile_principal_set_model(bad_mapping_value)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "attribute mapping drift from condition was accepted"
+        )
+
     assert module.project_resource("sol-atlas").endswith(
         "/projects/sol-atlas"
     )
