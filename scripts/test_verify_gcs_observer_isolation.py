@@ -153,6 +153,31 @@ def main() -> None:
     )
     assert observed_pivot == {"cloudbuild.builds.create"}
 
+    for permission in (
+        "deploymentmanager.deployments.create",
+        "compute.instances.create",
+        "run.services.create",
+        "run.jobs.create",
+        "cloudfunctions.functions.create",
+        "resourcemanager.projects.setIamPolicy",
+    ):
+        result = dict(pivot_result)
+        result["accessControlLists"] = [{
+            "resources": [{
+                "fullResourceName":
+                    "//cloudresourcemanager.googleapis.com/projects/sol-atlas"
+            }],
+            "accesses": [{"permission": permission}],
+        }]
+        assert module.extract_project_pivots(
+            {
+                "fullyExplored": True,
+                "nonCriticalErrors": [],
+                "analysisResults": [result],
+            },
+            "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
+        ) == {permission}
+
 
     for universal in ("allUsers", "allAuthenticatedUsers"):
         expect_failure(
