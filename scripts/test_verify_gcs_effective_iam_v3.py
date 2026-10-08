@@ -6,6 +6,8 @@
 
 from __future__ import annotations
 
+import json
+
 import importlib.util
 from pathlib import Path
 
@@ -59,6 +61,23 @@ def envelope(result: dict[str, object]) -> dict[str, object]:
 
 
 def main() -> None:
+    expected_sets = module.expected_workload_principal_sets(PRINCIPAL)
+    sorted_sets = sorted(expected_sets)
+    assert PRINCIPAL in expected_sets
+    assert any(member.endswith("/*") for member in sorted_sets)
+    assert any(
+        "/attribute.repository/" in member
+        for member in sorted_sets
+    )
+    profile = json.loads(
+        (ROOT / module.WIF_PROFILE_PATH).read_text(encoding="utf-8")
+    )
+    assert profile["schema"] == module.WIF_PROFILE_SCHEMA
+    assert module.digest(profile) == module.digest(
+        json.loads(
+            (ROOT / module.WIF_PROFILE_PATH).read_text(encoding="utf-8")
+        )
+    )
     normal = module.extract_findings(
         envelope(finding(list(module.REQUIRED_PERMISSIONS))),
         PRINCIPAL,
@@ -82,7 +101,6 @@ def main() -> None:
             ),
             PRINCIPAL,
             RESOURCE,
-            OIDC_SUBJECT,
         )
         module.validate_permission_ceiling(forbidden)
     except AssertionError:
