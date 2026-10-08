@@ -1773,6 +1773,7 @@ def main() -> int:
     qualify.add_argument("--observer-oidc-claims", required=True)
     qualify.add_argument("--effective-iam-audit", required=True)
     qualify.add_argument("--broad-sa-audit", required=True)
+    qualify.add_argument("--observer-isolation-audit", required=True)
     qualify.add_argument("--output", required=True)
     verify = sub.add_parser("verify")
     verify.add_argument("--report", required=True)
