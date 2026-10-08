@@ -250,7 +250,7 @@ def validate_qualification_policy(
         (
             i
             for i, line in enumerate(qualify)
-            if line.strip() == "- name: Remove transient credentials"
+            if line.strip() == "- name: Remove transient OIDC credentials"
         ),
         None,
     )
