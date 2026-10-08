@@ -13,7 +13,7 @@ import re
 import subprocess
 from pathlib import Path
 
-SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v7"
+SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v8"
 EXPECTED_ROLE = "roles/iam.workloadIdentityUser"
 REQUIRED_PERMISSIONS = (
     "iam.serviceAccounts.getAccessToken",
@@ -186,33 +186,46 @@ def principal_set_prefix(expected_principal: str) -> str:
     return prefix
 
 
-def expected_workload_principal_sets(expected_principal: str) -> set[str]:
-    profile_path = Path(__file__).resolve().parents[1] / WIF_PROFILE_PATH
-    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+def parse_profile_condition(profile: dict[str, object]) -> dict[str, str]:
+    condition = profile.get("exact_attribute_condition")
+    if not isinstance(condition, str):
+        raise AssertionError("WIF trust profile condition is missing")
+    values: dict[str, str] = {}
+    for clause in condition.split(" && "):
+        if not clause.startswith("assertion.") or "==" not in clause:
+            raise AssertionError("WIF trust profile condition syntax drift")
+        name, value = clause.split("==", 1)
+        key = name.removeprefix("assertion.")
+        value = value.strip().strip("'")
+        if not key or not value or key in values:
+            raise AssertionError("WIF trust profile condition is ambiguous")
+        values[key] = value
+    return values
+
+
+def validate_profile_principal_set_model(profile: dict[str, object]) -> dict[str, str]:
     if profile.get("schema") != WIF_PROFILE_SCHEMA:
         raise AssertionError("WIF trust profile schema drift")
     if profile.get("attribute_mapping_is_exact") is not True:
         raise AssertionError("WIF trust profile does not freeze attribute mappings")
-    condition = profile.get("exact_attribute_condition")
-    if not isinstance(condition, str):
-        raise AssertionError("WIF trust profile condition is missing")
-    condition_values = {}
-    for clause in condition.split(" && "):
-        if not clause.startswith("assertion.") or "==" not in clause:
-            continue
-        name, value = clause.split("==", 1)
-        value = value.strip().strip("'")
-        condition_values[name.removeprefix("assertion.")] = value
+    condition_values = parse_profile_condition(profile)
     mapped = profile.get("required_attribute_mappings")
     if not isinstance(mapped, dict):
         raise AssertionError("WIF trust profile mappings are missing")
-    missing = set(condition_values) - {
-        key.removeprefix("attribute.")
-        for key in mapped
-        if key.startswith("attribute.")
+    expected_keys = {"google.subject"} | {
+        "attribute." + key for key in condition_values
     }
-    if missing:
-        raise AssertionError("WIF trust profile mappings are incomplete")
+    if set(mapped) != expected_keys:
+        raise AssertionError(
+            "WIF profile maps an attribute or Google claim outside the exact condition"
+        )
+    return condition_values
+
+
+def expected_workload_principal_sets(expected_principal: str) -> set[str]:
+    profile_path = Path(__file__).resolve().parents[1] / WIF_PROFILE_PATH
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    condition_values = validate_profile_principal_set_model(profile)
     prefix = principal_set_prefix(expected_principal)
     suffix = expected_principal.split(prefix + "/", 1)[1]
     repository_id = suffix.split("/", 1)[1]
