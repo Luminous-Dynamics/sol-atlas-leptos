@@ -1841,33 +1841,17 @@ def verify_report(path: str) -> None:
         "github_oidc_subject_configuration"
     )
     if not isinstance(oidc_subject_configuration, dict):
-        raise AssertionError("missing GitHub OIDC subject configuration evidence")
+        raise AssertionError(
+            "missing GitHub OIDC subject configuration evidence"
+        )
+    validate_oidc_subject_configuration(oidc_subject_configuration)
     if report.get("github_oidc_subject_configuration_digest") != digest(
         oidc_subject_configuration
     ):
         raise AssertionError(
             "GitHub OIDC subject configuration evidence digest mismatch"
         )
-    if oidc_subject_configuration.get(
-        "schema"
-    ) != OIDC_SUBJECT_CONFIGURATION_SCHEMA:
-        raise AssertionError("wrong GitHub OIDC subject configuration schema")
-    if oidc_subject_configuration.get(
-        "repository"
-    ) != "Luminous-Dynamics/sol-atlas-leptos":
-        raise AssertionError("GitHub OIDC subject configuration repository drift")
-    if oidc_subject_configuration.get("use_default") is not True:
-        raise AssertionError("GitHub OIDC default subject template was not verified")
-    if oidc_subject_configuration.get("use_immutable_subject") is not True:
-        raise AssertionError("GitHub OIDC immutable subject mode was not verified")
-    if oidc_subject_configuration.get("include_claim_keys") != []:
-        raise AssertionError("GitHub OIDC custom claim keys were not excluded")
-    if not is_sha256_digest(
-        oidc_subject_configuration.get("configuration_digest")
-    ):
-        raise AssertionError(
-            "GitHub OIDC subject configuration digest is malformed"
-        )
+
     effective_iam_audit = report.get("effective_iam_audit")
     if not isinstance(effective_iam_audit, dict):
         raise AssertionError("missing effective-IAM audit")
