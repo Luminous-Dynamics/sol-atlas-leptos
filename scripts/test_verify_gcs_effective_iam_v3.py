@@ -82,6 +82,7 @@ def main() -> None:
         envelope(finding(list(module.REQUIRED_PERMISSIONS))),
         PRINCIPAL,
         RESOURCE,
+        OIDC_SUBJECT,
     )[0]
     assert module.execution_permissions_are_clean(
         normal["permissions"]
@@ -101,6 +102,7 @@ def main() -> None:
             ),
             PRINCIPAL,
             RESOURCE,
+            OIDC_SUBJECT,
         )
         module.validate_permission_ceiling(forbidden)
     except AssertionError:
