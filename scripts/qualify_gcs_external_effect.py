@@ -207,7 +207,7 @@ def load_github_workflow_run_verification(path: str) -> dict[str, object]:
         "workflow_path": ".github/workflows/qualify-gcs.yml",
         "workflow_id": 311325850,
         "workflow_id_frozen": 311325850,
-        "run_path_verified": ".github/workflows/qualify-gcs.yml",
+        "run_path_verified": ".github/workflows/qualify-gcs.yml@main",
         "head_branch": "main",
         "event": "workflow_dispatch",
         "github_server": "github.com",
