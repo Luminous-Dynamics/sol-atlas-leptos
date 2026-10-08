@@ -373,6 +373,28 @@ def main() -> None:
         target["principal"] == valid_wif["service_account"]
         for target in policy_targets
     )
+    unknown_raw_policy = json.loads(json.dumps(policy_audit))
+    unknown_raw_policy["targets"][0]["response"][
+        "allowPolicyExplanation"
+    ]["allowAccessState"] = "ALLOW_ACCESS_STATE_UNKNOWN_INFO"
+    unknown_raw_policy["targets"][0]["response_digest"] = module.digest(
+        unknown_raw_policy["targets"][0]["response"]
+    )
+    try:
+        module.validate_policy_effect_audit(
+            unknown_raw_policy,
+            valid_wif,
+            good["bucket"],
+            good["object_names"],
+            "sol-atlas",
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "Policy Troubleshooter validator accepted unknown raw policy state"
+        )
+
     tampered_policy = json.loads(json.dumps(policy_audit))
     tampered_policy["targets"][0]["overall_access_state"] = "CAN_ACCESS"
     try:
