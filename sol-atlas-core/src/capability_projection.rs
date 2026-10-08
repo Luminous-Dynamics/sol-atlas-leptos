@@ -19,10 +19,11 @@ use crate::capability::{
 };
 use crate::types::DataKind;
 use h3o::{LatLng, Resolution};
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Ord, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum ProjectionNodeKind {
     Capability,
     Instance,
@@ -37,8 +38,9 @@ impl ProjectionNodeKind {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Ord, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum ProjectionEdgeKind {
+    InstanceOf,
     Required,
     Alternative,
 }
@@ -46,13 +48,14 @@ pub enum ProjectionEdgeKind {
 impl ProjectionEdgeKind {
     pub fn label(self) -> &'static str {
         match self {
+            Self::InstanceOf => "instance-of",
             Self::Required => "required",
             Self::Alternative => "alternative",
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProjectionNode {
     pub node_id: String,
     pub kind: ProjectionNodeKind,
@@ -68,7 +71,7 @@ pub struct ProjectionNode {
     pub h3_cell: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProjectionEdge {
     pub from: String,
     pub to: String,
@@ -76,14 +79,14 @@ pub struct ProjectionEdge {
     pub rationale: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EvidenceReference {
     pub owner_node_id: String,
     pub evidence_id: String,
     pub resolved_anchor: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct H3CellSummary {
     /// Canonical lower-case H3 index text.
     pub cell: String,
@@ -94,7 +97,7 @@ pub struct H3CellSummary {
     pub externally_qualified_reference_count: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AtlasCapabilityProjectionV1 {
     pub root_capability_id: CapabilityId,
     pub nodes: Vec<ProjectionNode>,
@@ -170,6 +173,13 @@ impl AtlasCapabilityProjectionV1 {
                 .expect("capability_ids are derived from graph");
 
             let node_id = format!("capability:{capability_id}");
+            let mut capability_evidence_refs: Vec<String> = capability
+                .evidence
+                .iter()
+                .map(|e| e.evidence_id.clone())
+                .collect();
+            capability_evidence_refs.sort();
+            capability_evidence_refs.dedup();
             nodes.push(ProjectionNode {
                 node_id: node_id.clone(),
                 kind: ProjectionNodeKind::Capability,
@@ -177,11 +187,7 @@ impl AtlasCapabilityProjectionV1 {
                 label: capability.name.clone(),
                 provenance: capability.provenance.clone(),
                 claim_ceiling: capability.claim_ceiling.clone(),
-                evidence_refs: capability
-                    .evidence
-                    .iter()
-                    .map(|e| e.evidence_id.clone())
-                    .collect(),
+                evidence_refs: capability_evidence_refs,
                 lifecycle: None,
                 availability: None,
                 qualification_reference_present: false,
@@ -229,6 +235,12 @@ impl AtlasCapabilityProjectionV1 {
             if !capability_ids.contains(&instance.capability_id) {
                 continue;
             }
+            if graph.get(&instance.capability_id).is_none() {
+                return Err(ProjectionError::MissingCapabilityForInstance {
+                    instance_id: instance.instance_id.clone(),
+                    capability_id: instance.capability_id.clone(),
+                });
+            }
             if !instance_ids.insert(instance.instance_id.clone()) {
                 return Err(ProjectionError::DuplicateInstanceId(
                     instance.instance_id.clone(),
@@ -251,7 +263,12 @@ impl AtlasCapabilityProjectionV1 {
                 label: instance.location.label.clone(),
                 provenance: instance.provenance.clone(),
                 claim_ceiling: instance.claim_ceiling.clone(),
-                evidence_refs: instance.evidence_refs.clone(),
+                evidence_refs: {
+                    let mut refs = instance.evidence_refs.clone();
+                    refs.sort();
+                    refs.dedup();
+                    refs
+                },
                 lifecycle: Some(instance.state.lifecycle),
                 availability: Some(instance.state.availability),
                 qualification_reference_present: instance.is_qualified(),
@@ -261,7 +278,7 @@ impl AtlasCapabilityProjectionV1 {
             edges.push(ProjectionEdge {
                 from: node_id,
                 to: format!("capability:{}", instance.capability_id),
-                kind: ProjectionEdgeKind::Required,
+                kind: ProjectionEdgeKind::InstanceOf,
                 rationale: Some("instance instantiates capability definition".into()),
             });
 
@@ -305,25 +322,7 @@ impl AtlasCapabilityProjectionV1 {
 
     /// Projection identity is stable for identical semantic input.
     pub fn deterministic_key(&self) -> String {
-        let mut s = String::new();
-        s.push_str(self.root_capability_id.as_str());
-        for node in &self.nodes {
-            s.push('|');
-            s.push_str(&node.node_id);
-            s.push(':');
-            s.push_str(node.kind.label());
-            s.push(':');
-            s.push_str(node.provenance.kind.label());
-        }
-        for edge in &self.edges {
-            s.push('|');
-            s.push_str(&edge.from);
-            s.push('>');
-            s.push_str(&edge.to);
-            s.push(':');
-            s.push_str(edge.kind.label());
-        }
-        s
+        serde_json::to_string(self).expect("projection contains only serializable fields")
     }
 }
 
@@ -462,24 +461,22 @@ mod tests {
     }
 
     #[test]
-    fn missing_instance_capability_is_rejected_when_in_scope() {
+    fn missing_instance_capability_fails_closed() {
         let fixture = bootstrap_fixture();
         let mut instance = fixture.instance;
         instance.capability_id = CapabilityId::new("missing").unwrap();
 
-        // The instance is out of the selected capability neighborhood, so it
-        // must not become a floating renderer node.
-        let projection = AtlasCapabilityProjectionV1::build(
+        let err = AtlasCapabilityProjectionV1::build(
             &fixture.graph,
             &[instance],
             &fixture.root,
             Resolution::Two,
         )
-        .unwrap();
-        assert!(!projection
-            .nodes
-            .iter()
-            .any(|n| n.kind == ProjectionNodeKind::Instance));
+        .unwrap_err();
+        assert!(matches!(
+            err,
+            ProjectionError::MissingCapabilityForInstance { .. }
+        ));
     }
 
     #[test]
