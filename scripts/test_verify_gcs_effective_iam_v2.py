@@ -27,8 +27,8 @@ RESOURCE = (
     "qualification@sol-atlas.iam.gserviceaccount.com"
 )
 OIDC_SUBJECT = (
-    "repo:Luminous-Dynamics@216969177/"
-    "sol-atlas-leptos@1195997641:ref:refs/heads/main"
+    "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
+    "environment:sol-atlas-gcs-qualification"
 )
 
 
