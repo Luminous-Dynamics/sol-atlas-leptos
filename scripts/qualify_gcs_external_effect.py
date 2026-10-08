@@ -35,7 +35,7 @@ else:
     from verify_github_oidc_claims import expected_claims, verify_immutable_subject
 
 
-SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v7"
+SCHEMA = "sol-atlas:recovery-execution-effect-external-report:v8"
 CASE_SET_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
     "gcs_external_effect_cases_v2.json"
@@ -73,6 +73,7 @@ BROAD_SA_AUDIT_SCHEMA = (
     "sol-atlas:gcs-broad-service-account-impersonation-audit:v2"
 )
 OBSERVER_ISOLATION_AUDIT_SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v2"
+POLICY_EFFECT_AUDIT_SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v2"
 OBSERVER_PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
     "gcs_iam_observer_profile_v1.json"
@@ -955,6 +956,8 @@ def run_qualification(
     effective_iam_audit_path: str,
     broad_sa_audit_path: str,
     observer_isolation_audit_path: str,
+    policy_effect_audit_path: str,
+    object_root: str | None,
 ) -> dict[str, object]:
     case_set = load_case_set()
     wif_verification = load_wif_verification(wif_verification_path)
@@ -980,6 +983,9 @@ def run_qualification(
     observer_isolation_audit = json.loads(
         Path(observer_isolation_audit_path).read_text(encoding="utf-8")
     )
+    policy_effect_audit = json.loads(
+        Path(policy_effect_audit_path).read_text(encoding="utf-8")
+    )
     validate_effective_iam_audit(
         effective_iam_audit,
         wif_verification,
@@ -993,6 +999,17 @@ def run_qualification(
     validate_observer_isolation_audit(
         observer_isolation_audit,
         wif_verification,
+    )
+    run_id = os.environ.get("GITHUB_RUN_ID", "local")
+    run_attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "1")
+    expected_object_root = (
+        "sol-atlas/qualification"
+        + f"/run-{run_id}-attempt-{run_attempt}"
+    )
+    if object_root is not None and object_root != expected_object_root:
+        raise AssertionError("qualification object root is not bound to this run")
+    root = object_root or (
+        expected_object_root + "-" + uuid.uuid4().hex[:12]
     )
     oidc_audience = wif_verification.get("oidc_expected_audience")
     if not isinstance(oidc_audience, str) or not oidc_audience:
@@ -1014,11 +1031,6 @@ def run_qualification(
     token = access_token()
     run_id = os.environ.get("GITHUB_RUN_ID", "local")
     run_attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "1")
-    unique = uuid.uuid4().hex[:12]
-    root = (
-        object_prefix.rstrip("/")
-        + f"/run-{run_id}-attempt-{run_attempt}-{unique}"
-    )
     main_name = root + "/main.bin"
     point_name = root + "/point-in-time.bin"
     race_name = root + "/metadata-race.bin"
@@ -1407,6 +1419,8 @@ def run_qualification(
             "broad_sa_impersonation_audit_digest": digest(broad_sa_audit),
             "observer_isolation_audit": observer_isolation_audit,
             "observer_isolation_audit_digest": digest(observer_isolation_audit),
+            "policy_effect_audit": policy_effect_audit,
+            "policy_effect_audit_digest": digest(policy_effect_audit),
             "github_oidc_claims": oidc_claims,
             "github_oidc_claims_digest": digest(oidc_claims),
             "wif_credential_config_verification": (
@@ -1420,6 +1434,7 @@ def run_qualification(
             "service": "Google Cloud Storage",
             "bucket": bucket,
             "object_prefix": object_prefix,
+            "object_root": root,
             "adapter_id": ADAPTER_ID,
             "adapter_revision": git_sha(ADAPTER_PATH),
             "harness_id": HARNESS_ID,
@@ -1476,6 +1491,115 @@ def write_report(path: str, report: dict[str, object]) -> None:
     )
 
 
+def object_resource_name(bucket: str, object_name: str) -> str:
+    return (
+        "//storage.googleapis.com/projects/_/buckets/"
+        + bucket
+        + "/objects/"
+        + object_name
+    )
+
+
+def validate_policy_effect_audit(
+    audit: dict[str, object],
+    wif_verification: dict[str, object],
+    bucket: str,
+    object_names: list[str],
+    project_id: str,
+) -> None:
+    if audit.get("schema") != POLICY_EFFECT_AUDIT_SCHEMA:
+        raise AssertionError("wrong Policy Troubleshooter audit schema")
+    if audit.get("api_version") != "v3beta":
+        raise AssertionError("wrong Policy Troubleshooter API version")
+    if audit.get("principal") != wif_verification.get("service_account"):
+        raise AssertionError("Policy Troubleshooter principal drift")
+    if audit.get("all_targets_verified") is not True:
+        raise AssertionError("Policy Troubleshooter targets were not all verified")
+    targets = audit.get("targets")
+    if not isinstance(targets, list) or len(targets) != 14:
+        raise AssertionError("Policy Troubleshooter target vector drift")
+    project_resource = "//cloudresourcemanager.googleapis.com/projects/" + project_id
+    service_account = wif_verification.get("service_account")
+    if not isinstance(service_account, str) or not service_account:
+        raise AssertionError("WIF service account is missing")
+    sa_resource = (
+        "//iam.googleapis.com/projects/"
+        + project_id
+        + "/serviceAccounts/"
+        + service_account
+    )
+    expected: dict[tuple[str, str], str] = {
+        (project_resource, "cloudbuild.builds.create"): "CANNOT_ACCESS",
+        (
+            project_resource,
+            "deploymentmanager.deployments.create",
+        ): "CANNOT_ACCESS",
+        (
+            sa_resource,
+            "iam.serviceAccountKeys.create",
+        ): "CANNOT_ACCESS",
+        (
+            sa_resource,
+            "iam.serviceAccounts.getIamPolicy",
+        ): "CANNOT_ACCESS",
+        (
+            sa_resource,
+            "iam.serviceAccounts.setIamPolicy",
+        ): "CANNOT_ACCESS",
+    }
+    object_permissions = (
+        "storage.objects.create",
+        "storage.objects.get",
+        "storage.objects.delete",
+    )
+    for object_name in object_names:
+        resource = object_resource_name(bucket, object_name)
+        for permission in object_permissions:
+            expected[(resource, permission)] = "CAN_ACCESS"
+    if len(expected) != 14:
+        raise AssertionError("Policy Troubleshooter expected target vector is malformed")
+    seen: set[tuple[str, str]] = set()
+    for target in targets:
+        if not isinstance(target, dict):
+            raise AssertionError("Policy Troubleshooter target is malformed")
+        resource = target.get("resource")
+        permission = target.get("permission")
+        state = target.get("overall_access_state")
+        expected_state = target.get("expected_overall_access_state")
+        key = (resource, permission)
+        if (
+            not isinstance(resource, str)
+            or not isinstance(permission, str)
+            or key in seen
+            or expected.get(key) != expected_state
+            or state != expected_state
+        ):
+            raise AssertionError("Policy Troubleshooter target evidence drift")
+        for field in (
+            "allow_access_state",
+            "deny_access_state",
+            "pab_access_state",
+        ):
+            if not isinstance(target.get(field), str):
+                raise AssertionError(
+                    "Policy Troubleshooter policy-plane state is missing"
+                )
+            if target[field].endswith("UNKNOWN_INFO") or (
+                "UNKNOWN_CONDITIONAL" in target[field]
+            ) or target[field].endswith("UNSPECIFIED"):
+                raise AssertionError(
+                    "Policy Troubleshooter policy-plane state is unresolved"
+                )
+        response_digest = target.get("response_digest")
+        if not isinstance(response_digest, str) or not DIGEST_RE.fullmatch(
+            response_digest
+        ):
+            raise AssertionError("Policy Troubleshooter response digest is invalid")
+        seen.add(key)
+    if seen != set(expected):
+        raise AssertionError("Policy Troubleshooter target set is incomplete")
+
+
 def verify_resource_identity(report: dict[str, object]) -> None:
     if report.get("service") != "Google Cloud Storage":
         raise AssertionError("wrong external service")
@@ -1510,6 +1634,8 @@ def verify_report(path: str) -> None:
         raise AssertionError("wrong case-set identity")
     if report.get("case_set_path") != CASE_SET_PATH:
         raise AssertionError("wrong case-set path")
+    if report.get("schema") != SCHEMA:
+        raise AssertionError("wrong report schema")
     verify_resource_identity(report)
     expected_case_set_digest = digest(expected_case_set)
     github_run_verification = report.get("github_workflow_run_verification")
@@ -1622,6 +1748,28 @@ def verify_report(path: str) -> None:
         broad_sa_audit
     ):
         raise AssertionError("broad service-account audit digest mismatch")
+    policy_effect_audit = report.get("policy_effect_audit")
+    if not isinstance(policy_effect_audit, dict):
+        raise AssertionError("missing Policy Troubleshooter audit")
+    report_bucket = report.get("bucket")
+    report_objects = report.get("object_names")
+    report_project = github_context.get("repository")
+    if (
+        not isinstance(report_bucket, str)
+        or not isinstance(report_objects, list)
+        or len(report_objects) != 3
+    ):
+        raise AssertionError("missing GCS resource identity for policy audit")
+    validate_policy_effect_audit(
+        policy_effect_audit,
+        wif_verification,
+        report_bucket,
+        report_objects,
+        report.get("gcp_project_id", ""),
+    )
+    if report.get("policy_effect_audit_digest") != digest(policy_effect_audit):
+        raise AssertionError("Policy Troubleshooter audit digest mismatch")
+
     observer_isolation_audit = report.get("observer_isolation_audit")
     if not isinstance(observer_isolation_audit, dict):
         raise AssertionError("missing observer isolation audit")
@@ -1774,6 +1922,8 @@ def main() -> int:
     qualify.add_argument("--effective-iam-audit", required=True)
     qualify.add_argument("--broad-sa-audit", required=True)
     qualify.add_argument("--observer-isolation-audit", required=True)
+    qualify.add_argument("--policy-effect-audit", required=True)
+    qualify.add_argument("--object-root")
     qualify.add_argument("--output", required=True)
     verify = sub.add_parser("verify")
     verify.add_argument("--report", required=True)
@@ -1798,6 +1948,8 @@ def main() -> int:
         args.effective_iam_audit,
         args.broad_sa_audit,
         args.observer_isolation_audit,
+        args.policy_effect_audit,
+        args.object_root,
     )
     report = finalize_report(report)
     write_report(args.output, report)
