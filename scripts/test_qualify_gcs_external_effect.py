@@ -75,6 +75,11 @@ def main() -> None:
     )
     module.verify_resource_identity(good)
 
+    subject_raw = {
+        "use_default": True,
+        "include_claim_keys": [],
+        "use_immutable_subject": True,
+    }
     subject_config = {
         "schema": module.OIDC_SUBJECT_CONFIGURATION_SCHEMA,
         "repository": "Luminous-Dynamics/sol-atlas-leptos",
@@ -83,7 +88,8 @@ def main() -> None:
         "use_immutable_subject": True,
         "default_template_required": True,
         "custom_claim_keys_forbidden": True,
-        "configuration_digest": "sha256:" + "3" * 64,
+        "configuration": subject_raw,
+        "configuration_digest": module.digest(subject_raw),
     }
     with TemporaryDirectory() as tmp:
         subject_path = Path(tmp) / "subject.json"
@@ -95,6 +101,25 @@ def main() -> None:
             str(subject_path)
         )
         assert loaded_subject == subject_config
+        tampered_raw = dict(subject_raw, use_immutable_subject=False)
+        tampered = dict(
+            subject_config,
+            configuration=tampered_raw,
+        )
+        subject_path.write_text(
+            json.dumps(tampered),
+            encoding="utf-8",
+        )
+        try:
+            module.load_oidc_subject_configuration(
+                str(subject_path)
+            )
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(
+                "OIDC subject configuration accepted raw-response tampering"
+            )
         for field, value in (
             ("use_immutable_subject", False),
             ("use_default", False),
