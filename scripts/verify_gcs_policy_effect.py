@@ -208,6 +208,7 @@ def validate_response(
         "allow_policy_explanation": allow,
         "deny_policy_explanation": deny,
         "pab_policy_explanation": pab,
+        "response": payload,
         "response_digest": digest(payload),
     }
 
