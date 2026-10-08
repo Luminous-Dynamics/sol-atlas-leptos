@@ -16,6 +16,7 @@ from pathlib import Path
 SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v1"
 API_VERSION = "v3beta"
 DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
+PROJECT_ID_RE = re.compile(r"^[a-z][a-z0-9-]{4,28}[a-z0-9]$")
 
 UNKNOWN_STATES = {
     "ALLOW_ACCESS_STATE_UNSPECIFIED",
@@ -41,6 +42,12 @@ def canonical(value: object) -> bytes:
 
 def digest(value: object) -> str:
     return "sha256:" + hashlib.sha256(canonical(value)).hexdigest()
+
+
+def validate_project_id(project_id: str) -> str:
+    if not isinstance(project_id, str) or not PROJECT_ID_RE.fullmatch(project_id):
+        raise AssertionError("project ID is invalid")
+    return project_id
 
 
 def validate_service_account(principal: str) -> str:
@@ -232,16 +239,38 @@ def verify_targets(
     return result
 
 
-def load_targets(path: str) -> list[dict[str, object]]:
+def load_targets(
+    path: str,
+    project_id: str,
+    service_account: str,
+) -> list[dict[str, object]]:
     document = json.loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(document, dict):
         raise AssertionError("target manifest is not an object")
     if document.get("schema") != "sol-atlas:gcs-policy-troubleshooter-targets:v1":
         raise AssertionError("wrong target manifest schema")
-    targets = document.get("targets")
-    if not isinstance(targets, list):
+    raw_targets = document.get("targets")
+    if not isinstance(raw_targets, list):
         raise AssertionError("target manifest has no target list")
-    for target in targets:
+    project_id = validate_project_id(project_id)
+    service_account = validate_service_account(service_account)
+    targets: list[dict[str, object]] = []
+    for raw_target in raw_targets:
+        if not isinstance(raw_target, dict):
+            raise AssertionError("target manifest contains malformed target")
+        template = raw_target.get("resource_template")
+        if not isinstance(template, str) or not template.startswith("//"):
+            raise AssertionError("target manifest has invalid resource template")
+        try:
+            resource = template.format(
+                project_id=project_id,
+                service_account=service_account,
+            )
+        except (KeyError, ValueError) as exc:
+            raise AssertionError("target resource template is invalid") from exc
+        target = dict(raw_target)
+        target["resource"] = resource
+        targets.append(target)
         validate_target(target)
     return targets
 
@@ -250,11 +279,16 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--principal-email", required=True)
     parser.add_argument("--targets", required=True)
+    parser.add_argument("--project-id", required=True)
     parser.add_argument("--output")
     args = parser.parse_args()
     result = verify_targets(
         args.principal_email,
-        load_targets(args.targets),
+        load_targets(
+            args.targets,
+            args.project_id,
+            args.principal_email,
+        ),
         args.output,
     )
     print(
