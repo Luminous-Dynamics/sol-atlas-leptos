@@ -89,7 +89,7 @@ binding on the qualification service account. This closes project/folder-level
 service-account impersonation and credential pivots without expanding the effect
 identity's observer permissions.
 
-The repository now carries a separate `verify_gcs_effective_iam.py` v7 audit
+The repository now carries a separate `verify_gcs_effective_iam.py` v8 audit
 tool for this remaining boundary. It uses Google Cloud Policy Analyzer to inspect
 effective allow-policy access to the service account for credential-capability
 permissions, and fails closed on alternate effective roles, members, identities,
@@ -115,7 +115,7 @@ Asset/IAM analysis permissions and must be governed separately from the workload
 identity used to perform the external effect.
 
 The effective-IAM audit has a narrower claim ceiling than a perfect snapshot. For
-workload identity, the v7 parser derives the principal-set containment candidates
+workload identity, the v8 parser derives the principal-set containment candidates
 from the checked-in v9 trust profile rather than duplicating those values in the
 verifier:
 Policy Analyzer automatically considers relevant inherited allow policies, but
