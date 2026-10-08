@@ -322,6 +322,28 @@ def main() -> None:
                     "response_digest": "sha256:" + "0" * 64,
                 }
             )
+    for target in policy_targets:
+        target["response"] = {
+            "accessTuple": {
+                "principal": target["principal"],
+                "fullResourceName": target["resource"],
+                "permission": target["permission"],
+            },
+            "overallAccessState": target["overall_access_state"],
+            "allowPolicyExplanation": {
+                "allowAccessState": target["allow_access_state"],
+            },
+            "denyPolicyExplanation": {
+                "denyAccessState": target["deny_access_state"],
+            },
+            "pabPolicyExplanation": {
+                "principalAccessBoundaryAccessState": (
+                    target["pab_access_state"]
+                ),
+            },
+        }
+        target["response_digest"] = module.digest(target["response"])
+
     manifest_path = (
         "sol-atlas-policy-store-contract/conformance/"
         "gcs_policy_troubleshooter_targets_v2.json"
