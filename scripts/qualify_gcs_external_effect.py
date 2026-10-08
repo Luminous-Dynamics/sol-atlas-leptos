@@ -72,7 +72,7 @@ EFFECTIVE_IAM_PROJECT_PIVOT_PERMISSIONS = [
 BROAD_SA_AUDIT_SCHEMA = (
     "sol-atlas:gcs-broad-service-account-impersonation-audit:v2"
 )
-OBSERVER_ISOLATION_AUDIT_SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v1"
+OBSERVER_ISOLATION_AUDIT_SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v2"
 OBSERVER_AUTHORITY_FORBIDDEN_PROJECT_PERMISSIONS = [
     "resourcemanager.projects.setIamPolicy",
     "resourcemanager.projects.update",
