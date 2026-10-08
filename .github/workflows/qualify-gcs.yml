@@ -146,6 +146,17 @@ jobs:
             --wif-verification artifacts/gcs-wif-trust-verification.json \
             --output artifacts/gcs-broad-sa-impersonation-verification.json
 
+      - name: Audit observer effect-account isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_gcs_observer_isolation.py \
+            --scope "$GCP_IAM_ANALYSIS_SCOPE" \
+            --project-id "$GCP_PROJECT_ID" \
+            --effect-service-account "$GCP_SERVICE_ACCOUNT" \
+            --observer-service-account "$GCP_IAM_OBSERVER_SERVICE_ACCOUNT" \
+            --output artifacts/gcs-observer-isolation-verification.json
+
       - name: Remove transient observer credentials
         if: ${{ always() }}
         shell: bash
@@ -165,6 +176,7 @@ jobs:
             observer-artifacts/github-oidc-claims.json
             artifacts/gcs-effective-iam-verification.json
             artifacts/gcs-broad-sa-impersonation-verification.json
+            artifacts/gcs-observer-isolation-verification.json
           if-no-files-found: error
           retention-days: 90
   qualify:
@@ -261,10 +273,12 @@ jobs:
           test -s artifacts/wif-observer/github-oidc-claims.json
           test -s artifacts/wif-observer/gcs-effective-iam-verification.json
           test -s artifacts/wif-observer/gcs-broad-sa-impersonation-verification.json
+          test -s artifacts/wif-observer/gcs-observer-isolation-verification.json
           cp artifacts/wif-observer/gcs-wif-trust-verification.json artifacts/gcs-wif-trust-verification.json
           cp artifacts/wif-observer/github-oidc-claims.json artifacts/observer-github-oidc-claims.json
           cp artifacts/wif-observer/gcs-effective-iam-verification.json artifacts/gcs-effective-iam-verification.json
           cp artifacts/wif-observer/gcs-broad-sa-impersonation-verification.json artifacts/gcs-broad-sa-impersonation-verification.json
+          cp artifacts/wif-observer/gcs-observer-isolation-verification.json artifacts/gcs-observer-isolation-verification.json
       - name: Verify GitHub OIDC claims
         env:
           EXPECTED_OIDC_AUDIENCE: >-
@@ -336,6 +350,7 @@ jobs:
             --observer-oidc-claims artifacts/observer-github-oidc-claims.json \
             --effective-iam-audit artifacts/gcs-effective-iam-verification.json \
             --broad-sa-audit artifacts/gcs-broad-sa-impersonation-verification.json \
+            --observer-isolation-audit artifacts/gcs-observer-isolation-verification.json \
             --output artifacts/gcs-external-effect-report.json
 
       - name: Re-verify qualification artifact
