@@ -165,6 +165,37 @@ def main() -> None:
         observer_identity_verified=True,
     )
     module.validate_wif_verification(valid_wif)
+    valid_observer_isolation = {
+        "schema": module.OBSERVER_ISOLATION_AUDIT_SCHEMA,
+        "observer_service_account": valid_wif["observer_service_account"],
+        "effect_service_account": valid_wif["service_account"],
+        "observer_principal": (
+            "serviceAccount:"
+            + valid_wif["observer_service_account"]
+        ),
+        "required_observer_permission_verified": True,
+        "forbidden_effect_permissions_absent": True,
+        "observed_permissions": [
+            "iam.serviceAccounts.getIamPolicy",
+        ],
+        "forbidden_permissions": [
+            "iam.serviceAccounts.actAs",
+            "iam.serviceAccounts.getAccessToken",
+            "iam.serviceAccounts.getOpenIdToken",
+            "iam.serviceAccounts.implicitDelegation",
+            "iam.serviceAccounts.signBlob",
+            "iam.serviceAccounts.signJwt",
+            "iam.serviceAccountKeys.create",
+            "iam.serviceAccounts.setIamPolicy",
+        ],
+        "policy_analyzer_response_digest": "sha256:" + "a" * 64,
+        "claim_ceiling": "observer-only",
+    }
+    module.validate_observer_isolation_audit(
+        valid_observer_isolation,
+        valid_wif,
+    )
+
     same_identity = dict(
         valid_wif,
         observer_service_account="qualification@sol-atlas.iam.gserviceaccount.com",
