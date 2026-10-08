@@ -16,6 +16,10 @@ from pathlib import Path
 SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v2"
 API_VERSION = "v3beta"
 TARGET_MANIFEST_SCHEMA = "sol-atlas:gcs-policy-troubleshooter-targets:v2"
+TARGET_MANIFEST_PATH = (
+    "sol-atlas-policy-store-contract/conformance/"
+    "gcs_policy_troubleshooter_targets_v2.json"
+)
 DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 PROJECT_ID_RE = re.compile(r"^[a-z][a-z0-9-]{4,28}[a-z0-9]$")
 
@@ -239,9 +243,16 @@ def verify_targets(
             )
         )
 
+    manifest = json.loads(
+        Path(TARGET_MANIFEST_PATH).read_text(encoding="utf-8")
+    )
+    if manifest.get("schema") != TARGET_MANIFEST_SCHEMA:
+        raise AssertionError("checked-in target manifest schema drift")
     result: dict[str, object] = {
         "schema": SCHEMA,
         "api_version": API_VERSION,
+        "target_manifest_path": TARGET_MANIFEST_PATH,
+        "target_manifest_digest": digest(manifest),
         "principal": principal,
         "target_count": len(observations),
         "targets": observations,
