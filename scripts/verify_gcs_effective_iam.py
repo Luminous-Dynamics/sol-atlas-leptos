@@ -212,12 +212,16 @@ def validate_profile_principal_set_model(profile: dict[str, object]) -> dict[str
     mapped = profile.get("required_attribute_mappings")
     if not isinstance(mapped, dict):
         raise AssertionError("WIF trust profile mappings are missing")
-    expected_keys = {"google.subject"} | {
-        "attribute." + key for key in condition_values
-    }
-    if set(mapped) != expected_keys:
+    expected_mappings = {"google.subject": "assertion.sub"}
+    expected_mappings.update(
+        {
+            "attribute." + key: "assertion." + key
+            for key in condition_values
+        }
+    )
+    if mapped != expected_mappings:
         raise AssertionError(
-            "WIF profile maps an attribute or Google claim outside the exact condition"
+            "WIF profile mappings do not match the frozen condition fields"
         )
     return condition_values
 
