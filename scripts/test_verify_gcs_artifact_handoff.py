@@ -29,14 +29,14 @@ def workflow() -> str:
         step(STEPS[0],
              "        id: upload_wif_evidence\n"
              "        if-no-files-found: error\n"
-             + "".join("        - " + value + "\n" for value in module.OBSERVER_FILES)),
+             + "".join("        " + value + "\n" for value in module.OBSERVER_FILES)),
         step(STEPS[1],
              "        artifact-ids: needs.observe-wif-trust.outputs.artifact_id\n"
              "        digest-mismatch: error"),
         step(STEPS[2],
              "        id: upload_evidence\n"
              "        if-no-files-found: error\n"
-             + "".join("        - " + value + "\n" for value in module.FINAL_FILES)),
+             + "".join("        " + value + "\n" for value in module.FINAL_FILES)),
         step(STEPS[3],
              "        artifact-ids: needs.qualify.outputs.artifact_id\n"
              "        digest-mismatch: error"),
