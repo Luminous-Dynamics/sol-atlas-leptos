@@ -25,6 +25,11 @@ FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS = (
     "iam.serviceAccounts.setIamPolicy",
 )
 REQUIRED_OBSERVER_PERMISSION = "iam.serviceAccounts.getIamPolicy"
+PROJECT_PIVOT_PERMISSIONS = (
+    "cloudbuild.builds.create",
+    "deploymentmanager.deployments.create",
+    "resourcemanager.projects.setIamPolicy",
+)
 
 
 def load_effective_iam_module():
