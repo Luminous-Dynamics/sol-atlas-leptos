@@ -94,9 +94,11 @@ def main() -> None:
         role=module.EXPECTED_ROLE,
         permission="iam.serviceAccounts.getAccessToken",
     )
-    clean["accessControlLists"][0]["accesses"].append({
-        "permission": "iam.serviceAccounts.getOpenIdToken"
-    })
+    clean["accessControlLists"][0]["accesses"].extend([
+        {"permission": "iam.serviceAccounts.getOpenIdToken"},
+        {"permission": "iam.serviceAccounts.signJwt"},
+        {"permission": "iam.serviceAccounts.implicitDelegation"},
+    ])
     assert module.extract_findings(
         envelope([clean]),
         PRINCIPAL,
@@ -166,6 +168,21 @@ def main() -> None:
             ]),
             "broad workload principal set",
         )
+
+    extra = finding(
+        role=module.EXPECTED_ROLE,
+        permission="iam.serviceAccounts.getAccessToken",
+    )
+    extra["accessControlLists"][0]["accesses"].extend([
+        {"permission": "iam.serviceAccounts.getOpenIdToken"},
+        {"permission": "iam.serviceAccounts.signJwt"},
+        {"permission": "iam.serviceAccounts.implicitDelegation"},
+        {"permission": "iam.serviceAccountKeys.create"},
+    ])
+    expect_failure(
+        envelope([extra]),
+        "extra key-creation capability on qualification binding",
+    )
 
     expect_failure(
         envelope([
