@@ -215,6 +215,11 @@ def validate_oidc_request_url(url: str) -> None:
         raise AssertionError("GitHub OIDC request URL is not an approved runner origin")
 
 
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, request, response):
+        raise AssertionError("GitHub OIDC endpoint returned a redirect")
+
+
 def with_audience(url: str, audience: str) -> str:
     parsed = urllib.parse.urlsplit(url)
     query = [
@@ -252,7 +257,10 @@ def request_token(audience: str) -> str:
         },
     )
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
+        opener = urllib.request.build_opener(
+            _NoRedirectHandler()
+        )
+        with opener.open(request, timeout=30) as response:
             document = json.load(response)
     except Exception as exc:
         raise AssertionError("GitHub OIDC token request failed") from exc
