@@ -1003,11 +1003,12 @@ def run_qualification(
     )
     run_id = os.environ.get("GITHUB_RUN_ID", "local")
     run_attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "1")
-    expected_object_root = (
-        object_prefix.rstrip("/")
-        + f"/run-{run_id}-attempt-{run_attempt}"
+    expected_root = expected_object_root(
+        object_prefix,
+        run_id,
+        run_attempt,
     )
-    if object_root is not None and object_root != expected_object_root:
+    if object_root != expected_root:
         raise AssertionError("qualification object root is not bound to this run")
     if object_root is None:
         raise AssertionError("qualification object root is required")
@@ -1507,6 +1508,22 @@ def object_resource_name(bucket: str, object_name: str) -> str:
     )
 
 
+def expected_object_root(
+    object_prefix: str,
+    run_id: str,
+    run_attempt: str,
+) -> str:
+    if not object_prefix or not run_id or not run_attempt:
+        raise AssertionError("object-root binding inputs are incomplete")
+    return (
+        object_prefix.rstrip("/")
+        + "/run-"
+        + run_id
+        + "-attempt-"
+        + run_attempt
+    )
+
+
 def validate_policy_effect_audit(
     audit: dict[str, object],
     wif_verification: dict[str, object],
@@ -1714,16 +1731,14 @@ def verify_report(path: str) -> None:
         != os.environ.get("GITHUB_RUN_ATTEMPT")
     ):
         raise AssertionError("GitHub workflow-run attempt does not match current run")
-    expected_report_object_root = (
-        str(report.get("object_prefix", "")).rstrip("/")
-        + "/run-"
-        + str(load_github_workflow_run_verification_from_report.get("run_id"))
-        + "-attempt-"
-        + str(
+    expected_report_object_root = expected_object_root(
+        str(report.get("object_prefix", "")),
+        str(load_github_workflow_run_verification_from_report.get("run_id")),
+        str(
             load_github_workflow_run_verification_from_report.get(
                 "run_attempt"
             )
-        )
+        ),
     )
     if report.get("object_root") != expected_report_object_root:
         raise AssertionError("GCS object root is not bound to the server run")
