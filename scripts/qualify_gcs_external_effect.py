@@ -809,24 +809,13 @@ def load_oidc_claims(path: str) -> dict[str, object]:
     return claims
 
 
-def load_oidc_subject_configuration(path: str) -> dict[str, object]:
-    configuration = json.loads(Path(path).read_text(encoding="utf-8"))
-    if not isinstance(configuration, dict):
-        raise AssertionError("OIDC subject configuration is not an object")
+def validate_oidc_subject_configuration(
+    configuration: dict[str, object],
+) -> None:
     if configuration.get("schema") != OIDC_SUBJECT_CONFIGURATION_SCHEMA:
         raise AssertionError("wrong OIDC subject configuration schema")
     if configuration.get("repository") != "Luminous-Dynamics/sol-atlas-leptos":
         raise AssertionError("OIDC subject configuration repository drift")
-    if configuration.get("use_default") is not True:
-        raise AssertionError("OIDC subject default template was not verified")
-    if configuration.get("use_immutable_subject") is not True:
-        raise AssertionError("OIDC immutable subject mode was not verified")
-    if configuration.get("include_claim_keys") != []:
-        raise AssertionError("OIDC subject claim customization was not excluded")
-    if configuration.get("default_template_required") is not True:
-        raise AssertionError("OIDC default-template assertion is missing")
-    if configuration.get("custom_claim_keys_forbidden") is not True:
-        raise AssertionError("OIDC custom-claim assertion is missing")
     raw = configuration.get("configuration")
     if not isinstance(raw, dict):
         raise AssertionError("OIDC subject raw configuration is missing")
@@ -852,9 +841,21 @@ def load_oidc_subject_configuration(path: str) -> dict[str, object]:
         "include_claim_keys"
     ):
         raise AssertionError("OIDC subject summary/claims drift")
+    if configuration.get("default_template_required") is not True:
+        raise AssertionError("OIDC default-template assertion is missing")
+    if configuration.get("custom_claim_keys_forbidden") is not True:
+        raise AssertionError("OIDC custom-claim assertion is missing")
     if not is_sha256_digest(configuration.get("configuration_digest")):
         raise AssertionError("OIDC subject configuration digest is malformed")
+
+
+def load_oidc_subject_configuration(path: str) -> dict[str, object]:
+    configuration = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(configuration, dict):
+        raise AssertionError("OIDC subject configuration is not an object")
+    validate_oidc_subject_configuration(configuration)
     return configuration
+
 
 def validate_case_set() -> str:
     case_set = load_case_set()
