@@ -1690,11 +1690,58 @@ def validate_policy_effect_audit(
                 raise AssertionError(
                     "Policy Troubleshooter policy-plane state is unresolved"
                 )
-        response_digest = target.get("response_digest")
-        if not isinstance(response_digest, str) or not DIGEST_RE.fullmatch(
-            response_digest
+        response = target.get("response")
+        if not isinstance(response, dict):
+            raise AssertionError("Policy Troubleshooter raw response is missing")
+        if target.get("response_digest") != digest(response):
+            raise AssertionError(
+                "Policy Troubleshooter raw response digest mismatch"
+            )
+        access_tuple = response.get("accessTuple")
+        if not isinstance(access_tuple, dict):
+            raise AssertionError(
+                "Policy Troubleshooter raw access tuple is missing"
+            )
+        if access_tuple.get("principal") != target_principal:
+            raise AssertionError(
+                "Policy Troubleshooter raw principal drift"
+            )
+        if access_tuple.get("fullResourceName") != resource:
+            raise AssertionError(
+                "Policy Troubleshooter raw resource drift"
+            )
+        if access_tuple.get("permission") != permission:
+            raise AssertionError(
+                "Policy Troubleshooter raw permission drift"
+            )
+        raw_overall = response.get("overallAccessState")
+        allow = response.get("allowPolicyExplanation")
+        deny = response.get("denyPolicyExplanation")
+        pab = response.get("pabPolicyExplanation")
+        if not isinstance(raw_overall, str):
+            raise AssertionError(
+                "Policy Troubleshooter raw overall state is missing"
+            )
+        if (
+            not isinstance(allow, dict)
+            or not isinstance(deny, dict)
+            or not isinstance(pab, dict)
         ):
-            raise AssertionError("Policy Troubleshooter response digest is invalid")
+            raise AssertionError(
+                "Policy Troubleshooter raw policy-plane explanation is missing"
+            )
+        raw_allow = allow.get("allowAccessState")
+        raw_deny = deny.get("denyAccessState")
+        raw_pab = pab.get("principalAccessBoundaryAccessState")
+        if (
+            raw_allow != target.get("allow_access_state")
+            or raw_deny != target.get("deny_access_state")
+            or raw_pab != target.get("pab_access_state")
+            or raw_overall != state
+        ):
+            raise AssertionError(
+                "Policy Troubleshooter raw/summary state disagreement"
+            )
         seen.add(key)
     if seen != set(expected):
         raise AssertionError("Policy Troubleshooter target set is incomplete")
