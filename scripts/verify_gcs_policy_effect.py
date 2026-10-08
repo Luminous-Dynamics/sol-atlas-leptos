@@ -13,8 +13,9 @@ import re
 import subprocess
 from pathlib import Path
 
-SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v1"
+SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v2"
 API_VERSION = "v3beta"
+TARGET_MANIFEST_SCHEMA = "sol-atlas:gcs-policy-troubleshooter-targets:v2"
 DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 PROJECT_ID_RE = re.compile(r"^[a-z][a-z0-9-]{4,28}[a-z0-9]$")
 
@@ -48,6 +49,30 @@ def validate_project_id(project_id: str) -> str:
     if not isinstance(project_id, str) or not PROJECT_ID_RE.fullmatch(project_id):
         raise AssertionError("project ID is invalid")
     return project_id
+
+
+def validate_bucket(bucket: str) -> str:
+    if (
+        not isinstance(bucket, str)
+        or not bucket
+        or "/" in bucket
+        or any(character.isspace() for character in bucket)
+    ):
+        raise AssertionError("bucket name is invalid")
+    return bucket
+
+
+def validate_object_root(object_root: str) -> str:
+    if (
+        not isinstance(object_root, str)
+        or not object_root
+        or object_root.startswith("/")
+        or object_root.endswith("/")
+        or "//" in object_root
+        or any(character in object_root for character in "\\r\\n")
+    ):
+        raise AssertionError("object root is invalid")
+    return object_root
 
 
 def validate_service_account(principal: str) -> str:
@@ -243,17 +268,27 @@ def load_targets(
     path: str,
     project_id: str,
     service_account: str,
+    bucket: str | None = None,
+    object_root: str | None = None,
 ) -> list[dict[str, object]]:
     document = json.loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(document, dict):
         raise AssertionError("target manifest is not an object")
-    if document.get("schema") != "sol-atlas:gcs-policy-troubleshooter-targets:v1":
+    manifest_schema = document.get("schema")
+    if manifest_schema not in {
+        "sol-atlas:gcs-policy-troubleshooter-targets:v1",
+        TARGET_MANIFEST_SCHEMA,
+    }:
         raise AssertionError("wrong target manifest schema")
     raw_targets = document.get("targets")
     if not isinstance(raw_targets, list):
         raise AssertionError("target manifest has no target list")
     project_id = validate_project_id(project_id)
     service_account = validate_service_account(service_account)
+    if bucket is not None:
+        bucket = validate_bucket(bucket)
+    if object_root is not None:
+        object_root = validate_object_root(object_root)
     targets: list[dict[str, object]] = []
     for raw_target in raw_targets:
         if not isinstance(raw_target, dict):
@@ -261,11 +296,24 @@ def load_targets(
         template = raw_target.get("resource_template")
         if not isinstance(template, str) or not template.startswith("//"):
             raise AssertionError("target manifest has invalid resource template")
+        fields = {
+            "project_id": project_id,
+            "service_account": service_account,
+        }
+        if "{bucket}" in template:
+            if bucket is None:
+                raise AssertionError(
+                    "target requires bucket but none was supplied"
+                )
+            fields["bucket"] = bucket
+        if "{object_root}" in template:
+            if object_root is None:
+                raise AssertionError(
+                    "target requires object root but none was supplied"
+                )
+            fields["object_root"] = object_root
         try:
-            resource = template.format(
-                project_id=project_id,
-                service_account=service_account,
-            )
+            resource = template.format(**fields)
         except (KeyError, ValueError) as exc:
             raise AssertionError("target resource template is invalid") from exc
         target = dict(raw_target)
@@ -275,11 +323,25 @@ def load_targets(
     return targets
 
 
+def object_resource(bucket: str, object_name: str) -> str:
+    validate_bucket(bucket)
+    if not object_name or object_name.startswith("/") or object_name.endswith("/"):
+        raise AssertionError("object name is invalid")
+    return (
+        "//storage.googleapis.com/projects/_/buckets/"
+        + bucket
+        + "/objects/"
+        + object_name
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--principal-email", required=True)
     parser.add_argument("--targets", required=True)
     parser.add_argument("--project-id", required=True)
+    parser.add_argument("--bucket")
+    parser.add_argument("--object-root")
     parser.add_argument("--output")
     args = parser.parse_args()
     result = verify_targets(
@@ -288,6 +350,8 @@ def main() -> int:
             args.targets,
             args.project_id,
             args.principal_email,
+            args.bucket,
+            args.object_root,
         ),
         args.output,
     )
