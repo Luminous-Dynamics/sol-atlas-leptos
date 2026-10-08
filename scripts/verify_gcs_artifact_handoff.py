@@ -67,6 +67,25 @@ def path_entries(block: str) -> tuple[str, ...]:
     end = block.find("\n          if-no-files-found:", start)
     if end < 0:
         raise AssertionError("artifact upload path termination is missing")
+    entries = tuple(
+        line.strip()
+        for line in block[start:end].splitlines()
+        if line.strip()
+    )
+    if not entries:
+        raise AssertionError("artifact upload path is empty")
+    return entries
+
+
+def path_entries(block: str) -> tuple[str, ...]:
+    marker = "          path: |\n"
+    start = block.find(marker)
+    if start < 0:
+        raise AssertionError("artifact upload path block is missing")
+    start += len(marker)
+    end = block.find("\n          if-no-files-found:", start)
+    if end < 0:
+        raise AssertionError("artifact upload path termination is missing")
     return tuple(
         line.strip()
         for line in block[start:end].splitlines()
