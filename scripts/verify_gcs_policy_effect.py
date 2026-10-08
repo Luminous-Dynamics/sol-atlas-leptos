@@ -13,12 +13,12 @@ import re
 import subprocess
 from pathlib import Path
 
-SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v3"
+SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v4"
 API_VERSION = "v3beta"
-TARGET_MANIFEST_SCHEMA = "sol-atlas:gcs-policy-troubleshooter-targets:v2"
+TARGET_MANIFEST_SCHEMA = "sol-atlas:gcs-policy-troubleshooter-targets:v3"
 TARGET_MANIFEST_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
-    "gcs_policy_troubleshooter_targets_v2.json"
+    "gcs_policy_troubleshooter_targets_v3.json"
 )
 DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 PROJECT_ID_RE = re.compile(r"^[a-z][a-z0-9-]{4,28}[a-z0-9]$")
