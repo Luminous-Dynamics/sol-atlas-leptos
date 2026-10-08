@@ -242,9 +242,9 @@ def main() -> None:
             policy_targets.append(
                 {
                     "principal": valid_wif["service_account"],
-                "resource": resource,
-                "permission": permission,
-                "expected_overall_access_state": "CAN_ACCESS",
+                    "resource": resource,
+                    "permission": permission,
+                    "expected_overall_access_state": "CAN_ACCESS",
                     "overall_access_state": "CAN_ACCESS",
                     "allow_access_state": "ALLOW_ACCESS_STATE_GRANTED",
                     "deny_access_state": "DENY_ACCESS_STATE_NOT_DENIED",
@@ -277,6 +277,10 @@ def main() -> None:
         "sol-atlas",
     )
     assert len(policy_targets) == 14
+    assert all(
+        target["principal"] == valid_wif["service_account"]
+        for target in policy_targets
+    )
     tampered_policy = json.loads(json.dumps(policy_audit))
     tampered_policy["targets"][0]["overall_access_state"] = "CAN_ACCESS"
     try:
