@@ -29,7 +29,11 @@ def main() -> None:
     assert result["use_immutable_subject"] is True
     assert result["default_template_required"] is True
     assert result["custom_claim_keys_forbidden"] is True
+    assert result["configuration"] == good
     assert result["configuration_digest"] == module.digest(good)
+    assert result["configuration_digest"] != module.digest(
+        dict(good, use_immutable_subject=False)
+    )
 
     for bad in (
         {"use_default": True, "include_claim_keys": []},
@@ -60,6 +64,14 @@ def main() -> None:
             pass
         else:
             raise AssertionError("non-immutable OIDC configuration was accepted")
+
+    tampered = dict(result, configuration=dict(good, use_default=False))
+    if tampered["configuration_digest"] == module.digest(
+        tampered["configuration"]
+    ):
+        raise AssertionError(
+            "tampered raw configuration unexpectedly retained original digest"
+        )
 
     print("offline immutable OIDC subject configuration checks: PASS")
 
