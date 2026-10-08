@@ -28,6 +28,10 @@ REQUIRED_OBSERVER_PERMISSION = "iam.serviceAccounts.getIamPolicy"
 PROJECT_PIVOT_PERMISSIONS = (
     "cloudbuild.builds.create",
     "deploymentmanager.deployments.create",
+    "compute.instances.create",
+    "run.services.create",
+    "run.jobs.create",
+    "cloudfunctions.functions.create",
     "resourcemanager.projects.setIamPolicy",
 )
 
