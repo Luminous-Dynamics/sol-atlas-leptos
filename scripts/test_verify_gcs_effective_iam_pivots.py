@@ -152,6 +152,16 @@ def main() -> None:
         "deploymentmanager.deployments.create"
     ]
 
+    for permission in (
+        "compute.instances.create",
+        "run.services.create",
+        "run.jobs.create",
+        "cloudfunctions.functions.create",
+        "resourcemanager.projects.setIamPolicy",
+    ):
+        detected = extract(envelope([pivot(permission)]))
+        assert detected[0]["permissions"] == [permission]
+
     assert extract(
         envelope([
             pivot(
