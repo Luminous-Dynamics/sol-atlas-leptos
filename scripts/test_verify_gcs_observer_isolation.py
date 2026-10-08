@@ -111,48 +111,40 @@ def authority_finding(
         list(profile["forbidden_project_permissions"])
         + [profile["forbidden_project_permissions"][0]]
     )
-    original = module.OBSERVER_PROFILE
     try:
-        module.OBSERVER_PROFILE = bad
-        try:
-            module.load_observer_profile()
-        except AssertionError:
-            pass
-        else:
-            raise AssertionError("duplicate observer permission was accepted")
+        module.validate_observer_profile(bad)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("duplicate observer permission was accepted")
 
-        bad_overlap = dict(profile)
-        bad_overlap["forbidden_service_account_permissions"] = (
-            list(profile["forbidden_service_account_permissions"])
-            + [profile["required_observer_permission"]]
+    bad_overlap = dict(profile)
+    bad_overlap["forbidden_service_account_permissions"] = (
+        list(profile["forbidden_service_account_permissions"])
+        + [profile["required_observer_permission"]]
+    )
+    try:
+        module.validate_observer_profile(bad_overlap)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "required observer permission was also accepted as forbidden"
         )
-        module.OBSERVER_PROFILE = bad_overlap
-        try:
-            module.load_observer_profile()
-        except AssertionError:
-            pass
-        else:
-            raise AssertionError(
-                "required observer permission was also accepted as forbidden"
-            )
 
-        bad_pivots = dict(profile)
-        bad_pivots["project_pivot_permissions"] = [
-            "permission.outside.observer.ceiling"
-        ]
-        module.OBSERVER_PROFILE = bad_pivots
-        try:
-            module.load_observer_profile()
-        except AssertionError:
-            pass
-        else:
-            raise AssertionError(
-                "uncovered observer pivot permission was accepted"
-            )
-    finally:
-        module.OBSERVER_PROFILE = original
+    bad_pivots = dict(profile)
+    bad_pivots["project_pivot_permissions"] = [
+        "permission.outside.observer.ceiling"
+    ]
+    try:
+        module.validate_observer_profile(bad_pivots)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "uncovered observer pivot permission was accepted"
+        )
 
-def main() -> None:
     clean = module.extract(
         envelope([
             finding([module.REQUIRED_OBSERVER_PERMISSION])
