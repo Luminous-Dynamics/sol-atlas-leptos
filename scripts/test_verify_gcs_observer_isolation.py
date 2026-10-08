@@ -68,6 +68,7 @@ def expect_failure(data, label: str) -> None:
             data,
             OBSERVER_PRINCIPAL,
             EFFECT,
+            module.FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS,
         )
     except AssertionError:
         return
@@ -81,6 +82,7 @@ def main() -> None:
         ]),
         OBSERVER_PRINCIPAL,
         EFFECT,
+        module.FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS,
     )
     assert clean["required_observer_permission_verified"] is True
     assert clean["forbidden_effect_permissions_absent"] is True
@@ -121,6 +123,26 @@ def main() -> None:
             }],
         }],
     }
+    universal_pivot = dict(pivot_result)
+    universal_pivot["iamBinding"] = {
+        "members": ["allAuthenticatedUsers"]
+    }
+    try:
+        module.extract_project_pivots(
+            {
+                "fullyExplored": True,
+                "nonCriticalErrors": [],
+                "analysisResults": [universal_pivot],
+            },
+            "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "project pivot parser accepted universal principal"
+        )
+
     observed_pivot = module.extract_project_pivots(
         {
             "fullyExplored": True,
