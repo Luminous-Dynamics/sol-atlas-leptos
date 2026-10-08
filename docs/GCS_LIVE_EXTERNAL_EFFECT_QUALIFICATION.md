@@ -175,9 +175,12 @@ authentication, and report verification checks the same equality.
 
 
 After transient-credential cleanup, the qualification job uploads only an
-explicit five-file allowlist of non-secret evidence through the pinned GitHub
+explicit six-file allowlist of non-secret evidence through the pinned GitHub
 artifact action and attests the report. The uploader's unique artifact ID is
-passed as a small job output to a separate publication job. Publication has only `contents: read`,
+passed as a small job output to a separate publication job. The repository also
+runs `verify_gcs_artifact_handoff.py` in CI to check the observer/final allowlists,
+exact producer-to-consumer artifact-ID handoffs, and digest-mismatch fail-closed
+settings against the workflow source. Publication has only `contents: read`,
 downloads by that exact artifact ID with digest-mismatch failure enabled, and
 re-verifies the report against the exact source checkout. Publication has
 only `contents: read` and `attestations: read`; it cannot request a GitHub
