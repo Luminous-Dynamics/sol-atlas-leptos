@@ -306,6 +306,36 @@ def main() -> None:
                 "accepted alternate v2 manifest before external calls"
             )
 
+    frozen_shape = [
+        {
+            "resource_template": "//cloudresourcemanager.googleapis.com/projects/{project_id}",
+            "permission": "cloudbuild.builds.create",
+            "expected_overall_access_state": "CANNOT_ACCESS",
+            "resource": "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
+        }
+    ]
+    supplied_shape = list(frozen_shape)
+    module.validate_target_vector_binding(
+        supplied_shape,
+        frozen_shape,
+    )
+    tampered_shape = list(frozen_shape)
+    tampered_shape[0] = dict(
+        tampered_shape[0],
+        permission="cloudbuild.builds.get",
+    )
+    try:
+        module.validate_target_vector_binding(
+            tampered_shape,
+            frozen_shape,
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "accepted tampered frozen target vector"
+        )
+
     try:
         module.verify_targets(PRINCIPAL, [], None)
     except AssertionError:
