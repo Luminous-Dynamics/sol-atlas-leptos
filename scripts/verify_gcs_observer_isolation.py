@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -128,6 +129,17 @@ def service_account_principal(email: str) -> str:
     if not email or email.count("@") != 1:
         raise AssertionError("invalid observer service account")
     return "serviceAccount:" + email
+
+def valid_service_account_resource(resource: object) -> bool:
+    if not isinstance(resource, str):
+        return False
+    return bool(
+        re.fullmatch(
+            r"//iam\\.googleapis\\.com/projects/"
+            r"[A-Za-z0-9._-]+/serviceAccounts/[^/]+@[^/]+",
+            resource,
+        )
+    )
 
 
 def run_analysis(
@@ -537,6 +549,12 @@ def extract_lateral_service_account_permissions(
             raise AssertionError(
                 "lateral observer service-account access is unresolved"
             )
+        attached = result.get("attachedResourceFullName")
+        if not valid_service_account_resource(attached):
+            raise AssertionError(
+                "lateral observer result targeted a non-service-account resource"
+            )
+
         if permissions:
             findings.append(
                 {
