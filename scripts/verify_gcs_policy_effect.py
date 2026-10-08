@@ -13,7 +13,7 @@ import re
 import subprocess
 from pathlib import Path
 
-SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v2"
+SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v3"
 API_VERSION = "v3beta"
 TARGET_MANIFEST_SCHEMA = "sol-atlas:gcs-policy-troubleshooter-targets:v2"
 TARGET_MANIFEST_PATH = (
