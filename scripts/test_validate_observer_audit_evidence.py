@@ -52,59 +52,13 @@ OBSERVER_OIDC = {
     "audience": "aud",
 }
 
-EXPECTED_PRINCIPAL_SET_MEMBERS = [
-    PRINCIPAL,
- 
- 
- 
- 
-(
- 
- 
- 
- 
-(
- 
- 
- 
- 
-(
- 
- 
- 
- 
-(
- 
- 
- 
- 
-(
- 
- 
- 
- 
-(
- 
- 
- 
- 
-(
- 
- 
- 
- 
-(
- 
- 
- 
- 
-(
- 
- 
- 
- 
-(
-]
+EXPECTED_PRINCIPAL_SET_MEMBERS = (
+    module.expected_effective_workload_principal_sets(
+        PRINCIPAL,
+        PROFILE,
+    )
+)
+
 
 EFFECTIVE = {
     "schema": module.EFFECTIVE_IAM_AUDIT_SCHEMA,
