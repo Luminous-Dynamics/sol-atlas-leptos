@@ -55,6 +55,7 @@ WORKFLOW_PATH = ".github/workflows/qualify-gcs.yml"
 ADAPTER_ID = "gcs-generation-fenced-object"
 HARNESS_ID = "sol-atlas-gcs-external-conformance"
 OIDC_CLAIMS_SCHEMA = "sol-atlas:github-oidc-claims:v5"
+OIDC_SUBJECT_CONFIGURATION_SCHEMA = "sol-atlas:github-oidc-sub-configuration:v1"
 WIF_CREDENTIAL_CONFIG_SCHEMA = (
     "sol-atlas:gcp-wif-credential-config-verification:v1"
 )
@@ -808,6 +809,28 @@ def load_oidc_claims(path: str) -> dict[str, object]:
     return claims
 
 
+def load_oidc_subject_configuration(path: str) -> dict[str, object]:
+    configuration = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(configuration, dict):
+        raise AssertionError("OIDC subject configuration is not an object")
+    if configuration.get("schema") != OIDC_SUBJECT_CONFIGURATION_SCHEMA:
+        raise AssertionError("wrong OIDC subject configuration schema")
+    if configuration.get("repository") != "Luminous-Dynamics/sol-atlas-leptos":
+        raise AssertionError("OIDC subject configuration repository drift")
+    if configuration.get("use_default") is not True:
+        raise AssertionError("OIDC subject default template was not verified")
+    if configuration.get("use_immutable_subject") is not True:
+        raise AssertionError("OIDC immutable subject mode was not verified")
+    if configuration.get("include_claim_keys") != []:
+        raise AssertionError("OIDC subject claim customization was not excluded")
+    if configuration.get("default_template_required") is not True:
+        raise AssertionError("OIDC default-template assertion is missing")
+    if configuration.get("custom_claim_keys_forbidden") is not True:
+        raise AssertionError("OIDC custom-claim assertion is missing")
+    if not is_sha256_digest(configuration.get("configuration_digest")):
+        raise AssertionError("OIDC subject configuration digest is malformed")
+    return configuration
+
 def validate_case_set() -> str:
     case_set = load_case_set()
     for case in case_set["cases"]:
@@ -956,6 +979,7 @@ def run_qualification(
     object_prefix: str,
     wif_verification_path: str,
     oidc_claims_path: str,
+    oidc_subject_configuration_path: str,
     wif_credential_config_verification_path: str,
     github_run_verification_path: str,
     observer_oidc_claims_path: str,
@@ -972,6 +996,7 @@ def run_qualification(
     )
     github_context = github_execution_context()
     oidc_claims = load_oidc_claims(oidc_claims_path)
+    oidc_subject_configuration = load_oidc_subject_configuration(oidc_subject_configuration_path)
     observer_oidc_claims = load_observer_oidc_claims(
         observer_oidc_claims_path
     )
@@ -1422,6 +1447,10 @@ def run_qualification(
                 github_run_verification
             ),
             "observer_github_oidc_claims": observer_oidc_claims,
+            "github_oidc_subject_configuration": oidc_subject_configuration,
+            "github_oidc_subject_configuration_digest": digest(
+                oidc_subject_configuration
+            ),
             "observer_github_oidc_claims_digest": digest(
                 observer_oidc_claims
             ),
@@ -1969,6 +1998,7 @@ def main() -> int:
     qualify.add_argument("--object-prefix", default="sol-atlas/qualification")
     qualify.add_argument("--wif-verification", required=True)
     qualify.add_argument("--oidc-claims", required=True)
+    qualify.add_argument("--oidc-subject-configuration", required=True)
     qualify.add_argument("--github-run-verification", required=True)
     qualify.add_argument(
         "--wif-credential-config-verification",
@@ -1998,6 +2028,7 @@ def main() -> int:
         args.object_prefix,
         args.wif_verification,
         args.oidc_claims,
+        args.oidc_subject_configuration,
         args.wif_credential_config_verification,
         args.github_run_verification,
         args.observer_oidc_claims,
