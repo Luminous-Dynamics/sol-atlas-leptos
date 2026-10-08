@@ -212,8 +212,27 @@ def validate_response(
     }
 
 
-def validate_target_manifest_binding(manifest_path: str) -> tuple[str, str]:
-    return manifest_path, input_digest
+def validate_target_manifest_binding(
+    manifest_path: str,
+) -> tuple[str, str]:
+    if manifest_path != TARGET_MANIFEST_PATH:
+        raise AssertionError(
+            "target manifest path is not the frozen manifest"
+        )
+    path = Path(manifest_path)
+    if not path.is_file():
+        raise AssertionError(
+            "frozen Policy Troubleshooter target manifest is missing"
+        )
+    document = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(document, dict):
+        raise AssertionError("frozen target manifest is not an object")
+    if document.get("schema") != TARGET_MANIFEST_SCHEMA:
+        raise AssertionError("frozen target manifest schema drift")
+    targets = document.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise AssertionError("frozen target manifest has no targets")
+    return manifest_path, digest(document)
 
 
 def verify_targets(
