@@ -282,6 +282,13 @@ pub enum CapabilityGraphError {
         capability: CapabilityId,
         dependency: CapabilityId,
     },
+    MissingAlternativeTarget {
+        capability: CapabilityId,
+        target: CapabilityId,
+    },
+    SelfAlternative {
+        capability: CapabilityId,
+    },
     Cycle {
         capability: CapabilityId,
     },
@@ -294,6 +301,12 @@ impl fmt::Display for CapabilityGraphError {
             Self::MissingRoot(id) => write!(f, "root capability not found: {id}"),
             Self::MissingDependency { capability, dependency } => {
                 write!(f, "capability {capability} depends on missing {dependency}")
+            }
+            Self::MissingAlternativeTarget { capability, target } => {
+                write!(f, "capability {capability} references missing alternative target {target}")
+            }
+            Self::SelfAlternative { capability } => {
+                write!(f, "capability {capability} cannot be its own alternative")
             }
             Self::Cycle { capability } => {
                 write!(f, "dependency cycle detected through {capability}")
@@ -321,6 +334,21 @@ impl CapabilityGraph {
                         capability: capability.id.clone(),
                         dependency,
                     });
+                }
+            }
+            for alternative in capability.sorted_alternatives() {
+                if alternative.candidate == capability.id {
+                    return Err(CapabilityGraphError::SelfAlternative {
+                        capability: capability.id.clone(),
+                    });
+                }
+                for target in [&alternative.candidate, &alternative.replaces] {
+                    if !map.contains_key(target) {
+                        return Err(CapabilityGraphError::MissingAlternativeTarget {
+                            capability: capability.id.clone(),
+                            target: target.clone(),
+                        });
+                    }
                 }
             }
         }
@@ -594,6 +622,36 @@ mod tests {
         assert!(matches!(
             graph.required_closure(&root),
             Err(CapabilityGraphError::Cycle { .. })
+        ));
+    }
+
+    #[test]
+    fn dangling_alternatives_fail_closed() {
+        let mut base = fixture_definition("base", None);
+        base.alternatives.push(CapabilityAlternative {
+            candidate: CapabilityId::new("missing").unwrap(),
+            replaces: base.id.clone(),
+            rationale: "test".into(),
+            evidence_refs: vec![],
+        });
+        assert!(matches!(
+            CapabilityGraph::new(vec![base]),
+            Err(CapabilityGraphError::MissingAlternativeTarget { .. })
+        ));
+    }
+
+    #[test]
+    fn self_alternatives_fail_closed() {
+        let mut base = fixture_definition("base", None);
+        base.alternatives.push(CapabilityAlternative {
+            candidate: base.id.clone(),
+            replaces: base.id.clone(),
+            rationale: "test".into(),
+            evidence_refs: vec![],
+        });
+        assert!(matches!(
+            CapabilityGraph::new(vec![base]),
+            Err(CapabilityGraphError::SelfAlternative { .. })
         ));
     }
 
