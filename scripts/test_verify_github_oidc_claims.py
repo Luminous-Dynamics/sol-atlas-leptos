@@ -228,6 +228,16 @@ def main() -> None:
                     f"report loader accepted tampered OIDC {field} evidence"
                 )
 
+    handler = module._NoRedirectHandler()
+    try:
+        handler.redirect_request(None, None)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "OIDC transport redirect handler did not fail closed"
+        )
+
     qualifier.verify_oidc_temporal_evidence(oidc_artifact)
     qualifier.verify_oidc_claim_identity(
         expected,
