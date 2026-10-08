@@ -13,7 +13,7 @@ import json
 import subprocess
 from pathlib import Path
 
-SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v1"
+SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v2"
 FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS = (
     "iam.serviceAccounts.actAs",
     "iam.serviceAccounts.getAccessToken",
