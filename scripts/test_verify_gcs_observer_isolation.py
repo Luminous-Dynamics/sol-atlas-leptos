@@ -106,6 +106,13 @@ def authority_finding(
 
 
 def main() -> None:
+    assert module.valid_service_account_resource(EFFECT)
+    assert not module.valid_service_account_resource(
+        "//iamXgoogleapisXcom/projects/sol-atlas/serviceAccounts/a@b"
+    )
+    assert not module.valid_service_account_resource(
+        "//cloudresourcemanager.googleapis.com/projects/sol-atlas"
+    )
     profile = dict(module.OBSERVER_PROFILE)
     bad = dict(profile)
     bad["forbidden_project_permissions"] = (
