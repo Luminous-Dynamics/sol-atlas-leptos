@@ -20,7 +20,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
+#[serde(transparent)]
 pub struct CapabilityId(String);
 
 impl CapabilityId {
@@ -46,6 +47,16 @@ impl fmt::Display for CapabilityId {
     }
 }
 
+impl<'de> Deserialize<'de> for CapabilityId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let id = String::deserialize(deserializer)?;
+        Self::new(id).map_err(<D::Error as serde::de::Error>::custom)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CapabilityIdError {
     Empty,
@@ -60,6 +71,8 @@ impl fmt::Display for CapabilityIdError {
         }
     }
 }
+
+impl std::error::Error for CapabilityIdError {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CapabilityProvenance {
@@ -142,13 +155,13 @@ impl Capability {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct CapabilityLocation {
-    pub label: String,
-    pub lat: f64,
-    pub lon: f64,
+    label: String,
+    lat: f64,
+    lon: f64,
     #[serde(default)]
-    pub elevation_m: Option<f64>,
+    elevation_m: Option<f64>,
 }
 
 impl CapabilityLocation {
@@ -170,12 +183,66 @@ impl CapabilityLocation {
             elevation_m: None,
         })
     }
+
+    pub fn label(&self) -> &str {
+        &self.label
+    }
+
+    pub fn lat(&self) -> f64 {
+        self.lat
+    }
+
+    pub fn lon(&self) -> f64 {
+        self.lon
+    }
+
+    pub fn elevation_m(&self) -> Option<f64> {
+        self.elevation_m
+    }
+
+    pub fn with_elevation_m(
+        mut self,
+        elevation_m: f64,
+    ) -> Result<Self, CapabilityLocationError> {
+        if !elevation_m.is_finite() {
+            return Err(CapabilityLocationError::Elevation(elevation_m));
+        }
+        self.elevation_m = Some(elevation_m);
+        Ok(self)
+    }
+}
+
+#[derive(Deserialize)]
+struct CapabilityLocationUnchecked {
+    label: String,
+    lat: f64,
+    lon: f64,
+    #[serde(default)]
+    elevation_m: Option<f64>,
+}
+
+impl<'de> Deserialize<'de> for CapabilityLocation {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let raw = CapabilityLocationUnchecked::deserialize(deserializer)?;
+        let mut location = Self::new(raw.label, raw.lat, raw.lon)
+            .map_err(<D::Error as serde::de::Error>::custom)?;
+        if let Some(elevation_m) = raw.elevation_m {
+            location = location
+                .with_elevation_m(elevation_m)
+                .map_err(<D::Error as serde::de::Error>::custom)?;
+        }
+        Ok(location)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CapabilityLocationError {
     Latitude(f64),
     Longitude(f64),
+    Elevation(f64),
 }
 
 impl fmt::Display for CapabilityLocationError {
@@ -183,9 +250,12 @@ impl fmt::Display for CapabilityLocationError {
         match self {
             Self::Latitude(v) => write!(f, "invalid latitude: {v}"),
             Self::Longitude(v) => write!(f, "invalid longitude: {v}"),
+            Self::Elevation(v) => write!(f, "invalid elevation: {v}"),
         }
     }
 }
+
+impl std::error::Error for CapabilityLocationError {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CapabilityLifecycle {
@@ -286,6 +356,10 @@ pub enum CapabilityGraphError {
         capability: CapabilityId,
         target: CapabilityId,
     },
+    AlternativeReplacementMismatch {
+        capability: CapabilityId,
+        replaces: CapabilityId,
+    },
     SelfAlternative {
         capability: CapabilityId,
     },
@@ -304,6 +378,9 @@ impl fmt::Display for CapabilityGraphError {
             }
             Self::MissingAlternativeTarget { capability, target } => {
                 write!(f, "capability {capability} references missing alternative target {target}")
+            }
+            Self::AlternativeReplacementMismatch { capability, replaces } => {
+                write!(f, "alternative declared on {capability} cannot replace unrelated capability {replaces}")
             }
             Self::SelfAlternative { capability } => {
                 write!(f, "capability {capability} cannot be its own alternative")
@@ -337,6 +414,12 @@ impl CapabilityGraph {
                 }
             }
             for alternative in capability.sorted_alternatives() {
+                if alternative.replaces != capability.id {
+                    return Err(CapabilityGraphError::AlternativeReplacementMismatch {
+                        capability: capability.id.clone(),
+                        replaces: alternative.replaces,
+                    });
+                }
                 if alternative.candidate == capability.id {
                     return Err(CapabilityGraphError::SelfAlternative {
                         capability: capability.id.clone(),
@@ -566,6 +649,25 @@ mod tests {
         assert!(CapabilityLocation::new("ok", 90.0, 180.0).is_ok());
         assert!(CapabilityLocation::new("bad", 90.1, 0.0).is_err());
         assert!(CapabilityLocation::new("bad", 0.0, 180.1).is_err());
+        assert!(CapabilityLocation::new("bad", f64::NAN, 0.0).is_err());
+        assert!(CapabilityLocation::new("bad", 0.0, 0.0)
+            .unwrap()
+            .with_elevation_m(f64::INFINITY)
+            .is_err());
+    }
+
+    #[test]
+    fn deserialization_cannot_bypass_identity_or_location_validation() {
+        assert!(serde_json::from_str::<CapabilityId>(r#""""#).is_err());
+        assert!(serde_json::from_str::<CapabilityId>(r#""water purification""#).is_err());
+        assert!(serde_json::from_str::<CapabilityLocation>(
+            r#"{"label":"bad","lat":90.1,"lon":0.0}"#
+        )
+        .is_err());
+        assert!(serde_json::from_str::<CapabilityLocation>(
+            r#"{"label":"bad","lat":0.0,"lon":0.0,"elevation_m":1e999}"#
+        )
+        .is_err());
     }
 
     fn fixture_definition(id: &str, dependency: Option<&str>) -> Capability {
@@ -652,6 +754,24 @@ mod tests {
         assert!(matches!(
             CapabilityGraph::new(vec![base]),
             Err(CapabilityGraphError::SelfAlternative { .. })
+        ));
+    }
+
+    #[test]
+    fn alternative_cannot_replace_an_unrelated_capability() {
+        let mut base = fixture_definition("base", None);
+        let other = fixture_definition("other", None);
+        let candidate = fixture_definition("candidate", None);
+        base.alternatives.push(CapabilityAlternative {
+            candidate: candidate.id.clone(),
+            replaces: other.id.clone(),
+            rationale: "invalid cross-target alternative".into(),
+            evidence_refs: vec![],
+        });
+        let err = CapabilityGraph::new(vec![base, other, candidate]).unwrap_err();
+        assert!(matches!(
+            err,
+            CapabilityGraphError::AlternativeReplacementMismatch { .. }
         ));
     }
 
