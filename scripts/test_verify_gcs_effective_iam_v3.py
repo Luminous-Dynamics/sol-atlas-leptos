@@ -26,11 +26,6 @@ RESOURCE = (
     "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
     "qualification@sol-atlas.iam.gserviceaccount.com"
 )
-OIDC_SUBJECT = (
-    "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
-    "ref:refs/heads/main"
-)
-
 
 def finding(permissions: list[str]) -> dict[str, object]:
     return {
@@ -68,7 +63,6 @@ def main() -> None:
         envelope(finding(list(module.REQUIRED_PERMISSIONS))),
         PRINCIPAL,
         RESOURCE,
-        OIDC_SUBJECT,
     )[0]
     assert module.execution_permissions_are_clean(
         normal["permissions"]
