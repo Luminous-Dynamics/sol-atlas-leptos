@@ -58,9 +58,25 @@ def main() -> None:
         workflow().replace(OBSERVER_FILES[0], "artifacts/missing.json"),
         "missing observer evidence",
     )
+    extra_observer = workflow().replace(
+        OBSERVER_FILES[0],
+        OBSERVER_FILES[0] + "\n            artifacts/unexpected.json",
+    )
+    expect_failure(
+        extra_observer,
+        "unexpected observer evidence",
+    )
     expect_failure(
         workflow().replace(FINAL_FILES[-1], "artifacts/missing.json"),
         "missing final evidence",
+    )
+    extra_final = workflow().replace(
+        FINAL_FILES[0],
+        FINAL_FILES[0] + "\n            artifacts/unexpected.json",
+    )
+    expect_failure(
+        extra_final,
+        "unexpected final evidence",
     )
     expect_failure(
         workflow().replace("needs.qualify.outputs.artifact_id", "wrong-id"),
