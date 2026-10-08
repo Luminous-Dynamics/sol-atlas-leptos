@@ -3710,7 +3710,7 @@ mod tests {
             inner: ExecutionEffectMemoryStore::default(),
             fence_store: Arc::clone(&fence_store),
             expected_fence: established.fence().clone(),
-            successor_fence: successor.fence().clone(),
+            successor_fence: successor.clone(),
         };
 
         let outcome = begin_execution_effect_after_fence_revalidation(
