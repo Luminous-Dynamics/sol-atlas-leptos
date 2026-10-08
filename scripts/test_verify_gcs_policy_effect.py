@@ -164,10 +164,7 @@ def main() -> None:
             "sol-atlas",
             PRINCIPAL,
         )
-        assert expanded[0]["resource"] == RESOURCE.split(
-            "/serviceAccounts/",
-            1,
-        )[0] if False else (
+        assert expanded[0]["resource"] == (
             "//cloudresourcemanager.googleapis.com/projects/sol-atlas"
         )
         assert expanded[1]["resource"].endswith(
