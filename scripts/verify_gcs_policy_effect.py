@@ -212,6 +212,10 @@ def validate_response(
     }
 
 
+def validate_target_manifest_binding(manifest_path: str) -> tuple[str, str]:
+    return manifest_path, input_digest
+
+
 def verify_targets(
     principal: str,
     targets: list[dict[str, object]],
@@ -221,6 +225,9 @@ def verify_targets(
     principal = validate_service_account(principal)
     if not targets:
         raise AssertionError("no Policy Troubleshooter targets supplied")
+    frozen_manifest_path, frozen_manifest_digest = (
+        validate_target_manifest_binding(manifest_path)
+    )
     observations: list[dict[str, object]] = []
     seen: set[tuple[str, str]] = set()
     for target in targets:
@@ -264,8 +271,8 @@ def verify_targets(
     result: dict[str, object] = {
         "schema": SCHEMA,
         "api_version": API_VERSION,
-        "target_manifest_path": manifest_path,
-        "target_manifest_digest": input_digest,
+        "target_manifest_path": frozen_manifest_path,
+        "target_manifest_digest": frozen_manifest_digest,
         "principal": principal,
         "target_count": len(observations),
         "targets": observations,
