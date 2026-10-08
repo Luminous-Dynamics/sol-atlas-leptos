@@ -1,9 +1,7 @@
 use sol_atlas_policy_store_contract::{
-    RecoveryExecutionProtectedMutationReconciler,
+    RecoveryExecutionFencedResource, RecoveryExecutionProtectedMutationReconciler,
     RecoveryExecutionProtectedMutationReconciliationOutcome,
-    RecoveryExecutionProtectedMutationResult,
-    RecoveryExecutionProtectedMutationV1,
-    RecoveryExecutionFencedResource,
+    RecoveryExecutionProtectedMutationResult, RecoveryExecutionProtectedMutationV1,
 };
 use std::collections::BTreeMap;
 use std::sync::Mutex;
@@ -30,11 +28,17 @@ struct AppliedMutation {
 
 impl ReferenceFencedResource {
     pub fn set_epoch(&self, epoch: u64) {
-        self.state.lock().expect("resource state lock").current_epoch = epoch;
+        self.state
+            .lock()
+            .expect("resource state lock")
+            .current_epoch = epoch;
     }
 
     pub fn current_epoch(&self) -> u64 {
-        self.state.lock().expect("resource state lock").current_epoch
+        self.state
+            .lock()
+            .expect("resource state lock")
+            .current_epoch
     }
 }
 
@@ -50,7 +54,10 @@ impl RecoveryExecutionFencedResource for ReferenceFencedResource {
             || !mutation.execution_input_snapshot.starts_with("sha256:")
             || mutation.attempt_id.is_empty()
             || mutation.fence_epoch == 0
-            || mutation.idempotency_key.as_deref().is_some_and(str::is_empty)
+            || mutation
+                .idempotency_key
+                .as_deref()
+                .is_some_and(str::is_empty)
         {
             return Ok(RecoveryExecutionProtectedMutationResult::RejectedInvalidFence);
         }
@@ -71,9 +78,7 @@ impl RecoveryExecutionFencedResource for ReferenceFencedResource {
         if let Some(idempotency_key) = mutation.idempotency_key.as_deref() {
             if let Some(existing_execution_id) = state.idempotency_index.get(idempotency_key) {
                 if existing_execution_id != &mutation.execution_id {
-                    return Ok(
-                        RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch,
-                    );
+                    return Ok(RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch);
                 }
             }
         }
@@ -91,9 +96,7 @@ impl RecoveryExecutionFencedResource for ReferenceFencedResource {
                     return Ok(RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch);
                 }
 
-                return Ok(
-                    RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest,
-                );
+                return Ok(RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest);
             }
 
             if existing.fence_epoch == mutation.fence_epoch {
@@ -133,11 +136,12 @@ impl RecoveryExecutionProtectedMutationReconciler for ReferenceFencedResource {
             || !mutation.execution_input_snapshot.starts_with("sha256:")
             || mutation.attempt_id.is_empty()
             || mutation.fence_epoch == 0
-            || mutation.idempotency_key.as_deref().is_some_and(str::is_empty)
+            || mutation
+                .idempotency_key
+                .as_deref()
+                .is_some_and(str::is_empty)
         {
-            return Ok(
-                RecoveryExecutionProtectedMutationReconciliationOutcome::InvalidState,
-            );
+            return Ok(RecoveryExecutionProtectedMutationReconciliationOutcome::InvalidState);
         }
 
         let state = self.state.lock().map_err(|_| "poisoned")?;
@@ -153,9 +157,7 @@ impl RecoveryExecutionProtectedMutationReconciler for ReferenceFencedResource {
         }
 
         let Some(existing) = state.applied.get(&mutation.execution_id) else {
-            return Ok(
-                RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedNotApplied,
-            );
+            return Ok(RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedNotApplied);
         };
 
         if existing.execution_input_snapshot == mutation.execution_input_snapshot
@@ -168,9 +170,7 @@ impl RecoveryExecutionProtectedMutationReconciler for ReferenceFencedResource {
             );
         }
 
-        Ok(
-            RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedDifferentRequest,
-        )
+        Ok(RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedDifferentRequest)
     }
 }
 
