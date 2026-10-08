@@ -463,6 +463,85 @@ def main() -> None:
         valid_wif,
         observer_oidc,
     )
+
+    observer_profile_path = module.OBSERVER_PROFILE_PATH
+    observer_profile = json.loads(
+        (ROOT / observer_profile_path).read_text(encoding="utf-8")
+    )
+    observer_isolation = {
+        "schema": module.OBSERVER_ISOLATION_AUDIT_SCHEMA,
+        "observer_profile_path": observer_profile_path,
+        "observer_profile_digest": module.digest(observer_profile),
+        "observer_service_account": valid_wif["observer_service_account"],
+        "effect_service_account": valid_wif["service_account"],
+        "observer_principal": (
+            "serviceAccount:" + valid_wif["observer_service_account"]
+        ),
+        "observed_permissions": ["iam.serviceAccounts.getIamPolicy"],
+        "required_observer_permission_verified": True,
+        "forbidden_effect_permissions_absent": True,
+        "forbidden_permissions": list(
+            observer_profile["forbidden_service_account_permissions"]
+        ),
+        "policy_analyzer_response_digest": "sha256:" + "3" * 64,
+        "project_pivot_permissions": list(
+            observer_profile["project_pivot_permissions"]
+        ),
+        "project_pivot_permissions_absent": True,
+        "project_pivot_observed_permissions": [],
+        "project_pivot_response_digest": "sha256:" + "4" * 64,
+        "observer_authority_permissions": list(
+            observer_profile["forbidden_project_permissions"]
+        ),
+        "observer_authority_permissions_absent": True,
+        "observer_authority_observed_permissions": [],
+        "observer_authority_response_digest": "sha256:" + "5" * 64,
+        "lateral_service_account_permissions": list(
+            observer_profile["forbidden_service_account_permissions"]
+        ),
+        "lateral_service_account_findings": [],
+        "lateral_service_account_permissions_absent": True,
+        "lateral_service_account_response_digest": (
+            "sha256:" + "6" * 64
+        ),
+        "claim_ceiling": "observer claim ceiling",
+    }
+    module.validate_observer_isolation_audit(
+        observer_isolation,
+        valid_wif,
+    )
+    lateral_tampered = dict(
+        observer_isolation,
+        lateral_service_account_findings=[{"permission": "iam.serviceAccounts.actAs"}],
+    )
+    try:
+        module.validate_observer_isolation_audit(
+            lateral_tampered,
+            valid_wif,
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "observer isolation validator accepted lateral impersonation evidence"
+        )
+
+    lateral_digest_tampered = dict(
+        observer_isolation,
+        lateral_service_account_response_digest="sha256:" + "0" * 64,
+    )
+    try:
+        module.validate_observer_isolation_audit(
+            lateral_digest_tampered,
+            valid_wif,
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "observer isolation validator accepted lateral audit digest drift"
+        )
+
     tampered_subject = dict(effective_audit, oidc_subject="different")
     try:
         module.validate_effective_iam_audit(
