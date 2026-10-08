@@ -34,6 +34,25 @@ def step(workflow: str, name: str) -> str:
     end = workflow.find("      - name: ", start)
     return workflow[start:] if end < 0 else workflow[start:end]
 
+def path_entries(block: str) -> tuple[str, ...]:
+    marker = "          path: |\n"
+    start = block.find(marker)
+    if start < 0:
+        raise AssertionError("artifact upload path block is missing")
+    start += len(marker)
+    end = block.find("\n          if-no-files-found:", start)
+    if end < 0:
+        raise AssertionError("artifact upload path termination is missing")
+    entries = tuple(
+        line.strip()
+        for line in block[start:end].splitlines()
+        if line.strip()
+    )
+    if not entries:
+        raise AssertionError("artifact upload path is empty")
+    return entries
+
+
 def require(block: str, needles: tuple[str, ...], label: str) -> None:
     missing = [needle for needle in needles if needle not in block]
     if missing:
