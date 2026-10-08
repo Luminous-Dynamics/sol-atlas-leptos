@@ -77,6 +77,17 @@ BROAD_SA_AUDIT_SCHEMA = (
 OBSERVER_ISOLATION_AUDIT_SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v2"
 POLICY_EFFECT_AUDIT_SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v3"
 DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
+POLICY_TROUBLESHOOTER_UNKNOWN_STATES = {
+    "ALLOW_ACCESS_STATE_UNSPECIFIED",
+    "ALLOW_ACCESS_STATE_UNKNOWN_CONDITIONAL",
+    "ALLOW_ACCESS_STATE_UNKNOWN_INFO",
+    "DENY_ACCESS_STATE_UNSPECIFIED",
+    "DENY_ACCESS_STATE_UNKNOWN_CONDITIONAL",
+    "DENY_ACCESS_STATE_UNKNOWN_INFO",
+    "PAB_ACCESS_STATE_UNSPECIFIED",
+    "PAB_ACCESS_STATE_UNKNOWN_INFO",
+    "OVERALL_ACCESS_STATE_UNSPECIFIED",
+}
 OBSERVER_PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
     "gcs_iam_observer_profile_v1.json"
@@ -1733,6 +1744,18 @@ def validate_policy_effect_audit(
         raw_allow = allow.get("allowAccessState")
         raw_deny = deny.get("denyAccessState")
         raw_pab = pab.get("principalAccessBoundaryAccessState")
+        if any(
+            value in POLICY_TROUBLESHOOTER_UNKNOWN_STATES
+            for value in (
+                raw_overall,
+                raw_allow,
+                raw_deny,
+                raw_pab,
+            )
+        ):
+            raise AssertionError(
+                "Policy Troubleshooter raw state is unknown"
+            )
         if (
             raw_allow != target.get("allow_access_state")
             or raw_deny != target.get("deny_access_state")
