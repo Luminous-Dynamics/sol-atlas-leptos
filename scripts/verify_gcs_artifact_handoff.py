@@ -42,14 +42,36 @@ def require(block: str, needles: tuple[str, ...], label: str) -> None:
 def verify(workflow: str) -> dict[str, object]:
     observer = step(workflow, "Upload WIF trust evidence")
     require(observer, OBSERVER_FILES, "observer artifact allowlist")
-    require(observer, ("if-no-files-found: error", "id: upload_wif_evidence"), "observer upload controls")
+    require(
+        observer,
+        ("if-no-files-found: error", "id: upload_wif_evidence"),
+        "observer upload controls",
+    )
     download_observer = step(workflow, "Download observed WIF trust evidence")
-    require(download_observer, ("needs.observe-wif-trust.outputs.artifact_id", "digest-mismatch: error"), "observer artifact handoff")
+    require(
+        download_observer,
+        (
+            "needs.observe-wif-trust.outputs.artifact_id",
+            "digest-mismatch: error",
+        ),
+        "observer artifact handoff",
+    )
     final = step(workflow, "Upload qualification evidence")
     require(final, FINAL_FILES, "final artifact allowlist")
-    require(final, ("if-no-files-found: error", "id: upload_evidence"), "final upload controls")
+    require(
+        final,
+        ("if-no-files-found: error", "id: upload_evidence"),
+        "final upload controls",
+    )
     publish = step(workflow, "Download qualification evidence")
-    require(publish, ("needs.qualify.outputs.artifact_id", "digest-mismatch: error"), "publish artifact handoff")
+    require(
+        publish,
+        (
+            "needs.qualify.outputs.artifact_id",
+            "digest-mismatch: error",
+        ),
+        "publish artifact handoff",
+    )
     return {
         "schema": "sol-atlas:qualification-artifact-handoff:v1",
         "observer_file_count": len(OBSERVER_FILES),
