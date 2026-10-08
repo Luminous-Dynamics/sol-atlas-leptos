@@ -170,7 +170,7 @@ jobs:
           set -euo pipefail
           python3 scripts/verify_gcs_policy_effect.py \
             --principal-email "$GCP_SERVICE_ACCOUNT" \
-            --targets sol-atlas-policy-store-contract/conformance/gcs_policy_troubleshooter_targets_v2.json \
+            --targets sol-atlas-policy-store-contract/conformance/gcs_policy_troubleshooter_targets_v3.json \
             --project-id "$GCP_PROJECT_ID" \
             --bucket "$GCS_QUALIFICATION_BUCKET" \
             --object-root "${{ steps.define_object_root.outputs.value }}" \
