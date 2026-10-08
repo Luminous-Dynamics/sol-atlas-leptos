@@ -286,10 +286,7 @@ def load_targets(
     if not isinstance(document, dict):
         raise AssertionError("target manifest is not an object")
     manifest_schema = document.get("schema")
-    if manifest_schema not in {
-        "sol-atlas:gcs-policy-troubleshooter-targets:v1",
-        TARGET_MANIFEST_SCHEMA,
-    }:
+    if manifest_schema != TARGET_MANIFEST_SCHEMA:
         raise AssertionError("wrong target manifest schema")
     raw_targets = document.get("targets")
     if not isinstance(raw_targets, list):
