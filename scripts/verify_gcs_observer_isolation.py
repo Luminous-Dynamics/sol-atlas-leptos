@@ -21,9 +21,9 @@ OBSERVER_PROFILE_PATH = (
 OBSERVER_PROFILE_SCHEMA = "sol-atlas:gcs-iam-observer-profile:v1"
 
 
-def load_observer_profile() -> dict[str, object]:
-    path = Path(__file__).resolve().parents[1] / OBSERVER_PROFILE_PATH
-    profile = json.loads(path.read_text(encoding="utf-8"))
+def validate_observer_profile(
+    profile: dict[str, object],
+) -> dict[str, object]:
     if not isinstance(profile, dict):
         raise AssertionError("observer profile is not an object")
     if profile.get("schema") != OBSERVER_PROFILE_SCHEMA:
@@ -33,6 +33,7 @@ def load_observer_profile() -> dict[str, object]:
         "forbidden_project_permissions",
         "project_pivot_permissions",
     )
+    all_permissions: dict[str, set[str]] = {}
     for field in list_fields:
         values = profile.get(field)
         if (
@@ -43,38 +44,26 @@ def load_observer_profile() -> dict[str, object]:
             raise AssertionError(
                 "observer profile field is malformed: " + field
             )
-    all_permissions = {}
-    for field in list_fields:
-        values = profile[field]
         if len(values) != len(set(values)):
             raise AssertionError(
                 "observer profile contains duplicate permissions: " + field
             )
         all_permissions[field] = set(values)
 
-    if required_observer_permission := profile.get(
-        "required_observer_permission"
-    ):
-        if not isinstance(required_observer_permission, str):
-            raise AssertionError("observer required permission is malformed")
-        if required_observer_permission in all_permissions[
-            "forbidden_service_account_permissions"
-        ]:
-            raise AssertionError(
-                "required observer permission is also forbidden"
-            )
-    else:
+    required = profile.get("required_observer_permission")
+    if not isinstance(required, str) or not required:
         raise AssertionError("observer profile required permission is malformed")
-
+    if required in all_permissions["forbidden_service_account_permissions"]:
+        raise AssertionError(
+            "required observer permission is also forbidden"
+        )
     if not all_permissions["project_pivot_permissions"].issubset(
         all_permissions["forbidden_project_permissions"]
     ):
         raise AssertionError(
             "observer pivot permissions are not covered by project authority ceiling"
         )
-    required = profile.get("required_observer_permission")
-    if not isinstance(required, str) or not required:
-        raise AssertionError("observer profile required permission is malformed")
+
     trust_path = profile.get("trust_profile_path")
     trust_schema = profile.get("trust_profile_schema")
     if trust_path != (
@@ -85,6 +74,12 @@ def load_observer_profile() -> dict[str, object]:
     if trust_schema != "sol-atlas:gcs-wif-trust-profile:v9":
         raise AssertionError("observer trust profile schema drift")
     return profile
+
+
+def load_observer_profile() -> dict[str, object]:
+    path = Path(__file__).resolve().parents[1] / OBSERVER_PROFILE_PATH
+    profile = json.loads(path.read_text(encoding="utf-8"))
+    return validate_observer_profile(profile)
 
 
 OBSERVER_PROFILE = load_observer_profile()
