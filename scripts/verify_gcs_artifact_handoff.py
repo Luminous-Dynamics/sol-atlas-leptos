@@ -43,6 +43,12 @@ def step(workflow: str, name: str) -> str:
     end = workflow.find("      - name: ", start)
     return workflow[start:] if end < 0 else workflow[start:end]
 
+def require(block: str, needles: tuple[str, ...], label: str) -> None:
+    missing = [needle for needle in needles if needle not in block]
+    if missing:
+        raise AssertionError(label + " missing: " + ", ".join(missing))
+
+
 def path_entries(block: str) -> tuple[str, ...]:
     marker = "          path: |\n"
     start = block.find(marker)
