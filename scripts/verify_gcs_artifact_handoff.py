@@ -108,6 +108,8 @@ def verify(workflow: str) -> dict[str, object]:
         download_observer,
         (
             "needs.observe-wif-trust.outputs.artifact_id",
+            "path: artifacts/wif-observer/",
+            "merge-multiple: true",
             "digest-mismatch: error",
         ),
         "observer artifact handoff",
@@ -125,6 +127,7 @@ def verify(workflow: str) -> dict[str, object]:
         publish,
         (
             "needs.qualify.outputs.artifact_id",
+            "path: artifacts/",
             "digest-mismatch: error",
         ),
         "publish artifact handoff",
