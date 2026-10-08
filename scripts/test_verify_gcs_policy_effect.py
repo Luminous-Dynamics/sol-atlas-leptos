@@ -225,7 +225,7 @@ def main() -> None:
         }
     ]
     manifest = {
-        "schema": "sol-atlas:gcs-policy-troubleshooter-targets:v1",
+        "schema": module.TARGET_MANIFEST_SCHEMA,
         "targets": [
             {
                 "resource_template": (
