@@ -279,13 +279,18 @@ def validate_qualification_policy(
         ),
         None,
     )
-    verify_attestation_line = next(
+    verify_attestation_local_line = next(
         (
             i
             for i, line in enumerate(publish)
             if line.strip() == "gh attestation verify \\"
         ),
         None,
+    )
+    verify_attestation_line = (
+        None
+        if verify_attestation_local_line is None or publish_line is None
+        else publish_line + verify_attestation_local_line
     )
     if server_verification_line is None:
         errors.append(f"{path}: GitHub server workflow-run verification is required")
