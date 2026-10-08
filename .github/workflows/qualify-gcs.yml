@@ -19,11 +19,14 @@ jobs:
       id-token: write
     outputs:
       artifact_id: ${{ steps.upload_wif_evidence.outputs.artifact-id }}
+      qualification_object_root: ${{ steps.define_object_root.outputs.value }}
 
     env:
       GCP_PROJECT_ID: ${{ vars.SOL_ATLAS_GCP_PROJECT_ID }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.SOL_ATLAS_GCP_WORKLOAD_IDENTITY_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ vars.SOL_ATLAS_GCP_SERVICE_ACCOUNT }}
+      GCS_QUALIFICATION_BUCKET: ${{ vars.SOL_ATLAS_GCS_QUALIFICATION_BUCKET }}
+      GCS_QUALIFICATION_OBJECT_PREFIX: sol-atlas/qualification
       GCP_IAM_OBSERVER_SERVICE_ACCOUNT: ${{ vars.SOL_ATLAS_GCP_IAM_OBSERVER_SERVICE_ACCOUNT }}
       GCP_IAM_ANALYSIS_SCOPE: ${{ vars.SOL_ATLAS_GCP_IAM_ANALYSIS_SCOPE }}
       CLOUDSDK_CONFIG: ${{ runner.temp }}/sol-atlas-gcloud-observer-config
@@ -110,6 +113,16 @@ jobs:
           gcloud auth login --cred-file="$RUNNER_TEMP/sol-atlas-observer-credentials.json"
           gcloud config set project "$GCP_PROJECT_ID"
 
+      - name: Define deterministic qualification object root
+        id: define_object_root
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'value=%s/run-%s-attempt-%s\n' \
+            "$GCS_QUALIFICATION_OBJECT_PREFIX" \
+            "$GITHUB_RUN_ID" \
+            "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+
       - name: Verify effect service-account trust policy
         shell: bash
         run: |
@@ -146,6 +159,18 @@ jobs:
             --wif-verification artifacts/gcs-wif-trust-verification.json \
             --output artifacts/gcs-broad-sa-impersonation-verification.json
 
+      - name: Audit downstream GCS policy effects
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_gcs_policy_effect.py \
+            --principal-email "$GCP_SERVICE_ACCOUNT" \
+            --targets sol-atlas-policy-store-contract/conformance/gcs_policy_troubleshooter_targets_v2.json \
+            --project-id "$GCP_PROJECT_ID" \
+            --bucket "$GCS_QUALIFICATION_BUCKET" \
+            --object-root "${{ steps.define_object_root.outputs.value }}" \
+            --output artifacts/gcs-policy-effect-verification.json
+
       - name: Audit observer effect-account isolation
         shell: bash
         run: |
@@ -177,6 +202,7 @@ jobs:
             artifacts/gcs-effective-iam-verification.json
             artifacts/gcs-broad-sa-impersonation-verification.json
             artifacts/gcs-observer-isolation-verification.json
+            artifacts/gcs-policy-effect-verification.json
           if-no-files-found: error
           retention-days: 90
   qualify:
@@ -198,6 +224,8 @@ jobs:
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.SOL_ATLAS_GCP_WORKLOAD_IDENTITY_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ vars.SOL_ATLAS_GCP_SERVICE_ACCOUNT }}
       GCS_QUALIFICATION_BUCKET: ${{ vars.SOL_ATLAS_GCS_QUALIFICATION_BUCKET }}
+      GCS_QUALIFICATION_OBJECT_PREFIX: sol-atlas/qualification
+      GCS_QUALIFICATION_OBJECT_ROOT: ${{ needs.observe-wif-trust.outputs.qualification_object_root }}
       CLOUDSDK_CONFIG: ${{ runner.temp }}/sol-atlas-gcloud-config
       # GitHub does not expose a default GITHUB_ENVIRONMENT variable.
       # Keep this explicit value aligned with the protected job environment.
@@ -274,11 +302,13 @@ jobs:
           test -s artifacts/wif-observer/gcs-effective-iam-verification.json
           test -s artifacts/wif-observer/gcs-broad-sa-impersonation-verification.json
           test -s artifacts/wif-observer/gcs-observer-isolation-verification.json
+          test -s artifacts/wif-observer/gcs-policy-effect-verification.json
           cp artifacts/wif-observer/gcs-wif-trust-verification.json artifacts/gcs-wif-trust-verification.json
           cp artifacts/wif-observer/github-oidc-claims.json artifacts/observer-github-oidc-claims.json
           cp artifacts/wif-observer/gcs-effective-iam-verification.json artifacts/gcs-effective-iam-verification.json
           cp artifacts/wif-observer/gcs-broad-sa-impersonation-verification.json artifacts/gcs-broad-sa-impersonation-verification.json
           cp artifacts/wif-observer/gcs-observer-isolation-verification.json artifacts/gcs-observer-isolation-verification.json
+          cp artifacts/wif-observer/gcs-policy-effect-verification.json artifacts/gcs-policy-effect-verification.json
       - name: Verify GitHub OIDC claims
         env:
           EXPECTED_OIDC_AUDIENCE: >-
@@ -351,6 +381,9 @@ jobs:
             --effective-iam-audit artifacts/gcs-effective-iam-verification.json \
             --broad-sa-audit artifacts/gcs-broad-sa-impersonation-verification.json \
             --observer-isolation-audit artifacts/gcs-observer-isolation-verification.json \
+            --policy-effect-audit artifacts/gcs-policy-effect-verification.json \
+            --object-root "$GCS_QUALIFICATION_OBJECT_ROOT" \
+            --object-prefix "$GCS_QUALIFICATION_OBJECT_PREFIX" \
             --output artifacts/gcs-external-effect-report.json
 
       - name: Re-verify qualification artifact
