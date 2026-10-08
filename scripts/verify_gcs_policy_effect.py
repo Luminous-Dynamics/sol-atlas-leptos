@@ -73,7 +73,7 @@ def validate_object_root(object_root: str) -> str:
         or object_root.startswith("/")
         or object_root.endswith("/")
         or "//" in object_root
-        or any(character in object_root for character in "\\r\\n")
+        or any(character in object_root for character in "\r\n")
     ):
         raise AssertionError("object root is invalid")
     return object_root
