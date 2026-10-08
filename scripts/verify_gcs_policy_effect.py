@@ -240,6 +240,9 @@ def verify_targets(
     targets: list[dict[str, object]],
     output: str | None,
     manifest_path: str = TARGET_MANIFEST_PATH,
+    project_id: str | None = None,
+    bucket: str | None = None,
+    object_root: str | None = None,
 ) -> dict[str, object]:
     principal = validate_service_account(principal)
     if not targets:
@@ -247,6 +250,40 @@ def verify_targets(
     frozen_manifest_path, frozen_manifest_digest = (
         validate_target_manifest_binding(manifest_path)
     )
+    if project_id is None:
+        raise AssertionError(
+            "project ID is required to bind frozen target vector"
+        )
+    frozen_targets = load_targets(
+        TARGET_MANIFEST_PATH,
+        project_id,
+        principal,
+        bucket,
+        object_root,
+    )
+    supplied_shape = [
+        (
+            target.get("resource_template"),
+            target.get("permission"),
+            target.get("expected_overall_access_state"),
+            target.get("resource"),
+        )
+        for target in targets
+        if isinstance(target, dict)
+    ]
+    frozen_shape = [
+        (
+            target.get("resource_template"),
+            target.get("permission"),
+            target.get("expected_overall_access_state"),
+            target.get("resource"),
+        )
+        for target in frozen_targets
+    ]
+    if supplied_shape != frozen_shape:
+        raise AssertionError(
+            "supplied target vector is not the expanded frozen manifest"
+        )
     observations: list[dict[str, object]] = []
     seen: set[tuple[str, str]] = set()
     for target in targets:
@@ -402,6 +439,9 @@ def main() -> int:
         ),
         args.output,
         args.targets,
+        args.project_id,
+        args.bucket,
+        args.object_root,
     )
     print(
         "verified IAM policy effects: "
