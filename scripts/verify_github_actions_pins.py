@@ -237,6 +237,15 @@ def validate_qualification_policy(
         ),
         None,
     )
+    qualify_server_verification_line = next(
+        (
+            i
+            for i, line in enumerate(qualify)
+            if line.strip()
+            == "python3 scripts/verify_github_workflow_run.py \\"
+        ),
+        None,
+    )
     qualify_token_line = next(
         (
             i
@@ -317,6 +326,14 @@ def validate_qualification_policy(
     ):
         errors.append(
             f"{path}: no external action may run in the OIDC secret window"
+        )
+    if (
+        qualify_server_verification_line is None
+        or qualify_token_line is None
+        or qualify_server_verification_line >= qualify_token_line
+    ):
+        errors.append(
+            f"{path}: qualification server provenance must precede its OIDC token"
         )
     if (
         qualify_upload_line is None
