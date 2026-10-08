@@ -308,6 +308,8 @@ def extract_findings(
             and permissions == {
                 "iam.serviceAccounts.getAccessToken",
                 "iam.serviceAccounts.getOpenIdToken",
+                "iam.serviceAccounts.signJwt",
+                "iam.serviceAccounts.implicitDelegation",
             }
         )
         if intended:
