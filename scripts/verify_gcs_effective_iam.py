@@ -153,7 +153,10 @@ def run_analysis(
 
 
 FORBIDDEN_UNIVERSAL_PRINCIPALS = ("allUsers", "allAuthenticatedUsers")
-FORBIDDEN_WORKLOAD_UNIVERSAL_PRINCIPALS = ("allUsers",)
+FORBIDDEN_WORKLOAD_UNIVERSAL_PRINCIPALS = (
+    "allUsers",
+    "allAuthenticatedUsers",
+)
 WIF_PRINCIPAL_SET_PREFIX = "principalSet://iam.googleapis.com/projects/"
 WIF_PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
