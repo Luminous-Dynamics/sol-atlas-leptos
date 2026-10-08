@@ -664,6 +664,8 @@ def verify(
             "project_id": project_id,
             "observer_service_account": observer_service_account,
             "effect_service_account": effect_service_account,
+            "observer_profile_path": OBSERVER_PROFILE_PATH,
+            "observer_profile_digest": digest(OBSERVER_PROFILE),
             "policy_analyzer_response_digest": digest(payload),
             "project_pivot_permissions": list(PROJECT_PIVOT_PERMISSIONS),
             "project_pivot_permissions_absent": True,
