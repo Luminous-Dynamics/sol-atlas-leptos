@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -103,6 +104,28 @@ def main() -> None:
         "//cloudresourcemanager.googleapis.com/organizations/456",
         RESOURCE,
     )
+
+    profile = json.loads(
+        (
+            ROOT / module.WIF_PROFILE_PATH
+        ).read_text(encoding="utf-8")
+    )
+    condition_values = module.validate_profile_principal_set_model(profile)
+    assert condition_values["repository_id"] == "1195997641"
+
+    bad_profile = dict(profile)
+    bad_profile["required_attribute_mappings"] = dict(
+        profile["required_attribute_mappings"],
+        **{"google.groups": "assertion.groups"},
+    )
+    try:
+        module.validate_profile_principal_set_model(bad_profile)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "unconstrained google.groups mapping was accepted"
+        )
 
     assert module.project_resource("sol-atlas").endswith(
         "/projects/sol-atlas"
