@@ -461,6 +461,11 @@ def validate_effective_iam_audit(
         raise AssertionError("effective-IAM principal root drift")
     if audit.get("oidc_claims_digest") != digest(observer_oidc_claims):
         raise AssertionError("effective-IAM OIDC evidence digest drift")
+    observed_oidc_claims = observer_oidc_claims.get("claims")
+    if not isinstance(observed_oidc_claims, dict):
+        raise AssertionError("effective-IAM observer OIDC claims are missing")
+    if audit.get("oidc_subject") != observed_oidc_claims.get("sub"):
+        raise AssertionError("effective-IAM immutable subject drift")
     if audit.get("fully_explored") is not True:
         raise AssertionError("effective-IAM audit was not fully explored")
     if audit.get("non_critical_errors") not in ([], None):
