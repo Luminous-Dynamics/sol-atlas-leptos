@@ -73,6 +73,29 @@ BROAD_SA_AUDIT_SCHEMA = (
     "sol-atlas:gcs-broad-service-account-impersonation-audit:v2"
 )
 OBSERVER_ISOLATION_AUDIT_SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v1"
+OBSERVER_AUTHORITY_FORBIDDEN_PROJECT_PERMISSIONS = [
+    "resourcemanager.projects.setIamPolicy",
+    "resourcemanager.projects.update",
+    "resourcemanager.projects.delete",
+    "iam.roles.create",
+    "iam.roles.update",
+    "iam.roles.delete",
+    "iam.denypolicies.create",
+    "iam.denypolicies.update",
+    "iam.denypolicies.delete",
+    "iam.workloadIdentityPools.create",
+    "iam.workloadIdentityPools.update",
+    "iam.workloadIdentityPools.delete",
+    "iam.workloadIdentityPools.setIamPolicy",
+    "iam.workloadIdentityPoolProviders.create",
+    "iam.workloadIdentityPoolProviders.update",
+    "iam.workloadIdentityPoolProviders.delete",
+    "iam.serviceAccounts.create",
+    "iam.serviceAccounts.disable",
+    "iam.serviceAccounts.delete",
+    "iam.serviceAccounts.enable",
+    "iam.serviceAccounts.setIamPolicy",
+]
 WIF_TRUST_PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
     "gcs_wif_trust_profile_v9.json"
@@ -271,6 +294,16 @@ def validate_wif_verification(verification: dict[str, object]) -> None:
     ):
         raise AssertionError(
             "WIF trust evidence lacks a distinct verified IAM observer"
+        )
+    if not verification.get("observer_service_account_project_verified"):
+        raise AssertionError(
+            "WIF observer service-account project was not verified"
+        )
+    if not verification.get(
+        "observer_service_account_direct_policy_exact_verified"
+    ):
+        raise AssertionError(
+            "WIF observer service-account direct policy was not verified exact"
         )
     if not verification.get("observer_service_account_project_verified"):
         raise AssertionError(
@@ -519,6 +552,26 @@ def validate_observer_isolation_audit(
     if not is_sha256_digest(audit.get("project_pivot_response_digest")):
         raise AssertionError(
             "observer isolation project pivot digest is malformed"
+        )
+    if audit.get("observer_authority_permissions") != (
+        OBSERVER_AUTHORITY_FORBIDDEN_PROJECT_PERMISSIONS
+    ):
+        raise AssertionError(
+            "observer authority permission set drift"
+        )
+    if audit.get("observer_authority_permissions_absent") is not True:
+        raise AssertionError(
+            "observer authority permissions were not excluded"
+        )
+    if audit.get("observer_authority_observed_permissions") != []:
+        raise AssertionError(
+            "observer authority findings were present"
+        )
+    if not is_sha256_digest(
+        audit.get("observer_authority_response_digest")
+    ):
+        raise AssertionError(
+            "observer authority response digest is malformed"
         )
     claim = audit.get("claim_ceiling")
     if not isinstance(claim, str) or not claim:
