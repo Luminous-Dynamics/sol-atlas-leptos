@@ -974,6 +974,7 @@ def verify(
         ),
         "observer_identity_verified": wif_identity is not None,
         "oidc_claims_path": oidc_claims,
+        "oidc_subject": oidc_subject,
         "oidc_claims_digest": digest(
             json.loads(
                 Path(oidc_claims).read_text(encoding="utf-8")
