@@ -59,7 +59,7 @@ WIF_CREDENTIAL_CONFIG_SCHEMA = (
     "sol-atlas:gcp-wif-credential-config-verification:v1"
 )
 GITHUB_RUN_VERIFICATION_SCHEMA = "sol-atlas:github-workflow-run-verification:v1"
-EFFECTIVE_IAM_AUDIT_SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v7"
+EFFECTIVE_IAM_AUDIT_SCHEMA = "sol-atlas:gcs-wif-effective-iam-audit:v8"
 BROAD_SA_AUDIT_SCHEMA = (
     "sol-atlas:gcs-broad-service-account-impersonation-audit:v2"
 )
@@ -296,6 +296,15 @@ def expected_effective_workload_principal_sets(
         for key in mappings
         if isinstance(key, str) and key.startswith("attribute.")
     }
+    non_attribute_mappings = {
+        key
+        for key in mappings
+        if key != "google.subject" and not key.startswith("attribute.")
+    }
+    if non_attribute_mappings:
+        raise AssertionError(
+            "WIF profile maps an unsupported Google claim"
+        )
     values: dict[str, str] = {}
     for clause in condition.split(" && "):
         if not clause.startswith("assertion.") or "==" not in clause:
@@ -317,8 +326,10 @@ def expected_effective_workload_principal_sets(
     }
     if required_names - set(values):
         raise AssertionError("WIF profile principal-set condition is incomplete")
-    if required_names - mapped_names:
-        raise AssertionError("WIF profile attribute mapping is incomplete")
+    if required_names != mapped_names:
+        raise AssertionError(
+            "WIF profile mapped attributes must exactly match its condition"
+        )
     if values["repository_id"] != repository_id:
         raise AssertionError("effective-IAM principal disagrees with WIF profile")
 
@@ -422,10 +433,16 @@ def validate_effective_iam_audit(
     ]:
         raise AssertionError("effective-IAM intended identity drift")
 
-    if audit.get("project_pivot_permissions") != [
+    expected_pivots = [
         "cloudbuild.builds.create",
         "deploymentmanager.deployments.create",
-    ]:
+        "compute.instances.create",
+        "run.services.create",
+        "run.jobs.create",
+        "cloudfunctions.functions.create",
+        "resourcemanager.projects.setIamPolicy",
+    ]
+    if audit.get("project_pivot_permissions") != expected_pivots:
         raise AssertionError("effective-IAM pivot permission set drift")
     if not is_sha256_digest(audit.get("project_pivot_response_digest")):
         raise AssertionError("effective-IAM pivot response digest is malformed")
