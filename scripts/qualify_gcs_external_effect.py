@@ -73,6 +73,11 @@ BROAD_SA_AUDIT_SCHEMA = (
     "sol-atlas:gcs-broad-service-account-impersonation-audit:v2"
 )
 OBSERVER_ISOLATION_AUDIT_SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v2"
+OBSERVER_PROFILE_PATH = (
+    "sol-atlas-policy-store-contract/conformance/"
+    "gcs_iam_observer_profile_v1.json"
+)
+OBSERVER_PROFILE_SCHEMA = "sol-atlas:gcs-iam-observer-profile:v1"
 OBSERVER_AUTHORITY_FORBIDDEN_PROJECT_PERMISSIONS = [
     "resourcemanager.projects.setIamPolicy",
     "resourcemanager.projects.update",
@@ -499,6 +504,18 @@ def validate_observer_isolation_audit(
     audit: dict[str, object],
     wif_verification: dict[str, object],
 ) -> None:
+    if audit.get("observer_profile_path") != OBSERVER_PROFILE_PATH:
+        raise AssertionError("observer isolation profile path drift")
+    observer_profile_path = Path(OBSERVER_PROFILE_PATH)
+    observer_profile = json.loads(
+        observer_profile_path.read_text(encoding="utf-8")
+    )
+    if observer_profile.get("schema") != OBSERVER_PROFILE_SCHEMA:
+        raise AssertionError("observer isolation profile schema drift")
+    if audit.get("observer_profile_digest") != digest(
+        observer_profile
+    ):
+        raise AssertionError("observer isolation profile digest drift")
     if audit.get("schema") != OBSERVER_ISOLATION_AUDIT_SCHEMA:
         raise AssertionError("wrong observer isolation audit schema")
     observer = wif_verification.get("observer_service_account")
@@ -553,8 +570,11 @@ def validate_observer_isolation_audit(
         raise AssertionError(
             "observer isolation project pivot digest is malformed"
         )
+    expected_observer_profile_permissions = observer_profile.get(
+        "forbidden_project_permissions"
+    )
     if audit.get("observer_authority_permissions") != (
-        OBSERVER_AUTHORITY_FORBIDDEN_PROJECT_PERMISSIONS
+        expected_observer_profile_permissions
     ):
         raise AssertionError(
             "observer authority permission set drift"
