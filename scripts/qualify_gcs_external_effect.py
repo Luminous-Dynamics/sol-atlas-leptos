@@ -74,6 +74,7 @@ BROAD_SA_AUDIT_SCHEMA = (
 )
 OBSERVER_ISOLATION_AUDIT_SCHEMA = "sol-atlas:gcs-observer-isolation-audit:v2"
 POLICY_EFFECT_AUDIT_SCHEMA = "sol-atlas:gcs-policy-troubleshooter-audit:v2"
+DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 OBSERVER_PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
     "gcs_iam_observer_profile_v1.json"
@@ -1003,7 +1004,7 @@ def run_qualification(
     run_id = os.environ.get("GITHUB_RUN_ID", "local")
     run_attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "1")
     expected_object_root = (
-        "sol-atlas/qualification"
+        object_prefix.rstrip("/")
         + f"/run-{run_id}-attempt-{run_attempt}"
     )
     if object_root is not None and object_root != expected_object_root:
@@ -1432,6 +1433,7 @@ def run_qualification(
             "checked_out_source_commit": source_commit,
             "status": "qualified",
             "service": "Google Cloud Storage",
+            "gcp_project_id": wif_verification.get("project_id"),
             "bucket": bucket,
             "object_prefix": object_prefix,
             "object_root": root,
@@ -1606,6 +1608,13 @@ def verify_resource_identity(report: dict[str, object]) -> None:
     bucket = report.get("bucket")
     object_prefix = report.get("object_prefix")
     object_names = report.get("object_names")
+    object_root = report.get("object_root")
+    if (
+        not isinstance(object_root, str)
+        or not object_root
+        or not object_root.startswith(object_prefix.rstrip("/") + "/run-")
+    ):
+        raise AssertionError("missing or invalid qualification object root")
     if not isinstance(bucket, str) or not bucket:
         raise AssertionError("missing GCS bucket identity")
     if not isinstance(object_prefix, str) or not object_prefix:
