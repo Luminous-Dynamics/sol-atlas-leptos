@@ -148,6 +148,26 @@ def extract(
                 "universal principal grants effect-account access"
             )
 
+        binding = result.get("iamBinding")
+        if not isinstance(binding, dict):
+            raise AssertionError(
+                f"observer project-pivot result {index} has no IAM binding"
+            )
+        members = binding.get("members")
+        if not isinstance(members, list):
+            raise AssertionError(
+                f"observer project-pivot result {index} has invalid members"
+            )
+        module = load_effective_iam_module()
+        if any(
+            member in module.FORBIDDEN_UNIVERSAL_PRINCIPALS
+            for member in members
+            if isinstance(member, str)
+        ):
+            raise AssertionError(
+                "universal principal grants observer project pivot access"
+            )
+
         access_lists = result.get("accessControlLists")
         if not isinstance(access_lists, list) or not access_lists:
             raise AssertionError(
