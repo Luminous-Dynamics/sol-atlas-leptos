@@ -127,7 +127,7 @@ tracked separately in #41.
 
 The credentialed workflow now separates the effect execution identity from the IAM observer identity: `SOL_ATLAS_GCP_IAM_OBSERVER_SERVICE_ACCOUNT` must be configured as a distinct service account. The observer job authenticates first, verifies the effect service account's live WIF/provider policy, performs the effective-IAM and broad service-account audits under the observer identity, uploads those exact JSON records plus the observer OIDC evidence as an immutable artifact, and the effect job consumes that artifact by exact artifact ID. The final report embeds and revalidates those observer records. The effect identity therefore has no requirement for `iam.serviceAccounts.getIamPolicy`.
 The policy-effect observer runs before the first GCS mutation and the resulting
-14-target evidence is embedded into the final qualification report. The report
+19-target evidence is embedded into the final qualification report. The report
 requires the exact three object resources (`main.bin`, `point-in-time.bin`, and
 `metadata-race.bin`) under the run/attempt-specific object root.
 
@@ -201,8 +201,8 @@ v3beta troubleshooter API through the Google Cloud CLI, because that version
 evaluates allow policies, deny policies, and Principal Access Boundary policies
 together.
 
-The target manifest
-`sol-atlas-policy-store-contract/conformance/gcs_policy_troubleshooter_targets_v2.json`
+The v3 target manifest
+`sol-atlas-policy-store-contract/conformance/gcs_policy_troubleshooter_targets_v3.json`
 checks that the effect service account cannot create Cloud Build builds
 or Deployment Manager deployments and cannot create service-account keys or
 inspect/change IAM policy on itself. The manifest is template-bound to the exact qualification project, effect service
@@ -211,7 +211,7 @@ account, and deterministic run-scoped GCS object root at execution time.
 The observer requires every policy plane to return a determinate state. Any
 `UNKNOWN_INFO`, `UNKNOWN_CONDITIONAL`, or unspecified state fails closed.
 The audit retains the exact access tuple, allow/deny/PAB explanations, and a digest of each raw
-response. The audit output also records the checked-in v2 manifest path and
+response. The audit output also records the checked-in v3 manifest path and
 SHA-256 digest.
 
 This is intentionally a downstream service-account audit rather than a WIF
@@ -255,8 +255,7 @@ trust conditions.
 
 ## OIDC evidence version
 
-The live OIDC evidence format is `sol-atlas:github-oidc-claims:v4`; OIDC v1,
-v2, and v3 formats are historical. The outer GCS qualification report is schema
+The live OIDC evidence format is `sol-atlas:github-oidc-claims:v5`; OIDC v1 through v4 are historical. The outer GCS qualification report is schema
 v8 and binds the exact verified JWT to the file-sourced WIF credential
 configuration used for the exchange.
 
