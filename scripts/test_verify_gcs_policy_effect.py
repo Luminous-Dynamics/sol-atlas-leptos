@@ -62,6 +62,16 @@ def main() -> None:
     assert good["deny_access_state"] == "DENY_ACCESS_STATE_NOT_DENIED"
     assert good["pab_access_state"] == "PAB_ACCESS_STATE_NOT_ENFORCED"
 
+    assert good["response"] == response()
+    assert good["response_digest"] == module.digest(
+        good["response"]
+    )
+    tampered_raw = dict(
+        good["response"],
+        overallAccessState="CAN_ACCESS",
+    )
+    assert good["response_digest"] != module.digest(tampered_raw)
+
     for field, value in (
         ("overallAccessState", "UNKNOWN_INFO"),
         ("overallAccessState", "UNKNOWN_CONDITIONAL"),
