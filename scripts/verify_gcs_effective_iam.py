@@ -153,6 +153,7 @@ def run_analysis(
 
 
 FORBIDDEN_UNIVERSAL_PRINCIPALS = ("allUsers", "allAuthenticatedUsers")
+FORBIDDEN_WORKLOAD_UNIVERSAL_PRINCIPALS = ("allUsers",)
 WIF_PRINCIPAL_SET_PREFIX = "principalSet://iam.googleapis.com/projects/"
 WIF_PROFILE_PATH = (
     "sol-atlas-policy-store-contract/conformance/"
@@ -424,7 +425,7 @@ def extract_findings(
                 f"analysis result {index} has invalid binding members"
             )
         if any(
-            member in FORBIDDEN_UNIVERSAL_PRINCIPALS
+            member in FORBIDDEN_WORKLOAD_UNIVERSAL_PRINCIPALS
             for member in members
             if isinstance(member, str)
         ):
@@ -443,7 +444,7 @@ def extract_findings(
                 f"analysis result {index} has invalid binding members"
             )
         if any(
-            member in FORBIDDEN_UNIVERSAL_PRINCIPALS
+            member in FORBIDDEN_WORKLOAD_UNIVERSAL_PRINCIPALS
             for member in pre_members
             if isinstance(member, str)
         ):
