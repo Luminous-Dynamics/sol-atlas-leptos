@@ -469,6 +469,24 @@ def validate_observer_isolation_audit(
     digest_value = audit.get("policy_analyzer_response_digest")
     if not is_sha256_digest(digest_value):
         raise AssertionError("observer isolation response digest is malformed")
+    if audit.get("project_pivot_permissions") != [
+        "cloudbuild.builds.create",
+        "deploymentmanager.deployments.create",
+        "resourcemanager.projects.setIamPolicy",
+    ]:
+        raise AssertionError("observer isolation pivot permission set drift")
+    if audit.get("project_pivot_permissions_absent") is not True:
+        raise AssertionError(
+            "observer isolation project pivots were not excluded"
+        )
+    if audit.get("project_pivot_observed_permissions") != []:
+        raise AssertionError(
+            "observer isolation contains project pivot permissions"
+        )
+    if not is_sha256_digest(audit.get("project_pivot_response_digest")):
+        raise AssertionError(
+            "observer isolation project pivot digest is malformed"
+        )
     claim = audit.get("claim_ceiling")
     if not isinstance(claim, str) or not claim:
         raise AssertionError("observer isolation claim ceiling is missing")
