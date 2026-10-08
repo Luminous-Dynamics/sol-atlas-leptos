@@ -27,12 +27,6 @@ jobs:
       - run: cargo fmt --all --check
       - name: Check policy-store contract formatting
         run: cargo fmt --manifest-path sol-atlas-policy-store-contract/Cargo.toml -- --check
-      - name: Emit policy-store rustfmt repair diff
-        if: failure()
-        run: |
-          cargo fmt --manifest-path sol-atlas-policy-store-contract/Cargo.toml
-          echo "----- POLICY-STORE RUSTFMT DIFF -----"
-          git diff --no-ext-diff -- sol-atlas-policy-store-contract
 
   check-wasm:
     runs-on: ubuntu-latest
