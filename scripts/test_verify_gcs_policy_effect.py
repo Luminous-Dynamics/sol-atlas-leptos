@@ -138,6 +138,21 @@ def main() -> None:
     else:
         raise AssertionError("accepted workload identity principal")
 
+    assert module.validate_object_root(OBJECT_ROOT) == OBJECT_ROOT
+    for bad_root in (
+        OBJECT_ROOT + "\nsecond",
+        OBJECT_ROOT + "\rsecond",
+        OBJECT_ROOT + "\r\nsecond",
+    ):
+        try:
+            module.validate_object_root(bad_root)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(
+                "accepted an object root containing a control newline"
+            )
+
     object_resource = module.object_resource(
         BUCKET,
         OBJECT_ROOT + "/main.bin",
