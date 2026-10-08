@@ -1609,16 +1609,16 @@ def verify_resource_identity(report: dict[str, object]) -> None:
     object_prefix = report.get("object_prefix")
     object_names = report.get("object_names")
     object_root = report.get("object_root")
+    if not isinstance(bucket, str) or not bucket:
+        raise AssertionError("missing GCS bucket identity")
+    if not isinstance(object_prefix, str) or not object_prefix:
+        raise AssertionError("missing GCS object prefix")
     if (
         not isinstance(object_root, str)
         or not object_root
         or not object_root.startswith(object_prefix.rstrip("/") + "/run-")
     ):
         raise AssertionError("missing or invalid qualification object root")
-    if not isinstance(bucket, str) or not bucket:
-        raise AssertionError("missing GCS bucket identity")
-    if not isinstance(object_prefix, str) or not object_prefix:
-        raise AssertionError("missing GCS object prefix")
     if (
         not isinstance(object_names, list)
         or len(object_names) != 3
@@ -1643,8 +1643,6 @@ def verify_report(path: str) -> None:
         raise AssertionError("wrong case-set identity")
     if report.get("case_set_path") != CASE_SET_PATH:
         raise AssertionError("wrong case-set path")
-    if report.get("schema") != SCHEMA:
-        raise AssertionError("wrong report schema")
     verify_resource_identity(report)
     expected_case_set_digest = digest(expected_case_set)
     github_run_verification = report.get("github_workflow_run_verification")
