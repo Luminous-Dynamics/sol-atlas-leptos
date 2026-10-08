@@ -57,6 +57,22 @@ def main() -> None:
             OBJECT_ROOT + "/metadata-race.bin",
         ],
     }
+    assert module.expected_object_root(
+        OBJECT_PREFIX,
+        "12345",
+        "2",
+    ) == "sol-atlas/qualification/run-12345-attempt-2"
+    expect_rejection(
+        dict(
+            good,
+            object_names=[
+                OBJECT_ROOT + "/point-in-time.bin",
+                OBJECT_ROOT + "/main.bin",
+                OBJECT_ROOT + "/metadata-race.bin",
+            ],
+        ),
+        "reordered qualification objects were accepted",
+    )
     module.verify_resource_identity(good)
 
     server_good = {
