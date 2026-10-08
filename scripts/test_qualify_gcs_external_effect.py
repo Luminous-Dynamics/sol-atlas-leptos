@@ -190,6 +190,14 @@ def main() -> None:
         ],
         "policy_analyzer_response_digest": "sha256:" + "a" * 64,
         "claim_ceiling": "observer-only",
+        "project_pivot_permissions": [
+            "cloudbuild.builds.create",
+            "deploymentmanager.deployments.create",
+            "resourcemanager.projects.setIamPolicy",
+        ],
+        "project_pivot_permissions_absent": True,
+        "project_pivot_observed_permissions": [],
+        "project_pivot_response_digest": "sha256:" + "b" * 64,
     }
     module.validate_observer_isolation_audit(
         valid_observer_isolation,
