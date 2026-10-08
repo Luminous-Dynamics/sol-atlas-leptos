@@ -1009,8 +1009,18 @@ def run_qualification(
     )
     if object_root is not None and object_root != expected_object_root:
         raise AssertionError("qualification object root is not bound to this run")
-    root = object_root or (
-        expected_object_root + "-" + uuid.uuid4().hex[:12]
+    if object_root is None:
+        raise AssertionError("qualification object root is required")
+    root = object_root
+    main_name = root + "/main.bin"
+    point_name = root + "/point-in-time.bin"
+    race_name = root + "/metadata-race.bin"
+    validate_policy_effect_audit(
+        policy_effect_audit,
+        wif_verification,
+        bucket,
+        [main_name, point_name, race_name],
+        str(wif_verification.get("project_id", "")),
     )
     oidc_audience = wif_verification.get("oidc_expected_audience")
     if not isinstance(oidc_audience, str) or not oidc_audience:
@@ -1030,11 +1040,6 @@ def run_qualification(
     )
     source_commit = verify_checked_out_source_commit()
     token = access_token()
-    run_id = os.environ.get("GITHUB_RUN_ID", "local")
-    run_attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "1")
-    main_name = root + "/main.bin"
-    point_name = root + "/point-in-time.bin"
-    race_name = root + "/metadata-race.bin"
     resource = GcsGenerationFencedObject(bucket, main_name, token)
     point_resource = GcsGenerationFencedObject(bucket, point_name, token)
     race_resource = GcsGenerationFencedObject(bucket, race_name, token)
@@ -1930,7 +1935,7 @@ def main() -> int:
     qualify.add_argument("--broad-sa-audit", required=True)
     qualify.add_argument("--observer-isolation-audit", required=True)
     qualify.add_argument("--policy-effect-audit", required=True)
-    qualify.add_argument("--object-root")
+    qualify.add_argument("--object-root", required=True)
     qualify.add_argument("--output", required=True)
     verify = sub.add_parser("verify")
     verify.add_argument("--report", required=True)
