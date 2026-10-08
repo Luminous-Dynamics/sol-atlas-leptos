@@ -135,7 +135,7 @@ def valid_service_account_resource(resource: object) -> bool:
         return False
     return bool(
         re.fullmatch(
-            r"//iam\\.googleapis\\.com/projects/"
+            r"//iam\.googleapis\.com/projects/"
             r"[A-Za-z0-9._-]+/serviceAccounts/[^/]+@[^/]+",
             resource,
         )
