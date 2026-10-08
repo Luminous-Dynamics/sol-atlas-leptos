@@ -160,7 +160,6 @@ pub struct CapabilityLocation {
     label: String,
     lat: f64,
     lon: f64,
-    #[serde(default)]
     elevation_m: Option<f64>,
 }
 
@@ -830,11 +829,18 @@ mod tests {
     }
 
     #[test]
-    fn deterministic_json_is_stable() {
+    fn deterministic_json_is_stable_across_insertion_order() {
+        let a = fixture_definition("a", Some("b"));
+        let b = fixture_definition("b", None);
+        let g1 = CapabilityGraph::new(vec![a.clone(), b.clone()]).unwrap();
+        let g2 = CapabilityGraph::new(vec![b, a]).unwrap();
+        assert_eq!(
+            g1.deterministic_json().unwrap(),
+            g2.deterministic_json().unwrap()
+        );
+
         let fixture = bootstrap_fixture();
-        let a = fixture.graph.deterministic_json().unwrap();
-        let b = fixture.graph.deterministic_json().unwrap();
-        assert_eq!(a, b);
-        assert!(a.starts_with("[{"));
+        let serialized = fixture.graph.deterministic_json().unwrap();
+        assert!(serialized.starts_with("[{"));
     }
 }
