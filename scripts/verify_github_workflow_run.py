@@ -121,7 +121,7 @@ def verify_run_record(
         "head_branch": "main",
         "event": EVENT,
         "name": WORKFLOW_NAME,
-        "path": WORKFLOW_PATH + "@" + REF,
+        "path": WORKFLOW_PATH,
     }
     for name, expected in expected_run.items():
         if run.get(name) != expected:
