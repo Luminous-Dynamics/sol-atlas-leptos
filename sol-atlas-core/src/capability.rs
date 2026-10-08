@@ -4491,6 +4491,21 @@ mod graph_tests {
                 "operator-001",
                 "authority-record",
             ),
+            RecoveryPolicyConsumptionOutcomeV1::DecisionMismatch
+        );
+
+        let context_mismatch_available =
+            RecoveryPolicyConsumptionSnapshotV1::for_decision(&wrong_consumer);
+        let mut context_mismatch_execution = start_execution.clone();
+        context_mismatch_execution.authorization = Some(wrong_consumer.digest());
+        assert_eq!(
+            context_mismatch_available.admission_outcome_for_execution_start_for_context(
+                &wrong_consumer,
+                &context_mismatch_execution,
+                "recovery.execute",
+                "operator-001",
+                "authority-record",
+            ),
             RecoveryPolicyConsumptionOutcomeV1::PolicyContextMismatch
         );
         assert_eq!(
