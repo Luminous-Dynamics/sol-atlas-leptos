@@ -101,7 +101,7 @@ policy attachment as well as project/folder/organization ancestor attachments.
 It also audits the project target for `cloudbuild.builds.create` and
 `deploymentmanager.deployments.create`, failing closed if the expected workload
 identity or any frozen principal set that contains that identity has either
-active pivot permission in the selected scope.
+active resource-creation or IAM-policy pivot permission in the selected scope.
 
 The audit accepts an explicit Cloud Asset scope (`projects/...`,
 `folders/...`, or `organizations/...`) and queries the exact expected
