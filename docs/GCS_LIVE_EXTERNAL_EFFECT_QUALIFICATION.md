@@ -189,6 +189,39 @@ A queued Actions run is not qualification evidence. The live claim advances
 only when the complete case vector executes and the generated report
 re-verifies against the exact checked-out source.
 
+## Downstream IAM policy effects
+
+The repository also carries `scripts/verify_gcs_policy_effect.py`, a read-only
+Policy Troubleshooter observer for the effect service account. It uses the
+v3beta troubleshooter API through the Google Cloud CLI, because that version
+evaluates allow policies, deny policies, and Principal Access Boundary policies
+together.
+
+The target manifest
+`sol-atlas-policy-store-contract/conformance/gcs_policy_troubleshooter_targets_v1.json`
+initially checks that the effect service account cannot create Cloud Build builds
+or Deployment Manager deployments and cannot create service-account keys or
+inspect/change IAM policy on itself. The manifest is template-bound to the exact
+qualification project and effect service account at execution time.
+
+The observer requires every policy plane to return a determinate state. Any
+`UNKNOWN_INFO`, `UNKNOWN_CONDITIONAL`, or unspecified state fails closed.
+The audit retains the exact access tuple, allow/deny/PAB explanations, and a
+digest of each raw response.
+
+This is intentionally a downstream service-account audit rather than a WIF
+federation audit. Google's current Policy Troubleshooter documentation says
+workload identities are not supported as direct principals for this API, while
+service accounts are supported. The WIF boundary therefore remains covered by
+the dedicated OIDC/WIF/Policy Analyzer verifiers, and this Troubleshooter lane
+covers deny/PAB effects on the service account after impersonation.
+
+The observer needs organization-level visibility such as Security Reviewer,
+Deny Reviewer, Browser for service-account principal sets, and the permissions
+required to inspect Principal Access Boundary policies. Those privileges remain
+separate from the effect-execution identity and are not silently granted by the
+live qualification workflow.
+
 ## Operations
 
 Use a dedicated qualification bucket and a protected GitHub environment named
