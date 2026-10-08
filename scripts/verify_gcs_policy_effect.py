@@ -216,6 +216,7 @@ def verify_targets(
     principal: str,
     targets: list[dict[str, object]],
     output: str | None,
+    manifest_path: str = TARGET_MANIFEST_PATH,
 ) -> dict[str, object]:
     principal = validate_service_account(principal)
     if not targets:
@@ -243,16 +244,28 @@ def verify_targets(
             )
         )
 
-    manifest = json.loads(
+    input_manifest = json.loads(
+        Path(manifest_path).read_text(encoding="utf-8")
+    )
+    if input_manifest.get("schema") != TARGET_MANIFEST_SCHEMA:
+        raise AssertionError("target manifest schema drift")
+    frozen_manifest = json.loads(
         Path(TARGET_MANIFEST_PATH).read_text(encoding="utf-8")
     )
-    if manifest.get("schema") != TARGET_MANIFEST_SCHEMA:
+    if frozen_manifest.get("schema") != TARGET_MANIFEST_SCHEMA:
         raise AssertionError("checked-in target manifest schema drift")
+    input_digest = digest(input_manifest)
+    frozen_digest = digest(frozen_manifest)
+    if (
+        manifest_path != TARGET_MANIFEST_PATH
+        or input_digest != frozen_digest
+    ):
+        raise AssertionError("target manifest input is not the frozen manifest")
     result: dict[str, object] = {
         "schema": SCHEMA,
         "api_version": API_VERSION,
-        "target_manifest_path": TARGET_MANIFEST_PATH,
-        "target_manifest_digest": digest(manifest),
+        "target_manifest_path": manifest_path,
+        "target_manifest_digest": input_digest,
         "principal": principal,
         "target_count": len(observations),
         "targets": observations,
@@ -362,6 +375,7 @@ def main() -> int:
             args.object_root,
         ),
         args.output,
+        args.targets,
     )
     print(
         "verified IAM policy effects: "
