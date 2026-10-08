@@ -6,9 +6,8 @@
 
 from __future__ import annotations
 
-import json
-
 import importlib.util
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,6 +26,11 @@ PRINCIPAL = (
 RESOURCE = (
     "//iam.googleapis.com/projects/sol-atlas/serviceAccounts/"
     "qualification@sol-atlas.iam.gserviceaccount.com"
+)
+
+OIDC_SUBJECT = (
+    "repo:Luminous-Dynamics@216969177/sol-atlas-leptos@1195997641:"
+    "environment:sol-atlas-gcs-qualification"
 )
 
 def finding(permissions: list[str]) -> dict[str, object]:
