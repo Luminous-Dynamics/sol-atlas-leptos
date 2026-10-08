@@ -75,6 +75,36 @@ def expect_failure(data, label: str) -> None:
     raise AssertionError("accepted invalid observer isolation: " + label)
 
 
+def authority_finding(
+    permission: str,
+    *,
+    identity: str = OBSERVER_PRINCIPAL,
+    members=None,
+    condition: str | None = None,
+) -> dict[str, object]:
+    acl: dict[str, object] = {
+        "resources": [{
+            "fullResourceName":
+                "//cloudresourcemanager.googleapis.com/projects/sol-atlas"
+        }],
+        "accesses": [{"permission": permission}],
+    }
+    if condition is not None:
+        acl["conditionEvaluation"] = {
+            "evaluationValue": condition
+        }
+    return {
+        "iamBinding": {
+            "members": list(members or [OBSERVER_PRINCIPAL])
+        },
+        "identityList": {
+            "identities": [{"name": identity}]
+        },
+        "accessControlLists": [acl],
+        "fullyExplored": True,
+    }
+
+
 def main() -> None:
     clean = module.extract(
         envelope([
@@ -96,6 +126,72 @@ def main() -> None:
                 ])
             ]),
             "forbidden permission " + permission,
+        )
+
+    authority_clean = module.extract_observer_authority(
+        envelope([]),
+        OBSERVER_PRINCIPAL,
+        "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
+    )
+    assert authority_clean == set()
+
+    authority_detected = module.extract_observer_authority(
+        envelope([
+            authority_finding(
+                "resourcemanager.projects.setIamPolicy"
+            )
+        ]),
+        OBSERVER_PRINCIPAL,
+        "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
+    )
+    assert authority_detected == {"resourcemanager.projects.setIamPolicy"}
+
+    authority_false = module.extract_observer_authority(
+        envelope([
+            authority_finding(
+                "iam.roles.create",
+                condition="FALSE",
+            )
+        ]),
+        OBSERVER_PRINCIPAL,
+        "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
+    )
+    assert authority_false == set()
+
+    try:
+        module.extract_observer_authority(
+            envelope([
+                authority_finding(
+                    "iam.workloadIdentityPools.update",
+                    condition="CONDITIONAL",
+                )
+            ]),
+            OBSERVER_PRINCIPAL,
+            "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "conditional observer authority was accepted"
+        )
+
+    try:
+        module.extract_observer_authority(
+            envelope([
+                authority_finding(
+                    "iam.workloadIdentityPools.update",
+                    members=["allAuthenticatedUsers"],
+                )
+            ]),
+            OBSERVER_PRINCIPAL,
+            "//cloudresourcemanager.googleapis.com/projects/sol-atlas",
+        )
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(
+            "universal observer authority was accepted"
         )
 
     pivot_clean = {
