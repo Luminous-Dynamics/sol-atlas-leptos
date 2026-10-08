@@ -105,6 +105,53 @@ def authority_finding(
     }
 
 
+    profile = dict(module.OBSERVER_PROFILE)
+    bad = dict(profile)
+    bad["forbidden_project_permissions"] = (
+        list(profile["forbidden_project_permissions"])
+        + [profile["forbidden_project_permissions"][0]]
+    )
+    original = module.OBSERVER_PROFILE
+    try:
+        module.OBSERVER_PROFILE = bad
+        try:
+            module.load_observer_profile()
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("duplicate observer permission was accepted")
+
+        bad_overlap = dict(profile)
+        bad_overlap["forbidden_service_account_permissions"] = (
+            list(profile["forbidden_service_account_permissions"])
+            + [profile["required_observer_permission"]]
+        )
+        module.OBSERVER_PROFILE = bad_overlap
+        try:
+            module.load_observer_profile()
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(
+                "required observer permission was also accepted as forbidden"
+            )
+
+        bad_pivots = dict(profile)
+        bad_pivots["project_pivot_permissions"] = [
+            "permission.outside.observer.ceiling"
+        ]
+        module.OBSERVER_PROFILE = bad_pivots
+        try:
+            module.load_observer_profile()
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(
+                "uncovered observer pivot permission was accepted"
+            )
+    finally:
+        module.OBSERVER_PROFILE = original
+
 def main() -> None:
     clean = module.extract(
         envelope([
