@@ -1,0 +1,35 @@
+{
+  "schema": "sol-atlas:gcs-policy-troubleshooter-targets:v1",
+  "targets": [
+    {
+      "resource_kind": "project",
+      "resource_template": "//cloudresourcemanager.googleapis.com/projects/{project_id}",
+      "permission": "cloudbuild.builds.create",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "project",
+      "resource_template": "//cloudresourcemanager.googleapis.com/projects/{project_id}",
+      "permission": "deploymentmanager.deployments.create",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "service-account",
+      "resource_template": "//iam.googleapis.com/projects/{project_id}/serviceAccounts/{service_account}",
+      "permission": "iam.serviceAccountKeys.create",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "service-account",
+      "resource_template": "//iam.googleapis.com/projects/{project_id}/serviceAccounts/{service_account}",
+      "permission": "iam.serviceAccounts.getIamPolicy",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "service-account",
+      "resource_template": "//iam.googleapis.com/projects/{project_id}/serviceAccounts/{service_account}",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    }
+  ]
+}
