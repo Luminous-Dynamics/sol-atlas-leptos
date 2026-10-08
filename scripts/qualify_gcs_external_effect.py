@@ -1518,6 +1518,19 @@ def validate_policy_effect_audit(
         raise AssertionError("wrong Policy Troubleshooter audit schema")
     if audit.get("api_version") != "v3beta":
         raise AssertionError("wrong Policy Troubleshooter API version")
+    manifest_path = (
+        "sol-atlas-policy-store-contract/conformance/"
+        "gcs_policy_troubleshooter_targets_v2.json"
+    )
+    manifest = json.loads(
+        Path(manifest_path).read_text(encoding="utf-8")
+    )
+    if manifest.get("schema") != "sol-atlas:gcs-policy-troubleshooter-targets:v2":
+        raise AssertionError("Policy Troubleshooter target manifest schema drift")
+    if audit.get("target_manifest_path") != manifest_path:
+        raise AssertionError("Policy Troubleshooter target manifest path drift")
+    if audit.get("target_manifest_digest") != digest(manifest):
+        raise AssertionError("Policy Troubleshooter target manifest digest drift")
     if audit.get("principal") != wif_verification.get("service_account"):
         raise AssertionError("Policy Troubleshooter principal drift")
     if audit.get("all_targets_verified") is not True:
@@ -1569,13 +1582,15 @@ def validate_policy_effect_audit(
     for target in targets:
         if not isinstance(target, dict):
             raise AssertionError("Policy Troubleshooter target is malformed")
+        target_principal = target.get("principal")
         resource = target.get("resource")
         permission = target.get("permission")
         state = target.get("overall_access_state")
         expected_state = target.get("expected_overall_access_state")
         key = (resource, permission)
         if (
-            not isinstance(resource, str)
+            target_principal != audit.get("principal")
+            or not isinstance(resource, str)
             or not isinstance(permission, str)
             or key in seen
             or expected.get(key) != expected_state
