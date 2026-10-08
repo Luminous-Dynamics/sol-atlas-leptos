@@ -25,6 +25,25 @@ GH = "${{"
 
 GOOD = """
 jobs:
+  observe-wif-trust:
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@PIN
+      - name: Verify GitHub server workflow-run provenance
+        run: |
+          python3 scripts/verify_github_workflow_run.py \
+            --output observer-artifacts/github-workflow-run-verification.json
+      - run: python3 observer.py --token-output "$RUNNER_TEMP/observer-token.jwt"
+      - name: Remove transient observer credentials
+        run: rm -f "$RUNNER_TEMP/observer-token.jwt"
+      - uses: actions/upload-artifact@UPLOAD
+        with:
+          name: observer
+          path: observer-artifacts/observer.json
+
   qualify:
     permissions:
       contents: read
