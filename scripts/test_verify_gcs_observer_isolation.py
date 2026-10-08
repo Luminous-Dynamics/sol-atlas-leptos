@@ -105,6 +105,7 @@ def authority_finding(
     }
 
 
+def main() -> None:
     profile = dict(module.OBSERVER_PROFILE)
     bad = dict(profile)
     bad["forbidden_project_permissions"] = (
