@@ -44,7 +44,12 @@ jobs:
       - name: Verify immutable GitHub OIDC subject configuration
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/verify_github_oidc_subject_configuration.py
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p observer-artifacts
+          python3 scripts/verify_github_oidc_subject_configuration.py \
+            --output observer-artifacts/github-oidc-subject-configuration.json
 
       - name: Verify checked-out source and workflow commits
         shell: bash
@@ -299,12 +304,14 @@ jobs:
           set -euo pipefail
           test -s artifacts/wif-observer/gcs-wif-trust-verification.json
           test -s artifacts/wif-observer/github-oidc-claims.json
+          test -s artifacts/wif-observer/github-oidc-subject-configuration.json
           test -s artifacts/wif-observer/gcs-effective-iam-verification.json
           test -s artifacts/wif-observer/gcs-broad-sa-impersonation-verification.json
           test -s artifacts/wif-observer/gcs-observer-isolation-verification.json
           test -s artifacts/wif-observer/gcs-policy-effect-verification.json
           cp artifacts/wif-observer/gcs-wif-trust-verification.json artifacts/gcs-wif-trust-verification.json
           cp artifacts/wif-observer/github-oidc-claims.json artifacts/observer-github-oidc-claims.json
+          cp artifacts/wif-observer/github-oidc-subject-configuration.json artifacts/github-oidc-subject-configuration.json
           cp artifacts/wif-observer/gcs-effective-iam-verification.json artifacts/gcs-effective-iam-verification.json
           cp artifacts/wif-observer/gcs-broad-sa-impersonation-verification.json artifacts/gcs-broad-sa-impersonation-verification.json
           cp artifacts/wif-observer/gcs-observer-isolation-verification.json artifacts/gcs-observer-isolation-verification.json
@@ -373,6 +380,8 @@ jobs:
             --bucket "$GCS_QUALIFICATION_BUCKET" \
             --wif-verification artifacts/wif-observer/gcs-wif-trust-verification.json \
             --oidc-claims artifacts/github-oidc-claims.json \
+            --oidc-subject-configuration \
+              artifacts/github-oidc-subject-configuration.json \
             --github-run-verification \
               artifacts/github-workflow-run-verification.json \
             --wif-credential-config-verification \
@@ -410,6 +419,7 @@ jobs:
           name: sol-atlas-gcs-external-effect-qualification
           path: |
             artifacts/github-oidc-claims.json
+            artifacts/github-oidc-subject-configuration.json
             artifacts/gcs-wif-credential-config-verification.json
             artifacts/gcs-wif-trust-verification.json
             artifacts/github-workflow-run-verification.json
