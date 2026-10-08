@@ -153,6 +153,11 @@ def main() -> None:
         ("wif_profile_digest", "sha256:tampered"),
         ("expected_principal", "principalSet://tampered"),
         ("oidc_claims_digest", "sha256:tampered"),
+        ("principal_selection_mode", "weak-filter"),
+        ("matched_workload_principal_sets", [PRINCIPAL]),
+        ("project_pivot_permissions", []),
+        ("project_pivot_response_digest", "sha256:tampered"),
+        ("policy_analyzer_response_digest", "sha256:tampered"),
     ):
         tampered = dict(EFFECTIVE)
         tampered[field] = value
