@@ -6856,7 +6856,9 @@ mod tests {
         let (decision, execution, current) = fixture();
         let (mut transition, next) =
             transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
-        transition.next_snapshot_digest = "sha256:tampered".into();
+        transition.next_snapshot_digest =
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+                .into();
 
         let store = RecordingStore {
             loaded: current,
