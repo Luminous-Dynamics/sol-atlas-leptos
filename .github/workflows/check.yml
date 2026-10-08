@@ -145,6 +145,7 @@ jobs:
             scripts/test_qualify_gcs_external_effect.py \
             scripts/verify_github_workflow_run.py \
             scripts/verify_gcs_effective_iam.py \
+            scripts/verify_gcs_policy_effect.py \
             scripts/verify_github_oidc_subject_configuration.py \
             scripts/test_verify_github_oidc_subject_configuration.py \
             scripts/verify_gcs_broad_sa_impersonation.py \
@@ -160,6 +161,7 @@ jobs:
             scripts/test_verify_gcs_effective_iam_pivots.py \
             scripts/test_verify_gcs_effective_iam.py \
             scripts/test_verify_gcs_effective_iam_v2.py \
-            scripts/test_verify_gcs_effective_iam_v3.py
-            scripts/test_validate_observer_audit_evidence.py
-            scripts/test_validate_observer_audit_evidence.py
+            scripts/test_verify_gcs_effective_iam_v3.py \
+            scripts/test_verify_gcs_effective_iam_pivots.py \
+            scripts/test_validate_observer_audit_evidence.py \
+            scripts/test_verify_gcs_policy_effect.py
