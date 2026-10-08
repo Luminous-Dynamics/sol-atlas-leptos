@@ -827,6 +827,31 @@ def load_oidc_subject_configuration(path: str) -> dict[str, object]:
         raise AssertionError("OIDC default-template assertion is missing")
     if configuration.get("custom_claim_keys_forbidden") is not True:
         raise AssertionError("OIDC custom-claim assertion is missing")
+    raw = configuration.get("configuration")
+    if not isinstance(raw, dict):
+        raise AssertionError("OIDC subject raw configuration is missing")
+    if configuration.get("configuration_digest") != digest(raw):
+        raise AssertionError("OIDC subject raw configuration digest mismatch")
+    if raw.get("use_default") is not True:
+        raise AssertionError("OIDC raw subject default template was not verified")
+    if raw.get("use_immutable_subject") is not True:
+        raise AssertionError(
+            "OIDC raw immutable subject mode was not verified"
+        )
+    if raw.get("include_claim_keys") != []:
+        raise AssertionError(
+            "OIDC raw subject claim customization was not excluded"
+        )
+    if configuration.get("use_default") != raw.get("use_default"):
+        raise AssertionError("OIDC subject summary/default drift")
+    if configuration.get("use_immutable_subject") != raw.get(
+        "use_immutable_subject"
+    ):
+        raise AssertionError("OIDC subject summary/immutable drift")
+    if configuration.get("include_claim_keys") != raw.get(
+        "include_claim_keys"
+    ):
+        raise AssertionError("OIDC subject summary/claims drift")
     if not is_sha256_digest(configuration.get("configuration_digest")):
         raise AssertionError("OIDC subject configuration digest is malformed")
     return configuration
