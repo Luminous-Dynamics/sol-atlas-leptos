@@ -128,6 +128,16 @@ def main() -> None:
             "forbidden permission " + permission,
         )
 
+    expect_failure(
+        envelope([
+            finding(
+                [module.REQUIRED_OBSERVER_PERMISSION],
+                member="group:observer-auditors@example.com",
+            )
+        ]),
+        "group-mediated observer access",
+    )
+
     authority_clean = module.extract_observer_authority(
         envelope([]),
         OBSERVER_PRINCIPAL,
