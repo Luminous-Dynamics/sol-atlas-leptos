@@ -14,9 +14,9 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sol_atlas_core::{
-    RecoveryExecution, RecoveryExecutionResultSnapshotV1,
-    RecoveryPolicyConsumptionSnapshotV1, RecoveryPolicyConsumptionStateV1,
-    RecoveryPolicyConsumptionTransitionV1, RecoveryPolicyDecisionSnapshotV1,
+    RecoveryExecution, RecoveryExecutionResultSnapshotV1, RecoveryPolicyConsumptionSnapshotV1,
+    RecoveryPolicyConsumptionStateV1, RecoveryPolicyConsumptionTransitionV1,
+    RecoveryPolicyDecisionSnapshotV1,
 };
 #[cfg(test)]
 use std::collections::BTreeMap;
@@ -24,9 +24,9 @@ use std::collections::BTreeMap;
 use std::sync::Mutex;
 
 fn is_sha256_digest(value: &str) -> bool {
-    value.strip_prefix("sha256:").is_some_and(|hex| {
-        hex.len() == 64 && hex.bytes().all(|byte| byte.is_ascii_hexdigit())
-    })
+    value
+        .strip_prefix("sha256:")
+        .is_some_and(|hex| hex.len() == 64 && hex.bytes().all(|byte| byte.is_ascii_hexdigit()))
 }
 
 /// Persistence outcomes visible to an adapter caller.
@@ -170,27 +170,19 @@ where
     };
 
     if !current.is_well_formed() {
-        return Ok(
-            RecoveryPolicyConsumptionReconciliationOutcome::MalformedStoredState
-        );
+        return Ok(RecoveryPolicyConsumptionReconciliationOutcome::MalformedStoredState);
     }
 
     if current.decision_digest != decision.digest() {
-        return Ok(
-            RecoveryPolicyConsumptionReconciliationOutcome::InvalidTransition
-        );
+        return Ok(RecoveryPolicyConsumptionReconciliationOutcome::InvalidTransition);
     }
 
     if current.digest() == next.digest() {
-        return Ok(
-            RecoveryPolicyConsumptionReconciliationOutcome::ObservedCommitted
-        );
+        return Ok(RecoveryPolicyConsumptionReconciliationOutcome::ObservedCommitted);
     }
 
     if current.digest() == transition.expected_snapshot_digest {
-        return Ok(
-            RecoveryPolicyConsumptionReconciliationOutcome::ObservedExpected
-        );
+        return Ok(RecoveryPolicyConsumptionReconciliationOutcome::ObservedExpected);
     }
 
     Ok(RecoveryPolicyConsumptionReconciliationOutcome::ObservedDifferentState)
@@ -244,6 +236,7 @@ impl RecoveryAuthorizationOrchestrationStateV1 {
         }
     }
 }
+
 
 /// Pure effect orchestration observation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -416,15 +409,11 @@ where
     }
 
     if current.execution_input_snapshot != claim.execution_input_snapshot {
-        return Ok(
-            RecoveryExecutionClaimReconciliationOutcome::ObservedDifferentFingerprint,
-        );
+        return Ok(RecoveryExecutionClaimReconciliationOutcome::ObservedDifferentFingerprint);
     }
 
     if current.attempt_id == claim.attempt_id {
-        return Ok(
-            RecoveryExecutionClaimReconciliationOutcome::ObservedOwnedByThisAttempt,
-        );
+        return Ok(RecoveryExecutionClaimReconciliationOutcome::ObservedOwnedByThisAttempt);
     }
 
     Ok(RecoveryExecutionClaimReconciliationOutcome::ObservedOwnedByOtherAttempt)
@@ -438,10 +427,7 @@ where
 pub fn claim_execution_start<S>(
     store: &S,
     claim: &RecoveryExecutionClaimV1,
-) -> Result<
-    RecoveryExecutionClaimResult,
-    RecoveryPolicyConsumptionPersistenceError<S::Error>,
->
+) -> Result<RecoveryExecutionClaimResult, RecoveryPolicyConsumptionPersistenceError<S::Error>>
 where
     S: RecoveryExecutionClaimStore,
 {
@@ -500,9 +486,7 @@ impl RecoveryExecutionEffectReceiptV2 {
     }
 
     /// Construct an effect receipt from an already-established execution fence.
-    pub fn in_progress_for_fence(
-        fence: &RecoveryExecutionFenceV1,
-    ) -> Option<Self> {
+    pub fn in_progress_for_fence(fence: &RecoveryExecutionFenceV1) -> Option<Self> {
         if !fence.is_well_formed() {
             return None;
         }
@@ -535,10 +519,9 @@ impl RecoveryExecutionEffectReceiptV2 {
             && match self.state {
                 RecoveryExecutionEffectStateV1::InProgress => self.outcome_digest.is_none(),
                 RecoveryExecutionEffectStateV1::Succeeded
-                | RecoveryExecutionEffectStateV1::Failed => self
-                    .outcome_digest
-                    .as_deref()
-                    .is_some_and(is_sha256_digest),
+                | RecoveryExecutionEffectStateV1::Failed => {
+                    self.outcome_digest.as_deref().is_some_and(is_sha256_digest)
+                }
             }
     }
 
@@ -740,9 +723,7 @@ where
     }
 
     if current.execution_input_snapshot != expected_input_snapshot {
-        return Ok(
-            RecoveryExecutionEffectReconciliationOutcome::ObservedDifferentFingerprint,
-        );
+        return Ok(RecoveryExecutionEffectReconciliationOutcome::ObservedDifferentFingerprint);
     }
 
     match &current.state {
@@ -798,8 +779,7 @@ where
     S: RecoveryExecutionEffectStore,
 {
     let valid_successor_epoch = expected.fence_epoch.checked_add(1);
-    let Some(successor) =
-        RecoveryExecutionEffectReceiptV2::in_progress_for_fence(successor_fence)
+    let Some(successor) = RecoveryExecutionEffectReceiptV2::in_progress_for_fence(successor_fence)
     else {
         return Ok(RecoveryExecutionEffectRecoveryResult::MalformedReceipt);
     };
@@ -811,8 +791,7 @@ where
         || successor.execution_id != expected.execution_id
         || successor.execution_input_snapshot != expected.execution_input_snapshot
         || successor.attempt_id == expected.attempt_id
-        || valid_successor_epoch
-            .is_none_or(|epoch| successor.fence_epoch != epoch)
+        || valid_successor_epoch.is_none_or(|epoch| successor.fence_epoch != epoch)
     {
         return Ok(RecoveryExecutionEffectRecoveryResult::MalformedReceipt);
     }
@@ -846,10 +825,7 @@ where
 pub fn begin_execution_effect<S>(
     store: &S,
     receipt: &RecoveryExecutionEffectReceiptV2,
-) -> Result<
-    RecoveryExecutionEffectStartResult,
-    RecoveryPolicyConsumptionPersistenceError<S::Error>,
->
+) -> Result<RecoveryExecutionEffectStartResult, RecoveryPolicyConsumptionPersistenceError<S::Error>>
 where
     S: RecoveryExecutionEffectStore,
 {
@@ -870,10 +846,7 @@ where
 pub fn begin_execution_effect_for_fence<S>(
     store: &S,
     fence: &RecoveryExecutionFenceV1,
-) -> Result<
-    RecoveryExecutionEffectStartResult,
-    RecoveryPolicyConsumptionPersistenceError<S::Error>,
->
+) -> Result<RecoveryExecutionEffectStartResult, RecoveryPolicyConsumptionPersistenceError<S::Error>>
 where
     S: RecoveryExecutionEffectStore,
 {
@@ -892,10 +865,7 @@ where
 pub fn begin_execution_effect_for_established_fence<S>(
     store: &S,
     fence: &EstablishedRecoveryExecutionFenceV1,
-) -> Result<
-    RecoveryExecutionEffectStartResult,
-    RecoveryPolicyConsumptionPersistenceError<S::Error>,
->
+) -> Result<RecoveryExecutionEffectStartResult, RecoveryPolicyConsumptionPersistenceError<S::Error>>
 where
     S: RecoveryExecutionEffectStore,
 {
@@ -1058,11 +1028,7 @@ where
     }
 
     let cas_result = store
-        .compare_and_set(
-            &decision_digest,
-            &transition.expected_snapshot_digest,
-            next,
-        )
+        .compare_and_set(&decision_digest, &transition.expected_snapshot_digest, next)
         .map_err(RecoveryPolicyConsumptionPersistenceError::Store)?;
 
     Ok(match cas_result {
@@ -1307,35 +1273,28 @@ where
     F: RecoveryExecutionFenceStore,
     E: RecoveryExecutionEffectStore,
 {
-    let observation = reconcile_established_execution_fence(fence_store, fence).map_err(
-        |error| match error {
+    let observation =
+        reconcile_established_execution_fence(fence_store, fence).map_err(|error| match error {
             RecoveryPolicyConsumptionPersistenceError::Store(error) => {
                 RecoveryExecutionCrossStorePersistenceError::FenceStore(error)
             }
-        },
-    )?;
+        })?;
 
-    if observation
-        != RecoveryExecutionFenceReconciliationOutcome::ObservedCurrentOwnedByThisAttempt
+    if observation != RecoveryExecutionFenceReconciliationOutcome::ObservedCurrentOwnedByThisAttempt
     {
-        return Ok(RecoveryExecutionEffectFenceAdmissionResult::RejectedByFence(
-            observation,
-        ));
+        return Ok(RecoveryExecutionEffectFenceAdmissionResult::RejectedByFence(observation));
     }
 
-    let result = begin_execution_effect_for_established_fence(effect_store, fence).map_err(
-        |error| match error {
-            RecoveryPolicyConsumptionPersistenceError::Store(error) => {
-                RecoveryExecutionCrossStorePersistenceError::EffectStore(error)
+    let result =
+        begin_execution_effect_for_established_fence(effect_store, fence).map_err(|error| {
+            match error {
+                RecoveryPolicyConsumptionPersistenceError::Store(error) => {
+                    RecoveryExecutionCrossStorePersistenceError::EffectStore(error)
+                }
             }
-        },
-    )?;
+        })?;
 
-    Ok(
-        RecoveryExecutionEffectFenceAdmissionResult::AttemptedAfterCurrentFenceObservation(
-            result,
-        ),
-    )
+    Ok(RecoveryExecutionEffectFenceAdmissionResult::AttemptedAfterCurrentFenceObservation(result))
 }
 
 /// Reconcile a fenced ownership acknowledgement without mutating the store.
@@ -1388,10 +1347,7 @@ where
 pub fn acquire_execution_fence<S>(
     store: &S,
     fence: &RecoveryExecutionFenceV1,
-) -> Result<
-    RecoveryExecutionFenceResult,
-    RecoveryPolicyConsumptionPersistenceError<S::Error>,
->
+) -> Result<RecoveryExecutionFenceResult, RecoveryPolicyConsumptionPersistenceError<S::Error>>
 where
     S: RecoveryExecutionFenceStore,
 {
@@ -1409,10 +1365,7 @@ pub fn recover_execution_fence<S>(
     store: &S,
     expected: &RecoveryExecutionFenceV1,
     successor: &RecoveryExecutionFenceV1,
-) -> Result<
-    RecoveryExecutionFenceResult,
-    RecoveryPolicyConsumptionPersistenceError<S::Error>,
->
+) -> Result<RecoveryExecutionFenceResult, RecoveryPolicyConsumptionPersistenceError<S::Error>>
 where
     S: RecoveryExecutionFenceStore,
 {
@@ -1476,8 +1429,7 @@ pub fn recover_established_execution_fence<S>(
 where
     S: RecoveryExecutionFenceStore,
 {
-    let Some(successor) =
-        RecoveryExecutionFenceV1::for_recovery(current.fence(), new_attempt_id)
+    let Some(successor) = RecoveryExecutionFenceV1::for_recovery(current.fence(), new_attempt_id)
     else {
         return Ok(RecoveryExecutionFenceRecoveryEstablishmentV1::Rejected(
             RecoveryExecutionFenceResult::MalformedFence,
@@ -1485,12 +1437,14 @@ where
     };
 
     match recover_execution_fence(store, current.fence(), &successor)? {
-        RecoveryExecutionFenceResult::Recovered => Ok(
-            RecoveryExecutionFenceRecoveryEstablishmentV1::Established(
+        RecoveryExecutionFenceResult::Recovered => {
+            Ok(RecoveryExecutionFenceRecoveryEstablishmentV1::Established(
                 EstablishedRecoveryExecutionFenceV1::from_authoritative(successor),
-            ),
-        ),
-        outcome => Ok(RecoveryExecutionFenceRecoveryEstablishmentV1::Rejected(outcome)),
+            ))
+        }
+        outcome => Ok(RecoveryExecutionFenceRecoveryEstablishmentV1::Rejected(
+            outcome,
+        )),
     }
 }
 
@@ -1561,7 +1515,9 @@ impl RecoveryExecutionProtectedMutationV1 {
     /// Returns whether this request carries a usable stable external
     /// idempotency key.
     pub fn has_stable_idempotency_key(&self) -> bool {
-        self.idempotency_key.as_deref().is_some_and(|key| !key.is_empty())
+        self.idempotency_key
+            .as_deref()
+            .is_some_and(|key| !key.is_empty())
     }
 
     pub fn matches_fence(&self, fence: &EstablishedRecoveryExecutionFenceV1) -> bool {
@@ -1573,7 +1529,10 @@ impl RecoveryExecutionProtectedMutationV1 {
             && is_sha256_digest(&self.execution_input_snapshot)
             && !self.attempt_id.is_empty()
             && self.fence_epoch > 0
-            && self.idempotency_key.as_deref().is_none_or(|key| !key.is_empty())
+            && self
+                .idempotency_key
+                .as_deref()
+                .is_none_or(|key| !key.is_empty())
     }
 }
 
@@ -1727,8 +1686,7 @@ pub struct RecoveryExecutionEffectSafetyProfileV1 {
 }
 
 impl RecoveryExecutionEffectSafetyProfileV1 {
-    pub const SCHEMA: &'static str =
-        "sol-atlas:recovery-execution-effect-safety-profile:v1";
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-execution-effect-safety-profile:v1";
 
     pub fn is_well_formed(&self) -> bool {
         self.schema == Self::SCHEMA && !self.claim_ceiling.is_empty()
@@ -1822,8 +1780,7 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
         &self,
         mutation: &RecoveryExecutionProtectedMutationV1,
     ) -> bool {
-        self.automatic_takeover_safe()
-            && self.automatic_retry_safe_for(mutation)
+        self.automatic_takeover_safe() && self.automatic_retry_safe_for(mutation)
     }
 
     pub fn next_action(
@@ -1885,7 +1842,10 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
             || !is_sha256_digest(&mutation.execution_input_snapshot)
             || mutation.attempt_id.is_empty()
             || mutation.fence_epoch == 0
-            || mutation.idempotency_key.as_deref().is_some_and(str::is_empty)
+            || mutation
+                .idempotency_key
+                .as_deref()
+                .is_some_and(str::is_empty)
         {
             return RecoveryExecutionProtectedMutationNextActionV1::FailClosed;
         }
@@ -1948,7 +1908,6 @@ impl RecoveryExecutionEffectSafetyProfileV1 {
                 RecoveryExecutionReconciliationCapabilityV1::Unknown => false,
             }
     }
-
 }
 
 /// Runtime evidence emitted by an adapter-specific protected-effect conformance suite.
@@ -1978,8 +1937,7 @@ impl RecoveryExecutionEffectConformanceEvidenceV1 {
     ///
     /// Adding, removing, or reordering cases requires a new case-set identity;
     /// that intentionally invalidates previously issued evidence.
-    pub const CASE_SET: &'static str =
-        "sol-atlas:recovery-execution-effect-conformance-cases:v1";
+    pub const CASE_SET: &'static str = "sol-atlas:recovery-execution-effect-conformance-cases:v1";
 
     /// Content digest for the concrete behavioral evidence.
     pub fn digest(&self) -> String {
@@ -2034,8 +1992,7 @@ pub struct RecoveryExecutionEffectConformanceReportV1 {
 }
 
 impl RecoveryExecutionEffectConformanceReportV1 {
-    pub const SCHEMA: &'static str =
-        "sol-atlas:recovery-execution-effect-conformance-report:v1";
+    pub const SCHEMA: &'static str = "sol-atlas:recovery-execution-effect-conformance-report:v1";
 
     fn identity_material(&self) -> String {
         format!(
@@ -2143,7 +2100,7 @@ pub fn validate_protected_mutation_request(
 mod tests {
     use super::*;
     use sol_atlas_core::{
-        CapabilityId, CapabilityState, RecoveryPolicyDecisionV1, RecoveryExecution,
+        CapabilityId, CapabilityState, RecoveryExecution, RecoveryPolicyDecisionV1,
     };
     use std::sync::{Arc, Barrier};
     use std::thread;
@@ -2201,19 +2158,17 @@ mod tests {
         fn reconcile_mutation(
             &self,
             mutation: &RecoveryExecutionProtectedMutationV1,
-        ) -> Result<
-            RecoveryExecutionProtectedMutationReconciliationOutcome,
-            Self::Error,
-        > {
+        ) -> Result<RecoveryExecutionProtectedMutationReconciliationOutcome, Self::Error> {
             if mutation.execution_id.is_empty()
                 || !is_sha256_digest(&mutation.execution_input_snapshot)
                 || mutation.attempt_id.is_empty()
                 || mutation.fence_epoch == 0
-                || mutation.idempotency_key.as_deref().is_some_and(str::is_empty)
+                || mutation
+                    .idempotency_key
+                    .as_deref()
+                    .is_some_and(str::is_empty)
             {
-                return Ok(
-                    RecoveryExecutionProtectedMutationReconciliationOutcome::InvalidState,
-                );
+                return Ok(RecoveryExecutionProtectedMutationReconciliationOutcome::InvalidState);
             }
 
             let state = self.state.lock().map_err(|_| "poisoned")?;
@@ -2236,15 +2191,16 @@ mod tests {
                 );
             }
 
-            Ok(
-                RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedDifferentRequest,
-            )
+            Ok(RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedDifferentRequest)
         }
     }
 
     impl FencedResourceMemoryStore {
         fn set_epoch(&self, epoch: u64) {
-            self.state.lock().expect("resource state lock").current_epoch = epoch;
+            self.state
+                .lock()
+                .expect("resource state lock")
+                .current_epoch = epoch;
         }
     }
 
@@ -2273,13 +2229,10 @@ mod tests {
             }
 
             let key = mutation.execution_id.clone();
-            if let Some((fingerprint, attempt_id, epoch, idempotency_key)) =
-                state.applied.get(&key)
+            if let Some((fingerprint, attempt_id, epoch, idempotency_key)) = state.applied.get(&key)
             {
                 if fingerprint != &mutation.execution_input_snapshot {
-                    return Ok(
-                        RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch,
-                    );
+                    return Ok(RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch);
                 }
                 if *epoch == mutation.fence_epoch && attempt_id == &mutation.attempt_id {
                     if idempotency_key != &mutation.idempotency_key {
@@ -2287,9 +2240,7 @@ mod tests {
                             RecoveryExecutionProtectedMutationResult::RejectedIdentityMismatch,
                         );
                     }
-                    return Ok(
-                        RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest,
-                    );
+                    return Ok(RecoveryExecutionProtectedMutationResult::AlreadyAppliedSameRequest);
                 }
                 if *epoch == mutation.fence_epoch {
                     return Ok(RecoveryExecutionProtectedMutationResult::RejectedOtherAttempt);
@@ -2576,9 +2527,7 @@ mod tests {
             point_in_time_semantics_explicit: false,
             ..complete
         };
-        assert!(!profile.supported_by_conformance_evidence(
-            &missing_point_in_time
-        ));
+        assert!(!profile.supported_by_conformance_evidence(&missing_point_in_time));
     }
 
     #[test]
@@ -2604,8 +2553,7 @@ mod tests {
         };
         let changed_same_key = RecoveryExecutionProtectedMutationV1 {
             execution_input_snapshot:
-                "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-                    .into(),
+                "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee".into(),
             ..current.clone()
         };
         let changed_idempotency_key = RecoveryExecutionProtectedMutationV1 {
@@ -2640,8 +2588,7 @@ mod tests {
         let exact_reconciliation = resource
             .reconcile_mutation(&current)
             .expect("exact reconciliation")
-            == RecoveryExecutionProtectedMutationReconciliationOutcome::
-                ObservedAppliedSameRequest;
+            == RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest;
 
         let concurrent = Arc::new(FencedResourceMemoryStore::default());
         concurrent.set_epoch(2);
@@ -2657,8 +2604,7 @@ mod tests {
         let current_concurrent = RecoveryExecutionProtectedMutationV1 {
             execution_id: "execution-conformance-concurrent-current".into(),
             execution_input_snapshot:
-                "sha256:abababababababababababababababababababababababababababababababab"
-                    .into(),
+                "sha256:abababababababababababababababababababababababababababababababab".into(),
             attempt_id: "attempt-current".into(),
             fence_epoch: 2,
             idempotency_key: None,
@@ -2680,7 +2626,11 @@ mod tests {
         let mut stale_rejected_count = 0usize;
         let mut current_applied_count = 0usize;
         for join in joins {
-            match join.join().expect("concurrent thread").expect("concurrent result") {
+            match join
+                .join()
+                .expect("concurrent thread")
+                .expect("concurrent result")
+            {
                 RecoveryExecutionProtectedMutationResult::RejectedStaleFence => {
                     stale_rejected_count += 1;
                 }
@@ -2691,8 +2641,7 @@ mod tests {
                 other => panic!("unexpected concurrent outcome: {other:?}"),
             }
         }
-        let concurrent_fencing_preserved =
-            current_applied_count == 1 && stale_rejected_count == 31;
+        let concurrent_fencing_preserved = current_applied_count == 1 && stale_rejected_count == 31;
 
         let indeterminate_ack_reconciled = {
             struct IndeterminateEvidenceStore {
@@ -2834,8 +2783,7 @@ mod tests {
         );
 
         let no_reconciliation = RecoveryExecutionEffectSafetyProfileV1 {
-            reconciliation:
-                RecoveryExecutionReconciliationCapabilityV1::NotSupported,
+            reconciliation: RecoveryExecutionReconciliationCapabilityV1::NotSupported,
             ..profile
         };
         assert_eq!(
@@ -2941,8 +2889,7 @@ mod tests {
     #[test]
     fn protected_mutation_orchestration_is_fail_closed_after_indeterminate_recovery() {
         assert_eq!(
-            RecoveryExecutionProtectedMutationOrchestrationStateV1::Indeterminate
-                .next_action(),
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::Indeterminate.next_action(),
             RecoveryExecutionProtectedMutationNextActionV1::ReconcileIndeterminateMutation,
         );
         assert_eq!(
@@ -3004,8 +2951,7 @@ mod tests {
             resource
                 .reconcile_mutation(&mutation)
                 .expect("applied observation"),
-            RecoveryExecutionProtectedMutationReconciliationOutcome::
-                ObservedAppliedSameRequest,
+            RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest,
         );
     }
 
@@ -3028,8 +2974,7 @@ mod tests {
         assert_eq!(applied, RecoveryExecutionProtectedMutationResult::Applied);
 
         assert_eq!(
-            RecoveryExecutionProtectedMutationOrchestrationStateV1::Indeterminate
-                .next_action(),
+            RecoveryExecutionProtectedMutationOrchestrationStateV1::Indeterminate.next_action(),
             RecoveryExecutionProtectedMutationNextActionV1::ReconcileIndeterminateMutation,
         );
         assert_eq!(
@@ -3037,7 +2982,9 @@ mod tests {
             RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest,
         );
         assert_eq!(
-            resource.reconcile_mutation(&mutation).expect("second read remains read-only"),
+            resource
+                .reconcile_mutation(&mutation)
+                .expect("second read remains read-only"),
             RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedAppliedSameRequest,
         );
     }
@@ -3067,8 +3014,7 @@ mod tests {
             resource
                 .reconcile_mutation(&drifted)
                 .expect("identity drift"),
-            RecoveryExecutionProtectedMutationReconciliationOutcome::
-                ObservedDifferentRequest,
+            RecoveryExecutionProtectedMutationReconciliationOutcome::ObservedDifferentRequest,
         );
     }
 
@@ -3215,8 +3161,7 @@ mod tests {
         let first = RecoveryExecutionProtectedMutationV1 {
             execution_id: "execution-protected-idempotency".into(),
             execution_input_snapshot:
-                "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-                    .into(),
+                "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee".into(),
             attempt_id: "attempt-a".into(),
             fence_epoch: 2,
             idempotency_key: Some("stable-key-a".into()),
@@ -3247,8 +3192,7 @@ mod tests {
         let first = RecoveryExecutionProtectedMutationV1 {
             execution_id: "execution-protected-owner".into(),
             execution_input_snapshot:
-                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
-                    .into(),
+                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd".into(),
             attempt_id: "attempt-a".into(),
             fence_epoch: 2,
             idempotency_key: Some("effect-key".into()),
@@ -3376,11 +3320,9 @@ mod tests {
             next: &RecoveryPolicyConsumptionSnapshotV1,
         ) -> Result<RecoveryPolicyConsumptionCasResult, Self::Error> {
             if self.commit_before_indeterminate {
-                let result = self.inner.compare_and_set(
-                    decision_digest,
-                    expected_snapshot_digest,
-                    next,
-                )?;
+                let result =
+                    self.inner
+                        .compare_and_set(decision_digest, expected_snapshot_digest, next)?;
                 if result != RecoveryPolicyConsumptionCasResult::Committed {
                     return Ok(result);
                 }
@@ -3502,20 +3444,22 @@ mod tests {
                 return Ok(RecoveryExecutionEffectStartResult::FenceMismatch);
             }
 
-            Ok(match (&current.state, current.attempt_id == receipt.attempt_id) {
-                (RecoveryExecutionEffectStateV1::InProgress, true) => {
-                    RecoveryExecutionEffectStartResult::AlreadyInProgressSameAttempt
-                }
-                (RecoveryExecutionEffectStateV1::InProgress, false) => {
-                    RecoveryExecutionEffectStartResult::AlreadyInProgressOtherAttempt
-                }
-                (RecoveryExecutionEffectStateV1::Succeeded, _) => {
-                    RecoveryExecutionEffectStartResult::AlreadySucceededSameRequest
-                }
-                (RecoveryExecutionEffectStateV1::Failed, _) => {
-                    RecoveryExecutionEffectStartResult::AlreadyFailedSameRequest
-                }
-            })
+            Ok(
+                match (&current.state, current.attempt_id == receipt.attempt_id) {
+                    (RecoveryExecutionEffectStateV1::InProgress, true) => {
+                        RecoveryExecutionEffectStartResult::AlreadyInProgressSameAttempt
+                    }
+                    (RecoveryExecutionEffectStateV1::InProgress, false) => {
+                        RecoveryExecutionEffectStartResult::AlreadyInProgressOtherAttempt
+                    }
+                    (RecoveryExecutionEffectStateV1::Succeeded, _) => {
+                        RecoveryExecutionEffectStartResult::AlreadySucceededSameRequest
+                    }
+                    (RecoveryExecutionEffectStateV1::Failed, _) => {
+                        RecoveryExecutionEffectStartResult::AlreadyFailedSameRequest
+                    }
+                },
+            )
         }
 
         fn complete_effect(
@@ -3590,8 +3534,7 @@ mod tests {
                 || successor.execution_id != expected.execution_id
                 || successor.execution_input_snapshot != expected.execution_input_snapshot
                 || successor.attempt_id == expected.attempt_id
-                || valid_successor_epoch
-                    .is_none_or(|epoch| successor.fence_epoch != epoch)
+                || valid_successor_epoch.is_none_or(|epoch| successor.fence_epoch != epoch)
             {
                 return Ok(RecoveryExecutionEffectRecoveryResult::MalformedReceipt);
             }
@@ -3701,11 +3644,8 @@ mod tests {
                 RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
                 _ => panic!("initial establishment must succeed"),
             };
-        let successor = RecoveryExecutionFenceV1::for_recovery(
-            established.fence(),
-            "attempt-b",
-        )
-        .expect("successor");
+        let successor = RecoveryExecutionFenceV1::for_recovery(established.fence(), "attempt-b")
+            .expect("successor");
         let effect_store = FenceAdvancingEffectStore {
             inner: ExecutionEffectMemoryStore::default(),
             fence_store: Arc::clone(&fence_store),
@@ -3762,7 +3702,9 @@ mod tests {
         receipt.outcome_digest = Some("not-a-digest".into());
 
         assert_eq!(
-            store.begin_effect(&receipt).expect("direct malformed start"),
+            store
+                .begin_effect(&receipt)
+                .expect("direct malformed start"),
             RecoveryExecutionEffectStartResult::MalformedReceipt
         );
         assert!(
@@ -3783,8 +3725,7 @@ mod tests {
         let mut malformed = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
-                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-                    .into(),
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
             ),
             ..started.clone()
         };
@@ -3875,14 +3816,12 @@ mod tests {
 
         let left_store = Arc::clone(&store);
         let left_receipt = first.clone();
-        let left = thread::spawn(move || {
-            begin_execution_effect(left_store.as_ref(), &left_receipt)
-        });
+        let left =
+            thread::spawn(move || begin_execution_effect(left_store.as_ref(), &left_receipt));
         let right_store = Arc::clone(&store);
         let right_receipt = second.clone();
-        let right = thread::spawn(move || {
-            begin_execution_effect(right_store.as_ref(), &right_receipt)
-        });
+        let right =
+            thread::spawn(move || begin_execution_effect(right_store.as_ref(), &right_receipt));
 
         let outcomes = [
             left.join().expect("left join").expect("left result"),
@@ -3943,8 +3882,7 @@ mod tests {
         let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
-                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-                    .into(),
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
             ),
             ..started.clone()
         };
@@ -3990,8 +3928,7 @@ mod tests {
         let failed = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Failed,
             outcome_digest: Some(
-                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
-                    .into(),
+                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd".into(),
             ),
             ..started.clone()
         };
@@ -4001,12 +3938,10 @@ mod tests {
         );
         let initial_fence =
             RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
-        let successor_fence =
-            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
-                .expect("successor fence");
-        let replay =
-            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence)
-                .expect("new epoch replay");
+        let successor_fence = RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
+            .expect("successor fence");
+        let replay = RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence)
+            .expect("new epoch replay");
 
         assert_eq!(
             begin_execution_effect(&store, &started).expect("start"),
@@ -4043,8 +3978,7 @@ mod tests {
         let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
-                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-                    .into(),
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
             ),
             ..started.clone()
         };
@@ -4054,9 +3988,8 @@ mod tests {
         );
         let initial_fence =
             RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
-        let successor_fence =
-            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
-                .expect("successor fence");
+        let successor_fence = RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
+            .expect("successor fence");
 
         assert_eq!(
             begin_execution_effect(&store, &started).expect("start"),
@@ -4096,14 +4029,12 @@ mod tests {
         );
         let initial_fence =
             RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
-        let successor_fence =
-            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
-                .expect("successor fence");
+        let successor_fence = RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
+            .expect("successor fence");
         let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
-                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-                    .into(),
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
             ),
             ..started.clone()
         };
@@ -4117,10 +4048,9 @@ mod tests {
             RecoveryExecutionEffectCompletionResult::Completed
         );
 
-        let replay_at_new_epoch = RecoveryExecutionEffectReceiptV2::in_progress_for_fence(
-            &successor_fence,
-        )
-        .expect("new-epoch replay");
+        let replay_at_new_epoch =
+            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence)
+                .expect("new-epoch replay");
         assert_eq!(
             begin_execution_effect(&store, &replay_at_new_epoch).expect("terminal replay"),
             RecoveryExecutionEffectStartResult::AlreadySucceededSameRequest
@@ -4151,17 +4081,14 @@ mod tests {
         );
         let initial_fence =
             RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
-        let successor_fence =
-            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
-                .expect("successor fence");
-        let successor =
-            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence)
-                .expect("successor receipt");
+        let successor_fence = RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
+            .expect("successor fence");
+        let successor = RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence)
+            .expect("successor receipt");
         let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
-                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-                    .into(),
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
             ),
             ..started.clone()
         };
@@ -4258,12 +4185,10 @@ mod tests {
         );
         let initial_fence =
             RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
-        let successor_fence =
-            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
-                .expect("successor fence");
-        let successor =
-            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence)
-                .expect("successor receipt");
+        let successor_fence = RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
+            .expect("successor fence");
+        let successor = RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&successor_fence)
+            .expect("successor receipt");
         let store = IndeterminateRecoveryStore {
             inner: ExecutionEffectMemoryStore::default(),
         };
@@ -4306,12 +4231,10 @@ mod tests {
         );
         let initial_fence =
             RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
-        let successor_fence_b =
-            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
-                .expect("successor fence b");
-        let successor_fence_c =
-            RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-c")
-                .expect("successor fence c");
+        let successor_fence_b = RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-b")
+            .expect("successor fence b");
+        let successor_fence_c = RecoveryExecutionFenceV1::for_recovery(&initial_fence, "attempt-c")
+            .expect("successor fence c");
         assert_eq!(
             begin_execution_effect(store.as_ref(), &started).expect("start"),
             RecoveryExecutionEffectStartResult::Started
@@ -4321,11 +4244,7 @@ mod tests {
         let left_expected = started.clone();
         let left_successor_fence = successor_fence_b.clone();
         let left = thread::spawn(move || {
-            recover_execution_effect(
-                left_store.as_ref(),
-                &left_expected,
-                &left_successor_fence,
-            )
+            recover_execution_effect(left_store.as_ref(), &left_expected, &left_successor_fence)
         });
 
         let right_store = Arc::clone(&store);
@@ -4375,8 +4294,7 @@ mod tests {
         let foreign_success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
-                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-                    .into(),
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
             ),
             ..foreign.clone()
         };
@@ -4401,8 +4319,7 @@ mod tests {
         let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
-                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-                    .into(),
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
             ),
             ..started.clone()
         };
@@ -4513,16 +4430,14 @@ mod tests {
         let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
-                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-                    .into(),
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
             ),
             ..started.clone()
         };
         let failure = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Failed,
             outcome_digest: Some(
-                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
-                    .into(),
+                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd".into(),
             ),
             ..started.clone()
         };
@@ -4580,16 +4495,14 @@ mod tests {
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
         claim.execution_id = execution.execution_id.clone();
-        let raw_fence =
-            RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
+        let raw_fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
         let established =
             match establish_execution_fence(&fence_store, &raw_fence).expect("establish") {
                 RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
                 _ => panic!("initial establishment must succeed"),
             };
-        let started =
-            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(established.fence())
-                .expect("started receipt");
+        let started = RecoveryExecutionEffectReceiptV2::in_progress_for_fence(established.fence())
+            .expect("started receipt");
 
         assert_eq!(
             begin_execution_effect_for_established_fence(&effect_store, &established)
@@ -4626,9 +4539,8 @@ mod tests {
         let mut claim = claim;
         claim.execution_id = execution.execution_id.clone();
         let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
-        let started =
-            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&fence)
-                .expect("started receipt");
+        let started = RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&fence)
+            .expect("started receipt");
 
         assert_eq!(
             begin_execution_effect(&store, &started).expect("start"),
@@ -4662,9 +4574,8 @@ mod tests {
         execution.completed_steps.clear();
         execution.failed_steps = vec!["verify".into()];
         execution.failure_reason = Some("verification failed".into());
-        let started =
-            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&fence)
-                .expect("started receipt");
+        let started = RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&fence)
+            .expect("started receipt");
 
         assert_eq!(
             begin_execution_effect(&store, &started).expect("start"),
@@ -4698,9 +4609,8 @@ mod tests {
         let fence = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
         execution.input_snapshot =
             "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".into();
-        let started =
-            RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&fence)
-                .expect("started receipt");
+        let started = RecoveryExecutionEffectReceiptV2::in_progress_for_fence(&fence)
+            .expect("started receipt");
 
         assert_eq!(
             begin_execution_effect(&store, &started).expect("start"),
@@ -4727,8 +4637,7 @@ mod tests {
         let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
-                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-                    .into(),
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
             ),
             ..started.clone()
         };
@@ -4813,8 +4722,7 @@ mod tests {
         let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
-                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-                    .into(),
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
             ),
             ..started.clone()
         };
@@ -4893,8 +4801,7 @@ mod tests {
         let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
-                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-                    .into(),
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
             ),
             ..started.clone()
         };
@@ -4933,8 +4840,7 @@ mod tests {
         let failed = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Failed,
             outcome_digest: Some(
-                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
-                    .into(),
+                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd".into(),
             ),
             ..started.clone()
         };
@@ -4974,8 +4880,7 @@ mod tests {
         let success = RecoveryExecutionEffectReceiptV2 {
             state: RecoveryExecutionEffectStateV1::Succeeded,
             outcome_digest: Some(
-                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-                    .into(),
+                "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into(),
             ),
             ..started.clone()
         };
@@ -5071,13 +4976,15 @@ mod tests {
                 return Ok(RecoveryExecutionFenceResult::FingerprintMismatch);
             }
 
-            Ok(if current.attempt_id == fence.attempt_id
-                && current.fence_epoch == fence.fence_epoch
-            {
-                RecoveryExecutionFenceResult::AlreadyOwnedSameAttempt
-            } else {
-                RecoveryExecutionFenceResult::AlreadyOwnedOtherAttempt
-            })
+            Ok(
+                if current.attempt_id == fence.attempt_id
+                    && current.fence_epoch == fence.fence_epoch
+                {
+                    RecoveryExecutionFenceResult::AlreadyOwnedSameAttempt
+                } else {
+                    RecoveryExecutionFenceResult::AlreadyOwnedOtherAttempt
+                },
+            )
         }
 
         fn recover_if_current(
@@ -5314,9 +5221,7 @@ mod tests {
     #[test]
     fn terminal_execution_cannot_acquire_a_start_claim() {
         let execution = fixture().1;
-        assert!(
-            RecoveryExecutionClaimV1::for_execution(&execution, "attempt-a").is_none()
-        );
+        assert!(RecoveryExecutionClaimV1::for_execution(&execution, "attempt-a").is_none());
     }
 
     #[test]
@@ -5434,9 +5339,8 @@ mod tests {
 
         let right_store = Arc::clone(&store);
         let right_claim = claim_b.clone();
-        let right = thread::spawn(move || {
-            claim_execution_start(right_store.as_ref(), &right_claim)
-        });
+        let right =
+            thread::spawn(move || claim_execution_start(right_store.as_ref(), &right_claim));
 
         let outcomes = [
             left.join().expect("left join").expect("left result"),
@@ -5624,7 +5528,9 @@ mod tests {
             RecoveryExecutionFenceResult::MalformedFence
         );
         assert_eq!(
-            store.load_fence(&initial.execution_id).expect("load current"),
+            store
+                .load_fence(&initial.execution_id)
+                .expect("load current"),
             Some(initial)
         );
     }
@@ -5725,30 +5631,26 @@ mod tests {
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
         let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
-        let established =
-            match establish_execution_fence(&store, &initial).expect("establish") {
-                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
-                _ => panic!("initial establishment must succeed"),
-            };
+        let established = match establish_execution_fence(&store, &initial).expect("establish") {
+            RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+            _ => panic!("initial establishment must succeed"),
+        };
 
         assert_eq!(
-            reconcile_established_execution_fence(&store, &established)
-                .expect("current freshness"),
+            reconcile_established_execution_fence(&store, &established).expect("current freshness"),
             RecoveryExecutionFenceReconciliationOutcome::ObservedCurrentOwnedByThisAttempt
         );
 
-        let successor =
-            match recover_established_execution_fence(&store, &established, "attempt-b")
-                .expect("recover")
-            {
-                RecoveryExecutionFenceRecoveryEstablishmentV1::Established(fence) => fence,
-                _ => panic!("recovery must succeed"),
-            };
+        let successor = match recover_established_execution_fence(&store, &established, "attempt-b")
+            .expect("recover")
+        {
+            RecoveryExecutionFenceRecoveryEstablishmentV1::Established(fence) => fence,
+            _ => panic!("recovery must succeed"),
+        };
         assert_eq!(successor.fence_epoch(), established.fence_epoch() + 1);
 
         assert_eq!(
-            reconcile_established_execution_fence(&store, &established)
-                .expect("stale freshness"),
+            reconcile_established_execution_fence(&store, &established).expect("stale freshness"),
             RecoveryExecutionFenceReconciliationOutcome::ObservedStaleFence
         );
         assert_eq!(
@@ -5775,29 +5677,23 @@ mod tests {
 
         let missing = FencedExecutionMemoryStore::default();
         assert_eq!(
-            reconcile_established_execution_fence(&missing, &established)
-                .expect("missing"),
+            reconcile_established_execution_fence(&missing, &established).expect("missing"),
             RecoveryExecutionFenceReconciliationOutcome::MissingFence
         );
 
         let malformed = FencedExecutionMemoryStore::default();
-        malformed
-            .values
-            .lock()
-            .expect("memory store")
-            .insert(
-                established.execution_id().to_owned(),
-                RecoveryExecutionFenceV1 {
-                    schema: RecoveryExecutionFenceV1::SCHEMA.into(),
-                    execution_id: established.execution_id().into(),
-                    execution_input_snapshot: "not-a-digest".into(),
-                    attempt_id: established.attempt_id().into(),
-                    fence_epoch: established.fence_epoch(),
-                },
-            );
+        malformed.values.lock().expect("memory store").insert(
+            established.execution_id().to_owned(),
+            RecoveryExecutionFenceV1 {
+                schema: RecoveryExecutionFenceV1::SCHEMA.into(),
+                execution_id: established.execution_id().into(),
+                execution_input_snapshot: "not-a-digest".into(),
+                attempt_id: established.attempt_id().into(),
+                fence_epoch: established.fence_epoch(),
+            },
+        );
         assert_eq!(
-            reconcile_established_execution_fence(&malformed, &established)
-                .expect("malformed"),
+            reconcile_established_execution_fence(&malformed, &established).expect("malformed"),
             RecoveryExecutionFenceReconciliationOutcome::InvalidFence
         );
     }
@@ -5925,21 +5821,19 @@ mod tests {
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
         let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
-        let established =
-            match establish_execution_fence(&store, &initial).expect("establish") {
-                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
-                _ => panic!("initial establishment must succeed"),
-            };
+        let established = match establish_execution_fence(&store, &initial).expect("establish") {
+            RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+            _ => panic!("initial establishment must succeed"),
+        };
 
-        let successor =
-            match recover_established_execution_fence(&store, &established, "attempt-b")
-                .expect("recover")
-            {
-                RecoveryExecutionFenceRecoveryEstablishmentV1::Established(fence) => fence,
-                RecoveryExecutionFenceRecoveryEstablishmentV1::Rejected(outcome) => {
-                    panic!("unexpected rejection: {outcome:?}")
-                }
-            };
+        let successor = match recover_established_execution_fence(&store, &established, "attempt-b")
+            .expect("recover")
+        {
+            RecoveryExecutionFenceRecoveryEstablishmentV1::Established(fence) => fence,
+            RecoveryExecutionFenceRecoveryEstablishmentV1::Rejected(outcome) => {
+                panic!("unexpected rejection: {outcome:?}")
+            }
+        };
 
         assert_eq!(successor.execution_id(), established.execution_id());
         assert_eq!(
@@ -5958,11 +5852,10 @@ mod tests {
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         );
         let initial = RecoveryExecutionFenceV1::for_initial_claim(&claim).expect("initial fence");
-        let established =
-            match establish_execution_fence(&store, &initial).expect("establish") {
-                RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
-                _ => panic!("initial establishment must succeed"),
-            };
+        let established = match establish_execution_fence(&store, &initial).expect("establish") {
+            RecoveryExecutionFenceEstablishmentV1::Established(fence) => fence,
+            _ => panic!("initial establishment must succeed"),
+        };
 
         assert!(matches!(
             recover_established_execution_fence(&store, &established, "attempt-b")
@@ -6031,7 +5924,10 @@ mod tests {
 
         assert!(receipt.is_well_formed());
         assert_eq!(receipt.execution_id, fence.execution_id);
-        assert_eq!(receipt.execution_input_snapshot, fence.execution_input_snapshot);
+        assert_eq!(
+            receipt.execution_input_snapshot,
+            fence.execution_input_snapshot
+        );
         assert_eq!(receipt.attempt_id, fence.attempt_id);
         assert_eq!(receipt.fence_epoch, fence.fence_epoch);
     }
@@ -6111,8 +6007,7 @@ mod tests {
             RecoveryExecutionFenceResult::Recovered
         );
         assert_eq!(
-            recover_execution_fence(&store, &recovered, &recovered_again)
-                .expect("recover again"),
+            recover_execution_fence(&store, &recovered, &recovered_again).expect("recover again"),
             RecoveryExecutionFenceResult::Recovered
         );
         assert_eq!(
@@ -6254,7 +6149,10 @@ mod tests {
             .expect("right persistence")
         });
 
-        let outcomes = [left.join().expect("left join"), right.join().expect("right join")];
+        let outcomes = [
+            left.join().expect("left join"),
+            right.join().expect("right join"),
+        ];
         assert_eq!(
             outcomes
                 .iter()
@@ -6275,10 +6173,7 @@ mod tests {
         );
 
         let current = store.current(&decision);
-        assert_eq!(
-            current.state,
-            RecoveryPolicyConsumptionStateV1::Consumed
-        );
+        assert_eq!(current.state, RecoveryPolicyConsumptionStateV1::Consumed);
         assert!(
             current.digest() == first.next_snapshot_digest
                 || current.digest() == second.next_snapshot_digest
@@ -6320,14 +6215,8 @@ mod tests {
         };
 
         assert_eq!(
-            persist_consumption_transition(
-                &store,
-                &decision,
-                &execution,
-                &transition,
-                &next,
-            )
-            .expect("missing-state result"),
+            persist_consumption_transition(&store, &decision, &execution, &transition, &next,)
+                .expect("missing-state result"),
             RecoveryPolicyConsumptionPersistenceOutcome::MissingState
         );
         assert!(!*store.cas_called.lock().expect("cas lock"));
@@ -6432,14 +6321,8 @@ mod tests {
         let store = IndeterminateOutcomeStore::new(&decision, true);
 
         assert_eq!(
-            persist_consumption_transition(
-                &store,
-                &decision,
-                &execution,
-                &transition,
-                &next,
-            )
-            .expect("indeterminate persistence result"),
+            persist_consumption_transition(&store, &decision, &execution, &transition, &next,)
+                .expect("indeterminate persistence result"),
             RecoveryPolicyConsumptionPersistenceOutcome::CommitIndeterminate
         );
 
@@ -6458,14 +6341,8 @@ mod tests {
         let store = IndeterminateOutcomeStore::new(&decision, false);
 
         assert_eq!(
-            persist_consumption_transition(
-                &store,
-                &decision,
-                &execution,
-                &transition,
-                &next,
-            )
-            .expect("indeterminate persistence result"),
+            persist_consumption_transition(&store, &decision, &execution, &transition, &next,)
+                .expect("indeterminate persistence result"),
             RecoveryPolicyConsumptionPersistenceOutcome::CommitIndeterminate
         );
 
@@ -6490,14 +6367,8 @@ mod tests {
         );
 
         assert_eq!(
-            persist_consumption_transition(
-                &store,
-                &decision,
-                &execution,
-                &transition,
-                &next,
-            )
-            .expect("commit"),
+            persist_consumption_transition(&store, &decision, &execution, &transition, &next,)
+                .expect("commit"),
             RecoveryPolicyConsumptionPersistenceOutcome::Committed
         );
 
@@ -6518,14 +6389,8 @@ mod tests {
         let store = MemoryStore::new(&decision);
 
         assert_eq!(
-            persist_consumption_transition(
-                &store,
-                &decision,
-                &execution,
-                &first,
-                &first_next,
-            )
-            .expect("first commit"),
+            persist_consumption_transition(&store, &decision, &execution, &first, &first_next,)
+                .expect("first commit"),
             RecoveryPolicyConsumptionPersistenceOutcome::Committed
         );
 
@@ -6628,14 +6493,8 @@ mod tests {
         };
 
         assert_eq!(
-            persist_consumption_transition(
-                &store,
-                &decision,
-                &execution,
-                &transition,
-                &next,
-            )
-            .expect("stored-decision mismatch result"),
+            persist_consumption_transition(&store, &decision, &execution, &transition, &next,)
+                .expect("stored-decision mismatch result"),
             RecoveryPolicyConsumptionPersistenceOutcome::InvalidTransition
         );
         assert!(!*store.cas_called.lock().expect("cas lock"));
@@ -6698,27 +6557,15 @@ mod tests {
         let store = MemoryStore::new(&decision);
 
         assert_eq!(
-            persist_consumption_transition(
-                &store,
-                &decision,
-                &execution,
-                &transition,
-                &next,
-            )
-            .expect("first persistence"),
+            persist_consumption_transition(&store, &decision, &execution, &transition, &next,)
+                .expect("first persistence"),
             RecoveryPolicyConsumptionPersistenceOutcome::Committed
         );
 
         let consumed = store.current(&decision);
         assert_eq!(
-            persist_consumption_transition(
-                &store,
-                &decision,
-                &execution,
-                &transition,
-                &next,
-            )
-            .expect("replay"),
+            persist_consumption_transition(&store, &decision, &execution, &transition, &next,)
+                .expect("replay"),
             RecoveryPolicyConsumptionPersistenceOutcome::ReplayDetected
         );
         assert_eq!(store.current(&decision), consumed);
@@ -6731,14 +6578,10 @@ mod tests {
             transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
 
         assert!(matches!(
-            persist_consumption_transition(
-                &BrokenStore,
-                &decision,
-                &execution,
-                &transition,
-                &next,
-            ),
-            Err(RecoveryPolicyConsumptionPersistenceError::Store("load failed"))
+            persist_consumption_transition(&BrokenStore, &decision, &execution, &transition, &next,),
+            Err(RecoveryPolicyConsumptionPersistenceError::Store(
+                "load failed"
+            ))
         ));
     }
 
@@ -6857,22 +6700,15 @@ mod tests {
         let (mut transition, next) =
             transition_fixture(&decision, &execution, &current, "2026-10-02T08:00:00Z");
         transition.next_snapshot_digest =
-            "sha256:0000000000000000000000000000000000000000000000000000000000000000"
-                .into();
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000".into();
 
         let store = RecordingStore {
             loaded: current,
             cas_called: Mutex::new(false),
         };
         assert_eq!(
-            persist_consumption_transition(
-                &store,
-                &decision,
-                &execution,
-                &transition,
-                &next,
-            )
-            .expect("validation result"),
+            persist_consumption_transition(&store, &decision, &execution, &transition, &next,)
+                .expect("validation result"),
             RecoveryPolicyConsumptionPersistenceOutcome::InvalidTransition
         );
         assert!(!*store.cas_called.lock().expect("cas lock"));
