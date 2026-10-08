@@ -37,6 +37,8 @@ WIF = {
     "service_account_binding_member": PRINCIPAL,
     "observer_service_account": OBSERVER,
     "observer_identity_verified": True,
+    "observer_service_account_project_verified": True,
+    "observer_service_account_direct_policy_exact_verified": True,
     "service_account_direct_policy_exact_verified": True,
     "attribute_mapping_verified": True,
     "attribute_condition_verified": True,
@@ -86,6 +88,10 @@ EFFECTIVE = {
     "policy_analyzer_response_digest": "sha256:" + "b" * 64,
     "project_pivot_permissions_absent": True,
     "project_pivot_findings": [],
+    "observer_authority_permissions": module.OBSERVER_AUTHORITY_FORBIDDEN_PROJECT_PERMISSIONS,
+    "observer_authority_permissions_absent": True,
+    "observer_authority_observed_permissions": [],
+    "observer_authority_response_digest": "sha256:" + "c" * 64,
     "findings": [{
         "role": "roles/iam.workloadIdentityUser",
         "members": [PRINCIPAL],
@@ -150,6 +156,8 @@ def main() -> None:
         ("principal_selection_mode", "weak-filter"),
         ("matched_workload_principal_sets", [PRINCIPAL]),
         ("project_pivot_permissions", []),
+        ("observer_authority_permissions", []),
+        ("observer_authority_response_digest", "sha256:tampered"),
         ("project_pivot_response_digest", "sha256:tampered"),
         ("policy_analyzer_response_digest", "sha256:tampered"),
     ):
