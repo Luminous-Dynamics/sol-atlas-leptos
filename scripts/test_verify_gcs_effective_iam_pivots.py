@@ -119,15 +119,16 @@ def main() -> None:
         ]
 
     subject = module.subject_principal(PRINCIPAL, OIDC_SUBJECT)
-    expect_failure(
+    subject_finding = extract(
         envelope([
             pivot(
                 "cloudbuild.builds.create",
                 subject,
             )
-        ]),
-        "immutable subject principal",
+        ])
     )
+    assert len(subject_finding) == 1
+    assert subject_finding[0]["principal_match_kinds"] == ["immutable-subject"]
 
     for universal in module.FORBIDDEN_WORKLOAD_UNIVERSAL_PRINCIPALS:
         expect_failure(
