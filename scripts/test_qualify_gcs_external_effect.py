@@ -75,6 +75,46 @@ def main() -> None:
     )
     module.verify_resource_identity(good)
 
+    subject_config = {
+        "schema": module.OIDC_SUBJECT_CONFIGURATION_SCHEMA,
+        "repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "use_default": True,
+        "include_claim_keys": [],
+        "use_immutable_subject": True,
+        "default_template_required": True,
+        "custom_claim_keys_forbidden": True,
+        "configuration_digest": "sha256:" + "3" * 64,
+    }
+    with TemporaryDirectory() as tmp:
+        subject_path = Path(tmp) / "subject.json"
+        subject_path.write_text(
+            json.dumps(subject_config),
+            encoding="utf-8",
+        )
+        loaded_subject = module.load_oidc_subject_configuration(
+            str(subject_path)
+        )
+        assert loaded_subject == subject_config
+        for field, value in (
+            ("use_immutable_subject", False),
+            ("use_default", False),
+        ):
+            tampered = dict(subject_config, **{field: value})
+            subject_path.write_text(
+                json.dumps(tampered),
+                encoding="utf-8",
+            )
+            try:
+                module.load_oidc_subject_configuration(
+                    str(subject_path)
+                )
+            except AssertionError:
+                pass
+            else:
+                raise AssertionError(
+                    "OIDC subject configuration validator accepted tampering"
+                )
+
     server_good = {
         "schema": module.GITHUB_RUN_VERIFICATION_SCHEMA,
         "repository": "Luminous-Dynamics/sol-atlas-leptos",
