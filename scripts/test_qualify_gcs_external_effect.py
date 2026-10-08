@@ -277,6 +277,11 @@ def main() -> None:
         "qualification@sol-atlas.iam.gserviceaccount.com"
     )
     negative_targets = [
+        (project, "compute.instances.create"),
+        (project, "run.services.create"),
+        (project, "run.jobs.create"),
+        (project, "cloudfunctions.functions.create"),
+        (project, "resourcemanager.projects.setIamPolicy"),
         (project, "cloudbuild.builds.create"),
         (project, "deploymentmanager.deployments.create"),
         (service_account, "iam.serviceAccountKeys.create"),
@@ -346,7 +351,7 @@ def main() -> None:
 
     manifest_path = (
         "sol-atlas-policy-store-contract/conformance/"
-        "gcs_policy_troubleshooter_targets_v2.json"
+        "gcs_policy_troubleshooter_targets_v3.json"
     )
     manifest = json.loads(
         (ROOT / manifest_path).read_text(encoding="utf-8")
@@ -368,7 +373,7 @@ def main() -> None:
         good["object_names"],
         "sol-atlas",
     )
-    assert len(policy_targets) == 14
+    assert len(policy_targets) == 19
     assert all(
         target["principal"] == valid_wif["service_account"]
         for target in policy_targets
