@@ -134,6 +134,7 @@ jobs:
           python3 scripts/test_verify_gcs_broad_sa_impersonation_integration.py
           python3 scripts/test_validate_observer_audit_evidence.py
           python3 scripts/qualify_gcs_external_effect.py validate-case-set
+          python3 scripts/qualify_gcs_external_effect.py qualify --help | grep -q -- "--observer-isolation-audit"
           awk 'length($0) > 100 { print FNR ":" length($0) ":" $0; exit 1 }' \
             scripts/gcs_generation_fenced_adapter.py \
             scripts/qualify_gcs_external_effect.py \
