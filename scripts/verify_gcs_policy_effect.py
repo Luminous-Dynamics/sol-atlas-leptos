@@ -235,6 +235,31 @@ def validate_target_manifest_binding(
     return manifest_path, digest(document)
 
 
+def target_vector_shape(
+    targets: list[dict[str, object]],
+) -> list[tuple[object, object, object, object]]:
+    return [
+        (
+            target.get("resource_template"),
+            target.get("permission"),
+            target.get("expected_overall_access_state"),
+            target.get("resource"),
+        )
+        for target in targets
+        if isinstance(target, dict)
+    ]
+
+
+def validate_target_vector_binding(
+    supplied: list[dict[str, object]],
+    frozen: list[dict[str, object]],
+) -> None:
+    if target_vector_shape(supplied) != target_vector_shape(frozen):
+        raise AssertionError(
+            "supplied target vector is not the expanded frozen manifest"
+        )
+
+
 def verify_targets(
     principal: str,
     targets: list[dict[str, object]],
@@ -261,29 +286,7 @@ def verify_targets(
         bucket,
         object_root,
     )
-    supplied_shape = [
-        (
-            target.get("resource_template"),
-            target.get("permission"),
-            target.get("expected_overall_access_state"),
-            target.get("resource"),
-        )
-        for target in targets
-        if isinstance(target, dict)
-    ]
-    frozen_shape = [
-        (
-            target.get("resource_template"),
-            target.get("permission"),
-            target.get("expected_overall_access_state"),
-            target.get("resource"),
-        )
-        for target in frozen_targets
-    ]
-    if supplied_shape != frozen_shape:
-        raise AssertionError(
-            "supplied target vector is not the expanded frozen manifest"
-        )
+    validate_target_vector_binding(targets, frozen_targets)
     observations: list[dict[str, object]] = []
     seen: set[tuple[str, str]] = set()
     for target in targets:
