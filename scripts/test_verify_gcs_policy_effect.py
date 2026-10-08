@@ -193,6 +193,30 @@ def main() -> None:
                     "accepted v2 target manifest without required bindings"
                 )
 
+    with TemporaryDirectory() as tmp:
+        legacy_path = Path(tmp) / "legacy-v1.json"
+        legacy_path.write_text(
+            json.dumps(
+                {
+                    "schema": "sol-atlas:gcs-policy-troubleshooter-targets:v1",
+                    "targets": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+        try:
+            module.load_targets(
+                str(legacy_path),
+                "sol-atlas",
+                PRINCIPAL,
+            )
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(
+                "accepted superseded Policy Troubleshooter target manifest"
+            )
+
     targets = [
         {
             "resource": RESOURCE,
