@@ -4613,12 +4613,14 @@ mod graph_tests {
         unbound_decision.execution_id = None;
         let unbound_available =
             RecoveryPolicyConsumptionSnapshotV1::for_decision(&unbound_decision);
-        let mut alternate_execution = execution.clone();
+        let mut unbound_execution = execution.clone();
+        unbound_execution.authorization = Some(unbound_decision.digest());
+        let mut alternate_execution = unbound_execution.clone();
         alternate_execution.execution_id = "execution-alternate".into();
         let first_race = RecoveryPolicyConsumptionTransitionV1::for_successful_consumption(
             &unbound_available,
             &unbound_decision,
-            &execution,
+            &unbound_execution,
             "2026-10-02T08:00:00Z",
         )
         .expect("first contender is independently eligible");
@@ -4639,7 +4641,7 @@ mod graph_tests {
         );
         assert_ne!(first_race.execution_id, second_race.execution_id);
         let first_next = unbound_available
-            .consumed(&unbound_decision, &execution, "2026-10-02T08:00:00Z")
+            .consumed(&unbound_decision, &unbound_execution, "2026-10-02T08:00:00Z")
             .expect("first successor");
         let second_next = unbound_available
             .consumed(
@@ -4651,7 +4653,7 @@ mod graph_tests {
         assert!(first_race.matches(
             &unbound_available,
             &unbound_decision,
-            &execution,
+            &unbound_execution,
             &first_next,
         ));
         assert!(second_race.matches(
