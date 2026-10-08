@@ -352,6 +352,7 @@ def verify(
         raise AssertionError("attribute condition differs from frozen profile")
 
     binding = profile["required_service_account_binding"]
+    role = str(binding["role"])
     expected_member = str(binding["member_template"]).format(
         project_number=number,
         pool_id=pool_id,
@@ -393,7 +394,6 @@ def verify(
         observer_direct_policy_exact_verified = True
 
     policy = service_account_policy(service_account)
-    role = str(binding["role"])
     if not direct_policy_is_exact(policy, role, expected_member):
         raise AssertionError(
             "service-account direct policy is not exactly the frozen WIF binding"
