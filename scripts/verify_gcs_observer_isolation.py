@@ -279,6 +279,116 @@ def extract(
     }
 
 
+def run_project_pivot_analysis(
+    scope: str,
+    identity: str,
+    project_resource: str,
+) -> dict[str, object]:
+    module = load_effective_iam_module()
+    flag, identifier = module.scope_flag(scope)
+    result = subprocess.run(
+        [
+            "gcloud",
+            "asset",
+            "analyze-iam-policy",
+            flag + "=" + identifier,
+            "--identity=" + identity,
+            "--full-resource-name=" + project_resource,
+            "--permissions=" + ",".join(PROJECT_PIVOT_PERMISSIONS),
+            "--format=json",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    payload = json.loads(result.stdout)
+    if not isinstance(payload, dict):
+        raise AssertionError("observer project-pivot response is not an object")
+    if payload.get("fullyExplored") is not True:
+        raise AssertionError("observer project-pivot response is not fully explored")
+    errors = payload.get("nonCriticalErrors")
+    if errors is not None and (
+        not isinstance(errors, list) or errors
+    ):
+        raise AssertionError("observer project-pivot response reported errors")
+    if not isinstance(payload.get("analysisResults"), list):
+        raise AssertionError(
+            "observer project-pivot analysisResults is not a list"
+        )
+    return payload
+
+
+def extract_project_pivots(
+    payload: dict[str, object],
+    project_resource: str,
+) -> set[str]:
+    results = payload.get("analysisResults")
+    if not isinstance(results, list):
+        raise AssertionError("observer project-pivot results are not a list")
+    observed: set[str] = set()
+    for index, result in enumerate(results):
+        if not isinstance(result, dict):
+            raise AssertionError(
+                f"observer project-pivot result {index} is not an object"
+            )
+        if result.get("fullyExplored") is not True:
+            raise AssertionError(
+                f"observer project-pivot result {index} is not fully explored"
+            )
+        access_lists = result.get("accessControlLists")
+        if not isinstance(access_lists, list) or not access_lists:
+            raise AssertionError(
+                f"observer project-pivot result {index} has no ACL"
+            )
+        for access_list in access_lists:
+            if not isinstance(access_list, dict):
+                raise AssertionError(
+                    f"observer project-pivot result {index} has invalid ACL"
+                )
+            resources = access_list.get("resources")
+            accesses = access_list.get("accesses")
+            if not isinstance(resources, list) or not resources:
+                raise AssertionError(
+                    f"observer project-pivot result {index} has invalid resources"
+                )
+            if not isinstance(accesses, list) or not accesses:
+                raise AssertionError(
+                    f"observer project-pivot result {index} has invalid accesses"
+                )
+            condition = access_list.get("conditionEvaluation")
+            if condition is not None:
+                if not isinstance(condition, dict):
+                    raise AssertionError(
+                        f"observer project-pivot result {index} has invalid condition"
+                    )
+                if condition.get("evaluationValue") != "TRUE":
+                    raise AssertionError(
+                        "observer project-pivot access is conditional or unresolved"
+                    )
+            for resource in resources:
+                if not isinstance(resource, dict):
+                    raise AssertionError(
+                        f"observer project-pivot result {index} has invalid resource"
+                    )
+                if resource.get("fullResourceName") != project_resource:
+                    raise AssertionError(
+                        "observer project-pivot targeted a different project"
+                    )
+            for access in accesses:
+                if not isinstance(access, dict):
+                    raise AssertionError(
+                        f"observer project-pivot result {index} has invalid access"
+                    )
+                permission = access.get("permission")
+                if not isinstance(permission, str):
+                    raise AssertionError(
+                        f"observer project-pivot result {index} has invalid permission"
+                    )
+                observed.add(permission)
+    return observed
+
+
 def active_identity() -> str:
     module = load_effective_iam_module()
     return module.active_identity()
@@ -313,6 +423,23 @@ def verify(
         effect_resource,
         FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS,
     )
+    project_resource = module.project_resource(project_id)
+    project_payload = run_project_pivot_analysis(
+        scope,
+        observer_principal,
+        project_resource,
+    )
+    project_permissions = extract_project_pivots(
+        project_payload,
+        project_resource,
+    )
+    if project_permissions.intersection(PROJECT_PIVOT_PERMISSIONS):
+        raise AssertionError(
+            "observer has a project-level execution or policy pivot: "
+            + ", ".join(sorted(
+                project_permissions.intersection(PROJECT_PIVOT_PERMISSIONS)
+            ))
+        )
     result.update(
         {
             "schema": SCHEMA,
@@ -321,6 +448,10 @@ def verify(
             "observer_service_account": observer_service_account,
             "effect_service_account": effect_service_account,
             "policy_analyzer_response_digest": digest(payload),
+            "project_pivot_permissions": list(PROJECT_PIVOT_PERMISSIONS),
+            "project_pivot_permissions_absent": True,
+            "project_pivot_observed_permissions": sorted(project_permissions),
+            "project_pivot_response_digest": digest(project_payload),
             "project_pivot_permissions": list(PROJECT_PIVOT_PERMISSIONS),
             "project_pivot_permissions_absent": True,
             "claim_ceiling": (
