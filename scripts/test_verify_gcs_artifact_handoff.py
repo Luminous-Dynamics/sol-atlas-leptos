@@ -17,6 +17,7 @@ spec.loader.exec_module(module)
 STEPS = (
     "Upload WIF trust evidence",
     "Download observed WIF trust evidence",
+    "Promote observed WIF trust evidence",
     "Upload qualification evidence",
     "Download qualification evidence",
 )
@@ -32,12 +33,25 @@ def workflow() -> str:
              + "".join("        " + value + "\n" for value in module.OBSERVER_FILES)),
         step(STEPS[1],
              "        artifact-ids: needs.observe-wif-trust.outputs.artifact_id\n"
+             "        path: artifacts/wif-observer/\n"
              "        digest-mismatch: error"),
-        step(STEPS[2],
+        step(
+            STEPS[2],
+            "".join(
+                "        test -s artifacts/wif-observer/" + source + "\n"
+                + "        cp artifacts/wif-observer/"
+                + source
+                + " artifacts/"
+                + destination
+                + "\n"
+                for source, destination in module.PROMOTION_MAP
+            ),
+        ),
+        step(STEPS[3],
              "        id: upload_evidence\n"
              "        if-no-files-found: error\n"
              + "".join("        " + value + "\n" for value in module.FINAL_FILES)),
-        step(STEPS[3],
+        step(STEPS[4],
              "        artifact-ids: needs.qualify.outputs.artifact_id\n"
              "        digest-mismatch: error"),
     ))
@@ -69,6 +83,24 @@ def main() -> None:
     expect_failure(
         workflow().replace(FINAL_FILES[-1], "artifacts/missing.json"),
         "missing final evidence",
+    )
+    promotion_drift = workflow().replace(
+        "artifacts/wif-observer/" + module.PROMOTION_MAP[0][0],
+        "artifacts/wif-observer/unexpected.json",
+        1,
+    )
+    expect_failure(
+        promotion_drift,
+        "observer promotion source drift",
+    )
+    promotion_target_drift = workflow().replace(
+        "artifacts/" + module.PROMOTION_MAP[0][1],
+        "artifacts/unexpected-target.json",
+        1,
+    )
+    expect_failure(
+        promotion_target_drift,
+        "observer promotion destination drift",
     )
     extra_final = workflow().replace(
         FINAL_FILES[0],
