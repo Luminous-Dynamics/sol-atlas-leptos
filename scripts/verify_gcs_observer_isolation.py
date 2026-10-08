@@ -25,6 +25,31 @@ FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS = (
     "iam.serviceAccounts.setIamPolicy",
 )
 REQUIRED_OBSERVER_PERMISSION = "iam.serviceAccounts.getIamPolicy"
+OBSERVER_FORBIDDEN_PROJECT_PERMISSIONS = (
+    "resourcemanager.projects.setIamPolicy",
+    "resourcemanager.projects.update",
+    "resourcemanager.projects.delete",
+    "iam.roles.create",
+    "iam.roles.update",
+    "iam.roles.delete",
+    "iam.denypolicies.create",
+    "iam.denypolicies.update",
+    "iam.denypolicies.delete",
+    "iam.workloadIdentityPools.create",
+    "iam.workloadIdentityPools.update",
+    "iam.workloadIdentityPools.delete",
+    "iam.workloadIdentityPools.setIamPolicy",
+    "iam.workloadIdentityPoolProviders.create",
+    "iam.workloadIdentityPoolProviders.update",
+    "iam.workloadIdentityPoolProviders.delete",
+    "iam.serviceAccounts.create",
+    "iam.serviceAccounts.disable",
+    "iam.serviceAccounts.delete",
+    "iam.serviceAccounts.enable",
+    "iam.serviceAccounts.setIamPolicy",
+)
+
+
 PROJECT_PIVOT_PERMISSIONS = (
     "cloudbuild.builds.create",
     "deploymentmanager.deployments.create",
@@ -305,6 +330,155 @@ def extract(
     }
 
 
+def run_observer_authority_analysis(
+    scope: str,
+    identity: str,
+    project_resource: str,
+) -> dict[str, object]:
+    module = load_effective_iam_module()
+    flag, identifier = module.scope_flag(scope)
+    result = subprocess.run(
+        [
+            "gcloud",
+            "asset",
+            "analyze-iam-policy",
+            flag + "=" + identifier,
+            "--identity=" + identity,
+            "--full-resource-name=" + project_resource,
+            "--permissions=" + ",".join(
+                OBSERVER_FORBIDDEN_PROJECT_PERMISSIONS
+            ),
+            "--format=json",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    payload = json.loads(result.stdout)
+    if not isinstance(payload, dict):
+        raise AssertionError(
+            "observer authority response is not an object"
+        )
+    if payload.get("fullyExplored") is not True:
+        raise AssertionError(
+            "observer authority response is not fully explored"
+        )
+    errors = payload.get("nonCriticalErrors")
+    if errors is not None and (
+        not isinstance(errors, list) or errors
+    ):
+        raise AssertionError(
+            "observer authority response reported errors"
+        )
+    results = payload.get("analysisResults")
+    if not isinstance(results, list):
+        raise AssertionError(
+            "observer authority analysisResults is not a list"
+        )
+    return payload
+
+
+def extract_observer_authority(
+    payload: dict[str, object],
+    observer_principal: str,
+    project_resource: str,
+) -> set[str]:
+    if payload.get("fullyExplored") is not True:
+        raise AssertionError(
+            "observer authority response is not fully explored"
+        )
+    errors = payload.get("nonCriticalErrors")
+    if errors is not None and (
+        not isinstance(errors, list) or errors
+    ):
+        raise AssertionError(
+            "observer authority response reported errors"
+        )
+    results = payload.get("analysisResults")
+    if not isinstance(results, list):
+        raise AssertionError(
+            "observer authority analysisResults is not a list"
+        )
+    observed: set[str] = set()
+    for index, result in enumerate(results):
+        if not isinstance(result, dict):
+            raise AssertionError(
+                f"observer authority result {index} is not an object"
+            )
+        if result.get("fullyExplored") is not True:
+            raise AssertionError(
+                f"observer authority result {index} is not fully explored"
+            )
+        binding = result.get("iamBinding")
+        if not isinstance(binding, dict):
+            raise AssertionError(
+                f"observer authority result {index} has no binding"
+            )
+        members = binding.get("members")
+        if not isinstance(members, list):
+            raise AssertionError(
+                f"observer authority result {index} has invalid members"
+            )
+        if observer_principal not in members:
+            continue
+        access_lists = result.get("accessControlLists")
+        if not isinstance(access_lists, list) or not access_lists:
+            raise AssertionError(
+                f"observer authority result {index} has no ACL"
+            )
+        for access_list in access_lists:
+            if not isinstance(access_list, dict):
+                raise AssertionError(
+                    f"observer authority result {index} has invalid ACL"
+                )
+            resources = access_list.get("resources")
+            accesses = access_list.get("accesses")
+            if not isinstance(resources, list) or not resources:
+                raise AssertionError(
+                    f"observer authority result {index} has invalid resources"
+                )
+            if not isinstance(accesses, list) or not accesses:
+                raise AssertionError(
+                    f"observer authority result {index} has invalid accesses"
+                )
+            condition = access_list.get("conditionEvaluation")
+            if condition is not None:
+                if not isinstance(condition, dict):
+                    raise AssertionError(
+                        f"observer authority result {index} has invalid condition"
+                    )
+                value = condition.get("evaluationValue")
+                if value == "FALSE":
+                    continue
+                if value != "TRUE":
+                    raise AssertionError(
+                        "observer project authority is conditional or unresolved"
+                    )
+            for resource in resources:
+                if not isinstance(resource, dict):
+                    raise AssertionError(
+                        f"observer authority result {index} has invalid resource"
+                    )
+                if resource.get("fullResourceName") != project_resource:
+                    raise AssertionError(
+                        "observer authority targeted a different project"
+                    )
+            for access in accesses:
+                if not isinstance(access, dict):
+                    raise AssertionError(
+                        f"observer authority result {index} has invalid access"
+                    )
+                permission = access.get("permission")
+                if not isinstance(permission, str):
+                    raise AssertionError(
+                        f"observer authority result {index} has invalid permission"
+                    )
+                if permission in OBSERVER_FORBIDDEN_PROJECT_PERMISSIONS:
+                    observed.add(permission)
+    return observed
+
+
 def run_project_pivot_analysis(
     scope: str,
     identity: str,
@@ -459,6 +633,21 @@ def verify(
         project_payload,
         project_resource,
     )
+    authority_payload = run_observer_authority_analysis(
+        scope,
+        observer_principal,
+        project_resource,
+    )
+    observer_authority = extract_observer_authority(
+        authority_payload,
+        observer_principal,
+        project_resource,
+    )
+    if observer_authority:
+        raise AssertionError(
+            "observer has a forbidden project-level trust authority: "
+            + ", ".join(sorted(observer_authority))
+        )
     if project_permissions.intersection(PROJECT_PIVOT_PERMISSIONS):
         raise AssertionError(
             "observer has a project-level execution or policy pivot: "
@@ -478,6 +667,16 @@ def verify(
             "project_pivot_permissions_absent": True,
             "project_pivot_observed_permissions": sorted(project_permissions),
             "project_pivot_response_digest": digest(project_payload),
+            "observer_authority_permissions": list(
+                OBSERVER_FORBIDDEN_PROJECT_PERMISSIONS
+            ),
+            "observer_authority_permissions_absent": True,
+            "observer_authority_observed_permissions": sorted(
+                observer_authority
+            ),
+            "observer_authority_response_digest": digest(
+                authority_payload
+            ),
             "project_pivot_permissions": list(PROJECT_PIVOT_PERMISSIONS),
             "project_pivot_permissions_absent": True,
             "claim_ceiling": (
@@ -486,7 +685,10 @@ def verify(
                 "service-account execution/mutation permission in the selected "
                 "Policy Analyzer scope. This does not prove deny/PAB effects, "
                 "other project-level privilege pivots, transitive impersonation, "
-                "or immutable IAM state."
+                "or immutable IAM state. Observer authority is bounded "
+                "only to the listed project-level trust/policy mutation "
+                "permissions; other unrelated project permissions remain outside "
+                "this audit."
             ),
         }
     )
