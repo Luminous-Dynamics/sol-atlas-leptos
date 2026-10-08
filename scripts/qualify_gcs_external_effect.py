@@ -1639,17 +1639,13 @@ def verify_resource_identity(report: dict[str, object]) -> None:
         or not object_root.startswith(object_prefix.rstrip("/") + "/run-")
     ):
         raise AssertionError("missing or invalid qualification object root")
-    if (
-        not isinstance(object_names, list)
-        or len(object_names) != 3
-        or any(
-            not isinstance(name, str)
-            or not name.startswith(object_prefix.rstrip("/") + "/")
-            for name in object_names
-        )
-        or len(set(object_names)) != len(object_names)
-    ):
-        raise AssertionError("GCS object identities are incomplete or drifted")
+    expected_object_names = [
+        object_root + "/main.bin",
+        object_root + "/point-in-time.bin",
+        object_root + "/metadata-race.bin",
+    ]
+    if object_names != expected_object_names:
+        raise AssertionError("GCS object identities are incomplete or reordered")
 
 
 def verify_report(path: str) -> None:
@@ -1718,6 +1714,19 @@ def verify_report(path: str) -> None:
         != os.environ.get("GITHUB_RUN_ATTEMPT")
     ):
         raise AssertionError("GitHub workflow-run attempt does not match current run")
+    expected_report_object_root = (
+        str(report.get("object_prefix", "")).rstrip("/")
+        + "/run-"
+        + str(load_github_workflow_run_verification_from_report.get("run_id"))
+        + "-attempt-"
+        + str(
+            load_github_workflow_run_verification_from_report.get(
+                "run_attempt"
+            )
+        )
+    )
+    if report.get("object_root") != expected_report_object_root:
+        raise AssertionError("GCS object root is not bound to the server run")
     github_context = report.get("github_execution_context")
     if not isinstance(github_context, dict):
         raise AssertionError("missing GitHub execution context")
