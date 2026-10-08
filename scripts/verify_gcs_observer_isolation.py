@@ -371,6 +371,189 @@ def extract(
     }
 
 
+def run_lateral_service_account_analysis(
+    scope: str,
+    identity: str,
+) -> dict[str, object]:
+    module = load_effective_iam_module()
+    flag, identifier = module.scope_flag(scope)
+    result = subprocess.run(
+        [
+            "gcloud",
+            "asset",
+            "analyze-iam-policy",
+            flag + "=" + identifier,
+            "--identity=" + identity,
+            "--permissions="
+            + ",".join(FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS),
+            "--format=json",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    payload = json.loads(result.stdout)
+    if not isinstance(payload, dict):
+        raise AssertionError(
+            "lateral observer analysis response is not an object"
+        )
+    if payload.get("fullyExplored") is not True:
+        raise AssertionError(
+            "lateral observer analysis is not fully explored"
+        )
+    errors = payload.get("nonCriticalErrors")
+    if errors is not None and (
+        not isinstance(errors, list) or errors
+    ):
+        raise AssertionError(
+            "lateral observer analysis reported errors"
+        )
+    if not isinstance(payload.get("analysisResults"), list):
+        raise AssertionError(
+            "lateral observer analysisResults is not a list"
+        )
+    return payload
+
+
+def extract_lateral_service_account_permissions(
+    payload: dict[str, object],
+    observer_principal: str,
+) -> list[dict[str, object]]:
+    results = payload.get("analysisResults")
+    if not isinstance(results, list):
+        raise AssertionError(
+            "lateral observer analysisResults is not a list"
+        )
+    findings: list[dict[str, object]] = []
+    module = load_effective_iam_module()
+    for index, result in enumerate(results):
+        if not isinstance(result, dict):
+            raise AssertionError(
+                f"lateral observer result {index} is not an object"
+            )
+        if result.get("fullyExplored") is not True:
+            raise AssertionError(
+                f"lateral observer result {index} is not fully explored"
+            )
+        binding = result.get("iamBinding")
+        if not isinstance(binding, dict):
+            raise AssertionError(
+                f"lateral observer result {index} has no IAM binding"
+            )
+        members = binding.get("members")
+        if not isinstance(members, list):
+            raise AssertionError(
+                f"lateral observer result {index} has invalid members"
+            )
+        if any(
+            member in module.FORBIDDEN_UNIVERSAL_PRINCIPALS
+            for member in members
+            if isinstance(member, str)
+        ):
+            raise AssertionError(
+                "universal principal grants lateral service-account access"
+            )
+        identities = result.get("identityList")
+        if not isinstance(identities, dict):
+            raise AssertionError(
+                f"lateral observer result {index} has invalid identities"
+            )
+        identity_entries = identities.get("identities")
+        if not isinstance(identity_entries, list):
+            raise AssertionError(
+                f"lateral observer result {index} has invalid identity list"
+            )
+        names = [
+            identity.get("name")
+            for identity in identity_entries
+            if isinstance(identity, dict)
+        ]
+        if observer_principal not in names:
+            continue
+        if members != [observer_principal]:
+            raise AssertionError(
+                "lateral service-account access uses a broader binding"
+            )
+        resources: set[str] = set()
+        permissions: set[str] = set()
+        conditional = False
+        access_lists = result.get("accessControlLists")
+        if not isinstance(access_lists, list) or not access_lists:
+            raise AssertionError(
+                f"lateral observer result {index} has no ACL"
+            )
+        for access_list in access_lists:
+            if not isinstance(access_list, dict):
+                raise AssertionError(
+                    f"lateral observer result {index} has invalid ACL"
+                )
+            raw_resources = access_list.get("resources")
+            accesses = access_list.get("accesses")
+            if not isinstance(raw_resources, list) or not raw_resources:
+                raise AssertionError(
+                    f"lateral observer result {index} has invalid resources"
+                )
+            if not isinstance(accesses, list) or not accesses:
+                raise AssertionError(
+                    f"lateral observer result {index} has invalid accesses"
+                )
+            condition = access_list.get("conditionEvaluation")
+            if condition is not None:
+                if not isinstance(condition, dict):
+                    raise AssertionError(
+                        f"lateral observer result {index} has invalid condition"
+                    )
+                value = condition.get("evaluationValue")
+                if value == "FALSE":
+                    continue
+                if value != "TRUE":
+                    conditional = True
+                    continue
+            for raw_resource in raw_resources:
+                if not isinstance(raw_resource, dict):
+                    raise AssertionError(
+                        f"lateral observer result {index} has invalid resource"
+                    )
+                name = raw_resource.get("fullResourceName")
+                if not isinstance(name, str) or not name:
+                    raise AssertionError(
+                        f"lateral observer result {index} has invalid resource name"
+                    )
+                resources.add(name)
+            for access in accesses:
+                if not isinstance(access, dict):
+                    raise AssertionError(
+                        f"lateral observer result {index} has invalid access"
+                    )
+                permission = access.get("permission")
+                if not isinstance(permission, str):
+                    raise AssertionError(
+                        f"lateral observer result {index} has invalid permission"
+                    )
+                if permission in FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS:
+                    permissions.add(permission)
+        if conditional:
+            raise AssertionError(
+                "lateral observer service-account access is unresolved"
+            )
+        if permissions:
+            findings.append(
+                {
+                    "attached_resource": result.get(
+                        "attachedResourceFullName"
+                    ),
+                    "role": binding.get("role"),
+                    "members": list(members),
+                    "identities": names,
+                    "permissions": sorted(permissions),
+                    "resources": sorted(resources),
+                    "fully_explored": True,
+                }
+            )
+    return findings
+
+
 def run_observer_authority_analysis(
     scope: str,
     identity: str,
@@ -704,6 +887,20 @@ def verify(
         effect_resource,
         FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS,
     )
+    lateral_payload = run_lateral_service_account_analysis(
+        scope,
+        observer_principal,
+    )
+    lateral_findings = extract_lateral_service_account_permissions(
+        lateral_payload,
+        observer_principal,
+    )
+    if lateral_findings:
+        raise AssertionError(
+            "observer can impersonate or mutate another service account: "
+            + json.dumps(lateral_findings, sort_keys=True)
+        )
+
     project_resource = module.project_resource(project_id)
     project_payload = run_project_pivot_analysis(
         scope,
@@ -746,6 +943,14 @@ def verify(
             "observer_profile_path": OBSERVER_PROFILE_PATH,
             "observer_profile_digest": digest(OBSERVER_PROFILE),
             "policy_analyzer_response_digest": digest(payload),
+            "lateral_service_account_permissions": list(
+                FORBIDDEN_SERVICE_ACCOUNT_PERMISSIONS
+            ),
+            "lateral_service_account_findings": lateral_findings,
+            "lateral_service_account_permissions_absent": True,
+            "lateral_service_account_response_digest": digest(
+                lateral_payload
+            ),
             "project_pivot_permissions": list(PROJECT_PIVOT_PERMISSIONS),
             "project_pivot_permissions_absent": True,
             "project_pivot_observed_permissions": sorted(project_permissions),
