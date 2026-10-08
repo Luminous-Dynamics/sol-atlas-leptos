@@ -160,3 +160,4 @@ jobs:
             scripts/test_verify_gcs_effective_iam_v2.py \
             scripts/test_verify_gcs_effective_iam_v3.py
             scripts/test_validate_observer_audit_evidence.py
+            scripts/test_validate_observer_audit_evidence.py
