@@ -147,15 +147,15 @@ impl AtlasCapabilityProjectionV1 {
         h3_resolution: Resolution,
     ) -> Result<Self, ProjectionError> {
         let required = graph.required_closure(root)?;
+        let required_ids: BTreeSet<CapabilityId> = required.iter().cloned().collect();
 
-        let mut capability_ids = BTreeSet::new();
-        capability_ids.extend(required.iter().cloned());
+        let mut capability_ids = required_ids.clone();
 
         // Alternatives are shown explicitly so a viewer can distinguish
         // declared choices from requirements. Their own dependencies are not
         // silently pulled into the required closure.
-        for id in required {
-            if let Some(capability) = graph.get(&id) {
+        for id in &required {
+            if let Some(capability) = graph.get(id) {
                 for alternative in capability.sorted_alternatives() {
                     capability_ids.insert(alternative.candidate);
                     capability_ids.insert(alternative.replaces);
@@ -203,13 +203,15 @@ impl AtlasCapabilityProjectionV1 {
             }
         }
 
-        // Required edges come only from the root's transitive required closure.
-        for capability_id in capability_ids.iter() {
+        // Only nodes in the root's required closure emit required/alternative
+        // edges. Alternative candidates may be shown as nodes for comparison,
+        // but their own dependencies are not silently asserted as required.
+        for capability_id in required_ids.iter() {
             let capability = graph
                 .get(capability_id)
-                .expect("capability_ids are derived from graph");
+                .expect("required closure is derived from graph");
             for dependency in capability.sorted_required_dependencies() {
-                if capability_ids.contains(&dependency) {
+                if required_ids.contains(&dependency) {
                     edges.push(ProjectionEdge {
                         from: format!("capability:{capability_id}"),
                         to: format!("capability:{dependency}"),
@@ -232,9 +234,8 @@ impl AtlasCapabilityProjectionV1 {
 
         let mut instance_ids = BTreeSet::new();
         for instance in instances {
-            if !capability_ids.contains(&instance.capability_id) {
-                continue;
-            }
+            // Validate input graph integrity before applying projection scope:
+            // an invalid external reference must not disappear as a filtered node.
             if graph.get(&instance.capability_id).is_none() {
                 return Err(ProjectionError::MissingCapabilityForInstance {
                     instance_id: instance.instance_id.clone(),
@@ -246,7 +247,10 @@ impl AtlasCapabilityProjectionV1 {
                     instance.instance_id.clone(),
                 ));
             }
-            let h3_cell = LatLng::new(instance.location.lat, instance.location.lon)
+            if !capability_ids.contains(&instance.capability_id) {
+                continue;
+            }
+            let h3_cell = LatLng::new(instance.location.lat(), instance.location.lon())
                 .map(|ll| ll.to_cell(h3_resolution).to_string())
                 .ok();
             if h3_cell.is_none() {
@@ -260,7 +264,7 @@ impl AtlasCapabilityProjectionV1 {
                 node_id: node_id.clone(),
                 kind: ProjectionNodeKind::Instance,
                 capability_id: instance.capability_id.clone(),
-                label: instance.location.label.clone(),
+                label: instance.location.label().to_string(),
                 provenance: instance.provenance.clone(),
                 claim_ceiling: instance.claim_ceiling.clone(),
                 evidence_refs: {
@@ -491,5 +495,75 @@ mod tests {
         )
         .unwrap_err();
         assert!(matches!(err, ProjectionError::DuplicateInstanceId(_)));
+    }
+
+    #[test]
+    fn alternative_candidate_dependencies_do_not_become_root_requirements() {
+        use crate::capability::{Capability, CapabilityAlternative};
+
+        let fixture = bootstrap_fixture();
+        let energy_id = CapabilityId::new("energy").unwrap();
+        let mut definitions: Vec<Capability> =
+            fixture.graph.capabilities().cloned().collect();
+        let energy_idx = definitions
+            .iter()
+            .position(|capability| capability.id == energy_id)
+            .unwrap();
+
+        let candidate_id = CapabilityId::new("energy-backup").unwrap();
+        let mut candidate = definitions[energy_idx].clone();
+        candidate.id = candidate_id.clone();
+        candidate.name = "Energy backup (candidate)".into();
+        // Knowledge is already in the root closure. A naive projection that
+        // loops over every displayed node would incorrectly emit this as a
+        // required edge from the alternative.
+        candidate.required_dependencies = vec![CapabilityId::new("knowledge").unwrap()];
+        candidate.alternatives.clear();
+
+        definitions[energy_idx].alternatives.push(CapabilityAlternative {
+            candidate: candidate_id.clone(),
+            replaces: energy_id.clone(),
+            rationale: "explicit comparison candidate".into(),
+            evidence_refs: vec![],
+        });
+        definitions.push(candidate);
+
+        let graph = CapabilityGraph::new(definitions).unwrap();
+        let projection = AtlasCapabilityProjectionV1::build(
+            &graph,
+            &[],
+            &fixture.root,
+            Resolution::Two,
+        )
+        .unwrap();
+
+        assert!(projection.edges.iter().any(|edge| {
+            edge.from == "capability:energy"
+                && edge.to == "capability:energy-backup"
+                && edge.kind == ProjectionEdgeKind::Alternative
+        }));
+        assert!(!projection.edges.iter().any(|edge| {
+            edge.from == "capability:energy-backup"
+                && edge.to == "capability:knowledge"
+                && edge.kind == ProjectionEdgeKind::Required
+        }));
+    }
+
+    #[test]
+    fn unknown_capability_references_fail_before_scope_filtering() {
+        let fixture = bootstrap_fixture();
+        let mut instance = fixture.instance;
+        instance.capability_id = CapabilityId::new("missing").unwrap();
+        let err = AtlasCapabilityProjectionV1::build(
+            &fixture.graph,
+            &[instance],
+            &fixture.root,
+            Resolution::Two,
+        )
+        .unwrap_err();
+        assert!(matches!(
+            err,
+            ProjectionError::MissingCapabilityForInstance { .. }
+        ));
     }
 }

@@ -20,7 +20,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
+#[serde(transparent)]
 pub struct CapabilityId(String);
 
 impl CapabilityId {
@@ -46,6 +47,16 @@ impl fmt::Display for CapabilityId {
     }
 }
 
+impl<'de> Deserialize<'de> for CapabilityId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let id = String::deserialize(deserializer)?;
+        Self::new(id).map_err(<D::Error as serde::de::Error>::custom)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CapabilityIdError {
     Empty,
@@ -60,6 +71,8 @@ impl fmt::Display for CapabilityIdError {
         }
     }
 }
+
+impl std::error::Error for CapabilityIdError {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CapabilityProvenance {
@@ -142,13 +155,12 @@ impl Capability {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct CapabilityLocation {
-    pub label: String,
-    pub lat: f64,
-    pub lon: f64,
-    #[serde(default)]
-    pub elevation_m: Option<f64>,
+    label: String,
+    lat: f64,
+    lon: f64,
+    elevation_m: Option<f64>,
 }
 
 impl CapabilityLocation {
@@ -170,12 +182,66 @@ impl CapabilityLocation {
             elevation_m: None,
         })
     }
+
+    pub fn label(&self) -> &str {
+        &self.label
+    }
+
+    pub fn lat(&self) -> f64 {
+        self.lat
+    }
+
+    pub fn lon(&self) -> f64 {
+        self.lon
+    }
+
+    pub fn elevation_m(&self) -> Option<f64> {
+        self.elevation_m
+    }
+
+    pub fn with_elevation_m(
+        mut self,
+        elevation_m: f64,
+    ) -> Result<Self, CapabilityLocationError> {
+        if !elevation_m.is_finite() {
+            return Err(CapabilityLocationError::Elevation(elevation_m));
+        }
+        self.elevation_m = Some(elevation_m);
+        Ok(self)
+    }
+}
+
+#[derive(Deserialize)]
+struct CapabilityLocationUnchecked {
+    label: String,
+    lat: f64,
+    lon: f64,
+    #[serde(default)]
+    elevation_m: Option<f64>,
+}
+
+impl<'de> Deserialize<'de> for CapabilityLocation {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let raw = CapabilityLocationUnchecked::deserialize(deserializer)?;
+        let mut location = Self::new(raw.label, raw.lat, raw.lon)
+            .map_err(<D::Error as serde::de::Error>::custom)?;
+        if let Some(elevation_m) = raw.elevation_m {
+            location = location
+                .with_elevation_m(elevation_m)
+                .map_err(<D::Error as serde::de::Error>::custom)?;
+        }
+        Ok(location)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CapabilityLocationError {
     Latitude(f64),
     Longitude(f64),
+    Elevation(f64),
 }
 
 impl fmt::Display for CapabilityLocationError {
@@ -183,9 +249,12 @@ impl fmt::Display for CapabilityLocationError {
         match self {
             Self::Latitude(v) => write!(f, "invalid latitude: {v}"),
             Self::Longitude(v) => write!(f, "invalid longitude: {v}"),
+            Self::Elevation(v) => write!(f, "invalid elevation: {v}"),
         }
     }
 }
+
+impl std::error::Error for CapabilityLocationError {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CapabilityLifecycle {
@@ -286,6 +355,10 @@ pub enum CapabilityGraphError {
         capability: CapabilityId,
         target: CapabilityId,
     },
+    AlternativeReplacementMismatch {
+        capability: CapabilityId,
+        replaces: CapabilityId,
+    },
     SelfAlternative {
         capability: CapabilityId,
     },
@@ -304,6 +377,9 @@ impl fmt::Display for CapabilityGraphError {
             }
             Self::MissingAlternativeTarget { capability, target } => {
                 write!(f, "capability {capability} references missing alternative target {target}")
+            }
+            Self::AlternativeReplacementMismatch { capability, replaces } => {
+                write!(f, "alternative declared on {capability} cannot replace unrelated capability {replaces}")
             }
             Self::SelfAlternative { capability } => {
                 write!(f, "capability {capability} cannot be its own alternative")
@@ -337,6 +413,12 @@ impl CapabilityGraph {
                 }
             }
             for alternative in capability.sorted_alternatives() {
+                if alternative.replaces != capability.id {
+                    return Err(CapabilityGraphError::AlternativeReplacementMismatch {
+                        capability: capability.id.clone(),
+                        replaces: alternative.replaces,
+                    });
+                }
                 if alternative.candidate == capability.id {
                     return Err(CapabilityGraphError::SelfAlternative {
                         capability: capability.id.clone(),
@@ -372,39 +454,55 @@ impl CapabilityGraph {
             return Err(CapabilityGraphError::MissingRoot(root.clone()));
         }
 
-        let mut visiting = BTreeSet::new();
+        // Iterative DFS avoids stack overflow on long, valid bootstrap chains.
+        // 0/None = unseen, 1 = active on the current DFS path, 2 = complete.
+        let mut colors: BTreeMap<CapabilityId, u8> = BTreeMap::new();
         let mut visited = BTreeSet::new();
-        self.visit(root, &mut visiting, &mut visited)?;
+        let mut stack = vec![(root.clone(), false)];
+
+        while let Some((id, exiting)) = stack.pop() {
+            if exiting {
+                colors.insert(id.clone(), 2);
+                visited.insert(id);
+                continue;
+            }
+
+            match colors.get(&id).copied() {
+                Some(2) => continue,
+                Some(1) => {
+                    return Err(CapabilityGraphError::Cycle { capability: id });
+                }
+                _ => {}
+            }
+
+            colors.insert(id.clone(), 1);
+            stack.push((id.clone(), true));
+
+            let capability = self
+                .capabilities
+                .get(&id)
+                .expect("validated by CapabilityGraph::new");
+
+            // Reverse push preserves ascending DFS traversal even though the
+            // final closure is sorted independently for a stable public result.
+            for dependency in capability
+                .sorted_required_dependencies()
+                .into_iter()
+                .rev()
+            {
+                match colors.get(&dependency).copied() {
+                    Some(1) => {
+                        return Err(CapabilityGraphError::Cycle {
+                            capability: dependency,
+                        });
+                    }
+                    Some(2) => {}
+                    _ => stack.push((dependency, false)),
+                }
+            }
+        }
+
         Ok(visited.into_iter().collect())
-    }
-
-    fn visit(
-        &self,
-        id: &CapabilityId,
-        visiting: &mut BTreeSet<CapabilityId>,
-        visited: &mut BTreeSet<CapabilityId>,
-    ) -> Result<(), CapabilityGraphError> {
-        if visited.contains(id) {
-            return Ok(());
-        }
-        if !visiting.insert(id.clone()) {
-            return Err(CapabilityGraphError::Cycle {
-                capability: id.clone(),
-            });
-        }
-
-        let capability = self
-            .capabilities
-            .get(id)
-            .expect("validated by CapabilityGraph::new");
-
-        for dependency in capability.sorted_required_dependencies() {
-            self.visit(&dependency, visiting, visited)?;
-        }
-
-        visiting.remove(id);
-        visited.insert(id.clone());
-        Ok(())
     }
 
     pub fn deterministic_json(&self) -> Result<String, serde_json::Error> {
@@ -566,6 +664,25 @@ mod tests {
         assert!(CapabilityLocation::new("ok", 90.0, 180.0).is_ok());
         assert!(CapabilityLocation::new("bad", 90.1, 0.0).is_err());
         assert!(CapabilityLocation::new("bad", 0.0, 180.1).is_err());
+        assert!(CapabilityLocation::new("bad", f64::NAN, 0.0).is_err());
+        assert!(CapabilityLocation::new("bad", 0.0, 0.0)
+            .unwrap()
+            .with_elevation_m(f64::INFINITY)
+            .is_err());
+    }
+
+    #[test]
+    fn deserialization_cannot_bypass_identity_or_location_validation() {
+        assert!(serde_json::from_str::<CapabilityId>(r#""""#).is_err());
+        assert!(serde_json::from_str::<CapabilityId>(r#""water purification""#).is_err());
+        assert!(serde_json::from_str::<CapabilityLocation>(
+            r#"{"label":"bad","lat":90.1,"lon":0.0}"#
+        )
+        .is_err());
+        assert!(serde_json::from_str::<CapabilityLocation>(
+            r#"{"label":"bad","lat":0.0,"lon":0.0,"elevation_m":1e999}"#
+        )
+        .is_err());
     }
 
     fn fixture_definition(id: &str, dependency: Option<&str>) -> Capability {
@@ -604,6 +721,34 @@ mod tests {
             ]
         );
         assert_eq!(g1.required_closure(&root), g2.required_closure(&root));
+    }
+
+    #[test]
+    fn required_closure_handles_deep_chains_without_recursion() {
+        const DEPTH: usize = 10_000;
+        let capabilities = (0..DEPTH)
+            .map(|index| {
+                let dependency = (index + 1 < DEPTH)
+                    .then(|| CapabilityId::new(format!("cap-{:05}", index + 1)).unwrap());
+                Capability {
+                    id: CapabilityId::new(format!("cap-{index:05}")).unwrap(),
+                    name: format!("Capability {index}"),
+                    description: "deep-chain regression fixture".into(),
+                    required_dependencies: dependency.into_iter().collect(),
+                    alternatives: vec![],
+                    evidence: vec![],
+                    human_ai: HumanAiContribution {
+                        human_role: "test".into(),
+                        ai_role: "test".into(),
+                    },
+                    provenance: CapabilityProvenance::synthetic_fixture(),
+                    claim_ceiling: "test-only".into(),
+                }
+            })
+            .collect::<Vec<_>>();
+        let graph = CapabilityGraph::new(capabilities).unwrap();
+        let root = CapabilityId::new("cap-00000").unwrap();
+        assert_eq!(graph.required_closure(&root).unwrap().len(), DEPTH);
     }
 
     #[test]
@@ -652,6 +797,24 @@ mod tests {
         assert!(matches!(
             CapabilityGraph::new(vec![base]),
             Err(CapabilityGraphError::SelfAlternative { .. })
+        ));
+    }
+
+    #[test]
+    fn alternative_cannot_replace_an_unrelated_capability() {
+        let mut base = fixture_definition("base", None);
+        let other = fixture_definition("other", None);
+        let candidate = fixture_definition("candidate", None);
+        base.alternatives.push(CapabilityAlternative {
+            candidate: candidate.id.clone(),
+            replaces: other.id.clone(),
+            rationale: "invalid cross-target alternative".into(),
+            evidence_refs: vec![],
+        });
+        let err = CapabilityGraph::new(vec![base, other, candidate]).unwrap_err();
+        assert!(matches!(
+            err,
+            CapabilityGraphError::AlternativeReplacementMismatch { .. }
         ));
     }
 
@@ -710,11 +873,18 @@ mod tests {
     }
 
     #[test]
-    fn deterministic_json_is_stable() {
+    fn deterministic_json_is_stable_across_insertion_order() {
+        let a = fixture_definition("a", Some("b"));
+        let b = fixture_definition("b", None);
+        let g1 = CapabilityGraph::new(vec![a.clone(), b.clone()]).unwrap();
+        let g2 = CapabilityGraph::new(vec![b, a]).unwrap();
+        assert_eq!(
+            g1.deterministic_json().unwrap(),
+            g2.deterministic_json().unwrap()
+        );
+
         let fixture = bootstrap_fixture();
-        let a = fixture.graph.deterministic_json().unwrap();
-        let b = fixture.graph.deterministic_json().unwrap();
-        assert_eq!(a, b);
-        assert!(a.starts_with("[{"));
+        let serialized = fixture.graph.deterministic_json().unwrap();
+        assert!(serialized.starts_with("[{"));
     }
 }
