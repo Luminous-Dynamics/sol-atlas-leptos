@@ -34,14 +34,33 @@ FINAL_FILES = (
     "artifacts/gcs-external-effect-report.json",
 )
 
+def step_position(workflow: str, name: str) -> int:
+    marker = "      - name: " + name + "\n"
+    positions = []
+    start = 0
+    while True:
+        found = workflow.find(marker, start)
+        if found < 0:
+            break
+        positions.append(found)
+        start = found + len(marker)
+    if len(positions) != 1:
+        raise AssertionError(
+            "workflow step identity is not unique: "
+            + name
+            + " ("
+            + str(len(positions))
+            + ")"
+        )
+    return positions[0]
+
+
 def step(workflow: str, name: str) -> str:
     marker = "      - name: " + name + "\n"
-    start = workflow.find(marker)
-    if start < 0:
-        raise AssertionError("missing workflow step: " + name)
-    start += len(marker)
+    start = step_position(workflow, name) + len(marker)
     end = workflow.find("      - name: ", start)
     return workflow[start:] if end < 0 else workflow[start:end]
+
 
 def require(block: str, needles: tuple[str, ...], label: str) -> None:
     missing = [needle for needle in needles if needle not in block]
@@ -69,6 +88,20 @@ def path_entries(block: str) -> tuple[str, ...]:
 
 
 def verify(workflow: str) -> dict[str, object]:
+    expected_order = (
+        "Upload WIF trust evidence",
+        "Download observed WIF trust evidence",
+        "Promote observed WIF trust evidence",
+        "Upload qualification evidence",
+        "Download qualification evidence",
+    )
+    positions = tuple(
+        step_position(workflow, name)
+        for name in expected_order
+    )
+    if positions != tuple(sorted(positions)):
+        raise AssertionError("qualification artifact step order drift")
+
     observer = step(workflow, "Upload WIF trust evidence")
     if path_entries(observer) != OBSERVER_FILES:
         raise AssertionError("observer artifact allowlist drift")
