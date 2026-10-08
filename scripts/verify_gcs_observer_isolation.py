@@ -43,6 +43,35 @@ def load_observer_profile() -> dict[str, object]:
             raise AssertionError(
                 "observer profile field is malformed: " + field
             )
+    all_permissions = {}
+    for field in list_fields:
+        values = profile[field]
+        if len(values) != len(set(values)):
+            raise AssertionError(
+                "observer profile contains duplicate permissions: " + field
+            )
+        all_permissions[field] = set(values)
+
+    if required_observer_permission := profile.get(
+        "required_observer_permission"
+    ):
+        if not isinstance(required_observer_permission, str):
+            raise AssertionError("observer required permission is malformed")
+        if required_observer_permission in all_permissions[
+            "forbidden_service_account_permissions"
+        ]:
+            raise AssertionError(
+                "required observer permission is also forbidden"
+            )
+    else:
+        raise AssertionError("observer profile required permission is malformed")
+
+    if not all_permissions["project_pivot_permissions"].issubset(
+        all_permissions["forbidden_project_permissions"]
+    ):
+        raise AssertionError(
+            "observer pivot permissions are not covered by project authority ceiling"
+        )
     required = profile.get("required_observer_permission")
     if not isinstance(required, str) or not required:
         raise AssertionError("observer profile required permission is malformed")
