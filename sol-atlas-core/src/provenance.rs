@@ -28,7 +28,9 @@ impl fmt::Display for IdentifierProblem {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "identifier must not be empty"),
-            Self::SurroundingWhitespace => write!(f, "identifier must not have surrounding whitespace"),
+            Self::SurroundingWhitespace => {
+                write!(f, "identifier must not have surrounding whitespace")
+            }
             Self::Whitespace => write!(f, "identifier must not contain whitespace"),
             Self::ControlCharacter => write!(f, "identifier must not contain control characters"),
         }
@@ -245,12 +247,20 @@ impl fmt::Display for ProvenanceError {
             Self::DuplicateArtifact(id) => write!(f, "duplicate artifact id: {id}"),
             Self::DuplicateActivity(id) => write!(f, "duplicate activity id: {id}"),
             Self::DuplicateAgent(id) => write!(f, "duplicate agent id: {id}"),
-            Self::DuplicateRelation(relation) => write!(f, "duplicate provenance relation: {relation:?}"),
+            Self::DuplicateRelation(relation) => {
+                write!(f, "duplicate provenance relation: {relation:?}")
+            }
             Self::MissingArtifact { relation, artifact } => {
-                write!(f, "relation {relation:?} references missing artifact {artifact}")
+                write!(
+                    f,
+                    "relation {relation:?} references missing artifact {artifact}"
+                )
             }
             Self::MissingActivity { relation, activity } => {
-                write!(f, "relation {relation:?} references missing activity {activity}")
+                write!(
+                    f,
+                    "relation {relation:?} references missing activity {activity}"
+                )
             }
             Self::MissingAgent { relation, agent } => {
                 write!(f, "relation {relation:?} references missing agent {agent}")
@@ -264,7 +274,10 @@ impl fmt::Display for ProvenanceError {
                 "activity {activity} ends at {ended_at_unix_ms} before it starts at {started_at_unix_ms}"
             ),
             Self::InvalidIntegrityReference { artifact, problem } => {
-                write!(f, "artifact {artifact} has invalid integrity reference: {problem}")
+                write!(
+                    f,
+                    "artifact {artifact} has invalid integrity reference: {problem}"
+                )
             }
             Self::DerivedFromCycle => write!(f, "derived-from relations must be acyclic"),
             Self::UnknownArtifact(id) => write!(f, "unknown artifact id: {id}"),
@@ -297,7 +310,10 @@ impl ProvenanceGraph {
 
         let mut artifact_by_id = BTreeMap::new();
         for artifact in &artifacts {
-            if artifact_by_id.insert(artifact.id.clone(), artifact).is_some() {
+            if artifact_by_id
+                .insert(artifact.id.clone(), artifact)
+                .is_some()
+            {
                 return Err(ProvenanceError::DuplicateArtifact(artifact.id.clone()));
             }
             if let Some(integrity) = &artifact.integrity {
@@ -448,7 +464,10 @@ impl ProvenanceGraph {
         let mut sources: BTreeMap<ArtifactId, Vec<ArtifactId>> = BTreeMap::new();
         for relation in &self.relations {
             if let ProvenanceRelation::DerivedFrom { artifact, source } = relation {
-                sources.entry(artifact.clone()).or_default().push(source.clone());
+                sources
+                    .entry(artifact.clone())
+                    .or_default()
+                    .push(source.clone());
             }
         }
 
@@ -485,7 +504,10 @@ impl ProvenanceGraph {
         // regardless of edge orientation, and Kahn's algorithm avoids recursion.
         for relation in &self.relations {
             if let ProvenanceRelation::DerivedFrom { artifact, source } = relation {
-                outgoing.entry(artifact.clone()).or_default().push(source.clone());
+                outgoing
+                    .entry(artifact.clone())
+                    .or_default()
+                    .push(source.clone());
                 *indegree.entry(source.clone()).or_default() += 1;
             }
         }
@@ -591,15 +613,23 @@ mod tests {
             },
         ];
         let first = ProvenanceGraph::new(
-            artifacts.clone(), activities.clone(), agents.clone(), relations.clone(),
-        ).unwrap();
+            artifacts.clone(),
+            activities.clone(),
+            agents.clone(),
+            relations.clone(),
+        )
+        .unwrap();
         let second = ProvenanceGraph::new(
             artifacts.into_iter().rev().collect(),
             activities.into_iter().rev().collect(),
             agents.into_iter().rev().collect(),
             relations.into_iter().rev().collect(),
-        ).unwrap();
-        assert_eq!(first.deterministic_json().unwrap(), second.deterministic_json().unwrap());
+        )
+        .unwrap();
+        assert_eq!(
+            first.deterministic_json().unwrap(),
+            second.deterministic_json().unwrap()
+        );
     }
 
     #[test]
@@ -609,8 +639,12 @@ mod tests {
             artifact: ArtifactId::new("missing").unwrap(),
         };
         let err = ProvenanceGraph::new(
-            vec![], vec![activity("build-1", None, None)], vec![], vec![relation],
-        ).unwrap_err();
+            vec![],
+            vec![activity("build-1", None, None)],
+            vec![],
+            vec![relation],
+        )
+        .unwrap_err();
         assert!(matches!(err, ProvenanceError::MissingArtifact { .. }));
     }
 
@@ -621,8 +655,12 @@ mod tests {
             source: ArtifactId::new("a").unwrap(),
         };
         let err = ProvenanceGraph::new(
-            vec![artifact("a"), artifact("b")], vec![], vec![], vec![relation.clone(), relation],
-        ).unwrap_err();
+            vec![artifact("a"), artifact("b")],
+            vec![],
+            vec![],
+            vec![relation.clone(), relation],
+        )
+        .unwrap_err();
         assert!(matches!(err, ProvenanceError::DuplicateRelation(_)));
     }
 
@@ -639,17 +677,28 @@ mod tests {
             },
         ];
         let err = ProvenanceGraph::new(
-            vec![artifact("a"), artifact("b")], vec![], vec![], relations,
-        ).unwrap_err();
+            vec![artifact("a"), artifact("b")],
+            vec![],
+            vec![],
+            relations,
+        )
+        .unwrap_err();
         assert_eq!(err, ProvenanceError::DerivedFromCycle);
     }
 
     #[test]
     fn invalid_activity_interval_is_rejected() {
         let err = ProvenanceGraph::new(
-            vec![], vec![activity("bad", Some(20), Some(10))], vec![], vec![],
-        ).unwrap_err();
-        assert!(matches!(err, ProvenanceError::InvalidActivityInterval { .. }));
+            vec![],
+            vec![activity("bad", Some(20), Some(10))],
+            vec![],
+            vec![],
+        )
+        .unwrap_err();
+        assert!(matches!(
+            err,
+            ProvenanceError::InvalidActivityInterval { .. }
+        ));
     }
 
     #[test]
@@ -682,11 +731,19 @@ mod tests {
         ];
         let graph = ProvenanceGraph::new(
             vec![artifact("source"), artifact("middle"), artifact("final")],
-            vec![], vec![], relations,
-        ).unwrap();
+            vec![],
+            vec![],
+            relations,
+        )
+        .unwrap();
         assert_eq!(
-            graph.lineage_ancestors(&ArtifactId::new("final").unwrap()).unwrap(),
-            vec![ArtifactId::new("middle").unwrap(), ArtifactId::new("source").unwrap()]
+            graph
+                .lineage_ancestors(&ArtifactId::new("final").unwrap())
+                .unwrap(),
+            vec![
+                ArtifactId::new("middle").unwrap(),
+                ArtifactId::new("source").unwrap()
+            ]
         );
     }
 
@@ -698,6 +755,9 @@ mod tests {
             value: "abcd".into(),
         });
         let err = ProvenanceGraph::new(vec![bad], vec![], vec![], vec![]).unwrap_err();
-        assert!(matches!(err, ProvenanceError::InvalidIntegrityReference { .. }));
+        assert!(matches!(
+            err,
+            ProvenanceError::InvalidIntegrityReference { .. }
+        ));
     }
 }
