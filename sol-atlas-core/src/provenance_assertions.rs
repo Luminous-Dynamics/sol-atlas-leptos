@@ -156,7 +156,10 @@ impl fmt::Display for ExternalSourceLocatorError {
                 write!(f, "external source locator must be non-empty and trimmed")
             }
             Self::ControlCharacter => {
-                write!(f, "external source locator must not contain control characters")
+                write!(
+                    f,
+                    "external source locator must not contain control characters"
+                )
             }
         }
     }
@@ -178,7 +181,9 @@ pub enum ExternalSourceResolution {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum AssertionSource {
-    LocalArtifact { artifact_id: ArtifactId },
+    LocalArtifact {
+        artifact_id: ArtifactId,
+    },
     External {
         locator: ExternalSourceLocator,
         resolution: ExternalSourceResolution,
@@ -209,7 +214,10 @@ impl ExternalAssessmentReference {
         if contains_control(&authority) || contains_control(&reference) {
             return Err(AssessmentReferenceError::ControlCharacter);
         }
-        Ok(Self { authority, reference })
+        Ok(Self {
+            authority,
+            reference,
+        })
     }
 }
 
@@ -267,16 +275,31 @@ pub enum AssertionGraphError {
     DuplicateActivity(ActivityId),
     DuplicateAgent(AgentId),
     DuplicateAssertion(AssertionId),
-    DuplicateSource { assertion_id: AssertionId, source: AssertionSource },
-    InvalidArtifactIntegrity { artifact_id: ArtifactId, problem: IntegrityReferenceError },
+    DuplicateSource {
+        assertion_id: AssertionId,
+        source: AssertionSource,
+    },
+    InvalidArtifactIntegrity {
+        artifact_id: ArtifactId,
+        problem: IntegrityReferenceError,
+    },
     InvalidActivityInterval {
         activity_id: ActivityId,
         started_at_unix_ms: i64,
         ended_at_unix_ms: i64,
     },
-    MissingArtifact { assertion_id: AssertionId, artifact_id: ArtifactId },
-    MissingActivity { assertion_id: AssertionId, activity_id: ActivityId },
-    MissingAgent { assertion_id: AssertionId, agent_id: AgentId },
+    MissingArtifact {
+        assertion_id: AssertionId,
+        artifact_id: ArtifactId,
+    },
+    MissingActivity {
+        assertion_id: AssertionId,
+        activity_id: ActivityId,
+    },
+    MissingAgent {
+        assertion_id: AssertionId,
+        agent_id: AgentId,
+    },
     InvalidExternalAssessment {
         assertion_id: AssertionId,
         problem: AssessmentReferenceError,
@@ -290,11 +313,20 @@ impl fmt::Display for AssertionGraphError {
             Self::DuplicateActivity(id) => write!(f, "duplicate activity id: {id}"),
             Self::DuplicateAgent(id) => write!(f, "duplicate agent id: {id}"),
             Self::DuplicateAssertion(id) => write!(f, "duplicate assertion id: {id}"),
-            Self::DuplicateSource { assertion_id, source } => {
+            Self::DuplicateSource {
+                assertion_id,
+                source,
+            } => {
                 write!(f, "assertion {assertion_id} repeats source {source:?}")
             }
-            Self::InvalidArtifactIntegrity { artifact_id, problem } => {
-                write!(f, "artifact {artifact_id} has invalid integrity reference: {problem}")
+            Self::InvalidArtifactIntegrity {
+                artifact_id,
+                problem,
+            } => {
+                write!(
+                    f,
+                    "artifact {artifact_id} has invalid integrity reference: {problem}"
+                )
             }
             Self::InvalidActivityInterval {
                 activity_id,
@@ -304,17 +336,41 @@ impl fmt::Display for AssertionGraphError {
                 f,
                 "activity {activity_id} ends at {ended_at_unix_ms} before it starts at {started_at_unix_ms}"
             ),
-            Self::MissingArtifact { assertion_id, artifact_id } => {
-                write!(f, "assertion {assertion_id} references missing artifact {artifact_id}")
+            Self::MissingArtifact {
+                assertion_id,
+                artifact_id,
+            } => {
+                write!(
+                    f,
+                    "assertion {assertion_id} references missing artifact {artifact_id}"
+                )
             }
-            Self::MissingActivity { assertion_id, activity_id } => {
-                write!(f, "assertion {assertion_id} references missing activity {activity_id}")
+            Self::MissingActivity {
+                assertion_id,
+                activity_id,
+            } => {
+                write!(
+                    f,
+                    "assertion {assertion_id} references missing activity {activity_id}"
+                )
             }
-            Self::MissingAgent { assertion_id, agent_id } => {
-                write!(f, "assertion {assertion_id} references missing agent {agent_id}")
+            Self::MissingAgent {
+                assertion_id,
+                agent_id,
+            } => {
+                write!(
+                    f,
+                    "assertion {assertion_id} references missing agent {agent_id}"
+                )
             }
-            Self::InvalidExternalAssessment { assertion_id, problem } => {
-                write!(f, "assertion {assertion_id} has invalid assessment reference: {problem}")
+            Self::InvalidExternalAssessment {
+                assertion_id,
+                problem,
+            } => {
+                write!(
+                    f,
+                    "assertion {assertion_id} has invalid assessment reference: {problem}"
+                )
             }
         }
     }
@@ -352,10 +408,9 @@ impl ProvenanceAssertionGraph {
                 return Err(AssertionGraphError::DuplicateArtifact(artifact.id.clone()));
             }
             if let Some(integrity) = &artifact.integrity {
-                if let Err(problem) = IntegrityReference::new(
-                    integrity.algorithm.clone(),
-                    integrity.value.clone(),
-                ) {
+                if let Err(problem) =
+                    IntegrityReference::new(integrity.algorithm.clone(), integrity.value.clone())
+                {
                     return Err(AssertionGraphError::InvalidArtifactIntegrity {
                         artifact_id: artifact.id.clone(),
                         problem,
@@ -392,7 +447,9 @@ impl ProvenanceAssertionGraph {
         let mut assertion_ids = BTreeSet::new();
         for assertion in &assertions {
             if !assertion_ids.insert(assertion.id.clone()) {
-                return Err(AssertionGraphError::DuplicateAssertion(assertion.id.clone()));
+                return Err(AssertionGraphError::DuplicateAssertion(
+                    assertion.id.clone(),
+                ));
             }
 
             if let Some(asserted_by) = &assertion.asserted_by {
@@ -630,12 +687,9 @@ mod tests {
         second.asserted_by = Some(AgentId::new("agent-b").unwrap());
 
         let (artifacts, activities, agents) = fixture_entities();
-        let graph = ProvenanceAssertionGraph::new(
-            artifacts,
-            activities,
-            agents,
-            vec![second, first],
-        ).unwrap();
+        let graph =
+            ProvenanceAssertionGraph::new(artifacts, activities, agents, vec![second, first])
+                .unwrap();
 
         assert_eq!(graph.assertions().len(), 2);
         assert_eq!(graph.assertions()[0].relation, relation);
@@ -669,15 +723,15 @@ mod tests {
         );
 
         let (artifacts, activities, agents) = fixture_entities();
-        let graph = ProvenanceAssertionGraph::new(
-            artifacts,
-            activities,
-            agents,
-            vec![reverse, forward],
-        ).unwrap();
+        let graph =
+            ProvenanceAssertionGraph::new(artifacts, activities, agents, vec![reverse, forward])
+                .unwrap();
 
         assert_eq!(graph.assertions().len(), 2);
-        assert_ne!(graph.assertions()[0].relation, graph.assertions()[1].relation);
+        assert_ne!(
+            graph.assertions()[0].relation,
+            graph.assertions()[1].relation
+        );
         let serialized = graph.deterministic_json().unwrap();
         assert!(serialized.contains(r#""resolution":"unresolved""#));
     }
@@ -695,12 +749,8 @@ mod tests {
             },
         );
         let (artifacts, activities, agents) = fixture_entities();
-        let err = ProvenanceAssertionGraph::new(
-            artifacts,
-            activities,
-            agents,
-            vec![invalid],
-        ).unwrap_err();
+        let err = ProvenanceAssertionGraph::new(artifacts, activities, agents, vec![invalid])
+            .unwrap_err();
         assert!(matches!(err, AssertionGraphError::MissingArtifact { .. }));
     }
 
@@ -713,19 +763,24 @@ mod tests {
         });
         let (mut artifacts, activities, agents) = fixture_entities();
         artifacts.push(bad_artifact);
-        let err = ProvenanceAssertionGraph::new(
-            artifacts, activities.clone(), agents.clone(), vec![],
-        ).unwrap_err();
-        assert!(matches!(err, AssertionGraphError::InvalidArtifactIntegrity { .. }));
+        let err =
+            ProvenanceAssertionGraph::new(artifacts, activities.clone(), agents.clone(), vec![])
+                .unwrap_err();
+        assert!(matches!(
+            err,
+            AssertionGraphError::InvalidArtifactIntegrity { .. }
+        ));
 
         let mut invalid = activity("time-reversed");
         invalid.started_at_unix_ms = Some(20);
         invalid.ended_at_unix_ms = Some(10);
         let (artifacts, mut activities, agents) = fixture_entities();
         activities.push(invalid);
-        let err = ProvenanceAssertionGraph::new(artifacts, activities, agents, vec![])
-            .unwrap_err();
-        assert!(matches!(err, AssertionGraphError::InvalidActivityInterval { .. }));
+        let err = ProvenanceAssertionGraph::new(artifacts, activities, agents, vec![]).unwrap_err();
+        assert!(matches!(
+            err,
+            AssertionGraphError::InvalidActivityInterval { .. }
+        ));
     }
 
     #[test]
@@ -742,12 +797,8 @@ mod tests {
         let second = assertion("same", relation, source);
 
         let (artifacts, activities, agents) = fixture_entities();
-        let err = ProvenanceAssertionGraph::new(
-            artifacts,
-            activities,
-            agents,
-            vec![first, second],
-        ).unwrap_err();
+        let err = ProvenanceAssertionGraph::new(artifacts, activities, agents, vec![first, second])
+            .unwrap_err();
         assert!(matches!(err, AssertionGraphError::DuplicateAssertion(_)));
     }
 
@@ -777,12 +828,9 @@ mod tests {
         );
 
         let (a1, activities1, agents1) = fixture_entities();
-        let left = ProvenanceAssertionGraph::new(
-            a1,
-            activities1,
-            agents1,
-            vec![two.clone(), one.clone()],
-        ).unwrap();
+        let left =
+            ProvenanceAssertionGraph::new(a1, activities1, agents1, vec![two.clone(), one.clone()])
+                .unwrap();
 
         let (a2, activities2, agents2) = fixture_entities();
         let right = ProvenanceAssertionGraph::new(
@@ -790,9 +838,13 @@ mod tests {
             activities2.into_iter().rev().collect(),
             agents2.into_iter().rev().collect(),
             vec![one, two],
-        ).unwrap();
+        )
+        .unwrap();
 
-        assert_eq!(left.deterministic_json().unwrap(), right.deterministic_json().unwrap());
+        assert_eq!(
+            left.deterministic_json().unwrap(),
+            right.deterministic_json().unwrap()
+        );
     }
 
     #[test]
@@ -835,9 +887,8 @@ mod tests {
         );
 
         let (artifacts, activities, agents) = fixture_entities();
-        let graph = ProvenanceAssertionGraph::new(
-            artifacts, activities, agents, vec![record],
-        ).unwrap();
+        let graph =
+            ProvenanceAssertionGraph::new(artifacts, activities, agents, vec![record]).unwrap();
         let assessment = graph.assertions()[0].assessment_ref.as_ref().unwrap();
         assert_eq!(assessment.reference, "assessment-42");
     }
