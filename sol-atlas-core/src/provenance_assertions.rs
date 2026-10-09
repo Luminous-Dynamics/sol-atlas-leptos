@@ -192,10 +192,10 @@ pub enum AssertionSource {
 
 /// A pointer to an external assessment/qualification record. The pointer does
 /// not mean the record exists, is authentic, or qualifies the related claim.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub struct ExternalAssessmentReference {
-    pub authority: String,
-    pub reference: String,
+    authority: String,
+    reference: String,
 }
 
 impl ExternalAssessmentReference {
@@ -218,6 +218,30 @@ impl ExternalAssessmentReference {
             authority,
             reference,
         })
+    }
+
+    pub fn authority(&self) -> &str {
+        &self.authority
+    }
+
+    pub fn reference(&self) -> &str {
+        &self.reference
+    }
+}
+
+#[derive(Deserialize)]
+struct ExternalAssessmentReferenceUnchecked {
+    authority: String,
+    reference: String,
+}
+
+impl<'de> Deserialize<'de> for ExternalAssessmentReference {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let raw = ExternalAssessmentReferenceUnchecked::deserialize(deserializer)?;
+        Self::new(raw.authority, raw.reference).map_err(<D::Error as serde::de::Error>::custom)
     }
 }
 
@@ -409,7 +433,7 @@ impl ProvenanceAssertionGraph {
             }
             if let Some(integrity) = &artifact.integrity {
                 if let Err(problem) =
-                    IntegrityReference::new(integrity.algorithm.clone(), integrity.value.clone())
+                    IntegrityReference::new(integrity.algorithm().to_owned(), integrity.value().to_owned())
                 {
                     return Err(AssertionGraphError::InvalidArtifactIntegrity {
                         artifact_id: artifact.id.clone(),
@@ -481,8 +505,8 @@ impl ProvenanceAssertionGraph {
 
             if let Some(assessment) = &assertion.assessment_ref {
                 if let Err(problem) = ExternalAssessmentReference::new(
-                    assessment.authority.clone(),
-                    assessment.reference.clone(),
+                    assessment.authority().to_owned(),
+                    assessment.reference().to_owned(),
                 ) {
                     return Err(AssertionGraphError::InvalidExternalAssessment {
                         assertion_id: assertion.id.clone(),
@@ -756,20 +780,21 @@ mod tests {
 
     #[test]
     fn assertion_ledger_validates_embedded_activity_and_artifact_invariants() {
-        let mut bad_artifact = artifact("bad-integrity");
-        bad_artifact.integrity = Some(IntegrityReference {
-            algorithm: "sha 256".into(),
-            value: "abcd".into(),
-        });
-        let (mut artifacts, activities, agents) = fixture_entities();
-        artifacts.push(bad_artifact);
-        let err =
-            ProvenanceAssertionGraph::new(artifacts, activities.clone(), agents.clone(), vec![])
-                .unwrap_err();
-        assert!(matches!(
-            err,
-            AssertionGraphError::InvalidArtifactIntegrity { .. }
-        ));
+        let malformed_integrity_json = r#"{
+            "artifacts": [{
+                "id": "bad-integrity",
+                "label": "bad-integrity",
+                "media_type": "application/json",
+                "integrity": {"algorithm": "sha 256", "value": "abcd"},
+                "source_uri": null
+            }],
+            "activities": [],
+            "agents": [],
+            "assertions": []
+        }"#;
+        assert!(
+            serde_json::from_str::<ProvenanceAssertionGraph>(malformed_integrity_json).is_err()
+        );
 
         let mut invalid = activity("time-reversed");
         invalid.started_at_unix_ms = Some(20);
@@ -870,6 +895,22 @@ mod tests {
     }
 
     #[test]
+    fn assessment_reference_rejects_invalid_standalone_deserialization() {
+        assert!(
+            serde_json::from_str::<ExternalAssessmentReference>(
+                r#"{"authority":" ","reference":"assessment-42"}"#
+            )
+            .is_err()
+        );
+        assert!(
+            serde_json::from_str::<ExternalAssessmentReference>(
+                r#"{"authority":"urn:authority:example","reference":"assessment-42\n"}"#
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
     fn assessment_reference_is_a_pointer_not_automatic_qualification() {
         let mut record = assertion(
             "assessment-ref",
@@ -890,6 +931,6 @@ mod tests {
         let graph =
             ProvenanceAssertionGraph::new(artifacts, activities, agents, vec![record]).unwrap();
         let assessment = graph.assertions()[0].assessment_ref.as_ref().unwrap();
-        assert_eq!(assessment.reference, "assessment-42");
+        assert_eq!(assessment.reference(), "assessment-42");
     }
 }

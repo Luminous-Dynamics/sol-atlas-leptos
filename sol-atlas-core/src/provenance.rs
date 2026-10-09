@@ -110,10 +110,10 @@ validated_identifier!(AgentId);
 
 /// A locator for a digest value. It identifies a claim about content integrity;
 /// it does not record verification status or prove that verification occurred.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub struct IntegrityReference {
-    pub algorithm: String,
-    pub value: String,
+    algorithm: String,
+    value: String,
 }
 
 impl IntegrityReference {
@@ -130,6 +130,30 @@ impl IntegrityReference {
             return Err(IntegrityReferenceError::InvalidValue);
         }
         Ok(Self { algorithm, value })
+    }
+
+    pub fn algorithm(&self) -> &str {
+        &self.algorithm
+    }
+
+    pub fn value(&self) -> &str {
+        &self.value
+    }
+}
+
+#[derive(Deserialize)]
+struct IntegrityReferenceUnchecked {
+    algorithm: String,
+    value: String,
+}
+
+impl<'de> Deserialize<'de> for IntegrityReference {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let raw = IntegrityReferenceUnchecked::deserialize(deserializer)?;
+        Self::new(raw.algorithm, raw.value).map_err(<D::Error as serde::de::Error>::custom)
     }
 }
 
@@ -318,7 +342,7 @@ impl ProvenanceGraph {
             }
             if let Some(integrity) = &artifact.integrity {
                 if let Err(problem) =
-                    IntegrityReference::new(integrity.algorithm.clone(), integrity.value.clone())
+                    IntegrityReference::new(integrity.algorithm().to_owned(), integrity.value().to_owned())
                 {
                     return Err(ProvenanceError::InvalidIntegrityReference {
                         artifact: artifact.id.clone(),
@@ -748,16 +772,39 @@ mod tests {
     }
 
     #[test]
-    fn integrity_reference_is_validated_at_graph_boundary() {
-        let mut bad = artifact("report");
-        bad.integrity = Some(IntegrityReference {
-            algorithm: "sha 256".into(),
-            value: "abcd".into(),
-        });
-        let err = ProvenanceGraph::new(vec![bad], vec![], vec![], vec![]).unwrap_err();
-        assert!(matches!(
-            err,
-            ProvenanceError::InvalidIntegrityReference { .. }
-        ));
+    fn integrity_reference_rejects_invalid_standalone_and_graph_deserialization() {
+        assert!(
+            serde_json::from_str::<IntegrityReference>(
+                r#"{"algorithm":"sha 256","value":"abcd"}"#
+            )
+            .is_err()
+        );
+        assert!(
+            serde_json::from_str::<IntegrityReference>(
+                r#"{"algorithm":"sha256","value":"  "}"#
+            )
+            .is_err()
+        );
+
+        let valid = IntegrityReference::new("sha256", "abcd").unwrap();
+        let encoded = serde_json::to_string(&valid).unwrap();
+        assert_eq!(
+            serde_json::from_str::<IntegrityReference>(&encoded).unwrap(),
+            valid
+        );
+
+        let graph_json = r#"{
+            "artifacts": [{
+                "id": "report",
+                "label": "report",
+                "media_type": null,
+                "integrity": {"algorithm": "sha 256", "value": "abcd"},
+                "source_uri": null
+            }],
+            "activities": [],
+            "agents": [],
+            "relations": []
+        }"#;
+        assert!(serde_json::from_str::<ProvenanceGraph>(graph_json).is_err());
     }
 }
