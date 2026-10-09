@@ -833,8 +833,8 @@ mod tests {
         assert_eq!(
             names,
             vec![
-                "evidence",
                 "energy",
+                "evidence",
                 "knowledge",
                 "maintenance",
                 "manufacturing",
