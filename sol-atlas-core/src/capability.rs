@@ -379,7 +379,10 @@ impl fmt::Display for CapabilityGraphError {
                 write!(f, "capability {capability} references missing alternative target {target}")
             }
             Self::AlternativeReplacementMismatch { capability, replaces } => {
-                write!(f, "alternative declared on {capability} cannot replace unrelated capability {replaces}")
+                write!(
+                    f,
+                    "alternative declared on {capability} cannot replace unrelated capability {replaces}"
+                )
             }
             Self::SelfAlternative { capability } => {
                 write!(f, "capability {capability} cannot be its own alternative")
