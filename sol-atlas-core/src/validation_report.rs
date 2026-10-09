@@ -10,7 +10,8 @@
 //! says the structure is valid means only that the named ruleset found no
 //! structural violations within the declared scope.
 
-use crate::provenance::IntegrityReference;
+use crate::provenance::{IntegrityReference, ProvenanceError};
+use crate::provenance_assertions::AssertionGraphError;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::fmt;
