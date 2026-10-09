@@ -28,7 +28,9 @@ impl fmt::Display for IdentifierProblem {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "identifier must not be empty"),
-            Self::SurroundingWhitespace => write!(f, "identifier must not have surrounding whitespace"),
+            Self::SurroundingWhitespace => {
+                write!(f, "identifier must not have surrounding whitespace")
+            }
             Self::Whitespace => write!(f, "identifier must not contain whitespace"),
             Self::ControlCharacter => write!(f, "identifier must not contain control characters"),
         }
@@ -245,7 +247,9 @@ impl fmt::Display for ProvenanceError {
             Self::DuplicateArtifact(id) => write!(f, "duplicate artifact id: {id}"),
             Self::DuplicateActivity(id) => write!(f, "duplicate activity id: {id}"),
             Self::DuplicateAgent(id) => write!(f, "duplicate agent id: {id}"),
-            Self::DuplicateRelation(relation) => write!(f, "duplicate provenance relation: {relation:?}"),
+            Self::DuplicateRelation(relation) => {
+                write!(f, "duplicate provenance relation: {relation:?}")
+            }
             Self::MissingArtifact { relation, artifact } => {
                 write!(f, "relation {relation:?} references missing artifact {artifact}")
             }
