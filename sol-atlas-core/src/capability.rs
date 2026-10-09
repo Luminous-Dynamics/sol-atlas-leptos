@@ -199,10 +199,7 @@ impl CapabilityLocation {
         self.elevation_m
     }
 
-    pub fn with_elevation_m(
-        mut self,
-        elevation_m: f64,
-    ) -> Result<Self, CapabilityLocationError> {
+    pub fn with_elevation_m(mut self, elevation_m: f64) -> Result<Self, CapabilityLocationError> {
         if !elevation_m.is_finite() {
             return Err(CapabilityLocationError::Elevation(elevation_m));
         }
@@ -372,14 +369,26 @@ impl fmt::Display for CapabilityGraphError {
         match self {
             Self::DuplicateId(id) => write!(f, "duplicate capability id: {id}"),
             Self::MissingRoot(id) => write!(f, "root capability not found: {id}"),
-            Self::MissingDependency { capability, dependency } => {
+            Self::MissingDependency {
+                capability,
+                dependency,
+            } => {
                 write!(f, "capability {capability} depends on missing {dependency}")
             }
             Self::MissingAlternativeTarget { capability, target } => {
-                write!(f, "capability {capability} references missing alternative target {target}")
+                write!(
+                    f,
+                    "capability {capability} references missing alternative target {target}"
+                )
             }
-            Self::AlternativeReplacementMismatch { capability, replaces } => {
-                write!(f, "alternative declared on {capability} cannot replace unrelated capability {replaces}")
+            Self::AlternativeReplacementMismatch {
+                capability,
+                replaces,
+            } => {
+                write!(
+                    f,
+                    "alternative declared on {capability} cannot replace unrelated capability {replaces}"
+                )
             }
             Self::SelfAlternative { capability } => {
                 write!(f, "capability {capability} cannot be its own alternative")
@@ -485,11 +494,7 @@ impl CapabilityGraph {
 
             // Reverse push preserves ascending DFS traversal even though the
             // final closure is sorted independently for a stable public result.
-            for dependency in capability
-                .sorted_required_dependencies()
-                .into_iter()
-                .rev()
-            {
+            for dependency in capability.sorted_required_dependencies().into_iter().rev() {
                 match colors.get(&dependency).copied() {
                     Some(1) => {
                         return Err(CapabilityGraphError::Cycle {
@@ -539,7 +544,10 @@ pub fn bootstrap_fixture() -> BootstrapFixture {
             required_dependencies: vec![ids("energy")],
             alternatives: vec![],
             evidence: vec![evidence.clone()],
-            human_ai: human_ai("fixture-defined operator", "fixture-defined analysis assistance"),
+            human_ai: human_ai(
+                "fixture-defined operator",
+                "fixture-defined analysis assistance",
+            ),
             provenance: provenance.clone(),
             claim_ceiling: claim_ceiling.clone(),
         },
@@ -550,7 +558,10 @@ pub fn bootstrap_fixture() -> BootstrapFixture {
             required_dependencies: vec![ids("materials")],
             alternatives: vec![],
             evidence: vec![evidence.clone()],
-            human_ai: human_ai("fixture-defined maintainer", "fixture-defined planning assistance"),
+            human_ai: human_ai(
+                "fixture-defined maintainer",
+                "fixture-defined planning assistance",
+            ),
             provenance: provenance.clone(),
             claim_ceiling: claim_ceiling.clone(),
         },
@@ -561,7 +572,10 @@ pub fn bootstrap_fixture() -> BootstrapFixture {
             required_dependencies: vec![ids("manufacturing")],
             alternatives: vec![],
             evidence: vec![evidence.clone()],
-            human_ai: human_ai("fixture-defined fabricator", "fixture-defined design assistance"),
+            human_ai: human_ai(
+                "fixture-defined fabricator",
+                "fixture-defined design assistance",
+            ),
             provenance: provenance.clone(),
             claim_ceiling: claim_ceiling.clone(),
         },
@@ -572,7 +586,10 @@ pub fn bootstrap_fixture() -> BootstrapFixture {
             required_dependencies: vec![ids("maintenance")],
             alternatives: vec![],
             evidence: vec![evidence.clone()],
-            human_ai: human_ai("fixture-defined craft", "fixture-defined process assistance"),
+            human_ai: human_ai(
+                "fixture-defined craft",
+                "fixture-defined process assistance",
+            ),
             provenance: provenance.clone(),
             claim_ceiling: claim_ceiling.clone(),
         },
@@ -583,7 +600,10 @@ pub fn bootstrap_fixture() -> BootstrapFixture {
             required_dependencies: vec![ids("knowledge")],
             alternatives: vec![],
             evidence: vec![evidence.clone()],
-            human_ai: human_ai("fixture-defined repair", "fixture-defined diagnostic assistance"),
+            human_ai: human_ai(
+                "fixture-defined repair",
+                "fixture-defined diagnostic assistance",
+            ),
             provenance: provenance.clone(),
             claim_ceiling: claim_ceiling.clone(),
         },
@@ -594,7 +614,10 @@ pub fn bootstrap_fixture() -> BootstrapFixture {
             required_dependencies: vec![ids("evidence")],
             alternatives: vec![],
             evidence: vec![evidence.clone()],
-            human_ai: human_ai("fixture-defined learning", "fixture-defined retrieval assistance"),
+            human_ai: human_ai(
+                "fixture-defined learning",
+                "fixture-defined retrieval assistance",
+            ),
             provenance: provenance.clone(),
             claim_ceiling: claim_ceiling.clone(),
         },
@@ -605,7 +628,10 @@ pub fn bootstrap_fixture() -> BootstrapFixture {
             required_dependencies: vec![],
             alternatives: vec![],
             evidence: vec![evidence],
-            human_ai: human_ai("fixture-defined observation", "fixture-defined organization"),
+            human_ai: human_ai(
+                "fixture-defined observation",
+                "fixture-defined organization",
+            ),
             provenance: provenance.clone(),
             claim_ceiling: claim_ceiling.clone(),
         },
@@ -643,7 +669,11 @@ pub fn bootstrap_fixture() -> BootstrapFixture {
         claim_ceiling: "synthetic fixture only; qualification is intentionally absent".into(),
     };
 
-    BootstrapFixture { graph, root, instance }
+    BootstrapFixture {
+        graph,
+        root,
+        instance,
+    }
 }
 
 #[cfg(test)]
@@ -665,24 +695,28 @@ mod tests {
         assert!(CapabilityLocation::new("bad", 90.1, 0.0).is_err());
         assert!(CapabilityLocation::new("bad", 0.0, 180.1).is_err());
         assert!(CapabilityLocation::new("bad", f64::NAN, 0.0).is_err());
-        assert!(CapabilityLocation::new("bad", 0.0, 0.0)
-            .unwrap()
-            .with_elevation_m(f64::INFINITY)
-            .is_err());
+        assert!(
+            CapabilityLocation::new("bad", 0.0, 0.0)
+                .unwrap()
+                .with_elevation_m(f64::INFINITY)
+                .is_err()
+        );
     }
 
     #[test]
     fn deserialization_cannot_bypass_identity_or_location_validation() {
         assert!(serde_json::from_str::<CapabilityId>(r#""""#).is_err());
         assert!(serde_json::from_str::<CapabilityId>(r#""water purification""#).is_err());
-        assert!(serde_json::from_str::<CapabilityLocation>(
-            r#"{"label":"bad","lat":90.1,"lon":0.0}"#
-        )
-        .is_err());
-        assert!(serde_json::from_str::<CapabilityLocation>(
-            r#"{"label":"bad","lat":0.0,"lon":0.0,"elevation_m":1e999}"#
-        )
-        .is_err());
+        assert!(
+            serde_json::from_str::<CapabilityLocation>(r#"{"label":"bad","lat":90.1,"lon":0.0}"#)
+                .is_err()
+        );
+        assert!(
+            serde_json::from_str::<CapabilityLocation>(
+                r#"{"label":"bad","lat":0.0,"lon":0.0,"elevation_m":1e999}"#
+            )
+            .is_err()
+        );
     }
 
     fn fixture_definition(id: &str, dependency: Option<&str>) -> Capability {
@@ -755,7 +789,10 @@ mod tests {
     fn missing_dependency_fails_closed() {
         let a = fixture_definition("a", Some("missing"));
         let err = CapabilityGraph::new(vec![a]).unwrap_err();
-        assert!(matches!(err, CapabilityGraphError::MissingDependency { .. }));
+        assert!(matches!(
+            err,
+            CapabilityGraphError::MissingDependency { .. }
+        ));
     }
 
     #[test]
@@ -858,7 +895,10 @@ mod tests {
         let graph = CapabilityGraph::new(vec![candidate, base_with_alt]).unwrap();
         let definition = graph.get(&CapabilityId::new("base").unwrap()).unwrap();
         assert_eq!(definition.sorted_alternatives().len(), 1);
-        assert_eq!(definition.sorted_alternatives()[0].candidate.as_str(), "candidate");
+        assert_eq!(
+            definition.sorted_alternatives()[0].candidate.as_str(),
+            "candidate"
+        );
     }
 
     #[test]
@@ -866,7 +906,11 @@ mod tests {
         let fixture = bootstrap_fixture();
         for capability in fixture.graph.capabilities() {
             assert_eq!(capability.provenance.kind, DataKind::Scenario);
-            assert!(capability.claim_ceiling.contains("not evidence of real-world"));
+            assert!(
+                capability
+                    .claim_ceiling
+                    .contains("not evidence of real-world")
+            );
         }
         assert_eq!(fixture.instance.provenance.kind, DataKind::Scenario);
         assert!(!fixture.instance.is_qualified());
