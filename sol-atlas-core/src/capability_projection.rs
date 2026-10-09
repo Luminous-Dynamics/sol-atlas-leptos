@@ -84,6 +84,7 @@ pub struct ProjectionEdge {
 /// This does not mean an external artifact was retrieved, authenticated, or
 /// verified. The projection currently has no external evidence resolver.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum EvidenceReferenceStatus {
     /// The identifier appears in the owning capability's declared evidence list.
     DeclaredByCapability,
