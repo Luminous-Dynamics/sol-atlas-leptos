@@ -79,11 +79,23 @@ pub struct ProjectionEdge {
     pub rationale: Option<String>,
 }
 
+/// Local matching state for an evidence identifier.
+///
+/// This does not mean an external artifact was retrieved, authenticated, or
+/// verified. The projection currently has no external evidence resolver.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum EvidenceReferenceStatus {
+    /// The identifier appears in the owning capability's declared evidence list.
+    DeclaredByCapability,
+    /// An instance references an identifier not declared by its capability.
+    NotDeclaredByCapability,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EvidenceReference {
     pub owner_node_id: String,
     pub evidence_id: String,
-    pub resolved_anchor: bool,
+    pub status: EvidenceReferenceStatus,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -198,7 +210,7 @@ impl AtlasCapabilityProjectionV1 {
                 evidence_refs.push(EvidenceReference {
                     owner_node_id: node_id.clone(),
                     evidence_id: evidence.evidence_id.clone(),
-                    resolved_anchor: true,
+                    status: EvidenceReferenceStatus::DeclaredByCapability,
                 });
             }
         }
@@ -287,14 +299,18 @@ impl AtlasCapabilityProjectionV1 {
             });
 
             for evidence_id in &instance.evidence_refs {
-                let resolved_anchor = graph
+                let declared_by_capability = graph
                     .get(&instance.capability_id)
                     .map(|c| c.evidence.iter().any(|e| &e.evidence_id == evidence_id))
                     .unwrap_or(false);
                 evidence_refs.push(EvidenceReference {
                     owner_node_id: format!("instance:{}", instance.instance_id),
                     evidence_id: evidence_id.clone(),
-                    resolved_anchor,
+                    status: if declared_by_capability {
+                        EvidenceReferenceStatus::DeclaredByCapability
+                    } else {
+                        EvidenceReferenceStatus::NotDeclaredByCapability
+                    },
                 });
             }
         }
@@ -546,6 +562,41 @@ mod tests {
             edge.from == "capability:energy-backup"
                 && edge.to == "capability:knowledge"
                 && edge.kind == ProjectionEdgeKind::Required
+        }));
+    }
+
+    #[test]
+    fn evidence_reference_status_does_not_claim_external_resolution() {
+        let fixture = bootstrap_fixture();
+        let mut instance = fixture.instance.clone();
+        instance.evidence_refs = vec!["external-record-not-in-capability".into()];
+
+        let projection = AtlasCapabilityProjectionV1::build(
+            &fixture.graph,
+            &[instance],
+            &fixture.root,
+            Resolution::Two,
+        )
+        .unwrap();
+
+        let reference = projection
+            .evidence_refs
+            .iter()
+            .find(|reference| {
+                reference.owner_node_id == "instance:fixture.bootstrap.node"
+                    && reference.evidence_id == "external-record-not-in-capability"
+            })
+            .unwrap();
+        assert_eq!(
+            reference.status,
+            EvidenceReferenceStatus::NotDeclaredByCapability
+        );
+
+        // The state is declaration-local, not a statement about remote truth,
+        // content availability, integrity verification, or qualification.
+        assert!(projection.evidence_refs.iter().all(|reference| {
+            reference.status == EvidenceReferenceStatus::DeclaredByCapability
+                || reference.status == EvidenceReferenceStatus::NotDeclaredByCapability
         }));
     }
 
