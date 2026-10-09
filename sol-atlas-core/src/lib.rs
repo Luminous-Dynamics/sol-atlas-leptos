@@ -24,6 +24,7 @@ pub mod geometry;
 pub mod math;
 pub mod picking;
 pub mod provenance;
+pub mod provenance_assertions;
 pub mod simulation;
 pub mod solar_system;
 pub mod timeline;
