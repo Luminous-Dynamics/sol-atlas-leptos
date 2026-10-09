@@ -732,7 +732,7 @@ mod tests {
     fn duplicate_assertion_ids_fail_closed() {
         let source = AssertionSource::External {
             locator: ExternalSourceLocator::new("urn:source:one").unwrap(),
-                resolution: ExternalSourceResolution::Unresolved,
+            resolution: ExternalSourceResolution::Unresolved,
         };
         let relation = ProvenanceRelation::DerivedFrom {
             artifact: ArtifactId::new("b").unwrap(),
