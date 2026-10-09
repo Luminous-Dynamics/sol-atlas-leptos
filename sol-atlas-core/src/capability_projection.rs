@@ -14,8 +14,8 @@
 //! systems.
 
 use crate::capability::{
-    CapabilityGraph, CapabilityGraphError, CapabilityId, CapabilityInstance, CapabilityLifecycle,
-    CapabilityAvailability, CapabilityProvenance,
+    CapabilityAvailability, CapabilityGraph, CapabilityGraphError, CapabilityId,
+    CapabilityInstance, CapabilityLifecycle, CapabilityProvenance,
 };
 use crate::types::DataKind;
 use h3o::{LatLng, Resolution};
@@ -79,11 +79,24 @@ pub struct ProjectionEdge {
     pub rationale: Option<String>,
 }
 
+/// Local matching state for an evidence identifier.
+///
+/// This does not mean an external artifact was retrieved, authenticated, or
+/// verified. The projection currently has no external evidence resolver.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EvidenceReferenceStatus {
+    /// The identifier appears in the owning capability's declared evidence list.
+    DeclaredByCapability,
+    /// An instance references an identifier not declared by its capability.
+    NotDeclaredByCapability,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EvidenceReference {
     pub owner_node_id: String,
     pub evidence_id: String,
-    pub resolved_anchor: bool,
+    pub status: EvidenceReferenceStatus,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -110,8 +123,13 @@ pub struct AtlasCapabilityProjectionV1 {
 pub enum ProjectionError {
     Graph(CapabilityGraphError),
     DuplicateInstanceId(String),
-    MissingCapabilityForInstance { instance_id: String, capability_id: CapabilityId },
-    InvalidInstanceLocation { instance_id: String },
+    MissingCapabilityForInstance {
+        instance_id: String,
+        capability_id: CapabilityId,
+    },
+    InvalidInstanceLocation {
+        instance_id: String,
+    },
 }
 
 impl From<CapabilityGraphError> for ProjectionError {
@@ -125,11 +143,20 @@ impl fmt::Display for ProjectionError {
         match self {
             Self::Graph(err) => write!(f, "capability graph error: {err}"),
             Self::DuplicateInstanceId(id) => write!(f, "duplicate instance id: {id}"),
-            Self::MissingCapabilityForInstance { instance_id, capability_id } => {
-                write!(f, "instance {instance_id} references missing capability {capability_id}")
+            Self::MissingCapabilityForInstance {
+                instance_id,
+                capability_id,
+            } => {
+                write!(
+                    f,
+                    "instance {instance_id} references missing capability {capability_id}"
+                )
             }
             Self::InvalidInstanceLocation { instance_id } => {
-                write!(f, "instance {instance_id} has invalid geographic coordinates")
+                write!(
+                    f,
+                    "instance {instance_id} has invalid geographic coordinates"
+                )
             }
         }
     }
@@ -198,7 +225,7 @@ impl AtlasCapabilityProjectionV1 {
                 evidence_refs.push(EvidenceReference {
                     owner_node_id: node_id.clone(),
                     evidence_id: evidence.evidence_id.clone(),
-                    resolved_anchor: true,
+                    status: EvidenceReferenceStatus::DeclaredByCapability,
                 });
             }
         }
@@ -287,14 +314,18 @@ impl AtlasCapabilityProjectionV1 {
             });
 
             for evidence_id in &instance.evidence_refs {
-                let resolved_anchor = graph
+                let declared_by_capability = graph
                     .get(&instance.capability_id)
                     .map(|c| c.evidence.iter().any(|e| &e.evidence_id == evidence_id))
                     .unwrap_or(false);
                 evidence_refs.push(EvidenceReference {
                     owner_node_id: format!("instance:{}", instance.instance_id),
                     evidence_id: evidence_id.clone(),
-                    resolved_anchor,
+                    status: if declared_by_capability {
+                        EvidenceReferenceStatus::DeclaredByCapability
+                    } else {
+                        EvidenceReferenceStatus::NotDeclaredByCapability
+                    },
                 });
             }
         }
@@ -333,15 +364,20 @@ impl AtlasCapabilityProjectionV1 {
 fn summarize_h3(nodes: &[ProjectionNode]) -> Vec<H3CellSummary> {
     let mut by_cell: BTreeMap<String, H3CellSummary> = BTreeMap::new();
 
-    for node in nodes.iter().filter(|n| n.kind == ProjectionNodeKind::Instance) {
+    for node in nodes
+        .iter()
+        .filter(|n| n.kind == ProjectionNodeKind::Instance)
+    {
         let Some(cell) = &node.h3_cell else { continue };
-        let entry = by_cell.entry(cell.clone()).or_insert_with(|| H3CellSummary {
-            cell: cell.clone(),
-            member_instance_ids: Vec::new(),
-            capability_ids: Vec::new(),
-            scenario_instance_count: 0,
-            externally_qualified_reference_count: 0,
-        });
+        let entry = by_cell
+            .entry(cell.clone())
+            .or_insert_with(|| H3CellSummary {
+                cell: cell.clone(),
+                member_instance_ids: Vec::new(),
+                capability_ids: Vec::new(),
+                scenario_instance_count: 0,
+                externally_qualified_reference_count: 0,
+            });
 
         entry.member_instance_ids.push(
             node.node_id
@@ -384,20 +420,23 @@ mod tests {
         )
         .unwrap();
 
-        assert!(projection
-            .nodes
-            .iter()
-            .any(|n| n.kind == ProjectionNodeKind::Capability
-                && n.capability_id == fixture.root));
-        assert!(projection
-            .nodes
-            .iter()
-            .any(|n| n.kind == ProjectionNodeKind::Instance
-                && n.capability_id == fixture.root));
-        assert!(projection
-            .edges
-            .iter()
-            .any(|e| e.from == "instance:fixture.bootstrap.node"));
+        assert!(
+            projection.nodes.iter().any(
+                |n| n.kind == ProjectionNodeKind::Capability && n.capability_id == fixture.root
+            )
+        );
+        assert!(
+            projection
+                .nodes
+                .iter()
+                .any(|n| n.kind == ProjectionNodeKind::Instance && n.capability_id == fixture.root)
+        );
+        assert!(
+            projection
+                .edges
+                .iter()
+                .any(|e| e.from == "instance:fixture.bootstrap.node")
+        );
     }
 
     #[test]
@@ -458,10 +497,7 @@ mod tests {
             projection.h3_cells[0].member_instance_ids,
             vec!["fixture.bootstrap.node"]
         );
-        assert_eq!(
-            projection.h3_cells[0].capability_ids,
-            vec![fixture.root]
-        );
+        assert_eq!(projection.h3_cells[0].capability_ids, vec![fixture.root]);
     }
 
     #[test]
@@ -503,8 +539,7 @@ mod tests {
 
         let fixture = bootstrap_fixture();
         let energy_id = CapabilityId::new("energy").unwrap();
-        let mut definitions: Vec<Capability> =
-            fixture.graph.capabilities().cloned().collect();
+        let mut definitions: Vec<Capability> = fixture.graph.capabilities().cloned().collect();
         let energy_idx = definitions
             .iter()
             .position(|capability| capability.id == energy_id)
@@ -520,22 +555,20 @@ mod tests {
         candidate.required_dependencies = vec![CapabilityId::new("knowledge").unwrap()];
         candidate.alternatives.clear();
 
-        definitions[energy_idx].alternatives.push(CapabilityAlternative {
-            candidate: candidate_id.clone(),
-            replaces: energy_id.clone(),
-            rationale: "explicit comparison candidate".into(),
-            evidence_refs: vec![],
-        });
+        definitions[energy_idx]
+            .alternatives
+            .push(CapabilityAlternative {
+                candidate: candidate_id.clone(),
+                replaces: energy_id.clone(),
+                rationale: "explicit comparison candidate".into(),
+                evidence_refs: vec![],
+            });
         definitions.push(candidate);
 
         let graph = CapabilityGraph::new(definitions).unwrap();
-        let projection = AtlasCapabilityProjectionV1::build(
-            &graph,
-            &[],
-            &fixture.root,
-            Resolution::Two,
-        )
-        .unwrap();
+        let projection =
+            AtlasCapabilityProjectionV1::build(&graph, &[], &fixture.root, Resolution::Two)
+                .unwrap();
 
         assert!(projection.edges.iter().any(|edge| {
             edge.from == "capability:energy"
@@ -547,6 +580,38 @@ mod tests {
                 && edge.to == "capability:knowledge"
                 && edge.kind == ProjectionEdgeKind::Required
         }));
+    }
+
+    #[test]
+    fn evidence_reference_status_does_not_claim_external_resolution() {
+        let fixture = bootstrap_fixture();
+        let mut instance = fixture.instance.clone();
+        instance.evidence_refs = vec!["external-record-not-in-capability".into()];
+
+        let projection = AtlasCapabilityProjectionV1::build(
+            &fixture.graph,
+            &[instance],
+            &fixture.root,
+            Resolution::Two,
+        )
+        .unwrap();
+
+        let reference = projection
+            .evidence_refs
+            .iter()
+            .find(|reference| {
+                reference.owner_node_id == "instance:fixture.bootstrap.node"
+                    && reference.evidence_id == "external-record-not-in-capability"
+            })
+            .unwrap();
+        assert_eq!(
+            reference.status,
+            EvidenceReferenceStatus::NotDeclaredByCapability
+        );
+
+        // The serialized view makes the declaration-only state explicit.
+        let encoded = serde_json::to_string(reference).unwrap();
+        assert!(encoded.contains(r#""status":"not_declared_by_capability""#));
     }
 
     #[test]
