@@ -20,6 +20,8 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
+      - name: Check sol-atlas-core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
 
   check-wasm:
     runs-on: ubuntu-latest
@@ -59,9 +61,12 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
-      # This crate is a wasm-bindgen-heavy [[bin]] with no [lib] target —
-      # native `cargo test` still works (verified 2026-07-11) and is much
-      # faster than a wasm test harness for the pure-logic unit tests
-      # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
-      # `cargo test --lib` fails with "no library targets found".
-      - run: cargo test --bin sol-atlas-leptos
+      # The root package is a wasm-bindgen-heavy binary with no [lib] target.
+      # Test it explicitly; `cargo test --lib` fails because no root library exists.
+      - name: Test Sol Atlas app
+        run: cargo test --bin sol-atlas-leptos
+      # sol-atlas-core is a separate nested package, not a workspace member.
+      # Testing the binary only compiles this path dependency; it does not run
+      # the dependency crate's own unit tests, so invoke its manifest directly.
+      - name: Test sol-atlas-core unit tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
