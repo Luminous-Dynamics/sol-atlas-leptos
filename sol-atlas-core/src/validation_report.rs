@@ -521,12 +521,20 @@ fn assertion_source_identity(source: &AssertionSource) -> String {
     }
 }
 
-/// Deterministic SHA-256 identifier used only to distinguish finding
-/// occurrences. It is not a signature, integrity proof, or secret-keyed token.
+const OCCURRENCE_KEY_DOMAIN: &[u8] =
+    b"sol-atlas/validation-finding-occurrence/v1\0";
+const OCCURRENCE_KEY_PREFIX: &str = "occ-v1-";
+
+/// Deterministic, domain-separated SHA-256 identifier used only to distinguish
+/// finding occurrences. It is not a signature, integrity proof, or secret-keyed token.
 fn occurrence_fingerprint(value: &str) -> String {
-    let digest = Sha256::digest(value.as_bytes());
-    let mut key = String::with_capacity(4 + digest.len() * 2);
-    key.push_str("occ-");
+    let mut hasher = Sha256::new();
+    hasher.update(OCCURRENCE_KEY_DOMAIN);
+    hasher.update(value.as_bytes());
+    let digest = hasher.finalize();
+
+    let mut key = String::with_capacity(OCCURRENCE_KEY_PREFIX.len() + digest.len() * 2);
+    key.push_str(OCCURRENCE_KEY_PREFIX);
     const HEX: &[u8; 16] = b"0123456789abcdef";
     for byte in digest.iter() {
         key.push(HEX[(*byte >> 4) as usize] as char);
@@ -1155,7 +1163,7 @@ mod tests {
         let detail = finding.detail().unwrap();
         assert!(!detail.contains(secret_locator));
         assert!(!detail.contains("super-secret"));
-        assert!(finding.occurrence_key().unwrap().starts_with("occ-"));
+        assert!(finding.occurrence_key().unwrap().starts_with("occ-v1-"));
         let encoded = serde_json::to_string(&finding).unwrap();
         assert!(!encoded.contains(secret_locator));
         assert!(!encoded.contains("super-secret"));
@@ -1211,6 +1219,22 @@ mod tests {
         let mut invalid_key: serde_json::Value = serde_json::from_str(&json).unwrap();
         invalid_key["findings"][0]["occurrence_key"] = "contains whitespace".into();
         assert!(serde_json::from_value::<ValidationReport>(invalid_key).is_err());
+    }
+
+    #[test]
+    fn occurrence_fingerprint_is_versioned_domain_separated_and_stable() {
+        assert_eq!(
+            occurrence_fingerprint("identity fixture"),
+            "occ-v1-e2142220aa554b361563286498960fbd19d8b1005d862fb91d786b3780497b4a"
+        );
+        assert_eq!(
+            occurrence_fingerprint("identity fixture"),
+            occurrence_fingerprint("identity fixture")
+        );
+        assert_ne!(
+            occurrence_fingerprint("identity fixture"),
+            occurrence_fingerprint("different fixture")
+        );
     }
 
     #[test]
