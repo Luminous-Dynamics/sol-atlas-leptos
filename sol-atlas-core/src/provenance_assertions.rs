@@ -164,14 +164,25 @@ impl fmt::Display for ExternalSourceLocatorError {
 
 impl std::error::Error for ExternalSourceLocatorError {}
 
+/// External locator state supported by this module. A locator can be
+/// recorded but not promoted to resolved without a separate resolver.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExternalSourceResolution {
+    Unresolved,
+}
+
 /// Source reference offered as the basis for an assertion.
-/// External references intentionally have no resolved or verified status:
-/// this module has no external retrieval, identity, or integrity verifier.
+/// External references explicitly retain their unresolved status: this module
+/// has no external retrieval, identity, or integrity verifier.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum AssertionSource {
     LocalArtifact { artifact_id: ArtifactId },
-    External { locator: ExternalSourceLocator },
+    External {
+        locator: ExternalSourceLocator,
+        resolution: ExternalSourceResolution,
+    },
 }
 
 /// A pointer to an external assessment/qualification record. The pointer does
@@ -642,6 +653,7 @@ mod tests {
             },
             AssertionSource::External {
                 locator: ExternalSourceLocator::new("urn:source:report-1").unwrap(),
+                resolution: ExternalSourceResolution::Unresolved,
             },
         );
         let reverse = assertion(
@@ -652,6 +664,7 @@ mod tests {
             },
             AssertionSource::External {
                 locator: ExternalSourceLocator::new("urn:source:report-2").unwrap(),
+                resolution: ExternalSourceResolution::Unresolved,
             },
         );
 
@@ -665,6 +678,8 @@ mod tests {
 
         assert_eq!(graph.assertions().len(), 2);
         assert_ne!(graph.assertions()[0].relation, graph.assertions()[1].relation);
+        let serialized = graph.deterministic_json().unwrap();
+        assert!(serialized.contains(r#""resolution":"unresolved""#));
     }
 
     #[test]
@@ -717,6 +732,7 @@ mod tests {
     fn duplicate_assertion_ids_fail_closed() {
         let source = AssertionSource::External {
             locator: ExternalSourceLocator::new("urn:source:one").unwrap(),
+                resolution: ExternalSourceResolution::Unresolved,
         };
         let relation = ProvenanceRelation::DerivedFrom {
             artifact: ArtifactId::new("b").unwrap(),
@@ -745,6 +761,7 @@ mod tests {
             },
             AssertionSource::External {
                 locator: ExternalSourceLocator::new("urn:source:one").unwrap(),
+                resolution: ExternalSourceResolution::Unresolved,
             },
         );
         let two = assertion(
@@ -755,6 +772,7 @@ mod tests {
             },
             AssertionSource::External {
                 locator: ExternalSourceLocator::new("urn:source:two").unwrap(),
+                resolution: ExternalSourceResolution::Unresolved,
             },
         );
 
@@ -809,6 +827,7 @@ mod tests {
             },
             AssertionSource::External {
                 locator: ExternalSourceLocator::new("urn:source:report").unwrap(),
+                resolution: ExternalSourceResolution::Unresolved,
             },
         );
         record.assessment_ref = Some(
