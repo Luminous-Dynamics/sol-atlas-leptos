@@ -319,7 +319,7 @@ impl ValidationFinding {
             ),
         };
 
-        finding_from_domain_error(code, subject, field_path, error.to_string())
+        finding_from_domain_error(code, subject, field_path)
     }
 
     /// Convert an assertion-ledger validation error into a stable report finding.
@@ -381,7 +381,29 @@ impl ValidationFinding {
             ),
         };
 
-        finding_from_domain_error(code, subject, field_path, error.to_string())
+        finding_from_domain_error(code, subject, field_path)
+    }
+}
+
+fn finding_detail(code: ValidationFindingCode) -> &'static str {
+    match code {
+        ValidationFindingCode::MalformedRecord => "record failed domain validation",
+        ValidationFindingCode::InvalidIdentifier => "identifier failed validation",
+        ValidationFindingCode::DuplicateRecord => "record or relationship duplicates an existing entry",
+        ValidationFindingCode::DanglingReference => "reference targets a record that is not present",
+        ValidationFindingCode::InvalidActivityInterval => "activity time interval is invalid",
+        ValidationFindingCode::DerivedFromCycle => "derived-from relation is cyclic",
+        ValidationFindingCode::ExternalSourceUnresolved => "external source has not been resolved",
+        ValidationFindingCode::IntegrityReferenceUnverified => {
+            "integrity metadata is present but the digest was not verified"
+        }
+        ValidationFindingCode::AssertionConflictPreserved => {
+            "conflicting assertion was preserved without adjudication"
+        }
+        ValidationFindingCode::QualificationUnknown => "qualification has not been established",
+        ValidationFindingCode::AssessmentReferenceUnverified => {
+            "assessment reference has not been retrieved or authenticated"
+        }
     }
 }
 
@@ -389,12 +411,16 @@ fn finding_from_domain_error(
     code: ValidationFindingCode,
     subject: Option<(RecordKind, String)>,
     field_path: Option<&str>,
-    detail: String,
 ) -> Result<ValidationFinding, ValidationReportError> {
     let subject = subject
         .map(|(kind, id)| RecordAnchor::new(kind, id))
         .transpose()?;
-    ValidationFinding::new(code, subject, field_path.map(str::to_owned), Some(detail))
+    ValidationFinding::new(
+        code,
+        subject,
+        field_path.map(str::to_owned),
+        Some(finding_detail(code).into()),
+    )
 }
 
 #[derive(Deserialize)]
@@ -907,7 +933,7 @@ mod tests {
             finding.field_path(),
             Some("activities.started_at_unix_ms/ended_at_unix_ms")
         );
-        assert_eq!(finding.detail(), Some(error.to_string().as_str()));
+        assert_eq!(finding.detail(), Some("activity time interval is invalid"));
     }
 
     #[test]
@@ -924,7 +950,35 @@ mod tests {
             Some(&anchor(RecordKind::Assertion, "assertion-4"))
         );
         assert_eq!(finding.field_path(), Some("assertions.relation"));
-        assert!(finding.detail().unwrap().contains("missing-artifact"));
+        assert_eq!(
+            finding.detail(),
+            Some("reference targets a record that is not present")
+        );
+        assert!(!finding.detail().unwrap().contains("missing-artifact"));
+    }
+
+    #[test]
+    fn assertion_error_details_redact_external_source_locators() {
+        let secret_locator = "https://sources.example/private?token=super-secret";
+        let error = AssertionGraphError::DuplicateSource {
+            assertion_id: crate::provenance_assertions::AssertionId::new("assertion-redacted")
+                .unwrap(),
+            source: crate::provenance_assertions::AssertionSource::External {
+                locator: crate::provenance_assertions::ExternalSourceLocator::new(secret_locator)
+                    .unwrap(),
+                resolution: crate::provenance_assertions::ExternalSourceResolution::Unresolved,
+            },
+        };
+
+        let finding = ValidationFinding::from_assertion_graph_error(&error).unwrap();
+        assert_eq!(finding.code(), ValidationFindingCode::DuplicateRecord);
+        assert_eq!(
+            finding.subject(),
+            Some(&anchor(RecordKind::Assertion, "assertion-redacted"))
+        );
+        let detail = finding.detail().unwrap();
+        assert!(!detail.contains(secret_locator));
+        assert!(!detail.contains("super-secret"));
     }
 
     #[test]
