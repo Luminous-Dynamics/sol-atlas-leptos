@@ -14,8 +14,8 @@
 //! systems.
 
 use crate::capability::{
-    CapabilityGraph, CapabilityGraphError, CapabilityId, CapabilityInstance, CapabilityLifecycle,
-    CapabilityAvailability, CapabilityProvenance,
+    CapabilityAvailability, CapabilityGraph, CapabilityGraphError, CapabilityId,
+    CapabilityInstance, CapabilityLifecycle, CapabilityProvenance,
 };
 use crate::types::DataKind;
 use h3o::{LatLng, Resolution};
@@ -123,8 +123,13 @@ pub struct AtlasCapabilityProjectionV1 {
 pub enum ProjectionError {
     Graph(CapabilityGraphError),
     DuplicateInstanceId(String),
-    MissingCapabilityForInstance { instance_id: String, capability_id: CapabilityId },
-    InvalidInstanceLocation { instance_id: String },
+    MissingCapabilityForInstance {
+        instance_id: String,
+        capability_id: CapabilityId,
+    },
+    InvalidInstanceLocation {
+        instance_id: String,
+    },
 }
 
 impl From<CapabilityGraphError> for ProjectionError {
@@ -138,11 +143,20 @@ impl fmt::Display for ProjectionError {
         match self {
             Self::Graph(err) => write!(f, "capability graph error: {err}"),
             Self::DuplicateInstanceId(id) => write!(f, "duplicate instance id: {id}"),
-            Self::MissingCapabilityForInstance { instance_id, capability_id } => {
-                write!(f, "instance {instance_id} references missing capability {capability_id}")
+            Self::MissingCapabilityForInstance {
+                instance_id,
+                capability_id,
+            } => {
+                write!(
+                    f,
+                    "instance {instance_id} references missing capability {capability_id}"
+                )
             }
             Self::InvalidInstanceLocation { instance_id } => {
-                write!(f, "instance {instance_id} has invalid geographic coordinates")
+                write!(
+                    f,
+                    "instance {instance_id} has invalid geographic coordinates"
+                )
             }
         }
     }
@@ -350,15 +364,20 @@ impl AtlasCapabilityProjectionV1 {
 fn summarize_h3(nodes: &[ProjectionNode]) -> Vec<H3CellSummary> {
     let mut by_cell: BTreeMap<String, H3CellSummary> = BTreeMap::new();
 
-    for node in nodes.iter().filter(|n| n.kind == ProjectionNodeKind::Instance) {
+    for node in nodes
+        .iter()
+        .filter(|n| n.kind == ProjectionNodeKind::Instance)
+    {
         let Some(cell) = &node.h3_cell else { continue };
-        let entry = by_cell.entry(cell.clone()).or_insert_with(|| H3CellSummary {
-            cell: cell.clone(),
-            member_instance_ids: Vec::new(),
-            capability_ids: Vec::new(),
-            scenario_instance_count: 0,
-            externally_qualified_reference_count: 0,
-        });
+        let entry = by_cell
+            .entry(cell.clone())
+            .or_insert_with(|| H3CellSummary {
+                cell: cell.clone(),
+                member_instance_ids: Vec::new(),
+                capability_ids: Vec::new(),
+                scenario_instance_count: 0,
+                externally_qualified_reference_count: 0,
+            });
 
         entry.member_instance_ids.push(
             node.node_id
@@ -401,20 +420,23 @@ mod tests {
         )
         .unwrap();
 
-        assert!(projection
-            .nodes
-            .iter()
-            .any(|n| n.kind == ProjectionNodeKind::Capability
-                && n.capability_id == fixture.root));
-        assert!(projection
-            .nodes
-            .iter()
-            .any(|n| n.kind == ProjectionNodeKind::Instance
-                && n.capability_id == fixture.root));
-        assert!(projection
-            .edges
-            .iter()
-            .any(|e| e.from == "instance:fixture.bootstrap.node"));
+        assert!(
+            projection.nodes.iter().any(
+                |n| n.kind == ProjectionNodeKind::Capability && n.capability_id == fixture.root
+            )
+        );
+        assert!(
+            projection
+                .nodes
+                .iter()
+                .any(|n| n.kind == ProjectionNodeKind::Instance && n.capability_id == fixture.root)
+        );
+        assert!(
+            projection
+                .edges
+                .iter()
+                .any(|e| e.from == "instance:fixture.bootstrap.node")
+        );
     }
 
     #[test]
@@ -475,10 +497,7 @@ mod tests {
             projection.h3_cells[0].member_instance_ids,
             vec!["fixture.bootstrap.node"]
         );
-        assert_eq!(
-            projection.h3_cells[0].capability_ids,
-            vec![fixture.root]
-        );
+        assert_eq!(projection.h3_cells[0].capability_ids, vec![fixture.root]);
     }
 
     #[test]
@@ -520,8 +539,7 @@ mod tests {
 
         let fixture = bootstrap_fixture();
         let energy_id = CapabilityId::new("energy").unwrap();
-        let mut definitions: Vec<Capability> =
-            fixture.graph.capabilities().cloned().collect();
+        let mut definitions: Vec<Capability> = fixture.graph.capabilities().cloned().collect();
         let energy_idx = definitions
             .iter()
             .position(|capability| capability.id == energy_id)
@@ -537,22 +555,20 @@ mod tests {
         candidate.required_dependencies = vec![CapabilityId::new("knowledge").unwrap()];
         candidate.alternatives.clear();
 
-        definitions[energy_idx].alternatives.push(CapabilityAlternative {
-            candidate: candidate_id.clone(),
-            replaces: energy_id.clone(),
-            rationale: "explicit comparison candidate".into(),
-            evidence_refs: vec![],
-        });
+        definitions[energy_idx]
+            .alternatives
+            .push(CapabilityAlternative {
+                candidate: candidate_id.clone(),
+                replaces: energy_id.clone(),
+                rationale: "explicit comparison candidate".into(),
+                evidence_refs: vec![],
+            });
         definitions.push(candidate);
 
         let graph = CapabilityGraph::new(definitions).unwrap();
-        let projection = AtlasCapabilityProjectionV1::build(
-            &graph,
-            &[],
-            &fixture.root,
-            Resolution::Two,
-        )
-        .unwrap();
+        let projection =
+            AtlasCapabilityProjectionV1::build(&graph, &[], &fixture.root, Resolution::Two)
+                .unwrap();
 
         assert!(projection.edges.iter().any(|edge| {
             edge.from == "capability:energy"
