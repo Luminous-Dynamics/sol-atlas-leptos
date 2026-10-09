@@ -517,7 +517,7 @@ fn assertion_source_identity(source: &AssertionSource) -> String {
         AssertionSource::External {
             locator,
             resolution: ExternalSourceResolution::Unresolved,
-        } => identity_material(&["external", "unresolved", locator.as_str()),
+        } => identity_material(&["external", "unresolved", locator.as_str()]),
     }
 }
 
