@@ -592,7 +592,7 @@ impl ValidationReport {
                     Some(anchor.clone()),
                     Some(format!("artifacts[{}].source_uri", artifact.id.as_str())),
                     Some(
-                        "artifact source locator is present, but this report did not retrieve or resolve it"
+                        "artifact source locator has not been retrieved or resolved"
                             .into(),
                     ),
                 )?);
