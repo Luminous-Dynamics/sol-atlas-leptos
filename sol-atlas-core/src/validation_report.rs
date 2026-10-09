@@ -325,7 +325,11 @@ impl fmt::Display for ValidationReportError {
                 write!(f, "duplicate validation finding: {:?}", finding.code)
             }
             Self::UnknownAnchor(anchor) => {
-                write!(f, "finding references unknown report subject: {:?}/{}", anchor.kind, anchor.id)
+                write!(
+                    f,
+                    "finding references unknown report subject: {:?}/{}",
+                    anchor.kind, anchor.id
+                )
             }
             Self::UnsupportedSchemaVersion(version) => {
                 write!(f, "unsupported validation report schema version: {version}")
@@ -752,10 +756,7 @@ mod tests {
         let decoded: ValidationReport = serde_json::from_str(&json).unwrap();
         assert_eq!(decoded, report);
 
-        let wrong_schema = json.replace(
-            "\"schema_version\":1",
-            "\"schema_version\":999",
-        );
+        let wrong_schema = json.replace("\"schema_version\":1", "\"schema_version\":999");
         assert!(serde_json::from_str::<ValidationReport>(&wrong_schema).is_err());
 
         let wrong_severity = json.replace("\"severity\":\"warning\"", "\"severity\":\"violation\"");
@@ -782,20 +783,26 @@ mod tests {
     #[test]
     fn ruleset_and_field_paths_are_validated() {
         let subject = anchor(RecordKind::Artifact, "artifact-a");
-        assert!(ValidationReport::new(
-            "rules v1",
-            ValidationScope::ProvenanceGraph,
-            ValidationExecutionStatus::Completed,
-            vec![subject.clone()],
-            vec![],
-            None,
-            None,
-        ).is_err());
-        assert!(ValidationFinding::new(
-            ValidationFindingCode::MalformedRecord,
-            Some(subject),
-            Some("  ".into()),
-            None,
-        ).is_err());
+        assert!(
+            ValidationReport::new(
+                "rules v1",
+                ValidationScope::ProvenanceGraph,
+                ValidationExecutionStatus::Completed,
+                vec![subject.clone()],
+                vec![],
+                None,
+                None,
+            )
+            .is_err()
+        );
+        assert!(
+            ValidationFinding::new(
+                ValidationFindingCode::MalformedRecord,
+                Some(subject),
+                Some("  ".into()),
+                None,
+            )
+            .is_err()
+        );
     }
 }
