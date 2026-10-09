@@ -421,28 +421,28 @@ fn provenance_error_occurrence_key(error: &ProvenanceError) -> Option<String> {
     use ProvenanceError as E;
 
     let identity = match error {
-        E::DuplicateRelation(relation) => {
-            format!("duplicate_relation:{}", provenance_relation_identity(relation))
+        E::DuplicateRelation(relation) => identity_material(&[
+            "duplicate_relation",
+            &provenance_relation_identity(relation),
+        ]),
+        E::MissingArtifact { relation, artifact } => identity_material(&[
+            "missing_artifact",
+            &provenance_relation_identity(relation),
+            artifact.as_str(),
+        ]),
+        E::MissingActivity { relation, activity } => identity_material(&[
+            "missing_activity",
+            &provenance_relation_identity(relation),
+            activity.as_str(),
+        ]),
+        E::MissingAgent { relation, agent } => identity_material(&[
+            "missing_agent",
+            &provenance_relation_identity(relation),
+            agent.as_str(),
+        ]),
+        E::UnknownArtifact(artifact) => {
+            identity_material(&["unknown_artifact", artifact.as_str()])
         }
-        E::MissingArtifact { relation, artifact } => {
-            format!(
-                "missing_artifact:{}:{artifact}",
-                provenance_relation_identity(relation)
-            )
-        }
-        E::MissingActivity { relation, activity } => {
-            format!(
-                "missing_activity:{}:{activity}",
-                provenance_relation_identity(relation)
-            )
-        }
-        E::MissingAgent { relation, agent } => {
-            format!(
-                "missing_agent:{}:{agent}",
-                provenance_relation_identity(relation)
-            )
-        }
-        E::UnknownArtifact(artifact) => format!("unknown_artifact:{artifact}"),
         _ => return None,
     };
     Some(occurrence_fingerprint(&identity))
@@ -452,42 +452,59 @@ fn assertion_error_occurrence_key(error: &AssertionGraphError) -> Option<String>
     use AssertionGraphError as E;
 
     let identity = match error {
-        E::DuplicateSource { assertion_id, source } => {
-            format!(
-                "duplicate_source:{assertion_id}:{}",
-                assertion_source_identity(source)
-            )
-        }
-        E::MissingArtifact { assertion_id, artifact_id } => {
-            format!("missing_artifact:{assertion_id}:{artifact_id}")
-        }
-        E::MissingActivity { assertion_id, activity_id } => {
-            format!("missing_activity:{assertion_id}:{activity_id}")
-        }
-        E::MissingAgent { assertion_id, agent_id } => {
-            format!("missing_agent:{assertion_id}:{agent_id}")
-        }
+        E::DuplicateSource { assertion_id, source } => identity_material(&[
+            "duplicate_source",
+            assertion_id.as_str(),
+            &assertion_source_identity(source),
+        ]),
+        E::MissingArtifact { assertion_id, artifact_id } => identity_material(&[
+            "missing_artifact",
+            assertion_id.as_str(),
+            artifact_id.as_str(),
+        ]),
+        E::MissingActivity { assertion_id, activity_id } => identity_material(&[
+            "missing_activity",
+            assertion_id.as_str(),
+            activity_id.as_str(),
+        ]),
+        E::MissingAgent { assertion_id, agent_id } => identity_material(&[
+            "missing_agent",
+            assertion_id.as_str(),
+            agent_id.as_str(),
+        ]),
         _ => return None,
     };
     Some(occurrence_fingerprint(&identity))
 }
 
+/// Length-prefix components before hashing so identifiers containing separators
+/// cannot alias another tuple of identity fields.
+fn identity_material(parts: &[&str]) -> String {
+    let mut material = String::new();
+    for part in parts {
+        material.push_str(&part.len().to_string());
+        material.push(':');
+        material.push_str(part);
+    }
+    material
+}
+
 fn provenance_relation_identity(relation: &ProvenanceRelation) -> String {
     match relation {
         ProvenanceRelation::Used { activity, artifact } => {
-            format!("used:{activity}:{artifact}")
+            identity_material(&["used", activity.as_str(), artifact.as_str()])
         }
         ProvenanceRelation::Generated { activity, artifact } => {
-            format!("generated:{activity}:{artifact}")
+            identity_material(&["generated", activity.as_str(), artifact.as_str()])
         }
         ProvenanceRelation::AssociatedWith { activity, agent } => {
-            format!("associated_with:{activity}:{agent}")
+            identity_material(&["associated_with", activity.as_str(), agent.as_str()])
         }
         ProvenanceRelation::DerivedFrom { artifact, source } => {
-            format!("derived_from:{artifact}:{source}")
+            identity_material(&["derived_from", artifact.as_str(), source.as_str()])
         }
         ProvenanceRelation::AttributedTo { artifact, agent } => {
-            format!("attributed_to:{artifact}:{agent}")
+            identity_material(&["attributed_to", artifact.as_str(), agent.as_str()])
         }
     }
 }
@@ -495,12 +512,12 @@ fn provenance_relation_identity(relation: &ProvenanceRelation) -> String {
 fn assertion_source_identity(source: &AssertionSource) -> String {
     match source {
         AssertionSource::LocalArtifact { artifact_id } => {
-            format!("local_artifact:{artifact_id}")
+            identity_material(&["local_artifact", artifact_id.as_str()])
         }
         AssertionSource::External {
             locator,
             resolution: ExternalSourceResolution::Unresolved,
-        } => format!("external:unresolved:{}", locator.as_str()),
+        } => identity_material(&["external", "unresolved", locator.as_str()),
     }
 }
 
