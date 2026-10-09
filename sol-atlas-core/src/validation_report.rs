@@ -588,6 +588,17 @@ impl ValidationReport {
                     )),
                 )?);
             }
+            if let Some(source_uri) = &artifact.source_uri {
+                findings.push(ValidationFinding::new(
+                    ValidationFindingCode::ExternalSourceUnresolved,
+                    Some(anchor.clone()),
+                    Some(format!("artifacts[{}].source_uri", artifact.id.as_str())),
+                    Some(format!(
+                        "artifact source locator {source_uri} is recorded; this report \
+                         did not retrieve or resolve it"
+                    )),
+                )?);
+            }
             subjects.push(anchor);
         }
 
@@ -947,7 +958,7 @@ mod tests {
             label: "artifact-a".into(),
             media_type: Some("application/json".into()),
             integrity: Some(IntegrityReference::new("sha256", "deadbeef").unwrap()),
-            source_uri: None,
+            source_uri: Some("urn:artifact:source-a".into()),
         };
         let second_artifact = ArtifactSnapshot {
             id: ArtifactId::new("artifact-b").unwrap(),
@@ -1001,6 +1012,11 @@ mod tests {
         assert!(report.findings().iter().any(|finding| {
             finding.code() == ValidationFindingCode::IntegrityReferenceUnverified
                 && finding.subject() == Some(&anchor(RecordKind::Artifact, "artifact-a"))
+        }));
+        assert!(report.findings().iter().any(|finding| {
+            finding.code() == ValidationFindingCode::ExternalSourceUnresolved
+                && finding.subject() == Some(&anchor(RecordKind::Artifact, "artifact-a"))
+                && finding.field_path() == Some("artifacts[artifact-a].source_uri")
         }));
         assert!(report.findings().iter().any(|finding| {
             finding.code() == ValidationFindingCode::AssessmentReferenceUnverified
