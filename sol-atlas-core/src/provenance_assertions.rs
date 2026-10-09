@@ -32,7 +32,9 @@ impl fmt::Display for AssertionIdentifierProblem {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "identifier must not be empty"),
-            Self::SurroundingWhitespace => write!(f, "identifier must not have surrounding whitespace"),
+            Self::SurroundingWhitespace => {
+                write!(f, "identifier must not have surrounding whitespace")
+            }
             Self::Whitespace => write!(f, "identifier must not contain whitespace"),
             Self::ControlCharacter => write!(f, "identifier must not contain control characters"),
         }
@@ -210,9 +212,15 @@ pub enum AssessmentReferenceError {
 impl fmt::Display for AssessmentReferenceError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidAuthority => write!(f, "assessment authority must be non-empty and trimmed"),
-            Self::InvalidReference => write!(f, "assessment reference must be non-empty and trimmed"),
-            Self::ControlCharacter => write!(f, "assessment fields must not contain control characters"),
+            Self::InvalidAuthority => {
+                write!(f, "assessment authority must be non-empty and trimmed")
+            }
+            Self::InvalidReference => {
+                write!(f, "assessment reference must be non-empty and trimmed")
+            }
+            Self::ControlCharacter => {
+                write!(f, "assessment fields must not contain control characters")
+            }
         }
     }
 }
@@ -250,7 +258,11 @@ pub enum AssertionGraphError {
     DuplicateAssertion(AssertionId),
     DuplicateSource { assertion_id: AssertionId, source: AssertionSource },
     InvalidArtifactIntegrity { artifact_id: ArtifactId, problem: IntegrityReferenceError },
-    InvalidActivityInterval { activity_id: ActivityId, started_at_unix_ms: i64, ended_at_unix_ms: i64 },
+    InvalidActivityInterval {
+        activity_id: ActivityId,
+        started_at_unix_ms: i64,
+        ended_at_unix_ms: i64,
+    },
     MissingArtifact { assertion_id: AssertionId, artifact_id: ArtifactId },
     MissingActivity { assertion_id: AssertionId, activity_id: ActivityId },
     MissingAgent { assertion_id: AssertionId, agent_id: AgentId },
@@ -273,9 +285,14 @@ impl fmt::Display for AssertionGraphError {
             Self::InvalidArtifactIntegrity { artifact_id, problem } => {
                 write!(f, "artifact {artifact_id} has invalid integrity reference: {problem}")
             }
-            Self::InvalidActivityInterval { activity_id, started_at_unix_ms, ended_at_unix_ms } => {
-                write!(f, "activity {activity_id} ends at {ended_at_unix_ms} before it starts at {started_at_unix_ms}")
-            }
+            Self::InvalidActivityInterval {
+                activity_id,
+                started_at_unix_ms,
+                ended_at_unix_ms,
+            } => write!(
+                f,
+                "activity {activity_id} ends at {ended_at_unix_ms} before it starts at {started_at_unix_ms}"
+            ),
             Self::MissingArtifact { assertion_id, artifact_id } => {
                 write!(f, "assertion {assertion_id} references missing artifact {artifact_id}")
             }
