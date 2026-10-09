@@ -592,12 +592,9 @@ mod tests {
             EvidenceReferenceStatus::NotDeclaredByCapability
         );
 
-        // The state is declaration-local, not a statement about remote truth,
-        // content availability, integrity verification, or qualification.
-        assert!(projection.evidence_refs.iter().all(|reference| {
-            reference.status == EvidenceReferenceStatus::DeclaredByCapability
-                || reference.status == EvidenceReferenceStatus::NotDeclaredByCapability
-        }));
+        // The serialized view makes the declaration-only state explicit.
+        let encoded = serde_json::to_string(reference).unwrap();
+        assert!(encoded.contains(r#""status":"not_declared_by_capability""#));
     }
 
     #[test]
