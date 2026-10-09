@@ -20,8 +20,6 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
-      - name: Check sol-atlas-core formatting
-        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
 
   check-wasm:
     runs-on: ubuntu-latest
@@ -65,8 +63,8 @@ jobs:
       # Test it explicitly; `cargo test --lib` fails because no root library exists.
       - name: Test Sol Atlas app
         run: cargo test --bin sol-atlas-leptos
-      # sol-atlas-core is a separate nested package, not a workspace member.
-      # Testing the binary only compiles this path dependency; it does not run
-      # the dependency crate's own unit tests, so invoke its manifest directly.
+      # sol-atlas-core is a workspace member. Test it explicitly because
+      # testing the root binary only compiles the path dependency; it does not
+      # execute the dependency crate's own unit tests.
       - name: Test sol-atlas-core unit tests
-        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+        run: cargo test -p sol-atlas-core
