@@ -14,7 +14,7 @@
 
 use crate::provenance::{
     ActivityId, ActivityRecord, AgentId, AgentRecord, ArtifactId, ArtifactSnapshot,
-    ProvenanceRelation,
+    IntegrityReference, IntegrityReferenceError, ProvenanceRelation,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
@@ -249,6 +249,8 @@ pub enum AssertionGraphError {
     DuplicateAgent(AgentId),
     DuplicateAssertion(AssertionId),
     DuplicateSource { assertion_id: AssertionId, source: AssertionSource },
+    InvalidArtifactIntegrity { artifact_id: ArtifactId, problem: IntegrityReferenceError },
+    InvalidActivityInterval { activity_id: ActivityId, started_at_unix_ms: i64, ended_at_unix_ms: i64 },
     MissingArtifact { assertion_id: AssertionId, artifact_id: ArtifactId },
     MissingActivity { assertion_id: AssertionId, activity_id: ActivityId },
     MissingAgent { assertion_id: AssertionId, agent_id: AgentId },
@@ -267,6 +269,12 @@ impl fmt::Display for AssertionGraphError {
             Self::DuplicateAssertion(id) => write!(f, "duplicate assertion id: {id}"),
             Self::DuplicateSource { assertion_id, source } => {
                 write!(f, "assertion {assertion_id} repeats source {source:?}")
+            }
+            Self::InvalidArtifactIntegrity { artifact_id, problem } => {
+                write!(f, "artifact {artifact_id} has invalid integrity reference: {problem}")
+            }
+            Self::InvalidActivityInterval { activity_id, started_at_unix_ms, ended_at_unix_ms } => {
+                write!(f, "activity {activity_id} ends at {ended_at_unix_ms} before it starts at {started_at_unix_ms}")
             }
             Self::MissingArtifact { assertion_id, artifact_id } => {
                 write!(f, "assertion {assertion_id} references missing artifact {artifact_id}")
@@ -315,12 +323,34 @@ impl ProvenanceAssertionGraph {
             if !artifact_ids.insert(artifact.id.clone()) {
                 return Err(AssertionGraphError::DuplicateArtifact(artifact.id.clone()));
             }
+            if let Some(integrity) = &artifact.integrity {
+                if let Err(problem) = IntegrityReference::new(
+                    integrity.algorithm.clone(),
+                    integrity.value.clone(),
+                ) {
+                    return Err(AssertionGraphError::InvalidArtifactIntegrity {
+                        artifact_id: artifact.id.clone(),
+                        problem,
+                    });
+                }
+            }
         }
 
         let mut activity_ids = BTreeSet::new();
         for activity in &activities {
             if !activity_ids.insert(activity.id.clone()) {
                 return Err(AssertionGraphError::DuplicateActivity(activity.id.clone()));
+            }
+            if let (Some(start), Some(end)) =
+                (activity.started_at_unix_ms, activity.ended_at_unix_ms)
+            {
+                if end < start {
+                    return Err(AssertionGraphError::InvalidActivityInterval {
+                        activity_id: activity.id.clone(),
+                        started_at_unix_ms: start,
+                        ended_at_unix_ms: end,
+                    });
+                }
             }
         }
 
@@ -640,6 +670,30 @@ mod tests {
             vec![invalid],
         ).unwrap_err();
         assert!(matches!(err, AssertionGraphError::MissingArtifact { .. }));
+    }
+
+    #[test]
+    fn assertion_ledger_validates_embedded_activity_and_artifact_invariants() {
+        let mut bad_artifact = artifact("bad-integrity");
+        bad_artifact.integrity = Some(IntegrityReference {
+            algorithm: "sha 256".into(),
+            value: "abcd".into(),
+        });
+        let (mut artifacts, activities, agents) = fixture_entities();
+        artifacts.push(bad_artifact);
+        let err = ProvenanceAssertionGraph::new(
+            artifacts, activities.clone(), agents.clone(), vec![],
+        ).unwrap_err();
+        assert!(matches!(err, AssertionGraphError::InvalidArtifactIntegrity { .. }));
+
+        let mut invalid = activity("time-reversed");
+        invalid.started_at_unix_ms = Some(20);
+        invalid.ended_at_unix_ms = Some(10);
+        let (artifacts, mut activities, agents) = fixture_entities();
+        activities.push(invalid);
+        let err = ProvenanceAssertionGraph::new(artifacts, activities, agents, vec![])
+            .unwrap_err();
+        assert!(matches!(err, AssertionGraphError::InvalidActivityInterval { .. }));
     }
 
     #[test]
