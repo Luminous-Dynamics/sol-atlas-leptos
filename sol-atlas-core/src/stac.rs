@@ -152,7 +152,7 @@ pub fn import_item_json(input: &str) -> Result<StacItemImport, String> {
             base64url_no_pad(key.as_bytes())
         ))?;
         let source = AssetSource::new(None, href)?;
-        let resolution = parse_resolution(asset)?;
+        let resolution = parse_resolution(asset, properties)?;
         let record = AssetRecord::new(
             id,
             asset_title,
@@ -224,7 +224,13 @@ fn parse_item_footprint(value: Option<&Value>) -> Result<Option<GeoFootprint>, S
 }
 
 fn parse_observation_time(properties: &Map<String, Value>) -> Result<ObservationTime, String> {
-    let datetime = optional_nonempty_text(properties.get("datetime"), "properties.datetime")?;
+    // STAC Item core requires datetime. A null datetime is valid only when
+    // both interval bounds are supplied; missing timestamps are not a valid
+    // STAC Item and must not be silently accepted as a conforming unknown.
+    let datetime_value = properties
+        .get("datetime")
+        .ok_or_else(|| "STAC Item properties.datetime is required".to_string())?;
+    let datetime = optional_nonempty_text(Some(datetime_value), "properties.datetime")?;
     let start = optional_nonempty_text(
         properties.get("start_datetime"),
         "properties.start_datetime",
@@ -232,22 +238,29 @@ fn parse_observation_time(properties: &Map<String, Value>) -> Result<Observation
     let end =
         optional_nonempty_text(properties.get("end_datetime"), "properties.end_datetime")?;
 
-    match (start, end) {
-        (Some(start), Some(end)) => ObservationTime::new(
-            ObservationTimeKind::Interval,
-            Some(start),
-            Some(end),
-        ),
-        (Some(_), None) | (None, Some(_)) => {
-            Err("STAC start_datetime and end_datetime must occur together".into())
+    match datetime {
+        Some(value) => {
+            if start.is_some() || end.is_some() {
+                return Err(
+                    "STAC datetime must be null when start_datetime/end_datetime are provided"
+                        .into(),
+                );
+            }
+            ObservationTime::new(ObservationTimeKind::Instant, Some(value), None)
         }
-        (None, None) => match datetime {
-            Some(value) => ObservationTime::new(
-                ObservationTimeKind::Instant,
-                Some(value),
-                None,
+        None => match (start, end) {
+            (Some(start), Some(end)) => ObservationTime::new(
+                ObservationTimeKind::Interval,
+                Some(start),
+                Some(end),
             ),
-            None => Ok(ObservationTime::unknown()),
+            (Some(_), None) | (None, Some(_)) => {
+                Err("STAC start_datetime and end_datetime must occur together".into())
+            }
+            (None, None) => Err(
+                "STAC datetime may be null only when start_datetime and end_datetime are supplied"
+                    .into(),
+            ),
         },
     }
 }
@@ -313,57 +326,74 @@ fn source_crs(
     Ok(None)
 }
 
-fn parse_resolution(asset: &Map<String, Value>) -> Result<Option<SpatialResolution>, String> {
-    // STAC Common Metadata defines asset-level gsd in meters. Prefer it when
-    // present; otherwise summarize Raster Extension per-band spatial resolution.
+fn parse_resolution(
+    asset: &Map<String, Value>,
+    properties: &Map<String, Value>,
+) -> Result<Option<SpatialResolution>, String> {
+    // STAC Common Metadata permits gsd on the Item or an individual asset.
+    // Asset-level gsd overrides the Item value. Band-specific raster extension
+    // metadata is a useful fallback when no asset-level gsd is supplied.
     if let Some(value) = asset.get("gsd").filter(|value| !value.is_null()) {
-        let value = value
-            .as_f64()
-            .ok_or_else(|| "asset gsd must be numeric".to_string())?;
-        return SpatialResolution::new(value, crate::geospatial_assets::ResolutionUnit::Meter)
-            .map(Some)
-            .map_err(|error| format!("invalid asset gsd: {error}"));
+        return parse_gsd(value, "asset gsd");
     }
 
-    let Some(bands) = asset.get("raster:bands") else {
-        return Ok(None);
-    };
-    let bands = bands
-        .as_array()
-        .ok_or_else(|| "raster:bands must be an array".to_string())?;
-    let mut resolutions = Vec::new();
+    if let Some(bands) = asset.get("raster:bands") {
+        let bands = bands
+            .as_array()
+            .ok_or_else(|| "raster:bands must be an array".to_string())?;
+        let mut resolutions = Vec::new();
 
-    for band in bands {
-        let Some(band) = band.as_object() else {
-            return Err("each raster:bands entry must be an object".into());
-        };
-        if let Some(value) = band
-            .get("raster:spatial_resolution")
-            .filter(|value| !value.is_null())
-        {
-            let value = value.as_f64().ok_or_else(|| {
-                "raster:spatial_resolution must be numeric".to_string()
-            })?;
-            resolutions.push(value);
+        for band in bands {
+            let Some(band) = band.as_object() else {
+                return Err("each raster:bands entry must be an object".into());
+            };
+            if let Some(value) = band
+                .get("raster:spatial_resolution")
+                .filter(|value| !value.is_null())
+            {
+                let value = value.as_f64().ok_or_else(|| {
+                    "raster:spatial_resolution must be numeric".to_string()
+                })?;
+                resolutions.push(value);
+            }
+        }
+
+        if !resolutions.is_empty() {
+            if resolutions.iter().any(|value| !value.is_finite() || *value <= 0.0) {
+                return Err(
+                    "raster:spatial_resolution values must be finite and greater than zero"
+                        .into(),
+                );
+            }
+
+            // Bands can legitimately have different native resolutions.
+            // Preserve the coarsest stated value as a conservative summary.
+            let max_resolution = resolutions.into_iter().fold(0.0_f64, f64::max);
+            return SpatialResolution::new(
+                max_resolution,
+                crate::geospatial_assets::ResolutionUnit::Meter,
+            )
+            .map(Some)
+            .map_err(|error| format!("invalid raster resolution: {error}"));
         }
     }
 
-    if resolutions.is_empty() {
-        return Ok(None);
-    }
-    if resolutions.iter().any(|value| !value.is_finite() || *value <= 0.0) {
-        return Err(
-            "raster:spatial_resolution values must be finite and greater than zero".into(),
-        );
+    // Item-level gsd is inherited only after any explicit asset or band-level
+    // resolution is considered.
+    if let Some(value) = properties.get("gsd").filter(|value| !value.is_null()) {
+        return parse_gsd(value, "properties.gsd");
     }
 
-    // Bands can legitimately have different native resolutions. Preserve the
-    // coarsest stated resolution as one conservative summary; the full per-band
-    // values are not represented by this simplified internal field.
-    let max_resolution = resolutions.into_iter().fold(0.0_f64, f64::max);
-    SpatialResolution::new(max_resolution, crate::geospatial_assets::ResolutionUnit::Meter)
+    Ok(None)
+}
+
+fn parse_gsd(value: &Value, label: &str) -> Result<Option<SpatialResolution>, String> {
+    let value = value
+        .as_f64()
+        .ok_or_else(|| format!("{label} must be numeric"))?;
+    SpatialResolution::new(value, crate::geospatial_assets::ResolutionUnit::Meter)
         .map(Some)
-        .map_err(|error| format!("invalid raster resolution: {error}"))
+        .map_err(|error| format!("invalid {label}: {error}"))
 }
 
 fn classify_asset(asset: &Map<String, Value>, media_type: &str) -> Option<AssetKind> {
@@ -493,17 +523,65 @@ mod tests {
     }
 
     #[test]
-    fn unknown_dates_and_licences_stay_unknown() {
-        let item = r#"{
+    fn missing_or_inconsistent_stac_datetime_fails_closed() {
+        let missing = r#"{
           "type":"Feature",
-          "id":"unknown",
+          "id":"missing-date",
           "properties":{},
           "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
         }"#;
-        let result = import_item_json(item).unwrap();
-        assert_eq!(result.imported_assets()[0].observation_time().kind(), ObservationTimeKind::Unknown);
+        assert!(import_item_json(missing).unwrap_err().contains("datetime is required"));
+
+        let null_without_range = r#"{
+          "type":"Feature",
+          "id":"unknown-date",
+          "properties":{"datetime":null},
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        assert!(import_item_json(null_without_range).unwrap_err().contains("may be null only"));
+
+        let mixed = r#"{
+          "type":"Feature",
+          "id":"mixed-date",
+          "properties":{
+            "datetime":"2025-01-01T00:00:00Z",
+            "start_datetime":"2025-01-01T00:00:00Z",
+            "end_datetime":"2025-01-02T00:00:00Z"
+          },
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        assert!(import_item_json(mixed).unwrap_err().contains("must be null"));
+
+        let unknown_licence = r#"{
+          "type":"Feature",
+          "id":"unknown-licence",
+          "properties":{"datetime":"2025-01-01T00:00:00Z"},
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        let result = import_item_json(unknown_licence).unwrap();
         assert_eq!(result.imported_assets()[0].licence().review(), LicenceReview::Unknown);
         assert!(result.imported_assets()[0].licence().identifier().is_none());
+    }
+
+    #[test]
+    fn item_gsd_fallback_is_used_when_asset_and_bands_lack_resolution() {
+        let item = r#"{
+          "type":"Feature",
+          "id":"item-gsd",
+          "properties":{"datetime":"2025-01-01T00:00:00Z","gsd":30},
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        let result = import_item_json(item).unwrap();
+        assert_eq!(result.imported_assets()[0].spatial_resolution().unwrap().value(), 30.0);
+
+        let asset_override = r#"{
+          "type":"Feature",
+          "id":"asset-gsd",
+          "properties":{"datetime":"2025-01-01T00:00:00Z","gsd":30},
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg","gsd":5}}
+        }"#;
+        let result = import_item_json(asset_override).unwrap();
+        assert_eq!(result.imported_assets()[0].spatial_resolution().unwrap().value(), 5.0);
     }
 
     #[test]
