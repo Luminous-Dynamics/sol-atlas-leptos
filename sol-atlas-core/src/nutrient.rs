@@ -185,6 +185,38 @@ impl NutrientProfile {
     }
 }
 
+/// Identity and area for one crop-season budget. Stable identifiers and an explicit
+/// period prevent values from unrelated fields, crops, or seasons being combined.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BudgetContext {
+    pub site_id: String,
+    pub crop_id: String,
+    pub period_id: String,
+    pub area_hectares: f64,
+}
+
+impl BudgetContext {
+    fn validate(&self) -> Result<(), NutrientModelError> {
+        for (path, value) in [
+            ("context.site_id", self.site_id.as_str()),
+            ("context.crop_id", self.crop_id.as_str()),
+            ("context.period_id", self.period_id.as_str()),
+        ] {
+            if value.trim().is_empty() {
+                return Err(NutrientModelError::new(path, "identifier cannot be empty"));
+            }
+        }
+        if !self.area_hectares.is_finite() || self.area_hectares <= 0.0 {
+            return Err(NutrientModelError::new(
+                "context.area_hectares",
+                "area must be finite and greater than zero",
+            ));
+        }
+        Ok(())
+    }
+}
+
 /// One per-hectare seasonal accounting exercise.
 ///
 /// Supply values must be the estimated amount available during the same period as the
@@ -194,6 +226,7 @@ impl NutrientProfile {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct NutrientBudgetInput {
+    pub context: BudgetContext,
     pub crop_demand: NutrientProfile,
     pub existing_soil_supply: NutrientProfile,
     pub mineral_fertilizer_supply: NutrientProfile,
@@ -202,6 +235,7 @@ pub struct NutrientBudgetInput {
 
 impl NutrientBudgetInput {
     fn validate(&self) -> Result<(), NutrientModelError> {
+        self.context.validate()?;
         self.crop_demand.validate("crop_demand")?;
         self.existing_soil_supply.validate("existing_soil_supply")?;
         self.mineral_fertilizer_supply
@@ -234,6 +268,7 @@ pub struct NutrientBalance {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct NutrientBudget {
+    pub context: BudgetContext,
     pub nitrogen: NutrientBalance,
     pub phosphorus: NutrientBalance,
     pub potassium: NutrientBalance,
@@ -297,6 +332,7 @@ pub fn calculate_budget(input: &NutrientBudgetInput) -> Result<NutrientBudget, N
     input.validate()?;
 
     Ok(NutrientBudget {
+        context: input.context.clone(),
         nitrogen: calculate_one(
             "nitrogen",
             &input.crop_demand.nitrogen,
@@ -387,6 +423,12 @@ mod tests {
 
     fn complete_input() -> NutrientBudgetInput {
         NutrientBudgetInput {
+            context: BudgetContext {
+                site_id: "field-north-001".into(),
+                crop_id: "maize".into(),
+                period_id: "2026-main-season".into(),
+                area_hectares: 2.5,
+            },
             crop_demand: profile(120.0, 30.0, 80.0),
             existing_soil_supply: profile(30.0, 5.0, 20.0),
             mineral_fertilizer_supply: profile(60.0, 10.0, 25.0),
