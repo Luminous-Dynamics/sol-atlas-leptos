@@ -159,11 +159,17 @@ These references support experimental design and architecture; they do not certi
 
 An E0–E3 result authorizes research claims only. This contract grants no physical control authority. Initial work must remain offline/simulated or read-only. No model may promote itself, write actuator setpoints, bypass a local guard, or convert a missing observation into a pass. Each promotion requires its own evidence, and a queued or authored test is not a pass.
 
+## Implementation status update — 2026-10-11
+
+The first executable follow-up is drafted in [Sol Atlas PR #82](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/82), stacked on the in-progress microgrid model in [PR #68](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/68). It adds `EnergyStudyManifestV1`, fail-closed field validation, a domain-separated canonical SHA-256 encoding, and a synthetic cloud/evening-outage fixture with content hashes for every listed input, registry, constraint set, model configuration, and policy configuration.
+
+The PR also authors a frozen known-answer digest and a test that recomputes the hashes of the checked-in fixture artifacts. These tests have **not** been executed in this environment; this status describes authored source, not a passing qualification. The fixture is synthetic and does not establish real-world performance. The manifest digest binds declared metadata; it does not authenticate source claims, attest to runtime execution, or verify simulation receipts.
+
 ## 9. Immediate next deliverables
 
 1. **Do not fork another scheduling harness.** Complete and review Symthaea #7239 / #7304, then continue #7305's optional SAM reference lane and #7306's load-registry integration with exact-head receipts.
-2. **Close the semantic gap in Sol Atlas.** Keep #66 / #68 / #69 focused and add per-dataset provenance plus explicit model/scenario labels to every derived layer. Audit the toy trade/stress simulation so geographic distance and physical delivery are never implied when not modeled.
+2. **Qualify the Sol Atlas kernels.** Keep #66 / #68 / #69 focused; verify dispatch conservation, interval edge cases, and external-reference mapping. Add per-dataset provenance plus explicit modelled/scenario labels to derived layers. Audit the illustrative trade/stress simulation so geographic reachability and physical delivery are never implied when not modeled.
 3. **Harden Mycelix source claims.** Compose with #4939; replace trust-by-boolean where consequential with verifiable source/evidence references, replay-resistant intervals, and explicit dispute/supersession behavior.
-4. **Then add one end-to-end adapter fixture.** One frozen case should be consumable by Symthaea, represented by Mycelix evidence metadata, and displayed by Sol Atlas with the case digest and evidence class visible. Test the interchange and verifier independently before adding optimization complexity.
+4. **Close the adapter loop.** Feed this frozen manifest fixture into Symthaea's per-step receipt/reporting contract, then bind the same case digest into Mycelix's evidence records and Sol Atlas's visible presentation. Add a cross-language golden-vector check before calling the interchange stable.
 
 The success criterion is not the number of energy features. It is a reproducible, honestly bounded answer to: *which policy or technology performed better, on which identical conditions, by how much, with what uncertainty, under which constraints, and with what independent evidence?*
