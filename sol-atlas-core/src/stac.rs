@@ -281,18 +281,14 @@ fn source_crs(
     asset: &Map<String, Value>,
     properties: &Map<String, Value>,
 ) -> Result<Option<String>, String> {
-    // Source/asset-level projection metadata overrides item-level metadata.
+    // Asset-level projection metadata overrides item-level metadata.
+    // Prefer current proj:code; accept deprecated proj:epsg for older catalogs.
+    // WKT2 and PROJJSON remain explicit, opaque declarations when no code exists.
     for object in [asset, properties] {
-        if let Some(value) = object.get("proj:code") {
-            if value.is_null() {
-                continue;
-            }
+        if let Some(value) = object.get("proj:code").filter(|value| !value.is_null()) {
             return optional_nonempty_text(Some(value), "proj:code");
         }
-        if let Some(value) = object.get("proj:epsg") {
-            if value.is_null() {
-                continue;
-            }
+        if let Some(value) = object.get("proj:epsg").filter(|value| !value.is_null()) {
             if let Some(code) = value.as_i64() {
                 if code <= 0 {
                     return Err("proj:epsg must be a positive integer".into());
@@ -301,11 +297,34 @@ fn source_crs(
             }
             return Err("proj:epsg must be a positive integer or null".into());
         }
+        if let Some(value) = object.get("proj:wkt2").filter(|value| !value.is_null()) {
+            let wkt = required_nonempty_text(Some(value), "proj:wkt2")?;
+            return Ok(Some(format!("WKT2:{wkt}")));
+        }
+        if let Some(value) = object.get("proj:projjson").filter(|value| !value.is_null()) {
+            if !value.is_object() {
+                return Err("proj:projjson must be an object or null".into());
+            }
+            let serialized = serde_json::to_string(value)
+                .map_err(|error| format!("invalid proj:projjson: {error}"))?;
+            return Ok(Some(format!("PROJJSON:{serialized}")));
+        }
     }
     Ok(None)
 }
 
 fn parse_resolution(asset: &Map<String, Value>) -> Result<Option<SpatialResolution>, String> {
+    // STAC Common Metadata defines asset-level gsd in meters. Prefer it when
+    // present; otherwise summarize Raster Extension per-band spatial resolution.
+    if let Some(value) = asset.get("gsd").filter(|value| !value.is_null()) {
+        let value = value
+            .as_f64()
+            .ok_or_else(|| "asset gsd must be numeric".to_string())?;
+        return SpatialResolution::new(value, crate::geospatial_assets::ResolutionUnit::Meter)
+            .map(Some)
+            .map_err(|error| format!("invalid asset gsd: {error}"));
+    }
+
     let Some(bands) = asset.get("raster:bands") else {
         return Ok(None);
     };
@@ -318,10 +337,13 @@ fn parse_resolution(asset: &Map<String, Value>) -> Result<Option<SpatialResoluti
         let Some(band) = band.as_object() else {
             return Err("each raster:bands entry must be an object".into());
         };
-        if let Some(value) = band.get("gsd") {
-            let value = value
-                .as_f64()
-                .ok_or_else(|| "raster band gsd must be numeric".to_string())?;
+        if let Some(value) = band
+            .get("raster:spatial_resolution")
+            .filter(|value| !value.is_null())
+        {
+            let value = value.as_f64().ok_or_else(|| {
+                "raster:spatial_resolution must be numeric".to_string()
+            })?;
             resolutions.push(value);
         }
     }
@@ -330,12 +352,14 @@ fn parse_resolution(asset: &Map<String, Value>) -> Result<Option<SpatialResoluti
         return Ok(None);
     }
     if resolutions.iter().any(|value| !value.is_finite() || *value <= 0.0) {
-        return Err("raster band gsd values must be finite and greater than zero".into());
+        return Err(
+            "raster:spatial_resolution values must be finite and greater than zero".into(),
+        );
     }
 
     // Bands can legitimately have different native resolutions. Preserve the
-    // coarsest stated GSD as one conservative summary; the full per-band values
-    // are not represented by this simplified internal field.
+    // coarsest stated resolution as one conservative summary; the full per-band
+    // values are not represented by this simplified internal field.
     let max_resolution = resolutions.into_iter().fold(0.0_f64, f64::max);
     SpatialResolution::new(max_resolution, crate::geospatial_assets::ResolutionUnit::Meter)
         .map(Some)
