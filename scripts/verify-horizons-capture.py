@@ -113,6 +113,29 @@ def validate_url_metadata(url_bytes: bytes, metadata: dict[str, Any]) -> None:
     except ValueError as error:
         raise CaptureVerificationError(f"request.url query is malformed: {error}") from error
 
+    expected_parameter_order = [
+        "COMMAND", "CENTER", "CSV_FORMAT", "EPHEM_TYPE", "MAKE_EPHEM",
+        "OBJ_DATA", "OUT_UNITS", "REF_PLANE", "REF_SYSTEM", "TIME_TYPE",
+        "TLIST", "TLIST_TYPE", "VEC_CORR", "VEC_LABELS", "VEC_TABLE", "format",
+    ]
+    segments = parsed_url.query.split("&")
+    actual_parameter_order = []
+    for segment in segments:
+        key, separator, raw_value = segment.partition("=")
+        if not separator:
+            raise CaptureVerificationError("request.url has a parameter without '='")
+        actual_parameter_order.append(key)
+        decoded_values = params.get(key)
+        if decoded_values is None or len(decoded_values) != 1:
+            raise CaptureVerificationError(f"request.url must contain exactly one {key} parameter")
+        if quote(decoded_values[0], safe="-_.~") != raw_value:
+            raise CaptureVerificationError(f"request.url {key} value is not canonically percent-encoded")
+    assert_equal(
+        actual_parameter_order,
+        expected_parameter_order,
+        "canonical request URL parameter order",
+    )
+
     def quoted_value(name: str) -> str:
         values = params.get(name)
         if values is None or len(values) != 1:
