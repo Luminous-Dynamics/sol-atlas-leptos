@@ -28,18 +28,10 @@ jobs:
         run: |
           bash -n scripts/capture-horizons-vector.sh
           python3 -m py_compile scripts/validate-horizons-vector.py
-          python3 scripts/validate-horizons-vector.py \
-            sol-atlas-core/tests/fixtures/horizons/mars_ssb_tdb_frame_km_s.json \
-            Mars "Solar System Barycenter" ICRF FRAME NONE 2461323.5
+          python3 -m unittest discover -s scripts -p 'test_validate_horizons_vector.py' -v
           expected_url='https://ssd.jpl.nasa.gov/api/horizons.api?COMMAND=%27499%27&CENTER=%27%400%27&CSV_FORMAT=%27YES%27&EPHEM_TYPE=%27VECTORS%27&MAKE_EPHEM=%27YES%27&OBJ_DATA=%27YES%27&OUT_UNITS=%27KM-S%27&REF_PLANE=%27FRAME%27&REF_SYSTEM=%27ICRF%27&TIME_TYPE=%27TDB%27&TLIST=%272461323.5%27&TLIST_TYPE=%27JD%27&VEC_CORR=%27NONE%27&VEC_LABELS=%27YES%27&VEC_TABLE=%272%27&format=json'
           actual_url="$(scripts/capture-horizons-vector.sh --print-url)"
           test "$actual_url" = "$expected_url"
-          if python3 scripts/validate-horizons-vector.py \
-            sol-atlas-core/tests/fixtures/horizons/mars_ssb_tdb_frame_km_s.json \
-            Venus "Solar System Barycenter" ICRF FRAME NONE 2461323.5; then
-            echo "validator accepted an unexpected target" >&2
-            exit 1
-          fi
 
   check-wasm:
     runs-on: ubuntu-latest
