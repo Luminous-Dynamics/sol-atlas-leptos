@@ -480,6 +480,11 @@ $EOE\n\
     }
 
     #[test]
+    fn empty_sample_set_fails_closed() {
+        assert_eq!(EphemerisScene::build(&[]), Err(SceneBuildError::NoSamples));
+    }
+
+    #[test]
     fn composes_barycentric_parent_chain_and_tracks_every_source() {
         let sun = sun_sample();
         let earth = earth_sample();
