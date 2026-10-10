@@ -169,6 +169,23 @@ class HorizonsCapturePacketTests(unittest.TestCase):
         receipt["canonical_request_sha256"] = identity_digest
         receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
 
+    def test_relabelled_provider_metadata_fails_against_response_signature(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            metadata_path = capture / "capture-metadata.json"
+            receipt_path = capture / "capture-receipt.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            metadata["provider"] = "claimed alternate provider"
+            receipt["reported_provider_source"] = "claimed alternate provider"
+            metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+            receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "metadata provider versus response signature mismatch",
+            ):
+                verifier.verify_capture(capture)
+
     def test_rehashed_known_target_relabeling_still_fails_binding_check(self) -> None:
         with TemporaryDirectory() as temporary:
             capture = self.make_capture(Path(temporary) / "capture")
