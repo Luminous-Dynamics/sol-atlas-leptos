@@ -35,8 +35,20 @@ jobs:
           expected_identity="$(printf 'SOL-ATLAS-HORIZONS-REQUEST-V1\ntarget_id=mars\ncenter_id=ssb\nexpected_target_name=Mars\nexpected_center_name=Solar%%20System%%20Barycenter\ntransport_bytes=%s\n%s' "${#expected_url}" "$expected_url")"
           actual_identity="$(scripts/capture-horizons-vector.sh --print-identity)"
           test "$actual_identity" = "$expected_identity"
-          changed_identity="$(HORIZONS_TARGET_ID=venus scripts/capture-horizons-vector.sh --print-identity)"
+          changed_identity="$(HORIZONS_TARGET_ID=custom-target scripts/capture-horizons-vector.sh --print-identity)"
           test "$changed_identity" != "$expected_identity"
+          if HORIZONS_TARGET_ID=venus scripts/capture-horizons-vector.sh --print-identity >/dev/null 2>&1; then
+            echo "known catalogue target mismatch unexpectedly accepted" >&2
+            exit 1
+          fi
+          if HORIZONS_TARGET_ID=comets scripts/capture-horizons-vector.sh --print-identity >/dev/null 2>&1; then
+            echo "aggregate population unexpectedly accepted as a point target" >&2
+            exit 1
+          fi
+          if HORIZONS_CENTER_ID=earth scripts/capture-horizons-vector.sh --print-identity >/dev/null 2>&1; then
+            echo "known catalogue centre mismatch unexpectedly accepted" >&2
+            exit 1
+          fi
           small_jd_url="$(HORIZONS_EPOCH_JD=0.0000001 scripts/capture-horizons-vector.sh --print-url)"
           [[ "$small_jd_url" == *"TLIST=%270.0000001%27"* ]]
 
