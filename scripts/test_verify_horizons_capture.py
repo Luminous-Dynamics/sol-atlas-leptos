@@ -169,6 +169,32 @@ class HorizonsCapturePacketTests(unittest.TestCase):
         receipt["canonical_request_sha256"] = identity_digest
         receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
 
+    def test_coordinate_metadata_must_match_the_exact_url_parameters(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            metadata_path = capture / "capture-metadata.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            metadata["reference_plane"] = "ECLIPTIC"
+            metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "request.url REF_PLANE versus metadata mismatch",
+            ):
+                verifier.verify_capture(capture)
+
+    def test_epoch_metadata_must_match_tlist_even_if_hash_fields_remain_consistent(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            metadata_path = capture / "capture-metadata.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            metadata["requested_epoch_jd_tdb"] = "2461324.5"
+            metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "request.url TLIST epoch does not match metadata epoch",
+            ):
+                verifier.verify_capture(capture)
+
     def test_relabelled_provider_metadata_fails_against_response_signature(self) -> None:
         with TemporaryDirectory() as temporary:
             capture = self.make_capture(Path(temporary) / "capture")
