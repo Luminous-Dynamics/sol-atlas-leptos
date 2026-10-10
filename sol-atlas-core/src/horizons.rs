@@ -233,7 +233,7 @@ impl HorizonsVectorRequest {
                 "COMMAND={}\n",
                 "OBJ_DATA='YES'\n",
                 "MAKE_EPHEM='YES'\n",
-                "TABLE_TYPE='VECTORS'\n",
+                "TABLE_TYPE='VECTOR'\n",
                 "CENTER={}\n",
                 "OUT_UNITS='KM-S'\n",
                 "REF_SYSTEM={}\n",
@@ -997,7 +997,10 @@ mod tests {
         assert_eq!(format, "json");
         assert!(input_file.starts_with(concat!("!", "$", "$", "SOF\n")));
         assert!(input_file.contains("COMMAND='499'\n"));
-        assert!(input_file.contains("TABLE_TYPE='VECTORS'\n"));
+        assert!(input_file.contains("TABLE_TYPE='VECTOR'\n"));
+        assert!(!input_file.contains("TABLE_TYPE='VECTORS'\n"));
+        // GET uses EPHEM_TYPE='VECTORS'; the file API consumes legacy
+        // batch-input TABLE_TYPE='VECTOR'.
         assert!(input_file.contains("CENTER='@0'\n"));
         assert!(input_file.contains("TLIST='2461323.5' '2461324.5'"));
         assert!(input_file.contains("REF_SYSTEM='ICRF'\n"));
