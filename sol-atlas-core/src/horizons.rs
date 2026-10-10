@@ -350,9 +350,10 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
     if !safe_horizons_token(&request.provider_target)
         || !safe_horizons_token(&request.provider_center)
     {
-        return Err(HorizonsParseError::InvalidRequest(
-            "provider target/center may contain only alphanumeric characters, spaces, - _ . @ ; ( ) =",
-        ));
+        return Err(HorizonsParseError::InvalidRequest(concat!(
+            "provider target/center may contain only alphanumeric characters, ",
+            "spaces, - _ . @ ; ( ) =",
+        )));
     }
     if request.epochs_jd.is_empty() || request.epochs_jd.len() > 10_000 {
         return Err(HorizonsParseError::InvalidRequest(
@@ -910,9 +911,10 @@ mod tests {
         assert!(input_file.contains("VECT_CORR='NONE'\n"));
         assert!(input_file.contains("VECT_TABLE='2'\n"));
         assert!(input_file.ends_with(concat!("!", "$", "$", "EOF\n")));
-        assert!(req.canonical_request_identity().unwrap().starts_with(
-            "POST\nhttps://ssd.jpl.nasa.gov/api/horizons_file.api\nformat=json\nfield=input\ninput-bytes:\n"
-        ));
+        assert!(req.canonical_request_identity().unwrap().starts_with(concat!(
+            "POST\nhttps://ssd.jpl.nasa.gov/api/horizons_file.api\n",
+            "format=json\nfield=input\ninput-bytes:\n"
+        )));
     }
 
     #[test]
@@ -1170,7 +1172,10 @@ mod tests {
             Err(HorizonsParseError::ProviderError(_))
         ));
 
-        let missing = r#"{"signature":{"source":"NASA/JPL Horizons API","version":"1.3"},"result":"Target body name: Mars"}"#;
+        let missing = concat!(
+            r#"{"signature":{"source":"NASA/JPL Horizons API","version":"1.3"},"# ,
+            r#""result":"Target body name: Mars"}"#,
+        );
         assert_eq!(
             parse_horizons_vectors_json(missing, &request(), &provenance()),
             Err(HorizonsParseError::MissingStartMarker)
