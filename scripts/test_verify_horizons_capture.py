@@ -115,8 +115,13 @@ class HorizonsCapturePacketTests(unittest.TestCase):
             receipt_path = capture / "capture-receipt.json"
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
             receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            headers_path = capture / "response.headers"
+            headers = b"HTTP/2 503 Service Unavailable\\r\\n\\r\\n"
+            headers_path.write_bytes(headers)
             metadata["http_status"] = "503"
             receipt["http_status"] = "503"
+            metadata["response_headers_sha256"] = sha256(headers)
+            receipt["response_headers_sha256"] = sha256(headers)
             metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
             receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
             with self.assertRaisesRegex(
@@ -133,6 +138,19 @@ class HorizonsCapturePacketTests(unittest.TestCase):
             with self.assertRaisesRegex(
                 verifier.CaptureVerificationError,
                 "HTTP status from response headers versus metadata mismatch",
+            ):
+                verifier.verify_capture(capture)
+
+    def test_tampered_success_header_fails_header_digest_check(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            headers_path = capture / "response.headers"
+            headers_path.write_bytes(
+                b"HTTP/2 200\\r\\ncontent-type: application/problem+json\\r\\n\\r\\n"
+            )
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "response_headers_sha256 mismatch",
             ):
                 verifier.verify_capture(capture)
 
