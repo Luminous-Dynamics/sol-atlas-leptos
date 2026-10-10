@@ -235,6 +235,11 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
             "all Julian-date epochs must be finite and positive",
         ));
     }
+    if request.epochs_jd.windows(2).any(|pair| pair[0] >= pair[1]) {
+        return Err(HorizonsParseError::InvalidRequest(
+            "TLIST epochs must be strictly increasing and unique",
+        ));
+    }
     Ok(())
 }
 
@@ -723,6 +728,26 @@ mod tests {
         assert!(header_body_name_matches("Mars (499) {source: test}", "Mars"));
         assert!(header_body_name_matches("Solar System Barycenter (0)", "Solar System Barycenter"));
         assert!(!header_body_name_matches("Mars Barycenter (4)", "Mars"));
+    }
+
+    #[test]
+    fn canonical_url_rejects_duplicate_or_descending_epochs() {
+        let mut request = request();
+        request.epochs_jd = vec![2_461_324.5, 2_461_323.5];
+        assert_eq!(
+            request.canonical_url(),
+            Err(HorizonsParseError::InvalidRequest(
+                "TLIST epochs must be strictly increasing and unique"
+            ))
+        );
+
+        request.epochs_jd = vec![2_461_323.5, 2_461_323.5];
+        assert_eq!(
+            request.canonical_url(),
+            Err(HorizonsParseError::InvalidRequest(
+                "TLIST epochs must be strictly increasing and unique"
+            ))
+        );
     }
 
     #[test]
