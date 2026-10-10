@@ -1,7 +1,8 @@
 {
   "signature": {
-    "source": "NASA/JPL Horizons API (shape only; not a provider capture)",
-    "version": "synthetic-test-fixture"
+    "source": "NASA/JPL Horizons API",
+    "version": "1.3"
   },
-  "result": "*******************************************************************************\nEphemeris / Synthetic test fixture in the JPL Horizons JSON envelope shape\nTarget body name: Mars (499) {source: synthetic-test-fixture}\nCenter body name: Solar System Barycenter (0)\nCenter-site name: SOLAR SYSTEM BARYCENTER\nStart time      : A.D. 2026-Oct-10 00:00:00.0000 TDB\nStop time       : A.D. 2026-Oct-10 00:00:00.0000 TDB\nOutput units    : KM-S\nReference frame : ICRF\nReference plane : FRAME\nAberration corrections : NONE\nJDTDB, Calendar Date (TDB), X, Y, Z, VX, VY, VZ\n$$SOE\n2461323.500000000, A.D. 2026-Oct-10 00:00:00.0000 TDB, 1.782345678901234E+08, -7.123456789012345E+07, -5.234567890123456E+07, 1.087654321098765E+01, 2.234567890123456E+01, 9.876543210987654E+00\n$$EOE\n*******************************************************************************"
+  "result": "*******************************************************************************\nEphemeris / Synthetic test fixture in the JPL Horizons JSON envelope shape\nTarget body name: Mars (499) {source: synthetic-test-fixture}\nCenter body name: Solar System Barycenter (0)\nCenter-site name: SOLAR SYSTEM BARYCENTER\nStart time      : A.D. 2026-Oct-10 00:00:00.0000 TDB\nStop time       : A.D. 2026-Oct-10 00:00:00.0000 TDB\nOutput units    : KM-S\nReference frame : ICRF\nReference plane : FRAME\nAberration corrections : NONE\nJDTDB, Calendar Date (TDB), X, Y, Z, VX, VY, VZ\n$$SOE\n2461323.500000000, A.D. 2026-Oct-10 00:00:00.0000 TDB, 1.782345678901234E+08, -7.123456789012345E+07, -5.234567890123456E+07, 1.087654321098765E+01, 2.234567890123456E+01, 9.876543210987654E+00\n$$EOE\n*******************************************************************************",
+  "_fixture_notice": "Synthetic parser fixture. This payload shape was authored for tests and is not a live provider capture."
 }
