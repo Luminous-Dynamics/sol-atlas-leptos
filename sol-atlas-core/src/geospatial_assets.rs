@@ -134,6 +134,8 @@ pub enum ObservationTimeKind { Unknown, Instant, Interval, Approximate }
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct ObservationTime {
     kind: ObservationTimeKind,
+    /// STAC's nominal datetime, retained even when an inclusive range is also supplied.
+    datetime: Option<String>,
     start: Option<String>,
     end: Option<String>,
 }
@@ -142,48 +144,119 @@ pub struct ObservationTime {
 #[serde(deny_unknown_fields)]
 struct ObservationTimeWire {
     kind: ObservationTimeKind,
+    #[serde(default)]
+    datetime: Option<String>,
+    #[serde(default)]
     start: Option<String>,
+    #[serde(default)]
     end: Option<String>,
 }
 
 impl ObservationTime {
     pub fn unknown() -> Self {
-        Self { kind: ObservationTimeKind::Unknown, start: None, end: None }
+        Self {
+            kind: ObservationTimeKind::Unknown,
+            datetime: None,
+            start: None,
+            end: None,
+        }
     }
 
+    /// Build using the original compact shape: for an instant, `start` is
+    /// interpreted as the timestamp; for an interval, `start` and `end`
+    /// are inclusive bounds. Use `new_with_datetime` when the source supplies
+    /// both a nominal datetime and an interval.
     pub fn new(
         kind: ObservationTimeKind,
         start: Option<String>,
         end: Option<String>,
     ) -> Result<Self, String> {
-        for value in [start.as_deref(), end.as_deref()].into_iter().flatten() {
+        match kind {
+            ObservationTimeKind::Instant => Self::new_with_datetime(kind, start, None, None),
+            ObservationTimeKind::Interval => Self::new_with_datetime(kind, None, start, end),
+            ObservationTimeKind::Unknown | ObservationTimeKind::Approximate => {
+                Self::new_with_datetime(kind, None, start, end)
+            }
+        }
+    }
+
+    /// Build a temporal record without discarding source-provided nominal or
+    /// inclusive-range fields. This model preserves strings as supplied; it
+    /// does not authenticate timestamps or infer chronological ordering.
+    pub fn new_with_datetime(
+        kind: ObservationTimeKind,
+        datetime: Option<String>,
+        start: Option<String>,
+        end: Option<String>,
+    ) -> Result<Self, String> {
+        for value in [
+            datetime.as_deref(),
+            start.as_deref(),
+            end.as_deref(),
+        ]
+        .into_iter()
+        .flatten()
+        {
             if value.trim().is_empty() {
                 return Err("observation time values must not be empty".into());
             }
         }
+
         let valid_shape = match kind {
-            ObservationTimeKind::Unknown => start.is_none() && end.is_none(),
-            ObservationTimeKind::Instant => start.is_some() && end.is_none(),
+            ObservationTimeKind::Unknown => {
+                datetime.is_none() && start.is_none() && end.is_none()
+            }
+            ObservationTimeKind::Instant => {
+                datetime.is_some() && start.is_none() && end.is_none()
+            }
+            // STAC explicitly permits datetime alongside inclusive start/end bounds.
             ObservationTimeKind::Interval => start.is_some() && end.is_some(),
-            ObservationTimeKind::Approximate => start.is_some() || end.is_some(),
+            ObservationTimeKind::Approximate => {
+                datetime.is_some() || start.is_some() || end.is_some()
+            }
         };
         if !valid_shape {
             return Err("observation time values do not match declared kind".into());
         }
-        Ok(Self { kind, start, end })
+
+        Ok(Self {
+            kind,
+            datetime,
+            start,
+            end,
+        })
     }
 
-    pub fn kind(&self) -> ObservationTimeKind { self.kind }
-    pub fn start(&self) -> Option<&str> { self.start.as_deref() }
-    pub fn end(&self) -> Option<&str> { self.end.as_deref() }
+    pub fn kind(&self) -> ObservationTimeKind {
+        self.kind
+    }
+
+    /// Source-declared nominal datetime, separate from optional inclusive bounds.
+    pub fn datetime(&self) -> Option<&str> {
+        self.datetime.as_deref()
+    }
+
+    /// Start value for a range, or the instant timestamp for legacy callers.
+    pub fn start(&self) -> Option<&str> {
+        match self.kind {
+            ObservationTimeKind::Instant => self.datetime.as_deref(),
+            _ => self.start.as_deref(),
+        }
+    }
+
+    pub fn end(&self) -> Option<&str> {
+        self.end.as_deref()
+    }
 }
 
 impl<'de> Deserialize<'de> for ObservationTime {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let wire = ObservationTimeWire::deserialize(deserializer)?;
-        Self::new(wire.kind, wire.start, wire.end).map_err(serde::de::Error::custom)
+        Self::new_with_datetime(wire.kind, wire.datetime, wire.start, wire.end)
+            .map_err(serde::de::Error::custom)
     }
 }
 
