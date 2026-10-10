@@ -78,14 +78,17 @@ is deliberately synthetic.
 `scripts/capture-horizons-vector.sh` provides an operator path for one GET
 sample: `--print-url` builds the URL offline, and an explicit capture writes the
 exact URL, raw response, hashes, receipt, and metadata to a new directory before
-schema validation. `scripts/validate-horizons-vector.py` checks the captured
-response's exact marker strings, API signature, target/centre, coordinate
-settings, column order, field count, and epoch. CI runs this validator against
-the synthetic fixture and deliberately tests a target mismatch, then checks the
-default URL byte-for-byte; none of those steps calls Horizons. The capture
+schema validation. It resolves its validator relative to the script path, so it
+does not depend on the caller's working directory.
+`scripts/validate-horizons-vector.py` checks exact table markers, signature,
+target/centre, coordinate settings, column order, field count, finite state,
+and epoch. Seven offline regression tests cover the synthetic fixture and
+failure cases such as target mismatch, unknown signature version, missing
+markers, reordered columns, non-finite values, and epoch drift. CI also checks
+the default URL byte-for-byte; none of these checks calls Horizons. The capture
 script never overwrites a capture or edits the committed fixture. A real
-response remains `captured-not-yet-reviewed` until it is reviewed and promoted
-as a separate byte-for-byte fixture.
+response remains `captured-not-yet-reviewed` until reviewed and promoted as a
+separate byte-for-byte fixture.
 The provider docs are the contract for the adapter:
 - https://ssd-api.jpl.nasa.gov/doc/horizons.html
 - https://ssd.jpl.nasa.gov/horizons/manual.html
