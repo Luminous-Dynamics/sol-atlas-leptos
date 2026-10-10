@@ -477,6 +477,10 @@ mod tests {
           "type":"Feature",
           "id":"three-dimensional",
           "bbox":[10,20,1,30,40,9],
+          "geometry":{
+            "type":"Polygon",
+            "coordinates":[[[10,20],[30,20],[30,40],[10,40],[10,20]]]
+          },
           "properties":{"datetime":"2025-01-01T00:00:00Z"},
           "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
         }"#;
@@ -526,6 +530,33 @@ mod tests {
         assert_eq!(ids_a, ids_b);
         assert!(ids_a.iter().all(|id| id.starts_with("stac:")));
         assert!(ids_a.iter().all(|id| id.len() <= 128));
+    }
+
+    #[test]
+    fn legacy_epsg_and_wkt2_crs_declarations_are_preserved() {
+        let legacy = r#"{
+          "type":"Feature",
+          "id":"legacy-epsg",
+          "properties":{"datetime":"2025-01-01T00:00:00Z","proj:epsg":3857},
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        let legacy_result = import_item_json(legacy).unwrap();
+        assert_eq!(
+            legacy_result.imported_assets()[0].source_crs(),
+            Some("EPSG:3857")
+        );
+
+        let wkt = r#"{
+          "type":"Feature",
+          "id":"wkt-crs",
+          "properties":{"datetime":"2025-01-01T00:00:00Z","proj:code":null,"proj:wkt2":"GEOGCRS[fixture]"},
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        let wkt_result = import_item_json(wkt).unwrap();
+        assert_eq!(
+            wkt_result.imported_assets()[0].source_crs(),
+            Some("WKT2:GEOGCRS[fixture]")
+        );
     }
 
     #[test]
