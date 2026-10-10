@@ -658,16 +658,26 @@ fn validate_vector_column_header(header_lines: &[&str]) -> Result<(), HorizonsPa
 }
 
 fn header_body_name_matches(actual: &str, expected: &str) -> bool {
-    // Horizons headers can append a numeric SPK ID in parentheses and source
-    // details in braces. Compare the body/system name itself, not a substring:
-    // "Mars Barycenter" must not be accepted when "Mars" was requested.
+    // Horizons headers can append a numeric SPK ID, parenthesized ID, or source
+    // detail. Some numbered asteroids are rendered as "1 Ceres (1)", while
+    // catalogue display names omit the designation prefix. Match that prefix
+    // only when it is a numeric token; do not accept arbitrary substring hits.
     let before_source = actual.split('{').next().unwrap_or(actual).trim();
     let body_name = before_source
         .split('(')
         .next()
         .unwrap_or(before_source)
         .trim();
-    body_name.eq_ignore_ascii_case(expected.trim())
+    if body_name.eq_ignore_ascii_case(expected.trim()) {
+        return true;
+    }
+
+    let mut parts = body_name.splitn(2, char::is_whitespace);
+    let first = parts.next().unwrap_or_default();
+    let remainder = parts.next().unwrap_or_default().trim();
+    !first.is_empty()
+        && first.bytes().all(|byte| byte.is_ascii_digit())
+        && remainder.eq_ignore_ascii_case(expected.trim())
 }
 
 fn metadata_value<'a>(header: &'a str, label: &str) -> Option<&'a str> {
@@ -932,7 +942,10 @@ mod tests {
     fn body_name_comparison_rejects_substring_collisions() {
         assert!(header_body_name_matches("Mars (499) {source: test}", "Mars"));
         assert!(header_body_name_matches("Solar System Barycenter (0)", "Solar System Barycenter"));
+        assert!(header_body_name_matches("1 Ceres (1)", "Ceres"));
+        assert!(header_body_name_matches("136108 Haumea (136108)", "Haumea"));
         assert!(!header_body_name_matches("Mars Barycenter (4)", "Mars"));
+        assert!(!header_body_name_matches("MarsSomething (499)", "Mars"));
     }
 
     #[test]
