@@ -20,6 +20,11 @@ use crate::system_catalog::{
 /// API rather than risk intermediaries rejecting an oversized GET request.
 const MAX_CANONICAL_GET_URL_BYTES: usize = 7_500;
 
+// The live GET documentation is versioned 1.3, while its published JSON
+// envelope examples still show signature.version 1.0. Accept only those two
+// explicitly documented values until a live response fixture resolves the drift.
+const SUPPORTED_GET_API_SIGNATURE_VERSIONS: &[&str] = &["1.0", "1.3"];
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HorizonsParseError {
     InvalidJson(String),
@@ -302,7 +307,7 @@ pub fn parse_horizons_vectors_json(
         return Err(HorizonsParseError::UnexpectedApiSource(source));
     }
     let version = signature.version.unwrap_or_default();
-    if version != "1.3" {
+    if !SUPPORTED_GET_API_SIGNATURE_VERSIONS.contains(&version.as_str()) {
         return Err(HorizonsParseError::UnsupportedApiVersion(version));
     }
 
@@ -662,13 +667,17 @@ mod tests {
         }
     }
 
-    fn provenance() -> EphemerisProvenance {
+    fn provenance_for(payload: &str) -> EphemerisProvenance {
         EphemerisProvenance::from_bytes(
             "JPL Horizons (synthetic parser fixture)",
             &request().canonical_url().unwrap(),
-            FIXTURE.as_bytes(),
+            payload.as_bytes(),
             "2026-10-10T16:00:00Z",
         )
+    }
+
+    fn provenance() -> EphemerisProvenance {
+        provenance_for(FIXTURE)
     }
 
     #[test]
@@ -843,6 +852,19 @@ mod tests {
             parse_horizons_vectors_json(&wrong_source, &request(), &provenance()),
             Err(HorizonsParseError::UnexpectedApiSource(_))
         ));
+
+        let documented_legacy_signature = FIXTURE.replace(
+            "\"version\": \"1.3\"",
+            "\"version\": \"1.0\"",
+        );
+        assert!(
+            parse_horizons_vectors_json(
+                &documented_legacy_signature,
+                &request(),
+                &provenance_for(&documented_legacy_signature)
+            )
+            .is_ok()
+        );
 
         let wrong_version = FIXTURE.replace(
             "\"version\": \"1.3\"",
