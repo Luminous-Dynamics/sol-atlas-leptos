@@ -416,8 +416,8 @@ $EOE\n\
         )
         // Keep the Horizons protocol markers exact; the parser intentionally
         // does not accept a single-dollar near-match.
-        .replace("$SOE", || "$$SOE")
-        .replace("$EOE", || "$$EOE");
+        .replace("$SOE", concat!("$", "$", "SOE"))
+        .replace("$EOE", concat!("$", "$", "EOE"));
         let payload = serde_json::json!({
             "signature": { "source": "NASA/JPL Horizons API", "version": "1.3" },
             "result": result
