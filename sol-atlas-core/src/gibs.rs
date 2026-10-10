@@ -54,12 +54,24 @@ impl fmt::Display for GibsUrlError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidLayerIdentifier => write!(f, "GIBS layer identifier is not path-safe"),
-            Self::InvalidTileMatrixSet => write!(f, "GIBS tile matrix set identifier is not path-safe"),
-            Self::InvalidTimeDimension => write!(f, "GIBS time dimension must be 'default', a YYYY-MM-DD date, or an RFC3339 UTC timestamp"),
-            Self::InvalidLayerAttribution => write!(f, "GIBS layer attribution must be present and non-empty"),
-            Self::InvalidMaximumZoom(zoom) => write!(f, "GIBS maximum zoom {zoom} exceeds {MAX_TILE_ZOOM}"),
+            Self::InvalidTileMatrixSet => {
+                write!(f, "GIBS tile matrix set identifier is not path-safe")
+            },
+            Self::InvalidTimeDimension => write!(
+                f,
+                "GIBS time dimension must be 'default', a YYYY-MM-DD date, or an RFC3339 UTC timestamp"
+            ),
+            Self::InvalidLayerAttribution => {
+                write!(f, "GIBS layer attribution must be present and non-empty")
+            },
+            Self::InvalidMaximumZoom(zoom) => {
+                write!(f, "GIBS maximum zoom {zoom} exceeds {MAX_TILE_ZOOM}")
+            },
             Self::ZoomExceedsLayerMaximum { requested, maximum } => {
-                write!(f, "tile zoom {requested} exceeds this GIBS layer's configured maximum {maximum}")
+                write!(
+                    f,
+                    "tile zoom {requested} exceeds this GIBS layer's configured maximum {maximum}"
+                )
             }
             Self::Tile(error) => write!(f, "invalid tile address: {error}"),
         }
@@ -343,7 +355,12 @@ mod tests {
             "Fixture layer attribution",
         )
         .unwrap();
-        assert!(default.tile_url(TileCoordinate::new(0, 0, 0).unwrap()).unwrap().ends_with("/0/0/0.jpg"));
+        assert!(
+            default
+                .tile_url(TileCoordinate::new(0, 0, 0).unwrap())
+                .unwrap()
+                .ends_with("/0/0/0.jpg")
+        );
 
         assert!(GibsWebMercatorSource::new(
             "layer",
@@ -425,15 +442,36 @@ mod tests {
     #[test]
     fn rejects_path_injection_and_layer_zoom_mismatch() {
         assert_eq!(
-            GibsWebMercatorSource::new("../other", "matrix", 6, "default", TileImageFormat::Png, "Fixture layer attribution"),
+            GibsWebMercatorSource::new(
+                "../other",
+                "matrix",
+                6,
+                "default",
+                TileImageFormat::Png,
+                "Fixture layer attribution"
+            ),
             Err(GibsUrlError::InvalidLayerIdentifier)
         );
         assert_eq!(
-            GibsWebMercatorSource::new("..", "matrix", 6, "default", TileImageFormat::Png, "Fixture layer attribution"),
+            GibsWebMercatorSource::new(
+                "..",
+                "matrix",
+                6,
+                "default",
+                TileImageFormat::Png,
+                "Fixture layer attribution"
+            ),
             Err(GibsUrlError::InvalidLayerIdentifier)
         );
         assert_eq!(
-            GibsWebMercatorSource::new("layer", "../matrix", 6, "default", TileImageFormat::Png, "Fixture layer attribution"),
+            GibsWebMercatorSource::new(
+                "layer",
+                "../matrix",
+                6,
+                "default",
+                TileImageFormat::Png,
+                "Fixture layer attribution"
+            ),
             Err(GibsUrlError::InvalidTileMatrixSet)
         );
 
