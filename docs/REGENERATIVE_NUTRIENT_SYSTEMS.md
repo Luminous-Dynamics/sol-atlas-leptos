@@ -82,6 +82,23 @@ Use these sources for discovery, then record immutable versioned ingests rather 
 
 Data collection must preserve original units and values alongside normalized values, record transformation code/version, retain licenses and attribution, and reject stale, conflicting or unit-ambiguous inputs. Modelled map layers should keep lower/central/upper estimates where available. Avoid interpolating a point soil test over large regions without stating the method and uncertainty.
 
+## Evidence refresh: global balance is not the same as local fertilizer need
+
+A 2024 systematic review of 92 articles / 1,609 observations on biochar in sandy-textured soils found that response varies by soil, application rate, region and study design. Several nutrient-cycle indicators improved on average, while average soil mineral nitrogen and nutrient-use efficiency did not; one effective-CEC result was sensitive to publication-bias correction. Sol Atlas must therefore display context and uncertainty, not map an average biochar benefit as a universal layer: https://doi.org/10.1186/s13750-024-00326-5
+
+FAOSTAT's cropland nutrient-balance reporting tracks N, P and K inputs and removals across countries and regions. The planning layer should model the full balance—not just synthetic fertilizer availability—including manure, biological nitrogen fixation, atmospheric deposition, crop removal and relevant losses: https://www.fao.org/statistics/events/events-detail/cropland-nutrient-balance.-global--regional-and-country-trends--1961-2023/en
+
+### Next data-model requirements
+
+- Separate observed, modeled, imputed, and scenario values at the field and raster-cell level.
+- Preserve original units, normalized units, time period, spatial resolution, source license, method, and uncertainty.
+- Never interpret a missing nutrient measurement as zero.
+- Represent nutrient flows (inputs, crop removal, runoff/leaching, gaseous loss, stock change) separately from soil concentration and plant availability.
+- Display confidence / coverage and data age alongside mapped values; do not spatially interpolate across incompatible soil, climate or management regimes without flagging it.
+- Keep site-specific application-rate advice disabled until crop, soil test, amendment analysis, contamination screening and locally applicable agronomic rules are present.
+
+This evidence refresh changes the implementation target: Sol Atlas should become a traceable nutrient-budget and intervention-comparison tool, not a global map that claims to know where every farmer needs biochar or fertilizer.
+
 ## Pilot design and release gates
 
 Start with **one crop, one bounded region and one growing season**, with access to qualified agronomy support, clean feedstocks, laboratory testing, participating farms and a design that does not unnecessarily put a harvest at risk.
