@@ -259,6 +259,7 @@ pub fn tiles_for_bounds(
         columns.extend(x_west..=(count as u32 - 1));
         columns.extend(0..=x_east);
     }
+    columns.sort_unstable();
 
     let mut result = Vec::with_capacity(requested as usize);
     for y in y_top..=y_bottom {
