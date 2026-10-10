@@ -206,6 +206,9 @@ def metadata(label):
 
 def body_name(value):
     value = value.split("{", 1)[0].split("(", 1)[0].strip()
+    first, separator, remainder = value.partition(" ")
+    if separator and first.isascii() and first.isdigit():
+        return remainder.strip()
     return value
 
 actual_target = body_name(metadata("Target body name"))
