@@ -13,7 +13,8 @@ import json
 import sys
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
+from decimal import Decimal, InvalidOperation
+from urllib.parse import parse_qs, quote, urlsplit
 
 
 class CaptureVerificationError(ValueError):
@@ -84,6 +85,78 @@ def assert_equal(actual: Any, expected: Any, label: str) -> None:
         raise CaptureVerificationError(
             f"{label} mismatch: recorded={actual!r}, verified={expected!r}"
         )
+
+
+def validate_url_metadata(url_bytes: bytes, metadata: dict[str, Any]) -> None:
+    """Compare capture metadata with the parameters actually encoded in request.url."""
+    try:
+        url_text = url_bytes.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise CaptureVerificationError("request.url must be UTF-8") from error
+
+    parsed_url = urlsplit(url_text)
+    if (
+        parsed_url.scheme != "https"
+        or parsed_url.hostname != "ssd.jpl.nasa.gov"
+        or parsed_url.path != "/api/horizons.api"
+        or parsed_url.fragment
+    ):
+        raise CaptureVerificationError("request.url is not the canonical Horizons GET endpoint")
+
+    try:
+        params = parse_qs(
+            parsed_url.query,
+            keep_blank_values=True,
+            strict_parsing=True,
+            max_num_fields=64,
+        )
+    except ValueError as error:
+        raise CaptureVerificationError(f"request.url query is malformed: {error}") from error
+
+    def quoted_value(name: str) -> str:
+        values = params.get(name)
+        if values is None or len(values) != 1:
+            raise CaptureVerificationError(f"request.url must contain exactly one {name} parameter")
+        value = values[0]
+        if len(value) < 2 or not (value.startswith("'") and value.endswith("'")):
+            raise CaptureVerificationError(f"request.url {name} parameter is not single-quoted")
+        return value[1:-1]
+
+    def raw_value(name: str) -> str:
+        values = params.get(name)
+        if values is None or len(values) != 1:
+            raise CaptureVerificationError(f"request.url must contain exactly one {name} parameter")
+        return values[0]
+
+    expected_quoted = {
+        "COMMAND": required_string(metadata, "requested_target", "metadata"),
+        "CENTER": required_string(metadata, "requested_center", "metadata"),
+        "CSV_FORMAT": "YES",
+        "EPHEM_TYPE": "VECTORS",
+        "MAKE_EPHEM": "YES",
+        "OBJ_DATA": "YES",
+        "OUT_UNITS": required_string(metadata, "output_units", "metadata"),
+        "REF_PLANE": required_string(metadata, "reference_plane", "metadata"),
+        "REF_SYSTEM": required_string(metadata, "reference_system", "metadata"),
+        "TIME_TYPE": "TDB",
+        "TLIST_TYPE": "JD",
+        "VEC_CORR": required_string(metadata, "vector_correction", "metadata"),
+        "VEC_LABELS": "YES",
+        "VEC_TABLE": "2",
+    }
+    for key, expected in expected_quoted.items():
+        assert_equal(quoted_value(key), expected, f"request.url {key} versus metadata")
+
+    epoch_text = quoted_value("TLIST")
+    try:
+        url_epoch = Decimal(epoch_text)
+        metadata_epoch = Decimal(required_string(metadata, "requested_epoch_jd_tdb", "metadata"))
+    except InvalidOperation as error:
+        raise CaptureVerificationError("TLIST or metadata epoch is not a decimal Julian date") from error
+    if not url_epoch.is_finite() or not metadata_epoch.is_finite() or url_epoch != metadata_epoch:
+        raise CaptureVerificationError("request.url TLIST epoch does not match metadata epoch")
+
+    assert_equal(raw_value("format"), "json", "request.url format")
 
 
 def validate_semantic_bindings(metadata: dict[str, Any]) -> None:
@@ -167,6 +240,7 @@ def verify_capture(directory: Path) -> dict[str, str]:
 
     recomputed_identity = expected_request_identity(metadata, url_bytes)
     assert_equal(identity_bytes, recomputed_identity, "request.identity bytes")
+    validate_url_metadata(url_bytes, metadata)
     validate_semantic_bindings(metadata)
 
     digests = {
