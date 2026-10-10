@@ -680,7 +680,7 @@ impl ValidationReport {
                             assertion.id.as_str()
                         )),
                         Some(
-                            "derived-from assertion participates in a cycle; no assertion was removed"
+                            "derived-from cycle detected; all assertions were preserved"
                                 .into(),
                         ),
                     )?);
