@@ -21,6 +21,7 @@ pub mod mycelix_flows;
 pub mod geometry;
 pub mod math;
 pub mod picking;
+pub mod project_economics;
 pub mod simulation;
 pub mod solar_system;
 pub mod timeline;
