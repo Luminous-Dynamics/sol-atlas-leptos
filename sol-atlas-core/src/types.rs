@@ -610,7 +610,7 @@ pub struct EarthRegion {
 // ─── Fossil Deposit ─────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(try_from = "FossilDepositWire")]
 pub struct FossilDeposit {
     pub name: String,
     pub lat: f64,
@@ -630,6 +630,56 @@ pub struct FossilDeposit {
     /// Energy Return on Investment (energy out / energy in). None if unknown.
     #[serde(default)]
     pub eroi: Option<f64>,
+}
+
+/// Strict wire type shared by the indexed dataset parser and direct deserialization.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct FossilDepositWire {
+    pub name: String,
+    pub lat: f64,
+    pub lon: f64,
+    pub fuel_type: FuelType,
+    pub proven_reserves_mboe: f64,
+    pub annual_production_mboe: f64,
+    pub status: String,
+    pub country: String,
+    pub discovery_year: u32,
+    #[serde(default)]
+    pub extraction_cost_per_boe: Option<f64>,
+    #[serde(default)]
+    pub decommission_cost_m: Option<f64>,
+    #[serde(default)]
+    pub eroi: Option<f64>,
+}
+
+impl FossilDepositWire {
+    pub(crate) fn into_record(self) -> FossilDeposit {
+        FossilDeposit {
+            name: self.name,
+            lat: self.lat,
+            lon: self.lon,
+            fuel_type: self.fuel_type,
+            proven_reserves_mboe: self.proven_reserves_mboe,
+            annual_production_mboe: self.annual_production_mboe,
+            status: self.status,
+            country: self.country,
+            discovery_year: self.discovery_year,
+            extraction_cost_per_boe: self.extraction_cost_per_boe,
+            decommission_cost_m: self.decommission_cost_m,
+            eroi: self.eroi,
+        }
+    }
+}
+
+impl TryFrom<FossilDepositWire> for FossilDeposit {
+    type Error = &'static str;
+
+    fn try_from(wire: FossilDepositWire) -> Result<Self, Self::Error> {
+        let record = wire.into_record();
+        record.validate()?;
+        Ok(record)
+    }
 }
 
 impl FossilDeposit {

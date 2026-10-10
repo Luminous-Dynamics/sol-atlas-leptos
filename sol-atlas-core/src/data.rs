@@ -123,13 +123,18 @@ pub fn parse_nuclear_sites(json: &str) -> Result<Vec<NuclearSite>, serde_json::E
 /// and text values are then checked before a record enters the loaded data model.
 /// Passing these checks is not source verification or reserve-classification evidence.
 pub fn parse_fossil_deposits(json: &str) -> Result<Vec<FossilDeposit>, serde_json::Error> {
-    let deposits: Vec<FossilDeposit> = serde_json::from_str(json)?;
-    for (index, deposit) in deposits.iter().enumerate() {
+    // Parse the strict wire type here so errors from domain validation retain the
+    // dataset index. Direct FossilDeposit deserialization validates through TryFrom.
+    let wire_records: Vec<FossilDepositWire> = serde_json::from_str(json)?;
+    let mut deposits = Vec::with_capacity(wire_records.len());
+    for (index, wire) in wire_records.into_iter().enumerate() {
+        let deposit = wire.into_record();
         deposit.validate().map_err(|message| {
             <serde_json::Error as serde::de::Error>::custom(format!(
                 "fossil deposit record at index {index}: {message}"
             ))
         })?;
+        deposits.push(deposit);
     }
     Ok(deposits)
 }
@@ -554,6 +559,19 @@ mod fossil_deposit_admission_tests {
             records.iter().filter(|record| record.eroi.is_none()).count(),
             56
         );
+    }
+
+    #[test]
+    fn direct_deserialization_enforces_schema_and_domain_validation() {
+        let valid: FossilDeposit =
+            serde_json::from_str(VALID_RECORD).expect("valid deposit should deserialize");
+        assert!(valid.validate().is_ok());
+
+        let invalid_coordinate = VALID_RECORD.replace(r#""lat":10.0"#, r#""lat":91.0"#);
+        assert!(serde_json::from_str::<FossilDeposit>(&invalid_coordinate).is_err());
+
+        let unknown = VALID_RECORD.replacen("{", r#"{"authorization_granted":true,"#, 1);
+        assert!(serde_json::from_str::<FossilDeposit>(&unknown).is_err());
     }
 
     #[test]
