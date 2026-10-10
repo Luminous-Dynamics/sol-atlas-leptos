@@ -161,9 +161,10 @@ The sources below are candidates, not a declaration that ingestion or redistribu
 | Need | Candidate | Useful coverage/detail | Main limitation / gate |
 | --- | --- | --- | --- |
 | World-scale geography | Natural Earth | Global cultural, physical and raster layers at 1:10m, 1:50m and 1:110m scales; public-domain use | Regional reference geography, not streets, buildings or aerial imagery |
-| Optical Earth-observation baseline | Copernicus Data Space STAC + Sentinel-2 L2A | Discoverable spatiotemporal observations; four bands at 10 m, six at 20 m and three at 60 m; systematic land/coastal coverage between 84°N and 84°S | Valuable for land cover and change, not building-level imagery; clouds, observation dates, processing levels and band resolution must remain visible. Use the Sentinel data legal notice, not assumptions about other portal content |
-| Global terrain baseline | Copernicus DEM GLO-30 | Global 30 m digital elevation candidate with published full/free/open terms | Preserve the product-specific licence, source version, vertical datum and processing notes; do not conflate 30 m elevation with photorealistic terrain texture |
-| Global buildings / places | Overture Maps releases | Cloud-hosted GeoParquet and stable GERS identifiers; buildings data aims for global coverage | Licence is theme- and source-dependent. Overture’s buildings theme includes OSM-derived content and is ODbL; the places theme has different source/licence rules. Keep source attribution and schema/release identity at theme level |
+| Optical Earth-observation baseline | Copernicus Data Space STAC + Sentinel-2 | The current CDSE catalogue lists L1C for world coverage from 2015 onward and L3 quarterly mosaics worldwide; the original ESA L2A listing is Europe-only, while another L2A processing listing has restricted date/coverage | Do not assume a uniform global L2A archive. Choose the exact collection/product by region, date and processing level; preserve capture interval, cloud/quality metadata, band-specific resolution and legal notice. Sentinel-2 supports land-change analysis, not building-level imagery |
+| Global terrain baseline | Copernicus DEM GLO-30, subject to access review | Candidate 30 m global elevation product | As of the CDSE announcement dated 17 July 2026, the COP-DEM-GLO-30 View Service became restricted to authorized user categories from 28 July 2026; requests without the required access may default to the 90 m DEM. Verify the exact distribution path and user eligibility before choosing it as the production baseline. Preserve licence, vertical datum and processing notes |
+| Global building footprints | Overture Maps buildings theme | Global-scale building-footprint candidate, with cloud-hosted GeoParquet releases and stable GERS IDs | Theme is ODbL because it incorporates OpenStreetMap. Overture documents lower footprint precision for ML-derived sources, most pronounced in the Global South. Treat it as a coverage layer, not universally accurate building geometry; prioritize validation/corroboration with local and authoritative sources |
+| Places and points of interest | Overture Maps places theme | Tens of millions of global points of interest; September 2026 source table lists roughly 81 million records | Separate licence boundary from buildings: places contains no OSM data and uses CDLA Permissive 2.0 or Apache 2.0 depending on source. Preserve release ID and theme-specific source attribution; joining it with OSM-derived databases requires a separate licence analysis |
 | Opportunistic high-detail aerial imagery | OpenAerialMap | Contributor-uploaded imagery that may provide better local detail where available | Coverage is uneven. The Open Imagery Network terms describe CC BY 4.0 licensing for imagery contributed under those terms; check each asset’s metadata, attribution and service-use conditions |
 | High-resolution U.S. terrain | USGS 3DEP / The National Map | U.S. elevation products from approximately 10 m seamless DEMs to 1 m products where available; free products and services, public-domain federal data | U.S.-specific. One-meter seamless coverage is being built out, so coverage needs a product-level check rather than a global guarantee |
 | Interactive open map reference | OpenStreetMap data, through a suitable provider or a self-hosted pipeline | Rich community-maintained roads, paths, places and other features | Do not treat the public OSM raster/vector tile servers as bulk data endpoints. Their policies prohibit bulk prefetching and offline packages; data licensing and tile-service policies are separate issues |
@@ -171,13 +172,13 @@ The sources below are candidates, not a declaration that ingestion or redistribu
 ### Recommended first stack
 
 1. Use Natural Earth for low-zoom world context, with no implication that small-scale features are navigable at street level.
-2. Use Copernicus DEM GLO-30 as the candidate global elevation baseline after a product-specific licence/datum review.
-3. Add Sentinel-2 through Copernicus Data Space STAC for observation-aware imagery and environmental layers, retaining dates and spatial resolution for each item.
-4. Add Overture features through theme-specific ingestion with release IDs, stable feature IDs, attribution and licence obligations retained.
-5. Treat OpenAerialMap and national/local aerial datasets as optional higher-detail overlays where coverage and usage rights are explicitly documented.
+2. Evaluate Copernicus DEM GLO-30 only after confirming that the intended distribution path and Sol Atlas users are eligible under current CDSE access conditions; keep a second terrain source in the fallback plan.
+3. Use CDSE STAC to choose the right Sentinel-2 collection by region and date: L1C has worldwide coverage in the current catalogue; the available L2A coverage is not uniformly global. Add quarterly mosaics only where their temporal aggregation suits the use case.
+4. Ingest Overture buildings and places as separate themes with separate licence/source policies. Measure missingness and geometry quality by region; add local/cadastral or national mapping sources where their terms permit, especially in underrepresented regions.
+5. Treat OpenAerialMap and national/local aerial datasets as optional higher-detail overlays where coverage and per-asset usage rights are explicitly documented.
 6. Keep offline packages to data sources whose licences and service terms explicitly allow packaging. Never bulk-download OSM standard tiles to build our own archives.
 
-This stack is intentionally heterogeneous: it can produce a consistent globe, but it will not produce Google Earth-quality close-up imagery in every location. Track actual coverage, capture date, ground sampling distance, licence state and known gaps as first-class measurements.
+This stack is intentionally heterogeneous: it can produce a consistent globe, but it will not produce Google Earth-quality close-up imagery in every location. Track actual coverage, capture date, ground sampling distance, licence state and known gaps as first-class measurements. Treat coverage, completeness, positional accuracy and source eligibility as separate dimensions. Global coverage is not the same as uniform quality; Overture itself notes lower precision for some ML-derived building data in the Global South.
 
 ### Official source references
 
@@ -186,8 +187,13 @@ This stack is intentionally heterogeneous: it can produce a consistent globe, bu
 - Copernicus Sentinel data terms: https://dataspace.copernicus.eu/terms-and-conditions
 - ESA Sentinel-2 spatial resolutions and revisit summary: https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-2/Facts_and_figures
 - Copernicus DEM GLO-30 product licence: https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM/resources/license/License-COPDEM-30.pdf
-- Overture buildings guide and release access: https://docs.overturemaps.org/guides/buildings/
+- CDSE Copernicus DEM 30m View Service restriction announcement (17 July 2026): https://dataspace.copernicus.eu/news/2026-7-17-copernicus-dem-30m-view-service-license-acceptance
+- Overture buildings guide, sources, licensing and documented Global South quality caveat: https://docs.overturemaps.org/guides/buildings/
+- Overture places guide and source/theme licensing: https://docs.overturemaps.org/guides/places/
 - Overture attribution/licensing by theme: https://docs.overturemaps.org/attribution/
+- STAC Item core specification (bbox, datetime and assets): https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md
+- STAC Projection Extension (modern proj:code, deprecated proj:epsg, WKT2/PROJJSON): https://github.com/stac-extensions/projection
+- STAC Raster Extension (per-band raster:spatial_resolution): https://github.com/stac-extensions/raster
 - OpenAerialMap terms: https://openaerialmap.org/legal/
 - USGS 3DEP products and resolution summary: https://www.usgs.gov/3d-elevation-program/about-3dep-products-services
 - OSM tile usage policy, including offline/bulk restrictions: https://operations.osmfoundation.org/policies/tiles/
