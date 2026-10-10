@@ -77,16 +77,26 @@ transport authenticity. Do not fetch the network from unit tests. The fixture
 is deliberately synthetic.
 
 `scripts/capture-horizons-vector.sh` provides an operator path for one GET
-sample: `--print-url` builds the URL offline, and an explicit capture writes the
-exact URL, raw response, hashes, receipt, and metadata to a new directory before
-schema validation. It resolves its validator relative to the script path, so it
+sample: `--print-url` builds the URL offline and `--print-identity` prints the
+canonical semantic-plus-transport identity without its trailing newline. Before
+printing that identity or fetching, it binds known catalogue IDs to the matching
+Horizons COMMAND/CENTER expressions and expected names; aggregate populations
+are rejected as point targets/centres. An explicit capture writes both exact
+`request.url` and `request.identity` bytes, the raw response, SHA-256 values,
+receipt, and metadata to a new directory before schema validation. The request
+digest covers the length-delimited identity (stable target/centre IDs, expected
+names, and actual URL), while a separate URL digest records the transport URL.
+The Rust parser uses the same identity format and checks it alongside the raw
+response digest. It resolves its validator relative to the script path, so it
 does not depend on the caller's working directory.
 `scripts/validate-horizons-vector.py` checks exact table markers, signature,
 target/centre, coordinate settings, column order, field count, finite state,
 and epoch. Seven offline regression tests cover the synthetic fixture and
 failure cases such as target mismatch, unknown signature version, missing
 markers, reordered columns, non-finite values, and epoch drift. CI also checks
-the default URL byte-for-byte; none of these checks calls Horizons. The capture
+the default URL and semantic request identity byte-for-byte and verifies that
+known target/centre mismatches and aggregate-as-point requests fail offline;
+none of these checks calls Horizons. The capture
 script never overwrites a capture or edits the committed fixture. A real
 response remains `captured-not-yet-reviewed` until reviewed and promoted as a
 separate byte-for-byte fixture.
