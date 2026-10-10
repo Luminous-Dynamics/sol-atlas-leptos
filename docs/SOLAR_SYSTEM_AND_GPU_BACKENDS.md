@@ -51,28 +51,33 @@ its centre, frame, and epoch. The new horizons module builds a deterministic
 GET URL with explicit target, centre, discrete TDB epochs (each individually
 quoted as Horizons requires), reference system and plane, vector correction,
 VEC_TABLE=2, CSV output, and KM-S units. It rejects URLs above a conservative
-7,500-byte budget so oversized batches need the file-based API. It validates
-the JSON signature source and an explicit version allowlist before parsing the
-CSV markers. The current GET docs are labelled 1.3 while their documented
-JSON examples still show signature.version 1.0, so both documented values are
-accepted pending a real capture; any other version fails closed. Catalogue
-entries now carry explicit Horizons COMMAND IDs (including semicolon-qualified
-small-body IDs) rather than relying on ambiguous name lookup. The parser
-validates labelled column order, target/centre, reference frame/plane,
-correction mode, units, epoch order, fields, and finite values. It does no HTTP.
-EphemerisProvenance computes SHA-256 over the exact canonical URL and raw
-response bytes; both digests are checked before returning states. This is
-byte-level binding, not proof of provider or transport authenticity. Do not
-fetch the network from unit tests. The fixture is deliberately synthetic.
+7,500-byte budget so oversized batches route to the official file-based API
+instead of dropping the request. `HorizonsRequestPlan` returns either a GET URL
+or a file POST plan with the deterministic batch input (including VECTORS,
+units, frame/plane, correction mode, and individually quoted TLIST epochs).
+Its canonical request identity excludes transient multipart boundaries while
+binding the exact endpoint, output format, and input bytes.
 
-`scripts/capture-horizons-vector.sh` provides the next operator step: it builds
-the same canonical URL without network access via `--print-url`, and on an
-explicit capture writes the exact URL, raw response bytes, SHA-256 digests, and
-retrieval metadata to a new directory. It never overwrites a capture or edits
-the committed fixture. CI performs a shell syntax check and verifies the default
-URL byte-for-byte without calling Horizons. A captured response remains
-`captured-not-yet-reviewed` until its full header and vector columns are checked
-and it is promoted as a separate fixture.
+The GET docs are labelled 1.3 while their JSON examples still show signature
+version 1.0. The file API docs are labelled 1.0 while examples show 0.2. The
+parser uses separate, narrow version allowlists for each transport; all other
+versions fail closed. Catalogue entries carry explicit Horizons COMMAND IDs
+(including semicolon-qualified small-body IDs) rather than relying on ambiguous
+name lookup. The parser validates labelled column order, target/centre,
+reference frame/plane, correction mode, units, epoch order, fields, and finite
+values. It does no HTTP. EphemerisProvenance computes SHA-256 over the exact
+canonical request identity and raw response bytes; both digests are checked
+before returning states. This binds bytes but does not prove provider or
+transport authenticity. Do not fetch the network from unit tests. The fixture
+is deliberately synthetic.
+
+`scripts/capture-horizons-vector.sh` provides an operator path for one GET
+sample: `--print-url` builds the URL offline, and an explicit capture writes the
+exact URL, raw response, hashes, receipt, and metadata to a new directory. It
+never overwrites a capture or edits the committed fixture. CI checks shell
+syntax and the default URL byte-for-byte without making a network request. A
+captured response remains `captured-not-yet-reviewed` until the header, output
+columns, epoch, and hashes are reviewed and it is promoted as a separate fixture.
 The provider docs are the contract for the adapter:
 - https://ssd-api.jpl.nasa.gov/doc/horizons.html
 - https://ssd.jpl.nasa.gov/horizons/manual.html
