@@ -42,9 +42,7 @@ env_or_default() {
   printf '%s' "$value"
 }
 
-for tool in python3 curl jq sha256sum; do
-  command -v "$tool" >/dev/null 2>&1 || die "required tool not found: $tool"
-done
+command -v python3 >/dev/null 2>&1 || die "required tool not found: python3"
 
 target_id=$(env_or_default HORIZONS_TARGET_ID mars)
 center_id=$(env_or_default HORIZONS_CENTER_ID ssb)
@@ -198,6 +196,9 @@ if [[ $# -eq 1 && "$1" == "--print-identity" ]]; then
 fi
 
 [[ $# -eq 1 ]] || { usage; die "provide an output directory"; }
+for tool in curl jq sha256sum; do
+  command -v "$tool" >/dev/null 2>&1 || die "required tool not found: $tool"
+done
 out_dir=$1
 [[ ! -e "$out_dir" ]] || die "output path already exists; choose a fresh directory"
 mkdir -p "$(dirname "$out_dir")"
