@@ -34,6 +34,18 @@ def sha256_hex(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def parse_http_status(headers_bytes: bytes) -> str:
+    """Read the final HTTP status line captured by curl --dump-header."""
+    header_text = headers_bytes.decode("iso-8859-1")
+    status_lines = re.findall(
+        r"(?m)^HTTP/[^ \r\n]+[ \t]+([0-9]{3})(?:[ \t].*)?\r?$",
+        header_text,
+    )
+    if not status_lines:
+        raise CaptureVerificationError("response.headers has no HTTP status line")
+    return status_lines[-1]
+
+
 def read_json(path: Path) -> dict[str, Any]:
     try:
         obj = json.loads(path.read_bytes())
@@ -243,6 +255,7 @@ def verify_capture(directory: Path) -> dict[str, str]:
         "url": directory / "request.url",
         "identity": directory / "request.identity",
         "response": directory / "response.raw.json",
+        "headers": directory / "response.headers",
         "receipt": directory / "capture-receipt.json",
         "metadata": directory / "capture-metadata.json",
     }
@@ -253,6 +266,7 @@ def verify_capture(directory: Path) -> dict[str, str]:
     url_bytes = paths["url"].read_bytes()
     identity_bytes = paths["identity"].read_bytes()
     response_bytes = paths["response"].read_bytes()
+    response_headers_bytes = paths["headers"].read_bytes()
     receipt = read_json(paths["receipt"])
     metadata = read_json(paths["metadata"])
 
@@ -262,6 +276,12 @@ def verify_capture(directory: Path) -> dict[str, str]:
         raise CaptureVerificationError("metadata status is not captured-not-yet-reviewed")
 
     http_status = required_string(metadata, "http_status", "metadata")
+    parsed_http_status = parse_http_status(response_headers_bytes)
+    assert_equal(
+        http_status,
+        parsed_http_status,
+        "HTTP status from response headers versus metadata",
+    )
     assert_equal(receipt.get("http_status"), http_status, "HTTP status")
     if http_status != "200":
         raise CaptureVerificationError(
@@ -277,6 +297,7 @@ def verify_capture(directory: Path) -> dict[str, str]:
         "canonical_request_sha256": sha256_hex(identity_bytes),
         "canonical_url_sha256": sha256_hex(url_bytes),
         "raw_response_sha256": sha256_hex(response_bytes),
+        "response_headers_sha256": sha256_hex(response_headers_bytes),
     }
     for label, digest in digests.items():
         assert_equal(receipt.get(label), digest, f"receipt.{label}")

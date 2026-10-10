@@ -54,6 +54,7 @@ class HorizonsCapturePacketTests(unittest.TestCase):
         url = default_url()
         identity = canonical_identity(url)
         response = FIXTURE_PATH.read_bytes()
+        response_headers = b"HTTP/2 200\r\ncontent-type: application/json\r\n\r\n"
         metadata = {
             "fixture_status": "captured-not-yet-reviewed",
             "http_status": "200",
@@ -74,6 +75,7 @@ class HorizonsCapturePacketTests(unittest.TestCase):
             "canonical_request_sha256": sha256(identity),
             "canonical_url_sha256": sha256(url),
             "raw_response_sha256": sha256(response),
+            "response_headers_sha256": sha256(response_headers),
         }
         receipt = {
             "receipt_status": "captured-unreviewed",
@@ -81,6 +83,7 @@ class HorizonsCapturePacketTests(unittest.TestCase):
             "canonical_request_sha256": sha256(identity),
             "canonical_url_sha256": sha256(url),
             "raw_response_sha256": sha256(response),
+            "response_headers_sha256": sha256(response_headers),
             "retrieved_at_utc": "2026-10-10T18:00:00Z",
             "reported_provider_source": "NASA/JPL Horizons API",
             "reported_api_version": "1.3",
@@ -88,6 +91,7 @@ class HorizonsCapturePacketTests(unittest.TestCase):
         (folder / "request.url").write_bytes(url)
         (folder / "request.identity").write_bytes(identity)
         (folder / "response.raw.json").write_bytes(response)
+        (folder / "response.headers").write_bytes(response_headers)
         (folder / "capture-metadata.json").write_text(json.dumps(metadata), encoding="utf-8")
         (folder / "capture-receipt.json").write_text(json.dumps(receipt), encoding="utf-8")
         return folder
@@ -100,6 +104,7 @@ class HorizonsCapturePacketTests(unittest.TestCase):
                 "canonical_request_sha256",
                 "canonical_url_sha256",
                 "raw_response_sha256",
+                "response_headers_sha256",
             })
             self.assertEqual(digests["canonical_url_sha256"], sha256(default_url()))
 
@@ -118,6 +123,24 @@ class HorizonsCapturePacketTests(unittest.TestCase):
                 verifier.CaptureVerificationError,
                 "capture HTTP status must be 200, got 503",
             ):
+                verifier.verify_capture(capture)
+
+    def test_http_status_is_read_from_saved_response_headers(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            headers_path = capture / "response.headers"
+            headers_path.write_bytes(b"HTTP/2 503 Service Unavailable\r\n\r\n")
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "HTTP status from response headers versus metadata mismatch",
+            ):
+                verifier.verify_capture(capture)
+
+    def test_missing_response_headers_fails_closed(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            (capture / "response.headers").unlink()
+            with self.assertRaisesRegex(verifier.CaptureVerificationError, "missing headers file"):
                 verifier.verify_capture(capture)
 
     def test_request_url_parameter_order_must_be_canonical(self) -> None:

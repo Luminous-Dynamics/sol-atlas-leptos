@@ -207,6 +207,7 @@ mkdir "$out_dir"
 url_file="$out_dir/request.url"
 identity_file="$out_dir/request.identity"
 response_file="$out_dir/response.raw.json"
+headers_file="$out_dir/response.headers"
 metadata_file="$out_dir/capture-metadata.json"
 receipt_file="$out_dir/capture-receipt.json"
 
@@ -229,6 +230,7 @@ http_status=$(
     --show-error \
     --connect-timeout 10 \
     --max-time 60 \
+    --dump-header "$headers_file" \
     --output "$response_file" \
     --write-out '%{http_code}' \
     "$url"
@@ -237,6 +239,7 @@ http_status=$(
 # Seal the raw bytes and write a receipt before schema checks. If the provider
 # changes format, operators still retain the response hash and requested query.
 response_sha=$(sha256sum "$response_file" | awk '{print $1}')
+headers_sha=$(sha256sum "$headers_file" | awk '{print $1}')
 retrieved_at=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 source=$(jq -r '.signature.source // "unparsed"' "$response_file" 2>/dev/null || printf 'unparsed')
 version=$(jq -r '.signature.version // "unparsed"' "$response_file" 2>/dev/null || printf 'unparsed')
@@ -244,6 +247,7 @@ jq -n \
   --arg request_sha256 "$request_sha" \
   --arg canonical_url_sha256 "$url_sha" \
   --arg response_sha256 "$response_sha" \
+  --arg response_headers_sha256 "$headers_sha" \
   --arg retrieved_at_utc "$retrieved_at" \
   --arg http_status "$http_status" \
   --arg provider_source "$source" \
@@ -255,7 +259,7 @@ jq -n \
     raw_response_sha256: $response_sha256,
     retrieved_at_utc: $retrieved_at_utc,
     http_status: $http_status,
-    http_status: $http_status,
+    response_headers_sha256: $response_headers_sha256,
     reported_provider_source: $provider_source,
     reported_api_version: $api_version
   }' > "$receipt_file"
@@ -274,12 +278,15 @@ jq -n \
   --arg request_sha256 "$request_sha" \
   --arg canonical_url_sha256 "$url_sha" \
   --arg response_sha256 "$response_sha" \
+  --arg response_headers_sha256 "$headers_sha" \
   --arg retrieved_at_utc "$retrieved_at" \
   --arg http_status "$http_status" \
   --arg api_source "$source" \
   --arg api_version "$version" \
   '{
     fixture_status: "captured-not-yet-reviewed",
+    http_status: $http_status,
+    response_headers_sha256: $response_headers_sha256,
     provider: $api_source,
     api_signature_version: $api_version,
     requested_target_id: $requested_target_id,
@@ -321,6 +328,6 @@ python3 "$script_dir/validate-horizons-vector.py" \
   "$epoch" || die "captured response failed the schema contract; raw response and receipt retained"
 
 
-printf '\nCapture files written:\n  %s\n  %s\n  %s\n  %s\n  %s\n' "$url_file" "$identity_file" "$response_file" "$receipt_file" "$metadata_file"
+printf '\nCapture files written:\n  %s\n  %s\n  %s\n  %s\n  %s\n  %s\n' "$url_file" "$identity_file" "$response_file" "$headers_file" "$receipt_file" "$metadata_file"
 printf 'Status: captured, not yet reviewed or promoted into test fixtures.\n'
 printf 'Next: inspect response.raw.json and compare its header/column labels with the parser contract.\n'

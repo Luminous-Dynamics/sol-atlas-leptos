@@ -42,7 +42,8 @@ This performs a single HTTPS GET. The capture directory contains:
 - `request.url`: exact URL bytes sent to the endpoint, without a trailing newline.
 - `request.identity`: length-delimited semantic ID/name fields plus the exact URL.
 - `response.raw.json`: unmodified response body bytes.
-- `capture-receipt.json`: request, URL, and response digests and the declared
+- `response.headers`: raw response-header bytes including the HTTP status line.
+- `capture-receipt.json`: request, URL, response-body and response-header digests and the declared
   provider/signature version.
 - `capture-metadata.json`: target, centre, epoch, units, frame/plane, correction,
   response identity, and retrieval time.
@@ -63,7 +64,8 @@ python3 scripts/verify-horizons-capture.py "$capture_dir"
 
 The verifier checks the exact saved URL/identity/response digests, the canonical
 URL encoding and parameter order, URL-vs-metadata consistency for target, centre,
-epoch, units, reference system/plane and correction mode, the raw response
+epoch, units, reference system/plane and correction mode, the saved HTTP status
+against the raw response-header block, the raw response
 signature/source/version, and the parsed response schema. It also loads the
 shared `catalogue-bindings.json` manifest and rejects known target/centre
 relabeling, including a packet whose digests were recomputed after relabeling.
@@ -80,7 +82,7 @@ Only after step 3 passes, review:
 2. The unmodified signature source/version and target/centre labels in the body.
 3. The column labels and each numeric state component; confirm position is km,
    velocity is km/s, and the JDTDB value equals the requested epoch.
-4. All three hashes and the capture timestamp. Record the reviewer/commit in the
+4. All recorded hashes, the saved HTTP status/header block, and capture timestamp. Record the reviewer/commit in the
    pull request or review record; the hashes themselves do not identify a reviewer.
 
 Add a **new** fixture and any query/receipt sidecar needed to reproduce it. Never
