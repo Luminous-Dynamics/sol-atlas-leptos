@@ -279,7 +279,8 @@ mod tests {
         let discounted_value = 800.0 / 1.1 + 800.0 / 1.21;
         assert!((result.discounted_generation_kwh - discounted_generation).abs() < 1e-9);
         assert!((result.lifecycle_cost_present_value_usd - discounted_cost).abs() < 1e-9);
-        assert!((result.net_present_value_usd - (-1_000.0 + discounted_value - 50.0/1.1 - 50.0/1.21)).abs() < 1e-9);
+        let expected_npv = -1_000.0 + discounted_value - 50.0 / 1.1 - 50.0 / 1.21;
+        assert!((result.net_present_value_usd - expected_npv).abs() < 1e-9);
     }
 
     #[test]
