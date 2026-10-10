@@ -92,6 +92,10 @@ The current WebGL2 path renders a single Earth sphere using a full-globe Blue Ma
 
 The next custom-renderer experiment is tracked in [issue #70](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/70): preserve Blue Marble as the low-detail fallback and overlay globe-conforming imagery patches selected from camera visibility and zoom. Web Mercator XYZ tiles must not be stretched as though they were equirectangular textures. The tile path needs bounded concurrency/cache/texture memory, source/attribution records, correct parent-tile fallback, stale-request cancellation and context-loss recovery. Keep this as an independently testable overlay; do not replace the base globe before the pilot proves stable.
 
+The first renderer-neutral primitives are now authored in [PR #73](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/73): validated XYZ/TMS coordinates, Web Mercator extents, antimeridian-aware bounded tile selection, parent/child tile relationships, and a configured NASA GIBS URL planner. This does not yet fetch or render images. The same PR adds standalone core-crate format/test steps because sol-atlas-core is a path dependency outside the root Cargo workspace; the prior root-only commands did not explicitly cover that crate's unit tests.
+
+For GIBS, use current GetCapabilities metadata for each selected layer. Its documented Web Mercator tiles are reprojected on demand from geographic (EPSG:4326) source tiles, and each visualization has product-specific matrix sets/zoom ranges; some utility layers may not be available in EPSG:3857. The matrix-set label alone does not establish valid TileMatrix indices, date availability, or credits. The URL builder intentionally requires these layer details as configuration, validates the time's calendar/UTC structure, and requires layer-specific attribution. It builds bounded request plans only—there is still no browser HTTP scheduler, decode/cache, texture lifecycle, or on-globe image overlay.
+
 ### 4. Treat freshness and uncertainty as first-class
 
 Google Earth's own documentation describes imagery from multiple providers and acquisition periods; imagery is not necessarily current or real-time, and mosaics can have date ranges. Sol Atlas should make those limitations legible instead of disguising them.
@@ -192,6 +196,7 @@ This stack is intentionally heterogeneous: it can produce a consistent globe, bu
 - Natural Earth downloads and public-domain terms: https://www.naturalearthdata.com/downloads/ and https://www.naturalearthdata.com/about/terms-of-use/
 - NASA GIBS public WMTS/TMS access patterns, projections and time dimension: https://nasa-gibs.github.io/gibs-api-docs/access-basics/
 - NASA GIBS data-use acknowledgement guidance: https://nasa-gibs.github.io/gibs-api-docs/
+- NASA GIBS projection, layer-specific TileMatrixSet and resolution documentation: https://nasa-gibs.github.io/gibs-api-docs/access-advanced-topics/
 - Copernicus Data Space STAC API and Sentinel-2 L2A collection: https://documentation.dataspace.copernicus.eu/APIs/STAC.html
 - Copernicus Sentinel data terms: https://dataspace.copernicus.eu/terms-and-conditions
 - ESA Sentinel-2 spatial resolutions and revisit summary: https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-2/Facts_and_figures
