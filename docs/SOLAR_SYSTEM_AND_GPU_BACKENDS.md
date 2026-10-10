@@ -72,9 +72,10 @@ name lookup. The parser validates labelled column order, target/centre,
 reference frame/plane, correction mode, units, epoch order, fields, and finite
 values. It does no HTTP. EphemerisProvenance computes SHA-256 over the exact
 canonical request identity and raw response bytes; both digests are checked
-before returning states. This binds bytes but does not prove provider or
-transport authenticity. Do not fetch the network from unit tests. The fixture
-is deliberately synthetic.
+before returning states. Its provider field must also match the source in the
+validated response signature. These checks bind the recorded label to the
+response bytes, but do not prove provider or transport authenticity. Do not
+fetch the network from unit tests. The fixture is deliberately synthetic.
 
 `scripts/capture-horizons-vector.sh` provides an operator path for one GET
 sample: `--print-url` builds the URL offline and `--print-identity` prints the
@@ -103,8 +104,10 @@ manifest object against `SOLAR_SYSTEM_CATALOG`. Offline tests cover response
 schema failures and capture-packet tampering, including a target relabel attempt
 after recalculating the saved hash fields. CI checks the default URL and semantic
 request identity byte-for-byte and verifies that known target/centre mismatches
-and aggregate-as-point requests fail without network access. The capture script never overwrites a capture or
-edits the committed fixture. A real response remains
+and aggregate-as-point requests fail without network access. The verifier also
+checks that provider and signature-version metadata match the raw response,
+not just each other in the receipt. The capture script never overwrites a
+capture or edits the committed fixture. A real response remains
 `captured-not-yet-reviewed` until reviewed and promoted as a separate
 byte-for-byte fixture.
 The provider docs are the contract for the adapter:
