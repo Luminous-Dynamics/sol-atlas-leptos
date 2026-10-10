@@ -289,7 +289,14 @@ fn expect_metadata(
 ) -> Result<(), HorizonsParseError> {
     let actual = metadata_value(header, label)
         .ok_or(HorizonsParseError::MissingMetadata(label))?;
-    if !actual.trim().eq_ignore_ascii_case(expected) {
+    let normalized = actual.trim();
+    let matches = if label == "Reference frame" && expected == "B1950" {
+        normalized.eq_ignore_ascii_case("B1950")
+            || normalized.eq_ignore_ascii_case("FK4/B1950")
+    } else {
+        normalized.eq_ignore_ascii_case(expected)
+    };
+    if !matches {
         return Err(HorizonsParseError::UnexpectedMetadata {
             field: label,
             expected: expected.to_owned(),
@@ -443,6 +450,30 @@ mod tests {
         let non_finite = FIXTURE.replace("1.782345678901234E+08", "NaN");
         assert!(matches!(
             parse_horizons_vectors_json(&non_finite, &request(), &provenance()),
+            Err(HorizonsParseError::InvalidVector { .. })
+        ));
+    }
+
+    #[test]
+    fn rejects_light_time_mode_mismatch_even_when_metadata_prefix_matches() {
+        let payload = FIXTURE.replace(
+            "Aberration corrections : NONE",
+            "Aberration corrections : LT+S",
+        );
+        assert!(matches!(
+            parse_horizons_vectors_json(&payload, &request(), &provenance()),
+            Err(HorizonsParseError::UnexpectedMetadata {
+                field: "Aberration corrections",
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn rejects_non_numeric_epoch_in_first_column() {
+        let payload = FIXTURE.replace("2461323.500000000", "not-a-julian-date");
+        assert!(matches!(
+            parse_horizons_vectors_json(&payload, &request(), &provenance()),
             Err(HorizonsParseError::InvalidVector { .. })
         ));
     }
