@@ -12,8 +12,8 @@
 use serde::Deserialize;
 
 use crate::system_catalog::{
-    EphemerisProvenance, ReferencePlane, ReferenceSystem, StateVector, TimeScale,
-    VectorCorrection,
+    catalog_object, CatalogObject, EphemerisProvenance, ReferencePlane, ReferenceSystem,
+    StateVector, TimeScale, VectorCorrection,
 };
 
 /// Conservative URL ceiling; larger batches should use the file-based Horizons
@@ -149,6 +149,42 @@ pub struct HorizonsVectorRequest {
 }
 
 impl HorizonsVectorRequest {
+    /// Build a query from catalogue metadata so callers cannot accidentally use
+    /// a display name as a provider code. Aggregate layers are not point targets.
+    pub fn for_catalog_object(
+        object: &CatalogObject,
+        center_id: impl Into<String>,
+        provider_center: impl Into<String>,
+        expected_center_name: impl Into<String>,
+        epochs_jd: Vec<f64>,
+        time_scale: TimeScale,
+        reference_system: ReferenceSystem,
+        reference_plane: ReferencePlane,
+        vector_correction: VectorCorrection,
+    ) -> Result<Self, HorizonsParseError> {
+        let provider_target = object.ephemeris_target.ok_or(
+            HorizonsParseError::InvalidRequest(
+                "aggregate catalogue layers cannot be queried as point targets",
+            ),
+        )?;
+
+        let request = Self {
+            target_id: object.id.to_owned(),
+            center_id: center_id.into(),
+            provider_target: provider_target.to_owned(),
+            provider_center: provider_center.into(),
+            expected_target_name: object.name.to_owned(),
+            expected_center_name: expected_center_name.into(),
+            epochs_jd,
+            time_scale,
+            reference_system,
+            reference_plane,
+            vector_correction,
+        };
+        validate_request(&request)?;
+        Ok(request)
+    }
+
     /// Build a deterministic, fully explicit Horizons API URL. Hash the returned
     /// UTF-8 bytes for canonical_query_sha256; do not hash a re-serialized URL.
     /// Query parameters are emitted in a fixed order with fixed encoding.
@@ -657,19 +693,18 @@ mod tests {
         include_str!("../tests/fixtures/horizons/mars_ssb_tdb_frame_km_s.json");
 
     fn request() -> HorizonsVectorRequest {
-        HorizonsVectorRequest {
-            target_id: "mars".into(),
-            center_id: "ssb".into(),
-            provider_target: "499".into(),
-            provider_center: "@0".into(),
-            expected_target_name: "Mars".into(),
-            expected_center_name: "Solar System Barycenter".into(),
-            epochs_jd: vec![2_461_323.5],
-            time_scale: TimeScale::Tdb,
-            reference_system: ReferenceSystem::Icrf,
-            reference_plane: ReferencePlane::Frame,
-            vector_correction: VectorCorrection::Geometric,
-        }
+        HorizonsVectorRequest::for_catalog_object(
+            catalog_object("mars").unwrap(),
+            "ssb",
+            "@0",
+            "Solar System Barycenter",
+            vec![2_461_323.5],
+            TimeScale::Tdb,
+            ReferenceSystem::Icrf,
+            ReferencePlane::Frame,
+            VectorCorrection::Geometric,
+        )
+        .unwrap()
     }
 
     fn provenance_for(payload: &str) -> EphemerisProvenance {
@@ -683,6 +718,42 @@ mod tests {
 
     fn provenance() -> EphemerisProvenance {
         provenance_for(FIXTURE)
+    }
+
+    #[test]
+    fn catalogue_request_uses_provider_id_and_rejects_aggregate_layers() {
+        let ceres = HorizonsVectorRequest::for_catalog_object(
+            catalog_object("ceres").unwrap(),
+            "ssb",
+            "@0",
+            "Solar System Barycenter",
+            vec![2_461_323.5],
+            TimeScale::Tdb,
+            ReferenceSystem::Icrf,
+            ReferencePlane::Frame,
+            VectorCorrection::Geometric,
+        )
+        .unwrap();
+        assert_eq!(ceres.target_id, "ceres");
+        assert_eq!(ceres.expected_target_name, "Ceres");
+        assert_eq!(ceres.provider_target, "1;");
+
+        assert!(matches!(
+            HorizonsVectorRequest::for_catalog_object(
+                catalog_object("comets").unwrap(),
+                "ssb",
+                "@0",
+                "Solar System Barycenter",
+                vec![2_461_323.5],
+                TimeScale::Tdb,
+                ReferenceSystem::Icrf,
+                ReferencePlane::Frame,
+                VectorCorrection::Geometric,
+            ),
+            Err(HorizonsParseError::InvalidRequest(
+                "aggregate catalogue layers cannot be queried as point targets"
+            ))
+        ));
     }
 
     #[test]
