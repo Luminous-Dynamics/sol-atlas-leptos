@@ -64,6 +64,15 @@ EphemerisProvenance computes SHA-256 over the exact canonical URL and raw
 response bytes; both digests are checked before returning states. This is
 byte-level binding, not proof of provider or transport authenticity. Do not
 fetch the network from unit tests. The fixture is deliberately synthetic.
+
+`scripts/capture-horizons-vector.sh` provides the next operator step: it builds
+the same canonical URL without network access via `--print-url`, and on an
+explicit capture writes the exact URL, raw response bytes, SHA-256 digests, and
+retrieval metadata to a new directory. It never overwrites a capture or edits
+the committed fixture. CI performs a shell syntax check and verifies the default
+URL byte-for-byte without calling Horizons. A captured response remains
+`captured-not-yet-reviewed` until its full header and vector columns are checked
+and it is promoted as a separate fixture.
 The provider docs are the contract for the adapter:
 - https://ssd-api.jpl.nasa.gov/doc/horizons.html
 - https://ssd.jpl.nasa.gov/horizons/manual.html
