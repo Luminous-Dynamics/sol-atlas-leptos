@@ -121,7 +121,7 @@ pub struct ValidationEvidence {
     pub description: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ValidationEvidenceKind {
     Reproducibility,
