@@ -258,6 +258,140 @@ impl ValidationFinding {
     pub fn detail(&self) -> Option<&str> {
         self.detail.as_deref()
     }
+
+    /// Convert a provenance-graph validation error into a stable report finding.
+    ///
+    /// The returned code is the machine-readable contract; the formatted detail
+    /// is explanatory text and must not be parsed by downstream consumers.
+    pub fn from_provenance_error(
+        error: &ProvenanceError,
+    ) -> Result<Self, ValidationReportError> {
+        use ProvenanceError as E;
+
+        let (code, subject, field_path) = match error {
+            E::DuplicateArtifact(id) => (
+                ValidationFindingCode::DuplicateRecord,
+                Some((RecordKind::Artifact, id.as_str().to_owned())),
+                Some("artifacts.id"),
+            ),
+            E::DuplicateActivity(id) => (
+                ValidationFindingCode::DuplicateRecord,
+                Some((RecordKind::Activity, id.as_str().to_owned())),
+                Some("activities.id"),
+            ),
+            E::DuplicateAgent(id) => (
+                ValidationFindingCode::DuplicateRecord,
+                Some((RecordKind::Agent, id.as_str().to_owned())),
+                Some("agents.id"),
+            ),
+            E::DuplicateRelation(_) => (
+                ValidationFindingCode::DuplicateRecord,
+                None,
+                Some("relations"),
+            ),
+            E::MissingArtifact { .. } | E::MissingActivity { .. } | E::MissingAgent { .. } => (
+                ValidationFindingCode::DanglingReference,
+                None,
+                Some("relations"),
+            ),
+            E::InvalidActivityInterval { activity, .. } => (
+                ValidationFindingCode::InvalidActivityInterval,
+                Some((RecordKind::Activity, activity.as_str().to_owned())),
+                Some("activities.started_at_unix_ms/ended_at_unix_ms"),
+            ),
+            E::InvalidIntegrityReference { artifact, .. } => (
+                ValidationFindingCode::MalformedRecord,
+                Some((RecordKind::Artifact, artifact.as_str().to_owned())),
+                Some("artifacts.integrity"),
+            ),
+            E::DerivedFromCycle => (
+                ValidationFindingCode::DerivedFromCycle,
+                None,
+                Some("relations.derived_from"),
+            ),
+            E::UnknownArtifact(_) => (
+                ValidationFindingCode::DanglingReference,
+                None,
+                Some("artifact_id"),
+            ),
+        };
+
+        finding_from_domain_error(code, subject, field_path, error.to_string())
+    }
+
+    /// Convert an assertion-ledger validation error into a stable report finding.
+    ///
+    /// Missing endpoints are anchored to the assertion that refers to them,
+    /// not to the absent endpoint (which may not exist in the report's subjects).
+    pub fn from_assertion_graph_error(
+        error: &AssertionGraphError,
+    ) -> Result<Self, ValidationReportError> {
+        use AssertionGraphError as E;
+
+        let (code, subject, field_path) = match error {
+            E::DuplicateArtifact(id) => (
+                ValidationFindingCode::DuplicateRecord,
+                Some((RecordKind::Artifact, id.as_str().to_owned())),
+                Some("artifacts.id"),
+            ),
+            E::DuplicateActivity(id) => (
+                ValidationFindingCode::DuplicateRecord,
+                Some((RecordKind::Activity, id.as_str().to_owned())),
+                Some("activities.id"),
+            ),
+            E::DuplicateAgent(id) => (
+                ValidationFindingCode::DuplicateRecord,
+                Some((RecordKind::Agent, id.as_str().to_owned())),
+                Some("agents.id"),
+            ),
+            E::DuplicateAssertion(id) => (
+                ValidationFindingCode::DuplicateRecord,
+                Some((RecordKind::Assertion, id.as_str().to_owned())),
+                Some("assertions.id"),
+            ),
+            E::DuplicateSource { assertion_id, .. } => (
+                ValidationFindingCode::DuplicateRecord,
+                Some((RecordKind::Assertion, assertion_id.as_str().to_owned())),
+                Some("assertions.sources"),
+            ),
+            E::InvalidArtifactIntegrity { artifact_id, .. } => (
+                ValidationFindingCode::MalformedRecord,
+                Some((RecordKind::Artifact, artifact_id.as_str().to_owned())),
+                Some("artifacts.integrity"),
+            ),
+            E::InvalidActivityInterval { activity_id, .. } => (
+                ValidationFindingCode::InvalidActivityInterval,
+                Some((RecordKind::Activity, activity_id.as_str().to_owned())),
+                Some("activities.started_at_unix_ms/ended_at_unix_ms"),
+            ),
+            E::MissingArtifact { assertion_id, .. }
+            | E::MissingActivity { assertion_id, .. }
+            | E::MissingAgent { assertion_id, .. } => (
+                ValidationFindingCode::DanglingReference,
+                Some((RecordKind::Assertion, assertion_id.as_str().to_owned())),
+                Some("assertions.relation"),
+            ),
+            E::InvalidExternalAssessment { assertion_id, .. } => (
+                ValidationFindingCode::MalformedRecord,
+                Some((RecordKind::Assertion, assertion_id.as_str().to_owned())),
+                Some("assertions.assessment_ref"),
+            ),
+        };
+
+        finding_from_domain_error(code, subject, field_path, error.to_string())
+    }
+}
+
+fn finding_from_domain_error(
+    code: ValidationFindingCode,
+    subject: Option<(RecordKind, String)>,
+    field_path: Option<&str>,
+    detail: String,
+) -> Result<ValidationFinding, ValidationReportError> {
+    let subject = subject
+        .map(|(kind, id)| RecordAnchor::new(kind, id))
+        .transpose()?;
+    ValidationFinding::new(code, subject, field_path.map(str::to_owned), Some(detail))
 }
 
 #[derive(Deserialize)]
@@ -575,6 +709,58 @@ mod tests {
             None,
         )
         .unwrap()
+    }
+
+    #[test]
+    fn provenance_errors_map_to_stable_findings_and_record_anchors() {
+        let error = ProvenanceError::InvalidActivityInterval {
+            activity: crate::provenance::ActivityId::new("activity-7").unwrap(),
+            started_at_unix_ms: 20,
+            ended_at_unix_ms: 10,
+        };
+
+        let finding = ValidationFinding::from_provenance_error(&error).unwrap();
+        assert_eq!(
+            finding.code(),
+            ValidationFindingCode::InvalidActivityInterval
+        );
+        assert_eq!(
+            finding.subject(),
+            Some(&anchor(RecordKind::Activity, "activity-7"))
+        );
+        assert_eq!(
+            finding.field_path(),
+            Some("activities.started_at_unix_ms/ended_at_unix_ms")
+        );
+        assert_eq!(finding.detail(), Some(error.to_string().as_str()));
+    }
+
+    #[test]
+    fn missing_assertion_endpoint_anchors_the_assertion_not_the_absent_record() {
+        let error = AssertionGraphError::MissingArtifact {
+            assertion_id: crate::provenance_assertions::AssertionId::new("assertion-4").unwrap(),
+            artifact_id: crate::provenance::ArtifactId::new("missing-artifact").unwrap(),
+        };
+
+        let finding = ValidationFinding::from_assertion_graph_error(&error).unwrap();
+        assert_eq!(finding.code(), ValidationFindingCode::DanglingReference);
+        assert_eq!(
+            finding.subject(),
+            Some(&anchor(RecordKind::Assertion, "assertion-4"))
+        );
+        assert_eq!(finding.field_path(), Some("assertions.relation"));
+        assert!(finding.detail().unwrap().contains("missing-artifact"));
+    }
+
+    #[test]
+    fn cycle_errors_map_to_a_structural_violation_without_inventing_an_anchor() {
+        let finding =
+            ValidationFinding::from_provenance_error(&ProvenanceError::DerivedFromCycle).unwrap();
+
+        assert_eq!(finding.code(), ValidationFindingCode::DerivedFromCycle);
+        assert_eq!(finding.severity(), FindingSeverity::Violation);
+        assert_eq!(finding.subject(), None);
+        assert_eq!(finding.field_path(), Some("relations.derived_from"));
     }
 
     #[test]
