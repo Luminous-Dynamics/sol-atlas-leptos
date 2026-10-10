@@ -529,8 +529,8 @@ fn occurrence_fingerprint(value: &str) -> String {
     key.push_str("occ-");
     const HEX: &[u8; 16] = b"0123456789abcdef";
     for byte in digest.iter() {
-        key.push(HEX[(byte >> 4) as usize] as char);
-        key.push(HEX[(byte & 0x0f) as usize] as char);
+        key.push(HEX[(*byte >> 4) as usize] as char);
+        key.push(HEX[(*byte & 0x0f) as usize] as char);
     }
     key
 }
@@ -1228,21 +1228,16 @@ mod tests {
             provenance_relation_identity(&second_relation)
         );
 
-        let missing = crate::provenance::ArtifactId::new("missing").unwrap();
         let first = ValidationFinding::from_provenance_error(
-            &ProvenanceError::MissingArtifact {
-                relation: first_relation,
-                artifact: missing.clone(),
-            },
+            &ProvenanceError::DuplicateRelation(first_relation),
         )
         .unwrap();
         let second = ValidationFinding::from_provenance_error(
-            &ProvenanceError::MissingArtifact {
-                relation: second_relation,
-                artifact: missing,
-            },
+            &ProvenanceError::DuplicateRelation(second_relation),
         )
         .unwrap();
+        assert_eq!(first.code(), ValidationFindingCode::DuplicateRecord);
+        assert_eq!(second.code(), ValidationFindingCode::DuplicateRecord);
         assert_ne!(first.occurrence_key(), second.occurrence_key());
     }
 
