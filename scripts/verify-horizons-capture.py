@@ -86,57 +86,6 @@ def assert_equal(actual: Any, expected: Any, label: str) -> None:
         )
 
 
-TARGET_BINDINGS = {
-    "sun": ("10", "Sun"),
-    "mercury": ("199", "Mercury"),
-    "venus": ("299", "Venus"),
-    "earth": ("399", "Earth"),
-    "mars": ("499", "Mars"),
-    "jupiter": ("599", "Jupiter"),
-    "saturn": ("699", "Saturn"),
-    "uranus": ("799", "Uranus"),
-    "neptune": ("899", "Neptune"),
-    "ceres": ("1;", "Ceres"),
-    "pluto": ("999", "Pluto"),
-    "haumea": ("136108;", "Haumea"),
-    "makemake": ("136472;", "Makemake"),
-    "eris": ("136199;", "Eris"),
-    "moon": ("301", "Moon"),
-    "phobos": ("401", "Phobos"),
-    "deimos": ("402", "Deimos"),
-    "io": ("501", "Io"),
-    "europa": ("502", "Europa"),
-    "ganymede": ("503", "Ganymede"),
-    "callisto": ("504", "Callisto"),
-    "mimas": ("601", "Mimas"),
-    "enceladus": ("602", "Enceladus"),
-    "tethys": ("603", "Tethys"),
-    "dione": ("604", "Dione"),
-    "rhea": ("605", "Rhea"),
-    "titan": ("606", "Titan"),
-    "iapetus": ("608", "Iapetus"),
-    "miranda": ("705", "Miranda"),
-    "ariel": ("701", "Ariel"),
-    "umbriel": ("702", "Umbriel"),
-    "titania": ("703", "Titania"),
-    "oberon": ("704", "Oberon"),
-    "triton": ("801", "Triton"),
-    "charon": ("901", "Charon"),
-}
-AGGREGATE_IDS = {
-    "asteroid_belt", "near_earth_objects", "comets", "centaurs",
-    "kuiper_belt", "scattered_disc", "oort_cloud", "spacecraft",
-}
-CENTER_BINDINGS = {
-    "ssb": ("@0", "Solar System Barycenter"),
-    **{key: (f"@{value[0]}", value[1]) for key, value in TARGET_BINDINGS.items()},
-    "ceres": ("@2000001", "Ceres"),
-    "haumea": ("@2136108", "Haumea"),
-    "makemake": ("@2136472", "Makemake"),
-    "eris": ("@2136199", "Eris"),
-}
-
-
 def validate_semantic_bindings(metadata: dict[str, Any]) -> None:
     target_id = required_string(metadata, "requested_target_id", "metadata")
     center_id = required_string(metadata, "requested_center_id", "metadata")
@@ -145,26 +94,49 @@ def validate_semantic_bindings(metadata: dict[str, Any]) -> None:
     target_name = required_string(metadata, "expected_target_name", "metadata")
     center_name = required_string(metadata, "expected_center_name", "metadata")
 
-    if target_id in AGGREGATE_IDS:
-        raise CaptureVerificationError(
-            f"aggregate catalogue layer cannot be queried as a point target: {target_id}"
-        )
-    binding = TARGET_BINDINGS.get(target_id)
-    if binding is not None and (
-        target != binding[0] or target_name.casefold() != binding[1].casefold()
-    ):
-        raise CaptureVerificationError(f"catalogue target binding mismatch for {target_id}")
+    manifest_path = (
+        Path(__file__).resolve().parents[1]
+        / "sol-atlas-core/tests/fixtures/horizons/catalogue-bindings.json"
+    )
+    manifest = read_json(manifest_path)
+    objects = manifest.get("objects")
+    if manifest.get("schema_version") != 1 or not isinstance(objects, list):
+        raise CaptureVerificationError("unsupported Horizons catalogue bindings manifest")
 
-    if center_id in AGGREGATE_IDS:
-        raise CaptureVerificationError(
-            f"aggregate catalogue layer cannot be used as a point centre: {center_id}"
-        )
-    center_binding = CENTER_BINDINGS.get(center_id)
-    if center_binding is not None and (
-        center != center_binding[0] or center_name.casefold() != center_binding[1].casefold()
-    ):
-        raise CaptureVerificationError(f"catalogue centre binding mismatch for {center_id}")
+    by_id: dict[str, dict[str, Any]] = {}
+    for obj in objects:
+        if not isinstance(obj, dict) or not isinstance(obj.get("id"), str):
+            raise CaptureVerificationError("catalogue bindings manifest has malformed object entry")
+        if obj["id"] in by_id:
+            raise CaptureVerificationError(f"duplicate catalogue binding ID: {obj['id']}")
+        by_id[obj["id"]] = obj
 
+    target_entry = by_id.get(target_id)
+    if target_entry is not None:
+        if target_entry.get("kind") in {"small_body_population", "spacecraft_population"}:
+            raise CaptureVerificationError(
+                f"aggregate catalogue layer cannot be queried as a point target: {target_id}"
+            )
+        binding = (target_entry.get("command"), target_entry.get("name"))
+        if binding[0] is None or target != binding[0] or target_name.casefold() != str(binding[1]).casefold():
+            raise CaptureVerificationError(f"catalogue target binding mismatch for {target_id}")
+
+    center_entry = by_id.get(center_id)
+    if center_entry is not None:
+        if center_entry.get("kind") in {"small_body_population", "spacecraft_population"}:
+            raise CaptureVerificationError(
+                f"aggregate catalogue layer cannot be used as a point centre: {center_id}"
+            )
+        binding = (center_entry.get("center"), center_entry.get("name"))
+        if binding[0] is None or center != binding[0] or center_name.casefold() != str(binding[1]).casefold():
+            raise CaptureVerificationError(f"catalogue centre binding mismatch for {center_id}")
+
+    for special in manifest.get("special_centers", []):
+        if special.get("id") == center_id and (
+            center != special.get("provider_center")
+            or center_name.casefold() != str(special.get("name")).casefold()
+        ):
+            raise CaptureVerificationError(f"special centre binding mismatch for {center_id}")
 
 def verify_capture(directory: Path) -> dict[str, str]:
     """Verify a capture directory and return the computed SHA-256 digests."""
