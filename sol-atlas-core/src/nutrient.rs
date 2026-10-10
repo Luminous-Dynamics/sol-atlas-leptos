@@ -530,6 +530,27 @@ mod tests {
     }
 
     #[test]
+    fn invalid_budget_context_is_rejected() {
+        let mut input = complete_input();
+        input.context.site_id = "  ".into();
+        assert!(calculate_budget(&input).is_err());
+
+        input = complete_input();
+        input.context.area_hectares = 0.0;
+        assert!(calculate_budget(&input).is_err());
+
+        input.context.area_hectares = f64::INFINITY;
+        assert!(calculate_budget(&input).is_err());
+    }
+
+    #[test]
+    fn result_retains_context_for_auditability() {
+        let input = complete_input();
+        let result = calculate_budget(&input).unwrap();
+        assert_eq!(result.context, input.context);
+    }
+
+    #[test]
     fn serde_roundtrip_preserves_provenance_and_unknowns() {
         let mut input = complete_input();
         input.organic_amendment_supply.nitrogen = NutrientMeasurement::unknown();
