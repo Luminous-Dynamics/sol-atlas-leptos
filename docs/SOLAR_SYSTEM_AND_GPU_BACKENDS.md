@@ -112,6 +112,31 @@ The provider docs are the contract for the adapter:
 - https://ssd.jpl.nasa.gov/horizons/manual.html
 - https://ssd.jpl.nasa.gov/planets/orbits.html
 
+## Hash-bound samples and scene composition
+
+The parser returns `HashBoundStateVector`, a wrapper whose constructor is kept
+inside the parser module. Callers can inspect its `StateVector`, but cannot
+manufacture the wrapper through the public API. This narrows the path into the
+scene composer: an input must have come through the parser's request-identity,
+response-hash, signature, header, epoch, and column checks. It still does not
+establish that the bytes came from the genuine JPL service.
+
+`sol-atlas-core::ephemeris_scene::EphemerisScene` now composes those samples
+into barycentric states. It recursively adds a body's centre-relative position
+and velocity to its centre's resolved state. Missing centre samples, duplicate
+targets, reference cycles, aggregate targets/centres, mismatched epochs, and
+incompatible time/frame/plane/correction metadata fail closed. Each resolved
+body carries the hashes for the complete centre chain used in composition.
+Scene composition does not interpolate or propagate vectors: all inputs must
+belong to one requested epoch.
+
+The renderer boundary is a separate step. `camera_relative_display_position`
+subtracts a camera origin while values are still `f64` kilometre coordinates,
+then converts the camera-relative result to `f32` only after range checks. A
+display scale remains a visualization parameter and never mutates the
+scientific state. The current WebGL2 renderer has not yet been wired to this
+scene API.
+
 ## GPU decision: WebGPU in the browser, Vulkan on native Linux
 
 The direction should be a shared Rust renderer built on `wgpu`, not two
@@ -176,7 +201,8 @@ https://www.w3.org/TR/webgpu/ .
   primary system and must not be treated as physical objects with independent
   orbital radii.
 
-The first catalogue increment does not yet display these objects in the
-current WebGL2 view. The next implementation should add a distinct full-system
-scene mode backed by the catalogue and ephemeris contract, while preserving the
+The catalogue, query/parser, hash-bound sample, and renderer-neutral scene
+composer are now present in the core crate, but these objects are not yet wired
+into the current WebGL2 view. The next implementation should add a distinct
+full-system scene mode backed by verified state vectors, while preserving the
 existing Earth-focused globe as a separate view.
