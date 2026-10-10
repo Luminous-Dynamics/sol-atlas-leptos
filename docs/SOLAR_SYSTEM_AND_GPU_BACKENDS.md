@@ -32,7 +32,8 @@ Separate three layers that must not be conflated:
    belt, near-Earth objects, comets, Centaurs, Kuiper belt, scattered disc,
    Oort cloud, spacecraft) are query domains, not single bodies.
 2. **Ephemeris state**: target ID, centre ID, epoch, time scale, reference
-   system, position in km, velocity in km/s, and provenance. Every imported
+   system and plane, vector correction, position in km, velocity in km/s, and
+   provenance. Every imported
    sample must bind to the exact canonical request and raw response with
    SHA-256 digests. Validate finite values and explicit units before the state
    reaches a renderer.
@@ -43,7 +44,8 @@ Separate three layers that must not be conflated:
 
 Use JPL Horizons for authoritative time-specific states rather than expanding
 the hand-authored orbit-speed table. For vector queries, explicitly request the
-target, centre, epoch range, time scale, reference system, and units. Preserve
+target, centre, epoch range, time scale, reference system and plane,
+vector-correction mode, and units. Preserve
 those parameters with the frozen response fixture: a vector is meaningless
 without its centre, frame, and epoch. Do not fetch the network from unit tests.
 The provider docs are the contract for the adapter:
