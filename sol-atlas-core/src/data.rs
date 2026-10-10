@@ -688,15 +688,15 @@ mod fossil_deposit_admission_tests {
         assert!(record.validate().is_err());
 
         // All free-text fields reject control characters, not just empty strings.
-        record.name = "Synthetic\\0Basin Field".to_string();
+        record.name = "Synthetic\0Basin Field".to_string();
         assert!(record.validate().is_err());
 
         record.name = "Synthetic Basin Field".to_string();
-        record.country = "Test\\nland".to_string();
+        record.country = "Test\nland".to_string();
         assert!(record.validate().is_err());
 
         record.country = "Testland".to_string();
-        record.status = "producing\\t".to_string();
+        record.status = "producing\t".to_string();
         assert!(record.validate().is_err());
     }
 }
