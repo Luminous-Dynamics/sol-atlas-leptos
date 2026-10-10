@@ -94,9 +94,11 @@ does not depend on the caller's working directory.
 target/centre, coordinate settings, column order, field count, finite state,
 and epoch. `scripts/verify-horizons-capture.py CAPTURE_DIRECTORY` independently
 recomputes the saved request-identity, URL, and raw-response SHA-256 values,
-rebuilds the semantic identity from capture metadata, and reruns schema checks.
-It rejects internally inconsistent packets and known catalogue ID relabeling;
-hashes still do not prove that a capture came from an authentic provider. The
+rebuilds the semantic identity from capture metadata, cross-checks COMMAND,
+CENTER, TLIST, frame/plane, correction mode, units, table settings and format
+against the actual URL, then reruns response-schema checks. It rejects internally
+inconsistent packets and known catalogue ID relabeling; hashes still do not
+prove that a capture came from an authentic provider. The
 capture and verification tools use the shared
 `sol-atlas-core/tests/fixtures/horizons/catalogue-bindings.json` manifest for
 known IDs, names, and Horizons COMMAND/CENTER values; a Rust test checks every
