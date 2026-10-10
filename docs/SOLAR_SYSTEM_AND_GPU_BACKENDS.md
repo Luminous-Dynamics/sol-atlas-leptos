@@ -89,17 +89,21 @@ names, and actual URL), while a separate URL digest records the transport URL.
 The Rust parser uses the same identity format and checks it alongside the raw
 response digest. It resolves its validator relative to the script path, so it
 does not depend on the caller's working directory.
-`scripts/validate-horizons-vector.py` checks exact table markers, signature,
+`scripts/validate-horizons-vector.py` checks response markers, signature,
 target/centre, coordinate settings, column order, field count, finite state,
-and epoch. Seven offline regression tests cover the synthetic fixture and
-failure cases such as target mismatch, unknown signature version, missing
-markers, reordered columns, non-finite values, and epoch drift. CI also checks
-the default URL and semantic request identity byte-for-byte and verifies that
-known target/centre mismatches and aggregate-as-point requests fail offline;
-none of these checks calls Horizons. The capture
-script never overwrites a capture or edits the committed fixture. A real
-response remains `captured-not-yet-reviewed` until reviewed and promoted as a
-separate byte-for-byte fixture.
+and epoch. `scripts/verify-horizons-capture.py CAPTURE_DIRECTORY` independently
+recomputes the saved request-identity, URL, and raw-response SHA-256 values,
+rebuilds the semantic identity from capture metadata, and reruns schema checks.
+It rejects internally inconsistent packets and known catalogue ID relabeling;
+hashes still do not prove that a capture came from an authentic provider.
+Offline tests cover both response-schema failures and capture-packet tampering,
+including a target relabel attempt after recalculating the saved hash fields.
+CI also checks the default URL and semantic request identity byte-for-byte,
+and verifies that known target/centre mismatches and aggregate-as-point requests
+fail without network access. The capture script never overwrites a capture or
+edits the committed fixture. A real response remains
+`captured-not-yet-reviewed` until reviewed and promoted as a separate
+byte-for-byte fixture.
 The provider docs are the contract for the adapter:
 - https://ssd-api.jpl.nasa.gov/doc/horizons.html
 - https://ssd.jpl.nasa.gov/horizons/manual.html
