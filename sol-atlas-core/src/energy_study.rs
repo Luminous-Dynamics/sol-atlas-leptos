@@ -482,6 +482,74 @@ mod tests {
     }
 
     #[test]
+    fn public_fixture_pins_artifacts_and_cross_language_identity() {
+        let study_json = include_str!("../../fixtures/energy-study/v1/cloud-evening-outage.json");
+        let study: EnergyStudyManifestV1 = serde_json::from_str(study_json).unwrap();
+        assert_eq!(study.validate(), Ok(()));
+        assert_eq!(
+            study.digest_sha256().unwrap(),
+            "896b4579a632dac32bafd3b2347f19f5da5a74f7173c14cf818b00a8e5c484da"
+        );
+
+        let dataset_artifacts = [
+            (
+                "load-profile",
+                include_str!("../../fixtures/energy-study/v1/load-profile.csv"),
+            ),
+            (
+                "renewable-generation",
+                include_str!("../../fixtures/energy-study/v1/renewable-generation.csv"),
+            ),
+            (
+                "grid-availability",
+                include_str!("../../fixtures/energy-study/v1/grid-availability.csv"),
+            ),
+        ];
+        for (dataset_id, contents) in dataset_artifacts {
+            let declared = study
+                .datasets
+                .iter()
+                .find(|dataset| dataset.dataset_id == dataset_id)
+                .expect("fixture must declare every referenced input artifact");
+            let actual = to_lower_hex(&Sha256::digest(contents.as_bytes()));
+            assert_eq!(
+                declared.content_sha256, actual,
+                "input artifact hash mismatch for {dataset_id}"
+            );
+        }
+
+        assert_eq!(
+            study.asset_registry_sha256,
+            to_lower_hex(&Sha256::digest(
+                include_str!("../../fixtures/energy-study/v1/asset-registry.json").as_bytes()
+            ))
+        );
+        assert_eq!(
+            study.constraints_sha256,
+            to_lower_hex(&Sha256::digest(
+                include_str!("../../fixtures/energy-study/v1/constraints.json").as_bytes()
+            ))
+        );
+        assert_eq!(
+            study.model.configuration_sha256,
+            to_lower_hex(&Sha256::digest(
+                include_str!("../../fixtures/energy-study/v1/model-config.json").as_bytes()
+            ))
+        );
+        assert_eq!(
+            study.policy.configuration_sha256,
+            to_lower_hex(&Sha256::digest(
+                include_str!("../../fixtures/energy-study/v1/policy-config.json").as_bytes()
+            ))
+        );
+        assert_eq!(
+            study.model.git_revision,
+            "739b51d33d549bf6fd9057eb5fcbd947e76a8266"
+        );
+        assert_eq!(study.policy.git_revision, study.model.git_revision);
+    }
+
+    #[test]
     fn serde_rejects_unknown_fields() {
         let json = serde_json::to_string(&manifest()).unwrap();
         let injected = json.trim_end_matches('}');
