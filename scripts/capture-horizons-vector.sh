@@ -124,12 +124,106 @@ PY
 # identity that also binds Sol Atlas target/centre IDs and response expectations.
 # This is the same length-delimited format used by HorizonsVectorRequest.
 identity=$(
-  python3 - "$target_id" "$center_id" "$expected_target" "$expected_center" "$url" <<'PY'
+  python3 - "$target_id" "$center_id" "$target" "$center" "$expected_target" "$expected_center" "$url" <<'PY'
 import sys
 from urllib.parse import quote
 
-target_id, center_id, expected_target, expected_center, url = sys.argv[1:]
+target_id, center_id, command, provider_center, expected_target, expected_center, url = sys.argv[1:]
 encode = lambda value: quote(value, safe="-_.~")
+
+# Mirror the Rust catalogue's point-target and centre bindings. This prevents
+# a valid provider response being labelled under a different known object ID.
+target_bindings = {
+    "sun": ("10", "Sun"),
+    "mercury": ("199", "Mercury"),
+    "venus": ("299", "Venus"),
+    "earth": ("399", "Earth"),
+    "mars": ("499", "Mars"),
+    "jupiter": ("599", "Jupiter"),
+    "saturn": ("699", "Saturn"),
+    "uranus": ("799", "Uranus"),
+    "neptune": ("899", "Neptune"),
+    "ceres": ("1;", "Ceres"),
+    "pluto": ("999", "Pluto"),
+    "haumea": ("136108;", "Haumea"),
+    "makemake": ("136472;", "Makemake"),
+    "eris": ("136199;", "Eris"),
+    "moon": ("301", "Moon"),
+    "phobos": ("401", "Phobos"),
+    "deimos": ("402", "Deimos"),
+    "io": ("501", "Io"),
+    "europa": ("502", "Europa"),
+    "ganymede": ("503", "Ganymede"),
+    "callisto": ("504", "Callisto"),
+    "mimas": ("601", "Mimas"),
+    "enceladus": ("602", "Enceladus"),
+    "tethys": ("603", "Tethys"),
+    "dione": ("604", "Dione"),
+    "rhea": ("605", "Rhea"),
+    "titan": ("606", "Titan"),
+    "iapetus": ("608", "Iapetus"),
+    "miranda": ("705", "Miranda"),
+    "ariel": ("701", "Ariel"),
+    "umbriel": ("702", "Umbriel"),
+    "titania": ("703", "Titania"),
+    "oberon": ("704", "Oberon"),
+    "triton": ("801", "Triton"),
+    "charon": ("901", "Charon"),
+}
+aggregate_ids = {
+    "asteroid_belt", "near_earth_objects", "comets", "centaurs",
+    "kuiper_belt", "scattered_disc", "oort_cloud", "spacecraft",
+}
+center_bindings = {
+    "ssb": ("@0", "Solar System Barycenter"),
+    "sun": ("@10", "Sun"),
+    "mercury": ("@199", "Mercury"),
+    "venus": ("@299", "Venus"),
+    "earth": ("@399", "Earth"),
+    "mars": ("@499", "Mars"),
+    "jupiter": ("@599", "Jupiter"),
+    "saturn": ("@699", "Saturn"),
+    "uranus": ("@799", "Uranus"),
+    "neptune": ("@899", "Neptune"),
+    "ceres": ("@2000001", "Ceres"),
+    "pluto": ("@999", "Pluto"),
+    "haumea": ("@2136108", "Haumea"),
+    "makemake": ("@2136472", "Makemake"),
+    "eris": ("@2136199", "Eris"),
+    "moon": ("@301", "Moon"),
+    "phobos": ("@401", "Phobos"),
+    "deimos": ("@402", "Deimos"),
+    "io": ("@501", "Io"),
+    "europa": ("@502", "Europa"),
+    "ganymede": ("@503", "Ganymede"),
+    "callisto": ("@504", "Callisto"),
+    "mimas": ("@601", "Mimas"),
+    "enceladus": ("@602", "Enceladus"),
+    "tethys": ("@603", "Tethys"),
+    "dione": ("@604", "Dione"),
+    "rhea": ("@605", "Rhea"),
+    "titan": ("@606", "Titan"),
+    "iapetus": ("@608", "Iapetus"),
+    "miranda": ("@705", "Miranda"),
+    "ariel": ("@701", "Ariel"),
+    "umbriel": ("@702", "Umbriel"),
+    "titania": ("@703", "Titania"),
+    "oberon": ("@704", "Oberon"),
+    "triton": ("@801", "Triton"),
+    "charon": ("@901", "Charon"),
+}
+if target_id in aggregate_ids:
+    raise SystemExit(f"aggregate catalogue layer cannot be queried as a point target: {target_id}")
+if target_id in target_bindings:
+    bound_command, bound_name = target_bindings[target_id]
+    if command != bound_command or expected_target.casefold() != bound_name.casefold():
+        raise SystemExit(f"catalogue target binding mismatch for {target_id}")
+if center_id in aggregate_ids:
+    raise SystemExit(f"aggregate catalogue layer cannot be used as a point centre: {center_id}")
+if center_id in center_bindings:
+    bound_center, bound_name = center_bindings[center_id]
+    if provider_center != bound_center or expected_center.casefold() != bound_name.casefold():
+        raise SystemExit(f"catalogue centre binding mismatch for {center_id}")
 transport_bytes = len(url.encode("utf-8"))
 print(
     "SOL-ATLAS-HORIZONS-REQUEST-V1\n"
