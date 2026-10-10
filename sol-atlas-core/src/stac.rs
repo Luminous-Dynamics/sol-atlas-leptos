@@ -420,40 +420,7 @@ fn base64url_no_pad(input: &[u8]) -> String {
 mod tests {
     use super::*;
 
-    const ITEM: &str = r#"{
-      "type": "Feature",
-      "stac_version": "1.0.0",
-      "id": "sentinel/item 01",
-      "bbox": [170, -10, -170, 10],
-      "geometry": null,
-      "properties": {
-        "datetime": null,
-        "start_datetime": "2025-01-01T00:00:00Z",
-        "end_datetime": "2025-01-31T00:00:00Z",
-        "proj:epsg": 4326
-      },
-      "license": "CC-BY-4.0",
-      "assets": {
-        "visual": {
-          "href": "https://example.test/scene.tif",
-          "type": "image/tiff; application=geotiff",
-          "roles": ["data"],
-          "proj:epsg": 32633,
-          "raster:bands": [{"gsd": 10}, {"gsd": 20}]
-        },
-        "preview": {
-          "href": "https://example.test/preview.jpg",
-          "type": "image/jpeg",
-          "roles": ["thumbnail"]
-        },
-        "metadata": {
-          "href": "https://example.test/item.json",
-          "type": "application/json",
-          "roles": ["metadata"]
-        }
-      },
-      "links": [{"rel": "license", "href": "https://example.test/licence"}]
-    }"#;
+    const ITEM: &str = include_str!("../tests/fixtures/stac/sentinel-item.json");
 
     #[test]
     fn imports_supported_assets_and_reports_unsupported_assets() {
