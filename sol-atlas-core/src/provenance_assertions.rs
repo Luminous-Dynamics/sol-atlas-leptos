@@ -909,11 +909,12 @@ mod tests {
             )
             .is_err()
         );
-    }
-
-        assert!(serde_json::from_str::<ExternalAssessmentReference>(
-            r#"{"authority":"issuer","reference":"assessment-42","unexpected":"ignored"}"#
-        ).is_err());
+        assert!(
+            serde_json::from_str::<ExternalAssessmentReference>(
+                r#"{ "authority": "issuer", "reference": "assessment-42", "unexpected": "ignored" }"#
+            )
+            .is_err()
+        );
     }
 
     #[test]
