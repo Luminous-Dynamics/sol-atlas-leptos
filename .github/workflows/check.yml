@@ -23,6 +23,10 @@ jobs:
       # sol-atlas-core is a path dependency, not a workspace member; the root
       # formatter does not include it.
       - run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml --all --check
+      - name: Check the Horizons capture helper without network access
+        run: |
+          bash -n scripts/capture-horizons-vector.sh
+          test "$(scripts/capture-horizons-vector.sh --print-url)" = "https://ssd.jpl.nasa.gov/api/horizons.api?COMMAND=%27499%27&CENTER=%27%400%27&CSV_FORMAT=%27YES%27&EPHEM_TYPE=%27VECTORS%27&MAKE_EPHEM=%27YES%27&OBJ_DATA=%27YES%27&OUT_UNITS=%27KM-S%27&REF_PLANE=%27FRAME%27&REF_SYSTEM=%27ICRF%27&TIME_TYPE=%27TDB%27&TLIST=%272461323.5%27&TLIST_TYPE=%27JD%27&VEC_CORR=%27NONE%27&VEC_LABELS=%27YES%27&VEC_TABLE=%272%27&format=json"
 
   check-wasm:
     runs-on: ubuntu-latest
