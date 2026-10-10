@@ -490,7 +490,7 @@ pub fn parse_horizons_vectors_json(
         if fields.len() != 8 {
             return Err(HorizonsParseError::InvalidVector {
                 row: row_index + 1,
-                reason: "expected exactly eight CSV fields (JDTDB, calendar date, and six state components)",
+                reason: "expected 8 fields: JDTDB, date, X/Y/Z, VX/VY/VZ",
             });
         }
 
@@ -1191,7 +1191,7 @@ mod tests {
         assert!(matches!(
             parse_horizons_vectors_json(&payload, &request(), &provenance()),
             Err(HorizonsParseError::InvalidVector {
-                reason: "expected exactly eight CSV fields (JDTDB, calendar date, and six state components)",
+                reason: "expected 8 fields: JDTDB, date, X/Y/Z, VX/VY/VZ",
                 ..
             })
         ));
