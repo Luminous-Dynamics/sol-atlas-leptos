@@ -43,8 +43,9 @@ pub struct CatalogObject {
     /// Approximate semi-major axis relative to `parent_id`, for satellites.
     /// None for heliocentric bodies and aggregate population layers.
     pub parent_orbit_semi_major_axis_km: Option<f64>,
-    /// Name/alias to resolve at the external ephemeris provider. This is
-    /// deliberately absent for aggregate populations such as "all comets".
+    /// Explicit Horizons COMMAND expression, using numeric major-body IDs
+    /// or numbered-small-body syntax where applicable. Aggregate populations
+    /// intentionally have no single ephemeris target.
     pub ephemeris_target: Option<&'static str>,
     /// Existing local texture path, if one is known to be available.
     /// Missing artwork must fall back to procedural/material rendering.
@@ -93,7 +94,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(695_700.0),
         None,
         None,
-        Some("Sun"),
+        Some("10"),
         Some("/assets/globe-textures/sun.jpg")
     ),
 
@@ -105,7 +106,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(2_439.7),
         Some(0.3871),
         None,
-        Some("Mercury"),
+        Some("199"),
         None
     ),
     body!(
@@ -116,7 +117,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(6_051.8),
         Some(0.7233),
         None,
-        Some("Venus"),
+        Some("299"),
         Some("/assets/globe-textures/venus.jpg")
     ),
     body!(
@@ -127,7 +128,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(6_371.0),
         Some(1.0000),
         None,
-        Some("Earth"),
+        Some("399"),
         Some("/assets/globe-textures/earth-blue-marble.jpg")
     ),
     body!(
@@ -138,7 +139,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(3_389.5),
         Some(1.5237),
         None,
-        Some("Mars"),
+        Some("499"),
         Some("/assets/globe-textures/mars.jpg")
     ),
     body!(
@@ -149,7 +150,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(69_911.0),
         Some(5.2028),
         None,
-        Some("Jupiter"),
+        Some("599"),
         Some("/assets/globe-textures/jupiter.jpg")
     ),
     body!(
@@ -160,7 +161,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(58_232.0),
         Some(9.5388),
         None,
-        Some("Saturn"),
+        Some("699"),
         Some("/assets/globe-textures/saturn.jpg")
     ),
     body!(
@@ -171,7 +172,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(25_362.0),
         Some(19.1914),
         None,
-        Some("Uranus"),
+        Some("799"),
         None
     ),
     body!(
@@ -182,7 +183,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(24_622.0),
         Some(30.0611),
         None,
-        Some("Neptune"),
+        Some("899"),
         None
     ),
 
@@ -194,7 +195,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(473.0),
         Some(2.7675),
         None,
-        Some("Ceres"),
+        Some("1;"),
         None
     ),
     body!(
@@ -205,7 +206,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(1_188.3),
         Some(39.482),
         None,
-        Some("Pluto"),
+        Some("999"),
         None
     ),
     body!(
@@ -216,7 +217,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(816.0),
         Some(43.13),
         None,
-        Some("Haumea"),
+        Some("136108;"),
         None
     ),
     body!(
@@ -227,7 +228,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(715.0),
         Some(45.79),
         None,
-        Some("Makemake"),
+        Some("136472;"),
         None
     ),
     body!(
@@ -238,7 +239,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(1_163.0),
         Some(67.78),
         None,
-        Some("Eris"),
+        Some("136199;"),
         None
     ),
 
@@ -252,7 +253,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(1_737.4),
         None,
         Some(384_400.0),
-        Some("Moon"),
+        Some("301"),
         Some("/assets/globe-textures/moon.jpg")
     ),
     body!(
@@ -263,7 +264,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(11.3),
         None,
         Some(9_376.0),
-        Some("Phobos"),
+        Some("401"),
         None
     ),
     body!(
@@ -274,7 +275,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(6.2),
         None,
         Some(23_463.0),
-        Some("Deimos"),
+        Some("402"),
         None
     ),
 
@@ -286,7 +287,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(1_821.6),
         None,
         Some(421_700.0),
-        Some("Io"),
+        Some("501"),
         None
     ),
     body!(
@@ -297,7 +298,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(1_560.8),
         None,
         Some(671_100.0),
-        Some("Europa"),
+        Some("502"),
         None
     ),
     body!(
@@ -308,7 +309,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(2_634.1),
         None,
         Some(1_070_400.0),
-        Some("Ganymede"),
+        Some("503"),
         None
     ),
     body!(
@@ -319,7 +320,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(2_410.3),
         None,
         Some(1_882_700.0),
-        Some("Callisto"),
+        Some("504"),
         None
     ),
 
@@ -331,7 +332,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(198.2),
         None,
         Some(185_539.0),
-        Some("Mimas"),
+        Some("601"),
         None
     ),
     body!(
@@ -342,7 +343,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(252.1),
         None,
         Some(237_948.0),
-        Some("Enceladus"),
+        Some("602"),
         None
     ),
     body!(
@@ -353,7 +354,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(531.1),
         None,
         Some(294_619.0),
-        Some("Tethys"),
+        Some("603"),
         None
     ),
     body!(
@@ -364,7 +365,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(561.4),
         None,
         Some(377_396.0),
-        Some("Dione"),
+        Some("604"),
         None
     ),
     body!(
@@ -375,7 +376,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(763.8),
         None,
         Some(527_108.0),
-        Some("Rhea"),
+        Some("605"),
         None
     ),
     body!(
@@ -386,7 +387,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(2_574.7),
         None,
         Some(1_221_870.0),
-        Some("Titan"),
+        Some("606"),
         None
     ),
     body!(
@@ -397,7 +398,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(734.5),
         None,
         Some(3_560_820.0),
-        Some("Iapetus"),
+        Some("608"),
         None
     ),
 
@@ -409,7 +410,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(235.8),
         None,
         Some(129_900.0),
-        Some("Miranda"),
+        Some("705"),
         None
     ),
     body!(
@@ -420,7 +421,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(578.9),
         None,
         Some(190_900.0),
-        Some("Ariel"),
+        Some("701"),
         None
     ),
     body!(
@@ -431,7 +432,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(584.7),
         None,
         Some(266_000.0),
-        Some("Umbriel"),
+        Some("702"),
         None
     ),
     body!(
@@ -442,7 +443,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(788.9),
         None,
         Some(435_900.0),
-        Some("Titania"),
+        Some("703"),
         None
     ),
     body!(
@@ -453,7 +454,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(761.4),
         None,
         Some(583_500.0),
-        Some("Oberon"),
+        Some("704"),
         None
     ),
 
@@ -465,7 +466,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(1_353.4),
         None,
         Some(354_759.0),
-        Some("Triton"),
+        Some("801"),
         None
     ),
     body!(
@@ -476,7 +477,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(606.0),
         None,
         Some(19_596.0),
-        Some("Charon"),
+        Some("901"),
         None
     ),
 
@@ -775,6 +776,41 @@ mod tests {
         assert_eq!(objects_of_kind(ObjectKind::Planet).count(), 8);
         for id in ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune"] {
             assert_eq!(catalog_object(id).unwrap().kind, ObjectKind::Planet);
+        }
+    }
+
+    #[test]
+    fn catalogue_uses_unambiguous_horizons_target_expressions() {
+        for (id, target) in [
+            ("sun", "10"),
+            ("mercury", "199"),
+            ("venus", "299"),
+            ("earth", "399"),
+            ("mars", "499"),
+            ("jupiter", "599"),
+            ("saturn", "699"),
+            ("uranus", "799"),
+            ("neptune", "899"),
+            ("ceres", "1;"),
+            ("pluto", "999"),
+            ("haumea", "136108;"),
+            ("makemake", "136472;"),
+            ("eris", "136199;"),
+            ("moon", "301"),
+            ("phobos", "401"),
+            ("deimos", "402"),
+            ("io", "501"),
+            ("europa", "502"),
+            ("ganymede", "503"),
+            ("callisto", "504"),
+            ("triton", "801"),
+            ("charon", "901"),
+        ] {
+            assert_eq!(
+                catalog_object(id).unwrap().ephemeris_target,
+                Some(target),
+                "unexpected Horizons target for {id}"
+            );
         }
     }
 
