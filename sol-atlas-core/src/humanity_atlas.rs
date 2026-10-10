@@ -213,6 +213,14 @@ impl ScenarioRunEnvelope {
             }
         }
 
+        if matches!(
+            self.output_classification,
+            OutputClassification::CalibratedSimulation | OutputClassification::ProspectiveForecast
+        ) && self.run_status != RunStatus::Completed
+        {
+            return Err("calibrated_simulation and prospective_forecast require a completed run".into());
+        }
+
         let evidence_kinds: BTreeSet<ValidationEvidenceKind> =
             self.validation.evidence.iter().map(|item| item.kind).collect();
         match self.output_classification {
@@ -357,6 +365,38 @@ mod tests {
         assert!(run.validate().unwrap_err().contains(
             "calibrated_simulation requires retrospective evaluation evidence"
         ));
+    }
+
+    #[test]
+    fn rejects_calibrated_label_for_failed_run() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.output_classification = OutputClassification::CalibratedSimulation;
+        run.validation.status = ValidationStatus::Retrospective;
+        run.validation.evidence.push(ValidationEvidence {
+            evidence_id: "test.hindcast.v1".into(),
+            kind: ValidationEvidenceKind::RetrospectiveEvaluation,
+            artifact_ref: "test-fixtures/hindcast.json".into(),
+            artifact_sha256: "f".repeat(64),
+            description: "Synthetic receipt shape test only".into(),
+        });
+        run.run_status = RunStatus::Failed;
+        assert!(run.validate().unwrap_err().contains("require a completed run"));
+    }
+
+    #[test]
+    fn rejects_forecast_label_for_failed_run() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.output_classification = OutputClassification::ProspectiveForecast;
+        run.validation.status = ValidationStatus::Prospective;
+        run.validation.evidence.push(ValidationEvidence {
+            evidence_id: "test.forecast.v1".into(),
+            kind: ValidationEvidenceKind::ProspectiveForecast,
+            artifact_ref: "test-fixtures/forecast.json".into(),
+            artifact_sha256: "f".repeat(64),
+            description: "Synthetic receipt shape test only".into(),
+        });
+        run.run_status = RunStatus::Failed;
+        assert!(run.validate().unwrap_err().contains("require a completed run"));
     }
 
     #[test]
