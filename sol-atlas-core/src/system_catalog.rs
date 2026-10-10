@@ -715,8 +715,8 @@ fn is_sha256(value: &str) -> bool {
     value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
-/// Check the structural RFC 3339 UTC shape without adding a date-time
-/// dependency. The ingestion adapter should use a full parser when available.
+/// Validate the RFC 3339 UTC timestamp subset used for capture provenance,
+/// including actual calendar and clock ranges, without adding a date-time crate.
 fn is_rfc3339_utc(value: &str) -> bool {
     let bytes = value.as_bytes();
     if bytes.len() < 20
@@ -736,15 +736,50 @@ fn is_rfc3339_utc(value: &str) -> bool {
         }
     }
 
-    if bytes.len() == 20 {
-        return true;
+    if bytes.len() > 20
+        && (bytes[19] != b'.'
+            || bytes.len() <= 21
+            || !bytes[20..bytes.len() - 1]
+                .iter()
+                .all(|byte| byte.is_ascii_digit())
+    {
+        return false;
     }
 
-    bytes[19] == b'.'
-        && bytes[20..bytes.len() - 1]
-            .iter()
-            .all(|byte| byte.is_ascii_digit())
-        && bytes.len() > 21
+    let year = match value[0..4].parse::<u32>() {
+        Ok(value) if value > 0 => value,
+        _ => return false,
+    };
+    let month = match value[5..7].parse::<u32>() {
+        Ok(value @ 1..=12) => value,
+        _ => return false,
+    };
+    let day = match value[8..10].parse::<u32>() {
+        Ok(value) => value,
+        _ => return false,
+    };
+    let hour = match value[11..13].parse::<u32>() {
+        Ok(value @ 0..=23) => value,
+        _ => return false,
+    };
+    let minute = match value[14..16].parse::<u32>() {
+        Ok(value @ 0..=59) => value,
+        _ => return false,
+    };
+    let second = match value[17..19].parse::<u32>() {
+        Ok(value @ 0..=59) => value,
+        _ => return false,
+    };
+    let _ = (hour, minute, second);
+
+    let leap_year = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let days_in_month = match month {
+        2 if leap_year => 29,
+        2 => 28,
+        4 | 6 | 9 | 11 => 30,
+        _ => 31,
+    };
+    day >= 1 && day <= days_in_month
 }
 
 #[cfg(test)]
@@ -921,6 +956,18 @@ mod tests {
                 "2026-10-10T00:00:00Z",
             ),
         }
+    }
+
+    #[test]
+    fn retrieved_at_timestamp_checks_calendar_and_clock_ranges() {
+        assert!(is_rfc3339_utc("2024-02-29T23:59:59Z"));
+        assert!(is_rfc3339_utc("2026-10-10T18:30:15.123Z"));
+        assert!(!is_rfc3339_utc("2026-02-29T00:00:00Z"));
+        assert!(!is_rfc3339_utc("2026-99-99T00:00:00Z"));
+        assert!(!is_rfc3339_utc("2026-10-10T25:00:00Z"));
+        assert!(!is_rfc3339_utc("2026-10-10T18:61:00Z"));
+        assert!(!is_rfc3339_utc("2026-10-10T18:30:61Z"));
+        assert!(!is_rfc3339_utc("2026-10-10T18:30:00.Z"));
     }
 
     #[test]
