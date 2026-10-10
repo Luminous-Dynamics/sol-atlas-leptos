@@ -20,10 +20,12 @@ use crate::system_catalog::{
 /// API rather than risk intermediaries rejecting an oversized GET request.
 const MAX_CANONICAL_GET_URL_BYTES: usize = 7_500;
 
-// The live GET documentation is versioned 1.3, while its published JSON
-// envelope examples still show signature.version 1.0. Accept only those two
-// explicitly documented values until a live response fixture resolves the drift.
+// The published GET docs are versioned 1.3 but their JSON examples show
+// signature.version 1.0. The file API page is versioned 1.0 but shows examples
+// with signature.version 0.2. Until byte-for-byte provider captures resolve this
+// documentation drift, accept only each endpoint's explicitly documented values.
 const SUPPORTED_GET_API_SIGNATURE_VERSIONS: &[&str] = &["1.0", "1.3"];
+const SUPPORTED_FILE_API_SIGNATURE_VERSIONS: &[&str] = &["0.2", "1.0"];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HorizonsParseError {
@@ -421,6 +423,7 @@ pub fn parse_horizons_vectors_json(
     provenance: &EphemerisProvenance,
 ) -> Result<Vec<StateVector>, HorizonsParseError> {
     validate_request(request)?;
+    let request_plan = request.request_plan()?;
 
     let envelope: HorizonsEnvelope = serde_json::from_str(payload)
         .map_err(|error| HorizonsParseError::InvalidJson(error.to_string()))?;
@@ -439,7 +442,7 @@ pub fn parse_horizons_vectors_json(
         return Err(HorizonsParseError::UnexpectedApiSource(source));
     }
     let version = signature.version.unwrap_or_default();
-    if !SUPPORTED_GET_API_SIGNATURE_VERSIONS.contains(&version.as_str()) {
+    if !signature_version_supported(&request_plan, &version) {
         return Err(HorizonsParseError::UnsupportedApiVersion(version));
     }
 
@@ -566,7 +569,7 @@ pub fn parse_horizons_vectors_json(
             reason: "response sample count does not match requested TLIST epochs",
         });
     }
-    let canonical_request_identity = request.canonical_request_identity()?;
+    let canonical_request_identity = request_plan.canonical_request_identity();
     if !provenance.verifies_bytes(&canonical_request_identity, payload.as_bytes()) {
         return Err(HorizonsParseError::ProvenanceMismatch);
     }
@@ -655,6 +658,17 @@ fn validate_vector_column_header(header_lines: &[&str]) -> Result<(), HorizonsPa
         return Err(HorizonsParseError::UnexpectedVectorColumns { actual: columns });
     }
     Ok(())
+}
+
+fn signature_version_supported(plan: &HorizonsRequestPlan, version: &str) -> bool {
+    match plan {
+        HorizonsRequestPlan::Get { .. } => {
+            SUPPORTED_GET_API_SIGNATURE_VERSIONS.contains(&version)
+        }
+        HorizonsRequestPlan::FilePost { .. } => {
+            SUPPORTED_FILE_API_SIGNATURE_VERSIONS.contains(&version)
+        }
+    }
 }
 
 fn header_body_name_matches(actual: &str, expected: &str) -> bool {
@@ -1077,6 +1091,34 @@ mod tests {
             parse_horizons_vectors_json(FIXTURE, &request(), &wrong_query),
             Err(HorizonsParseError::ProvenanceMismatch)
         );
+    }
+
+    #[test]
+    fn signature_version_allowlist_is_transport_specific() {
+        assert!(signature_version_supported(&HorizonsRequestPlan::Get {
+            url: "https://example.invalid".into(),
+        }, "1.0"));
+        assert!(signature_version_supported(&HorizonsRequestPlan::Get {
+            url: "https://example.invalid".into(),
+        }, "1.3"));
+        assert!(!signature_version_supported(&HorizonsRequestPlan::Get {
+            url: "https://example.invalid".into(),
+        }, "0.2"));
+        assert!(signature_version_supported(&HorizonsRequestPlan::FilePost {
+            endpoint: "https://example.invalid",
+            format: "json",
+            input_file: String::new(),
+        }, "0.2"));
+        assert!(signature_version_supported(&HorizonsRequestPlan::FilePost {
+            endpoint: "https://example.invalid",
+            format: "json",
+            input_file: String::new(),
+        }, "1.0"));
+        assert!(!signature_version_supported(&HorizonsRequestPlan::FilePost {
+            endpoint: "https://example.invalid",
+            format: "json",
+            input_file: String::new(),
+        }, "1.3"));
     }
 
     #[test]
