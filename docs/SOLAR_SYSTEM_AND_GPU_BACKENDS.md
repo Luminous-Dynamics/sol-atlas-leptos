@@ -46,8 +46,14 @@ Use JPL Horizons for authoritative time-specific states rather than expanding
 the hand-authored orbit-speed table. For vector queries, explicitly request the
 target, centre, epoch range, time scale, reference system and plane,
 vector-correction mode, and units. Preserve
-those parameters with the frozen response fixture: a vector is meaningless
-without its centre, frame, and epoch. Do not fetch the network from unit tests.
+those parameters with each captured response: a vector is meaningless without
+its centre, frame, and epoch. The new horizons module parses JSON envelopes
+containing the CSV vector-table markers and currently supports only TDB,
+ICRF/B1950, explicit reference-plane settings, geometric/light-time correction
+metadata, VEC_TABLE=2, and KM-S output. It does no HTTP and computes no hashes;
+the caller must hash the canonical query and exact raw response bytes. Do not
+fetch the network from unit tests. The committed fixture is deliberately
+synthetic and tests parser behavior, not the live provider's complete output.
 The provider docs are the contract for the adapter:
 - https://ssd-api.jpl.nasa.gov/doc/horizons.html
 - https://ssd.jpl.nasa.gov/horizons/manual.html
@@ -78,9 +84,13 @@ https://www.w3.org/TR/webgpu/ .
 ## Migration gates
 
 1. **Freeze the contracts**: tests for parent resolution, unit-labelled vector
-   fields, bad hashes, non-finite state, and deterministic fixture decoding.
-   Current catalogue tests cover these local invariants; the Horizons adapter
-   and renderer integration are still future work.
+   fields, bad hashes, non-finite state, response-header mismatches, malformed
+   markers, unexpected columns, and deterministic parsing. The parser now
+   covers the documented JSON envelope/CSV marker shape using a synthetic
+   fixture; before claiming provider-format conformance, capture a real
+   response for a pinned exact request, verify its metadata and hashes, and add
+   that byte-for-byte payload as a separate fixture. Renderer integration is
+   still future work.
 2. **Add an isolated `wgpu` feature**: do not replace the working WebGL2
    renderer in the same change. Implement adapter/device/surface lifecycle,
    resize, lost/outdated surface recovery, depth, texture loading, and a clear
