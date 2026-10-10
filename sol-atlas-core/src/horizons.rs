@@ -934,6 +934,14 @@ mod tests {
     }
 
     #[test]
+    fn canonical_url_uses_non_exponent_decimal_epoch_text() {
+        let mut request = request();
+        request.epochs_jd = vec![0.0000001];
+        let url = request.canonical_url().unwrap();
+        assert!(url.contains("TLIST=%270.0000001%27"));
+    }
+
+    #[test]
     fn canonical_url_quotes_every_tlist_epoch_individually() {
         let mut request = request();
         request.epochs_jd = vec![2_461_323.5, 2_461_324.5];
