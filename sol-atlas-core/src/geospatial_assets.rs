@@ -324,6 +324,8 @@ pub struct AssetRecord {
     title: String,
     kind: AssetKind,
     source: AssetSource,
+    media_type: Option<String>,
+    source_crs: Option<String>,
     footprint: Option<GeoFootprint>,
     observation_time: ObservationTime,
     licence: LicenceMetadata,
@@ -341,6 +343,8 @@ struct AssetRecordWire {
     title: String,
     kind: AssetKind,
     source: AssetSource,
+    media_type: Option<String>,
+    source_crs: Option<String>,
     footprint: Option<GeoFootprint>,
     observation_time: ObservationTime,
     licence: LicenceMetadata,
@@ -356,6 +360,8 @@ impl AssetRecord {
         title: impl Into<String>,
         kind: AssetKind,
         source: AssetSource,
+        media_type: Option<String>,
+        source_crs: Option<String>,
         footprint: Option<GeoFootprint>,
         observation_time: ObservationTime,
         licence: LicenceMetadata,
@@ -368,6 +374,8 @@ impl AssetRecord {
             return Err("asset title must not be empty".into());
         }
         for (label, value) in [
+            ("media type", media_type.as_deref()),
+            ("source CRS", source_crs.as_deref()),
             ("publication time", published_at.as_deref()),
             ("source snapshot ID", source_snapshot_id.as_deref()),
         ] {
@@ -377,7 +385,7 @@ impl AssetRecord {
         }
         Ok(Self {
             schema_version: ASSET_SCHEMA_VERSION,
-            asset_id, title, kind, source, footprint, observation_time, licence,
+            asset_id, title, kind, source, media_type, source_crs, footprint, observation_time, licence,
             spatial_resolution, published_at, source_snapshot_id,
         })
     }
@@ -387,6 +395,8 @@ impl AssetRecord {
     pub fn title(&self) -> &str { &self.title }
     pub fn kind(&self) -> AssetKind { self.kind }
     pub fn source(&self) -> &AssetSource { &self.source }
+    pub fn media_type(&self) -> Option<&str> { self.media_type.as_deref() }
+    pub fn source_crs(&self) -> Option<&str> { self.source_crs.as_deref() }
     pub fn footprint(&self) -> Option<&GeoFootprint> { self.footprint.as_ref() }
     pub fn observation_time(&self) -> &ObservationTime { &self.observation_time }
     pub fn licence(&self) -> &LicenceMetadata { &self.licence }
@@ -407,8 +417,8 @@ impl<'de> Deserialize<'de> for AssetRecord {
             )));
         }
         Self::new(
-            wire.asset_id, wire.title, wire.kind, wire.source, wire.footprint,
-            wire.observation_time, wire.licence, wire.spatial_resolution,
+            wire.asset_id, wire.title, wire.kind, wire.source, wire.media_type, wire.source_crs,
+            wire.footprint, wire.observation_time, wire.licence, wire.spatial_resolution,
             wire.published_at, wire.source_snapshot_id,
         ).map_err(serde::de::Error::custom)
     }
@@ -469,6 +479,8 @@ mod tests {
             format!("Fixture {id}"),
             AssetKind::Imagery,
             AssetSource::new(Some("fixture-provider".into()), "fixture:scene-1").unwrap(),
+            Some("image/tiff; application=geotiff".into()),
+            Some("EPSG:4326".into()),
             Some(GeoFootprint::new(16.0, -35.0, 19.0, -33.0).unwrap()),
             ObservationTime::new(
                 ObservationTimeKind::Interval,
