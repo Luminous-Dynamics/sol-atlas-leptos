@@ -268,7 +268,8 @@ pub struct NutrientBalance {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct NutrientBudget {
-    pub context: BudgetContext,
+    /// Preserve input values and their evidence so persisted results remain auditable.
+    pub inputs: NutrientBudgetInput,
     pub nitrogen: NutrientBalance,
     pub phosphorus: NutrientBalance,
     pub potassium: NutrientBalance,
@@ -332,7 +333,7 @@ pub fn calculate_budget(input: &NutrientBudgetInput) -> Result<NutrientBudget, N
     input.validate()?;
 
     Ok(NutrientBudget {
-        context: input.context.clone(),
+        inputs: input.clone(),
         nitrogen: calculate_one(
             "nitrogen",
             &input.crop_demand.nitrogen,
@@ -549,10 +550,14 @@ mod tests {
     }
 
     #[test]
-    fn result_retains_context_for_auditability() {
+    fn result_retains_context_and_provenance_for_auditability() {
         let input = complete_input();
         let result = calculate_budget(&input).unwrap();
-        assert_eq!(result.context, input.context);
+        assert_eq!(result.inputs, input);
+        assert_eq!(
+            result.inputs.existing_soil_supply.nitrogen.source_id.as_deref(),
+            Some("lab-or-ledger-001")
+        );
     }
 
     #[test]
