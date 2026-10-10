@@ -9,7 +9,7 @@
 //! redistribution permissions. Configurations should be populated from the
 //! selected layer's current GIBS capabilities metadata and usage terms.
 
-use crate::tiles::{MAX_TILE_ZOOM, TileCoordinate, TileError};
+use crate::tiles::{tiles_for_bounds, MAX_TILE_ZOOM, TileCoordinate, TileError};
 use std::fmt;
 
 pub const NASA_GIBS_SERVICE_ACKNOWLEDGEMENT: &str = "NASA Global Imagery Browse Services (GIBS)";
@@ -161,6 +161,33 @@ impl GibsWebMercatorSource {
 
     pub fn access_documentation(&self) -> &'static str {
         NASA_GIBS_ACCESS_DOCUMENTATION
+    }
+
+    /// Plan a bounded, deterministic URL list for every tile intersecting a
+    /// WGS84 bbox. Results are row-major XYZ order, including across the
+    /// antimeridian. The budget is enforced before URL allocation.
+    ///
+    /// This is a planning primitive only; it does not dispatch HTTP requests.
+    pub fn tile_urls_for_bounds(
+        &self,
+        west: f64,
+        south: f64,
+        east: f64,
+        north: f64,
+        zoom: u8,
+        max_tiles: usize,
+    ) -> Result<Vec<String>, GibsUrlError> {
+        if zoom > self.maximum_zoom {
+            return Err(GibsUrlError::ZoomExceedsLayerMaximum {
+                requested: zoom,
+                maximum: self.maximum_zoom,
+            });
+        }
+
+        tiles_for_bounds(west, south, east, north, zoom, max_tiles)?
+            .into_iter()
+            .map(|tile| self.tile_url(tile))
+            .collect()
     }
 
     /// Build a public GIBS REST XYZ-style URL for this tile.
@@ -334,6 +361,42 @@ mod tests {
             TileImageFormat::Png,
             "Fixture layer attribution",
         ).is_err());
+    }
+
+    #[test]
+    fn plans_bounded_deterministic_urls_for_a_geographic_extent() {
+        let source = GibsWebMercatorSource::new(
+            "Fixture_Global_Browse",
+            "GoogleMapsCompatible_Level6",
+            5,
+            "2026-10-10",
+            TileImageFormat::Png,
+            "Fixture source attribution",
+        )
+        .unwrap();
+
+        let urls = source
+            .tile_urls_for_bounds(-90.0, -10.0, 0.0, 10.0, 1, 4)
+            .unwrap();
+        assert_eq!(urls.len(), 4);
+        assert_eq!(
+            urls,
+            vec![
+                "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/Fixture_Global_Browse/default/2026-10-10/GoogleMapsCompatible_Level6/1/0/0.png",
+                "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/Fixture_Global_Browse/default/2026-10-10/GoogleMapsCompatible_Level6/1/0/1.png",
+                "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/Fixture_Global_Browse/default/2026-10-10/GoogleMapsCompatible_Level6/1/1/0.png",
+                "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/Fixture_Global_Browse/default/2026-10-10/GoogleMapsCompatible_Level6/1/1/1.png"
+            ]
+        );
+
+        assert!(matches!(
+            source.tile_urls_for_bounds(-180.0, -85.0, 180.0, 85.0, 3, 4),
+            Err(GibsUrlError::Tile(TileError::TileBudgetExceeded { .. }))
+        ));
+        assert!(matches!(
+            source.tile_urls_for_bounds(-90.0, -10.0, 0.0, 10.0, 6, 100),
+            Err(GibsUrlError::ZoomExceedsLayerMaximum { requested: 6, maximum: 5 })
+        ));
     }
 
     #[test]
