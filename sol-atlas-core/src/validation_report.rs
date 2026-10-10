@@ -421,15 +421,26 @@ fn provenance_error_occurrence_key(error: &ProvenanceError) -> Option<String> {
     use ProvenanceError as E;
 
     let identity = match error {
-        E::DuplicateRelation(relation) => format!("duplicate_relation:{relation:?}"),
+        E::DuplicateRelation(relation) => {
+            format!("duplicate_relation:{}", provenance_relation_identity(relation))
+        }
         E::MissingArtifact { relation, artifact } => {
-            format!("missing_artifact:{relation:?}:{artifact}")
+            format!(
+                "missing_artifact:{}:{artifact}",
+                provenance_relation_identity(relation)
+            )
         }
         E::MissingActivity { relation, activity } => {
-            format!("missing_activity:{relation:?}:{activity}")
+            format!(
+                "missing_activity:{}:{activity}",
+                provenance_relation_identity(relation)
+            )
         }
         E::MissingAgent { relation, agent } => {
-            format!("missing_agent:{relation:?}:{agent}")
+            format!(
+                "missing_agent:{}:{agent}",
+                provenance_relation_identity(relation)
+            )
         }
         E::UnknownArtifact(artifact) => format!("unknown_artifact:{artifact}"),
         _ => return None,
@@ -442,7 +453,10 @@ fn assertion_error_occurrence_key(error: &AssertionGraphError) -> Option<String>
 
     let identity = match error {
         E::DuplicateSource { assertion_id, source } => {
-            format!("duplicate_source:{assertion_id}:{source:?}")
+            format!(
+                "duplicate_source:{assertion_id}:{}",
+                assertion_source_identity(source)
+            )
         }
         E::MissingArtifact { assertion_id, artifact_id } => {
             format!("missing_artifact:{assertion_id}:{artifact_id}")
@@ -456,6 +470,38 @@ fn assertion_error_occurrence_key(error: &AssertionGraphError) -> Option<String>
         _ => return None,
     };
     Some(occurrence_fingerprint(&identity))
+}
+
+fn provenance_relation_identity(relation: &ProvenanceRelation) -> String {
+    match relation {
+        ProvenanceRelation::Used { activity, artifact } => {
+            format!("used:{activity}:{artifact}")
+        }
+        ProvenanceRelation::Generated { activity, artifact } => {
+            format!("generated:{activity}:{artifact}")
+        }
+        ProvenanceRelation::AssociatedWith { activity, agent } => {
+            format!("associated_with:{activity}:{agent}")
+        }
+        ProvenanceRelation::DerivedFrom { artifact, source } => {
+            format!("derived_from:{artifact}:{source}")
+        }
+        ProvenanceRelation::AttributedTo { artifact, agent } => {
+            format!("attributed_to:{artifact}:{agent}")
+        }
+    }
+}
+
+fn assertion_source_identity(source: &AssertionSource) -> String {
+    match source {
+        AssertionSource::LocalArtifact { artifact_id } => {
+            format!("local_artifact:{artifact_id}")
+        }
+        AssertionSource::External {
+            locator,
+            resolution: ExternalSourceResolution::Unresolved,
+        } => format!("external:unresolved:{}", locator.as_str()),
+    }
 }
 
 /// Deterministic SHA-256 identifier used only to distinguish finding
@@ -1092,6 +1138,10 @@ mod tests {
         let detail = finding.detail().unwrap();
         assert!(!detail.contains(secret_locator));
         assert!(!detail.contains("super-secret"));
+        assert!(finding.occurrence_key().unwrap().starts_with("occ-"));
+        let encoded = serde_json::to_string(&finding).unwrap();
+        assert!(!encoded.contains(secret_locator));
+        assert!(!encoded.contains("super-secret"));
     }
 
     #[test]
