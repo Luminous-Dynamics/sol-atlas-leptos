@@ -311,6 +311,26 @@ mod tests {
     use super::*;
 
     #[test]
+    fn provenance_hashes_exact_query_and_response_bytes() {
+        let provenance = EphemerisProvenance::from_bytes(
+            "test provider",
+            "abc",
+            b"",
+            "2026-10-10T16:00:00Z",
+        );
+        assert_eq!(
+            provenance.canonical_query_sha256,
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        assert_eq!(
+            provenance.raw_response_sha256,
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        );
+        assert!(provenance.verifies_bytes("abc", b""));
+        assert!(!provenance.verifies_bytes("abd", b""));
+    }
+
+    #[test]
     fn catalogue_contains_all_eight_planets() {
         assert_eq!(objects_of_kind(ObjectKind::Planet).count(), 8);
         for id in ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune"] {
