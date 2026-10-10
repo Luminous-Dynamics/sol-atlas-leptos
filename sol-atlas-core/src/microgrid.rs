@@ -36,6 +36,7 @@ pub struct MicrogridInterval {
     pub battery_discharge_to_load_kwh: f64,
     pub grid_import_kwh: f64,
     pub grid_export_kwh: f64,
+    pub renewable_curtailed_kwh: f64,
     pub unserved_load_kwh: f64,
     pub battery_soc_kwh: f64,
 }
@@ -52,6 +53,7 @@ pub struct MicrogridTotals {
     pub battery_discharge_to_load_kwh: f64,
     pub grid_import_kwh: f64,
     pub grid_export_kwh: f64,
+    pub renewable_curtailed_kwh: f64,
     pub unserved_load_kwh: f64,
     pub battery_energy_losses_kwh: f64,
     pub final_battery_soc_kwh: f64,
@@ -123,6 +125,8 @@ impl BatteryConfig {
 /// its power and capacity limits, then exports. During a deficit, the battery
 /// discharges subject to its power and minimum-SOC limits. Remaining deficit
 /// is imported if the grid is available or counted as unserved during an outage.
+/// Surplus remaining after charging is exported only when the grid is available;
+/// otherwise it is reported as curtailed renewable energy.
 ///
 /// All three profiles must have the same non-zero length. Each energy value
 /// describes the whole interval, whose duration is specified in hours.
@@ -192,7 +196,9 @@ pub fn simulate_microgrid(
         let remaining_deficit = (deficit - discharge_to_load).max(0.0);
         let grid_import = if grid_is_available { remaining_deficit } else { 0.0 };
         let unserved_load = if grid_is_available { 0.0 } else { remaining_deficit };
-        let grid_export = (surplus - charge_input).max(0.0);
+        let remaining_surplus = (surplus - charge_input).max(0.0);
+        let grid_export = if grid_is_available { remaining_surplus } else { 0.0 };
+        let renewable_curtailed = if grid_is_available { 0.0 } else { remaining_surplus };
 
         intervals.push(MicrogridInterval {
             load_kwh: load,
@@ -204,6 +210,7 @@ pub fn simulate_microgrid(
             battery_discharge_to_load_kwh: discharge_to_load,
             grid_import_kwh: grid_import,
             grid_export_kwh: grid_export,
+            renewable_curtailed_kwh: renewable_curtailed,
             unserved_load_kwh: unserved_load,
             battery_soc_kwh: soc_kwh,
         });
@@ -222,6 +229,7 @@ pub fn simulate_microgrid(
         battery_discharge_to_load_kwh: sum(|i| i.battery_discharge_to_load_kwh),
         grid_import_kwh: sum(|i| i.grid_import_kwh),
         grid_export_kwh: sum(|i| i.grid_export_kwh),
+        renewable_curtailed_kwh: sum(|i| i.renewable_curtailed_kwh),
         unserved_load_kwh: sum(|i| i.unserved_load_kwh),
         battery_energy_losses_kwh: sum(|i| {
             (i.battery_charge_input_kwh - i.battery_charge_stored_kwh)
@@ -240,6 +248,7 @@ pub fn simulate_microgrid(
         totals.battery_discharge_to_load_kwh,
         totals.grid_import_kwh,
         totals.grid_export_kwh,
+        totals.renewable_curtailed_kwh,
         totals.unserved_load_kwh,
         totals.battery_energy_losses_kwh,
         totals.final_battery_soc_kwh,
@@ -316,6 +325,18 @@ mod tests {
     }
 
     #[test]
+    fn surplus_during_grid_outage_is_curtailed_not_exported() {
+        let mut config = battery();
+        config.capacity_kwh = 0.0;
+        config.max_charge_power_kw = 0.0;
+        let result = simulate_microgrid(&[0.0], &[10.0], &[false], 1.0, config).unwrap();
+        let interval = &result.intervals[0];
+        assert_eq!(interval.grid_export_kwh, 0.0);
+        assert_eq!(interval.renewable_curtailed_kwh, 10.0);
+        assert_eq!(result.totals.renewable_curtailed_kwh, 10.0);
+    }
+
+    #[test]
     fn balances_hold_for_every_interval() {
         let result = simulate_microgrid(
             &[2.0, 6.0, 4.0, 3.0],
@@ -333,7 +354,8 @@ mod tests {
                 + interval.unserved_load_kwh;
             let renewable_use = interval.renewable_to_load_kwh
                 + interval.battery_charge_input_kwh
-                + interval.grid_export_kwh;
+                + interval.grid_export_kwh
+                + interval.renewable_curtailed_kwh;
             assert!((interval.load_kwh - load_supply).abs() < 1e-10);
             assert!((interval.renewable_generation_kwh - renewable_use).abs() < 1e-10);
         }
