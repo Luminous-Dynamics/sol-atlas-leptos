@@ -112,6 +112,10 @@ not just each other in the receipt. The capture script never overwrites a
 capture or edits the committed fixture. A real response remains
 `captured-not-yet-reviewed` until reviewed and promoted as a separate
 byte-for-byte fixture.
+For the complete operator sequence from offline preflight through capture,
+packet verification, review, and immutable fixture promotion, see
+[`docs/HORIZONS_CAPTURE_RUNBOOK.md`](HORIZONS_CAPTURE_RUNBOOK.md).
+
 The provider docs are the contract for the adapter:
 - https://ssd-api.jpl.nasa.gov/doc/horizons.html
 - https://ssd.jpl.nasa.gov/horizons/manual.html
