@@ -226,11 +226,9 @@ impl ScenarioRunEnvelope {
                             .into(),
                     );
                 }
-                if !evidence_kinds.contains(&ValidationEvidenceKind::RetrospectiveEvaluation)
-                    && !evidence_kinds.contains(&ValidationEvidenceKind::IndependentReview)
-                {
+                if !evidence_kinds.contains(&ValidationEvidenceKind::RetrospectiveEvaluation) {
                     return Err(
-                        "calibrated_simulation requires evaluation evidence".into(),
+                        "calibrated_simulation requires retrospective evaluation evidence".into(),
                     );
                 }
             }
@@ -331,7 +329,7 @@ mod tests {
             .replace("contract_smoke", "retrospective");
         assert!(ScenarioRunEnvelope::from_json(&bad)
             .unwrap_err()
-            .contains("calibrated_simulation requires evaluation evidence"));
+            .contains("calibrated_simulation requires retrospective evaluation evidence"));
     }
 
     #[test]
@@ -342,6 +340,23 @@ mod tests {
         assert!(ScenarioRunEnvelope::from_json(&bad)
             .unwrap_err()
             .contains("prospective_forecast requires forecast receipt evidence"));
+    }
+
+    #[test]
+    fn rejects_calibrated_label_with_independent_review_but_no_evaluation() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.output_classification = OutputClassification::CalibratedSimulation;
+        run.validation.status = ValidationStatus::ExternalReview;
+        run.validation.evidence.push(ValidationEvidence {
+            evidence_id: "test.review.v1".into(),
+            kind: ValidationEvidenceKind::IndependentReview,
+            artifact_ref: "test-fixtures/review.json".into(),
+            artifact_sha256: "e".repeat(64),
+            description: "Review alone is not a retrospective evaluation".into(),
+        });
+        assert!(run.validate().unwrap_err().contains(
+            "calibrated_simulation requires retrospective evaluation evidence"
+        ));
     }
 
     #[test]
