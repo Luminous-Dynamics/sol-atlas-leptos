@@ -238,30 +238,32 @@ fn parse_observation_time(properties: &Map<String, Value>) -> Result<Observation
     let end =
         optional_nonempty_text(properties.get("end_datetime"), "properties.end_datetime")?;
 
-    match datetime {
-        Some(value) => {
-            if start.is_some() || end.is_some() {
-                return Err(
-                    "STAC datetime must be null when start_datetime/end_datetime are provided"
-                        .into(),
-                );
-            }
-            ObservationTime::new(ObservationTimeKind::Instant, Some(value), None)
+    match (datetime, start, end) {
+        (Some(datetime), Some(start), Some(end)) => ObservationTime::new_with_datetime(
+            ObservationTimeKind::Interval,
+            Some(datetime),
+            Some(start),
+            Some(end),
+        ),
+        (Some(datetime), None, None) => {
+            ObservationTime::new(ObservationTimeKind::Instant, Some(datetime), None)
         }
-        None => match (start, end) {
-            (Some(start), Some(end)) => ObservationTime::new(
-                ObservationTimeKind::Interval,
-                Some(start),
-                Some(end),
-            ),
-            (Some(_), None) | (None, Some(_)) => {
-                Err("STAC start_datetime and end_datetime must occur together".into())
-            }
-            (None, None) => Err(
-                "STAC datetime may be null only when start_datetime and end_datetime are supplied"
-                    .into(),
-            ),
-        },
+        (Some(_), Some(_), None) | (Some(_), None, Some(_)) => {
+            Err("STAC start_datetime and end_datetime must occur together".into())
+        }
+        (None, Some(start), Some(end)) => ObservationTime::new_with_datetime(
+            ObservationTimeKind::Interval,
+            None,
+            Some(start),
+            Some(end),
+        ),
+        (None, Some(_), None) | (None, None, Some(_)) => {
+            Err("STAC start_datetime and end_datetime must occur together".into())
+        }
+        (None, None, None) => Err(
+            "STAC datetime may be null only when start_datetime and end_datetime are supplied"
+                .into(),
+        ),
     }
 }
 
@@ -540,6 +542,17 @@ mod tests {
         }"#;
         assert!(import_item_json(null_without_range).unwrap_err().contains("may be null only"));
 
+        let partial = r#"{
+          "type":"Feature",
+          "id":"partial-date",
+          "properties":{
+            "datetime":"2025-01-01T00:00:00Z",
+            "start_datetime":"2025-01-01T00:00:00Z"
+          },
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        assert!(import_item_json(partial).unwrap_err().contains("must occur together"));
+
         let mixed = r#"{
           "type":"Feature",
           "id":"mixed-date",
@@ -550,7 +563,12 @@ mod tests {
           },
           "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
         }"#;
-        assert!(import_item_json(mixed).unwrap_err().contains("must be null"));
+        let result = import_item_json(mixed).unwrap();
+        let temporal = result.imported_assets()[0].observation_time();
+        assert_eq!(temporal.kind(), ObservationTimeKind::Interval);
+        assert_eq!(temporal.datetime(), Some("2025-01-01T00:00:00Z"));
+        assert_eq!(temporal.start(), Some("2025-01-01T00:00:00Z"));
+        assert_eq!(temporal.end(), Some("2025-01-02T00:00:00Z"));
 
         let unknown_licence = r#"{
           "type":"Feature",
