@@ -132,8 +132,9 @@ incompatible time/frame/plane/correction metadata fail closed. The composer
 currently accepts only geometric vectors; light-time-corrected vectors are
 rejected because they cannot be assumed to form a simple additive centre chain.
 Each resolved body carries hashes for the complete centre chain used in
-composition. Scene composition does not interpolate or propagate vectors: all
-inputs must belong to one requested epoch, within a fixed 1e-8-day tolerance.
+composition. Scene composition does not interpolate or propagate vectors:
+every input must report the exact same parsed JDTDB epoch. Even a tiny mismatch
+fails closed until a real propagation/interpolation step is implemented.
 
 The renderer boundary is a separate step. `camera_relative_display_position`
 subtracts a camera origin while values are still `f64` kilometre coordinates,
