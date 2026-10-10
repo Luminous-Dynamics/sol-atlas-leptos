@@ -75,7 +75,7 @@ impl std::fmt::Display for HorizonsParseError {
                 write!(f, "unexpected Horizons API source: {source:?}")
             }
             Self::UnsupportedApiVersion(version) => {
-                write!(f, "unsupported Horizons GET API version: {version:?}")
+                write!(f, "unsupported Horizons API signature version: {version:?}")
             }
             Self::InvalidRequest(reason) => {
                 write!(f, "invalid Horizons vector request: {reason}")
