@@ -117,6 +117,7 @@ pub enum EnergyStudyValidationError {
     DuplicateDatasetId,
     InvalidTimeAxis,
     TimeHorizonOverflow,
+    TimeOutsidePortableRange,
 }
 
 impl std::fmt::Display for EnergyStudyValidationError {
@@ -148,6 +149,9 @@ impl std::fmt::Display for EnergyStudyValidationError {
             Self::TimeHorizonOverflow => {
                 f.write_str("energy-study horizon overflows the UTC Unix timestamp range")
             }
+            Self::TimeOutsidePortableRange => {
+                f.write_str("energy-study time values exceed the exact cross-language integer range")
+            }
         }
     }
 }
@@ -168,14 +172,28 @@ impl EnergyStudyManifestV1 {
         if self.interval_seconds == 0 || self.interval_count == 0 {
             return Err(EnergyStudyValidationError::InvalidTimeAxis);
         }
+        // V1 is shared with JavaScript/TypeScript, so all encoded time
+        // values must remain exact IEEE-754 safe integers in every runtime.
+        const MAX_PORTABLE_INTEGER: i64 = 9_007_199_254_740_991;
         let horizon_seconds = u64::from(self.interval_seconds)
             .checked_mul(u64::from(self.interval_count))
             .ok_or(EnergyStudyValidationError::TimeHorizonOverflow)?;
+        if horizon_seconds > MAX_PORTABLE_INTEGER as u64 {
+            return Err(EnergyStudyValidationError::TimeOutsidePortableRange);
+        }
         let horizon_seconds = i64::try_from(horizon_seconds)
             .map_err(|_| EnergyStudyValidationError::TimeHorizonOverflow)?;
-        self.start_unix_seconds
+        let horizon_end = self
+            .start_unix_seconds
             .checked_add(horizon_seconds)
             .ok_or(EnergyStudyValidationError::TimeHorizonOverflow)?;
+        if self.start_unix_seconds > MAX_PORTABLE_INTEGER
+            || self.start_unix_seconds < -MAX_PORTABLE_INTEGER
+            || horizon_end > MAX_PORTABLE_INTEGER
+            || horizon_end < -MAX_PORTABLE_INTEGER
+        {
+            return Err(EnergyStudyValidationError::TimeOutsidePortableRange);
+        }
 
         if self.datasets.is_empty() {
             return Err(EnergyStudyValidationError::EmptyDatasetList);
@@ -478,6 +496,13 @@ mod tests {
         assert_eq!(
             overflow.validate(),
             Err(EnergyStudyValidationError::TimeHorizonOverflow)
+        );
+
+        let mut non_portable = manifest();
+        non_portable.start_unix_seconds = 9_007_199_254_740_991;
+        assert_eq!(
+            non_portable.validate(),
+            Err(EnergyStudyValidationError::TimeOutsidePortableRange)
         );
     }
 
