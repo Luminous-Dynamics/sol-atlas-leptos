@@ -158,7 +158,7 @@ jq -n \
   --arg api_version "$version" \
   '{
     receipt_status: "captured-unreviewed",
-    request_url_sha256: $request_sha256,
+    canonical_request_sha256: $request_sha256,
     raw_response_sha256: $response_sha256,
     retrieved_at_utc: $retrieved_at_utc,
     reported_provider_source: $provider_source,
@@ -287,7 +287,7 @@ jq -n \
     reference_plane: $ref_plane,
     vector_correction: $vector_correction,
     output_units: "KM-S",
-    request_url_sha256: $request_sha256,
+    canonical_request_sha256: $request_sha256,
     raw_response_sha256: $response_sha256,
     retrieved_at_utc: $retrieved_at_utc
   }' > "$metadata_file"
