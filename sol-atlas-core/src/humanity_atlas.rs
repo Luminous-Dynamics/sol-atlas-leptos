@@ -264,7 +264,8 @@ mod tests {
 
     #[test]
     fn rejects_malformed_digest() {
-        let bad = valid_payload().replace(&"a".repeat(64), "not-a-sha256");
+        let digest = "a".repeat(64);
+        let bad = valid_payload().replace(digest.as_str(), "not-a-sha256");
         assert!(ScenarioRunEnvelope::from_json(&bad)
             .unwrap_err()
             .contains("scenario_sha256"));
