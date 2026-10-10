@@ -47,6 +47,9 @@ pub struct CatalogObject {
     /// or numbered-small-body syntax where applicable. Aggregate populations
     /// intentionally have no single ephemeris target.
     pub ephemeris_target: Option<&'static str>,
+    /// Horizons CENTER expression for this physical body's centre (e.g. @399).
+    /// This is distinct from the COMMAND expression used to target the body.
+    pub ephemeris_center: Option<&'static str>,
     /// Existing local texture path, if one is known to be available.
     /// Missing artwork must fall back to procedural/material rendering.
     pub texture_asset: Option<&'static str>,
@@ -62,6 +65,7 @@ macro_rules! body {
         $axis_au:expr,
         $parent_axis:expr,
         $target:expr,
+        $center:expr,
         $texture:expr $(,)?
     ) => {
         CatalogObject {
@@ -73,6 +77,7 @@ macro_rules! body {
             heliocentric_semi_major_axis_au: $axis_au,
             parent_orbit_semi_major_axis_km: $parent_axis,
             ephemeris_target: $target,
+            ephemeris_center: $center,
             texture_asset: $texture,
         }
     };
@@ -95,6 +100,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         None,
         Some("10"),
+        Some("@10"),
         Some("/assets/globe-textures/sun.jpg")
     ),
 
@@ -107,6 +113,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(0.3871),
         None,
         Some("199"),
+        Some("@199"),
         None
     ),
     body!(
@@ -118,6 +125,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(0.7233),
         None,
         Some("299"),
+        Some("@299"),
         Some("/assets/globe-textures/venus.jpg")
     ),
     body!(
@@ -129,6 +137,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(1.0000),
         None,
         Some("399"),
+        Some("@399"),
         Some("/assets/globe-textures/earth-blue-marble.jpg")
     ),
     body!(
@@ -140,6 +149,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(1.5237),
         None,
         Some("499"),
+        Some("@499"),
         Some("/assets/globe-textures/mars.jpg")
     ),
     body!(
@@ -151,6 +161,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(5.2028),
         None,
         Some("599"),
+        Some("@599"),
         Some("/assets/globe-textures/jupiter.jpg")
     ),
     body!(
@@ -162,6 +173,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(9.5388),
         None,
         Some("699"),
+        Some("@699"),
         Some("/assets/globe-textures/saturn.jpg")
     ),
     body!(
@@ -173,6 +185,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(19.1914),
         None,
         Some("799"),
+        Some("@799"),
         None
     ),
     body!(
@@ -184,6 +197,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(30.0611),
         None,
         Some("899"),
+        Some("@899"),
         None
     ),
 
@@ -196,6 +210,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(2.7675),
         None,
         Some("1;"),
+        Some("@2000001"),
         None
     ),
     body!(
@@ -207,6 +222,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(39.482),
         None,
         Some("999"),
+        Some("@999"),
         None
     ),
     body!(
@@ -218,6 +234,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(43.13),
         None,
         Some("136108;"),
+        Some("@2136108"),
         None
     ),
     body!(
@@ -229,6 +246,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(45.79),
         None,
         Some("136472;"),
+        Some("@2136472"),
         None
     ),
     body!(
@@ -240,6 +258,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some(67.78),
         None,
         Some("136199;"),
+        Some("@2136199"),
         None
     ),
 
@@ -254,6 +273,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(384_400.0),
         Some("301"),
+        Some("@301"),
         Some("/assets/globe-textures/moon.jpg")
     ),
     body!(
@@ -265,6 +285,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(9_376.0),
         Some("401"),
+        Some("@401"),
         None
     ),
     body!(
@@ -276,6 +297,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(23_463.0),
         Some("402"),
+        Some("@402"),
         None
     ),
 
@@ -288,6 +310,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(421_700.0),
         Some("501"),
+        Some("@501"),
         None
     ),
     body!(
@@ -299,6 +322,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(671_100.0),
         Some("502"),
+        Some("@502"),
         None
     ),
     body!(
@@ -310,6 +334,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(1_070_400.0),
         Some("503"),
+        Some("@503"),
         None
     ),
     body!(
@@ -321,6 +346,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(1_882_700.0),
         Some("504"),
+        Some("@504"),
         None
     ),
 
@@ -333,6 +359,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(185_539.0),
         Some("601"),
+        Some("@601"),
         None
     ),
     body!(
@@ -344,6 +371,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(237_948.0),
         Some("602"),
+        Some("@602"),
         None
     ),
     body!(
@@ -355,6 +383,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(294_619.0),
         Some("603"),
+        Some("@603"),
         None
     ),
     body!(
@@ -366,6 +395,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(377_396.0),
         Some("604"),
+        Some("@604"),
         None
     ),
     body!(
@@ -377,6 +407,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(527_108.0),
         Some("605"),
+        Some("@605"),
         None
     ),
     body!(
@@ -388,6 +419,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(1_221_870.0),
         Some("606"),
+        Some("@606"),
         None
     ),
     body!(
@@ -399,6 +431,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(3_560_820.0),
         Some("608"),
+        Some("@608"),
         None
     ),
 
@@ -411,6 +444,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(129_900.0),
         Some("705"),
+        Some("@705"),
         None
     ),
     body!(
@@ -422,6 +456,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(190_900.0),
         Some("701"),
+        Some("@701"),
         None
     ),
     body!(
@@ -433,6 +468,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(266_000.0),
         Some("702"),
+        Some("@702"),
         None
     ),
     body!(
@@ -444,6 +480,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(435_900.0),
         Some("703"),
+        Some("@703"),
         None
     ),
     body!(
@@ -455,6 +492,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(583_500.0),
         Some("704"),
+        Some("@704"),
         None
     ),
 
@@ -467,6 +505,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(354_759.0),
         Some("801"),
+        Some("@801"),
         None
     ),
     body!(
@@ -478,6 +517,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         Some(19_596.0),
         Some("901"),
+        Some("@901"),
         None
     ),
 
@@ -488,6 +528,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         "Main asteroid belt",
         SmallBodyPopulation,
         Some("sun"),
+        None,
         None,
         None,
         None,
@@ -503,6 +544,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         None,
         None,
+        None,
         None
     ),
     body!(
@@ -510,6 +552,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         "Comets",
         SmallBodyPopulation,
         Some("sun"),
+        None,
         None,
         None,
         None,
@@ -525,6 +568,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         None,
         None,
+        None,
         None
     ),
     body!(
@@ -532,6 +576,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         "Kuiper belt",
         SmallBodyPopulation,
         Some("sun"),
+        None,
         None,
         None,
         None,
@@ -547,6 +592,7 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         None,
         None,
+        None,
         None
     ),
     body!(
@@ -558,12 +604,14 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         None,
         None,
         None,
+        None,
         None
     ),
     body!(
         "spacecraft",
         "Spacecraft and missions",
         SpacecraftPopulation,
+        None,
         None,
         None,
         None,
@@ -915,6 +963,26 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn physical_bodies_have_distinct_target_and_center_bindings() {
+        for object in SOLAR_SYSTEM_CATALOG {
+            match object.kind {
+                ObjectKind::Star | ObjectKind::Planet | ObjectKind::DwarfPlanet | ObjectKind::NaturalSatellite => {
+                    assert!(object.ephemeris_target.is_some(), "{} lacks COMMAND binding", object.id);
+                    assert!(object.ephemeris_center.is_some(), "{} lacks CENTER binding", object.id);
+                }
+                ObjectKind::SmallBodyPopulation | ObjectKind::SpacecraftPopulation => {
+                    assert!(object.ephemeris_target.is_none(), "{} is not one point target", object.id);
+                    assert!(object.ephemeris_center.is_none(), "{} is not one point centre", object.id);
+                }
+            }
+        }
+        assert_eq!(catalog_object("earth").unwrap().ephemeris_target, Some("399"));
+        assert_eq!(catalog_object("earth").unwrap().ephemeris_center, Some("@399"));
+        assert_eq!(catalog_object("ceres").unwrap().ephemeris_target, Some("1;"));
+        assert_eq!(catalog_object("ceres").unwrap().ephemeris_center, Some("@2000001"));
     }
 
     #[test]
