@@ -664,7 +664,7 @@ fn split_csv_record(record: &str) -> Result<Vec<String>, &'static str> {
                     fields.push(std::mem::take(&mut field));
                     closed_quote = false;
                 }
-                ' ' | '\\t' => {}
+                ' ' | '\t' => {}
                 _ => return Err("unexpected character after closing quote"),
             }
             continue;
