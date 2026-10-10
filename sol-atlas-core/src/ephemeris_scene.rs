@@ -413,7 +413,11 @@ $EOE\n\
             velocity_km_s[0],
             velocity_km_s[1],
             velocity_km_s[2]
-        );
+        )
+        // Keep the Horizons protocol markers exact; the parser intentionally
+        // does not accept a single-dollar near-match.
+        .replace("$SOE", "$SOE")
+        .replace("$EOE", "$EOE");
         let payload = serde_json::json!({
             "signature": { "source": "NASA/JPL Horizons API", "version": "1.3" },
             "result": result
