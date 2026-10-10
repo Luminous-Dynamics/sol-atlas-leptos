@@ -191,6 +191,19 @@ def verify_capture(directory: Path) -> dict[str, str]:
         "API signature version",
     )
 
+    response_object = read_json(paths["response"])
+    signature = response_object.get("signature")
+    if not isinstance(signature, dict):
+        raise CaptureVerificationError("response.signature must be a JSON object")
+    response_source = required_string(signature, "source", "response.signature")
+    response_version = required_string(signature, "version", "response.signature")
+    assert_equal(metadata.get("provider"), response_source, "metadata provider versus response signature")
+    assert_equal(
+        metadata.get("api_signature_version"),
+        response_version,
+        "metadata version versus response signature",
+    )
+
     required_string(metadata, "requested_target", "metadata")
     required_string(metadata, "requested_center", "metadata")
     required_string(metadata, "expected_target_name", "metadata")
