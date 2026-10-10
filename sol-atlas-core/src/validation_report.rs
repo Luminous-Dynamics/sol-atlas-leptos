@@ -1330,6 +1330,45 @@ mod tests {
     }
 
     #[test]
+    fn report_deserialization_rejects_unknown_fields_at_object_boundaries() {
+        let subject = anchor(RecordKind::Artifact, "artifact-a");
+        let report = report(
+            vec![subject.clone()],
+            vec![finding(
+                ValidationFindingCode::ExternalSourceUnresolved,
+                Some(subject),
+                Some("sources[0]"),
+            )],
+            ValidationExecutionStatus::Completed,
+        );
+        let json = report.deterministic_json().unwrap();
+
+        let mut unknown_root: serde_json::Value =
+            serde_json::from_str(&json).unwrap();
+        unknown_root
+            .as_object_mut()
+            .unwrap()
+            .insert("unexpected".into(), serde_json::Value::Null);
+        assert!(serde_json::from_value::<ValidationReport>(unknown_root).is_err());
+
+        let mut unknown_finding: serde_json::Value =
+            serde_json::from_str(&json).unwrap();
+        unknown_finding["findings"][0]
+            .as_object_mut()
+            .unwrap()
+            .insert("unexpected".into(), serde_json::Value::Null);
+        assert!(serde_json::from_value::<ValidationReport>(unknown_finding).is_err());
+
+        let mut unknown_anchor: serde_json::Value =
+            serde_json::from_str(&json).unwrap();
+        unknown_anchor["subjects"][0]
+            .as_object_mut()
+            .unwrap()
+            .insert("unexpected".into(), serde_json::Value::Null);
+        assert!(serde_json::from_value::<ValidationReport>(unknown_anchor).is_err());
+    }
+
+    #[test]
     fn standalone_anchor_deserialization_cannot_bypass_validation() {
         assert!(
             serde_json::from_str::<RecordAnchor>(
