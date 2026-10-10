@@ -1144,6 +1144,16 @@ mod tests {
     }
 
     #[test]
+    fn canonical_url_supports_delimited_small_body_designations() {
+        let mut req = request();
+        req.target_id = "custom-small-body".into();
+        req.provider_target = "DES=1999 AN10;".into();
+        req.expected_target_name = "1999 AN10".into();
+        let url = req.canonical_url().unwrap();
+        assert!(url.contains("COMMAND=%27DES%3D1999%20AN10%3B%27"));
+    }
+
+    #[test]
     fn canonical_url_rejects_query_injection_and_invalid_epochs() {
         let mut bad = request();
         bad.provider_target = "499&OBJ_DATA=NO".into();

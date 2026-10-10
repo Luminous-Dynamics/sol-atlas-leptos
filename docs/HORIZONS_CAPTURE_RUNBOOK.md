@@ -16,7 +16,11 @@ scripts/capture-horizons-vector.sh --print-url
 scripts/capture-horizons-vector.sh --print-identity
 ```
 
-These checks must not contact Horizons. Confirm the printed URL has one explicitly
+The integration test substitutes a deterministic local curl stub and still runs
+the real capture script, jq receipt generation, response validator, and packet
+verifier. It exercises successful capture, HTTP failure preservation, and curl
+transport failure without contacting Horizons. The test is skipped only if jq
+is absent. These checks must not contact Horizons. Confirm the printed URL has one explicitly
 quoted TDB epoch, `EPHEM_TYPE='VECTORS'`, `VEC_TABLE='2'`, `VEC_CORR='NONE'`,
 `OUT_UNITS='KM-S'`, and the reviewed target/centre. The identity output includes
 stable Sol Atlas target/centre IDs and expected response-header names.
