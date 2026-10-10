@@ -17,6 +17,8 @@ Usage:
   scripts/capture-horizons-vector.sh --print-url
 
 Defaults (override with environment variables):
+  HORIZONS_TARGET_ID=mars
+  HORIZONS_CENTER_ID=ssb
   HORIZONS_COMMAND=499
   HORIZONS_CENTER=@0
   HORIZONS_EPOCH_JD=2461323.5
@@ -43,6 +45,8 @@ for tool in python3 curl jq sha256sum; do
   command -v "$tool" >/dev/null 2>&1 || die "required tool not found: $tool"
 done
 
+target_id=$(env_or_default HORIZONS_TARGET_ID mars)
+center_id=$(env_or_default HORIZONS_CENTER_ID ssb)
 target=$(env_or_default HORIZONS_COMMAND 499)
 center=$(env_or_default HORIZONS_CENTER '@0')
 epoch=$(env_or_default HORIZONS_EPOCH_JD 2461323.5)
@@ -115,8 +119,36 @@ print(url, end="")
 PY
 ) || die "failed to build canonical Horizons query"
 
-if [[ $# -gt 0 && "$1" == "--print-url" ]]; then
+# Keep request.url as the exact URL sent over HTTP, but hash a canonical
+# identity that also binds Sol Atlas target/centre IDs and response expectations.
+# This is the same length-delimited format used by HorizonsVectorRequest.
+identity=$(
+  python3 - "$target_id" "$center_id" "$expected_target" "$expected_center" "$url" <<'PY'
+import sys
+from urllib.parse import quote
+
+target_id, center_id, expected_target, expected_center, url = sys.argv[1:]
+encode = lambda value: quote(value, safe="-_.~")
+transport_bytes = len(url.encode("utf-8"))
+print(
+    "SOL-ATLAS-HORIZONS-REQUEST-V1\n"
+    f"target_id={encode(target_id)}\n"
+    f"center_id={encode(center_id)}\n"
+    f"expected_target_name={encode(expected_target)}\n"
+    f"expected_center_name={encode(expected_center)}\n"
+    f"transport_bytes={transport_bytes}\n"
+    f"{url}",
+    end="",
+)
+PY
+) || die "failed to build canonical request identity"
+
+if [[ $# -eq 1 && "$1" == "--print-url" ]]; then
   printf '%s\n' "$url"
+  exit 0
+fi
+if [[ $# -eq 1 && "$1" == "--print-identity" ]]; then
+  printf '%s\n' "$identity"
   exit 0
 fi
 
@@ -127,16 +159,21 @@ mkdir -p "$(dirname "$out_dir")"
 mkdir "$out_dir"
 
 url_file="$out_dir/request.url"
+identity_file="$out_dir/request.identity"
 response_file="$out_dir/response.raw.json"
 metadata_file="$out_dir/capture-metadata.json"
 receipt_file="$out_dir/capture-receipt.json"
 
-# No newline is written to the canonical URL file; its digest therefore hashes
-# exactly the same URL bytes that the GET client sends.
+# No newline is written to either canonical file. request.url is the exact URL
+# sent over HTTP; request.identity is the same length-delimited semantic-plus-
+# transport identity the Rust parser hashes for EphemerisProvenance.
 printf '%s' "$url" > "$url_file"
-request_sha=$(sha256sum "$url_file" | awk '{print $1}')
+printf '%s' "$identity" > "$identity_file"
+request_sha=$(sha256sum "$identity_file" | awk '{print $1}')
+url_sha=$(sha256sum "$url_file" | awk '{print $1}')
 
-printf 'Request SHA-256: %s\n' "$request_sha"
+printf 'Canonical request identity SHA-256: %s\n' "$request_sha"
+printf 'Canonical URL SHA-256: %s\n' "$url_sha"
 printf 'Fetching one vector state from JPL Horizons...\n'
 curl \
   --proto '=https' \
@@ -157,6 +194,7 @@ source=$(jq -r '.signature.source // "unparsed"' "$response_file" 2>/dev/null ||
 version=$(jq -r '.signature.version // "unparsed"' "$response_file" 2>/dev/null || printf 'unparsed')
 jq -n \
   --arg request_sha256 "$request_sha" \
+  --arg canonical_url_sha256 "$url_sha" \
   --arg response_sha256 "$response_sha" \
   --arg retrieved_at_utc "$retrieved_at" \
   --arg provider_source "$source" \
@@ -164,6 +202,7 @@ jq -n \
   '{
     receipt_status: "captured-unreviewed",
     canonical_request_sha256: $request_sha256,
+    canonical_url_sha256: $canonical_url_sha256,
     raw_response_sha256: $response_sha256,
     retrieved_at_utc: $retrieved_at_utc,
     reported_provider_source: $provider_source,
@@ -198,6 +237,7 @@ jq -n \
   --arg ref_plane "$ref_plane" \
   --arg vector_correction "$vec_corr" \
   --arg request_sha256 "$request_sha" \
+  --arg canonical_url_sha256 "$url_sha" \
   --arg response_sha256 "$response_sha" \
   --arg retrieved_at_utc "$retrieved_at" \
   --arg api_source "$source" \
@@ -220,6 +260,6 @@ jq -n \
     retrieved_at_utc: $retrieved_at_utc
   }' > "$metadata_file"
 
-printf '\nCapture files written:\n  %s\n  %s\n  %s\n  %s\n' "$url_file" "$response_file" "$receipt_file" "$metadata_file"
+printf '\nCapture files written:\n  %s\n  %s\n  %s\n  %s\n  %s\n' "$url_file" "$identity_file" "$response_file" "$receipt_file" "$metadata_file"
 printf 'Status: captured, not yet reviewed or promoted into test fixtures.\n'
 printf 'Next: inspect response.raw.json and compare its header/column labels with the parser contract.\n'
