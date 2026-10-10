@@ -52,6 +52,8 @@ Keep this layer behind explicit interfaces. Do not couple the core nutrient arit
 
 A companion prototype is under review in [Symthaea PR #7313](https://github.com/Luminous-Dynamics/symthaea/pull/7313). Its `symthaea-agribot::soil_process` module implements explicit-input dry/wet biomass and char mass balance, elemental-carbon accounting, a deliberately limited sensible-heat screening calculation, and element-specific nutrient recovery. It keeps empirical yields, efficiencies, material properties and seasonal availability as evidence-tagged inputs rather than inventing universal constants. This is a prototype pending CI; do not treat it as a validated pyrolysis simulator or agronomic recommendation engine.
 
+The current Symthaea work also adds a declared-boundary climate inventory. It separates gross emissions, other removals, avoided emissions and horizon-specific char-storage credits. The engineering evaluator can include net climate impact as a Pareto objective or hard threshold; partial inventories and unknown storage eligibility do not become zero-emission claims. The calculation remains a screening ledger, not a formal LCA or carbon-credit verifier. Current biochar LCA research emphasizes that feedstock, process, application, and boundary assumptions can materially change results: https://doi.org/10.1016/j.scitotenv.2024.175448.
+
 ## First implementation: pure-Rust nutrient budget
 
 sol-atlas-core/src/nutrient.rs currently provides:
