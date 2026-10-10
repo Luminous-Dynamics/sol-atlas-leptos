@@ -1131,9 +1131,13 @@ mod tests {
         );
         assert_eq!(combined.findings().len(), 2);
 
-        let decoded: ValidationReport =
-            serde_json::from_str(&combined.deterministic_json().unwrap()).unwrap();
+        let json = combined.deterministic_json().unwrap();
+        let decoded: ValidationReport = serde_json::from_str(&json).unwrap();
         assert_eq!(decoded, combined);
+
+        let mut invalid_key: serde_json::Value = serde_json::from_str(&json).unwrap();
+        invalid_key["findings"][0]["occurrence_key"] = "contains whitespace".into();
+        assert!(serde_json::from_value::<ValidationReport>(invalid_key).is_err());
     }
 
     #[test]
