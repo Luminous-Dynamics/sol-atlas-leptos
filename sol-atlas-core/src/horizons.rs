@@ -52,21 +52,43 @@ impl std::fmt::Display for HorizonsParseError {
             Self::InvalidJson(message) => write!(f, "invalid Horizons JSON: {message}"),
             Self::ProviderError(message) => write!(f, "Horizons API error: {message}"),
             Self::MissingResult => write!(f, "Horizons response has no result field"),
-            Self::InvalidRequest(reason) => write!(f, "invalid Horizons vector request: {reason}"),
-            Self::ProvenanceMismatch => write!(f, "ephemeris provenance hashes do not match the exact query and response bytes"),
-            Self::UnsupportedTimeScale => write!(f, "only TDB vector epochs are supported by this parser"),
+            Self::InvalidRequest(reason) => {
+                write!(f, "invalid Horizons vector request: {reason}")
+            }
+            Self::ProvenanceMismatch => write!(
+                f,
+                "ephemeris provenance hashes do not match the exact query and response bytes"
+            ),
+            Self::UnsupportedTimeScale => {
+                write!(f, "only TDB vector epochs are supported by this parser")
+            }
             Self::MissingStartMarker => write!(f, "Horizons response is missing $$SOE"),
             Self::MissingEndMarker => write!(f, "Horizons response is missing $$EOE"),
-            Self::InvalidMarkerOrder => write!(f, "Horizons ephemeris markers are duplicated or reversed"),
-            Self::MissingMetadata(field) => write!(f, "Horizons response is missing metadata: {field}"),
-            Self::UnexpectedMetadata { field, expected, actual } => {
-                write!(f, "unexpected Horizons metadata for {field}: expected {expected:?}, got {actual:?}")
+            Self::InvalidMarkerOrder => {
+                write!(f, "Horizons ephemeris markers are duplicated or reversed")
             }
-            Self::MissingJdtbdHeader => write!(f, "Horizons table does not identify its epoch column as JDTDB"),
+            Self::MissingMetadata(field) => {
+                write!(f, "Horizons response is missing metadata: {field}")
+            }
+            Self::UnexpectedMetadata { field, expected, actual } => {
+                write!(
+                    f,
+                    "unexpected Horizons metadata for {field}: expected {expected:?}, got {actual:?}"
+                )
+            }
+            Self::MissingJdtbdHeader => {
+                write!(f, "Horizons table does not identify its epoch column as JDTDB")
+            }
             Self::NoVectorRows => write!(f, "Horizons response contains no vector rows"),
-            Self::InvalidCsv { row, reason } => write!(f, "invalid CSV vector row {row}: {reason}"),
-            Self::InvalidVector { row, reason } => write!(f, "invalid state vector row {row}: {reason}"),
-            Self::InvalidStateVector(reason) => write!(f, "invalid parsed state vector: {reason}"),
+            Self::InvalidCsv { row, reason } => {
+                write!(f, "invalid CSV vector row {row}: {reason}")
+            }
+            Self::InvalidVector { row, reason } => {
+                write!(f, "invalid state vector row {row}: {reason}")
+            }
+            Self::InvalidStateVector(reason) => {
+                write!(f, "invalid parsed state vector: {reason}")
+            }
         }
     }
 }
@@ -146,12 +168,16 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
         return Err(HorizonsParseError::UnsupportedTimeScale);
     }
     if request.target_id.trim().is_empty() || request.center_id.trim().is_empty() {
-        return Err(HorizonsParseError::InvalidRequest("stable target and center IDs are required"));
+        return Err(HorizonsParseError::InvalidRequest(
+            "stable target and center IDs are required",
+        ));
     }
     if request.expected_target_name.trim().is_empty()
         || request.expected_center_name.trim().is_empty()
     {
-        return Err(HorizonsParseError::InvalidRequest("expected target and center names are required"));
+        return Err(HorizonsParseError::InvalidRequest(
+            "expected target and center names are required",
+        ));
     }
     if !safe_horizons_token(&request.provider_target)
         || !safe_horizons_token(&request.provider_center)
@@ -161,10 +187,14 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
         ));
     }
     if request.epochs_jd.is_empty() || request.epochs_jd.len() > 10_000 {
-        return Err(HorizonsParseError::InvalidRequest("expected between 1 and 10000 requested epochs"));
+        return Err(HorizonsParseError::InvalidRequest(
+            "expected between 1 and 10000 requested epochs",
+        ));
     }
     if request.epochs_jd.iter().any(|epoch| !epoch.is_finite() || *epoch <= 0.0) {
-        return Err(HorizonsParseError::InvalidRequest("all Julian-date epochs must be finite and positive"));
+        return Err(HorizonsParseError::InvalidRequest(
+            "all Julian-date epochs must be finite and positive",
+        ));
     }
     Ok(())
 }
