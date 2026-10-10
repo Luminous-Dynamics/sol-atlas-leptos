@@ -56,6 +56,7 @@ class HorizonsCapturePacketTests(unittest.TestCase):
         response = FIXTURE_PATH.read_bytes()
         metadata = {
             "fixture_status": "captured-not-yet-reviewed",
+            "http_status": "200",
             "provider": "NASA/JPL Horizons API",
             "api_signature_version": "1.3",
             "requested_target_id": "mars",
@@ -76,6 +77,7 @@ class HorizonsCapturePacketTests(unittest.TestCase):
         }
         receipt = {
             "receipt_status": "captured-unreviewed",
+            "http_status": "200",
             "canonical_request_sha256": sha256(identity),
             "canonical_url_sha256": sha256(url),
             "raw_response_sha256": sha256(response),
@@ -100,6 +102,23 @@ class HorizonsCapturePacketTests(unittest.TestCase):
                 "raw_response_sha256",
             })
             self.assertEqual(digests["canonical_url_sha256"], sha256(default_url()))
+
+    def test_non_200_http_status_is_not_verifiable(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            metadata_path = capture / "capture-metadata.json"
+            receipt_path = capture / "capture-receipt.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            metadata["http_status"] = "503"
+            receipt["http_status"] = "503"
+            metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+            receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "capture HTTP status must be 200, got 503",
+            ):
+                verifier.verify_capture(capture)
 
     def test_request_url_parameter_order_must_be_canonical(self) -> None:
         with TemporaryDirectory() as temporary:
