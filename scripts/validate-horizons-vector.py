@@ -45,6 +45,8 @@ def validate_response(
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         fail(f"invalid Horizons JSON response: {error}")
 
+    if not isinstance(payload, dict):
+        fail("Horizons JSON root must be an object")
     signature = payload.get("signature")
     if not isinstance(signature, dict):
         fail("response lacks a JSON signature object")
@@ -106,7 +108,13 @@ def validate_response(
     )
     if column_line is None:
         fail("missing labelled JDTDB vector-column header")
-    columns = [field.strip().upper() for field in next(csv.reader([column_line]))]
+    try:
+        columns = [
+            field.strip().upper()
+            for field in next(csv.reader([column_line], strict=True))
+        ]
+    except csv.Error as error:
+        fail(f"malformed vector-column CSV: {error}")
     expected_columns = [
         "JDTDB",
         "CALENDAR DATE (TDB)",
@@ -123,7 +131,10 @@ def validate_response(
     data_lines = [line for line in lines[starts[0] + 1 : ends[0]] if line.strip()]
     if len(data_lines) != 1:
         fail(f"expected one output row, got {len(data_lines)}")
-    fields = next(csv.reader([data_lines[0]]))
+    try:
+        fields = next(csv.reader([data_lines[0]], strict=True))
+    except csv.Error as error:
+        fail(f"malformed vector-row CSV: {error}")
     if len(fields) != 8:
         fail(f"expected 8 CSV fields, got {len(fields)}")
     try:
