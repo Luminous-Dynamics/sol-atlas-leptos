@@ -586,6 +586,66 @@ mod tests {
     }
 
     #[test]
+    fn deterministic_profile_matrix_verifies_across_horizons_and_timesteps() {
+        // Deterministic property-style coverage: no external RNG or dependency.
+        // This exercises the checker over many distinct profiles without
+        // treating self-consistency as external-model accuracy.
+        let mut state = 0x4d59_5df4_d0f3_3173_u64;
+        let mut next = || {
+            state = state
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1_442_695_040_888_963_407);
+            (state >> 32) as u32
+        };
+
+        for case_index in 0..48 {
+            let count = 1 + (case_index % 23);
+            let timestep_hours = [0.25, 0.5, 1.0][case_index % 3];
+            let load: Vec<f64> = (0..count)
+                .map(|_| f64::from(next() % 900) / 100.0)
+                .collect();
+            let generation: Vec<f64> = (0..count)
+                .map(|_| f64::from(next() % 1_100) / 100.0)
+                .collect();
+            let grid: Vec<bool> = (0..count).map(|_| next() % 4 != 0).collect();
+            let battery = BatteryConfig {
+                capacity_kwh: 12.0,
+                initial_soc_kwh: 5.0,
+                minimum_soc_kwh: 1.0,
+                max_charge_power_kw: 3.5,
+                max_discharge_power_kw: 2.75,
+                charge_efficiency: 0.87,
+                discharge_efficiency: 0.91,
+            };
+
+            let simulation = simulate_microgrid(
+                &load,
+                &generation,
+                &grid,
+                timestep_hours,
+                battery,
+            )
+            .expect("bounded deterministic profile should simulate");
+            let report = verify_microgrid_simulation(
+                &load,
+                &generation,
+                &grid,
+                timestep_hours,
+                battery,
+                &simulation,
+            )
+            .unwrap_or_else(|error| {
+                panic!("deterministic case {case_index} rejected: {error}")
+            });
+
+            assert_eq!(report.interval_count, count);
+            assert!(report.max_load_balance_residual_kwh <= 1e-8);
+            assert!(report.max_generation_balance_residual_kwh <= 1e-8);
+            assert!(report.max_battery_transition_residual_kwh <= 1e-8);
+        }
+    }
+
+    #[test]
     fn rejects_non_finite_or_out_of_domain_configuration() {
         let (load, generation, grid, dt, config, simulation) = valid_simulation();
         let mut bad_config = config;
