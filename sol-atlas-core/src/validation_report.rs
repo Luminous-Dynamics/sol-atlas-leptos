@@ -668,7 +668,8 @@ impl ValidationReport {
                             assertion.id.as_str()
                         )),
                         Some(
-                            "this derived-from assertion participates in a cycle in the unadjudicated assertion ledger; it was preserved"
+                            "this derived-from assertion participates in a cycle in the unadjudicated assertion ledger; \
+                             it was preserved"
                                 .into(),
                         ),
                     )?);
