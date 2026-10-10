@@ -13,6 +13,7 @@ pub mod confluence;
 pub mod constants;
 pub mod data;
 pub mod economics;
+pub mod ephemeris_scene;
 pub mod energy_trading;
 pub mod geo;
 pub mod horizons;
