@@ -175,94 +175,14 @@ if jq -e '(.error // "") != ""' "$response_file" >/dev/null; then
   jq -r '.error' "$response_file" >&2
   die "Horizons returned an application-level error; raw response and receipt retained"
 fi
-result=$(jq -er '.result' "$response_file") || die "response lacks result text; raw response and receipt retained"
-
-# Enforce the same body-name, coordinate metadata, epoch, and column contract
-# as the parser. A mismatch leaves response.raw.json plus capture-receipt.json
-# for inspection but does not create capture-metadata.json.
-python3 - "$result" "$expected_target" "$expected_center" "$ref_system" "$ref_plane" "$vec_corr" "$epoch" <<'PY' \
-  || die "captured response did not match the parser contract; raw response and receipt retained"
-import csv
-import math
-import sys
-
-(result, expected_target, expected_center, expected_frame, expected_plane,
- expected_correction, epoch_text) = sys.argv[1:]
-
-lines = result.splitlines()
-starts = [i for i, line in enumerate(lines) if line.strip() == "$SOE"]
-ends = [i for i, line in enumerate(lines) if line.strip() == "$EOE"]
-if len(starts) != 1 or len(ends) != 1 or starts[0] >= ends[0]:
-    raise SystemExit("missing or duplicated $SOE/$EOE markers")
-
-header = lines[:starts[0]]
-def metadata(label):
-    for line in header:
-        if ":" in line:
-            key, value = line.split(":", 1)
-            if key.strip().casefold() == label.casefold():
-                return value.strip()
-    raise SystemExit(f"missing response metadata: {label}")
-
-def body_name(value):
-    value = value.split("{", 1)[0].split("(", 1)[0].strip()
-    first, separator, remainder = value.partition(" ")
-    if separator and first.isascii() and first.isdigit():
-        return remainder.strip()
-    return value
-
-actual_target = body_name(metadata("Target body name"))
-actual_center = body_name(metadata("Center body name"))
-if actual_target.casefold() != expected_target.casefold():
-    raise SystemExit(f"target mismatch: expected {expected_target!r}, got {actual_target!r}")
-if actual_center.casefold() != expected_center.casefold():
-    raise SystemExit(f"center mismatch: expected {expected_center!r}, got {actual_center!r}")
-
-for label, expected in [
-    ("Reference frame", expected_frame),
-    ("Reference plane", expected_plane),
-    ("Aberration corrections", expected_correction),
-    ("Output units", "KM-S"),
-]:
-    actual = metadata(label)
-    if label == "Reference frame" and expected == "B1950":
-        valid = actual.casefold() in {"b1950", "fk4/b1950"}
-    else:
-        valid = actual.casefold() == expected.casefold()
-    if not valid:
-        raise SystemExit(f"{label} mismatch: expected {expected!r}, got {actual!r}")
-
-column_line = next(
-    (line for line in reversed(header) if "JDTDB" in line.upper() and "," in line),
-    None,
-)
-if column_line is None:
-    raise SystemExit("missing labelled JDTDB vector-column header")
-columns = [field.strip().upper() for field in next(csv.reader([column_line]))]
-expected_columns = [
-    "JDTDB", "CALENDAR DATE (TDB)", "X", "Y", "Z", "VX", "VY", "VZ"
-]
-if columns != expected_columns:
-    raise SystemExit(f"unexpected vector columns: {columns!r}")
-
-data_lines = [line for line in lines[starts[0] + 1:ends[0]] if line.strip()]
-if len(data_lines) != 1:
-    raise SystemExit(f"expected one output row, got {len(data_lines)}")
-fields = next(csv.reader([data_lines[0]]))
-if len(fields) != 8:
-    raise SystemExit(f"expected 8 CSV fields, got {len(fields)}")
-try:
-    output_epoch = float(fields[0])
-    expected_epoch = float(epoch_text)
-    components = [float(field) for field in fields[-6:]]
-except ValueError:
-    raise SystemExit("epoch or state components are not numeric")
-if not math.isfinite(output_epoch) or any(not math.isfinite(v) for v in components):
-    raise SystemExit("epoch or state components are non-finite")
-if abs(output_epoch - expected_epoch) > 1.0e-8:
-    raise SystemExit(f"epoch mismatch: expected {expected_epoch}, got {output_epoch}")
-PY
-
+python3 scripts/validate-horizons-vector.py \
+  "$response_file" \
+  "$expected_target" \
+  "$expected_center" \
+  "$ref_system" \
+  "$ref_plane" \
+  "$vec_corr" \
+  "$epoch" || die "captured response failed the schema contract; raw response and receipt retained"
 jq -n \
   --arg requested_target "$target" \
   --arg requested_center "$center" \
