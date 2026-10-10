@@ -1214,6 +1214,39 @@ mod tests {
     }
 
     #[test]
+    fn occurrence_identity_frames_identifiers_that_contain_separators() {
+        let first_relation = ProvenanceRelation::DerivedFrom {
+            artifact: crate::provenance::ArtifactId::new("a:b").unwrap(),
+            source: crate::provenance::ArtifactId::new("c").unwrap(),
+        };
+        let second_relation = ProvenanceRelation::DerivedFrom {
+            artifact: crate::provenance::ArtifactId::new("a").unwrap(),
+            source: crate::provenance::ArtifactId::new("b:c").unwrap(),
+        };
+        assert_ne!(
+            provenance_relation_identity(&first_relation),
+            provenance_relation_identity(&second_relation)
+        );
+
+        let missing = crate::provenance::ArtifactId::new("missing").unwrap();
+        let first = ValidationFinding::from_provenance_error(
+            &ProvenanceError::MissingArtifact {
+                relation: first_relation,
+                artifact: missing.clone(),
+            },
+        )
+        .unwrap();
+        let second = ValidationFinding::from_provenance_error(
+            &ProvenanceError::MissingArtifact {
+                relation: second_relation,
+                artifact: missing,
+            },
+        )
+        .unwrap();
+        assert_ne!(first.occurrence_key(), second.occurrence_key());
+    }
+
+    #[test]
     fn cycle_errors_map_to_a_structural_violation_without_inventing_an_anchor() {
         let finding =
             ValidationFinding::from_provenance_error(&ProvenanceError::DerivedFromCycle).unwrap();
