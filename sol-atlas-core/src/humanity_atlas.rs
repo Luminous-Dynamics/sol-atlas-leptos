@@ -106,6 +106,28 @@ pub enum OutputStatistic {
 pub struct ValidationRecord {
     pub status: ValidationStatus,
     pub notes: Vec<String>,
+    pub evidence: Vec<ValidationEvidence>,
+}
+
+/// Content-addressed pointer to a validation artifact. The digest binds bytes;
+/// this structure alone does not authenticate the publisher or the artifact's claims.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ValidationEvidence {
+    pub evidence_id: String,
+    pub kind: ValidationEvidenceKind,
+    pub artifact_ref: String,
+    pub artifact_sha256: String,
+    pub description: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ValidationEvidenceKind {
+    Reproducibility,
+    RetrospectiveEvaluation,
+    ProspectiveForecast,
+    IndependentReview,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -159,6 +181,17 @@ impl ScenarioRunEnvelope {
         if self.run_status == RunStatus::Completed && self.outputs.is_empty() {
             return Err("a completed run must contain at least one output row".into());
         }
+        for evidence in &self.validation.evidence {
+            if evidence.evidence_id.trim().is_empty()
+                || evidence.artifact_ref.trim().is_empty()
+                || evidence.description.trim().is_empty()
+            {
+                return Err("validation evidence ID, artifact reference, and description must be non-empty".into());
+            }
+            if !is_lowercase_sha256(&evidence.artifact_sha256) {
+                return Err("validation evidence artifact_sha256 must be lowercase SHA-256".into());
+            }
+        }
 
         let mut unique_rows = BTreeSet::new();
         for row in &self.outputs {
@@ -180,30 +213,42 @@ impl ScenarioRunEnvelope {
             }
         }
 
+        let evidence_kinds: BTreeSet<ValidationEvidenceKind> =
+            self.validation.evidence.iter().map(|item| item.kind).collect();
         match self.output_classification {
-            OutputClassification::CalibratedSimulation
+            OutputClassification::CalibratedSimulation => {
                 if !matches!(
                     self.validation.status,
-                    ValidationStatus::Retrospective
-                        | ValidationStatus::Prospective
-                        | ValidationStatus::ExternalReview
-                ) =>
-            {
-                return Err(
-                    "calibrated_simulation requires retrospective, prospective, or external-review validation"
-                        .into(),
-                );
+                    ValidationStatus::Retrospective | ValidationStatus::ExternalReview
+                ) {
+                    return Err(
+                        "calibrated_simulation requires retrospective or external-review validation"
+                            .into(),
+                    );
+                }
+                if !evidence_kinds.contains(&ValidationEvidenceKind::RetrospectiveEvaluation)
+                    && !evidence_kinds.contains(&ValidationEvidenceKind::IndependentReview)
+                {
+                    return Err(
+                        "calibrated_simulation requires evaluation evidence".into(),
+                    );
+                }
             }
-            OutputClassification::ProspectiveForecast
+            OutputClassification::ProspectiveForecast => {
                 if !matches!(
                     self.validation.status,
                     ValidationStatus::Prospective | ValidationStatus::ExternalReview
-                ) =>
-            {
-                return Err(
-                    "prospective_forecast requires prospective or external-review validation"
-                        .into(),
-                );
+                ) {
+                    return Err(
+                        "prospective_forecast requires prospective or external-review validation"
+                            .into(),
+                    );
+                }
+                if !evidence_kinds.contains(&ValidationEvidenceKind::ProspectiveForecast) {
+                    return Err(
+                        "prospective_forecast requires forecast receipt evidence".into(),
+                    );
+                }
             }
             _ => {}
         }
@@ -240,7 +285,7 @@ mod tests {
               "seed":0,
               "replicates":1,
               "outputs":[{{"metric_id":"storage_gwh","year":2030,"unit":"GWh","statistic":"value","value":12.5,"sample_count":1}}],
-              "validation":{{"status":"contract_smoke","notes":["synthetic fixture only"]}},
+              "validation":{{"status":"contract_smoke","notes":["synthetic fixture only"],"evidence":[]}},
               "warnings":["not empirical"]
             }}"#
         )
@@ -277,6 +322,41 @@ mod tests {
         assert!(ScenarioRunEnvelope::from_json(&bad)
             .unwrap_err()
             .contains("prospective_forecast requires"));
+    }
+
+    #[test]
+    fn rejects_calibrated_label_without_evaluation_evidence() {
+        let bad = valid_payload()
+            .replace("synthetic_fixture", "calibrated_simulation")
+            .replace("contract_smoke", "retrospective");
+        assert!(ScenarioRunEnvelope::from_json(&bad)
+            .unwrap_err()
+            .contains("calibrated_simulation requires evaluation evidence"));
+    }
+
+    #[test]
+    fn rejects_forecast_label_without_forecast_receipt() {
+        let bad = valid_payload()
+            .replace("synthetic_fixture", "prospective_forecast")
+            .replace("contract_smoke", "prospective");
+        assert!(ScenarioRunEnvelope::from_json(&bad)
+            .unwrap_err()
+            .contains("prospective_forecast requires forecast receipt evidence"));
+    }
+
+    #[test]
+    fn accepts_calibrated_label_with_hashed_evaluation_receipt_shape() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.output_classification = OutputClassification::CalibratedSimulation;
+        run.validation.status = ValidationStatus::Retrospective;
+        run.validation.evidence.push(ValidationEvidence {
+            evidence_id: "test.hindcast.v1".into(),
+            kind: ValidationEvidenceKind::RetrospectiveEvaluation,
+            artifact_ref: "test-fixtures/hindcast.json".into(),
+            artifact_sha256: "d".repeat(64),
+            description: "Synthetic receipt shape test only".into(),
+        });
+        assert!(run.validate().is_ok());
     }
 
     #[test]
