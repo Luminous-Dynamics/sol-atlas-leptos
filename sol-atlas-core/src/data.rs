@@ -623,6 +623,19 @@ mod fossil_deposit_admission_tests {
     }
 
     #[test]
+    fn parser_validation_error_reports_failing_record_index() {
+        let invalid = VALID_RECORD.replace(r#""lat":10.0"#, r#""lat":91.0"#);
+        let input = format!("[{VALID_RECORD},{invalid}]");
+        let error = parse_fossil_deposits(&input)
+            .expect_err("second record has an invalid latitude");
+
+        assert!(
+            error.to_string().contains("index 1"),
+            "validation error should identify the source record: {error}"
+        );
+    }
+
+    #[test]
     fn programmatically_constructed_non_finite_values_are_rejected() {
         let mut record = parse_record(VALID_RECORD).unwrap().remove(0);
 
