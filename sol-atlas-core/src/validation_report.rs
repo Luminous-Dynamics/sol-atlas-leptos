@@ -575,28 +575,26 @@ impl ValidationReport {
 
         for artifact in graph.artifacts() {
             let anchor = RecordAnchor::new(RecordKind::Artifact, artifact.id.as_str())?;
-            if let Some(integrity) = &artifact.integrity {
+            if artifact.integrity.is_some() {
                 findings.push(ValidationFinding::new(
                     ValidationFindingCode::IntegrityReferenceUnverified,
                     Some(anchor.clone()),
                     Some(format!("artifacts[{}].integrity", artifact.id.as_str())),
-                    Some(format!(
-                        "integrity reference {}:{} is metadata; this report \
-                         did not verify the digest",
-                        integrity.algorithm(),
-                        integrity.value()
-                    )),
+                    Some(
+                        "integrity reference is present, but this report did not verify the digest"
+                            .into(),
+                    ),
                 )?);
             }
-            if let Some(source_uri) = &artifact.source_uri {
+            if artifact.source_uri.is_some() {
                 findings.push(ValidationFinding::new(
                     ValidationFindingCode::ExternalSourceUnresolved,
                     Some(anchor.clone()),
                     Some(format!("artifacts[{}].source_uri", artifact.id.as_str())),
-                    Some(format!(
-                        "artifact source locator {source_uri} is recorded; this report \
-                         did not retrieve or resolve it"
-                    )),
+                    Some(
+                        "artifact source locator is present, but this report did not retrieve or resolve it"
+                            .into(),
+                    ),
                 )?);
             }
             subjects.push(anchor);
@@ -617,8 +615,8 @@ impl ValidationReport {
             let anchor = RecordAnchor::new(RecordKind::Assertion, assertion.id.as_str())?;
             for (index, source) in assertion.sources.iter().enumerate() {
                 if let AssertionSource::External {
-                    locator,
                     resolution: ExternalSourceResolution::Unresolved,
+                    ..
                 } = source
                 {
                     findings.push(ValidationFinding::new(
@@ -628,15 +626,14 @@ impl ValidationReport {
                             "assertions[{}].sources[{index}]",
                             assertion.id.as_str()
                         )),
-                        Some(format!(
-                            "external source locator {} is recorded but has not been resolved",
-                            locator.as_str()
-                        )),
+                        Some(
+                            "external source locator is recorded but has not been resolved".into(),
+                        ),
                     )?);
                 }
             }
 
-            if let Some(assessment) = &assertion.assessment_ref {
+            if assertion.assessment_ref.is_some() {
                 findings.push(ValidationFinding::new(
                     ValidationFindingCode::AssessmentReferenceUnverified,
                     Some(anchor.clone()),
@@ -644,11 +641,10 @@ impl ValidationReport {
                         "assertions[{}].assessment_ref",
                         assertion.id.as_str()
                     )),
-                    Some(format!(
-                        "assessment pointer {}:{} has not been retrieved or authenticated",
-                        assessment.authority(),
-                        assessment.reference()
-                    )),
+                    Some(
+                        "external assessment pointer has not been retrieved or authenticated"
+                            .into(),
+                    ),
                 )?);
                 findings.push(ValidationFinding::new(
                     ValidationFindingCode::QualificationUnknown,
@@ -1028,6 +1024,11 @@ mod tests {
         assert!(json.contains("external_source_unresolved"));
         assert!(json.contains("integrity_reference_unverified"));
         assert!(json.contains("assessment_reference_unverified"));
+        assert!(!json.contains("deadbeef"));
+        assert!(!json.contains("urn:artifact:source-a"));
+        assert!(!json.contains("urn:source:report-a"));
+        assert!(!json.contains("example-authority"));
+        assert!(!json.contains("assessment-12"));
         assert!(json.contains("qualification_unknown"));
         assert!(!json.contains("evidence_verified"));
     }
