@@ -136,7 +136,7 @@ pub fn catalog_object(id: &str) -> Option<&'static CatalogObject> {
     SOLAR_SYSTEM_CATALOG.iter().find(|object| object.id == id)
 }
 
-/// Iterate all physical bodies of one kind, excluding aggregate layers.
+/// Iterate catalogue entries by kind, including aggregate layers when requested.
 pub fn objects_of_kind(kind: ObjectKind) -> impl Iterator<Item = &'static CatalogObject> {
     SOLAR_SYSTEM_CATALOG.iter().filter(move |object| object.kind == kind)
 }
@@ -209,8 +209,8 @@ impl StateVector {
         if !is_sha256(&self.provenance.raw_response_sha256) {
             return Err("raw_response_sha256 must be 64 hexadecimal characters");
         }
-        if !self.provenance.retrieved_at_utc.ends_with('Z') {
-            return Err("retrieved_at_utc must be represented in UTC with a Z suffix");
+        if !is_rfc3339_utc(&self.provenance.retrieved_at_utc) {
+            return Err("retrieved_at_utc must be RFC 3339 UTC text ending in Z");
         }
         Ok(())
     }
@@ -218,6 +218,38 @@ impl StateVector {
 
 fn is_sha256(value: &str) -> bool {
     value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+/// Check the structural RFC 3339 UTC shape without adding a date-time
+/// dependency. The ingestion adapter should use a full parser when available.
+fn is_rfc3339_utc(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() < 20
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes.last() != Some(&b'Z')
+    {
+        return false;
+    }
+
+    for index in [0, 1, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18] {
+        if !bytes[index].is_ascii_digit() {
+            return false;
+        }
+    }
+
+    if bytes.len() == 20 {
+        return true;
+    }
+
+    bytes[19] == b'.'
+        && bytes[20..bytes.len() - 1]
+            .iter()
+            .all(|byte| byte.is_ascii_digit())
+        && bytes.len() > 21
 }
 
 #[cfg(test)]
@@ -245,6 +277,41 @@ mod tests {
         for object in SOLAR_SYSTEM_CATALOG {
             if let Some(parent_id) = object.parent_id {
                 assert!(catalog_object(parent_id).is_some(), "{} has unknown parent {parent_id}", object.id);
+            }
+        }
+    }
+
+    #[test]
+    fn catalogue_ids_are_unique_and_orbit_fields_match_object_kind() {
+        use std::collections::HashSet;
+
+        let mut ids = HashSet::new();
+        for object in SOLAR_SYSTEM_CATALOG {
+            assert!(ids.insert(object.id), "duplicate catalogue ID: {}", object.id);
+
+            match object.kind {
+                ObjectKind::Star => {
+                    assert_eq!(object.id, "sun");
+                    assert!(object.parent_id.is_none());
+                    assert!(object.heliocentric_semi_major_axis_au.is_none());
+                    assert!(object.parent_orbit_semi_major_axis_km.is_none());
+                }
+                ObjectKind::Planet | ObjectKind::DwarfPlanet => {
+                    assert_eq!(object.parent_id, Some("sun"), "{}", object.id);
+                    assert!(matches!(object.heliocentric_semi_major_axis_au, Some(axis) if axis.is_finite() && axis > 0.0), "{}", object.id);
+                    assert!(object.parent_orbit_semi_major_axis_km.is_none(), "{}", object.id);
+                }
+                ObjectKind::NaturalSatellite => {
+                    assert!(object.parent_id.is_some(), "{}", object.id);
+                    assert!(matches!(object.parent_orbit_semi_major_axis_km, Some(axis) if axis.is_finite() && axis > 0.0), "{}", object.id);
+                    assert!(object.heliocentric_semi_major_axis_au.is_none(), "{}", object.id);
+                }
+                ObjectKind::SmallBodyPopulation | ObjectKind::SpacecraftPopulation => {
+                    assert!(object.mean_radius_km.is_none(), "{}", object.id);
+                    assert!(object.ephemeris_target.is_none(), "{}", object.id);
+                    assert!(object.heliocentric_semi_major_axis_au.is_none(), "{}", object.id);
+                    assert!(object.parent_orbit_semi_major_axis_km.is_none(), "{}", object.id);
+                }
             }
         }
     }
@@ -301,5 +368,9 @@ mod tests {
         let mut invalid = valid_sample();
         invalid.center_id.clear();
         assert_eq!(invalid.validate(), Err("target_id and center_id are required"));
+
+        let mut invalid = valid_sample();
+        invalid.provenance.retrieved_at_utc = "yesterday".into();
+        assert_eq!(invalid.validate(), Err("retrieved_at_utc must be RFC 3339 UTC text ending in Z"));
     }
 }
