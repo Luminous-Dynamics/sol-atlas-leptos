@@ -86,6 +86,12 @@ Run a bounded CesiumJS proof-of-concept alongside the current renderer before de
 
 Reference: https://github.com/CesiumGS/cesium
 
+#### Current renderer constraint (inspected 2026-10-10)
+
+The current WebGL2 path renders a single Earth sphere using a full-globe Blue Marble texture, with separate global topology, cloud and night-light textures. The texture loader swaps one image into a WebGL texture; its current image callbacks are retained for the application lifetime. This is appropriate for a small, bounded set of planet textures, but it is not a tile scheduler and should not be used unchanged for thousands of dynamic tile requests.
+
+The next custom-renderer experiment is tracked in [issue #70](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/70): preserve Blue Marble as the low-detail fallback and overlay globe-conforming imagery patches selected from camera visibility and zoom. Web Mercator XYZ tiles must not be stretched as though they were equirectangular textures. The tile path needs bounded concurrency/cache/texture memory, source/attribution records, correct parent-tile fallback, stale-request cancellation and context-loss recovery. Keep this as an independently testable overlay; do not replace the base globe before the pilot proves stable.
+
 ### 4. Treat freshness and uncertainty as first-class
 
 Google Earth's own documentation describes imagery from multiple providers and acquisition periods; imagery is not necessarily current or real-time, and mosaics can have date ranges. Sol Atlas should make those limitations legible instead of disguising them.
@@ -214,12 +220,13 @@ This stack is intentionally heterogeneous: it can produce a consistent globe, bu
 
 ## Delivery sequence
 
-1. **Contract:** review the asset identity, time, licence and validation model; add fixture tests before integrating providers.
-2. **Catalog adapter:** ingest a small, permissively licensed sample dataset and produce a reproducible catalog snapshot.
-3. **Renderer experiment:** compare the existing renderer and CesiumJS on the same frozen pilot data.
-4. **Terrain + imagery vertical slice:** connect the chosen adapter and show real provider metadata and coverage gaps in the UI.
-5. **3D and temporal expansion:** add 3D Tiles, historical imagery and scientific layers only after their ingestion/provenance path is tested.
-6. **Global coverage:** measure the global coverage and freshness gaps, then prioritize the highest-value open sources and partnerships.
+1. **Contract and catalog model:** the versioned asset/catalog model and an offline STAC Item subset importer are now authored in [PR #67](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/67); exact-head CI has not yet produced a completed validation result.
+2. **Catalog discovery and frozen sample:** add a real, source-licensed STAC Item sample, compare the imported metadata against the source record, and produce a reproducible catalog snapshot. The current importer does not query catalogs over the network.
+3. **Renderer experiment:** compare the existing renderer and CesiumJS on the same frozen pilot data, with a written measurement protocol.
+4. **Tile overlay:** implement bounded XYZ/TMS selection, cache/texture lifecycle and camera-driven image tiles over the current fallback, as tracked by [issue #70](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/70).
+5. **Terrain + imagery vertical slice:** connect the chosen data adapters and show real provider metadata, licences, temporal coverage and gaps in the UI.
+6. **3D and temporal expansion:** add 3D Tiles, historical imagery and scientific layers only after their ingestion/provenance path is tested.
+7. **Global coverage:** measure actual geographic coverage, freshness, resolution, source-policy eligibility and data-quality gaps, then prioritize the highest-value open sources and partnerships.
 
 ## Open decisions
 
