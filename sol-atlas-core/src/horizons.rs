@@ -241,9 +241,9 @@ impl HorizonsVectorRequest {
                 "TIME_TYPE='TDB'\n",
                 "TLIST={}\n",
                 "TLIST_TYPE='JD'\n",
-                "VEC_CORR={}\n",
+                "VECT_CORR={}\n",
                 "VEC_LABELS='YES'\n",
-                "VEC_TABLE='2'\n",
+                "VECT_TABLE='2'\n",
                 "CSV_FORMAT='YES'\n",
                 concat!("!", "$", "$", "EOF\n")
             ),
@@ -906,8 +906,8 @@ mod tests {
         assert!(input_file.contains("CENTER='@0'\n"));
         assert!(input_file.contains("TLIST='2461323.5' '2461324.5'"));
         assert!(input_file.contains("REF_SYSTEM='ICRF'\n"));
-        assert!(input_file.contains("REF_PLANE='FRAME'\n"));
-        assert!(input_file.contains("VEC_TABLE='2'\n"));
+        assert!(input_file.contains("REF_PLANE='FRAME'\n"));\n        assert!(input_file.contains("VECT_CORR='NONE'\n"));
+        assert!(input_file.contains("VECT_TABLE='2'\n"));
         assert!(input_file.ends_with(concat!("!", "$", "$", "EOF\n")));
         assert!(req.canonical_request_identity().unwrap().starts_with(
             "POST\nhttps://ssd.jpl.nasa.gov/api/horizons_file.api\nformat=json\ninput-bytes:\n"
