@@ -741,7 +741,7 @@ fn is_rfc3339_utc(value: &str) -> bool {
             || bytes.len() <= 21
             || !bytes[20..bytes.len() - 1]
                 .iter()
-                .all(|byte| byte.is_ascii_digit())
+                .all(|byte| byte.is_ascii_digit()))
     {
         return false;
     }
@@ -758,20 +758,18 @@ fn is_rfc3339_utc(value: &str) -> bool {
         Ok(value) => value,
         _ => return false,
     };
-    let hour = match value[11..13].parse::<u32>() {
+    let _hour = match value[11..13].parse::<u32>() {
         Ok(value @ 0..=23) => value,
         _ => return false,
     };
-    let minute = match value[14..16].parse::<u32>() {
+    let _minute = match value[14..16].parse::<u32>() {
         Ok(value @ 0..=59) => value,
         _ => return false,
     };
-    let second = match value[17..19].parse::<u32>() {
+    let _second = match value[17..19].parse::<u32>() {
         Ok(value @ 0..=59) => value,
         _ => return false,
     };
-    let _ = (hour, minute, second);
-
     let leap_year = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
     let days_in_month = match month {
         2 if leap_year => 29,
