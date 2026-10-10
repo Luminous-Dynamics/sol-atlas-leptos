@@ -47,13 +47,14 @@ the hand-authored orbit-speed table. For vector queries, explicitly request the
 target, centre, epoch range, time scale, reference system and plane,
 vector-correction mode, and units. Preserve
 those parameters with each captured response: a vector is meaningless without
-its centre, frame, and epoch. The new horizons module parses JSON envelopes
-containing the CSV vector-table markers and currently supports only TDB,
-ICRF/B1950, explicit reference-plane settings, geometric/light-time correction
-metadata, VEC_TABLE=2, and KM-S output. It does no HTTP and computes no hashes;
-the caller must hash the canonical query and exact raw response bytes. Do not
-fetch the network from unit tests. The committed fixture is deliberately
-synthetic and tests parser behavior, not the live provider's complete output.
+its centre, frame, and epoch. The new horizons module builds a canonical GET URL with explicit target, centre,
+discrete TDB epochs, reference system and plane, vector correction, VEC_TABLE=2,
+CSV output, and KM-S units. It parses JSON envelopes containing the CSV table
+markers and checks target/centre metadata, headers, epoch order, field counts,
+and finite values. It does no HTTP and computes no hashes: the caller must hash
+the exact canonical URL bytes and raw response bytes. Do not fetch the network
+from unit tests. The committed fixture is deliberately synthetic and tests
+parser behavior, not the live provider's complete output.
 The provider docs are the contract for the adapter:
 - https://ssd-api.jpl.nasa.gov/doc/horizons.html
 - https://ssd.jpl.nasa.gov/horizons/manual.html
@@ -85,7 +86,7 @@ https://www.w3.org/TR/webgpu/ .
 
 1. **Freeze the contracts**: tests for parent resolution, unit-labelled vector
    fields, bad hashes, non-finite state, response-header mismatches, malformed
-   markers, unexpected columns, and deterministic parsing. The parser now
+   markers, unexpected columns, canonical query encoding, and epoch matching. The parser now
    covers the documented JSON envelope/CSV marker shape using a synthetic
    fixture; before claiming provider-format conformance, capture a real
    response for a pinned exact request, verify its metadata and hashes, and add
