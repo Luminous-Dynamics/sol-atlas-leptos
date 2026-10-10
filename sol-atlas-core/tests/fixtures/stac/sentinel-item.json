@@ -27,7 +27,7 @@
       "type": "image/tiff; application=geotiff",
       "roles": ["data"],
       "proj:code": "EPSG:32633",
-      "raster:bands": [{"gsd": 10}, {"gsd": 20}]
+      "raster:bands": [{"raster:spatial_resolution": 10}, {"raster:spatial_resolution": 20}]
     },
     "preview": {
       "href": "https://example.test/preview.jpg",
