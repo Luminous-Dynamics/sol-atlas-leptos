@@ -77,17 +77,17 @@ impl EroiTier {
     }
 }
 
-/// Compute EROI for a deposit. Uses the `eroi` field if set,
-/// otherwise derives a proxy from reference price / extraction cost.
+/// Return a deposit's explicitly supplied physical Energy Return on Investment.
+///
+/// EROI is an energy ratio (energy returned / energy invested), not a monetary
+/// price-to-cost ratio. Never infer it from commodity price and extraction cost:
+/// doing so mixes unlike quantities and can silently mislabel financial margins
+/// as thermodynamic performance. Deposits without a valid physical EROI remain
+/// `None` so the caller can display "unknown" rather than a fabricated value.
 pub fn compute_eroi(deposit: &FossilDeposit) -> Option<f64> {
-    if let Some(eroi) = deposit.eroi {
-        return Some(eroi);
-    }
-    let cost = deposit.extraction_cost_per_boe?;
-    if cost <= 0.0 {
-        return None;
-    }
-    Some(reference_price_per_boe(&deposit.fuel_type) / cost)
+    deposit
+        .eroi
+        .filter(|eroi| eroi.is_finite() && *eroi > 0.0)
 }
 
 /// EROI-based color for visualization: green → amber → red → dark red.
@@ -334,13 +334,21 @@ mod tests {
     }
 
     #[test]
-    fn test_eroi_derives_from_cost() {
+    fn test_eroi_is_not_derived_from_monetary_costs() {
         let mut d = ghawar();
         d.eroi = None;
         d.extraction_cost_per_boe = Some(10.0);
-        // Oil ref price = 75, so proxy = 75/10 = 7.5
-        let eroi = compute_eroi(&d).unwrap();
-        assert!((eroi - 7.5).abs() < 0.01);
+        // Price / extraction cost is a financial ratio, not physical EROI.
+        assert_eq!(compute_eroi(&d), None);
+    }
+
+    #[test]
+    fn test_eroi_rejects_nonphysical_values() {
+        let mut d = ghawar();
+        for invalid in [0.0, -1.0, f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            d.eroi = Some(invalid);
+            assert_eq!(compute_eroi(&d), None, "accepted invalid EROI: {invalid}");
+        }
     }
 
     #[test]

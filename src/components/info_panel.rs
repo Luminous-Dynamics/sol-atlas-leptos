@@ -129,13 +129,17 @@ pub fn InfoPanel() -> impl IntoView {
                         view! {
                             <div>
                                 <h2>{d.name.clone()}</h2>
-                                <div class="subtitle">{format!("{:?} \u{00b7} {}", d.fuel_type, d.country)}</div>
+                                <div class="subtitle">{format!("{:?} \u{00b7} {} \u{00b7} curated; EROI estimated", d.fuel_type, d.country)}</div>
                                 {match eroi {
-                                    Some(e) => {
-                                        let tier = sol_atlas_core::economics::EroiTier::from_eroi(e);
-                                        hero(format!("{:.0}:1", e), tier.label()).into_any()
-                                    }
-                                    None => hero(format!("{:.0}", d.proven_reserves_mboe), "Mboe reserves").into_any(),
+                                    Some(e) => hero(format!("{:.1}:1", e), "EROI estimate").into_any()
+                                    None => hero("Unknown".to_string(), "physical EROI").into_any(),
+                                }}
+                                {match eroi {
+                                    Some(e) => row(
+                                        "Indicative tier",
+                                        sol_atlas_core::economics::EroiTier::from_eroi(e).label().to_string(),
+                                    ),
+                                    None => row("EROI data", "Not supplied".to_string()),
                                 }}
                                 {row("Reserves", format!("{:.0} Mboe", d.proven_reserves_mboe))}
                                 {row("Production", format!("{:.0} Mboe/yr", d.annual_production_mboe))}
