@@ -35,11 +35,17 @@ pub enum TileError {
 impl fmt::Display for TileError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidZoom(zoom) => write!(f, "tile zoom {zoom} exceeds maximum {MAX_TILE_ZOOM}"),
+            Self::InvalidZoom(zoom) => {
+                write!(f, "tile zoom {zoom} exceeds maximum {MAX_TILE_ZOOM}")
+            },
             Self::NonFiniteCoordinate => write!(f, "geographic coordinates must be finite"),
-            Self::LongitudeOutOfRange => write!(f, "longitude must be within [-180, 180] for bounds"),
+            Self::LongitudeOutOfRange => {
+                write!(f, "longitude must be within [-180, 180] for bounds")
+            },
             Self::LatitudeOutOfRange => write!(f, "latitude must be within [-90, 90]"),
-            Self::InvalidBounds => write!(f, "bounds must have south < north and non-zero longitude width"),
+            Self::InvalidBounds => {
+                write!(f, "bounds must have south < north and non-zero longitude width")
+            },
             Self::TileIndexOutOfRange => write!(f, "tile index is outside the selected zoom level"),
             Self::TileBudgetExceeded { requested, maximum } => {
                 write!(f, "tile selection requests {requested} tiles, exceeding budget {maximum}")
@@ -274,7 +280,10 @@ pub fn tiles_for_bounds(
     };
     let requested = rows * x_columns;
     if requested > max_tiles as u64 {
-        return Err(TileError::TileBudgetExceeded { requested, maximum: max_tiles });
+        return Err(TileError::TileBudgetExceeded {
+            requested,
+            maximum: max_tiles,
+        });
     }
 
     let mut columns = Vec::with_capacity((x_columns as usize).min(max_tiles));
