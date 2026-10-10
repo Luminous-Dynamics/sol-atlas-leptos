@@ -18,6 +18,7 @@ pub mod geo;
 pub mod lod;
 pub mod mycelix_flows;
 pub mod microgrid;
+pub mod microgrid_verifier;
 pub mod energy_study;
 // pub mod relativity_viz;
 pub mod geometry;
