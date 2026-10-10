@@ -314,7 +314,8 @@ fn validate_text(
 ) -> Result<(), EnergyStudyValidationError> {
     if value.is_empty()
         || value.len() > MAX_TEXT_BYTES
-        || value.trim() != value
+        || value.starts_with(' ')
+        || value.ends_with(' ')
         || value.chars().any(char::is_control)
     {
         return Err(EnergyStudyValidationError::EmptyOrInvalidText(field));
