@@ -15,6 +15,7 @@ usage() {
 Usage:
   scripts/capture-horizons-vector.sh OUTPUT_DIRECTORY
   scripts/capture-horizons-vector.sh --print-url
+  scripts/capture-horizons-vector.sh --print-identity
 
 Defaults (override with environment variables):
   HORIZONS_TARGET_ID=mars
@@ -228,6 +229,8 @@ python3 "$script_dir/validate-horizons-vector.py" \
   "$vec_corr" \
   "$epoch" || die "captured response failed the schema contract; raw response and receipt retained"
 jq -n \
+  --arg requested_target_id "$target_id" \
+  --arg requested_center_id "$center_id" \
   --arg requested_target "$target" \
   --arg requested_center "$center" \
   --arg requested_epoch_jd "$epoch" \
@@ -246,6 +249,8 @@ jq -n \
     fixture_status: "captured-not-yet-reviewed",
     provider: $api_source,
     api_signature_version: $api_version,
+    requested_target_id: $requested_target_id,
+    requested_center_id: $requested_center_id,
     requested_target: $requested_target,
     requested_center: $requested_center,
     expected_target_name: $expected_target,
@@ -256,6 +261,7 @@ jq -n \
     vector_correction: $vector_correction,
     output_units: "KM-S",
     canonical_request_sha256: $request_sha256,
+    canonical_url_sha256: $canonical_url_sha256,
     raw_response_sha256: $response_sha256,
     retrieved_at_utc: $retrieved_at_utc
   }' > "$metadata_file"
