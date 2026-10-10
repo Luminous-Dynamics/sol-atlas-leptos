@@ -853,6 +853,72 @@ mod tests {
     }
 
     #[test]
+    fn shared_horizons_manifest_matches_catalogue_bindings() {
+        const MANIFEST: &str =
+            include_str!("../tests/fixtures/horizons/catalogue-bindings.json");
+        let manifest: serde_json::Value = serde_json::from_str(MANIFEST).unwrap();
+        assert_eq!(manifest["schema_version"].as_u64(), Some(1));
+        let rows = manifest["objects"].as_array().unwrap();
+        assert_eq!(rows.len(), SOLAR_SYSTEM_CATALOG.len());
+
+        let kind_name = |kind: ObjectKind| match kind {
+            ObjectKind::Star => "star",
+            ObjectKind::Planet => "planet",
+            ObjectKind::DwarfPlanet => "dwarf_planet",
+            ObjectKind::NaturalSatellite => "natural_satellite",
+            ObjectKind::SmallBodyPopulation => "small_body_population",
+            ObjectKind::SpacecraftPopulation => "spacecraft_population",
+        };
+
+        for object in SOLAR_SYSTEM_CATALOG {
+            let row = rows
+                .iter()
+                .find(|row| row["id"].as_str() == Some(object.id))
+                .unwrap_or_else(|| panic!("manifest is missing {}", object.id));
+            assert_eq!(row["name"].as_str(), Some(object.name), "{}", object.id);
+            assert_eq!(row["kind"].as_str(), Some(kind_name(object.kind)), "{}", object.id);
+            assert_eq!(row["parent_id"].as_str(), object.parent_id, "{}", object.id);
+            assert_eq!(row["mean_radius_km"].as_f64(), object.mean_radius_km, "{}", object.id);
+            assert_eq!(
+                row["heliocentric_semi_major_axis_au"].as_f64(),
+                object.heliocentric_semi_major_axis_au,
+                "{}",
+                object.id
+            );
+            assert_eq!(
+                row["parent_orbit_semi_major_axis_km"].as_f64(),
+                object.parent_orbit_semi_major_axis_km,
+                "{}",
+                object.id
+            );
+            assert_eq!(
+                row["command"].as_str(),
+                object.ephemeris_target,
+                "{}",
+                object.id
+            );
+            assert_eq!(
+                row["center"].as_str(),
+                object.ephemeris_center,
+                "{}",
+                object.id
+            );
+            assert_eq!(
+                row["texture_asset"].as_str(),
+                object.texture_asset,
+                "{}",
+                object.id
+            );
+        }
+
+        assert!(manifest["special_centers"].as_array().unwrap().iter().any(|center| {
+            center["id"].as_str() == Some("ssb")
+                && center["provider_center"].as_str() == Some("@0")
+                && center["name"].as_str() == Some("Solar System Barycenter")
+        }));
+    }
+
+    #[test]
     fn catalogue_contains_all_eight_planets() {
         assert_eq!(objects_of_kind(ObjectKind::Planet).count(), 8);
         for id in ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune"] {
