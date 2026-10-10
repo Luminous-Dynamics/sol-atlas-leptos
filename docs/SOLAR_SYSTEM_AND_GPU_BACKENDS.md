@@ -59,7 +59,8 @@ frame/plane, and individually quoted TLIST epochs). The uploaded batch syntax
 uses the legacy `VECT_TABLE`/`VECT_CORR` names rather than the GET API's
 `VEC_TABLE`/`VEC_CORR` parameter names. Its canonical request identity
 excludes transient multipart boundaries while binding the exact endpoint,
-format, form field, and input bytes. See the official [file API docs](https://ssd-api.jpl.nasa.gov/doc/horizons_file.html).
+format, form field, and input bytes. See the official
+[file API docs](https://ssd-api.jpl.nasa.gov/doc/horizons_file.html).
 
 The GET docs are labelled 1.3 while their JSON examples still show signature
 version 1.0. The file API docs are labelled 1.0 while examples show 0.2. The
