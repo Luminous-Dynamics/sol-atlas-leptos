@@ -440,7 +440,7 @@ mod tests {
         let source = GibsWebMercatorSource::new(
             "layer",
             "GoogleMapsCompatible_Level2",
-            2,
+            1, // two matrix levels are numbered 0 through 1
             "default",
             TileImageFormat::Png,
             "Fixture layer attribution",
@@ -448,7 +448,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             source.tile_url(TileCoordinate::new(3, 2, 1).unwrap()),
-            Err(GibsUrlError::ZoomExceedsLayerMaximum { requested: 3, maximum: 2 })
+            Err(GibsUrlError::ZoomExceedsLayerMaximum { requested: 3, maximum: 1 })
         );
     }
 }
