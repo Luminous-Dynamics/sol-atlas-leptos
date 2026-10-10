@@ -115,8 +115,9 @@ pub struct HorizonsVectorRequest {
     pub target_id: String,
     /// Stable Sol Atlas ID for the requested coordinate origin (e.g. ssb).
     pub center_id: String,
-    /// Provider target expression, e.g. 499 for Mars. Quotes and URL syntax are
-    /// rejected; the builder adds quoting and percent-encoding itself.
+    /// Provider target expression, e.g. 499 for Mars or
+    /// DES=1999 AN10; for a small-body designation. URL delimiters are rejected;
+    /// the builder quotes and percent-encodes this value itself.
     pub provider_target: String,
     /// Provider centre expression, e.g. @0 for the solar-system barycentre.
     pub provider_center: String,
@@ -206,7 +207,7 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
         || !safe_horizons_token(&request.provider_center)
     {
         return Err(HorizonsParseError::InvalidRequest(
-            "provider target/center may contain only alphanumeric characters, spaces, - _ . @ ; ( )",
+            "provider target/center may contain only alphanumeric characters, spaces, - _ . @ ; ( ) =",
         ));
     }
     if request.epochs_jd.is_empty() || request.epochs_jd.len() > 10_000 {
@@ -227,7 +228,7 @@ fn safe_horizons_token(value: &str) -> bool {
         && value.trim() == value
         && value.bytes().all(|byte| {
             byte.is_ascii_alphanumeric()
-                || matches!(byte, b' ' | b'-' | b'_' | b'.' | b'@' | b';' | b'(' | b')')
+                || matches!(byte, b' ' | b'-' | b'_' | b'.' | b'@' | b';' | b'(' | b')' | b'=')
         })
 }
 
@@ -681,6 +682,15 @@ mod tests {
         assert!(header_body_name_matches("Mars (499) {source: test}", "Mars"));
         assert!(header_body_name_matches("Solar System Barycenter (0)", "Solar System Barycenter"));
         assert!(!header_body_name_matches("Mars Barycenter (4)", "Mars"));
+    }
+
+    #[test]
+    fn canonical_url_supports_encoded_small_body_designations() {
+        let mut request = request();
+        request.provider_target = "DES=1999 AN10;".into();
+        let url = request.canonical_url().unwrap();
+        assert!(url.contains("COMMAND=%27DES%3D1999%20AN10%3B%27"));
+        assert!(url.contains("TLIST=%272461323.5%27"));
     }
 
     #[test]
