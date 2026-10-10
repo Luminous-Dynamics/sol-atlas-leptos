@@ -559,9 +559,21 @@ impl ValidationReport {
 
         let mut findings = findings;
         findings.sort();
-        let mut finding_set = BTreeSet::new();
+        let mut finding_identity_set: BTreeSet<(
+            ValidationFindingCode,
+            Option<RecordAnchor>,
+            Option<String>,
+        )> = BTreeSet::new();
         for finding in &findings {
-            if !finding_set.insert(finding.clone()) {
+            // Detail text is explanatory, not identity. Two findings with the
+            // same stable code, subject, and field path must not coexist merely
+            // because their human-readable wording differs.
+            let identity = (
+                finding.code,
+                finding.subject.clone(),
+                finding.field_path.clone(),
+            );
+            if !finding_identity_set.insert(identity) {
                 return Err(ValidationReportError::DuplicateFinding(finding.clone()));
             }
             if let Some(subject) = finding.subject() {
@@ -1190,6 +1202,26 @@ mod tests {
             ),
             Err(ValidationReportError::DuplicateSubject(_))
         ));
+        let same_identity_different_detail = ValidationFinding::new(
+            ValidationFindingCode::IntegrityReferenceUnverified,
+            Some(subject.clone()),
+            Some("integrity".into()),
+            Some("different explanatory wording".into()),
+        )
+        .unwrap();
+        assert!(matches!(
+            ValidationReport::new(
+                "rules-v1",
+                ValidationScope::ProvenanceGraph,
+                ValidationExecutionStatus::Completed,
+                vec![subject.clone()],
+                vec![repeated.clone(), same_identity_different_detail],
+                None,
+                None,
+            ),
+            Err(ValidationReportError::DuplicateFinding(_))
+        ));
+
         assert!(matches!(
             ValidationReport::new(
                 "rules-v1",
