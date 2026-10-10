@@ -18,7 +18,7 @@ const ABS_TOLERANCE_KWH: f64 = 1e-9;
 const REL_TOLERANCE: f64 = 1e-9;
 
 /// Results of independently recomputing interval balance residuals.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MicrogridVerificationReport {
     pub interval_count: usize,
     pub max_load_balance_residual_kwh: f64,
