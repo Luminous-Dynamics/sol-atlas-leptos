@@ -149,7 +149,7 @@ impl HorizonsRequestPlan {
         match self {
             Self::Get { url } => url.clone(),
             Self::FilePost { endpoint, format, input_file } => format!(
-                "POST\n{endpoint}\nformat={format}\ninput-bytes:\n{input_file}"
+                "POST\n{endpoint}\nformat={format}\nfield=input\ninput-bytes:\n{input_file}"
             ),
         }
     }
@@ -911,7 +911,7 @@ mod tests {
         assert!(input_file.contains("VECT_TABLE='2'\n"));
         assert!(input_file.ends_with(concat!("!", "$", "$", "EOF\n")));
         assert!(req.canonical_request_identity().unwrap().starts_with(
-            "POST\nhttps://ssd.jpl.nasa.gov/api/horizons_file.api\nformat=json\ninput-bytes:\n"
+            "POST\nhttps://ssd.jpl.nasa.gov/api/horizons_file.api\nformat=json\nfield=input\ninput-bytes:\n"
         ));
     }
 
