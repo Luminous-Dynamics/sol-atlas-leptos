@@ -479,7 +479,7 @@ mod tests {
           "bbox":[10,20,1,30,40,9],
           "geometry":{
             "type":"Polygon",
-            "coordinates":[[[10,20],[30,20],[30,40],[10,40],[10,20]]]
+            "coordinates":[[[10,20,1],[30,20,1],[30,40,9],[10,40,9],[10,20,1]]]
           },
           "properties":{"datetime":"2025-01-01T00:00:00Z"},
           "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
