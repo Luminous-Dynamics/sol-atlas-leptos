@@ -54,10 +54,11 @@ VEC_TABLE=2, CSV output, and KM-S units. It rejects URLs above a conservative
 7,500-byte budget so oversized batches route to the official file-based API
 instead of dropping the request. `HorizonsRequestPlan` returns either a GET URL
 or a file POST plan with deterministic batch input (including
-`TABLE_TYPE='VECTORS'`, `VECT_TABLE='2'`, `VECT_CORR='NONE'`, units,
-frame/plane, and individually quoted TLIST epochs). The uploaded batch syntax
-uses the legacy `VECT_TABLE`/`VECT_CORR` names rather than the GET API's
-`VEC_TABLE`/`VEC_CORR` parameter names. Its canonical request identity
+`TABLE_TYPE='VECTOR'`, `VECT_TABLE='2'`, `VECT_CORR='NONE'`, units,
+frame/plane, and individually quoted TLIST epochs). The file API uses the
+legacy batch syntax: `TABLE_TYPE='VECTOR'` (singular) and the
+`VECT_TABLE`/`VECT_CORR` setting names rather than the GET API's
+`EPHEM_TYPE='VECTORS'`, `VEC_TABLE`, and `VEC_CORR` parameters. Its canonical request identity
 excludes transient multipart boundaries while binding the exact endpoint,
 format, form field, and input bytes. See the official
 [file API docs](https://ssd-api.jpl.nasa.gov/doc/horizons_file.html).
