@@ -124,12 +124,15 @@ impl HorizonsVectorRequest {
     /// Query parameters are emitted in a fixed order with fixed encoding.
     pub fn canonical_url(&self) -> Result<String, HorizonsParseError> {
         validate_request(self)?;
+        // Horizons TLIST expects each time individually quoted, with
+        // commas or spaces between entries. Quoting the whole comma-separated
+        // list would not express a list of discrete epochs.
         let epochs = self
             .epochs_jd
             .iter()
-            .map(|epoch| epoch.to_string())
+            .map(|epoch| quoted(&epoch.to_string()))
             .collect::<Vec<_>>()
-            .join(",");
+            .join(" ");
 
         let params = [
             ("COMMAND", quoted(&self.provider_target)),
@@ -142,7 +145,7 @@ impl HorizonsVectorRequest {
             ("REF_PLANE", quoted(reference_plane_label(self.reference_plane))),
             ("REF_SYSTEM", quoted(reference_system_label(self.reference_system))),
             ("TIME_TYPE", quoted("TDB")),
-            ("TLIST", quoted(&epochs)),
+            ("TLIST", epochs),
             ("TLIST_TYPE", quoted("JD")),
             ("VEC_CORR", quoted(vector_correction_label(self.vector_correction))),
             ("VEC_LABELS", quoted("YES")),
@@ -400,7 +403,7 @@ fn validate_header(
 
     let target = metadata_value(header, "Target body name")
         .ok_or(HorizonsParseError::MissingMetadata("Target body name"))?;
-    if !target.to_ascii_lowercase().contains(&request.expected_target_name.to_ascii_lowercase()) {
+    if !header_body_name_matches(target, &request.expected_target_name) {
         return Err(HorizonsParseError::UnexpectedMetadata {
             field: "Target body name",
             expected: request.expected_target_name.clone(),
@@ -410,7 +413,7 @@ fn validate_header(
 
     let center = metadata_value(header, "Center body name")
         .ok_or(HorizonsParseError::MissingMetadata("Center body name"))?;
-    if !center.to_ascii_lowercase().contains(&request.expected_center_name.to_ascii_lowercase()) {
+    if !header_body_name_matches(center, &request.expected_center_name) {
         return Err(HorizonsParseError::UnexpectedMetadata {
             field: "Center body name",
             expected: request.expected_center_name.clone(),
@@ -431,6 +434,19 @@ fn validate_header(
         return Err(HorizonsParseError::MissingJdtbdHeader);
     }
     Ok(())
+}
+
+fn header_body_name_matches(actual: &str, expected: &str) -> bool {
+    // Horizons headers can append a numeric SPK ID in parentheses and source
+    // details in braces. Compare the body/system name itself, not a substring:
+    // "Mars Barycenter" must not be accepted when "Mars" was requested.
+    let before_source = actual.split('{').next().unwrap_or(actual).trim();
+    let body_name = before_source
+        .split('(')
+        .next()
+        .unwrap_or(before_source)
+        .trim();
+    body_name.eq_ignore_ascii_case(expected.trim())
 }
 
 fn metadata_value<'a>(header: &'a str, label: &str) -> Option<&'a str> {
@@ -560,6 +576,21 @@ mod tests {
         assert!(url.contains("OUT_UNITS=%27KM-S%27"));
         assert!(url.contains("VEC_TABLE=%272%27"));
         assert!(url.ends_with("format=json"));
+    }
+
+    #[test]
+    fn canonical_url_quotes_every_tlist_epoch_individually() {
+        let mut request = request();
+        request.epochs_jd = vec![2_461_323.5, 2_461_324.5];
+        let url = request.canonical_url().unwrap();
+        assert!(url.contains("TLIST=%272461323.5%27%20%272461324.5%27"));
+    }
+
+    #[test]
+    fn body_name_comparison_rejects_substring_collisions() {
+        assert!(header_body_name_matches("Mars (499) {source: test}", "Mars"));
+        assert!(header_body_name_matches("Solar System Barycenter (0)", "Solar System Barycenter"));
+        assert!(!header_body_name_matches("Mars Barycenter (4)", "Mars"));
     }
 
     #[test]
