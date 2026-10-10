@@ -157,6 +157,44 @@ class HorizonsCapturePacketTests(unittest.TestCase):
             with self.assertRaisesRegex(verifier.CaptureVerificationError, "response schema validation failed"):
                 verifier.verify_capture(capture)
 
+    def rehash_identity_for_metadata(self, capture: Path, metadata: dict) -> None:
+        url = (capture / "request.url").read_bytes()
+        identity = verifier.expected_request_identity(metadata, url)
+        (capture / "request.identity").write_bytes(identity)
+        identity_digest = sha256(identity)
+        metadata["canonical_request_sha256"] = identity_digest
+        (capture / "capture-metadata.json").write_text(json.dumps(metadata), encoding="utf-8")
+        receipt_path = capture / "capture-receipt.json"
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        receipt["canonical_request_sha256"] = identity_digest
+        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+
+    def test_rehashed_known_target_relabeling_still_fails_binding_check(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            metadata_path = capture / "capture-metadata.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            metadata["requested_target_id"] = "venus"
+            self.rehash_identity_for_metadata(capture, metadata)
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "catalogue target binding mismatch for venus",
+            ):
+                verifier.verify_capture(capture)
+
+    def test_rehashed_aggregate_layer_still_fails_point_target_check(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            metadata_path = capture / "capture-metadata.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            metadata["requested_target_id"] = "comets"
+            self.rehash_identity_for_metadata(capture, metadata)
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "aggregate catalogue layer cannot be queried as a point target",
+            ):
+                verifier.verify_capture(capture)
+
     def test_missing_packet_member_fails_closed(self) -> None:
         with TemporaryDirectory() as temporary:
             capture = self.make_capture(Path(temporary) / "capture")
