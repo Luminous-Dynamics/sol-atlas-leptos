@@ -627,34 +627,34 @@ pub enum VectorCorrection {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EphemerisProvenance {
     pub provider: String,
-    pub canonical_query_sha256: String,
+    pub canonical_request_sha256: String,
     pub raw_response_sha256: String,
     /// Retrieval instant as RFC 3339 UTC text (ends in Z).
     pub retrieved_at_utc: String,
 }
 
 impl EphemerisProvenance {
-    /// Compute SHA-256 from the exact canonical URL bytes and raw HTTP body bytes.
+    /// Compute SHA-256 from the exact canonical request identity bytes and raw HTTP body bytes.
     /// This establishes byte-level consistency; it does not independently prove
     /// that the provider or transport was authentic.
     pub fn from_bytes(
         provider: impl Into<String>,
-        canonical_url: &str,
+        canonical_request_identity: &str,
         raw_response: &[u8],
         retrieved_at_utc: impl Into<String>,
     ) -> Self {
         Self {
             provider: provider.into(),
-            canonical_query_sha256: sha256_hex(canonical_url.as_bytes()),
+            canonical_request_sha256: sha256_hex(canonical_request_identity.as_bytes()),
             raw_response_sha256: sha256_hex(raw_response),
             retrieved_at_utc: retrieved_at_utc.into(),
         }
     }
 
-    /// Verify these digests against the exact request and response bytes.
-    pub fn verifies_bytes(&self, canonical_url: &str, raw_response: &[u8]) -> bool {
-        self.canonical_query_sha256
-            .eq_ignore_ascii_case(&sha256_hex(canonical_url.as_bytes()))
+    /// Verify these digests against the exact canonical request identity and response bytes.
+    pub fn verifies_bytes(&self, canonical_request_identity: &str, raw_response: &[u8]) -> bool {
+        self.canonical_request_sha256
+            .eq_ignore_ascii_case(&sha256_hex(canonical_request_identity.as_bytes()))
             && self
                 .raw_response_sha256
                 .eq_ignore_ascii_case(&sha256_hex(raw_response))
@@ -698,8 +698,8 @@ impl StateVector {
         if self.provenance.provider.trim().is_empty() {
             return Err("ephemeris provider is required");
         }
-        if !is_sha256(&self.provenance.canonical_query_sha256) {
-            return Err("canonical_query_sha256 must be 64 hexadecimal characters");
+        if !is_sha256(&self.provenance.canonical_request_sha256) {
+            return Err("canonical_request_sha256 must be 64 hexadecimal characters");
         }
         if !is_sha256(&self.provenance.raw_response_sha256) {
             return Err("raw_response_sha256 must be 64 hexadecimal characters");
@@ -793,7 +793,7 @@ mod tests {
             "2026-10-10T16:00:00Z",
         );
         assert_eq!(
-            provenance.canonical_query_sha256,
+            provenance.canonical_request_sha256,
             "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
         );
         assert_eq!(
