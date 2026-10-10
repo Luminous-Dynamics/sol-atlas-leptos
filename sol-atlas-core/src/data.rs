@@ -117,9 +117,21 @@ pub fn parse_nuclear_sites(json: &str) -> Result<Vec<NuclearSite>, serde_json::E
     serde_json::from_str(json)
 }
 
-/// Parse fossil-deposits.json.
+/// Parse fossil-deposits.json with strict schema and domain validation.
+///
+/// Unknown fields and duplicate struct fields are rejected by the wire type. Numeric
+/// and text values are then checked before a record enters the loaded data model.
+/// Passing these checks is not source verification or reserve-classification evidence.
 pub fn parse_fossil_deposits(json: &str) -> Result<Vec<FossilDeposit>, serde_json::Error> {
-    serde_json::from_str(json)
+    let deposits: Vec<FossilDeposit> = serde_json::from_str(json)?;
+    for (index, deposit) in deposits.iter().enumerate() {
+        deposit.validate().map_err(|message| {
+            <serde_json::Error as serde::de::Error>::custom(format!(
+                "fossil deposit record at index {index}: {message}"
+            ))
+        })?;
+    }
+    Ok(deposits)
 }
 
 /// Parse a dataset, logging (never silently swallowing) any failure.
@@ -504,5 +516,134 @@ mod e2e_tests {
         );
         // Should not panic, just return empty vecs
         assert!(data.sites.is_empty());
+    }
+}
+
+#[cfg(test)]
+mod fossil_deposit_admission_tests {
+    use super::*;
+
+    const VALID_RECORD: &str = r#"{"name":"Synthetic Basin Field","lat":10.0,"lon":20.0,"fuel_type":"oil","proven_reserves_mboe":100.0,"annual_production_mboe":2.0,"status":"producing","country":"Testland","discovery_year":2000,"extraction_cost_per_boe":10.0,"decommission_cost_m":5.0,"eroi":5.0}"#;
+
+    fn parse_record(record: &str) -> Result<Vec<FossilDeposit>, serde_json::Error> {
+        parse_fossil_deposits(&format!("[{record}]"))
+    }
+
+    #[test]
+    fn checked_in_fossil_dataset_passes_validation_without_inventing_missing_values() {
+        let records = parse_fossil_deposits(include_str!(
+            "../../assets/data/fossil-deposits.json"
+        ))
+        .expect("reviewed checked-in dataset should satisfy admission checks");
+        assert_eq!(records.len(), 70);
+        assert_eq!(
+            records
+                .iter()
+                .filter(|record| record.extraction_cost_per_boe.is_none())
+                .count(),
+            55
+        );
+        assert_eq!(
+            records
+                .iter()
+                .filter(|record| record.decommission_cost_m.is_none())
+                .count(),
+            70
+        );
+        assert_eq!(
+            records.iter().filter(|record| record.eroi.is_none()).count(),
+            56
+        );
+    }
+
+    #[test]
+    fn fossil_deposit_parser_rejects_unknown_and_duplicate_fields() {
+        let unknown = VALID_RECORD.replacen(
+            "{",
+            r#"{"authorization_granted":true,"#,
+            1,
+        );
+        assert!(parse_record(&unknown).is_err());
+
+        let duplicate = VALID_RECORD.replace(
+            r#""name":"Synthetic Basin Field""#,
+            r#""name":"Synthetic Basin Field","name":"overridden""#,
+        );
+        assert!(parse_record(&duplicate).is_err());
+    }
+
+    #[test]
+    fn fossil_deposit_parser_rejects_invalid_numeric_domains() {
+        for (original, replacement) in [
+            (r#""lat":10.0"#, r#""lat":91.0"#),
+            (r#""lon":20.0"#, r#""lon":181.0"#),
+            (
+                r#""proven_reserves_mboe":100.0"#,
+                r#""proven_reserves_mboe":-1.0"#,
+            ),
+            (
+                r#""annual_production_mboe":2.0"#,
+                r#""annual_production_mboe":-1.0"#,
+            ),
+            (
+                r#""extraction_cost_per_boe":10.0"#,
+                r#""extraction_cost_per_boe":-1.0"#,
+            ),
+            (
+                r#""decommission_cost_m":5.0"#,
+                r#""decommission_cost_m":-1.0"#,
+            ),
+            (r#""eroi":5.0"#, r#""eroi":0.0"#),
+            (r#""discovery_year":2000"#, r#""discovery_year":0"#),
+        ] {
+            let invalid = VALID_RECORD.replace(original, replacement);
+            assert!(
+                parse_record(&invalid).is_err(),
+                "admitted invalid record after replacing {original} with {replacement}"
+            );
+        }
+    }
+
+    #[test]
+    fn programmatically_constructed_non_finite_values_are_rejected() {
+        let mut record = parse_record(VALID_RECORD).unwrap().remove(0);
+
+        record.lat = f64::NAN;
+        assert!(record.validate().is_err());
+        record.lat = 10.0;
+
+        record.lon = f64::INFINITY;
+        assert!(record.validate().is_err());
+        record.lon = 20.0;
+
+        record.proven_reserves_mboe = f64::NAN;
+        assert!(record.validate().is_err());
+        record.proven_reserves_mboe = 100.0;
+
+        record.annual_production_mboe = f64::INFINITY;
+        assert!(record.validate().is_err());
+        record.annual_production_mboe = 2.0;
+
+        record.extraction_cost_per_boe = Some(f64::INFINITY);
+        assert!(record.validate().is_err());
+        record.extraction_cost_per_boe = Some(10.0);
+
+        record.decommission_cost_m = Some(f64::NAN);
+        assert!(record.validate().is_err());
+        record.decommission_cost_m = Some(5.0);
+
+        record.eroi = Some(f64::INFINITY);
+        assert!(record.validate().is_err());
+    }
+
+    #[test]
+    fn geographic_extremes_are_valid_and_empty_text_is_not() {
+        let mut record = parse_record(VALID_RECORD).unwrap().remove(0);
+        record.lat = 90.0;
+        record.lon = -180.0;
+        assert!(record.validate().is_ok());
+
+        record.name = "  ".to_string();
+        assert!(record.validate().is_err());
     }
 }
