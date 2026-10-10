@@ -36,6 +36,7 @@ pub enum SceneBuildError {
     ReferenceCycle(String),
     EpochMismatch(String),
     IncompatibleMetadata(&'static str),
+    UnsupportedVectorCorrection,
     NonFiniteResolvedState(String),
     InvalidDisplayScale,
     DisplayCoordinateOutOfRange,
@@ -68,6 +69,10 @@ impl std::fmt::Display for SceneBuildError {
             Self::IncompatibleMetadata(field) => {
                 write!(f, "ephemeris samples disagree on {field}")
             }
+            Self::UnsupportedVectorCorrection => write!(
+                f,
+                "barycentric centre-chain composition requires geometric vectors"
+            ),
             Self::NonFiniteResolvedState(id) => {
                 write!(f, "resolved state for {id} contains a non-finite component")
             }
@@ -149,6 +154,9 @@ impl EphemerisScene {
             }
             if state.center_id == state.target_id {
                 return Err(SceneBuildError::SelfCenteredTarget(state.target_id.clone()));
+            }
+            if state.vector_correction != VectorCorrection::Geometric {
+                return Err(SceneBuildError::UnsupportedVectorCorrection);
             }
 
             if (state.epoch_jd - anchor.epoch_jd).abs()
@@ -352,6 +360,7 @@ mod tests {
         expected_center_name: &str,
         epoch_jd: f64,
         reference_plane: ReferencePlane,
+        vector_correction: VectorCorrection,
         position_km: [f64; 3],
         velocity_km_s: [f64; 3],
     ) -> HashBoundStateVector {
@@ -365,7 +374,7 @@ mod tests {
             TimeScale::Tdb,
             ReferenceSystem::Icrf,
             reference_plane,
-            VectorCorrection::Geometric,
+            vector_correction,
         )
         .unwrap();
 
@@ -374,6 +383,11 @@ mod tests {
             ReferencePlane::Frame => "FRAME",
             ReferencePlane::BodyEquator => "BODY EQUATOR",
         };
+        let correction_label = match vector_correction {
+            VectorCorrection::Geometric => "NONE",
+            VectorCorrection::LightTime => "LT",
+            VectorCorrection::LightTimeAndStellarAberration => "LT+S",
+        };
         let result = format!(
             "*******************************************************************************\n\
 Target body name: {} ({})\n\
@@ -381,17 +395,18 @@ Center body name: {} ({})\n\
 Output units    : KM-S\n\
 Reference frame : ICRF\n\
 Reference plane : {}\n\
-Aberration corrections : NONE\n\
+Aberration corrections : {}\n\
 JDTDB, Calendar Date (TDB), X, Y, Z, VX, VY, VZ\n\
-$$SOE\n\
+$SOE\n\
 {epoch_jd:.9}, A.D. 2026-Oct-10 00:00:00.0000 TDB, {:.9E}, {:.9E}, {:.9E}, {:.9E}, {:.9E}, {:.9E}\n\
-$$EOE\n\
+$EOE\n\
 *******************************************************************************",
             target.name,
             request.provider_target,
             expected_center_name,
             provider_center,
             plane_label,
+            correction_label,
             position_km[0],
             position_km[1],
             position_km[2],
@@ -424,6 +439,7 @@ $$EOE\n\
             "Solar System Barycenter",
             EPOCH_JD,
             ReferencePlane::Frame,
+            VectorCorrection::Geometric,
             [100.0, 0.0, 0.0],
             [1.0, 0.0, 0.0],
         )
@@ -437,6 +453,7 @@ $$EOE\n\
             "Sun",
             EPOCH_JD,
             ReferencePlane::Frame,
+            VectorCorrection::Geometric,
             [1_000.0, 0.0, 0.0],
             [2.0, 0.0, 0.0],
         )
@@ -450,6 +467,7 @@ $$EOE\n\
             "Earth",
             EPOCH_JD,
             ReferencePlane::Frame,
+            VectorCorrection::Geometric,
             [10.0, 0.0, 0.0],
             [3.0, 0.0, 0.0],
         )
@@ -481,6 +499,25 @@ $$EOE\n\
     }
 
     #[test]
+    fn non_geometric_vectors_are_not_summed_into_barycentric_scene() {
+        let light_time_corrected_sun = parsed_sample(
+            "sun",
+            "ssb",
+            "@0",
+            "Solar System Barycenter",
+            EPOCH_JD,
+            ReferencePlane::Frame,
+            VectorCorrection::LightTime,
+            [100.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+        );
+        assert_eq!(
+            EphemerisScene::build(&[light_time_corrected_sun]),
+            Err(SceneBuildError::UnsupportedVectorCorrection)
+        );
+    }
+
+    #[test]
     fn barycentric_sample_needs_no_synthetic_zero_origin() {
         let mars = parsed_sample(
             "mars",
@@ -489,6 +526,7 @@ $$EOE\n\
             "Solar System Barycenter",
             EPOCH_JD,
             ReferencePlane::Frame,
+            VectorCorrection::Geometric,
             [2.0e8, -7.0e7, 3.0e7],
             [12.0, 20.0, 4.0],
         );
@@ -525,6 +563,7 @@ $$EOE\n\
             "Sun",
             EPOCH_JD + 1.0,
             ReferencePlane::Frame,
+            VectorCorrection::Geometric,
             [1_000.0, 0.0, 0.0],
             [2.0, 0.0, 0.0],
         );
@@ -540,6 +579,7 @@ $$EOE\n\
             "Sun",
             EPOCH_JD,
             ReferencePlane::Ecliptic,
+            VectorCorrection::Geometric,
             [1_000.0, 0.0, 0.0],
             [2.0, 0.0, 0.0],
         );
@@ -558,6 +598,7 @@ $$EOE\n\
             "Mars",
             EPOCH_JD,
             ReferencePlane::Frame,
+            VectorCorrection::Geometric,
             [0.0, 0.0, 0.0],
             [0.0, 0.0, 0.0],
         );
@@ -573,6 +614,7 @@ $$EOE\n\
             "Mars",
             EPOCH_JD,
             ReferencePlane::Frame,
+            VectorCorrection::Geometric,
             [10.0, 0.0, 0.0],
             [0.0, 0.0, 0.0],
         );
@@ -583,6 +625,7 @@ $$EOE\n\
             "Earth",
             EPOCH_JD,
             ReferencePlane::Frame,
+            VectorCorrection::Geometric,
             [-10.0, 0.0, 0.0],
             [0.0, 0.0, 0.0],
         );
