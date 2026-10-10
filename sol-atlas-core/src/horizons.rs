@@ -229,7 +229,7 @@ impl HorizonsVectorRequest {
 
         Ok(format!(
             concat!(
-                "!$SOF\n",
+                concat!("!", "$", "$", "SOF\n"),
                 "COMMAND={}\n",
                 "OBJ_DATA='YES'\n",
                 "MAKE_EPHEM='YES'\n",
@@ -245,7 +245,7 @@ impl HorizonsVectorRequest {
                 "VEC_LABELS='YES'\n",
                 "VEC_TABLE='2'\n",
                 "CSV_FORMAT='YES'\n",
-                "!$EOF\n"
+                concat!("!", "$", "$", "EOF\n")
             ),
             quoted(&self.provider_target),
             quoted(&self.provider_center),
@@ -412,11 +412,11 @@ struct HorizonsSignature {
 /// Parse a Horizons JSON response containing vector table 2 (x, y, z, vx, vy,
 /// vz), CSV_FORMAT=YES, and OUT_UNITS=KM-S.
 ///
-/// The caller should build the request URL with canonical_url() and generate
-/// provenance with EphemerisProvenance::from_bytes() from that exact URL and the
-/// unmodified response body. This function verifies both digests, checks the
-/// visible response header, and validates every returned sample. It does not
-/// independently prove network transport or provider authenticity.
+/// Build a plan with request_plan(), then hash its canonical_request_identity()
+/// together with the unmodified response body using EphemerisProvenance::from_bytes().
+/// This parser verifies both digests, checks the visible response header, and
+/// validates every returned sample. It does not independently prove network
+/// transport or provider authenticity.
 pub fn parse_horizons_vectors_json(
     payload: &str,
     request: &HorizonsVectorRequest,
@@ -900,7 +900,7 @@ mod tests {
 
         assert_eq!(endpoint, "https://ssd.jpl.nasa.gov/api/horizons_file.api");
         assert_eq!(format, "json");
-        assert!(input_file.starts_with("!$SOF\n"));
+        assert!(input_file.starts_with(concat!("!", "$", "$", "SOF\n")));
         assert!(input_file.contains("COMMAND='499'\n"));
         assert!(input_file.contains("TABLE_TYPE='VECTORS'\n"));
         assert!(input_file.contains("CENTER='@0'\n"));
@@ -908,7 +908,7 @@ mod tests {
         assert!(input_file.contains("REF_SYSTEM='ICRF'\n"));
         assert!(input_file.contains("REF_PLANE='FRAME'\n"));
         assert!(input_file.contains("VEC_TABLE='2'\n"));
-        assert!(input_file.ends_with("!$EOF\n"));
+        assert!(input_file.ends_with(concat!("!", "$", "$", "EOF\n")));
         assert!(req.canonical_request_identity().unwrap().starts_with(
             "POST\nhttps://ssd.jpl.nasa.gov/api/horizons_file.api\nformat=json\ninput-bytes:\n"
         ));
