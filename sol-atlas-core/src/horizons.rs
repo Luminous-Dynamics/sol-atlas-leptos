@@ -566,8 +566,8 @@ pub fn parse_horizons_vectors_json(
             reason: "response sample count does not match requested TLIST epochs",
         });
     }
-    let canonical_url = request.canonical_url()?;
-    if !provenance.verifies_bytes(&canonical_url, payload.as_bytes()) {
+    let canonical_request_identity = request.canonical_request_identity()?;
+    if !provenance.verifies_bytes(&canonical_request_identity, payload.as_bytes()) {
         return Err(HorizonsParseError::ProvenanceMismatch);
     }
     Ok(vectors)
@@ -1059,7 +1059,7 @@ mod tests {
         );
 
         let mut wrong_query = provenance();
-        wrong_query.canonical_query_sha256 = "0".repeat(64);
+        wrong_query.canonical_request_sha256 = "0".repeat(64);
         assert_eq!(
             parse_horizons_vectors_json(FIXTURE, &request(), &wrong_query),
             Err(HorizonsParseError::ProvenanceMismatch)
