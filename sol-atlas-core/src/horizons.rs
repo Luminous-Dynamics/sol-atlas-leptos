@@ -415,8 +415,8 @@ mod tests {
     #[test]
     fn rejects_extra_numeric_columns_and_non_finite_components() {
         let extra = FIXTURE.replace(
-            "9.876543210987654E+00\n$$EOE",
-            "9.876543210987654E+00, 123.0\n$$EOE",
+            "9.876543210987654E+00",
+            "9.876543210987654E+00, 123.0",
         );
         assert!(matches!(
             parse_horizons_vectors_json(&extra, &request(), &provenance()),
