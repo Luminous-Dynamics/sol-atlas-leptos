@@ -14,9 +14,8 @@ use crate::provenance::{IntegrityReference, ProvenanceError, ProvenanceRelation}
 use crate::provenance_assertions::{
     AssertionGraphError, AssertionSource, ExternalSourceResolution, ProvenanceAssertionGraph,
 };
-use std::collections::{BTreeMap, BTreeSet};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 /// Current wire-schema version. Unknown versions fail closed during decode.
