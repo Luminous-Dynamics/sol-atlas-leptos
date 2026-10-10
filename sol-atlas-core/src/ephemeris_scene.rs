@@ -55,7 +55,9 @@ impl std::fmt::Display for SceneBuildError {
             Self::AggregateCenter(id) => {
                 write!(f, "aggregate catalogue layer cannot be a point centre: {id}")
             }
-            Self::DuplicateTarget(id) => write!(f, "multiple samples for target at one epoch: {id}"),
+            Self::DuplicateTarget(id) => {
+                write!(f, "multiple samples for target at one epoch: {id}")
+            }
             Self::SelfCenteredTarget(id) => write!(f, "target is its own vector centre: {id}"),
             Self::MissingCenterSample(id) => {
                 write!(f, "no state sample supplied to resolve centre: {id}")
