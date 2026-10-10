@@ -487,10 +487,10 @@ pub fn parse_horizons_vectors_json(
                 reason,
             }
         })?;
-        if fields.len() < 7 {
+        if fields.len() != 8 {
             return Err(HorizonsParseError::InvalidVector {
                 row: row_index + 1,
-                reason: "expected Julian date plus six state components",
+                reason: "expected exactly eight CSV fields (JDTDB, calendar date, and six state components)",
             });
         }
 
@@ -1180,6 +1180,21 @@ mod tests {
             parse_horizons_vectors_json(missing, &request(), &provenance()),
             Err(HorizonsParseError::MissingStartMarker)
         );
+    }
+
+    #[test]
+    fn rejects_missing_calendar_date_column_in_vector_row() {
+        let payload = FIXTURE.replace(
+            "2461323.500000000, A.D. 2026-Oct-10 00:00:00.0000 TDB, ",
+            "2461323.500000000, ",
+        );
+        assert!(matches!(
+            parse_horizons_vectors_json(&payload, &request(), &provenance()),
+            Err(HorizonsParseError::InvalidVector {
+                reason: "expected exactly eight CSV fields (JDTDB, calendar date, and six state components)",
+                ..
+            })
+        ));
     }
 
     #[test]
