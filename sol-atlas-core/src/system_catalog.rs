@@ -52,7 +52,17 @@ pub struct CatalogObject {
 }
 
 macro_rules! body {
-    ($id:literal, $name:literal, $kind:ident, $parent:expr, $radius:expr, $axis_au:expr, $parent_axis:expr, $target:expr, $texture:expr) => {
+    (
+        $id:literal,
+        $name:literal,
+        $kind:ident,
+        $parent:expr,
+        $radius:expr,
+        $axis_au:expr,
+        $parent_axis:expr,
+        $target:expr,
+        $texture:expr $(,)?
+    ) => {
         CatalogObject {
             id: $id,
             name: $name,
@@ -75,61 +85,491 @@ macro_rules! body {
 /// extensible query domains and can be backed by JPL SBDB, Horizons, or another
 /// explicitly attributed source by a future data adapter.
 pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
-    body!("sun", "Sun", Star, None, Some(695_700.0), None, None, Some("Sun"), Some("/assets/globe-textures/sun.jpg")),
+    body!(
+        "sun",
+        "Sun",
+        Star,
+        None,
+        Some(695_700.0),
+        None,
+        None,
+        Some("Sun"),
+        Some("/assets/globe-textures/sun.jpg")
+    ),
 
-    body!("mercury", "Mercury", Planet, Some("sun"), Some(2_439.7), Some(0.3871), None, Some("Mercury"), None),
-    body!("venus", "Venus", Planet, Some("sun"), Some(6_051.8), Some(0.7233), None, Some("Venus"), Some("/assets/globe-textures/venus.jpg")),
-    body!("earth", "Earth", Planet, Some("sun"), Some(6_371.0), Some(1.0000), None, Some("Earth"), Some("/assets/globe-textures/earth-blue-marble.jpg")),
-    body!("mars", "Mars", Planet, Some("sun"), Some(3_389.5), Some(1.5237), None, Some("Mars"), Some("/assets/globe-textures/mars.jpg")),
-    body!("jupiter", "Jupiter", Planet, Some("sun"), Some(69_911.0), Some(5.2028), None, Some("Jupiter"), Some("/assets/globe-textures/jupiter.jpg")),
-    body!("saturn", "Saturn", Planet, Some("sun"), Some(58_232.0), Some(9.5388), None, Some("Saturn"), Some("/assets/globe-textures/saturn.jpg")),
-    body!("uranus", "Uranus", Planet, Some("sun"), Some(25_362.0), Some(19.1914), None, Some("Uranus"), None),
-    body!("neptune", "Neptune", Planet, Some("sun"), Some(24_622.0), Some(30.0611), None, Some("Neptune"), None),
+    body!(
+        "mercury",
+        "Mercury",
+        Planet,
+        Some("sun"),
+        Some(2_439.7),
+        Some(0.3871),
+        None,
+        Some("Mercury"),
+        None
+    ),
+    body!(
+        "venus",
+        "Venus",
+        Planet,
+        Some("sun"),
+        Some(6_051.8),
+        Some(0.7233),
+        None,
+        Some("Venus"),
+        Some("/assets/globe-textures/venus.jpg")
+    ),
+    body!(
+        "earth",
+        "Earth",
+        Planet,
+        Some("sun"),
+        Some(6_371.0),
+        Some(1.0000),
+        None,
+        Some("Earth"),
+        Some("/assets/globe-textures/earth-blue-marble.jpg")
+    ),
+    body!(
+        "mars",
+        "Mars",
+        Planet,
+        Some("sun"),
+        Some(3_389.5),
+        Some(1.5237),
+        None,
+        Some("Mars"),
+        Some("/assets/globe-textures/mars.jpg")
+    ),
+    body!(
+        "jupiter",
+        "Jupiter",
+        Planet,
+        Some("sun"),
+        Some(69_911.0),
+        Some(5.2028),
+        None,
+        Some("Jupiter"),
+        Some("/assets/globe-textures/jupiter.jpg")
+    ),
+    body!(
+        "saturn",
+        "Saturn",
+        Planet,
+        Some("sun"),
+        Some(58_232.0),
+        Some(9.5388),
+        None,
+        Some("Saturn"),
+        Some("/assets/globe-textures/saturn.jpg")
+    ),
+    body!(
+        "uranus",
+        "Uranus",
+        Planet,
+        Some("sun"),
+        Some(25_362.0),
+        Some(19.1914),
+        None,
+        Some("Uranus"),
+        None
+    ),
+    body!(
+        "neptune",
+        "Neptune",
+        Planet,
+        Some("sun"),
+        Some(24_622.0),
+        Some(30.0611),
+        None,
+        Some("Neptune"),
+        None
+    ),
 
-    body!("ceres", "Ceres", DwarfPlanet, Some("sun"), Some(473.0), Some(2.7675), None, Some("Ceres"), None),
-    body!("pluto", "Pluto", DwarfPlanet, Some("sun"), Some(1_188.3), Some(39.482), None, Some("Pluto"), None),
-    body!("haumea", "Haumea", DwarfPlanet, Some("sun"), Some(816.0), Some(43.13), None, Some("Haumea"), None),
-    body!("makemake", "Makemake", DwarfPlanet, Some("sun"), Some(715.0), Some(45.79), None, Some("Makemake"), None),
-    body!("eris", "Eris", DwarfPlanet, Some("sun"), Some(1_163.0), Some(67.78), None, Some("Eris"), None),
+    body!(
+        "ceres",
+        "Ceres",
+        DwarfPlanet,
+        Some("sun"),
+        Some(473.0),
+        Some(2.7675),
+        None,
+        Some("Ceres"),
+        None
+    ),
+    body!(
+        "pluto",
+        "Pluto",
+        DwarfPlanet,
+        Some("sun"),
+        Some(1_188.3),
+        Some(39.482),
+        None,
+        Some("Pluto"),
+        None
+    ),
+    body!(
+        "haumea",
+        "Haumea",
+        DwarfPlanet,
+        Some("sun"),
+        Some(816.0),
+        Some(43.13),
+        None,
+        Some("Haumea"),
+        None
+    ),
+    body!(
+        "makemake",
+        "Makemake",
+        DwarfPlanet,
+        Some("sun"),
+        Some(715.0),
+        Some(45.79),
+        None,
+        Some("Makemake"),
+        None
+    ),
+    body!(
+        "eris",
+        "Eris",
+        DwarfPlanet,
+        Some("sun"),
+        Some(1_163.0),
+        Some(67.78),
+        None,
+        Some("Eris"),
+        None
+    ),
 
     // Representative natural satellites. Satellite orbit distances are
     // parent-centered; they are never interpreted as heliocentric AU values.
-    body!("moon", "Moon", NaturalSatellite, Some("earth"), Some(1_737.4), None, Some(384_400.0), Some("Moon"), Some("/assets/globe-textures/moon.jpg")),
-    body!("phobos", "Phobos", NaturalSatellite, Some("mars"), Some(11.3), None, Some(9_376.0), Some("Phobos"), None),
-    body!("deimos", "Deimos", NaturalSatellite, Some("mars"), Some(6.2), None, Some(23_463.0), Some("Deimos"), None),
+    body!(
+        "moon",
+        "Moon",
+        NaturalSatellite,
+        Some("earth"),
+        Some(1_737.4),
+        None,
+        Some(384_400.0),
+        Some("Moon"),
+        Some("/assets/globe-textures/moon.jpg")
+    ),
+    body!(
+        "phobos",
+        "Phobos",
+        NaturalSatellite,
+        Some("mars"),
+        Some(11.3),
+        None,
+        Some(9_376.0),
+        Some("Phobos"),
+        None
+    ),
+    body!(
+        "deimos",
+        "Deimos",
+        NaturalSatellite,
+        Some("mars"),
+        Some(6.2),
+        None,
+        Some(23_463.0),
+        Some("Deimos"),
+        None
+    ),
 
-    body!("io", "Io", NaturalSatellite, Some("jupiter"), Some(1_821.6), None, Some(421_700.0), Some("Io"), None),
-    body!("europa", "Europa", NaturalSatellite, Some("jupiter"), Some(1_560.8), None, Some(671_100.0), Some("Europa"), None),
-    body!("ganymede", "Ganymede", NaturalSatellite, Some("jupiter"), Some(2_634.1), None, Some(1_070_400.0), Some("Ganymede"), None),
-    body!("callisto", "Callisto", NaturalSatellite, Some("jupiter"), Some(2_410.3), None, Some(1_882_700.0), Some("Callisto"), None),
+    body!(
+        "io",
+        "Io",
+        NaturalSatellite,
+        Some("jupiter"),
+        Some(1_821.6),
+        None,
+        Some(421_700.0),
+        Some("Io"),
+        None
+    ),
+    body!(
+        "europa",
+        "Europa",
+        NaturalSatellite,
+        Some("jupiter"),
+        Some(1_560.8),
+        None,
+        Some(671_100.0),
+        Some("Europa"),
+        None
+    ),
+    body!(
+        "ganymede",
+        "Ganymede",
+        NaturalSatellite,
+        Some("jupiter"),
+        Some(2_634.1),
+        None,
+        Some(1_070_400.0),
+        Some("Ganymede"),
+        None
+    ),
+    body!(
+        "callisto",
+        "Callisto",
+        NaturalSatellite,
+        Some("jupiter"),
+        Some(2_410.3),
+        None,
+        Some(1_882_700.0),
+        Some("Callisto"),
+        None
+    ),
 
-    body!("mimas", "Mimas", NaturalSatellite, Some("saturn"), Some(198.2), None, Some(185_539.0), Some("Mimas"), None),
-    body!("enceladus", "Enceladus", NaturalSatellite, Some("saturn"), Some(252.1), None, Some(237_948.0), Some("Enceladus"), None),
-    body!("tethys", "Tethys", NaturalSatellite, Some("saturn"), Some(531.1), None, Some(294_619.0), Some("Tethys"), None),
-    body!("dione", "Dione", NaturalSatellite, Some("saturn"), Some(561.4), None, Some(377_396.0), Some("Dione"), None),
-    body!("rhea", "Rhea", NaturalSatellite, Some("saturn"), Some(763.8), None, Some(527_108.0), Some("Rhea"), None),
-    body!("titan", "Titan", NaturalSatellite, Some("saturn"), Some(2_574.7), None, Some(1_221_870.0), Some("Titan"), None),
-    body!("iapetus", "Iapetus", NaturalSatellite, Some("saturn"), Some(734.5), None, Some(3_560_820.0), Some("Iapetus"), None),
+    body!(
+        "mimas",
+        "Mimas",
+        NaturalSatellite,
+        Some("saturn"),
+        Some(198.2),
+        None,
+        Some(185_539.0),
+        Some("Mimas"),
+        None
+    ),
+    body!(
+        "enceladus",
+        "Enceladus",
+        NaturalSatellite,
+        Some("saturn"),
+        Some(252.1),
+        None,
+        Some(237_948.0),
+        Some("Enceladus"),
+        None
+    ),
+    body!(
+        "tethys",
+        "Tethys",
+        NaturalSatellite,
+        Some("saturn"),
+        Some(531.1),
+        None,
+        Some(294_619.0),
+        Some("Tethys"),
+        None
+    ),
+    body!(
+        "dione",
+        "Dione",
+        NaturalSatellite,
+        Some("saturn"),
+        Some(561.4),
+        None,
+        Some(377_396.0),
+        Some("Dione"),
+        None
+    ),
+    body!(
+        "rhea",
+        "Rhea",
+        NaturalSatellite,
+        Some("saturn"),
+        Some(763.8),
+        None,
+        Some(527_108.0),
+        Some("Rhea"),
+        None
+    ),
+    body!(
+        "titan",
+        "Titan",
+        NaturalSatellite,
+        Some("saturn"),
+        Some(2_574.7),
+        None,
+        Some(1_221_870.0),
+        Some("Titan"),
+        None
+    ),
+    body!(
+        "iapetus",
+        "Iapetus",
+        NaturalSatellite,
+        Some("saturn"),
+        Some(734.5),
+        None,
+        Some(3_560_820.0),
+        Some("Iapetus"),
+        None
+    ),
 
-    body!("miranda", "Miranda", NaturalSatellite, Some("uranus"), Some(235.8), None, Some(129_900.0), Some("Miranda"), None),
-    body!("ariel", "Ariel", NaturalSatellite, Some("uranus"), Some(578.9), None, Some(190_900.0), Some("Ariel"), None),
-    body!("umbriel", "Umbriel", NaturalSatellite, Some("uranus"), Some(584.7), None, Some(266_000.0), Some("Umbriel"), None),
-    body!("titania", "Titania", NaturalSatellite, Some("uranus"), Some(788.9), None, Some(435_900.0), Some("Titania"), None),
-    body!("oberon", "Oberon", NaturalSatellite, Some("uranus"), Some(761.4), None, Some(583_500.0), Some("Oberon"), None),
+    body!(
+        "miranda",
+        "Miranda",
+        NaturalSatellite,
+        Some("uranus"),
+        Some(235.8),
+        None,
+        Some(129_900.0),
+        Some("Miranda"),
+        None
+    ),
+    body!(
+        "ariel",
+        "Ariel",
+        NaturalSatellite,
+        Some("uranus"),
+        Some(578.9),
+        None,
+        Some(190_900.0),
+        Some("Ariel"),
+        None
+    ),
+    body!(
+        "umbriel",
+        "Umbriel",
+        NaturalSatellite,
+        Some("uranus"),
+        Some(584.7),
+        None,
+        Some(266_000.0),
+        Some("Umbriel"),
+        None
+    ),
+    body!(
+        "titania",
+        "Titania",
+        NaturalSatellite,
+        Some("uranus"),
+        Some(788.9),
+        None,
+        Some(435_900.0),
+        Some("Titania"),
+        None
+    ),
+    body!(
+        "oberon",
+        "Oberon",
+        NaturalSatellite,
+        Some("uranus"),
+        Some(761.4),
+        None,
+        Some(583_500.0),
+        Some("Oberon"),
+        None
+    ),
 
-    body!("triton", "Triton", NaturalSatellite, Some("neptune"), Some(1_353.4), None, Some(354_759.0), Some("Triton"), None),
-    body!("charon", "Charon", NaturalSatellite, Some("pluto"), Some(606.0), None, Some(19_596.0), Some("Charon"), None),
+    body!(
+        "triton",
+        "Triton",
+        NaturalSatellite,
+        Some("neptune"),
+        Some(1_353.4),
+        None,
+        Some(354_759.0),
+        Some("Triton"),
+        None
+    ),
+    body!(
+        "charon",
+        "Charon",
+        NaturalSatellite,
+        Some("pluto"),
+        Some(606.0),
+        None,
+        Some(19_596.0),
+        Some("Charon"),
+        None
+    ),
 
     // Aggregate layers: never substitute a single representative object for
     // these collections. Their members and positions require separate data.
-    body!("asteroid_belt", "Main asteroid belt", SmallBodyPopulation, Some("sun"), None, None, None, None, None),
-    body!("near_earth_objects", "Near-Earth objects", SmallBodyPopulation, Some("sun"), None, None, None, None, None),
-    body!("comets", "Comets", SmallBodyPopulation, Some("sun"), None, None, None, None, None),
-    body!("centaurs", "Centaurs", SmallBodyPopulation, Some("sun"), None, None, None, None, None),
-    body!("kuiper_belt", "Kuiper belt", SmallBodyPopulation, Some("sun"), None, None, None, None, None),
-    body!("scattered_disc", "Scattered disc", SmallBodyPopulation, Some("sun"), None, None, None, None, None),
-    body!("oort_cloud", "Oort cloud", SmallBodyPopulation, Some("sun"), None, None, None, None, None),
-    body!("spacecraft", "Spacecraft and missions", SpacecraftPopulation, None, None, None, None, None, None),
+    body!(
+        "asteroid_belt",
+        "Main asteroid belt",
+        SmallBodyPopulation,
+        Some("sun"),
+        None,
+        None,
+        None,
+        None,
+        None
+    ),
+    body!(
+        "near_earth_objects",
+        "Near-Earth objects",
+        SmallBodyPopulation,
+        Some("sun"),
+        None,
+        None,
+        None,
+        None,
+        None
+    ),
+    body!(
+        "comets",
+        "Comets",
+        SmallBodyPopulation,
+        Some("sun"),
+        None,
+        None,
+        None,
+        None,
+        None
+    ),
+    body!(
+        "centaurs",
+        "Centaurs",
+        SmallBodyPopulation,
+        Some("sun"),
+        None,
+        None,
+        None,
+        None,
+        None
+    ),
+    body!(
+        "kuiper_belt",
+        "Kuiper belt",
+        SmallBodyPopulation,
+        Some("sun"),
+        None,
+        None,
+        None,
+        None,
+        None
+    ),
+    body!(
+        "scattered_disc",
+        "Scattered disc",
+        SmallBodyPopulation,
+        Some("sun"),
+        None,
+        None,
+        None,
+        None,
+        None
+    ),
+    body!(
+        "oort_cloud",
+        "Oort cloud",
+        SmallBodyPopulation,
+        Some("sun"),
+        None,
+        None,
+        None,
+        None,
+        None
+    ),
+    body!(
+        "spacecraft",
+        "Spacecraft and missions",
+        SpacecraftPopulation,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None
+    ),
 ];
 
 /// Find a catalogue entry by its stable ID.
@@ -350,7 +790,11 @@ mod tests {
     fn each_parent_reference_resolves() {
         for object in SOLAR_SYSTEM_CATALOG {
             if let Some(parent_id) = object.parent_id {
-                assert!(catalog_object(parent_id).is_some(), "{} has unknown parent {parent_id}", object.id);
+                assert!(
+                    catalog_object(parent_id).is_some(),
+                    "{} has unknown parent {parent_id}",
+                    object.id
+                );
             }
         }
     }
@@ -372,12 +816,26 @@ mod tests {
                 }
                 ObjectKind::Planet | ObjectKind::DwarfPlanet => {
                     assert_eq!(object.parent_id, Some("sun"), "{}", object.id);
-                    assert!(matches!(object.heliocentric_semi_major_axis_au, Some(axis) if axis.is_finite() && axis > 0.0), "{}", object.id);
+                    assert!(
+                        matches!(
+                            object.heliocentric_semi_major_axis_au,
+                            Some(axis) if axis.is_finite() && axis > 0.0
+                        ),
+                        "{}",
+                        object.id
+                    );
                     assert!(object.parent_orbit_semi_major_axis_km.is_none(), "{}", object.id);
                 }
                 ObjectKind::NaturalSatellite => {
                     assert!(object.parent_id.is_some(), "{}", object.id);
-                    assert!(matches!(object.parent_orbit_semi_major_axis_km, Some(axis) if axis.is_finite() && axis > 0.0), "{}", object.id);
+                    assert!(
+                        matches!(
+                            object.parent_orbit_semi_major_axis_km,
+                            Some(axis) if axis.is_finite() && axis > 0.0
+                        ),
+                        "{}",
+                        object.id
+                    );
                     assert!(object.heliocentric_semi_major_axis_au.is_none(), "{}", object.id);
                 }
                 ObjectKind::SmallBodyPopulation | ObjectKind::SpacecraftPopulation => {
@@ -420,12 +878,12 @@ mod tests {
             vector_correction: VectorCorrection::Geometric,
             position_km: [1.0, 2.0, 3.0],
             velocity_km_s: [4.0, 5.0, 6.0],
-            provenance: EphemerisProvenance {
-                provider: "JPL Horizons".into(),
-                canonical_query_sha256: "a".repeat(64),
-                raw_response_sha256: "b".repeat(64),
-                retrieved_at_utc: "2026-10-10T00:00:00Z".into(),
-            },
+            provenance: EphemerisProvenance::from_bytes(
+                "JPL Horizons test sample",
+                "canonical test query",
+                b"raw test response",
+                "2026-10-10T00:00:00Z",
+            ),
         }
     }
 
@@ -439,7 +897,10 @@ mod tests {
 
         let mut invalid = valid_sample();
         invalid.provenance.raw_response_sha256 = "not-a-hash".into();
-        assert_eq!(invalid.validate(), Err("raw_response_sha256 must be 64 hexadecimal characters"));
+        assert_eq!(
+            invalid.validate(),
+            Err("raw_response_sha256 must be 64 hexadecimal characters")
+        );
 
         let mut invalid = valid_sample();
         invalid.center_id.clear();
@@ -447,6 +908,9 @@ mod tests {
 
         let mut invalid = valid_sample();
         invalid.provenance.retrieved_at_utc = "yesterday".into();
-        assert_eq!(invalid.validate(), Err("retrieved_at_utc must be RFC 3339 UTC text ending in Z"));
+        assert_eq!(
+            invalid.validate(),
+            Err("retrieved_at_utc must be RFC 3339 UTC text ending in Z")
+        );
     }
 }
