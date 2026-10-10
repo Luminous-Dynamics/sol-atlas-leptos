@@ -56,6 +56,7 @@ url=$(
   python3 - "$target" "$center" "$epoch" "$ref_system" "$ref_plane" "$vec_corr" <<'PY'
 import math
 import sys
+from decimal import Decimal
 from urllib.parse import quote
 
 target, center, epoch, ref_system, ref_plane, vec_corr = sys.argv[1:]
@@ -81,7 +82,9 @@ except ValueError:
     raise SystemExit("HORIZONS_EPOCH_JD must be a Julian-date number")
 if not math.isfinite(value) or value <= 0:
     raise SystemExit("HORIZONS_EPOCH_JD must be finite and positive")
-epoch_text = str(int(value)) if value.is_integer() else repr(value)
+# Match Rust f64::to_string()'s non-exponent notation for ordinary JD
+# magnitudes while preserving the shortest decimal spelling of the float.
+epoch_text = format(Decimal(str(value)).normalize(), "f")
 
 def q(value: str) -> str:
     return "'" + value + "'"
