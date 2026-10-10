@@ -477,6 +477,10 @@ mod tests {
         let mut reversed = manifest();
         reversed.datasets.reverse();
         assert_eq!(forward.digest_sha256().unwrap(), reversed.digest_sha256().unwrap());
+        assert_eq!(
+            forward.case_digest_sha256().unwrap(),
+            reversed.case_digest_sha256().unwrap()
+        );
 
         // Reordering is canonicalized, but duplicate identities are not allowed.
         forward.datasets.push(forward.datasets[0].clone());
