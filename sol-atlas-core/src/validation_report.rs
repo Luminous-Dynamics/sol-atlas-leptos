@@ -581,7 +581,8 @@ impl ValidationReport {
                     Some(anchor.clone()),
                     Some(format!("artifacts[{}].integrity", artifact.id.as_str())),
                     Some(format!(
-                        "integrity reference {}:{} is metadata; this report did not verify the digest",
+                        "integrity reference {}:{} is metadata; this report \
+                         did not verify the digest",
                         integrity.algorithm(),
                         integrity.value()
                     )),
@@ -668,8 +669,8 @@ impl ValidationReport {
                             assertion.id.as_str()
                         )),
                         Some(
-                            "this derived-from assertion participates in a cycle in the unadjudicated assertion ledger; \
-                             it was preserved"
+                            "this derived-from assertion participates in a cycle in the unadjudicated \
+                             assertion ledger; it was preserved"
                                 .into(),
                         ),
                     )?);
