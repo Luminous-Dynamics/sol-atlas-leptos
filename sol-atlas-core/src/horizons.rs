@@ -16,6 +16,10 @@ use crate::system_catalog::{
     VectorCorrection,
 };
 
+/// Conservative URL ceiling; larger batches should use the file-based Horizons
+/// API rather than risk intermediaries rejecting an oversized GET request.
+const MAX_CANONICAL_GET_URL_BYTES: usize = 7_500;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HorizonsParseError {
     InvalidJson(String),
@@ -158,7 +162,13 @@ impl HorizonsVectorRequest {
             .map(|(key, value)| format!("{key}={}", encode_query_component(value)))
             .collect::<Vec<_>>()
             .join("&");
-        Ok(format!("https://ssd.jpl.nasa.gov/api/horizons.api?{query}"))
+        let url = format!("https://ssd.jpl.nasa.gov/api/horizons.api?{query}");
+        if url.len() > MAX_CANONICAL_GET_URL_BYTES {
+            return Err(HorizonsParseError::InvalidRequest(
+                "canonical GET URL exceeds 7500 bytes; use the file-based Horizons API",
+            ));
+        }
+        Ok(url)
     }
 }
 
@@ -584,6 +594,20 @@ mod tests {
         request.epochs_jd = vec![2_461_323.5, 2_461_324.5];
         let url = request.canonical_url().unwrap();
         assert!(url.contains("TLIST=%272461323.5%27%20%272461324.5%27"));
+    }
+
+    #[test]
+    fn canonical_url_fails_closed_when_get_url_is_too_large() {
+        let mut request = request();
+        request.epochs_jd = (0..1_000)
+            .map(|index| 2_461_323.5 + f64::from(index))
+            .collect();
+        assert!(matches!(
+            request.canonical_url(),
+            Err(HorizonsParseError::InvalidRequest(
+                "canonical GET URL exceeds 7500 bytes; use the file-based Horizons API"
+            ))
+        ));
     }
 
     #[test]
