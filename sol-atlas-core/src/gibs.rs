@@ -203,27 +203,78 @@ fn is_supported_time_dimension(value: &str) -> bool {
     if value == "default" {
         return true;
     }
+
     let bytes = value.as_bytes();
-    if bytes.len() == 10
-        && bytes[4] == b'-'
-        && bytes[7] == b'-'
-        && bytes
-            .iter()
-            .enumerate()
-            .all(|(index, byte)| matches!(index, 4 | 7) || byte.is_ascii_digit())
-    {
-        return true;
+    if bytes.len() == 10 {
+        return is_valid_utc_date(bytes);
     }
-    bytes.len() == 20
-        && bytes[4] == b'-'
-        && bytes[7] == b'-'
-        && bytes[10] == b'T'
-        && bytes[13] == b':'
-        && bytes[16] == b':'
-        && bytes[19] == b'Z'
-        && bytes.iter().enumerate().all(|(index, byte)| {
-            matches!(index, 4 | 7 | 10 | 13 | 16 | 19) || byte.is_ascii_digit()
-        })
+
+    if bytes.len() != 20
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+    {
+        return false;
+    }
+
+    if !is_valid_utc_date(&bytes[..10]) {
+        return false;
+    }
+
+    let Some(hour) = parse_digits(&bytes[11..13]) else {
+        return false;
+    };
+    let Some(minute) = parse_digits(&bytes[14..16]) else {
+        return false;
+    };
+    let Some(second) = parse_digits(&bytes[17..19]) else {
+        return false;
+    };
+
+    hour <= 23 && minute <= 59 && second <= 60
+}
+
+fn is_valid_utc_date(bytes: &[u8]) -> bool {
+    if bytes.len() != 10 || bytes[4] != b'-' || bytes[7] != b'-' {
+        return false;
+    }
+
+    let Some(year) = parse_digits(&bytes[0..4]) else {
+        return false;
+    };
+    let Some(month) = parse_digits(&bytes[5..7]) else {
+        return false;
+    };
+    let Some(day) = parse_digits(&bytes[8..10]) else {
+        return false;
+    };
+
+    if year == 0 || !(1..=12).contains(&month) {
+        return false;
+    }
+
+    let leap_year = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let days_in_month = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap_year => 29,
+        2 => 28,
+        _ => return false,
+    };
+
+    (1..=days_in_month).contains(&day)
+}
+
+fn parse_digits(bytes: &[u8]) -> Option<u32> {
+    if bytes.is_empty() || !bytes.iter().all(u8::is_ascii_digit) {
+        return None;
+    }
+    bytes.iter().try_fold(0_u32, |value, digit| {
+        value
+            .checked_mul(10)?
+            .checked_add(u32::from(*digit - b'0'))
+    })
 }
 
 #[cfg(test)]
@@ -283,6 +334,29 @@ mod tests {
             TileImageFormat::Png,
             "Fixture layer attribution",
         ).is_err());
+    }
+
+    #[test]
+    fn validates_real_calendar_dates_and_utc_clock_ranges() {
+        let make = |time: &str| {
+            GibsWebMercatorSource::new(
+                "layer",
+                "matrix",
+                6,
+                time,
+                TileImageFormat::Png,
+                "Fixture layer attribution",
+            )
+        };
+
+        assert!(make("2024-02-29").is_ok());
+        assert!(make("2026-02-29").is_err());
+        assert!(make("2026-13-01").is_err());
+        assert!(make("2026-04-31").is_err());
+        assert!(make("2026-10-10T23:59:59Z").is_ok());
+        assert!(make("2026-10-10T24:00:00Z").is_err());
+        assert!(make("2026-10-10T12:60:00Z").is_err());
+        assert!(make("2026-10-10T12:00:61Z").is_err());
     }
 
     #[test]
