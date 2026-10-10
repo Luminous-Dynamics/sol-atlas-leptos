@@ -528,7 +528,20 @@ mod e2e_tests {
 mod fossil_deposit_admission_tests {
     use super::*;
 
-    const VALID_RECORD: &str = r#"{"name":"Synthetic Basin Field","lat":10.0,"lon":20.0,"fuel_type":"oil","proven_reserves_mboe":100.0,"annual_production_mboe":2.0,"status":"producing","country":"Testland","discovery_year":2000,"extraction_cost_per_boe":10.0,"decommission_cost_m":5.0,"eroi":5.0}"#;
+    const VALID_RECORD: &str = r#"{
+        "name": "Synthetic Basin Field",
+        "lat": 10.0,
+        "lon": 20.0,
+        "fuel_type": "oil",
+        "proven_reserves_mboe": 100.0,
+        "annual_production_mboe": 2.0,
+        "status": "producing",
+        "country": "Testland",
+        "discovery_year": 2000,
+        "extraction_cost_per_boe": 10.0,
+        "decommission_cost_m": 5.0,
+        "eroi": 5.0
+    }"#;
 
     fn parse_record(record: &str) -> Result<Vec<FossilDeposit>, serde_json::Error> {
         parse_fossil_deposits(&format!("[{record}]"))
@@ -567,7 +580,7 @@ mod fossil_deposit_admission_tests {
             serde_json::from_str(VALID_RECORD).expect("valid deposit should deserialize");
         assert!(valid.validate().is_ok());
 
-        let invalid_coordinate = VALID_RECORD.replace(r#""lat":10.0"#, r#""lat":91.0"#);
+        let invalid_coordinate = VALID_RECORD.replace(r#""lat": 10.0"#, r#""lat": 91.0"#);
         assert!(serde_json::from_str::<FossilDeposit>(&invalid_coordinate).is_err());
 
         let unknown = VALID_RECORD.replacen("{", r#"{"authorization_granted":true,"#, 1);
@@ -584,8 +597,8 @@ mod fossil_deposit_admission_tests {
         assert!(parse_record(&unknown).is_err());
 
         let duplicate = VALID_RECORD.replace(
-            r#""name":"Synthetic Basin Field""#,
-            r#""name":"Synthetic Basin Field","name":"overridden""#,
+            r#""name": "Synthetic Basin Field""#,
+            r#""name": "Synthetic Basin Field","name":"overridden""#,
         );
         assert!(parse_record(&duplicate).is_err());
     }
@@ -593,26 +606,26 @@ mod fossil_deposit_admission_tests {
     #[test]
     fn fossil_deposit_parser_rejects_invalid_numeric_domains() {
         for (original, replacement) in [
-            (r#""lat":10.0"#, r#""lat":91.0"#),
-            (r#""lon":20.0"#, r#""lon":181.0"#),
+            (r#""lat": 10.0"#, r#""lat": 91.0"#),
+            (r#""lon": 20.0"#, r#""lon": 181.0"#),
             (
-                r#""proven_reserves_mboe":100.0"#,
-                r#""proven_reserves_mboe":-1.0"#,
+                r#""proven_reserves_mboe": 100.0"#,
+                r#""proven_reserves_mboe": -1.0"#,
             ),
             (
-                r#""annual_production_mboe":2.0"#,
-                r#""annual_production_mboe":-1.0"#,
+                r#""annual_production_mboe": 2.0"#,
+                r#""annual_production_mboe": -1.0"#,
             ),
             (
-                r#""extraction_cost_per_boe":10.0"#,
-                r#""extraction_cost_per_boe":-1.0"#,
+                r#""extraction_cost_per_boe": 10.0"#,
+                r#""extraction_cost_per_boe": -1.0"#,
             ),
             (
-                r#""decommission_cost_m":5.0"#,
-                r#""decommission_cost_m":-1.0"#,
+                r#""decommission_cost_m": 5.0"#,
+                r#""decommission_cost_m": -1.0"#,
             ),
-            (r#""eroi":5.0"#, r#""eroi":0.0"#),
-            (r#""discovery_year":2000"#, r#""discovery_year":0"#),
+            (r#""eroi": 5.0"#, r#""eroi": 0.0"#),
+            (r#""discovery_year": 2000"#, r#""discovery_year": 0"#),
         ] {
             let invalid = VALID_RECORD.replace(original, replacement);
             assert!(
@@ -624,7 +637,7 @@ mod fossil_deposit_admission_tests {
 
     #[test]
     fn parser_validation_error_reports_failing_record_index() {
-        let invalid = VALID_RECORD.replace(r#""lat":10.0"#, r#""lat":91.0"#);
+        let invalid = VALID_RECORD.replace(r#""lat": 10.0"#, r#""lat": 91.0"#);
         let input = format!("[{VALID_RECORD},{invalid}]");
         let error = parse_fossil_deposits(&input)
             .expect_err("second record has an invalid latitude");
