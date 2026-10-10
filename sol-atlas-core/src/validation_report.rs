@@ -208,6 +208,8 @@ pub struct ValidationFinding {
     subject: Option<RecordAnchor>,
     field_path: Option<String>,
     detail: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    occurrence_key: Option<String>,
 }
 
 impl ValidationFinding {
@@ -235,7 +237,28 @@ impl ValidationFinding {
             subject,
             field_path,
             detail,
+            occurrence_key: None,
         })
+    }
+
+    /// Attach a stable per-occurrence discriminator when one report legitimately
+    /// contains multiple findings at the same code, subject, and field path.
+    ///
+    /// The key is an identity discriminator, not a secret, signature, or proof.
+    pub fn with_occurrence_key(
+        mut self,
+        occurrence_key: impl Into<String>,
+    ) -> Result<Self, ValidationReportError> {
+        let occurrence_key = occurrence_key.into();
+        if !is_token(&occurrence_key) {
+            return Err(ValidationReportError::InvalidOccurrenceKey);
+        }
+        self.occurrence_key = Some(occurrence_key);
+        Ok(self)
+    }
+
+    pub fn occurrence_key(&self) -> Option<&str> {
+        self.occurrence_key.as_deref()
     }
 
     pub fn code(&self) -> ValidationFindingCode {
@@ -319,7 +342,11 @@ impl ValidationFinding {
             ),
         };
 
-        finding_from_domain_error(code, subject, field_path)
+        let finding = finding_from_domain_error(code, subject, field_path)?;
+        match provenance_error_occurrence_key(error) {
+            Some(key) => finding.with_occurrence_key(key),
+            None => Ok(finding),
+        }
     }
 
     /// Convert an assertion-ledger validation error into a stable report finding.
@@ -381,8 +408,64 @@ impl ValidationFinding {
             ),
         };
 
-        finding_from_domain_error(code, subject, field_path)
+        let finding = finding_from_domain_error(code, subject, field_path)?;
+        match assertion_error_occurrence_key(error) {
+            Some(key) => finding.with_occurrence_key(key),
+            None => Ok(finding),
+        }
     }
+}
+
+fn provenance_error_occurrence_key(error: &ProvenanceError) -> Option<String> {
+    use ProvenanceError as E;
+
+    let identity = match error {
+        E::DuplicateRelation(relation) => format!("duplicate_relation:{relation:?}"),
+        E::MissingArtifact { relation, artifact } => {
+            format!("missing_artifact:{relation:?}:{artifact}")
+        }
+        E::MissingActivity { relation, activity } => {
+            format!("missing_activity:{relation:?}:{activity}")
+        }
+        E::MissingAgent { relation, agent } => {
+            format!("missing_agent:{relation:?}:{agent}")
+        }
+        E::UnknownArtifact(artifact) => format!("unknown_artifact:{artifact}"),
+        _ => return None,
+    };
+    Some(occurrence_fingerprint(&identity))
+}
+
+fn assertion_error_occurrence_key(error: &AssertionGraphError) -> Option<String> {
+    use AssertionGraphError as E;
+
+    let identity = match error {
+        E::DuplicateSource { assertion_id, source } => {
+            format!("duplicate_source:{assertion_id}:{source:?}")
+        }
+        E::MissingArtifact { assertion_id, artifact_id } => {
+            format!("missing_artifact:{assertion_id}:{artifact_id}")
+        }
+        E::MissingActivity { assertion_id, activity_id } => {
+            format!("missing_activity:{assertion_id}:{activity_id}")
+        }
+        E::MissingAgent { assertion_id, agent_id } => {
+            format!("missing_agent:{assertion_id}:{agent_id}")
+        }
+        _ => return None,
+    };
+    Some(occurrence_fingerprint(&identity))
+}
+
+/// Deterministic non-cryptographic fingerprint used only to distinguish finding
+/// occurrences. It is not suitable for integrity, authentication, or secrecy.
+fn occurrence_fingerprint(value: &str) -> String {
+    let mut hash = 0xcbf29ce484222325_u64;
+    for byte in value.bytes() {
+        hash ^= u64::from(byte);
+        hash = hash.wrapping_mul(0x100000001b3);
+    }
+    format!("occ-{hash:016x}")
 }
 
 fn finding_detail(code: ValidationFindingCode) -> &'static str {
@@ -431,6 +514,8 @@ struct ValidationFindingUnchecked {
     subject: Option<RecordAnchor>,
     field_path: Option<String>,
     detail: Option<String>,
+    #[serde(default)]
+    occurrence_key: Option<String>,
 }
 
 impl<'de> Deserialize<'de> for ValidationFinding {
@@ -445,8 +530,14 @@ impl<'de> Deserialize<'de> for ValidationFinding {
                 ValidationReportError::SeverityMismatch,
             ));
         }
-        Self::new(raw.code, raw.subject, raw.field_path, raw.detail)
-            .map_err(<D::Error as serde::de::Error>::custom)
+        let mut finding = Self::new(raw.code, raw.subject, raw.field_path, raw.detail)
+            .map_err(<D::Error as serde::de::Error>::custom)?;
+        if let Some(key) = raw.occurrence_key {
+            finding = finding
+                .with_occurrence_key(key)
+                .map_err(<D::Error as serde::de::Error>::custom)?;
+        }
+        Ok(finding)
     }
 }
 
@@ -456,6 +547,7 @@ pub enum ValidationReportError {
     InvalidAnchorId,
     InvalidFieldPath,
     InvalidDetail,
+    InvalidOccurrenceKey,
     InvalidIssuer,
     DuplicateSubject(RecordAnchor),
     DuplicateFinding(ValidationFinding),
@@ -477,6 +569,9 @@ impl fmt::Display for ValidationReportError {
             }
             Self::InvalidDetail => {
                 write!(f, "finding detail must be non-empty, trimmed, and control-free")
+            }
+            Self::InvalidOccurrenceKey => {
+                write!(f, "finding occurrence key must be a non-empty token")
             }
             Self::InvalidIssuer => {
                 write!(f, "report issuer must be non-empty, trimmed, and control-free")
@@ -572,6 +667,7 @@ impl ValidationReport {
                 finding.code,
                 finding.subject.clone(),
                 finding.field_path.clone(),
+                finding.occurrence_key.clone(),
             );
             if !finding_identity_set.insert(identity) {
                 return Err(ValidationReportError::DuplicateFinding(finding.clone()));
@@ -991,6 +1087,52 @@ mod tests {
         let detail = finding.detail().unwrap();
         assert!(!detail.contains(secret_locator));
         assert!(!detail.contains("super-secret"));
+    }
+
+    #[test]
+    fn unanchored_domain_findings_keep_distinct_occurrences() {
+        let first_relation = ProvenanceRelation::DerivedFrom {
+            artifact: crate::provenance::ArtifactId::new("artifact-a").unwrap(),
+            source: crate::provenance::ArtifactId::new("missing-a").unwrap(),
+        };
+        let second_relation = ProvenanceRelation::DerivedFrom {
+            artifact: crate::provenance::ArtifactId::new("artifact-b").unwrap(),
+            source: crate::provenance::ArtifactId::new("missing-b").unwrap(),
+        };
+        let first = ValidationFinding::from_provenance_error(
+            &ProvenanceError::MissingArtifact {
+                relation: first_relation,
+                artifact: crate::provenance::ArtifactId::new("missing-a").unwrap(),
+            },
+        )
+        .unwrap();
+        let second = ValidationFinding::from_provenance_error(
+            &ProvenanceError::MissingArtifact {
+                relation: second_relation,
+                artifact: crate::provenance::ArtifactId::new("missing-b").unwrap(),
+            },
+        )
+        .unwrap();
+
+        assert_eq!(first.code(), ValidationFindingCode::DanglingReference);
+        assert_eq!(second.code(), ValidationFindingCode::DanglingReference);
+        assert_eq!(first.subject(), None);
+        assert_eq!(second.subject(), None);
+        assert_eq!(first.field_path(), second.field_path());
+        assert_ne!(first.occurrence_key(), second.occurrence_key());
+        assert!(!first.detail().unwrap().contains("missing-a"));
+        assert!(!second.detail().unwrap().contains("missing-b"));
+
+        let combined = report(
+            vec![],
+            vec![first, second],
+            ValidationExecutionStatus::Completed,
+        );
+        assert_eq!(combined.findings().len(), 2);
+
+        let decoded: ValidationReport =
+            serde_json::from_str(&combined.deterministic_json().unwrap()).unwrap();
+        assert_eq!(decoded, combined);
     }
 
     #[test]
