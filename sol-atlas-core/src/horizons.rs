@@ -38,6 +38,10 @@ pub enum HorizonsParseError {
         actual: String,
     },
     MissingJdtbdHeader,
+    MissingVectorColumnHeader,
+    UnexpectedVectorColumns {
+        actual: Vec<String>,
+    },
     NoVectorRows,
     InvalidCsv {
         row: usize,
@@ -82,6 +86,12 @@ impl std::fmt::Display for HorizonsParseError {
             }
             Self::MissingJdtbdHeader => {
                 write!(f, "Horizons table does not identify its epoch column as JDTDB")
+            }
+            Self::MissingVectorColumnHeader => {
+                write!(f, "Horizons vector table is missing its labelled CSV column header")
+            }
+            Self::UnexpectedVectorColumns { actual } => {
+                write!(f, "unexpected Horizons vector CSV columns: {actual:?}")
             }
             Self::NoVectorRows => write!(f, "Horizons response contains no vector rows"),
             Self::InvalidCsv { row, reason } => {
@@ -288,6 +298,7 @@ pub fn parse_horizons_vectors_json(
     }
 
     validate_header(&result, request)?;
+    validate_vector_column_header(&lines[..starts[0]])?;
 
     let mut vectors = Vec::new();
     for (row_index, raw_line) in lines[starts[0] + 1..ends[0]].iter().enumerate() {
@@ -442,6 +453,32 @@ fn validate_header(
 
     if !header.lines().any(|line| line.to_ascii_uppercase().contains("JDTDB")) {
         return Err(HorizonsParseError::MissingJdtbdHeader);
+    }
+    Ok(())
+}
+
+fn validate_vector_column_header(header_lines: &[&str]) -> Result<(), HorizonsParseError> {
+    // VEC_LABELS=YES plus CSV_FORMAT=YES should expose the epoch and the
+    // six state-vector columns before $SOE. Do not guess axis order from data.
+    let columns_line = header_lines.iter().rev().find(|line| {
+        line.to_ascii_uppercase().contains("JDTDB") && line.contains(',')
+    });
+    let Some(columns_line) = columns_line else {
+        return Err(HorizonsParseError::MissingVectorColumnHeader);
+    };
+    let columns = split_csv_record(columns_line).map_err(|_| {
+        HorizonsParseError::MissingVectorColumnHeader
+    })?;
+    let normalized: Vec<String> = columns
+        .iter()
+        .map(|column| column.trim().to_ascii_uppercase())
+        .collect();
+    let valid = normalized.len() == 8
+        && normalized[0] == "JDTDB"
+        && normalized[1].starts_with("CALENDAR DATE")
+        && normalized[2..] == ["X", "Y", "Z", "VX", "VY", "VZ"];
+    if !valid {
+        return Err(HorizonsParseError::UnexpectedVectorColumns { actual: columns });
     }
     Ok(())
 }
@@ -661,6 +698,28 @@ mod tests {
         assert!((state.position_km[0] - 1.782345678901234e8).abs() < 1e-3);
         assert!((state.velocity_km_s[2] - 9.876543210987654).abs() < 1e-9);
         assert!(state.validate().is_ok());
+    }
+
+    #[test]
+    fn rejects_missing_or_reordered_vector_column_labels() {
+        let missing = FIXTURE.replace(
+            "JDTDB, Calendar Date (TDB), X, Y, Z, VX, VY, VZ",
+            "Calendar Date (TDB), JD, X, Y, Z, VX, VY, VZ",
+        );
+        assert_eq!(
+            parse_horizons_vectors_json(&missing, &request(), &provenance()),
+            Err(HorizonsParseError::MissingJdtbdHeader)
+                .or(Err(HorizonsParseError::MissingVectorColumnHeader))
+        );
+
+        let reordered = FIXTURE.replace(
+            "JDTDB, Calendar Date (TDB), X, Y, Z, VX, VY, VZ",
+            "JDTDB, Calendar Date (TDB), Y, X, Z, VX, VY, VZ",
+        );
+        assert!(matches!(
+            parse_horizons_vectors_json(&reordered, &request(), &provenance()),
+            Err(HorizonsParseError::UnexpectedVectorColumns { .. })
+        ));
     }
 
     #[test]
