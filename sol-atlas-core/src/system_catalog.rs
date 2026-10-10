@@ -1035,13 +1035,32 @@ mod tests {
     fn physical_bodies_have_distinct_target_and_center_bindings() {
         for object in SOLAR_SYSTEM_CATALOG {
             match object.kind {
-                ObjectKind::Star | ObjectKind::Planet | ObjectKind::DwarfPlanet | ObjectKind::NaturalSatellite => {
-                    assert!(object.ephemeris_target.is_some(), "{} lacks COMMAND binding", object.id);
-                    assert!(object.ephemeris_center.is_some(), "{} lacks CENTER binding", object.id);
+                ObjectKind::Star
+                | ObjectKind::Planet
+                | ObjectKind::DwarfPlanet
+                | ObjectKind::NaturalSatellite => {
+                    assert!(
+                        object.ephemeris_target.is_some(),
+                        "{} lacks COMMAND binding",
+                        object.id
+                    );
+                    assert!(
+                        object.ephemeris_center.is_some(),
+                        "{} lacks CENTER binding",
+                        object.id
+                    );
                 }
                 ObjectKind::SmallBodyPopulation | ObjectKind::SpacecraftPopulation => {
-                    assert!(object.ephemeris_target.is_none(), "{} is not one point target", object.id);
-                    assert!(object.ephemeris_center.is_none(), "{} is not one point centre", object.id);
+                    assert!(
+                        object.ephemeris_target.is_none(),
+                        "{} is not one point target",
+                        object.id
+                    );
+                    assert!(
+                        object.ephemeris_center.is_none(),
+                        "{} is not one point centre",
+                        object.id
+                    );
                 }
             }
         }
