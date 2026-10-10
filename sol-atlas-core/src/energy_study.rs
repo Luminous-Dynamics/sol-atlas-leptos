@@ -408,6 +408,10 @@ mod tests {
         assert_eq!(first, second);
         assert_eq!(first.len(), 64);
         assert!(is_lower_hex(&first));
+        assert_eq!(
+            first,
+            "1aad1f5b88f9d27ef5ae84665ea629a246ae173c7b1695bf42fbca322dbcaaa6"
+        );
     }
 
     #[test]
