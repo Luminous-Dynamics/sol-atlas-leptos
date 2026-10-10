@@ -101,6 +101,21 @@ class HorizonsCapturePacketTests(unittest.TestCase):
             })
             self.assertEqual(digests["canonical_url_sha256"], sha256(default_url()))
 
+    def test_request_url_parameter_order_must_be_canonical(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            metadata = json.loads(
+                (capture / "capture-metadata.json").read_text(encoding="utf-8")
+            )
+            url = default_url()
+            base, query = url.split(b"?", 1)
+            reordered = base + b"?" + b"&".join(reversed(query.split(b"&")))
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "canonical request URL parameter order mismatch",
+            ):
+                verifier.validate_url_metadata(reordered, metadata)
+
     def test_identity_format_is_length_delimited_and_has_no_trailing_newline(self) -> None:
         url = default_url()
         identity = canonical_identity(url)
