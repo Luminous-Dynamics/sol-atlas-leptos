@@ -173,6 +173,31 @@ impl TileCoordinate {
         }
     }
 
+    /// Parent tile in the next-coarser zoom level; the world tile has no parent.
+    pub fn parent(self) -> Option<Self> {
+        if self.zoom == 0 {
+            return None;
+        }
+        Self::new(self.zoom - 1, self.x / 2, self.y / 2).ok()
+    }
+
+    /// Four child tiles in deterministic XYZ order: northwest, northeast,
+    /// southwest, southeast. Fails at the configured zoom ceiling.
+    pub fn children_xyz(self) -> Result<[Self; 4], TileError> {
+        let child_zoom = self.zoom.saturating_add(1);
+        validate_zoom(child_zoom)?;
+        let west_x = self.x * 2;
+        let east_x = west_x + 1;
+        let north_y = self.y * 2;
+        let south_y = north_y + 1;
+        Ok([
+            Self::new(child_zoom, west_x, north_y)?,
+            Self::new(child_zoom, east_x, north_y)?,
+            Self::new(child_zoom, west_x, south_y)?,
+            Self::new(child_zoom, east_x, south_y)?,
+        ])
+    }
+
     /// Geographic footprint of the tile in WGS84 longitude/latitude degrees.
     /// At polar rows, north/south are the Web Mercator limit, not +/-90 degrees.
     pub fn extent(self) -> TileExtent {
@@ -348,6 +373,28 @@ mod tests {
         assert_eq!(
             TileCoordinate::from_row_scheme(3, 2, 6, TileRowScheme::Tms).unwrap(),
             tile
+        );
+    }
+
+    #[test]
+    fn parent_and_children_form_a_deterministic_fallback_hierarchy() {
+        let parent = TileCoordinate::new(2, 1, 2).unwrap();
+        assert_eq!(
+            parent.children_xyz().unwrap(),
+            [
+                TileCoordinate::new(3, 2, 4).unwrap(),
+                TileCoordinate::new(3, 3, 4).unwrap(),
+                TileCoordinate::new(3, 2, 5).unwrap(),
+                TileCoordinate::new(3, 3, 5).unwrap(),
+            ]
+        );
+        for child in parent.children_xyz().unwrap() {
+            assert_eq!(child.parent(), Some(parent));
+        }
+        assert_eq!(TileCoordinate::new(0, 0, 0).unwrap().parent(), None);
+        assert_eq!(
+            TileCoordinate::new(MAX_TILE_ZOOM, 0, 0).unwrap().children_xyz(),
+            Err(TileError::InvalidZoom(MAX_TILE_ZOOM + 1))
         );
     }
 
