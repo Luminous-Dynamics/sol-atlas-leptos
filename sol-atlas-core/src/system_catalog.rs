@@ -160,6 +160,25 @@ pub enum ReferenceSystem {
     B1950,
 }
 
+/// Orientation plane for the returned Cartesian coordinates. This is distinct
+/// from the inertial reference-system label.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ReferencePlane {
+    Ecliptic,
+    Frame,
+    BodyEquator,
+}
+
+/// Whether the vector is geometric or includes an astrometric correction.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VectorCorrection {
+    Geometric,
+    LightTime,
+    LightTimeAndStellarAberration,
+}
+
 /// Hash-bound provenance for the exact query and response that produced a
 /// state. Hash shape is validated here; the ingestion adapter must compute the
 /// hashes from the canonical query bytes and unmodified response bytes.
@@ -180,6 +199,8 @@ pub struct StateVector {
     pub epoch_jd: f64,
     pub time_scale: TimeScale,
     pub reference_system: ReferenceSystem,
+    pub reference_plane: ReferencePlane,
+    pub vector_correction: VectorCorrection,
     /// Cartesian position in km, relative to `center_id`.
     pub position_km: [f64; 3],
     /// Cartesian velocity in km/s, relative to `center_id`.
@@ -342,6 +363,8 @@ mod tests {
             epoch_jd: 2_460_000.5,
             time_scale: TimeScale::Tdb,
             reference_system: ReferenceSystem::Icrf,
+            reference_plane: ReferencePlane::Ecliptic,
+            vector_correction: VectorCorrection::Geometric,
             position_km: [1.0, 2.0, 3.0],
             velocity_km_s: [4.0, 5.0, 6.0],
             provenance: EphemerisProvenance {
