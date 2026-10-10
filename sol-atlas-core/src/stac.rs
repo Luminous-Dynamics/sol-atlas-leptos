@@ -93,7 +93,7 @@ pub fn import_item_json(input: &str) -> Result<StacItemImport, String> {
 
     let footprint = parse_item_footprint(object.get("bbox"))?;
     let observation_time = parse_observation_time(properties)?;
-    let licence = parse_licence(object, properties)?;
+    let licence = parse_licence(object)?;
 
     // A BTreeMap is not guaranteed by serde_json's configuration, so sort keys
     // explicitly to make the report stable regardless of input object ordering.
@@ -252,10 +252,7 @@ fn parse_observation_time(properties: &Map<String, Value>) -> Result<Observation
     }
 }
 
-fn parse_licence(
-    object: &Map<String, Value>,
-    properties: &Map<String, Value>,
-) -> Result<LicenceMetadata, String> {
+fn parse_licence(object: &Map<String, Value>) -> Result<LicenceMetadata, String> {
     let identifier = optional_nonempty_text(object.get("license"), "license")?;
     let terms_locator = object
         .get("links")
@@ -277,7 +274,6 @@ fn parse_licence(
         Some(_) => LicenceReview::NotReviewed,
     };
 
-    let _ = properties; // reserved for future explicit extension mappings
     LicenceMetadata::new(identifier, terms_locator, None, review)
 }
 
@@ -288,6 +284,9 @@ fn source_crs(
     // Source/asset-level projection metadata overrides item-level metadata.
     for object in [asset, properties] {
         if let Some(value) = object.get("proj:code") {
+            if value.is_null() {
+                continue;
+            }
             return optional_nonempty_text(Some(value), "proj:code");
         }
         if let Some(value) = object.get("proj:epsg") {
