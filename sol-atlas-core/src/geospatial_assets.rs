@@ -584,6 +584,18 @@ mod tests {
     }
 
     #[test]
+    fn absent_source_crs_and_media_type_remain_unknown() {
+        let mut asset = fixture_asset("unknown-source-metadata");
+        asset.source_crs = None;
+        asset.media_type = None;
+
+        let json = serde_json::to_string(&asset).unwrap();
+        let decoded: AssetRecord = serde_json::from_str(&json).unwrap();
+        assert_eq!(decoded.source_crs(), None);
+        assert_eq!(decoded.media_type(), None);
+    }
+
+    #[test]
     fn unknown_licence_and_resolution_are_not_fabricated() {
         let licence = LicenceMetadata::unknown();
         assert_eq!(licence.review(), LicenceReview::Unknown);
