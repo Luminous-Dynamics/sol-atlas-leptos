@@ -144,6 +144,9 @@ pub fn evaluate_project(
     for year in 1..=input.lifetime_years {
         let year_index = year as i32;
         let discount_factor = (1.0 + input.discount_rate).powi(year_index);
+        if !discount_factor.is_finite() || discount_factor <= 0.0 {
+            return Err(ProjectEconomicsError::NonFiniteResult);
+        }
         let generation = input.annual_generation_kwh
             * degradation_factor.powi((year - 1) as i32);
         let energy_value = generation * input.energy_value_usd_per_kwh;
@@ -281,6 +284,16 @@ mod tests {
         assert!((result.lifecycle_cost_present_value_usd - discounted_cost).abs() < 1e-9);
         let expected_npv = -1_000.0 + discounted_value - 50.0 / 1.1 - 50.0 / 1.21;
         assert!((result.net_present_value_usd - expected_npv).abs() < 1e-9);
+    }
+
+    #[test]
+    fn rejects_discount_factor_overflow_instead_of_silently_zeroing_future_years() {
+        let mut input = baseline();
+        input.discount_rate = f64::MAX;
+        assert_eq!(
+            evaluate_project(&input).unwrap_err(),
+            ProjectEconomicsError::NonFiniteResult
+        );
     }
 
     #[test]
