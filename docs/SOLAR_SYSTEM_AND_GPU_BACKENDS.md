@@ -125,10 +125,12 @@ establish that the bytes came from the genuine JPL service.
 into barycentric states. It recursively adds a body's centre-relative position
 and velocity to its centre's resolved state. Missing centre samples, duplicate
 targets, reference cycles, aggregate targets/centres, mismatched epochs, and
-incompatible time/frame/plane/correction metadata fail closed. Each resolved
-body carries the hashes for the complete centre chain used in composition.
-Scene composition does not interpolate or propagate vectors: all inputs must
-belong to one requested epoch.
+incompatible time/frame/plane/correction metadata fail closed. The composer
+currently accepts only geometric vectors; light-time-corrected vectors are
+rejected because they cannot be assumed to form a simple additive centre chain.
+Each resolved body carries hashes for the complete centre chain used in
+composition. Scene composition does not interpolate or propagate vectors: all
+inputs must belong to one requested epoch, within a fixed 1e-8-day tolerance.
 
 The renderer boundary is a separate step. `camera_relative_display_position`
 subtracts a camera origin while values are still `f64` kilometre coordinates,
