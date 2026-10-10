@@ -48,6 +48,10 @@ Potential records include amendment batches, laboratory results, feedstock chain
 
 Keep this layer behind explicit interfaces. Do not couple the core nutrient arithmetic to a particular Holochain version or make a distributed network a prerequisite for local offline use.
 
+### Symthaea first-principles process models
+
+A companion prototype is under review in [Symthaea PR #7313](https://github.com/Luminous-Dynamics/symthaea/pull/7313). Its `symthaea-agribot::soil_process` module implements explicit-input dry/wet biomass and char mass balance, elemental-carbon accounting, a deliberately limited sensible-heat screening calculation, and element-specific nutrient recovery. It keeps empirical yields, efficiencies, material properties and seasonal availability as evidence-tagged inputs rather than inventing universal constants. This is a prototype pending CI; do not treat it as a validated pyrolysis simulator or agronomic recommendation engine.
+
 ## First implementation: pure-Rust nutrient budget
 
 sol-atlas-core/src/nutrient.rs currently provides:
