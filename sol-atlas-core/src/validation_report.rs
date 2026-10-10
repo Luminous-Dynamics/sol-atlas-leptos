@@ -10,8 +10,11 @@
 //! says the structure is valid means only that the named ruleset found no
 //! structural violations within the declared scope.
 
-use crate::provenance::{IntegrityReference, ProvenanceError};
-use crate::provenance_assertions::AssertionGraphError;
+use crate::provenance::{IntegrityReference, ProvenanceError, ProvenanceRelation};
+use crate::provenance_assertions::{
+    AssertionGraphError, AssertionSource, ExternalSourceResolution, ProvenanceAssertionGraph,
+};
+use std::collections::{BTreeMap, BTreeSet};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::fmt;
@@ -556,6 +559,134 @@ impl ValidationReport {
         })
     }
 
+    /// Build a completed, structural-only report for an already validated
+    /// assertion graph. Non-local evidence remains explicitly unresolved.
+    ///
+    /// This does not retrieve external locators, verify integrity digests,
+    /// authenticate assessment records, or adjudicate assertions. Derived-from
+    /// cycles are reported as preserved conflicts, not repaired or discarded.
+    pub fn from_assertion_graph(
+        ruleset_id: impl Into<String>,
+        graph: &ProvenanceAssertionGraph,
+        issuer: Option<String>,
+    ) -> Result<Self, ValidationReportError> {
+        let mut subjects = Vec::new();
+        let mut findings = Vec::new();
+
+        for artifact in graph.artifacts() {
+            let anchor = RecordAnchor::new(RecordKind::Artifact, artifact.id.as_str())?;
+            if let Some(integrity) = &artifact.integrity {
+                findings.push(ValidationFinding::new(
+                    ValidationFindingCode::IntegrityReferenceUnverified,
+                    Some(anchor.clone()),
+                    Some(format!("artifacts[{}].integrity", artifact.id.as_str())),
+                    Some(format!(
+                        "integrity reference {}:{} is metadata; this report did not verify the digest",
+                        integrity.algorithm(),
+                        integrity.value()
+                    )),
+                )?);
+            }
+            subjects.push(anchor);
+        }
+
+        for activity in graph.activities() {
+            subjects.push(RecordAnchor::new(
+                RecordKind::Activity,
+                activity.id.as_str(),
+            )?);
+        }
+
+        for agent in graph.agents() {
+            subjects.push(RecordAnchor::new(RecordKind::Agent, agent.id.as_str())?);
+        }
+
+        for assertion in graph.assertions() {
+            let anchor = RecordAnchor::new(RecordKind::Assertion, assertion.id.as_str())?;
+            for (index, source) in assertion.sources.iter().enumerate() {
+                if let AssertionSource::External {
+                    locator,
+                    resolution: ExternalSourceResolution::Unresolved,
+                } = source
+                {
+                    findings.push(ValidationFinding::new(
+                        ValidationFindingCode::ExternalSourceUnresolved,
+                        Some(anchor.clone()),
+                        Some(format!(
+                            "assertions[{}].sources[{index}]",
+                            assertion.id.as_str()
+                        )),
+                        Some(format!(
+                            "external source locator {} is recorded but has not been resolved",
+                            locator.as_str()
+                        )),
+                    )?);
+                }
+            }
+
+            if let Some(assessment) = &assertion.assessment_ref {
+                findings.push(ValidationFinding::new(
+                    ValidationFindingCode::AssessmentReferenceUnverified,
+                    Some(anchor.clone()),
+                    Some(format!(
+                        "assertions[{}].assessment_ref",
+                        assertion.id.as_str()
+                    )),
+                    Some(format!(
+                        "assessment pointer {}:{} has not been retrieved or authenticated",
+                        assessment.authority(),
+                        assessment.reference()
+                    )),
+                )?);
+                findings.push(ValidationFinding::new(
+                    ValidationFindingCode::QualificationUnknown,
+                    Some(anchor.clone()),
+                    Some(format!(
+                        "assertions[{}].assessment_ref",
+                        assertion.id.as_str()
+                    )),
+                    Some(
+                        "an assessment pointer does not establish that the assertion is qualified"
+                            .into(),
+                    ),
+                )?);
+            }
+            subjects.push(anchor);
+        }
+
+        let adjacency = derived_from_adjacency(graph);
+        for assertion in graph.assertions() {
+            if let ProvenanceRelation::DerivedFrom { artifact, source } = &assertion.relation {
+                if reachable_in_graph(&adjacency, source.as_str(), artifact.as_str()) {
+                    let anchor =
+                        RecordAnchor::new(RecordKind::Assertion, assertion.id.as_str())?;
+                    findings.push(ValidationFinding::new(
+                        ValidationFindingCode::AssertionConflictPreserved,
+                        Some(anchor),
+                        Some(format!(
+                            "assertions[{}].relation",
+                            assertion.id.as_str()
+                        )),
+                        Some(
+                            "this derived-from assertion participates in a cycle in the unadjudicated assertion ledger; it was preserved"
+                                .into(),
+                        ),
+                    )?);
+                }
+            }
+        }
+
+        Self::new(
+            ruleset_id,
+            ValidationScope::ProvenanceAssertionGraph,
+            ValidationExecutionStatus::Completed,
+            subjects,
+            findings,
+            issuer,
+            None,
+        )
+    }
+
     pub fn schema_version(&self) -> u16 {
         self.schema_version
     }
@@ -660,6 +791,42 @@ impl<'de> Deserialize<'de> for ValidationReport {
     }
 }
 
+fn derived_from_adjacency(
+    graph: &ProvenanceAssertionGraph,
+) -> BTreeMap<String, BTreeSet<String>> {
+    let mut adjacency: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for assertion in graph.assertions() {
+        if let ProvenanceRelation::DerivedFrom { artifact, source } = &assertion.relation {
+            adjacency
+                .entry(artifact.as_str().to_owned())
+                .or_default()
+                .insert(source.as_str().to_owned());
+        }
+    }
+    adjacency
+}
+
+fn reachable_in_graph(
+    adjacency: &BTreeMap<String, BTreeSet<String>>,
+    start: &str,
+    target: &str,
+) -> bool {
+    let mut pending = vec![start.to_owned()];
+    let mut visited = BTreeSet::new();
+    while let Some(current) = pending.pop() {
+        if current == target {
+            return true;
+        }
+        if !visited.insert(current.clone()) {
+            continue;
+        }
+        if let Some(next) = adjacency.get(&current) {
+            pending.extend(next.iter().cloned());
+        }
+    }
+    false
+}
+
 fn is_token(value: &str) -> bool {
     !value.is_empty()
         && value.trim() == value
@@ -762,6 +929,142 @@ mod tests {
         assert_eq!(finding.severity(), FindingSeverity::Violation);
         assert_eq!(finding.subject(), None);
         assert_eq!(finding.field_path(), Some("relations.derived_from"));
+    }
+
+    #[test]
+    fn assertion_graph_report_surfaces_unresolved_evidence_without_overclaiming() {
+        use crate::provenance::{
+            ActivityRecord, AgentRecord, ArtifactId, ArtifactSnapshot, IntegrityReference,
+        };
+        use crate::provenance_assertions::{
+            AssertionId, AssertionSource, ExternalAssessmentReference, ExternalSourceLocator,
+            ExternalSourceResolution, ProvenanceAssertion, ProvenanceAssertionGraph,
+        };
+
+        let mut artifact = ArtifactSnapshot {
+            id: ArtifactId::new("artifact-a").unwrap(),
+            label: "artifact-a".into(),
+            media_type: Some("application/json".into()),
+            integrity: Some(IntegrityReference::new("sha256", "deadbeef").unwrap()),
+            source_uri: None,
+        };
+        let second_artifact = ArtifactSnapshot {
+            id: ArtifactId::new("artifact-b").unwrap(),
+            label: "artifact-b".into(),
+            media_type: None,
+            integrity: None,
+            source_uri: None,
+        };
+        // Keep test setup explicit: the graph builder reports only what is present.
+        artifact.source_uri = None;
+        let assertion = ProvenanceAssertion {
+            id: AssertionId::new("assertion-a").unwrap(),
+            relation: ProvenanceRelation::DerivedFrom {
+                artifact: ArtifactId::new("artifact-b").unwrap(),
+                source: ArtifactId::new("artifact-a").unwrap(),
+            },
+            asserted_by: None,
+            sources: vec![AssertionSource::External {
+                locator: ExternalSourceLocator::new("urn:source:report-a").unwrap(),
+                resolution: ExternalSourceResolution::Unresolved,
+            }],
+            reported_at_unix_ms: None,
+            assessment_ref: Some(
+                ExternalAssessmentReference::new("example-authority", "assessment-12").unwrap(),
+            ),
+        };
+        let graph = ProvenanceAssertionGraph::new(
+            vec![artifact, second_artifact],
+            Vec::<ActivityRecord>::new(),
+            Vec::<AgentRecord>::new(),
+            vec![assertion],
+        )
+        .unwrap();
+
+        let report = ValidationReport::from_assertion_graph(
+            "sol-atlas-provenance-v1",
+            &graph,
+            Some("sol-atlas-core".into()),
+        )
+        .unwrap();
+
+        assert_eq!(report.execution_status(), ValidationExecutionStatus::Completed);
+        assert_eq!(report.structural_result(), StructuralResult::Valid);
+        assert_eq!(
+            report.claim_ceiling(),
+            ValidationClaimCeiling::StructuralValidationOnly
+        );
+        assert_eq!(report.subjects().len(), 3);
+        assert!(report.findings().iter().any(|finding| {
+            finding.code() == ValidationFindingCode::ExternalSourceUnresolved
+                && finding.subject() == Some(&anchor(RecordKind::Assertion, "assertion-a"))
+        }));
+        assert!(report.findings().iter().any(|finding| {
+            finding.code() == ValidationFindingCode::IntegrityReferenceUnverified
+                && finding.subject() == Some(&anchor(RecordKind::Artifact, "artifact-a"))
+        }));
+        assert!(report.findings().iter().any(|finding| {
+            finding.code() == ValidationFindingCode::AssessmentReferenceUnverified
+        }));
+        assert!(report.findings().iter().any(|finding| {
+            finding.code() == ValidationFindingCode::QualificationUnknown
+        }));
+        let json = report.deterministic_json().unwrap();
+        assert!(json.contains("external_source_unresolved"));
+        assert!(json.contains("integrity_reference_unverified"));
+        assert!(json.contains("assessment_reference_unverified"));
+        assert!(json.contains("qualification_unknown"));
+        assert!(!json.contains("evidence_verified"));
+    }
+
+    #[test]
+    fn assertion_graph_report_flags_cycles_without_repairing_the_ledger() {
+        use crate::provenance::{
+            ActivityRecord, AgentRecord, ArtifactId, ArtifactSnapshot,
+        };
+        use crate::provenance_assertions::{
+            AssertionId, ProvenanceAssertion, ProvenanceAssertionGraph,
+        };
+
+        let artifact = |id: &str| ArtifactSnapshot {
+            id: ArtifactId::new(id).unwrap(),
+            label: id.into(),
+            media_type: None,
+            integrity: None,
+            source_uri: None,
+        };
+        let assertion = |id: &str, artifact_id: &str, source_id: &str| ProvenanceAssertion {
+            id: AssertionId::new(id).unwrap(),
+            relation: ProvenanceRelation::DerivedFrom {
+                artifact: ArtifactId::new(artifact_id).unwrap(),
+                source: ArtifactId::new(source_id).unwrap(),
+            },
+            asserted_by: None,
+            sources: vec![],
+            reported_at_unix_ms: None,
+            assessment_ref: None,
+        };
+        let graph = ProvenanceAssertionGraph::new(
+            vec![artifact("a"), artifact("b")],
+            Vec::<ActivityRecord>::new(),
+            Vec::<AgentRecord>::new(),
+            vec![assertion("assertion-ab", "a", "b"), assertion("assertion-ba", "b", "a")],
+        )
+        .unwrap();
+
+        let report =
+            ValidationReport::from_assertion_graph("rules-v1", &graph, None).unwrap();
+        let cycle_findings = report
+            .findings()
+            .iter()
+            .filter(|finding| {
+                finding.code() == ValidationFindingCode::AssertionConflictPreserved
+            })
+            .count();
+
+        assert_eq!(cycle_findings, 2);
+        assert_eq!(graph.assertions().len(), 2);
+        assert_eq!(report.structural_result(), StructuralResult::Valid);
     }
 
     #[test]
