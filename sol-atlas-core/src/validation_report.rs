@@ -102,6 +102,7 @@ impl RecordAnchor {
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct RecordAnchorUnchecked {
     kind: RecordKind,
     id: String,
@@ -260,6 +261,7 @@ impl ValidationFinding {
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ValidationFindingUnchecked {
     code: ValidationFindingCode,
     severity: FindingSeverity,
@@ -476,6 +478,7 @@ impl ValidationReport {
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ValidationReportUnchecked {
     schema_version: u16,
     ruleset_id: String,
@@ -758,9 +761,10 @@ mod tests {
         let wrong_severity = json.replace("\"severity\":\"warning\"", "\"severity\":\"violation\"");
         assert!(serde_json::from_str::<ValidationReport>(&wrong_severity).is_err());
 
-        let unknown_anchor = json.replace(
+        let unknown_anchor = json.replacen(
             "\"id\":\"artifact-a\"",
             "\"id\":\"artifact-missing\"",
+            1,
         );
         assert!(serde_json::from_str::<ValidationReport>(&unknown_anchor).is_err());
     }
