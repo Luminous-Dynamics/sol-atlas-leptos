@@ -549,10 +549,8 @@ mod fossil_deposit_admission_tests {
 
     #[test]
     fn checked_in_fossil_dataset_passes_validation_without_inventing_missing_values() {
-        let records = parse_fossil_deposits(include_str!(
-            "../../assets/data/fossil-deposits.json"
-        ))
-        .expect("reviewed checked-in dataset should satisfy admission checks");
+        let records = parse_fossil_deposits(include_str!("../../assets/data/fossil-deposits.json"))
+            .expect("reviewed checked-in dataset should satisfy admission checks");
         assert_eq!(records.len(), 70);
         assert_eq!(
             records
@@ -569,7 +567,10 @@ mod fossil_deposit_admission_tests {
             70
         );
         assert_eq!(
-            records.iter().filter(|record| record.eroi.is_none()).count(),
+            records
+                .iter()
+                .filter(|record| record.eroi.is_none())
+                .count(),
             56
         );
     }
@@ -589,11 +590,7 @@ mod fossil_deposit_admission_tests {
 
     #[test]
     fn fossil_deposit_parser_rejects_unknown_and_duplicate_fields() {
-        let unknown = VALID_RECORD.replacen(
-            "{",
-            r#"{"authorization_granted":true,"#,
-            1,
-        );
+        let unknown = VALID_RECORD.replacen("{", r#"{"authorization_granted":true,"#, 1);
         assert!(parse_record(&unknown).is_err());
 
         let duplicate = VALID_RECORD.replace(
@@ -639,8 +636,8 @@ mod fossil_deposit_admission_tests {
     fn parser_validation_error_reports_failing_record_index() {
         let invalid = VALID_RECORD.replace(r#""lat": 10.0"#, r#""lat": 91.0"#);
         let input = format!("[{VALID_RECORD},{invalid}]");
-        let error = parse_fossil_deposits(&input)
-            .expect_err("second record has an invalid latitude");
+        let error =
+            parse_fossil_deposits(&input).expect_err("second record has an invalid latitude");
 
         assert!(
             error.to_string().contains("index 1"),

@@ -732,7 +732,10 @@ impl FossilDeposit {
         {
             return Err("decommissioning cost must be finite and non-negative when present");
         }
-        if self.eroi.is_some_and(|value| !value.is_finite() || value <= 0.0) {
+        if self
+            .eroi
+            .is_some_and(|value| !value.is_finite() || value <= 0.0)
+        {
             return Err("physical EROI must be finite and positive when present");
         }
         if self.discovery_year == 0 {
