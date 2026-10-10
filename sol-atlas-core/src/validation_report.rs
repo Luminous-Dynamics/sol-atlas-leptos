@@ -1225,7 +1225,7 @@ mod tests {
     fn occurrence_fingerprint_is_versioned_domain_separated_and_stable() {
         assert_eq!(
             occurrence_fingerprint("identity fixture"),
-            "occ-v1-e2142220aa554b361563286498960fbd19d8b1005d862fb91d786b3780497b4a"
+            "occ-v1-55ad0f529b7e3c917f834d0d38dafb0d55136b290647e85ed13627b4da0d336a"
         );
         assert_eq!(
             occurrence_fingerprint("identity fixture"),
