@@ -3,6 +3,8 @@
 # This script writes raw bytes and hashes; it never edits committed fixtures.
 set -euo pipefail
 
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
 die() {
   printf 'error: %s\n' "$*" >&2
   exit 2
@@ -175,7 +177,7 @@ if jq -e '(.error // "") != ""' "$response_file" >/dev/null; then
   jq -r '.error' "$response_file" >&2
   die "Horizons returned an application-level error; raw response and receipt retained"
 fi
-python3 scripts/validate-horizons-vector.py \
+python3 "$script_dir/validate-horizons-vector.py" \
   "$response_file" \
   "$expected_target" \
   "$expected_center" \
