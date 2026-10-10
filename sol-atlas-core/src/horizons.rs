@@ -22,6 +22,7 @@ pub enum HorizonsParseError {
     ProviderError(String),
     MissingResult,
     InvalidRequest(&'static str),
+    ProvenanceMismatch,
     UnsupportedTimeScale,
     MissingStartMarker,
     MissingEndMarker,
@@ -52,6 +53,7 @@ impl std::fmt::Display for HorizonsParseError {
             Self::ProviderError(message) => write!(f, "Horizons API error: {message}"),
             Self::MissingResult => write!(f, "Horizons response has no result field"),
             Self::InvalidRequest(reason) => write!(f, "invalid Horizons vector request: {reason}"),
+            Self::ProvenanceMismatch => write!(f, "ephemeris provenance hashes do not match the exact query and response bytes"),
             Self::UnsupportedTimeScale => write!(f, "only TDB vector epochs are supported by this parser"),
             Self::MissingStartMarker => write!(f, "Horizons response is missing $$SOE"),
             Self::MissingEndMarker => write!(f, "Horizons response is missing $$EOE"),
@@ -200,11 +202,11 @@ struct HorizonsEnvelope {
 /// Parse a Horizons JSON response containing vector table 2 (x, y, z, vx, vy,
 /// vz), CSV_FORMAT=YES, and OUT_UNITS=KM-S.
 ///
-/// Request parameters are explicit caller input and should be constructed from
-/// the same canonical query whose SHA-256 is recorded in provenance. This
-/// function checks the visible response header against that request, validates
-/// every returned sample, and attaches supplied provenance. It does not compute
-/// hashes or prove network transport authenticity itself.
+/// The caller should build the request URL with canonical_url() and generate
+/// provenance with EphemerisProvenance::from_bytes() from that exact URL and the
+/// unmodified response body. This function verifies both digests, checks the
+/// visible response header, and validates every returned sample. It does not
+/// independently prove network transport or provider authenticity.
 pub fn parse_horizons_vectors_json(
     payload: &str,
     request: &HorizonsVectorRequest,
@@ -339,6 +341,10 @@ pub fn parse_horizons_vectors_json(
             row: vectors.len() + 1,
             reason: "response sample count does not match requested TLIST epochs",
         });
+    }
+    let canonical_url = request.canonical_url()?;
+    if !provenance.verifies_bytes(&canonical_url, payload.as_bytes()) {
+        return Err(HorizonsParseError::ProvenanceMismatch);
     }
     Ok(vectors)
 }
@@ -502,12 +508,12 @@ mod tests {
     }
 
     fn provenance() -> EphemerisProvenance {
-        EphemerisProvenance {
-            provider: "JPL Horizons (synthetic parser fixture)".into(),
-            canonical_query_sha256: "a".repeat(64),
-            raw_response_sha256: "b".repeat(64),
-            retrieved_at_utc: "2026-10-10T16:00:00Z".into(),
-        }
+        EphemerisProvenance::from_bytes(
+            "JPL Horizons (synthetic parser fixture)",
+            &request().canonical_url().unwrap(),
+            FIXTURE.as_bytes(),
+            "2026-10-10T16:00:00Z",
+        )
     }
 
     #[test]
@@ -588,6 +594,23 @@ mod tests {
             parse_horizons_vectors_json(&payload, &request(), &provenance()),
             Err(HorizonsParseError::UnexpectedMetadata { field: "Center body name", .. })
         ));
+    }
+
+    #[test]
+    fn rejects_hashes_that_do_not_match_the_exact_query_or_payload() {
+        let mut wrong_response = provenance();
+        wrong_response.raw_response_sha256 = "0".repeat(64);
+        assert_eq!(
+            parse_horizons_vectors_json(FIXTURE, &request(), &wrong_response),
+            Err(HorizonsParseError::ProvenanceMismatch)
+        );
+
+        let mut wrong_query = provenance();
+        wrong_query.canonical_query_sha256 = "0".repeat(64);
+        assert_eq!(
+            parse_horizons_vectors_json(FIXTURE, &request(), &wrong_query),
+            Err(HorizonsParseError::ProvenanceMismatch)
+        );
     }
 
     #[test]
