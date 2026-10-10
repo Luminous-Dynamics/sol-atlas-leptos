@@ -115,7 +115,6 @@ pub fn parse_horizons_vectors_json(
         return Err(HorizonsParseError::ProviderError(error));
     }
     let result = envelope.result.ok_or(HorizonsParseError::MissingResult)?;
-    validate_header(&result, request)?;
 
     let lines: Vec<&str> = result.lines().collect();
     let starts: Vec<usize> = lines
@@ -138,6 +137,8 @@ pub fn parse_horizons_vectors_json(
     if starts.len() != 1 || ends.len() != 1 || starts[0] >= ends[0] {
         return Err(HorizonsParseError::InvalidMarkerOrder);
     }
+
+    validate_header(&result, request)?;
 
     let mut vectors = Vec::new();
     for (row_index, raw_line) in lines[starts[0] + 1..ends[0]].iter().enumerate() {
@@ -272,7 +273,7 @@ fn expect_metadata(
 ) -> Result<(), HorizonsParseError> {
     let actual = metadata_value(header, label)
         .ok_or(HorizonsParseError::MissingMetadata(label))?;
-    if !actual.to_ascii_uppercase().contains(expected) {
+    if !actual.trim().eq_ignore_ascii_case(expected) {
         return Err(HorizonsParseError::UnexpectedMetadata {
             field: label,
             expected: expected.to_owned(),
