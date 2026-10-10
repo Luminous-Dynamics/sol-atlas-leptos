@@ -230,6 +230,7 @@ impl ExternalAssessmentReference {
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ExternalAssessmentReferenceUnchecked {
     authority: String,
     reference: String,
@@ -906,6 +907,12 @@ mod tests {
         assert!(
             serde_json::from_str::<ExternalAssessmentReference>(
                 r#"{"authority":"urn:authority:example","reference":"assessment-42\n"}"#
+            )
+            .is_err()
+        );
+        assert!(
+            serde_json::from_str::<ExternalAssessmentReference>(
+                r#"{ "authority": "issuer", "reference": "assessment-42", "unexpected": "ignored" }"#
             )
             .is_err()
         );

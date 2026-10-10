@@ -142,6 +142,7 @@ impl IntegrityReference {
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct IntegrityReferenceUnchecked {
     algorithm: String,
     value: String,
@@ -781,6 +782,13 @@ mod tests {
         assert!(
             serde_json::from_str::<IntegrityReference>(r#"{"algorithm":"sha256","value":"  "}"#)
                 .is_err()
+        );
+
+        assert!(
+            serde_json::from_str::<IntegrityReference>(
+                r#"{ "algorithm": "sha256", "value": "abcd", "unexpected": "ignored" }"#
+            )
+            .is_err()
         );
 
         let valid = IntegrityReference::new("sha256", "abcd").unwrap();
