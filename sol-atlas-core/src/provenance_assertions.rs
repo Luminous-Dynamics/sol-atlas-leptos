@@ -230,6 +230,7 @@ impl ExternalAssessmentReference {
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ExternalAssessmentReferenceUnchecked {
     authority: String,
     reference: String,
@@ -432,9 +433,10 @@ impl ProvenanceAssertionGraph {
                 return Err(AssertionGraphError::DuplicateArtifact(artifact.id.clone()));
             }
             if let Some(integrity) = &artifact.integrity {
-                if let Err(problem) =
-                    IntegrityReference::new(integrity.algorithm().to_owned(), integrity.value().to_owned())
-                {
+                if let Err(problem) = IntegrityReference::new(
+                    integrity.algorithm().to_owned(),
+                    integrity.value().to_owned(),
+                ) {
                     return Err(AssertionGraphError::InvalidArtifactIntegrity {
                         artifact_id: artifact.id.clone(),
                         problem,
@@ -905,6 +907,12 @@ mod tests {
         assert!(
             serde_json::from_str::<ExternalAssessmentReference>(
                 r#"{"authority":"urn:authority:example","reference":"assessment-42\n"}"#
+            )
+            .is_err()
+        );
+        assert!(
+            serde_json::from_str::<ExternalAssessmentReference>(
+                r#"{ "authority": "issuer", "reference": "assessment-42", "unexpected": "ignored" }"#
             )
             .is_err()
         );
