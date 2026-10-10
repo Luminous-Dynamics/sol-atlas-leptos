@@ -413,8 +413,13 @@ mod tests {
     use super::*;
 
     fn known(value: f64) -> NutrientMeasurement {
-        NutrientMeasurement::known(value, EvidenceClass::Measured, "lab-or-ledger-001", "documented test input")
-            .unwrap()
+        NutrientMeasurement::known(
+            value,
+            EvidenceClass::Measured,
+            "lab-or-ledger-001",
+            "documented test input",
+        )
+        .unwrap()
     }
 
     fn profile(n: f64, p: f64, k: f64) -> NutrientProfile {
