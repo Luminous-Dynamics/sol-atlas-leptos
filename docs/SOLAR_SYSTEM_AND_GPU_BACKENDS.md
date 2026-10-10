@@ -52,13 +52,16 @@ GET URL with explicit target, centre, discrete TDB epochs (each individually
 quoted as Horizons requires), reference system and plane, vector correction,
 VEC_TABLE=2, CSV output, and KM-S units. It rejects URLs above a conservative
 7,500-byte budget so oversized batches can switch to the file-based API. It
-parses JSON envelopes containing the CSV table markers, validates the labelled
-column order before interpreting axes, and checks target/centre metadata,
-headers, epoch order, field counts, and finite values. It does no HTTP. EphemerisProvenance::from_bytes computes SHA-256 over the exact
-canonical URL and raw response bytes, and the parser verifies both digests
-before returning states. This gives deterministic byte-level binding, not proof
-of provider or transport authenticity. Do not fetch the network from unit tests. The committed fixture is deliberately synthetic and tests
-parser behavior, not the live provider's complete output.
+validates the JSON signature source and expected GET API version (1.3) before
+parsing the CSV markers; signature/version changes fail closed pending review.
+It validates the labelled column order before interpreting axes and checks
+target/centre metadata, reference frame/plane, correction mode, units, epoch
+order, field counts, and finite values. It does no HTTP. EphemerisProvenance
+computes SHA-256 over the exact canonical URL and raw response bytes, and the
+parser verifies both digests before returning states. This is deterministic
+byte-level binding, not proof of provider or transport authenticity. Do not
+fetch the network from unit tests. The committed fixture is deliberately
+synthetic and tests parser behavior, not the live provider's complete output.
 The provider docs are the contract for the adapter:
 - https://ssd-api.jpl.nasa.gov/doc/horizons.html
 - https://ssd.jpl.nasa.gov/horizons/manual.html
