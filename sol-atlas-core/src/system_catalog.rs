@@ -11,6 +11,7 @@
 //! `solar_system.rs`.
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 /// High-level object type. Population entries describe queryable layers, not
 /// a single physical body and must not be sent to a point-object ephemeris API.
@@ -189,6 +190,38 @@ pub struct EphemerisProvenance {
     pub raw_response_sha256: String,
     /// Retrieval instant as RFC 3339 UTC text (ends in Z).
     pub retrieved_at_utc: String,
+}
+
+impl EphemerisProvenance {
+    /// Compute SHA-256 from the exact canonical URL bytes and raw HTTP body bytes.
+    /// This establishes byte-level consistency; it does not independently prove
+    /// that the provider or transport was authentic.
+    pub fn from_bytes(
+        provider: impl Into<String>,
+        canonical_url: &str,
+        raw_response: &[u8],
+        retrieved_at_utc: impl Into<String>,
+    ) -> Self {
+        Self {
+            provider: provider.into(),
+            canonical_query_sha256: sha256_hex(canonical_url.as_bytes()),
+            raw_response_sha256: sha256_hex(raw_response),
+            retrieved_at_utc: retrieved_at_utc.into(),
+        }
+    }
+
+    /// Verify these digests against the exact request and response bytes.
+    pub fn verifies_bytes(&self, canonical_url: &str, raw_response: &[u8]) -> bool {
+        self.canonical_query_sha256
+            .eq_ignore_ascii_case(&sha256_hex(canonical_url.as_bytes()))
+            && self
+                .raw_response_sha256
+                .eq_ignore_ascii_case(&sha256_hex(raw_response))
+    }
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
