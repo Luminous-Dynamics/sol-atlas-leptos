@@ -24,6 +24,7 @@ pub mod math;
 pub mod picking;
 pub mod simulation;
 pub mod solar_system;
+pub mod stac;
 pub mod timeline;
 pub mod types;
 pub mod visual_validation;
