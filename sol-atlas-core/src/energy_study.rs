@@ -17,6 +17,7 @@ pub const ENERGY_STUDY_SCHEMA_VERSION: u16 = 1;
 pub const MAX_ENERGY_STUDY_DATASETS: usize = 256;
 const MAX_TEXT_BYTES: usize = 512;
 const DIGEST_DOMAIN: &[u8] = b"luminous-dynamics.energy-study-manifest.v1\0";
+const CASE_DIGEST_DOMAIN: &[u8] = b"luminous-dynamics.energy-study-case.v1\0";
 
 /// Manifest for one fixed set of energy-study inputs and one policy comparison.
 ///
@@ -235,6 +236,43 @@ impl EnergyStudyManifestV1 {
         Ok(())
     }
 
+    /// Compute the policy/model-independent identity of the frozen study case.
+    ///
+    /// This digest binds the shared time axis, source datasets, asset registry,
+    /// and hard-constraint configuration, but deliberately excludes the model
+    /// and policy identities/configurations. Baseline and candidate runs over
+    /// the same case therefore share this digest while retaining distinct full
+    /// manifest digests. This is an input identity, not proof of source
+    /// authenticity or run execution.
+    pub fn case_digest_sha256(&self) -> Result<String, EnergyStudyValidationError> {
+        self.validate()?;
+
+        let mut hasher = Sha256::new();
+        hasher.update(CASE_DIGEST_DOMAIN);
+        hasher.update(self.schema_version.to_be_bytes());
+        hash_text(&mut hasher, &self.study_id);
+        hash_text(&mut hasher, &self.case_id);
+        hash_text(&mut hasher, &self.region_id);
+        hasher.update(self.start_unix_seconds.to_be_bytes());
+        hasher.update(self.interval_seconds.to_be_bytes());
+        hasher.update(self.interval_count.to_be_bytes());
+
+        let mut datasets: Vec<&EnergyDatasetRefV1> = self.datasets.iter().collect();
+        datasets.sort_by(|left, right| left.dataset_id.cmp(&right.dataset_id));
+        hasher.update((datasets.len() as u32).to_be_bytes());
+        for dataset in datasets {
+            hash_text(&mut hasher, &dataset.dataset_id);
+            hash_text(&mut hasher, &dataset.source_id);
+            hash_text(&mut hasher, &dataset.content_sha256);
+            hash_text(&mut hasher, &dataset.unit);
+            hasher.update([dataset.evidence_class.tag()]);
+        }
+
+        hash_text(&mut hasher, &self.asset_registry_sha256);
+        hash_text(&mut hasher, &self.constraints_sha256);
+        Ok(to_lower_hex(&hasher.finalize()))
+    }
+
     /// Compute a stable, domain-separated digest over the validated manifest.
     ///
     /// Encoding contract: fixed field order; unsigned integers are big-endian;
@@ -451,22 +489,27 @@ mod tests {
     #[test]
     fn changing_any_bound_configuration_changes_identity() {
         let baseline = manifest().digest_sha256().unwrap();
+        let baseline_case = manifest().case_digest_sha256().unwrap();
 
         let mut changed_input = manifest();
         changed_input.datasets[0].content_sha256 = digest('9');
         assert_ne!(baseline, changed_input.digest_sha256().unwrap());
+        assert_ne!(baseline_case, changed_input.case_digest_sha256().unwrap());
 
         let mut changed_model = manifest();
         changed_model.model.configuration_sha256 = digest('8');
         assert_ne!(baseline, changed_model.digest_sha256().unwrap());
+        assert_eq!(baseline_case, changed_model.case_digest_sha256().unwrap());
 
         let mut changed_policy = manifest();
         changed_policy.policy.git_revision = revision('3');
         assert_ne!(baseline, changed_policy.digest_sha256().unwrap());
+        assert_eq!(baseline_case, changed_policy.case_digest_sha256().unwrap());
 
         let mut changed_constraint = manifest();
         changed_constraint.constraints_sha256 = digest('7');
         assert_ne!(baseline, changed_constraint.digest_sha256().unwrap());
+        assert_ne!(baseline_case, changed_constraint.case_digest_sha256().unwrap());
     }
 
     #[test]
@@ -515,6 +558,10 @@ mod tests {
         assert_eq!(
             study.digest_sha256().unwrap(),
             "896b4579a632dac32bafd3b2347f19f5da5a74f7173c14cf818b00a8e5c484da"
+        );
+        assert_eq!(
+            study.case_digest_sha256().unwrap(),
+            "1612238432409a5282145479c7c585c53b4ae9a45832de5213722ee75d438f63"
         );
 
         let dataset_artifacts = [
