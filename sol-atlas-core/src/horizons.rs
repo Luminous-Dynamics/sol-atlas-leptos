@@ -1294,7 +1294,11 @@ mod tests {
             "\"version\": \"99.0\"",
         );
         assert_eq!(
-            parse_horizons_vectors_json(&wrong_version, &request(), &provenance_for(&wrong_version)),
+            parse_horizons_vectors_json(
+                &wrong_version,
+                &request(),
+                &provenance_for(&wrong_version)
+            ),
             Err(HorizonsParseError::UnsupportedApiVersion("99.0".into()))
         );
     }
