@@ -297,9 +297,9 @@ impl HorizonsVectorRequest {
         ))
     }
 
-    /// Build a deterministic, fully explicit Horizons API URL. Hash the returned
-    /// UTF-8 bytes for canonical_request_sha256 when the plan is GET.
+    /// Build a deterministic, fully explicit Horizons GET URL.
     /// Query parameters are emitted in a fixed order with fixed encoding.
+    /// Provenance hashes canonical_request_identity(), not this URL alone.
     pub fn canonical_url(&self) -> Result<String, HorizonsParseError> {
         validate_request(self)?;
         // Horizons TLIST expects each time individually quoted, with
