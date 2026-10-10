@@ -286,7 +286,7 @@ mod tests {
         let source = GibsWebMercatorSource::new(
             "MODIS_Terra_Aerosol",
             "GoogleMapsCompatible_Level6",
-            6,
+            5, // six matrix levels are numbered 0 through 5
             "2014-04-09",
             TileImageFormat::Png,
             "Fixture layer attribution",
@@ -310,7 +310,7 @@ mod tests {
         let default = GibsWebMercatorSource::new(
             "MODIS_Terra_Aerosol",
             "GoogleMapsCompatible_Level6",
-            6,
+            5, // six matrix levels are numbered 0 through 5
             "default",
             TileImageFormat::Jpeg,
             "Fixture layer attribution",
