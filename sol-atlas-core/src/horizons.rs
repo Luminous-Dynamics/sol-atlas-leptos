@@ -556,16 +556,41 @@ fn split_csv_record(record: &str) -> Result<Vec<String>, &'static str> {
     let mut fields = Vec::new();
     let mut field = String::new();
     let mut quoted = false;
+    let mut closed_quote = false;
     let mut chars = record.chars().peekable();
 
     while let Some(ch) = chars.next() {
-        match ch {
-            '"' if quoted && chars.peek() == Some(&'"') => {
-                field.push('"');
-                chars.next();
+        if quoted {
+            match ch {
+                '"' if chars.peek() == Some(&'"') => {
+                    field.push('"');
+                    chars.next();
+                }
+                '"' => {
+                    quoted = false;
+                    closed_quote = true;
+                }
+                _ => field.push(ch),
             }
-            '"' => quoted = !quoted,
-            ',' if !quoted => fields.push(std::mem::take(&mut field)),
+            continue;
+        }
+
+        if closed_quote {
+            match ch {
+                ',' => {
+                    fields.push(std::mem::take(&mut field));
+                    closed_quote = false;
+                }
+                ' ' | '\\t' => {}
+                _ => return Err("unexpected character after closing quote"),
+            }
+            continue;
+        }
+
+        match ch {
+            ',' => fields.push(std::mem::take(&mut field)),
+            '"' if field.is_empty() => quoted = true,
+            '"' => return Err("quote inside an unquoted field"),
             _ => field.push(ch),
         }
     }
@@ -709,7 +734,6 @@ mod tests {
         assert_eq!(
             parse_horizons_vectors_json(&missing, &request(), &provenance()),
             Err(HorizonsParseError::MissingJdtbdHeader)
-                .or(Err(HorizonsParseError::MissingVectorColumnHeader))
         );
 
         let reordered = FIXTURE.replace(
@@ -813,6 +837,22 @@ mod tests {
             parse_horizons_vectors_json(&payload, &request(), &provenance()),
             Err(HorizonsParseError::InvalidVector { .. })
         ));
+    }
+
+    #[test]
+    fn csv_split_rejects_malformed_quote_placement() {
+        assert_eq!(
+            split_csv_record(r#"1,"valid"suffix,2"#),
+            Err("unexpected character after closing quote")
+        );
+        assert_eq!(
+            split_csv_record(r#"1,bad"quote,2"#),
+            Err("quote inside an unquoted field")
+        );
+        assert_eq!(
+            split_csv_record(r#"1,"unterminated,2"#),
+            Err("unterminated quoted field")
+        );
     }
 
     #[test]
