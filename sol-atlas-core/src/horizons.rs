@@ -1173,7 +1173,7 @@ mod tests {
         ));
 
         let missing = concat!(
-            r#"{"signature":{"source":"NASA/JPL Horizons API","version":"1.3"},"# ,
+            r#"{"signature":{"source":"NASA/JPL Horizons API","version":"1.3"},"#,
             r#""result":"Target body name: Mars"}"#,
         );
         assert_eq!(
