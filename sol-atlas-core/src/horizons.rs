@@ -21,6 +21,7 @@ pub enum HorizonsParseError {
     InvalidJson(String),
     ProviderError(String),
     MissingResult,
+    InvalidRequest(&'static str),
     UnsupportedTimeScale,
     MissingStartMarker,
     MissingEndMarker,
@@ -50,6 +51,7 @@ impl std::fmt::Display for HorizonsParseError {
             Self::InvalidJson(message) => write!(f, "invalid Horizons JSON: {message}"),
             Self::ProviderError(message) => write!(f, "Horizons API error: {message}"),
             Self::MissingResult => write!(f, "Horizons response has no result field"),
+            Self::InvalidRequest(reason) => write!(f, "invalid Horizons vector request: {reason}"),
             Self::UnsupportedTimeScale => write!(f, "only TDB vector epochs are supported by this parser"),
             Self::MissingStartMarker => write!(f, "Horizons response is missing $$SOE"),
             Self::MissingEndMarker => write!(f, "Horizons response is missing $$EOE"),
@@ -69,20 +71,124 @@ impl std::fmt::Display for HorizonsParseError {
 
 impl std::error::Error for HorizonsParseError {}
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct HorizonsVectorRequest {
     /// Stable Sol Atlas catalogue ID, not a provider-specific numeric ID.
     pub target_id: String,
     /// Stable Sol Atlas ID for the requested coordinate origin (e.g. ssb).
     pub center_id: String,
+    /// Provider target expression, e.g. 499 for Mars. Quotes and URL syntax are
+    /// rejected; the builder adds quoting and percent-encoding itself.
+    pub provider_target: String,
+    /// Provider centre expression, e.g. @0 for the solar-system barycentre.
+    pub provider_center: String,
     /// Expected body names as they appear in the Horizons response header.
     /// Keep these separate from stable IDs and provider-specific numeric codes.
     pub expected_target_name: String,
     pub expected_center_name: String,
+    /// Discrete Julian-date epochs, interpreted in time_scale. TDB only for now.
+    pub epochs_jd: Vec<f64>,
     pub time_scale: TimeScale,
     pub reference_system: ReferenceSystem,
     pub reference_plane: ReferencePlane,
     pub vector_correction: VectorCorrection,
+}
+
+impl HorizonsVectorRequest {
+    /// Build a deterministic, fully explicit Horizons API URL. Hash the returned
+    /// UTF-8 bytes for canonical_query_sha256; do not hash a re-serialized URL.
+    /// Query parameters are emitted in a fixed order with fixed encoding.
+    pub fn canonical_url(&self) -> Result<String, HorizonsParseError> {
+        validate_request(self)?;
+        let epochs = self
+            .epochs_jd
+            .iter()
+            .map(|epoch| epoch.to_string())
+            .collect::<Vec<_>>()
+            .join(",");
+
+        let params = [
+            ("COMMAND", quoted(&self.provider_target)),
+            ("CENTER", quoted(&self.provider_center)),
+            ("CSV_FORMAT", quoted("YES")),
+            ("EPHEM_TYPE", quoted("VECTORS")),
+            ("MAKE_EPHEM", quoted("YES")),
+            ("OBJ_DATA", quoted("YES")),
+            ("OUT_UNITS", quoted("KM-S")),
+            ("REF_PLANE", quoted(reference_plane_label(self.reference_plane))),
+            ("REF_SYSTEM", quoted(reference_system_label(self.reference_system))),
+            ("TIME_TYPE", quoted("TDB")),
+            ("TLIST", quoted(&epochs)),
+            ("TLIST_TYPE", quoted("JD")),
+            ("VEC_CORR", quoted(vector_correction_label(self.vector_correction))),
+            ("VEC_LABELS", quoted("YES")),
+            ("VEC_TABLE", quoted("2")),
+            ("format", "json".to_owned()),
+        ];
+
+        let query = params
+            .iter()
+            .map(|(key, value)| format!("{key}={}", encode_query_component(value)))
+            .collect::<Vec<_>>()
+            .join("&");
+        Ok(format!("https://ssd.jpl.nasa.gov/api/horizons.api?{query}"))
+    }
+}
+
+fn quoted(value: &str) -> String {
+    format!("'{value}'")
+}
+
+fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParseError> {
+    if request.time_scale != TimeScale::Tdb {
+        return Err(HorizonsParseError::UnsupportedTimeScale);
+    }
+    if request.target_id.trim().is_empty() || request.center_id.trim().is_empty() {
+        return Err(HorizonsParseError::InvalidRequest("stable target and center IDs are required"));
+    }
+    if request.expected_target_name.trim().is_empty()
+        || request.expected_center_name.trim().is_empty()
+    {
+        return Err(HorizonsParseError::InvalidRequest("expected target and center names are required"));
+    }
+    if !safe_horizons_token(&request.provider_target)
+        || !safe_horizons_token(&request.provider_center)
+    {
+        return Err(HorizonsParseError::InvalidRequest(
+            "provider target/center may contain only alphanumeric characters, spaces, - _ . @ ; ( )",
+        ));
+    }
+    if request.epochs_jd.is_empty() || request.epochs_jd.len() > 10_000 {
+        return Err(HorizonsParseError::InvalidRequest("expected between 1 and 10000 requested epochs"));
+    }
+    if request.epochs_jd.iter().any(|epoch| !epoch.is_finite() || *epoch <= 0.0) {
+        return Err(HorizonsParseError::InvalidRequest("all Julian-date epochs must be finite and positive"));
+    }
+    Ok(())
+}
+
+fn safe_horizons_token(value: &str) -> bool {
+    !value.is_empty()
+        && value.trim() == value
+        && value.bytes().all(|byte| {
+            byte.is_ascii_alphanumeric()
+                || matches!(byte, b' ' | b'-' | b'_' | b'.' | b'@' | b';' | b'(' | b')')
+        })
+}
+
+fn encode_query_component(value: &str) -> String {
+    const HEX: &[u8; 16] = b"0123456789ABCDEF";
+    let mut encoded = String::with_capacity(value.len());
+    for byte in value.bytes() {
+        if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b'~') {
+            encoded.push(byte as char);
+        } else {
+            encoded.push('%');
+            encoded.push(HEX[(byte >> 4) as usize] as char);
+            encoded.push(HEX[(byte & 0x0F) as usize] as char);
+        }
+    }
+    encoded
 }
 
 #[derive(Debug, Deserialize)]
@@ -104,9 +210,7 @@ pub fn parse_horizons_vectors_json(
     request: &HorizonsVectorRequest,
     provenance: &EphemerisProvenance,
 ) -> Result<Vec<StateVector>, HorizonsParseError> {
-    if request.time_scale != TimeScale::Tdb {
-        return Err(HorizonsParseError::UnsupportedTimeScale);
-    }
+    validate_request(request)?;
 
     let envelope: HorizonsEnvelope = serde_json::from_str(payload)
         .map_err(|error| HorizonsParseError::InvalidJson(error.to_string()))?;
@@ -173,6 +277,12 @@ pub fn parse_horizons_vectors_json(
                 reason: "expected exactly seven numeric fields (JDTDB, x/y/z, vx/vy/vz)",
             });
         }
+        if vectors.len() >= request.epochs_jd.len() {
+            return Err(HorizonsParseError::InvalidVector {
+                row: row_index + 1,
+                reason: "response contains more rows than requested TLIST epochs",
+            });
+        }
 
         let epoch_jd = fields[0].trim().parse::<f64>().map_err(|_| {
             HorizonsParseError::InvalidVector {
@@ -196,6 +306,12 @@ pub fn parse_horizons_vectors_json(
                 reason: "epoch and state components must be finite",
             });
         }
+        if (epoch_jd - request.epochs_jd[vectors.len()]).abs() > 1.0e-8 {
+            return Err(HorizonsParseError::InvalidVector {
+                row: row_index + 1,
+                reason: "returned JDTDB epoch does not match the corresponding requested epoch",
+            });
+        }
 
         let vector = StateVector {
             target_id: request.target_id.clone(),
@@ -217,6 +333,12 @@ pub fn parse_horizons_vectors_json(
 
     if vectors.is_empty() {
         return Err(HorizonsParseError::NoVectorRows);
+    }
+    if vectors.len() != request.epochs_jd.len() {
+        return Err(HorizonsParseError::InvalidVector {
+            row: vectors.len() + 1,
+            reason: "response sample count does not match requested TLIST epochs",
+        });
     }
     Ok(vectors)
 }
@@ -367,8 +489,11 @@ mod tests {
         HorizonsVectorRequest {
             target_id: "mars".into(),
             center_id: "ssb".into(),
+            provider_target: "499".into(),
+            provider_center: "@0".into(),
             expected_target_name: "Mars".into(),
             expected_center_name: "Solar System Barycenter".into(),
+            epochs_jd: vec![2_461_323.5],
             time_scale: TimeScale::Tdb,
             reference_system: ReferenceSystem::Icrf,
             reference_plane: ReferencePlane::Frame,
@@ -383,6 +508,51 @@ mod tests {
             raw_response_sha256: "b".repeat(64),
             retrieved_at_utc: "2026-10-10T16:00:00Z".into(),
         }
+    }
+
+    #[test]
+    fn canonical_url_pins_every_ephemeris_setting_and_encodes_values() {
+        let url = request().canonical_url().unwrap();
+        assert!(url.starts_with("https://ssd.jpl.nasa.gov/api/horizons.api?"));
+        assert!(url.contains("COMMAND=%27499%27"));
+        assert!(url.contains("CENTER=%27%400%27"));
+        assert!(url.contains("TLIST=%272461323.5%27"));
+        assert!(url.contains("TIME_TYPE=%27TDB%27"));
+        assert!(url.contains("REF_SYSTEM=%27ICRF%27"));
+        assert!(url.contains("REF_PLANE=%27FRAME%27"));
+        assert!(url.contains("VEC_CORR=%27NONE%27"));
+        assert!(url.contains("OUT_UNITS=%27KM-S%27"));
+        assert!(url.contains("VEC_TABLE=%272%27"));
+        assert!(url.ends_with("format=json"));
+    }
+
+    #[test]
+    fn canonical_url_rejects_query_injection_and_invalid_epochs() {
+        let mut bad = request();
+        bad.provider_target = "499&OBJ_DATA=NO".into();
+        assert!(matches!(
+            bad.canonical_url(),
+            Err(HorizonsParseError::InvalidRequest(_))
+        ));
+
+        let mut bad = request();
+        bad.epochs_jd = vec![f64::NAN];
+        assert!(matches!(
+            bad.canonical_url(),
+            Err(HorizonsParseError::InvalidRequest(_))
+        ));
+    }
+
+    #[test]
+    fn rejects_response_epoch_that_does_not_match_request() {
+        let payload = FIXTURE.replace("2461323.500000000", "2461324.500000000");
+        assert!(matches!(
+            parse_horizons_vectors_json(&payload, &request(), &provenance()),
+            Err(HorizonsParseError::InvalidVector {
+                reason: "returned JDTDB epoch does not match the corresponding requested epoch",
+                ..
+            })
+        ));
     }
 
     #[test]
