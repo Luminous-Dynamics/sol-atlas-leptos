@@ -131,10 +131,7 @@ pub fn InfoPanel() -> impl IntoView {
                                 <h2>{d.name.clone()}</h2>
                                 <div class="subtitle">{format!("{:?} \u{00b7} {} \u{00b7} curated; EROI estimated", d.fuel_type, d.country)}</div>
                                 {match eroi {
-                                    Some(e) => {
-                                        let tier = sol_atlas_core::economics::EroiTier::from_eroi(e);
-                                        hero(format!("{:.1}:1", e), "EROI estimate").into_any()
-                                    }
+                                    Some(e) => hero(format!("{:.1}:1", e), "EROI estimate").into_any()
                                     None => hero("Unknown".to_string(), "physical EROI").into_any(),
                                 }}
                                 {match eroi {
