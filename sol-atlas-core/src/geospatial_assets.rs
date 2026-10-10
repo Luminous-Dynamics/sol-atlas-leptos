@@ -164,7 +164,7 @@ impl ObservationTime {
         let valid_shape = match kind {
             ObservationTimeKind::Unknown => start.is_none() && end.is_none(),
             ObservationTimeKind::Instant => start.is_some() && end.is_none(),
-            ObservationTimeKind::Interval => start.is_some() && end.is_some() && start != end,
+            ObservationTimeKind::Interval => start.is_some() && end.is_some(),
             ObservationTimeKind::Approximate => start.is_some() || end.is_some(),
         };
         if !valid_shape {
@@ -531,9 +531,11 @@ mod tests {
         assert!(ObservationTime::new(
             ObservationTimeKind::Unknown, Some("2025".into()), None
         ).is_err());
-        assert!(ObservationTime::new(
+        let point_interval = ObservationTime::new(
             ObservationTimeKind::Interval, Some("2025".into()), Some("2025".into())
-        ).is_err());
+        ).unwrap();
+        assert_eq!(point_interval.start(), Some("2025"));
+        assert_eq!(point_interval.end(), Some("2025"));
         let time = ObservationTime::new(
             ObservationTimeKind::Approximate, Some("circa 2020".into()), None
         ).unwrap();
