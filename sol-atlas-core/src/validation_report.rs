@@ -389,8 +389,8 @@ fn finding_detail(code: ValidationFindingCode) -> &'static str {
     match code {
         ValidationFindingCode::MalformedRecord => "record failed domain validation",
         ValidationFindingCode::InvalidIdentifier => "identifier failed validation",
-        ValidationFindingCode::DuplicateRecord => "record or relationship duplicates an existing entry",
-        ValidationFindingCode::DanglingReference => "reference targets a record that is not present",
+        ValidationFindingCode::DuplicateRecord => "duplicate record or relationship",
+        ValidationFindingCode::DanglingReference => "referenced record is absent",
         ValidationFindingCode::InvalidActivityInterval => "activity time interval is invalid",
         ValidationFindingCode::DerivedFromCycle => "derived-from relation is cyclic",
         ValidationFindingCode::ExternalSourceUnresolved => "external source has not been resolved",
@@ -952,7 +952,7 @@ mod tests {
         assert_eq!(finding.field_path(), Some("assertions.relation"));
         assert_eq!(
             finding.detail(),
-            Some("reference targets a record that is not present")
+            Some("referenced record is absent")
         );
         assert!(!finding.detail().unwrap().contains("missing-artifact"));
     }
