@@ -47,11 +47,14 @@ the hand-authored orbit-speed table. For vector queries, explicitly request the
 target, centre, epoch range, time scale, reference system and plane,
 vector-correction mode, and units. Preserve
 those parameters with each captured response: a vector is meaningless without
-its centre, frame, and epoch. The new horizons module builds a canonical GET URL with explicit target, centre,
-discrete TDB epochs, reference system and plane, vector correction, VEC_TABLE=2,
-CSV output, and KM-S units. It parses JSON envelopes containing the CSV table
-markers and checks target/centre metadata, headers, epoch order, field counts,
-and finite values. It does no HTTP. EphemerisProvenance::from_bytes computes SHA-256 over the exact
+its centre, frame, and epoch. The new horizons module builds a deterministic
+GET URL with explicit target, centre, discrete TDB epochs (each individually
+quoted as Horizons requires), reference system and plane, vector correction,
+VEC_TABLE=2, CSV output, and KM-S units. It rejects URLs above a conservative
+7,500-byte budget so oversized batches can switch to the file-based API. It
+parses JSON envelopes containing the CSV table markers, validates the labelled
+column order before interpreting axes, and checks target/centre metadata,
+headers, epoch order, field counts, and finite values. It does no HTTP. EphemerisProvenance::from_bytes computes SHA-256 over the exact
 canonical URL and raw response bytes, and the parser verifies both digests
 before returning states. This gives deterministic byte-level binding, not proof
 of provider or transport authenticity. Do not fetch the network from unit tests. The committed fixture is deliberately synthetic and tests
