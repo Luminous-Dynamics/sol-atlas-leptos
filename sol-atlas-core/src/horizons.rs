@@ -458,6 +458,33 @@ fn encode_query_component(value: &str) -> String {
     encoded
 }
 
+/// A state vector returned only after the raw response and canonical request
+/// identity have been hash-checked and the table/header contract has passed.
+/// This type does not imply that the HTTP transport or provider is authenticated.
+#[derive(Debug, Clone, PartialEq)]
+pub struct HashBoundStateVector {
+    state: StateVector,
+}
+
+impl HashBoundStateVector {
+    fn new(state: StateVector) -> Self {
+        Self { state }
+    }
+
+    /// Access the parsed state without discarding its hash-bound wrapper.
+    pub fn state(&self) -> &StateVector {
+        &self.state
+    }
+}
+
+impl std::ops::Deref for HashBoundStateVector {
+    type Target = StateVector;
+
+    fn deref(&self) -> &Self::Target {
+        &self.state
+    }
+}
+
 #[derive(Debug, Deserialize)]
 struct HorizonsEnvelope {
     signature: Option<HorizonsSignature>,
@@ -483,7 +510,7 @@ pub fn parse_horizons_vectors_json(
     payload: &str,
     request: &HorizonsVectorRequest,
     provenance: &EphemerisProvenance,
-) -> Result<Vec<StateVector>, HorizonsParseError> {
+) -> Result<Vec<HashBoundStateVector>, HorizonsParseError> {
     validate_request(request)?;
     let request_plan = request.request_plan()?;
     let canonical_request_identity = request.canonical_request_identity()?;
@@ -636,7 +663,10 @@ pub fn parse_horizons_vectors_json(
             reason: "response sample count does not match requested TLIST epochs",
         });
     }
-    Ok(vectors)
+    Ok(vectors
+        .into_iter()
+        .map(HashBoundStateVector::new)
+        .collect())
 }
 
 fn validate_header(
@@ -1132,7 +1162,7 @@ mod tests {
     fn parses_one_tdb_km_s_state_from_json_envelope() {
         let states = parse_horizons_vectors_json(FIXTURE, &request(), &provenance()).unwrap();
         assert_eq!(states.len(), 1);
-        let state = &states[0];
+        let state = states[0].state();
         assert_eq!(state.target_id, "mars");
         assert_eq!(state.center_id, "ssb");
         assert_eq!(state.time_scale, TimeScale::Tdb);
