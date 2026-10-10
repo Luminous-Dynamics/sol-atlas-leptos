@@ -339,31 +339,26 @@ fn calculate_one(
         .iter()
         .flatten()
         .try_fold(0.0, |sum, value| {
-            let next = sum + value;
+            let next = sum + *value;
             next.is_finite().then_some(next)
         })
         .ok_or_else(|| NutrientModelError::new(path, "supply subtotal overflow"))?;
 
-    let complete = demand_value.is_some()
-        && soil_value.is_some()
-        && mineral_value.is_some()
-        && organic_value.is_some();
-
-    let (deficit, surplus, status, full_total) = if complete {
-        let total = partial_total;
-        let demand = demand_value.expect("complete implies known demand");
-        (
-            Some((demand - total).max(0.0)),
-            Some((total - demand).max(0.0)),
+    // Only the all-known branch reports a deficit or surplus. Unknown inputs are
+    // excluded from the partial subtotal above, never substituted with numeric zero.
+    let (deficit, surplus, status) = match (
+        demand_value,
+        soil_value,
+        mineral_value,
+        organic_value,
+    ) {
+        (Some(demand), Some(_), Some(_), Some(_)) => (
+            Some((demand - partial_total).max(0.0)),
+            Some((partial_total - demand).max(0.0)),
             BalanceStatus::Complete,
-            Some(total),
-        )
-    } else {
-        (None, None, BalanceStatus::Incomplete, None)
+        ),
+        _ => (None, None, BalanceStatus::Incomplete),
     };
-
-    // Keep the branch explicit: an unknown profile is not a measured zero supply.
-    let _ = full_total;
 
     Ok(NutrientBalance {
         status,
