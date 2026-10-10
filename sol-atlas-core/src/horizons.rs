@@ -899,6 +899,37 @@ mod tests {
     }
 
     #[test]
+    fn catalogue_request_rejects_target_or_center_relabeling() {
+        let mut target_mismatch = request();
+        target_mismatch.target_id = "venus".into();
+        assert_eq!(
+            target_mismatch.canonical_url(),
+            Err(HorizonsParseError::InvalidRequest(
+                "provider target does not match the catalogue target ID"
+            ))
+        );
+
+        let mut center_mismatch = request();
+        center_mismatch.center_id = "earth".into();
+        assert_eq!(
+            center_mismatch.canonical_url(),
+            Err(HorizonsParseError::InvalidRequest(
+                "provider center does not match the catalogue center ID"
+            ))
+        );
+
+        let mut heliocentric = request();
+        heliocentric.center_id = "sun".into();
+        heliocentric.provider_center = "@10".into();
+        heliocentric.expected_center_name = "Sun".into();
+        assert!(heliocentric.canonical_request_identity().is_ok());
+        assert_ne!(
+            heliocentric.canonical_request_identity().unwrap(),
+            request().canonical_request_identity().unwrap()
+        );
+    }
+
+    #[test]
     fn catalogue_request_uses_provider_id_and_rejects_aggregate_layers() {
         let ceres = HorizonsVectorRequest::for_catalog_object(
             catalog_object("ceres").unwrap(),
@@ -1199,7 +1230,7 @@ mod tests {
     fn rejects_missing_or_changed_api_signature() {
         let no_signature = r#"{"result":"$SOE\n$EOE"}"#;
         assert_eq!(
-            parse_horizons_vectors_json(no_signature, &request(), &provenance()),
+            parse_horizons_vectors_json(no_signature, &request(), &provenance_for(no_signature)),
             Err(HorizonsParseError::MissingSignature)
         );
 
@@ -1248,7 +1279,7 @@ mod tests {
             r#""result":"Target body name: Mars"}"#,
         );
         assert_eq!(
-            parse_horizons_vectors_json(missing, &request(), &provenance()),
+            parse_horizons_vectors_json(missing, &request(), &provenance_for(missing)),
             Err(HorizonsParseError::MissingStartMarker)
         );
     }
