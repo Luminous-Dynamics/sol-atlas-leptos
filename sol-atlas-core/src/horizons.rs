@@ -272,10 +272,29 @@ impl HorizonsVectorRequest {
         }
     }
 
-    /// Stable identity to hash for request provenance, independent of any
-    /// HTTP client's transient multipart boundary.
+    /// Stable, length-delimited identity to hash for request provenance.
+    /// It binds both the actual transport request and Sol Atlas's semantic IDs,
+    /// including the expected names used to validate the response header.
     pub fn canonical_request_identity(&self) -> Result<String, HorizonsParseError> {
-        Ok(self.request_plan()?.canonical_request_identity())
+        let plan = self.request_plan()?;
+        let transport = plan.canonical_request_identity();
+        Ok(format!(
+            concat!(
+                "SOL-ATLAS-HORIZONS-REQUEST-V1\n",
+                "target_id={}\n",
+                "center_id={}\n",
+                "expected_target_name={}\n",
+                "expected_center_name={}\n",
+                "transport_bytes={}\n",
+                "{}"
+            ),
+            encode_query_component(&self.target_id),
+            encode_query_component(&self.center_id),
+            encode_query_component(&self.expected_target_name),
+            encode_query_component(&self.expected_center_name),
+            transport.len(),
+            transport,
+        ))
     }
 
     /// Build a deterministic, fully explicit Horizons API URL. Hash the returned
@@ -347,6 +366,48 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
             "expected target and center names are required",
         ));
     }
+
+    // When an ID belongs to the curated catalogue, enforce that provider
+    // expressions and display names match that entry. This prevents a valid
+    // Mars response being relabelled as "venus" by a mismatched caller.
+    if let Some(object) = catalog_object(&request.target_id) {
+        if object.ephemeris_target != Some(request.provider_target.as_str()) {
+            return Err(HorizonsParseError::InvalidRequest(
+                "provider target does not match the catalogue target ID",
+            ));
+        }
+        if !object.name.eq_ignore_ascii_case(request.expected_target_name.trim()) {
+            return Err(HorizonsParseError::InvalidRequest(
+                "expected target name does not match the catalogue target ID",
+            ));
+        }
+    }
+
+    // Known centres get the same binding. The solar-system barycentre is a
+    // provider special case rather than a physical object in the catalogue.
+    if request.center_id == "ssb" {
+        if request.provider_center != "@0"
+            || !request
+                .expected_center_name
+                .eq_ignore_ascii_case("Solar System Barycenter")
+        {
+            return Err(HorizonsParseError::InvalidRequest(
+                "ssb must bind to CENTER=@0 and Solar System Barycenter",
+            ));
+        }
+    } else if let Some(object) = catalog_object(&request.center_id) {
+        if object.ephemeris_center != Some(request.provider_center.as_str()) {
+            return Err(HorizonsParseError::InvalidRequest(
+                "provider center does not match the catalogue center ID",
+            ));
+        }
+        if !object.name.eq_ignore_ascii_case(request.expected_center_name.trim()) {
+            return Err(HorizonsParseError::InvalidRequest(
+                "expected center name does not match the catalogue center ID",
+            ));
+        }
+    }
+
     if !safe_horizons_token(&request.provider_target)
         || !safe_horizons_token(&request.provider_center)
     {
@@ -425,6 +486,11 @@ pub fn parse_horizons_vectors_json(
 ) -> Result<Vec<StateVector>, HorizonsParseError> {
     validate_request(request)?;
     let request_plan = request.request_plan()?;
+    let canonical_request_identity = request.canonical_request_identity()?;
+    // Verify the exact bytes before interpreting any untrusted response fields.
+    if !provenance.verifies_bytes(&canonical_request_identity, payload.as_bytes()) {
+        return Err(HorizonsParseError::ProvenanceMismatch);
+    }
 
     let envelope: HorizonsEnvelope = serde_json::from_str(payload)
         .map_err(|error| HorizonsParseError::InvalidJson(error.to_string()))?;
@@ -569,10 +635,6 @@ pub fn parse_horizons_vectors_json(
             row: vectors.len() + 1,
             reason: "response sample count does not match requested TLIST epochs",
         });
-    }
-    let canonical_request_identity = request_plan.canonical_request_identity();
-    if !provenance.verifies_bytes(&canonical_request_identity, payload.as_bytes()) {
-        return Err(HorizonsParseError::ProvenanceMismatch);
     }
     Ok(vectors)
 }
@@ -882,10 +944,11 @@ mod tests {
                 url: req.canonical_url().unwrap()
             }
         );
-        assert_eq!(
-            req.canonical_request_identity().unwrap(),
-            req.canonical_url().unwrap()
-        );
+        let identity = req.canonical_request_identity().unwrap();
+        assert!(identity.starts_with("SOL-ATLAS-HORIZONS-REQUEST-V1\n"));
+        assert!(identity.contains("target_id=mars\n"));
+        assert!(identity.contains("center_id=ssb\n"));
+        assert!(identity.contains(&req.canonical_url().unwrap()));
     }
 
     #[test]
@@ -1023,7 +1086,7 @@ mod tests {
     fn rejects_response_epoch_that_does_not_match_request() {
         let payload = FIXTURE.replace("2461323.500000000", "2461324.500000000");
         assert!(matches!(
-            parse_horizons_vectors_json(&payload, &request(), &provenance()),
+            parse_horizons_vectors_json(&payload, &request(), &provenance_for(&payload)),
             Err(HorizonsParseError::InvalidVector {
                 reason: "returned JDTDB epoch does not match the corresponding requested epoch",
                 ..
@@ -1055,7 +1118,7 @@ mod tests {
             "Calendar Date (TDB), JD, X, Y, Z, VX, VY, VZ",
         );
         assert_eq!(
-            parse_horizons_vectors_json(&missing, &request(), &provenance()),
+            parse_horizons_vectors_json(&missing, &request(), &provenance_for(missing)),
             Err(HorizonsParseError::MissingJdtbdHeader)
         );
 
@@ -1064,7 +1127,7 @@ mod tests {
             "JDTDB, Calendar Date (TDB), Y, X, Z, VX, VY, VZ",
         );
         assert!(matches!(
-            parse_horizons_vectors_json(&reordered, &request(), &provenance()),
+            parse_horizons_vectors_json(&reordered, &request(), &provenance_for(&reordered)),
             Err(HorizonsParseError::UnexpectedVectorColumns { .. })
         ));
     }
@@ -1073,7 +1136,7 @@ mod tests {
     fn rejects_wrong_target_or_center_in_response_header() {
         let payload = FIXTURE.replace("Target body name: Mars", "Target body name: Venus");
         assert!(matches!(
-            parse_horizons_vectors_json(&payload, &request(), &provenance()),
+            parse_horizons_vectors_json(&payload, &request(), &provenance_for(&payload)),
             Err(HorizonsParseError::UnexpectedMetadata { field: "Target body name", .. })
         ));
 
@@ -1082,7 +1145,7 @@ mod tests {
             "Center body name: Earth",
         );
         assert!(matches!(
-            parse_horizons_vectors_json(&payload, &request(), &provenance()),
+            parse_horizons_vectors_json(&payload, &request(), &provenance_for(&payload)),
             Err(HorizonsParseError::UnexpectedMetadata { field: "Center body name", .. })
         ));
     }
@@ -1145,7 +1208,7 @@ mod tests {
             "Other provider",
         );
         assert!(matches!(
-            parse_horizons_vectors_json(&wrong_source, &request(), &provenance()),
+            parse_horizons_vectors_json(&wrong_source, &request(), &provenance_for(&wrong_source)),
             Err(HorizonsParseError::UnexpectedApiSource(_))
         ));
 
@@ -1167,7 +1230,7 @@ mod tests {
             "\"version\": \"99.0\"",
         );
         assert_eq!(
-            parse_horizons_vectors_json(&wrong_version, &request(), &provenance()),
+            parse_horizons_vectors_json(&wrong_version, &request(), &provenance_for(&wrong_version)),
             Err(HorizonsParseError::UnsupportedApiVersion("99.0".into()))
         );
     }
@@ -1176,7 +1239,7 @@ mod tests {
     fn rejects_provider_errors_and_missing_markers() {
         let error = r#"{"error":"invalid target","result":""}"#;
         assert!(matches!(
-            parse_horizons_vectors_json(error, &request(), &provenance()),
+            parse_horizons_vectors_json(error, &request(), &provenance_for(error)),
             Err(HorizonsParseError::ProviderError(_))
         ));
 
@@ -1197,7 +1260,7 @@ mod tests {
             "2461323.500000000, ",
         );
         assert!(matches!(
-            parse_horizons_vectors_json(&payload, &request(), &provenance()),
+            parse_horizons_vectors_json(&payload, &request(), &provenance_for(&payload)),
             Err(HorizonsParseError::InvalidVector {
                 reason: "expected 8 fields: JDTDB, date, X/Y/Z, VX/VY/VZ",
                 ..
@@ -1212,13 +1275,13 @@ mod tests {
             "9.876543210987654E+00, 123.0",
         );
         assert!(matches!(
-            parse_horizons_vectors_json(&extra, &request(), &provenance()),
+            parse_horizons_vectors_json(&extra, &request(), &provenance_for(&extra)),
             Err(HorizonsParseError::InvalidVector { .. })
         ));
 
         let non_finite = FIXTURE.replace("1.782345678901234E+08", "NaN");
         assert!(matches!(
-            parse_horizons_vectors_json(&non_finite, &request(), &provenance()),
+            parse_horizons_vectors_json(&non_finite, &request(), &provenance_for(&non_finite)),
             Err(HorizonsParseError::InvalidVector { .. })
         ));
     }
@@ -1230,7 +1293,7 @@ mod tests {
             "Aberration corrections : LT+S",
         );
         assert!(matches!(
-            parse_horizons_vectors_json(&payload, &request(), &provenance()),
+            parse_horizons_vectors_json(&payload, &request(), &provenance_for(&payload)),
             Err(HorizonsParseError::UnexpectedMetadata {
                 field: "Aberration corrections",
                 ..
@@ -1242,7 +1305,7 @@ mod tests {
     fn rejects_non_numeric_epoch_in_first_column() {
         let payload = FIXTURE.replace("2461323.500000000", "not-a-julian-date");
         assert!(matches!(
-            parse_horizons_vectors_json(&payload, &request(), &provenance()),
+            parse_horizons_vectors_json(&payload, &request(), &provenance_for(&payload)),
             Err(HorizonsParseError::InvalidVector { .. })
         ));
     }
