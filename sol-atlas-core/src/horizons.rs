@@ -160,21 +160,37 @@ pub fn parse_horizons_vectors_json(
             });
         }
 
-        // The calendar-date field is text; the epoch and six trailing state
-        // components must be the only seven fields that parse as plain numbers.
-        // Exact-count checking fails closed if extra range or uncertainty columns
-        // appear because the request was not actually vector table 2.
-        let numeric: Vec<f64> = fields
+        // The epoch must be the first field and the six state components must
+        // be the six trailing fields. A numeric count alone is not enough: it
+        // could silently accept a malformed/reordered CSV row.
+        let numeric_count = fields
             .iter()
-            .filter_map(|field| field.trim().parse::<f64>().ok())
-            .collect();
-        if numeric.len() != 7 {
+            .filter(|field| field.trim().parse::<f64>().is_ok())
+            .count();
+        if numeric_count != 7 {
             return Err(HorizonsParseError::InvalidVector {
                 row: row_index + 1,
                 reason: "expected exactly seven numeric fields (JDTDB, x/y/z, vx/vy/vz)",
             });
         }
-        if numeric.iter().any(|value| !value.is_finite()) {
+
+        let epoch_jd = fields[0].trim().parse::<f64>().map_err(|_| {
+            HorizonsParseError::InvalidVector {
+                row: row_index + 1,
+                reason: "first CSV field must be JDTDB",
+            }
+        })?;
+        let trailing = &fields[fields.len() - 6..];
+        let mut components = [0.0_f64; 6];
+        for (index, field) in trailing.iter().enumerate() {
+            components[index] = field.trim().parse::<f64>().map_err(|_| {
+                HorizonsParseError::InvalidVector {
+                    row: row_index + 1,
+                    reason: "last six CSV fields must be x/y/z/vx/vy/vz",
+                }
+            })?;
+        }
+        if !epoch_jd.is_finite() || components.iter().any(|value| !value.is_finite()) {
             return Err(HorizonsParseError::InvalidVector {
                 row: row_index + 1,
                 reason: "epoch and state components must be finite",
@@ -184,13 +200,13 @@ pub fn parse_horizons_vectors_json(
         let vector = StateVector {
             target_id: request.target_id.clone(),
             center_id: request.center_id.clone(),
-            epoch_jd: numeric[0],
+            epoch_jd,
             time_scale: request.time_scale,
             reference_system: request.reference_system,
             reference_plane: request.reference_plane,
             vector_correction: request.vector_correction,
-            position_km: [numeric[1], numeric[2], numeric[3]],
-            velocity_km_s: [numeric[4], numeric[5], numeric[6]],
+            position_km: [components[0], components[1], components[2]],
+            velocity_km_s: [components[3], components[4], components[5]],
             provenance: provenance.clone(),
         };
         vector
