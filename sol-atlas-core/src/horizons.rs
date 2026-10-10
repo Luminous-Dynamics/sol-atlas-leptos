@@ -25,6 +25,9 @@ pub enum HorizonsParseError {
     InvalidJson(String),
     ProviderError(String),
     MissingResult,
+    MissingSignature,
+    UnexpectedApiSource(String),
+    UnsupportedApiVersion(String),
     InvalidRequest(&'static str),
     ProvenanceMismatch,
     UnsupportedTimeScale,
@@ -60,6 +63,13 @@ impl std::fmt::Display for HorizonsParseError {
             Self::InvalidJson(message) => write!(f, "invalid Horizons JSON: {message}"),
             Self::ProviderError(message) => write!(f, "Horizons API error: {message}"),
             Self::MissingResult => write!(f, "Horizons response has no result field"),
+            Self::MissingSignature => write!(f, "Horizons JSON is missing its signature object"),
+            Self::UnexpectedApiSource(source) => {
+                write!(f, "unexpected Horizons API source: {source:?}")
+            }
+            Self::UnsupportedApiVersion(version) => {
+                write!(f, "unsupported Horizons GET API version: {version:?}")
+            }
             Self::InvalidRequest(reason) => {
                 write!(f, "invalid Horizons vector request: {reason}")
             }
@@ -249,8 +259,15 @@ fn encode_query_component(value: &str) -> String {
 
 #[derive(Debug, Deserialize)]
 struct HorizonsEnvelope {
+    signature: Option<HorizonsSignature>,
     result: Option<String>,
     error: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct HorizonsSignature {
+    source: Option<String>,
+    version: Option<String>,
 }
 
 /// Parse a Horizons JSON response containing vector table 2 (x, y, z, vx, vy,
@@ -274,6 +291,21 @@ pub fn parse_horizons_vectors_json(
     if let Some(error) = envelope.error.filter(|error| !error.trim().is_empty()) {
         return Err(HorizonsParseError::ProviderError(error));
     }
+
+    // The official API documentation says to check the payload signature version
+    // because a version change provides no guarantee that output format is stable.
+    let signature = envelope
+        .signature
+        .ok_or(HorizonsParseError::MissingSignature)?;
+    let source = signature.source.unwrap_or_default();
+    if source != "NASA/JPL Horizons API" {
+        return Err(HorizonsParseError::UnexpectedApiSource(source));
+    }
+    let version = signature.version.unwrap_or_default();
+    if version != "1.3" {
+        return Err(HorizonsParseError::UnsupportedApiVersion(version));
+    }
+
     let result = envelope.result.ok_or(HorizonsParseError::MissingResult)?;
 
     let lines: Vec<&str> = result.lines().collect();
@@ -796,6 +828,33 @@ mod tests {
     }
 
     #[test]
+    fn rejects_missing_or_changed_api_signature() {
+        let no_signature = r#"{"result":"$SOE\n$EOE"}"#;
+        assert_eq!(
+            parse_horizons_vectors_json(no_signature, &request(), &provenance()),
+            Err(HorizonsParseError::MissingSignature)
+        );
+
+        let wrong_source = FIXTURE.replace(
+            "NASA/JPL Horizons API",
+            "Other provider",
+        );
+        assert!(matches!(
+            parse_horizons_vectors_json(&wrong_source, &request(), &provenance()),
+            Err(HorizonsParseError::UnexpectedApiSource(_))
+        ));
+
+        let wrong_version = FIXTURE.replace(
+            "\"version\": \"1.3\"",
+            "\"version\": \"99.0\"",
+        );
+        assert_eq!(
+            parse_horizons_vectors_json(&wrong_version, &request(), &provenance()),
+            Err(HorizonsParseError::UnsupportedApiVersion("99.0".into()))
+        );
+    }
+
+    #[test]
     fn rejects_provider_errors_and_missing_markers() {
         let error = r#"{"error":"invalid target","result":""}"#;
         assert!(matches!(
@@ -803,7 +862,7 @@ mod tests {
             Err(HorizonsParseError::ProviderError(_))
         ));
 
-        let missing = r#"{"result":"Target body name: Mars"}"#;
+        let missing = r#"{"signature":{"source":"NASA/JPL Horizons API","version":"1.3"},"result":"Target body name: Mars"}"#;
         assert_eq!(
             parse_horizons_vectors_json(missing, &request(), &provenance()),
             Err(HorizonsParseError::MissingStartMarker)
