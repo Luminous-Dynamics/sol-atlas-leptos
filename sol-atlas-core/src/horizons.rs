@@ -37,6 +37,10 @@ pub enum HorizonsParseError {
     UnsupportedApiVersion(String),
     InvalidRequest(&'static str),
     ProvenanceMismatch,
+    ProvenanceProviderMismatch {
+        expected: String,
+        actual: String,
+    },
     UnsupportedTimeScale,
     MissingStartMarker,
     MissingEndMarker,
@@ -83,6 +87,10 @@ impl std::fmt::Display for HorizonsParseError {
             Self::ProvenanceMismatch => write!(
                 f,
                 "ephemeris provenance hashes do not match the exact query and response bytes"
+            ),
+            Self::ProvenanceProviderMismatch { expected, actual } => write!(
+                f,
+                "ephemeris provenance provider differs from response signature: expected {expected:?}, got {actual:?}"
             ),
             Self::UnsupportedTimeScale => {
                 write!(f, "only TDB vector epochs are supported by this parser")
@@ -534,6 +542,12 @@ pub fn parse_horizons_vectors_json(
     let source = signature.source.unwrap_or_default();
     if source != "NASA/JPL Horizons API" {
         return Err(HorizonsParseError::UnexpectedApiSource(source));
+    }
+    if provenance.provider != source {
+        return Err(HorizonsParseError::ProvenanceProviderMismatch {
+            expected: source,
+            actual: provenance.provider.clone(),
+        });
     }
     let version = signature.version.unwrap_or_default();
     if !signature_version_supported(&request_plan, &version) {
@@ -1212,6 +1226,19 @@ mod tests {
             parse_horizons_vectors_json(&payload, &request(), &provenance_for(&payload)),
             Err(HorizonsParseError::UnexpectedMetadata { field: "Center body name", .. })
         ));
+    }
+
+    #[test]
+    fn rejects_provenance_provider_that_disagrees_with_response_signature() {
+        let mut wrong_provider = provenance();
+        wrong_provider.provider = "claimed alternate provider".into();
+        assert_eq!(
+            parse_horizons_vectors_json(FIXTURE, &request(), &wrong_provider),
+            Err(HorizonsParseError::ProvenanceProviderMismatch {
+                expected: "NASA/JPL Horizons API".into(),
+                actual: "claimed alternate provider".into(),
+            })
+        );
     }
 
     #[test]
