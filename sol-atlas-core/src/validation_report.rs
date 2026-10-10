@@ -15,6 +15,7 @@ use crate::provenance_assertions::{
     AssertionGraphError, AssertionSource, ExternalSourceResolution, ProvenanceAssertionGraph,
 };
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
@@ -457,15 +458,18 @@ fn assertion_error_occurrence_key(error: &AssertionGraphError) -> Option<String>
     Some(occurrence_fingerprint(&identity))
 }
 
-/// Deterministic non-cryptographic fingerprint used only to distinguish finding
-/// occurrences. It is not suitable for integrity, authentication, or secrecy.
+/// Deterministic SHA-256 identifier used only to distinguish finding
+/// occurrences. It is not a signature, integrity proof, or secret-keyed token.
 fn occurrence_fingerprint(value: &str) -> String {
-    let mut hash = 0xcbf29ce484222325_u64;
-    for byte in value.bytes() {
-        hash ^= u64::from(byte);
-        hash = hash.wrapping_mul(0x100000001b3);
+    let digest = Sha256::digest(value.as_bytes());
+    let mut key = String::with_capacity(4 + digest.len() * 2);
+    key.push_str("occ-");
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    for byte in digest.iter() {
+        key.push(HEX[(byte >> 4) as usize] as char);
+        key.push(HEX[(byte & 0x0f) as usize] as char);
     }
-    format!("occ-{hash:016x}")
+    key
 }
 
 fn finding_detail(code: ValidationFindingCode) -> &'static str {
@@ -661,9 +665,9 @@ impl ValidationReport {
             Option<String>,
         )> = BTreeSet::new();
         for finding in &findings {
-            // Detail text is explanatory, not identity. Two findings with the
-            // same stable code, subject, and field path must not coexist merely
-            // because their human-readable wording differs.
+            // Detail text is explanatory, not identity. Findings share an
+            // identity only when code, subject, field path, and occurrence key
+            // all match; adapters use an opaque key for distinct unanchored errors.
             let identity = (
                 finding.code,
                 finding.subject.clone(),
@@ -1132,6 +1136,8 @@ mod tests {
         assert_eq!(combined.findings().len(), 2);
 
         let json = combined.deterministic_json().unwrap();
+        assert!(!json.contains("missing-a"));
+        assert!(!json.contains("missing-b"));
         let decoded: ValidationReport = serde_json::from_str(&json).unwrap();
         assert_eq!(decoded, combined);
 
