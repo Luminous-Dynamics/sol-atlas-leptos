@@ -17,10 +17,6 @@ use crate::system_catalog::{
     VectorCorrection,
 };
 
-/// Maximum epoch difference accepted when grouping independently queried states
-/// into one scene. This is 0.864 milliseconds, not a propagation allowance.
-const EPOCH_COMPATIBILITY_TOLERANCE_DAYS: f64 = 1.0e-8;
-
 /// Problems that prevent a deterministic scene from being composed.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SceneBuildError {
@@ -161,9 +157,9 @@ impl EphemerisScene {
                 return Err(SceneBuildError::UnsupportedVectorCorrection);
             }
 
-            if (state.epoch_jd - anchor.epoch_jd).abs()
-                > EPOCH_COMPATIBILITY_TOLERANCE_DAYS
-            {
+            // This composer does not propagate/interpolate; accept only the
+            // exact same parsed JDTDB value across samples.
+            if state.epoch_jd != anchor.epoch_jd {
                 return Err(SceneBuildError::EpochMismatch(state.target_id.clone()));
             }
             if state.time_scale != anchor.time_scale {
@@ -580,6 +576,22 @@ $EOE\n\
         );
         assert!(matches!(
             EphemerisScene::build(&[sun.clone(), later_earth]),
+            Err(SceneBuildError::EpochMismatch(id)) if id == "earth"
+        ));
+
+        let near_epoch_earth = parsed_sample(
+            "earth",
+            "sun",
+            "@10",
+            "Sun",
+            EPOCH_JD + 1.0e-9,
+            ReferencePlane::Frame,
+            VectorCorrection::Geometric,
+            [1_000.0, 0.0, 0.0],
+            [2.0, 0.0, 0.0],
+        );
+        assert!(matches!(
+            EphemerisScene::build(&[sun.clone(), near_epoch_earth]),
             Err(SceneBuildError::EpochMismatch(id)) if id == "earth"
         ));
 
