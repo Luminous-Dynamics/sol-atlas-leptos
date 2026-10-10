@@ -433,9 +433,10 @@ impl ProvenanceAssertionGraph {
                 return Err(AssertionGraphError::DuplicateArtifact(artifact.id.clone()));
             }
             if let Some(integrity) = &artifact.integrity {
-                if let Err(problem) =
-                    IntegrityReference::new(integrity.algorithm().to_owned(), integrity.value().to_owned())
-                {
+                if let Err(problem) = IntegrityReference::new(
+                    integrity.algorithm().to_owned(),
+                    integrity.value().to_owned(),
+                ) {
                     return Err(AssertionGraphError::InvalidArtifactIntegrity {
                         artifact_id: artifact.id.clone(),
                         problem,

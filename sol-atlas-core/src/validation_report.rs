@@ -85,10 +85,7 @@ pub struct RecordAnchor {
 }
 
 impl RecordAnchor {
-    pub fn new(
-        kind: RecordKind,
-        id: impl Into<String>,
-    ) -> Result<Self, ValidationReportError> {
+    pub fn new(kind: RecordKind, id: impl Into<String>) -> Result<Self, ValidationReportError> {
         let id = id.into();
         if !is_token(&id) {
             return Err(ValidationReportError::InvalidAnchorId);
@@ -290,9 +287,7 @@ impl ValidationFinding {
     ///
     /// The returned code is the machine-readable contract; the formatted detail
     /// is explanatory text and must not be parsed by downstream consumers.
-    pub fn from_provenance_error(
-        error: &ProvenanceError,
-    ) -> Result<Self, ValidationReportError> {
+    pub fn from_provenance_error(error: &ProvenanceError) -> Result<Self, ValidationReportError> {
         use ProvenanceError as E;
 
         let (code, subject, field_path) = match error {
@@ -440,9 +435,7 @@ fn provenance_error_occurrence_key(error: &ProvenanceError) -> Option<String> {
             &provenance_relation_identity(relation),
             agent.as_str(),
         ]),
-        E::UnknownArtifact(artifact) => {
-            identity_material(&["unknown_artifact", artifact.as_str()])
-        }
+        E::UnknownArtifact(artifact) => identity_material(&["unknown_artifact", artifact.as_str()]),
         _ => return None,
     };
     Some(occurrence_fingerprint(&identity))
@@ -452,26 +445,34 @@ fn assertion_error_occurrence_key(error: &AssertionGraphError) -> Option<String>
     use AssertionGraphError as E;
 
     let identity = match error {
-        E::DuplicateSource { assertion_id, source } => identity_material(&[
+        E::DuplicateSource {
+            assertion_id,
+            source,
+        } => identity_material(&[
             "duplicate_source",
             assertion_id.as_str(),
             &assertion_source_identity(source),
         ]),
-        E::MissingArtifact { assertion_id, artifact_id } => identity_material(&[
+        E::MissingArtifact {
+            assertion_id,
+            artifact_id,
+        } => identity_material(&[
             "missing_artifact",
             assertion_id.as_str(),
             artifact_id.as_str(),
         ]),
-        E::MissingActivity { assertion_id, activity_id } => identity_material(&[
+        E::MissingActivity {
+            assertion_id,
+            activity_id,
+        } => identity_material(&[
             "missing_activity",
             assertion_id.as_str(),
             activity_id.as_str(),
         ]),
-        E::MissingAgent { assertion_id, agent_id } => identity_material(&[
-            "missing_agent",
-            assertion_id.as_str(),
-            agent_id.as_str(),
-        ]),
+        E::MissingAgent {
+            assertion_id,
+            agent_id,
+        } => identity_material(&["missing_agent", assertion_id.as_str(), agent_id.as_str()]),
         _ => return None,
     };
     Some(occurrence_fingerprint(&identity))
@@ -521,8 +522,7 @@ fn assertion_source_identity(source: &AssertionSource) -> String {
     }
 }
 
-const OCCURRENCE_KEY_DOMAIN: &[u8] =
-    b"sol-atlas/validation-finding-occurrence/v1\0";
+const OCCURRENCE_KEY_DOMAIN: &[u8] = b"sol-atlas/validation-finding-occurrence/v1\0";
 const OCCURRENCE_KEY_PREFIX: &str = "occ-v1-";
 
 /// Deterministic, domain-separated SHA-256 identifier used only to distinguish
@@ -643,16 +643,26 @@ impl fmt::Display for ValidationReportError {
                 write!(f, "field path must be non-empty, trimmed, and control-free")
             }
             Self::InvalidDetail => {
-                write!(f, "finding detail must be non-empty, trimmed, and control-free")
+                write!(
+                    f,
+                    "finding detail must be non-empty, trimmed, and control-free"
+                )
             }
             Self::InvalidOccurrenceKey => {
                 write!(f, "finding occurrence key must be a non-empty token")
             }
             Self::InvalidIssuer => {
-                write!(f, "report issuer must be non-empty, trimmed, and control-free")
+                write!(
+                    f,
+                    "report issuer must be non-empty, trimmed, and control-free"
+                )
             }
             Self::DuplicateSubject(anchor) => {
-                write!(f, "duplicate report subject: {:?}/{}", anchor.kind, anchor.id)
+                write!(
+                    f,
+                    "duplicate report subject: {:?}/{}",
+                    anchor.kind, anchor.id
+                )
             }
             Self::DuplicateFinding(finding) => {
                 write!(f, "duplicate validation finding: {:?}", finding.code)
@@ -800,10 +810,7 @@ impl ValidationReport {
                     ValidationFindingCode::ExternalSourceUnresolved,
                     Some(anchor.clone()),
                     Some(format!("artifacts[{}].source_uri", artifact.id.as_str())),
-                    Some(
-                        "artifact source locator has not been retrieved or resolved"
-                            .into(),
-                    ),
+                    Some("artifact source locator has not been retrieved or resolved".into()),
                 )?);
             }
             subjects.push(anchor);
@@ -875,19 +882,12 @@ impl ValidationReport {
         for assertion in graph.assertions() {
             if let ProvenanceRelation::DerivedFrom { artifact, source } = &assertion.relation {
                 if reachable_in_graph(&adjacency, source.as_str(), artifact.as_str()) {
-                    let anchor =
-                        RecordAnchor::new(RecordKind::Assertion, assertion.id.as_str())?;
+                    let anchor = RecordAnchor::new(RecordKind::Assertion, assertion.id.as_str())?;
                     findings.push(ValidationFinding::new(
                         ValidationFindingCode::AssertionConflictPreserved,
                         Some(anchor),
-                        Some(format!(
-                            "assertions[{}].relation",
-                            assertion.id.as_str()
-                        )),
-                        Some(
-                            "derived-from cycle detected; all assertions were preserved"
-                                .into(),
-                        ),
+                        Some(format!("assertions[{}].relation", assertion.id.as_str())),
+                        Some("derived-from cycle detected; all assertions were preserved".into()),
                     )?);
                 }
             }
@@ -1008,9 +1008,7 @@ impl<'de> Deserialize<'de> for ValidationReport {
     }
 }
 
-fn derived_from_adjacency(
-    graph: &ProvenanceAssertionGraph,
-) -> BTreeMap<String, BTreeSet<String>> {
+fn derived_from_adjacency(graph: &ProvenanceAssertionGraph) -> BTreeMap<String, BTreeSet<String>> {
     let mut adjacency: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for assertion in graph.assertions() {
         if let ProvenanceRelation::DerivedFrom { artifact, source } = &assertion.relation {
@@ -1052,9 +1050,7 @@ fn is_token(value: &str) -> bool {
 }
 
 fn is_non_empty_trimmed(value: &str) -> bool {
-    !value.is_empty()
-        && value.trim() == value
-        && !value.chars().any(char::is_control)
+    !value.is_empty() && value.trim() == value && !value.chars().any(char::is_control)
 }
 
 #[cfg(test)]
@@ -1070,13 +1066,7 @@ mod tests {
         subject: Option<RecordAnchor>,
         path: Option<&str>,
     ) -> ValidationFinding {
-        ValidationFinding::new(
-            code,
-            subject,
-            path.map(str::to_owned),
-            None,
-        )
-        .unwrap()
+        ValidationFinding::new(code, subject, path.map(str::to_owned), None).unwrap()
     }
 
     fn report(
@@ -1134,10 +1124,7 @@ mod tests {
             Some(&anchor(RecordKind::Assertion, "assertion-4"))
         );
         assert_eq!(finding.field_path(), Some("assertions.relation"));
-        assert_eq!(
-            finding.detail(),
-            Some("referenced record is absent")
-        );
+        assert_eq!(finding.detail(), Some("referenced record is absent"));
         assert!(!finding.detail().unwrap().contains("missing-artifact"));
     }
 
@@ -1179,19 +1166,15 @@ mod tests {
             artifact: crate::provenance::ArtifactId::new("artifact-b").unwrap(),
             source: crate::provenance::ArtifactId::new("missing-b").unwrap(),
         };
-        let first = ValidationFinding::from_provenance_error(
-            &ProvenanceError::MissingArtifact {
-                relation: first_relation,
-                artifact: crate::provenance::ArtifactId::new("missing-a").unwrap(),
-            },
-        )
+        let first = ValidationFinding::from_provenance_error(&ProvenanceError::MissingArtifact {
+            relation: first_relation,
+            artifact: crate::provenance::ArtifactId::new("missing-a").unwrap(),
+        })
         .unwrap();
-        let second = ValidationFinding::from_provenance_error(
-            &ProvenanceError::MissingArtifact {
-                relation: second_relation,
-                artifact: crate::provenance::ArtifactId::new("missing-b").unwrap(),
-            },
-        )
+        let second = ValidationFinding::from_provenance_error(&ProvenanceError::MissingArtifact {
+            relation: second_relation,
+            artifact: crate::provenance::ArtifactId::new("missing-b").unwrap(),
+        })
         .unwrap();
 
         assert_eq!(first.code(), ValidationFindingCode::DanglingReference);
@@ -1252,13 +1235,13 @@ mod tests {
             provenance_relation_identity(&second_relation)
         );
 
-        let first = ValidationFinding::from_provenance_error(
-            &ProvenanceError::DuplicateRelation(first_relation),
-        )
+        let first = ValidationFinding::from_provenance_error(&ProvenanceError::DuplicateRelation(
+            first_relation,
+        ))
         .unwrap();
-        let second = ValidationFinding::from_provenance_error(
-            &ProvenanceError::DuplicateRelation(second_relation),
-        )
+        let second = ValidationFinding::from_provenance_error(&ProvenanceError::DuplicateRelation(
+            second_relation,
+        ))
         .unwrap();
         assert_eq!(first.code(), ValidationFindingCode::DuplicateRecord);
         assert_eq!(second.code(), ValidationFindingCode::DuplicateRecord);
@@ -1331,7 +1314,10 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(report.execution_status(), ValidationExecutionStatus::Completed);
+        assert_eq!(
+            report.execution_status(),
+            ValidationExecutionStatus::Completed
+        );
         assert_eq!(report.structural_result(), StructuralResult::Valid);
         assert_eq!(
             report.claim_ceiling(),
@@ -1354,9 +1340,12 @@ mod tests {
         assert!(report.findings().iter().any(|finding| {
             finding.code() == ValidationFindingCode::AssessmentReferenceUnverified
         }));
-        assert!(report.findings().iter().any(|finding| {
-            finding.code() == ValidationFindingCode::QualificationUnknown
-        }));
+        assert!(
+            report
+                .findings()
+                .iter()
+                .any(|finding| { finding.code() == ValidationFindingCode::QualificationUnknown })
+        );
         let json = report.deterministic_json().unwrap();
         assert!(json.contains("external_source_unresolved"));
         assert!(json.contains("integrity_reference_unverified"));
@@ -1372,9 +1361,7 @@ mod tests {
 
     #[test]
     fn assertion_graph_report_flags_cycles_without_repairing_the_ledger() {
-        use crate::provenance::{
-            ActivityRecord, AgentRecord, ArtifactId, ArtifactSnapshot,
-        };
+        use crate::provenance::{ActivityRecord, AgentRecord, ArtifactId, ArtifactSnapshot};
         use crate::provenance_assertions::{
             AssertionId, ProvenanceAssertion, ProvenanceAssertionGraph,
         };
@@ -1401,18 +1388,18 @@ mod tests {
             vec![artifact("a"), artifact("b")],
             Vec::<ActivityRecord>::new(),
             Vec::<AgentRecord>::new(),
-            vec![assertion("assertion-ab", "a", "b"), assertion("assertion-ba", "b", "a")],
+            vec![
+                assertion("assertion-ab", "a", "b"),
+                assertion("assertion-ba", "b", "a"),
+            ],
         )
         .unwrap();
 
-        let report =
-            ValidationReport::from_assertion_graph("rules-v1", &graph, None).unwrap();
+        let report = ValidationReport::from_assertion_graph("rules-v1", &graph, None).unwrap();
         let cycle_findings = report
             .findings()
             .iter()
-            .filter(|finding| {
-                finding.code() == ValidationFindingCode::AssertionConflictPreserved
-            })
+            .filter(|finding| finding.code() == ValidationFindingCode::AssertionConflictPreserved)
             .count();
 
         assert_eq!(cycle_findings, 2);
@@ -1600,7 +1587,10 @@ mod tests {
             )],
             ValidationExecutionStatus::Partial,
         );
-        assert_eq!(known_violation.structural_result(), StructuralResult::Invalid);
+        assert_eq!(
+            known_violation.structural_result(),
+            StructuralResult::Invalid
+        );
     }
 
     #[test]
@@ -1625,11 +1615,8 @@ mod tests {
         let wrong_severity = json.replace("\"severity\":\"warning\"", "\"severity\":\"violation\"");
         assert!(serde_json::from_str::<ValidationReport>(&wrong_severity).is_err());
 
-        let unknown_anchor = json.replacen(
-            "\"id\":\"artifact-a\"",
-            "\"id\":\"artifact-missing\"",
-            1,
-        );
+        let unknown_anchor =
+            json.replacen("\"id\":\"artifact-a\"", "\"id\":\"artifact-missing\"", 1);
         assert!(serde_json::from_str::<ValidationReport>(&unknown_anchor).is_err());
     }
 
@@ -1647,24 +1634,21 @@ mod tests {
         );
         let json = report.deterministic_json().unwrap();
 
-        let mut unknown_root: serde_json::Value =
-            serde_json::from_str(&json).unwrap();
+        let mut unknown_root: serde_json::Value = serde_json::from_str(&json).unwrap();
         unknown_root
             .as_object_mut()
             .unwrap()
             .insert("unexpected".into(), serde_json::Value::Null);
         assert!(serde_json::from_value::<ValidationReport>(unknown_root).is_err());
 
-        let mut unknown_finding: serde_json::Value =
-            serde_json::from_str(&json).unwrap();
+        let mut unknown_finding: serde_json::Value = serde_json::from_str(&json).unwrap();
         unknown_finding["findings"][0]
             .as_object_mut()
             .unwrap()
             .insert("unexpected".into(), serde_json::Value::Null);
         assert!(serde_json::from_value::<ValidationReport>(unknown_finding).is_err());
 
-        let mut unknown_anchor: serde_json::Value =
-            serde_json::from_str(&json).unwrap();
+        let mut unknown_anchor: serde_json::Value = serde_json::from_str(&json).unwrap();
         unknown_anchor["subjects"][0]
             .as_object_mut()
             .unwrap()
@@ -1675,10 +1659,7 @@ mod tests {
     #[test]
     fn standalone_anchor_deserialization_cannot_bypass_validation() {
         assert!(
-            serde_json::from_str::<RecordAnchor>(
-                r#"{"kind":"artifact","id":"bad id"}"#
-            )
-            .is_err()
+            serde_json::from_str::<RecordAnchor>(r#"{"kind":"artifact","id":"bad id"}"#).is_err()
         );
     }
 
