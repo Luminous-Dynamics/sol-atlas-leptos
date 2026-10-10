@@ -341,10 +341,9 @@ impl ProvenanceGraph {
                 return Err(ProvenanceError::DuplicateArtifact(artifact.id.clone()));
             }
             if let Some(integrity) = &artifact.integrity {
-                if let Err(problem) = IntegrityReference::new(
-                    integrity.algorithm().to_owned(),
-                    integrity.value().to_owned(),
-                ) {
+                if let Err(problem) =
+                    IntegrityReference::new(integrity.algorithm().to_owned(), integrity.value().to_owned())
+                {
                     return Err(ProvenanceError::InvalidIntegrityReference {
                         artifact: artifact.id.clone(),
                         problem,
@@ -775,12 +774,16 @@ mod tests {
     #[test]
     fn integrity_reference_rejects_invalid_standalone_and_graph_deserialization() {
         assert!(
-            serde_json::from_str::<IntegrityReference>(r#"{"algorithm":"sha 256","value":"abcd"}"#)
-                .is_err()
+            serde_json::from_str::<IntegrityReference>(
+                r#"{"algorithm":"sha 256","value":"abcd"}"#
+            )
+            .is_err()
         );
         assert!(
-            serde_json::from_str::<IntegrityReference>(r#"{"algorithm":"sha256","value":"  "}"#)
-                .is_err()
+            serde_json::from_str::<IntegrityReference>(
+                r#"{"algorithm":"sha256","value":"  "}"#
+            )
+            .is_err()
         );
 
         let valid = IntegrityReference::new("sha256", "abcd").unwrap();
