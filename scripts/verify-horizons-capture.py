@@ -261,6 +261,13 @@ def verify_capture(directory: Path) -> dict[str, str]:
     if metadata.get("fixture_status") != "captured-not-yet-reviewed":
         raise CaptureVerificationError("metadata status is not captured-not-yet-reviewed")
 
+    http_status = required_string(metadata, "http_status", "metadata")
+    assert_equal(receipt.get("http_status"), http_status, "HTTP status")
+    if http_status != "200":
+        raise CaptureVerificationError(
+            f"capture HTTP status must be 200, got {http_status}"
+        )
+
     recomputed_identity = expected_request_identity(metadata, url_bytes)
     assert_equal(identity_bytes, recomputed_identity, "request.identity bytes")
     validate_url_metadata(url_bytes, metadata)
