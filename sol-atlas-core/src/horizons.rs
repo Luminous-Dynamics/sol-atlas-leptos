@@ -473,10 +473,14 @@ fn validate_vector_column_header(header_lines: &[&str]) -> Result<(), HorizonsPa
         .iter()
         .map(|column| column.trim().to_ascii_uppercase())
         .collect();
+    let component_labels = ["X", "Y", "Z", "VX", "VY", "VZ"];
     let valid = normalized.len() == 8
         && normalized[0] == "JDTDB"
         && normalized[1].starts_with("CALENDAR DATE")
-        && normalized[2..] == ["X", "Y", "Z", "VX", "VY", "VZ"];
+        && component_labels
+            .iter()
+            .enumerate()
+            .all(|(index, expected)| normalized[index + 2].as_str() == *expected);
     if !valid {
         return Err(HorizonsParseError::UnexpectedVectorColumns { actual: columns });
     }
@@ -790,11 +794,10 @@ mod tests {
         ));
 
         let missing = r#"{"result":"Target body name: Mars"}"#;
-        assert!(matches!(
+        assert_eq!(
             parse_horizons_vectors_json(missing, &request(), &provenance()),
-            Err(HorizonsParseError::MissingMetadata(_))
-                | Err(HorizonsParseError::MissingStartMarker)
-        ));
+            Err(HorizonsParseError::MissingStartMarker)
+        );
     }
 
     #[test]
