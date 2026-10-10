@@ -162,6 +162,18 @@ for special in manifest.get("special_centers", []):
         special["provider_center"],
         special["name"],
     )
+if target_id in aggregate_ids:
+    raise SystemExit(f"aggregate catalogue layer cannot be queried as a point target: {target_id}")
+if target_id in target_bindings:
+    bound_command, bound_name = target_bindings[target_id]
+    if command != bound_command or expected_target.casefold() != bound_name.casefold():
+        raise SystemExit(f"catalogue target binding mismatch for {target_id}")
+if center_id in aggregate_ids:
+    raise SystemExit(f"aggregate catalogue layer cannot be used as a point centre: {center_id}")
+if center_id in center_bindings:
+    bound_center, bound_name = center_bindings[center_id]
+    if provider_center != bound_center or expected_center.casefold() != bound_name.casefold():
+        raise SystemExit(f"catalogue centre binding mismatch for {center_id}")
 transport_bytes = len(url.encode("utf-8"))
 print(
     "SOL-ATLAS-HORIZONS-REQUEST-V1\n"
