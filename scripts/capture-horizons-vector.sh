@@ -221,16 +221,18 @@ url_sha=$(sha256sum "$url_file" | awk '{print $1}')
 printf 'Canonical request identity SHA-256: %s\n' "$request_sha"
 printf 'Canonical URL SHA-256: %s\n' "$url_sha"
 printf 'Fetching one vector state from JPL Horizons...\n'
-curl \
-  --proto '=https' \
-  --tlsv1.2 \
-  --fail \
-  --silent \
-  --show-error \
-  --connect-timeout 10 \
-  --max-time 60 \
-  --output "$response_file" \
-  "$url" || die "HTTP request failed; inspect the capture directory before retrying"
+http_status=$(
+  curl \
+    --proto '=https' \
+    --tlsv1.2 \
+    --silent \
+    --show-error \
+    --connect-timeout 10 \
+    --max-time 60 \
+    --output "$response_file" \
+    --write-out '%{http_code}' \
+    "$url"
+) || die "HTTP transfer failed; inspect the capture directory before retrying"
 
 # Seal the raw bytes and write a receipt before schema checks. If the provider
 # changes format, operators still retain the response hash and requested query.
@@ -243,6 +245,7 @@ jq -n \
   --arg canonical_url_sha256 "$url_sha" \
   --arg response_sha256 "$response_sha" \
   --arg retrieved_at_utc "$retrieved_at" \
+  --arg http_status "$http_status" \
   --arg provider_source "$source" \
   --arg api_version "$version" \
   '{
@@ -251,28 +254,12 @@ jq -n \
     canonical_url_sha256: $canonical_url_sha256,
     raw_response_sha256: $response_sha256,
     retrieved_at_utc: $retrieved_at_utc,
+    http_status: $http_status,
+    http_status: $http_status,
     reported_provider_source: $provider_source,
     reported_api_version: $api_version
   }' > "$receipt_file"
 
-# Fail closed on signature drift but preserve the raw response and receipt.
-[[ "$source" == "NASA/JPL Horizons API" ]] || die "unexpected provider source: $source"
-case "$version" in
-  1.0|1.3) ;;
-  *) die "unreviewed Horizons signature version: $version; raw response and receipt retained" ;;
-esac
-if jq -e '(.error // "") != ""' "$response_file" >/dev/null; then
-  jq -r '.error' "$response_file" >&2
-  die "Horizons returned an application-level error; raw response and receipt retained"
-fi
-python3 "$script_dir/validate-horizons-vector.py" \
-  "$response_file" \
-  "$expected_target" \
-  "$expected_center" \
-  "$ref_system" \
-  "$ref_plane" \
-  "$vec_corr" \
-  "$epoch" || die "captured response failed the schema contract; raw response and receipt retained"
 jq -n \
   --arg requested_target_id "$target_id" \
   --arg requested_center_id "$center_id" \
@@ -288,6 +275,7 @@ jq -n \
   --arg canonical_url_sha256 "$url_sha" \
   --arg response_sha256 "$response_sha" \
   --arg retrieved_at_utc "$retrieved_at" \
+  --arg http_status "$http_status" \
   --arg api_source "$source" \
   --arg api_version "$version" \
   '{
@@ -310,6 +298,28 @@ jq -n \
     raw_response_sha256: $response_sha256,
     retrieved_at_utc: $retrieved_at_utc
   }' > "$metadata_file"
+
+[[ "$http_status" == "200" ]] || die "unexpected HTTP status $http_status; raw response, receipt and metadata retained"
+
+# Fail closed on signature drift but preserve the raw response and receipt.
+[[ "$source" == "NASA/JPL Horizons API" ]] || die "unexpected provider source: $source"
+case "$version" in
+  1.0|1.3) ;;
+  *) die "unreviewed Horizons signature version: $version; raw response and receipt retained" ;;
+esac
+if jq -e '(.error // "") != ""' "$response_file" >/dev/null; then
+  jq -r '.error' "$response_file" >&2
+  die "Horizons returned an application-level error; raw response and receipt retained"
+fi
+python3 "$script_dir/validate-horizons-vector.py" \
+  "$response_file" \
+  "$expected_target" \
+  "$expected_center" \
+  "$ref_system" \
+  "$ref_plane" \
+  "$vec_corr" \
+  "$epoch" || die "captured response failed the schema contract; raw response and receipt retained"
+
 
 printf '\nCapture files written:\n  %s\n  %s\n  %s\n  %s\n  %s\n' "$url_file" "$identity_file" "$response_file" "$receipt_file" "$metadata_file"
 printf 'Status: captured, not yet reviewed or promoted into test fixtures.\n'
