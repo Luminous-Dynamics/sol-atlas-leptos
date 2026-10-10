@@ -427,7 +427,7 @@ $EOE\n\
         .to_string();
         let identity = request.canonical_request_identity().unwrap();
         let provenance = EphemerisProvenance::from_bytes(
-            "synthetic scene fixture",
+            "NASA/JPL Horizons API",
             &identity,
             payload.as_bytes(),
             "2026-10-10T18:00:00Z",
