@@ -658,6 +658,7 @@ impl ValidationReport {
             ValidationFindingCode,
             Option<RecordAnchor>,
             Option<String>,
+            Option<String>,
         )> = BTreeSet::new();
         for finding in &findings {
             // Detail text is explanatory, not identity. Two findings with the
