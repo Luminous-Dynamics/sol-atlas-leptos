@@ -669,8 +669,7 @@ impl ValidationReport {
                             assertion.id.as_str()
                         )),
                         Some(
-                            "this derived-from assertion participates in a cycle in the unadjudicated \
-                             assertion ledger; it was preserved"
+                            "this derived-from assertion is part of a cycle in the unadjudicated ledger; it was preserved"
                                 .into(),
                         ),
                     )?);
@@ -816,7 +815,7 @@ fn reachable_in_graph(
     let mut pending = vec![start.to_owned()];
     let mut visited = BTreeSet::new();
     while let Some(current) = pending.pop() {
-        if current == target {
+        if current.as_str() == target {
             return true;
         }
         if !visited.insert(current.clone()) {
@@ -943,7 +942,7 @@ mod tests {
             ExternalSourceResolution, ProvenanceAssertion, ProvenanceAssertionGraph,
         };
 
-        let mut artifact = ArtifactSnapshot {
+        let artifact = ArtifactSnapshot {
             id: ArtifactId::new("artifact-a").unwrap(),
             label: "artifact-a".into(),
             media_type: Some("application/json".into()),
@@ -957,8 +956,6 @@ mod tests {
             integrity: None,
             source_uri: None,
         };
-        // Keep test setup explicit: the graph builder reports only what is present.
-        artifact.source_uri = None;
         let assertion = ProvenanceAssertion {
             id: AssertionId::new("assertion-a").unwrap(),
             relation: ProvenanceRelation::DerivedFrom {
