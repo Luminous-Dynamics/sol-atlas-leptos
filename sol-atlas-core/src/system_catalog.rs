@@ -621,9 +621,9 @@ pub enum VectorCorrection {
     LightTimeAndStellarAberration,
 }
 
-/// Hash-bound provenance for the exact query and response that produced a
-/// state. Hash shape is validated here; the ingestion adapter must compute the
-/// hashes from the canonical query bytes and unmodified response bytes.
+/// Hash-bound provenance for the exact request plan and response that produced
+/// a state. Hash shape is validated here; the ingestion adapter must compute
+/// hashes from canonical request identity bytes and the unmodified response.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EphemerisProvenance {
     pub provider: String,
@@ -634,7 +634,7 @@ pub struct EphemerisProvenance {
 }
 
 impl EphemerisProvenance {
-    /// Compute SHA-256 from the exact canonical request identity bytes and raw HTTP body bytes.
+    /// Compute SHA-256 from canonical request identity and raw HTTP body bytes.
     /// This establishes byte-level consistency; it does not independently prove
     /// that the provider or transport was authentic.
     pub fn from_bytes(
