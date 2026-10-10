@@ -43,13 +43,17 @@ This performs a single HTTPS GET. The capture directory contains:
 - `request.identity`: length-delimited semantic ID/name fields plus the exact URL.
 - `response.raw.json`: unmodified response body bytes.
 - `response.headers`: raw response-header bytes including the HTTP status line.
-- `capture-receipt.json`: request, URL, response-body and response-header digests and the declared
+- `capture-receipt.json`: request, URL, response-body and response-header digests, curl exit code, HTTP status, and declared
   provider/signature version.
 - `capture-metadata.json`: target, centre, epoch, units, frame/plane, correction,
   response identity, and retrieval time.
 
-The hashes show that the saved records agree byte-for-byte. They are not a digital
-signature and do not prove that the provider or TLS endpoint was authentic. Keep
+The script seals a receipt even when curl fails. A failed transfer is recorded
+as `capture-incomplete`; an HTTP non-200 result is recorded as
+`captured-http-error`. Neither can pass the packet verifier. Successful HTTP
+200 captures are marked `captured-unreviewed`. The hashes show that saved
+records agree byte-for-byte. They are not a digital signature and do not prove
+that the provider or TLS endpoint was authentic. Keep
 the entire directory together and retain the capture outside the source checkout
 until review is complete. Do not normalize JSON, reformat the response, or edit
 the receipt by hand.
@@ -100,7 +104,11 @@ identity, epoch, or provenance validation just to make a new capture pass.
 
 Track these as separate states:
 
-- `captured-unreviewed`: the bytes and hashes were saved.
+- `capture-incomplete`: transfer failed, but available request/response/headers
+  and an attempt receipt were retained for diagnosis.
+- `captured-http-error`: HTTP returned a non-200 status; response bytes/headers
+  are retained, but the packet is ineligible for verification.
+- `captured-unreviewed`: the HTTP 200 bytes and hashes were saved.
 - `packet-verified`: local URL, receipt, metadata, and response are internally
   consistent and schema-valid.
 - `fixture-reviewed`: a human has reviewed the provider payload and query.

@@ -216,12 +216,15 @@ receipt_file="$out_dir/capture-receipt.json"
 # transport identity the Rust parser hashes for EphemerisProvenance.
 printf '%s' "$url" > "$url_file"
 printf '%s' "$identity" > "$identity_file"
+: > "$response_file"
+: > "$headers_file"
 request_sha=$(sha256sum "$identity_file" | awk '{print $1}')
 url_sha=$(sha256sum "$url_file" | awk '{print $1}')
 
 printf 'Canonical request identity SHA-256: %s\n' "$request_sha"
 printf 'Canonical URL SHA-256: %s\n' "$url_sha"
 printf 'Fetching one vector state from JPL Horizons...\n'
+curl_exit_code=0
 http_status=$(
   curl \
     --proto '=https' \
@@ -234,7 +237,21 @@ http_status=$(
     --output "$response_file" \
     --write-out '%{http_code}' \
     "$url"
-) || die "HTTP transfer failed; inspect the capture directory before retrying"
+) || curl_exit_code=$?
+http_status=${http_status:-000}
+
+if [[ "$curl_exit_code" != "0" ]]; then
+  capture_status="capture-incomplete"
+elif [[ "$http_status" != "200" ]]; then
+  capture_status="captured-http-error"
+else
+  capture_status="captured-unreviewed"
+fi
+case "$capture_status" in
+  captured-unreviewed) fixture_status="captured-not-yet-reviewed" ;;
+  captured-http-error) fixture_status="captured-http-error" ;;
+  capture-incomplete) fixture_status="capture-incomplete" ;;
+esac
 
 # Seal the raw bytes and write a receipt before schema checks. If the provider
 # changes format, operators still retain the response hash and requested query.
@@ -250,15 +267,18 @@ jq -n \
   --arg response_headers_sha256 "$headers_sha" \
   --arg retrieved_at_utc "$retrieved_at" \
   --arg http_status "$http_status" \
+  --arg curl_exit_code "$curl_exit_code" \
+  --arg capture_status "$capture_status" \
   --arg provider_source "$source" \
   --arg api_version "$version" \
   '{
-    receipt_status: "captured-unreviewed",
+    receipt_status: $capture_status,
     canonical_request_sha256: $request_sha256,
     canonical_url_sha256: $canonical_url_sha256,
     raw_response_sha256: $response_sha256,
     retrieved_at_utc: $retrieved_at_utc,
     http_status: $http_status,
+    curl_exit_code: $curl_exit_code,
     response_headers_sha256: $response_headers_sha256,
     reported_provider_source: $provider_source,
     reported_api_version: $api_version
@@ -281,11 +301,14 @@ jq -n \
   --arg response_headers_sha256 "$headers_sha" \
   --arg retrieved_at_utc "$retrieved_at" \
   --arg http_status "$http_status" \
+  --arg curl_exit_code "$curl_exit_code" \
+  --arg fixture_status "$fixture_status" \
   --arg api_source "$source" \
   --arg api_version "$version" \
   '{
-    fixture_status: "captured-not-yet-reviewed",
+    fixture_status: $fixture_status,
     http_status: $http_status,
+    curl_exit_code: $curl_exit_code,
     response_headers_sha256: $response_headers_sha256,
     provider: $api_source,
     api_signature_version: $api_version,
@@ -306,7 +329,8 @@ jq -n \
     retrieved_at_utc: $retrieved_at_utc
   }' > "$metadata_file"
 
-[[ "$http_status" == "200" ]] || die "unexpected HTTP status $http_status; raw response, receipt and metadata retained"
+[[ "$curl_exit_code" == "0" ]] || die "HTTP transfer failed (curl exit $curl_exit_code); raw response, headers, receipt and metadata retained"
+[[ "$http_status" == "200" ]] || die "unexpected HTTP status $http_status; raw response, headers, receipt and metadata retained"
 
 # Fail closed on signature drift but preserve the raw response and receipt.
 [[ "$source" == "NASA/JPL Horizons API" ]] || die "unexpected provider source: $source"

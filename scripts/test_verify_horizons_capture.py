@@ -58,6 +58,7 @@ class HorizonsCapturePacketTests(unittest.TestCase):
         metadata = {
             "fixture_status": "captured-not-yet-reviewed",
             "http_status": "200",
+            "curl_exit_code": "0",
             "provider": "NASA/JPL Horizons API",
             "api_signature_version": "1.3",
             "requested_target_id": "mars",
@@ -80,6 +81,7 @@ class HorizonsCapturePacketTests(unittest.TestCase):
         receipt = {
             "receipt_status": "captured-unreviewed",
             "http_status": "200",
+            "curl_exit_code": "0",
             "canonical_request_sha256": sha256(identity),
             "canonical_url_sha256": sha256(url),
             "raw_response_sha256": sha256(response),
@@ -116,8 +118,10 @@ class HorizonsCapturePacketTests(unittest.TestCase):
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
             receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
             headers_path = capture / "response.headers"
-            headers = b"HTTP/2 503 Service Unavailable\\r\\n\\r\\n"
+            headers = b"HTTP/2 503 Service Unavailable\r\n\r\n"
             headers_path.write_bytes(headers)
+            metadata["fixture_status"] = "captured-http-error"
+            receipt["receipt_status"] = "captured-http-error"
             metadata["http_status"] = "503"
             receipt["http_status"] = "503"
             metadata["response_headers_sha256"] = sha256(headers)
@@ -127,6 +131,25 @@ class HorizonsCapturePacketTests(unittest.TestCase):
             with self.assertRaisesRegex(
                 verifier.CaptureVerificationError,
                 "capture HTTP status must be 200, got 503",
+            ):
+                verifier.verify_capture(capture)
+
+    def test_nonzero_curl_exit_is_preserved_and_not_verifiable(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            metadata_path = capture / "capture-metadata.json"
+            receipt_path = capture / "capture-receipt.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            metadata["fixture_status"] = "capture-incomplete"
+            receipt["receipt_status"] = "capture-incomplete"
+            metadata["curl_exit_code"] = "28"
+            receipt["curl_exit_code"] = "28"
+            metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+            receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "capture has nonzero curl exit code 28",
             ):
                 verifier.verify_capture(capture)
 
@@ -146,7 +169,7 @@ class HorizonsCapturePacketTests(unittest.TestCase):
             capture = self.make_capture(Path(temporary) / "capture")
             headers_path = capture / "response.headers"
             headers_path.write_bytes(
-                b"HTTP/2 200\\r\\ncontent-type: application/problem+json\\r\\n\\r\\n"
+                b"HTTP/2 200\r\ncontent-type: application/problem+json\r\n\r\n"
             )
             with self.assertRaisesRegex(
                 verifier.CaptureVerificationError,

@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -270,10 +271,24 @@ def verify_capture(directory: Path) -> dict[str, str]:
     receipt = read_json(paths["receipt"])
     metadata = read_json(paths["metadata"])
 
-    if receipt.get("receipt_status") != "captured-unreviewed":
-        raise CaptureVerificationError("receipt status is not captured-unreviewed")
-    if metadata.get("fixture_status") != "captured-not-yet-reviewed":
-        raise CaptureVerificationError("metadata status is not captured-not-yet-reviewed")
+    receipt_status = required_string(receipt, "receipt_status", "receipt")
+    fixture_status = required_string(metadata, "fixture_status", "metadata")
+    expected_fixture_status = {
+        "captured-unreviewed": "captured-not-yet-reviewed",
+        "captured-http-error": "captured-http-error",
+        "capture-incomplete": "capture-incomplete",
+    }.get(receipt_status)
+    if expected_fixture_status is None or fixture_status != expected_fixture_status:
+        raise CaptureVerificationError("capture/fixture status fields are inconsistent")
+
+    curl_exit_code = required_string(metadata, "curl_exit_code", "metadata")
+    assert_equal(receipt.get("curl_exit_code"), curl_exit_code, "curl exit code")
+    if not curl_exit_code.isdigit():
+        raise CaptureVerificationError("curl_exit_code must be a non-negative integer string")
+    if curl_exit_code != "0":
+        raise CaptureVerificationError(
+            f"capture has nonzero curl exit code {curl_exit_code}; packet is incomplete"
+        )
 
     http_status = required_string(metadata, "http_status", "metadata")
     parsed_http_status = parse_http_status(response_headers_bytes)
@@ -287,6 +302,8 @@ def verify_capture(directory: Path) -> dict[str, str]:
         raise CaptureVerificationError(
             f"capture HTTP status must be 200, got {http_status}"
         )
+    if receipt_status != "captured-unreviewed":
+        raise CaptureVerificationError("successful capture has a non-success receipt status")
 
     recomputed_identity = expected_request_identity(metadata, url_bytes)
     assert_equal(identity_bytes, recomputed_identity, "request.identity bytes")
