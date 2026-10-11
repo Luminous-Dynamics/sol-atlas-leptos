@@ -212,8 +212,13 @@ impl ScenarioRunEnvelope {
                 self.schema_version
             ));
         }
-        if self.run_id.trim().is_empty() || self.scenario_id.trim().is_empty() {
-            return Err("run_id and scenario_id must be non-empty".into());
+        let run_id_len = unicode_len(&self.run_id);
+        let scenario_id_len = unicode_len(&self.scenario_id);
+        if !(3..=200).contains(&run_id_len) || !(3..=180).contains(&scenario_id_len) {
+            return Err("run_id must be 3..=200 characters and scenario_id 3..=180 characters".into());
+        }
+        if self.seed > 9_007_199_254_740_991 {
+            return Err("seed exceeds the exact integer range allowed by the run schema".into());
         }
         let mut digests = vec![
             ("scenario_sha256", self.inputs.scenario_sha256.as_str()),
@@ -239,7 +244,7 @@ impl ScenarioRunEnvelope {
             }
         }
         if let Some(source) = self.inputs.selected_definition_source.as_deref() {
-            if source.trim().is_empty() || source.len() > 200 {
+            if source.trim().is_empty() || unicode_len(source) > 200 {
                 return Err("selected_definition_source must be 1..=200 characters when present".into());
             }
         }
@@ -250,29 +255,38 @@ impl ScenarioRunEnvelope {
         }
         if self.engine.source_revision.as_deref().is_some_and(|value| value.trim().is_empty())
             || self.engine.definition_source.as_deref().is_some_and(|value| value.trim().is_empty())
-            || self.engine.definition_source.as_deref().is_some_and(|value| value.len() > 200)
+            || self.engine.definition_source.as_deref().is_some_and(|value| unicode_len(value) > 200)
         {
             return Err("source_revision and definition_source must be non-empty when present; definition_source is at most 200 characters".into());
         }
         if self.engine.adapter.trim().is_empty()
-            || self.engine.adapter.len() > 120
+            || unicode_len(&self.engine.adapter) > 120
             || self.engine.engine_version.trim().is_empty()
-            || self.engine.engine_version.len() > 120
+            || unicode_len(&self.engine.engine_version) > 120
         {
             return Err("engine adapter and version must be non-empty and at most 120 characters".into());
         }
-        if self.replicates == 0 {
-            return Err("replicates must be at least one".into());
+        if self.replicates == 0 || self.replicates > 1_000_000 {
+            return Err("replicates must be within the schema range 1..=1000000".into());
         }
         if self.run_status == RunStatus::Completed && self.outputs.is_empty() {
             return Err("a completed run must contain at least one output row".into());
         }
+        if self.validation.notes.iter().any(|note| note.trim().is_empty()) {
+            return Err("validation notes must be non-empty strings".into());
+        }
+        if self.warnings.iter().any(|warning| warning.trim().is_empty()) {
+            return Err("warnings must be non-empty strings".into());
+        }
         for evidence in &self.validation.evidence {
             if evidence.evidence_id.trim().is_empty()
+                || unicode_len(&evidence.evidence_id) > 200
                 || evidence.artifact_ref.trim().is_empty()
+                || unicode_len(&evidence.artifact_ref) > 500
                 || evidence.description.trim().is_empty()
+                || unicode_len(&evidence.description) > 1200
             {
-                return Err("validation evidence ID, artifact reference, and description must be non-empty".into());
+                return Err("validation evidence fields must be non-empty and within their declared length bounds".into());
             }
             if !is_lowercase_sha256(&evidence.artifact_sha256) {
                 return Err("validation evidence artifact_sha256 must be lowercase SHA-256".into());
@@ -282,13 +296,13 @@ impl ScenarioRunEnvelope {
         let mut artifact_ids = BTreeSet::new();
         for artifact in &self.artifacts {
             if artifact.artifact_id.trim().is_empty()
-                || artifact.artifact_id.len() > 200
+                || unicode_len(&artifact.artifact_id) > 200
                 || artifact.role.trim().is_empty()
-                || artifact.role.len() > 120
+                || unicode_len(&artifact.role) > 120
                 || artifact.media_type.trim().is_empty()
-                || artifact.media_type.len() > 120
+                || unicode_len(&artifact.media_type) > 120
                 || artifact.artifact_ref.trim().is_empty()
-                || artifact.artifact_ref.len() > 2000
+                || unicode_len(&artifact.artifact_ref) > 2000
             {
                 return Err("artifact ID, role, media type, and reference must be within their declared length limits".into());
             }
@@ -296,7 +310,7 @@ impl ScenarioRunEnvelope {
                 return Err("artifact artifact_sha256 must be lowercase SHA-256".into());
             }
             if artifact.json_pointer.as_deref().is_some_and(
-                |pointer| pointer.len() > 1000 || !is_valid_json_pointer(pointer)
+                |pointer| unicode_len(pointer) > 1000 || !is_valid_json_pointer(pointer)
             ) {
                 return Err(format!("invalid JSON Pointer for artifact {}", artifact.artifact_id));
             }
@@ -307,14 +321,19 @@ impl ScenarioRunEnvelope {
 
         let mut unique_rows = BTreeSet::new();
         for row in &self.outputs {
-            if row.metric_id.trim().is_empty() || row.unit.trim().is_empty() {
-                return Err("metric_id and unit must be non-empty".into());
+            let metric_id_len = unicode_len(&row.metric_id);
+            let unit_len = unicode_len(&row.unit);
+            if !(1..=200).contains(&metric_id_len) || !(1..=80).contains(&unit_len) {
+                return Err("metric_id must be 1..=200 characters and unit 1..=80 characters".into());
+            }
+            if !(-100_000..=100_000).contains(&row.year) {
+                return Err(format!("metric {} year is outside the schema range", row.metric_id));
             }
             if !row.value.is_finite() {
                 return Err(format!("metric {} contains a non-finite value", row.metric_id));
             }
-            if row.sample_count == 0 {
-                return Err(format!("metric {} has sample_count = 0", row.metric_id));
+            if row.sample_count == 0 || row.sample_count > 1_000_000 {
+                return Err(format!("metric {} sample_count must be within 1..=1000000", row.metric_id));
             }
             let key = (row.metric_id.as_str(), row.year, row.statistic);
             if !unique_rows.insert(key) {
@@ -373,6 +392,10 @@ impl ScenarioRunEnvelope {
 
         Ok(())
     }
+}
+
+fn unicode_len(value: &str) -> usize {
+    value.chars().count()
 }
 
 fn is_valid_json_pointer(value: &str) -> bool {
@@ -549,6 +572,49 @@ mod tests {
     fn preserves_legacy_metric_without_time_basis_as_unspecified() {
         let run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("legacy envelope");
         assert_eq!(run.outputs[0].time_basis, None);
+    }
+
+    #[test]
+    fn rejects_seed_above_schema_safe_integer_limit() {
+        let bad = valid_payload().replace("\"seed\":0", "\"seed\":9007199254740992");
+        assert!(ScenarioRunEnvelope::from_json(&bad).unwrap_err().contains("seed exceeds"));
+    }
+
+    #[test]
+    fn rejects_replicates_above_schema_limit() {
+        let bad = valid_payload().replace("\"replicates\":1", "\"replicates\":1000001");
+        assert!(ScenarioRunEnvelope::from_json(&bad).unwrap_err().contains("replicates must be within"));
+    }
+
+    #[test]
+    fn rejects_metric_year_above_schema_limit() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.outputs[0].year = 100001;
+        assert!(run.validate().unwrap_err().contains("year is outside"));
+    }
+
+    #[test]
+    fn rejects_metric_sample_count_above_schema_limit() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.outputs[0].sample_count = 1_000_001;
+        assert!(run.validate().unwrap_err().contains("sample_count must be within"));
+    }
+
+    #[test]
+    fn rejects_empty_validation_notes_and_warnings() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.validation.notes.push(String::new());
+        assert!(run.validate().unwrap_err().contains("validation notes"));
+        run.validation.notes.pop();
+        run.warnings.push(String::new());
+        assert!(run.validate().unwrap_err().contains("warnings"));
+    }
+
+    #[test]
+    fn rejects_overlong_run_id() {
+        let long_id = "r".repeat(201);
+        let raw = valid_payload().replace("\"run_id\":\"test-run-001\"", &format!("\"run_id\":\"{long_id}\""));
+        assert!(ScenarioRunEnvelope::from_json(&raw).unwrap_err().contains("run_id must be"));
     }
 
     #[test]
