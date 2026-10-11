@@ -401,6 +401,8 @@ mod tests {
             period_start_year: 2018,
             period_end_year: 2020,
             source_citation: "Example Study, DOI:10.0000/example".to_string(),
+            methodology_id: "eroi-boundary-accounting".to_string(),
+            methodology_version: "1.0.0".to_string(),
             publication_date: Some("2024-02-29".to_string()),
             basis: crate::types::EroiEvidenceBasis::Literature,
             uncertainty: None,
@@ -425,7 +427,7 @@ mod tests {
     }
 
     #[test]
-    fn comparisons_require_matching_stage_definitions_period_and_basis() {
+    fn comparisons_require_matching_stage_definitions_period_basis_and_method() {
         let mut left = ghawar();
         let mut right = ghawar();
         left.eroi = Some(25.0);
@@ -438,6 +440,10 @@ mod tests {
         assert!(can_compare_eroi(&left, &right));
 
         right.eroi_evidence.as_mut().unwrap().period_end_year = 2021;
+        assert!(!can_compare_eroi(&left, &right));
+
+        right.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
+        right.eroi_evidence.as_mut().unwrap().methodology_version = "2.0.0".to_string();
         assert!(!can_compare_eroi(&left, &right));
     }
 
