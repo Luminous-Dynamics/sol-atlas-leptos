@@ -293,11 +293,13 @@ impl ScenarioRunEnvelope {
                 return Err("selected_definition_source disagrees with engine definition_source".into());
             }
         }
-        if self.engine.source_revision.as_deref().is_some_and(|value| value.trim().is_empty())
+        if self.engine.source_revision.as_deref().is_some_and(
+            |value| value.trim().is_empty() || unicode_len(value) > 120
+        )
             || self.engine.definition_source.as_deref().is_some_and(|value| value.trim().is_empty())
             || self.engine.definition_source.as_deref().is_some_and(|value| unicode_len(value) > 200)
         {
-            return Err("source_revision and definition_source must be non-empty when present; definition_source is at most 200 characters".into());
+            return Err("source_revision must be non-empty and at most 120 characters; definition_source must be non-empty and at most 200 characters".into());
         }
         if self.engine.adapter.trim().is_empty()
             || unicode_len(&self.engine.adapter) > 120
