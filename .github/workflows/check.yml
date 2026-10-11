@@ -57,6 +57,22 @@ jobs:
             echo "case-insensitive self-centred request unexpectedly accepted" >&2
             exit 1
           fi
+          if HORIZONS_TARGET_ID=MARS scripts/capture-horizons-vector.sh --print-identity >/dev/null 2>&1; then
+            echo "noncanonical catalogue target ID unexpectedly accepted" >&2
+            exit 1
+          fi
+          if HORIZONS_TARGET_ID=ssb scripts/capture-horizons-vector.sh --print-identity >/dev/null 2>&1; then
+            echo "reserved SSB target unexpectedly accepted" >&2
+            exit 1
+          fi
+          if HORIZONS_CENTER_ID=EARTH scripts/capture-horizons-vector.sh --print-identity >/dev/null 2>&1; then
+            echo "noncanonical catalogue centre ID unexpectedly accepted" >&2
+            exit 1
+          fi
+          if HORIZONS_CENTER_ID=SSB scripts/capture-horizons-vector.sh --print-identity >/dev/null 2>&1; then
+            echo "noncanonical SSB centre ID unexpectedly accepted" >&2
+            exit 1
+          fi
           small_jd_url="$(HORIZONS_EPOCH_JD=0.0000001 scripts/capture-horizons-vector.sh --print-url)"
           [[ "$small_jd_url" == *"TLIST=%270.0000001%27"* ]]
 
