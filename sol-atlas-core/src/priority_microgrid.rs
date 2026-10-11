@@ -53,7 +53,7 @@ impl PriorityServicePolicyV1 {
             && self.policy_id == manifest.policy.policy_id
             && self.allocation == PriorityServiceAllocationV1::CriticalFirst
             && self.service_order.as_slice()
-                == [PriorityServiceClassV1::Critical, PriorityServiceClassV1::Noncritical]
+                == &[PriorityServiceClassV1::Critical, PriorityServiceClassV1::Noncritical]
     }
 }
 
