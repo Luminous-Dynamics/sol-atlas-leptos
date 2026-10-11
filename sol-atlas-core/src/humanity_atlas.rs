@@ -180,6 +180,24 @@ impl ScenarioRunEnvelope {
     /// according to the envelope contract. It does not mean the model has
     /// been independently audited or that its outputs describe reality.
     pub fn from_json(raw: &str) -> Result<Self, String> {
+        // These two schema-required fields are nullable. Option<T> alone cannot
+        // distinguish an explicit JSON null from a missing key, so check presence
+        // before deserializing into the typed contract. Deserialize the raw bytes
+        // again below so Serde still rejects duplicate struct fields.
+        let value: serde_json::Value = serde_json::from_str(raw)
+            .map_err(|error| format!("invalid Humanity Atlas run JSON: {error}"))?;
+        let object = value.as_object()
+            .ok_or_else(|| "invalid Humanity Atlas run JSON: top level must be an object".to_string())?;
+        if !object.contains_key("deterministic") {
+            return Err("invalid Humanity Atlas run JSON: missing required field deterministic".into());
+        }
+        let inputs = object.get("inputs")
+            .and_then(serde_json::Value::as_object)
+            .ok_or_else(|| "invalid Humanity Atlas run JSON: inputs must be an object".to_string())?;
+        if !inputs.contains_key("dataset_sha256") {
+            return Err("invalid Humanity Atlas run JSON: missing required field inputs.dataset_sha256".into());
+        }
+
         let run: Self = serde_json::from_str(raw)
             .map_err(|error| format!("invalid Humanity Atlas run JSON: {error}"))?;
         run.validate()?;
@@ -611,6 +629,19 @@ mod tests {
         run.inputs.resolved_params_sha256 = Some("b".repeat(64));
         run.engine.definition_source = Some("loaded_external_toml".into());
         assert!(run.validate().unwrap_err().contains("disagrees with engine definition_source"));
+    }
+
+    #[test]
+    fn rejects_missing_required_nullable_deterministic_field() {
+        let bad = valid_payload().replace("\"deterministic\":true,", "");
+        assert!(ScenarioRunEnvelope::from_json(&bad).unwrap_err().contains("missing required field deterministic"));
+    }
+
+    #[test]
+    fn rejects_missing_required_nullable_dataset_digest_field() {
+        let digest = "b".repeat(64);
+        let bad = valid_payload().replace(&format!(",\"dataset_sha256\":\"{digest}\""), "");
+        assert!(ScenarioRunEnvelope::from_json(&bad).unwrap_err().contains("missing required field inputs.dataset_sha256"));
     }
 
     #[test]
