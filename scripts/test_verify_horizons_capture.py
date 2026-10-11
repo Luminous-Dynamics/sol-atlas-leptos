@@ -184,6 +184,32 @@ class HorizonsCapturePacketTests(unittest.TestCase):
             with self.assertRaisesRegex(verifier.CaptureVerificationError, "missing headers file"):
                 verifier.verify_capture(capture)
 
+    def test_noncanonical_url_authority_is_rejected(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            metadata = json.loads(
+                (capture / "capture-metadata.json").read_text(encoding="utf-8")
+            )
+            canonical = default_url().decode("utf-8")
+            for bad_url in (
+                canonical.replace(
+                    "https://ssd.jpl.nasa.gov/",
+                    "https://ssd.jpl.nasa.gov:443/",
+                    1,
+                ),
+                canonical.replace(
+                    "https://ssd.jpl.nasa.gov/",
+                    "https://operator@ssd.jpl.nasa.gov/",
+                    1,
+                ),
+            ):
+                with self.subTest(url=bad_url.split("?", 1)[0]):
+                    with self.assertRaisesRegex(
+                        verifier.CaptureVerificationError,
+                        "not the canonical Horizons GET endpoint",
+                    ):
+                        verifier.validate_url_metadata(bad_url.encode("utf-8"), metadata)
+
     def test_request_url_parameter_order_must_be_canonical(self) -> None:
         with TemporaryDirectory() as temporary:
             capture = self.make_capture(Path(temporary) / "capture")
