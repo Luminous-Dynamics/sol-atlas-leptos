@@ -215,8 +215,8 @@ impl Layer {
                 kind: Curated,
             },
             Self::Earthquakes => DataProvenance {
-                source: "USGS earthquake feed",
-                snapshot_date: "2026-04",
+                source: "USGS ComCat live feed (M1.0+ past day; last-known-good retained on refresh failure)",
+                snapshot_date: "",
                 kind: Observed,
             },
             Self::Fires => DataProvenance {
@@ -263,7 +263,8 @@ impl Layer {
 /// How a dataset relates to reality.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DataKind {
-    /// Direct observations from a named source — a dated snapshot, not live.
+    /// Direct observations from a named source. Layers document snapshot or
+    /// live-feed behavior and expose freshness separately when available.
     Observed,
     /// Real-world entities, hand-curated; some fields are estimates.
     Curated,

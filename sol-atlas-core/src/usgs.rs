@@ -7,7 +7,7 @@
 use serde::Deserialize;
 use std::fmt;
 
-pub const USGS_ALL_DAY_FEED_URL: &str =
+pub const USGS_M1_DAY_FEED_URL: &str =
     "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_day.geojson";
 pub const USGS_EVENT_PAGE_PREFIX: &str =
     "https://earthquake.usgs.gov/earthquakes/eventpage/";
@@ -48,6 +48,7 @@ impl UsgsFeedSnapshot {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UsgsFeedError {
+    EmptyFeed,
     BodyTooLarge { actual: usize, maximum: usize },
     InvalidJson(String),
     InvalidRootType,
@@ -64,6 +65,7 @@ pub enum UsgsFeedError {
 impl fmt::Display for UsgsFeedError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::EmptyFeed => write!(f, "USGS live feed unexpectedly contained no features"),
             Self::BodyTooLarge { actual, maximum } => write!(f, "USGS payload is {actual} bytes; limit is {maximum}"),
             Self::InvalidJson(error) => write!(f, "invalid USGS GeoJSON: {error}"),
             Self::InvalidRootType => write!(f, "USGS payload is not a GeoJSON FeatureCollection"),
@@ -156,6 +158,9 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<UsgsFeedSnapshot, Us
     }
 
     let feature_count = wire.features.len();
+    if feature_count == 0 {
+        return Err(UsgsFeedError::EmptyFeed);
+    }
     let mut earthquakes = Vec::with_capacity(feature_count.min(2_000));
     let mut skipped_features = 0usize;
     for feature in wire.features {
@@ -317,6 +322,11 @@ mod tests {
         assert!(matches!(parse_feed(&" ".repeat(MAX_FEED_BYTES + 1), NOW), Err(UsgsFeedError::BodyTooLarge { .. })));
         let payload = format!(r#"{{"type":"FeatureCollection","metadata":{{"generated":{NOW},"status":503}},"features":[]}}"#);
         assert_eq!(parse_feed(&payload, NOW), Err(UsgsFeedError::UpstreamStatus(503)));
+    }
+    #[test]
+    fn rejects_empty_feed_instead_of_clearing_last_good_data() {
+        let payload = format!(r#"{{"type":"FeatureCollection","metadata":{{"generated":{NOW},"status":200,"count":0}},"features":[]}}"#);
+        assert_eq!(parse_feed(&payload, NOW), Err(UsgsFeedError::EmptyFeed));
     }
     #[test]
     fn rejects_nonempty_feed_if_all_features_are_invalid() {

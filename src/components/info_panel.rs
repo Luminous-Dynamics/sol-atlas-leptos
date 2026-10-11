@@ -154,7 +154,7 @@ pub fn InfoPanel() -> impl IntoView {
                         <div>
                             <h2>{e.name.clone()}</h2>
                             <div class="subtitle">{format!(
-                                "{:?} \\u{00b7} {}",
+                                "{:?} · {}",
                                 e.event_type,
                                 if e.source_id.is_some() { "source-linked observation" } else { "bundled snapshot" }
                             )}</div>

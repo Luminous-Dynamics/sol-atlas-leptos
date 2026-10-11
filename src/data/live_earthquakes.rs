@@ -10,7 +10,7 @@ use crate::state::data_state::DataState;
 use gloo_timers::callback::Timeout;
 use gloo_timers::future::TimeoutFuture;
 use sol_atlas_core::usgs::{
-    FeedHealth, MAX_FEED_AGE_MS, MAX_FEED_BYTES, UsgsFeedStatus, USGS_ALL_DAY_FEED_URL,
+    FeedHealth, MAX_FEED_AGE_MS, MAX_FEED_BYTES, UsgsFeedStatus, USGS_M1_DAY_FEED_URL,
     parse_feed,
 };
 use wasm_bindgen::JsCast;
@@ -46,7 +46,7 @@ async fn refresh_once(data_state: &DataState) -> Result<(), String> {
         timeout_controller.abort();
     });
     let response_value = JsFuture::from(
-        window.fetch_with_str_and_init(USGS_ALL_DAY_FEED_URL, &init),
+        window.fetch_with_str_and_init(USGS_M1_DAY_FEED_URL, &init),
     )
     .await
     .map_err(|_| "USGS request failed or timed out".to_string())?;
