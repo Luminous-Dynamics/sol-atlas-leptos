@@ -126,11 +126,10 @@ pub fn InfoPanel() -> impl IntoView {
                     }.into_any(),
                     Some(SelectedItem::FossilDeposit(d)) => {
                         let eroi = sol_atlas_core::economics::compute_eroi(d);
-                        let comparable_eroi = sol_atlas_core::economics::comparable_eroi(d);
-                        let evidence = d
-                            .eroi_evidence
-                            .as_ref()
-                            .filter(|evidence| evidence.is_qualified());
+                        let qualified_eroi = sol_atlas_core::economics::qualified_eroi(d);
+                        // Render supplied metadata even when malformed so the evidence gap
+                        // remains inspectable; only qualified evidence affects classification.
+                        let evidence = d.eroi_evidence.as_ref();
                         view! {
                             <div>
                                 <h2>{d.name.clone()}</h2>
@@ -138,7 +137,7 @@ pub fn InfoPanel() -> impl IntoView {
                                 {match eroi {
                                     Some(e) => hero(
                                         format!("{:.1}:1", e),
-                                        if comparable_eroi.is_some() { "EROI estimate" } else { "EROI value — unqualified" },
+                                        if qualified_eroi.is_some() { "EROI estimate" } else { "EROI value — unqualified" },
                                     ).into_any(),
                                     None => hero("Unknown".to_string(), "physical EROI").into_any(),
                                 }}
@@ -146,12 +145,23 @@ pub fn InfoPanel() -> impl IntoView {
                                     "EROI classification",
                                     if eroi.is_none() {
                                         "Unknown — physical EROI not supplied".to_string()
-                                    } else if comparable_eroi.is_none() {
+                                    } else if qualified_eroi.is_none() {
                                         "Unqualified — source or boundary metadata missing".to_string()
                                     } else {
                                         "Not tiered — threshold methodology lacks a named system boundary".to_string()
                                     },
                                 )}
+                                {match evidence {
+                                    Some(evidence) => row(
+                                        "EROI metadata",
+                                        if evidence.is_qualified() {
+                                            "Shape valid; source not authenticated".to_string()
+                                        } else {
+                                            "Incomplete or invalid — not comparable".to_string()
+                                        },
+                                    ),
+                                    None => row("EROI metadata", "Not supplied".to_string()),
+                                }}
                                 {match evidence {
                                     Some(evidence) => row("EROI stage", evidence.stage.label().to_string()),
                                     None => row("EROI stage", "Not qualified".to_string()),

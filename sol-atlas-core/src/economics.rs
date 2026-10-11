@@ -94,7 +94,7 @@ pub fn compute_eroi(deposit: &FossilDeposit) -> Option<f64> {
 /// Return a numeric EROI only when its source and system-boundary metadata
 /// are complete enough for like-boundary comparison. The raw reported value
 /// remains available through compute_eroi but must not receive a tier by default.
-pub fn comparable_eroi(deposit: &FossilDeposit) -> Option<f64> {
+pub fn qualified_eroi(deposit: &FossilDeposit) -> Option<f64> {
     let ratio = compute_eroi(deposit)?;
     let evidence = deposit.eroi_evidence.as_ref()?;
     evidence.is_qualified().then_some(ratio)
@@ -408,20 +408,20 @@ mod tests {
     }
 
     #[test]
-    fn eroi_tiers_require_complete_boundary_and_source_evidence() {
+    fn eroi_qualification_requires_complete_boundary_and_source_evidence() {
         let mut deposit = ghawar();
         deposit.eroi = Some(25.0);
         assert_eq!(compute_eroi(&deposit), Some(25.0));
-        assert_eq!(comparable_eroi(&deposit), None);
+        assert_eq!(qualified_eroi(&deposit), None);
 
         deposit.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
-        assert_eq!(comparable_eroi(&deposit), Some(25.0));
+        assert_eq!(qualified_eroi(&deposit), Some(25.0));
 
         deposit.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Useful));
-        assert_eq!(comparable_eroi(&deposit), Some(25.0));
+        assert_eq!(qualified_eroi(&deposit), Some(25.0));
 
         deposit.eroi_evidence.as_mut().unwrap().source_citation.clear();
-        assert_eq!(comparable_eroi(&deposit), None);
+        assert_eq!(qualified_eroi(&deposit), None);
     }
 
     #[test]
