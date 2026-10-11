@@ -524,3 +524,30 @@ mod e2e_tests {
         assert!(data.sites.is_empty());
     }
 }
+
+
+#[cfg(test)]
+mod live_timestamp_compat_tests {
+    use super::*;
+
+    #[test]
+    fn bundled_geojson_with_iso_event_time_still_loads() {
+        let earthquake = r#"{
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "properties": {
+                    "magnitude": 5.0,
+                    "place": "Test location",
+                    "time": "2025-09-16T01:05:59.070000"
+                },
+                "geometry": {"type": "Point", "coordinates": [1.0, 2.0, 3.0]}
+            }]
+        }"#;
+        let events = parse_natural_events(earthquake, "[]", "[]", "[]");
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].name, "Test location");
+        assert_eq!(events[0].occurred_at_ms, None);
+        assert_eq!(events[0].depth_km, Some(3.0));
+    }
+}

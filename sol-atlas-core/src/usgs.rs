@@ -15,6 +15,8 @@ pub const MAX_FEED_BYTES: usize = 8 * 1024 * 1024;
 pub const MAX_FEATURES: usize = 20_000;
 pub const MAX_FEED_AGE_MS: i64 = 10 * 60 * 1_000;
 pub const MAX_FUTURE_SKEW_MS: i64 = 5 * 60 * 1_000;
+/// The selected 1.0_day feed should contain events from roughly the previous day.
+pub const MAX_EVENT_AGE_MS: i64 = 26 * 60 * 60 * 1_000;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct UsgsEarthquake {
@@ -190,6 +192,12 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<UsgsFeedSnapshot, Us
             skipped_features += 1;
             continue;
         };
+        if occurred_at_ms < generated_at_ms.saturating_sub(MAX_EVENT_AGE_MS)
+            || occurred_at_ms > generated_at_ms.saturating_add(MAX_FUTURE_SKEW_MS)
+        {
+            skipped_features += 1;
+            continue;
+        }
         let coordinates = &geometry.coordinates;
         if coordinates.len() < 2 {
             skipped_features += 1;
@@ -209,7 +217,10 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<UsgsFeedSnapshot, Us
             continue;
         }
         let depth_km = coordinates.get(2).copied().filter(|value| value.is_finite());
-        let updated_at_ms = properties.updated.filter(|value| *value > 0);
+        let updated_at_ms = properties.updated.filter(|value| {
+            *value >= occurred_at_ms
+                && *value <= generated_at_ms.saturating_add(MAX_FUTURE_SKEW_MS)
+        });
         let event_url = properties.url.filter(|value| valid_event_url(value));
         earthquakes.push(UsgsEarthquake {
             id, latitude, longitude, depth_km, magnitude, place, occurred_at_ms,
@@ -316,6 +327,17 @@ mod tests {
         let feature = quake("us123", "10", "20", "3.0");
         assert_eq!(parse_feed(&fixture(NOW - MAX_FEED_AGE_MS - 1, &feature), NOW), Err(UsgsFeedError::StaleFeed));
         assert_eq!(parse_feed(&fixture(NOW + MAX_FUTURE_SKEW_MS + 1, &feature), NOW), Err(UsgsFeedError::FutureDatedFeed));
+    }
+    #[test]
+    fn skips_events_outside_the_feed_time_window() {
+        let valid = quake("us123", "10", "20", "3.0");
+        let old = quake("us124", "11", "21", "3.1")
+            .replace("1699999990000", "1600000000000");
+        let future = quake("us125", "12", "22", "3.2")
+            .replace("1699999990000", &(NOW + MAX_FUTURE_SKEW_MS + 1).to_string());
+        let feed = parse_feed(&fixture(NOW, &format!("{valid},{old},{future}")), NOW).unwrap();
+        assert_eq!(feed.earthquakes.len(), 1);
+        assert_eq!(feed.skipped_features, 2);
     }
     #[test]
     fn rejects_oversized_and_non_success_feeds() {
