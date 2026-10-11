@@ -214,8 +214,12 @@ impl ScenarioRunEnvelope {
         }
         let run_id_len = unicode_len(&self.run_id);
         let scenario_id_len = unicode_len(&self.scenario_id);
-        if !(3..=200).contains(&run_id_len) || !(3..=180).contains(&scenario_id_len) {
-            return Err("run_id must be 3..=200 characters and scenario_id 3..=180 characters".into());
+        if self.run_id.trim().is_empty()
+            || self.scenario_id.trim().is_empty()
+            || !(3..=200).contains(&run_id_len)
+            || !(3..=180).contains(&scenario_id_len)
+        {
+            return Err("run_id must be non-empty and 3..=200 characters; scenario_id must be non-empty and 3..=180 characters".into());
         }
         if self.seed > 9_007_199_254_740_991 {
             return Err("seed exceeds the exact integer range allowed by the run schema".into());
@@ -251,6 +255,22 @@ impl ScenarioRunEnvelope {
         if let Some(kind) = self.engine.model_identity_kind.as_deref() {
             if !matches!(kind, "full_model" | "technology_tree_definition" | "unknown") {
                 return Err("unsupported model_identity_kind".into());
+            }
+        }
+        if self.engine.model_identity_kind.as_deref() == Some("technology_tree_definition") {
+            let scenario_kind = self.inputs.scenario_identity_kind.as_deref();
+            let input_source = self.inputs.selected_definition_source.as_deref();
+            let engine_source = self.engine.definition_source.as_deref();
+            if scenario_kind != Some("canonical_effective_scenario")
+                || input_source.is_none()
+                || engine_source.is_none()
+                || self.inputs.resolved_config_sha256.is_none()
+                || self.inputs.resolved_params_sha256.is_none()
+            {
+                return Err("technology_tree_definition identity requires canonical scenario identity, selected/effective definition source, and resolved config/params digests".into());
+            }
+            if input_source != engine_source {
+                return Err("selected_definition_source disagrees with engine definition_source".into());
             }
         }
         if self.engine.source_revision.as_deref().is_some_and(|value| value.trim().is_empty())
@@ -572,6 +592,25 @@ mod tests {
     fn preserves_legacy_metric_without_time_basis_as_unspecified() {
         let run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("legacy envelope");
         assert_eq!(run.outputs[0].time_basis, None);
+    }
+
+    #[test]
+    fn rejects_tree_scoped_model_without_resolved_input_bindings() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.engine.model_identity_kind = Some("technology_tree_definition".into());
+        assert!(run.validate().unwrap_err().contains("requires canonical scenario identity"));
+    }
+
+    #[test]
+    fn rejects_mismatched_selected_and_engine_definition_sources() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.engine.model_identity_kind = Some("technology_tree_definition".into());
+        run.inputs.scenario_identity_kind = Some("canonical_effective_scenario".into());
+        run.inputs.selected_definition_source = Some("in_code_default_tree".into());
+        run.inputs.resolved_config_sha256 = Some("a".repeat(64));
+        run.inputs.resolved_params_sha256 = Some("b".repeat(64));
+        run.engine.definition_source = Some("loaded_external_toml".into());
+        assert!(run.validate().unwrap_err().contains("disagrees with engine definition_source"));
     }
 
     #[test]
