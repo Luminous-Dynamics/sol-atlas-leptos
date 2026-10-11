@@ -27,7 +27,7 @@ const EXPECTED_ADAPTER: &str = "mycelix-multiworld-sim-humanity-atlas-adapter";
 const EXPECTED_JSON_POINTER: &str = "/technology_tree";
 const SECTOR_COUNT: usize = 8;
 const MAX_SAFE_INTEGER: u64 = 9_007_199_254_740_991;
-const MAX_SOURCE_ARTIFACT_BYTES: usize = 64 * 1024 * 1024;
+pub const MAX_SOURCE_ARTIFACT_BYTES: usize = 64 * 1024 * 1024;
 
 /// Fully checked graph imported from the captured simulator artifact.
 #[derive(Debug, Clone, PartialEq)]
