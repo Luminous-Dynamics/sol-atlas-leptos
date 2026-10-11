@@ -825,7 +825,7 @@ fn validate_vector_column_header(header_lines: &[&str]) -> Result<(), HorizonsPa
     let component_labels = ["X", "Y", "Z", "VX", "VY", "VZ"];
     let valid = normalized.len() == 8
         && normalized[0] == "JDTDB"
-        && normalized[1].starts_with("CALENDAR DATE")
+        && normalized[1] == "CALENDAR DATE (TDB)"
         && component_labels
             .iter()
             .enumerate()
@@ -1493,6 +1493,21 @@ mod tests {
         );
         assert!(matches!(
             parse_horizons_vectors_json(&reordered, &request(), &provenance_for(&reordered)),
+            Err(HorizonsParseError::UnexpectedVectorColumns { .. })
+        ));
+
+        // The Python validator requires the exact TDB label; Rust must not
+        // accept an epoch column that claims a different time basis.
+        let wrong_time_basis = FIXTURE.replace(
+            "JDTDB, Calendar Date (TDB), X, Y, Z, VX, VY, VZ",
+            "JDTDB, Calendar Date (UTC), X, Y, Z, VX, VY, VZ",
+        );
+        assert!(matches!(
+            parse_horizons_vectors_json(
+                &wrong_time_basis,
+                &request(),
+                &provenance_for(&wrong_time_basis)
+            ),
             Err(HorizonsParseError::UnexpectedVectorColumns { .. })
         ));
     }
