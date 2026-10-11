@@ -1038,6 +1038,23 @@ mod tests {
     }
 
     #[test]
+    fn rejects_artifact_without_the_declared_tree_pointer() {
+        let (mut run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
+        run.artifacts[0].json_pointer = None;
+        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
+            .unwrap_err().contains("must select the embedded"));
+    }
+
+    #[test]
+    fn rejects_out_of_range_sector_prerequisite() {
+        let mut milestone = test_milestone("Fusion Demo", vec![], vec![]);
+        milestone.sector_prerequisites[0].sector_index = 8;
+        let (run, raw) = fixture(vec![milestone]);
+        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
+            .unwrap_err().contains("out-of-range sector prerequisite"));
+    }
+
+    #[test]
     fn rejects_tampered_artifact_before_parsing() {
         let (run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
         let mut changed = raw.clone();
