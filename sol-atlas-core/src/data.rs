@@ -230,7 +230,7 @@ fn parse_natural_events(
     let mut events = Vec::new();
 
     // Parse GeoJSON FeatureCollections (all share same structure)
-    fn parse_geojson(name: &str, json: &str, event_type: NaturalEventType) -> Vec<NaturalEvent> {
+    fn parse_geojson(dataset_name: &str, json: &str, event_type: NaturalEventType) -> Vec<NaturalEvent> {
         #[derive(Deserialize)]
         struct FeatureCollection {
             features: Vec<Feature>,
@@ -273,7 +273,7 @@ fn parse_natural_events(
         let fc = match serde_json::from_str::<FeatureCollection>(json) {
             Ok(fc) => fc,
             Err(e) => {
-                log::warn!("sol-atlas-core: failed to parse dataset '{name}': {e}");
+                log::warn!("sol-atlas-core: failed to parse dataset '{dataset_name}': {e}");
                 return vec![];
             }
         };
@@ -310,18 +310,18 @@ fn parse_natural_events(
                     name,
                     magnitude_unit: None,
                     magnitude_description: None,
-                    source_name: match name {
+                    source_name: match dataset_name {
                         "usgs-earthquakes" => Some("USGS ComCat".to_string()),
                         "nasa-firms" => Some("NASA FIRMS".to_string()),
                         "nasa-eonet" => Some("NASA EONET".to_string()),
                         "volcanoes" => Some("Curated volcano inventory".to_string()),
                         _ => None,
                     },
-                    source_id: match name {
+                    source_id: match dataset_name {
                         "usgs-earthquakes" | "nasa-eonet" => f.id.clone(),
                         _ => None,
                     },
-                    source_url: match name {
+                    source_url: match dataset_name {
                         "usgs-earthquakes" => f.properties.url.as_deref().filter(|url| {
                             valid_source_event_url(
                                 url,
