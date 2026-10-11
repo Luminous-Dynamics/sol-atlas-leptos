@@ -25,6 +25,7 @@ pub mod simulation;
 pub mod solar_system;
 pub mod timeline;
 pub mod types;
+pub mod usgs;
 pub mod visual_validation;
 
 pub use types::*;

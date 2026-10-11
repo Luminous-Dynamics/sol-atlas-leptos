@@ -222,6 +222,8 @@ fn parse_natural_events(
         }
         #[derive(Deserialize)]
         struct Feature {
+            #[serde(default)]
+            id: Option<String>,
             properties: Properties,
             geometry: Geometry,
         }
@@ -239,6 +241,12 @@ fn parse_natural_events(
             name: Option<String>,
             #[serde(rename = "type", default)]
             event_kind: Option<String>,
+            #[serde(default)]
+            time: Option<i64>,
+            #[serde(default)]
+            updated: Option<i64>,
+            #[serde(default)]
+            url: Option<String>,
         }
         #[derive(Deserialize)]
         struct Geometry {
@@ -283,6 +291,16 @@ fn parse_natural_events(
                     event_type,
                     magnitude,
                     name,
+                    source_id: f.id.clone(),
+                    source_url: f.properties.url.as_deref().filter(|url| {
+                        url.starts_with(crate::usgs::USGS_EVENT_PAGE_PREFIX)
+                            && url.len() <= 2_048
+                            && !url.chars().any(char::is_control)
+                            && !url.chars().any(char::is_whitespace)
+                    }).map(str::to_string),
+                    occurred_at_ms: f.properties.time,
+                    updated_at_ms: f.properties.updated,
+                    depth_km: coords.get(2).copied().filter(|depth| depth.is_finite()),
                 })
             })
             .collect()

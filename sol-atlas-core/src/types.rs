@@ -687,6 +687,20 @@ pub struct NaturalEvent {
     pub event_type: NaturalEventType,
     pub magnitude: f64,
     pub name: String,
+    /// Stable identifier at the originating source, when available.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_id: Option<String>,
+    /// Only a validated source URL; absent for unlinked bundled records.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_url: Option<String>,
+    /// Event time supplied by the source, in Unix milliseconds UTC.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub occurred_at_ms: Option<i64>,
+    /// Last source update time, in Unix milliseconds UTC.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_at_ms: Option<i64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub depth_km: Option<f64>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
