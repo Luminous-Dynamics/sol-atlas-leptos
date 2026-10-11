@@ -104,11 +104,21 @@ impl OutputClassification {
 #[serde(deny_unknown_fields)]
 pub struct MetricOutput {
     pub metric_id: String,
+    /// Numeric year coordinate. Interpret only with time_basis; an absent basis
+    /// preserves legacy v0.1 behavior and must not be inferred as calendar time.
     pub year: i32,
+    pub time_basis: Option<OutputTimeBasis>,
     pub unit: String,
     pub statistic: OutputStatistic,
     pub value: f64,
     pub sample_count: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OutputTimeBasis {
+    CalendarYear,
+    ScenarioRelativeYear,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -467,6 +477,23 @@ mod tests {
             json_pointer: None,
         });
         assert!(run.validate().unwrap_err().contains("artifact_sha256"));
+    }
+
+    #[test]
+    fn preserves_scenario_relative_metric_time_basis() {
+        let payload = valid_payload().replace(
+            "\"year\":2030",
+            "\"year\":150,\"time_basis\":\"scenario_relative_year\"",
+        );
+        let run = ScenarioRunEnvelope::from_json(&payload).expect("valid relative-time run");
+        assert_eq!(run.outputs[0].year, 150);
+        assert_eq!(run.outputs[0].time_basis, Some(OutputTimeBasis::ScenarioRelativeYear));
+    }
+
+    #[test]
+    fn preserves_legacy_metric_without_time_basis_as_unspecified() {
+        let run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("legacy envelope");
+        assert_eq!(run.outputs[0].time_basis, None);
     }
 
     #[test]
