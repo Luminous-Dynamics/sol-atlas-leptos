@@ -144,6 +144,7 @@ fn parse_or_log<T: Default>(dataset: &str, result: Result<T, serde_json::Error>)
 #[serde(rename_all = "snake_case")]
 pub enum DatasetLoadState {
     Loaded,
+    PartiallyLoaded,
     ValidEmpty,
     Malformed,
     Unavailable,
@@ -153,13 +154,16 @@ pub enum DatasetLoadState {
 
 /// Per-dataset parse and freshness diagnostic.
 ///
-/// record_count counts source records represented by the parsed value when
-/// known. It is None for malformed input, not zero.
+/// record_count counts accepted records. It is None for malformed input,
+/// not zero. rejected_record_count records parsed source entries rejected by
+/// semantic filters such as coordinate validation.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DatasetLoadHealth {
     pub dataset: String,
     pub state: DatasetLoadState,
     pub record_count: Option<usize>,
+    #[serde(default)]
+    pub rejected_record_count: Option<usize>,
     pub diagnostic: Option<String>,
 }
 
