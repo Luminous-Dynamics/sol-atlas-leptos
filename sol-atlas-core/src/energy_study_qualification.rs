@@ -143,7 +143,7 @@ pub fn verify_energy_study_artifacts_v1(
     }
     if artifacts.datasets.len() != manifest.datasets.len()
         || manifest.datasets.iter().any(|expected| {
-            !artifacts.datasets.iter().any(|(actual_id, _)| *actual_id == expected.dataset_id)
+            !artifacts.datasets.iter().any(|(actual_id, _)| *actual_id == expected.dataset_id.as_str())
         })
     {
         return Err(EnergyStudyQualificationError::ArtifactSetMismatch);
@@ -152,7 +152,7 @@ pub fn verify_energy_study_artifacts_v1(
     let mut entries: Vec<(String, String)> = Vec::with_capacity(manifest.datasets.len() + 4);
     for dataset in &manifest.datasets {
         let (_, bytes) = artifacts.datasets.iter()
-            .find(|(dataset_id, _)| *dataset_id == dataset.dataset_id)
+            .find(|(dataset_id, _)| *dataset_id == dataset.dataset_id.as_str())
             .ok_or(EnergyStudyQualificationError::ArtifactSetMismatch)?;
         let actual_hash = sha256_hex(bytes);
         if actual_hash != dataset.content_sha256 {
