@@ -638,6 +638,15 @@ mod tests {
         assert!(assessment.critical_unserved_energy_upper_bound_kwh > 0.0);
         assert_eq!(assessment.maximum_allowed_kwh, 0.0);
         assert!(!assessment.proven_within_limit);
+
+        assert_eq!(
+            assess_critical_load_constraint_v1(&manifest, b"tampered", load_bytes, &simulation),
+            Err(EnergyStudyQualificationError::ArtifactHashMismatch("constraints"))
+        );
+        assert_eq!(
+            assess_critical_load_constraint_v1(&manifest, constraint_bytes, b"tampered", &simulation),
+            Err(EnergyStudyQualificationError::ArtifactHashMismatch("load-profile"))
+        );
     }
 
     #[test]
