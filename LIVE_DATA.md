@@ -32,12 +32,18 @@ validation, state updates, and UI remain in Rust.
   and CONNECTING states.
 - The live refresh replaces only earthquake records. Fire, storm, and volcano
   records from their other configured sources remain intact.
+- The selected-event dossier lists up to four nearest curated infrastructure
+  records inside 100 km, using the Rust core's great-circle distance helper.
+  This is geographic context only: the inventory is incomplete, and proximity
+  is not an impact, damage, causal, or risk estimate.
 
 ## Deliberate limits
 
 This first slice provides recent earthquake observations. It does not yet ingest
 GEV's flight, ship, traffic, or camera sources, nor does it infer a risk score
-from spatial overlap. Add one source at a time, with source-specific licensing,
+from spatial overlap. The 100 km proximity view is deliberately not a model of
+earthquake attenuation or infrastructure vulnerability. Add one source at a
+time, with source-specific licensing,
 schema, freshness, provenance, and deterministic parser tests before using it in
 simulation or coordination decisions.
 

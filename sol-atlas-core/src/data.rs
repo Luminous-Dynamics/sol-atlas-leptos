@@ -291,7 +291,11 @@ fn parse_natural_events(
                     event_type,
                     magnitude,
                     name,
-                    source_id: if event_type == NaturalEventType::Earthquake { f.id.clone() } else { None },
+                    source_id: if event_type == NaturalEventType::Earthquake {
+                        f.id.clone()
+                    } else {
+                        None
+                    },
                     source_url: if event_type == NaturalEventType::Earthquake {
                         f.properties.url.as_deref().filter(|url| {
                             url.starts_with(crate::usgs::USGS_EVENT_PAGE_PREFIX)

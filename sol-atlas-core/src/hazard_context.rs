@@ -67,7 +67,7 @@ fn valid_coordinate(latitude: f64, longitude: f64) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{NaturalEventType};
+    use crate::types::NaturalEventType;
 
     fn event(latitude: f64, longitude: f64) -> NaturalEvent {
         NaturalEvent {
