@@ -115,7 +115,7 @@ pub struct MetricOutput {
     pub sample_count: u32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum OutputTimeBasis {
     CalendarYear,
@@ -369,8 +369,12 @@ impl ScenarioRunEnvelope {
         for row in &self.outputs {
             let metric_id_len = unicode_len(&row.metric_id);
             let unit_len = unicode_len(&row.unit);
-            if !(1..=200).contains(&metric_id_len) || !(1..=80).contains(&unit_len) {
-                return Err("metric_id must be 1..=200 characters and unit 1..=80 characters".into());
+            if row.metric_id.trim().is_empty()
+                || row.unit.trim().is_empty()
+                || !(1..=200).contains(&metric_id_len)
+                || !(1..=80).contains(&unit_len)
+            {
+                return Err("metric_id must be non-empty and 1..=200 characters; unit must be non-empty and 1..=80 characters".into());
             }
             if !(-100_000..=100_000).contains(&row.year) {
                 return Err(format!("metric {} year is outside the schema range", row.metric_id));
@@ -381,7 +385,7 @@ impl ScenarioRunEnvelope {
             if row.sample_count == 0 || row.sample_count > 1_000_000 {
                 return Err(format!("metric {} sample_count must be within 1..=1000000", row.metric_id));
             }
-            let key = (row.metric_id.as_str(), row.year, row.statistic);
+            let key = (row.metric_id.as_str(), row.year, row.time_basis, row.statistic);
             if !unique_rows.insert(key) {
                 return Err(format!(
                     "duplicate metric row: {} / {} / {:?}",
@@ -815,6 +819,15 @@ mod tests {
             artifact_sha256: "d".repeat(64),
             description: "Synthetic receipt shape test only".into(),
         });
+        assert!(run.validate().is_ok());
+    }
+
+    #[test]
+    fn allows_same_metric_coordinate_with_distinct_time_basis() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        let mut distinct = run.outputs[0].clone();
+        distinct.time_basis = Some(OutputTimeBasis::ScenarioRelativeYear);
+        run.outputs.push(distinct);
         assert!(run.validate().is_ok());
     }
 
