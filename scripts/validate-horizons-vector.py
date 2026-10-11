@@ -17,6 +17,30 @@ from pathlib import Path
 SUPPORTED_GET_SIGNATURE_VERSIONS = {"1.0", "1.3"}
 
 
+def _unique_object_pairs(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    """Reject duplicate keys instead of silently keeping the last value."""
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key!r}")
+        result[key] = value
+    return result
+
+
+def _reject_nonstandard_constant(token: str) -> object:
+    """Python's json module accepts NaN/Infinity unless explicitly rejected."""
+    raise ValueError(f"non-standard JSON numeric token: {token}")
+
+
+def strict_json_loads(raw: str | bytes) -> object:
+    """Load JSON without duplicate keys or non-standard numeric constants."""
+    return json.loads(
+        raw,
+        object_pairs_hook=_unique_object_pairs,
+        parse_constant=_reject_nonstandard_constant,
+    )
+
+
 def fail(message: str) -> "NoReturn":
     raise SystemExit(message)
 
@@ -41,21 +65,33 @@ def validate_response(
 ) -> None:
     raw = Path(response_path).read_bytes()
     try:
-        payload = json.loads(raw)
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        payload = strict_json_loads(raw)
+    except ValueError as error:
         fail(f"invalid Horizons JSON response: {error}")
 
     if not isinstance(payload, dict):
         fail("Horizons JSON root must be an object")
+    unexpected_root_fields = set(payload) - {"signature", "result", "error"}
+    if unexpected_root_fields:
+        fail(f"unexpected response JSON fields: {sorted(unexpected_root_fields)!r}")
+
     signature = payload.get("signature")
     if not isinstance(signature, dict):
         fail("response lacks a JSON signature object")
+    unexpected_signature_fields = set(signature) - {"source", "version"}
+    if unexpected_signature_fields:
+        fail(
+            "unexpected response signature fields: "
+            f"{sorted(unexpected_signature_fields)!r}"
+        )
     source = signature.get("source")
     version = signature.get("version")
     if source != "NASA/JPL Horizons API":
         fail(f"unexpected provider source: {source!r}")
     if version not in SUPPORTED_GET_SIGNATURE_VERSIONS:
         fail(f"unreviewed Horizons GET signature version: {version!r}")
+    if "error" in payload and payload["error"] is not None and not isinstance(payload["error"], str):
+        fail("response error field must be a string or null")
     if payload.get("error"):
         fail(f"Horizons application-level error: {payload['error']!r}")
     result = payload.get("result")
