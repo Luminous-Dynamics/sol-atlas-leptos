@@ -1022,3 +1022,8 @@ canvas#globe-canvas.has-hover {
         max-height: 34vh;
     }
 }
+
+.data-health-list li.partially-loaded .data-health-state {
+    color: rgb(var(--sa-vital));
+    font-weight: 600;
+}
