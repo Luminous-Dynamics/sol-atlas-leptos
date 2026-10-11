@@ -11,7 +11,7 @@
 
 use sol_atlas_core::humanity_atlas::{
     ScenarioRunEnvelope,
-    technology_tree::import_technology_tree,
+    technology_tree::{import_technology_tree, MAX_SOURCE_ARTIFACT_BYTES},
 };
 use std::{env, fs, process::ExitCode};
 
@@ -36,6 +36,13 @@ fn run() -> Result<(), String> {
 
     let envelope_text = fs::read_to_string(&args[1])
         .map_err(|error| format!("cannot read run envelope {}: {error}", args[1]))?;
+    let source_metadata = fs::metadata(&args[2])
+        .map_err(|error| format!("cannot stat source artifact {}: {error}", args[2]))?;
+    if source_metadata.len() > MAX_SOURCE_ARTIFACT_BYTES as u64 {
+        return Err(format!(
+            "source artifact exceeds the {MAX_SOURCE_ARTIFACT_BYTES}-byte v1 limit"
+        ));
+    }
     let source_bytes = fs::read(&args[2])
         .map_err(|error| format!("cannot read source artifact {}: {error}", args[2]))?;
 
