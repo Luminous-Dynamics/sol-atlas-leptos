@@ -12,6 +12,8 @@
 use crate::energy_study::{
     EnergyEvidenceClass, EnergyStudyManifestV1, EnergyStudyValidationError,
 };
+use crate::microgrid::MicrogridSimulation;
+use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 use std::fmt::Write as _;
@@ -79,6 +81,10 @@ pub enum EnergyStudyQualificationError {
     IntervalTimestampMismatch { position: usize },
     IntervalOutputHashMismatch { position: usize },
     TimeArithmeticOverflow { position: usize },
+    InvalidConstraintConfiguration,
+    InvalidCriticalLoadProfile,
+    CriticalLoadInputMismatch { interval: usize },
+    CriticalLoadAccountingOverflow,
 }
 
 impl std::fmt::Display for EnergyStudyQualificationError {
@@ -110,6 +116,18 @@ impl std::fmt::Display for EnergyStudyQualificationError {
             }
             Self::TimeArithmeticOverflow { position } => {
                 write!(f, "timestamp arithmetic overflow at interval {position}")
+            }
+            Self::InvalidConstraintConfiguration => {
+                f.write_str("constraint configuration is malformed or outside its supported domain")
+            }
+            Self::InvalidCriticalLoadProfile => {
+                f.write_str("critical-load profile is malformed or outside its physical domain")
+            }
+            Self::CriticalLoadInputMismatch { interval } => {
+                write!(f, "interval {interval} load does not match the hashed load-profile artifact")
+            }
+            Self::CriticalLoadAccountingOverflow => {
+                f.write_str("critical-load accounting produced a non-finite aggregate")
             }
         }
     }
@@ -268,6 +286,151 @@ pub fn verify_energy_study_run_receipt_v1(
         verified_interval_count: manifest.interval_count,
         interval_outputs_sha256: sha256_hex(&canonical),
     })
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct EnergyStudyConstraintSetV1 {
+    schema_version: u16,
+    critical_unserved_energy_max_kwh: f64,
+    battery_minimum_soc_kwh: f64,
+    allow_physical_actuation: bool,
+    require_power_balance_residual_max_kwh: f64,
+}
+
+/// Conservative outcome for a critical-load constraint.
+///
+/// The current simulator reports aggregate unserved load, not an explicit
+/// critical/non-critical allocation. The bound therefore assumes that as much
+/// of the unserved energy as physically possible could be critical. Passing
+/// proves the threshold from aggregate outputs; failing means the claim is not
+/// proven (and may be a real violation). It never invents a critical-service
+/// allocation from aggregate totals.
+#[derive(Debug, Clone, PartialEq)]
+pub struct CriticalLoadConstraintAssessmentV1 {
+    pub critical_unserved_energy_upper_bound_kwh: f64,
+    pub maximum_allowed_kwh: f64,
+    pub interval_count: u32,
+    pub proven_within_limit: bool,
+}
+
+/// Check the manifest-bound critical-load threshold against hashed inputs.
+///
+/// The exact constraints bytes and load-profile CSV bytes must match the
+/// manifest before their values are used. The load-profile CSV schema is the
+/// frozen V1 fixture contract: step,load_kwh,critical_load_kwh. A false
+/// proven_within_limit result is a fail-closed qualification outcome, not
+/// proof that a particular critical load was actually shed.
+pub fn assess_critical_load_constraint_v1(
+    manifest: &EnergyStudyManifestV1,
+    constraints_bytes: &[u8],
+    load_profile_csv_bytes: &[u8],
+    simulation: &MicrogridSimulation,
+) -> Result<CriticalLoadConstraintAssessmentV1, EnergyStudyQualificationError> {
+    manifest.validate()?;
+    if sha256_hex(constraints_bytes) != manifest.constraints_sha256 {
+        return Err(EnergyStudyQualificationError::ArtifactHashMismatch("constraints"));
+    }
+    let load_dataset = manifest.datasets.iter()
+        .find(|dataset| dataset.dataset_id == "load-profile")
+        .ok_or(EnergyStudyQualificationError::ArtifactSetMismatch)?;
+    if sha256_hex(load_profile_csv_bytes) != load_dataset.content_sha256 {
+        return Err(EnergyStudyQualificationError::ArtifactHashMismatch("load-profile"));
+    }
+
+    let constraints: EnergyStudyConstraintSetV1 = serde_json::from_slice(constraints_bytes)
+        .map_err(|_| EnergyStudyQualificationError::InvalidConstraintConfiguration)?;
+    if constraints.schema_version != 1
+        || !constraints.critical_unserved_energy_max_kwh.is_finite()
+        || constraints.critical_unserved_energy_max_kwh < 0.0
+        || !constraints.battery_minimum_soc_kwh.is_finite()
+        || constraints.battery_minimum_soc_kwh < 0.0
+        || !constraints.require_power_balance_residual_max_kwh.is_finite()
+        || constraints.require_power_balance_residual_max_kwh < 0.0
+        || constraints.allow_physical_actuation
+    {
+        return Err(EnergyStudyQualificationError::InvalidConstraintConfiguration);
+    }
+
+    let (loads, critical_loads) = parse_critical_load_profile_v1(load_profile_csv_bytes)?;
+    if loads.len() != manifest.interval_count as usize
+        || loads.len() != simulation.intervals.len()
+    {
+        return Err(EnergyStudyQualificationError::IntervalCountMismatch);
+    }
+
+    let mut upper_bound_kwh = 0.0;
+    for (interval_index, ((expected_load, critical_load), interval)) in loads.iter()
+        .zip(critical_loads.iter())
+        .zip(simulation.intervals.iter())
+        .enumerate()
+    {
+        if interval.load_kwh != *expected_load
+            || !interval.unserved_load_kwh.is_finite()
+            || interval.unserved_load_kwh < 0.0
+            || interval.unserved_load_kwh > interval.load_kwh + 1e-9
+        {
+            return Err(EnergyStudyQualificationError::CriticalLoadInputMismatch {
+                interval: interval_index,
+            });
+        }
+        // Worst-case overlap of aggregate unserved energy with critical demand.
+        upper_bound_kwh += critical_load.min(&interval.unserved_load_kwh).to_owned();
+        if !upper_bound_kwh.is_finite() {
+            return Err(EnergyStudyQualificationError::CriticalLoadAccountingOverflow);
+        }
+    }
+
+    Ok(CriticalLoadConstraintAssessmentV1 {
+        critical_unserved_energy_upper_bound_kwh: upper_bound_kwh,
+        maximum_allowed_kwh: constraints.critical_unserved_energy_max_kwh,
+        interval_count: manifest.interval_count,
+        proven_within_limit: upper_bound_kwh <= constraints.critical_unserved_energy_max_kwh,
+    })
+}
+
+fn parse_critical_load_profile_v1(
+    bytes: &[u8],
+) -> Result<(Vec<f64>, Vec<f64>), EnergyStudyQualificationError> {
+    let text = std::str::from_utf8(bytes)
+        .map_err(|_| EnergyStudyQualificationError::InvalidCriticalLoadProfile)?;
+    let mut lines = text.lines();
+    if lines.next() != Some("step,load_kwh,critical_load_kwh") {
+        return Err(EnergyStudyQualificationError::InvalidCriticalLoadProfile);
+    }
+
+    let mut loads = Vec::new();
+    let mut critical_loads = Vec::new();
+    for line in lines {
+        if line.is_empty() {
+            return Err(EnergyStudyQualificationError::InvalidCriticalLoadProfile);
+        }
+        let fields: Vec<&str> = line.split(',').collect();
+        if fields.len() != 3 {
+            return Err(EnergyStudyQualificationError::InvalidCriticalLoadProfile);
+        }
+        let index = fields[0].parse::<usize>()
+            .map_err(|_| EnergyStudyQualificationError::InvalidCriticalLoadProfile)?;
+        let load = fields[1].parse::<f64>()
+            .map_err(|_| EnergyStudyQualificationError::InvalidCriticalLoadProfile)?;
+        let critical = fields[2].parse::<f64>()
+            .map_err(|_| EnergyStudyQualificationError::InvalidCriticalLoadProfile)?;
+        if index != loads.len()
+            || !load.is_finite()
+            || !critical.is_finite()
+            || load < 0.0
+            || critical < 0.0
+            || critical > load
+        {
+            return Err(EnergyStudyQualificationError::InvalidCriticalLoadProfile);
+        }
+        loads.push(load);
+        critical_loads.push(critical);
+    }
+    if loads.is_empty() {
+        return Err(EnergyStudyQualificationError::InvalidCriticalLoadProfile);
+    }
+    Ok((loads, critical_loads))
 }
 
 /// Combined report from the artifact and interval-receipt checks.
@@ -444,6 +607,37 @@ mod tests {
         let mut wrong_time = good;
         wrong_time.intervals[3].interval_start_unix_seconds += 1;
         assert_eq!(verify_energy_study_run_receipt_v1(&manifest, &wrong_time, &output_slices), Err(EnergyStudyQualificationError::IntervalTimestampMismatch { position: 3 }));
+    }
+
+    #[test]
+    fn critical_load_limit_fails_closed_when_aggregate_outputs_cannot_prove_service() {
+        use crate::microgrid::{simulate_microgrid, BatteryConfig};
+
+        let manifest = manifest();
+        let load_bytes = include_bytes!("../../fixtures/energy-study/v1/load-profile.csv");
+        let constraint_bytes = include_bytes!("../../fixtures/energy-study/v1/constraints.json");
+        let (loads, _) = parse_critical_load_profile_v1(load_bytes).unwrap();
+        let generation = [0.0; 8];
+        let grid = [false; 8];
+        let battery = BatteryConfig {
+            capacity_kwh: 0.0,
+            initial_soc_kwh: 0.0,
+            minimum_soc_kwh: 0.0,
+            max_charge_power_kw: 0.0,
+            max_discharge_power_kw: 0.0,
+            charge_efficiency: 1.0,
+            discharge_efficiency: 1.0,
+        };
+        let simulation = simulate_microgrid(&loads, &generation, &grid, 0.25, battery).unwrap();
+        let assessment = assess_critical_load_constraint_v1(
+            &manifest,
+            constraint_bytes,
+            load_bytes,
+            &simulation,
+        ).unwrap();
+        assert!(assessment.critical_unserved_energy_upper_bound_kwh > 0.0);
+        assert_eq!(assessment.maximum_allowed_kwh, 0.0);
+        assert!(!assessment.proven_within_limit);
     }
 
     #[test]
