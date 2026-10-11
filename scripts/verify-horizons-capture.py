@@ -110,6 +110,7 @@ def validate_url_metadata(url_bytes: bytes, metadata: dict[str, Any]) -> None:
     parsed_url = urlsplit(url_text)
     if (
         parsed_url.scheme != "https"
+        or parsed_url.netloc != "ssd.jpl.nasa.gov"
         or parsed_url.hostname != "ssd.jpl.nasa.gov"
         or parsed_url.path != "/api/horizons.api"
         or parsed_url.fragment
