@@ -121,6 +121,10 @@ class CaptureScriptIntegrationTests(unittest.TestCase):
                 scripts_dir.mkdir(parents=True)
                 manifest_path.parent.mkdir(parents=True)
                 shutil.copy2(CAPTURE_SCRIPT, scripts_dir / CAPTURE_SCRIPT.name)
+                shutil.copy2(
+                    ROOT / "scripts/horizons_catalogue_manifest.py",
+                    scripts_dir / "horizons_catalogue_manifest.py",
+                )
                 manifest_path.write_bytes(manifest_bytes)
 
                 result = subprocess.run(
