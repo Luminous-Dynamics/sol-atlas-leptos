@@ -66,6 +66,7 @@ pub struct RunArtifactReference {
     pub media_type: String,
     pub artifact_ref: String,
     pub artifact_sha256: String,
+    pub json_pointer: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -255,6 +256,9 @@ impl ScenarioRunEnvelope {
             if !is_lowercase_sha256(&artifact.artifact_sha256) {
                 return Err("artifact artifact_sha256 must be lowercase SHA-256".into());
             }
+            if artifact.json_pointer.as_deref().is_some_and(|pointer| !is_valid_json_pointer(pointer)) {
+                return Err(format!("invalid JSON Pointer for artifact {}", artifact.artifact_id));
+            }
             if !artifact_ids.insert(artifact.artifact_id.as_str()) {
                 return Err(format!("duplicate artifact_id: {}", artifact.artifact_id));
             }
@@ -330,6 +334,22 @@ impl ScenarioRunEnvelope {
     }
 }
 
+fn is_valid_json_pointer(value: &str) -> bool {
+    if value.is_empty() {
+        return true;
+    }
+    if !value.starts_with('/') {
+        return false;
+    }
+    let mut chars = value.chars();
+    while let Some(character) = chars.next() {
+        if character == '~' && !matches!(chars.next(), Some('0' | '1')) {
+            return false;
+        }
+    }
+    true
+}
+
 fn is_lowercase_sha256(value: &str) -> bool {
     value.len() == 64
         && value
@@ -390,6 +410,7 @@ mod tests {
             media_type: "application/json".into(),
             artifact_ref: "urn:sha256:source".into(),
             artifact_sha256: "d".repeat(64),
+            json_pointer: Some("/technology_tree".into()),
         });
         assert!(run.validate().is_ok());
     }
@@ -403,9 +424,24 @@ mod tests {
             media_type: "application/json".into(),
             artifact_ref: "urn:sha256:artifact".into(),
             artifact_sha256: "d".repeat(64),
+            json_pointer: None,
         };
         run.artifacts = vec![artifact.clone(), artifact];
         assert!(run.validate().unwrap_err().contains("duplicate artifact_id"));
+    }
+
+    #[test]
+    fn rejects_invalid_embedded_artifact_json_pointer() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.artifacts.push(RunArtifactReference {
+            artifact_id: "bad-pointer".into(),
+            role: "source_simulation_output".into(),
+            media_type: "application/json".into(),
+            artifact_ref: "urn:sha256:artifact".into(),
+            artifact_sha256: "d".repeat(64),
+            json_pointer: Some("/technology~2tree".into()),
+        });
+        assert!(run.validate().unwrap_err().contains("invalid JSON Pointer"));
     }
 
     #[test]
@@ -417,6 +453,7 @@ mod tests {
             media_type: "application/json".into(),
             artifact_ref: "urn:sha256:artifact".into(),
             artifact_sha256: "not-a-sha256".into(),
+            json_pointer: None,
         });
         assert!(run.validate().unwrap_err().contains("artifact_sha256"));
     }
