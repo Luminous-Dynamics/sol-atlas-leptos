@@ -181,14 +181,14 @@ pub fn verify_energy_study_artifacts_v1(
     let case_sha256 = manifest.case_digest_sha256()?;
 
     let mut seen = HashSet::with_capacity(artifacts.datasets.len());
-    for (dataset_id, _) in artifacts.datasets {
-        if !seen.insert(*dataset_id) {
+    for artifact in artifacts.datasets {
+        if !seen.insert(artifact.0) {
             return Err(EnergyStudyQualificationError::DuplicateArtifactId);
         }
     }
     if artifacts.datasets.len() != manifest.datasets.len()
         || manifest.datasets.iter().any(|expected| {
-            !artifacts.datasets.iter().any(|(actual_id, _)| *actual_id == expected.dataset_id.as_str())
+            !artifacts.datasets.iter().any(|artifact| artifact.0 == expected.dataset_id.as_str())
         })
     {
         return Err(EnergyStudyQualificationError::ArtifactSetMismatch);
@@ -196,8 +196,9 @@ pub fn verify_energy_study_artifacts_v1(
 
     let mut entries: Vec<(String, String)> = Vec::with_capacity(manifest.datasets.len() + 4);
     for dataset in &manifest.datasets {
-        let (_, bytes) = artifacts.datasets.iter()
-            .find(|(dataset_id, _)| *dataset_id == dataset.dataset_id.as_str())
+        let bytes = artifacts.datasets.iter()
+            .find(|artifact| artifact.0 == dataset.dataset_id.as_str())
+            .map(|artifact| artifact.1)
             .ok_or(EnergyStudyQualificationError::ArtifactSetMismatch)?;
         let actual_hash = sha256_hex(bytes);
         if actual_hash != dataset.content_sha256 {
@@ -620,8 +621,8 @@ fn dataset_bytes<'a>(
     required_id: &str,
 ) -> Result<&'a [u8], EnergyStudyQualificationError> {
     datasets.iter()
-        .find(|(dataset_id, _)| *dataset_id == required_id)
-        .map(|(_, bytes)| *bytes)
+        .find(|artifact| artifact.0 == required_id)
+        .map(|artifact| artifact.1)
         .ok_or(EnergyStudyQualificationError::ArtifactSetMismatch)
 }
 
