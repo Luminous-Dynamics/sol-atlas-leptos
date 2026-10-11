@@ -55,6 +55,11 @@ class HorizonsCaptureValidatorTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "unexpected response signature fields"):
             self.validate(payload)
 
+        payload = json.loads(json.dumps(self.fixture))
+        payload["error"] = {"unexpected": "non-string error payload"}
+        with self.assertRaisesRegex(SystemExit, "error field must be a string or null"):
+            self.validate(payload)
+
     def test_duplicate_json_keys_and_nonstandard_numbers_fail_closed(self) -> None:
         serialized = json.dumps(self.fixture)
         duplicate_key_payload = serialized.replace('"result":', '"result": "", "result":', 1)
