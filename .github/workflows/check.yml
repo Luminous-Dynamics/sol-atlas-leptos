@@ -28,8 +28,10 @@ jobs:
         run: |
           bash -n scripts/capture-horizons-vector.sh
           command -v jq >/dev/null 2>&1 || { echo "jq is required for offline capture integration tests" >&2; exit 1; }
+          python3 -m py_compile scripts/horizons_catalogue_manifest.py
           python3 -m py_compile scripts/validate-horizons-vector.py
           python3 -m py_compile scripts/verify-horizons-capture.py
+          python3 -m py_compile scripts/test_horizons_catalogue_manifest.py
           python3 -m py_compile scripts/test_verify_horizons_capture.py
           python3 -m py_compile scripts/test_capture_horizons_vector.py
           python3 -m unittest discover -s scripts -p 'test_*.py' -v
