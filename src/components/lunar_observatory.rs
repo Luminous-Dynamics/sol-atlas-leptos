@@ -85,7 +85,7 @@ fn filter_matches(candidate: &LunarCandidate, filter: SiteFilter, query: &str) -
     .to_lowercase();
 
     let normalized_query = query.to_lowercase();
-    if !normalized_query.is_empty() && !search_blob.contains(&normalized_query) {
+    if !normalized_query.is_empty() && !search_blob.contains(normalized_query.as_str()) {
         return false;
     }
 
@@ -232,10 +232,20 @@ pub fn LunarObservatory() -> impl IntoView {
                                 {move || {
                                     let selected_filter = filter.get();
                                     let search_text = query.get();
-                                    candidates.get().into_iter()
+                                    let matching = candidates.get().into_iter()
                                         .filter(|candidate| filter_matches(candidate, selected_filter, &search_text))
-                                        .map(|candidate| view! { <LunarCandidateCard candidate=candidate/> })
-                                        .collect::<Vec<_>>()
+                                        .collect::<Vec<_>>();
+                                    if matching.is_empty() {
+                                        vec![view! {
+                                            <p class="lunar-empty-state">
+                                                "No candidate records match this filter. Try a broader role or search term."
+                                            </p>
+                                        }.into_any()]
+                                    } else {
+                                        matching.into_iter()
+                                            .map(|candidate| view! { <LunarCandidateCard candidate=candidate/> }.into_any())
+                                            .collect::<Vec<_>>()
+                                    }
                                 }}
                             </div>
                             <p class="lunar-filter-note">
