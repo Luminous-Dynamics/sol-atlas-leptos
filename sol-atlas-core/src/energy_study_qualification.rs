@@ -12,7 +12,7 @@
 use crate::energy_study::{
     EnergyEvidenceClass, EnergyStudyManifestV1, EnergyStudyValidationError,
 };
-use crate::microgrid::{simulate_microgrid, BatteryConfig, MicrogridSimulation};
+use crate::microgrid::{BatteryConfig, MicrogridSimulation};
 use crate::microgrid_verifier::{
     verify_microgrid_simulation, MicrogridVerificationError, MicrogridVerificationReport,
 };
@@ -866,6 +866,8 @@ mod tests {
 
     #[test]
     fn end_to_end_fixture_is_physically_checked_and_critical_gate_is_not_hidden() {
+        use crate::microgrid::simulate_microgrid;
+
         let manifest = manifest();
         let artifacts = input_artifacts();
         let load_bytes = include_bytes!("../../fixtures/energy-study/v1/load-profile.csv");
