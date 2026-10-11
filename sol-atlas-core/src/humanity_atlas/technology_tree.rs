@@ -1064,6 +1064,38 @@ mod tests {
     }
 
     #[test]
+    fn rejects_missing_required_source_revision_key() {
+        let (run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
+        let raw_text = String::from_utf8(raw).expect("source fixture is UTF-8");
+        let malformed = raw_text
+            .replacen(",\"source_revision\":\"0123456789abcdef\"", "", 1)
+            .into_bytes();
+        let digest = sha256_hex(&malformed);
+        let mut adjusted = run;
+        adjusted.run_id = format!("urn:sha256:{digest}");
+        adjusted.artifacts[0].artifact_sha256 = digest.clone();
+        adjusted.artifacts[0].artifact_ref = format!("urn:sha256:{digest}");
+        assert!(import_technology_tree(&adjusted, "source-simulator-output", &malformed)
+            .unwrap_err().contains("missing required source_revision key"));
+    }
+
+    #[test]
+    fn rejects_unknown_fields_in_tree_payload() {
+        let (run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
+        let raw_text = String::from_utf8(raw).expect("source fixture is UTF-8");
+        let changed = raw_text
+            .replacen("\"technology_tree\":{", "\"technology_tree\":{\"unexpected\":1,", 1)
+            .into_bytes();
+        let digest = sha256_hex(&changed);
+        let mut adjusted = run;
+        adjusted.run_id = format!("urn:sha256:{digest}");
+        adjusted.artifacts[0].artifact_sha256 = digest.clone();
+        adjusted.artifacts[0].artifact_ref = format!("urn:sha256:{digest}");
+        assert!(import_technology_tree(&adjusted, "source-simulator-output", &changed)
+            .unwrap_err().contains("unknown field"));
+    }
+
+    #[test]
     fn rejects_duplicate_json_keys_before_deserializing() {
         let (run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
         let raw_text = String::from_utf8(raw.clone()).expect("source fixture is UTF-8");
