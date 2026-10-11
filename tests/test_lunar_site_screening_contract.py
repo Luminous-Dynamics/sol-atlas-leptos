@@ -68,6 +68,14 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
         self.document["candidates"][0]["confidence"] = 0.8
         self.assert_invalid("contains unrecognized keys")
 
+    def test_malformed_candidate_status_is_rejected_without_crashing(self) -> None:
+        self.document["candidates"][0]["status"] = []
+        self.assert_invalid("status is not a recognized region/comparator state")
+
+    def test_malformed_metadata_is_rejected_without_crashing(self) -> None:
+        self.document["comparison_policy"]["required_metadata"] = [{}]
+        self.assert_invalid("required_metadata must be a list of non-empty strings")
+
 
 if __name__ == "__main__":
     unittest.main()
