@@ -3,8 +3,8 @@
 
 //! Offline verification for a Humanity Atlas run envelope and its source artifact.
 //!
-//! Usage:
-//! cargo run -p sol-atlas-core --example verify_humanity_atlas_artifact --
+//! Usage, from the standalone Sol-Atlas repository root:
+//! cargo run --manifest-path sol-atlas-core/Cargo.toml --example verify_humanity_atlas_artifact --
 //!   humanity-atlas-envelope.v0.1.json humanity-atlas-run.json source-simulator-output
 
 use sol_atlas_core::humanity_atlas::{
