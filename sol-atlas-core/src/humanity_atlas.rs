@@ -24,19 +24,25 @@ pub struct ScenarioRunEnvelope {
     pub engine: EngineIdentity,
     pub run_status: RunStatus,
     pub output_classification: OutputClassification,
-    pub deterministic: bool,
+    pub deterministic: Option<bool>,
     pub seed: u64,
     pub replicates: u32,
     pub outputs: Vec<MetricOutput>,
     pub validation: ValidationRecord,
     pub warnings: Vec<String>,
+    #[serde(default)]
+    pub artifacts: Vec<RunArtifactReference>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RunInputDigests {
     pub scenario_sha256: String,
-    pub dataset_sha256: String,
+    pub dataset_sha256: Option<String>,
+    pub scenario_identity_kind: Option<String>,
+    pub resolved_config_sha256: Option<String>,
+    pub resolved_params_sha256: Option<String>,
+    pub selected_definition_source: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -45,6 +51,21 @@ pub struct EngineIdentity {
     pub adapter: String,
     pub engine_version: String,
     pub model_sha256: String,
+    pub model_identity_kind: Option<String>,
+    pub source_revision: Option<String>,
+    pub definition_source: Option<String>,
+}
+
+/// Reference to a byte-addressed source or domain artifact. The digest binds
+/// exact bytes; it does not establish that the URI is retrievable or trusted.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RunArtifactReference {
+    pub artifact_id: String,
+    pub role: String,
+    pub media_type: String,
+    pub artifact_ref: String,
+    pub artifact_sha256: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -163,14 +184,43 @@ impl ScenarioRunEnvelope {
         if self.run_id.trim().is_empty() || self.scenario_id.trim().is_empty() {
             return Err("run_id and scenario_id must be non-empty".into());
         }
-        for (field, digest) in [
+        let mut digests = vec![
             ("scenario_sha256", self.inputs.scenario_sha256.as_str()),
-            ("dataset_sha256", self.inputs.dataset_sha256.as_str()),
             ("model_sha256", self.engine.model_sha256.as_str()),
-        ] {
+        ];
+        if let Some(digest) = self.inputs.dataset_sha256.as_deref() {
+            digests.push(("dataset_sha256", digest));
+        }
+        if let Some(digest) = self.inputs.resolved_config_sha256.as_deref() {
+            digests.push(("resolved_config_sha256", digest));
+        }
+        if let Some(digest) = self.inputs.resolved_params_sha256.as_deref() {
+            digests.push(("resolved_params_sha256", digest));
+        }
+        for (field, digest) in digests {
             if !is_lowercase_sha256(digest) {
                 return Err(format!("{field} must be 64 lowercase hexadecimal characters"));
             }
+        }
+        if let Some(kind) = self.inputs.scenario_identity_kind.as_deref() {
+            if !matches!(kind, "scenario_document_bytes" | "canonical_effective_scenario") {
+                return Err("unsupported scenario_identity_kind".into());
+            }
+        }
+        if let Some(source) = self.inputs.selected_definition_source.as_deref() {
+            if source.trim().is_empty() {
+                return Err("selected_definition_source must be non-empty when present".into());
+            }
+        }
+        if let Some(kind) = self.engine.model_identity_kind.as_deref() {
+            if !matches!(kind, "full_model" | "technology_tree_definition" | "unknown") {
+                return Err("unsupported model_identity_kind".into());
+            }
+        }
+        if self.engine.source_revision.as_deref().is_some_and(|value| value.trim().is_empty())
+            || self.engine.definition_source.as_deref().is_some_and(|value| value.trim().is_empty())
+        {
+            return Err("source_revision and definition_source must be non-empty when present".into());
         }
         if self.engine.adapter.trim().is_empty() || self.engine.engine_version.trim().is_empty() {
             return Err("engine adapter and version must be non-empty".into());
@@ -190,6 +240,23 @@ impl ScenarioRunEnvelope {
             }
             if !is_lowercase_sha256(&evidence.artifact_sha256) {
                 return Err("validation evidence artifact_sha256 must be lowercase SHA-256".into());
+            }
+        }
+
+        let mut artifact_ids = BTreeSet::new();
+        for artifact in &self.artifacts {
+            if artifact.artifact_id.trim().is_empty()
+                || artifact.role.trim().is_empty()
+                || artifact.media_type.trim().is_empty()
+                || artifact.artifact_ref.trim().is_empty()
+            {
+                return Err("artifact ID, role, media type, and reference must be non-empty".into());
+            }
+            if !is_lowercase_sha256(&artifact.artifact_sha256) {
+                return Err("artifact artifact_sha256 must be lowercase SHA-256".into());
+            }
+            if !artifact_ids.insert(artifact.artifact_id.as_str()) {
+                return Err(format!("duplicate artifact_id: {}", artifact.artifact_id));
             }
         }
 
@@ -302,7 +369,56 @@ mod tests {
         let run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture should parse");
         assert_eq!(run.output_classification.epistemic_label(), "Synthetic fixture — not empirical");
         assert_eq!(run.outputs.len(), 1);
-        assert!(run.deterministic);
+        assert_eq!(run.deterministic, Some(true));
+    }
+
+    #[test]
+    fn accepts_unknown_dataset_and_determinism_with_a_source_artifact() {
+        let raw = valid_payload()
+            .replace(
+                &format!("\"dataset_sha256\":\"{}\"", "b".repeat(64)),
+                "\"dataset_sha256\":null",
+            )
+            .replace("\"deterministic\":true", "\"deterministic\":null");
+        let mut run = ScenarioRunEnvelope::from_json(&raw)
+            .expect("null represents unestablished dataset identity/determinism");
+        assert_eq!(run.inputs.dataset_sha256, None);
+        assert_eq!(run.deterministic, None);
+        run.artifacts.push(RunArtifactReference {
+            artifact_id: "source-simulator-output".into(),
+            role: "source_simulation_output".into(),
+            media_type: "application/json".into(),
+            artifact_ref: "urn:sha256:source".into(),
+            artifact_sha256: "d".repeat(64),
+        });
+        assert!(run.validate().is_ok());
+    }
+
+    #[test]
+    fn rejects_duplicate_source_artifact_ids() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        let artifact = RunArtifactReference {
+            artifact_id: "same-id".into(),
+            role: "source_simulation_output".into(),
+            media_type: "application/json".into(),
+            artifact_ref: "urn:sha256:artifact".into(),
+            artifact_sha256: "d".repeat(64),
+        };
+        run.artifacts = vec![artifact.clone(), artifact];
+        assert!(run.validate().unwrap_err().contains("duplicate artifact_id"));
+    }
+
+    #[test]
+    fn rejects_malformed_source_artifact_digest() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.artifacts.push(RunArtifactReference {
+            artifact_id: "bad-digest".into(),
+            role: "source_simulation_output".into(),
+            media_type: "application/json".into(),
+            artifact_ref: "urn:sha256:artifact".into(),
+            artifact_sha256: "not-a-sha256".into(),
+        });
+        assert!(run.validate().unwrap_err().contains("artifact_sha256"));
     }
 
     #[test]
