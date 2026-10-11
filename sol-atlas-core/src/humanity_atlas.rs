@@ -209,8 +209,8 @@ impl ScenarioRunEnvelope {
             }
         }
         if let Some(source) = self.inputs.selected_definition_source.as_deref() {
-            if source.trim().is_empty() {
-                return Err("selected_definition_source must be non-empty when present".into());
+            if source.trim().is_empty() || source.len() > 200 {
+                return Err("selected_definition_source must be 1..=200 characters when present".into());
             }
         }
         if let Some(kind) = self.engine.model_identity_kind.as_deref() {
@@ -220,11 +220,16 @@ impl ScenarioRunEnvelope {
         }
         if self.engine.source_revision.as_deref().is_some_and(|value| value.trim().is_empty())
             || self.engine.definition_source.as_deref().is_some_and(|value| value.trim().is_empty())
+            || self.engine.definition_source.as_deref().is_some_and(|value| value.len() > 200)
         {
-            return Err("source_revision and definition_source must be non-empty when present".into());
+            return Err("source_revision and definition_source must be non-empty when present; definition_source is at most 200 characters".into());
         }
-        if self.engine.adapter.trim().is_empty() || self.engine.engine_version.trim().is_empty() {
-            return Err("engine adapter and version must be non-empty".into());
+        if self.engine.adapter.trim().is_empty()
+            || self.engine.adapter.len() > 120
+            || self.engine.engine_version.trim().is_empty()
+            || self.engine.engine_version.len() > 120
+        {
+            return Err("engine adapter and version must be non-empty and at most 120 characters".into());
         }
         if self.replicates == 0 {
             return Err("replicates must be at least one".into());
@@ -247,16 +252,22 @@ impl ScenarioRunEnvelope {
         let mut artifact_ids = BTreeSet::new();
         for artifact in &self.artifacts {
             if artifact.artifact_id.trim().is_empty()
+                || artifact.artifact_id.len() > 200
                 || artifact.role.trim().is_empty()
+                || artifact.role.len() > 120
                 || artifact.media_type.trim().is_empty()
+                || artifact.media_type.len() > 120
                 || artifact.artifact_ref.trim().is_empty()
+                || artifact.artifact_ref.len() > 2000
             {
-                return Err("artifact ID, role, media type, and reference must be non-empty".into());
+                return Err("artifact ID, role, media type, and reference must be within their declared length limits".into());
             }
             if !is_lowercase_sha256(&artifact.artifact_sha256) {
                 return Err("artifact artifact_sha256 must be lowercase SHA-256".into());
             }
-            if artifact.json_pointer.as_deref().is_some_and(|pointer| !is_valid_json_pointer(pointer)) {
+            if artifact.json_pointer.as_deref().is_some_and(
+                |pointer| pointer.len() > 1000 || !is_valid_json_pointer(pointer)
+            ) {
                 return Err(format!("invalid JSON Pointer for artifact {}", artifact.artifact_id));
             }
             if !artifact_ids.insert(artifact.artifact_id.as_str()) {
