@@ -27,6 +27,7 @@ const EXPECTED_ADAPTER: &str = "mycelix-multiworld-sim-humanity-atlas-adapter";
 const EXPECTED_JSON_POINTER: &str = "/technology_tree";
 const SECTOR_COUNT: usize = 8;
 const MAX_SAFE_INTEGER: u64 = 9_007_199_254_740_991;
+const MAX_SOURCE_ARTIFACT_BYTES: usize = 64 * 1024 * 1024;
 
 /// Fully checked graph imported from the captured simulator artifact.
 #[derive(Debug, Clone, PartialEq)]
@@ -120,6 +121,7 @@ pub fn import_technology_tree(
     if artifact.role != "source_simulation_output" || artifact.media_type != "application/json" {
         return Err(format!("artifact {artifact_id} must be a JSON source_simulation_output"));
     }
+    validate_source_artifact_size(source_artifact_bytes.len())?;
     run.verify_artifact_bytes(artifact_id, source_artifact_bytes)?;
 
     let source_artifact_sha256 = sha256_hex(source_artifact_bytes);
@@ -608,6 +610,15 @@ fn stable_json_value_sha256(value: &Value) -> Result<String, String> {
     Ok(sha256_hex(&bytes))
 }
 
+fn validate_source_artifact_size(size: usize) -> Result<(), String> {
+    if size > MAX_SOURCE_ARTIFACT_BYTES {
+        return Err(format!(
+            "source simulator artifact exceeds the {MAX_SOURCE_ARTIFACT_BYTES}-byte v1 limit"
+        ));
+    }
+    Ok(())
+}
+
 fn sha256_hex(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
@@ -986,6 +997,14 @@ mod tests {
             }],
         };
         (run, bytes)
+    }
+
+    #[test]
+    fn rejects_artifact_size_above_limit_before_hashing() {
+        assert!(validate_source_artifact_size(MAX_SOURCE_ARTIFACT_BYTES).is_ok());
+        assert!(validate_source_artifact_size(MAX_SOURCE_ARTIFACT_BYTES + 1)
+            .unwrap_err()
+            .contains("source simulator artifact exceeds"));
     }
 
     #[test]
