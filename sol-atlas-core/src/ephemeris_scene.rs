@@ -125,7 +125,7 @@ pub struct EphemerisScene {
 
 impl EphemerisScene {
     /// Compose hash-bound samples into a barycentric scene. All samples must
-    /// refer to one epoch (within the fixed comparison tolerance), time scale,
+    /// refer to the exact same parsed epoch value, time scale,
     /// reference system, reference plane, and vector-correction mode.
     ///
     /// A sample centered at ssb is already barycentric. A sample centered at
