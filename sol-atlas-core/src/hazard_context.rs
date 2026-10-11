@@ -82,6 +82,7 @@ mod tests {
             occurred_at_ms: None,
             updated_at_ms: None,
             depth_km: None,
+            geometry_note: None,
         }
     }
 

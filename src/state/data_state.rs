@@ -4,6 +4,7 @@
 use leptos::prelude::*;
 
 use crate::data::types::*;
+use sol_atlas_core::eonet::EonetFeedStatus;
 use sol_atlas_core::usgs::UsgsFeedStatus;
 
 #[derive(Clone)]
@@ -27,6 +28,8 @@ pub struct DataState {
     pub critical_infrastructure: RwSignal<Vec<CriticalInfrastructure>>,
     /// Current health/provenance for the live USGS earthquake layer.
     pub usgs_feed_status: RwSignal<UsgsFeedStatus>,
+    /// Current health/provenance for the live NASA EONET event layer.
+    pub eonet_feed_status: RwSignal<EonetFeedStatus>,
 }
 
 impl DataState {
@@ -50,6 +53,7 @@ impl DataState {
             chokepoints: RwSignal::new(Vec::new()),
             critical_infrastructure: RwSignal::new(Vec::new()),
             usgs_feed_status: RwSignal::new(UsgsFeedStatus::default()),
+            eonet_feed_status: RwSignal::new(EonetFeedStatus::default()),
         }
     }
 

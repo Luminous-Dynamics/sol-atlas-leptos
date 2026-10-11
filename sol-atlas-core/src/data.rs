@@ -339,6 +339,7 @@ fn parse_natural_events(
                     occurred_at_ms: f.properties.time.as_i64(),
                     updated_at_ms: f.properties.updated.as_i64(),
                     depth_km: coords.get(2).copied().filter(|depth| depth.is_finite()),
+                    geometry_note: None,
                 })
             })
             .collect()

@@ -706,6 +706,9 @@ pub struct NaturalEvent {
     pub updated_at_ms: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub depth_km: Option<f64>,
+    /// How a source geometry was reduced to one globe marker, when approximate.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub geometry_note: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
