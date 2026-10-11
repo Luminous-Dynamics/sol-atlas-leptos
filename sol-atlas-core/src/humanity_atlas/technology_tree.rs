@@ -128,7 +128,7 @@ pub fn import_technology_tree(
     }
 
     let strict_value = parse_json_without_duplicate_keys(source_artifact_bytes)?;
-    let source_value = strict_value_to_json(strict_value);
+    let source_value = strict_json_to_json(strict_value);
     let tree_value = source_value
         .get("technology_tree")
         .and_then(Value::as_object)
