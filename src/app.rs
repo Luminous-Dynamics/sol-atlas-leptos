@@ -9,6 +9,7 @@ use crate::components::globe_canvas::GlobeCanvas;
 use crate::components::hud::Hud;
 use crate::components::info_panel::InfoPanel;
 use crate::components::layer_panel::LayerPanel;
+use crate::components::lunar_observatory::LunarObservatory;
 use crate::components::planet_nav::PlanetNav;
 use crate::components::reactor_twin_demo::ReactorTwinDemo;
 use crate::components::timeline::Timeline;
@@ -30,6 +31,7 @@ pub fn App() -> impl IntoView {
             <Routes fallback=|| view! { <GlobeApp/> }>
                 <Route path=path!("/") view=GlobeApp/>
                 <Route path=path!("/labs/reactor-twin") view=ReactorTwinDemo/>
+                <Route path=path!("/labs/lunar-observatory") view=LunarObservatory/>
             </Routes>
         </Router>
     }
@@ -103,7 +105,10 @@ fn GlobeApp() -> impl IntoView {
         <div class="globe-title">
             <h1>"Sol Atlas"</h1>
             <p class="subtitle">"Symthaea Planetary Coordination Layer"</p>
-            <A href="/labs/reactor-twin" attr:class="labs-link">"Labs: Reactor Digital Twin demo \u{2192}"</A>
+            <div class="labs-links">
+                <A href="/labs/reactor-twin" attr:class="labs-link">"Labs: Reactor Digital Twin demo \\u{2192}"</A>
+                <A href="/labs/lunar-observatory" attr:class="labs-link">"Lunar Site Observatory \\u{2192}"</A>
+            </div>
         </div>
         <Hud />
         <LayerPanel />
