@@ -989,6 +989,8 @@ mod tests {
         assert_eq!(schema["properties"]["schema_version"]["const"], TREE_SCHEMA_VERSION);
         assert_eq!(schema["properties"]["classification"]["const"], EXPECTED_CLASSIFICATION);
         assert_eq!(schema["properties"]["year_zero_semantics"]["const"], EXPECTED_YEAR_ZERO);
+        assert_eq!(schema["$defs"]["techEffects"]["properties"]["power_multiplier"]["minimum"], 0);
+        assert_eq!(schema["$defs"]["techEffects"]["properties"]["resource_efficiency"]["minimum"], 0);
         assert_eq!(schema["additionalProperties"], false);
         assert!(schema["$defs"]["milestone"]["required"]
             .as_array()
@@ -1043,6 +1045,15 @@ mod tests {
         run.artifacts[0].json_pointer = None;
         assert!(import_technology_tree(&run, "source-simulator-output", &raw)
             .unwrap_err().contains("must select the embedded"));
+    }
+
+    #[test]
+    fn rejects_negative_effect_multipliers() {
+        let mut milestone = test_milestone("Fusion Demo", vec![], vec![]);
+        milestone.effects.power_multiplier = -0.1;
+        let (run, raw) = fixture(vec![milestone]);
+        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
+            .unwrap_err().contains("invalid effect multiplier"));
     }
 
     #[test]
