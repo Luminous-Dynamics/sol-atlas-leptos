@@ -28,7 +28,8 @@
     },
     "ticks_per_year": {
       "type": "integer",
-      "minimum": 1
+      "minimum": 1,
+      "maximum": 4294967295
     },
     "year_zero_semantics": {
       "const": "relative_to_scenario_start"
@@ -142,11 +143,13 @@
         },
         "earliest_tick": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 4294967295
         },
         "latest_tick": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 4294967295
         },
         "base_probability_per_tick": {
           "type": "number",
@@ -183,7 +186,8 @@
           "oneOf": [
             {
               "type": "integer",
-              "minimum": 0
+              "minimum": 0,
+              "maximum": 4294967295
             },
             {
               "type": "null"
