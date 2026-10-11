@@ -10,6 +10,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
+use sha2::{Digest, Sha256};
 
 /// Version currently understood by this consumer.
 pub const RUN_SCHEMA_VERSION: &str = "humanity-atlas.run.v0.1";
@@ -183,6 +184,25 @@ impl ScenarioRunEnvelope {
             .map_err(|error| format!("invalid Humanity Atlas run JSON: {error}"))?;
         run.validate()?;
         Ok(run)
+    }
+
+    /// Verify exact bytes supplied by a caller against a declared artifact digest.
+    ///
+    /// This does not retrieve `artifact_ref`, authenticate the publisher, establish
+    /// scientific validity, or resolve `json_pointer`; callers should perform
+    /// semantic parsing only after this integrity check succeeds.
+    pub fn verify_artifact_bytes(&self, artifact_id: &str, bytes: &[u8]) -> Result<(), String> {
+        self.validate()?;
+        let artifact = self
+            .artifacts
+            .iter()
+            .find(|item| item.artifact_id == artifact_id)
+            .ok_or_else(|| format!("unknown artifact_id: {artifact_id}"))?;
+        let actual = format!("{:x}", Sha256::digest(bytes));
+        if actual != artifact.artifact_sha256 {
+            return Err(format!("artifact digest mismatch for {artifact_id}"));
+        }
+        Ok(())
     }
 
     pub fn validate(&self) -> Result<(), String> {
@@ -463,6 +483,41 @@ mod tests {
             json_pointer: Some("/technology~2tree".into()),
         });
         assert!(run.validate().unwrap_err().contains("invalid JSON Pointer"));
+    }
+
+    #[test]
+    fn verifies_exact_source_artifact_bytes_before_consumption() {
+        let bytes = br#"{"technology_tree":{"milestone_count":4}}"#;
+        let digest = format!("{:x}", Sha256::digest(bytes));
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.artifacts.push(RunArtifactReference {
+            artifact_id: "source-output".into(),
+            role: "source_simulation_output".into(),
+            media_type: "application/json".into(),
+            artifact_ref: format!("urn:sha256:{digest}"),
+            artifact_sha256: digest,
+            json_pointer: Some("/technology_tree".into()),
+        });
+        assert!(run.verify_artifact_bytes("source-output", bytes).is_ok());
+    }
+
+    #[test]
+    fn rejects_tampered_source_artifact_bytes() {
+        let bytes = br#"{"technology_tree":{"milestone_count":4}}"#;
+        let digest = format!("{:x}", Sha256::digest(bytes));
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.artifacts.push(RunArtifactReference {
+            artifact_id: "source-output".into(),
+            role: "source_simulation_output".into(),
+            media_type: "application/json".into(),
+            artifact_ref: format!("urn:sha256:{digest}"),
+            artifact_sha256: digest,
+            json_pointer: Some("/technology_tree".into()),
+        });
+        assert!(run
+            .verify_artifact_bytes("source-output", br#"{"technology_tree":{"milestone_count":5}}"#)
+            .unwrap_err()
+            .contains("artifact digest mismatch"));
     }
 
     #[test]
