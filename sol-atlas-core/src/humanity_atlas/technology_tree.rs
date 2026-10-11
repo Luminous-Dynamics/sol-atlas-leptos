@@ -9,8 +9,7 @@
 //! URIs, authenticate publishers, calibrate probabilities, or establish truth.
 
 use super::{
-    EngineIdentity, MetricOutput, OutputClassification, OutputStatistic, OutputTimeBasis,
-    RunArtifactReference, RunInputDigests, RunStatus, ScenarioRunEnvelope, ValidationRecord,
+    OutputClassification, OutputStatistic, OutputTimeBasis, RunStatus, ScenarioRunEnvelope,
 };
 use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
@@ -116,6 +115,9 @@ pub fn import_technology_tree(
             "artifact {artifact_id} must select the embedded {EXPECTED_JSON_POINTER} payload"
         ));
     }
+    if artifact.role != "source_simulation_output" || artifact.media_type != "application/json" {
+        return Err(format!("artifact {artifact_id} must be a JSON source_simulation_output"));
+    }
     run.verify_artifact_bytes(artifact_id, source_artifact_bytes)?;
 
     let source_artifact_sha256 = sha256_hex(source_artifact_bytes);
@@ -140,7 +142,7 @@ pub fn import_technology_tree(
 
     validate_source_and_run_binding(run, &source, &source_artifact_sha256)?;
     let tree = source.technology_tree;
-    let dependencies = validate_tree(&tree)?;
+    let dependencies = validate_tree(&tree, source.ticks)?;
 
     let ticks_per_year = tree.ticks_per_year;
     let milestones = tree
@@ -363,7 +365,10 @@ fn run_id_digest_mismatch(run: &ScenarioRunEnvelope, source_digest: &str) -> boo
     run.run_id != format!("urn:sha256:{source_digest}")
 }
 
-fn validate_tree(tree: &TechnologyTreeWire) -> Result<Vec<ScenarioTechnologyDependency>, String> {
+fn validate_tree(
+    tree: &TechnologyTreeWire,
+    horizon_ticks: u32,
+) -> Result<Vec<ScenarioTechnologyDependency>, String> {
     if tree.schema_version != TREE_SCHEMA_VERSION {
         return Err(format!("unsupported technology tree schema: {}", tree.schema_version));
     }
@@ -408,8 +413,11 @@ fn validate_tree(tree: &TechnologyTreeWire) -> Result<Vec<ScenarioTechnologyDepe
             return Err(format!("milestone {} has invalid per-tick parameter", milestone.id));
         }
         match (milestone.achieved, milestone.achieved_tick) {
-            (true, Some(tick)) if tick >= milestone.earliest_tick && tick <= milestone.latest_tick => {}
+            (true, Some(tick)) if tick >= milestone.earliest_tick && tick <= milestone.latest_tick && tick <= horizon_ticks => {}
             (false, None) => {}
+            (true, Some(tick)) if tick > horizon_ticks => {
+                return Err(format!("milestone {} is marked achieved after the run horizon", milestone.id));
+            }
             (true, Some(_)) => return Err(format!("milestone {} achieved outside declared window", milestone.id)),
             (true, None) => return Err(format!("milestone {} achieved without achieved_tick", milestone.id)),
             (false, Some(_)) => return Err(format!("milestone {} has achieved_tick while achieved=false", milestone.id)),
@@ -587,9 +595,6 @@ fn is_lowercase_sha256(value: &str) -> bool {
     value.len() == 64
         && value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
-
-#[derive(Debug)]
-struct StrictJsonValue(StrictJson);
 
 #[derive(Debug)]
 enum StrictJson {
@@ -816,6 +821,10 @@ struct TechnologyMilestoneDefinitionDigest<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::{
+        EngineIdentity, MetricOutput, RunArtifactReference, RunInputDigests, ValidationRecord,
+        ValidationStatus,
+    };
     use serde_json::json;
 
     fn test_milestone(
