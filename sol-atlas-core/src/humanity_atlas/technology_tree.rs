@@ -843,6 +843,8 @@ mod tests {
     };
     use serde_json::json;
 
+    const FIXTURE_DEFINITION_SOURCE: &str = "in_code_default_tree";
+
     fn test_milestone(
         name: &str,
         prerequisites: Vec<(String, String)>,
@@ -876,7 +878,7 @@ mod tests {
             classification: EXPECTED_CLASSIFICATION.into(),
             source_model: "mycelix-multiworld-sim/0.1.0".into(),
             definition_sha256: String::new(),
-            definition_source: EXPECTED_DEFINITION_SOURCE.into(),
+            definition_source: FIXTURE_DEFINITION_SOURCE.into(),
             ticks_per_year: 12,
             year_zero_semantics: EXPECTED_YEAR_ZERO.into(),
             milestones,
@@ -890,7 +892,7 @@ mod tests {
         let revision = Some("0123456789abcdef".to_string());
         let manifest = SimulationRunManifestWire {
             schema_version: RUN_MANIFEST_SCHEMA_VERSION.into(),
-            selected_definition_source: EXPECTED_DEFINITION_SOURCE.into(),
+            selected_definition_source: FIXTURE_DEFINITION_SOURCE.into(),
             effective_model_sha256: model_sha.clone(),
             resolved_config_sha256: config_sha.clone(),
             resolved_params_sha256: params_sha.clone(),
@@ -916,7 +918,7 @@ mod tests {
         let scenario = json!({
             "schema_version":"humanity-atlas.effective-scenario.v1",
             "source_model":"mycelix-multiworld-sim/0.1.0",
-            "selected_definition_source":EXPECTED_DEFINITION_SOURCE,
+            "selected_definition_source":FIXTURE_DEFINITION_SOURCE,
             "effective_model_sha256":model_sha,
             "resolved_config_sha256":config_sha,
             "resolved_params_sha256":params_sha,
@@ -934,7 +936,7 @@ mod tests {
                 scenario_identity_kind: Some("canonical_effective_scenario".into()),
                 resolved_config_sha256: Some(config_sha),
                 resolved_params_sha256: Some(params_sha),
-                selected_definition_source: Some(EXPECTED_DEFINITION_SOURCE.into()),
+                selected_definition_source: Some(FIXTURE_DEFINITION_SOURCE.into()),
             },
             engine: EngineIdentity {
                 adapter: EXPECTED_ADAPTER.into(),
@@ -942,7 +944,7 @@ mod tests {
                 model_sha256: model_sha,
                 model_identity_kind: Some("technology_tree_definition".into()),
                 source_revision: revision,
-                definition_source: Some(EXPECTED_DEFINITION_SOURCE.into()),
+                definition_source: Some(FIXTURE_DEFINITION_SOURCE.into()),
             },
             run_status: RunStatus::Completed,
             output_classification: OutputClassification::UnvalidatedSimulation,
