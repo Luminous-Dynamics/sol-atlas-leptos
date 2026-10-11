@@ -111,6 +111,31 @@ class CaptureScriptIntegrationTests(unittest.TestCase):
         self.assertEqual(verify.returncode, 0, verify.stdout + verify.stderr)
         self.assertIn("capture verification: PASS", verify.stdout)
 
+    def test_requested_epoch_metadata_matches_canonical_transmitted_epoch(self) -> None:
+        # This decimal is below the f64 resolution at this JD; the transmitted
+        # epoch canonicalizes to 2461323.5 and metadata must say the same thing.
+        self.env["HORIZONS_EPOCH_JD"] = "2461323.5000000001"
+        result, destination = self.run_capture("epoch-canonicalized")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+        url = (destination / "request.url").read_text(encoding="utf-8")
+        metadata = json.loads(
+            (destination / "capture-metadata.json").read_text(encoding="utf-8")
+        )
+        self.assertIn("TLIST=%272461323.5%27", url)
+        self.assertEqual(metadata["requested_epoch_jd_tdb"], "2461323.5")
+
+        verify = subprocess.run(
+            ["python3", str(VERIFY_SCRIPT), str(destination)],
+            cwd=ROOT,
+            env=self.env,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        self.assertEqual(verify.returncode, 0, verify.stdout + verify.stderr)
+
     def test_http_error_is_sealed_before_capture_fails(self) -> None:
         self.env["MOCK_HTTP_STATUS"] = "503"
         result, destination = self.run_capture("http-error")
