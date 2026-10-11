@@ -100,6 +100,30 @@ class CaptureScriptIntegrationTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("target cannot be its own center", result.stderr)
 
+    def test_stable_ids_follow_rust_canonicalization_rules(self) -> None:
+        cases = [
+            ({"HORIZONS_TARGET_ID": "MARS"}, "catalogue target ID must use canonical spelling"),
+            ({"HORIZONS_TARGET_ID": "ssb"}, "ssb is a coordinate center, not a target"),
+            ({"HORIZONS_CENTER_ID": "EARTH"}, "catalogue center ID must use canonical spelling"),
+            ({"HORIZONS_CENTER_ID": "SSB"}, "ssb center ID must use canonical spelling"),
+            ({"HORIZONS_TARGET_ID": "custom-Mars"}, "target and center IDs must be lowercase ASCII slugs"),
+        ]
+        for overrides, expected_error in cases:
+            with self.subTest(overrides=overrides):
+                env = self.env.copy()
+                env.update(overrides)
+                result = subprocess.run(
+                    [str(CAPTURE_SCRIPT), "--print-identity"],
+                    cwd=ROOT,
+                    env=env,
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(expected_error, result.stderr)
+
     def test_successful_mock_capture_verifies_end_to_end(self) -> None:
         result, destination = self.run_capture("success")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
