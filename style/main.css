@@ -985,3 +985,13 @@ canvas#globe-canvas.has-hover {
         padding: 0.2rem 0.32rem;
     }
 }
+
+
+.context-note {
+    margin: 0.55rem 0 0.35rem;
+    color: rgba(203, 213, 225, 0.72);
+    font: 400 0.68rem/1.4 ui-sans-serif, system-ui, sans-serif;
+}
+.nearby-context-row .stat-label {
+    max-width: 58%;
+}

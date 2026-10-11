@@ -286,7 +286,8 @@ impl DataKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DataProvenance {
     pub source: &'static str,
-    /// Empty string = undated/slow-changing reference data.
+    /// Empty means the layer has no frozen snapshot date (for example a live
+    /// feed), or is undated reference data.
     pub snapshot_date: &'static str,
     pub kind: DataKind,
 }

@@ -9,7 +9,11 @@
 use leptos::prelude::*;
 
 use crate::data::types::SelectedItem;
+use crate::state::data_state::DataState;
 use crate::state::globe_state::GlobeState;
+
+const NEARBY_INFRASTRUCTURE_RADIUS_KM: f64 = 100.0;
+const MAX_NEARBY_INFRASTRUCTURE: usize = 4;
 
 /// Hero stat block: the single number that defines the selected thing.
 fn hero(value: String, unit: &'static str) -> impl IntoView {
@@ -43,6 +47,7 @@ fn format_timestamp_ms(timestamp_ms: i64) -> String {
 #[component]
 pub fn InfoPanel() -> impl IntoView {
     let globe_state = expect_context::<GlobeState>();
+    let data_state = expect_context::<DataState>();
 
     let visible = move || globe_state.selected.read().is_some();
     let close = move |_| globe_state.selected.set(None);
@@ -154,33 +159,75 @@ pub fn InfoPanel() -> impl IntoView {
                             </div>
                         }.into_any()
                     }
-                    Some(SelectedItem::NaturalEvent(e)) => view! {
-                        <div>
-                            <h2>{e.name.clone()}</h2>
-                            <div class="subtitle">{format!(
-                                "{:?} · {}",
-                                e.event_type,
-                                if e.source_id.is_some() { "source-linked observation" } else { "bundled snapshot" }
-                            )}</div>
-                            {hero(format!("{:.1}", e.magnitude), "magnitude")}
-                            {row("Source", if e.source_id.is_some() { "USGS ComCat".to_string() } else { "Bundled dataset".to_string() })}
-                            {e.source_id.clone().map(|id| row("Source ID", id))}
-                            {e.occurred_at_ms.map(|timestamp| row("Occurred (UTC)", format_timestamp_ms(timestamp)))}
-                            {e.updated_at_ms.map(|timestamp| row("Updated (UTC)", format_timestamp_ms(timestamp)))}
-                            {e.depth_km.map(|depth| row("Depth", format!("{depth:.1} km")))}
-                            {match e.source_url.clone() {
-                                Some(url) if url.starts_with("https://earthquake.usgs.gov/earthquakes/eventpage/") =>
-                                    view! {
-                                        <a class="stat-row source-link" href=url target="_blank" rel="noopener noreferrer">
-                                            <span class="stat-label">"Evidence"</span>
-                                            <span class="stat-value">"Open USGS event ↗"</span>
-                                        </a>
-                                    }.into_any(),
-                                _ => view! { <div /> }.into_any(),
-                            }}
-                        </div>
-                    }.into_any(),
-                    Some(SelectedItem::MajorCity(c)) => view! {
+                    Some(SelectedItem::NaturalEvent(e)) => {
+                        // Geographic proximity is context only. The curated
+                        // infrastructure inventory is neither complete nor an
+                        // assessment of whether this event caused damage.
+                        let infrastructure = data_state.critical_infrastructure.get();
+                        let nearby = sol_atlas_core::hazard_context::nearby_infrastructure(
+                            e,
+                            &infrastructure,
+                            NEARBY_INFRASTRUCTURE_RADIUS_KM,
+                            MAX_NEARBY_INFRASTRUCTURE,
+                        );
+                        let nearby_count = nearby.len();
+                        let nearby_rows: Vec<_> = if nearby.is_empty() {
+                            vec![view! {
+                                <div class="stat-row">
+                                    <span class="stat-label">"No mapped assets nearby"</span>
+                                    <span class="stat-value">"None within 100 km"</span>
+                                </div>
+                            }.into_any()]
+                        } else {
+                            nearby.into_iter().map(|entry| {
+                                let name = entry.asset.name.clone();
+                                let detail = format!(
+                                    "{} · {:.1} km",
+                                    entry.asset.infra_type,
+                                    entry.distance_km
+                                );
+                                view! {
+                                    <div class="stat-row nearby-context-row">
+                                        <span class="stat-label">{name}</span>
+                                        <span class="stat-value">{detail}</span>
+                                    </div>
+                                }.into_any()
+                            }).collect()
+                        };
+
+                        view! {
+                            <div>
+                                <h2>{e.name.clone()}</h2>
+                                <div class="subtitle">{format!(
+                                    "{:?} · {}",
+                                    e.event_type,
+                                    if e.source_id.is_some() { "source-linked observation" } else { "bundled snapshot" }
+                                )}</div>
+                                {hero(format!("{:.1}", e.magnitude), "magnitude")}
+                                {row("Source", if e.source_id.is_some() { "USGS ComCat".to_string() } else { "Bundled dataset".to_string() })}
+                                {e.source_id.clone().map(|id| row("Source ID", id))}
+                                {e.occurred_at_ms.map(|timestamp| row("Occurred (UTC)", format_timestamp_ms(timestamp)))}
+                                {e.updated_at_ms.map(|timestamp| row("Updated (UTC)", format_timestamp_ms(timestamp)))}
+                                {e.depth_km.map(|depth| row("Depth", format!("{depth:.1} km")))}
+                                {match e.source_url.clone() {
+                                    Some(url) if url.starts_with("https://earthquake.usgs.gov/earthquakes/eventpage/") =>
+                                        view! {
+                                            <a class="stat-row source-link" href=url target="_blank" rel="noopener noreferrer">
+                                                <span class="stat-label">"Evidence"</span>
+                                                <span class="stat-value">"Open USGS event ↗"</span>
+                                            </a>
+                                        }.into_any(),
+                                    _ => view! { <div /> }.into_any(),
+                                }}
+                                {row("Mapped assets", format!("{nearby_count} within 100 km"))}
+                                <div class="context-note">
+                                    "Curated geographic context only. Proximity is not an impact or risk assessment."
+                                </div>
+                                {nearby_rows}
+                            </div>
+                        }.into_any()
+                    }
+                                        Some(SelectedItem::MajorCity(c)) => view! {
                         <div>
                             <h2>{c.name.clone()}</h2>
                             <div class="subtitle">{format!("{} \u{00b7} curated", c.country)}</div>
