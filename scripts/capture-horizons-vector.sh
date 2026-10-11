@@ -55,6 +55,24 @@ ref_system=$(env_or_default HORIZONS_REF_SYSTEM ICRF)
 ref_plane=$(env_or_default HORIZONS_REF_PLANE FRAME)
 vec_corr=$(env_or_default HORIZONS_VEC_CORR NONE)
 
+# Canonicalize the epoch once and reuse that exact value in the URL, metadata,
+# validator arguments, and request receipt. Otherwise a high-precision input
+# that rounds to the same f64 could be recorded differently from the sent query.
+epoch=$(python3 - "$epoch" <<'PY'
+import math
+import sys
+from decimal import Decimal
+
+try:
+    value = float(sys.argv[1])
+except ValueError:
+    raise SystemExit("HORIZONS_EPOCH_JD must be a Julian-date number")
+if not math.isfinite(value) or value <= 0:
+    raise SystemExit("HORIZONS_EPOCH_JD must be finite and positive")
+print(format(Decimal(str(value)).normalize(), "f"), end="")
+PY
+) || die "failed to canonicalize requested Julian-date epoch"
+
 url=$(
   python3 - "$target" "$center" "$epoch" "$ref_system" "$ref_plane" "$vec_corr" <<'PY'
 import math
