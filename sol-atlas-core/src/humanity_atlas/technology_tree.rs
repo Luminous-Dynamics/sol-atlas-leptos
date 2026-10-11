@@ -223,8 +223,10 @@ fn validate_source_and_run_binding(
     if manifest.schema_version != RUN_MANIFEST_SCHEMA_VERSION {
         return Err(format!("unsupported run manifest schema: {}", manifest.schema_version));
     }
-    if manifest.source_revision.as_ref().is_some_and(|value| value.trim().is_empty()) {
-        return Err("source_revision must be null or non-empty".into());
+    if manifest.source_revision.as_ref().is_some_and(
+        |value| value.trim().is_empty() || value.chars().count() > 120
+    ) {
+        return Err("source_revision must be null or a non-empty string of at most 120 characters".into());
     }
     if manifest.seed != source.seed || manifest.ticks != source.ticks {
         return Err("run manifest seed/ticks disagree with the enclosing simulator output".into());
@@ -289,6 +291,12 @@ fn validate_source_and_run_binding(
 
     let config = &source.resolved_config;
     let params = &source.resolved_params;
+    if !config.is_object() {
+        return Err("resolved_config must be an object".into());
+    }
+    if !params.is_object() {
+        return Err("resolved_params must be an object".into());
+    }
     if config.get("seed").and_then(Value::as_u64) != Some(source.seed) {
         return Err("top-level seed disagrees with resolved_config.seed".into());
     }
@@ -989,6 +997,10 @@ mod tests {
         assert_eq!(schema["properties"]["schema_version"]["const"], TREE_SCHEMA_VERSION);
         assert_eq!(schema["properties"]["classification"]["const"], EXPECTED_CLASSIFICATION);
         assert_eq!(schema["properties"]["year_zero_semantics"]["const"], EXPECTED_YEAR_ZERO);
+        assert_eq!(schema["properties"]["ticks_per_year"]["maximum"], 4_294_967_295_u64);
+        assert_eq!(schema["$defs"]["milestone"]["properties"]["earliest_tick"]["maximum"], 4_294_967_295_u64);
+        assert_eq!(schema["$defs"]["milestone"]["properties"]["latest_tick"]["maximum"], 4_294_967_295_u64);
+        assert_eq!(schema["$defs"]["milestone"]["properties"]["achieved_tick"]["oneOf"][0]["maximum"], 4_294_967_295_u64);
         assert_eq!(schema["$defs"]["techEffects"]["properties"]["power_multiplier"]["minimum"], 0);
         assert_eq!(schema["$defs"]["techEffects"]["properties"]["resource_efficiency"]["minimum"], 0);
         assert_eq!(schema["additionalProperties"], false);
