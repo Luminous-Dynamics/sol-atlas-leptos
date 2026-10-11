@@ -679,8 +679,11 @@ pub struct EroiEvidence {
     pub period_end_year: u16,
     pub source_citation: String,
     /// Stable identifier for the EROI calculation protocol, not merely its source.
+    /// Missing legacy fields default empty and keep the evidence unqualified.
+    #[serde(default)]
     pub methodology_id: String,
     /// Explicit revision/edition of that protocol or model.
+    #[serde(default)]
     pub methodology_version: String,
     #[serde(default)]
     pub publication_date: Option<String>,
@@ -1153,6 +1156,19 @@ mod eroi_evidence_tests {
 
         let with_unknown = json.trim_end_matches('}').to_string() + r#", "unexpected": true}"#;
         assert!(serde_json::from_str::<EroiEvidence>(&with_unknown).is_err());
+    }
+
+    #[test]
+    fn missing_methodology_fields_remain_inspectable_but_unqualified() {
+        let mut json = serde_json::to_value(evidence(EroiStage::Final)).unwrap();
+        let object = json.as_object_mut().unwrap();
+        object.remove("methodology_id");
+        object.remove("methodology_version");
+
+        let restored: EroiEvidence = serde_json::from_value(json).unwrap();
+        assert_eq!(restored.methodology_id, "");
+        assert_eq!(restored.methodology_version, "");
+        assert!(!restored.is_qualified());
     }
 
     #[test]
