@@ -368,6 +368,11 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
         ));
     }
 
+    if request.target_id == "ssb" {
+        return Err(HorizonsParseError::InvalidRequest(
+            "ssb is a coordinate center, not a target",
+        ));
+    }
     if request.target_id.eq_ignore_ascii_case(&request.center_id) {
         return Err(HorizonsParseError::InvalidRequest(
             "target cannot be its own center",
@@ -386,11 +391,6 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
     {
         return Err(HorizonsParseError::InvalidRequest(
             "target and center IDs must not have surrounding whitespace",
-        ));
-    }
-    if request.target_id == "ssb" {
-        return Err(HorizonsParseError::InvalidRequest(
-            "ssb is a coordinate center, not a target",
         ));
     }
     if request.target_id != "ssb"
