@@ -1028,12 +1028,12 @@ mod tests {
         let identity = req.canonical_request_identity().unwrap();
         let expected_identity = format!(
             concat!(
-                "SOL-ATLAS-HORIZONS-REQUEST-V1\\n",
-                "target_id=mars\\n",
-                "center_id=ssb\\n",
-                "expected_target_name=Mars\\n",
-                "expected_center_name=Solar%20System%20Barycenter\\n",
-                "transport_bytes={}\\n",
+                "SOL-ATLAS-HORIZONS-REQUEST-V1\n",
+                "target_id=mars\n",
+                "center_id=ssb\n",
+                "expected_target_name=Mars\n",
+                "expected_center_name=Solar%20System%20Barycenter\n",
+                "transport_bytes={}\n",
                 "{}"
             ),
             EXPECTED_URL.len(),
