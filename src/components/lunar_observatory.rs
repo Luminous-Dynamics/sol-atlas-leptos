@@ -345,7 +345,7 @@ fn LunarCandidateCard(candidate: LunarCandidate) -> impl IntoView {
 
 #[cfg(test)]
 mod tests {
-    use super::{LunarCandidate, SiteFilter, filter_matches};
+    use super::{LUNAR_REGISTER_JSON, LunarCandidate, SiteFilter, filter_matches};
 
     fn sample_candidate() -> LunarCandidate {
         LunarCandidate {
@@ -379,5 +379,24 @@ mod tests {
         assert!(filter_matches(&candidate, SiteFilter::All, "illumination"));
         assert!(filter_matches(&candidate, SiteFilter::All, "ellipse"));
         assert!(!filter_matches(&candidate, SiteFilter::All, "water reserve proven"));
+    }
+
+    #[test]
+    fn embedded_register_stays_unranked_and_metric_free() {
+        let register: serde_json::Value =
+            serde_json::from_str(LUNAR_REGISTER_JSON).expect("embedded register must parse");
+        let candidates = register["candidates"]
+            .as_array()
+            .expect("candidate list must be an array");
+        assert_eq!(candidates.len(), 10);
+        assert!(register["scoring"].is_null());
+        assert!(register["comparison_policy"]["weights"].is_null());
+        for candidate in candidates {
+            assert!(candidate["known_metrics"].as_object().is_some_and(|m| m.is_empty()));
+            assert!(candidate.get("latitude").is_none());
+            assert!(candidate.get("longitude").is_none());
+            assert!(candidate.get("coordinates").is_none());
+            assert!(candidate.get("score").is_none());
+        }
     }
 }
