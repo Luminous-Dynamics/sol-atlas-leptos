@@ -386,6 +386,7 @@ mod tests {
         let events = parse_natural_events(json, "[]", "[]", "[]");
         assert_eq!(events.len(), 2);
         assert_eq!(events[0].event_type, NaturalEventType::Earthquake);
+        assert_eq!(events[0].source_name.as_deref(), Some("USGS ComCat"));
         assert!((events[0].lat - (-5.2)).abs() < 0.01);
         assert!((events[0].magnitude - 5.1).abs() < 0.01);
         assert_eq!(events[0].name, "Peru");

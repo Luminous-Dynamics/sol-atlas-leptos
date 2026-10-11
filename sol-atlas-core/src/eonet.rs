@@ -420,7 +420,7 @@ fn is_leap_year(year: i64) -> bool {
 }
 
 fn days_from_civil(year: i64, month: u32, day: u32) -> i64 {
-    let year = year - i64::from(month <= 2);
+    let year = year - if month <= 2 { 1 } else { 0 };
     let era = if year >= 0 { year } else { year - 399 } / 400;
     let year_of_era = year - era * 400;
     let adjusted_month = month as i64 + if month > 2 { -3 } else { 9 };
