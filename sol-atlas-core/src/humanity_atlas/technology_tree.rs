@@ -23,7 +23,6 @@ const TREE_SCHEMA_VERSION: &str = "mycelix-multiworld-sim.tech-tree.v1";
 const RUN_MANIFEST_SCHEMA_VERSION: &str = "humanity-atlas.run-manifest.v1";
 const EXPECTED_CLASSIFICATION: &str = "simulated_scenario";
 const EXPECTED_YEAR_ZERO: &str = "relative_to_scenario_start";
-const EXPECTED_DEFINITION_SOURCE: &str = "in_code_default_tree";
 const SIMULATOR_SOURCE_PREFIX: &str = "mycelix-multiworld-sim/";
 const EXPECTED_ADAPTER: &str = "mycelix-multiworld-sim-humanity-atlas-adapter";
 const EXPECTED_JSON_POINTER: &str = "/technology_tree";
@@ -141,7 +140,7 @@ pub fn import_technology_tree(
 
     validate_source_and_run_binding(run, &source, &source_artifact_sha256)?;
     let tree = source.technology_tree;
-    validate_tree(&tree)?;
+    let dependencies = validate_tree(&tree)?;
 
     let ticks_per_year = tree.ticks_per_year;
     let milestones = tree
@@ -192,7 +191,7 @@ pub fn import_technology_tree(
         source_revision: source.run_manifest.source_revision,
         source_artifact_sha256,
         milestones,
-        dependencies: validate_graph_and_build_dependencies(&source.technology_tree)?,
+        dependencies,
     })
 }
 
@@ -209,9 +208,6 @@ fn validate_source_and_run_binding(
     }
     if manifest.source_revision.as_ref().is_some_and(|value| value.trim().is_empty()) {
         return Err("source_revision must be null or non-empty".into());
-    }
-    if source.source_revision_key_is_empty() {
-        return Err("run manifest source_revision must be explicitly present".into());
     }
     if manifest.seed != source.seed || manifest.ticks != source.ticks {
         return Err("run manifest seed/ticks disagree with the enclosing simulator output".into());
@@ -312,6 +308,9 @@ fn validate_source_and_run_binding(
     {
         return Err("scenario identity digest/ID is not bound to the declared effective inputs".into());
     }
+    if source.years == 0 || source.years > 100_000 {
+        return Err("source horizon years must be within 1..=100000".into());
+    }
     if source.ticks_per_year_product()? != source.ticks {
         return Err("source horizon ticks must equal years * technology_tree.ticks_per_year".into());
     }
@@ -364,7 +363,7 @@ fn run_id_digest_mismatch(run: &ScenarioRunEnvelope, source_digest: &str) -> boo
     run.run_id != format!("urn:sha256:{source_digest}")
 }
 
-fn validate_tree(tree: &TechnologyTreeWire) -> Result<(), String> {
+fn validate_tree(tree: &TechnologyTreeWire) -> Result<Vec<ScenarioTechnologyDependency>, String> {
     if tree.schema_version != TREE_SCHEMA_VERSION {
         return Err(format!("unsupported technology tree schema: {}", tree.schema_version));
     }
@@ -373,9 +372,6 @@ fn validate_tree(tree: &TechnologyTreeWire) -> Result<(), String> {
     }
     if tree.source_model.trim().is_empty() || tree.definition_source.trim().is_empty() {
         return Err("source_model and definition_source must be non-empty".into());
-    }
-    if tree.definition_source != EXPECTED_DEFINITION_SOURCE {
-        return Err("this adapter only accepts the explicitly declared in_code_default_tree source".into());
     }
     if !is_lowercase_sha256(&tree.definition_sha256) {
         return Err("definition_sha256 must be lowercase SHA-256".into());
@@ -462,10 +458,9 @@ fn validate_tree(tree: &TechnologyTreeWire) -> Result<(), String> {
     if recomputed != tree.definition_sha256 {
         return Err("technology-tree definition SHA-256 mismatch".into());
     }
-    // Build the graph separately so it can be validated and then converted to
-    // public dependency edges without coupling graph rules to presentation.
-    validate_graph_and_build_dependencies(tree)?;
-    Ok(())
+    // Validate and convert the source-declared graph without coupling graph
+    // semantics to any rendering or presentation implementation.
+    validate_graph_and_build_dependencies(tree)
 }
 
 fn validate_graph_and_build_dependencies(
@@ -733,10 +728,6 @@ impl SimulationOutputWire {
             .ok_or_else(|| "year * ticks_per_year overflows u32".to_string())
     }
 
-    fn source_revision_key_is_empty(&self) -> bool {
-        // This check is repeated after strict parsing by inspecting the source object.
-        false
-    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -993,7 +984,10 @@ mod tests {
     #[test]
     fn rejects_duplicate_json_keys_before_deserializing() {
         let (run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
-        let duplicate = raw.replacen(b"\"seed\":42".as_slice(), b"\"seed\":42,\"seed\":42".as_slice(), 1);
+        let raw_text = String::from_utf8(raw.clone()).expect("source fixture is UTF-8");
+        let duplicate = raw_text
+            .replacen("\"seed\":42", "\"seed\":42,\"seed\":42", 1)
+            .into_bytes();
         // Keep the generic artifact binding valid so the duplicate-key check is
         // the first failure rather than the outer digest check.
         let mut adjusted = run.clone();
@@ -1022,6 +1016,6 @@ mod tests {
         let (mut run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
         run.engine.model_sha256 = "f".repeat(64);
         assert!(import_technology_tree(&run, "source-simulator-output", &raw)
-            .unwrap_err().contains("model_sha256"));
+            .unwrap_err().contains("definition digest disagrees"));
     }
 }
