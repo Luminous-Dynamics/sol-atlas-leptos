@@ -15,7 +15,7 @@ use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque};
+use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 use std::fmt;
 
 const TREE_SCHEMA_VERSION: &str = "mycelix-multiworld-sim.tech-tree.v1";
@@ -42,6 +42,8 @@ pub struct ScenarioTechnologyTree {
     pub seed: u64,
     pub horizon_ticks: u32,
     pub horizon_relative_years: u32,
+    /// Whether the simulator reported civilization survival at the run horizon.
+    pub survived: bool,
     pub source_revision: Option<String>,
     /// SHA-256 of the exact complete simulator-output artifact bytes.
     pub source_artifact_sha256: String,
@@ -127,6 +129,19 @@ pub fn import_technology_tree(
 
     let strict_value = parse_json_without_duplicate_keys(source_artifact_bytes)?;
     let source_value = strict_value_to_json(strict_value);
+    let tree_value = source_value
+        .get("technology_tree")
+        .and_then(Value::as_object)
+        .ok_or_else(|| "simulator output must include technology_tree object".to_string())?;
+    let milestone_values = tree_value
+        .get("milestones")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "technology_tree.milestones must be an array".to_string())?;
+    for (index, milestone) in milestone_values.iter().enumerate() {
+        if !milestone.as_object().is_some_and(|fields| fields.contains_key("achieved_tick")) {
+            return Err(format!("technology_tree.milestones[{index}] is missing required achieved_tick key"));
+        }
+    }
     let source: SimulationOutputWire = serde_json::from_value(source_value.clone())
         .map_err(|error| format!("invalid simulator output envelope: {error}"))?;
 
@@ -190,6 +205,7 @@ pub fn import_technology_tree(
         seed: source.seed,
         horizon_ticks: source.ticks,
         horizon_relative_years: source.years,
+        survived: source.survived,
         source_revision: source.run_manifest.source_revision,
         source_artifact_sha256,
         milestones,
@@ -456,7 +472,7 @@ fn validate_tree(
             return Err(format!("milestone {} has mismatched prerequisite ID/name counts", milestone.id));
         }
         for (id, name) in milestone.prerequisite_milestone_ids.iter().zip(&milestone.prerequisite_milestone_names) {
-            if *id != technology_milestone_id(name) {
+            if id != &technology_milestone_id(name) {
                 return Err(format!("milestone {} has prerequisite ID/name mismatch", milestone.id));
             }
         }
@@ -979,6 +995,30 @@ mod tests {
         assert_eq!(tree.horizon_relative_years, 2);
         assert_eq!(tree.milestones[1].earliest_relative_year, 0.0);
         assert_eq!(tree.milestones[0].effects.tech_level_boost, vec![(0,0.5)]);
+    }
+
+    #[test]
+    fn rejects_milestone_achievement_after_run_horizon() {
+        let mut milestone = test_milestone("Fusion Demo", vec![], vec![]);
+        milestone.achieved = true;
+        milestone.achieved_tick = Some(36);
+        let (run, raw) = fixture(vec![milestone]);
+        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
+            .unwrap_err().contains("achieved after the run horizon"));
+    }
+
+    #[test]
+    fn rejects_missing_required_achieved_tick_key() {
+        let (run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
+        let raw_text = String::from_utf8(raw).expect("source fixture is UTF-8");
+        let malformed = raw_text.replacen(",\"achieved_tick\":null", "", 1).into_bytes();
+        let digest = sha256_hex(&malformed);
+        let mut adjusted = run;
+        adjusted.run_id = format!("urn:sha256:{digest}");
+        adjusted.artifacts[0].artifact_sha256 = digest.clone();
+        adjusted.artifacts[0].artifact_ref = format!("urn:sha256:{digest}");
+        assert!(import_technology_tree(&adjusted, "source-simulator-output", &malformed)
+            .unwrap_err().contains("missing required achieved_tick key"));
     }
 
     #[test]
