@@ -561,6 +561,7 @@ impl std::ops::Deref for HashBoundStateVector {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct HorizonsEnvelope {
     signature: Option<HorizonsSignature>,
     result: Option<String>,
@@ -568,6 +569,7 @@ struct HorizonsEnvelope {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct HorizonsSignature {
     source: Option<String>,
     version: Option<String>,
@@ -1008,6 +1010,36 @@ mod tests {
     fn provenance() -> EphemerisProvenance {
         provenance_for(FIXTURE)
     }
+
+    #[test]
+    fn unexpected_json_fields_fail_closed_at_envelope_and_signature() {
+        let mut extra_envelope_field: serde_json::Value =
+            serde_json::from_str(FIXTURE).unwrap();
+        extra_envelope_field
+            .as_object_mut()
+            .unwrap()
+            .insert("unexpected".to_owned(), serde_json::json!(true));
+        let payload = extra_envelope_field.to_string();
+        let provenance = provenance_for(&payload);
+        assert!(matches!(
+            parse_horizons_vectors_json(&payload, &request(), &provenance),
+            Err(HorizonsParseError::InvalidJson(_))
+        ));
+
+        let mut extra_signature_field: serde_json::Value =
+            serde_json::from_str(FIXTURE).unwrap();
+        extra_signature_field["signature"]
+            .as_object_mut()
+            .unwrap()
+            .insert("unexpected".to_owned(), serde_json::json!("unreviewed"));
+        let payload = extra_signature_field.to_string();
+        let provenance = provenance_for(&payload);
+        assert!(matches!(
+            parse_horizons_vectors_json(&payload, &request(), &provenance),
+            Err(HorizonsParseError::InvalidJson(_))
+        ));
+    }
+
 
     #[test]
     fn catalogue_request_rejects_target_or_center_relabeling() {
