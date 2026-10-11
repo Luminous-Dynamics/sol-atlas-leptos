@@ -149,6 +149,9 @@ from urllib.parse import quote
 target_id, center_id, command, provider_center, expected_target, expected_center, url, manifest_path = sys.argv[1:]
 encode = lambda value: quote(value, safe="-_.~")
 
+if target_id.casefold() == center_id.casefold():
+    raise SystemExit("target cannot be its own center")
+
 # One manifest is shared by the capture and verification tools; Rust unit tests
 # compare the same file against SOLAR_SYSTEM_CATALOG to detect mapping drift.
 try:
