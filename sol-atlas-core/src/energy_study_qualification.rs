@@ -375,7 +375,7 @@ pub fn assess_critical_load_constraint_v1(
             });
         }
         // Worst-case overlap of aggregate unserved energy with critical demand.
-        upper_bound_kwh += critical_load.min(&interval.unserved_load_kwh).to_owned();
+        upper_bound_kwh += (*critical_load).min(interval.unserved_load_kwh);
         if !upper_bound_kwh.is_finite() {
             return Err(EnergyStudyQualificationError::CriticalLoadAccountingOverflow);
         }
