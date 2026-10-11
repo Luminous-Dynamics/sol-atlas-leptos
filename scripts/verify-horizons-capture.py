@@ -49,8 +49,8 @@ def parse_http_status(headers_bytes: bytes) -> str:
 
 def read_json(path: Path) -> dict[str, Any]:
     try:
-        obj = json.loads(path.read_bytes())
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        obj = _validator.strict_json_loads(path.read_bytes())
+    except (OSError, ValueError) as error:
         raise CaptureVerificationError(f"cannot read valid JSON from {path.name}: {error}") from error
     if not isinstance(obj, dict):
         raise CaptureVerificationError(f"{path.name} must contain a JSON object")
