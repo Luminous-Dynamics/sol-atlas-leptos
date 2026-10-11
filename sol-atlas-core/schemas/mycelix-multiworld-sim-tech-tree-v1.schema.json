@@ -104,13 +104,15 @@
           }
         },
         "power_multiplier": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0
         },
         "propulsion_unlock": {
           "type": "boolean"
         },
         "resource_efficiency": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0
         }
       }
     },
