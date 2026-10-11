@@ -164,3 +164,17 @@ A base location is not “proven” by passing a terrain model. A water-producti
 9. NASA Technical Reports Server, [Illumination Conditions at the Lunar Poles](https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/20170007365.pdf) — older illumination modelling; use as historical context and recompute for current sites and mission dates.
 10. NASA Goddard, [High-Resolution LOLA Topography for Lunar South Pole Sites](https://pgda.gsfc.nasa.gov/products/78) — public elevation, slope and uncertainty products for multiple south-polar candidate sites.
 
+## Machine-enforced data boundary
+
+The machine-readable candidate register is a **research-screening dataset**, not a landing-site recommendation. Its contract is enforced by the repository's independent `validate-lunar-site-screening` CI job.
+
+Run the same standard-library-only checks locally:
+
+```sh
+python3 scripts/validate_lunar_site_screening.py
+python3 -m unittest discover -s tests -p 'test_lunar_site_screening_contract.py'
+```
+
+The gate intentionally requires all ten reviewed region/comparator records to remain identifiable, forbids point-coordinate and ranking fields, requires scalar scoring and comparison weights to remain null, and requires each `known_metrics` object to remain empty until comparable evidence can be bound to provenance. It also requires the comparison layer set, evidence state, unresolved questions, and HTTPS source references.
+
+This is a protective boundary, not a claim that the regions are equally promising. A future version may add measurements only with explicit units, coordinate frame, spatial resolution, acquisition epoch/date, uncertainty, source/version, and evidence state; the accompanying analysis must explain comparability and preserve missing values as unknown. A site-specific coordinate must never be inferred from a broad region name or presented as an agency-approved landing ellipse.
