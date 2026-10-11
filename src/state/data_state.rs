@@ -4,6 +4,7 @@
 use leptos::prelude::*;
 
 use crate::data::types::*;
+use sol_atlas_core::usgs::UsgsFeedStatus;
 
 #[derive(Clone)]
 pub struct DataState {
@@ -24,6 +25,8 @@ pub struct DataState {
     pub major_cities: RwSignal<Vec<MajorCity>>,
     pub chokepoints: RwSignal<Vec<Chokepoint>>,
     pub critical_infrastructure: RwSignal<Vec<CriticalInfrastructure>>,
+    /// Current health/provenance for the live USGS earthquake layer.
+    pub usgs_feed_status: RwSignal<UsgsFeedStatus>,
 }
 
 impl DataState {
@@ -46,6 +49,7 @@ impl DataState {
             major_cities: RwSignal::new(Vec::new()),
             chokepoints: RwSignal::new(Vec::new()),
             critical_infrastructure: RwSignal::new(Vec::new()),
+            usgs_feed_status: RwSignal::new(UsgsFeedStatus::default()),
         }
     }
 

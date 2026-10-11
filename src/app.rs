@@ -14,6 +14,7 @@ use crate::components::reactor_twin_demo::ReactorTwinDemo;
 use crate::components::timeline::Timeline;
 use crate::components::tooltip::Tooltip;
 use crate::components::whisper::Whisper;
+use crate::data::live_earthquakes;
 use crate::data::static_data;
 use crate::state::data_state::DataState;
 use crate::state::globe_state::GlobeState;
@@ -55,6 +56,9 @@ fn GlobeApp() -> impl IntoView {
             loaded.nuclear_sites.len(),
         );
         data_for_effect.set_all(loaded);
+        // Static data is the immediate fallback; a validated USGS response
+        // replaces only the earthquake subset when available.
+        live_earthquakes::start(data_for_effect.clone());
     });
 
     // When holochain feature is enabled, try to fetch live data and merge

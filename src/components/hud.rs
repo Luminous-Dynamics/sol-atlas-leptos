@@ -17,6 +17,7 @@ use crate::state::globe_state::GlobeState;
 pub fn Hud() -> impl IntoView {
     let data_state = expect_context::<DataState>();
     let globe_state = expect_context::<GlobeState>();
+    let feed_status = data_state.usgs_feed_status;
 
     // Aggregate Phi from earth regions (population-weighted; None until
     // region data is present so we never render NaN).
@@ -45,6 +46,13 @@ pub fn Hud() -> impl IntoView {
                     Some(phi) => format!("\u{03a6} {:.2}", phi),
                     None => "\u{03a6} \u{2014}".to_string(),
                 }}
+            </span>
+            <span
+                class=move || format!("live-feed-badge {}", feed_status.get().health.css_class())
+                title=move || feed_status.get().description()
+                aria-live="polite"
+            >
+                {move || feed_status.get().health.label()}
             </span>
             <button
                 class="aesthetic-cycle"
