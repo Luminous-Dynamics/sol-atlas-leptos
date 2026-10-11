@@ -84,7 +84,8 @@ fn filter_matches(candidate: &LunarCandidate, filter: SiteFilter, query: &str) -
     )
     .to_lowercase();
 
-    if !query.is_empty() && !search_blob.contains(query) {
+    let normalized_query = query.to_lowercase();
+    if !normalized_query.is_empty() && !search_blob.contains(&normalized_query) {
         return false;
     }
 
@@ -180,7 +181,7 @@ pub fn LunarObservatory() -> impl IntoView {
                                     <p class="lunar-eyebrow">"EXPLORE THE REGISTER"</p>
                                     <h2>"Regions by role"</h2>
                                 </div>
-                                <span class="lunar-register-state">{status.replace('_', ' ')}</span>
+                                <span class="lunar-register-state">{status.replace('_', " ")}</span>
                             </div>
                             <div class="lunar-filter-row" role="group" aria-label="Filter regions by mission role">
                                 <button
@@ -215,7 +216,7 @@ pub fn LunarObservatory() -> impl IntoView {
                                 type="search"
                                 placeholder="e.g. Malapert, landing ellipse, illumination"
                                 prop:value=move || query.get()
-                                on:input=move |event| query.set(event_target_value(&event).to_lowercase())
+                                on:input=move |event| query.set(event_target_value(&event))
                             />
                             <p class="lunar-match-count" aria-live="polite">
                                 {move || {
@@ -233,7 +234,7 @@ pub fn LunarObservatory() -> impl IntoView {
                                     let search_text = query.get();
                                     candidates.get().into_iter()
                                         .filter(|candidate| filter_matches(candidate, selected_filter, &search_text))
-                                        .map(|candidate| view! { <LunarCandidateCard candidate/> })
+                                        .map(|candidate| view! { <LunarCandidateCard candidate=candidate/> })
                                         .collect::<Vec<_>>()
                                 }}
                             </div>
@@ -247,10 +248,10 @@ pub fn LunarObservatory() -> impl IntoView {
                             <h2>"Required evidence layers"</h2>
                             <p>"A future comparison must bind each value to its source, acquisition date, coordinate frame, units, spatial resolution, uncertainty, and evidence state."</p>
                             <ul class="lunar-layer-list">
-                                {layers.into_iter().map(|layer| view! { <li>{layer.replace('_', ' ')}</li> }).collect::<Vec<_>>()}
+                                {layers.into_iter().map(|layer| view! { <li>{layer.replace('_', " ")}</li> }).collect::<Vec<_>>()}
                             </ul>
                             <p class="lunar-policy-note">
-                                {comparison_output} ". Missing data policy: " {missing_data_policy.replace('_', ' ')} "."
+                                {comparison_output} ". Missing data policy: " {missing_data_policy.replace('_', " ")} "."
                             </p>
                         </section>
 
