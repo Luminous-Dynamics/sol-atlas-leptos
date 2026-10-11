@@ -9,7 +9,7 @@
 
 use sol_atlas_core::humanity_atlas::{
     ScenarioRunEnvelope,
-    technology_tree::import_technology_tree,
+    technology_tree::{import_technology_tree, MAX_SOURCE_ARTIFACT_BYTES},
 };
 use std::{env, fs, io, process::ExitCode};
 
@@ -39,6 +39,13 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or_else(|| "source-simulator-output".to_string());
 
     let envelope_bytes = fs::read_to_string(envelope_path)?;
+    let source_metadata = fs::metadata(artifact_path)?;
+    if source_metadata.len() > MAX_SOURCE_ARTIFACT_BYTES as u64 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("source artifact exceeds the {MAX_SOURCE_ARTIFACT_BYTES}-byte v1 limit"),
+        ).into());
+    }
     let source_bytes = fs::read(artifact_path)?;
     let run = ScenarioRunEnvelope::from_json(&envelope_bytes)
         .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
@@ -46,8 +53,21 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
 
     let summary = serde_json::json!({
+        "qualification": "structural_contract_pass",
+        "qualification_scope": [
+            "run_envelope_structure",
+            "exact_source_artifact_sha256",
+            "tree_definition_digest",
+            "manifest_and_resolved_input_bindings",
+            "scenario_identity_and_summary_metrics",
+            "milestone_graph_integrity"
+        ],
         "verification": "structural_and_cross_binding_checks_passed",
         "scientific_validation": "not_established",
+        "run_id": run.run_id,
+        "scenario_id": run.scenario_id,
+        "engine_version": run.engine.engine_version,
+        "model_identity_kind": run.engine.model_identity_kind,
         "classification": tree.classification,
         "schema_version": tree.schema_version,
         "source_model": tree.source_model,
