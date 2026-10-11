@@ -623,6 +623,35 @@ mod tests {
         assert!(malformed_json["record_count"].is_null());
         assert_eq!(empty_json["state"], "valid_empty");
         assert_eq!(empty_json["record_count"], 0);
+        assert_eq!(empty_json["rejected_record_count"], 0);
+
+        let partial = DatasetLoadHealth {
+            dataset: "usgs-earthquakes".to_string(),
+            state: DatasetLoadState::PartiallyLoaded,
+            record_count: Some(1),
+            rejected_record_count: Some(2),
+            diagnostic: Some("2 source features excluded".to_string()),
+        };
+        let partial_json = serde_json::to_value(partial).unwrap();
+        assert_eq!(partial_json["state"], "partially_loaded");
+        assert_eq!(partial_json["record_count"], 1);
+        assert_eq!(partial_json["rejected_record_count"], 2);
+    }
+
+    #[test]
+    fn geojson_health_distinguishes_partial_load_from_valid_empty() {
+        let mixed = r#"{"type":"FeatureCollection","features":[
+            {"properties":{},"geometry":{"coordinates":[10.0,20.0]}},
+            {"properties":{},"geometry":{"coordinates":[10.0,91.0]}}
+        ]}"#;
+        let (events, health) = parse_natural_events_with_health(mixed, "[]", "[]", "[]");
+        assert_eq!(events.len(), 1);
+        assert_eq!(health[0].state, DatasetLoadState::PartiallyLoaded);
+        assert_eq!(health[0].record_count, Some(1));
+        assert_eq!(health[0].rejected_record_count, Some(1));
+        assert!(health[0].diagnostic.as_deref().is_some_and(|d| d.contains("1 source features")));
+        assert_eq!(health[1].state, DatasetLoadState::ValidEmpty);
+        assert_eq!(health[1].record_count, Some(0));
     }
 
     #[test]
