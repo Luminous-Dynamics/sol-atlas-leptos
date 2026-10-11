@@ -242,9 +242,10 @@ pub fn verify_energy_study_run_receipt_v1(
         if interval.interval_index != expected_index {
             return Err(EnergyStudyQualificationError::IntervalIndexMismatch { position });
         }
-        let offset = manifest.interval_seconds.checked_mul(expected_index)
+        let offset = i64::from(manifest.interval_seconds)
+            .checked_mul(i64::from(expected_index))
             .ok_or(EnergyStudyQualificationError::TimeArithmeticOverflow { position })?;
-        let expected_timestamp = manifest.start_unix_seconds.checked_add(i64::from(offset))
+        let expected_timestamp = manifest.start_unix_seconds.checked_add(offset)
             .ok_or(EnergyStudyQualificationError::TimeArithmeticOverflow { position })?;
         if interval.interval_start_unix_seconds != expected_timestamp {
             return Err(EnergyStudyQualificationError::IntervalTimestampMismatch { position });
@@ -266,6 +267,38 @@ pub fn verify_energy_study_run_receipt_v1(
         case_sha256,
         verified_interval_count: manifest.interval_count,
         interval_outputs_sha256: sha256_hex(&canonical),
+    })
+}
+
+/// Combined report from the artifact and interval-receipt checks.
+///
+/// A successful result means all declared input bytes and interval output bytes
+/// match the manifest-bound receipt. It still does not prove execution or
+/// physical correctness; apply the independent microgrid verifier separately.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EnergyStudyQualificationReportV1 {
+    pub artifacts: EnergyStudyArtifactVerificationReceiptV1,
+    pub run: EnergyStudyRunVerificationReceiptV1,
+}
+
+/// Run both identity checks as one fail-closed operation.
+pub fn qualify_energy_study_run_v1(
+    manifest: &EnergyStudyManifestV1,
+    artifacts: EnergyStudyArtifactBytesV1<'_>,
+    run_receipt: &EnergyStudyRunReceiptV1,
+    interval_output_bytes: &[&[u8]],
+) -> Result<EnergyStudyQualificationReportV1, EnergyStudyQualificationError> {
+    let artifact_receipt = verify_energy_study_artifacts_v1(manifest, artifacts)?;
+    let run_verification =
+        verify_energy_study_run_receipt_v1(manifest, run_receipt, interval_output_bytes)?;
+    if artifact_receipt.manifest_sha256 != run_verification.manifest_sha256
+        || artifact_receipt.case_sha256 != run_verification.case_sha256
+    {
+        return Err(EnergyStudyQualificationError::ArtifactSetMismatch);
+    }
+    Ok(EnergyStudyQualificationReportV1 {
+        artifacts: artifact_receipt,
+        run: run_verification,
     })
 }
 
@@ -403,6 +436,24 @@ mod tests {
         let mut wrong_time = good;
         wrong_time.intervals[3].interval_start_unix_seconds += 1;
         assert_eq!(verify_energy_study_run_receipt_v1(&manifest, &wrong_time, &output_slices), Err(EnergyStudyQualificationError::IntervalTimestampMismatch { position: 3 }));
+    }
+
+    #[test]
+    fn combined_qualification_binds_inputs_and_outputs_to_same_study() {
+        let manifest = manifest();
+        let outputs: Vec<Vec<u8>> = (0..manifest.interval_count)
+            .map(|index| format!("fixture-output-{index}").into_bytes()).collect();
+        let receipt = run_receipt(&manifest, &outputs);
+        let output_slices: Vec<&[u8]> = outputs.iter().map(Vec::as_slice).collect();
+        let report = qualify_energy_study_run_v1(
+            &manifest,
+            input_artifacts(),
+            &receipt,
+            &output_slices,
+        ).unwrap();
+        assert_eq!(report.artifacts.manifest_sha256, report.run.manifest_sha256);
+        assert_eq!(report.artifacts.case_sha256, report.run.case_sha256);
+        assert_eq!(report.run.verified_interval_count, manifest.interval_count);
     }
 
     #[test]
