@@ -699,4 +699,58 @@ mod fossil_deposit_admission_tests {
         record.status = "producing\t".to_string();
         assert!(record.validate().is_err());
     }
+
+    #[test]
+    fn parser_preserves_valid_eroi_evidence_through_strict_wire_type() {
+        let with_evidence = format!(
+            "{}{}",
+            VALID_RECORD.trim_end_matches('}'),
+            r#", "eroi_evidence": {
+                "stage": "primary",
+                "output_definition": "energy content at extraction",
+                "input_definition": "direct and indirect energy invested",
+                "geographic_scope": "country-level",
+                "period_start_year": 2018,
+                "period_end_year": 2020,
+                "source_citation": "Example Study, DOI:10.0000/example",
+                "publication_date": "2024-02-29",
+                "basis": "literature",
+                "uncertainty": {"lower": 4.0, "upper": 6.0}
+            }}"#
+        );
+        let records = parse_record(&with_evidence).expect("valid evidence should be preserved");
+        let evidence = records[0]
+            .eroi_evidence
+            .as_ref()
+            .expect("wire conversion must retain optional evidence");
+
+        assert_eq!(evidence.stage, EroiStage::Primary);
+        assert!(evidence.is_qualified());
+        assert_eq!(evidence.source_citation, "Example Study, DOI:10.0000/example");
+    }
+
+    #[test]
+    fn incomplete_eroi_evidence_remains_present_but_unqualified() {
+        let with_evidence = format!(
+            "{}{}",
+            VALID_RECORD.trim_end_matches('}'),
+            r#", "eroi_evidence": {
+                "stage": "primary",
+                "output_definition": "energy content at extraction",
+                "input_definition": "direct and indirect energy invested",
+                "geographic_scope": "country-level",
+                "period_start_year": 2018,
+                "period_end_year": 2020,
+                "source_citation": "",
+                "basis": "literature"
+            }}"#
+        );
+        let records = parse_record(&with_evidence)
+            .expect("incomplete qualification metadata is not a schema parse failure");
+
+        assert_eq!(records[0].eroi, Some(5.0));
+        let evidence = records[0].eroi_evidence.as_ref().unwrap();
+        assert!(evidence.source_citation.is_empty());
+        assert!(!evidence.is_qualified());
+    }
 }
