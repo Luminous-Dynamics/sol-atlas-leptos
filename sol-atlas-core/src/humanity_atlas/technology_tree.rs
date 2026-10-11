@@ -981,6 +981,23 @@ mod tests {
     }
 
     #[test]
+    fn checked_in_schema_matches_the_importer_contract_version() {
+        let schema: Value = serde_json::from_str(include_str!(
+            "../../schemas/mycelix-multiworld-sim-tech-tree-v1.schema.json"
+        )).expect("checked-in technology-tree schema must be valid JSON");
+        assert_eq!(schema["$id"], "https://atlas.luminousdynamics.io/schemas/mycelix-multiworld-sim-tech-tree-v1.schema.json");
+        assert_eq!(schema["properties"]["schema_version"]["const"], TREE_SCHEMA_VERSION);
+        assert_eq!(schema["properties"]["classification"]["const"], EXPECTED_CLASSIFICATION);
+        assert_eq!(schema["properties"]["year_zero_semantics"]["const"], EXPECTED_YEAR_ZERO);
+        assert_eq!(schema["additionalProperties"], false);
+        assert!(schema["$defs"]["milestone"]["required"]
+            .as_array()
+            .expect("milestone required fields")
+            .iter()
+            .any(|field| field == "achieved_tick"));
+    }
+
+    #[test]
     fn imports_and_binds_a_valid_synthetic_source_artifact() {
         let (run, raw) = fixture(vec![
             test_milestone("Fusion Demo", vec![], vec![(0,0.5)]),
