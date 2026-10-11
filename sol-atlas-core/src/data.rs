@@ -192,6 +192,7 @@ fn parse_or_log_with_health<T: Default>(
                     DatasetLoadState::Loaded
                 },
                 record_count: Some(count),
+                rejected_record_count: Some(0),
                 diagnostic: None,
             });
             value
@@ -203,6 +204,7 @@ fn parse_or_log_with_health<T: Default>(
                 dataset: dataset.to_string(),
                 state: DatasetLoadState::Malformed,
                 record_count: None,
+                rejected_record_count: None,
                 diagnostic: Some(diagnostic),
             });
             T::default()
