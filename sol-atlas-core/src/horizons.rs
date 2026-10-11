@@ -419,6 +419,12 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
         ));
     }
 
+    if !safe_stable_id(&request.target_id) || !safe_stable_id(&request.center_id) {
+        return Err(HorizonsParseError::InvalidRequest(
+            "target and center IDs must be lowercase ASCII slugs",
+        ));
+    }
+
     // When an ID belongs to the curated catalogue, enforce that provider
     // expressions and display names match that entry. This prevents a valid
     // Mars response being relabelled as "venus" by a mismatched caller.
@@ -484,6 +490,16 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
         ));
     }
     Ok(())
+}
+
+fn safe_stable_id(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    !bytes.is_empty()
+        && bytes[0].is_ascii_lowercase().then_some(true).unwrap_or_else(|| bytes[0].is_ascii_digit())
+        && bytes.last().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+        && bytes.iter().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'-' | b'_')
+        })
 }
 
 fn safe_horizons_token(value: &str) -> bool {
@@ -1091,6 +1107,31 @@ mod tests {
                 "target and center IDs must not have surrounding whitespace"
             ))
         );
+    }
+
+    #[test]
+    fn request_rejects_non_slug_custom_ids() {
+        let mut uppercase_custom = request();
+        uppercase_custom.target_id = "custom-Mars".into();
+        assert_eq!(
+            uppercase_custom.request_plan(),
+            Err(HorizonsParseError::InvalidRequest(
+                "target and center IDs must be lowercase ASCII slugs"
+            ))
+        );
+
+        let mut punctuated_center = request();
+        punctuated_center.center_id = "ssb/primary".into();
+        assert_eq!(
+            punctuated_center.request_plan(),
+            Err(HorizonsParseError::InvalidRequest(
+                "target and center IDs must be lowercase ASCII slugs"
+            ))
+        );
+
+        let mut underscored_custom = request();
+        underscored_custom.target_id = "custom_small_body".into();
+        assert!(underscored_custom.request_plan().is_ok());
     }
 
     #[test]
