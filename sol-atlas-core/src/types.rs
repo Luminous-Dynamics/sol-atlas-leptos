@@ -215,7 +215,7 @@ impl Layer {
                 kind: Curated,
             },
             Self::Earthquakes => DataProvenance {
-                source: "USGS ComCat live feed (M1.0+ past day; last-known-good retained on refresh failure)",
+                source: "USGS ComCat M1.0+ live feed; bundled fallback",
                 snapshot_date: "",
                 kind: Observed,
             },

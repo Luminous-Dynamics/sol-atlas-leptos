@@ -31,9 +31,13 @@ fn row(label: &'static str, value: String) -> impl IntoView {
 }
 
 fn format_timestamp_ms(timestamp_ms: i64) -> String {
-    js_sys::Date::new(&wasm_bindgen::JsValue::from_f64(timestamp_ms as f64))
-        .to_iso_string()
-        .into()
+    let date = js_sys::Date::new(&wasm_bindgen::JsValue::from_f64(timestamp_ms as f64));
+    if !date.get_time().is_finite() {
+        return "Invalid timestamp".to_string();
+    }
+    date.to_iso_string()
+        .as_string()
+        .unwrap_or_else(|| "Invalid timestamp".to_string())
 }
 
 #[component]
@@ -176,7 +180,7 @@ pub fn InfoPanel() -> impl IntoView {
                             }}
                         </div>
                     }.into_any(),
-                                        Some(SelectedItem::MajorCity(c)) => view! {
+                    Some(SelectedItem::MajorCity(c)) => view! {
                         <div>
                             <h2>{c.name.clone()}</h2>
                             <div class="subtitle">{format!("{} \u{00b7} curated", c.country)}</div>
