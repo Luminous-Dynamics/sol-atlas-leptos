@@ -17,6 +17,7 @@ pub const ENERGY_STUDY_SCHEMA_VERSION: u16 = 1;
 pub const MAX_ENERGY_STUDY_DATASETS: usize = 256;
 const MAX_TEXT_BYTES: usize = 512;
 const DIGEST_DOMAIN: &[u8] = b"luminous-dynamics.energy-study-manifest.v1\0";
+const CASE_DIGEST_DOMAIN: &[u8] = b"luminous-dynamics.energy-study-case.v1\0";
 
 /// Manifest for one fixed set of energy-study inputs and one policy comparison.
 ///
@@ -283,6 +284,43 @@ impl EnergyStudyManifestV1 {
 
         Ok(to_lower_hex(&hasher.finalize()))
     }
+
+    /// Compute a stable digest over the frozen case inputs, excluding model and
+    /// policy identity so baseline and candidate policies share one case ID.
+    ///
+    /// The case digest binds the case metadata, time axis, dataset declarations,
+    /// asset registry and hard constraints. It does not prove those bytes came
+    /// from authentic sources or that a declared simulation actually ran.
+    /// Encoding must remain byte-compatible with the TypeScript SDK.
+    pub fn case_digest_sha256(&self) -> Result<String, EnergyStudyValidationError> {
+        self.validate()?;
+
+        let mut hasher = Sha256::new();
+        hasher.update(CASE_DIGEST_DOMAIN);
+        hasher.update(self.schema_version.to_be_bytes());
+        hash_text(&mut hasher, &self.study_id);
+        hash_text(&mut hasher, &self.case_id);
+        hash_text(&mut hasher, &self.region_id);
+        hasher.update(self.start_unix_seconds.to_be_bytes());
+        hasher.update(self.interval_seconds.to_be_bytes());
+        hasher.update(self.interval_count.to_be_bytes());
+
+        let mut datasets: Vec<&EnergyDatasetRefV1> = self.datasets.iter().collect();
+        datasets.sort_by(|left, right| left.dataset_id.cmp(&right.dataset_id));
+        hasher.update((datasets.len() as u32).to_be_bytes());
+        for dataset in datasets {
+            hash_text(&mut hasher, &dataset.dataset_id);
+            hash_text(&mut hasher, &dataset.source_id);
+            hash_text(&mut hasher, &dataset.content_sha256);
+            hash_text(&mut hasher, &dataset.unit);
+            hasher.update([dataset.evidence_class.tag()]);
+        }
+
+        hash_text(&mut hasher, &self.asset_registry_sha256);
+        hash_text(&mut hasher, &self.constraints_sha256);
+
+        Ok(to_lower_hex(&hasher.finalize()))
+    }
 }
 
 impl EnergyEvidenceClass {
@@ -516,6 +554,10 @@ mod tests {
             study.digest_sha256().unwrap(),
             "896b4579a632dac32bafd3b2347f19f5da5a74f7173c14cf818b00a8e5c484da"
         );
+        assert_eq!(
+            study.case_digest_sha256().unwrap(),
+            "1612238432409a5282145479c7c585c53b4ae9a45832de5213722ee75d438f63"
+        );
 
         let dataset_artifacts = [
             (
@@ -573,6 +615,21 @@ mod tests {
             "739b51d33d549bf6fd9057eb5fcbd947e76a8266"
         );
         assert_eq!(study.policy.git_revision, study.model.git_revision);
+    }
+
+
+    #[test]
+    fn case_digest_excludes_model_and_policy_but_binds_case_inputs() {
+        let json = include_str!("../../fixtures/energy-study/v1/cloud-evening-outage.json");
+        let mut study: EnergyStudyManifestV1 = serde_json::from_str(json).unwrap();
+        let original = study.case_digest_sha256().unwrap();
+
+        study.model.configuration_sha256 = "8".repeat(64);
+        study.policy.git_revision = "3".repeat(40);
+        assert_eq!(study.case_digest_sha256().unwrap(), original);
+
+        study.datasets[0].content_sha256 = "9".repeat(64);
+        assert_ne!(study.case_digest_sha256().unwrap(), original);
     }
 
     #[test]
