@@ -981,17 +981,19 @@ mod tests {
 
     #[test]
     fn request_rejects_a_body_centered_on_itself_before_transport() {
-        let mut req = request();
-        req.center_id = "mars".into();
-        req.provider_center = "@499".into();
-        req.expected_center_name = "Mars".into();
+        for center_id in ["mars", "MARS"] {
+            let mut req = request();
+            req.center_id = center_id.into();
+            req.provider_center = "@499".into();
+            req.expected_center_name = "Mars".into();
 
-        assert_eq!(
-            req.request_plan(),
-            Err(HorizonsParseError::InvalidRequest(
-                "target cannot be its own center"
-            ))
-        );
+            assert_eq!(
+                req.request_plan(),
+                Err(HorizonsParseError::InvalidRequest(
+                    "target cannot be its own center"
+                ))
+            );
+        }
     }
 
     #[test]
