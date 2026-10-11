@@ -180,8 +180,10 @@ def validate_document(document: Any) -> list[str]:
             "source_url", "source_version_or_acquisition_date", "sha256_when_available",
             "coordinate_frame", "units", "spatial_resolution", "uncertainty", "evidence_state",
         }
-        if not isinstance(metadata, list) or not expected_metadata.issubset(set(metadata)):
-            errors.append("comparison_policy.required_metadata must require source, coordinates frame, units, resolution, uncertainty, and evidence state")
+        if not isinstance(metadata, list) or not all(_is_nonempty_string(item) for item in metadata):
+            errors.append("comparison_policy.required_metadata must be a list of non-empty strings")
+        elif not expected_metadata.issubset(set(metadata)):
+            errors.append("comparison_policy.required_metadata must require source, coordinate frame, units, resolution, uncertainty, and evidence state")
 
     candidates = document.get("candidates")
     if not isinstance(candidates, list):
@@ -214,9 +216,13 @@ def validate_document(document: Any) -> list[str]:
             elif candidate.get("name") != EXPECTED_NAMES[candidate_id]:
                 errors.append(f"{path}.name does not match the reviewed ID {candidate_id!r}")
 
-        if candidate.get("status") not in {"candidate_region", "historical_candidate_region_comparator"}:
+        candidate_status = candidate.get("status")
+        if not isinstance(candidate_status, str) or candidate_status not in {
+            "candidate_region", "historical_candidate_region_comparator"
+        }:
             errors.append(f"{path}.status is not a recognized region/comparator state")
-        if candidate.get("evidence_state") not in EVIDENCE_STATES:
+        candidate_evidence_state = candidate.get("evidence_state")
+        if not isinstance(candidate_evidence_state, str) or candidate_evidence_state not in EVIDENCE_STATES:
             errors.append(f"{path}.evidence_state is not a recognized evidence state")
 
         for key in ("name",):
