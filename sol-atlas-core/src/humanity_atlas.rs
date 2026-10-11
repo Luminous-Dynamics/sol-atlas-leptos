@@ -347,6 +347,14 @@ impl ScenarioRunEnvelope {
             if !is_lowercase_sha256(&artifact.artifact_sha256) {
                 return Err("artifact artifact_sha256 must be lowercase SHA-256".into());
             }
+            if let Some(reference_digest) = artifact.artifact_ref.strip_prefix("urn:sha256:") {
+                if !is_lowercase_sha256(reference_digest) {
+                    return Err("urn:sha256 artifact_ref must contain a lowercase SHA-256 digest".into());
+                }
+                if reference_digest != artifact.artifact_sha256 {
+                    return Err("urn:sha256 artifact_ref digest disagrees with artifact_sha256".into());
+                }
+            }
             if artifact.json_pointer.as_deref().is_some_and(
                 |pointer| unicode_len(pointer) > 1000 || !is_valid_json_pointer(pointer)
             ) {
@@ -510,7 +518,7 @@ mod tests {
             artifact_id: "source-simulator-output".into(),
             role: "source_simulation_output".into(),
             media_type: "application/json".into(),
-            artifact_ref: "urn:sha256:source".into(),
+            artifact_ref: format!("urn:sha256:{}", "d".repeat(64)),
             artifact_sha256: "d".repeat(64),
             json_pointer: Some("/technology_tree".into()),
         });
@@ -524,7 +532,7 @@ mod tests {
             artifact_id: "same-id".into(),
             role: "source_simulation_output".into(),
             media_type: "application/json".into(),
-            artifact_ref: "urn:sha256:artifact".into(),
+            artifact_ref: format!("urn:sha256:{}", "d".repeat(64)),
             artifact_sha256: "d".repeat(64),
             json_pointer: None,
         };
@@ -579,6 +587,20 @@ mod tests {
             .verify_artifact_bytes("source-output", br#"{"technology_tree":{"milestone_count":5}}"#)
             .unwrap_err()
             .contains("artifact digest mismatch"));
+    }
+
+    #[test]
+    fn rejects_content_addressed_reference_digest_mismatch() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.artifacts.push(RunArtifactReference {
+            artifact_id: "mismatched-reference".into(),
+            role: "source_simulation_output".into(),
+            media_type: "application/json".into(),
+            artifact_ref: format!("urn:sha256:{}", "e".repeat(64)),
+            artifact_sha256: "d".repeat(64),
+            json_pointer: None,
+        });
+        assert!(run.validate().unwrap_err().contains("disagrees with artifact_sha256"));
     }
 
     #[test]
