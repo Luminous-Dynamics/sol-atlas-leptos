@@ -60,7 +60,8 @@ cargo test --manifest-path sol-atlas-core/Cargo.toml
 Run the Python adapter's fail-closed regression tests from the Symtropy repository:
 
 ```sh
-python3 -m unittest -v docs/ops/humanity_atlas_scenario_contract_v0_1/test_adapt_multiworld_output.py
+cd docs/ops/humanity_atlas_scenario_contract_v0_1
+python3 -m unittest -v test_adapt_multiworld_output.py
 ```
 
 The adapter's JSON Schema integration assertion runs when Python's `jsonschema`
