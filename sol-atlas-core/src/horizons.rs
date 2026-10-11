@@ -385,6 +385,13 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
             "expected target and center names are required",
         ));
     }
+    if request.expected_target_name.trim() != request.expected_target_name
+        || request.expected_center_name.trim() != request.expected_center_name
+    {
+        return Err(HorizonsParseError::InvalidRequest(
+            "expected target and center names must not have surrounding whitespace",
+        ));
+    }
 
     if request.target_id.trim() != request.target_id
         || request.center_id.trim() != request.center_id
@@ -1105,6 +1112,27 @@ mod tests {
             padded_center.request_plan(),
             Err(HorizonsParseError::InvalidRequest(
                 "target and center IDs must not have surrounding whitespace"
+            ))
+        );
+    }
+
+    #[test]
+    fn request_rejects_padded_expected_provider_names() {
+        let mut padded_target_name = request();
+        padded_target_name.expected_target_name = " Mars".into();
+        assert_eq!(
+            padded_target_name.request_plan(),
+            Err(HorizonsParseError::InvalidRequest(
+                "expected target and center names must not have surrounding whitespace"
+            ))
+        );
+
+        let mut padded_center_name = request();
+        padded_center_name.expected_center_name = "Solar System Barycenter ".into();
+        assert_eq!(
+            padded_center_name.request_plan(),
+            Err(HorizonsParseError::InvalidRequest(
+                "expected target and center names must not have surrounding whitespace"
             ))
         );
     }
