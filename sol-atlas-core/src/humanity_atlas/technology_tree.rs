@@ -155,7 +155,7 @@ pub fn import_technology_tree(
         return Err("run manifest is missing required source_revision key".into());
     }
 
-    validate_source_and_run_binding(run, &source, &source_artifact_sha256)?;
+    validate_source_and_run_binding(run, &source)?;
     let tree = source.technology_tree;
     let dependencies = validate_tree(&tree, source.ticks)?;
 
@@ -216,7 +216,6 @@ pub fn import_technology_tree(
 fn validate_source_and_run_binding(
     run: &ScenarioRunEnvelope,
     source: &SimulationOutputWire,
-    source_artifact_sha256: &str,
 ) -> Result<(), String> {
     let tree = &source.technology_tree;
     let manifest = &source.run_manifest;
@@ -252,7 +251,12 @@ fn validate_source_and_run_binding(
     let source_model = &tree.source_model;
     let package_version = source_model
         .strip_prefix(SIMULATOR_SOURCE_PREFIX)
-        .filter(|value| !value.trim().is_empty() && value.len() <= 120)
+        .filter(|value| {
+            !value.trim().is_empty()
+                && value.len() <= 120
+                && !value.contains('/')
+                && !value.chars().any(char::is_whitespace)
+        })
         .ok_or_else(|| "source_model must include mycelix-multiworld-sim/<package version>".to_string())?;
     if &run.engine.engine_version != package_version {
         return Err("generic engine_version disagrees with source_model package version".into());
@@ -334,9 +338,6 @@ fn validate_source_and_run_binding(
     }
 
     validate_summary_metrics(run, source)?;
-    if run_id_digest_mismatch(run, source_artifact_sha256) {
-        return Err("run_id digest does not match exact simulator artifact bytes".into());
-    }
     Ok(())
 }
 
@@ -375,10 +376,6 @@ fn validate_summary_metrics(
         }
     }
     Ok(())
-}
-
-fn run_id_digest_mismatch(run: &ScenarioRunEnvelope, source_digest: &str) -> bool {
-    run.run_id != format!("urn:sha256:{source_digest}")
 }
 
 fn validate_tree(
@@ -966,7 +963,7 @@ mod tests {
                 },
             ],
             validation: ValidationRecord {
-                status: super::super::ValidationStatus::NotRun,
+                status: ValidationStatus::NotRun,
                 notes:vec!["structural adapter only".into()],
                 evidence:vec![],
             },
@@ -1060,6 +1057,22 @@ mod tests {
         ]);
         assert!(import_technology_tree(&run, "source-simulator-output", &raw)
             .unwrap_err().contains("contains a cycle"));
+    }
+
+    #[test]
+    fn rejects_scenario_id_not_bound_to_effective_inputs() {
+        let (mut run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
+        run.scenario_id = "mycelix-multiworld-sim:scenario:unrelated-but-long-enough".into();
+        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
+            .unwrap_err().contains("scenario identity digest/ID"));
+    }
+
+    #[test]
+    fn rejects_summary_metric_not_bound_to_source_bytes() {
+        let (mut run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
+        run.outputs[0].value = 0.74;
+        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
+            .unwrap_err().contains("summary metric final_cvs disagrees"));
     }
 
     #[test]
