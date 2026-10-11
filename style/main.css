@@ -939,3 +939,86 @@ canvas#globe-canvas.has-hover {
         transition: none;
     }
 }
+
+
+/* ─── Static dataset health: integrity status is text-labelled, not color-only ─── */
+.data-health-panel {
+    position: absolute;
+    top: 14px;
+    left: 58px;
+    width: min(320px, calc(100vw - 76px));
+    max-height: calc(100vh - 100px);
+    overflow: hidden;
+    background: rgba(var(--sa-panel), 0.78);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(var(--sa-line), 0.24);
+    border-radius: var(--sa-radius-sm);
+    color: var(--sa-fg);
+    font-size: 11px;
+    line-height: 1.45;
+    z-index: 11;
+    pointer-events: auto;
+}
+
+.data-health-panel summary {
+    padding: 8px 10px;
+    cursor: pointer;
+    color: rgba(var(--sa-muted), 0.95);
+    font-variant-numeric: tabular-nums;
+}
+
+.data-health-panel summary:focus-visible {
+    outline: 2px solid rgb(var(--sa-cool));
+    outline-offset: -2px;
+}
+
+.data-health-note {
+    padding: 0 10px 8px;
+    color: rgba(var(--sa-dim), 0.82);
+}
+
+.data-health-list {
+    list-style: none;
+    padding: 0 10px 10px;
+    max-height: min(52vh, 420px);
+    overflow-y: auto;
+}
+
+.data-health-list li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 3px 8px;
+    padding: 6px 0;
+    border-top: 1px solid rgba(var(--sa-line), 0.14);
+}
+
+.data-health-name {
+    overflow-wrap: anywhere;
+}
+
+.data-health-state,
+.data-health-count {
+    color: rgba(var(--sa-dim), 0.86);
+    font-variant-numeric: tabular-nums;
+}
+
+.data-health-list li.malformed .data-health-state {
+    color: rgb(255, 130, 130);
+    font-weight: 600;
+}
+
+.data-health-diagnostic {
+    grid-column: 1 / -1;
+    color: rgba(255, 170, 170, 0.9);
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+    .data-health-panel {
+        top: auto;
+        bottom: 70px;
+        left: 58px;
+        width: min(300px, calc(100vw - 76px));
+        max-height: 34vh;
+    }
+}
