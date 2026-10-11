@@ -1,0 +1,69 @@
+// Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
+
+//! Compact, accessible status for bundled dataset parsing.
+
+use leptos::prelude::*;
+use sol_atlas_core::data::{DatasetLoadHealth, DatasetLoadState};
+
+use crate::state::data_state::DataState;
+
+fn label(state: &DatasetLoadState) -> &'static str {
+    match state {
+        DatasetLoadState::Loaded => "Loaded",
+        DatasetLoadState::ValidEmpty => "Valid empty",
+        DatasetLoadState::Malformed => "Malformed",
+        DatasetLoadState::Unavailable => "Unavailable",
+        DatasetLoadState::StaleCache => "Stale cache",
+        DatasetLoadState::Rejected => "Rejected",
+    }
+}
+
+#[component]
+pub fn DatasetHealthPanel() -> impl IntoView {
+    let data_state = expect_context::<DataState>();
+    let health = data_state.static_dataset_health;
+
+    let summary = move || {
+        let items = health.get();
+        if items.is_empty() {
+            return "Static assets: loading".to_string();
+        }
+        let loaded = items.iter().filter(|item| item.state == DatasetLoadState::Loaded).count();
+        let empty = items.iter().filter(|item| item.state == DatasetLoadState::ValidEmpty).count();
+        let malformed = items.iter().filter(|item| item.state == DatasetLoadState::Malformed).count();
+        format!("Static assets: {loaded} loaded · {empty} valid-empty · {malformed} malformed")
+    };
+
+    let rows = move || {
+        health.get().into_iter().map(|item: DatasetLoadHealth| {
+            let malformed = item.state == DatasetLoadState::Malformed;
+            let state = label(&item.state);
+            let count = item.record_count.map(|n| n.to_string()).unwrap_or_else(|| "unknown".to_string());
+            let diagnostic = item.diagnostic.unwrap_or_default();
+            view! {
+                <li class:malformed=malformed>
+                    <span class="data-health-name">{item.dataset}</span>
+                    <span class="data-health-state">{state}</span>
+                    <span class="data-health-count">{format!("records: {count}")}</span>
+                    {(!diagnostic.is_empty()).then(|| view! {
+                        <p class="data-health-diagnostic">{diagnostic}</p>
+                    })}
+                </li>
+            }
+        }).collect_view()
+    };
+
+    view! {
+        <aside class="data-health-panel" aria-label="Static data integrity">
+            <details>
+                <summary>{summary}</summary>
+                <p class="data-health-note">
+                    "Parsing status only. This does not establish source freshness, authenticity, or factual correctness."
+                </p>
+                <ul class="data-health-list">{rows}</ul>
+            </details>
+        </aside>
+    }
+}
