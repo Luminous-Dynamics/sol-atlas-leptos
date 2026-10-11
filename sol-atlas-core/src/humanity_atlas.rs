@@ -12,6 +12,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use sha2::{Digest, Sha256};
 
+pub mod technology_tree;
+
 /// Version currently understood by this consumer.
 pub const RUN_SCHEMA_VERSION: &str = "humanity-atlas.run.v0.1";
 
