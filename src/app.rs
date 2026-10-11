@@ -6,6 +6,7 @@ use leptos_router::components::{A, Route, Router, Routes};
 use leptos_router::path;
 use sol_atlas_core::data::DatasetLoadState;
 
+use crate::components::dataset_health_panel::DatasetHealthPanel;
 use crate::components::globe_canvas::GlobeCanvas;
 use crate::components::hud::Hud;
 use crate::components::info_panel::InfoPanel;
@@ -119,6 +120,7 @@ fn GlobeApp() -> impl IntoView {
         </div>
         <Hud />
         <LayerPanel />
+        <DatasetHealthPanel />
         <Timeline />
         <Whisper />
         <Tooltip />
