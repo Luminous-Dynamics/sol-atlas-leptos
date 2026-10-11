@@ -215,6 +215,10 @@ fn valid_source_event_url(url: &str, prefix: &str, source_id: Option<&str>) -> b
     };
 
     !source_id.is_empty()
+        && source_id.len() <= 160
+        && source_id
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
         && path_id == source_id
         && url.len() <= 2_048
         && !url.chars().any(char::is_control)
@@ -390,6 +394,15 @@ mod tests {
         assert!((events[0].lat - (-5.2)).abs() < 0.01);
         assert!((events[0].magnitude - 5.1).abs() < 0.01);
         assert_eq!(events[0].name, "Peru");
+    }
+
+    #[test]
+    fn event_links_reject_path_traversal_ids() {
+        assert!(!valid_source_event_url(
+            "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_1/../EONET_2",
+            crate::eonet::EONET_EVENT_API_PREFIX,
+            Some("EONET_1/../EONET_2"),
+        ));
     }
 
     #[test]

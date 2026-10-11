@@ -75,6 +75,7 @@ pub enum EonetFeedError {
     TooManyEvents { actual: usize, maximum: usize },
     TooManyGeometries { event_id: String, actual: usize, maximum: usize },
     NoValidEvents,
+    InvalidRootTitle,
 }
 
 impl fmt::Display for EonetFeedError {
@@ -94,6 +95,7 @@ impl fmt::Display for EonetFeedError {
             Self::NoValidEvents => {
                 write!(f, "EONET returned events but none passed category, time, and geometry validation")
             }
+            Self::InvalidRootTitle => write!(f, "response title does not identify the NASA EONET events catalog"),
         }
     }
 }
@@ -101,6 +103,7 @@ impl std::error::Error for EonetFeedError {}
 
 #[derive(Deserialize)]
 struct EonetResponse {
+    title: String,
     events: Vec<EventWire>,
 }
 
@@ -152,6 +155,9 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<EonetFeedSnapshot, E
     }
     let response: EonetResponse = serde_json::from_str(json)
         .map_err(|error| EonetFeedError::InvalidJson(error.to_string()))?;
+    if !response.title.trim().eq_ignore_ascii_case("EONET Events") {
+        return Err(EonetFeedError::InvalidRootTitle);
+    }
     if response.events.len() > MAX_EONET_EVENTS {
         return Err(EonetFeedError::TooManyEvents {
             actual: response.events.len(),
@@ -421,7 +427,7 @@ fn is_leap_year(year: i64) -> bool {
 
 fn days_from_civil(year: i64, month: u32, day: u32) -> i64 {
     let year = year - if month <= 2 { 1 } else { 0 };
-    let era = if year >= 0 { year } else { year - 399 } / 400;
+    let era = (if year >= 0 { year } else { year - 399 }) / 400;
     let year_of_era = year - era * 400;
     let adjusted_month = month as i64 + if month > 2 { -3 } else { 9 };
     let day_of_year = (153 * adjusted_month + 2) / 5 + day as i64 - 1;
@@ -525,7 +531,7 @@ mod tests {
 
     #[test]
     fn accepts_a_well_formed_empty_open_event_catalog() {
-        let feed = parse_feed(r#"{"events":[]}"#, NOW).unwrap();
+        let feed = parse_feed(r#"{"title":"EONET Events","events":[]}"#, NOW).unwrap();
         assert!(feed.events.is_empty());
         assert_eq!(feed.fetched_at_ms, NOW);
     }
