@@ -1041,6 +1041,33 @@ mod tests {
     }
 
     #[test]
+    fn duplicate_json_fields_and_nonstandard_constants_fail_closed() {
+        let duplicate_result_payload =
+            FIXTURE.replacen("\"result\":", "\"result\": \"\", \"result\":", 1);
+        let duplicate_provenance = provenance_for(&duplicate_result_payload);
+        assert!(matches!(
+            parse_horizons_vectors_json(
+                &duplicate_result_payload,
+                &request(),
+                &duplicate_provenance
+            ),
+            Err(HorizonsParseError::InvalidJson(_))
+        ));
+
+        let nonstandard_constant_payload =
+            FIXTURE.replacen("\"result\":", "\"error\": NaN,\n  \"result\":", 1);
+        let nonstandard_provenance = provenance_for(&nonstandard_constant_payload);
+        assert!(matches!(
+            parse_horizons_vectors_json(
+                &nonstandard_constant_payload,
+                &request(),
+                &nonstandard_provenance
+            ),
+            Err(HorizonsParseError::InvalidJson(_))
+        ));
+    }
+
+    #[test]
     fn catalogue_request_rejects_target_or_center_relabeling() {
         let mut target_mismatch = request();
         target_mismatch.target_id = "venus".into();
