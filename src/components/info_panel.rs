@@ -167,6 +167,14 @@ pub fn InfoPanel() -> impl IntoView {
                                     None => row("EROI stage", "Not qualified".to_string()),
                                 }}
                                 {match evidence {
+                                    Some(evidence) => row("EROI methodology", evidence.methodology_id.clone()),
+                                    None => row("EROI methodology", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI method version", evidence.methodology_version.clone()),
+                                    None => row("EROI method version", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
                                     Some(evidence) => row("EROI output", evidence.output_definition.clone()),
                                     None => row("EROI output definition", "Not supplied".to_string()),
                                 }}
