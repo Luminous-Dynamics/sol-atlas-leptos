@@ -86,6 +86,55 @@ class CaptureScriptIntegrationTests(unittest.TestCase):
         )
         return result, destination
 
+    def test_ambiguous_catalogue_manifest_is_rejected_before_request(self) -> None:
+        manifests = [
+            (
+                "duplicate-json-key",
+                b'{"schema_version":1,"schema_version":1,"objects":[]}',
+                "duplicate JSON object key: 'schema_version'",
+            ),
+            (
+                "duplicate-catalogue-id",
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "objects": [
+                            {"id": "mars", "name": "Mars", "kind": "planet", "command": "499", "center": "@499"},
+                            {"id": "mars", "name": "Mars", "kind": "planet", "command": "499", "center": "@499"},
+                        ],
+                        "special_centers": [
+                            {"id": "ssb", "name": "Solar System Barycenter", "provider_center": "@0"}
+                        ],
+                    }
+                ).encode("utf-8"),
+                "duplicate catalogue binding ID: mars",
+            ),
+        ]
+        for case_name, manifest_bytes, expected_error in manifests:
+            with self.subTest(case=case_name):
+                mini_root = self.root / case_name
+                scripts_dir = mini_root / "scripts"
+                manifest_path = (
+                    mini_root
+                    / "sol-atlas-core/tests/fixtures/horizons/catalogue-bindings.json"
+                )
+                scripts_dir.mkdir(parents=True)
+                manifest_path.parent.mkdir(parents=True)
+                shutil.copy2(CAPTURE_SCRIPT, scripts_dir / CAPTURE_SCRIPT.name)
+                manifest_path.write_bytes(manifest_bytes)
+
+                result = subprocess.run(
+                    [str(scripts_dir / CAPTURE_SCRIPT.name), "--print-identity"],
+                    cwd=ROOT,
+                    env=self.env,
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(expected_error, result.stderr)
+
     def test_self_centered_request_is_rejected_before_curl(self) -> None:
         self.env["HORIZONS_CENTER_ID"] = "MARS"
         result = subprocess.run(
