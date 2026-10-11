@@ -206,6 +206,21 @@ pub fn parse_shipping_lanes(json: &str) -> Vec<Vec<[f64; 2]>> {
 }
 
 /// Parse GeoJSON natural events from USGS, NASA EONET, FIRMS, and volcano data.
+fn valid_source_event_url(url: &str, prefix: &str, source_id: Option<&str>) -> bool {
+    let Some(source_id) = source_id else {
+        return false;
+    };
+    let Some(path_id) = url.strip_prefix(prefix) else {
+        return false;
+    };
+
+    !source_id.is_empty()
+        && path_id == source_id
+        && url.len() <= 2_048
+        && !url.chars().any(char::is_control)
+        && !url.chars().any(char::is_whitespace)
+}
+
 fn parse_natural_events(
     earthquakes: &str,
     fires: &str,
@@ -247,6 +262,8 @@ fn parse_natural_events(
             updated: serde_json::Value,
             #[serde(default)]
             url: Option<String>,
+            #[serde(default)]
+            link: Option<String>,
         }
         #[derive(Deserialize)]
         struct Geometry {
@@ -291,21 +308,34 @@ fn parse_natural_events(
                     event_type,
                     magnitude,
                     name,
-                    source_id: if event_type == NaturalEventType::Earthquake {
-                        f.id.clone()
-                    } else {
-                        None
+                    source_name: match name {
+                        "usgs-earthquakes" => Some("USGS ComCat".to_string()),
+                        "nasa-firms" => Some("NASA FIRMS".to_string()),
+                        "nasa-eonet" => Some("NASA EONET".to_string()),
+                        "volcanoes" => Some("Curated volcano inventory".to_string()),
+                        _ => None,
                     },
-                    source_url: if event_type == NaturalEventType::Earthquake {
-                        f.properties.url.as_deref().filter(|url| {
-                            url.starts_with(crate::usgs::USGS_EVENT_PAGE_PREFIX)
-                                && url.len() <= 2_048
-                                && !url.chars().any(char::is_control)
-                                && !url.chars().any(char::is_whitespace)
-                        }).map(str::to_string)
-                    } else {
-                        None
+                    source_id: match name {
+                        "usgs-earthquakes" | "nasa-eonet" => f.id.clone(),
+                        _ => None,
                     },
+                    source_url: match name {
+                        "usgs-earthquakes" => f.properties.url.as_deref().filter(|url| {
+                            valid_source_event_url(
+                                url,
+                                crate::usgs::USGS_EVENT_PAGE_PREFIX,
+                                f.id.as_deref(),
+                            )
+                        }),
+                        "nasa-eonet" => f.properties.link.as_deref().filter(|url| {
+                            valid_source_event_url(
+                                url,
+                                crate::eonet::EONET_EVENT_API_PREFIX,
+                                f.id.as_deref(),
+                            )
+                        }),
+                        _ => None,
+                    }.map(str::to_string),
                     occurred_at_ms: f.properties.time.as_i64(),
                     updated_at_ms: f.properties.updated.as_i64(),
                     depth_km: coords.get(2).copied().filter(|depth| depth.is_finite()),
@@ -555,6 +585,7 @@ mod live_timestamp_compat_tests {
         let events = parse_natural_events(earthquake, "[]", "[]", "[]");
         assert_eq!(events.len(), 1);
         assert_eq!(events[0].name, "Test location");
+        assert_eq!(events[0].source_name.as_deref(), Some("USGS ComCat"));
         assert_eq!(events[0].occurred_at_ms, None);
         assert_eq!(events[0].depth_km, Some(3.0));
     }

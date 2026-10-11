@@ -689,6 +689,9 @@ pub struct NaturalEvent {
     pub event_type: NaturalEventType,
     pub magnitude: f64,
     pub name: String,
+    /// Source name associated with this observation, when known.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_name: Option<String>,
     /// Stable identifier at the originating source, when available.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_id: Option<String>,

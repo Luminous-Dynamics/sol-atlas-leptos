@@ -76,6 +76,7 @@ mod tests {
             event_type: NaturalEventType::Earthquake,
             magnitude: 4.0,
             name: "Test event".to_string(),
+            source_name: None,
             source_id: None,
             source_url: None,
             occurred_at_ms: None,
