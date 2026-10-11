@@ -86,6 +86,10 @@ def validate_response(
         )
     source = signature.get("source")
     version = signature.get("version")
+    if not isinstance(source, str) or not source:
+        fail("response signature source must be a non-empty string")
+    if not isinstance(version, str) or not version:
+        fail("response signature version must be a non-empty string")
     if source != "NASA/JPL Horizons API":
         fail(f"unexpected provider source: {source!r}")
     if version not in SUPPORTED_GET_SIGNATURE_VERSIONS:
