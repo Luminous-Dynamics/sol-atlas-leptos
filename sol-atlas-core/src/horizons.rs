@@ -388,6 +388,11 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
             "target and center IDs must not have surrounding whitespace",
         ));
     }
+    if request.target_id == "ssb" {
+        return Err(HorizonsParseError::InvalidRequest(
+            "ssb is a coordinate center, not a target",
+        ));
+    }
     if request.target_id != "ssb"
         && catalog_object(&request.target_id).is_none()
         && crate::system_catalog::SOLAR_SYSTEM_CATALOG
@@ -1046,6 +1051,15 @@ mod tests {
             padded_target.request_plan(),
             Err(HorizonsParseError::InvalidRequest(
                 "target and center IDs must not have surrounding whitespace"
+            ))
+        );
+
+        let mut ssb_as_target = request();
+        ssb_as_target.target_id = "ssb".into();
+        assert_eq!(
+            ssb_as_target.request_plan(),
+            Err(HorizonsParseError::InvalidRequest(
+                "ssb is a coordinate center, not a target"
             ))
         );
 
