@@ -74,9 +74,12 @@ The verifier checks the exact saved URL/identity/response digests, the canonical
 URL encoding and parameter order, URL-vs-metadata consistency for target, centre,
 epoch, units, reference system/plane and correction mode, the saved HTTP status
 against the raw response-header block, the raw response
-signature/source/version, and the parsed response schema. It also loads the
-shared `catalogue-bindings.json` manifest and rejects known target/centre
-relabeling, including a packet whose digests were recomputed after relabeling.
+signature/source/version, and the parsed response schema. Rust and Python both
+reject unknown response-envelope/signature keys, duplicate JSON object keys, and
+non-standard numeric tokens; the packet verifier uses the same strict JSON decoder
+for response, receipt, and metadata files. It also loads the shared
+`catalogue-bindings.json` manifest and rejects known target/centre relabeling,
+including a packet whose digests were recomputed after relabeling.
 
 A verifier pass means internal byte consistency and schema checks passed; it is
 not an authenticity verdict. Preserve any failed packet for investigation rather
