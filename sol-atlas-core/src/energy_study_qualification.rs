@@ -16,7 +16,7 @@ use crate::microgrid::{BatteryConfig, MicrogridSimulation};
 use crate::microgrid_verifier::{
     verify_microgrid_simulation, MicrogridVerificationError, MicrogridVerificationReport,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 use std::fmt::Write as _;
@@ -46,7 +46,8 @@ pub struct EnergyStudyArtifactVerificationReceiptV1 {
     pub declared_evidence_classes: Vec<(String, EnergyEvidenceClass)>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct EnergyStudyIntervalReceiptV1 {
     pub interval_index: u32,
     /// UTC Unix timestamp for the interval start.
@@ -55,7 +56,8 @@ pub struct EnergyStudyIntervalReceiptV1 {
     pub output_sha256: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct EnergyStudyRunReceiptV1 {
     pub schema_version: u16,
     pub manifest_sha256: String,
