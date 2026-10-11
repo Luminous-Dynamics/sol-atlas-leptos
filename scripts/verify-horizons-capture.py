@@ -23,6 +23,10 @@ class CaptureVerificationError(ValueError):
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+from horizons_catalogue_manifest import CatalogueManifestError, load_catalogue_manifest
+
 VALIDATOR_PATH = SCRIPT_DIR / "validate-horizons-vector.py"
 _spec = importlib.util.spec_from_file_location("validate_horizons_vector", VALIDATOR_PATH)
 if _spec is None or _spec.loader is None:
@@ -208,18 +212,12 @@ def validate_semantic_bindings(metadata: dict[str, Any]) -> None:
         Path(__file__).resolve().parents[1]
         / "sol-atlas-core/tests/fixtures/horizons/catalogue-bindings.json"
     )
-    manifest = read_json(manifest_path)
-    objects = manifest.get("objects")
-    if manifest.get("schema_version") != 1 or not isinstance(objects, list):
-        raise CaptureVerificationError("unsupported Horizons catalogue bindings manifest")
-
-    by_id: dict[str, dict[str, Any]] = {}
-    for obj in objects:
-        if not isinstance(obj, dict) or not isinstance(obj.get("id"), str):
-            raise CaptureVerificationError("catalogue bindings manifest has malformed object entry")
-        if obj["id"] in by_id:
-            raise CaptureVerificationError(f"duplicate catalogue binding ID: {obj['id']}")
-        by_id[obj["id"]] = obj
+    try:
+        manifest = load_catalogue_manifest(manifest_path)
+    except CatalogueManifestError as error:
+        raise CaptureVerificationError(str(error)) from error
+    objects = manifest["objects"]
+    by_id: dict[str, dict[str, Any]] = {obj["id"]: obj for obj in objects}
 
     target_entry = by_id.get(target_id)
     if target_entry is not None:
