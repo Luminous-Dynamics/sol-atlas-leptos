@@ -86,6 +86,20 @@ class CaptureScriptIntegrationTests(unittest.TestCase):
         )
         return result, destination
 
+    def test_self_centered_request_is_rejected_before_curl(self) -> None:
+        self.env["HORIZONS_CENTER_ID"] = "MARS"
+        result = subprocess.run(
+            [str(CAPTURE_SCRIPT), "--print-identity"],
+            cwd=ROOT,
+            env=self.env,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("target cannot be its own center", result.stderr)
+
     def test_successful_mock_capture_verifies_end_to_end(self) -> None:
         result, destination = self.run_capture("success")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
