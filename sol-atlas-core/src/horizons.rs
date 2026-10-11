@@ -381,6 +381,39 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
         ));
     }
 
+    if request.target_id.trim() != request.target_id
+        || request.center_id.trim() != request.center_id
+    {
+        return Err(HorizonsParseError::InvalidRequest(
+            "target and center IDs must not have surrounding whitespace",
+        ));
+    }
+    if request.target_id != "ssb"
+        && catalog_object(&request.target_id).is_none()
+        && crate::system_catalog::SOLAR_SYSTEM_CATALOG
+            .iter()
+            .any(|object| object.id.eq_ignore_ascii_case(&request.target_id))
+    {
+        return Err(HorizonsParseError::InvalidRequest(
+            "catalogue target ID must use canonical spelling",
+        ));
+    }
+    if request.center_id != "ssb"
+        && catalog_object(&request.center_id).is_none()
+        && crate::system_catalog::SOLAR_SYSTEM_CATALOG
+            .iter()
+            .any(|object| object.id.eq_ignore_ascii_case(&request.center_id))
+    {
+        return Err(HorizonsParseError::InvalidRequest(
+            "catalogue center ID must use canonical spelling",
+        ));
+    }
+    if request.center_id.eq_ignore_ascii_case("ssb") && request.center_id != "ssb" {
+        return Err(HorizonsParseError::InvalidRequest(
+            "ssb center ID must use canonical spelling",
+        ));
+    }
+
     // When an ID belongs to the curated catalogue, enforce that provider
     // expressions and display names match that entry. This prevents a valid
     // Mars response being relabelled as "venus" by a mismatched caller.
@@ -994,6 +1027,45 @@ mod tests {
                 ))
             );
         }
+    }
+
+    #[test]
+    fn request_rejects_noncanonical_known_ids_and_surrounding_whitespace() {
+        let mut uppercase_target = request();
+        uppercase_target.target_id = "MARS".into();
+        assert_eq!(
+            uppercase_target.request_plan(),
+            Err(HorizonsParseError::InvalidRequest(
+                "catalogue target ID must use canonical spelling"
+            ))
+        );
+
+        let mut padded_target = request();
+        padded_target.target_id = "mars ".into();
+        assert_eq!(
+            padded_target.request_plan(),
+            Err(HorizonsParseError::InvalidRequest(
+                "target and center IDs must not have surrounding whitespace"
+            ))
+        );
+
+        let mut uppercase_ssb = request();
+        uppercase_ssb.center_id = "SSB".into();
+        assert_eq!(
+            uppercase_ssb.request_plan(),
+            Err(HorizonsParseError::InvalidRequest(
+                "ssb center ID must use canonical spelling"
+            ))
+        );
+
+        let mut padded_center = request();
+        padded_center.center_id = "ssb ".into();
+        assert_eq!(
+            padded_center.request_plan(),
+            Err(HorizonsParseError::InvalidRequest(
+                "target and center IDs must not have surrounding whitespace"
+            ))
+        );
     }
 
     #[test]
