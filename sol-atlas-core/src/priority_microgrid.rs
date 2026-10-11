@@ -488,7 +488,7 @@ fn build_service_row_v1(
 ) -> Result<PriorityServiceIntervalV1, PriorityMicrogridError> {
     if !load_kwh.is_finite() || load_kwh < 0.0
         || !critical_kwh.is_finite() || critical_kwh < 0.0 || critical_kwh > load_kwh
-        || !unserved_kwh.is_finite() || unserved_kwh < 0.0 || unserved_kwh > load_kwh + 1e-9
+        || !unserved_kwh.is_finite() || unserved_kwh < 0.0 || unserved_kwh > load_kwh
     {
         return Err(PriorityMicrogridError::InvalidCriticalLoadProfile);
     }
@@ -631,7 +631,7 @@ pub fn verify_priority_microgrid_study_v1(
         }
         if !interval.unserved_load_kwh.is_finite()
             || interval.unserved_load_kwh < 0.0
-            || interval.unserved_load_kwh > load + 1e-9
+            || interval.unserved_load_kwh > load
         {
             return Err(PriorityMicrogridError::ServiceAllocationMismatch { interval: index });
         }
@@ -813,4 +813,41 @@ mod tests {
         assert_eq!(zero_critical.critical_unserved_kwh, 0.0);
         assert_eq!(zero_critical.noncritical_unserved_kwh, 0.5);
     }
-}
+
+
+    #[test]
+    fn service_rows_conserve_served_and_unserved_energy_over_small_domain() {
+        // Exhaustively cover tenths of a kWh for load, critical demand, and
+        // total unserved energy. This is deterministic and dependency-free.
+        for load_tenths in 0..=20 {
+            let load = f64::from(load_tenths) / 10.0;
+            for critical_tenths in 0..=load_tenths {
+                let critical = f64::from(critical_tenths) / 10.0;
+                for unserved_tenths in 0..=load_tenths {
+                    let unserved = f64::from(unserved_tenths) / 10.0;
+                    let row = build_service_row_v1(0, load, critical, unserved).unwrap();
+
+                    let class_served = row.critical_served_kwh + row.noncritical_served_kwh;
+                    let class_unserved = row.critical_unserved_kwh + row.noncritical_unserved_kwh;
+                    assert!((class_served - (load - unserved)).abs() <= 1e-9);
+                    assert!((class_unserved - unserved).abs() <= 1e-9);
+                    assert!((row.critical_load_kwh + row.noncritical_load_kwh - load).abs() <= 1e-9);
+                    assert!(row.critical_served_kwh >= 0.0);
+                    assert!(row.noncritical_served_kwh >= 0.0);
+                    assert!(row.critical_unserved_kwh >= 0.0);
+                    assert!(row.noncritical_unserved_kwh >= 0.0);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn rejects_unserved_energy_above_total_load_even_inside_other_tolerances() {
+        // A tolerance-based acceptance here would force service rows to count
+        // total unserved energy as no greater than load, silently losing the
+        // excess while preserving a zero service residual.
+        assert_eq!(
+            build_service_row_v1(0, 1.0, 0.5, 1.0 + 5e-10),
+            Err(PriorityMicrogridError::InvalidCriticalLoadProfile)
+        );
+    }}
