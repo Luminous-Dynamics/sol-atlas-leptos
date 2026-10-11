@@ -442,6 +442,7 @@ fn parse_natural_events_with_health(
                     dataset: name.to_string(),
                     state: DatasetLoadState::Malformed,
                     record_count: None,
+                    rejected_record_count: None,
                     diagnostic: Some(diagnostic),
                 });
                 return vec![];
@@ -482,18 +483,21 @@ fn parse_natural_events_with_health(
                 })
             })
             .collect();
+        let rejected_count = source_count - events.len();
         health.push(DatasetLoadHealth {
             dataset: name.to_string(),
             state: if source_count == 0 {
                 DatasetLoadState::ValidEmpty
+            } else if rejected_count > 0 {
+                DatasetLoadState::PartiallyLoaded
             } else {
                 DatasetLoadState::Loaded
             },
-            record_count: Some(source_count),
-            diagnostic: if events.len() < source_count {
+            record_count: Some(events.len()),
+            rejected_record_count: Some(rejected_count),
+            diagnostic: if rejected_count > 0 {
                 Some(format!(
-                    "{} source features were excluded by coordinate validation",
-                    source_count - events.len()
+                    "{rejected_count} source features were excluded by coordinate validation"
                 ))
             } else {
                 None
