@@ -1383,3 +1383,13 @@ canvas#globe-canvas.has-hover {
         transition: none;
     }
 }
+
+.lunar-empty-state {
+    grid-column: 1 / -1;
+    border: 1px dashed rgba(255, 255, 255, 0.16);
+    border-radius: var(--sa-radius-sm);
+    padding: 20px;
+    color: rgba(224, 224, 224, 0.58);
+    font-size: 13px;
+    text-align: center;
+}
