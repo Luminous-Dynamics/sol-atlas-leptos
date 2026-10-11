@@ -281,6 +281,49 @@ class HorizonsCapturePacketTests(unittest.TestCase):
             with self.assertRaisesRegex(verifier.CaptureVerificationError, "response schema validation failed"):
                 verifier.verify_capture(capture)
 
+    def replace_response_and_rehash(self, capture: Path, raw: bytes) -> None:
+        (capture / "response.raw.json").write_bytes(raw)
+        digest = sha256(raw)
+        for filename in ("capture-metadata.json", "capture-receipt.json"):
+            path = capture / filename
+            record = json.loads(path.read_text(encoding="utf-8"))
+            record["raw_response_sha256"] = digest
+            path.write_text(json.dumps(record), encoding="utf-8")
+
+    def test_unexpected_response_fields_fail_closed_even_when_rehashed(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            payload = json.loads((capture / "response.raw.json").read_bytes())
+            payload["unexpected"] = True
+            self.replace_response_and_rehash(capture, json.dumps(payload).encode("utf-8"))
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "unexpected response JSON fields",
+            ):
+                verifier.verify_capture(capture)
+
+            capture = self.make_capture(Path(temporary) / "capture-signature")
+            payload = json.loads((capture / "response.raw.json").read_bytes())
+            payload["signature"]["unexpected"] = "unreviewed"
+            self.replace_response_and_rehash(capture, json.dumps(payload).encode("utf-8"))
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "unexpected response signature fields",
+            ):
+                verifier.verify_capture(capture)
+
+    def test_duplicate_response_json_keys_fail_closed_even_when_rehashed(self) -> None:
+        with TemporaryDirectory() as temporary:
+            capture = self.make_capture(Path(temporary) / "capture")
+            raw = (capture / "response.raw.json").read_text(encoding="utf-8")
+            duplicate_key_payload = raw.replace('"result":', '"result": "", "result":', 1)
+            self.replace_response_and_rehash(capture, duplicate_key_payload.encode("utf-8"))
+            with self.assertRaisesRegex(
+                verifier.CaptureVerificationError,
+                "duplicate JSON object key",
+            ):
+                verifier.verify_capture(capture)
+
     def rehash_identity_for_metadata(self, capture: Path, metadata: dict) -> None:
         url = (capture / "request.url").read_bytes()
         identity = verifier.expected_request_identity(metadata, url)
