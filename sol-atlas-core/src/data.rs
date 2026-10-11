@@ -308,6 +308,8 @@ fn parse_natural_events(
                     event_type,
                     magnitude,
                     name,
+                    magnitude_unit: None,
+                    magnitude_description: None,
                     source_name: match name {
                         "usgs-earthquakes" => Some("USGS ComCat".to_string()),
                         "nasa-firms" => Some("NASA FIRMS".to_string()),

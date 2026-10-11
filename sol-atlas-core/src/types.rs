@@ -689,6 +689,12 @@ pub struct NaturalEvent {
     pub event_type: NaturalEventType,
     pub magnitude: f64,
     pub name: String,
+    /// Optional source-specific measurement units; not globally comparable.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub magnitude_unit: Option<String>,
+    /// Optional source-specific description of a reported measure.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub magnitude_description: Option<String>,
     /// Source name associated with this observation, when known.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_name: Option<String>,

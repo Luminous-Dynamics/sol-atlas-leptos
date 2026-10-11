@@ -55,6 +55,7 @@ pub struct EonetEvent {
     /// Optional source-provided value; units are not standardized across categories.
     pub magnitude_value: Option<f64>,
     pub magnitude_unit: Option<String>,
+    pub magnitude_description: Option<String>,
     pub geometry_kind: EonetGeometryKind,
 }
 
@@ -119,6 +120,8 @@ struct EventWire {
     magnitude_value: Option<f64>,
     #[serde(rename = "magnitudeUnit", default)]
     magnitude_unit: Option<String>,
+    #[serde(rename = "magnitudeDescription", default)]
+    magnitude_description: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -212,6 +215,11 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<EonetFeedSnapshot, E
         let magnitude_unit = event.magnitude_unit.filter(|unit| {
             !unit.trim().is_empty() && unit.len() <= 64 && !unit.chars().any(char::is_control)
         });
+        let magnitude_description = event.magnitude_description.filter(|description| {
+            !description.trim().is_empty()
+                && description.len() <= 256
+                && !description.chars().any(char::is_control)
+        });
 
         events.push(EonetEvent {
             id: event.id,
@@ -223,6 +231,7 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<EonetFeedSnapshot, E
             event_url,
             magnitude_value,
             magnitude_unit,
+            magnitude_description,
             geometry_kind,
         });
     }

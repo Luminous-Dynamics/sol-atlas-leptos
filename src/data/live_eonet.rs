@@ -47,6 +47,8 @@ async fn refresh_once(data_state: &DataState) -> Result<(), String> {
             // EONET measurements are not comparable across event categories.
             magnitude: event.magnitude_value.unwrap_or(1.0),
             name: event.title.clone(),
+            magnitude_unit: event.magnitude_unit.clone(),
+            magnitude_description: event.magnitude_description.clone(),
             source_name: Some("NASA EONET".to_string()),
             source_id: Some(event.id.clone()),
             source_url: event.event_url.clone(),

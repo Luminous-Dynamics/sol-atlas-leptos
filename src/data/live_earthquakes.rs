@@ -39,6 +39,8 @@ async fn refresh_once(data_state: &DataState) -> Result<(), String> {
             event_type: NaturalEventType::Earthquake,
             magnitude: quake.magnitude,
             name: format!("M{:.1} — {}", quake.magnitude, quake.place),
+            magnitude_unit: None,
+            magnitude_description: None,
             source_name: Some("USGS ComCat".to_string()),
             source_id: Some(quake.id.clone()),
             source_url: quake.event_url.clone(),
