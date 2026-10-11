@@ -7,7 +7,7 @@
 //! This module handles deserialization into sol-atlas-core types.
 
 use crate::types::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Intermediate type for maglev-network.json (two arrays in one object).
 #[derive(Deserialize)]
@@ -140,7 +140,8 @@ fn parse_or_log<T: Default>(dataset: &str, result: Result<T, serde_json::Error>)
 /// Malformed means parsing failed; it must not be presented as a valid empty
 /// inventory. Unavailable, StaleCache and Rejected are reserved for retrieval,
 /// cache and authentication layers that own those decisions.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum DatasetLoadState {
     Loaded,
     ValidEmpty,
@@ -154,7 +155,7 @@ pub enum DatasetLoadState {
 ///
 /// record_count counts source records represented by the parsed value when
 /// known. It is None for malformed input, not zero.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DatasetLoadHealth {
     pub dataset: String,
     pub state: DatasetLoadState,
@@ -424,16 +425,20 @@ mod tests {
             r#"{"geothermal_nodes":[],"maglev_corridors":[]}"#,
             "[]", "[]", "[]", "[]", "[]", "{}",
             "[]", "[]",
-            r#"{"type":"FeatureCollection","features":[]}"#,
+            "{", // malformed GeoJSON must be visible as malformed too
             r#"{"type":"FeatureCollection","features":[]}"#,
             r#"{"type":"FeatureCollection","features":[]}"#,
             r#"{"type":"FeatureCollection","features":[]}"#,
             "[]", "[]", "[]",
         );
+        assert_eq!(report.health.len(), 17);
         assert!(report.data.sites.is_empty());
         let sites = report.health.iter().find(|h| h.dataset == "sites-clustered").unwrap();
         assert_eq!(sites.state, DatasetLoadState::Malformed);
         assert_eq!(sites.record_count, None);
+        let earthquakes = report.health.iter().find(|h| h.dataset == "usgs-earthquakes").unwrap();
+        assert_eq!(earthquakes.state, DatasetLoadState::Malformed);
+        assert_eq!(earthquakes.record_count, None);
         let vaults = report.health.iter().find(|h| h.dataset == "resontia-vaults").unwrap();
         assert_eq!(vaults.state, DatasetLoadState::ValidEmpty);
         assert_eq!(vaults.record_count, Some(0));
