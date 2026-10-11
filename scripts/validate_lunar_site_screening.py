@@ -135,7 +135,8 @@ def validate_document(document: Any) -> list[str]:
     # metrics remain disallowed until their provenance and uncertainty are represented.
     if document.get("scoring", object()) is not None:
         errors.append("scoring must remain null; do not introduce a scalar winner")
-    if document.get("comparison_policy", {}).get("weights", object()) is not None:
+    policy_for_weights = document.get("comparison_policy")
+    if not isinstance(policy_for_weights, dict) or policy_for_weights.get("weights", object()) is not None:
         errors.append("comparison_policy.weights must remain null; use constraint/Pareto tracks")
 
     context = document.get("current_program_context")
