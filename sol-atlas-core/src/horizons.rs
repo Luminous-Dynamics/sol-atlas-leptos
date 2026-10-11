@@ -1063,6 +1063,17 @@ mod tests {
             ))
         );
 
+        let mut uppercase_center = request();
+        uppercase_center.center_id = "EARTH".into();
+        uppercase_center.provider_center = "@399".into();
+        uppercase_center.expected_center_name = "Earth".into();
+        assert_eq!(
+            uppercase_center.request_plan(),
+            Err(HorizonsParseError::InvalidRequest(
+                "catalogue center ID must use canonical spelling"
+            ))
+        );
+
         let mut uppercase_ssb = request();
         uppercase_ssb.center_id = "SSB".into();
         assert_eq!(
