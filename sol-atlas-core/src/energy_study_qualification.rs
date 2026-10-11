@@ -12,7 +12,12 @@
 use crate::energy_study::{
     EnergyEvidenceClass, EnergyStudyManifestV1, EnergyStudyValidationError,
 };
-use crate::microgrid::MicrogridSimulation;
+use crate::microgrid::{
+    simulate_microgrid, BatteryConfig, MicrogridSimulation, MicrogridVerificationError,
+};
+use crate::microgrid_verifier::{
+    verify_microgrid_simulation, MicrogridVerificationReport,
+};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
@@ -85,6 +90,12 @@ pub enum EnergyStudyQualificationError {
     InvalidCriticalLoadProfile,
     CriticalLoadInputMismatch { interval: usize },
     CriticalLoadAccountingOverflow,
+    InvalidAssetRegistry,
+    InvalidRenewableGenerationProfile,
+    InvalidGridAvailabilityProfile,
+    ConstraintAssetMismatch,
+    IntervalOutputSerializationFailure,
+    InvalidMicrogridSimulation(MicrogridVerificationError),
 }
 
 impl std::fmt::Display for EnergyStudyQualificationError {
@@ -128,6 +139,24 @@ impl std::fmt::Display for EnergyStudyQualificationError {
             }
             Self::CriticalLoadAccountingOverflow => {
                 f.write_str("critical-load accounting produced a non-finite aggregate")
+            }
+            Self::InvalidAssetRegistry => {
+                f.write_str("asset registry is malformed or outside its supported domain")
+            }
+            Self::InvalidRenewableGenerationProfile => {
+                f.write_str("renewable-generation profile is malformed or exceeds the asset rating")
+            }
+            Self::InvalidGridAvailabilityProfile => {
+                f.write_str("grid-availability profile is malformed")
+            }
+            Self::ConstraintAssetMismatch => {
+                f.write_str("battery minimum state of charge differs between constraints and asset registry")
+            }
+            Self::IntervalOutputSerializationFailure => {
+                f.write_str("could not canonically serialize a microgrid interval")
+            }
+            Self::InvalidMicrogridSimulation(error) => {
+                write!(f, "independent microgrid verification failed: {error}")
             }
         }
     }
@@ -433,6 +462,234 @@ fn parse_critical_load_profile_v1(
     Ok((loads, critical_loads))
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct EnergyStudyAssetRegistryV1 {
+    schema_version: u16,
+    site_id: String,
+    battery: EnergyStudyBatteryV1,
+    renewable_asset: EnergyStudyRenewableAssetV1,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct EnergyStudyBatteryV1 {
+    capacity_kwh: f64,
+    initial_soc_kwh: f64,
+    minimum_soc_kwh: f64,
+    max_charge_power_kw: f64,
+    max_discharge_power_kw: f64,
+    charge_efficiency: f64,
+    discharge_efficiency: f64,
+}
+
+impl From<EnergyStudyBatteryV1> for BatteryConfig {
+    fn from(value: EnergyStudyBatteryV1) -> Self {
+        Self {
+            capacity_kwh: value.capacity_kwh,
+            initial_soc_kwh: value.initial_soc_kwh,
+            minimum_soc_kwh: value.minimum_soc_kwh,
+            max_charge_power_kw: value.max_charge_power_kw,
+            max_discharge_power_kw: value.max_discharge_power_kw,
+            charge_efficiency: value.charge_efficiency,
+            discharge_efficiency: value.discharge_efficiency,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct EnergyStudyRenewableAssetV1 {
+    rated_power_kw: f64,
+}
+
+/// End-to-end qualification report for this V1 single-site microgrid case.
+///
+/// A false qualification flag is a real failed gate in the report, not a
+/// successful simulation status. Critical-load satisfaction is conservative:
+/// aggregate unserved energy is insufficient to prove which loads were shed.
+#[derive(Debug, Clone, PartialEq)]
+pub struct EnergyStudyMicrogridQualificationReportV1 {
+    pub artifacts: EnergyStudyArtifactVerificationReceiptV1,
+    pub run: EnergyStudyRunVerificationReceiptV1,
+    pub physical_accounting: MicrogridVerificationReport,
+    pub critical_load: CriticalLoadConstraintAssessmentV1,
+    pub power_balance_within_limit: bool,
+    pub qualification_passed: bool,
+}
+
+/// Qualify a frozen V1 fixture using only its content-addressed artifacts.
+///
+/// This binds the exact CSV/JSON inputs, checks the simulation against the
+/// parsed source profiles and asset limits, verifies receipt bytes against the
+/// actual serialized interval rows, and applies the hashed critical-load and
+/// power-balance thresholds. It is a software-model qualification, not live
+/// control authorization or proof that input sources are authentic.
+pub fn qualify_microgrid_study_v1(
+    manifest: &EnergyStudyManifestV1,
+    artifacts: EnergyStudyArtifactBytesV1<'_>,
+    run_receipt: &EnergyStudyRunReceiptV1,
+    simulation: &MicrogridSimulation,
+) -> Result<EnergyStudyMicrogridQualificationReportV1, EnergyStudyQualificationError> {
+    let artifact_receipt = verify_energy_study_artifacts_v1(manifest, artifacts)?;
+
+    let load_bytes = dataset_bytes(artifacts.datasets, "load-profile")?;
+    let generation_bytes = dataset_bytes(artifacts.datasets, "renewable-generation")?;
+    let grid_bytes = dataset_bytes(artifacts.datasets, "grid-availability")?;
+
+    let (loads, _) = parse_critical_load_profile_v1(load_bytes)?;
+    let generation = parse_renewable_generation_profile_v1(generation_bytes)?;
+    let grid_available = parse_grid_availability_profile_v1(grid_bytes)?;
+    if generation.len() != manifest.interval_count as usize
+        || grid_available.len() != manifest.interval_count as usize
+    {
+        return Err(EnergyStudyQualificationError::IntervalCountMismatch);
+    }
+
+    let asset_registry: EnergyStudyAssetRegistryV1 =
+        serde_json::from_slice(artifacts.asset_registry)
+            .map_err(|_| EnergyStudyQualificationError::InvalidAssetRegistry)?;
+    if asset_registry.schema_version != 1
+        || asset_registry.site_id.is_empty()
+        || !asset_registry.renewable_asset.rated_power_kw.is_finite()
+        || asset_registry.renewable_asset.rated_power_kw < 0.0
+    {
+        return Err(EnergyStudyQualificationError::InvalidAssetRegistry);
+    }
+    let battery: BatteryConfig = asset_registry.battery.into();
+
+    let constraint_set: EnergyStudyConstraintSetV1 = serde_json::from_slice(artifacts.constraints)
+        .map_err(|_| EnergyStudyQualificationError::InvalidConstraintConfiguration)?;
+    if battery.minimum_soc_kwh != constraint_set.battery_minimum_soc_kwh {
+        return Err(EnergyStudyQualificationError::ConstraintAssetMismatch);
+    }
+
+    let timestep_hours = f64::from(manifest.interval_seconds) / 3600.0;
+    let rated_interval_generation = asset_registry.renewable_asset.rated_power_kw * timestep_hours;
+    if generation.iter().any(|value| *value > rated_interval_generation + 1e-9) {
+        return Err(EnergyStudyQualificationError::InvalidRenewableGenerationProfile);
+    }
+
+    let physical_accounting = verify_microgrid_simulation(
+        &loads,
+        &generation,
+        &grid_available,
+        timestep_hours,
+        battery,
+        simulation,
+    )
+    .map_err(EnergyStudyQualificationError::InvalidMicrogridSimulation)?;
+
+    let serialized_intervals: Vec<Vec<u8>> = simulation.intervals.iter()
+        .map(|interval| serde_json::to_vec(interval)
+            .map_err(|_| EnergyStudyQualificationError::IntervalOutputSerializationFailure))
+        .collect::<Result<_, _>>()?;
+    let serialized_slices: Vec<&[u8]> = serialized_intervals.iter()
+        .map(Vec::as_slice)
+        .collect();
+    let run_verification = verify_energy_study_run_receipt_v1(
+        manifest,
+        run_receipt,
+        &serialized_slices,
+    )?;
+
+    let critical_load = assess_critical_load_constraint_v1(
+        manifest,
+        artifacts.constraints,
+        load_bytes,
+        simulation,
+    )?;
+    let maximum_residual = physical_accounting.max_load_balance_residual_kwh
+        .max(physical_accounting.max_generation_balance_residual_kwh)
+        .max(physical_accounting.max_battery_transition_residual_kwh);
+    let power_balance_within_limit =
+        maximum_residual <= constraint_set.require_power_balance_residual_max_kwh;
+    let qualification_passed =
+        power_balance_within_limit && critical_load.proven_within_limit;
+
+    Ok(EnergyStudyMicrogridQualificationReportV1 {
+        artifacts: artifact_receipt,
+        run: run_verification,
+        physical_accounting,
+        critical_load,
+        power_balance_within_limit,
+        qualification_passed,
+    })
+}
+
+fn dataset_bytes<'a>(
+    datasets: &'a [(&'a str, &'a [u8])],
+    required_id: &str,
+) -> Result<&'a [u8], EnergyStudyQualificationError> {
+    datasets.iter()
+        .find(|(dataset_id, _)| *dataset_id == required_id)
+        .map(|(_, bytes)| *bytes)
+        .ok_or(EnergyStudyQualificationError::ArtifactSetMismatch)
+}
+
+fn parse_renewable_generation_profile_v1(
+    bytes: &[u8],
+) -> Result<Vec<f64>, EnergyStudyQualificationError> {
+    let text = std::str::from_utf8(bytes)
+        .map_err(|_| EnergyStudyQualificationError::InvalidRenewableGenerationProfile)?;
+    let mut lines = text.lines();
+    if lines.next() != Some("step,renewable_generation_kwh") {
+        return Err(EnergyStudyQualificationError::InvalidRenewableGenerationProfile);
+    }
+    let mut generation = Vec::new();
+    for line in lines {
+        let fields: Vec<&str> = line.split(',').collect();
+        if fields.len() != 2 {
+            return Err(EnergyStudyQualificationError::InvalidRenewableGenerationProfile);
+        }
+        let index = fields[0].parse::<usize>()
+            .map_err(|_| EnergyStudyQualificationError::InvalidRenewableGenerationProfile)?;
+        let value = fields[1].parse::<f64>()
+            .map_err(|_| EnergyStudyQualificationError::InvalidRenewableGenerationProfile)?;
+        if index != generation.len() || !value.is_finite() || value < 0.0 {
+            return Err(EnergyStudyQualificationError::InvalidRenewableGenerationProfile);
+        }
+        generation.push(value);
+    }
+    if generation.is_empty() {
+        return Err(EnergyStudyQualificationError::InvalidRenewableGenerationProfile);
+    }
+    Ok(generation)
+}
+
+fn parse_grid_availability_profile_v1(
+    bytes: &[u8],
+) -> Result<Vec<bool>, EnergyStudyQualificationError> {
+    let text = std::str::from_utf8(bytes)
+        .map_err(|_| EnergyStudyQualificationError::InvalidGridAvailabilityProfile)?;
+    let mut lines = text.lines();
+    if lines.next() != Some("step,grid_available") {
+        return Err(EnergyStudyQualificationError::InvalidGridAvailabilityProfile);
+    }
+    let mut availability = Vec::new();
+    for line in lines {
+        let fields: Vec<&str> = line.split(',').collect();
+        if fields.len() != 2 {
+            return Err(EnergyStudyQualificationError::InvalidGridAvailabilityProfile);
+        }
+        let index = fields[0].parse::<usize>()
+            .map_err(|_| EnergyStudyQualificationError::InvalidGridAvailabilityProfile)?;
+        let value = match fields[1] {
+            "true" => true,
+            "false" => false,
+            _ => return Err(EnergyStudyQualificationError::InvalidGridAvailabilityProfile),
+        };
+        if index != availability.len() {
+            return Err(EnergyStudyQualificationError::InvalidGridAvailabilityProfile);
+        }
+        availability.push(value);
+    }
+    if availability.is_empty() {
+        return Err(EnergyStudyQualificationError::InvalidGridAvailabilityProfile);
+    }
+    Ok(availability)
+}
+
 /// Combined report from the artifact and interval-receipt checks.
 ///
 /// A successful result means all declared input bytes and interval output bytes
@@ -607,6 +864,46 @@ mod tests {
         let mut wrong_time = good;
         wrong_time.intervals[3].interval_start_unix_seconds += 1;
         assert_eq!(verify_energy_study_run_receipt_v1(&manifest, &wrong_time, &output_slices), Err(EnergyStudyQualificationError::IntervalTimestampMismatch { position: 3 }));
+    }
+
+    #[test]
+    fn end_to_end_fixture_is_physically_checked_and_critical_gate_is_not_hidden() {
+        use crate::microgrid::BatteryConfig;
+
+        let manifest = manifest();
+        let artifacts = input_artifacts();
+        let load_bytes = include_bytes!("../../fixtures/energy-study/v1/load-profile.csv");
+        let (loads, _) = parse_critical_load_profile_v1(load_bytes).unwrap();
+        let generation = parse_renewable_generation_profile_v1(
+            include_bytes!("../../fixtures/energy-study/v1/renewable-generation.csv")
+        ).unwrap();
+        let grid = parse_grid_availability_profile_v1(
+            include_bytes!("../../fixtures/energy-study/v1/grid-availability.csv")
+        ).unwrap();
+        let battery = BatteryConfig {
+            capacity_kwh: 6.0,
+            initial_soc_kwh: 3.0,
+            minimum_soc_kwh: 1.0,
+            max_charge_power_kw: 2.0,
+            max_discharge_power_kw: 2.0,
+            charge_efficiency: 0.92,
+            discharge_efficiency: 0.92,
+        };
+        let simulation = simulate_microgrid(&loads, &generation, &grid, 0.25, battery).unwrap();
+        let serialized: Vec<Vec<u8>> = simulation.intervals.iter()
+            .map(|interval| serde_json::to_vec(interval).unwrap()).collect();
+        let mut receipt = run_receipt(&manifest, &serialized);
+        receipt.intervals.iter_mut().zip(serialized.iter()).for_each(|(row, bytes)| {
+            row.output_sha256 = sha256_hex(bytes);
+        });
+
+        let report = qualify_microgrid_study_v1(&manifest, artifacts, &receipt, &simulation).unwrap();
+        assert_eq!(report.physical_accounting.interval_count, 8);
+        assert_eq!(report.run.verified_interval_count, 8);
+        assert!(report.power_balance_within_limit);
+        assert!(report.critical_load.critical_unserved_energy_upper_bound_kwh > 0.0);
+        assert!(!report.critical_load.proven_within_limit);
+        assert!(!report.qualification_passed);
     }
 
     #[test]
