@@ -718,6 +718,13 @@ mod tests {
     }
 
     #[test]
+    fn rejects_overlong_source_revision() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.engine.source_revision = Some("r".repeat(121));
+        assert!(run.validate().unwrap_err().contains("source_revision must be non-empty and at most 120"));
+    }
+
+    #[test]
     fn rejects_overlong_run_id() {
         let long_id = "r".repeat(201);
         let raw = valid_payload().replace("\"run_id\":\"test-run-001\"", &format!("\"run_id\":\"{long_id}\""));
