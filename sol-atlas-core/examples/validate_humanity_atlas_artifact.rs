@@ -54,6 +54,10 @@ fn run() -> Result<(), String> {
             "milestone_graph_integrity"
         ],
         "scientific_classification": "unvalidated_simulation",
+        "run_id": run.run_id,
+        "scenario_id": run.scenario_id,
+        "engine_version": run.engine.engine_version,
+        "model_identity_kind": run.engine.model_identity_kind,
         "source_artifact_sha256": tree.source_artifact_sha256,
         "definition_sha256": tree.definition_sha256,
         "schema_version": tree.schema_version,
