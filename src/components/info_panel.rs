@@ -227,7 +227,7 @@ pub fn InfoPanel() -> impl IntoView {
                             </div>
                         }.into_any()
                     }
-                                        Some(SelectedItem::MajorCity(c)) => view! {
+                    Some(SelectedItem::MajorCity(c)) => view! {
                         <div>
                             <h2>{c.name.clone()}</h2>
                             <div class="subtitle">{format!("{} \u{00b7} curated", c.country)}</div>
