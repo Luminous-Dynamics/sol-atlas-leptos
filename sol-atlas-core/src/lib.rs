@@ -13,6 +13,7 @@ pub mod confluence;
 pub mod constants;
 pub mod data;
 pub mod economics;
+pub mod eonet;
 pub mod energy_trading;
 pub mod geo;
 pub mod hazard_context;
