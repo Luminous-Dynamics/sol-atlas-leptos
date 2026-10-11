@@ -53,6 +53,10 @@ jobs:
             echo "known catalogue centre mismatch unexpectedly accepted" >&2
             exit 1
           fi
+          if HORIZONS_CENTER_ID=MARS scripts/capture-horizons-vector.sh --print-identity >/dev/null 2>&1; then
+            echo "case-insensitive self-centred request unexpectedly accepted" >&2
+            exit 1
+          fi
           small_jd_url="$(HORIZONS_EPOCH_JD=0.0000001 scripts/capture-horizons-vector.sh --print-url)"
           [[ "$small_jd_url" == *"TLIST=%270.0000001%27"* ]]
 
