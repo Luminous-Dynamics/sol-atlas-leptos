@@ -931,7 +931,7 @@ mod tests {
 
     fn provenance_for(payload: &str) -> EphemerisProvenance {
         EphemerisProvenance::from_bytes(
-            "JPL Horizons (synthetic parser fixture)",
+            "NASA/JPL Horizons API",
             &request().canonical_request_identity().unwrap(),
             payload.as_bytes(),
             "2026-10-10T16:00:00Z",
@@ -1180,6 +1180,20 @@ mod tests {
                 ..
             })
         ));
+    }
+
+    #[test]
+    fn rejects_provenance_provider_that_disagrees_with_response_signature() {
+        let mut provenance = provenance();
+        provenance.provider = "JPL Horizons (synthetic parser fixture)".into();
+
+        assert_eq!(
+            parse_horizons_vectors_json(FIXTURE, &request(), &provenance),
+            Err(HorizonsParseError::ProvenanceProviderMismatch {
+                expected: "NASA/JPL Horizons API".into(),
+                actual: "JPL Horizons (synthetic parser fixture)".into(),
+            })
+        );
     }
 
     #[test]
