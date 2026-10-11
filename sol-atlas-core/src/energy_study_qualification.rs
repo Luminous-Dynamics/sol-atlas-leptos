@@ -377,7 +377,15 @@ mod tests {
         let verified = verify_energy_study_artifacts_v1(&manifest, input_artifacts()).unwrap();
         assert_eq!(verified.manifest_sha256, "896b4579a632dac32bafd3b2347f19f5da5a74f7173c14cf818b00a8e5c484da");
         assert_eq!(verified.case_sha256, "1612238432409a5282145479c7c585c53b4ae9a45832de5213722ee75d438f63");
+        // Golden vector independently pinned by Mycelix SDK TypeScript tests.
+        assert_eq!(verified.artifact_set_sha256, "74a2bb57ea351ab2f0d68502443d27a971db33293fa4c11e12a45d0afa3b30e2");
         assert_eq!(verified.verified_dataset_count, 3);
+
+        let all = input_artifacts();
+        let reversed_datasets = [all.datasets[2], all.datasets[1], all.datasets[0]];
+        let reversed = EnergyStudyArtifactBytesV1 { datasets: &reversed_datasets, ..all };
+        let reversed_receipt = verify_energy_study_artifacts_v1(&manifest, reversed).unwrap();
+        assert_eq!(reversed_receipt.artifact_set_sha256, verified.artifact_set_sha256);
         assert_eq!(verified.verified_configuration_count, 4);
         assert!(verified.declared_evidence_classes.iter().all(|(_, class)| *class == EnergyEvidenceClass::Scenario));
     }
