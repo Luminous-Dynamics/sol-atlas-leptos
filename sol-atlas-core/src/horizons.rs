@@ -1019,11 +1019,27 @@ mod tests {
                 url: req.canonical_url().unwrap()
             }
         );
+        // Pin the Rust builder to the same full URL and semantic identity
+        // asserted independently by the offline capture-script preflight in CI.
+        const EXPECTED_URL: &str = "https://ssd.jpl.nasa.gov/api/horizons.api?COMMAND=%27499%27&CENTER=%27%400%27&CSV_FORMAT=%27YES%27&EPHEM_TYPE=%27VECTORS%27&MAKE_EPHEM=%27YES%27&OBJ_DATA=%27YES%27&OUT_UNITS=%27KM-S%27&REF_PLANE=%27FRAME%27&REF_SYSTEM=%27ICRF%27&TIME_TYPE=%27TDB%27&TLIST=%272461323.5%27&TLIST_TYPE=%27JD%27&VEC_CORR=%27NONE%27&VEC_LABELS=%27YES%27&VEC_TABLE=%272%27&format=json";
+        let actual_url = req.canonical_url().unwrap();
+        assert_eq!(actual_url, EXPECTED_URL);
+
         let identity = req.canonical_request_identity().unwrap();
-        assert!(identity.starts_with("SOL-ATLAS-HORIZONS-REQUEST-V1\n"));
-        assert!(identity.contains("target_id=mars\n"));
-        assert!(identity.contains("center_id=ssb\n"));
-        assert!(identity.contains(&req.canonical_url().unwrap()));
+        let expected_identity = format!(
+            concat!(
+                "SOL-ATLAS-HORIZONS-REQUEST-V1\\n",
+                "target_id=mars\\n",
+                "center_id=ssb\\n",
+                "expected_target_name=Mars\\n",
+                "expected_center_name=Solar%20System%20Barycenter\\n",
+                "transport_bytes={}\\n",
+                "{}"
+            ),
+            EXPECTED_URL.len(),
+            EXPECTED_URL,
+        );
+        assert_eq!(identity, expected_identity);
     }
 
     #[test]
