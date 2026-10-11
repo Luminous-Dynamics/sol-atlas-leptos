@@ -52,8 +52,9 @@ impl PriorityServicePolicyV1 {
         self.schema_version == PRIORITY_MICROGRID_SCHEMA_VERSION_V1
             && self.policy_id == manifest.policy.policy_id
             && self.allocation == PriorityServiceAllocationV1::CriticalFirst
-            && self.service_order.as_slice()
-                == &[PriorityServiceClassV1::Critical, PriorityServiceClassV1::Noncritical]
+            && self.service_order.len() == 2
+            && self.service_order[0] == PriorityServiceClassV1::Critical
+            && self.service_order[1] == PriorityServiceClassV1::Noncritical
     }
 }
 
