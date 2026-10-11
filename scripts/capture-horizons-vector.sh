@@ -149,15 +149,71 @@ from urllib.parse import quote
 target_id, center_id, command, provider_center, expected_target, expected_center, url, manifest_path = sys.argv[1:]
 encode = lambda value: quote(value, safe="-_.~")
 
-# One manifest is shared by the capture and verification tools; Rust unit tests
-# compare the same file against SOLAR_SYSTEM_CATALOG to detect mapping drift.
+# One manifest is shared by capture, verification, and Rust tests. Reject
+# ambiguous JSON before using it to authorize a provider request.
+def unique_object_pairs(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key!r}")
+        result[key] = value
+    return result
+
+def reject_nonstandard_constant(token):
+    raise ValueError(f"non-standard JSON numeric token: {token}")
+
 try:
-    manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
-except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
-    raise SystemExit(f"cannot read Horizons catalogue bindings manifest: {error}")
-if manifest.get("schema_version") != 1 or not isinstance(manifest.get("objects"), list):
+    manifest = json.loads(
+        Path(manifest_path).read_text(encoding="utf-8"),
+        object_pairs_hook=unique_object_pairs,
+        parse_constant=reject_nonstandard_constant,
+    )
+except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
+    raise SystemExit(f"cannot read strict Horizons catalogue bindings manifest: {error}")
+if (
+    not isinstance(manifest, dict)
+    or type(manifest.get("schema_version")) is not int
+    or manifest.get("schema_version") != 1
+    or not isinstance(manifest.get("objects"), list)
+):
     raise SystemExit("unsupported Horizons catalogue bindings manifest")
 objects = manifest["objects"]
+seen_catalogue_ids = set()
+for index, obj in enumerate(objects):
+    if not isinstance(obj, dict):
+        raise SystemExit(f"catalogue bindings manifest object {index} must be an object")
+    object_id = obj.get("id")
+    if not isinstance(object_id, str) or not object_id:
+        raise SystemExit(f"catalogue bindings manifest object {index} has no valid ID")
+    if object_id in seen_catalogue_ids:
+        raise SystemExit(f"duplicate catalogue binding ID: {object_id}")
+    seen_catalogue_ids.add(object_id)
+    if not isinstance(obj.get("name"), str) or not obj["name"]:
+        raise SystemExit(f"catalogue bindings manifest object {object_id} has no valid name")
+    if not isinstance(obj.get("kind"), str) or not obj["kind"]:
+        raise SystemExit(f"catalogue bindings manifest object {object_id} has no valid kind")
+    for binding_key in ("command", "center"):
+        binding_value = obj.get(binding_key)
+        if binding_key not in obj or (
+            binding_value is not None
+            and (not isinstance(binding_value, str) or not binding_value)
+        ):
+            raise SystemExit(
+                f"catalogue bindings manifest object {object_id} has invalid {binding_key}"
+            )
+
+special_centers = manifest.get("special_centers", [])
+if not isinstance(special_centers, list):
+    raise SystemExit("catalogue bindings manifest special_centers must be a list")
+for index, special in enumerate(special_centers):
+    if not isinstance(special, dict):
+        raise SystemExit(f"special centre {index} in catalogue manifest must be an object")
+    for field in ("id", "name", "provider_center"):
+        if not isinstance(special.get(field), str) or not special[field]:
+            raise SystemExit(f"special centre {index} in catalogue manifest has invalid {field}")
+    if special["id"] in seen_catalogue_ids:
+        raise SystemExit(f"duplicate catalogue binding ID: {special['id']}")
+    seen_catalogue_ids.add(special["id"])
 
 if not target_id.strip() or not center_id.strip():
     raise SystemExit("stable target and center IDs are required")
