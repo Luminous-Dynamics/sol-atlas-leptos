@@ -127,7 +127,6 @@ pub fn InfoPanel() -> impl IntoView {
                     Some(SelectedItem::FossilDeposit(d)) => {
                         let eroi = sol_atlas_core::economics::compute_eroi(d);
                         let comparable_eroi = sol_atlas_core::economics::comparable_eroi(d);
-                        let tier_eligible_eroi = sol_atlas_core::economics::tier_eligible_eroi(d);
                         let evidence = d
                             .eroi_evidence
                             .as_ref()
@@ -143,22 +142,16 @@ pub fn InfoPanel() -> impl IntoView {
                                     ).into_any(),
                                     None => hero("Unknown".to_string(), "physical EROI").into_any(),
                                 }}
-                                {match tier_eligible_eroi {
-                                    Some(e) => row(
-                                        "Primary-stage tier",
-                                        sol_atlas_core::economics::EroiTier::from_eroi(e).label().to_string(),
-                                    ),
-                                    None => row(
-                                        "EROI classification",
-                                        if eroi.is_none() {
-                                            "Unknown — physical EROI not supplied".to_string()
-                                        } else if comparable_eroi.is_none() {
-                                            "Unqualified — source or boundary metadata missing".to_string()
-                                        } else {
-                                            "No tier — thresholds are not calibrated for this energy stage".to_string()
-                                        },
-                                    ),
-                                }}
+                                {row(
+                                    "EROI classification",
+                                    if eroi.is_none() {
+                                        "Unknown — physical EROI not supplied".to_string()
+                                    } else if comparable_eroi.is_none() {
+                                        "Unqualified — source or boundary metadata missing".to_string()
+                                    } else {
+                                        "Not tiered — threshold methodology lacks a named system boundary".to_string()
+                                    },
+                                )}
                                 {match evidence {
                                     Some(evidence) => row("EROI stage", evidence.stage.label().to_string()),
                                     None => row("EROI stage", "Not qualified".to_string()),

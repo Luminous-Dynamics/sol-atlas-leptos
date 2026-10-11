@@ -100,14 +100,6 @@ pub fn comparable_eroi(deposit: &FossilDeposit) -> Option<f64> {
     evidence.is_qualified().then_some(ratio)
 }
 
-/// The currently defined broad tier thresholds are only enabled for primary-stage
-/// values. Final- and useful-stage tier schemes need separate calibration.
-pub fn tier_eligible_eroi(deposit: &FossilDeposit) -> Option<f64> {
-    let ratio = comparable_eroi(deposit)?;
-    let evidence = deposit.eroi_evidence.as_ref()?;
-    (evidence.stage == crate::types::EroiStage::Primary).then_some(ratio)
-}
-
 /// Whether two supplied EROI values may be compared without a conversion model.
 pub fn can_compare_eroi(left: &FossilDeposit, right: &FossilDeposit) -> bool {
     if compute_eroi(left).is_none() || compute_eroi(right).is_none() {
@@ -119,6 +111,9 @@ pub fn can_compare_eroi(left: &FossilDeposit, right: &FossilDeposit) -> bool {
     }
 }
 
+/// Legacy numerical tier colors do not identify an EROI system boundary.
+/// They should not be applied to evidence unless the threshold methodology
+/// is explicitly matched to the recorded output and input boundaries.
 /// EROI-based color for visualization: green → amber → red → dark red.
 pub fn eroi_color(eroi: f64) -> [f32; 3] {
     match EroiTier::from_eroi(eroi) {
@@ -418,15 +413,12 @@ mod tests {
         deposit.eroi = Some(25.0);
         assert_eq!(compute_eroi(&deposit), Some(25.0));
         assert_eq!(comparable_eroi(&deposit), None);
-        assert_eq!(tier_eligible_eroi(&deposit), None);
 
         deposit.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
         assert_eq!(comparable_eroi(&deposit), Some(25.0));
-        assert_eq!(tier_eligible_eroi(&deposit), Some(25.0));
 
         deposit.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Useful));
         assert_eq!(comparable_eroi(&deposit), Some(25.0));
-        assert_eq!(tier_eligible_eroi(&deposit), None);
 
         deposit.eroi_evidence.as_mut().unwrap().source_citation.clear();
         assert_eq!(comparable_eroi(&deposit), None);
