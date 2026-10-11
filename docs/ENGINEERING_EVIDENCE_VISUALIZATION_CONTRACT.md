@@ -49,9 +49,10 @@ The current loader logs malformed JSON and may return a default empty collection
 
 Recommended envelope:
 
-- **Loaded:** parse and schema checks passed; report record count and source fingerprint.
+- **Loaded:** parse and schema checks passed; all candidate records were accepted. Report accepted count and source fingerprint.
+- **PartiallyLoaded:** the source parsed, but one or more records were rejected by semantic validation. Report accepted and rejected counts and the rejection reason.
 - **ValidEmpty:** parse and schema checks passed and the source explicitly contains zero records.
-- **Malformed:** parse/schema validation failed; preserve the diagnostic and do not display the collection as a valid empty result.
+- **Malformed:** parse/schema validation failed; preserve the diagnostic and leave accepted/rejected counts unknown rather than zero.
 - **Unavailable:** source could not be retrieved.
 - **StaleCache:** a prior snapshot is being shown because refresh failed; preserve its original timestamp and identity.
 - **Rejected:** signature, hash, authority receipt or source policy validation failed.
