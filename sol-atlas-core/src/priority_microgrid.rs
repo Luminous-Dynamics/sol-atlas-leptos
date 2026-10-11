@@ -739,7 +739,18 @@ mod tests {
         let study = manifest();
         let candidate = simulate_priority_microgrid_study_v1(&study, artifacts()).unwrap();
         let report = verify_priority_microgrid_study_v1(&study, artifacts(), &candidate).unwrap();
-        assert!(report.critical_unserved_energy_kwh > 0.0);
+        // Independent Python mirror over the frozen fixture produced these
+        // scenario-specific expected totals. Critical service is a modeled
+        // critical-first allocation, not measurement from physical circuits.
+        assert_eq!(
+            report.artifact_set_sha256,
+            "3028003c72470c54f7f5a84fe5e7fe9fbf2f74bd8a028c98c91b74f541c29fbd"
+        );
+        assert_eq!(candidate.aggregate.totals.unserved_load_kwh, 9.5);
+        assert_eq!(report.critical_unserved_energy_kwh, 2.5);
+        assert_eq!(report.noncritical_unserved_energy_kwh, 7.0);
+        assert_eq!(candidate.service_totals.critical_unserved_kwh, 2.5);
+        assert_eq!(candidate.service_totals.noncritical_unserved_kwh, 7.0);
         assert_eq!(report.critical_unserved_energy_max_kwh, 0.0);
         assert!(!report.critical_load_within_limit);
         assert!(!report.qualification_passed);
