@@ -563,10 +563,13 @@ mod tests {
         assert!(malformed.is_empty());
         assert_eq!(health[0].state, DatasetLoadState::Loaded);
         assert_eq!(health[0].record_count, Some(2));
+        assert_eq!(health[0].rejected_record_count, Some(0));
         assert_eq!(health[1].state, DatasetLoadState::ValidEmpty);
         assert_eq!(health[1].record_count, Some(0));
+        assert_eq!(health[1].rejected_record_count, Some(0));
         assert_eq!(health[2].state, DatasetLoadState::Malformed);
         assert_eq!(health[2].record_count, None);
+        assert_eq!(health[2].rejected_record_count, None);
         assert!(health[2].diagnostic.as_deref().is_some_and(|d| !d.is_empty()));
     }
 
@@ -603,12 +606,14 @@ mod tests {
             dataset: "sites-clustered".to_string(),
             state: DatasetLoadState::Malformed,
             record_count: None,
+            rejected_record_count: None,
             diagnostic: Some("invalid JSON".to_string()),
         };
         let empty = DatasetLoadHealth {
             dataset: "resontia-vaults".to_string(),
             state: DatasetLoadState::ValidEmpty,
             record_count: Some(0),
+            rejected_record_count: Some(0),
             diagnostic: None,
         };
 
