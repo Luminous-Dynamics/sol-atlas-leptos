@@ -149,9 +149,6 @@ from urllib.parse import quote
 target_id, center_id, command, provider_center, expected_target, expected_center, url, manifest_path = sys.argv[1:]
 encode = lambda value: quote(value, safe="-_.~")
 
-if target_id.casefold() == center_id.casefold():
-    raise SystemExit("target cannot be its own center")
-
 # One manifest is shared by the capture and verification tools; Rust unit tests
 # compare the same file against SOLAR_SYSTEM_CATALOG to detect mapping drift.
 try:
@@ -161,6 +158,42 @@ except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
 if manifest.get("schema_version") != 1 or not isinstance(manifest.get("objects"), list):
     raise SystemExit("unsupported Horizons catalogue bindings manifest")
 objects = manifest["objects"]
+
+if not target_id.strip() or not center_id.strip():
+    raise SystemExit("stable target and center IDs are required")
+if target_id == "ssb":
+    raise SystemExit("ssb is a coordinate center, not a target")
+if target_id.casefold() == center_id.casefold():
+    raise SystemExit("target cannot be its own center")
+if target_id.strip() != target_id or center_id.strip() != center_id:
+    raise SystemExit("target and center IDs must not have surrounding whitespace")
+
+catalogue_ids = {
+    obj["id"] for obj in objects
+    if isinstance(obj, dict) and isinstance(obj.get("id"), str)
+}
+if target_id not in catalogue_ids and any(
+    object_id.casefold() == target_id.casefold() for object_id in catalogue_ids
+):
+    raise SystemExit("catalogue target ID must use canonical spelling")
+if center_id not in catalogue_ids and any(
+    object_id.casefold() == center_id.casefold() for object_id in catalogue_ids
+):
+    raise SystemExit("catalogue center ID must use canonical spelling")
+if center_id.casefold() == "ssb" and center_id != "ssb":
+    raise SystemExit("ssb center ID must use canonical spelling")
+
+def safe_stable_id(value):
+    return (
+        bool(value)
+        and (value[0].isascii() and (value[0].islower() or value[0].isdigit()))
+        and (value[-1].isascii() and (value[-1].islower() or value[-1].isdigit()))
+        and all(ch.isascii() and (ch.islower() or ch.isdigit() or ch in "-_") for ch in value)
+    )
+
+if not safe_stable_id(target_id) or not safe_stable_id(center_id):
+    raise SystemExit("target and center IDs must be lowercase ASCII slugs")
+
 target_bindings = {
     obj["id"]: (obj["command"], obj["name"])
     for obj in objects
