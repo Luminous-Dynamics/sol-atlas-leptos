@@ -344,8 +344,8 @@ fn validate_summary_metrics(
     run: &ScenarioRunEnvelope,
     source: &SimulationOutputWire,
 ) -> Result<(), String> {
-    if source.final_population as u64 > MAX_SAFE_INTEGER
-        || source.tech_milestones as u64 > MAX_SAFE_INTEGER
+    if source.final_population > MAX_SAFE_INTEGER
+        || source.tech_milestones > MAX_SAFE_INTEGER
     {
         return Err("summary counts exceed exact-safe numeric range".into());
     }
@@ -735,8 +735,8 @@ struct SimulationOutputWire {
     ticks: u32,
     survived: bool,
     final_cvs: f64,
-    final_population: usize,
-    tech_milestones: usize,
+    final_population: u64,
+    tech_milestones: u64,
     resolved_config: Value,
     resolved_params: Value,
     technology_tree: TechnologyTreeWire,
@@ -751,7 +751,7 @@ impl SimulationOutputWire {
 
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct SimulationRunManifestWire {
     schema_version: String,
