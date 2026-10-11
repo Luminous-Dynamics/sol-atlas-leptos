@@ -138,6 +138,12 @@ struct GeometryWire {
     #[serde(rename = "type")]
     kind: String,
     coordinates: Value,
+    #[serde(rename = "magnitudeValue", default)]
+    magnitude_value: Option<f64>,
+    #[serde(rename = "magnitudeUnit", default)]
+    magnitude_unit: Option<String>,
+    #[serde(rename = "magnitudeDescription", default)]
+    magnitude_description: Option<String>,
 }
 
 /// A well-formed empty open-event catalog is valid and clears source-owned
@@ -189,7 +195,9 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<EonetFeedSnapshot, E
             });
         }
 
-        let mut latest: Option<(i64, f64, f64, EonetGeometryKind)> = None;
+        let mut latest: Option<(
+            i64, f64, f64, EonetGeometryKind, Option<f64>, Option<String>, Option<String>,
+        )> = None;
         for geometry in &event.geometry {
             let Some(timestamp_ms) = parse_iso8601_ms(&geometry.date) else {
                 continue;
@@ -205,26 +213,49 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<EonetFeedSnapshot, E
                 continue;
             };
             if latest.as_ref().is_none_or(|current| timestamp_ms > current.0) {
-                latest = Some((timestamp_ms, latitude, longitude, geometry_kind));
+                let geometry_magnitude = geometry.magnitude_value.filter(|value| {
+                    value.is_finite() && (0.0..=1_000_000.0).contains(value)
+                });
+                let geometry_unit = geometry.magnitude_unit.clone().filter(|unit| {
+                    !unit.trim().is_empty()
+                        && unit.len() <= 64
+                        && !unit.chars().any(char::is_control)
+                });
+                let geometry_description = geometry.magnitude_description.clone().filter(|value| {
+                    !value.trim().is_empty()
+                        && value.len() <= 256
+                        && !value.chars().any(char::is_control)
+                });
+                latest = Some((
+                    timestamp_ms, latitude, longitude, geometry_kind,
+                    geometry_magnitude, geometry_unit, geometry_description,
+                ));
             }
         }
 
-        let Some((occurred_at_ms, latitude, longitude, geometry_kind)) = latest else {
+        let Some((
+            occurred_at_ms, latitude, longitude, geometry_kind,
+            geometry_magnitude, geometry_unit, geometry_description,
+        )) = latest else {
             skipped_events += 1;
             continue;
         };
         let event_url = event.link.as_deref()
             .filter(|url| valid_event_url(url, &event.id))
             .map(str::to_string);
-        let magnitude_value = event.magnitude_value
-            .filter(|value| value.is_finite() && (0.0..=1_000_000.0).contains(value));
-        let magnitude_unit = event.magnitude_unit.filter(|unit| {
-            !unit.trim().is_empty() && unit.len() <= 64 && !unit.chars().any(char::is_control)
+        let magnitude_value = geometry_magnitude.or_else(|| {
+            event.magnitude_value
+                .filter(|value| value.is_finite() && (0.0..=1_000_000.0).contains(value))
         });
-        let magnitude_description = event.magnitude_description.filter(|description| {
-            !description.trim().is_empty()
-                && description.len() <= 256
-                && !description.chars().any(char::is_control)
+        let magnitude_unit = geometry_unit.or_else(|| event.magnitude_unit.filter(|unit| {
+            !unit.trim().is_empty() && unit.len() <= 64 && !unit.chars().any(char::is_control)
+        }));
+        let magnitude_description = geometry_description.or_else(|| {
+            event.magnitude_description.filter(|description| {
+                !description.trim().is_empty()
+                    && description.len() <= 256
+                    && !description.chars().any(char::is_control)
+            })
         });
 
         events.push(EonetEvent {
@@ -527,6 +558,20 @@ mod tests {
             feed.events[1].event_url.as_deref(),
             Some("https://eonet.gsfc.nasa.gov/api/v3/events/EONET_1")
         );
+    }
+
+    #[test]
+    fn geometry_specific_measurement_overrides_event_level_measurement() {
+        let geometry = r#"{"date":"2026-05-01T12:00:00Z","type":"Point","coordinates":[-80.0,12.0],"magnitudeValue":12.0,"magnitudeUnit":"km/h","magnitudeDescription":"Peak wind"}"#;
+        let source = event("EONET_1", "severeStorms", "null", geometry, "EONET_1")
+            .replace(
+                r#""title":"Test event""#,
+                r#""title":"Test event","magnitudeValue":5.0,"magnitudeUnit":"m""#,
+            );
+        let feed = parse_feed(&fixture(&source), NOW).unwrap();
+        assert_eq!(feed.events[0].magnitude_value, Some(12.0));
+        assert_eq!(feed.events[0].magnitude_unit.as_deref(), Some("km/h"));
+        assert_eq!(feed.events[0].magnitude_description.as_deref(), Some("Peak wind"));
     }
 
     #[test]

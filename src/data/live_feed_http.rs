@@ -38,6 +38,14 @@ pub async fn fetch_feed(source: LiveFeedSource) -> Result<String, String> {
         .map_err(|_| "could not create request abort controller".to_string())?;
     let mut init = RequestInit::new();
     init.set_signal(Some(&controller.signal()));
+    // EONET needs explicit JSON negotiation; don't rely on the server's
+    // default representation when parsing a strict event-catalog schema.
+    let headers = web_sys::Headers::new()
+        .map_err(|_| format!("{source:?} request headers unavailable"))?;
+    headers
+        .set("Accept", "application/json")
+        .map_err(|_| format!("{source:?} JSON Accept header configuration failed"))?;
+    init.set_headers(&headers);
 
     let timeout_controller = controller.clone();
     let timeout = Timeout::new(REQUEST_TIMEOUT_MS, move || {
