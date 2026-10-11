@@ -280,7 +280,9 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<UsgsFeedSnapshot, Us
             *value >= occurred_at_ms
                 && *value <= generated_at_ms.saturating_add(MAX_FUTURE_SKEW_MS)
         });
-        let event_url = properties.url.filter(|value| valid_event_url(value));
+        let event_url = properties
+            .url
+            .filter(|value| valid_event_url(value, &id));
 
         earthquakes.push(UsgsEarthquake {
             id,
@@ -315,8 +317,13 @@ fn valid_identifier(value: &str) -> bool {
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
 }
 
-fn valid_event_url(value: &str) -> bool {
-    value.starts_with(USGS_EVENT_PAGE_PREFIX)
+fn valid_event_url(value: &str, event_id: &str) -> bool {
+    let Some(link_id) = value.strip_prefix(USGS_EVENT_PAGE_PREFIX) else {
+        return false;
+    };
+
+    !link_id.is_empty()
+        && link_id == event_id
         && value.len() <= 2_048
         && !value.chars().any(char::is_control)
         && !value.chars().any(char::is_whitespace)
@@ -532,6 +539,17 @@ mod tests {
         let payload = fixture(NOW, &quake("us123", "10", "20", "3.0")).replace(
             "https://earthquake.usgs.gov/earthquakes/eventpage/us123",
             "javascript:alert(1)",
+        );
+        let feed = parse_feed(&payload, NOW).unwrap();
+
+        assert_eq!(feed.earthquakes[0].event_url, None);
+    }
+
+    #[test]
+    fn event_url_must_match_the_feature_id() {
+        let payload = fixture(NOW, &quake("us123", "10", "20", "3.0")).replace(
+            "/earthquakes/eventpage/us123",
+            "/earthquakes/eventpage/us999",
         );
         let feed = parse_feed(&payload, NOW).unwrap();
 
