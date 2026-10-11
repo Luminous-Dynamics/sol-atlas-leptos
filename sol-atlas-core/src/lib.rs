@@ -19,6 +19,7 @@ pub mod lod;
 pub mod mycelix_flows;
 pub mod microgrid;
 pub mod microgrid_verifier;
+pub mod priority_microgrid;
 pub mod energy_study;
 pub mod energy_study_qualification;
 // pub mod relativity_viz;
