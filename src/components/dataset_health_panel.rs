@@ -24,23 +24,37 @@ fn label(state: &DatasetLoadState) -> &'static str {
 pub fn DatasetHealthPanel() -> impl IntoView {
     let data_state = expect_context::<DataState>();
     let health = data_state.static_dataset_health;
+    let health_for_summary = health.clone();
+    let health_for_rows = health.clone();
 
     let summary = move || {
-        let items = health.get();
+        let items = health_for_summary.get();
         if items.is_empty() {
             return "Static assets: loading".to_string();
         }
-        let loaded = items.iter().filter(|item| item.state == DatasetLoadState::Loaded).count();
-        let empty = items.iter().filter(|item| item.state == DatasetLoadState::ValidEmpty).count();
-        let malformed = items.iter().filter(|item| item.state == DatasetLoadState::Malformed).count();
+        let loaded = items
+            .iter()
+            .filter(|item| item.state == DatasetLoadState::Loaded)
+            .count();
+        let empty = items
+            .iter()
+            .filter(|item| item.state == DatasetLoadState::ValidEmpty)
+            .count();
+        let malformed = items
+            .iter()
+            .filter(|item| item.state == DatasetLoadState::Malformed)
+            .count();
         format!("Static assets: {loaded} loaded · {empty} valid-empty · {malformed} malformed")
     };
 
     let rows = move || {
-        health.get().into_iter().map(|item: DatasetLoadHealth| {
+        health_for_rows.get().into_iter().map(|item: DatasetLoadHealth| {
             let malformed = item.state == DatasetLoadState::Malformed;
             let state = label(&item.state);
-            let count = item.record_count.map(|n| n.to_string()).unwrap_or_else(|| "unknown".to_string());
+            let count = item
+                .record_count
+                .map(|n| n.to_string())
+                .unwrap_or_else(|| "unknown".to_string());
             let diagnostic = item.diagnostic.unwrap_or_default();
             view! {
                 <li class:malformed=malformed>
@@ -56,11 +70,11 @@ pub fn DatasetHealthPanel() -> impl IntoView {
     };
 
     view! {
-        <aside class="data-health-panel" aria-label="Static data integrity">
+        <aside class="data-health-panel" aria-label="Static data integrity" aria-live="polite">
             <details>
                 <summary>{summary}</summary>
                 <p class="data-health-note">
-                    "Parsing status only. This does not establish source freshness, authenticity, or factual correctness."
+                    "Parsing status only. It does not establish source freshness, authenticity, or factual correctness."
                 </p>
                 <ul class="data-health-list">{rows}</ul>
             </details>
