@@ -426,10 +426,10 @@ fn is_leap_year(year: i64) -> bool {
 }
 
 fn days_from_civil(year: i64, month: u32, day: u32) -> i64 {
-    let year = year - if month <= 2 { 1 } else { 0 };
+    let year = year - (if month <= 2 { 1 } else { 0 });
     let era = (if year >= 0 { year } else { year - 399 }) / 400;
     let year_of_era = year - era * 400;
-    let adjusted_month = month as i64 + if month > 2 { -3 } else { 9 };
+    let adjusted_month = month as i64 + (if month > 2 { -3 } else { 9 });
     let day_of_year = (153 * adjusted_month + 2) / 5 + day as i64 - 1;
     let day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
     era * 146_097 + day_of_era - 719_468
@@ -558,6 +558,41 @@ mod tests {
         let feed = parse_feed(&fixture(&format!("{mismatch},{closed}")), NOW).unwrap();
         assert_eq!(feed.events.len(), 1);
         assert!(feed.events[0].event_url.is_none());
+    }
+
+    #[test]
+    fn rejects_a_response_that_is_not_the_eonet_catalog() {
+        assert_eq!(
+            parse_feed(r#"{"title":"Other API","events":[]}"#, NOW),
+            Err(EonetFeedError::InvalidRootTitle)
+        );
+    }
+
+    #[test]
+    fn rejects_stale_and_future_geometry_timestamps() {
+        let stale = event(
+            "EONET_1",
+            "wildfires",
+            "null",
+            &point_geometry("2026-04-24T00:00:00Z", 10.0, 20.0),
+            "EONET_1",
+        );
+        assert_eq!(
+            parse_feed(&fixture(&stale), NOW),
+            Err(EonetFeedError::NoValidEvents)
+        );
+
+        let future = event(
+            "EONET_2",
+            "wildfires",
+            "null",
+            &point_geometry("2026-05-03T00:11:00Z", 10.0, 20.0),
+            "EONET_2",
+        );
+        assert_eq!(
+            parse_feed(&fixture(&future), NOW),
+            Err(EonetFeedError::NoValidEvents)
+        );
     }
 
     #[test]

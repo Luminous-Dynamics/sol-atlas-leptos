@@ -215,7 +215,7 @@ fn valid_source_event_url(url: &str, prefix: &str, source_id: Option<&str>) -> b
     };
 
     !source_id.is_empty()
-        && source_id.len() <= 160
+        && source_id.len() <= 200
         && source_id
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
