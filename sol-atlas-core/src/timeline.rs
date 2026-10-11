@@ -133,6 +133,7 @@ mod tests {
             extraction_cost_per_boe: None,
             decommission_cost_m: None,
             eroi: None,
+            eroi_evidence: None,
         }
     }
 

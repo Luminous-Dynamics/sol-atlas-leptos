@@ -126,20 +126,84 @@ pub fn InfoPanel() -> impl IntoView {
                     }.into_any(),
                     Some(SelectedItem::FossilDeposit(d)) => {
                         let eroi = sol_atlas_core::economics::compute_eroi(d);
+                        let comparable_eroi = sol_atlas_core::economics::comparable_eroi(d);
+                        let tier_eligible_eroi = sol_atlas_core::economics::tier_eligible_eroi(d);
+                        let evidence = d
+                            .eroi_evidence
+                            .as_ref()
+                            .filter(|evidence| evidence.is_qualified());
                         view! {
                             <div>
                                 <h2>{d.name.clone()}</h2>
-                                <div class="subtitle">{format!("{:?} \u{00b7} {} \u{00b7} curated; EROI estimated", d.fuel_type, d.country)}</div>
+                                <div class="subtitle">{format!("{:?} \u{00b7} {} \u{00b7} curated", d.fuel_type, d.country)}</div>
                                 {match eroi {
-                                    Some(e) => hero(format!("{:.1}:1", e), "EROI estimate").into_any()
+                                    Some(e) => hero(
+                                        format!("{:.1}:1", e),
+                                        if comparable_eroi.is_some() { "EROI estimate" } else { "EROI value — unqualified" },
+                                    ).into_any(),
                                     None => hero("Unknown".to_string(), "physical EROI").into_any(),
                                 }}
-                                {match eroi {
+                                {match tier_eligible_eroi {
                                     Some(e) => row(
-                                        "Indicative tier",
+                                        "Primary-stage tier",
                                         sol_atlas_core::economics::EroiTier::from_eroi(e).label().to_string(),
                                     ),
-                                    None => row("EROI data", "Not supplied".to_string()),
+                                    None => row(
+                                        "EROI classification",
+                                        if eroi.is_none() {
+                                            "Unknown — physical EROI not supplied".to_string()
+                                        } else if comparable_eroi.is_none() {
+                                            "Unqualified — source or boundary metadata missing".to_string()
+                                        } else {
+                                            "No tier — thresholds are not calibrated for this energy stage".to_string()
+                                        },
+                                    ),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI stage", evidence.stage.label().to_string()),
+                                    None => row("EROI stage", "Not qualified".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI output", evidence.output_definition.clone()),
+                                    None => row("EROI output definition", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI input", evidence.input_definition.clone()),
+                                    None => row("EROI input definition", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI geography", evidence.geographic_scope.clone()),
+                                    None => row("EROI geography", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row(
+                                        "EROI period",
+                                        format!("{}–{}", evidence.period_start_year, evidence.period_end_year),
+                                    ),
+                                    None => row("EROI period", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI source", evidence.source_citation.clone()),
+                                    None => row("EROI source", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI basis", evidence.basis.label().to_string()),
+                                    None => row("EROI basis", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row(
+                                        "EROI publication date",
+                                        evidence.publication_date.clone().unwrap_or_else(|| "Not supplied".to_string()),
+                                    ),
+                                    None => row("EROI publication date", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row(
+                                        "EROI interval",
+                                        evidence.uncertainty.map(|range| format!("{:.2}–{:.2}", range.lower, range.upper))
+                                            .unwrap_or_else(|| "Not supplied".to_string()),
+                                    ),
+                                    None => row("EROI interval", "Not supplied".to_string()),
                                 }}
                                 {row("Reserves", format!("{:.0} Mboe", d.proven_reserves_mboe))}
                                 {row("Production", format!("{:.0} Mboe/yr", d.annual_production_mboe))}

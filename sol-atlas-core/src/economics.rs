@@ -90,6 +90,35 @@ pub fn compute_eroi(deposit: &FossilDeposit) -> Option<f64> {
         .filter(|eroi| eroi.is_finite() && *eroi > 0.0)
 }
 
+
+/// Return a numeric EROI only when its source and system-boundary metadata
+/// are complete enough for like-boundary comparison. The raw reported value
+/// remains available through compute_eroi but must not receive a tier by default.
+pub fn comparable_eroi(deposit: &FossilDeposit) -> Option<f64> {
+    let ratio = compute_eroi(deposit)?;
+    let evidence = deposit.eroi_evidence.as_ref()?;
+    evidence.is_qualified().then_some(ratio)
+}
+
+/// The currently defined broad tier thresholds are only enabled for primary-stage
+/// values. Final- and useful-stage tier schemes need separate calibration.
+pub fn tier_eligible_eroi(deposit: &FossilDeposit) -> Option<f64> {
+    let ratio = comparable_eroi(deposit)?;
+    let evidence = deposit.eroi_evidence.as_ref()?;
+    (evidence.stage == crate::types::EroiStage::Primary).then_some(ratio)
+}
+
+/// Whether two supplied EROI values may be compared without a conversion model.
+pub fn can_compare_eroi(left: &FossilDeposit, right: &FossilDeposit) -> bool {
+    if compute_eroi(left).is_none() || compute_eroi(right).is_none() {
+        return false;
+    }
+    match (&left.eroi_evidence, &right.eroi_evidence) {
+        (Some(left), Some(right)) => left.compatible_with(right),
+        _ => false,
+    }
+}
+
 /// EROI-based color for visualization: green → amber → red → dark red.
 pub fn eroi_color(eroi: f64) -> [f32; 3] {
     match EroiTier::from_eroi(eroi) {
@@ -252,6 +281,7 @@ mod tests {
             extraction_cost_per_boe: Some(10.0),
             decommission_cost_m: None,
             eroi: None,
+            eroi_evidence: None,
         }
     }
 
@@ -365,6 +395,58 @@ mod tests {
         assert_eq!(EroiTier::from_eroi(7.0), EroiTier::Sustainability);
         assert_eq!(EroiTier::from_eroi(4.0), EroiTier::Marginal);
         assert_eq!(EroiTier::from_eroi(2.0), EroiTier::Unviable);
+    }
+
+    fn qualified_evidence(stage: crate::types::EroiStage) -> crate::types::EroiEvidence {
+        crate::types::EroiEvidence {
+            stage,
+            output_definition: "energy carrier delivered".to_string(),
+            input_definition: "direct and indirect energy invested".to_string(),
+            geographic_scope: "country-level".to_string(),
+            period_start_year: 2018,
+            period_end_year: 2020,
+            source_citation: "Example Study, DOI:10.0000/example".to_string(),
+            publication_date: Some("2024-02-29".to_string()),
+            basis: crate::types::EroiEvidenceBasis::Literature,
+            uncertainty: None,
+        }
+    }
+
+    #[test]
+    fn eroi_tiers_require_complete_boundary_and_source_evidence() {
+        let mut deposit = ghawar();
+        deposit.eroi = Some(25.0);
+        assert_eq!(compute_eroi(&deposit), Some(25.0));
+        assert_eq!(comparable_eroi(&deposit), None);
+        assert_eq!(tier_eligible_eroi(&deposit), None);
+
+        deposit.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
+        assert_eq!(comparable_eroi(&deposit), Some(25.0));
+        assert_eq!(tier_eligible_eroi(&deposit), Some(25.0));
+
+        deposit.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Useful));
+        assert_eq!(comparable_eroi(&deposit), Some(25.0));
+        assert_eq!(tier_eligible_eroi(&deposit), None);
+
+        deposit.eroi_evidence.as_mut().unwrap().source_citation.clear();
+        assert_eq!(comparable_eroi(&deposit), None);
+    }
+
+    #[test]
+    fn comparisons_require_matching_stage_definitions_period_and_basis() {
+        let mut left = ghawar();
+        let mut right = ghawar();
+        left.eroi = Some(25.0);
+        right.eroi = Some(20.0);
+        left.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
+        right.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Final));
+        assert!(!can_compare_eroi(&left, &right));
+
+        right.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
+        assert!(can_compare_eroi(&left, &right));
+
+        right.eroi_evidence.as_mut().unwrap().period_end_year = 2021;
+        assert!(!can_compare_eroi(&left, &right));
     }
 
     #[test]
