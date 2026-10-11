@@ -24,10 +24,10 @@ class HorizonsCaptureValidatorTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.fixture = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
 
-    def validate(self, payload: dict, target: str = "Mars") -> None:
+    def validate_raw(self, raw: str, target: str = "Mars") -> None:
         with TemporaryDirectory() as temporary:
             path = Path(temporary) / "response.json"
-            path.write_text(json.dumps(payload), encoding="utf-8")
+            path.write_text(raw, encoding="utf-8")
             validator.validate_response(
                 str(path),
                 target,
@@ -38,8 +38,32 @@ class HorizonsCaptureValidatorTests(unittest.TestCase):
                 "2461323.5",
             )
 
+    def validate(self, payload: dict, target: str = "Mars") -> None:
+        self.validate_raw(json.dumps(payload), target)
+
     def test_synthetic_fixture_is_valid(self) -> None:
         self.validate(self.fixture)
+
+    def test_unexpected_response_fields_fail_closed(self) -> None:
+        payload = json.loads(json.dumps(self.fixture))
+        payload["unexpected"] = True
+        with self.assertRaisesRegex(SystemExit, "unexpected response JSON fields"):
+            self.validate(payload)
+
+        payload = json.loads(json.dumps(self.fixture))
+        payload["signature"]["unexpected"] = "unreviewed"
+        with self.assertRaisesRegex(SystemExit, "unexpected response signature fields"):
+            self.validate(payload)
+
+    def test_duplicate_json_keys_and_nonstandard_numbers_fail_closed(self) -> None:
+        serialized = json.dumps(self.fixture)
+        duplicate_key_payload = serialized.replace('"result":', '"result": "", "result":', 1)
+        with self.assertRaisesRegex(SystemExit, "duplicate JSON object key"):
+            self.validate_raw(duplicate_key_payload)
+
+        nonstandard_number_payload = serialized[:-1] + ',"unexpected":NaN}'
+        with self.assertRaisesRegex(SystemExit, "non-standard JSON numeric token"):
+            self.validate_raw(nonstandard_number_payload)
 
     def test_wrong_target_fails_closed(self) -> None:
         with self.assertRaisesRegex(SystemExit, "target mismatch"):
