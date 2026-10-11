@@ -713,6 +713,8 @@ mod fossil_deposit_admission_tests {
                 "period_start_year": 2018,
                 "period_end_year": 2020,
                 "source_citation": "Example Study, DOI:10.0000/example",
+                "methodology_id": "eroi-boundary-accounting",
+                "methodology_version": "1.0.0",
                 "publication_date": "2024-02-29",
                 "basis": "literature",
                 "uncertainty": {"lower": 4.0, "upper": 6.0}
