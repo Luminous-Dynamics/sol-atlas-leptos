@@ -675,6 +675,13 @@ mod tests {
     }
 
     #[test]
+    fn rejects_source_revision_above_schema_limit() {
+        let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
+        run.engine.source_revision = Some("r".repeat(121));
+        assert!(run.validate().unwrap_err().contains("source_revision must be non-empty and at most 120"));
+    }
+
+    #[test]
     fn rejects_seed_above_schema_safe_integer_limit() {
         let bad = valid_payload().replace("\"seed\":0", "\"seed\":9007199254740992");
         assert!(ScenarioRunEnvelope::from_json(&bad).unwrap_err().contains("seed exceeds"));
