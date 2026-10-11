@@ -446,6 +446,29 @@ mod tests {
     }
 
     #[test]
+    fn dataset_health_json_preserves_malformed_vs_valid_empty() {
+        let malformed = DatasetLoadHealth {
+            dataset: "sites-clustered".to_string(),
+            state: DatasetLoadState::Malformed,
+            record_count: None,
+            diagnostic: Some("invalid JSON".to_string()),
+        };
+        let empty = DatasetLoadHealth {
+            dataset: "resontia-vaults".to_string(),
+            state: DatasetLoadState::ValidEmpty,
+            record_count: Some(0),
+            diagnostic: None,
+        };
+
+        let malformed_json = serde_json::to_value(malformed).unwrap();
+        let empty_json = serde_json::to_value(empty).unwrap();
+        assert_eq!(malformed_json["state"], "malformed");
+        assert!(malformed_json["record_count"].is_null());
+        assert_eq!(empty_json["state"], "valid_empty");
+        assert_eq!(empty_json["record_count"], 0);
+    }
+
+    #[test]
     fn parse_geojson_earthquakes() {
         let json = r#"{
             "type": "FeatureCollection",
