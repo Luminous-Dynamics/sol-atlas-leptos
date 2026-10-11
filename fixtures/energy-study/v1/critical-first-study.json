@@ -40,7 +40,7 @@
   "policy": {
     "policy_id": "critical-first-service-v1",
     "repository": "https://github.com/Luminous-Dynamics/sol-atlas-leptos",
-    "git_revision": "9721a13bc7ec171a182b198add2c90677a251b2e",
+    "git_revision": "d7e6891d3dc483e94b36b8c0b5063f83a19e76f0",
     "configuration_sha256": "acd894bc245a0975425cb252f3792c13685d984732d16f3ae62b481097b81714",
     "kind": "baseline"
   }
