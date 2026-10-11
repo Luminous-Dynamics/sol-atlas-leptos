@@ -743,6 +743,14 @@ mod tests {
         // scenario-specific expected totals. Critical service is a modeled
         // critical-first allocation, not measurement from physical circuits.
         assert_eq!(
+            candidate.manifest_sha256,
+            "497e9e832e7aea859196cc668ff34df4761b222db247340f7facd27552121fc8"
+        );
+        assert_eq!(
+            candidate.case_sha256,
+            "6b29792b59d9e0add9f85a8468416013448700f5a8f87d8d5db2408fd47f1768"
+        );
+        assert_eq!(
             report.artifact_set_sha256,
             "3028003c72470c54f7f5a84fe5e7fe9fbf2f74bd8a028c98c91b74f541c29fbd"
         );
