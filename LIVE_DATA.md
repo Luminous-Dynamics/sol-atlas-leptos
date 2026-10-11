@@ -18,7 +18,9 @@ validation, state updates, and UI remain in Rust.
 
 - The request target is a compile-time constant, not a caller-controlled URL.
 - Requests abort after 12 seconds; refreshes are spaced at least 75 seconds apart.
-- The response is bounded to 8 MiB and 20,000 features.
+- The response body is streamed into a Rust buffer capped at 8 MiB (the
+  Content-Length is also checked early when the server supplies it); decoded
+  feed records are separately capped at 20,000 features.
 - Feed generation time is checked against a 10-minute freshness window and a
   5-minute future-clock-skew allowance.
 - Coordinates, magnitudes, event IDs, event types, and event links are validated.

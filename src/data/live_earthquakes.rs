@@ -15,7 +15,7 @@ use sol_atlas_core::usgs::{
 };
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{AbortController, RequestInit, Response};
+use web_sys::{AbortController, ReadableStreamDefaultReader, RequestInit, Response};
 
 const REFRESH_INTERVAL_MS: u32 = 75_000;
 const REQUEST_TIMEOUT_MS: u32 = 12_000;
@@ -65,20 +65,59 @@ async fn refresh_once(data_state: &DataState) -> Result<(), String> {
         .and_then(|value| value.parse::<usize>().ok())
         .is_some_and(|length| length > MAX_FEED_BYTES)
     {
+        controller.abort();
         return Err(format!("USGS response exceeded the {MAX_FEED_BYTES}-byte limit"));
     }
 
-    let text_promise = response
-        .text()
-        .map_err(|_| "could not read USGS response body".to_string())?;
-    let text_value = JsFuture::from(text_promise)
-        .await
-        .map_err(|_| "USGS response body read failed or timed out".to_string())?;
+    // Stream bytes into a bounded buffer. Response::text() would allocate the
+    // entire body before the parser could reject an oversized chunked response.
+    let body_stream = response
+        .body()
+        .ok_or_else(|| "USGS response had no readable body".to_string())?;
+    let reader: ReadableStreamDefaultReader = body_stream
+        .get_reader()
+        .dyn_into()
+        .map_err(|_| "USGS response body has no default reader".to_string())?;
+    let mut bytes = Vec::with_capacity(64 * 1024);
+
+    loop {
+        let read_result = JsFuture::from(reader.read())
+            .await
+            .map_err(|_| "USGS response stream failed or timed out".to_string())?;
+        let done = js_sys::Reflect::get(
+            &read_result,
+            &wasm_bindgen::JsValue::from_str("done"),
+        )
+        .map_err(|_| "USGS stream returned an invalid read result".to_string())?
+        .as_bool()
+        .ok_or_else(|| "USGS stream omitted the read completion flag".to_string())?;
+        if done {
+            break;
+        }
+
+        let chunk_value = js_sys::Reflect::get(
+            &read_result,
+            &wasm_bindgen::JsValue::from_str("value"),
+        )
+        .map_err(|_| "USGS stream returned a chunk without a value".to_string())?;
+        let chunk = js_sys::Uint8Array::new(&chunk_value);
+        let chunk_len = chunk.length() as usize;
+        let next_len = bytes.len().checked_add(chunk_len)
+            .ok_or_else(|| "USGS response length overflow".to_string())?;
+        if next_len > MAX_FEED_BYTES {
+            controller.abort();
+            let _ = reader.cancel();
+            return Err(format!("USGS response exceeded the {MAX_FEED_BYTES}-byte limit"));
+        }
+
+        let start = bytes.len();
+        bytes.resize(next_len, 0);
+        chunk.copy_to(&mut bytes[start..]);
+    }
     drop(timeout);
 
-    let body = text_value
-        .as_string()
-        .ok_or_else(|| "USGS response body was not text".to_string())?;
+    let body = String::from_utf8(bytes)
+        .map_err(|_| "USGS response body was not valid UTF-8".to_string())?;
     let fetched_at_ms = js_sys::Date::now() as i64;
     let snapshot = parse_feed(&body, fetched_at_ms).map_err(|error| error.to_string())?;
 

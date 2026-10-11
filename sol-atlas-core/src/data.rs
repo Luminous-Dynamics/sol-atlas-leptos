@@ -292,12 +292,16 @@ fn parse_natural_events(
                     magnitude,
                     name,
                     source_id: if event_type == NaturalEventType::Earthquake { f.id.clone() } else { None },
-                    source_url: f.properties.url.as_deref().filter(|url| {
-                        url.starts_with(crate::usgs::USGS_EVENT_PAGE_PREFIX)
-                            && url.len() <= 2_048
-                            && !url.chars().any(char::is_control)
-                            && !url.chars().any(char::is_whitespace)
-                    }).map(str::to_string),
+                    source_url: if event_type == NaturalEventType::Earthquake {
+                        f.properties.url.as_deref().filter(|url| {
+                            url.starts_with(crate::usgs::USGS_EVENT_PAGE_PREFIX)
+                                && url.len() <= 2_048
+                                && !url.chars().any(char::is_control)
+                                && !url.chars().any(char::is_whitespace)
+                        }).map(str::to_string)
+                    } else {
+                        None
+                    },
                     occurred_at_ms: f.properties.time.as_i64(),
                     updated_at_ms: f.properties.updated.as_i64(),
                     depth_km: coords.get(2).copied().filter(|depth| depth.is_finite()),
