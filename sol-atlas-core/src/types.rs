@@ -678,6 +678,10 @@ pub struct EroiEvidence {
     pub period_start_year: u16,
     pub period_end_year: u16,
     pub source_citation: String,
+    /// Stable identifier for the EROI calculation protocol, not merely its source.
+    pub methodology_id: String,
+    /// Explicit revision/edition of that protocol or model.
+    pub methodology_version: String,
     #[serde(default)]
     pub publication_date: Option<String>,
     pub basis: EroiEvidenceBasis,
@@ -693,6 +697,8 @@ impl EroiEvidence {
             && is_clean_evidence_text(&self.input_definition)
             && is_clean_evidence_text(&self.geographic_scope)
             && is_clean_evidence_text(&self.source_citation)
+            && is_clean_evidence_text(&self.methodology_id)
+            && is_clean_evidence_text(&self.methodology_version)
             && self.period_start_year > 0
             && self.period_end_year >= self.period_start_year
             && self.publication_date.as_deref().map_or(true, is_iso_date)
@@ -714,6 +720,8 @@ impl EroiEvidence {
             && self.period_start_year == other.period_start_year
             && self.period_end_year == other.period_end_year
             && self.basis == other.basis
+            && self.methodology_id == other.methodology_id
+            && self.methodology_version == other.methodology_version
     }
 }
 
@@ -1128,6 +1136,8 @@ mod eroi_evidence_tests {
             period_start_year: 2018,
             period_end_year: 2020,
             source_citation: "Example Study, DOI:10.0000/example".to_string(),
+            methodology_id: "eroi-boundary-accounting".to_string(),
+            methodology_version: "1.0.0".to_string(),
             publication_date: Some("2024-02-29".to_string()),
             basis: EroiEvidenceBasis::Literature,
             uncertainty: Some(EroiUncertaintyRange { lower: 4.0, upper: 6.0 }),
@@ -1172,6 +1182,14 @@ mod eroi_evidence_tests {
 
         let mut item = evidence(EroiStage::Primary);
         item.output_definition = "  ".to_string();
+        assert!(!item.is_qualified());
+
+        let mut item = evidence(EroiStage::Primary);
+        item.methodology_id.clear();
+        assert!(!item.is_qualified());
+
+        let mut item = evidence(EroiStage::Primary);
+        item.methodology_version = " ".to_string();
         assert!(!item.is_qualified());
 
         let mut item = evidence(EroiStage::Primary);
@@ -1220,6 +1238,14 @@ mod eroi_evidence_tests {
 
         let mut other = baseline.clone();
         other.basis = EroiEvidenceBasis::Modeled;
+        assert!(!baseline.compatible_with(&other));
+
+        let mut other = baseline.clone();
+        other.methodology_id = "different-method".to_string();
+        assert!(!baseline.compatible_with(&other));
+
+        let mut other = baseline.clone();
+        other.methodology_version = "2.0.0".to_string();
         assert!(!baseline.compatible_with(&other));
 
         let mut other = baseline.clone();
