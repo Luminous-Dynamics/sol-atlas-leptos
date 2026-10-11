@@ -367,6 +367,12 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
             "stable target and center IDs are required",
         ));
     }
+
+    if request.target_id == request.center_id {
+        return Err(HorizonsParseError::InvalidRequest(
+            "target cannot be its own center",
+        ));
+    }
     if request.expected_target_name.trim().is_empty()
         || request.expected_center_name.trim().is_empty()
     {
@@ -970,6 +976,21 @@ mod tests {
         assert_ne!(
             heliocentric.canonical_request_identity().unwrap(),
             request().canonical_request_identity().unwrap()
+        );
+    }
+
+    #[test]
+    fn request_rejects_a_body_centered_on_itself_before_transport() {
+        let mut req = request();
+        req.center_id = "mars".into();
+        req.provider_center = "@499".into();
+        req.expected_center_name = "Mars".into();
+
+        assert_eq!(
+            req.request_plan(),
+            Err(HorizonsParseError::InvalidRequest(
+                "target cannot be its own center"
+            ))
         );
     }
 
