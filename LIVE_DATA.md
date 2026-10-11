@@ -2,13 +2,20 @@
 
 ## Current vertical slice
 
-Sol Atlas polls the official USGS ComCat GeoJSON summary feed for magnitude 1.0+
-earthquakes from the previous day:
+Sol Atlas polls two allow-listed public data sources from Rust/WASM:
 
+**USGS ComCat earthquake feed**
 - Feed: https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_day.geojson
 - Documentation: https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php
-- Pure Rust parser/validator: `sol-atlas-core/src/usgs.rs`
-- Rust/WASM transport and refresh lifecycle: `src/data/live_earthquakes.rs`
+
+**NASA EONET v3 curated open events**
+- Feed: https://eonet.gsfc.nasa.gov/api/v3/events?category=severeStorms,wildfires,volcanoes&status=open&days=7&limit=500
+- Documentation: https://eonet.gsfc.nasa.gov/docs/v3
+
+Pure Rust parsers live in `sol-atlas-core/src/usgs.rs` and
+`sol-atlas-core/src/eonet.rs`. Transport is centralized in
+`src/data/live_feed_http.rs`, with source-specific refresh lifecycles in
+`src/data/live_earthquakes.rs` and `src/data/live_eonet.rs`.
 
 No GEV runtime, JavaScript package, embedded frame, or JavaScript production module
 is introduced. Browser network transport uses Rust `web-sys`; decoding,
@@ -30,8 +37,14 @@ validation, state updates, and UI remain in Rust.
 - A failed, invalid, oversized, or stale refresh does not clear the last accepted
   earthquake records. The HUD distinguishes LIVE, LAST KNOWN, STALE, OFFLINE,
   and CONNECTING states.
-- The live refresh replaces only earthquake records. Fire, storm, and volcano
-  records from their other configured sources remain intact.
+- USGS refresh replaces only USGS-owned earthquake records. EONET refresh
+  replaces only NASA EONET-owned fire, storm, and volcano records; separate
+  NASA FIRMS fires and the curated volcano inventory remain intact.
+- EONET is a curated event catalog, not an exhaustive or uniformly real-time
+  sensor feed. Point records retain their coordinates; polygons use an
+  approximate spherical vertex-center, labeled in the event dossier.
+  EONET measurements may have category-specific units, so they are not
+  presented as a globally comparable earthquake-style magnitude.
 - The selected-event dossier lists up to four nearest curated infrastructure
   records inside 100 km, using the Rust core's great-circle distance helper.
   This is geographic context only: the inventory is incomplete, and proximity
@@ -39,7 +52,8 @@ validation, state updates, and UI remain in Rust.
 
 ## Deliberate limits
 
-This first slice provides recent earthquake observations. It does not yet ingest
+This slice provides recent earthquake observations and curated open-event
+metadata for severe storms, wildfires, and volcanoes. It does not yet ingest
 GEV's flight, ship, traffic, or camera sources, nor does it infer a risk score
 from spatial overlap. The 100 km proximity view is deliberately not a model of
 earthquake attenuation or infrastructure vulnerability. Add one source at a
@@ -47,6 +61,7 @@ time, with source-specific licensing,
 schema, freshness, provenance, and deterministic parser tests before using it in
 simulation or coordination decisions.
 
-USGS records can be delayed or revised. “LIVE” means a recent feed passed the
-parser's source-time and data-quality gates; it does not mean the feed is complete
-or final, and it is not a substitute for authoritative emergency guidance.
+USGS records can be delayed or revised; EONET events are curated and may be
+generalized or incomplete. “LIVE” means the latest retrieval passed source-specific
+validation, not that every event is captured or final. Neither feed substitutes
+for authoritative emergency guidance.

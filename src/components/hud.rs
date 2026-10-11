@@ -18,6 +18,7 @@ pub fn Hud() -> impl IntoView {
     let data_state = expect_context::<DataState>();
     let globe_state = expect_context::<GlobeState>();
     let feed_status = data_state.usgs_feed_status;
+    let eonet_status = data_state.eonet_feed_status;
 
     // Aggregate Phi from earth regions (population-weighted; None until
     // region data is present so we never render NaN).
@@ -53,6 +54,13 @@ pub fn Hud() -> impl IntoView {
                 aria-live="polite"
             >
                 {move || feed_status.get().health.label()}
+            </span>
+            <span
+                class=move || format!("live-feed-badge {}", eonet_status.get().css_class())
+                title=move || eonet_status.get().description()
+                aria-live="polite"
+            >
+                {move || eonet_status.get().label()}
             </span>
             <button
                 class="aesthetic-cycle"

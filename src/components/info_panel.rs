@@ -171,6 +171,28 @@ pub fn InfoPanel() -> impl IntoView {
                             MAX_NEARBY_INFRASTRUCTURE,
                         );
                         let nearby_count = nearby.len();
+                        let source_label = e.source_name.clone().unwrap_or_else(|| {
+                            if e.source_id.is_some() { "Source-linked observation".to_string() }
+                            else { "Bundled dataset".to_string() }
+                        });
+                        let measurement = if e.source_name.as_deref() == Some("NASA EONET") {
+                            let label = match (
+                                e.magnitude_description.as_deref(),
+                                e.magnitude_unit.as_deref(),
+                            ) {
+                                (Some(description), Some(unit)) => {
+                                    format!("{description} ({:.1} {unit})", e.magnitude)
+                                }
+                                (Some(description), None) => description.to_string(),
+                                (None, Some(unit)) => format!("{:.1} {unit}", e.magnitude),
+                                (None, None) => {
+                                    "No standardized magnitude across EONET categories".to_string()
+                                }
+                            };
+                            row("Reported measure", label).into_any()
+                        } else {
+                            hero(format!("{:.1}", e.magnitude), "magnitude").into_any()
+                        };
                         let nearby_rows: Vec<_> = if nearby.is_empty() {
                             vec![view! {
                                 <div class="stat-row">
@@ -203,18 +225,23 @@ pub fn InfoPanel() -> impl IntoView {
                                     e.event_type,
                                     if e.source_id.is_some() { "source-linked observation" } else { "bundled snapshot" }
                                 )}</div>
-                                {hero(format!("{:.1}", e.magnitude), "magnitude")}
-                                {row("Source", if e.source_id.is_some() { "USGS ComCat".to_string() } else { "Bundled dataset".to_string() })}
+                                {measurement}
+                                {row("Source", source_label)}
                                 {e.source_id.clone().map(|id| row("Source ID", id))}
                                 {e.occurred_at_ms.map(|timestamp| row("Occurred (UTC)", format_timestamp_ms(timestamp)))}
                                 {e.updated_at_ms.map(|timestamp| row("Updated (UTC)", format_timestamp_ms(timestamp)))}
                                 {e.depth_km.map(|depth| row("Depth", format!("{depth:.1} km")))}
+                                {e.geometry_note.clone().map(|note| row("Location representation", note))}
                                 {match e.source_url.clone() {
-                                    Some(url) if url.starts_with("https://earthquake.usgs.gov/earthquakes/eventpage/") =>
+                                    Some(url) if
+                                        (e.source_name.as_deref() == Some("USGS ComCat")
+                                            && url.starts_with("https://earthquake.usgs.gov/earthquakes/eventpage/"))
+                                        || (e.source_name.as_deref() == Some("NASA EONET")
+                                            && url.starts_with("https://eonet.gsfc.nasa.gov/api/v3/events/")) =>
                                         view! {
                                             <a class="stat-row source-link" href=url target="_blank" rel="noopener noreferrer">
                                                 <span class="stat-label">"Evidence"</span>
-                                                <span class="stat-value">"Open USGS event ↗"</span>
+                                                <span class="stat-value">"Open official source ↗"</span>
                                             </a>
                                         }.into_any(),
                                     _ => view! { <div /> }.into_any(),
@@ -227,7 +254,7 @@ pub fn InfoPanel() -> impl IntoView {
                             </div>
                         }.into_any()
                     }
-                    Some(SelectedItem::MajorCity(c)) => view! {
+                                        Some(SelectedItem::MajorCity(c)) => view! {
                         <div>
                             <h2>{c.name.clone()}</h2>
                             <div class="subtitle">{format!("{} \u{00b7} curated", c.country)}</div>
