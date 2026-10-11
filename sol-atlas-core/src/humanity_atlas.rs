@@ -547,7 +547,7 @@ mod tests {
             artifact_id: "bad-pointer".into(),
             role: "source_simulation_output".into(),
             media_type: "application/json".into(),
-            artifact_ref: "urn:sha256:artifact".into(),
+            artifact_ref: format!("urn:sha256:{}", "d".repeat(64)),
             artifact_sha256: "d".repeat(64),
             json_pointer: Some("/technology~2tree".into()),
         });
