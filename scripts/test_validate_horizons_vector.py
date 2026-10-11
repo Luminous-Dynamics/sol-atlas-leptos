@@ -60,6 +60,17 @@ class HorizonsCaptureValidatorTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "error field must be a string or null"):
             self.validate(payload)
 
+    def test_signature_source_and_version_must_be_strings(self) -> None:
+        payload = json.loads(json.dumps(self.fixture))
+        payload["signature"]["source"] = {"unexpected": "object"}
+        with self.assertRaisesRegex(SystemExit, "signature source must be a non-empty string"):
+            self.validate(payload)
+
+        payload = json.loads(json.dumps(self.fixture))
+        payload["signature"]["version"] = ["1.3"]
+        with self.assertRaisesRegex(SystemExit, "signature version must be a non-empty string"):
+            self.validate(payload)
+
     def test_duplicate_json_keys_and_nonstandard_numbers_fail_closed(self) -> None:
         serialized = json.dumps(self.fixture)
         duplicate_key_payload = serialized.replace('"result":', '"result": "", "result":', 1)
