@@ -368,7 +368,7 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
         ));
     }
 
-    if request.target_id == request.center_id {
+    if request.target_id.eq_ignore_ascii_case(&request.center_id) {
         return Err(HorizonsParseError::InvalidRequest(
             "target cannot be its own center",
         ));
