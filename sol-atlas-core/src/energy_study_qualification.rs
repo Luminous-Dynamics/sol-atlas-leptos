@@ -12,11 +12,9 @@
 use crate::energy_study::{
     EnergyEvidenceClass, EnergyStudyManifestV1, EnergyStudyValidationError,
 };
-use crate::microgrid::{
-    simulate_microgrid, BatteryConfig, MicrogridSimulation, MicrogridVerificationError,
-};
+use crate::microgrid::{simulate_microgrid, BatteryConfig, MicrogridSimulation};
 use crate::microgrid_verifier::{
-    verify_microgrid_simulation, MicrogridVerificationReport,
+    verify_microgrid_simulation, MicrogridVerificationError, MicrogridVerificationReport,
 };
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
@@ -868,8 +866,6 @@ mod tests {
 
     #[test]
     fn end_to_end_fixture_is_physically_checked_and_critical_gate_is_not_hidden() {
-        use crate::microgrid::BatteryConfig;
-
         let manifest = manifest();
         let artifacts = input_artifacts();
         let load_bytes = include_bytes!("../../fixtures/energy-study/v1/load-profile.csv");
@@ -908,7 +904,7 @@ mod tests {
 
     #[test]
     fn critical_load_limit_fails_closed_when_aggregate_outputs_cannot_prove_service() {
-        use crate::microgrid::{simulate_microgrid, BatteryConfig};
+        use crate::microgrid::simulate_microgrid;
 
         let manifest = manifest();
         let load_bytes = include_bytes!("../../fixtures/energy-study/v1/load-profile.csv");
