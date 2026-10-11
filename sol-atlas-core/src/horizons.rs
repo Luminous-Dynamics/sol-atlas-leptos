@@ -1040,7 +1040,6 @@ mod tests {
         ));
     }
 
-
     #[test]
     fn catalogue_request_rejects_target_or_center_relabeling() {
         let mut target_mismatch = request();
