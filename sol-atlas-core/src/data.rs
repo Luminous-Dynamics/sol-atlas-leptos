@@ -134,8 +134,75 @@ fn parse_or_log<T: Default>(dataset: &str, result: Result<T, serde_json::Error>)
     })
 }
 
+/// Machine-readable health of one source dataset.
+///
+/// ValidEmpty means the source parsed successfully and contained zero records.
+/// Malformed means parsing failed; it must not be presented as a valid empty
+/// inventory. Unavailable, StaleCache and Rejected are reserved for retrieval,
+/// cache and authentication layers that own those decisions.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DatasetLoadState {
+    Loaded,
+    ValidEmpty,
+    Malformed,
+    Unavailable,
+    StaleCache,
+    Rejected,
+}
+
+/// Per-dataset parse and freshness diagnostic.
+///
+/// record_count counts source records represented by the parsed value when
+/// known. It is None for malformed input, not zero.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DatasetLoadHealth {
+    pub dataset: String,
+    pub state: DatasetLoadState,
+    pub record_count: Option<usize>,
+    pub diagnostic: Option<String>,
+}
+
+/// Data plus diagnostics for evidence-aware consumers.
+/// The legacy load_all function remains available and returns only data.
+#[derive(Debug, Clone, Default)]
+pub struct LoadedDataReport {
+    pub data: LoadedData,
+    pub health: Vec<DatasetLoadHealth>,
+}
+
+fn parse_or_log_with_health<T: Default>(
+    dataset: &str,
+    result: Result<T, serde_json::Error>,
+    record_count: impl FnOnce(&T) -> usize,
+    health: &mut Vec<DatasetLoadHealth>,
+) -> T {
+    match result {
+        Ok(value) => {
+            let count = record_count(&value);
+            health.push(DatasetLoadHealth {
+                dataset: dataset.to_string(),
+                state: if count == 0 { DatasetLoadState::ValidEmpty } else { DatasetLoadState::Loaded },
+                record_count: Some(count),
+                diagnostic: None,
+            });
+            value
+        }
+        Err(error) => {
+            let diagnostic = error.to_string();
+            log::warn!("sol-atlas-core: failed to parse dataset '{dataset}': {diagnostic}");
+            health.push(DatasetLoadHealth {
+                dataset: dataset.to_string(),
+                state: DatasetLoadState::Malformed,
+                record_count: None,
+                diagnostic: Some(diagnostic),
+            });
+            T::default()
+        }
+    }
+}
+
 /// Load all datasets from their respective JSON strings into a single `LoadedData`.
-pub fn load_all(
+pub fn load_all_with_health(
     sites_json: &str,
     maglev_json: &str,
     vaults_json: &str,
@@ -153,51 +220,55 @@ pub fn load_all(
     cities_json: &str,
     chokepoints_json: &str,
     critical_infra_json: &str,
-) -> LoadedData {
-    let sites = parse_or_log("sites-clustered", parse_sites(sites_json));
-    let (geothermal_nodes, maglev_corridors) =
-        parse_or_log("maglev-network", parse_maglev_network(maglev_json));
-    let resontia_vaults = parse_or_log("resontia-vaults", parse_vaults(vaults_json));
-    let terra_lumina_sites =
-        parse_or_log("terra-lumina-sites", parse_terra_lumina(terra_lumina_json));
-    let earth_regions = parse_or_log("earth-regions", parse_regions(regions_json));
-    let supply_routes = parse_or_log("supply-routes", parse_supply_routes(supply_routes_json));
-    let climate_projects = parse_or_log("climate-projects", parse_climate_projects(climate_json));
-    let (emergency_shelters, health_facilities, robotics_dispatch) =
-        parse_or_log("infrastructure", parse_infrastructure(infrastructure_json));
-    let fossil_deposits = parse_or_log(
-        "fossil-deposits",
-        parse_fossil_deposits(fossil_deposits_json),
+) -> LoadedDataReport {
+    let mut health = Vec::new();
+    let sites = parse_or_log_with_health("sites-clustered", parse_sites(sites_json), |v| v.len(), &mut health);
+    let (geothermal_nodes, maglev_corridors) = parse_or_log_with_health(
+        "maglev-network", parse_maglev_network(maglev_json),
+        |(nodes, corridors)| nodes.len() + corridors.len(), &mut health
     );
-    let nuclear_sites = parse_or_log("nuclear-sites", parse_nuclear_sites(nuclear_sites_json));
+    let resontia_vaults = parse_or_log_with_health("resontia-vaults", parse_vaults(vaults_json), |v| v.len(), &mut health);
+    let terra_lumina_sites = parse_or_log_with_health("terra-lumina-sites", parse_terra_lumina(terra_lumina_json), |v| v.len(), &mut health);
+    let earth_regions = parse_or_log_with_health("earth-regions", parse_regions(regions_json), |v| v.len(), &mut health);
+    let supply_routes = parse_or_log_with_health("supply-routes", parse_supply_routes(supply_routes_json), |v| v.len(), &mut health);
+    let climate_projects = parse_or_log_with_health("climate-projects", parse_climate_projects(climate_json), |v| v.len(), &mut health);
+    let (emergency_shelters, health_facilities, robotics_dispatch) = parse_or_log_with_health(
+        "infrastructure", parse_infrastructure(infrastructure_json),
+        |(shelters, facilities, robotics)| shelters.len() + facilities.len() + robotics.len(), &mut health
+    );
+    let fossil_deposits = parse_or_log_with_health("fossil-deposits", parse_fossil_deposits(fossil_deposits_json), |v| v.len(), &mut health);
+    let nuclear_sites = parse_or_log_with_health("nuclear-sites", parse_nuclear_sites(nuclear_sites_json), |v| v.len(), &mut health);
+    let (natural_events, natural_event_health) = parse_natural_events_with_health(
+        earthquakes_json, fires_json, storms_json, volcanoes_json
+    );
+    health.extend(natural_event_health);
+    let major_cities = parse_or_log_with_health("major-cities", serde_json::from_str(cities_json), |v: &Vec<MajorCity>| v.len(), &mut health);
+    let chokepoints = parse_or_log_with_health("chokepoints", serde_json::from_str(chokepoints_json), |v: &Vec<Chokepoint>| v.len(), &mut health);
+    let critical_infrastructure = parse_or_log_with_health("critical-infrastructure", serde_json::from_str(critical_infra_json), |v: &Vec<CriticalInfrastructure>| v.len(), &mut health);
 
-    LoadedData {
-        sites,
-        geothermal_nodes,
-        maglev_corridors,
-        resontia_vaults,
-        terra_lumina_sites,
-        earth_regions,
-        supply_routes,
-        climate_projects,
-        emergency_shelters,
-        health_facilities,
-        robotics_dispatch,
-        fossil_deposits,
-        nuclear_sites,
-        natural_events: parse_natural_events(
-            earthquakes_json,
-            fires_json,
-            storms_json,
-            volcanoes_json,
-        ),
-        major_cities: parse_or_log("major-cities", serde_json::from_str(cities_json)),
-        chokepoints: parse_or_log("chokepoints", serde_json::from_str(chokepoints_json)),
-        critical_infrastructure: parse_or_log(
-            "critical-infrastructure",
-            serde_json::from_str(critical_infra_json),
-        ),
-    }
+    let data = LoadedData {
+        sites, geothermal_nodes, maglev_corridors, resontia_vaults, terra_lumina_sites,
+        earth_regions, supply_routes, climate_projects, emergency_shelters, health_facilities,
+        robotics_dispatch, fossil_deposits, nuclear_sites, natural_events, major_cities,
+        chokepoints, critical_infrastructure,
+    };
+    LoadedDataReport { data, health }
+}
+
+/// Backwards-compatible loader. Use load_all_with_health when callers must
+/// distinguish malformed feeds from valid empty inventories.
+pub fn load_all(
+    sites_json: &str, maglev_json: &str, vaults_json: &str, terra_lumina_json: &str,
+    regions_json: &str, supply_routes_json: &str, climate_json: &str, infrastructure_json: &str,
+    fossil_deposits_json: &str, nuclear_sites_json: &str, earthquakes_json: &str, fires_json: &str,
+    storms_json: &str, volcanoes_json: &str, cities_json: &str, chokepoints_json: &str,
+    critical_infra_json: &str,
+) -> LoadedData {
+    load_all_with_health(
+        sites_json, maglev_json, vaults_json, terra_lumina_json, regions_json, supply_routes_json,
+        climate_json, infrastructure_json, fossil_deposits_json, nuclear_sites_json, earthquakes_json,
+        fires_json, storms_json, volcanoes_json, cities_json, chokepoints_json, critical_infra_json,
+    ).data
 }
 
 /// Parse simplified shipping lane routes (Vec of Vec of [lon, lat]).
@@ -212,10 +283,20 @@ fn parse_natural_events(
     storms: &str,
     volcanoes: &str,
 ) -> Vec<NaturalEvent> {
+    parse_natural_events_with_health(earthquakes, fires, storms, volcanoes).0
+}
+
+fn parse_natural_events_with_health(
+    earthquakes: &str,
+    fires: &str,
+    storms: &str,
+    volcanoes: &str,
+) -> (Vec<NaturalEvent>, Vec<DatasetLoadHealth>) {
     let mut events = Vec::new();
+    let mut health = Vec::new();
 
     // Parse GeoJSON FeatureCollections (all share same structure)
-    fn parse_geojson(name: &str, json: &str, event_type: NaturalEventType) -> Vec<NaturalEvent> {
+    fn parse_geojson(name: &str, json: &str, event_type: NaturalEventType, health: &mut Vec<DatasetLoadHealth>) -> Vec<NaturalEvent> {
         #[derive(Deserialize)]
         struct FeatureCollection {
             features: Vec<Feature>,
@@ -248,11 +329,19 @@ fn parse_natural_events(
         let fc = match serde_json::from_str::<FeatureCollection>(json) {
             Ok(fc) => fc,
             Err(e) => {
-                log::warn!("sol-atlas-core: failed to parse dataset '{name}': {e}");
+                let diagnostic = e.to_string();
+                log::warn!("sol-atlas-core: failed to parse dataset '{name}': {diagnostic}");
+                health.push(DatasetLoadHealth {
+                    dataset: name.to_string(),
+                    state: DatasetLoadState::Malformed,
+                    record_count: None,
+                    diagnostic: Some(diagnostic),
+                });
                 return vec![];
             }
         };
-        fc.features
+        let source_count = fc.features.len();
+        let events: Vec<NaturalEvent> = fc.features
             .iter()
             .filter_map(|f| {
                 let coords = &f.geometry.coordinates;
@@ -285,27 +374,71 @@ fn parse_natural_events(
                     name,
                 })
             })
-            .collect()
+            .collect();
+        health.push(DatasetLoadHealth {
+            dataset: name.to_string(),
+            state: if source_count == 0 { DatasetLoadState::ValidEmpty } else { DatasetLoadState::Loaded },
+            record_count: Some(source_count),
+            diagnostic: if events.len() < source_count {
+                Some(format!("{} source features were excluded by coordinate validation", source_count - events.len()))
+            } else {
+                None
+            },
+        });
+        events
     }
 
-    events.extend(parse_geojson(
-        "usgs-earthquakes",
-        earthquakes,
-        NaturalEventType::Earthquake,
-    ));
-    events.extend(parse_geojson("nasa-firms", fires, NaturalEventType::Fire));
-    events.extend(parse_geojson("nasa-eonet", storms, NaturalEventType::Storm));
-    events.extend(parse_geojson(
-        "volcanoes",
-        volcanoes,
-        NaturalEventType::Volcano,
-    ));
-    events
+    events.extend(parse_geojson("usgs-earthquakes", earthquakes, NaturalEventType::Earthquake, &mut health));
+    events.extend(parse_geojson("nasa-firms", fires, NaturalEventType::Fire, &mut health));
+    events.extend(parse_geojson("nasa-eonet", storms, NaturalEventType::Storm, &mut health));
+    events.extend(parse_geojson("volcanoes", volcanoes, NaturalEventType::Volcano, &mut health));
+    (events, health)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn diagnosed_loader_distinguishes_valid_empty_from_malformed() {
+        let mut health = Vec::new();
+        let loaded = parse_or_log_with_health("non-empty", Ok(vec![1, 2]), |v: &Vec<u8>| v.len(), &mut health);
+        assert_eq!(loaded, vec![1, 2]);
+        let empty = parse_or_log_with_health("empty", Ok::<Vec<u8>, serde_json::Error>(vec![]), |v| v.len(), &mut health);
+        assert!(empty.is_empty());
+        let malformed = parse_or_log_with_health("broken", serde_json::from_str::<Vec<u8>>("{"), |v| v.len(), &mut health);
+        assert!(malformed.is_empty());
+        assert_eq!(health[0].state, DatasetLoadState::Loaded);
+        assert_eq!(health[0].record_count, Some(2));
+        assert_eq!(health[1].state, DatasetLoadState::ValidEmpty);
+        assert_eq!(health[1].record_count, Some(0));
+        assert_eq!(health[2].state, DatasetLoadState::Malformed);
+        assert_eq!(health[2].record_count, None);
+        assert!(health[2].diagnostic.as_deref().is_some_and(|d| !d.is_empty()));
+    }
+
+    #[test]
+    fn load_all_with_health_retains_dataset_failures() {
+        let report = load_all_with_health(
+            "{",
+            r#"{"geothermal_nodes":[],"maglev_corridors":[]}"#,
+            "[]", "[]", "[]", "[]", "[]", "{}",
+            "[]", "[]",
+            r#"{"type":"FeatureCollection","features":[]}"#,
+            r#"{"type":"FeatureCollection","features":[]}"#,
+            r#"{"type":"FeatureCollection","features":[]}"#,
+            r#"{"type":"FeatureCollection","features":[]}"#,
+            "[]", "[]", "[]",
+        );
+        assert!(report.data.sites.is_empty());
+        let sites = report.health.iter().find(|h| h.dataset == "sites-clustered").unwrap();
+        assert_eq!(sites.state, DatasetLoadState::Malformed);
+        assert_eq!(sites.record_count, None);
+        let vaults = report.health.iter().find(|h| h.dataset == "resontia-vaults").unwrap();
+        assert_eq!(vaults.state, DatasetLoadState::ValidEmpty);
+        assert_eq!(vaults.record_count, Some(0));
+        assert!(report.health.iter().all(|h| !h.dataset.is_empty()));
+    }
 
     #[test]
     fn parse_geojson_earthquakes() {
