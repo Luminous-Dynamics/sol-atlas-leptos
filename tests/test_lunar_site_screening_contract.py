@@ -11,7 +11,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 CATALOG_DATA = ROOT / "docs/data/lunar_geospatial_source_catalog.v1.json"
 
-from scripts.validate_lunar_site_screening import DEFAULT_DATA, validate_document  # noqa: E402
+from scripts.validate_lunar_site_screening import (  # noqa: E402
+    DEFAULT_DATA,
+    validate_document,
+    validate_source_catalog,
+)
 
 
 class LunarSiteScreeningContractTests(unittest.TestCase):
@@ -117,6 +121,32 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
                 self.assertIn("product_site", entry)
                 if "note" in entry:
                     self.assertTrue(entry["note"])
+
+    def test_canonical_source_catalog_passes_fail_closed_validator(self) -> None:
+        self.assertEqual([], validate_source_catalog(self.catalog, self.canonical))
+
+    def test_source_catalog_rejects_unverified_asset_claim_without_hash(self) -> None:
+        catalog = copy.deepcopy(self.catalog)
+        illumination = next(
+            source for source in catalog["sources"]
+            if source["id"] == "pgda-lola-polar-illumination"
+        )
+        illumination["sample_direct_assets"][0]["verification_state"] = "downloaded_and_hashed"
+        errors = validate_source_catalog(catalog, self.canonical)
+        self.assertTrue(any("requires a 64-character SHA-256" in error for error in errors))
+
+    def test_source_catalog_rejects_incomplete_primary_crosswalk(self) -> None:
+        catalog = copy.deepcopy(self.catalog)
+        catalog["sources"][0]["candidate_crosswalk"].pop()
+        errors = validate_source_catalog(catalog, self.canonical)
+        self.assertTrue(any("primary LOLA crosswalk must match" in error for error in errors))
+
+    def test_source_catalog_rejects_non_https_asset(self) -> None:
+        catalog = copy.deepcopy(self.catalog)
+        topography = catalog["sources"][0]
+        topography["sample_direct_assets"][0]["url"] = "http://example.invalid/file.tif"
+        errors = validate_source_catalog(catalog, self.canonical)
+        self.assertTrue(any("sample_direct_assets[0].url must be an HTTPS URL" in error for error in errors))
 
     def test_direct_assets_keep_retrieval_state_and_label_links(self) -> None:
         topography = next(
