@@ -223,7 +223,7 @@ A renderer-independent raw bilateral comparison primitive is implemented in `sol
 
 ### Qualification tests added
 
-- 19 unit-test definitions in the raw comparison module cover exact decimal precision, normalization, negative signed differences, overflow, record ambiguity, source-state mismatch, area-reference versions, and other fail-closed conditions.
+- 20 unit-test definitions in the raw comparison module cover exact decimal precision, normalization, negative signed differences, overflow, record ambiguity, source-state mismatch, area-reference versions, and other fail-closed conditions.
 - 9 unit-test definitions in the Comtrade parser cover source-shaped parsing, raw-value preservation, possible truncation, duplicate rows, query mismatches, unknown area codes, response-count inconsistency, unknown envelope fields, and API error envelopes.
 - 3 external public-API integration-test definitions cover exact source-value round-tripping, rejection of unknown normalized-observation fields, and the nine-case synthetic reference corpus.
 - `scripts/verify_economic_intelligence_fixture.py` independently checks the nine-case reference corpus and the synthetic source-shaped API response using standard-library integer arithmetic. The root Cargo manifest now declares both the application and `sol-atlas-core` as workspace members, so `cargo fmt --all --check` and `cargo test --workspace` cover both packages. The Check workflow syntax-checks the independent verifier and builds both the application and core for WebAssembly.
@@ -236,7 +236,7 @@ The parser is not a live API connector or a qualified source adapter. It require
 
 ### Next sequence
 
-1. Get completed exact-head formatter, core-native-test, top-level-native-test, and WASM checks; do not infer success from queued workflows.
+1. Get completed exact-head formatting, workspace-native tests, and WASM checks; do not infer success from queued workflows.
 2. Review the versioned observation/claim contract with SOL-ATLAS-007 (#90) and freeze source-registry, area-reference, and snapshot-manifest semantics.
 3. Validate this offline parser against a captured, authorized UN Comtrade response and its exact query metadata. Do not publish or reuse a live capture before source access, retention, attribution, and intended commercial-use terms are reviewed.
 4. Implement a bounded server-side request layer only after source access is qualified: allow-listed endpoint, redacted query logging, bounded response bytes, explicit timeout/rate limit/retry policy, source-body digest, and last-known-good snapshot preservation.
