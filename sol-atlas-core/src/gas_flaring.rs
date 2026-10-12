@@ -224,10 +224,12 @@ pub struct TrustedReuseAuthorization {
 impl TrustedReuseAuthorization {
     /// Record an explicit manual review in trusted ingestion/deployment code.
     ///
-    /// Hashes are calculated from the exact source and terms bytes passed to
-    /// this function. Call only after independently checking the linked terms
-    /// and any third-party restrictions for the intended use. This records a
-    /// human attestation; it does not authenticate the reviewer externally.
+    /// Hashes are calculated from the exact source bytes, canonical serialized
+    /// normalized-snapshot bytes, and reviewed-terms bytes passed to this function.
+    /// Canonicalize site and year ordering before serializing the normalized
+    /// snapshot. Call only after independently checking linked terms and any
+    /// third-party restrictions for the intended use. This records a human
+    /// attestation; it does not authenticate the reviewer externally.
     #[allow(clippy::too_many_arguments)]
     pub fn record_manual_review(
         source_uri: &str,
