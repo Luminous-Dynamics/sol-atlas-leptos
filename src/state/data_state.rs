@@ -30,6 +30,8 @@ pub struct DataState {
     pub usgs_feed_status: RwSignal<UsgsFeedStatus>,
     /// Current health/provenance for the live NASA EONET event layer.
     pub eonet_feed_status: RwSignal<EonetFeedStatus>,
+    /// Monotonic invalidation counter for data and freshness changes.
+    pub data_revision: RwSignal<u64>,
 }
 
 impl DataState {
@@ -54,7 +56,13 @@ impl DataState {
             critical_infrastructure: RwSignal::new(Vec::new()),
             usgs_feed_status: RwSignal::new(UsgsFeedStatus::default()),
             eonet_feed_status: RwSignal::new(EonetFeedStatus::default()),
+            data_revision: RwSignal::new(0),
         }
+    }
+
+    /// Notify consumers that must rebuild derived render data.
+    pub fn mark_changed(&self) {
+        self.data_revision.update(|revision| *revision = revision.wrapping_add(1));
     }
 
     pub fn set_all(&self, data: LoadedData) {
@@ -76,6 +84,7 @@ impl DataState {
         self.chokepoints.set(data.chokepoints);
         self.critical_infrastructure
             .set(data.critical_infrastructure);
+        self.mark_changed();
     }
 
     /// Snapshot the current reactive state into a plain [`LoadedData`] —
