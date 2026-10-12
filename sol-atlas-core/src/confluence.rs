@@ -29,7 +29,9 @@
 //!    excluded — binning either into a single H3 cell would misrepresent
 //!    what's actually physically co-located there.
 
-use crate::types::{DataKind, Layer, LoadedData, NaturalEvent, NaturalEventType, RecordTemporalOrigin};
+use crate::types::{
+    DataKind, Layer, LoadedData, NaturalEvent, NaturalEventType, RecordTemporalOrigin,
+};
 use h3o::{CellIndex, LatLng, Resolution};
 use std::collections::HashMap;
 
