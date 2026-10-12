@@ -1002,7 +1002,8 @@ canvas#globe-canvas.has-hover {
     font-variant-numeric: tabular-nums;
 }
 
-.data-health-list li.malformed .data-health-state {
+.data-health-list li.malformed .data-health-state,
+.data-health-list li.rejected .data-health-state {
     color: rgb(255, 130, 130);
     font-weight: 600;
 }
