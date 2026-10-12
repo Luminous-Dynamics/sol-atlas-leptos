@@ -35,6 +35,20 @@ class BundlePreflightTests(unittest.TestCase):
             self.assertEqual(report["inspection"]["payload_crc_status"], "not_requested")
             self.assertEqual(report["inspection"]["preflight_status"], "structurally_inspected")
 
+    def test_detects_file_geodatabase_root(self):
+        with tempfile.TemporaryDirectory() as temp:
+            p = self.make_zip(Path(temp), {
+                "Africa_GIS.gdb/a00000001.gdbtable": b"table",
+                "Africa_GIS.gdb/a00000001.gdbtablx": b"index",
+                "metadata/readme.txt": b"source",
+            })
+            report = inspect_path(p, "TEST", "Test", "", "unknown", "unreviewed")
+            roots = report["inspection"]["file_geodatabase_roots"]
+            self.assertEqual(len(roots), 1)
+            self.assertEqual(roots[0]["root"], "Africa_GIS.gdb")
+            self.assertEqual(roots[0]["member_count"], 2)
+            self.assertIn(".gdbtable", report["inspection"]["geospatial_extension_types"])
+
     def test_warns_for_incomplete_shapefile(self):
         with tempfile.TemporaryDirectory() as temp:
             p = self.make_zip(Path(temp), {"rocks/units.shp": b"x", "rocks/units.prj": b"crs"})
