@@ -182,6 +182,10 @@ pub fn InfoPanel() -> impl IntoView {
                             .data_kind
                             .map(|kind| kind.label().to_string())
                             .unwrap_or_else(|| "unclassified".to_string());
+                        let temporal_origin_label = e
+                            .record_temporal_origin
+                            .map(|origin| origin.label().to_string())
+                            .unwrap_or_else(|| "unknown temporal origin".to_string());
                         let measurement = match e.data_kind {
                             Some(sol_atlas_core::types::DataKind::Observed)
                                 if e.source_name.as_deref() == Some("NASA EONET") =>
@@ -260,13 +264,15 @@ pub fn InfoPanel() -> impl IntoView {
                             <div>
                                 <h2>{e.name.clone()}</h2>
                                 <div class="subtitle">{format!(
-                                    "{:?} · {}",
+                                    "{:?} · {} · {}",
                                     e.event_type,
-                                    provenance_label
+                                    provenance_label,
+                                    temporal_origin_label
                                 )}</div>
                                 {measurement}
                                 {row("Source", source_label)}
                                 {row("Classification", provenance_label)}
+                                {row("Temporal origin", temporal_origin_label)}
                                 {e.source_id.clone().map(|id| row("Source ID", id))}
                                 {e.occurred_at_ms.map(|timestamp| row("Occurred (UTC)", format_timestamp_ms(timestamp)))}
                                 {e.updated_at_ms.map(|timestamp| row("Updated (UTC)", format_timestamp_ms(timestamp)))}
