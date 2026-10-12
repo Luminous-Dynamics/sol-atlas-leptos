@@ -695,6 +695,59 @@ mod tests {
     }
 
     #[test]
+    fn site_health_counts_invalid_coordinates_instead_of_reporting_loaded() {
+        let json = r#"[{
+            "id":"valid","name":"Valid","lat":10.0,"lon":20.0,
+            "energy_type":"solar","capacity_mw":1.0
+        },{
+            "id":"invalid","name":"Invalid","lat":91.0,"lon":20.0,
+            "energy_type":"solar","capacity_mw":1.0
+        }]"#;
+        let mut health = Vec::new();
+        let sites = parse_vector_with_health(
+            "sites-clustered",
+            parse_sites(json),
+            |site: &Site| {
+                site.lat.is_finite()
+                    && (-90.0..=90.0).contains(&site.lat)
+                    && site.lon.is_finite()
+                    && (-180.0..=180.0).contains(&site.lon)
+            },
+            &mut health,
+        );
+        assert_eq!(sites.len(), 1);
+        assert_eq!(sites[0].id, "valid");
+        assert_eq!(health[0].state, DatasetLoadState::PartiallyLoaded);
+        assert_eq!(health[0].record_count, Some(1));
+        assert_eq!(health[0].rejected_record_count, Some(1));
+        assert!(health[0].diagnostic.as_deref().is_some_and(|d| d.contains("1 source records")));
+    }
+
+    #[test]
+    fn site_health_marks_all_semantically_invalid_records_rejected() {
+        let json = r#"[{
+            "id":"invalid","name":"Invalid","lat":10.0,"lon":181.0,
+            "energy_type":"solar","capacity_mw":1.0
+        }]"#;
+        let mut health = Vec::new();
+        let sites = parse_vector_with_health(
+            "sites-clustered",
+            parse_sites(json),
+            |site: &Site| {
+                site.lat.is_finite()
+                    && (-90.0..=90.0).contains(&site.lat)
+                    && site.lon.is_finite()
+                    && (-180.0..=180.0).contains(&site.lon)
+            },
+            &mut health,
+        );
+        assert!(sites.is_empty());
+        assert_eq!(health[0].state, DatasetLoadState::Rejected);
+        assert_eq!(health[0].record_count, Some(0));
+        assert_eq!(health[0].rejected_record_count, Some(1));
+    }
+
+    #[test]
     fn dataset_health_json_preserves_malformed_vs_valid_empty() {
         let malformed = DatasetLoadHealth {
             dataset: "sites-clustered".to_string(),
