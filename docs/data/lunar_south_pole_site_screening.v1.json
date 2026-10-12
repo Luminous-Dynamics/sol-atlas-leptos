@@ -2,11 +2,11 @@
   "schema": "org.luminousdynamics.sol-atlas.lunar-site-screening/v1",
   "created_utc_date": "2026-10-11",
   "status": "research_screening_not_site_selection",
-  "decision_rule": "Do not rank candidate regions until comparable, epoch-bound terrain, landing-ellipse, illumination, thermal, communications, traverse, and uncertainty data exist.",
+  "decision_rule": "Do not rank candidate regions until comparable, epoch-bound terrain, landing-ellipse, illumination, thermal, communications, traverse, and uncertainty data exist. This register carries NASA's refined nine-region Artemis III shortlist forward as a public screening set; NASA's later campaign architecture moved Artemis III to a 2027 low-Earth-orbit demonstration and targets Artemis IV for the first crewed landing. The register does not assert that this historical shortlist is an exhaustive or approved Artemis IV site set. Historical comparators are not NASA endorsements.",
   "coordinate_policy": "No point coordinates are asserted. These are broad regions, not pinpoint landing sites or approved landing ellipses.",
   "current_program_context": {
-    "artemis_iii": "NASA currently describes Artemis III as a 2027 low-Earth-orbit lander demonstration.",
-    "artemis_iv": "NASA currently targets early 2028 for the first Artemis lunar landing.",
+    "artemis_iii": "NASA currently describes Artemis III as a 2027 low-Earth-orbit demonstration testing commercial human landing systems, not a lunar surface landing.",
+    "artemis_iv": "NASA currently targets early 2028 for Artemis IV, the first crewed lunar landing; candidate-region labels here are a screening set, not an approved Artemis IV touchdown-ellipse selection.",
     "evidence_url": "https://www.nasa.gov/artemis-iii-news-and-updates/"
   },
   "scoring": null,
