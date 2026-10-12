@@ -72,6 +72,13 @@ Use neutral, method-bound labels such as:
 
 These are proposed product semantics, not existing Rust enum variants. Their definitions, serialization, migration and exhaustive-match implications must be decided before implementation.
 
+
+
+### Additional hard gate: geography and measurement grain
+
+The primitive also requires the geography code system to match and every party to be classified as an individual reporting area. World, regional, or trade-bloc aggregates must be explicitly typed as aggregates and are excluded from bilateral matching by this first method. An upstream adapter must not infer "individual country" solely from a display label. Keep M49 or other source-native identifiers and resolve their reference tables under a pinned version.
+
+The observation stores the full denomination/scale label as well as currency; values in USD and thousands of USD cannot be paired without an explicit, qualified normalization path. Any future rescaling method must preserve both source-native values and its checked conversion calculation.
 ## 4. Keep independent semantic axes separate
 
 The current Sol Atlas `DataKind` (Observed / Curated / Scenario) is useful for broad layer provenance but is insufficient by itself for a mixed intelligence product. Do not overload it into a criminality or confidence score. Add a separate, versioned observation/claim envelope when implementation begins, keeping the existing enum backward compatible unless an explicit migration is designed.
@@ -114,7 +121,7 @@ Minimum initial source set:
 
 | Source | Suitable first use | Gate / limitation |
 |---|---|---|
-| [UN Comtrade API documentation](https://uncomtrade.org/docs/un-comtrade-api/) | Bilateral merchandise-trade observations and metadata | Preview endpoints are capped and rate-limited; wider API/bulk access has account or subscription conditions. Confirm access and redistribution terms before scaling or promising refresh rates. |
+| [UN Comtrade API documentation](https://uncomtrade.org/docs/un-comtrade-api/) | Bilateral merchandise-trade observations and metadata | Public preview is limited to at most 500 records per response and has rate limits; query design should constrain period and product rather than assume a preview is complete. Wider data API, bulk and asynchronous access have account/subscription conditions that vary by tier. Confirm the current plan, access rights, rate limits, and redistribution terms before scaling or promising refresh rates. See the [official preview guidance](https://uncomtrade.org/docs/what-is-data-preview/) and [subscription table](https://uncomtrade.org/docs/subscriptions/). |
 | [UNCTAD/UNODC IFF framework](https://unctad.org/statistics/illicit-financial-flows) | Definitions and statistical measurement boundaries | An indicator or estimate is not a case-level adjudication of crime. |
 | [GFI mirror-analysis methodology](https://gfintegrity.org/reports/methodology/trade-misinvoicing-mirror-analysis/) | Independently documented approach to qualifying, pairing and analyzing trade gaps | Reproduce the relevant assumptions and exclusions; do not label the gross gap as confirmed criminal proceeds. |
 | [World Bank Informal Economy Database](https://www.worldbank.org/en/brief/2024/01/09/informal-economy-database) | Historical country-level context and alternative measures | Dataset covers up to 196 economies for 1990–2020 and mixes indirect model-based measures with survey/other indicators. It is not a current live map and not a measure of illegality. |
@@ -198,12 +205,12 @@ The initial slice does not:
 A first renderer-independent primitive now exists in `sol-atlas-core/src/economic_intelligence.rs` and is exported from `sol-atlas-core/src/lib.rs`:
 
 - typed source-reported observations retain source/snapshot/record identifiers, reporting parties, period, commodity classification, currency, source-native value text, and source timing;
-- candidate selection is fail-closed: missing sides, duplicates, ambiguous candidates, non-reciprocal reporters, mismatched period/product/classification/currency/value-unit, missing values, unsupported decimal formats, non-positive values, and arithmetic overflow receive explicit dispositions;
+- candidate selection is fail-closed: missing sides, duplicate/ambiguous candidates, aggregate geographies, incompatible geography code systems, non-reciprocal reporters, mismatched period/product/classification/currency/value-unit, missing values, unsupported decimal formats, non-positive values, and arithmetic overflow receive explicit dispositions;
 - monetary differences are calculated from strict base-10 decimal strings using checked `i128` arithmetic (up to 18 fractional digits), rather than subtracting binary floating-point inputs;
 - results carry normalized exact decimal difference strings for audit/display; float projections are explicitly approximate and intended for plots/analytics only;
 - results expose two explicitly named percentage conventions: absolute gap divided by the arithmetic mean, and signed gap divided by the exporter-reported value. Their denominators are not interchangeable and the signed exporter-normalized convention is not an illicit-flow estimate; valid results carry their currency and source-native value-unit/scale label;
 - all outputs carry a fixed `DescriptiveValueDifferenceOnly` claim ceiling;
-- fifteen deterministic unit tests cover ordinary gaps, equal values, ambiguous duplicates, missing sides, period/currency mismatch, missing/zero/invalid values, exact differences beyond binary-float integer precision, scale normalization, exponent/over-precision/integer overflow, signed fractional differences, mixed-scale arithmetic overflow, classification/reciprocity/value-unit mismatches, incorrect flow directions, and invalid identity.
+- sixteen deterministic unit tests cover ordinary gaps, equal values, ambiguous duplicates, missing sides, period/currency mismatch, missing/zero/invalid values, exact differences beyond binary-float integer precision, scale normalization, exponent/over-precision/integer overflow, signed fractional differences, mixed-scale arithmetic overflow, classification/reciprocity/value-unit mismatches, aggregate-area and geography-code-system mismatches, incorrect flow directions, and invalid identity.
 
 This is **an initial code primitive, not a qualified source adapter or full trade-misinvoicing estimator**. The candidate lists are assumed to have been selected under a documented source-specific policy. The primitive does not yet parse UN Comtrade, prove entity identity, normalize currencies, enforce all quantity/re-export/CIF-FOB rules, calculate illicit-flow totals, persist immutable evidence bundles, or connect to the UI, Mycelix, or Symthaea. Its deliberately strict decimal parser rejects exponent notation and more than 18 decimal places until an ingestion adapter has an explicit, tested normalization policy.
 
