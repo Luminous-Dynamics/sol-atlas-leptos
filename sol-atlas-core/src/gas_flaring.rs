@@ -24,8 +24,7 @@ pub const WORLD_BANK_FLARING_DATA_URL: &str =
     "https://www.worldbank.org/en/programs/gasflaringreduction/global-flaring-data";
 
 /// Explicitly bounded statement about what a site record represents.
-pub const CLAIM_CEILING: &str =
-    "Satellite-derived flaring-volume estimate for screening only; not recoverability,      methane leakage, verified emissions reduction, engineering viability, or financial return.";
+pub const CLAIM_CEILING: &str = "Satellite-derived flaring-volume estimate for screening only; not recoverability, methane leakage, verified emissions reduction, engineering viability, or financial return.";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -54,6 +53,7 @@ pub enum ReuseReview {
 /// by the acquisition step. This crate validates its shape; it does not pretend
 /// that a syntactically valid digest proves the downloaded bytes match it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FlareSourceProvenance {
     pub source_name: String,
     pub source_uri: String,
@@ -68,6 +68,7 @@ pub struct FlareSourceProvenance {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GeoPoint {
     pub latitude_deg: f64,
     pub longitude_deg: f64,
@@ -100,6 +101,7 @@ pub enum AnnualFlareValue {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct AnnualFlareEstimate {
     pub year: u16,
     pub value: AnnualFlareValue,
@@ -108,6 +110,7 @@ pub struct AnnualFlareEstimate {
 /// One source-identified location. Identity is provided by the source adapter;
 /// this module never invents an ID from a name, row number, or rounded location.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FlareSite {
     pub source_site_id: String,
     pub name: Option<String>,
@@ -118,16 +121,25 @@ pub struct FlareSite {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FlareSnapshot {
     pub schema_version: String,
     pub provenance: FlareSourceProvenance,
     pub sites: Vec<FlareSite>,
 }
 
-/// Only this wrapper denotes records that passed this module's admission checks.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// Only the admission function can create this wrapper; it cannot be deserialized
+/// from untrusted JSON or mutated by downstream callers.
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ValidatedFlareSnapshot {
-    pub snapshot: FlareSnapshot,
+    snapshot: FlareSnapshot,
+}
+
+impl ValidatedFlareSnapshot {
+    /// Access the immutable snapshot that passed admission checks.
+    pub fn snapshot(&self) -> &FlareSnapshot {
+        &self.snapshot
+    }
 }
 
 /// A structured, stable validation finding suitable for test assertions and receipts.
@@ -216,6 +228,12 @@ pub fn admit_snapshot(
                 "missing_site_identity",
                 format!("{base}.source_site_id"),
                 "stable source-provided site identity is required; row order is not an identity",
+            ));
+        } else if site.source_site_id.trim() != site.source_site_id {
+            issues.push(issue(
+                "noncanonical_site_identity",
+                format!("{base}.source_site_id"),
+                "site identity must not contain leading or trailing whitespace",
             ));
         } else if !seen_site_ids.insert(site.source_site_id.clone()) {
             issues.push(issue(
@@ -669,5 +687,13 @@ mod tests {
             }
             other => panic!("unexpected error: {other}"),
         }
+
+        let mut drifted = serde_json::to_value(sample_snapshot()).unwrap();
+        drifted["surprise_field"] = serde_json::json!("must not be ignored");
+        let drifted_json = serde_json::to_string(&drifted).unwrap();
+        assert!(matches!(
+            parse_json_snapshot(&drifted_json),
+            Err(AdmissionError::InvalidJson(_))
+        ));
     }
 }
