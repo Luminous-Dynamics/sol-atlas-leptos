@@ -99,14 +99,17 @@ fn public_observation_contract_rejects_unknown_fields() {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ReferenceCorpus {
     corpus_id: String,
     schema_version: u16,
     fixture_kind: String,
+    note: String,
     cases: Vec<ReferenceCase>,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ReferenceCase {
     case_id: String,
     exporter_value: Option<String>,
@@ -133,6 +136,7 @@ fn frozen_synthetic_reference_corpus_matches_exact_expected_results() {
     assert_eq!(corpus.corpus_id, "economic-intelligence-trade-mirror-v1");
     assert_eq!(corpus.schema_version, 1);
     assert_eq!(corpus.fixture_kind, "synthetic");
+    assert!(corpus.note.contains("not UN Comtrade records"));
     assert_eq!(corpus.cases.len(), 9);
 
     for case in corpus.cases {
