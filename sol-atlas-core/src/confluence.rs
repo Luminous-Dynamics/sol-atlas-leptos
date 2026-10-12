@@ -29,7 +29,7 @@
 //!    excluded — binning either into a single H3 cell would misrepresent
 //!    what's actually physically co-located there.
 
-use crate::types::{DataKind, Layer, LoadedData, NaturalEventType, RecordTemporalOrigin};
+use crate::types::{DataKind, Layer, LoadedData, NaturalEvent, NaturalEventType, RecordTemporalOrigin};
 use h3o::{CellIndex, LatLng, Resolution};
 use std::collections::HashMap;
 
@@ -92,6 +92,17 @@ fn eligible_real_layers() -> [Layer; 10] {
 // kept out of this fixed-size array only because Rust arrays can't mix
 // literal counts conveniently with the loop below; the invariant test
 // checks the full effective set via `compute`, not just this array.
+
+/// A live feed record needs a concrete identity and positive event time.
+/// The adapters enforce source-specific validation; this consumer repeats the
+/// minimum structural check before allowing a record into present-day overlap.
+fn has_live_identity_and_time(event: &NaturalEvent) -> bool {
+    event
+        .source_id
+        .as_deref()
+        .is_some_and(|id| !id.trim().is_empty())
+        && event.occurred_at_ms.is_some_and(|timestamp| timestamp > 0)
+}
 
 /// Bin every eligible real-data entity into H3 cells at
 /// [`CONFLUENCE_RESOLUTION`], and return the cells where at least
@@ -176,13 +187,13 @@ pub fn compute_with_live_source_freshness(
                 Some(RecordTemporalOrigin::LiveFeed),
                 Some("USGS ComCat"),
                 NaturalEventType::Earthquake,
-            ) => freshness.usgs_is_current,
+            ) if has_live_identity_and_time(e) => freshness.usgs_is_current,
             (
                 Some(DataKind::Observed),
                 Some(RecordTemporalOrigin::LiveFeed),
                 Some("NASA EONET"),
                 NaturalEventType::Fire | NaturalEventType::Storm | NaturalEventType::Volcano,
-            ) => freshness.eonet_is_current,
+            ) if has_live_identity_and_time(e) => freshness.eonet_is_current,
             (
                 Some(DataKind::Curated),
                 Some(RecordTemporalOrigin::CuratedReference),
@@ -417,6 +428,29 @@ mod tests {
         );
         assert_eq!(current.len(), 1);
         assert!(current[0].layers.contains(&Layer::Earthquakes));
+    }
+
+    #[test]
+    fn live_records_without_identity_or_positive_event_time_are_excluded() {
+        let mut missing_id = quake(10.0001, 10.0001);
+        missing_id.source_id = None;
+        let mut missing_time = quake(10.0002, 10.0002);
+        missing_time.occurred_at_ms = None;
+
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            natural_events: vec![missing_id, missing_time],
+            ..Default::default()
+        };
+        let freshness = LiveSourceFreshness {
+            usgs_is_current: true,
+            eonet_is_current: true,
+        };
+
+        assert!(
+            compute_with_live_source_freshness(&data, 2, freshness).is_empty(),
+            "live observations need a source ID and positive event timestamp"
+        );
     }
 
     #[test]
