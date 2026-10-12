@@ -538,8 +538,8 @@ mod tests {
 
     #[test]
     fn parses_expected_preview_row_and_retains_raw_record() {
-        let raw = response(vec![row()], 1);
-        let parsed = parse_un_comtrade_preview(&raw, &context(10)).unwrap();
+        let raw = include_str!("../tests/fixtures/un_comtrade_preview_v1.json");
+        let parsed = parse_un_comtrade_preview(raw, &context(10)).unwrap();
         assert_eq!(parsed.records.len(), 1);
         assert!(parsed.rejected_rows.is_empty());
         assert_eq!(
@@ -557,7 +557,13 @@ mod tests {
             parsed.records[0].observation.disaggregation_signature,
             "uncomtrade-dimensions/v1|partner2=0|mot=0|customs=C00"
         );
-        assert!(parsed.records[0].raw_record.get("anExtraRecordField").is_some());
+        assert_eq!(
+            parsed.records[0]
+                .raw_record
+                .get("reporterDesc")
+                .and_then(Value::as_str),
+            Some("United States of America")
+        );
         assert!(!parsed.coverage.completeness_proven());
         assert_eq!(
             parsed.coverage,
