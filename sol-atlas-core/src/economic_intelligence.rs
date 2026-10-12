@@ -59,15 +59,14 @@ pub struct TradeObservation {
     pub classification_revision: String,
     /// Direction from the reporter's perspective.
     pub flow: TradeFlow,
-    /// Source-native textual value token where the adapter can preserve it.
+    /// Source-native numeric token for the reported trade value.
     ///
-    /// Keep this for audit/replay; do not regenerate it from the float below.
-    /// The numeric field is a calculation projection, not the canonical source
-    /// representation.
+    /// This is the calculation input; never reconstruct it from a binary float.
+    /// The ingestion adapter must retain the source token or identify any
+    /// upstream canonicalization. Plain base-10 decimal notation only:
+    /// no exponent notation, separators, or surrounding whitespace.
     pub trade_value_source_text: Option<String>,
-    /// Parsed numeric projection of the source-reported trade value.
-    pub trade_value: Option<f64>,
-    /// Currency identifier for `trade_value`; no implicit currency conversion.
+    /// Currency identifier for the source-reported value; no implicit conversion.
     pub currency: String,
     /// Optional source-reported quantity; not used in the raw value comparison.
     pub quantity: Option<f64>,
@@ -115,13 +114,16 @@ pub enum MirrorPairStatus {
     MissingExporterValue,
     /// Importer-side value is missing.
     MissingImporterValue,
-    /// Exporter-side value is not finite.
-    NonFiniteExporterValue,
-    /// Importer-side value is not finite.
-    NonFiniteImporterValue,
+    /// Exporter-side source value is not a supported plain decimal.
+    InvalidExporterValueFormat,
+    /// Importer-side source value is not a supported plain decimal.
+    InvalidImporterValueFormat,
+    /// Decimal rescaling or subtraction exceeded the exact arithmetic range.
+    ComparisonArithmeticOverflow,
     /// Exporter-side value is zero or negative and is excluded from this method.
     NonPositiveExporterValue,
     /// Importer-side value is zero or negative and is excluded from this method.
+    NonPositiveImporterValue,    /// Importer-side value is zero or negative and is excluded from this method.
     NonPositiveImporterValue,
 }
 
@@ -148,8 +150,15 @@ pub struct MirrorPairResult {
     pub exporter_record_id: Option<String>,
     pub importer_record_id: Option<String>,
     pub method_id: String,
+    /// Exact normalized decimal difference as text; preferred for display/audit.
+    pub signed_difference_source_text: Option<String>,
+    /// Exact normalized absolute difference as text; preferred for display/audit.
+    pub absolute_difference_source_text: Option<String>,
+    /// Approximate binary-float projection for charts/analytics, not canonical.
     pub signed_difference_importer_minus_exporter: Option<f64>,
+    /// Approximate binary-float projection for charts/analytics, not canonical.
     pub absolute_difference: Option<f64>,
+    /// Approximate percentage using the arithmetic mean as denominator.
     pub difference_percent_of_mean: Option<f64>,
     pub claim_ceiling: MirrorClaimCeiling,
 }
@@ -165,6 +174,8 @@ impl MirrorPairResult {
             exporter_record_id,
             importer_record_id,
             method_id: RAW_MIRROR_METHOD_ID.to_string(),
+            signed_difference_source_text: None,
+            absolute_difference_source_text: None,
             signed_difference_importer_minus_exporter: None,
             absolute_difference: None,
             difference_percent_of_mean: None,
@@ -287,42 +298,42 @@ pub fn compare_mirror_pair(
         );
     }
 
-    let Some(export_value) = exporter.trade_value else {
+    let Some(export_text) = exporter.trade_value_source_text.as_deref() else {
         return MirrorPairResult::excluded(
             MirrorPairStatus::MissingExporterValue,
             exporter_id,
             importer_id,
         );
     };
-    let Some(import_value) = importer.trade_value else {
+    let Some(import_text) = importer.trade_value_source_text.as_deref() else {
         return MirrorPairResult::excluded(
             MirrorPairStatus::MissingImporterValue,
             exporter_id,
             importer_id,
         );
     };
-    if !export_value.is_finite() {
+    let Some(export_value) = parse_decimal_source_value(export_text) else {
         return MirrorPairResult::excluded(
-            MirrorPairStatus::NonFiniteExporterValue,
+            MirrorPairStatus::InvalidExporterValueFormat,
             exporter_id,
             importer_id,
         );
-    }
-    if !import_value.is_finite() {
+    };
+    let Some(import_value) = parse_decimal_source_value(import_text) else {
         return MirrorPairResult::excluded(
-            MirrorPairStatus::NonFiniteImporterValue,
+            MirrorPairStatus::InvalidImporterValueFormat,
             exporter_id,
             importer_id,
         );
-    }
-    if export_value <= 0.0 {
+    };
+    if export_value.coefficient <= 0 {
         return MirrorPairResult::excluded(
             MirrorPairStatus::NonPositiveExporterValue,
             exporter_id,
             importer_id,
         );
     }
-    if import_value <= 0.0 {
+    if import_value.coefficient <= 0 {
         return MirrorPairResult::excluded(
             MirrorPairStatus::NonPositiveImporterValue,
             exporter_id,
@@ -330,21 +341,154 @@ pub fn compare_mirror_pair(
         );
     }
 
-    let signed_difference = import_value - export_value;
-    let absolute_difference = signed_difference.abs();
-    let mean = (export_value / 2.0) + (import_value / 2.0);
-    let difference_percent_of_mean = (absolute_difference / mean) * 100.0;
+    let scale = export_value.scale.max(import_value.scale);
+    let Some(export_scaled) = rescale_decimal(export_value, scale) else {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::ComparisonArithmeticOverflow,
+            exporter_id,
+            importer_id,
+        );
+    };
+    let Some(import_scaled) = rescale_decimal(import_value, scale) else {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::ComparisonArithmeticOverflow,
+            exporter_id,
+            importer_id,
+        );
+    };
+    let Some(signed_scaled_difference) = import_scaled.checked_sub(export_scaled) else {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::ComparisonArithmeticOverflow,
+            exporter_id,
+            importer_id,
+        );
+    };
+
+    let absolute_scaled_difference = signed_scaled_difference.abs();
+    let signed_difference_source_text =
+        format_scaled_decimal(signed_scaled_difference, scale);
+    let absolute_difference_source_text =
+        format_scaled_decimal(absolute_scaled_difference, scale);
+
+    // Float projections exist for plots only. Exact decimal text above remains
+    // authoritative for audit and display of the measured difference.
+    let divisor = 10_f64.powi(scale as i32);
+    let signed_difference = signed_scaled_difference as f64 / divisor;
+    let absolute_difference = absolute_scaled_difference as f64 / divisor;
+    let mean_scaled = (export_scaled as f64 / 2.0) + (import_scaled as f64 / 2.0);
+    let difference_percent_of_mean = if mean_scaled > 0.0 {
+        (absolute_scaled_difference as f64 / mean_scaled) * 100.0
+    } else {
+        0.0
+    };
 
     MirrorPairResult {
         status: MirrorPairStatus::Compared,
         exporter_record_id: exporter_id,
         importer_record_id: importer_id,
         method_id: RAW_MIRROR_METHOD_ID.to_string(),
+        signed_difference_source_text: Some(signed_difference_source_text),
+        absolute_difference_source_text: Some(absolute_difference_source_text),
         signed_difference_importer_minus_exporter: Some(signed_difference),
         absolute_difference: Some(absolute_difference),
         difference_percent_of_mean: Some(difference_percent_of_mean),
         claim_ceiling: MirrorClaimCeiling::DescriptiveValueDifferenceOnly,
     }
+}
+
+/// Exact base-10 decimal parsed into an integer coefficient and scale.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct ParsedDecimal {
+    coefficient: i128,
+    scale: u32,
+}
+
+/// Parse a strict decimal token without first rounding through f64.
+/// Exponent notation, separators, whitespace, and over-precision are rejected
+/// until an adapter has an explicit conversion contract.
+fn parse_decimal_source_value(text: &str) -> Option<ParsedDecimal> {
+    if text.is_empty() || text.trim() != text {
+        return None;
+    }
+
+    let (negative, unsigned) = match text.strip_prefix('-') {
+        Some(rest) => (true, rest),
+        None => (false, text),
+    };
+    if unsigned.is_empty() {
+        return None;
+    }
+
+    let mut parts = unsigned.split('.');
+    let integer = parts.next()?;
+    let fraction = parts.next();
+    if parts.next().is_some() || integer.is_empty() {
+        return None;
+    }
+    if !integer.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+
+    let fraction = match fraction {
+        Some(value) if !value.is_empty() && value.bytes().all(|b| b.is_ascii_digit()) => value,
+        Some(_) => return None,
+        None => "",
+    };
+    if fraction.len() > 18 {
+        return None;
+    }
+
+    let mut digits = String::with_capacity(integer.len() + fraction.len());
+    digits.push_str(integer);
+    digits.push_str(fraction);
+    let mut coefficient = digits.parse::<i128>().ok()?;
+    if negative {
+        coefficient = coefficient.checked_neg()?;
+    }
+
+    Some(ParsedDecimal {
+        coefficient,
+        scale: fraction.len() as u32,
+    })
+}
+
+/// Scale a decimal to a common precision without rounding.
+fn rescale_decimal(value: ParsedDecimal, target_scale: u32) -> Option<i128> {
+    if target_scale < value.scale {
+        return None;
+    }
+    let mut coefficient = value.coefficient;
+    for _ in value.scale..target_scale {
+        coefficient = coefficient.checked_mul(10)?;
+    }
+    Some(coefficient)
+}
+
+/// Format an integer coefficient as a normalized decimal without exponent notation.
+fn format_scaled_decimal(coefficient: i128, scale: u32) -> String {
+    let negative = coefficient < 0;
+    let digits = coefficient.unsigned_abs().to_string();
+    let mut value = if scale == 0 {
+        digits
+    } else if digits.len() <= scale as usize {
+        format!("0.{}{}", "0".repeat(scale as usize - digits.len()), digits)
+    } else {
+        let split = digits.len() - scale as usize;
+        format!("{}.{}", &digits[..split], &digits[split..])
+    };
+
+    if value.contains('.') {
+        while value.ends_with('0') {
+            value.pop();
+        }
+        if value.ends_with('.') {
+            value.pop();
+        }
+    }
+    if negative && value != "0" {
+        value.insert(0, '-');
+    }
+    value
 }
 
 fn has_identity(observation: &TradeObservation) -> bool {
@@ -384,7 +528,6 @@ mod tests {
             classification_revision: "HS-2022".to_string(),
             flow,
             trade_value_source_text: value.map(|v| v.to_string()),
-            trade_value: value,
             currency: "USD".to_string(),
             quantity: Some(10.0),
             quantity_unit: Some("kg".to_string()),
@@ -411,6 +554,8 @@ mod tests {
             Some(20.0)
         );
         assert_eq!(result.absolute_difference, Some(20.0));
+        assert_eq!(result.signed_difference_source_text.as_deref(), Some("20"));
+        assert_eq!(result.absolute_difference_source_text.as_deref(), Some("20"));
         let pct = result.difference_percent_of_mean.unwrap();
         assert!((pct - (20.0 / 110.0 * 100.0)).abs() < 1e-12);
         assert_eq!(
@@ -493,7 +638,7 @@ mod tests {
     }
 
     #[test]
-    fn zero_missing_and_nonfinite_values_are_not_gaps() {
+    fn zero_missing_and_invalid_values_are_not_gaps() {
         assert_eq!(
             pair(Some(0.0), Some(120.0)).status,
             MirrorPairStatus::NonPositiveExporterValue
@@ -504,10 +649,100 @@ mod tests {
         );
         assert_eq!(
             pair(Some(f64::NAN), Some(120.0)).status,
-            MirrorPairStatus::NonFiniteExporterValue
+            MirrorPairStatus::InvalidExporterValueFormat
         );
     }
 
+    #[test]
+    fn exact_decimal_difference_survives_f64_precision_boundaries() {
+        let exporter = observation(
+            "exp-1",
+            "AAA",
+            "BBB",
+            TradeFlow::Export,
+            Some(9_007_199_254_740_992.0),
+        );
+        let mut importer = observation(
+            "imp-1",
+            "BBB",
+            "AAA",
+            TradeFlow::Import,
+            Some(9_007_199_254_740_992.0),
+        );
+        // This source value differs by one, despite rounding to the same f64.
+        importer.trade_value_source_text = Some("9007199254740993".to_string());
+        let result = compare_mirror_pair(&[exporter], &[importer]);
+        assert_eq!(result.status, MirrorPairStatus::Compared);
+        assert_eq!(result.signed_difference_source_text.as_deref(), Some("1"));
+        assert_eq!(result.absolute_difference_source_text.as_deref(), Some("1"));
+        assert_eq!(result.absolute_difference, Some(1.0));
+    }
+
+    #[test]
+    fn decimal_text_normalizes_scale_without_losing_exact_difference() {
+        let mut exporter = observation(
+            "exp-1",
+            "AAA",
+            "BBB",
+            TradeFlow::Export,
+            Some(100.0),
+        );
+        exporter.trade_value_source_text = Some("100.00".to_string());
+        let mut importer = observation(
+            "imp-1",
+            "BBB",
+            "AAA",
+            TradeFlow::Import,
+            Some(120.0),
+        );
+        importer.trade_value_source_text = Some("120.000".to_string());
+        let result = compare_mirror_pair(&[exporter], &[importer]);
+        assert_eq!(result.status, MirrorPairStatus::Compared);
+        assert_eq!(result.signed_difference_source_text.as_deref(), Some("20"));
+    }
+
+    #[test]
+    fn rejects_exponent_notation_and_decimal_precision_overflow() {
+        let mut exporter = observation(
+            "exp-1",
+            "AAA",
+            "BBB",
+            TradeFlow::Export,
+            Some(100.0),
+        );
+        exporter.trade_value_source_text = Some("1e2".to_string());
+        let importer = observation(
+            "imp-1",
+            "BBB",
+            "AAA",
+            TradeFlow::Import,
+            Some(120.0),
+        );
+        assert_eq!(
+            compare_mirror_pair(&[exporter], &[importer]).status,
+            MirrorPairStatus::InvalidExporterValueFormat
+        );
+
+        let mut exporter = observation(
+            "exp-2",
+            "AAA",
+            "BBB",
+            TradeFlow::Export,
+            Some(100.0),
+        );
+        exporter.trade_value_source_text = Some("1.0000000000000000001".to_string());
+        let importer = observation(
+            "imp-2",
+            "BBB",
+            "AAA",
+            TradeFlow::Import,
+            Some(120.0),
+        );
+        assert_eq!(
+            compare_mirror_pair(&[exporter], &[importer]).status,
+            MirrorPairStatus::InvalidExporterValueFormat
+        );
+    }
     #[test]
     fn rejects_incompatible_commodity_revision_and_nonreciprocal_reports() {
         let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
