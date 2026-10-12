@@ -1249,10 +1249,7 @@ mod tests {
             .as_array()
             .expect("run-manifest required fields");
         assert!(required.iter().any(|field| field == "source_revision"));
-        assert_eq!(
-            schema["properties"]["source_revision"]["maxLength"],
-            120
-        );
+        assert_eq!(schema["properties"]["source_revision"]["maxLength"], 120);
         assert_eq!(
             schema["properties"]["source_revision"]["type"],
             serde_json::json!(["string", "null"])
