@@ -14,6 +14,8 @@ use serde::Deserialize;
 
 const LUNAR_REGISTER_JSON: &str =
     include_str!("../../docs/data/lunar_south_pole_site_screening.v1.json");
+const LUNAR_SOURCE_CATALOG_JSON: &str =
+    include_str!("../../docs/data/lunar_geospatial_source_catalog.v1.json");
 
 #[derive(Clone, Deserialize)]
 struct LunarRegister {
@@ -51,6 +53,30 @@ struct LunarCandidate {
     sources: Vec<String>,
     #[serde(default)]
     interpretation_boundary: Option<String>,
+}
+
+#[derive(Clone, Deserialize)]
+struct LunarSourceCatalog {
+    status: String,
+    decision_rule: String,
+    metric_policy: String,
+    sources: Vec<LunarSource>,
+    ingestion_sequence: Vec<String>,
+}
+
+#[derive(Clone, Deserialize)]
+struct LunarSource {
+    id: String,
+    title: String,
+    publisher: String,
+    url: String,
+    product_families: Vec<String>,
+    spatial_resolution: String,
+    coordinate_reference: String,
+    temporal_scope: String,
+    uncertainty_and_limitations: Vec<String>,
+    recommended_use: String,
+    required_acceptance_checks: Vec<String>,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -128,8 +154,9 @@ fn evidence_label(state: &str) -> &'static str {
 #[component]
 pub fn LunarObservatory() -> impl IntoView {
     let parsed = serde_json::from_str::<LunarRegister>(LUNAR_REGISTER_JSON);
-    match parsed {
-        Ok(register) => {
+    let parsed_catalog = serde_json::from_str::<LunarSourceCatalog>(LUNAR_SOURCE_CATALOG_JSON);
+    match (parsed, parsed_catalog) {
+        (Ok(register), Ok(source_catalog)) => {
             let total_candidates = register.candidates.len();
             let layer_count = register.required_comparison_layers.len();
             let candidates = RwSignal::new(register.candidates);
@@ -144,6 +171,11 @@ pub fn LunarObservatory() -> impl IntoView {
             let comparison_output = register.comparison_policy.output;
             let missing_data_policy = register.comparison_policy.missing_data;
             let layers = register.required_comparison_layers;
+            let catalog_status = source_catalog.status;
+            let catalog_decision_rule = source_catalog.decision_rule;
+            let catalog_metric_policy = source_catalog.metric_policy;
+            let source_products = source_catalog.sources;
+            let ingestion_sequence = source_catalog.ingestion_sequence;
 
             view! {
                 <main class="lunar-observatory-page">
@@ -268,6 +300,27 @@ pub fn LunarObservatory() -> impl IntoView {
                             </p>
                         </section>
 
+                        <section class="lunar-source-catalog">
+                            <p class="lunar-eyebrow">"AUTHORITATIVE INPUTS"</p>
+                            <div class="lunar-section-heading">
+                                <h2>"Geospatial products to ingest"</h2>
+                                <span class="lunar-register-state">{catalog_status.replace('_', " ")}</span>
+                            </div>
+                            <p class="lunar-catalog-intro">{catalog_decision_rule}</p>
+                            <p class="lunar-policy-note">{catalog_metric_policy}</p>
+                            <div class="lunar-source-grid">
+                                {source_products.into_iter().map(|source| view! {
+                                    <LunarSourceCard source=source/>
+                                }).collect::<Vec<_>>()}
+                            </div>
+                            <div class="lunar-ingestion-sequence">
+                                <h3>"Recommended ingestion sequence"</h3>
+                                <ol>
+                                    {ingestion_sequence.into_iter().map(|step| view! { <li>{step}</li> }).collect::<Vec<_>>()}
+                                </ol>
+                            </div>
+                        </section>
+
                         <footer class="lunar-observatory-footer">
                             "Sol Atlas presents the register read-only. Site selection, geospatial analysis, and flight certification remain separate, evidence-bearing work products."
                         </footer>
@@ -275,12 +328,22 @@ pub fn LunarObservatory() -> impl IntoView {
                 </main>
             }.into_any()
         }
-        Err(error) => view! {
+        (Err(error), _) => view! {
             <main class="lunar-observatory-page">
                 <div class="lunar-observatory-shell">
                     <A href="/" attr:class="lunar-back-link">"← Back to Sol Atlas globe"</A>
                     <h1>"Lunar Site Observatory unavailable"</h1>
                     <p class="lunar-boundary">"The embedded candidate register could not be parsed. No fallback or inferred ranking is being displayed."</p>
+                    <pre class="lunar-parse-error">{error.to_string()}</pre>
+                </div>
+            </main>
+        }.into_any(),
+        (_, Err(error)) => view! {
+            <main class="lunar-observatory-page">
+                <div class="lunar-observatory-shell">
+                    <A href="/" attr:class="lunar-back-link">"← Back to Sol Atlas globe"</A>
+                    <h1>"Lunar Site Observatory unavailable"</h1>
+                    <p class="lunar-boundary">"The geospatial source catalogue could not be parsed. Product metadata must be corrected before this view is served."</p>
                     <pre class="lunar-parse-error">{error.to_string()}</pre>
                 </div>
             </main>
@@ -359,9 +422,77 @@ fn LunarCandidateCard(candidate: LunarCandidate) -> impl IntoView {
     }
 }
 
+#[component]
+fn LunarSourceCard(source: LunarSource) -> impl IntoView {
+    let product_families = source
+        .product_families
+        .iter()
+        .map(|item| {
+            let item = item.clone();
+            view! { <li>{item}</li> }
+        })
+        .collect::<Vec<_>>();
+    let limitations = source
+        .uncertainty_and_limitations
+        .iter()
+        .map(|item| {
+            let item = item.clone();
+            view! { <li>{item}</li> }
+        })
+        .collect::<Vec<_>>();
+    let acceptance_checks = source
+        .required_acceptance_checks
+        .iter()
+        .map(|item| {
+            let item = item.clone();
+            view! { <li>{item}</li> }
+        })
+        .collect::<Vec<_>>();
+
+    view! {
+        <article class="lunar-source-card">
+            <div class="lunar-card-topline">
+                <span class="lunar-candidate-id">{source.id}</span>
+            </div>
+            <h3>{source.title}</h3>
+            <p class="lunar-source-publisher">{source.publisher}</p>
+            <a class="lunar-source-open" href=source.url target="_blank" rel="noopener noreferrer">
+                "Open source product ↗"
+            </a>
+            <dl class="lunar-source-metadata">
+                <dt>"Resolution"</dt>
+                <dd>{source.spatial_resolution}</dd>
+                <dt>"Coordinate reference"</dt>
+                <dd>{source.coordinate_reference}</dd>
+                <dt>"Temporal scope"</dt>
+                <dd>{source.temporal_scope}</dd>
+            </dl>
+            <div class="lunar-card-section">
+                <h4>"Available products"</h4>
+                <ul>{product_families}</ul>
+            </div>
+            <div class="lunar-card-section unresolved">
+                <h4>"Limitations to preserve"</h4>
+                <ul>{limitations}</ul>
+            </div>
+            <div class="lunar-card-section">
+                <h4>"Acceptance checks before use"</h4>
+                <ul>{acceptance_checks}</ul>
+            </div>
+            <div class="lunar-card-section">
+                <h4>"Recommended use"</h4>
+                <p class="lunar-role-text">{source.recommended_use}</p>
+            </div>
+        </article>
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{LUNAR_REGISTER_JSON, LunarCandidate, SiteFilter, filter_matches};
+    use super::{
+        LUNAR_REGISTER_JSON, LUNAR_SOURCE_CATALOG_JSON, LunarCandidate, LunarSourceCatalog,
+        SiteFilter, filter_matches,
+    };
 
     fn sample_candidate() -> LunarCandidate {
         LunarCandidate {
@@ -403,6 +534,25 @@ mod tests {
             SiteFilter::All,
             "water reserve proven"
         ));
+    }
+
+    #[test]
+    fn embedded_source_catalog_declares_real_products_and_limitations() {
+        let catalog: LunarSourceCatalog = serde_json::from_str(LUNAR_SOURCE_CATALOG_JSON)
+            .expect("embedded source catalogue must parse");
+        assert_eq!(catalog.sources.len(), 4);
+        assert_eq!(catalog.ingestion_sequence.len(), 6);
+        assert!(catalog.metric_policy.contains("No derived site metrics"));
+        assert!(catalog
+            .sources
+            .iter()
+            .any(|source| source.title.contains("High-Resolution LOLA Topography")));
+        assert!(catalog.sources.iter().any(|source| {
+            source
+                .uncertainty_and_limitations
+                .iter()
+                .any(|item| item.contains("interpolated"))
+        }));
     }
 
     #[test]
