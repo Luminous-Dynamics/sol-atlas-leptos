@@ -204,7 +204,7 @@ The initial slice does not:
 
 A first renderer-independent primitive now exists in `sol-atlas-core/src/economic_intelligence.rs` and is exported from `sol-atlas-core/src/lib.rs`:
 
-- typed source-reported observations retain source/snapshot/record identifiers, reporting parties, period, commodity classification, currency, source-native value text, and source timing;
+- typed source-reported observations retain a normalized schema version; source/snapshot/record identifiers; reporting parties plus geography code-system and area/aggregate grain; period and commodity classification; currency and source-native value-unit/scale; exact source value text; and source timing;
 - candidate selection is fail-closed: missing sides, duplicate/ambiguous candidates, aggregate geographies, incompatible geography code systems, non-reciprocal reporters, mismatched period/product/classification/currency/value-unit, missing values, unsupported decimal formats, non-positive values, and arithmetic overflow receive explicit dispositions;
 - monetary differences are calculated from strict base-10 decimal strings using checked `i128` arithmetic (up to 18 fractional digits), rather than subtracting binary floating-point inputs;
 - results carry normalized exact decimal difference strings for audit/display; float projections are explicitly approximate and intended for plots/analytics only;
@@ -212,6 +212,9 @@ A first renderer-independent primitive now exists in `sol-atlas-core/src/economi
 - all outputs carry a fixed `DescriptiveValueDifferenceOnly` claim ceiling;
 - sixteen deterministic unit tests cover ordinary gaps, equal values, ambiguous duplicates, missing sides, period/currency mismatch, missing/zero/invalid values, exact differences beyond binary-float integer precision, scale normalization, exponent/over-precision/integer overflow, signed fractional differences, mixed-scale arithmetic overflow, classification/reciprocity/value-unit mismatches, aggregate-area and geography-code-system mismatches, incorrect flow directions, and invalid identity.
 
+
+
+Two public-API integration tests in `sol-atlas-core/tests/economic_intelligence_contract.rs` additionally verify exact source-value lexeme round-tripping and that unknown observation fields fail deserialization. These are test definitions; their execution must be confirmed by completed CI or a local test run.
 This is **an initial code primitive, not a qualified source adapter or full trade-misinvoicing estimator**. The candidate lists are assumed to have been selected under a documented source-specific policy. The primitive does not yet parse UN Comtrade, prove entity identity, normalize currencies, enforce all quantity/re-export/CIF-FOB rules, calculate illicit-flow totals, persist immutable evidence bundles, or connect to the UI, Mycelix, or Symthaea. Its deliberately strict decimal parser rejects exponent notation and more than 18 decimal places until an ingestion adapter has an explicit, tested normalization policy.
 
 At the time this design was updated, CI checks for the current branch head were queued; queued is not a pass. The exact-head result must be inspected and any failures fixed before claiming the code is qualified.
