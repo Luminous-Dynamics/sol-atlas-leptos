@@ -45,6 +45,11 @@ class EarthSystemsCatalogTests(unittest.TestCase):
         doc["domains"][1]["id"] = doc["domains"][0]["id"]
         self.assertTrue(any("duplicate domain id" in error for error in validate_catalog(doc)))
 
+    def test_redistribution_flag_must_be_boolean_or_null(self):
+        doc = copy.deepcopy(self.catalog)
+        doc["domains"][0]["data_sources"][0]["redistribution_allowed"] = 1
+        self.assertTrue(any("must be true, false or null" in error for error in validate_catalog(doc)))
+
     def test_unknown_or_unreviewed_rights_cannot_claim_redistribution(self):
         doc = copy.deepcopy(self.catalog)
         source = doc["domains"][0]["data_sources"][0]
