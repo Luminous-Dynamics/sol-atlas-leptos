@@ -122,6 +122,21 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
             any("date-specific" in item for item in illumination["uncertainty_and_limitations"])
         )
 
+    def test_historical_leads_preserve_sources_windows_and_limits(self) -> None:
+        leads = self.catalog["historical_leads"]
+        self.assertEqual(len(leads), 3)
+        connecting_ridge = next(
+            lead for lead in leads if lead["id"] == "connecting-ridge-illumination-lead"
+        )
+        self.assertIn("2024-01-01", connecting_ridge["time_window"])
+        self.assertIn("2026-01-01", connecting_ridge["time_window"])
+        self.assertEqual(connecting_ridge["source_url"], "https://pgda.gsfc.nasa.gov/products/78")
+        self.assertTrue(connecting_ridge["interpretation_limits"])
+        self.assertTrue(
+            any("not a new measurement" in item for item in connecting_ridge["interpretation_limits"])
+        )
+        self.assertIn("not a mission-specific", " ".join(connecting_ridge["interpretation_limits"]))
+
 
 if __name__ == "__main__":
     unittest.main()
