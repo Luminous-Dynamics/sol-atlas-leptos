@@ -631,8 +631,15 @@ fn required_nonnegative_integer(
 ) -> Result<String, UnComtradeRowRejection> {
     match object.get(key) {
         None => Err(UnComtradeRowRejection::MissingField(key.to_string())),
-        Some(Value::Number(number)) if number.as_u64().is_some() => Ok(number.to_string()),
-        Some(Value::Number(_)) => Err(UnComtradeRowRejection::InvalidFieldValue(key.to_string())),
+        Some(Value::Number(number)) => {
+            let token = number.to_string();
+            if token.parse::<u64>().is_ok() {
+                Ok(token)
+            } else {
+                // Require an integer JSON token, not 1.0 or 1e0.
+                Err(UnComtradeRowRejection::InvalidFieldValue(key.to_string()))
+            }
+        }
         Some(_) => Err(UnComtradeRowRejection::InvalidFieldType(key.to_string())),
     }
 }
