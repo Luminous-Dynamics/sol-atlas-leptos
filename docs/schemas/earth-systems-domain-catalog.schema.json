@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/schemas/earth-systems-domain-catalog.schema.json",
+  "title": "Earth Systems Intelligence Domain Catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "catalog_version",
+    "last_reviewed",
+    "title",
+    "policy",
+    "domains"
+  ],
+  "properties": {
+    "catalog_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "last_reviewed": {
+      "type": "string",
+      "format": "date"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "purpose",
+        "common_rules",
+        "architecture",
+        "acceptance_rule"
+      ],
+      "properties": {
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "common_rules": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "architecture": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sol_atlas",
+            "symthaea",
+            "mycelix",
+            "symtropy"
+          ],
+          "properties": {
+            "sol_atlas": {
+              "type": "string",
+              "minLength": 1
+            },
+            "symthaea": {
+              "type": "string",
+              "minLength": 1
+            },
+            "mycelix": {
+              "type": "string",
+              "minLength": 1
+            },
+            "symtropy": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "acceptance_rule": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "domains": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "priority",
+          "readiness",
+          "question",
+          "scope",
+          "target_geography",
+          "output_types",
+          "data_sources",
+          "required_checks",
+          "prohibited_inferences",
+          "validation"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "P0",
+              "P1",
+              "P2",
+              "P3"
+            ]
+          },
+          "readiness": {
+            "type": "string",
+            "enum": [
+              "candidate",
+              "benchmark_in_progress",
+              "future_research"
+            ]
+          },
+          "question": {
+            "type": "string",
+            "minLength": 10
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 10
+          },
+          "target_geography": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "output_types": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "data_sources": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source_id",
+                "name",
+                "provider",
+                "url",
+                "role",
+                "access_status",
+                "rights_state",
+                "redistribution_allowed",
+                "key_limitations"
+              ],
+              "properties": {
+                "source_id": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "provider": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https://"
+                },
+                "role": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "access_status": {
+                  "type": "string",
+                  "enum": [
+                    "published_reference",
+                    "public_catalog",
+                    "public_with_terms",
+                    "account_or_api_key",
+                    "api_and_product_terms"
+                  ]
+                },
+                "rights_state": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "redistribution_allowed": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "key_limitations": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "redistribution_allowed": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "redistribution_allowed"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "rights_state": {
+                        "const": "cc_by_4_0_with_attribution"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "required_checks": {
+            "type": "array",
+            "minItems": 3,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "prohibited_inferences": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "validation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "split_strategy",
+              "metrics",
+              "baseline_required",
+              "independent_review_required"
+            ],
+            "properties": {
+              "split_strategy": {
+                "type": "string",
+                "minLength": 10
+              },
+              "metrics": {
+                "type": "array",
+                "minItems": 3,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "baseline_required": {
+                "type": "boolean",
+                "const": true
+              },
+              "independent_review_required": {
+                "type": "boolean",
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
