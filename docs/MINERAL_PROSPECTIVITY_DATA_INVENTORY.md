@@ -33,6 +33,8 @@
 
 ## Executable preflight available
 
+Follow the [ingestion runbook](MINERAL_PROSPECTIVITY_INGEST_RUNBOOK.md) for a concrete order of operations, staging precautions, FileGDB handling, per-layer review, and G0–G5 acceptance gates.
+
 Two read-only intake stages now exist: [archive preflight](../scripts/mineral-prospectivity/inspect_bundle.py) and [GIS metadata inspection](../scripts/mineral-prospectivity/inspect_gis.py), with usage notes in the [tool README](../scripts/mineral-prospectivity/README.md). The first hashes the source archive and checks archive metadata without extraction; optional CRC scanning is size/ratio bounded. After a human has reviewed and staged authorized members in a controlled workspace, the second invokes GDAL/OGR read-only to report vector layer names, schema, feature counts, CRS/extents, or raster size/bands/CRS. Synthetic tests cover both tools ([archive tests](../tests/test_inspect_bundle.py), [GIS tests](../tests/test_inspect_gis.py)). They do not establish licensing or geological suitability. The real source geodatabase has not yet been run through either stage because this environment cannot directly fetch the archive.
 
 ## M0 completion checklist
