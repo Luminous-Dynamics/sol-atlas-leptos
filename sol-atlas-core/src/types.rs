@@ -234,16 +234,16 @@ impl Layer {
                 time_basis: DataTimeBasis::LiveFeedWithBundledFallback,
             },
             Self::Fires => DataProvenance {
-                source: "NASA FIRMS active-fire feed",
-                snapshot_date: "2026-04",
-                kind: Observed,
-                time_basis: DataTimeBasis::FrozenSnapshot,
+                source: "NASA EONET live fire events + bundled synthetic NASA FIRMS fixture",
+                snapshot_date: "",
+                kind: Mixed,
+                time_basis: DataTimeBasis::LiveFeedWithBundledFallback,
             },
             Self::Storms => DataProvenance {
-                source: "NASA EONET event feed",
-                snapshot_date: "2026-04",
+                source: "NASA EONET live events; bundled EONET fallback snapshot",
+                snapshot_date: "",
                 kind: Observed,
-                time_basis: DataTimeBasis::FrozenSnapshot,
+                time_basis: DataTimeBasis::LiveFeedWithBundledFallback,
             },
             Self::Volcanoes => DataProvenance {
                 source: "curated active volcanoes",
@@ -284,11 +284,14 @@ impl Layer {
 /// How a dataset relates to reality.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DataKind {
-    /// Direct observations from a named source. Layers document snapshot or
-    /// live-feed behavior and expose freshness separately when available.
+    /// Direct observations from a named source.
     Observed,
     /// Real-world entities, hand-curated; some fields are estimates.
     Curated,
+    /// Generated/demo fixtures, not observations from the named real-world source.
+    Synthetic,
+    /// A layer combines records with different provenance classifications; inspect each record.
+    Mixed,
     /// Speculative planning fiction — these do not exist.
     Scenario,
 }
@@ -298,6 +301,8 @@ impl DataKind {
         match self {
             Self::Observed => "observed",
             Self::Curated => "curated",
+            Self::Synthetic => "synthetic",
+            Self::Mixed => "mixed provenance",
             Self::Scenario => "scenario",
         }
     }
@@ -327,20 +332,27 @@ pub struct DataProvenance {
 }
 
 impl DataProvenance {
-    /// One-line human-readable summary preserving the dataset's time semantics.
+    /// One-line human-readable summary preserving provenance and time semantics.
     pub fn summary(&self) -> String {
+        let source_summary = match self.kind {
+            DataKind::Scenario => format!("{} (fictional)", self.source),
+            DataKind::Synthetic => format!("{} (synthetic demo data)", self.source),
+            DataKind::Mixed => format!(
+                "{} (mixed provenance; inspect each record's source and classification)",
+                self.source
+            ),
+            DataKind::Observed | DataKind::Curated => self.source.to_string(),
+        };
+
         match self.time_basis {
-            DataTimeBasis::Scenario => format!("{} (fictional)", self.source),
+            DataTimeBasis::Scenario => source_summary,
             DataTimeBasis::FrozenSnapshot => {
-                format!("{} — snapshot {}", self.source, self.snapshot_date)
+                format!("{} — snapshot {}", source_summary, self.snapshot_date)
             }
             DataTimeBasis::LiveFeedWithBundledFallback => {
-                format!(
-                    "{} — live feed or bundled fallback; snapshot depends on retrieval/source",
-                    self.source
-                )
+                format!("{} — snapshot depends on retrieval/source", source_summary)
             }
-            DataTimeBasis::UndatedReference => self.source.to_string(),
+            DataTimeBasis::UndatedReference => source_summary,
         }
     }
 }
@@ -733,9 +745,13 @@ pub struct NaturalEvent {
     /// Optional source-specific description of a reported measure.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub magnitude_description: Option<String>,
-    /// Source name associated with this observation, when known.
+    /// Source name self-declared by the record or established by a validated live adapter.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_name: Option<String>,
+    /// Provenance classification for this record. None means the origin was not classified.
+    /// Callers must not infer Observed without source evidence.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_kind: Option<DataKind>,
     /// Stable identifier at the originating source, when available.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_id: Option<String>,
