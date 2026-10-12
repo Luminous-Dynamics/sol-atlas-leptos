@@ -1557,3 +1557,35 @@ canvas#globe-canvas.has-hover {
 .lunar-historical-lead .lunar-card-section li + li {
     margin-top: 6px;
 }
+
+.lunar-crosswalk-list {
+    list-style: none;
+    padding: 0;
+    color: rgba(224, 224, 224, 0.68);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.lunar-crosswalk-entry {
+    display: grid;
+    gap: 3px;
+    padding: 9px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    overflow-wrap: anywhere;
+}
+
+.lunar-crosswalk-entry strong {
+    color: rgba(255, 255, 255, 0.88);
+    font-weight: 600;
+}
+
+.lunar-crosswalk-state {
+    color: rgba(var(--sa-cool), 0.82);
+    text-transform: capitalize;
+}
+
+.lunar-crosswalk-entry p {
+    color: rgba(224, 224, 224, 0.48);
+    line-height: 1.5;
+    margin-top: 2px;
+}
