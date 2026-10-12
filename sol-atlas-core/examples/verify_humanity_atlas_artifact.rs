@@ -13,10 +13,13 @@ use sol_atlas_core::humanity_atlas::{
 };
 use std::{
     env,
+    ffi::OsStr,
     fs::{self, File},
     io::{self, Read},
     process::ExitCode,
 };
+
+const MAX_RUN_ENVELOPE_BYTES: usize = 4 * 1024 * 1024;
 
 fn main() -> ExitCode {
     match run() {
@@ -26,6 +29,29 @@ fn main() -> ExitCode {
             ExitCode::from(2)
         }
     }
+}
+
+fn read_bounded_bytes(path: &OsStr, limit: usize, label: &str) -> io::Result<Vec<u8>> {
+    let metadata = fs::metadata(path)?;
+    if metadata.len() > limit as u64 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("{label} exceeds the {limit}-byte limit"),
+        ));
+    }
+
+    // Read at most limit+1 bytes to close the metadata/read growth race.
+    let mut bytes = Vec::with_capacity(metadata.len() as usize);
+    File::open(path)?
+        .take(limit as u64 + 1)
+        .read_to_end(&mut bytes)?;
+    if bytes.len() > limit {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("{label} exceeds the {limit}-byte limit"),
+        ));
+    }
+    Ok(bytes)
 }
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
@@ -44,30 +70,19 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         .map(|value| value.to_string_lossy().into_owned())
         .unwrap_or_else(|| "source-simulator-output".to_string());
 
-    let envelope_bytes = fs::read_to_string(envelope_path)?;
-    let source_metadata = fs::metadata(artifact_path)?;
-    if source_metadata.len() > MAX_SOURCE_ARTIFACT_BYTES as u64 {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("source artifact exceeds the {MAX_SOURCE_ARTIFACT_BYTES}-byte v1 limit"),
-        )
-        .into());
-    }
-    // Read one byte beyond the limit so a file that grows after metadata()
-    // cannot make this CLI allocate an unbounded source artifact.
-    let source_file = File::open(artifact_path)?;
-    let mut source_bytes = Vec::with_capacity(source_metadata.len() as usize);
-    source_file
-        .take(MAX_SOURCE_ARTIFACT_BYTES as u64 + 1)
-        .read_to_end(&mut source_bytes)?;
-    if source_bytes.len() > MAX_SOURCE_ARTIFACT_BYTES {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("source artifact exceeds the {MAX_SOURCE_ARTIFACT_BYTES}-byte v1 limit"),
-        )
-        .into());
-    }
-    let run = ScenarioRunEnvelope::from_json(&envelope_bytes)
+    let envelope_bytes = read_bounded_bytes(
+        envelope_path.as_os_str(),
+        MAX_RUN_ENVELOPE_BYTES,
+        "run envelope",
+    )?;
+    let envelope_text = String::from_utf8(envelope_bytes)
+        .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+    let source_bytes = read_bounded_bytes(
+        artifact_path.as_os_str(),
+        MAX_SOURCE_ARTIFACT_BYTES,
+        "source artifact",
+    )?;
+    let run = ScenarioRunEnvelope::from_json(&envelope_text)
         .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
     let tree = import_technology_tree(&run, &artifact_id, &source_bytes)
         .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
