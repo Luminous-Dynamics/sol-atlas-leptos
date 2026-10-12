@@ -27,14 +27,14 @@ The inputs are synthetic and are embedded in `sol-atlas-core/src/community_energ
 
 | Result | Baseline equipment | Resilience sensitivity |
 |---|---:|---:|
-| Total grid import | 11.52 kWh | 4.24 kWh |
+| Capacity / starting SOC / charge-discharge limit | 6 kWh / 3 kWh / 2 kW | 20 kWh / 16 kWh / 8 kW |\n| Total grid import | 11.52 kWh | 4.24 kWh |
 | Total unserved load | 8.6168 kWh | 5.82 kWh |
 | Critical energy unserved | 1.6168 kWh | 0.00 kWh |
 | Noncritical energy unserved | 7.00 kWh | 5.82 kWh |
 | Accounting verifier | Pass | Pass |
 | Zero-critical-shed constraint | Fail | Pass |
 
-These are in-model results, not field measurements or performance predictions. The candidate's 20 kWh battery and 8 kW charge/discharge limits are an intentionally oversized sensitivity scenario; they are not a costed engineering recommendation. Costs, state-of-health degradation, inverter conversion, feeder limits, protection systems, weather uncertainty and calibrated real loads are not modeled.
+These are in-model results, not field measurements or performance predictions. The candidate's 20 kWh battery and 8 kW charge/discharge limits are an intentionally oversized sensitivity scenario. It also starts at 16 kWh state of charge versus 3 kWh for the baseline. The upstream source/cost of the precharged reserve is not modeled, so this is not a like-for-like battery-sizing result and is not a costed engineering recommendation. Costs, state-of-health degradation, inverter conversion, feeder limits, protection systems, weather uncertainty and calibrated real loads are not modeled.
 
 The key teaching point is that **accounting consistency and policy success are different outcomes**. The baseline accounting can be correct while its result fails the declared critical-load constraint. The candidate meets the critical-load limit in this frozen fixture but still sheds noncritical load.
 
