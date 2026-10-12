@@ -226,7 +226,7 @@ A renderer-independent raw bilateral comparison primitive is implemented in `sol
 ### Qualification tests added
 
 - 23 unit-test definitions in the raw comparison module cover exact decimal precision, normalization, negative signed differences, overflow, record ambiguity, source-state mismatch, area-reference versions, and other fail-closed conditions.
-- 12 unit-test definitions in the Comtrade parser cover source-shaped parsing, raw-value preservation, possible truncation, duplicate rows, query mismatches, unknown area codes, response-count inconsistency, unknown envelope fields, and API error envelopes.
+- 13 unit-test definitions in the Comtrade parser cover goods-only query qualification, annual/monthly frequency and period validation, source-shaped parsing, raw-value preservation, possible truncation, duplicate rows, query mismatches, unknown area codes, response-count inconsistency, unknown envelope fields, and API error envelopes.
 - 3 external public-API integration-test definitions cover exact source-value round-tripping, rejection of unknown normalized-observation fields, and the nine-case synthetic reference corpus.
 - `scripts/verify_economic_intelligence_fixture.py` independently checks the nine-case reference corpus and the synthetic source-shaped API response using standard-library integer arithmetic. The root Cargo manifest now declares both the application and `sol-atlas-core` as workspace members, so `cargo fmt --all --check` and `cargo test --workspace` cover both packages. The Check workflow syntax-checks the independent verifier and builds both the application and core for WebAssembly.
 
@@ -234,7 +234,7 @@ These are **test definitions and validation wiring**, not a claim that they have
 
 ### Scope limits
 
-The parser is not a live API connector or a qualified source adapter. It requires caller-supplied snapshot identity and area reference data, and it does not itself verify licenses, calculate source-body digests, retry/rate-limit requests, reconcile CIF/FOB values, convert currencies, model re-exports, quantify illicit flows, prove identity, persist evidence bundles, or connect the UI to Mycelix/Symthaea. The strict decimal parser rejects exponent notation and more than 18 fractional digits until an adapter has an explicit, tested normalization policy.
+The first parser contract accepts UN Comtrade goods records (`typeCode=C`) at annual (`freqCode=A`) or monthly (`freqCode=M`) frequency only. It validates `YYYY` versus `YYYYMM` period shape and month range, and rejects services (`S`) pending a separately qualified service-classification contract. The parser is not a live API connector or a qualified source adapter. It requires caller-supplied snapshot identity and area reference data, and it does not itself verify licenses, calculate source-body digests, retry/rate-limit requests, reconcile CIF/FOB values, convert currencies, model re-exports, quantify illicit flows, prove identity, persist evidence bundles, or connect the UI to Mycelix/Symthaea. The strict decimal parser rejects exponent notation and more than 18 fractional digits until an adapter has an explicit, tested normalization policy.
 
 ### Next sequence
 
