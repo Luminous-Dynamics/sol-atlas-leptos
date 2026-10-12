@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -16,6 +18,7 @@ from scripts.validate_lunar_site_screening import (  # noqa: E402
     validate_document,
     validate_source_catalog,
 )
+from scripts.lunar_asset_receipt import ReceiptError, build_receipt  # noqa: E402
 
 
 class LunarSiteScreeningContractTests(unittest.TestCase):
@@ -147,6 +150,64 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
         topography["sample_direct_assets"][0]["url"] = "http://example.invalid/file.tif"
         errors = validate_source_catalog(catalog, self.canonical)
         self.assertTrue(any("sample_direct_assets[0].url must be an HTTPS URL" in error for error in errors))
+
+    def test_asset_receipt_hashes_local_bytes_without_claiming_origin(self) -> None:
+        asset_url = next(
+            asset["url"]
+            for source in self.catalog["sources"]
+            if source["id"] == "pgda-lola-polar-illumination"
+            for asset in source["sample_direct_assets"]
+            if asset["url"].endswith("_JP2.LBL")
+        )
+        payload = b"PDS_LABEL_TEST_BYTES\\n"
+        with tempfile.TemporaryDirectory() as directory:
+            local_asset = Path(directory) / "sample.lbl"
+            local_asset.write_bytes(payload)
+            receipt = build_receipt(
+                self.catalog,
+                CATALOG_DATA,
+                local_asset,
+                asset_url,
+                captured_utc="2026-10-12T08:00:00Z",
+            )
+        self.assertEqual(receipt["asset"]["sha256"], hashlib.sha256(payload).hexdigest())
+        self.assertEqual(receipt["asset"]["byte_count"], len(payload))
+        self.assertTrue(receipt["verification_boundary"]["local_bytes_hashed"])
+        self.assertFalse(receipt["verification_boundary"]["url_origin_authenticated"])
+        self.assertFalse(receipt["verification_boundary"]["pds_label_parsed"])
+        self.assertFalse(receipt["verification_boundary"]["site_metrics_computed"])
+
+    def test_asset_receipt_rejects_unlisted_url(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            local_asset = Path(directory) / "sample.tif"
+            local_asset.write_bytes(b"some bytes")
+            with self.assertRaises(ReceiptError):
+                build_receipt(
+                    self.catalog,
+                    CATALOG_DATA,
+                    local_asset,
+                    "https://example.invalid/unreviewed.tif",
+                    captured_utc="2026-10-12T08:00:00Z",
+                )
+
+    def test_asset_receipt_refuses_known_broken_cog_url(self) -> None:
+        broken_url = next(
+            asset["url"]
+            for source in self.catalog["sources"]
+            for asset in source.get("sample_direct_assets", [])
+            if "404" in asset["verification_state"]
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            local_asset = Path(directory) / "wrong-source.tif"
+            local_asset.write_bytes(b"some bytes")
+            with self.assertRaisesRegex(ReceiptError, "returned 404"):
+                build_receipt(
+                    self.catalog,
+                    CATALOG_DATA,
+                    local_asset,
+                    broken_url,
+                    captured_utc="2026-10-12T08:00:00Z",
+                )
 
     def test_direct_assets_keep_retrieval_state_and_label_links(self) -> None:
         topography = next(
