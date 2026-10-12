@@ -27,7 +27,7 @@ pub const WORLD_BANK_FLARING_DATA_URL: &str =
 pub const CLAIM_CEILING: &str = "Satellite-derived flaring-volume estimate for screening only; not recoverability, methane leakage, verified emissions reduction, engineering viability, or financial return.";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub enum ReuseReview {
     /// The source's terms have not been reviewed for the intended use.
     Unreviewed,
@@ -90,7 +90,7 @@ pub enum MissingValueReason {
 /// the World Bank page's individual flare-site visualization. This value remains
 /// a satellite-derived estimate; unit clarity does not elevate its evidence class.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "status", rename_all = "snake_case")]
+#[serde(tag = "status", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AnnualFlareValue {
     Estimated {
         volume_million_m3_per_year: f64,
@@ -703,6 +703,15 @@ mod tests {
         let drifted_json = serde_json::to_string(&drifted).unwrap();
         assert!(matches!(
             parse_json_snapshot(&drifted_json),
+            Err(AdmissionError::InvalidJson(_))
+        ));
+
+        let mut enum_drift = serde_json::to_value(sample_snapshot()).unwrap();
+        enum_drift["sites"][0]["annual_estimates"][0]["value"]["extra_field"] =
+            serde_json::json!("must not be ignored");
+        let enum_drift_json = serde_json::to_string(&enum_drift).unwrap();
+        assert!(matches!(
+            parse_json_snapshot(&enum_drift_json),
             Err(AdmissionError::InvalidJson(_))
         ));
     }
