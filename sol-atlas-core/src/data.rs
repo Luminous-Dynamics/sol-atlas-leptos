@@ -249,6 +249,16 @@ fn has_synthetic_lineage(source: Option<&str>, lineage: &[String]) -> bool {
         || lineage.iter().take(32).any(|value| looks_synthetic(value))
 }
 
+fn canonical_source_label(dataset_name: &str, raw_source: Option<&str>) -> Option<String> {
+    let source = raw_source?;
+    match (dataset_name, source.trim().to_ascii_lowercase().as_str()) {
+        ("usgs-earthquakes", "usgs" | "usgs comcat") => Some("USGS ComCat".to_string()),
+        ("nasa-firms", "nasa firms") => Some("NASA FIRMS".to_string()),
+        ("nasa-eonet", "nasa eonet") => Some("NASA EONET".to_string()),
+        _ => Some(source.to_string()),
+    }
+}
+
 fn classify_natural_event(
     dataset_name: &str,
     source_name: Option<&str>,
@@ -396,15 +406,22 @@ fn parse_natural_events(
                     .or(feature.properties.name.as_deref())
                     .unwrap_or("Unknown")
                     .to_string();
-                let source_name = normalized_source_name(feature.properties.source.as_deref())
-                    .or_else(|| {
-                        (dataset_name == "volcanoes")
-                            .then(|| "Curated volcano inventory".to_string())
-                    });
+                let declared_source =
+                    normalized_source_name(feature.properties.source.as_deref());
+                let source_for_classification = declared_source.clone().or_else(|| {
+                    (dataset_name == "volcanoes")
+                        .then(|| "Curated volcano inventory".to_string())
+                });
                 let data_kind = classify_natural_event(
                     dataset_name,
-                    source_name.as_deref(),
+                    source_for_classification.as_deref(),
                     &feature.properties.data_lineage,
+                );
+                // Canonicalize only allow-listed official source names for display.
+                // Unknown and synthetic labels are kept exactly as declared.
+                let source_name = canonical_source_label(
+                    dataset_name,
+                    source_for_classification.as_deref(),
                 );
                 let source_id = feature
                     .id
