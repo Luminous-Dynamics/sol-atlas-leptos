@@ -91,15 +91,18 @@ fn filter_matches(candidate: &LunarCandidate, filter: SiteFilter, query: &str) -
 
     match filter {
         SiteFilter::All => true,
-        SiteFilter::Touchdown => candidate.proposed_roles.iter().any(|role| {
-            role.contains("touchdown") || role.contains("operations")
-        }),
-        SiteFilter::PowerAndRelay => candidate.proposed_roles.iter().any(|role| {
-            role.contains("power") || role.contains("communications") || role.contains("relay")
-        }),
-        SiteFilter::RoboticsAndScience => candidate.proposed_roles.iter().any(|role| {
-            role.contains("robotic") || role.contains("prospecting") || role.contains("science")
-        }),
+        SiteFilter::Touchdown => candidate
+            .proposed_roles
+            .iter()
+            .any(|role| role.contains("touchdown") || role.contains("operations")),
+        SiteFilter::PowerAndRelay => candidate
+            .proposed_roles
+            .iter()
+            .any(|role| role.contains("power") || role.contains("communications") || role.contains("relay")),
+        SiteFilter::RoboticsAndScience => candidate
+            .proposed_roles
+            .iter()
+            .any(|role| role.contains("robotic") || role.contains("prospecting") || role.contains("science")),
     }
 }
 
@@ -297,22 +300,35 @@ fn LunarCandidateCard(candidate: LunarCandidate) -> impl IntoView {
     } else {
         "Candidate region"
     };
-    let observations = candidate.supported_observations.iter().map(|item| {
-        let item = item.clone();
-        view! { <li>{item}</li> }
-    }).collect::<Vec<_>>();
-    let unresolved = candidate.unresolved.iter().map(|item| {
-        let item = item.clone();
-        view! { <li>{item}</li> }
-    }).collect::<Vec<_>>();
-    let sources = candidate.sources.iter().enumerate().map(|(index, url)| {
-        let url = url.clone();
-        view! {
-            <a href=url target="_blank" rel="noopener noreferrer">
-                {format!("Source {}", index + 1)} " ↗"
-            </a>
-        }
-    }).collect::<Vec<_>>();
+    let observations = candidate
+        .supported_observations
+        .iter()
+        .map(|item| {
+            let item = item.clone();
+            view! { <li>{item}</li> }
+        })
+        .collect::<Vec<_>>();
+    let unresolved = candidate
+        .unresolved
+        .iter()
+        .map(|item| {
+            let item = item.clone();
+            view! { <li>{item}</li> }
+        })
+        .collect::<Vec<_>>();
+    let sources = candidate
+        .sources
+        .iter()
+        .enumerate()
+        .map(|(index, url)| {
+            let url = url.clone();
+            view! {
+                <a href=url target="_blank" rel="noopener noreferrer">
+                    {format!("Source {}", index + 1)} " ↗"
+                </a>
+            }
+        })
+        .collect::<Vec<_>>();
     let role_text = candidate.proposed_roles.join(" · ");
     let evidence = evidence_label(&candidate.evidence_state);
     let boundary = candidate.interpretation_boundary.clone();
@@ -370,7 +386,11 @@ mod tests {
         let candidate = sample_candidate();
         assert!(filter_matches(&candidate, SiteFilter::Touchdown, ""));
         assert!(filter_matches(&candidate, SiteFilter::PowerAndRelay, ""));
-        assert!(!filter_matches(&candidate, SiteFilter::RoboticsAndScience, ""));
+        assert!(!filter_matches(
+            &candidate,
+            SiteFilter::RoboticsAndScience,
+            ""
+        ));
     }
 
     #[test]
@@ -378,7 +398,11 @@ mod tests {
         let candidate = sample_candidate();
         assert!(filter_matches(&candidate, SiteFilter::All, "illumination"));
         assert!(filter_matches(&candidate, SiteFilter::All, "ellipse"));
-        assert!(!filter_matches(&candidate, SiteFilter::All, "water reserve proven"));
+        assert!(!filter_matches(
+            &candidate,
+            SiteFilter::All,
+            "water reserve proven"
+        ));
     }
 
     #[test]
@@ -392,7 +416,11 @@ mod tests {
         assert!(register["scoring"].is_null());
         assert!(register["comparison_policy"]["weights"].is_null());
         for candidate in candidates {
-            assert!(candidate["known_metrics"].as_object().is_some_and(|m| m.is_empty()));
+            assert!(
+                candidate["known_metrics"]
+                    .as_object()
+                    .is_some_and(|m| m.is_empty())
+            );
             assert!(candidate.get("latitude").is_none());
             assert!(candidate.get("longitude").is_none());
             assert!(candidate.get("coordinates").is_none());
