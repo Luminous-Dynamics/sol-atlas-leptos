@@ -139,7 +139,7 @@ Do not imply causation from correlation. Keep each domain's units, validation an
 
 ## 9. Catalog policy and implementation
 
-The machine-readable [domain catalog](earth-systems-domain-catalog.json) lists target questions, priorities, readiness, candidate data sources and their limitations. [Its schema](schemas/earth-systems-domain-catalog.schema.json) defines the interface, and the standard-library validator/tests check catalog integrity.
+The machine-readable [domain catalog](earth-systems-domain-catalog.json) lists target questions, priorities, readiness, candidate data sources and their limitations. [Its schema](schemas/earth-systems-domain-catalog.schema.json) defines the interface; the standard-library [validator](../scripts/earth-systems/validate_catalog.py), [tests](../tests/test_earth_systems_catalog.py), [usage guide](../scripts/earth-systems/README.md), and [CI workflow](../.github/workflows/earth-systems-catalog.yml) check catalog integrity.
 
 Catalog checks are structural safeguards only. They do not fetch datasets, adjudicate licensing, certify scientific validity or establish that any domain is implemented.
 
