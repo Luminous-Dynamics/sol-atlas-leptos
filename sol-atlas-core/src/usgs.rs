@@ -9,8 +9,7 @@ use std::fmt;
 
 pub const USGS_M1_DAY_FEED_URL: &str =
     "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_day.geojson";
-pub const USGS_EVENT_PAGE_PREFIX: &str =
-    "https://earthquake.usgs.gov/earthquakes/eventpage/";
+pub const USGS_EVENT_PAGE_PREFIX: &str = "https://earthquake.usgs.gov/earthquakes/eventpage/";
 pub const MAX_FEED_BYTES: usize = 8 * 1024 * 1024;
 pub const MAX_FEATURES: usize = 20_000;
 pub const MAX_FEED_AGE_MS: i64 = 10 * 60 * 1_000;
@@ -70,10 +69,9 @@ impl fmt::Display for UsgsFeedError {
             Self::EmptyFeed => {
                 write!(f, "USGS live feed unexpectedly contained no features")
             }
-            Self::BodyTooLarge { actual, maximum } => write!(
-                f,
-                "USGS payload is {actual} bytes; limit is {maximum}"
-            ),
+            Self::BodyTooLarge { actual, maximum } => {
+                write!(f, "USGS payload is {actual} bytes; limit is {maximum}")
+            }
             Self::InvalidJson(error) => write!(f, "invalid USGS GeoJSON: {error}"),
             Self::InvalidRootType => {
                 write!(f, "USGS payload is not a GeoJSON FeatureCollection")
@@ -90,10 +88,9 @@ impl fmt::Display for UsgsFeedError {
             Self::StaleFeed => {
                 write!(f, "USGS feed timestamp is outside the freshness window")
             }
-            Self::TooManyFeatures { actual, maximum } => write!(
-                f,
-                "USGS feed has {actual} features; limit is {maximum}"
-            ),
+            Self::TooManyFeatures { actual, maximum } => {
+                write!(f, "USGS feed has {actual} features; limit is {maximum}")
+            }
             Self::NoValidFeatures => {
                 write!(f, "USGS feed contained features but none passed validation")
             }
@@ -275,14 +272,14 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<UsgsFeedSnapshot, Us
             continue;
         }
 
-        let depth_km = coordinates.get(2).copied().filter(|value| value.is_finite());
+        let depth_km = coordinates
+            .get(2)
+            .copied()
+            .filter(|value| value.is_finite());
         let updated_at_ms = properties.updated.filter(|value| {
-            *value >= occurred_at_ms
-                && *value <= generated_at_ms.saturating_add(MAX_FUTURE_SKEW_MS)
+            *value >= occurred_at_ms && *value <= generated_at_ms.saturating_add(MAX_FUTURE_SKEW_MS)
         });
-        let event_url = properties
-            .url
-            .filter(|value| valid_event_url(value, &id));
+        let event_url = properties.url.filter(|value| valid_event_url(value, &id));
 
         earthquakes.push(UsgsEarthquake {
             id,
@@ -384,9 +381,9 @@ impl Default for UsgsFeedStatus {
 impl UsgsFeedStatus {
     pub fn description(&self) -> String {
         let source_time = match (self.generated_at_ms, self.last_fetched_at_ms) {
-            (Some(generated), Some(fetched)) => format!(
-                "Feed generated at {generated} ms UTC; fetched at {fetched} ms UTC."
-            ),
+            (Some(generated), Some(fetched)) => {
+                format!("Feed generated at {generated} ms UTC; fetched at {fetched} ms UTC.")
+            }
             _ => "No validated live snapshot has been accepted yet.".to_string(),
         };
 
@@ -483,8 +480,7 @@ mod tests {
     #[test]
     fn skips_events_outside_the_feed_time_window() {
         let valid = quake("us123", "10", "20", "3.0");
-        let old = quake("us124", "11", "21", "3.1")
-            .replace("1699999990000", "1600000000000");
+        let old = quake("us124", "11", "21", "3.1").replace("1699999990000", "1600000000000");
         let future = quake("us125", "12", "22", "3.2")
             .replace("1699999990000", &(NOW + MAX_FUTURE_SKEW_MS + 1).to_string());
         let json = fixture(NOW, &format!("{valid},{old},{future}"));
@@ -517,10 +513,7 @@ mod tests {
             r#"{{"type":"FeatureCollection","metadata":{{"generated":{NOW},"status":200,"count":0}},"features":[]}}"#
         );
 
-        assert_eq!(
-            parse_feed(&payload, NOW),
-            Err(UsgsFeedError::EmptyFeed)
-        );
+        assert_eq!(parse_feed(&payload, NOW), Err(UsgsFeedError::EmptyFeed));
     }
 
     #[test]
@@ -528,10 +521,7 @@ mod tests {
         let bad_id = quake("bad/id", "10", "20", "3.0");
         let json = fixture(NOW, &bad_id);
 
-        assert_eq!(
-            parse_feed(&json, NOW),
-            Err(UsgsFeedError::NoValidFeatures)
-        );
+        assert_eq!(parse_feed(&json, NOW), Err(UsgsFeedError::NoValidFeatures));
     }
 
     #[test]
