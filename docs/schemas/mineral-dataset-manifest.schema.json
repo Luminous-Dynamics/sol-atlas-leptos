@@ -431,7 +431,7 @@
       }
     }
   },
-  "$comment": "Digest values for SHA-256 and BLAKE3 are lowercase or uppercase hexadecimal, exactly 64 characters. Keep source checksum algorithms explicit. Rights state consistency is enforced: verified terms require a named license/terms check; unknown rights cannot claim redistribution permission; restricted/not-permitted states cannot be treated as freely redistributable.",
+  "$comment": "Digest values for SHA-256 and BLAKE3 are lowercase or uppercase hexadecimal, exactly 64 characters. Keep source checksum algorithms explicit. Rights state consistency is enforced: verified terms require a named license/terms check; unknown rights cannot claim redistribution permission; restricted/not-permitted states cannot be treated as freely redistributable. Conditional rights-state constraints apply only when their status predicate matches; each corresponding nested required list makes the fail-closed state requirements enforceable, not merely descriptive.",
   "allOf": [
     {
       "if": {
@@ -466,7 +466,12 @@
                 "type": "string",
                 "format": "date-time"
               }
-            }
+            },
+            "required": [
+              "license_name",
+              "redistribution_allowed",
+              "terms_checked_at"
+            ]
           }
         }
       }
@@ -496,7 +501,10 @@
               "redistribution_allowed": {
                 "type": "null"
               }
-            }
+            },
+            "required": [
+              "redistribution_allowed"
+            ]
           }
         }
       }
@@ -526,7 +534,10 @@
               "redistribution_allowed": {
                 "const": false
               }
-            }
+            },
+            "required": [
+              "redistribution_allowed"
+            ]
           }
         }
       }
@@ -559,7 +570,10 @@
                   null
                 ]
               }
-            }
+            },
+            "required": [
+              "redistribution_allowed"
+            ]
           }
         }
       }
