@@ -756,6 +756,22 @@ mod tests {
         assert_eq!(result.method_id, RAW_MIRROR_METHOD_ID);
         assert_eq!(result.currency.as_deref(), Some("USD"));
         assert_eq!(result.value_unit.as_deref(), Some("USD"));
+        assert_eq!(
+            result.exporter_source_snapshot_id.as_deref(),
+            Some("synthetic-fixture-v1")
+        );
+        assert_eq!(
+            result.importer_source_snapshot_id.as_deref(),
+            Some("synthetic-fixture-v1")
+        );
+        assert_eq!(
+            result.exporter_area_reference_snapshot_id.as_deref(),
+            Some("synthetic-area-table-v1")
+        );
+        assert_eq!(
+            result.importer_area_reference_snapshot_id.as_deref(),
+            Some("synthetic-area-table-v1")
+        );
     }
 
     #[test]
