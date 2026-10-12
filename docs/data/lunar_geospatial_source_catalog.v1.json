@@ -224,6 +224,72 @@
       ]
     },
     {
+      "id": "lroc-global-nac-dtm-footprint-shapefiles",
+      "title": "Global LROC NAC DTM Footprint Shapefiles",
+      "publisher": "Lunar Reconnaissance Orbiter Camera (LROC), Arizona State University / NASA Planetary Data System",
+      "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_NAC_DTMS",
+      "product_families": [
+        "Global NAC DTM footprint shapefile in 180-degree longitude domain",
+        "Global NAC DTM footprint shapefile in 360-degree longitude domain",
+        "Per-footprint DTM inventory and error/coverage attributes",
+        "Shapefile README and schema description"
+      ],
+      "spatial_resolution": "Not a raster layer and has no single pixel resolution. The feature attribute `resolution` reports the source DTM pixel scale in metres for each footprint.",
+      "coordinate_reference": "The LROC source page states that the shapefile uses the Moon_2000 geographic coordinate system. Verify each archive's PRJ, axis/longitude convention, geometry validity and coordinate interpretation before overlays or area calculations; the 180-domain and 360-domain files are separate variants.",
+      "temporal_scope": "The source page says DTM footprints released up to 15 September 2026 are included. Treat this as the inventory release cut-off, not the acquisition date of each underlying DTM or proof of exhaustive coverage after that date.",
+      "uncertainty_and_limitations": [
+        "This is an inventory of LROC NAC DTM footprints generated from DTM-derived products with GDAL/OGR; it maps available DTM coverage rather than defining Artemis candidate-region boundaries.",
+        "The source page defines `relat_le` as Relative Linear Error / vertical precision at 90% confidence in metres, and documents `lola_avg`, `lola_rms`, `triang_rms`, `adjust_rms`, coverage and stereo attributes. Interpret each only with its published definition and source-product context.",
+        "A footprint intersection can identify a potentially relevant terrain model but does not establish exact candidate-region identity, touchdown safety, or sufficient data quality for the mission.",
+        "The 180-domain and 360-domain packages are alternative longitude-domain products; do not mix them without an explicit longitude-wrap/transform decision.",
+        "The ZIP packages and README have not been downloaded, hashed, or inspected in this repository/research pass, and no record-level match for SHACKRDGE02 has been independently verified."
+      ],
+      "recommended_use": "Use as an independent inventory to identify LROC stereo DTM coverage and source metadata before selecting local terrain cross-checks. Compare validated DTM footprints to versioned candidate/ROI polygons, then follow each matched footprint's canonical product link and verify its own PDS label, raster grid and uncertainty.",
+      "required_acceptance_checks": [
+        "Retrieve both 180-domain and 360-domain ZIP variants plus README; record exact URL, timestamp, byte count and SHA-256 for each before extraction.",
+        "Inspect ZIP contents, shapefile sidecar completeness, CRS WKT/PRJ, geometry validity, schema and record counts; verify the Moon_2000 definition and longitude-domain handling.",
+        "Locate and validate the exact SHACKRDGE02 record and its `url`, `resolution`, `relat_le`, LOLA error, registration, coverage and stereo metadata against the source product page/README.",
+        "Crosswalk DTM footprints against separately sourced, versioned candidate/ROI polygons; record intersection coverage and boundary ambiguity without treating DTM footprints as candidate polygons.",
+        "For any selected DTM, verify and hash the underlying raster and paired labels; the footprint inventory is not a substitute for raster acceptance or confidence-map interpretation.",
+        "Preserve the inventory cut-off date and avoid describing it as exhaustive for products released after 2026-09-15."
+      ],
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "connecting-ridge",
+          "product_site": "Potential SHACKRDGE02 inventory record; record-level presence and geometry not yet verified from the ZIP",
+          "mapping_state": "inventory_not_ingested_polygon_intersection_not_computed",
+          "note": "The inventory is a route to finding DTM footprints, not a region polygon. No candidate/ROI intersection has been computed."
+        }
+      ],
+      "sample_direct_assets": [
+        {
+          "title": "Global NAC DTM footprints, 180-degree longitude domain",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/EXTRAS/SHAPEFILE/NAC_DTMS/NAC_DTMS_180.ZIP",
+          "asset_type": "ZIP archive containing shapefile",
+          "verification_state": "product_page_linked_not_downloaded_or_hashed",
+          "note": "Source page lists this 4.23 MB archive for the 180-degree longitude domain; inspect PRJ and content before use."
+        },
+        {
+          "title": "Global NAC DTM footprints, 360-degree longitude domain",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/EXTRAS/SHAPEFILE/NAC_DTMS/NAC_DTMS_360.ZIP",
+          "asset_type": "ZIP archive containing shapefile",
+          "verification_state": "product_page_linked_not_downloaded_or_hashed",
+          "note": "Source page lists this 4.21 MB archive for the 360-degree longitude domain; choose longitude handling explicitly."
+        },
+        {
+          "title": "Global NAC DTM footprint README",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/EXTRAS/SHAPEFILE/NAC_DTMS/NAC_DTMS_README.TXT",
+          "asset_type": "Dataset README / field definitions",
+          "verification_state": "product_page_linked_not_retrieved_or_parsed",
+          "note": "Contains the source-linked schema/context; the page's published field descriptions are not a substitute for inspecting the archived README."
+        }
+      ],
+      "asset_access_notes": [
+        "The LROC landing page describes the footprint schema, Moon_2000 coordinate reference, both longitude-domain ZIPs, and a release cut-off of 2026-09-15.",
+        "During this research run, the browser could read the landing page but the ZIP/README links redirected to a PDS mirror inaccessible to the research tool; no package bytes or feature records were inspected."
+      ]
+    },
+    {
       "id": "pgda-lola-polar-illumination",
       "title": "Lunar Polar Illumination",
       "publisher": "NASA Goddard Space Flight Center / LOLA Planetary Data System",
@@ -382,7 +448,7 @@
     }
   ],
   "ingestion_sequence": [
-    "Resolve exact candidate-region polygons and their published versions before drawing or clipping site rasters.",
+    "Resolve exact candidate-region polygons and their published versions. Use the separately catalogued Global LROC NAC DTM footprint inventory to discover available overlapping stereo terrain products, but never treat DTM footprints as candidate-region boundaries.",
     "Inventory and hash source assets and parse labels/metadata before analysis.",
     "Ingest per-site LDEM, slope, elevation uncertainty, slope uncertainty, LOLA count and clone ensemble as aligned layers where available; where the published footprint overlaps a reviewed ROI, add stereo-derived LROC DTM, slope and confidence products only after their labels, grid alignment and confidence semantics are accepted.",
     "Add long-period illumination/PSR/Earth-visibility products only as coarse screening layers, preserving their averaging window and pixel scale.",

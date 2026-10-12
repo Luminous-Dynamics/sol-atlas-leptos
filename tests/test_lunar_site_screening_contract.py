@@ -92,7 +92,7 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
             "org.luminousdynamics.sol-atlas.lunar-source-catalog/v1",
         )
         self.assertEqual(self.catalog["status"], "source_catalogue_ingestion_plan_not_ingested")
-        self.assertEqual(len(self.catalog["sources"]), 5)
+        self.assertEqual(len(self.catalog["sources"]), 6)
         self.assertEqual(len(self.catalog["ingestion_sequence"]), 6)
         self.assertIn("No derived site metrics", self.catalog["metric_policy"])
         for source in self.catalog["sources"]:
@@ -132,6 +132,29 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
                             for asset in source["sample_direct_assets"]))
         self.assertTrue(any(asset["url"].endswith("NAC_DTM_SHACKRDGE02_CONF.IMG")
                             for asset in source["sample_direct_assets"]))
+
+    def test_global_lroc_dtm_footprint_inventory_is_catalogued_as_inventory_not_candidate_geometry(self) -> None:
+        source = next(
+            item for item in self.catalog["sources"]
+            if item["id"] == "lroc-global-nac-dtm-footprint-shapefiles"
+        )
+        self.assertEqual(
+            source["url"],
+            "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_NAC_DTMS",
+        )
+        self.assertIn("Moon_2000", source["coordinate_reference"])
+        self.assertIn("2026-09-15", source["temporal_scope"])
+        self.assertTrue(any("candidate-region boundaries" in item
+                            for item in source["uncertainty_and_limitations"]))
+        self.assertEqual(len(source["sample_direct_assets"]), 3)
+        self.assertTrue(any(asset["url"].endswith("NAC_DTMS_180.ZIP")
+                            for asset in source["sample_direct_assets"]))
+        self.assertTrue(any(asset["url"].endswith("NAC_DTMS_360.ZIP")
+                            for asset in source["sample_direct_assets"]))
+        self.assertTrue(all(
+            "downloaded_and_hashed" not in asset["verification_state"]
+            for asset in source["sample_direct_assets"]
+        ))
 
     def test_source_catalog_crosswalk_covers_every_reviewed_candidate(self) -> None:
         expected_ids = {candidate["id"] for candidate in self.canonical["candidates"]}

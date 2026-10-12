@@ -277,6 +277,7 @@ SOURCE_IDS = {
     "pgda-lola-south-pole-dem-mosaic",
     "nasa-svs-south-pole-illumination-2025-2028",
     "lroc-nac-shackleton-de-gerlache-connecting-ridge-dtm",
+    "lroc-global-nac-dtm-footprint-shapefiles",
 }
 LEAD_IDS = {
     "connecting-ridge-illumination-lead",
@@ -527,7 +528,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         "Lunar evidence contracts passed: 11 reviewed region/comparator records, "
-        "5 reviewed geospatial source families, and 3 bounded historical leads; "
+        "6 reviewed geospatial source families, and 3 bounded historical leads; "
         "no asserted site rankings or unverified asset hashes."
     )
     return 0
