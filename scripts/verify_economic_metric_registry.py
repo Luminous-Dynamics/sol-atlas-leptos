@@ -44,6 +44,11 @@ SOURCE_KEYS = {
     "acquisition_method",
     "reuse_status",
     "review_note",
+    "terms_url",
+    "terms_reviewed_at",
+    "underlying_data_redistribution",
+    "terms_statement",
+    "terms_scope",
 }
 EVENT_KEYS = {
     "event_id",
@@ -162,6 +167,14 @@ def validate_registry(registry: dict[str, Any]) -> int:
     require(source["digest_status"] == "not_captured", "source digest state drift")
     require(source["reuse_status"] == "terms_review_required", "unreviewed reuse terms must remain explicit")
     require("public access alone" in source["review_note"], "source-use caveat missing")
+    require(source["terms_url"] == "https://isibaloweb.statssa.gov.za/metadata/QLFS/2025/Qtr04/Quarterly%20Labour%20Force%20Survey%204th%20Quarter%202025%20metadata.pdf", "QLFS terms evidence URL drift")
+    require(iso_date(source["terms_reviewed_at"], "source.terms_reviewed_at") == date(2026, 10, 13), "source terms review date drift")
+    require(source["underlying_data_redistribution"] == "prior_permission_required_before_sale_or_offer_for_sale", "underlying QLFS redistribution gate weakened")
+    require("acknowledged as the original source" in source["terms_statement"], "Stats SA acknowledgement requirement missing")
+    require("independent processing" in source["terms_statement"], "independent-processing disclosure requirement missing")
+    require("without prior permission from Stats SA" in source["terms_statement"], "prior-permission restriction missing")
+    require("does not by itself settle reuse rights" in source["terms_scope"], "do not conflate microdata terms with summary reuse rights")
+    require(source["reuse_status"] == "terms_review_required", "standalone summary reuse gate must remain unresolved")
 
     metrics = registry["metrics"]
     require(isinstance(metrics, list) and len(metrics) == 2, "expected exactly two pilot metrics")
