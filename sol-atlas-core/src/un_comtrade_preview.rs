@@ -39,7 +39,11 @@ pub const UN_COMTRADE_DIMENSIONS_VERSION: &str = "uncomtrade-dimensions/v1";
 pub struct UnComtradePreviewQuery {
     pub type_code: String,
     pub frequency_code: String,
+    /// Classification family requested from the API (e.g. HS).
     pub classification_code: String,
+    /// Effective row-level classification code returned by the API (e.g. H6).
+    pub record_classification_code: String,
+    /// Pinned human-reviewed meaning/revision associated with the row-level code.
     pub classification_revision: String,
     pub period: String,
     pub reporter_code: String,
@@ -104,6 +108,8 @@ pub enum UnComtradeRowRejection {
     MissingField(String),
     InvalidFieldType(String),
     QueryDimensionMismatch(String),
+    /// The source marks a value aggregated above the requested commodity level.
+    CommodityAggregationAboveRequestedLevel,
     UnknownAreaCode(String),
     DuplicateRecordKey(String),
     UnsupportedFlowCode(String),
@@ -397,6 +403,8 @@ fn normalize_record(
     let partner_code = required_scalar(object, "partnerCode")?;
     let flow_code = required_scalar(object, "flowCode")?;
     let commodity_code = required_scalar(object, "cmdCode")?;
+    let record_classification_code = required_scalar(object, "classificationCode")?;
+    let is_aggregated_above = required_scalar(object, "isAggrAbove")?;
     let primary_value = required_scalar(object, "primaryValue")?;
 
     // These are required dimensions because they can alter the meaning/grain
@@ -438,6 +446,11 @@ fn normalize_record(
             commodity_code.as_str(),
             query.commodity_code.as_str(),
         ),
+        (
+            "classificationCode",
+            record_classification_code.as_str(),
+            query.record_classification_code.as_str(),
+        ),
     ] {
         if actual != expected {
             return Err(UnComtradeRowRejection::QueryDimensionMismatch(
@@ -451,6 +464,9 @@ fn normalize_record(
         "M" => TradeFlow::Import,
         _ => return Err(UnComtradeRowRejection::UnsupportedFlowCode(flow_code)),
     };
+    if is_aggregated_above != "false" {
+        return Err(UnComtradeRowRejection::CommodityAggregationAboveRequestedLevel);
+    }
     let dimension_signature = format!(
         concat!(
             "{UN_COMTRADE_DIMENSIONS_VERSION}|partner2={}|",
@@ -468,7 +484,7 @@ fn normalize_record(
     );
     let record_id = format!(
         concat!(
-            "comtrade:{}/{}/{}/{}/{}/{}/{}/{}/",
+            "comtrade:{}/{}/{}/{}/{}/{}/{}/{}/row_classification={}/",
             "partner2={}/mot={}/customs={}/reported={}/legacy_estimation={}"
         ),
         query.type_code,
@@ -479,6 +495,7 @@ fn normalize_record(
         partner_code,
         flow_code,
         commodity_code,
+        record_classification_code,
         second_partner_code,
         transport_mode_code,
         customs_procedure_code,
@@ -500,8 +517,11 @@ fn normalize_record(
         partner_kind,
         geography_code_system: UN_COMTRADE_GEOGRAPHY_CODE_SYSTEM.to_string(),
         series_signature: format!(
-            "uncomtrade-series/v1|type={}|frequency={}|classification={}",
-            query.type_code, query.frequency_code, query.classification_code
+            "uncomtrade-series/v2|type={}|frequency={}|classification={}|row_classification={}",
+            query.type_code,
+            query.frequency_code,
+            query.classification_code,
+            record_classification_code
         ),
         period,
         disaggregation_signature: dimension_signature,
@@ -574,6 +594,7 @@ mod tests {
             type_code: "C".to_string(),
             frequency_code: "A".to_string(),
             classification_code: "HS".to_string(),
+            record_classification_code: "H6".to_string(),
             classification_revision: "HS-2022".to_string(),
             period: "2025".to_string(),
             reporter_code: "842".to_string(),
@@ -610,6 +631,8 @@ mod tests {
             "partnerISO": "CHN",
             "flowCode": "X",
             "cmdCode": "010121",
+            "classificationCode": "H6",
+            "isAggrAbove": false,
             "partner2Code": 0,
             "motCode": "0",
             "customsCode": "C00",
@@ -771,6 +794,32 @@ mod tests {
         assert_eq!(
             parsed.coverage,
             PreviewCoverage::RowsRejectedCompletenessUnproven
+        );
+    }
+
+    #[test]
+    fn row_classification_mismatch_is_rejected() {
+        let mut wrong_revision = row();
+        wrong_revision["classificationCode"] = Value::String("H5".to_string());
+        let parsed =
+            parse_un_comtrade_preview(&response(vec![wrong_revision], 1), &context(10)).unwrap();
+        assert_eq!(parsed.records.len(), 0);
+        assert_eq!(
+            parsed.rejected_rows[0].reason,
+            UnComtradeRowRejection::QueryDimensionMismatch("classificationCode".to_string())
+        );
+    }
+
+    #[test]
+    fn value_aggregated_above_requested_commodity_is_rejected() {
+        let mut aggregated = row();
+        aggregated["isAggrAbove"] = Value::Bool(true);
+        let parsed = parse_un_comtrade_preview(&response(vec![aggregated], 1), &context(10))
+            .unwrap();
+        assert_eq!(parsed.records.len(), 0);
+        assert_eq!(
+            parsed.rejected_rows[0].reason,
+            UnComtradeRowRejection::CommodityAggregationAboveRequestedLevel
         );
     }
 
