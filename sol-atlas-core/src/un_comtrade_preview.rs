@@ -524,6 +524,9 @@ fn normalize_record(
             "legacy_estimation={legacy_estimation_flag}"
         )
     );
+    // Malformed optional fields are rejected, not silently collapsed into None.
+    let quantity = optional_f64(object, "qty")?;
+    let quantity_unit = optional_scalar(object, "qtyUnitAbbr")?;
     let record_id = format!(
         concat!(
             "comtrade:{}/{}/{}/{}/{}/{}/{}/{}/row_classification={}/",
@@ -576,8 +579,8 @@ fn normalize_record(
         currency: "USD".to_string(),
         valuation_basis_signature: query.valuation_basis_signature.clone(),
         value_unit: "USD".to_string(),
-        quantity: optional_f64(object, "qty"),
-        quantity_unit: optional_scalar(object, "qtyUnitAbbr"),
+        quantity,
+        quantity_unit,
         // The API row reference period is not the publication/revision time.
         // Preserve it separately as period; leave source_published_at absent
         // until qualified metadata provides a distinct publication timestamp.
@@ -634,16 +637,29 @@ fn required_nonnegative_integer(
     }
 }
 
-fn optional_scalar(object: &serde_json::Map<String, Value>, key: &str) -> Option<String> {
-    object.get(key).and_then(scalar_to_text)
+fn optional_scalar(
+    object: &serde_json::Map<String, Value>,
+    key: &'static str,
+) -> Result<Option<String>, UnComtradeRowRejection> {
+    match object.get(key) {
+        None | Some(Value::Null) => Ok(None),
+        Some(Value::String(text)) => Ok(Some(text.clone())),
+        Some(_) => Err(UnComtradeRowRejection::InvalidFieldType(key.to_string())),
+    }
 }
 
-fn optional_f64(object: &serde_json::Map<String, Value>, key: &str) -> Option<f64> {
-    object.get(key).and_then(|value| match value {
-        Value::Number(number) => number.as_f64(),
-        Value::String(text) => text.parse::<f64>().ok(),
-        _ => None,
-    })
+fn optional_f64(
+    object: &serde_json::Map<String, Value>,
+    key: &'static str,
+) -> Result<Option<f64>, UnComtradeRowRejection> {
+    match object.get(key) {
+        None | Some(Value::Null) => Ok(None),
+        Some(Value::Number(number)) => number
+            .as_f64()
+            .map(Some)
+            .ok_or_else(|| UnComtradeRowRejection::InvalidFieldValue(key.to_string())),
+        Some(_) => Err(UnComtradeRowRejection::InvalidFieldType(key.to_string())),
+    }
 }
 
 fn scalar_to_text(value: &Value) -> Option<String> {
@@ -970,6 +986,41 @@ mod tests {
                 "{field} should fail with an explicit field-type rejection"
             );
         }
+    }
+
+    #[test]
+    fn rejects_malformed_optional_quantity_fields() {
+        let ctx = context(10);
+        for (field, bad_value, reason) in [
+            (
+                "qty",
+                Value::String("12.5".to_string()),
+                UnComtradeRowRejection::InvalidFieldType("qty".to_string()),
+            ),
+            (
+                "qtyUnitAbbr",
+                Value::from(8),
+                UnComtradeRowRejection::InvalidFieldType("qtyUnitAbbr".to_string()),
+            ),
+        ] {
+            let mut candidate = row();
+            candidate[field] = bad_value;
+            let parsed = parse_un_comtrade_preview(&response(vec![candidate], 1), &ctx).unwrap();
+            assert!(parsed.records.is_empty(), "{field} should be rejected");
+            assert_eq!(parsed.rejected_rows[0].reason, reason);
+        }
+    }
+
+    #[test]
+    fn nullable_optional_quantity_fields_remain_nullable() {
+        let ctx = context(10);
+        let mut candidate = row();
+        candidate["qty"] = Value::Null;
+        candidate["qtyUnitAbbr"] = Value::Null;
+        let parsed = parse_un_comtrade_preview(&response(vec![candidate], 1), &ctx).unwrap();
+        assert_eq!(parsed.records.len(), 1);
+        assert_eq!(parsed.records[0].observation.quantity, None);
+        assert_eq!(parsed.records[0].observation.quantity_unit, None);
     }
 
     #[test]
