@@ -558,7 +558,7 @@ mod tests {
 
     #[test]
     fn parses_expected_preview_row_and_retains_raw_record() {
-        let raw = include_str!("../tests/fixtures/un_comtrade_preview_v1.json");
+        let raw = include_str!("../tests/fixtures/synthetic_un_comtrade_preview_v1.json");
         let parsed = parse_un_comtrade_preview(raw, &context(10)).unwrap();
         assert_eq!(parsed.records.len(), 1);
         assert!(parsed.rejected_rows.is_empty());
@@ -582,7 +582,7 @@ mod tests {
                 .raw_record
                 .get("reporterDesc")
                 .and_then(Value::as_str),
-            Some("United States of America")
+            Some("Synthetic fixture reporter A; identifier reused for schema testing")
         );
         assert!(!parsed.coverage.completeness_proven());
         assert_eq!(
