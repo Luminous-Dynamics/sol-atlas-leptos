@@ -729,7 +729,7 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
                     issues.push(issue(
                         "incomplete_reuse_approval",
                         format!("provenance.reuse_review.{field}"),
-                        "reuse approval must include reviewer, date, terms URI, digest, and purpose",
+                        "reuse approval requires reviewer, date, terms URI, digest, and purpose",
                     ));
                 }
             }
@@ -1147,6 +1147,39 @@ mod tests {
         let issues = admit(snapshot).expect_err("invalid values must fail closed");
         assert!(issues.iter().any(|item| item.code == "invalid_latitude"));
         assert!(issues.iter().any(|item| item.code == "invalid_flare_volume"));
+    }
+
+    #[test]
+    fn manual_review_requires_exact_source_and_terms_bytes() {
+        let source_empty = TrustedReuseAuthorization::record_manual_review(
+            "https://example.invalid/source",
+            "fixture-v1",
+            b"",
+            "reviewer",
+            "2026-10-12",
+            "https://example.invalid/terms",
+            b"terms bytes",
+            "synthetic test",
+        )
+        .expect_err("empty source snapshot cannot be authorized");
+        assert!(source_empty
+            .iter()
+            .any(|item| item.code == "missing_source_snapshot_bytes"));
+
+        let terms_empty = TrustedReuseAuthorization::record_manual_review(
+            "https://example.invalid/source",
+            "fixture-v1",
+            b"source bytes",
+            "reviewer",
+            "2026-10-12",
+            "https://example.invalid/terms",
+            b"",
+            "synthetic test",
+        )
+        .expect_err("empty reviewed terms snapshot cannot be authorized");
+        assert!(terms_empty
+            .iter()
+            .any(|item| item.code == "missing_terms_snapshot_bytes"));
     }
 
     #[test]
