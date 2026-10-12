@@ -59,6 +59,8 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
+      - name: Verify frozen economic-intelligence reference corpus
+        run: python3 scripts/verify_economic_intelligence_fixture.py
       # This crate is a wasm-bindgen-heavy [[bin]] with no [lib] target —
       # native `cargo test` still works (verified 2026-07-11) and is much
       # faster than a wasm test harness for the pure-logic unit tests
