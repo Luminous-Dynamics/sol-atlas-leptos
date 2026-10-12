@@ -201,7 +201,18 @@
                 },
                 "rights_state": {
                   "type": "string",
-                  "minLength": 1
+                  "minLength": 1,
+                  "enum": [
+                    "review_per_artifact",
+                    "release_level_cc0_component_review",
+                    "review_product_metadata",
+                    "cc_by_4_0_with_attribution",
+                    "review_sensor_product_version",
+                    "review_product_attribution",
+                    "review_product_terms",
+                    "odbl_1_0_attribution_and_share_alike_review",
+                    "review_dataset_version"
+                  ]
                 },
                 "redistribution_allowed": {
                   "type": [
