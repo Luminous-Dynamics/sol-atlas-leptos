@@ -52,6 +52,11 @@ class EarthSystemsCatalogTests(unittest.TestCase):
         source["rights_state"] = "review_per_artifact"
         self.assertTrue(any("fail-closed rule" in error for error in validate_catalog(doc)))
 
+    def test_unrecognized_rights_state_is_rejected(self):
+        doc = copy.deepcopy(self.catalog)
+        doc["domains"][0]["data_sources"][0]["rights_state"] = "free-use"
+        self.assertTrue(any("not a recognized review state" in error for error in validate_catalog(doc)))
+
     def test_source_id_cannot_conflict_across_domains(self):
         doc = copy.deepcopy(self.catalog)
         repeated = doc["domains"][1]["data_sources"][0]
