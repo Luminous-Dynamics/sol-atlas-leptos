@@ -202,6 +202,10 @@ def verify_comtrade_preview_fixture() -> list[str]:
         return ["Comtrade preview fixture lost the exact large integer primaryValue"]
     if row.get("flowCode") != "X" or row.get("period") != "2025":
         return ["Comtrade preview fixture core query dimensions drifted"]
+    if row.get("classificationCode") != "H6":
+        return ["Comtrade preview fixture row classification code drifted"]
+    if row.get("isAggrAbove") is not False:
+        return ["Comtrade preview fixture must not be aggregated above the requested commodity"]
     return []
 
 
