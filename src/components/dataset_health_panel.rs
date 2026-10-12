@@ -49,34 +49,40 @@ pub fn DatasetHealthPanel() -> impl IntoView {
             .iter()
             .filter(|item| item.state == DatasetLoadState::Malformed)
             .count();
-        format!("Static assets: {loaded} loaded · {partial} partial · {empty} valid-empty · {malformed} malformed")
+        format!(
+            "Static assets: {loaded} loaded · {partial} partial · {empty} valid-empty · {malformed} malformed"
+        )
     };
 
     let rows = move || {
-        health_for_rows.get().into_iter().map(|item: DatasetLoadHealth| {
-            let malformed = item.state == DatasetLoadState::Malformed;
-            let partially_loaded = item.state == DatasetLoadState::PartiallyLoaded;
-            let state = label(&item.state);
-            let rejected = item.rejected_record_count.unwrap_or(0);
-            let count = match item.record_count {
-                Some(accepted) if rejected > 0 => {
-                    format!("accepted: {accepted} · rejected: {rejected}")
+        health_for_rows
+            .get()
+            .into_iter()
+            .map(|item: DatasetLoadHealth| {
+                let malformed = item.state == DatasetLoadState::Malformed;
+                let partially_loaded = item.state == DatasetLoadState::PartiallyLoaded;
+                let state = label(&item.state);
+                let rejected = item.rejected_record_count.unwrap_or(0);
+                let count = match item.record_count {
+                    Some(accepted) if rejected > 0 => {
+                        format!("accepted: {accepted} · rejected: {rejected}")
+                    }
+                    Some(accepted) => format!("records: {accepted}"),
+                    None => "records: unknown".to_string(),
+                };
+                let diagnostic = item.diagnostic.unwrap_or_default();
+                view! {
+                    <li class:malformed=malformed class:partially-loaded=partially_loaded>
+                        <span class="data-health-name">{item.dataset}</span>
+                        <span class="data-health-state">{state}</span>
+                        <span class="data-health-count">{format!("records: {count}")}</span>
+                        {(!diagnostic.is_empty()).then(|| view! {
+                            <p class="data-health-diagnostic">{diagnostic}</p>
+                        })}
+                    </li>
                 }
-                Some(accepted) => format!("records: {accepted}"),
-                None => "records: unknown".to_string(),
-            };
-            let diagnostic = item.diagnostic.unwrap_or_default();
-            view! {
-                <li class:malformed=malformed class:partially-loaded=partially_loaded>
-                    <span class="data-health-name">{item.dataset}</span>
-                    <span class="data-health-state">{state}</span>
-                    <span class="data-health-count">{format!("records: {count}")}</span>
-                    {(!diagnostic.is_empty()).then(|| view! {
-                        <p class="data-health-diagnostic">{diagnostic}</p>
-                    })}
-                </li>
-            }
-        }).collect_view()
+            })
+            .collect_view()
     };
 
     view! {
