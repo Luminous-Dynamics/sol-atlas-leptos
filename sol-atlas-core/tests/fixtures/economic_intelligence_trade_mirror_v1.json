@@ -1,0 +1,73 @@
+{
+  "corpus_id": "economic-intelligence-trade-mirror-v1",
+  "schema_version": 1,
+  "fixture_kind": "synthetic",
+  "note": "Synthetic normalized observations only. These are not UN Comtrade records and must not be cited as real-world findings.",
+  "cases": [
+    {
+      "case_id": "ordinary_gap",
+      "exporter_value": "100.00",
+      "importer_value": "120.000",
+      "expected_status": "compared",
+      "expected_signed_difference": "20",
+      "expected_absolute_difference": "20"
+    },
+    {
+      "case_id": "equal_values",
+      "exporter_value": "100",
+      "importer_value": "100.00",
+      "expected_status": "compared",
+      "expected_signed_difference": "0",
+      "expected_absolute_difference": "0"
+    },
+    {
+      "case_id": "f64_integer_precision_boundary",
+      "exporter_value": "9007199254740992",
+      "importer_value": "9007199254740993",
+      "expected_status": "compared",
+      "expected_signed_difference": "1",
+      "expected_absolute_difference": "1"
+    },
+    {
+      "case_id": "negative_signed_fraction",
+      "exporter_value": "100.000",
+      "importer_value": "99.999",
+      "expected_status": "compared",
+      "expected_signed_difference": "-0.001",
+      "expected_absolute_difference": "0.001"
+    },
+    {
+      "case_id": "incompatible_value_units",
+      "exporter_value": "100",
+      "importer_value": "120",
+      "importer_value_unit": "USD_thousands",
+      "expected_status": "value_unit_mismatch"
+    },
+    {
+      "case_id": "aggregate_partner",
+      "exporter_value": "100",
+      "importer_value": "120",
+      "exporter_partner_kind": "aggregate",
+      "expected_status": "aggregate_party_not_supported"
+    },
+    {
+      "case_id": "mixed_geography_code_systems",
+      "exporter_value": "100",
+      "importer_value": "120",
+      "importer_geography_code_system": "UN_M49",
+      "expected_status": "geography_code_system_mismatch"
+    },
+    {
+      "case_id": "exponent_notation",
+      "exporter_value": "1e2",
+      "importer_value": "120",
+      "expected_status": "invalid_exporter_value_format"
+    },
+    {
+      "case_id": "missing_import_value",
+      "exporter_value": "100",
+      "importer_value": null,
+      "expected_status": "missing_importer_value"
+    }
+  ]
+}
