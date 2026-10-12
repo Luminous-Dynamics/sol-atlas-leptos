@@ -77,6 +77,9 @@ pub struct TradeObservation {
     /// (e.g. second partner, transport mode, customs procedure). Mirrors may
     /// only be compared when this exact key agrees; use a versioned encoding.
     pub disaggregation_signature: String,
+    /// Canonical source-record state affecting interpretation (e.g. reported
+    /// versus estimated status). Kept separate from geography/product dimensions.
+    pub source_state_signature: String,
     /// Commodity code as supplied/normalized under the source contract.
     pub commodity_code: String,
     /// Classification system and revision (for example, HS revision).
@@ -359,6 +362,13 @@ pub fn compare_mirror_pair(
             importer_id,
         );
     }
+    if exporter.source_state_signature != importer.source_state_signature {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::SourceStateMismatch,
+            exporter_id,
+            importer_id,
+        );
+    }
     if exporter.commodity_code != importer.commodity_code {
         return MirrorPairResult::excluded(
             MirrorPairStatus::CommodityMismatch,
@@ -595,6 +605,7 @@ fn has_identity(observation: &TradeObservation) -> bool {
         && !observation.geography_code_system.trim().is_empty()
         && !observation.period.trim().is_empty()
         && !observation.disaggregation_signature.trim().is_empty()
+        && !observation.source_state_signature.trim().is_empty()
         && !observation.commodity_code.trim().is_empty()
         && !observation.classification_revision.trim().is_empty()
         && !observation.currency.trim().is_empty()
@@ -626,7 +637,12 @@ mod tests {
             partner_kind: TradeAreaKind::ReportingArea,
             geography_code_system: "TEST_ALPHA3".to_string(),
             period: "2025".to_string(),
-            disaggregation_signature: "comtrade-dimensions/v1|partner2=0|mot=0|customs=C00".to_string(),
+            disaggregation_signature: concat!(
+                "comtrade-dimensions/v1|partner2=0|mot=0|",
+                "customs=C00"
+            )
+            .to_string(),
+            source_state_signature: "synthetic-state/v1|reported=true|legacy_estimation=0".to_string(),
             commodity_code: "010121".to_string(),
             classification_revision: "HS-2022".to_string(),
             flow,
@@ -984,6 +1000,24 @@ mod tests {
             compare_mirror_pair(&[exporter], &[importer]).status,
             MirrorPairStatus::NonReciprocalReporters
         );
+    }
+
+    #[test]
+    fn rejects_different_source_reporting_states() {
+        let mut exporter =
+            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer =
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        importer.source_state_signature =
+            "synthetic-state/v1|reported=false|legacy_estimation=1".to_string();
+        assert_eq!(
+            compare_mirror_pair(&[exporter.clone()], &[importer]).status,
+            MirrorPairStatus::SourceStateMismatch
+        );
+        // Keep mutability intentional for future test dimensions; assert a
+        // matching state passes that particular gate.
+        exporter.source_state_signature =
+            "synthetic-state/v1|reported=true|legacy_estimation=0".to_string();
     }
 
     #[test]
