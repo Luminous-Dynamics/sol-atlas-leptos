@@ -9,6 +9,6 @@ description = "Shared types, geo math, and constants for Sol Atlas renderers"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde_json = { version = "1", features = ["arbitrary_precision"] }
 log = "0.4"
 h3o = "0.10"
