@@ -75,6 +75,7 @@ mod tests {
             magnitude_unit: None,
             magnitude_description: None,
             source_name: None,
+            data_kind: None,
             source_id: None,
             source_url: None,
             occurred_at_ms: None,
