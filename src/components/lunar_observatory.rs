@@ -453,7 +453,7 @@ fn LunarHistoricalLeadCard(lead: LunarHistoricalLead) -> impl IntoView {
     } else {
         lead.heights_above_surface_m
             .iter()
-            .map(|height| format!("{height:g} m"))
+            .map(|height| format!("{height} m"))
             .collect::<Vec<_>>()
             .join(" / ")
     };
