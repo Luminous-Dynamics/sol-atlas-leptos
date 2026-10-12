@@ -49,8 +49,12 @@ pub fn DatasetHealthPanel() -> impl IntoView {
             .iter()
             .filter(|item| item.state == DatasetLoadState::Malformed)
             .count();
+        let rejected = items
+            .iter()
+            .filter(|item| item.state == DatasetLoadState::Rejected)
+            .count();
         format!(
-            "Static assets: {loaded} loaded · {partial} partial · {empty} valid-empty · {malformed} malformed"
+            "Static assets: {loaded} loaded · {partial} partial · {empty} valid-empty · {malformed} malformed · {rejected} rejected"
         )
     };
 
