@@ -1289,6 +1289,14 @@ mod tests {
     }
 
     #[test]
+    fn sha256_helper_matches_a_standard_test_vector() {
+        assert_eq!(
+            sha256_hex(b"abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+    }
+
+    #[test]
     fn derived_identity_has_a_pinned_sha256_test_vector() {
         let fields = vec![
             "Country".to_string(),
