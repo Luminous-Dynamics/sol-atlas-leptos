@@ -135,7 +135,7 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
         self.assertTrue(
             any("not a new measurement" in item for item in connecting_ridge["interpretation_limits"])
         )
-        self.assertIn("not a mission-specific", " ".join(connecting_ridge["interpretation_limits"]))
+        self.assertIn("future crewed mission window", " ".join(connecting_ridge["interpretation_limits"]))
 
 
 if __name__ == "__main__":
