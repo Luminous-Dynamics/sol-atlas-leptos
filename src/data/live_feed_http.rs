@@ -36,12 +36,12 @@ pub async fn fetch_feed(source: LiveFeedSource) -> Result<String, String> {
     let window = web_sys::window().ok_or_else(|| "browser window unavailable".to_string())?;
     let controller = AbortController::new()
         .map_err(|_| "could not create request abort controller".to_string())?;
-    let mut init = RequestInit::new();
+    let init = RequestInit::new();
     init.set_signal(Some(&controller.signal()));
     // EONET needs explicit JSON negotiation; don't rely on the server's
     // default representation when parsing a strict event-catalog schema.
-    let headers = web_sys::Headers::new()
-        .map_err(|_| format!("{source:?} request headers unavailable"))?;
+    let headers =
+        web_sys::Headers::new().map_err(|_| format!("{source:?} request headers unavailable"))?;
     headers
         .set("Accept", "application/json")
         .map_err(|_| format!("{source:?} JSON Accept header configuration failed"))?;
@@ -72,7 +72,9 @@ pub async fn fetch_feed(source: LiveFeedSource) -> Result<String, String> {
         .is_some_and(|length| length > maximum_bytes)
     {
         controller.abort();
-        return Err(format!("{source:?} response exceeded the {maximum_bytes}-byte limit"));
+        return Err(format!(
+            "{source:?} response exceeded the {maximum_bytes}-byte limit"
+        ));
     }
 
     let body_stream = response
@@ -88,22 +90,17 @@ pub async fn fetch_feed(source: LiveFeedSource) -> Result<String, String> {
         let read_result = JsFuture::from(reader.read())
             .await
             .map_err(|_| format!("{source:?} response stream failed or timed out"))?;
-        let done = js_sys::Reflect::get(
-            &read_result,
-            &wasm_bindgen::JsValue::from_str("done"),
-        )
-        .map_err(|_| format!("{source:?} stream returned an invalid read result"))?
-        .as_bool()
-        .ok_or_else(|| format!("{source:?} stream omitted the read completion flag"))?;
+        let done = js_sys::Reflect::get(&read_result, &wasm_bindgen::JsValue::from_str("done"))
+            .map_err(|_| format!("{source:?} stream returned an invalid read result"))?
+            .as_bool()
+            .ok_or_else(|| format!("{source:?} stream omitted the read completion flag"))?;
         if done {
             break;
         }
 
-        let chunk_value = js_sys::Reflect::get(
-            &read_result,
-            &wasm_bindgen::JsValue::from_str("value"),
-        )
-        .map_err(|_| format!("{source:?} stream returned a chunk without a value"))?;
+        let chunk_value =
+            js_sys::Reflect::get(&read_result, &wasm_bindgen::JsValue::from_str("value"))
+                .map_err(|_| format!("{source:?} stream returned a chunk without a value"))?;
         let chunk = js_sys::Uint8Array::new(&chunk_value);
         let next_len = bytes
             .len()
@@ -112,7 +109,9 @@ pub async fn fetch_feed(source: LiveFeedSource) -> Result<String, String> {
         if next_len > maximum_bytes {
             controller.abort();
             let _ = reader.cancel();
-            return Err(format!("{source:?} response exceeded the {maximum_bytes}-byte limit"));
+            return Err(format!(
+                "{source:?} response exceeded the {maximum_bytes}-byte limit"
+            ));
         }
 
         let start = bytes.len();
