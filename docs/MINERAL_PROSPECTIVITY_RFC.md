@@ -36,6 +36,19 @@ The paper reports a national evidence compilation with 38 covariates, a common s
 
 A critical limitation documented by the paper is that comprehensive drilling data are sparse. Unlabeled cells were therefore used as statistical proxies for negative labels, with the variation in sampled negatives propagated through the ensemble. This is a useful starting baseline, but it is not evidence that every unlabeled cell is barren ground.
 
+### Benchmark-specific reproduction constraints
+
+The publisher describes Supplementary Material 1 as one PDF of approximately 142,100 KB containing the supporting datasets and prediction results, rather than as a confirmed, pre-packaged machine-learning dataset. **Its files and contents have not yet been downloaded, extracted, or independently checked in this work.** M0 must therefore include PDF structure inspection, extraction of any embedded or linked assets, per-artifact checksums, and a fidelity review before model implementation.
+
+The article reports 593 positive PGE–Cr–Ni–Cu labels and 1,073 Witwatersrand-type Au labels. Its spatial-indexing procedure standardizes inputs to EPSG:4326 and uses H3 resolution 7 (average cell area approximately 5.16 km²; edge length approximately 1.22 km). It also reports regional Bouguer-gravity station spacing of roughly 14 km and magnetic surveys stitched from block surveys conducted from the 1980s through the late 1990s, with approximate 1 km flight-line spacing and flight heights of 100–150 m. These are important source limitations: **H3 cells are an indexing/support grid, not proof that every layer resolves geology at 1 km or 5 km².**
+
+Maintain two explicit geospatial modes:
+
+- **Benchmark reproduction mode:** mirror the paper's CRS, H3 resolution, feature construction, label conventions, and disclosed workflow as faithfully as source availability permits. Record every deviation.
+- **Improved evaluation mode:** where appropriate, evaluate areas/distances in a suitable local projected CRS and use source-aware support, valid-data masks, and spatial validation folds. Do not silently alter the reproduction pipeline while claiming to reproduce the published result.
+
+The paper notes that fault traces from multiple sources were not deduplicated because the authors judged their influence small at national scale. Our audit should measure duplicate/geometric lineage explicitly and test whether deduplication changes relevant features; avoid treating the paper's decision as automatically valid at every scale. All reported label counts and source properties are reference-paper facts, not claims that our local inventory has independently recounted those rows.
+
 ### First target family
 
 Start with the South African PGE–Ni–Cu–Cr system associated with the Bushveld Complex. Treat Witwatersrand-type Au as a second, separately configured benchmark only after the first target-family pipeline is reproducible. Do not mix deposit types under one undifferentiated label.
@@ -92,7 +105,7 @@ Never place secrets, restricted raw data, private landholder records, or sensiti
 
 ## 4. Spatial index and geospatial correctness
 
-Use an equal-area projected CRS for distance/area calculations within the South African pilot and retain original coordinates/CRSs in the provenance chain. A hierarchical grid such as H3 can be used as an indexing/join layer and for multi-resolution aggregation, but grid choice must not erase source resolution or create false precision.
+For faithful reproduction, first mirror the study's EPSG:4326 + H3 resolution-7 spatial index and document any deviation. For improved area/distance metrics within South Africa, use an appropriate local projected CRS while preserving original coordinates and CRS in provenance. H3 is an indexing/join layer and supports hierarchical aggregation; it does not erase source resolution or justify false precision.
 
 For every feature, retain at least:
 
