@@ -1,0 +1,79 @@
+name: Community Energy Demo
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/community-energy-demo.yml"
+      - "sol-atlas-core/**"
+      - "src/app.rs"
+      - "src/components/**"
+      - "style/main.css"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "Trunk.toml"
+      - "NETWORK_STATE_DEMO.md"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/community-energy-demo.yml"
+      - "sol-atlas-core/**"
+      - "src/app.rs"
+      - "src/components/**"
+      - "style/main.css"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "Trunk.toml"
+      - "NETWORK_STATE_DEMO.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: community-energy-demo-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust-core:
+    name: Format and test the scenario/verifier
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Check core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml --all -- --check
+
+      - name: Run focused Rust fixture tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml community_energy_demo
+
+      - name: Run all Sol Atlas core tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+
+  browser-build:
+    name: Build the Leptos/WASM browser route
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install Rust and WASM target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: rustfmt
+
+      - name: Build the browser application
+        run: cargo check --target wasm32-unknown-unknown
