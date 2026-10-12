@@ -197,7 +197,7 @@ The initial slice does not:
 
 A first renderer-independent primitive now exists in `sol-atlas-core/src/economic_intelligence.rs` and is exported from `sol-atlas-core/src/lib.rs`:
 
-- typed source-reported observations retain source/snapshot/record identifiers, reporting parties, period, commodity classification, original currency/value, and time metadata;
+- typed source-reported observations retain source/snapshot/record identifiers, reporting parties, period, commodity classification, currency, source-native value text, a separate numeric calculation projection, and time metadata;
 - candidate selection is fail-closed: missing sides, duplicates, ambiguous candidates, non-reciprocal reporters, mismatched period/product/classification/currency, missing values, non-finite values, and non-positive values receive explicit dispositions;
 - only a single qualifying pair emits a raw signed value difference, absolute difference, and difference as a percentage of the arithmetic mean;
 - all outputs carry a fixed `DescriptiveValueDifferenceOnly` claim ceiling;
