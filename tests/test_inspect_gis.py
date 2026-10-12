@@ -71,6 +71,40 @@ class GisMetadataTests(unittest.TestCase):
             self.assertIn("-nomd", calls[1])
             self.assertEqual(report["inspection"]["metadata"]["size"], [256,256])
 
+    def test_gdb_directory_has_deterministic_tree_hash(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "Africa_GIS.gdb"
+            path.mkdir()
+            (path / "a00000001.gdbtable").write_bytes(b"table")
+            (path / "a00000001.gdbtablx").write_bytes(b"index")
+            calls = []
+            def fake_run(cmd, **kwargs):
+                calls.append(cmd)
+                if cmd[-1] == "--version": return FakeResult("GDAL 3.13")
+                return FakeResult(json.dumps({"description":str(path),"driverShortName":"OpenFileGDB",
+                                              "layers":[{"name":"Mineral_Deposits","featureCount":4,
+                                                          "geometryFields":[],"fields":[{"name":"commodity","type":"String"}]}]}))
+            with patch.object(inspect_gis.shutil, "which", return_value="/usr/bin/ogrinfo"), \
+                 patch.object(inspect_gis.subprocess, "run", side_effect=fake_run):
+                report = inspect_gis.inspect_gis(path, "USGS-AFRICA-GIS", "Africa GDB", "", "unknown", "unreviewed")
+            self.assertEqual(report["artifact"]["digest_algorithm"], "sha256-tree-v1")
+            self.assertEqual(report["artifact"]["file_count"], 2)
+            self.assertEqual(len(report["artifact"]["sha256_tree"]), 64)
+            self.assertEqual(report["inspection"]["kind"], "vector")
+
+    def test_gdb_directory_rejects_symlinks(self):
+        import os
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "bad.gdb"
+            path.mkdir()
+            target = Path(td) / "target"
+            target.write_text("secret")
+            link = path / "link"
+            os.symlink(target, link)
+            with patch.object(inspect_gis.shutil, "which", return_value="/usr/bin/ogrinfo"):
+                with self.assertRaisesRegex(ValueError, "Symlink"):
+                    inspect_gis.inspect_gis(path, "TEST", "bad", "", "unknown", "unreviewed")
+
     def test_blocks_missing_gdal_tool(self):
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / "t.tif"
