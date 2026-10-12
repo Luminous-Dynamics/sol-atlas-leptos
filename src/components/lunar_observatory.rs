@@ -150,11 +150,15 @@ fn filter_matches(candidate: &LunarCandidate, filter: SiteFilter, query: &str) -
         SiteFilter::PowerAndRelay => candidate
             .proposed_roles
             .iter()
-            .any(|role| role.contains("power") || role.contains("communications") || role.contains("relay")),
+            .any(|role| {
+                role.contains("power") || role.contains("communications") || role.contains("relay")
+            }),
         SiteFilter::RoboticsAndScience => candidate
             .proposed_roles
             .iter()
-            .any(|role| role.contains("robotic") || role.contains("prospecting") || role.contains("science")),
+            .any(|role| {
+                role.contains("robotic") || role.contains("prospecting") || role.contains("science")
+            }),
     }
 }
 
