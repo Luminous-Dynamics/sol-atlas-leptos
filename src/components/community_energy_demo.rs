@@ -91,7 +91,7 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                     >
                         <span class="community-energy-choice-label">"BASELINE"</span>
                         <strong>"Existing equipment"</strong>
-                        <span>"6 kWh battery · 2 kW charge/discharge"</span>
+                        <span>"6 kWh capacity · 3 kWh starting SOC · 2 kW charge/discharge"</span>
                     </button>
                     <button
                         class=move || if selected_candidate.get() {
@@ -103,12 +103,12 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                     >
                         <span class="community-energy-choice-label">"SENSITIVITY CANDIDATE"</span>
                         <strong>"Larger reserve"</strong>
-                        <span>"20 kWh battery · 8 kW charge/discharge"</span>
+                        <span>"20 kWh capacity · 16 kWh starting SOC · 8 kW charge/discharge"</span>
                     </button>
                 </div>
 
                 <p class="community-energy-candidate-warning">
-                    "The larger battery is an intentionally oversized sensitivity case, not a priced recommendation. Cost, degradation, inverter behavior, network constraints, and real load calibration are outside this model."
+                    "The larger case is intentionally oversized and starts with 16 kWh already stored; the baseline starts at 3 kWh. The source and cost of precharging that reserve are not modeled, so this does not isolate battery size. Cost, degradation, inverter behavior, network constraints, and real load calibration are also outside scope."
                 </p>
 
                 <div class="community-energy-status-row">
