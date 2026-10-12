@@ -213,6 +213,7 @@ pub struct TrustedReuseAuthorization {
     source_uri: String,
     source_version: String,
     snapshot_sha256: String,
+    normalized_snapshot_sha256: String,
     reviewer: String,
     reviewed_at: String,
     terms_uri: String,
@@ -232,6 +233,7 @@ impl TrustedReuseAuthorization {
         source_uri: &str,
         source_version: &str,
         source_bytes: &[u8],
+        normalized_snapshot_bytes: &[u8],
         reviewer: &str,
         reviewed_at: &str,
         terms_uri: &str,
@@ -260,6 +262,13 @@ impl TrustedReuseAuthorization {
                 "missing_source_snapshot_bytes",
                 "authorization.source_bytes",
                 "hash the exact non-empty source snapshot bytes before authorizing ingestion",
+            ));
+        }
+        if normalized_snapshot_bytes.is_empty() {
+            issues.push(issue(
+                "missing_normalized_snapshot_bytes",
+                "authorization.normalized_snapshot_bytes",
+                "bind authorization to the non-empty canonical normalized snapshot bytes",
             ));
         }
         if terms_snapshot_bytes.is_empty() {
@@ -291,6 +300,7 @@ impl TrustedReuseAuthorization {
             source_uri: source_uri.to_string(),
             source_version: source_version.to_string(),
             snapshot_sha256: sha256_hex(source_bytes),
+            normalized_snapshot_sha256: sha256_hex(normalized_snapshot_bytes),
             reviewer: reviewer.to_string(),
             reviewed_at: reviewed_at.to_string(),
             terms_uri: terms_uri.to_string(),
@@ -361,6 +371,21 @@ pub fn admit_snapshot(
     let mut issues = Vec::new();
     validate_provenance(&snapshot.provenance, &mut issues);
     validate_reuse_authorization(&snapshot.provenance, authorization, &mut issues);
+
+    match serde_json::to_vec(&snapshot) {
+        Ok(canonical_bytes)
+            if sha256_hex(&canonical_bytes) == authorization.normalized_snapshot_sha256 => {}
+        Ok(_) => issues.push(issue(
+            "normalized_snapshot_digest_mismatch",
+            "snapshot",
+            "canonical normalized data does not match the snapshot bound by trusted authorization",
+        )),
+        Err(_) => issues.push(issue(
+            "normalized_snapshot_serialization_failed",
+            "snapshot",
+            "canonical normalized snapshot could not be serialized for digest verification",
+        )),
+    }
 
     if snapshot.schema_version.trim().is_empty() {
         issues.push(issue(
@@ -983,11 +1008,12 @@ fn issue(
 mod tests {
     use super::*;
 
-    fn test_authorization() -> TrustedReuseAuthorization {
+    fn test_authorization(snapshot: &FlareSnapshot) -> TrustedReuseAuthorization {
         TrustedReuseAuthorization::record_manual_review(
             "https://example.invalid/synthetic-flare-fixture",
             "synthetic-fixture-v1",
             b"synthetic workbook bytes",
+            &serde_json::to_vec(snapshot).expect("serialize synthetic normalized snapshot"),
             "test-fixture-review",
             "2026-10-12",
             "https://example.invalid/synthetic-test-terms",
@@ -1000,7 +1026,8 @@ mod tests {
     fn admit(
         snapshot: FlareSnapshot,
     ) -> Result<ValidatedFlareSnapshot, Vec<ValidationIssue>> {
-        super::admit_snapshot(snapshot, &test_authorization())
+        let authorization = test_authorization(&snapshot);
+        super::admit_snapshot(snapshot, &authorization)
     }
 
     fn provenance() -> FlareSourceProvenance {
@@ -1192,7 +1219,8 @@ mod tests {
             terms_snapshot_sha256: "c".repeat(64),
             approved_purpose: "claiming approval".into(),
         };
-        let issues = super::admit_snapshot(snapshot, &test_authorization())
+        let authorization = test_authorization(&sample_snapshot());
+        let issues = super::admit_snapshot(snapshot, &authorization)
             .expect_err("snapshot metadata cannot substitute for trusted review");
         assert!(issues
             .iter()
@@ -1203,7 +1231,8 @@ mod tests {
     fn authorization_is_bound_to_exact_source_digest() {
         let mut snapshot = sample_snapshot();
         snapshot.provenance.snapshot_sha256 = "b".repeat(64);
-        let issues = super::admit_snapshot(snapshot, &test_authorization())
+        let authorization = test_authorization(&sample_snapshot());
+        let issues = super::admit_snapshot(snapshot, &authorization)
             .expect_err("digest mismatch must reject");
         assert!(issues
             .iter()
@@ -1319,14 +1348,14 @@ mod tests {
     #[test]
     fn json_parser_requires_the_same_admission_checks() {
         let json = serde_json::to_string(&sample_snapshot()).unwrap();
-        let admitted =
-            parse_json_snapshot(&json, &test_authorization()).expect("valid normalized JSON");
+        let authorization = test_authorization(&sample_snapshot());
+        let admitted = parse_json_snapshot(&json, &authorization).expect("valid normalized JSON");
         assert_eq!(admitted.snapshot.schema_version, "gas-flaring-screening-v1");
 
         let mut invalid = sample_snapshot();
         invalid.provenance.source_uri = "http://example.invalid".into();
         let invalid_json = serde_json::to_string(&invalid).unwrap();
-        let error = parse_json_snapshot(&invalid_json, &test_authorization())
+        let error = parse_json_snapshot(&invalid_json, &authorization)
             .expect_err("HTTP sources must reject");
         match error {
             AdmissionError::Rejected(issues) => {
@@ -1339,7 +1368,7 @@ mod tests {
         drifted["surprise_field"] = serde_json::json!("must not be ignored");
         let drifted_json = serde_json::to_string(&drifted).unwrap();
         assert!(matches!(
-            parse_json_snapshot(&drifted_json, &test_authorization()),
+            parse_json_snapshot(&drifted_json, &authorization),
             Err(AdmissionError::InvalidJson(_))
         ));
 
@@ -1348,7 +1377,7 @@ mod tests {
             serde_json::json!("must not be ignored");
         let enum_drift_json = serde_json::to_string(&enum_drift).unwrap();
         assert!(matches!(
-            parse_json_snapshot(&enum_drift_json, &test_authorization()),
+            parse_json_snapshot(&enum_drift_json, &authorization),
             Err(AdmissionError::InvalidJson(_))
         ));
     }
