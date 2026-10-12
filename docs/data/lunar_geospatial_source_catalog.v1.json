@@ -143,6 +143,87 @@
       ]
     },
     {
+      "id": "lroc-nac-shackleton-de-gerlache-connecting-ridge-dtm",
+      "title": "Shackleton–de Gerlache Connecting Ridge DTM (SHACKRDGE02)",
+      "publisher": "Lunar Reconnaissance Orbiter Camera (LROC), Arizona State University / NASA Planetary Data System",
+      "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_SHACKRDGE02",
+      "product_families": [
+        "Stereo-derived digital terrain model (32-bit GeoTIFF and PDS IMG)",
+        "Color slope map",
+        "DTM confidence map",
+        "Orthorectified imagery",
+        "Shaded-relief products"
+      ],
+      "spatial_resolution": "LROC product page reports a 3.50 m/pixel DTM. The page also reports a broad extent from 89.63°S to 89.37°S and longitude 209.81° to 239.10°; confirm label conventions and raster grid before using those bounds for a spatial join.",
+      "coordinate_reference": "The public product page reports center/bounds in latitude and longitude, but this alone does not establish the GeoTIFF grid projection, longitude convention, lunar datum/reference frame, coordinate type, pixel registration, or exact map transform. Parse the paired PDS label before aligning with LOLA or candidate polygons.",
+      "temporal_scope": "Stereo images were acquired on 22 September 2010; the LROC page lists a project date of 23 April 2024. This is a historical local-terrain model, not a mission-window illumination, temperature, or operational forecast.",
+      "uncertainty_and_limitations": [
+        "The product page reports Relative LE = 3.41 and LOLA_RMS = 1.06; confirm their formal definitions and units in the product metadata/README before interpreting them as error measures.",
+        "A confidence map is listed, but its pixel-value semantics must be verified against the product README/label before filtering cells or producing statistics.",
+        "A 3.50 m/pixel sampling interval is not, by itself, a guarantee of independent 3.50 m measurements, absolute positional accuracy, hazard detection completeness, or safe touchdown conditions.",
+        "The product name and published geographic extent do not establish exact equivalence to a current Artemis refined candidate polygon; no candidate polygon overlap has been computed here.",
+        "This is a localized stereo DTM and cannot substitute for common-coverage terrain, illumination, thermal, communications, and uncertainty layers across every candidate region."
+      ],
+      "recommended_use": "Use as an independent high-resolution local-terrain cross-check for the Connecting Ridge comparator. First retrieve and hash the raster, PDS label, slope and confidence products; verify the label-defined grid and confidence semantics; then compare only the proven overlapping ROI with compatible LOLA layers.",
+      "required_acceptance_checks": [
+        "Retrieve the DTM, its exact PDS label, the slope product and the confidence map; record source URL, retrieval timestamp, byte count, SHA-256 and available HTTP/content metadata.",
+        "Parse the PDS label and product README to verify grid dimensions, map projection, lunar reference frame/datum, longitude convention, units, pixel registration, nodata, scale/offset and product identifiers.",
+        "Decode confidence-map values from the authoritative README/label before using confidence filtering or describing quality classes.",
+        "Check DTM, slope and confidence alignment, footprints, nodata and transforms; do not assume that products displayed on one page are pixel-aligned without checking.",
+        "Crosswalk the raster footprint to an independently versioned candidate/ROI polygon and document intersection/coverage; do not infer equivalence from the product name.",
+        "Keep the asset in an unverified state until bytes and labels are reviewed; no raster-derived statistic enters the candidate register without a replayable receipt and uncertainty treatment."
+      ],
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "connecting-ridge",
+          "product_site": "SHACKRDGE02: Shackleton–de Gerlache Connecting Ridge DTM",
+          "mapping_state": "product_name_match_roi_validation_required",
+          "note": "Historical comparator/name correspondence only. Exact raster-footprint intersection with the catalogue's candidate or ROI geometry has not been computed."
+        }
+      ],
+      "sample_direct_assets": [
+        {
+          "title": "SHACKRDGE02 digital terrain model (32-bit GeoTIFF)",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/SHACKRDGE02/NAC_DTM_SHACKRDGE02.TIF",
+          "asset_type": "32-bit GeoTIFF DTM",
+          "verification_state": "product_page_linked_not_downloaded_or_hashed",
+          "note": "LROC product page lists this exact payload as the 3.50 m/pixel DTM. PDS label must be parsed before quantitative use."
+        },
+        {
+          "title": "SHACKRDGE02 digital terrain model label",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/SHACKRDGE02/NAC_DTM_SHACKRDGE02.LBL",
+          "asset_type": "PDS label",
+          "verification_state": "product_page_linked_not_retrieved_or_parsed",
+          "note": "Authoritative label link is listed by the LROC DTM product page; its contents and grid semantics have not been inspected in this run."
+        },
+        {
+          "title": "SHACKRDGE02 color slope map",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/SHACKRDGE02/NAC_DTM_SHACKRDGE02_SLOPE.TIF",
+          "asset_type": "Color slope GeoTIFF",
+          "verification_state": "product_page_linked_not_downloaded_or_hashed",
+          "note": "LROC product page lists this slope product at the same reported 3.50 m/pixel scale; verify its label and units before treating values as numeric slope."
+        },
+        {
+          "title": "SHACKRDGE02 color slope map label",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/SHACKRDGE02/NAC_DTM_SHACKRDGE02_SLOPE.LBL",
+          "asset_type": "PDS label",
+          "verification_state": "product_page_linked_not_retrieved_or_parsed",
+          "note": "Read the corresponding label before reprojecting or interpreting pixel values; no label has been parsed."
+        },
+        {
+          "title": "SHACKRDGE02 confidence map",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/SHACKRDGE02/NAC_DTM_SHACKRDGE02_CONF.IMG",
+          "asset_type": "PDS IMG confidence map",
+          "verification_state": "product_page_linked_not_downloaded_or_hashed",
+          "note": "The LROC product page lists this confidence product. Confirm the paired label and README semantics before applying any confidence threshold."
+        }
+      ],
+      "asset_access_notes": [
+        "The LROC product page is accessible and lists the DTM, slope, confidence, and label links, including the reported 3.50 m/pixel scale and product extent.",
+        "During this research run, browser retrieval of the linked PDS label and binary payloads redirected to a PDS mirror inaccessible to the research tool; no asset bytes were retrieved, hashed, or parsed."
+      ]
+    },
+    {
       "id": "pgda-lola-polar-illumination",
       "title": "Lunar Polar Illumination",
       "publisher": "NASA Goddard Space Flight Center / LOLA Planetary Data System",
@@ -303,7 +384,7 @@
   "ingestion_sequence": [
     "Resolve exact candidate-region polygons and their published versions before drawing or clipping site rasters.",
     "Inventory and hash source assets and parse labels/metadata before analysis.",
-    "Ingest per-site LDEM, slope, elevation uncertainty, slope uncertainty, LOLA count and clone ensemble as aligned layers where available.",
+    "Ingest per-site LDEM, slope, elevation uncertainty, slope uncertainty, LOLA count and clone ensemble as aligned layers where available; where the published footprint overlaps a reviewed ROI, add stereo-derived LROC DTM, slope and confidence products only after their labels, grid alignment and confidence semantics are accepted.",
     "Add long-period illumination/PSR/Earth-visibility products only as coarse screening layers, preserving their averaging window and pixel scale.",
     "Compute epoch-specific lighting, cold-soak and traverse/relay constraints only after a documented mission epoch, height, path, coordinate frame and geometry model are supplied.",
     "Emit each derived result with input checksums, transform and mask versions, units, statistic, uncertainty treatment, excluded area, software version and a replayable receipt."

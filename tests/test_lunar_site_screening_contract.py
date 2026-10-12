@@ -92,7 +92,7 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
             "org.luminousdynamics.sol-atlas.lunar-source-catalog/v1",
         )
         self.assertEqual(self.catalog["status"], "source_catalogue_ingestion_plan_not_ingested")
-        self.assertEqual(len(self.catalog["sources"]), 4)
+        self.assertEqual(len(self.catalog["sources"]), 5)
         self.assertEqual(len(self.catalog["ingestion_sequence"]), 6)
         self.assertIn("No derived site metrics", self.catalog["metric_policy"])
         for source in self.catalog["sources"]:
@@ -103,6 +103,35 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
             self.assertTrue(source["temporal_scope"])
             self.assertTrue(source["uncertainty_and_limitations"])
             self.assertTrue(source["required_acceptance_checks"])
+
+    def test_lroc_connecting_ridge_dtm_is_catalogued_without_verification_overclaim(self) -> None:
+        source = next(
+            item for item in self.catalog["sources"]
+            if item["id"] == "lroc-nac-shackleton-de-gerlache-connecting-ridge-dtm"
+        )
+        self.assertEqual(
+            source["url"],
+            "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_SHACKRDGE02",
+        )
+        self.assertIn("3.50 m/pixel", source["spatial_resolution"])
+        self.assertTrue(any("confidence" in family.lower() for family in source["product_families"]))
+        self.assertEqual(
+            source["candidate_crosswalk"][0]["candidate_id"],
+            "connecting-ridge",
+        )
+        self.assertIn(
+            "roi_validation_required",
+            source["candidate_crosswalk"][0]["mapping_state"],
+        )
+        self.assertEqual(len(source["sample_direct_assets"]), 5)
+        self.assertTrue(all(
+            "downloaded_and_hashed" not in asset["verification_state"]
+            for asset in source["sample_direct_assets"]
+        ))
+        self.assertTrue(any(asset["url"].endswith("NAC_DTM_SHACKRDGE02.LBL")
+                            for asset in source["sample_direct_assets"]))
+        self.assertTrue(any(asset["url"].endswith("NAC_DTM_SHACKRDGE02_CONF.IMG")
+                            for asset in source["sample_direct_assets"]))
 
     def test_source_catalog_crosswalk_covers_every_reviewed_candidate(self) -> None:
         expected_ids = {candidate["id"] for candidate in self.canonical["candidates"]}
