@@ -47,6 +47,7 @@ fn observation(
         flow,
         trade_value_source_text: Some(value_text.to_string()),
         currency: "USD".to_string(),
+        valuation_basis_signature: "known:fob".to_string(),
         value_unit: "USD".to_string(),
         quantity: Some(10.0),
         quantity_unit: Some("kg".to_string()),
