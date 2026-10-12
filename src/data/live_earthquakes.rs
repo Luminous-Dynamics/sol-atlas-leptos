@@ -43,6 +43,7 @@ async fn refresh_once(data_state: &DataState) -> Result<(), String> {
             magnitude_unit: None,
             magnitude_description: None,
             source_name: Some("USGS ComCat".to_string()),
+            data_kind: Some(crate::data::types::DataKind::Observed),
             source_id: Some(quake.id.clone()),
             source_url: quake.event_url.clone(),
             occurred_at_ms: Some(quake.occurred_at_ms),
