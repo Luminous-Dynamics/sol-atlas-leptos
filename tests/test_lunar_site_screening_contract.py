@@ -119,7 +119,7 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
         )
         self.assertIn("18.6-year", illumination["temporal_scope"])
         self.assertTrue(
-            any("mission-specific" in item for item in illumination["uncertainty_and_limitations"])
+            any("date-specific" in item for item in illumination["uncertainty_and_limitations"])
         )
 
 
