@@ -119,7 +119,9 @@ pub fn import_technology_tree(
         ));
     }
     if artifact.role != "source_simulation_output" || artifact.media_type != "application/json" {
-        return Err(format!("artifact {artifact_id} must be a JSON source_simulation_output"));
+        return Err(format!(
+            "artifact {artifact_id} must be a JSON source_simulation_output"
+        ));
     }
     validate_source_artifact_size(source_artifact_bytes.len())?;
     run.verify_artifact_bytes(artifact_id, source_artifact_bytes)?;
@@ -140,8 +142,13 @@ pub fn import_technology_tree(
         .and_then(Value::as_array)
         .ok_or_else(|| "technology_tree.milestones must be an array".to_string())?;
     for (index, milestone) in milestone_values.iter().enumerate() {
-        if !milestone.as_object().is_some_and(|fields| fields.contains_key("achieved_tick")) {
-            return Err(format!("technology_tree.milestones[{index}] is missing required achieved_tick key"));
+        if !milestone
+            .as_object()
+            .is_some_and(|fields| fields.contains_key("achieved_tick"))
+        {
+            return Err(format!(
+                "technology_tree.milestones[{index}] is missing required achieved_tick key"
+            ));
         }
     }
     let source: SimulationOutputWire = serde_json::from_value(source_value.clone())
@@ -223,12 +230,19 @@ fn validate_source_and_run_binding(
     let manifest = &source.run_manifest;
 
     if manifest.schema_version != RUN_MANIFEST_SCHEMA_VERSION {
-        return Err(format!("unsupported run manifest schema: {}", manifest.schema_version));
+        return Err(format!(
+            "unsupported run manifest schema: {}",
+            manifest.schema_version
+        ));
     }
-    if manifest.source_revision.as_ref().is_some_and(
-        |value| value.trim().is_empty() || value.chars().count() > 120
-    ) {
-        return Err("source_revision must be null or a non-empty string of at most 120 characters".into());
+    if manifest
+        .source_revision
+        .as_ref()
+        .is_some_and(|value| value.trim().is_empty() || value.chars().count() > 120)
+    {
+        return Err(
+            "source_revision must be null or a non-empty string of at most 120 characters".into(),
+        );
     }
     if manifest.seed != source.seed || manifest.ticks != source.ticks {
         return Err("run manifest seed/ticks disagree with the enclosing simulator output".into());
@@ -237,7 +251,9 @@ fn validate_source_and_run_binding(
         return Err("generic run seed disagrees with source simulator output".into());
     }
     if run.replicates != 1 {
-        return Err("this adapter binds one realized simulator run and requires replicates = 1".into());
+        return Err(
+            "this adapter binds one realized simulator run and requires replicates = 1".into(),
+        );
     }
     if run.run_status != RunStatus::Completed {
         return Err("technology-tree import requires a completed simulator run".into());
@@ -261,7 +277,9 @@ fn validate_source_and_run_binding(
                 && !value.contains('/')
                 && !value.chars().any(char::is_whitespace)
         })
-        .ok_or_else(|| "source_model must include mycelix-multiworld-sim/<package version>".to_string())?;
+        .ok_or_else(|| {
+            "source_model must include mycelix-multiworld-sim/<package version>".to_string()
+        })?;
     if &run.engine.engine_version != package_version {
         return Err("generic engine_version disagrees with source_model package version".into());
     }
@@ -274,7 +292,9 @@ fn validate_source_and_run_binding(
     if run.engine.model_sha256 != tree.definition_sha256
         || manifest.effective_model_sha256 != tree.definition_sha256
     {
-        return Err("technology-tree definition digest disagrees across source and run envelope".into());
+        return Err(
+            "technology-tree definition digest disagrees across source and run envelope".into(),
+        );
     }
     if tree.definition_source != manifest.selected_definition_source {
         return Err("technology-tree definition source disagrees with run manifest".into());
@@ -306,14 +326,20 @@ fn validate_source_and_run_binding(
         return Err("top-level ticks disagree with resolved_config.total_ticks".into());
     }
     if stable_json_value_sha256(config)? != manifest.resolved_config_sha256
-        || run.inputs.resolved_config_sha256.as_deref() != Some(manifest.resolved_config_sha256.as_str())
+        || run.inputs.resolved_config_sha256.as_deref()
+            != Some(manifest.resolved_config_sha256.as_str())
     {
-        return Err("resolved_config digest disagrees across source manifest and generic envelope".into());
+        return Err(
+            "resolved_config digest disagrees across source manifest and generic envelope".into(),
+        );
     }
     if stable_json_value_sha256(params)? != manifest.resolved_params_sha256
-        || run.inputs.resolved_params_sha256.as_deref() != Some(manifest.resolved_params_sha256.as_str())
+        || run.inputs.resolved_params_sha256.as_deref()
+            != Some(manifest.resolved_params_sha256.as_str())
     {
-        return Err("resolved_params digest disagrees across source manifest and generic envelope".into());
+        return Err(
+            "resolved_params digest disagrees across source manifest and generic envelope".into(),
+        );
     }
     if !is_lowercase_sha256(&manifest.resolved_config_sha256)
         || !is_lowercase_sha256(&manifest.resolved_params_sha256)
@@ -338,13 +364,17 @@ fn validate_source_and_run_binding(
     if run.inputs.scenario_sha256 != scenario_sha256
         || run.scenario_id != format!("mycelix-multiworld-sim:scenario:{scenario_sha256}")
     {
-        return Err("scenario identity digest/ID is not bound to the declared effective inputs".into());
+        return Err(
+            "scenario identity digest/ID is not bound to the declared effective inputs".into(),
+        );
     }
     if source.years == 0 || source.years > 100_000 {
         return Err("source horizon years must be within 1..=100000".into());
     }
     if source.ticks_per_year_product()? != source.ticks {
-        return Err("source horizon ticks must equal years * technology_tree.ticks_per_year".into());
+        return Err(
+            "source horizon ticks must equal years * technology_tree.ticks_per_year".into(),
+        );
     }
 
     validate_summary_metrics(run, source)?;
@@ -355,25 +385,36 @@ fn validate_summary_metrics(
     run: &ScenarioRunEnvelope,
     source: &SimulationOutputWire,
 ) -> Result<(), String> {
-    if source.final_population > MAX_SAFE_INTEGER
-        || source.tech_milestones > MAX_SAFE_INTEGER
-    {
+    if source.final_population > MAX_SAFE_INTEGER || source.tech_milestones > MAX_SAFE_INTEGER {
         return Err("summary counts exceed exact-safe numeric range".into());
     }
     if !source.final_cvs.is_finite() {
         return Err("source final_cvs must be finite".into());
     }
     if run.outputs.len() != 3 {
-        return Err("simulator adapter envelope must contain exactly three source-bound summary metrics".into());
+        return Err(
+            "simulator adapter envelope must contain exactly three source-bound summary metrics"
+                .into(),
+        );
     }
     let expected: [(&str, &str, f64); 3] = [
         ("final_cvs", "CVS", source.final_cvs),
-        ("final_population", "persons", source.final_population as f64),
-        ("tech_milestones_achieved", "milestones", source.tech_milestones as f64),
+        (
+            "final_population",
+            "persons",
+            source.final_population as f64,
+        ),
+        (
+            "tech_milestones_achieved",
+            "milestones",
+            source.tech_milestones as f64,
+        ),
     ];
     for (metric_id, unit, value) in expected {
         let mut matching = run.outputs.iter().filter(|row| row.metric_id == metric_id);
-        let row = matching.next().ok_or_else(|| format!("missing source summary metric {metric_id}"))?;
+        let row = matching
+            .next()
+            .ok_or_else(|| format!("missing source summary metric {metric_id}"))?;
         if matching.next().is_some()
             || row.year != source.years as i32
             || row.time_basis != Some(OutputTimeBasis::ScenarioRelativeYear)
@@ -382,7 +423,9 @@ fn validate_summary_metrics(
             || row.sample_count != 1
             || row.value != value
         {
-            return Err(format!("summary metric {metric_id} disagrees with source simulator output"));
+            return Err(format!(
+                "summary metric {metric_id} disagrees with source simulator output"
+            ));
         }
     }
     Ok(())
@@ -393,10 +436,15 @@ fn validate_tree(
     horizon_ticks: u32,
 ) -> Result<Vec<ScenarioTechnologyDependency>, String> {
     if tree.schema_version != TREE_SCHEMA_VERSION {
-        return Err(format!("unsupported technology tree schema: {}", tree.schema_version));
+        return Err(format!(
+            "unsupported technology tree schema: {}",
+            tree.schema_version
+        ));
     }
     if tree.classification != EXPECTED_CLASSIFICATION {
-        return Err(format!("technology tree must be classified {EXPECTED_CLASSIFICATION}"));
+        return Err(format!(
+            "technology tree must be classified {EXPECTED_CLASSIFICATION}"
+        ));
     }
     if tree.source_model.trim().is_empty() || tree.definition_source.trim().is_empty() {
         return Err("source_model and definition_source must be non-empty".into());
@@ -422,40 +470,79 @@ fn validate_tree(
         if milestone.id != technology_milestone_id(&milestone.name)
             || milestone.id == "mycelix-multiworld-sim:tech:"
         {
-            return Err(format!("milestone {} has non-canonical name-bound ID", milestone.id));
+            return Err(format!(
+                "milestone {} has non-canonical name-bound ID",
+                milestone.id
+            ));
         }
         if by_id.insert(milestone.id.as_str(), index).is_some() {
             return Err(format!("duplicate milestone ID {}", milestone.id));
         }
         if milestone.earliest_tick > milestone.latest_tick {
-            return Err(format!("milestone {} has invalid time window", milestone.id));
+            return Err(format!(
+                "milestone {} has invalid time window",
+                milestone.id
+            ));
         }
         if !milestone.base_probability_per_tick.is_finite()
             || !(0.0..=1.0).contains(&milestone.base_probability_per_tick)
         {
-            return Err(format!("milestone {} has invalid per-tick parameter", milestone.id));
+            return Err(format!(
+                "milestone {} has invalid per-tick parameter",
+                milestone.id
+            ));
         }
         match (milestone.achieved, milestone.achieved_tick) {
-            (true, Some(tick)) if tick >= milestone.earliest_tick && tick <= milestone.latest_tick && tick <= horizon_ticks => {}
+            (true, Some(tick))
+                if tick >= milestone.earliest_tick
+                    && tick <= milestone.latest_tick
+                    && tick <= horizon_ticks => {}
             (false, None) => {}
             (true, Some(tick)) if tick > horizon_ticks => {
-                return Err(format!("milestone {} is marked achieved after the run horizon", milestone.id));
+                return Err(format!(
+                    "milestone {} is marked achieved after the run horizon",
+                    milestone.id
+                ));
             }
-            (true, Some(_)) => return Err(format!("milestone {} achieved outside declared window", milestone.id)),
-            (true, None) => return Err(format!("milestone {} achieved without achieved_tick", milestone.id)),
-            (false, Some(_)) => return Err(format!("milestone {} has achieved_tick while achieved=false", milestone.id)),
+            (true, Some(_)) => {
+                return Err(format!(
+                    "milestone {} achieved outside declared window",
+                    milestone.id
+                ));
+            }
+            (true, None) => {
+                return Err(format!(
+                    "milestone {} achieved without achieved_tick",
+                    milestone.id
+                ));
+            }
+            (false, Some(_)) => {
+                return Err(format!(
+                    "milestone {} has achieved_tick while achieved=false",
+                    milestone.id
+                ));
+            }
         }
 
         let mut sector_ids = HashSet::new();
         for item in &milestone.sector_prerequisites {
             if item.sector_index >= SECTOR_COUNT {
-                return Err(format!("milestone {} has out-of-range sector prerequisite", milestone.id));
+                return Err(format!(
+                    "milestone {} has out-of-range sector prerequisite",
+                    milestone.id
+                ));
             }
             if !item.minimum_level.is_finite() || item.minimum_level < 0.0 {
-                return Err(format!("milestone {} has invalid sector prerequisite level", milestone.id));
+                return Err(format!(
+                    "milestone {} has invalid sector prerequisite level",
+                    milestone.id
+                ));
             }
             if !sector_ids.insert(item.sector_index) {
-                return Err(format!("milestone {} repeats sector prerequisite {}", milestone.id, item.sector_index));
+                return Err(format!(
+                    "milestone {} repeats sector prerequisite {}",
+                    milestone.id, item.sector_index
+                ));
             }
         }
         if !milestone.effects.power_multiplier.is_finite()
@@ -463,24 +550,45 @@ fn validate_tree(
             || !milestone.effects.resource_efficiency.is_finite()
             || milestone.effects.resource_efficiency < 0.0
         {
-            return Err(format!("milestone {} has invalid effect multiplier", milestone.id));
+            return Err(format!(
+                "milestone {} has invalid effect multiplier",
+                milestone.id
+            ));
         }
         let mut boost_sectors = HashSet::new();
         for (sector, boost) in &milestone.effects.tech_level_boost {
             if *sector >= SECTOR_COUNT || !boost.is_finite() {
-                return Err(format!("milestone {} has invalid technology boost", milestone.id));
+                return Err(format!(
+                    "milestone {} has invalid technology boost",
+                    milestone.id
+                ));
             }
             if !boost_sectors.insert(*sector) {
-                return Err(format!("milestone {} repeats technology boost for sector {sector}", milestone.id));
+                return Err(format!(
+                    "milestone {} repeats technology boost for sector {sector}",
+                    milestone.id
+                ));
             }
         }
 
-        if milestone.prerequisite_milestone_ids.len() != milestone.prerequisite_milestone_names.len() {
-            return Err(format!("milestone {} has mismatched prerequisite ID/name counts", milestone.id));
+        if milestone.prerequisite_milestone_ids.len()
+            != milestone.prerequisite_milestone_names.len()
+        {
+            return Err(format!(
+                "milestone {} has mismatched prerequisite ID/name counts",
+                milestone.id
+            ));
         }
-        for (id, name) in milestone.prerequisite_milestone_ids.iter().zip(&milestone.prerequisite_milestone_names) {
+        for (id, name) in milestone
+            .prerequisite_milestone_ids
+            .iter()
+            .zip(&milestone.prerequisite_milestone_names)
+        {
             if id != &technology_milestone_id(name) {
-                return Err(format!("milestone {} has prerequisite ID/name mismatch", milestone.id));
+                return Err(format!(
+                    "milestone {} has prerequisite ID/name mismatch",
+                    milestone.id
+                ));
             }
         }
     }
@@ -508,10 +616,17 @@ fn validate_graph_and_build_dependencies(
         let mut local = HashSet::new();
         for prerequisite in &milestone.prerequisite_milestone_ids {
             if !local.insert(prerequisite.as_str()) {
-                return Err(format!("milestone {} repeats prerequisite {prerequisite}", milestone.id));
+                return Err(format!(
+                    "milestone {} repeats prerequisite {prerequisite}",
+                    milestone.id
+                ));
             }
-            let prerequisite_index = *index_by_id.get(prerequisite.as_str())
-                .ok_or_else(|| format!("milestone {} references missing prerequisite {prerequisite}", milestone.id))?;
+            let prerequisite_index = *index_by_id.get(prerequisite.as_str()).ok_or_else(|| {
+                format!(
+                    "milestone {} references missing prerequisite {prerequisite}",
+                    milestone.id
+                )
+            })?;
             if prerequisite_index == dependent_index {
                 return Err(format!("milestone {} depends on itself", milestone.id));
             }
@@ -572,17 +687,21 @@ fn technology_tree_definition_sha256(tree: &TechnologyTreeWire) -> Result<String
         definition_source: &tree.definition_source,
         ticks_per_year: tree.ticks_per_year,
         year_zero_semantics: &tree.year_zero_semantics,
-        milestones: tree.milestones.iter().map(|milestone| TechnologyMilestoneDefinitionDigest {
-            id: &milestone.id,
-            name: &milestone.name,
-            earliest_tick: milestone.earliest_tick,
-            latest_tick: milestone.latest_tick,
-            base_probability_per_tick: milestone.base_probability_per_tick,
-            sector_prerequisites: &milestone.sector_prerequisites,
-            prerequisite_milestone_ids: &milestone.prerequisite_milestone_ids,
-            prerequisite_milestone_names: &milestone.prerequisite_milestone_names,
-            effects: &milestone.effects,
-        }).collect(),
+        milestones: tree
+            .milestones
+            .iter()
+            .map(|milestone| TechnologyMilestoneDefinitionDigest {
+                id: &milestone.id,
+                name: &milestone.name,
+                earliest_tick: milestone.earliest_tick,
+                latest_tick: milestone.latest_tick,
+                base_probability_per_tick: milestone.base_probability_per_tick,
+                sector_prerequisites: &milestone.sector_prerequisites,
+                prerequisite_milestone_ids: &milestone.prerequisite_milestone_ids,
+                prerequisite_milestone_names: &milestone.prerequisite_milestone_names,
+                effects: &milestone.effects,
+            })
+            .collect(),
     };
     let bytes = serde_json::to_vec(&projection)
         .map_err(|error| format!("cannot serialize model-definition digest input: {error}"))?;
@@ -625,7 +744,9 @@ fn sha256_hex(bytes: &[u8]) -> String {
 
 fn is_lowercase_sha256(value: &str) -> bool {
     value.len() == 64
-        && value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 #[derive(Debug)]
@@ -657,49 +778,67 @@ impl<'de> Visitor<'de> for StrictJsonVisitor {
     }
 
     fn visit_unit<E>(self) -> Result<Self::Value, E>
-    where E: de::Error {
+    where
+        E: de::Error,
+    {
         Ok(StrictJson::Null)
     }
 
     fn visit_none<E>(self) -> Result<Self::Value, E>
-    where E: de::Error {
+    where
+        E: de::Error,
+    {
         Ok(StrictJson::Null)
     }
 
     fn visit_bool<E>(self, value: bool) -> Result<Self::Value, E>
-    where E: de::Error {
+    where
+        E: de::Error,
+    {
         Ok(StrictJson::Bool(value))
     }
 
     fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
-    where E: de::Error {
+    where
+        E: de::Error,
+    {
         Ok(StrictJson::Number(value.into()))
     }
 
     fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
-    where E: de::Error {
+    where
+        E: de::Error,
+    {
         Ok(StrictJson::Number(value.into()))
     }
 
     fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E>
-    where E: de::Error {
+    where
+        E: de::Error,
+    {
         serde_json::Number::from_f64(value)
             .map(StrictJson::Number)
             .ok_or_else(|| E::custom("non-finite JSON number"))
     }
 
     fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-    where E: de::Error {
+    where
+        E: de::Error,
+    {
         Ok(StrictJson::String(value.to_owned()))
     }
 
     fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
-    where E: de::Error {
+    where
+        E: de::Error,
+    {
         Ok(StrictJson::String(value))
     }
 
     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-    where A: SeqAccess<'de> {
+    where
+        A: SeqAccess<'de>,
+    {
         let mut values = Vec::new();
         while let Some(value) = seq.next_element::<StrictJson>()? {
             values.push(value);
@@ -708,11 +847,15 @@ impl<'de> Visitor<'de> for StrictJsonVisitor {
     }
 
     fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-    where A: MapAccess<'de> {
+    where
+        A: MapAccess<'de>,
+    {
         let mut entries = BTreeMap::new();
         while let Some((key, value)) = map.next_entry::<String, StrictJson>()? {
             if entries.insert(key.clone(), value).is_some() {
-                return Err(de::Error::custom(format!("duplicate JSON object key: {key}")));
+                return Err(de::Error::custom(format!(
+                    "duplicate JSON object key: {key}"
+                )));
             }
         }
         Ok(StrictJson::Object(entries))
@@ -723,7 +866,9 @@ fn parse_json_without_duplicate_keys(bytes: &[u8]) -> Result<StrictJson, String>
     let mut deserializer = serde_json::Deserializer::from_slice(bytes);
     let value = StrictJson::deserialize(&mut deserializer)
         .map_err(|error| format!("invalid source JSON: {error}"))?;
-    deserializer.end().map_err(|error| format!("invalid trailing JSON data: {error}"))?;
+    deserializer
+        .end()
+        .map_err(|error| format!("invalid trailing JSON data: {error}"))?;
     Ok(value)
 }
 
@@ -733,7 +878,9 @@ fn strict_json_to_json(value: StrictJson) -> Value {
         StrictJson::Bool(value) => Value::Bool(value),
         StrictJson::Number(value) => Value::Number(value),
         StrictJson::String(value) => Value::String(value),
-        StrictJson::Array(items) => Value::Array(items.into_iter().map(strict_json_to_json).collect()),
+        StrictJson::Array(items) => {
+            Value::Array(items.into_iter().map(strict_json_to_json).collect())
+        }
         StrictJson::Object(items) => {
             let mut result = Map::new();
             for (key, value) in items {
@@ -761,10 +908,10 @@ struct SimulationOutputWire {
 
 impl SimulationOutputWire {
     fn ticks_per_year_product(&self) -> Result<u32, String> {
-        self.years.checked_mul(self.technology_tree.ticks_per_year)
+        self.years
+            .checked_mul(self.technology_tree.ticks_per_year)
             .ok_or_else(|| "year * ticks_per_year overflows u32".to_string())
     }
-
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -852,11 +999,11 @@ struct TechnologyMilestoneDefinitionDigest<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::{
         EngineIdentity, MetricOutput, RunArtifactReference, RunInputDigests, ValidationRecord,
         ValidationStatus,
     };
+    use super::*;
     use serde_json::json;
 
     const FIXTURE_DEFINITION_SOURCE: &str = "in_code_default_tree";
@@ -872,9 +1019,15 @@ mod tests {
             earliest_tick: 0,
             latest_tick: 120,
             base_probability_per_tick: 0.02,
-            sector_prerequisites: vec![SectorPrerequisiteWire { sector_index: 0, minimum_level: 1.2 }],
+            sector_prerequisites: vec![SectorPrerequisiteWire {
+                sector_index: 0,
+                minimum_level: 1.2,
+            }],
             prerequisite_milestone_ids: prerequisites.iter().map(|(id, _)| id.clone()).collect(),
-            prerequisite_milestone_names: prerequisites.iter().map(|(_, name)| name.clone()).collect(),
+            prerequisite_milestone_names: prerequisites
+                .iter()
+                .map(|(_, name)| name.clone())
+                .collect(),
             effects: TechnologyEffectsWire {
                 tech_level_boost: sector_boosts,
                 power_multiplier: 1.0,
@@ -886,9 +1039,7 @@ mod tests {
         }
     }
 
-    fn fixture(
-        milestones: Vec<TechnologyMilestoneWire>,
-    ) -> (ScenarioRunEnvelope, Vec<u8>) {
+    fn fixture(milestones: Vec<TechnologyMilestoneWire>) -> (ScenarioRunEnvelope, Vec<u8>) {
         let mut tree = TechnologyTreeWire {
             schema_version: TREE_SCHEMA_VERSION.into(),
             classification: EXPECTED_CLASSIFICATION.into(),
@@ -969,31 +1120,46 @@ mod tests {
             replicates: 1,
             outputs: vec![
                 MetricOutput {
-                    metric_id:"final_cvs".into(), year:2, time_basis:Some(OutputTimeBasis::ScenarioRelativeYear),
-                    unit:"CVS".into(), statistic:OutputStatistic::Value, value:0.73, sample_count:1,
+                    metric_id: "final_cvs".into(),
+                    year: 2,
+                    time_basis: Some(OutputTimeBasis::ScenarioRelativeYear),
+                    unit: "CVS".into(),
+                    statistic: OutputStatistic::Value,
+                    value: 0.73,
+                    sample_count: 1,
                 },
                 MetricOutput {
-                    metric_id:"final_population".into(), year:2, time_basis:Some(OutputTimeBasis::ScenarioRelativeYear),
-                    unit:"persons".into(), statistic:OutputStatistic::Value, value:1234.0, sample_count:1,
+                    metric_id: "final_population".into(),
+                    year: 2,
+                    time_basis: Some(OutputTimeBasis::ScenarioRelativeYear),
+                    unit: "persons".into(),
+                    statistic: OutputStatistic::Value,
+                    value: 1234.0,
+                    sample_count: 1,
                 },
                 MetricOutput {
-                    metric_id:"tech_milestones_achieved".into(), year:2, time_basis:Some(OutputTimeBasis::ScenarioRelativeYear),
-                    unit:"milestones".into(), statistic:OutputStatistic::Value, value:0.0, sample_count:1,
+                    metric_id: "tech_milestones_achieved".into(),
+                    year: 2,
+                    time_basis: Some(OutputTimeBasis::ScenarioRelativeYear),
+                    unit: "milestones".into(),
+                    statistic: OutputStatistic::Value,
+                    value: 0.0,
+                    sample_count: 1,
                 },
             ],
             validation: ValidationRecord {
                 status: ValidationStatus::NotRun,
-                notes:vec!["structural adapter only".into()],
-                evidence:vec![],
+                notes: vec!["structural adapter only".into()],
+                evidence: vec![],
             },
-            warnings:vec!["not calibrated".into()],
-            artifacts:vec![RunArtifactReference {
-                artifact_id:"source-simulator-output".into(),
-                role:"source_simulation_output".into(),
-                media_type:"application/json".into(),
-                artifact_ref:format!("urn:sha256:{artifact_sha}"),
-                artifact_sha256:artifact_sha,
-                json_pointer:Some(EXPECTED_JSON_POINTER.into()),
+            warnings: vec!["not calibrated".into()],
+            artifacts: vec![RunArtifactReference {
+                artifact_id: "source-simulator-output".into(),
+                role: "source_simulation_output".into(),
+                media_type: "application/json".into(),
+                artifact_ref: format!("urn:sha256:{artifact_sha}"),
+                artifact_sha256: artifact_sha,
+                json_pointer: Some(EXPECTED_JSON_POINTER.into()),
             }],
         };
         (run, bytes)
@@ -1002,48 +1168,94 @@ mod tests {
     #[test]
     fn rejects_artifact_size_above_limit_before_hashing() {
         assert!(validate_source_artifact_size(MAX_SOURCE_ARTIFACT_BYTES).is_ok());
-        assert!(validate_source_artifact_size(MAX_SOURCE_ARTIFACT_BYTES + 1)
-            .unwrap_err()
-            .contains("source simulator artifact exceeds"));
+        assert!(
+            validate_source_artifact_size(MAX_SOURCE_ARTIFACT_BYTES + 1)
+                .unwrap_err()
+                .contains("source simulator artifact exceeds")
+        );
     }
 
     #[test]
     fn checked_in_schema_matches_the_importer_contract_version() {
         let schema: Value = serde_json::from_str(include_str!(
             "../../schemas/mycelix-multiworld-sim-tech-tree-v1.schema.json"
-        )).expect("checked-in technology-tree schema must be valid JSON");
-        assert_eq!(schema["$id"], "https://atlas.luminousdynamics.io/schemas/mycelix-multiworld-sim-tech-tree-v1.schema.json");
-        assert_eq!(schema["properties"]["schema_version"]["const"], TREE_SCHEMA_VERSION);
-        assert_eq!(schema["properties"]["classification"]["const"], EXPECTED_CLASSIFICATION);
-        assert_eq!(schema["properties"]["year_zero_semantics"]["const"], EXPECTED_YEAR_ZERO);
-        assert_eq!(schema["properties"]["ticks_per_year"]["maximum"], 4_294_967_295_u64);
-        assert_eq!(schema["$defs"]["milestone"]["properties"]["earliest_tick"]["maximum"], 4_294_967_295_u64);
-        assert_eq!(schema["$defs"]["milestone"]["properties"]["latest_tick"]["maximum"], 4_294_967_295_u64);
-        assert_eq!(schema["$defs"]["milestone"]["properties"]["achieved_tick"]["oneOf"][0]["maximum"], 4_294_967_295_u64);
-        assert_eq!(schema["$defs"]["techEffects"]["properties"]["power_multiplier"]["minimum"], 0);
-        assert_eq!(schema["$defs"]["techEffects"]["properties"]["resource_efficiency"]["minimum"], 0);
+        ))
+        .expect("checked-in technology-tree schema must be valid JSON");
+        assert_eq!(
+            schema["$id"],
+            "https://atlas.luminousdynamics.io/schemas/mycelix-multiworld-sim-tech-tree-v1.schema.json"
+        );
+        assert_eq!(
+            schema["properties"]["schema_version"]["const"],
+            TREE_SCHEMA_VERSION
+        );
+        assert_eq!(
+            schema["properties"]["classification"]["const"],
+            EXPECTED_CLASSIFICATION
+        );
+        assert_eq!(
+            schema["properties"]["year_zero_semantics"]["const"],
+            EXPECTED_YEAR_ZERO
+        );
+        assert_eq!(
+            schema["properties"]["ticks_per_year"]["maximum"],
+            4_294_967_295_u64
+        );
+        assert_eq!(
+            schema["$defs"]["milestone"]["properties"]["earliest_tick"]["maximum"],
+            4_294_967_295_u64
+        );
+        assert_eq!(
+            schema["$defs"]["milestone"]["properties"]["latest_tick"]["maximum"],
+            4_294_967_295_u64
+        );
+        assert_eq!(
+            schema["$defs"]["milestone"]["properties"]["achieved_tick"]["oneOf"][0]["maximum"],
+            4_294_967_295_u64
+        );
+        assert_eq!(
+            schema["$defs"]["techEffects"]["properties"]["power_multiplier"]["minimum"],
+            0
+        );
+        assert_eq!(
+            schema["$defs"]["techEffects"]["properties"]["resource_efficiency"]["minimum"],
+            0
+        );
         assert_eq!(schema["additionalProperties"], false);
-        assert!(schema["$defs"]["milestone"]["required"]
-            .as_array()
-            .expect("milestone required fields")
-            .iter()
-            .any(|field| field == "achieved_tick"));
+        assert!(
+            schema["$defs"]["milestone"]["required"]
+                .as_array()
+                .expect("milestone required fields")
+                .iter()
+                .any(|field| field == "achieved_tick")
+        );
     }
 
     #[test]
     fn imports_and_binds_a_valid_synthetic_source_artifact() {
         let (run, raw) = fixture(vec![
-            test_milestone("Fusion Demo", vec![], vec![(0,0.5)]),
-            test_milestone("Fusion Grid Scale", vec![(technology_milestone_id("Fusion Demo"),"Fusion Demo".into())], vec![]),
+            test_milestone("Fusion Demo", vec![], vec![(0, 0.5)]),
+            test_milestone(
+                "Fusion Grid Scale",
+                vec![(technology_milestone_id("Fusion Demo"), "Fusion Demo".into())],
+                vec![],
+            ),
         ]);
-        let tree = import_technology_tree(&run, "source-simulator-output", &raw).expect("valid fixture");
+        let tree =
+            import_technology_tree(&run, "source-simulator-output", &raw).expect("valid fixture");
         assert_eq!(tree.milestones.len(), 2);
         assert_eq!(tree.dependencies.len(), 1);
-        assert_eq!(tree.dependencies[0].prerequisite_id, technology_milestone_id("Fusion Demo"));
-        assert_eq!(tree.dependencies[0].dependent_id, technology_milestone_id("Fusion Grid Scale"));
+        assert_eq!(
+            tree.dependencies[0].prerequisite_id,
+            technology_milestone_id("Fusion Demo")
+        );
+        assert_eq!(
+            tree.dependencies[0].dependent_id,
+            technology_milestone_id("Fusion Grid Scale")
+        );
         assert_eq!(tree.horizon_relative_years, 2);
         assert_eq!(tree.milestones[1].earliest_relative_year, 0.0);
-        assert_eq!(tree.milestones[0].effects.tech_level_boost, vec![(0,0.5)]);
+        assert_eq!(tree.milestones[0].effects.tech_level_boost, vec![(0, 0.5)]);
     }
 
     #[test]
@@ -1052,30 +1264,41 @@ mod tests {
         milestone.achieved = true;
         milestone.achieved_tick = Some(36);
         let (run, raw) = fixture(vec![milestone]);
-        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
-            .unwrap_err().contains("achieved after the run horizon"));
+        assert!(
+            import_technology_tree(&run, "source-simulator-output", &raw)
+                .unwrap_err()
+                .contains("achieved after the run horizon")
+        );
     }
 
     #[test]
     fn rejects_missing_required_achieved_tick_key() {
         let (run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
         let raw_text = String::from_utf8(raw).expect("source fixture is UTF-8");
-        let malformed = raw_text.replacen(",\"achieved_tick\":null", "", 1).into_bytes();
+        let malformed = raw_text
+            .replacen(",\"achieved_tick\":null", "", 1)
+            .into_bytes();
         let digest = sha256_hex(&malformed);
         let mut adjusted = run;
         adjusted.run_id = format!("urn:sha256:{digest}");
         adjusted.artifacts[0].artifact_sha256 = digest.clone();
         adjusted.artifacts[0].artifact_ref = format!("urn:sha256:{digest}");
-        assert!(import_technology_tree(&adjusted, "source-simulator-output", &malformed)
-            .unwrap_err().contains("missing required achieved_tick key"));
+        assert!(
+            import_technology_tree(&adjusted, "source-simulator-output", &malformed)
+                .unwrap_err()
+                .contains("missing required achieved_tick key")
+        );
     }
 
     #[test]
     fn rejects_artifact_without_the_declared_tree_pointer() {
         let (mut run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
         run.artifacts[0].json_pointer = None;
-        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
-            .unwrap_err().contains("must select the embedded"));
+        assert!(
+            import_technology_tree(&run, "source-simulator-output", &raw)
+                .unwrap_err()
+                .contains("must select the embedded")
+        );
     }
 
     #[test]
@@ -1083,8 +1306,11 @@ mod tests {
         let mut milestone = test_milestone("Fusion Demo", vec![], vec![]);
         milestone.effects.power_multiplier = -0.1;
         let (run, raw) = fixture(vec![milestone]);
-        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
-            .unwrap_err().contains("invalid effect multiplier"));
+        assert!(
+            import_technology_tree(&run, "source-simulator-output", &raw)
+                .unwrap_err()
+                .contains("invalid effect multiplier")
+        );
     }
 
     #[test]
@@ -1092,8 +1318,11 @@ mod tests {
         let mut milestone = test_milestone("Fusion Demo", vec![], vec![]);
         milestone.sector_prerequisites[0].sector_index = 8;
         let (run, raw) = fixture(vec![milestone]);
-        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
-            .unwrap_err().contains("out-of-range sector prerequisite"));
+        assert!(
+            import_technology_tree(&run, "source-simulator-output", &raw)
+                .unwrap_err()
+                .contains("out-of-range sector prerequisite")
+        );
     }
 
     #[test]
@@ -1101,8 +1330,11 @@ mod tests {
         let (run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
         let mut changed = raw.clone();
         changed.push(b' ');
-        assert!(import_technology_tree(&run, "source-simulator-output", &changed)
-            .unwrap_err().contains("artifact digest mismatch"));
+        assert!(
+            import_technology_tree(&run, "source-simulator-output", &changed)
+                .unwrap_err()
+                .contains("artifact digest mismatch")
+        );
     }
 
     #[test]
@@ -1117,8 +1349,11 @@ mod tests {
         adjusted.run_id = format!("urn:sha256:{digest}");
         adjusted.artifacts[0].artifact_sha256 = digest.clone();
         adjusted.artifacts[0].artifact_ref = format!("urn:sha256:{digest}");
-        assert!(import_technology_tree(&adjusted, "source-simulator-output", &malformed)
-            .unwrap_err().contains("missing required source_revision key"));
+        assert!(
+            import_technology_tree(&adjusted, "source-simulator-output", &malformed)
+                .unwrap_err()
+                .contains("missing required source_revision key")
+        );
     }
 
     #[test]
@@ -1126,15 +1361,22 @@ mod tests {
         let (run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
         let raw_text = String::from_utf8(raw).expect("source fixture is UTF-8");
         let changed = raw_text
-            .replacen("\"technology_tree\":{", "\"technology_tree\":{\"unexpected\":1,", 1)
+            .replacen(
+                "\"technology_tree\":{",
+                "\"technology_tree\":{\"unexpected\":1,",
+                1,
+            )
             .into_bytes();
         let digest = sha256_hex(&changed);
         let mut adjusted = run;
         adjusted.run_id = format!("urn:sha256:{digest}");
         adjusted.artifacts[0].artifact_sha256 = digest.clone();
         adjusted.artifacts[0].artifact_ref = format!("urn:sha256:{digest}");
-        assert!(import_technology_tree(&adjusted, "source-simulator-output", &changed)
-            .unwrap_err().contains("unknown field"));
+        assert!(
+            import_technology_tree(&adjusted, "source-simulator-output", &changed)
+                .unwrap_err()
+                .contains("unknown field")
+        );
     }
 
     #[test]
@@ -1151,8 +1393,11 @@ mod tests {
         adjusted.run_id = format!("urn:sha256:{digest}");
         adjusted.artifacts[0].artifact_sha256 = digest.clone();
         adjusted.artifacts[0].artifact_ref = format!("urn:sha256:{digest}");
-        assert!(import_technology_tree(&adjusted, "source-simulator-output", &duplicate)
-            .unwrap_err().contains("duplicate JSON object key"));
+        assert!(
+            import_technology_tree(&adjusted, "source-simulator-output", &duplicate)
+                .unwrap_err()
+                .contains("duplicate JSON object key")
+        );
     }
 
     #[test]
@@ -1160,34 +1405,46 @@ mod tests {
         let a = technology_milestone_id("A");
         let b = technology_milestone_id("B");
         let (run, raw) = fixture(vec![
-            test_milestone("A", vec![(b.clone(),"B".into())], vec![]),
-            test_milestone("B", vec![(a.clone(),"A".into())], vec![]),
+            test_milestone("A", vec![(b.clone(), "B".into())], vec![]),
+            test_milestone("B", vec![(a.clone(), "A".into())], vec![]),
         ]);
-        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
-            .unwrap_err().contains("contains a cycle"));
+        assert!(
+            import_technology_tree(&run, "source-simulator-output", &raw)
+                .unwrap_err()
+                .contains("contains a cycle")
+        );
     }
 
     #[test]
     fn rejects_scenario_id_not_bound_to_effective_inputs() {
         let (mut run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
         run.scenario_id = "mycelix-multiworld-sim:scenario:unrelated-but-long-enough".into();
-        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
-            .unwrap_err().contains("scenario identity digest/ID"));
+        assert!(
+            import_technology_tree(&run, "source-simulator-output", &raw)
+                .unwrap_err()
+                .contains("scenario identity digest/ID")
+        );
     }
 
     #[test]
     fn rejects_summary_metric_not_bound_to_source_bytes() {
         let (mut run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
         run.outputs[0].value = 0.74;
-        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
-            .unwrap_err().contains("summary metric final_cvs disagrees"));
+        assert!(
+            import_technology_tree(&run, "source-simulator-output", &raw)
+                .unwrap_err()
+                .contains("summary metric final_cvs disagrees")
+        );
     }
 
     #[test]
     fn rejects_tree_hash_scope_mismatch() {
         let (mut run, raw) = fixture(vec![test_milestone("Fusion Demo", vec![], vec![])]);
         run.engine.model_sha256 = "f".repeat(64);
-        assert!(import_technology_tree(&run, "source-simulator-output", &raw)
-            .unwrap_err().contains("definition digest disagrees"));
+        assert!(
+            import_technology_tree(&run, "source-simulator-output", &raw)
+                .unwrap_err()
+                .contains("definition digest disagrees")
+        );
     }
 }
