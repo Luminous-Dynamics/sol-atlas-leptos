@@ -467,7 +467,15 @@ mod tests {
             "features": [
                 {
                     "type": "Feature",
-                    "properties": {"magnitude": 5.1, "place": "Peru", "type": "earthquake"},
+                    "id": "us123",
+                    "properties": {
+                        "magnitude": 5.1,
+                        "place": "Peru",
+                        "type": "earthquake",
+                        "source": "USGS ComCat",
+                        "data_lineage": ["USGS", "Seismic Network", "Real-time"],
+                        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us123"
+                    },
                     "geometry": {"type": "Point", "coordinates": [-80.5, -5.2, 10]}
                 },
                 {
@@ -481,6 +489,14 @@ mod tests {
         assert_eq!(events.len(), 2);
         assert_eq!(events[0].event_type, NaturalEventType::Earthquake);
         assert_eq!(events[0].source_name.as_deref(), Some("USGS ComCat"));
+        assert_eq!(events[0].data_kind, Some(DataKind::Observed));
+        assert_eq!(events[0].source_id.as_deref(), Some("us123"));
+        assert_eq!(
+            events[0].source_url.as_deref(),
+            Some("https://earthquake.usgs.gov/earthquakes/eventpage/us123")
+        );
+        assert_eq!(events[1].source_name, None);
+        assert_eq!(events[1].data_kind, None);
         assert!((events[0].lat - (-5.2)).abs() < 0.01);
         assert!((events[0].magnitude - 5.1).abs() < 0.01);
         assert_eq!(events[0].name, "Peru");
@@ -510,7 +526,61 @@ mod tests {
         let events = parse_natural_events("[]", json, "[]", "[]");
         assert_eq!(events.len(), 1);
         assert_eq!(events[0].event_type, NaturalEventType::Fire);
+        assert_eq!(events[0].source_name, None);
+        assert_eq!(events[0].data_kind, None);
+        assert_eq!(events[0].source_url, None);
         assert!((events[0].magnitude - 3.87).abs() < 0.01); // brightness/100
+    }
+
+    #[test]
+    fn synthetic_firms_records_are_not_attributed_to_nasa() {
+        let json = r#"{ 
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "properties": {
+                    "source": "Demo Data",
+                    "data_lineage": ["Demo", "Synthetic", "Generated"],
+                    "brightness": 387.0,
+                    "type": "fire"
+                },
+                "geometry": {"type": "Point", "coordinates": [-117.3, 33.4]}
+            }]
+        }"#;
+        let events = parse_natural_events("[]", json, "[]", "[]");
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].source_name.as_deref(), Some("Demo Data"));
+        assert_eq!(events[0].data_kind, Some(DataKind::Synthetic));
+        assert_eq!(events[0].source_id, None);
+        assert_eq!(events[0].source_url, None);
+    }
+
+    #[test]
+    fn eonet_event_id_and_official_url_are_preserved_only_for_observed_source() {
+        let json = r#"{
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "properties": {
+                    "source": "NASA EONET",
+                    "event_id": "EONET_15458",
+                    "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_15458",
+                    "data_lineage": ["NASA", "EONET", "Satellite Observation"],
+                    "title": "Tropical Storm Mario",
+                    "type": "natural_event"
+                },
+                "geometry": {"type": "Point", "coordinates": [-110.0, 20.0]}
+            }]
+        }"#;
+        let events = parse_natural_events("[]", "[]", json, "[]");
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].source_name.as_deref(), Some("NASA EONET"));
+        assert_eq!(events[0].data_kind, Some(DataKind::Observed));
+        assert_eq!(events[0].source_id.as_deref(), Some("EONET_15458"));
+        assert_eq!(
+            events[0].source_url.as_deref(),
+            Some("https://eonet.gsfc.nasa.gov/api/v3/events/EONET_15458")
+        );
     }
 
     #[test]
@@ -691,7 +761,9 @@ mod live_timestamp_compat_tests {
         let events = parse_natural_events(earthquake, "[]", "[]", "[]");
         assert_eq!(events.len(), 1);
         assert_eq!(events[0].name, "Test location");
-        assert_eq!(events[0].source_name.as_deref(), Some("USGS ComCat"));
+        // The filename identifies the legacy asset slot, not the individual record's provenance.
+        assert_eq!(events[0].source_name, None);
+        assert_eq!(events[0].data_kind, None);
         assert_eq!(events[0].occurred_at_ms, None);
         assert_eq!(events[0].depth_km, Some(3.0));
     }
