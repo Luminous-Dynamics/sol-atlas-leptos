@@ -205,7 +205,11 @@ pub fn parse_shipping_lanes(json: &str) -> Vec<Vec<[f64; 2]>> {
     parse_or_log("shipping-lanes", serde_json::from_str(json))
 }
 
-/// Parse GeoJSON natural events from USGS, NASA EONET, FIRMS, and volcano data.
+/// Parse GeoJSON natural events from official feeds and bundled fixtures.
+///
+/// A filename/source slot is not proof of source provenance. Each record is
+/// classified from its own source and lineage metadata; unknown provenance
+/// stays unknown, and synthetic records never receive an official event URL.
 fn valid_source_event_url(url: &str, prefix: &str, source_id: Option<&str>) -> bool {
     let Some(source_id) = source_id else {
         return false;
@@ -225,6 +229,74 @@ fn valid_source_event_url(url: &str, prefix: &str, source_id: Option<&str>) -> b
         && !url.chars().any(char::is_whitespace)
 }
 
+fn normalized_source_name(raw: Option<&str>) -> Option<String> {
+    let source = raw?.trim();
+    if source.is_empty() || source.len() > 128 || source.chars().any(char::is_control) {
+        return None;
+    }
+    Some(source.to_string())
+}
+
+fn has_synthetic_lineage(source: Option<&str>, lineage: &[String]) -> bool {
+    let looks_synthetic = |value: &str| {
+        let value = value.trim().to_ascii_lowercase();
+        ["demo", "synthetic", "generated", "fixture", "mock"]
+            .iter()
+            .any(|marker| value.contains(marker))
+    };
+
+    source.is_some_and(looks_synthetic)
+        || lineage.iter().take(32).any(|value| looks_synthetic(value))
+}
+
+fn classify_natural_event(
+    dataset_name: &str,
+    source_name: Option<&str>,
+    lineage: &[String],
+) -> Option<DataKind> {
+    if has_synthetic_lineage(source_name, lineage) {
+        return Some(DataKind::Synthetic);
+    }
+
+    let source = source_name?.trim().to_ascii_lowercase();
+    match (dataset_name, source.as_str()) {
+        ("usgs-earthquakes", "usgs" | "usgs comcat")
+        | ("nasa-firms", "nasa firms")
+        | ("nasa-eonet", "nasa eonet") => Some(DataKind::Observed),
+        ("volcanoes", _) => Some(DataKind::Curated),
+        _ => None,
+    }
+}
+
+fn source_url_for_record(
+    dataset_name: &str,
+    source_name: Option<&str>,
+    data_kind: Option<DataKind>,
+    source_id: Option<&str>,
+    url: Option<&str>,
+    link: Option<&str>,
+) -> Option<String> {
+    if data_kind != Some(DataKind::Observed) {
+        return None;
+    }
+
+    let (expected_source, candidate, prefix) = match dataset_name {
+        "usgs-earthquakes"
+            if source_name.is_some_and(|s| matches!(s.trim().to_ascii_lowercase().as_str(), "usgs" | "usgs comcat")) =>
+        {
+            ("usgs", url, crate::usgs::USGS_EVENT_PAGE_PREFIX)
+        }
+        "nasa-eonet" if source_name.is_some_and(|s| s.trim().eq_ignore_ascii_case("NASA EONET")) => {
+            ("nasa-eonet", link, crate::eonet::EONET_EVENT_API_PREFIX)
+        }
+        _ => return None,
+    };
+    let _ = expected_source; // Source allow-list is enforced by the match arm above.
+    candidate
+        .filter(|candidate| valid_source_event_url(candidate, prefix, source_id))
+        .map(str::to_string)
+}
+
 fn parse_natural_events(
     earthquakes: &str,
     fires: &str,
@@ -233,7 +305,6 @@ fn parse_natural_events(
 ) -> Vec<NaturalEvent> {
     let mut events = Vec::new();
 
-    // Parse GeoJSON FeatureCollections (all share same structure)
     fn parse_geojson(
         dataset_name: &str,
         json: &str,
@@ -243,6 +314,7 @@ fn parse_natural_events(
         struct FeatureCollection {
             features: Vec<Feature>,
         }
+
         #[derive(Deserialize)]
         struct Feature {
             #[serde(default)]
@@ -250,6 +322,7 @@ fn parse_natural_events(
             properties: Properties,
             geometry: Geometry,
         }
+
         #[derive(Deserialize)]
         struct Properties {
             #[serde(default)]
@@ -265,6 +338,12 @@ fn parse_natural_events(
             #[serde(rename = "type", default)]
             event_kind: Option<String>,
             #[serde(default)]
+            source: Option<String>,
+            #[serde(default)]
+            data_lineage: Vec<String>,
+            #[serde(default)]
+            event_id: Option<String>,
+            #[serde(default)]
             time: serde_json::Value,
             #[serde(default)]
             updated: serde_json::Value,
@@ -273,6 +352,7 @@ fn parse_natural_events(
             #[serde(default)]
             link: Option<String>,
         }
+
         #[derive(Deserialize)]
         struct Geometry {
             coordinates: Vec<f64>,
@@ -285,31 +365,61 @@ fn parse_natural_events(
                 return vec![];
             }
         };
+
         fc.features
             .iter()
-            .filter_map(|f| {
-                let coords = &f.geometry.coordinates;
+            .filter_map(|feature| {
+                let coords = &feature.geometry.coordinates;
                 if coords.len() < 2 {
                     return None;
                 }
                 let lon = coords[0];
                 let lat = coords[1];
-                if lat.abs() > 90.0 || lon.abs() > 180.0 {
+                if !lat.is_finite()
+                    || !lon.is_finite()
+                    || lat.abs() > 90.0
+                    || lon.abs() > 180.0
+                {
                     return None;
                 }
-                let magnitude = f
+
+                let magnitude = feature
                     .properties
                     .magnitude
-                    .or(f.properties.brightness.map(|b| b / 100.0))
+                    .or(feature.properties.brightness.map(|brightness| brightness / 100.0))
                     .unwrap_or(1.0);
-                let name = f
+                let name = feature
                     .properties
                     .title
                     .as_deref()
-                    .or(f.properties.place.as_deref())
-                    .or(f.properties.name.as_deref())
+                    .or(feature.properties.place.as_deref())
+                    .or(feature.properties.name.as_deref())
                     .unwrap_or("Unknown")
                     .to_string();
+                let source_name = normalized_source_name(feature.properties.source.as_deref())
+                    .or_else(|| {
+                        (dataset_name == "volcanoes")
+                            .then(|| "Curated volcano inventory".to_string())
+                    });
+                let data_kind = classify_natural_event(
+                    dataset_name,
+                    source_name.as_deref(),
+                    &feature.properties.data_lineage,
+                );
+                let source_id = feature
+                    .id
+                    .as_deref()
+                    .or(feature.properties.event_id.as_deref())
+                    .map(str::to_string);
+                let source_url = source_url_for_record(
+                    dataset_name,
+                    source_name.as_deref(),
+                    data_kind,
+                    source_id.as_deref(),
+                    feature.properties.url.as_deref(),
+                    feature.properties.link.as_deref(),
+                );
+
                 Some(NaturalEvent {
                     lat,
                     lon,
@@ -318,37 +428,12 @@ fn parse_natural_events(
                     name,
                     magnitude_unit: None,
                     magnitude_description: None,
-                    source_name: match dataset_name {
-                        "usgs-earthquakes" => Some("USGS ComCat".to_string()),
-                        "nasa-firms" => Some("NASA FIRMS".to_string()),
-                        "nasa-eonet" => Some("NASA EONET".to_string()),
-                        "volcanoes" => Some("Curated volcano inventory".to_string()),
-                        _ => None,
-                    },
-                    source_id: match dataset_name {
-                        "usgs-earthquakes" | "nasa-eonet" => f.id.clone(),
-                        _ => None,
-                    },
-                    source_url: match dataset_name {
-                        "usgs-earthquakes" => f.properties.url.as_deref().filter(|url| {
-                            valid_source_event_url(
-                                url,
-                                crate::usgs::USGS_EVENT_PAGE_PREFIX,
-                                f.id.as_deref(),
-                            )
-                        }),
-                        "nasa-eonet" => f.properties.link.as_deref().filter(|url| {
-                            valid_source_event_url(
-                                url,
-                                crate::eonet::EONET_EVENT_API_PREFIX,
-                                f.id.as_deref(),
-                            )
-                        }),
-                        _ => None,
-                    }
-                    .map(str::to_string),
-                    occurred_at_ms: f.properties.time.as_i64(),
-                    updated_at_ms: f.properties.updated.as_i64(),
+                    source_name,
+                    data_kind,
+                    source_id,
+                    source_url,
+                    occurred_at_ms: feature.properties.time.as_i64(),
+                    updated_at_ms: feature.properties.updated.as_i64(),
                     depth_km: coords.get(2).copied().filter(|depth| depth.is_finite()),
                     geometry_note: None,
                 })
