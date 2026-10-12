@@ -65,6 +65,10 @@ jobs:
         run: python3 -m py_compile scripts/verify_economic_intelligence_fixture.py
       - name: Verify frozen economic-intelligence reference corpus
         run: python3 scripts/verify_economic_intelligence_fixture.py
+      - name: Compile South Africa metric-registry verifier
+        run: python3 -m py_compile scripts/verify_economic_metric_registry.py
+      - name: Verify source-attributed South Africa QLFS metric registry
+        run: python3 scripts/verify_economic_metric_registry.py
       # Run every package's unit/integration targets. The core is a path
       # dependency and would be skipped by testing only the top-level binary.
       - run: cargo test --workspace
