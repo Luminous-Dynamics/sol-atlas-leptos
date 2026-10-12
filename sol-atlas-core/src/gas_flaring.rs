@@ -47,6 +47,26 @@ pub enum ReuseReview {
     },
 }
 
+/// How the adapter derives stable site identity. The reviewed method is part of
+/// provenance so consumers do not mistake approximate spatial matching for a
+/// source-provided identifier.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
+pub enum SiteIdentityMethod {
+    /// Use a stable identifier that is explicitly present in the source workbook.
+    SourceField { field_name: String },
+    /// SHA-256 of a canonical encoding of the listed exact source fields.
+    ///
+    /// Field names must be sorted and unique. The adapter must not round
+    /// coordinates or use workbook row numbers in this fingerprint. A changed
+    /// source field value can change identity; this is not a fuzzy entity-resolution
+    /// claim.
+    DerivedFingerprint {
+        algorithm_version: String,
+        source_fields: Vec<String>,
+    },
+}
+
 /// Provenance bound to the exact source snapshot used to create these records.
 ///
 /// `snapshot_sha256` must be computed over the exact downloaded source bytes
@@ -58,6 +78,7 @@ pub struct FlareSourceProvenance {
     pub source_name: String,
     pub source_uri: String,
     pub source_version: String,
+    pub site_identity_method: SiteIdentityMethod,
     pub snapshot_sha256: String,
     pub published_at: Option<String>,
     pub retrieved_at: String,
@@ -107,12 +128,12 @@ pub struct AnnualFlareEstimate {
     pub value: AnnualFlareValue,
 }
 
-/// One source-identified location. Identity is provided by the source adapter;
-/// this module never invents an ID from a name, row number, or rounded location.
+/// One normalized flare-site candidate. Its stable key must follow the
+/// provenance-declared source-field or versioned-fingerprint method.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FlareSite {
-    pub source_site_id: String,
+    pub site_key: String,
     pub name: Option<String>,
     pub country: Option<String>,
     /// May be absent or stale in the source. No map marker is allowed without it.
@@ -226,26 +247,35 @@ pub fn admit_snapshot(
         ));
     }
 
-    let mut seen_site_ids = BTreeSet::new();
+    let mut seen_site_keys = BTreeSet::new();
     for (site_index, site) in snapshot.sites.iter().enumerate() {
         let base = format!("sites[{site_index}]");
-        if site.source_site_id.trim().is_empty() {
+        if site.site_key.trim().is_empty() {
             issues.push(issue(
                 "missing_site_identity",
-                format!("{base}.source_site_id"),
-                "stable source-provided site identity is required; row order is not an identity",
+                format!("{base}.site_key"),
+                "a stable site key emitted by the reviewed source adapter is required",
             ));
-        } else if site.source_site_id.trim() != site.source_site_id {
+        } else if site.site_key.trim() != site.site_key {
             issues.push(issue(
                 "noncanonical_site_identity",
-                format!("{base}.source_site_id"),
-                "site identity must not contain leading or trailing whitespace",
+                format!("{base}.site_key"),
+                "site key must not contain leading or trailing whitespace",
             ));
-        } else if !seen_site_ids.insert(site.source_site_id.clone()) {
+        } else if matches!(
+            snapshot.provenance.site_identity_method,
+            SiteIdentityMethod::DerivedFingerprint { .. }
+        ) && !is_sha256_hex(&site.site_key) {
+            issues.push(issue(
+                "invalid_derived_site_fingerprint",
+                format!("{base}.site_key"),
+                "derived site keys must be SHA-256 hex digests of canonical source fields",
+            ));
+        } else if !seen_site_keys.insert(site.site_key.clone()) {
             issues.push(issue(
                 "duplicate_site_identity",
-                format!("{base}.source_site_id"),
-                "duplicate source site IDs are ambiguous and must be reconciled upstream",
+                format!("{base}.site_key"),
+                "duplicate site keys are ambiguous and must be reconciled upstream",
             ));
         }
 
@@ -334,7 +364,7 @@ pub fn admit_snapshot(
         return Err(issues);
     }
 
-    snapshot.sites.sort_by(|left, right| left.source_site_id.cmp(&right.source_site_id));
+    snapshot.sites.sort_by(|left, right| left.site_key.cmp(&right.site_key));
     for site in &mut snapshot.sites {
         site.annual_estimates.sort_by_key(|estimate| estimate.year);
     }
@@ -445,6 +475,46 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
         ));
     }
 
+    match &provenance.site_identity_method {
+        SiteIdentityMethod::SourceField { field_name } => {
+            if field_name.trim().is_empty() {
+                issues.push(issue(
+                    "missing_identity_source_field",
+                    "provenance.site_identity_method.field_name",
+                    "source-field identity requires the exact reviewed workbook column name",
+                ));
+            }
+        }
+        SiteIdentityMethod::DerivedFingerprint {
+            algorithm_version,
+            source_fields,
+        } => {
+            if algorithm_version.trim().is_empty() {
+                issues.push(issue(
+                    "missing_identity_algorithm_version",
+                    "provenance.site_identity_method.algorithm_version",
+                    "derived identity requires a versioned algorithm",
+                ));
+            }
+            if source_fields.is_empty()
+                || source_fields.iter().any(|field| field.trim().is_empty())
+            {
+                issues.push(issue(
+                    "missing_identity_source_fields",
+                    "provenance.site_identity_method.source_fields",
+                    "derived identity requires non-empty canonical source-field names",
+                ));
+            }
+            if source_fields.windows(2).any(|pair| pair[0] >= pair[1]) {
+                issues.push(issue(
+                    "noncanonical_identity_source_fields",
+                    "provenance.site_identity_method.source_fields",
+                    "source field names must be sorted and unique for deterministic fingerprinting",
+                ));
+            }
+        }
+    }
+
     match &provenance.reuse_review {
         ReuseReview::Unreviewed => issues.push(issue(
             "reuse_terms_unreviewed",
@@ -533,6 +603,9 @@ mod tests {
             source_name: "World Bank Global Gas Flaring Tracker".into(),
             source_uri: WORLD_BANK_FLARING_DATA_URL.into(),
             source_version: "fixture-2026-06-reviewed-schema-v1".into(),
+            site_identity_method: SiteIdentityMethod::SourceField {
+                field_name: "Synthetic Site ID".into(),
+            },
             snapshot_sha256: "a".repeat(64),
             published_at: Some("2026-06-23".into()),
             retrieved_at: "2026-10-12T00:00:00Z".into(),
@@ -550,7 +623,7 @@ mod tests {
 
     fn site(id: &str, estimates: Vec<AnnualFlareEstimate>) -> FlareSite {
         FlareSite {
-            source_site_id: id.into(),
+            site_key: id.into(),
             name: Some(format!("Fixture {id}")),
             country: Some("Example".into()),
             location: Some(GeoPoint {
@@ -604,8 +677,8 @@ mod tests {
     fn admission_orders_sites_and_years_deterministically() {
         let validated = admit_snapshot(sample_snapshot()).expect("sample should be admitted");
         assert!(validated.claim_ceiling().contains("screening only"));
-        assert_eq!(validated.snapshot.sites[0].source_site_id, "site-a");
-        assert_eq!(validated.snapshot.sites[1].source_site_id, "site-b");
+        assert_eq!(validated.snapshot.sites[0].site_key, "site-a");
+        assert_eq!(validated.snapshot.sites[1].site_key, "site-b");
         assert_eq!(validated.snapshot.sites[1].annual_estimates[0].year, 2024);
         assert_eq!(validated.snapshot.sites[1].annual_estimates[1].year, 2025);
 
