@@ -19,7 +19,12 @@
       "digest_status": "not_captured",
       "acquisition_method": "manually_reviewed_published_summary",
       "reuse_status": "terms_review_required",
-      "review_note": "The summary and QLFS download portal are publicly accessible; public access alone is not treated as proof of unrestricted redistribution rights. Use the official quarter-specific data, metadata, concepts/definitions and questionnaire to qualify further processing."
+      "review_note": "The summary and QLFS download portal are publicly accessible; public access alone is not treated as proof of unrestricted redistribution rights. Q4 2025 QLFS metadata states that data applications must acknowledge Stats SA and identify the work as independently processed, and that basic data/reprocessed versions/applications may not be sold or offered for sale without prior permission. This metadata restriction is tracked separately from unresolved reuse rights for the standalone published summary.",
+      "terms_url": "https://isibaloweb.statssa.gov.za/metadata/QLFS/2025/Qtr04/Quarterly%20Labour%20Force%20Survey%204th%20Quarter%202025%20metadata.pdf",
+      "terms_reviewed_at": "2026-10-13",
+      "underlying_data_redistribution": "prior_permission_required_before_sale_or_offer_for_sale",
+      "terms_statement": "Stats SA's QLFS Q4 2025 metadata states that users may apply/process the data if Stats SA is acknowledged as the original source and the application/analysis is identified as the user's independent processing; the basic data and any reprocessed version or application may not be sold or offered for sale in any form without prior permission from Stats SA.",
+      "terms_scope": "This statement is recorded as a restriction on the underlying QLFS data and reprocessed data/applications. It does not by itself settle reuse rights for the separately published headline-summary page or its two headline values. Keep summary reuse_status at terms_review_required; do not sell or offer underlying/reprocessed data without prior permission."
     }
   ],
   "comparability_events": [
