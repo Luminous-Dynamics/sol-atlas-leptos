@@ -73,6 +73,9 @@ pub struct TradeObservation {
     pub partner_kind: TradeAreaKind,
     /// Code system used by reporter and partner (for example, UN M49).
     pub geography_code_system: String,
+    /// Definition of the source series (type, frequency, and source classification).
+    /// Comparisons across different series definitions are rejected.
+    pub series_signature: String,
     /// Source-defined reference period.
     pub period: String,
     /// Canonical source-specific key for non-primary disaggregation dimensions
@@ -142,6 +145,8 @@ pub enum MirrorPairStatus {
     GeographyCodeSystemMismatch,
     /// Reporter/partner classification tables differ across the pair.
     AreaReferenceVersionMismatch,
+    /// The underlying data-series definitions differ (e.g. commodity vs service).
+    SeriesDefinitionMismatch,
     /// The source-defined periods differ.
     PeriodMismatch,
     /// Commodity codes differ.
@@ -252,10 +257,10 @@ impl MirrorPairResult {
 }
 
 /// Versioned name for the intentionally narrow calculation in this module.
-pub const RAW_MIRROR_METHOD_ID: &str = "raw_mirror_value_difference/v2";
+pub const RAW_MIRROR_METHOD_ID: &str = "raw_mirror_value_difference/v3";
 
 /// Current version of the normalized TradeObservation wire contract.
-pub const TRADE_OBSERVATION_SCHEMA_VERSION: u16 = 3;
+pub const TRADE_OBSERVATION_SCHEMA_VERSION: u16 = 4;
 
 /// Compare candidate bilateral reports without silently resolving ambiguity.
 ///
@@ -363,6 +368,13 @@ pub fn compare_mirror_pair(
     if exporter.area_reference_snapshot_id != importer.area_reference_snapshot_id {
         return MirrorPairResult::excluded(
             MirrorPairStatus::AreaReferenceVersionMismatch,
+            exporter_id,
+            importer_id,
+        );
+    }
+    if exporter.series_signature != importer.series_signature {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::SeriesDefinitionMismatch,
             exporter_id,
             importer_id,
         );
@@ -636,6 +648,7 @@ fn has_identity(observation: &TradeObservation) -> bool {
         && !observation.reporter.trim().is_empty()
         && !observation.partner.trim().is_empty()
         && !observation.geography_code_system.trim().is_empty()
+        && !observation.series_signature.trim().is_empty()
         && !observation.period.trim().is_empty()
         && !observation.disaggregation_signature.trim().is_empty()
         && !observation.source_state_signature.trim().is_empty()
@@ -670,6 +683,7 @@ mod tests {
             partner: partner.to_string(),
             partner_kind: TradeAreaKind::ReportingArea,
             geography_code_system: "TEST_ALPHA3".to_string(),
+            series_signature: "synthetic-series/v1|type=commodity|frequency=annual|classification=HS".to_string(),
             period: "2025".to_string(),
             disaggregation_signature: concat!(
                 "comtrade-dimensions/v1|partner2=0|mot=0|",
@@ -1034,6 +1048,19 @@ mod tests {
             compare_mirror_pair(&[exporter], &[importer]).status,
             MirrorPairStatus::NonReciprocalReporters
         );
+    }
+
+    #[test]
+    fn refuses_to_compare_across_different_series_definitions() {
+        let exporter =
+            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer =
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        importer.series_signature =
+            "synthetic-series/v1|type=service|frequency=annual|classification=EBOPS".to_string();
+        let result = compare_mirror_pair(&[exporter], &[importer]);
+        assert_eq!(result.status, MirrorPairStatus::SeriesDefinitionMismatch);
+        assert_eq!(result.absolute_difference_source_text, None);
     }
 
     #[test]
