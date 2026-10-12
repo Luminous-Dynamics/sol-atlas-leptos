@@ -370,8 +370,11 @@ fn validate_context(
     }
     if query.type_code != "C" {
         return Err(UnComtradePreviewError::InvalidContext(
-            "this adapter supports goods type_code C only; services require a separately qualified schema"
-                .to_string(),
+            concat!(
+                "this adapter supports goods type_code C only; ",
+                "services require a separately qualified schema"
+            )
+            .to_string(),
         ));
     }
     if !matches!(query.frequency_code.as_str(), "A" | "M") {
