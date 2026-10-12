@@ -50,6 +50,13 @@ Before claiming an improvement:
 4. Compare the reproduced map and metrics to the paper, and document every intentional deviation.
 5. If exact reproduction is not possible, call it a **partial reproduction** and name the missing inputs; do not describe a merely similar map as a reproduction.
 
+## Companion artifacts
+
+- [Initial data inventory](MINERAL_PROSPECTIVITY_DATA_INVENTORY.md) records what source access has been verified, what remains unchecked, and the next M0 actions.
+- [Dataset manifest JSON Schema](schemas/mineral-dataset-manifest.schema.json) defines the provenance/rights/quality contract for a source or derived layer.
+
+These are desk-research artifacts only. They do not certify individual datasets as licensed, downloaded, validated, or ready for ingestion.
+
 ## 3. Data-source plan
 
 Data access, license, version, coverage, and reuse conditions are separate properties. A dataset being viewable through a map portal does not imply it can be freely redistributed or bulk-downloaded.
