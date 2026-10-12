@@ -377,7 +377,7 @@ pub fn load_all(
         chokepoints_json,
         critical_infra_json,
     )
-        .data
+    .data
 }
 
 /// Parse simplified shipping lane routes (Vec of Vec of [lon, lat]).
