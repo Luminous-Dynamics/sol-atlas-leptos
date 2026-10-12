@@ -258,6 +258,18 @@ mod tests {
             event_type: NaturalEventType::Earthquake,
             magnitude: 5.0,
             name: "Test Quake".into(),
+            // The confluence fixture has no source record: keep every
+            // source-derived field explicitly unknown instead of fabricating
+            // provenance or timestamp metadata for synthetic test data.
+            magnitude_unit: None,
+            magnitude_description: None,
+            source_name: None,
+            source_id: None,
+            source_url: None,
+            occurred_at_ms: None,
+            updated_at_ms: None,
+            depth_km: None,
+            geometry_note: None,
         }
     }
 
