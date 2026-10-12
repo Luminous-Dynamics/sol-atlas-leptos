@@ -313,6 +313,22 @@ fn source_url_for_record(
         .map(str::to_string)
 }
 
+fn parse_timestamp_ms(value: &serde_json::Value, fallback_iso: Option<&str>) -> Option<i64> {
+    value
+        .as_i64()
+        .or_else(|| {
+            value
+                .as_u64()
+                .and_then(|timestamp| i64::try_from(timestamp).ok())
+        })
+        .or_else(|| {
+            value
+                .as_str()
+                .and_then(crate::eonet::parse_iso8601_ms)
+        })
+        .or_else(|| fallback_iso.and_then(crate::eonet::parse_iso8601_ms))
+}
+
 fn parse_natural_events(
     earthquakes: &str,
     fires: &str,
@@ -361,6 +377,8 @@ fn parse_natural_events(
             event_id: Option<String>,
             #[serde(default)]
             time: serde_json::Value,
+            #[serde(default)]
+            date: Option<String>,
             #[serde(default)]
             updated: serde_json::Value,
             #[serde(default)]
@@ -455,8 +473,11 @@ fn parse_natural_events(
                     data_kind,
                     source_id,
                     source_url,
-                    occurred_at_ms: feature.properties.time.as_i64(),
-                    updated_at_ms: feature.properties.updated.as_i64(),
+                    occurred_at_ms: parse_timestamp_ms(
+                        &feature.properties.time,
+                        feature.properties.date.as_deref(),
+                    ),
+                    updated_at_ms: parse_timestamp_ms(&feature.properties.updated, None),
                     depth_km: coords.get(2).copied().filter(|depth| depth.is_finite()),
                     geometry_note: None,
                 })
@@ -844,7 +865,7 @@ mod live_timestamp_compat_tests {
         // The filename identifies the legacy asset slot, not the individual record's provenance.
         assert_eq!(events[0].source_name, None);
         assert_eq!(events[0].data_kind, None);
-        assert_eq!(events[0].occurred_at_ms, None);
+        assert_eq!(events[0].occurred_at_ms, Some(1_757_984_759_070));
         assert_eq!(events[0].depth_km, Some(3.0));
     }
 }
