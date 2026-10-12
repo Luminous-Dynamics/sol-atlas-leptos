@@ -15,8 +15,8 @@
 //! This parser is not a trade-misinvoicing estimator and does not infer crime.
 
 use crate::economic_intelligence::{
-    compare_mirror_pair, MirrorPairStatus, TradeAreaKind, TradeFlow, TradeObservation,
-    TRADE_OBSERVATION_SCHEMA_VERSION,
+    compare_mirror_pair, MirrorPairStatus, ObservationSourceCoverage, TradeAreaKind, TradeFlow,
+    TradeObservation, TRADE_OBSERVATION_SCHEMA_VERSION,
 };
 use serde::Deserialize;
 use serde_json::Value;
@@ -291,6 +291,23 @@ pub fn parse_un_comtrade_preview(
         PreviewCoverage::BelowRequestedLimitCompletenessUnproven
     };
 
+    let observation_coverage = match coverage {
+        PreviewCoverage::EmptyResponse
+        | PreviewCoverage::BelowRequestedLimitCompletenessUnproven => {
+            ObservationSourceCoverage::PreviewCompletenessUnproven
+        }
+        PreviewCoverage::PossiblyTruncated => ObservationSourceCoverage::PreviewPossiblyTruncated,
+        PreviewCoverage::RowsRejectedCompletenessUnproven => {
+            ObservationSourceCoverage::PreviewRowsRejected
+        }
+        PreviewCoverage::PossiblyTruncatedWithRejectedRows => {
+            ObservationSourceCoverage::PreviewPossiblyTruncatedWithRejectedRows
+        }
+    };
+    for record in &mut records {
+        record.observation.source_coverage = observation_coverage;
+    }
+
     Ok(ParsedUnComtradePreview {
         source_snapshot_id: context.source_snapshot_id.clone(),
         area_reference_snapshot_id: context.area_reference_snapshot_id.clone(),
@@ -489,6 +506,7 @@ fn normalize_record(
         period,
         disaggregation_signature: dimension_signature,
         source_state_signature,
+        source_coverage: ObservationSourceCoverage::PreviewCompletenessUnproven,
         commodity_code,
         classification_revision: query.classification_revision.clone(),
         flow,
@@ -652,6 +670,10 @@ mod tests {
             parsed.coverage,
             PreviewCoverage::BelowRequestedLimitCompletenessUnproven
         );
+        assert_eq!(
+            parsed.records[0].observation.source_coverage,
+            ObservationSourceCoverage::PreviewCompletenessUnproven
+        );
     }
 
     #[test]
@@ -662,6 +684,10 @@ mod tests {
         assert_eq!(parsed.records.len(), 1);
         assert_eq!(parsed.coverage, PreviewCoverage::PossiblyTruncated);
         assert!(parsed.coverage.may_be_truncated());
+        assert_eq!(
+            parsed.records[0].observation.source_coverage,
+            ObservationSourceCoverage::PreviewPossiblyTruncated
+        );
     }
 
     #[test]
@@ -678,6 +704,10 @@ mod tests {
         );
         assert!(parsed.coverage.may_be_truncated());
         assert!(!parsed.coverage.completeness_proven());
+        assert_eq!(
+            parsed.records[0].observation.source_coverage,
+            ObservationSourceCoverage::PreviewPossiblyTruncated
+        );
     }
 
     #[test]
@@ -697,7 +727,7 @@ mod tests {
     }
 
     #[test]
-    fn mirror_pair_rejects_reported_vs_legacy_estimated_records() {
+    fn preview_rows_cannot_be_used_for_gap_calculations_without_complete_coverage() {
         let exporter_raw = row();
         let mut importer_raw = row();
         importer_raw["reporterCode"] = Value::from(156);
@@ -722,7 +752,7 @@ mod tests {
             &[exporter.records[0].observation.clone()],
             &[importer.records[0].observation.clone()],
         );
-        assert_eq!(result.status, MirrorPairStatus::SourceStateMismatch);
+        assert_eq!(result.status, MirrorPairStatus::SourceCoverageInsufficient);
         assert_eq!(result.absolute_difference_source_text, None);
     }
 
