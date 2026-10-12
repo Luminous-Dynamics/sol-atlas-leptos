@@ -86,9 +86,10 @@ pub enum SiteIdentityMethod {
 
 /// Provenance bound to the exact source snapshot used to create these records.
 ///
-/// `snapshot_sha256` must be computed over the exact downloaded source bytes
-/// by the acquisition step. This crate validates its shape; it does not pretend
-/// that a syntactically valid digest proves the downloaded bytes match it.
+/// `snapshot_sha256` is bound to a separate authorization constructed by hashing
+/// exact downloaded source bytes. This crate does not fetch or independently retain
+/// those bytes; the trusted acquisition step must pass the correct file to the
+/// authorization constructor. A digest-looking string alone is not source proof.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FlareSourceProvenance {
@@ -333,12 +334,12 @@ pub struct FlareCoverageSummary {
 
 /// Parse and structurally admit a normalized JSON source snapshot.
 ///
-/// The caller must compute `snapshot_sha256` over the exact downloaded XLSX
-/// bytes, map reviewed worksheet columns explicitly, and attach attribution and
-/// the reuse-review attestation. This function validates digest *shape*, not the
-/// digest against source bytes; nor does it authenticate the reviewer or confirm
-/// the legal scope of the terms. Those checks belong in the trusted acquisition
-/// and review workflow. Any structural admission issue rejects the snapshot.
+/// The caller must create `authorization` by passing the exact downloaded source
+/// bytes and exact reviewed terms snapshot bytes to `record_manual_review`, then
+/// map reviewed worksheet columns explicitly. This function checks that source and
+/// review metadata match that off-band authorization. It does not fetch the bytes,
+/// externally authenticate the reviewer, or independently decide legal scope.
+/// Any structural admission issue rejects the snapshot.
 pub fn parse_json_snapshot(
     json: &str,
     authorization: &TrustedReuseAuthorization,
@@ -1269,15 +1270,15 @@ mod tests {
     #[test]
     fn json_parser_requires_the_same_admission_checks() {
         let json = serde_json::to_string(&sample_snapshot()).unwrap();
-        let admitted = parse_json_snapshot(&json, &test_authorization())
-            .expect("valid normalized JSON");
+        let admitted =
+            parse_json_snapshot(&json, &test_authorization()).expect("valid normalized JSON");
         assert_eq!(admitted.snapshot.schema_version, "gas-flaring-screening-v1");
 
         let mut invalid = sample_snapshot();
         invalid.provenance.source_uri = "http://example.invalid".into();
         let invalid_json = serde_json::to_string(&invalid).unwrap();
-        let error = parse_json_snapshot(&invalid_json, &test_authorization())
-            .expect_err("HTTP sources must reject");
+        let error =
+            parse_json_snapshot(&invalid_json, &test_authorization()).expect_err("HTTP sources must reject");
         match error {
             AdmissionError::Rejected(issues) => {
                 assert!(issues.iter().any(|item| item.code == "invalid_source_uri"));
