@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
 pub mod globe_canvas;
+pub mod community_energy_demo;
 pub mod hud;
 pub mod info_panel;
 pub mod layer_panel;
