@@ -556,11 +556,17 @@ impl GovernanceVoteFixture {
             && u16::from(self.yes) * 100 >= u16::from(decisive) * u16::from(self.approval_percent)
     }
 
-    pub fn passed(self) -> bool { self.quorum_met() && self.approval_met() }
+    pub fn passed(self) -> bool {
+        self.quorum_met() && self.approval_met()
+    }
 
     pub fn approval_rate_percent(self) -> u8 {
         let decisive = self.yes.saturating_add(self.no);
-        if decisive == 0 { 0 } else { ((u16::from(self.yes) * 100) / u16::from(decisive)) as u8 }
+        if decisive == 0 {
+            0
+        } else {
+            ((u16::from(self.yes) * 100) / u16::from(decisive)) as u8
+        }
     }
 }
 
