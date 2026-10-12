@@ -765,6 +765,42 @@ mod tests {
     }
 
     #[test]
+    fn preserves_negative_signed_difference_and_small_fractional_values() {
+        let mut exporter =
+            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
+        exporter.trade_value_source_text = Some("100.000".to_string());
+        let mut importer =
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some(99.999));
+        importer.trade_value_source_text = Some("99.999".to_string());
+
+        let result = compare_mirror_pair(&[exporter], &[importer]);
+        assert_eq!(result.status, MirrorPairStatus::Compared);
+        assert_eq!(
+            result.signed_difference_source_text.as_deref(),
+            Some("-0.001")
+        );
+        assert_eq!(
+            result.absolute_difference_source_text.as_deref(),
+            Some("0.001")
+        );
+    }
+
+    #[test]
+    fn returns_explicit_overflow_instead_of_rounding_large_mixed_scale_values() {
+        let mut exporter =
+            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
+        exporter.trade_value_source_text =
+            Some("170141183460469231731687303715884105727".to_string());
+        let mut importer =
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some(0.000000000000000001));
+        importer.trade_value_source_text = Some("0.000000000000000001".to_string());
+
+        let result = compare_mirror_pair(&[exporter], &[importer]);
+        assert_eq!(result.status, MirrorPairStatus::ComparisonArithmeticOverflow);
+        assert_eq!(result.absolute_difference_source_text, None);
+    }
+
+    #[test]
     fn rejects_incompatible_commodity_revision_and_nonreciprocal_reports() {
         let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
         let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some(120.0));
