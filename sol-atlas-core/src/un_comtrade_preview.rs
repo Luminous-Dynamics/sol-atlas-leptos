@@ -380,10 +380,14 @@ fn validate_context(
     }
     let period_bytes = query.period.as_bytes();
     let expected_period_len = if query.frequency_code == "A" { 4 } else { 6 };
+    let valid_month = period_bytes
+        .get(4..6)
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        .and_then(|month| month.parse::<u8>().ok())
+        .is_some_and(|month| (1..=12).contains(&month));
     if period_bytes.len() != expected_period_len
         || !period_bytes.iter().all(u8::is_ascii_digit)
-        || (query.frequency_code == "M"
-            && !matches!(&period_bytes[4..6], b"01" | b"02" | b"03" | b"04" | b"05" | b"06" | b"07" | b"08" | b"09" | b"10" | b"11" | b"12"))
+        || (query.frequency_code == "M" && !valid_month)
     {
         return Err(UnComtradePreviewError::InvalidContext(
             "period must be YYYY for annual data or YYYYMM with month 01..12 for monthly data"
@@ -932,7 +936,13 @@ mod tests {
         ));
 
         ctx.query.period = "202501".to_string();
-        assert!(parse_un_comtrade_preview(&response(vec![row()], 1), &ctx).is_err());
+        let mut monthly_row = row();
+        monthly_row["freqCode"] = Value::String("M".to_string());
+        monthly_row["period"] = Value::String("202501".to_string());
+        assert!(
+            parse_un_comtrade_preview(&response(vec![monthly_row], 1), &ctx).is_ok(),
+            "valid monthly period and matching row should parse"
+        );
     }
 
     #[test]
