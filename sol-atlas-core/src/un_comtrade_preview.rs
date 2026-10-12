@@ -770,7 +770,7 @@ mod tests {
         );
         assert_eq!(
             parsed.coverage,
-            PreviewCoverage::BelowLimitWithRejectedRows
+            PreviewCoverage::RowsRejectedCompletenessUnproven
         );
     }
 
