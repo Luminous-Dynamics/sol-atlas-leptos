@@ -664,7 +664,7 @@
           "url": "https://pds.nasa.gov/",
           "role": "Archive of spacecraft, mission, ground-based and laboratory planetary science data.",
           "access_status": "public_catalog",
-          "rights_state": "review_dataset_metadata",
+          "rights_state": "review_product_metadata",
           "redistribution_allowed": null,
           "key_limitations": [
             "Calibration, coordinate frames, projection, mission timing and product documentation are mission-specific.",
