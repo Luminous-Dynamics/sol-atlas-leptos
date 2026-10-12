@@ -482,6 +482,10 @@ fn normalize_record(
         partner: partner_code,
         partner_kind,
         geography_code_system: UN_COMTRADE_GEOGRAPHY_CODE_SYSTEM.to_string(),
+        series_signature: format!(
+            "uncomtrade-series/v1|type={}|frequency={}|classification={}",
+            query.type_code, query.frequency_code, query.classification_code
+        ),
         period,
         disaggregation_signature: dimension_signature,
         source_state_signature,
@@ -491,7 +495,7 @@ fn normalize_record(
         trade_value_source_text: Some(primary_value),
         currency: "USD".to_string(),
         value_unit: "USD".to_string(),
-        quantity: optional_f64(object, "netWgt"),
+        quantity: optional_f64(object, "qty"),
         quantity_unit: optional_scalar(object, "qtyUnitAbbr"),
         // The API row reference period is not the publication/revision time.
         // Preserve it separately as period; leave source_published_at absent
@@ -648,6 +652,16 @@ mod tests {
             parsed.coverage,
             PreviewCoverage::BelowRequestedLimitCompletenessUnproven
         );
+    }
+
+    #[test]
+    fn source_count_larger_than_payload_marks_possible_truncation() {
+        let parsed = parse_un_comtrade_preview(&response(vec![row()], 2), &context(10)).unwrap();
+        assert_eq!(parsed.source_reported_count, 2);
+        assert_eq!(parsed.rows_returned, 1);
+        assert_eq!(parsed.records.len(), 1);
+        assert_eq!(parsed.coverage, PreviewCoverage::PossiblyTruncated);
+        assert!(parsed.coverage.may_be_truncated());
     }
 
     #[test]
