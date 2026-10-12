@@ -157,8 +157,8 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
             source for source in self.catalog["sources"]
             if source["id"] == "pgda-lola-polar-illumination"
         )
-        self.assertEqual(len(topography["sample_direct_assets"]), 5)
-        self.assertEqual(len(illumination["sample_direct_assets"]), 5)
+        self.assertEqual(len(topography["sample_direct_assets"]), 6)
+        self.assertEqual(len(illumination["sample_direct_assets"]), 7)
         for source in (topography, illumination):
             self.assertTrue(source["asset_access_notes"])
             for asset in source["sample_direct_assets"]:
