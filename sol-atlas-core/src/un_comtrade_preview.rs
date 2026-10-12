@@ -336,6 +336,10 @@ fn validate_context(
         ("type_code", query.type_code.as_str()),
         ("frequency_code", query.frequency_code.as_str()),
         ("classification_code", query.classification_code.as_str()),
+        (
+            "record_classification_code",
+            query.record_classification_code.as_str(),
+        ),
         ("classification_revision", query.classification_revision.as_str()),
         ("period", query.period.as_str()),
         ("reporter_code", query.reporter_code.as_str()),
