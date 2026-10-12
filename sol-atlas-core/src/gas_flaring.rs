@@ -751,12 +751,23 @@ fn is_iso_date(value: &str) -> bool {
         + (bytes[1] - b'0') as u16 * 100
         + (bytes[2] - b'0') as u16 * 10
         + (bytes[3] - b'0') as u16;
-    year > 0 && (1..=12).contains(&month) && (1..=31).contains(&day)
+    if year == 0 || !(1..=12).contains(&month) {
+        return false;
+    }
+    let leap_year = year % 400 == 0 || (year % 4 == 0 && year % 100 != 0);
+    let last_day = match month {
+        2 if leap_year => 29,
+        2 => 28,
+        4 | 6 | 9 | 11 => 30,
+        _ => 31,
+    };
+    (1..=last_day).contains(&day)
 }
 
 fn is_utc_timestamp(value: &str) -> bool {
     let bytes = value.as_bytes();
     if bytes.len() != 20
+        || !bytes.iter().all(u8::is_ascii)
         || bytes[10] != b'T'
         || bytes[13] != b':'
         || bytes[16] != b':'
