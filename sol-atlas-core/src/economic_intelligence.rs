@@ -73,6 +73,10 @@ pub struct TradeObservation {
     pub geography_code_system: String,
     /// Source-defined reference period.
     pub period: String,
+    /// Canonical source-specific key for non-primary disaggregation dimensions
+    /// (e.g. second partner, transport mode, customs procedure). Mirrors may
+    /// only be compared when this exact key agrees; use a versioned encoding.
+    pub disaggregation_signature: String,
     /// Commodity code as supplied/normalized under the source contract.
     pub commodity_code: String,
     /// Classification system and revision (for example, HS revision).
@@ -229,7 +233,7 @@ impl MirrorPairResult {
 pub const RAW_MIRROR_METHOD_ID: &str = "raw_mirror_value_difference/v1";
 
 /// Current version of the normalized TradeObservation wire contract.
-pub const TRADE_OBSERVATION_SCHEMA_VERSION: u16 = 1;
+pub const TRADE_OBSERVATION_SCHEMA_VERSION: u16 = 2;
 
 /// Compare candidate bilateral reports without silently resolving ambiguity.
 ///
@@ -344,6 +348,13 @@ pub fn compare_mirror_pair(
     if exporter.period != importer.period {
         return MirrorPairResult::excluded(
             MirrorPairStatus::PeriodMismatch,
+            exporter_id,
+            importer_id,
+        );
+    }
+    if exporter.disaggregation_signature != importer.disaggregation_signature {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::DisaggregationMismatch,
             exporter_id,
             importer_id,
         );
@@ -583,6 +594,7 @@ fn has_identity(observation: &TradeObservation) -> bool {
         && !observation.partner.trim().is_empty()
         && !observation.geography_code_system.trim().is_empty()
         && !observation.period.trim().is_empty()
+        && !observation.disaggregation_signature.trim().is_empty()
         && !observation.commodity_code.trim().is_empty()
         && !observation.classification_revision.trim().is_empty()
         && !observation.currency.trim().is_empty()
@@ -614,6 +626,7 @@ mod tests {
             partner_kind: TradeAreaKind::ReportingArea,
             geography_code_system: "TEST_ALPHA3".to_string(),
             period: "2025".to_string(),
+            disaggregation_signature: "comtrade-dimensions/v1|partner2=0|mot=0|customs=C00".to_string(),
             commodity_code: "010121".to_string(),
             classification_revision: "HS-2022".to_string(),
             flow,
