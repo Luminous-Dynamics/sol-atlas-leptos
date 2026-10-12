@@ -644,7 +644,7 @@ mod tests {
         let candidates = register["candidates"]
             .as_array()
             .expect("candidate list must be an array");
-        assert_eq!(candidates.len(), 10);
+        assert_eq!(candidates.len(), 11);
         assert!(register["scoring"].is_null());
         assert!(register["comparison_policy"]["weights"].is_null());
         for candidate in candidates {
