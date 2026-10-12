@@ -92,6 +92,47 @@
         "Use the supplied ROI files or an independently sourced, versioned region polygon; never derive the polygon from the place name.",
         "Check raster dimensions, CRS compatibility, nodata, uncertainty-layer alignment and pixel registration before any zonal statistic.",
         "Label name matches as provisional until ROI overlap and region identity are confirmed."
+      ],
+      "sample_direct_assets": [
+        {
+          "title": "Site01 LDEM (surface elevation)",
+          "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_surf.tif",
+          "asset_type": "GeoTIFF",
+          "verification_state": "source_link_listed_not_downloaded_or_hashed",
+          "note": "Exact Site01 asset linked from NASA PGDA product 78. Download, inspect label/metadata and compute SHA-256 before analysis."
+        },
+        {
+          "title": "Site01 slope",
+          "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_slp.tif",
+          "asset_type": "GeoTIFF",
+          "verification_state": "source_link_listed_not_downloaded_or_hashed",
+          "note": "Pair with the count and uncertainty layers; nominal pixel spacing is not equivalent to independent terrain measurements."
+        },
+        {
+          "title": "Site01 elevation uncertainty",
+          "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_toterr.tif",
+          "asset_type": "GeoTIFF",
+          "verification_state": "source_link_listed_not_downloaded_or_hashed",
+          "note": "Inspect metadata, units, pixel registration and nodata before any zonal statistic."
+        },
+        {
+          "title": "Site01 slope uncertainty",
+          "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_slperr.tif",
+          "asset_type": "GeoTIFF",
+          "verification_state": "source_link_listed_not_downloaded_or_hashed",
+          "note": "Do not replace spatially varying uncertainty with one region-wide summary."
+        },
+        {
+          "title": "Site01 ROI shapefiles",
+          "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_ROIs.tgz",
+          "asset_type": "GIS archive",
+          "verification_state": "source_link_listed_not_downloaded_or_hashed",
+          "note": "Required to verify ROI 4–6 geometry; filename/region names alone do not establish exact overlap."
+        }
+      ],
+      "asset_access_notes": [
+        "NASA PGDA product 78 links the sample Site01 files shown here, but this repository has not downloaded or hashed the binary assets.",
+        "The source page states that around 90% of pixels in the cited 5 m/pixel polar LDEMs are interpolated; check per-product labels and uncertainty layers before calculating any local statistic."
       ]
     },
     {
@@ -127,6 +168,48 @@
         "Verify band identity, unit/scale/offset, nodata, CRS, pixel registration and full-resolution block reads from the product labels.",
         "Reject use of a time-averaged illumination value as a mission-window guarantee.",
         "For radio planning, pair Earth-visibility geometry with antenna/link-budget analysis and relay geometry."
+      ],
+      "sample_direct_assets": [
+        {
+          "title": "85S–90S average solar illumination raster",
+          "url": "https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/AVGVISIB_85S_060M_201608.JP2",
+          "asset_type": "PDS GeoJPEG2000 raster",
+          "verification_state": "listed_in_pds_directory_binary_not_downloaded_or_hashed",
+          "note": "The PDS directory lists this file and a corresponding label. Confirm PRODUCT_ID, scaling and semantics from the label before using values."
+        },
+        {
+          "title": "85S–90S average solar illumination label",
+          "url": "https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/AVGVISIB_85S_060M_201608_JP2.LBL",
+          "asset_type": "PDS label",
+          "verification_state": "listed_in_pds_directory_not_parsed",
+          "note": "Inspect dimensions, projection, pixel registration, units and scaling/offsets before ingesting the raster."
+        },
+        {
+          "title": "85S–90S permanent-shadow raster",
+          "url": "https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/LPSR_85S_060M_201608.JP2",
+          "asset_type": "PDS GeoJPEG2000 raster",
+          "verification_state": "listed_in_pds_directory_binary_not_downloaded_or_hashed",
+          "note": "Verify the paired label and mask semantics, including how null/unknown cells are encoded."
+        },
+        {
+          "title": "85S–90S permanent-shadow label",
+          "url": "https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/LPSR_85S_060M_201608_JP2.LBL",
+          "asset_type": "PDS label",
+          "verification_state": "listed_in_pds_directory_not_parsed",
+          "note": "Apply the label definition rather than treating the JP2 pixel encoding as self-describing."
+        },
+        {
+          "title": "85S–90S average Earth visibility raster",
+          "url": "https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/AVGVISIB_85S_060M_201608_EARTH.JP2",
+          "asset_type": "PDS GeoJPEG2000 raster",
+          "verification_state": "listed_in_pds_directory_binary_not_downloaded_or_hashed",
+          "note": "Earth-disc visibility is not itself a radio link budget; confirm label semantics and units before use."
+        }
+      ],
+      "asset_access_notes": [
+        "On 2026-10-12, the sampled PGDA COG URL for AVGVISIB_85S_060M_201608_COG.TIF returned an HTML 404 response in the browser check. This records one sampled URL failure only; it does not establish that every COG or TIFF product is unavailable.",
+        "The NASA PGDA product page links the LOLA PDS data node and describes IMG/GeoJPEG2000 distributions. The MIT PDS JP2 directory lists the above raster and label filenames. The browser tool could not render the binary or label endpoints, so no payload, PDS label field, checksum or numerical raster value has yet been verified here.",
+        "Do not infer meaning solely from AVGVISIB filename tokens. Read and validate the associated PDS label (including PRODUCT_ID, units/scaling, dimensions and projection) before mapping it to an illumination metric."
       ]
     },
     {
