@@ -47,7 +47,10 @@ pub enum TradeAreaKind {
 /// currency. Quantities are carried for future, explicitly qualified methods,
 /// but are not used to adjust the value gap calculated here.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TradeObservation {
+    /// Version of this normalized observation contract.
+    pub schema_version: u16,
     /// Stable identifier assigned by the ingestion layer.
     pub record_id: String,
     /// Stable source-registry identifier, not just a display name.
@@ -118,6 +121,8 @@ pub enum MirrorPairStatus {
     AmbiguousReportsBothSides,
     /// Required identity/provenance or matching metadata is empty.
     InvalidRecordIdentity,
+    /// An observation uses an unsupported normalized schema version.
+    UnsupportedObservationSchemaVersion,
     /// Candidate records do not have export/import flow directions as expected.
     InvalidFlowDirection,
     /// At least one party is an aggregate rather than an individual reporting area.
@@ -223,6 +228,9 @@ impl MirrorPairResult {
 /// Versioned name for the intentionally narrow calculation in this module.
 pub const RAW_MIRROR_METHOD_ID: &str = "raw_mirror_value_difference/v1";
 
+/// Current version of the normalized TradeObservation wire contract.
+pub const TRADE_OBSERVATION_SCHEMA_VERSION: u16 = 1;
+
 /// Compare candidate bilateral reports without silently resolving ambiguity.
 ///
 /// The slices must already represent candidates for the intended bilateral
@@ -283,6 +291,16 @@ pub fn compare_mirror_pair(
     let importer = &importer_candidates[0];
     let exporter_id = Some(exporter.record_id.clone());
     let importer_id = Some(importer.record_id.clone());
+
+    if exporter.schema_version != TRADE_OBSERVATION_SCHEMA_VERSION
+        || importer.schema_version != TRADE_OBSERVATION_SCHEMA_VERSION
+    {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::UnsupportedObservationSchemaVersion,
+            exporter_id,
+            importer_id,
+        );
+    }
 
     if !has_identity(exporter) || !has_identity(importer) {
         return MirrorPairResult::excluded(
@@ -584,6 +602,7 @@ mod tests {
         value: Option<&str>,
     ) -> TradeObservation {
         TradeObservation {
+            schema_version: TRADE_OBSERVATION_SCHEMA_VERSION,
             record_id: record_id.to_string(),
             source_id: "un-comtrade-fixture".to_string(),
             source_snapshot_id: "sha256:fixture-v1".to_string(),
@@ -612,6 +631,19 @@ mod tests {
         let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, export_value);
         let importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, import_value);
         compare_mirror_pair(&[exporter], &[importer])
+    }
+
+    #[test]
+    fn rejects_unsupported_observation_schema_versions() {
+        let mut exporter =
+            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let importer =
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        exporter.schema_version = TRADE_OBSERVATION_SCHEMA_VERSION + 1;
+        assert_eq!(
+            compare_mirror_pair(&[exporter], &[importer]).status,
+            MirrorPairStatus::UnsupportedObservationSchemaVersion
+        );
     }
 
     #[test]
