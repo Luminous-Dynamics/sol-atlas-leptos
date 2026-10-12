@@ -181,7 +181,7 @@ pub fn compute_with_live_source_freshness(
                 Some(DataKind::Observed),
                 Some(RecordTemporalOrigin::LiveFeed),
                 Some("NASA EONET"),
-                _,
+                NaturalEventType::Fire | NaturalEventType::Storm | NaturalEventType::Volcano,
             ) => freshness.eonet_is_current,
             (
                 Some(DataKind::Curated),
@@ -417,6 +417,27 @@ mod tests {
         );
         assert_eq!(current.len(), 1);
         assert!(current[0].layers.contains(&Layer::Earthquakes));
+    }
+
+    #[test]
+    fn eonet_provenance_cannot_authorize_usgs_only_event_types() {
+        let mut mislabeled_eonet_earthquake = quake(10.0001, 10.0001);
+        mislabeled_eonet_earthquake.source_name = Some("NASA EONET".into());
+
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            natural_events: vec![mislabeled_eonet_earthquake],
+            ..Default::default()
+        };
+        let freshness = LiveSourceFreshness {
+            usgs_is_current: false,
+            eonet_is_current: true,
+        };
+
+        assert!(
+            compute_with_live_source_freshness(&data, 2, freshness).is_empty(),
+            "EONET fire/storm/volcano provenance must not authorize an earthquake record"
+        );
     }
 
     #[test]
