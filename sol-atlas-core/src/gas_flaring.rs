@@ -505,7 +505,10 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
                     "derived identity requires non-empty canonical source-field names",
                 ));
             }
-            if source_fields.windows(2).any(|pair| pair[0] >= pair[1]) {
+            if source_fields
+                .windows(2)
+                .any(|pair| pair[0].as_str() >= pair[1].as_str())
+            {
                 issues.push(issue(
                     "noncanonical_identity_source_fields",
                     "provenance.site_identity_method.source_fields",
@@ -600,18 +603,18 @@ mod tests {
 
     fn provenance() -> FlareSourceProvenance {
         FlareSourceProvenance {
-            source_name: "World Bank Global Gas Flaring Tracker".into(),
-            source_uri: WORLD_BANK_FLARING_DATA_URL.into(),
-            source_version: "fixture-2026-06-reviewed-schema-v1".into(),
+            source_name: "Synthetic flare fixture (not real World Bank data)".into(),
+            source_uri: "https://example.invalid/synthetic-flare-fixture".into(),
+            source_version: "synthetic-fixture-v1".into(),
             site_identity_method: SiteIdentityMethod::SourceField {
                 field_name: "Synthetic Site ID".into(),
             },
             snapshot_sha256: "a".repeat(64),
-            published_at: Some("2026-06-23".into()),
-            retrieved_at: "2026-10-12T00:00:00Z".into(),
+            published_at: None,
+            retrieved_at: "not-applicable-synthetic-fixture".into(),
             reference_year_start: 2024,
             reference_year_end: 2025,
-            attribution: "NOAA VIIRS; Payne Institute for Public Policy, Colorado School of Mines; World Bank/GFMR".into(),
+            attribution: "Synthetic unit-test data only; no real World Bank source values included".into(),
             reuse_review: ReuseReview::Approved {
                 reviewer: "test-fixture-review".into(),
                 reviewed_at: "2026-10-12".into(),
