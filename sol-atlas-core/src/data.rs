@@ -259,6 +259,13 @@ fn canonical_source_label(dataset_name: &str, raw_source: Option<&str>) -> Optio
     }
 }
 
+fn lineage_contains(lineage: &[String], expected: &str) -> bool {
+    lineage
+        .iter()
+        .take(32)
+        .any(|value| value.trim().eq_ignore_ascii_case(expected))
+}
+
 fn classify_natural_event(
     dataset_name: &str,
     source_name: Option<&str>,
@@ -271,8 +278,23 @@ fn classify_natural_event(
     let source = source_name?.trim().to_ascii_lowercase();
     match (dataset_name, source.as_str()) {
         ("usgs-earthquakes", "usgs" | "usgs comcat")
-        | ("nasa-firms", "nasa firms")
-        | ("nasa-eonet", "nasa eonet") => Some(DataKind::Observed),
+            if lineage_contains(lineage, "USGS")
+                && (lineage_contains(lineage, "Seismic Network")
+                    || lineage_contains(lineage, "ComCat")
+                    || lineage_contains(lineage, "Real-time")) =>
+        {
+            Some(DataKind::Observed)
+        }
+        ("nasa-firms", "nasa firms")
+            if lineage_contains(lineage, "NASA") && lineage_contains(lineage, "FIRMS") =>
+        {
+            Some(DataKind::Observed)
+        }
+        ("nasa-eonet", "nasa eonet")
+            if lineage_contains(lineage, "NASA") && lineage_contains(lineage, "EONET") =>
+        {
+            Some(DataKind::Observed)
+        }
         ("volcanoes", _) => Some(DataKind::Curated),
         _ => None,
     }
@@ -627,6 +649,28 @@ mod tests {
             events[0].source_url.as_deref(),
             Some("https://eonet.gsfc.nasa.gov/api/v3/events/EONET_15458")
         );
+    }
+
+    #[test]
+    fn an_official_source_label_without_corroborating_lineage_is_unclassified() {
+        let json = r#"{
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "properties": {
+                    "source": "NASA EONET",
+                    "event_id": "EONET_15458",
+                    "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_15458",
+                    "title": "Uncorroborated source claim"
+                },
+                "geometry": {"type": "Point", "coordinates": [-110.0, 20.0]}
+            }]
+        }"#;
+        let events = parse_natural_events("[]", "[]", json, "[]");
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].source_name.as_deref(), Some("NASA EONET"));
+        assert_eq!(events[0].data_kind, None);
+        assert_eq!(events[0].source_url, None);
     }
 
     #[test]
