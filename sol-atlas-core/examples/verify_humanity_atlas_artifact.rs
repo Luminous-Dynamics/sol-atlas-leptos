@@ -11,7 +11,12 @@ use sol_atlas_core::humanity_atlas::{
     ScenarioRunEnvelope,
     technology_tree::{MAX_SOURCE_ARTIFACT_BYTES, import_technology_tree},
 };
-use std::{env, fs, io, process::ExitCode};
+use std::{
+    env,
+    fs::{self, File},
+    io::{self, Read},
+    process::ExitCode,
+};
 
 fn main() -> ExitCode {
     match run() {
@@ -48,7 +53,20 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         )
         .into());
     }
-    let source_bytes = fs::read(artifact_path)?;
+    // Read one byte beyond the limit so a file that grows after metadata()
+    // cannot make this CLI allocate an unbounded source artifact.
+    let source_file = File::open(artifact_path)?;
+    let mut source_bytes = Vec::with_capacity(source_metadata.len() as usize);
+    source_file
+        .take(MAX_SOURCE_ARTIFACT_BYTES as u64 + 1)
+        .read_to_end(&mut source_bytes)?;
+    if source_bytes.len() > MAX_SOURCE_ARTIFACT_BYTES {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("source artifact exceeds the {MAX_SOURCE_ARTIFACT_BYTES}-byte v1 limit"),
+        )
+        .into());
+    }
     let run = ScenarioRunEnvelope::from_json(&envelope_bytes)
         .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
     let tree = import_technology_tree(&run, &artifact_id, &source_bytes)
