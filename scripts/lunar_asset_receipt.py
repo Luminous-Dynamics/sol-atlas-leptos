@@ -56,6 +56,13 @@ def build_receipt(
     """Return a receipt after matching the exact URL and hashing local bytes."""
     if not isinstance(catalog, dict):
         raise ReceiptError("source catalog must be a JSON object")
+    try:
+        catalog_bytes = catalog_path.read_bytes()
+        on_disk_catalog = json.loads(catalog_bytes)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ReceiptError(f"cannot read the reviewed source catalog: {exc}") from exc
+    if on_disk_catalog != catalog:
+        raise ReceiptError("source catalog changed after parsing; reload it before recording a receipt")
     matches: list[tuple[dict[str, Any], dict[str, Any]]] = []
     for source in catalog.get("sources", []):
         if not isinstance(source, dict):
@@ -80,8 +87,11 @@ def build_receipt(
         raise ReceiptError("local input path must be an existing regular file")
 
     asset_hash, byte_count, mtime_ns, inode = _sha256_file(asset_path)
-    catalog_bytes = catalog_path.read_bytes()
     catalog_hash = hashlib.sha256(catalog_bytes).hexdigest()
+    try:
+        catalog_display_path = catalog_path.resolve().relative_to(ROOT.resolve()).as_posix()
+    except ValueError:
+        catalog_display_path = catalog_path.name
     if captured_utc is None:
         captured_utc = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     try:
@@ -96,7 +106,7 @@ def build_receipt(
         "schema": RECEIPT_SCHEMA,
         "recorded_utc": captured_utc,
         "source_catalog": {
-            "path": "docs/data/lunar_geospatial_source_catalog.v1.json",
+            "path": catalog_display_path,
             "sha256": catalog_hash,
             "schema": catalog.get("schema"),
         },
