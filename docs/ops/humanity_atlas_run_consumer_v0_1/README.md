@@ -38,10 +38,11 @@ these steps; `run_id` and the artifact reference bind its exact byte sequence.
 cargo run --manifest-path sol-atlas-core/Cargo.toml --example verify_humanity_atlas_artifact -- /tmp/humanity-atlas-envelope.v0.1.json /tmp/humanity-atlas-run.json source-simulator-output
 ```
 
-Both the adapter and importer enforce a 64 MiB source-artifact ceiling.
-The command-line verifier checks file metadata before reading and the importer
-rechecks the byte length before hashing, protecting against an artifact that
-changes between the metadata check and the read.
+The adapter and importer enforce a 64 MiB source-artifact ceiling; the
+offline CLI additionally caps the run envelope at 4 MiB. Both files are checked
+against their metadata before reading, and each read is limited to the relevant
+ceiling plus one byte. The importer then rechecks source-artifact length before
+hashing, so a file that grows after `stat` is rejected without an unbounded read.
 
 A successful verifier prints a JSON summary containing the source artifact digest,
 tree definition digest, run horizon, survival outcome, milestone count and
