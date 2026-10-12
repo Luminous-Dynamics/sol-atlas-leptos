@@ -618,7 +618,12 @@ mod tests {
     fn verifier_rejects_charge_power_limit_violation() {
         let mut run = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
         run.intervals[0].battery_charge_input_kwh = 2.01;
-        assert!(verify(BatteryConfiguration::RESILIENCE_CANDIDATE, &SCENARIO_INPUTS, &run).is_err());
+        assert!(verify(
+            BatteryConfiguration::RESILIENCE_CANDIDATE,
+            &SCENARIO_INPUTS,
+            &run
+        )
+        .is_err());
     }
 
     #[test]
