@@ -683,14 +683,22 @@ mod tests {
             partner: partner.to_string(),
             partner_kind: TradeAreaKind::ReportingArea,
             geography_code_system: "TEST_ALPHA3".to_string(),
-            series_signature: "synthetic-series/v1|type=commodity|frequency=annual|classification=HS".to_string(),
+            series_signature: concat!(
+                "synthetic-series/v1|type=commodity|frequency=annual|",
+                "classification=HS"
+            )
+            .to_string(),
             period: "2025".to_string(),
             disaggregation_signature: concat!(
                 "comtrade-dimensions/v1|partner2=0|mot=0|",
                 "customs=C00"
             )
             .to_string(),
-            source_state_signature: "synthetic-state/v1|reported=true|legacy_estimation=0".to_string(),
+            source_state_signature: concat!(
+                "synthetic-state/v1|reported=true|",
+                "legacy_estimation=0"
+            )
+            .to_string(),
             commodity_code: "010121".to_string(),
             classification_revision: "HS-2022".to_string(),
             flow,
