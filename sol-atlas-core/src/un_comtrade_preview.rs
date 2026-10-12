@@ -196,8 +196,28 @@ pub fn parse_un_comtrade_preview(
 ) -> Result<ParsedUnComtradePreview, UnComtradePreviewError> {
     validate_context(context)?;
 
-    let envelope: PreviewEnvelope = serde_json::from_str(response_json)
+    let parsed: Value = serde_json::from_str(response_json)
         .map_err(|error| UnComtradePreviewError::InvalidJson(error.to_string()))?;
+    let object = parsed.as_object().ok_or_else(|| {
+        UnComtradePreviewError::EnvelopeSchema(
+            "top-level response must be a JSON object".to_string(),
+        )
+    })?;
+    const ENVELOPE_KEYS: [&str; 4] = ["elapsedTime", "count", "data", "error"];
+    if let Some(unknown) = object.keys().find(|key| !ENVELOPE_KEYS.contains(&key.as_str())) {
+        return Err(UnComtradePreviewError::EnvelopeSchema(format!(
+            "unsupported top-level field {unknown:?}"
+        )));
+    }
+    for required in ["count", "data"] {
+        if !object.contains_key(required) {
+            return Err(UnComtradePreviewError::EnvelopeSchema(format!(
+                "required top-level field {required:?} is missing"
+            )));
+        }
+    }
+    let envelope: PreviewEnvelope = serde_json::from_value(parsed)
+        .map_err(|error| UnComtradePreviewError::EnvelopeSchema(error.to_string()))?;
 
     if let Some(error) = envelope.error.as_ref().filter(|value| api_error_present(value)) {
         return Err(UnComtradePreviewError::ApiReportedError(error.to_string()));
@@ -670,7 +690,7 @@ mod tests {
         let result = parse_un_comtrade_preview(&value.to_string(), &context(10));
         assert!(matches!(
             result,
-            Err(UnComtradePreviewError::InvalidJson(_))
+            Err(UnComtradePreviewError::EnvelopeSchema(_))
         ));
     }
 
