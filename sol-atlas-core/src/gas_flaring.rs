@@ -290,10 +290,10 @@ pub fn admit_snapshot(
             }
             if let AnnualFlareValue::Estimated {
                 volume_million_m3_per_year,
-            } = estimate.value
+            } = &estimate.value
             {
                 if !volume_million_m3_per_year.is_finite()
-                    || volume_million_m3_per_year < 0.0
+                    || *volume_million_m3_per_year < 0.0
                 {
                     issues.push(issue(
                         "invalid_flare_volume",
@@ -336,13 +336,13 @@ pub fn coverage_summary(admitted: &ValidatedFlareSnapshot) -> FlareCoverageSumma
         .sites
         .iter()
         .flat_map(|site| &site.annual_estimates)
-        .filter(|row| matches!(row.value, AnnualFlareValue::Estimated { .. }))
+        .filter(|row| matches!(&row.value, AnnualFlareValue::Estimated { .. }))
         .count();
     let explicit_missing_value_count = snapshot
         .sites
         .iter()
         .flat_map(|site| &site.annual_estimates)
-        .filter(|row| matches!(row.value, AnnualFlareValue::Missing { .. }))
+        .filter(|row| matches!(&row.value, AnnualFlareValue::Missing { .. }))
         .count();
     let reported_zero_count = snapshot
         .sites
@@ -350,10 +350,10 @@ pub fn coverage_summary(admitted: &ValidatedFlareSnapshot) -> FlareCoverageSumma
         .flat_map(|site| &site.annual_estimates)
         .filter(|row| {
             matches!(
-                row.value,
+                &row.value,
                 AnnualFlareValue::Estimated {
                     volume_million_m3_per_year: value
-                } if value == 0.0
+                } if *value == 0.0
             )
         })
         .count();
@@ -606,7 +606,8 @@ mod tests {
     #[test]
     fn duplicate_site_ids_reject_whole_snapshot() {
         let mut snapshot = sample_snapshot();
-        snapshot.sites.push(snapshot.sites[0].clone());
+        let duplicate = snapshot.sites[0].clone();
+        snapshot.sites.push(duplicate);
         let issues = admit_snapshot(snapshot).expect_err("duplicate must fail closed");
         assert!(issues.iter().any(|item| item.code == "duplicate_site_identity"));
     }
@@ -614,7 +615,8 @@ mod tests {
     #[test]
     fn duplicate_site_year_rejects_whole_snapshot() {
         let mut snapshot = sample_snapshot();
-        snapshot.sites[0].annual_estimates.push(snapshot.sites[0].annual_estimates[0].clone());
+        let duplicate_year = snapshot.sites[0].annual_estimates[0].clone();
+        snapshot.sites[0].annual_estimates.push(duplicate_year);
         let issues = admit_snapshot(snapshot).expect_err("duplicate year must fail closed");
         assert!(issues.iter().any(|item| item.code == "duplicate_site_year"));
     }
