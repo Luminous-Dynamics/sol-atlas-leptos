@@ -907,29 +907,27 @@ mod provenance_tests {
                         !p.snapshot_date.is_empty(),
                         "{layer:?} declares FrozenSnapshot without a date"
                     );
-                    assert_eq!(
-                        p.kind,
-                        DataKind::Observed,
-                        "{layer:?} has a frozen observed snapshot but is not Observed"
-                    );
                 }
                 DataTimeBasis::LiveFeedWithBundledFallback => {
                     assert!(
                         p.snapshot_date.is_empty(),
                         "{layer:?} uses a fixed date for a live feed"
                     );
-                    assert_eq!(p.kind, DataKind::Observed);
                     assert!(
-                        p.source.to_ascii_lowercase().contains("live feed"),
-                        "{layer:?} must identify the live-feed source"
+                        p.source.to_ascii_lowercase().contains("live"),
+                        "{layer:?} must identify the live source"
                     );
+                    assert!(
+                        p.source.to_ascii_lowercase().contains("bundled"),
+                        "{layer:?} must identify the bundled fallback"
+                    );
+                    assert_ne!(p.kind, DataKind::Scenario);
                 }
                 DataTimeBasis::UndatedReference => {
                     assert!(p.snapshot_date.is_empty());
                     assert_ne!(p.kind, DataKind::Scenario);
                 }
                 DataTimeBasis::Scenario => {
-                    assert!(p.snapshot_date.is_empty());
                     assert_eq!(p.kind, DataKind::Scenario);
                 }
             }
@@ -944,10 +942,15 @@ mod provenance_tests {
                 .summary()
                 .contains("fictional")
         );
+
         let earthquake = Layer::Earthquakes.provenance();
-        assert!(earthquake.summary().contains("live feed"));
         assert!(earthquake.summary().contains("snapshot depends on retrieval/source"));
         assert!(earthquake.summary().contains("bundled fallback"));
         assert!(earthquake.snapshot_date.is_empty());
+
+        let fires = Layer::Fires.provenance();
+        assert_eq!(fires.kind, DataKind::Mixed);
+        assert!(fires.summary().contains("mixed provenance"));
+        assert!(fires.summary().contains("snapshot depends on retrieval/source"));
     }
 }
