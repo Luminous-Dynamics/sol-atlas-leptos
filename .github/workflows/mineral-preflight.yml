@@ -4,13 +4,13 @@ on:
   pull_request:
     paths:
       - "scripts/mineral-prospectivity/**"
-      - "tests/test_inspect_bundle.py"
+      - "tests/test_inspect*.py"
       - ".github/workflows/mineral-preflight.yml"
   push:
     branches: [main]
     paths:
       - "scripts/mineral-prospectivity/**"
-      - "tests/test_inspect_bundle.py"
+      - "tests/test_inspect*.py"
       - ".github/workflows/mineral-preflight.yml"
 
 permissions:
