@@ -19,10 +19,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
+      # Both the application and shared core are workspace members.
       - run: cargo fmt --all --check
-      # The shared core is a path dependency, not a workspace member; root
-      # cargo fmt does not include it unless its manifest is addressed.
-      - run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml --all -- --check
 
   check-wasm:
     runs-on: ubuntu-latest
@@ -67,13 +65,6 @@ jobs:
         run: python3 -m py_compile scripts/verify_economic_intelligence_fixture.py
       - name: Verify frozen economic-intelligence reference corpus
         run: python3 scripts/verify_economic_intelligence_fixture.py
-      # sol-atlas-core is not a workspace member, so its own unit and integration
-      # tests must be invoked explicitly; testing the top-level binary does not
-      # run test targets inside path dependencies.
-      - run: cargo test --manifest-path sol-atlas-core/Cargo.toml
-      # This crate is a wasm-bindgen-heavy [[bin]] with no [lib] target —
-      # native `cargo test` still works (verified 2026-07-11) and is much
-      # faster than a wasm test harness for the pure-logic unit tests
-      # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
-      # `cargo test --lib` fails with "no library targets found".
-      - run: cargo test --bin sol-atlas-leptos
+      # Run every package's unit/integration targets. The core is a path
+      # dependency and would be skipped by testing only the top-level binary.
+      - run: cargo test --workspace
