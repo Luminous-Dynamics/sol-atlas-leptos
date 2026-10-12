@@ -290,18 +290,17 @@ fn source_url_for_record(
         return None;
     }
 
-    let (expected_source, candidate, prefix) = match dataset_name {
+    let (candidate, prefix) = match dataset_name {
         "usgs-earthquakes"
             if source_name.is_some_and(|s| matches!(s.trim().to_ascii_lowercase().as_str(), "usgs" | "usgs comcat")) =>
         {
-            ("usgs", url, crate::usgs::USGS_EVENT_PAGE_PREFIX)
+            (url, crate::usgs::USGS_EVENT_PAGE_PREFIX)
         }
         "nasa-eonet" if source_name.is_some_and(|s| s.trim().eq_ignore_ascii_case("NASA EONET")) => {
-            ("nasa-eonet", link, crate::eonet::EONET_EVENT_API_PREFIX)
+            (link, crate::eonet::EONET_EVENT_API_PREFIX)
         }
         _ => return None,
     };
-    let _ = expected_source; // Source allow-list is enforced by the match arm above.
     candidate
         .filter(|candidate| valid_source_event_url(candidate, prefix, source_id))
         .map(str::to_string)
@@ -489,7 +488,7 @@ mod tests {
                         "magnitude": 5.1,
                         "place": "Peru",
                         "type": "earthquake",
-                        "source": "USGS ComCat",
+                        "source": "USGS",
                         "data_lineage": ["USGS", "Seismic Network", "Real-time"],
                         "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us123"
                     },
@@ -598,6 +597,29 @@ mod tests {
             events[0].source_url.as_deref(),
             Some("https://eonet.gsfc.nasa.gov/api/v3/events/EONET_15458")
         );
+    }
+
+    #[test]
+    fn synthetic_eonet_record_cannot_publish_an_official_event_url() {
+        let json = r#"{
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "properties": {
+                    "source": "Demo Data",
+                    "event_id": "EONET_15458",
+                    "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_15458",
+                    "data_lineage": ["Demo", "Synthetic", "Generated"],
+                    "title": "Synthetic storm fixture",
+                    "type": "natural_event"
+                },
+                "geometry": {"type": "Point", "coordinates": [-110.0, 20.0]}
+            }]
+        }"#;
+        let events = parse_natural_events("[]", "[]", json, "[]");
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].data_kind, Some(DataKind::Synthetic));
+        assert_eq!(events[0].source_url, None);
     }
 
     #[test]
