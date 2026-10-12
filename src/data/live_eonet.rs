@@ -4,11 +4,12 @@
 
 //! Rust-only NASA EONET refresh adapter. Replaces only records this source owns.
 
-use crate::data::live_feed_http::{fetch_feed, LiveFeedSource};
+use crate::data::live_feed_http::{LiveFeedSource, fetch_feed};
 use crate::data::types::{NaturalEvent, NaturalEventType};
 use crate::state::data_state::DataState;
 use gloo_timers::future::TimeoutFuture;
-use sol_atlas_core::eonet::{parse_feed, EonetEventType, EonetFeedStatus};
+use leptos::prelude::{Get, Set};
+use sol_atlas_core::eonet::{EonetEventType, EonetFeedStatus, parse_feed};
 use sol_atlas_core::usgs::FeedHealth;
 
 const REFRESH_INTERVAL_MS: u32 = 120_000;
