@@ -21,6 +21,8 @@
       "partner2ISO": "W00",
       "partner2Desc": "World",
       "cmdCode": "010121",
+      "classificationCode": "H6",
+      "isAggrAbove": false,
       "cmdDesc": "Pure-bred breeding horses",
       "aggrLevel": 6,
       "isLeaf": true,
