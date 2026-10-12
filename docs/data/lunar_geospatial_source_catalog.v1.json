@@ -1,0 +1,181 @@
+{
+  "schema": "org.luminousdynamics.sol-atlas.lunar-source-catalog/v1",
+  "created_utc_date": "2026-10-12",
+  "status": "source_catalogue_ingestion_plan_not_ingested",
+  "decision_rule": "Expose authoritative source products and their limitations before deriving any site metric. A product being listed here does not mean it has been downloaded, calibrated, spatially crosswalked, or validated for a current landing ellipse.",
+  "metric_policy": "No derived site metrics or site rankings are asserted by this catalogue. Keep candidate values unknown until source bytes, labels, spatial masks, units, resolution, acquisition/model epoch, uncertainty, and transformation provenance are verified.",
+  "sources": [
+    {
+      "id": "pgda-lola-high-resolution-site-products",
+      "title": "High-Resolution LOLA Topography for Lunar South Pole Sites",
+      "publisher": "NASA Goddard Space Flight Center, Planetary Geology, Geophysics and Geochemistry Laboratory",
+      "url": "https://pgda.gsfc.nasa.gov/products/78",
+      "product_families": [
+        "surface elevation LDEM",
+        "slope map",
+        "LOLA return count map",
+        "elevation uncertainty",
+        "slope uncertainty",
+        "100 terrain/uncertainty clones",
+        "region-of-interest GIS shapefiles"
+      ],
+      "spatial_resolution": "5 m/pixel GeoTIFF for raster products; XYZI point clouds and ROI shapefiles are exceptions",
+      "coordinate_reference": "South-polar stereographic X/Y in metres; MOON_ME reference frame, DE421 ephemeris. Verify each product label and README before reprojection or measurement.",
+      "temporal_scope": "Topographic model derived from historical LRO-LOLA tracks; not a mission-date illumination series.",
+      "uncertainty_and_limitations": [
+        "The PGDA description reports around 90% interpolated 5 m pixels in these polar LDEMs.",
+        "Across listed regions, reported median RMS height uncertainty is approximately 0.30–0.50 m and median RMS slope uncertainty approximately 1.5–2.5 degrees.",
+        "Interpolation uncertainty varies with track gaps and terrain slope; a nominal 5 m pixel size is not 5 m independent measurement spacing.",
+        "The published region names and ROI boundaries are legacy research products; do not assume they are identical to currently named Artemis landing regions without an explicit spatial crosswalk."
+      ],
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "peak-near-shackleton",
+          "product_site": "Site07: Peak near Shackleton",
+          "mapping_state": "name_match_roi_validation_required"
+        },
+        {
+          "candidate_id": "malapert-massif",
+          "product_site": "Site23: Malapert massif",
+          "mapping_state": "name_match_roi_validation_required"
+        },
+        {
+          "candidate_id": "nobile-rim-1",
+          "product_site": "Site06: Nobile rim 1",
+          "mapping_state": "name_match_roi_validation_required"
+        },
+        {
+          "candidate_id": "nobile-rim-2",
+          "product_site": "DM2: Nobile rim 2",
+          "mapping_state": "name_match_roi_validation_required"
+        },
+        {
+          "candidate_id": "haworth",
+          "product_site": "Haworth",
+          "mapping_state": "name_match_roi_validation_required"
+        },
+        {
+          "candidate_id": "de-gerlache-rim-2",
+          "product_site": "Site11: de Gerlache rim; SL2: de Gerlache rim",
+          "mapping_state": "regional_name_overlap_not_equivalent_until_roi_checked"
+        },
+        {
+          "candidate_id": "peak-near-cabeus-b",
+          "product_site": null,
+          "mapping_state": "no_exact_name_match_validated"
+        },
+        {
+          "candidate_id": "mons-mouton-plateau",
+          "product_site": null,
+          "mapping_state": "no_exact_name_match_validated"
+        },
+        {
+          "candidate_id": "mons-mouton",
+          "product_site": null,
+          "mapping_state": "no_exact_name_match_validated"
+        },
+        {
+          "candidate_id": "slater-plain",
+          "product_site": null,
+          "mapping_state": "no_exact_name_match_validated"
+        }
+      ],
+      "recommended_use": "First raster-based ingestion candidate for mapped regions with explicit ROI overlap. Use slope, elevation, uncertainty and count layers together; retain interpolation and boundary limitations.",
+      "required_acceptance_checks": [
+        "Capture exact file URL, filename, HTTP/content metadata where available, SHA-256, product-label URL and retrieval timestamp.",
+        "Read and verify raster CRS, transform, dimensions, pixel registration, nodata and scale/offset values from labels/metadata.",
+        "Use the supplied ROI files or an independently sourced, versioned region polygon; never derive the polygon from the place name.",
+        "Check raster dimensions, CRS compatibility, nodata, uncertainty-layer alignment and pixel registration before any zonal statistic.",
+        "Label name matches as provisional until ROI overlap and region identity are confirmed."
+      ]
+    },
+    {
+      "id": "pgda-lola-polar-illumination",
+      "title": "Lunar Polar Illumination",
+      "publisher": "NASA Goddard Space Flight Center / LOLA Planetary Data System",
+      "url": "https://pgda.gsfc.nasa.gov/products/69",
+      "product_families": [
+        "average solar illumination",
+        "permanent shadow",
+        "average Earth visibility",
+        "sky visibility",
+        "Cloud-Optimized GeoTIFF, GeoTIFF and other distribution formats"
+      ],
+      "spatial_resolution": "South-polar products include 240 m/pixel for 65°S–90°S, 120 m/pixel for 75°S–90°S and 60 m/pixel for 85°S–90°S; confirm the selected raster's label.",
+      "coordinate_reference": "Polar stereographic projection, reference radius 1737.4 km and true scale at the pole; verify exact raster labels before alignment with LOLA site DEMs.",
+      "temporal_scope": "Several products are averages over an approximately 18.6-year lunar nutation cycle, not a mission-specific timeline.",
+      "uncertainty_and_limitations": [
+        "Long-period averages can screen regions but cannot replace date-specific lighting analysis at the planned lander, habitat or rover height.",
+        "Earth visibility is defined by whether any part of Earth's disc is unobscured and can be optimistic for a specific radio link budget or ground-station geometry.",
+        "NASA notes that Cloud-Optimized GeoTIFF overviews average the full-resolution values; quantitative analysis must sample full-resolution data rather than zoomed-out overviews."
+      ],
+      "candidate_crosswalk": "Regional south-polar coverage; candidate-specific measurements require an explicit ROI and compatible coordinate transform.",
+      "recommended_use": "Use for an initial coarse layer and permanent-shadow context, explicitly labelled as long-period mean. For operations, derive or obtain epoch-specific illumination and communication visibility.",
+      "required_acceptance_checks": [
+        "Verify band identity, unit/scale/offset, nodata, CRS, pixel registration and full-resolution block reads from the product labels.",
+        "Reject use of a time-averaged illumination value as a mission-window guarantee.",
+        "For radio planning, pair Earth-visibility geometry with antenna/link-budget analysis and relay geometry."
+      ]
+    },
+    {
+      "id": "pgda-lola-south-pole-dem-mosaic",
+      "title": "South Pole LOLA DEM Mosaic",
+      "publisher": "NASA Goddard Space Flight Center, Planetary Geology, Geophysics and Geochemistry Laboratory",
+      "url": "https://pgda.gsfc.nasa.gov/products/81",
+      "product_families": [
+        "87°S–90°S elevation mosaic",
+        "hillshade",
+        "slope mosaic",
+        "LOLA return-count mosaic"
+      ],
+      "spatial_resolution": "5 m/pixel GeoTIFF; source page reports approximately 3.3 GB elevation, 820 MB hillshade, 4.9 GB slope and 140 MB count products.",
+      "coordinate_reference": "South-polar stereographic X/Y in metres; MOON_ME, DE421; pixel-registered convention with X/Y at pixel centres.",
+      "temporal_scope": "Static terrain mosaic constructed from 97 overlapping 20 km fields; not a time series.",
+      "uncertainty_and_limitations": [
+        "Coverage is 87°S–90°S, so it does not cover every candidate region in the register.",
+        "The page reports a typical RMS residual of 30–55 cm against the individual fields after alignment and blending.",
+        "The DEM interpolates empty pixels. Its nominal grid spacing must not be interpreted as uniform independent terrain measurement coverage.",
+        "The files are large; use windowed/COG access where supported rather than requiring every consumer to download all rasters."
+      ],
+      "candidate_crosswalk": "Use only for regions within its documented 87°S–90°S coverage after explicit spatial overlap is verified.",
+      "recommended_use": "High-resolution topographic context for eligible southern areas; do not substitute it for absent candidate ROI boundaries or infer full coverage for Mons Mouton or other sites.",
+      "required_acceptance_checks": [
+        "Verify geographic bounds and actual ROI intersection before computing a candidate statistic.",
+        "Read raster metadata and labels, confirm units, nodata and registration, and pin the asset SHA-256.",
+        "Record the exact window/mask and all excluded or interpolated cells in the output receipt."
+      ]
+    },
+    {
+      "id": "nasa-svs-south-pole-illumination-2025-2028",
+      "title": "Illumination at the Moon's South Pole to 80°S, 2025–2028",
+      "publisher": "NASA Scientific Visualization Studio",
+      "url": "https://svs.gsfc.nasa.gov/5027",
+      "product_families": [
+        "annual sunlight/shadow animations",
+        "rendered frame sets at two-hour intervals",
+        "illustrative images"
+      ],
+      "spatial_resolution": "Rendered visualization products; frame resolution is not equivalent to source terrain resolution.",
+      "coordinate_reference": "Visualization covers the lunar south polar region; do not treat pixels in rendered movies or images as a georeferenced analysis raster unless a separate georeferencing method is documented.",
+      "temporal_scope": "Visualizations are labelled 2025, 2026, 2027 and 2028 with two-hour temporal steps across each year.",
+      "uncertainty_and_limitations": [
+        "These are useful for communicating and visually checking illumination sequences, not a replacement for the numerical terrain/illumination model or data labels.",
+        "Do not digitize video pixels to create site illumination percentages or claim exact local conditions from a regional animation."
+      ],
+      "candidate_crosswalk": "Regional visual context only; no candidate-level numerical value may be inferred from the movie or frame thumbnails.",
+      "recommended_use": "Link as a qualitative orientation resource alongside machine-readable LOLA/illumination data.",
+      "required_acceptance_checks": [
+        "Keep every value extracted from imagery explicitly classified as visual interpretation, not an authoritative measurement.",
+        "No pixel-derived numerical site metrics are accepted into the candidate register."
+      ]
+    }
+  ],
+  "ingestion_sequence": [
+    "Resolve exact candidate-region polygons and their published versions before drawing or clipping site rasters.",
+    "Inventory and hash source assets and parse labels/metadata before analysis.",
+    "Ingest per-site LDEM, slope, elevation uncertainty, slope uncertainty, LOLA count and clone ensemble as aligned layers where available.",
+    "Add long-period illumination/PSR/Earth-visibility products only as coarse screening layers, preserving their averaging window and pixel scale.",
+    "Compute epoch-specific lighting, cold-soak and traverse/relay constraints only after a documented mission epoch, height, path, coordinate frame and geometry model are supplied.",
+    "Emit each derived result with input checksums, transform and mask versions, units, statistic, uncertainty treatment, excluded area, software version and a replayable receipt."
+  ]
+}
