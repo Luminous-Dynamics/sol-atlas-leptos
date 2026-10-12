@@ -337,6 +337,17 @@ fn normalize_record(
     let transport_mode_code = required_scalar(object, "motCode")?;
     let customs_procedure_code = required_scalar(object, "customsCode")?;
 
+    let reporter_kind = context
+        .area_kinds
+        .get(&reporter_code)
+        .copied()
+        .ok_or_else(|| UnComtradeRowRejection::UnknownAreaCode(reporter_code.clone()))?;
+    let partner_kind = context
+        .area_kinds
+        .get(&partner_code)
+        .copied()
+        .ok_or_else(|| UnComtradeRowRejection::UnknownAreaCode(partner_code.clone()))?;
+
     for (name, actual, expected) in [
         ("typeCode", type_code.as_str(), query.type_code.as_str()),
         ("freqCode", frequency_code.as_str(), query.frequency_code.as_str()),
@@ -370,17 +381,6 @@ fn normalize_record(
         "M" => TradeFlow::Import,
         _ => return Err(UnComtradeRowRejection::UnsupportedFlowCode(flow_code)),
     };
-    let reporter_kind = context
-        .area_kinds
-        .get(&reporter_code)
-        .copied()
-        .ok_or_else(|| UnComtradeRowRejection::UnknownAreaCode(reporter_code.clone()))?;
-    let partner_kind = context
-        .area_kinds
-        .get(&partner_code)
-        .copied()
-        .ok_or_else(|| UnComtradeRowRejection::UnknownAreaCode(partner_code.clone()))?;
-
     let dimension_signature = format!(
         "{UN_COMTRADE_DIMENSIONS_VERSION}|partner2={second_partner_code}|mot={transport_mode_code}|customs={customs_procedure_code}"
     );
@@ -604,10 +604,10 @@ mod tests {
     #[test]
     fn unknown_area_code_is_rejected() {
         let mut unknown = row();
+        // This row does not match the query and also uses a code absent from
+        // the pinned reference table. Unknown identity is reported explicitly.
         unknown["reporterCode"] = Value::from(9999);
-        let mut ctx = context(10);
-        ctx.query.reporter_code = "9999".to_string();
-        ctx.area_kinds.remove("9999");
+        let ctx = context(10);
         let parsed = parse_un_comtrade_preview(&response(vec![unknown], 1), &ctx).unwrap();
         assert_eq!(
             parsed.rejected_rows[0].reason,
