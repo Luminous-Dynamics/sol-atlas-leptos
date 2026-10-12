@@ -118,6 +118,46 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
                 if "note" in entry:
                     self.assertTrue(entry["note"])
 
+    def test_direct_assets_keep_retrieval_state_and_label_links(self) -> None:
+        topography = next(
+            source for source in self.catalog["sources"]
+            if source["id"] == "pgda-lola-high-resolution-site-products"
+        )
+        illumination = next(
+            source for source in self.catalog["sources"]
+            if source["id"] == "pgda-lola-polar-illumination"
+        )
+        self.assertEqual(len(topography["sample_direct_assets"]), 5)
+        self.assertEqual(len(illumination["sample_direct_assets"]), 5)
+        for source in (topography, illumination):
+            self.assertTrue(source["asset_access_notes"])
+            for asset in source["sample_direct_assets"]:
+                self.assertTrue(asset["url"].startswith("https://"))
+                self.assertTrue(asset["asset_type"])
+                self.assertTrue(asset["verification_state"])
+                self.assertNotIn("downloaded_and_hashed", asset["verification_state"])
+        self.assertTrue(
+            any("not_downloaded_or_hashed" in a["verification_state"]
+                for a in topography["sample_direct_assets"])
+        )
+        self.assertTrue(
+            any(a["url"].endswith("_JP2.LBL") for a in illumination["sample_direct_assets"])
+        )
+
+    def test_failed_cog_probe_is_scoped_and_alternative_is_not_overclaimed(self) -> None:
+        illumination = next(
+            source for source in self.catalog["sources"]
+            if source["id"] == "pgda-lola-polar-illumination"
+        )
+        notes = " ".join(illumination["asset_access_notes"])
+        self.assertIn("one sampled URL failure only", notes)
+        self.assertIn("could not render the binary or label endpoints", notes)
+        self.assertTrue(
+            any("listed_in_pds_directory_binary_not_downloaded_or_hashed"
+                == asset["verification_state"]
+                for asset in illumination["sample_direct_assets"])
+        )
+
     def test_uncertain_region_name_overlaps_are_not_claimed_as_exact(self) -> None:
         crosswalk = self.catalog["sources"][0]["candidate_crosswalk"]
         de_gerlache = next(item for item in crosswalk if item["candidate_id"] == "de-gerlache-rim-2")
