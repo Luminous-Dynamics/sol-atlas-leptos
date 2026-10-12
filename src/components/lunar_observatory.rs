@@ -713,8 +713,8 @@ mod tests {
         let catalog: LunarSourceCatalog = serde_json::from_str(LUNAR_SOURCE_CATALOG_JSON)
             .expect("embedded source catalogue must parse");
         assert_eq!(catalog.sources.len(), 4);
-        assert_eq!(catalog.sources[0].sample_direct_assets.len(), 5);
-        assert_eq!(catalog.sources[1].sample_direct_assets.len(), 5);
+        assert_eq!(catalog.sources[0].sample_direct_assets.len(), 6);
+        assert_eq!(catalog.sources[1].sample_direct_assets.len(), 7);
         assert!(catalog.sources[1]
             .asset_access_notes
             .iter()
