@@ -33,13 +33,14 @@
 
 ## Executable preflight available
 
-A read-only Python standard-library tool now exists at [scripts/mineral-prospectivity/inspect_bundle.py](../scripts/mineral-prospectivity/inspect_bundle.py), with usage notes in its README and synthetic safety tests in [tests/test_inspect_bundle.py](../tests/test_inspect_bundle.py). It hashes the original file and inspects ZIP central-directory paths, extensions, size/compression indicators, and probable Shapefile sidecars without extracting content. It does not establish archive payload integrity, parse CRS/geometry/attributes, or establish rights. The source geodatabase has not yet been run through this tool because this environment cannot directly fetch the source archive.
+Two read-only intake stages now exist: [archive preflight](../scripts/mineral-prospectivity/inspect_bundle.py) and [GIS metadata inspection](../scripts/mineral-prospectivity/inspect_gis.py), with usage notes in the [tool README](../scripts/mineral-prospectivity/README.md). The first hashes the source archive and checks archive metadata without extraction; optional CRC scanning is size/ratio bounded. After a human has reviewed and staged authorized members in a controlled workspace, the second invokes GDAL/OGR read-only to report vector layer names, schema, feature counts, CRS/extents, or raster size/bands/CRS. Synthetic tests cover both tools ([archive tests](../tests/test_inspect_bundle.py), [GIS tests](../tests/test_inspect_gis.py)). They do not establish licensing or geological suitability. The real source geodatabase has not yet been run through either stage because this environment cannot directly fetch the archive.
 
 ## M0 completion checklist
 
 - [ ] USGS Africa geodatabase layers inventoried and used for a metadata/spatial-join smoke test, with source ancestry preserved.
 - [ ] Supplementary PDF inspected for embedded datasets/artifact links; artifacts listed with names, digests, extraction method, and per-asset terms.
 - [ ] The official 1:1,000,000 geology vector package and selected public-use map products have their exact artifact IDs, vintage, access method and reuse terms recorded.
+- [ ] Run both archive preflight and GIS metadata inspection on authorized, manually staged files; store reports outside source data and compare CRS/extents against the study AOI.
 - [ ] Any existing CGS Bushveld prospectivity outputs used for comparison have their study area, inputs, model/version and permissions documented.
 - [ ] Every candidate layer has a completed manifest conforming to [the dataset manifest schema](schemas/mineral-dataset-manifest.schema.json).
 - [ ] Missing coverage, invalid/no-data regions, units and coordinate reference systems are documented.
