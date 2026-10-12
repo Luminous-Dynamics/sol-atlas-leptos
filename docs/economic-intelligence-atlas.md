@@ -191,15 +191,29 @@ The initial slice does not:
 - make a public map of vulnerable people, operational enforcement targets, or sensitive facilities;
 - replace specialist statistical methods or competent legal authorities.
 
-## 9. Decision and next implementation step
+## 9. Implementation status and next steps
 
-Proceed in this order:
+### Present on this feature branch
 
-1. Agree the source-registry and claim-envelope contract with SOL-ATLAS-007 (#90), rather than duplicate its economic-observation model.
-2. Add the minimal renderer-independent contract and frozen local fixtures in `sol-atlas-core`.
-3. Implement only the offline mirror-pairing / value-gap calculation, with explicit exclusion reasons and deterministic tests.
-4. Build the inspector and export bundle before adding further source connectors.
-5. Add source connectors one at a time, only after terms and exact endpoint behavior are qualified.
-6. Connect Mycelix provenance and Symthaea hypothesis generation only after the evidence contract is stable.
+A first renderer-independent primitive now exists in `sol-atlas-core/src/economic_intelligence.rs` and is exported from `sol-atlas-core/src/lib.rs`:
+
+- typed source-reported observations retain source/snapshot/record identifiers, reporting parties, period, commodity classification, original currency/value, and time metadata;
+- candidate selection is fail-closed: missing sides, duplicates, ambiguous candidates, non-reciprocal reporters, mismatched period/product/classification/currency, missing values, non-finite values, and non-positive values receive explicit dispositions;
+- only a single qualifying pair emits a raw signed value difference, absolute difference, and difference as a percentage of the arithmetic mean;
+- all outputs carry a fixed `DescriptiveValueDifferenceOnly` claim ceiling;
+- eight deterministic unit tests cover ordinary gaps, equal values, ambiguous duplicates, missing sides, period/currency mismatch, missing/zero/non-finite values, classification/reciprocity mismatches, incorrect flow directions, and invalid identity.
+
+This is **an initial code primitive, not a qualified source adapter or full trade-misinvoicing estimator**. The candidate lists are assumed to have been selected under a documented source-specific policy. The primitive does not yet parse UN Comtrade, prove entity identity, normalize currencies, enforce all quantity/re-export/CIF-FOB rules, calculate illicit-flow totals, persist immutable evidence bundles, or connect to the UI, Mycelix, or Symthaea.
+
+At the time this design was updated, CI checks for the current branch head were queued; queued is not a pass. The exact-head result must be inspected and any failures fixed before claiming the code is qualified.
+
+### Next sequence
+
+1. Inspect formatting, native unit-test, and WASM checks at the exact branch head; record completed conclusions rather than inferring success from a queued workflow.
+2. Review the observation/claim contract against SOL-ATLAS-007 (#90), then add a source-registry/license state and snapshot-manifest contract without duplicating its wider economic-observation model.
+3. Create frozen source-shaped fixtures (including source schema metadata) and compare outputs against a separately documented reference implementation before labelling the algorithm method-qualified.
+4. Implement a UN Comtrade adapter only after exact preview/subscription access, API behavior, attribution, retention, and intended commercial-use rights have been reviewed.
+5. Add a deterministic result/evidence export before building a map overlay, ensuring exclusions, missingness, source snapshots, calculations, and alternative explanations are visible.
+6. Connect Mycelix provenance and Symthaea hypothesis generation only after the source and evidence contract is stable.
 
 The first proof of value is not a dramatic global heat map. It is a reproducible analysis in which a user can explain exactly why a trade discrepancy appears, what assumptions affect it, which legitimate alternatives exist, and why the system does or does not permit a stronger claim.
