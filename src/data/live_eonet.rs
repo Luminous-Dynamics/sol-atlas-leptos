@@ -51,6 +51,7 @@ async fn refresh_once(data_state: &DataState) -> Result<(), String> {
             magnitude_unit: event.magnitude_unit.clone(),
             magnitude_description: event.magnitude_description.clone(),
             source_name: Some("NASA EONET".to_string()),
+            data_kind: Some(crate::data::types::DataKind::Observed),
             source_id: Some(event.id.clone()),
             source_url: event.event_url.clone(),
             occurred_at_ms: Some(event.occurred_at_ms),
