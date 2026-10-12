@@ -164,11 +164,17 @@ impl fmt::Display for UnComtradePreviewError {
             }
             Self::CountLessThanRowsReturned { reported, actual } => write!(
                 f,
-                "UN Comtrade reported count is smaller than returned rows: count={reported}, rows={actual}"
+                concat!(
+                    "UN Comtrade reported count is smaller than returned rows: ",
+                    "count={reported}, rows={actual}"
+                )
             ),
             Self::MoreRecordsThanRequested { requested, actual } => write!(
                 f,
-                "UN Comtrade response exceeded requested limit: requested={requested}, rows={actual}"
+                concat!(
+                    "UN Comtrade response exceeded requested limit: ",
+                    "requested={requested}, rows={actual}"
+                )
             ),
         }
     }
@@ -437,7 +443,10 @@ fn normalize_record(
         customs_procedure_code
     );
     let source_state_signature = format!(
-        "uncomtrade-source-state/v1|reported={reported_flag}|legacy_estimation={legacy_estimation_flag}"
+        concat!(
+            "uncomtrade-source-state/v1|reported={reported_flag}|",
+            "legacy_estimation={legacy_estimation_flag}"
+        )
     );
     let record_id = format!(
         concat!(
