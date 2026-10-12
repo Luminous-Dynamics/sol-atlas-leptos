@@ -206,7 +206,7 @@ A renderer-independent raw bilateral comparison primitive is implemented in `sol
 
 ### Comparison primitive
 
-- The normalized observation contract is versioned (currently schema version 3) and retains source and reference snapshot identity, area/reference-code context, reporting-area versus aggregate grain, period, commodity classification, currency and value-unit/scale, source-native value text, disaggregation dimensions, source-state flags, and retrieval time.
+- The normalized observation contract is versioned (currently schema version 4) and retains source and reference snapshot identity, area/reference-code context, reporting-area versus aggregate grain, period, commodity classification, currency and value-unit/scale, source-native value text, disaggregation dimensions, source-state flags, and retrieval time.
 - Candidate selection is fail-closed: missing sides, duplicates, ambiguous candidates, aggregate geographies, incompatible geography-code systems or area-reference versions, non-reciprocal reporters, mismatched period/product/classification/currency/value-unit/disaggregation/source-state, missing values, unsupported decimal formats/schema versions, non-positive values, and arithmetic overflow receive explicit dispositions.
 - Monetary differences are calculated from strict base-10 decimal strings using checked `i128` arithmetic (up to 18 fractional digits), not by subtracting binary floating-point inputs. Exact normalized gap strings are authoritative for audit/display; floating-point projections and percentages are approximate.
 - Two separately named percentage conventions are exposed: absolute gap divided by the arithmetic mean, and signed gap divided by exporter-reported value. The denominators are not interchangeable and neither is an illicit-flow estimate.
@@ -224,9 +224,9 @@ A renderer-independent raw bilateral comparison primitive is implemented in `sol
 ### Qualification tests added
 
 - 19 unit-test definitions in the raw comparison module cover exact decimal precision, normalization, negative signed differences, overflow, record ambiguity, source-state mismatch, area-reference versions, and other fail-closed conditions.
-- 8 unit-test definitions in the Comtrade parser cover source-shaped parsing, raw-value preservation, possible truncation, duplicate rows, query mismatches, unknown area codes, response-count inconsistency, unknown envelope fields, and API error envelopes.
+- 9 unit-test definitions in the Comtrade parser cover source-shaped parsing, raw-value preservation, possible truncation, duplicate rows, query mismatches, unknown area codes, response-count inconsistency, unknown envelope fields, and API error envelopes.
 - 3 external public-API integration-test definitions cover exact source-value round-tripping, rejection of unknown normalized-observation fields, and the nine-case synthetic reference corpus.
-- `scripts/verify_economic_intelligence_fixture.py` independently checks the nine-case reference corpus and the synthetic source-shaped API response using standard-library integer arithmetic. The Check workflow now syntax-checks that script, runs the independent verifier, and explicitly runs formatter, native tests, and WASM checks for `sol-atlas-core` because it is a path dependency rather than a workspace member.
+- `scripts/verify_economic_intelligence_fixture.py` independently checks the nine-case reference corpus and the synthetic source-shaped API response using standard-library integer arithmetic. The root Cargo manifest now declares both the application and `sol-atlas-core` as workspace members, so `cargo fmt --all --check` and `cargo test --workspace` cover both packages. The Check workflow syntax-checks the independent verifier and builds both the application and core for WebAssembly.
 
 These are **test definitions and validation wiring**, not a claim that they have passed. The last inspected exact-head CI checks were queued. We do not currently have a completed Rust build in this working environment.
 
