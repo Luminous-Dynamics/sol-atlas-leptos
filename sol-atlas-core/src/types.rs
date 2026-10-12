@@ -321,6 +321,28 @@ pub enum DataTimeBasis {
     Scenario,
 }
 
+/// Where this individual record came from, independent of whether it is
+/// observed, curated, synthetic, or otherwise classified.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecordTemporalOrigin {
+    /// Accepted through the source-specific live adapter during this session.
+    LiveFeed,
+    /// Loaded from an embedded or otherwise frozen local data snapshot.
+    BundledSnapshot,
+    /// A persistent curated reference record, not a current event observation.
+    CuratedReference,
+}
+
+impl RecordTemporalOrigin {
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::LiveFeed => "live feed",
+            Self::BundledSnapshot => "bundled snapshot",
+            Self::CuratedReference => "curated reference",
+        }
+    }
+}
+
 /// Source attribution for one layer's dataset.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DataProvenance {
@@ -752,6 +774,10 @@ pub struct NaturalEvent {
     /// Callers must not infer Observed without source evidence.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub data_kind: Option<DataKind>,
+    /// Temporal origin of this record, independent of its provenance class.
+    /// An Observed record from a bundled snapshot is not a live observation.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub record_temporal_origin: Option<RecordTemporalOrigin>,
     /// Stable identifier at the originating source, when available.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_id: Option<String>,
