@@ -68,8 +68,11 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
 
                 <div class="community-energy-choice-row">
                     <button
-                        class:community-energy-choice-active=move || !selected_candidate.get()
-                        class="community-energy-choice"
+                        class=move || if selected_candidate.get() {
+                            "community-energy-choice community-energy-choice-active"
+                        } else {
+                            "community-energy-choice"
+                        }
                         on:click=move |_| selected_candidate.set(false)
                     >
                         <span class="community-energy-choice-label">"BASELINE"</span>
@@ -77,8 +80,11 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                         <span>"6 kWh battery · 2 kW charge/discharge"</span>
                     </button>
                     <button
-                        class:community-energy-choice-active=move || selected_candidate.get()
-                        class="community-energy-choice"
+                        class=move || if selected_candidate.get() {
+                            "community-energy-choice community-energy-choice-active"
+                        } else {
+                            "community-energy-choice"
+                        }
                         on:click=move |_| selected_candidate.set(true)
                     >
                         <span class="community-energy-choice-label">"SENSITIVITY CANDIDATE"</span>
@@ -99,8 +105,11 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                     </div>
                     <div class="community-energy-status-card">
                         <span class="community-energy-label">"CRITICAL-LOAD POLICY"</span>
-                        <strong class:community-energy-status-pass=move || selected_report().critical_service_limit_satisfied
-                                class:community-energy-status-fail=move || !selected_report().critical_service_limit_satisfied>
+                        <strong class=move || if selected_report().critical_service_limit_satisfied {
+                                "community-energy-status-pass"
+                            } else {
+                                "community-energy-status-fail"
+                            }>
                             {move || if selected_report().critical_service_limit_satisfied { "PASS" } else { "FAIL" }}
                         </strong>
                         <p>"Hard requirement: no critical-load energy may remain unserved during the frozen outage scenario."</p>
@@ -154,7 +163,7 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                                 each=move || selected_run().intervals
                                 key=|row| row.input.interval
                                 children=move |row| view! {
-                                    <tr class:community-energy-outage=!row.input.grid_available>
+                                    <tr class=if row.input.grid_available { "" } else { "community-energy-outage" }>
                                         <td>{row.input.interval + 1}</td>
                                         <td>{if row.input.grid_available { "UP" } else { "OUTAGE" }}</td>
                                         <td>{format!("{:.2}", row.input.load_kwh)}</td>
