@@ -4,11 +4,12 @@
 
 //! Rust-only USGS refresh adapter. Validation and source policy live in sol-atlas-core.
 
-use crate::data::live_feed_http::{fetch_feed, LiveFeedSource};
+use crate::data::live_feed_http::{LiveFeedSource, fetch_feed};
 use crate::data::types::{NaturalEvent, NaturalEventType};
 use crate::state::data_state::DataState;
 use gloo_timers::future::TimeoutFuture;
-use sol_atlas_core::usgs::{parse_feed, FeedHealth, MAX_FEED_AGE_MS, UsgsFeedStatus};
+use leptos::prelude::{Get, Set};
+use sol_atlas_core::usgs::{FeedHealth, MAX_FEED_AGE_MS, UsgsFeedStatus, parse_feed};
 
 const REFRESH_INTERVAL_MS: u32 = 75_000;
 
