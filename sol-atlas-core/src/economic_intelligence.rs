@@ -38,6 +38,20 @@ pub enum TradeAreaKind {
     Aggregate,
 }
 
+/// Source collection completeness carried into every observation.
+///
+/// Preview rows are never `CompleteSnapshot`; a row being valid does not
+/// establish that a capped query returned all candidates for its key.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ObservationSourceCoverage {
+    CompleteSnapshot,
+    PreviewCompletenessUnproven,
+    PreviewPossiblyTruncated,
+    PreviewRowsRejected,
+    PreviewPossiblyTruncatedWithRejectedRows,
+}
+
 /// A normalized shell around one source-reported trade observation.
 ///
 /// Preserve source-native identifiers and values alongside normalized fields.
@@ -85,6 +99,8 @@ pub struct TradeObservation {
     /// Canonical source-record state affecting interpretation (e.g. reported
     /// versus estimated status). Kept separate from geography/product dimensions.
     pub source_state_signature: String,
+    /// Coverage disposition of the source collection containing this row.
+    pub source_coverage: ObservationSourceCoverage,
     /// Commodity code as supplied/normalized under the source contract.
     pub commodity_code: String,
     /// Classification system and revision (for example, HS revision).
@@ -133,6 +149,8 @@ pub enum MirrorPairStatus {
     AmbiguousReportsBothSides,
     /// Required identity/provenance or matching metadata is empty.
     InvalidRecordIdentity,
+    /// At least one input came from an unproven or possibly truncated source set.
+    SourceCoverageInsufficient,
     /// An observation uses an unsupported normalized schema version.
     UnsupportedObservationSchemaVersion,
     /// Candidate records do not have export/import flow directions as expected.
@@ -336,6 +354,15 @@ pub fn compare_mirror_pair(
     if !has_identity(exporter) || !has_identity(importer) {
         return MirrorPairResult::excluded(
             MirrorPairStatus::InvalidRecordIdentity,
+            exporter_id,
+            importer_id,
+        );
+    }
+    if exporter.source_coverage != ObservationSourceCoverage::CompleteSnapshot
+        || importer.source_coverage != ObservationSourceCoverage::CompleteSnapshot
+    {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::SourceCoverageInsufficient,
             exporter_id,
             importer_id,
         );
@@ -699,6 +726,7 @@ mod tests {
                 "legacy_estimation=0"
             )
             .to_string(),
+            source_coverage: ObservationSourceCoverage::CompleteSnapshot,
             commodity_code: "010121".to_string(),
             classification_revision: "HS-2022".to_string(),
             flow,
