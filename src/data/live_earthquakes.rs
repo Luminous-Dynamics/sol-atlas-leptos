@@ -68,6 +68,7 @@ async fn refresh_once(data_state: &DataState) -> Result<(), String> {
         event_count: snapshot.earthquakes.len(),
         skipped_features: snapshot.skipped_features,
     });
+    data_state.mark_changed();
     log::info!(
         "USGS feed accepted: {} earthquake(s), {} rejected feature(s), generated_at_ms={}",
         snapshot.earthquakes.len(),
@@ -87,4 +88,5 @@ fn mark_refresh_failure(data_state: &DataState, now_ms: i64) {
         Some(_) => FeedHealth::Stale,
     };
     data_state.usgs_feed_status.set(status);
+    data_state.mark_changed();
 }
