@@ -180,14 +180,16 @@
               "type": "string",
               "enum": [
                 "sha256",
-                "blake3"
+                "blake3",
+                "sha256-tree-v1"
               ]
             },
             "value": {
               "type": "string",
               "pattern": "^[a-fA-F0-9]{64}$"
             }
-          }
+          },
+          "description": "Digest over one immutable file (sha256/blake3) or deterministic FileGDB directory-tree manifest (sha256-tree-v1). The tree algorithm hashes sorted relative paths, byte sizes, and each member's SHA-256 digest; it is not equivalent to SHA-256 over a concatenated directory byte stream."
         },
         "withheld": {
           "type": "boolean",
@@ -431,7 +433,7 @@
       }
     }
   },
-  "$comment": "Digest values for SHA-256 and BLAKE3 are lowercase or uppercase hexadecimal, exactly 64 characters. Keep source checksum algorithms explicit. Rights state consistency is enforced: verified terms require a named license/terms check; unknown rights cannot claim redistribution permission; restricted/not-permitted states cannot be treated as freely redistributable. Conditional rights-state constraints apply only when their status predicate matches; each corresponding nested required list makes the fail-closed state requirements enforceable, not merely descriptive.",
+  "$comment": "Digest values for SHA-256 and BLAKE3 are lowercase or uppercase hexadecimal, exactly 64 characters. Keep source checksum algorithms explicit. Rights state consistency is enforced: verified terms require a named license/terms check; unknown rights cannot claim redistribution permission; restricted/not-permitted states cannot be treated as freely redistributable. Conditional rights-state constraints apply only when their status predicate matches; each corresponding nested required list makes the fail-closed state requirements enforceable, not merely descriptive. sha256-tree-v1 is a versioned collection digest for a .gdb directory; retain the tree algorithm version and child-file inventory, since it differs from a single-file digest.",
   "allOf": [
     {
       "if": {
