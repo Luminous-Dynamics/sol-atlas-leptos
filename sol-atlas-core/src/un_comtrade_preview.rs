@@ -37,7 +37,9 @@ pub const UN_COMTRADE_DIMENSIONS_VERSION: &str = "uncomtrade-dimensions/v1";
 /// mapping; it is not guessed from `classification_code`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UnComtradePreviewQuery {
+    /// UN Comtrade record type. This adapter currently qualifies goods (C) only.
     pub type_code: String,
+    /// Reporting interval: annual (A) or monthly (M).
     pub frequency_code: String,
     /// Classification family requested from the API (e.g. HS).
     pub classification_code: String,
@@ -364,6 +366,29 @@ fn validate_context(
                 "{name} must be non-empty"
             )));
         }
+    }
+    if query.type_code != "C" {
+        return Err(UnComtradePreviewError::InvalidContext(
+            "this adapter supports goods type_code C only; services require a separately qualified schema"
+                .to_string(),
+        ));
+    }
+    if !matches!(query.frequency_code.as_str(), "A" | "M") {
+        return Err(UnComtradePreviewError::InvalidContext(
+            "frequency_code must be A (annual) or M (monthly)".to_string(),
+        ));
+    }
+    let period_bytes = query.period.as_bytes();
+    let expected_period_len = if query.frequency_code == "A" { 4 } else { 6 };
+    if period_bytes.len() != expected_period_len
+        || !period_bytes.iter().all(u8::is_ascii_digit)
+        || (query.frequency_code == "M"
+            && !matches!(&period_bytes[4..6], b"01" | b"02" | b"03" | b"04" | b"05" | b"06" | b"07" | b"08" | b"09" | b"10" | b"11" | b"12"))
+    {
+        return Err(UnComtradePreviewError::InvalidContext(
+            "period must be YYYY for annual data or YYYYMM with month 01..12 for monthly data"
+                .to_string(),
+        ));
     }
     if query.max_records == 0 || query.max_records > UN_COMTRADE_PREVIEW_MAX_RECORDS {
         return Err(UnComtradePreviewError::InvalidContext(format!(
@@ -881,6 +906,33 @@ mod tests {
             result,
             Err(UnComtradePreviewError::EnvelopeSchema(_))
         ));
+    }
+
+    #[test]
+    fn rejects_unqualified_type_frequency_and_period_values() {
+        let mut ctx = context(10);
+        ctx.query.type_code = "S".to_string();
+        assert!(matches!(
+            parse_un_comtrade_preview(&response(vec![row()], 1), &ctx),
+            Err(UnComtradePreviewError::InvalidContext(_))
+        ));
+
+        ctx.query.type_code = "C".to_string();
+        ctx.query.frequency_code = "Q".to_string();
+        assert!(matches!(
+            parse_un_comtrade_preview(&response(vec![row()], 1), &ctx),
+            Err(UnComtradePreviewError::InvalidContext(_))
+        ));
+
+        ctx.query.frequency_code = "M".to_string();
+        ctx.query.period = "202513".to_string();
+        assert!(matches!(
+            parse_un_comtrade_preview(&response(vec![row()], 1), &ctx),
+            Err(UnComtradePreviewError::InvalidContext(_))
+        ));
+
+        ctx.query.period = "202501".to_string();
+        assert!(parse_un_comtrade_preview(&response(vec![row()], 1), &ctx).is_err());
     }
 
     #[test]
