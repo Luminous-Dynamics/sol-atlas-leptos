@@ -202,30 +202,45 @@ The initial slice does not:
 
 ### Present on this feature branch
 
-A first renderer-independent primitive now exists in `sol-atlas-core/src/economic_intelligence.rs` and is exported from `sol-atlas-core/src/lib.rs`:
+A renderer-independent raw bilateral comparison primitive is implemented in `sol-atlas-core/src/economic_intelligence.rs`, and an **offline-only** source-shaped UN Comtrade preview parser now exists in `sol-atlas-core/src/un_comtrade_preview.rs`.
 
-- typed source-reported observations retain a normalized schema version; source/snapshot/record identifiers; reporting parties plus geography code-system and area/aggregate grain; period and commodity classification; currency and source-native value-unit/scale; exact source value text; and source timing;
-- candidate selection is fail-closed: missing sides, duplicate/ambiguous candidates, aggregate geographies, incompatible geography code systems, non-reciprocal reporters, mismatched period/product/classification/currency/value-unit, missing values, unsupported decimal formats/schema versions, non-positive values, and arithmetic overflow receive explicit dispositions;
-- monetary differences are calculated from strict base-10 decimal strings using checked `i128` arithmetic (up to 18 fractional digits), rather than subtracting binary floating-point inputs;
-- results carry normalized exact decimal difference strings for audit/display; float projections are explicitly approximate and intended for plots/analytics only;
-- results expose two explicitly named percentage conventions: absolute gap divided by the arithmetic mean, and signed gap divided by the exporter-reported value. Their denominators are not interchangeable and the signed exporter-normalized convention is not an illicit-flow estimate; valid results carry their currency and source-native value-unit/scale label;
-- all outputs carry a fixed `DescriptiveValueDifferenceOnly` claim ceiling;
-- seventeen deterministic unit tests cover ordinary gaps, equal values, ambiguous duplicates, missing sides, period/currency mismatch, missing/zero/invalid values, exact differences beyond binary-float integer precision, scale normalization, exponent/over-precision/integer overflow, signed fractional differences, mixed-scale arithmetic overflow, classification/reciprocity/value-unit mismatches, aggregate-area, geography-code-system, and schema-version mismatches, incorrect flow directions, and invalid identity.
+### Comparison primitive
 
+- The normalized observation contract is versioned (currently schema version 3) and retains source and reference snapshot identity, area/reference-code context, reporting-area versus aggregate grain, period, commodity classification, currency and value-unit/scale, source-native value text, disaggregation dimensions, source-state flags, and retrieval time.
+- Candidate selection is fail-closed: missing sides, duplicates, ambiguous candidates, aggregate geographies, incompatible geography-code systems or area-reference versions, non-reciprocal reporters, mismatched period/product/classification/currency/value-unit/disaggregation/source-state, missing values, unsupported decimal formats/schema versions, non-positive values, and arithmetic overflow receive explicit dispositions.
+- Monetary differences are calculated from strict base-10 decimal strings using checked `i128` arithmetic (up to 18 fractional digits), not by subtracting binary floating-point inputs. Exact normalized gap strings are authoritative for audit/display; floating-point projections and percentages are approximate.
+- Two separately named percentage conventions are exposed: absolute gap divided by the arithmetic mean, and signed gap divided by exporter-reported value. The denominators are not interchangeable and neither is an illicit-flow estimate.
+- Every compared result has the fixed `DescriptiveValueDifferenceOnly` claim ceiling and exposes its source IDs, source snapshot IDs, reference snapshot IDs, currency, and value-unit label.
 
+### Offline UN Comtrade parser
 
-Three public-API integration tests in `sol-atlas-core/tests/economic_intelligence_contract.rs` additionally verify exact source-value lexeme round-tripping, rejection of unknown observation fields, and agreement with the nine-case frozen synthetic reference corpus at `sol-atlas-core/tests/fixtures/economic_intelligence_trade_mirror_v1.json`. The fixture is explicitly synthetic—not actual UN Comtrade data—and includes exact expected dispositions and decimal gaps. The corpus loader rejects unknown fields. CI also invokes `scripts/verify_economic_intelligence_fixture.py`, a separate standard-library Python oracle using integer decimal arithmetic, before the native Cargo test step. These are test definitions; their execution must be confirmed by completed CI or a local test run.
-This is **an initial code primitive, not a qualified source adapter or full trade-misinvoicing estimator**. The candidate lists are assumed to have been selected under a documented source-specific policy. The primitive does not yet parse UN Comtrade, prove entity identity, normalize currencies, enforce all quantity/re-export/CIF-FOB rules, calculate illicit-flow totals, persist immutable evidence bundles, or connect to the UI, Mycelix, or Symthaea. Its deliberately strict decimal parser rejects exponent notation and more than 18 decimal places until an ingestion adapter has an explicit, tested normalization policy.
+- No HTTP client or API key is embedded. A caller supplies the frozen response text, query context, source snapshot ID, retrieval time, and pinned area-code classification map.
+- The parser validates response envelope schema and required query dimensions, classifies records only against the pinned code map, retains accepted raw row objects alongside normalized observations, and reports row rejections with source-array indices. The caller must retain the original response bytes under the supplied snapshot ID to reproduce both accepted and rejected rows.
+- It requires matching requested type, frequency, period, reporter, partner, flow, and commodity values; it also tracks second partner, mode of transport, customs procedure, reported/estimated status, and legacy estimation state. Duplicate normalized record identities are rejected.
+- It distinguishes source-reported count from rows actually returned. A source count larger than the payload or reaching the requested preview ceiling is marked as **possibly truncated**. Fewer rows never proves complete source coverage. A source count smaller than the returned row count fails closed.
+- Top-level unknown envelope fields fail schema validation. Unknown fields inside a trade row are retained in `raw_record`; parsing the normalized fields does not discard the source row.
+- The frozen response fixture at `sol-atlas-core/tests/fixtures/synthetic_un_comtrade_preview_v1.json` is explicitly synthetic. It is a schema/precision test, **not real UN Comtrade evidence** and not a claim about the USA/China trade relationship.
 
-At the time this design was updated, CI checks for the current branch head were queued; queued is not a pass. The exact-head result must be inspected and any failures fixed before claiming the code is qualified.
+### Qualification tests added
+
+- 19 unit-test definitions in the raw comparison module cover exact decimal precision, normalization, negative signed differences, overflow, record ambiguity, source-state mismatch, area-reference versions, and other fail-closed conditions.
+- 8 unit-test definitions in the Comtrade parser cover source-shaped parsing, raw-value preservation, possible truncation, duplicate rows, query mismatches, unknown area codes, response-count inconsistency, unknown envelope fields, and API error envelopes.
+- 3 external public-API integration-test definitions cover exact source-value round-tripping, rejection of unknown normalized-observation fields, and the nine-case synthetic reference corpus.
+- `scripts/verify_economic_intelligence_fixture.py` independently checks the nine-case reference corpus and the synthetic source-shaped API response using standard-library integer arithmetic. The Check workflow now syntax-checks that script, runs the independent verifier, and explicitly runs formatter, native tests, and WASM checks for `sol-atlas-core` because it is a path dependency rather than a workspace member.
+
+These are **test definitions and validation wiring**, not a claim that they have passed. The last inspected exact-head CI checks were queued. We do not currently have a completed Rust build in this working environment.
+
+### Scope limits
+
+The parser is not a live API connector or a qualified source adapter. It requires caller-supplied snapshot identity and area reference data, and it does not itself verify licenses, calculate source-body digests, retry/rate-limit requests, reconcile CIF/FOB values, convert currencies, model re-exports, quantify illicit flows, prove identity, persist evidence bundles, or connect the UI to Mycelix/Symthaea. The strict decimal parser rejects exponent notation and more than 18 fractional digits until an adapter has an explicit, tested normalization policy.
 
 ### Next sequence
 
-1. Inspect formatting, native unit-test, and WASM checks at the exact branch head; record completed conclusions rather than inferring success from a queued workflow.
-2. Review the observation/claim contract against SOL-ATLAS-007 (#90), then add a source-registry/license state and snapshot-manifest contract without duplicating its wider economic-observation model.
-3. Create frozen source-shaped fixtures (including source schema metadata) and compare outputs against a separately documented reference implementation before labelling the algorithm method-qualified.
-4. Implement a UN Comtrade adapter only after exact preview/subscription access, API behavior, attribution, retention, and intended commercial-use rights have been reviewed.
-5. Add a deterministic result/evidence export before building a map overlay, ensuring exclusions, missingness, source snapshots, calculations, and alternative explanations are visible.
+1. Get completed exact-head formatter, core-native-test, top-level-native-test, and WASM checks; do not infer success from queued workflows.
+2. Review the versioned observation/claim contract with SOL-ATLAS-007 (#90) and freeze source-registry, area-reference, and snapshot-manifest semantics.
+3. Validate this offline parser against a captured, authorized UN Comtrade response and its exact query metadata. Do not publish or reuse a live capture before source access, retention, attribution, and intended commercial-use terms are reviewed.
+4. Implement a bounded server-side request layer only after source access is qualified: allow-listed endpoint, redacted query logging, bounded response bytes, explicit timeout/rate limit/retry policy, source-body digest, and last-known-good snapshot preservation.
+5. Add a deterministic result/evidence export before building a map overlay, ensuring exclusions, missingness, source snapshots, coverage flags, calculations, and alternative explanations are visible.
 6. Connect Mycelix provenance and Symthaea hypothesis generation only after the source and evidence contract is stable.
 
 The first proof of value is not a dramatic global heat map. It is a reproducible analysis in which a user can explain exactly why a trade discrepancy appears, what assumptions affect it, which legitimate alternatives exist, and why the system does or does not permit a stronger claim.
