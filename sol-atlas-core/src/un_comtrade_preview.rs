@@ -15,12 +15,12 @@
 //! This parser is not a trade-misinvoicing estimator and does not infer crime.
 
 use crate::economic_intelligence::{
-    TradeAreaKind, TradeFlow, TradeObservation, TRADE_OBSERVATION_SCHEMA_VERSION,
+    compare_mirror_pair, MirrorPairStatus, TradeAreaKind, TradeFlow, TradeObservation,
+    TRADE_OBSERVATION_SCHEMA_VERSION,
 };
 use serde::Deserialize;
 use serde_json::Value;
-use std::collections::BTreeMap;
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::error::Error;
 use std::fmt;
 
@@ -417,10 +417,22 @@ fn normalize_record(
         _ => return Err(UnComtradeRowRejection::UnsupportedFlowCode(flow_code)),
     };
     let dimension_signature = format!(
-        "{UN_COMTRADE_DIMENSIONS_VERSION}|partner2={second_partner_code}|mot={transport_mode_code}|customs={customs_procedure_code}|reported={reported_flag}|legacy_estimation={legacy_estimation_flag}"
+        concat!(
+            "{UN_COMTRADE_DIMENSIONS_VERSION}|partner2={}|",
+            "mot={}|customs={}"
+        ),
+        second_partner_code,
+        transport_mode_code,
+        customs_procedure_code
+    );
+    let source_state_signature = format!(
+        "uncomtrade-source-state/v1|reported={reported_flag}|legacy_estimation={legacy_estimation_flag}"
     );
     let record_id = format!(
-        "comtrade:{}/{}/{}/{}/{}/{}/{}/{}/partner2={}/mot={}/customs={}/reported={}/legacy_estimation={}",
+        concat!(
+            "comtrade:{}/{}/{}/{}/{}/{}/{}/{}/",
+            "partner2={}/mot={}/customs={}/reported={}/legacy_estimation={}"
+        ),
         query.type_code,
         query.frequency_code,
         query.classification_code,
@@ -450,6 +462,7 @@ fn normalize_record(
         geography_code_system: UN_COMTRADE_GEOGRAPHY_CODE_SYSTEM.to_string(),
         period,
         disaggregation_signature: dimension_signature,
+        source_state_signature,
         commodity_code,
         classification_revision: query.classification_revision.clone(),
         flow,
@@ -595,7 +608,11 @@ mod tests {
         );
         assert_eq!(
             parsed.records[0].observation.disaggregation_signature,
-            "uncomtrade-dimensions/v1|partner2=0|mot=0|customs=C00|reported=true|legacy_estimation=0"
+            "uncomtrade-dimensions/v1|partner2=0|mot=0|customs=C00"
+        );
+        assert_eq!(
+            parsed.records[0].observation.source_state_signature,
+            "uncomtrade-source-state/v1|reported=true|legacy_estimation=0"
         );
         assert_eq!(
             parsed.records[0]
@@ -641,6 +658,36 @@ mod tests {
             parsed.coverage,
             PreviewCoverage::BelowLimitWithRejectedRows
         );
+    }
+
+    #[test]
+    fn mirror_pair_rejects_reported_vs_legacy_estimated_records() {
+        let exporter_raw = row();
+        let mut importer_raw = row();
+        importer_raw["reporterCode"] = Value::from(156);
+        importer_raw["partnerCode"] = Value::from(842);
+        importer_raw["flowCode"] = Value::String("M".to_string());
+        importer_raw["isReported"] = Value::Bool(false);
+        importer_raw["legacyEstimationFlag"] = Value::from(1);
+
+        let exporter_context = context(10);
+        let mut importer_context = context(10);
+        importer_context.query.reporter_code = "156".to_string();
+        importer_context.query.partner_code = "842".to_string();
+        importer_context.query.flow_code = "M".to_string();
+
+        let exporter =
+            parse_un_comtrade_preview(&response(vec![exporter_raw], 1), &exporter_context)
+                .unwrap();
+        let importer =
+            parse_un_comtrade_preview(&response(vec![importer_raw], 1), &importer_context)
+                .unwrap();
+        let result = compare_mirror_pair(
+            &[exporter.records[0].observation.clone()],
+            &[importer.records[0].observation.clone()],
+        );
+        assert_eq!(result.status, MirrorPairStatus::SourceStateMismatch);
+        assert_eq!(result.absolute_difference_source_text, None);
     }
 
     #[test]
