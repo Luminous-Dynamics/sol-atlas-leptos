@@ -146,7 +146,23 @@ Add cash/payment/credit aggregates, remittances and method-qualified cross-borde
 ### Phase 5 — Stress tests and policy comparison
 Run deterministic scenarios for productivity support, registration-cost changes, social-insurance access, credit availability, market access and enforcement approaches. Evaluate impacts on earnings, survival, coverage, productivity and fiscal capacity. Formalization should not be scored by registrations alone: improving decent work and economic resilience is the objective.
 
-## 8. Minimum acceptance tests before public conclusions
+## 8. Machine-readable South Africa pilot seed
+
+A first source-attributed aggregate registry now lives at:
+
+- `data/economic_metrics/south_africa_qlfs_q4_2025_v1.json`
+- Contract verifier: `scripts/verify_economic_metric_registry.py`
+- CI executes both `py_compile` and the registry verifier; this checks the contract, not statistical recomputation.
+
+The registry contains two official headline values from Stats SA's Q4 2025 summary: 21.4% for jobs in the informal sector and 33.5% for employed people in informal employment. They are separate metric IDs with different units of analysis, denominators, account boundaries and interpretation ceilings.
+
+The summary's headline rates do not provide exact numerator/denominator counts or uncertainty intervals, so those fields are deliberately null rather than reverse-engineered from rounded percentages. The source-body digest is also null and labelled not captured; a human-readable snapshot ID is not a cryptographic digest. Reuse status remains `terms_review_required` until the data portal and quarter-specific terms have been checked. The registry therefore does not claim to be a complete QLFS extract or a fully qualified reusable dataset.
+
+The Q3 2025 informality-definition change is represented as a versioned comparability event affecting the informal-sector classification measure. The panel should show the marker, and the system must not calculate an adjacent-quarter economic change from mixed definitions unless a documented bridge/backcast exists. The second measure remains a distinct employment-protection measure; the summary alone does not establish that the enterprise-classification change should be attached to it as the same event.
+
+Source evidence: [Stats SA Q4 2025 informality summary, published 4 March 2026](https://www.statssa.gov.za/?p=19240) and the [official QLFS 2025 data and metadata portal](https://isibaloweb.statssa.gov.za/pages/surveys/pss/qlfs/2025/qlfs2025.php). The portal makes quarter-specific datasets, questionnaires and concepts/definitions available. The seed is intentionally based on the published summary only; a future qualified data ingestion should reconcile it against Q4 source metadata and table definitions.
+
+## 9. Minimum acceptance tests before public conclusions
 
 - Same activity, different formality and visibility states remain separately representable.
 - An informal job at a formal firm does not force the firm to be classified informal.
@@ -159,7 +175,7 @@ Run deterministic scenarios for productivity support, registration-cost changes,
 - Privacy thresholds block display of sparse household/job cells; no person-level “shadow economy” ranking or criminality score is generated.
 - Scenario results are clearly labelled as counterfactual, never observed facts.
 
-## 9. Explicit non-goals for the first release
+## 10. Explicit non-goals for the first release
 
 No universal shadow-economy percentage; no inferred guilt or “suspicious country” score; no person-level payment surveillance; no sale of worker-level traces; no automated tax-enforcement referrals; no summing incompatible estimates; no live connector before terms/access are qualified; no claim that better visibility alone improves welfare.
 
