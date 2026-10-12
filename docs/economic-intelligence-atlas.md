@@ -211,6 +211,7 @@ A renderer-independent raw bilateral comparison primitive is implemented in `sol
 - Monetary differences are calculated from strict base-10 decimal strings using checked `i128` arithmetic (up to 18 fractional digits), not by subtracting binary floating-point inputs. Exact normalized gap strings are authoritative for audit/display; floating-point projections and percentages are approximate.
 - Two separately named percentage conventions are exposed: absolute gap divided by the arithmetic mean, and signed gap divided by exporter-reported value. The denominators are not interchangeable and neither is an illicit-flow estimate.
 - Every compared result has the fixed `DescriptiveValueDifferenceOnly` claim ceiling and exposes its source IDs, source snapshot IDs, reference snapshot IDs, currency, and value-unit label.
+- Each observation carries its source collection coverage. `compare_mirror_pair` refuses to produce a gap unless both observations are explicitly marked `CompleteSnapshot`. The preview parser never assigns that status; preview rows remain inspectable, but incomplete/unproven candidate sets cannot silently become numerical findings.
 
 ### Offline UN Comtrade parser
 
@@ -223,7 +224,7 @@ A renderer-independent raw bilateral comparison primitive is implemented in `sol
 
 ### Qualification tests added
 
-- 20 unit-test definitions in the raw comparison module cover exact decimal precision, normalization, negative signed differences, overflow, record ambiguity, source-state mismatch, area-reference versions, and other fail-closed conditions.
+- 21 unit-test definitions in the raw comparison module cover exact decimal precision, normalization, negative signed differences, overflow, record ambiguity, source-state mismatch, area-reference versions, and other fail-closed conditions.
 - 9 unit-test definitions in the Comtrade parser cover source-shaped parsing, raw-value preservation, possible truncation, duplicate rows, query mismatches, unknown area codes, response-count inconsistency, unknown envelope fields, and API error envelopes.
 - 3 external public-API integration-test definitions cover exact source-value round-tripping, rejection of unknown normalized-observation fields, and the nine-case synthetic reference corpus.
 - `scripts/verify_economic_intelligence_fixture.py` independently checks the nine-case reference corpus and the synthetic source-shaped API response using standard-library integer arithmetic. The root Cargo manifest now declares both the application and `sol-atlas-core` as workspace members, so `cargo fmt --all --check` and `cargo test --workspace` cover both packages. The Check workflow syntax-checks the independent verifier and builds both the application and core for WebAssembly.
