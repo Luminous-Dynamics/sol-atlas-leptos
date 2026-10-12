@@ -157,8 +157,12 @@ pub struct MirrorPairResult {
     pub signed_difference_importer_minus_exporter: Option<f64>,
     /// Approximate binary-float projection for charts/analytics, not canonical.
     pub absolute_difference: Option<f64>,
-    /// Approximate percentage using the arithmetic mean as denominator.
+    /// Approximate absolute gap percentage using the arithmetic mean denominator.
+    /// Symmetric descriptive normalization; not an official IFF estimate.
     pub difference_percent_of_mean: Option<f64>,
+    /// Approximate signed gap percentage using exporter-reported value as denominator.
+    /// This convention appears in some mirror-asymmetry analyses; it is not a crime score.
+    pub signed_difference_percent_of_exporter: Option<f64>,
     pub claim_ceiling: MirrorClaimCeiling,
 }
 
@@ -178,6 +182,7 @@ impl MirrorPairResult {
             signed_difference_importer_minus_exporter: None,
             absolute_difference: None,
             difference_percent_of_mean: None,
+            signed_difference_percent_of_exporter: None,
             claim_ceiling: MirrorClaimCeiling::DescriptiveValueDifferenceOnly,
         }
     }
@@ -380,6 +385,8 @@ pub fn compare_mirror_pair(
     } else {
         0.0
     };
+    let signed_difference_percent_of_exporter =
+        (signed_scaled_difference as f64 / export_scaled as f64) * 100.0;
 
     MirrorPairResult {
         status: MirrorPairStatus::Compared,
@@ -391,6 +398,7 @@ pub fn compare_mirror_pair(
         signed_difference_importer_minus_exporter: Some(signed_difference),
         absolute_difference: Some(absolute_difference),
         difference_percent_of_mean: Some(difference_percent_of_mean),
+        signed_difference_percent_of_exporter: Some(signed_difference_percent_of_exporter),
         claim_ceiling: MirrorClaimCeiling::DescriptiveValueDifferenceOnly,
     }
 }
@@ -557,6 +565,8 @@ mod tests {
         assert_eq!(result.absolute_difference_source_text.as_deref(), Some("20"));
         let pct = result.difference_percent_of_mean.unwrap();
         assert!((pct - (20.0 / 110.0 * 100.0)).abs() < 1e-12);
+        let exporter_pct = result.signed_difference_percent_of_exporter.unwrap();
+        assert!((exporter_pct - 20.0).abs() < 1e-12);
         assert_eq!(
             result.claim_ceiling,
             MirrorClaimCeiling::DescriptiveValueDifferenceOnly
@@ -572,6 +582,20 @@ mod tests {
         assert_eq!(
             result.claim_ceiling,
             MirrorClaimCeiling::DescriptiveValueDifferenceOnly
+        );
+    }
+
+    #[test]
+    fn exporter_denominator_metric_preserves_direction() {
+        let up = pair(Some("100"), Some("120"));
+        let down = pair(Some("100"), Some("80"));
+        assert_eq!(
+            up.signed_difference_percent_of_exporter,
+            Some(20.0)
+        );
+        assert_eq!(
+            down.signed_difference_percent_of_exporter,
+            Some(-20.0)
         );
     }
 
