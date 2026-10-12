@@ -32,6 +32,7 @@ fn main() -> ExitCode {
 }
 
 fn read_bounded_bytes(path: &OsStr, limit: usize, label: &str) -> io::Result<Vec<u8>> {
+    let path = std::path::Path::new(path);
     let metadata = fs::metadata(path)?;
     if metadata.len() > limit as u64 {
         return Err(io::Error::new(
