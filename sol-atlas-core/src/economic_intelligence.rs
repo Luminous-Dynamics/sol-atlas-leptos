@@ -57,6 +57,8 @@ pub struct TradeObservation {
     pub source_id: String,
     /// Immutable identity of the source snapshot from which this record came.
     pub source_snapshot_id: String,
+    /// Version/snapshot identity of the reference table used to classify area codes.
+    pub area_reference_snapshot_id: String,
     /// Source-native row/observation identifier, if available.
     pub source_record_id: Option<String>,
     /// Canonical source record or dataset URL when redistribution policy permits.
@@ -138,6 +140,8 @@ pub enum MirrorPairStatus {
     NonReciprocalReporters,
     /// Geography identifiers came from different code systems.
     GeographyCodeSystemMismatch,
+    /// Reporter/partner classification tables differ across the pair.
+    AreaReferenceVersionMismatch,
     /// The source-defined periods differ.
     PeriodMismatch,
     /// Commodity codes differ.
@@ -186,6 +190,15 @@ pub struct MirrorPairResult {
     pub status: MirrorPairStatus,
     pub exporter_record_id: Option<String>,
     pub importer_record_id: Option<String>,
+    /// Source registry identifiers for the compared records.
+    pub exporter_source_id: Option<String>,
+    pub importer_source_id: Option<String>,
+    /// Raw input snapshot identities required to replay the comparison.
+    pub exporter_source_snapshot_id: Option<String>,
+    pub importer_source_snapshot_id: Option<String>,
+    /// Geography-reference snapshots used to classify the two records.
+    pub exporter_area_reference_snapshot_id: Option<String>,
+    pub importer_area_reference_snapshot_id: Option<String>,
     /// Unit context is populated only for a valid comparison.
     pub currency: Option<String>,
     /// Source-native denomination/scale label for the exact gap.
@@ -218,6 +231,12 @@ impl MirrorPairResult {
             status,
             exporter_record_id,
             importer_record_id,
+            exporter_source_id: None,
+            importer_source_id: None,
+            exporter_source_snapshot_id: None,
+            importer_source_snapshot_id: None,
+            exporter_area_reference_snapshot_id: None,
+            importer_area_reference_snapshot_id: None,
             currency: None,
             value_unit: None,
             method_id: RAW_MIRROR_METHOD_ID.to_string(),
@@ -236,7 +255,7 @@ impl MirrorPairResult {
 pub const RAW_MIRROR_METHOD_ID: &str = "raw_mirror_value_difference/v2";
 
 /// Current version of the normalized TradeObservation wire contract.
-pub const TRADE_OBSERVATION_SCHEMA_VERSION: u16 = 2;
+pub const TRADE_OBSERVATION_SCHEMA_VERSION: u16 = 3;
 
 /// Compare candidate bilateral reports without silently resolving ambiguity.
 ///
@@ -337,6 +356,13 @@ pub fn compare_mirror_pair(
     if exporter.geography_code_system != importer.geography_code_system {
         return MirrorPairResult::excluded(
             MirrorPairStatus::GeographyCodeSystemMismatch,
+            exporter_id,
+            importer_id,
+        );
+    }
+    if exporter.area_reference_snapshot_id != importer.area_reference_snapshot_id {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::AreaReferenceVersionMismatch,
             exporter_id,
             importer_id,
         );
@@ -488,6 +514,12 @@ pub fn compare_mirror_pair(
         status: MirrorPairStatus::Compared,
         exporter_record_id: exporter_id,
         importer_record_id: importer_id,
+        exporter_source_id: Some(exporter.source_id.clone()),
+        importer_source_id: Some(importer.source_id.clone()),
+        exporter_source_snapshot_id: Some(exporter.source_snapshot_id.clone()),
+        importer_source_snapshot_id: Some(importer.source_snapshot_id.clone()),
+        exporter_area_reference_snapshot_id: Some(exporter.area_reference_snapshot_id.clone()),
+        importer_area_reference_snapshot_id: Some(importer.area_reference_snapshot_id.clone()),
         currency: Some(exporter.currency.clone()),
         value_unit: Some(exporter.value_unit.clone()),
         method_id: RAW_MIRROR_METHOD_ID.to_string(),
@@ -600,6 +632,7 @@ fn has_identity(observation: &TradeObservation) -> bool {
     !observation.record_id.trim().is_empty()
         && !observation.source_id.trim().is_empty()
         && !observation.source_snapshot_id.trim().is_empty()
+        && !observation.area_reference_snapshot_id.trim().is_empty()
         && !observation.reporter.trim().is_empty()
         && !observation.partner.trim().is_empty()
         && !observation.geography_code_system.trim().is_empty()
@@ -629,6 +662,7 @@ mod tests {
             record_id: record_id.to_string(),
             source_id: "synthetic-un-comtrade-fixture".to_string(),
             source_snapshot_id: "synthetic-fixture-v1".to_string(),
+            area_reference_snapshot_id: "synthetic-area-table-v1".to_string(),
             source_record_id: Some(format!("source-{record_id}")),
             source_url: Some("https://example.invalid/frozen-fixture".to_string()),
             reporter: reporter.to_string(),
@@ -1000,6 +1034,21 @@ mod tests {
             compare_mirror_pair(&[exporter], &[importer]).status,
             MirrorPairStatus::NonReciprocalReporters
         );
+    }
+
+    #[test]
+    fn refuses_to_compare_against_a_different_area_reference_snapshot() {
+        let exporter =
+            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer =
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        importer.area_reference_snapshot_id = "synthetic-area-table-v2".to_string();
+        let result = compare_mirror_pair(&[exporter], &[importer]);
+        assert_eq!(
+            result.status,
+            MirrorPairStatus::AreaReferenceVersionMismatch
+        );
+        assert_eq!(result.absolute_difference_source_text, None);
     }
 
     #[test]
