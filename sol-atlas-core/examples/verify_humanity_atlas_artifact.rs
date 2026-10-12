@@ -9,7 +9,7 @@
 
 use sol_atlas_core::humanity_atlas::{
     ScenarioRunEnvelope,
-    technology_tree::{import_technology_tree, MAX_SOURCE_ARTIFACT_BYTES},
+    technology_tree::{MAX_SOURCE_ARTIFACT_BYTES, import_technology_tree},
 };
 use std::{env, fs, io, process::ExitCode};
 
@@ -34,7 +34,8 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let envelope_path = &args[0];
     let artifact_path = &args[1];
-    let artifact_id = args.get(2)
+    let artifact_id = args
+        .get(2)
         .map(|value| value.to_string_lossy().into_owned())
         .unwrap_or_else(|| "source-simulator-output".to_string());
 
@@ -44,7 +45,8 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!("source artifact exceeds the {MAX_SOURCE_ARTIFACT_BYTES}-byte v1 limit"),
-        ).into());
+        )
+        .into());
     }
     let source_bytes = fs::read(artifact_path)?;
     let run = ScenarioRunEnvelope::from_json(&envelope_bytes)
