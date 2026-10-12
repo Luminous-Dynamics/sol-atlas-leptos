@@ -9,8 +9,8 @@
 
 use serde::Deserialize;
 use sol_atlas_core::economic_intelligence::{
-    compare_mirror_pair, MirrorPairStatus, TradeAreaKind, TradeFlow, TradeObservation,
-    TRADE_OBSERVATION_SCHEMA_VERSION,
+    compare_mirror_pair, MirrorPairStatus, ObservationSourceCoverage, TradeAreaKind, TradeFlow,
+    TradeObservation, TRADE_OBSERVATION_SCHEMA_VERSION,
 };
 
 fn observation(
@@ -41,6 +41,7 @@ fn observation(
         period: "2025".to_string(),
         disaggregation_signature: "comtrade-dimensions/v1|partner2=0|mot=0|customs=C00".to_string(),
         source_state_signature: "synthetic-state/v1|reported=true|legacy_estimation=0".to_string(),
+        source_coverage: ObservationSourceCoverage::CompleteSnapshot,
         commodity_code: "010121".to_string(),
         classification_revision: "HS-2022".to_string(),
         flow,
