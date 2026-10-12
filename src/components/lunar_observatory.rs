@@ -94,6 +94,20 @@ struct LunarSource {
     recommended_use: String,
     required_acceptance_checks: Vec<String>,
     candidate_crosswalk: Vec<LunarSourceCrosswalk>,
+    #[serde(default)]
+    sample_direct_assets: Vec<LunarDirectAsset>,
+    #[serde(default)]
+    asset_access_notes: Vec<String>,
+}
+
+#[derive(Clone, Deserialize)]
+struct LunarDirectAsset {
+    title: String,
+    url: String,
+    asset_type: String,
+    verification_state: String,
+    #[serde(default)]
+    note: Option<String>,
 }
 
 #[derive(Clone, Deserialize)]
@@ -536,6 +550,35 @@ fn LunarSourceCard(source: LunarSource) -> impl IntoView {
             view! { <li>{item}</li> }
         })
         .collect::<Vec<_>>();
+    let access_notes = source
+        .asset_access_notes
+        .iter()
+        .map(|note| {
+            let note = note.clone();
+            view! { <li>{note}</li> }
+        })
+        .collect::<Vec<_>>();
+    let direct_assets = source
+        .sample_direct_assets
+        .iter()
+        .map(|asset| {
+            let title = asset.title.clone();
+            let url = asset.url.clone();
+            let asset_type = asset.asset_type.clone();
+            let verification_state = asset.verification_state.replace('_', " ");
+            let note = asset.note.clone();
+            view! {
+                <li class="lunar-direct-asset">
+                    <div class="lunar-direct-asset-heading">
+                        <a href=url target="_blank" rel="noopener noreferrer">{title}</a>
+                        <span>{asset_type}</span>
+                    </div>
+                    <p class="lunar-asset-verification">{verification_state}</p>
+                    {note.map(|text| view! { <p>{text}</p> })}
+                </li>
+            }
+        })
+        .collect::<Vec<_>>();
     let crosswalks = source
         .candidate_crosswalk
         .iter()
@@ -579,6 +622,22 @@ fn LunarSourceCard(source: LunarSource) -> impl IntoView {
             <div class="lunar-card-section">
                 <h4>"Available products"</h4>
                 <ul>{product_families}</ul>
+            </div>
+            <div class="lunar-card-section">
+                <h4>"Sample direct assets and retrieval state"</h4>
+                {if direct_assets.is_empty() {
+                    view! { <p class="lunar-role-text">"No asset URLs independently audited in this catalogue entry yet."</p> }.into_any()
+                } else {
+                    view! { <ul class="lunar-direct-asset-list">{direct_assets}</ul> }.into_any()
+                }}
+            </div>
+            <div class="lunar-card-section unresolved">
+                <h4>"Access audit notes"</h4>
+                {if access_notes.is_empty() {
+                    view! { <p class="lunar-role-text">"No access audit note recorded."</p> }.into_any()
+                } else {
+                    view! { <ul>{access_notes}</ul> }.into_any()
+                }}
             </div>
             <div class="lunar-card-section">
                 <h4>"Candidate coverage / crosswalk state"</h4>
@@ -654,6 +713,16 @@ mod tests {
         let catalog: LunarSourceCatalog = serde_json::from_str(LUNAR_SOURCE_CATALOG_JSON)
             .expect("embedded source catalogue must parse");
         assert_eq!(catalog.sources.len(), 4);
+        assert_eq!(catalog.sources[0].sample_direct_assets.len(), 5);
+        assert_eq!(catalog.sources[1].sample_direct_assets.len(), 5);
+        assert!(catalog.sources[1]
+            .asset_access_notes
+            .iter()
+            .any(|note| note.contains("HTML 404")));
+        assert!(catalog.sources[1]
+            .sample_direct_assets
+            .iter()
+            .any(|asset| asset.url.ends_with("_JP2.LBL")));
         assert_eq!(catalog.sources[0].candidate_crosswalk.len(), 11);
         assert!(catalog
             .sources
