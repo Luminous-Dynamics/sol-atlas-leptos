@@ -45,6 +45,7 @@ EXPECTED_NAMES = {
     "nobile-rim-2": "Nobile Rim 2",
     "de-gerlache-rim-2": "de Gerlache Rim 2",
     "slater-plain": "Slater Plain",
+    "connecting-ridge": "Connecting Ridge",
     "peak-near-shackleton": "Peak near Shackleton",
 }
 EVIDENCE_STATES = {
@@ -243,8 +244,11 @@ def validate_document(document: Any) -> list[str]:
         # (with units, uncertainty, and spatial resolution) can be bound in.
         if candidate.get("known_metrics") != {}:
             errors.append(f"{path}.known_metrics must remain empty until comparable evidence is provenance-bound")
-        if candidate.get("status") == "historical_candidate_region_comparator" and candidate_id != "peak-near-shackleton":
-            errors.append(f"{path}: only peak-near-shackleton may be the historical comparator")
+        if (
+            candidate_status == "historical_candidate_region_comparator"
+            and candidate_id not in {"peak-near-shackleton", "connecting-ridge"}
+        ):
+            errors.append(f"{path}: only reviewed historical comparator IDs may use this status")
 
     if seen_ids != set(EXPECTED_NAMES):
         missing_ids = set(EXPECTED_NAMES) - seen_ids
@@ -274,7 +278,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print(
-        "Lunar site-screening contract passed: 10 reviewed region/comparator records; "
+        "Lunar site-screening contract passed: 11 reviewed region/comparator records; "
         "no point coordinates, scalar rankings, or unsourced numeric metrics."
     )
     return 0
