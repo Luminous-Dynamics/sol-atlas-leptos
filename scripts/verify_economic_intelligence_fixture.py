@@ -38,6 +38,8 @@ COMTRADE_REQUIRED_ROW_KEYS = {
     "partnerCode",
     "flowCode",
     "cmdCode",
+    "classificationCode",
+    "isAggrAbove",
     "partner2Code",
     "motCode",
     "customsCode",
