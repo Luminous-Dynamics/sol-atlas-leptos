@@ -258,6 +258,7 @@ pub fn verify(
     let mut max_generation_residual: f64 = 0.0;
     let mut max_soc_residual: f64 = 0.0;
     let mut critical_unserved = 0.0;
+    let mut noncritical_unserved = 0.0;
     for (position, (input, row)) in expected_inputs.iter().zip(&candidate.intervals).enumerate() {
         if *input != SCENARIO_INPUTS[position] || row.input != *input {
             return Err(format!("input binding mismatch at interval {}", position));
@@ -359,10 +360,36 @@ pub fn verify(
             return Err(format!("service allocation mismatch at interval {}", position));
         }
         critical_unserved += expected_critical_unserved;
+        noncritical_unserved += expected_noncritical_unserved;
         prior_soc = row.battery_soc_kwh;
     }
 
-    let recomputed = aggregate_totals(&candidate.intervals, prior_soc);
+    // Recompute the aggregate contract separately from the simulator helper.
+    // Sharing the simulator's aggregation function here would allow a bug in
+    // that helper to validate its own output.
+    let recomputed = SimulationTotals {
+        total_load_kwh: expected_inputs.iter().map(|row| row.load_kwh).sum(),
+        total_renewable_generation_kwh: expected_inputs
+            .iter()
+            .map(|row| row.renewable_generation_kwh)
+            .sum(),
+        total_grid_import_kwh: candidate.intervals.iter().map(|row| row.grid_import_kwh).sum(),
+        total_grid_export_kwh: candidate.intervals.iter().map(|row| row.grid_export_kwh).sum(),
+        total_renewable_curtailed_kwh: candidate
+            .intervals
+            .iter()
+            .map(|row| row.renewable_curtailed_kwh)
+            .sum(),
+        total_unserved_load_kwh: candidate
+            .intervals
+            .iter()
+            .map(|row| row.unserved_load_kwh)
+            .sum(),
+        total_critical_load_kwh: expected_inputs.iter().map(|row| row.critical_load_kwh).sum(),
+        total_critical_unserved_kwh: critical_unserved,
+        total_noncritical_unserved_kwh: noncritical_unserved,
+        final_battery_soc_kwh: prior_soc,
+    };
     if !totals_near(&recomputed, &candidate.totals) {
         return Err("reported aggregate totals differ from recomputed interval totals".into());
     }
