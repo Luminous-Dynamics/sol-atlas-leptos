@@ -74,6 +74,7 @@ async fn refresh_once(data_state: &DataState) -> Result<(), String> {
         event_count: snapshot.events.len(),
         skipped_events: snapshot.skipped_events,
     });
+    data_state.mark_changed();
 
     log::info!(
         "NASA EONET feed accepted: {} event(s), {} rejected event(s), fetched_at_ms={}",
@@ -94,4 +95,5 @@ fn mark_refresh_failure(data_state: &DataState, now_ms: i64) {
         Some(_) => FeedHealth::Stale,
     };
     data_state.eonet_feed_status.set(status);
+    data_state.mark_changed();
 }
