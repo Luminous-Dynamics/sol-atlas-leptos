@@ -23,7 +23,7 @@ fn observation(
         schema_version: TRADE_OBSERVATION_SCHEMA_VERSION,
         record_id: record_id.to_string(),
         source_id: "synthetic-reference-fixture".to_string(),
-        source_snapshot_id: "sha256:synthetic-v1".to_string(),
+        source_snapshot_id: "synthetic-reference-v1".to_string(),
         source_record_id: Some(format!("source-{record_id}")),
         source_url: Some("https://example.invalid/frozen-fixture".to_string()),
         reporter: reporter.to_string(),
