@@ -234,7 +234,7 @@ python3 scripts/lunar_asset_receipt.py \
   --output ./evidence/lunar/AVGVISIB_85S_060M_201608_JP2.receipt.json
 ```
 
-The helper streams the local file to compute SHA-256, records byte count and file-observation details, and binds the receipt to the exact catalogue bytes by catalogue SHA-256. It refuses URLs not present in the reviewed catalogue, known-broken URLs recorded as 404, empty files, a source file that changes while being hashed, and a catalogue that changed after parsing.
+The helper opens one regular local file and hashes bytes from that file descriptor, records byte count and file-observation details, and binds the receipt to the exact catalogue bytes by catalogue SHA-256. It refuses symbolic-link inputs, non-regular or empty files, URLs not present in the reviewed catalogue, known-broken URLs recorded as 404, path replacement or detected content/metadata changes during hashing, and a catalogue that changed after parsing.
 
 **A receipt is not source authentication.** The helper does not fetch the network, authenticate that local bytes came from the asserted URL, parse a PDS label, validate raster CRS/scale/offsets, or calculate site metrics. It deliberately sets those verification flags to false. A human/reviewer must examine source headers and product labels, compare the receipt with the retrieval record, and only then propose a separate reviewable catalog-state change. Do not change an asset to `downloaded_and_hashed` merely because a local file exists.
 

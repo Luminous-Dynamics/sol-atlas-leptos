@@ -229,6 +229,27 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
         self.assertFalse(receipt["verification_boundary"]["pds_label_parsed"])
         self.assertFalse(receipt["verification_boundary"]["site_metrics_computed"])
 
+    def test_asset_receipt_rejects_symlink_input(self) -> None:
+        asset_url = next(
+            asset["url"]
+            for source in self.catalog["sources"]
+            for asset in source.get("sample_direct_assets", [])
+            if asset["url"].endswith("_JP2.LBL")
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            local_asset = Path(directory) / "source.lbl"
+            linked_asset = Path(directory) / "symlink.lbl"
+            local_asset.write_bytes(b"local test bytes")
+            linked_asset.symlink_to(local_asset)
+            with self.assertRaisesRegex(ReceiptError, "symbolic-link inputs are not accepted"):
+                build_receipt(
+                    self.catalog,
+                    CATALOG_DATA,
+                    linked_asset,
+                    asset_url,
+                    captured_utc="2026-10-12T08:00:00Z",
+                )
+
     def test_asset_receipt_rejects_catalog_changed_after_parse(self) -> None:
         altered_catalog = copy.deepcopy(self.catalog)
         altered_catalog["decision_rule"] = "modified in-memory document"

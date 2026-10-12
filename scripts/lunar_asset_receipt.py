@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import os
+import stat
 import sys
 import tempfile
 from datetime import datetime, timezone
@@ -28,22 +29,59 @@ class ReceiptError(ValueError):
 
 
 def _sha256_file(path: Path) -> tuple[str, int, int, int]:
-    before = path.stat()
-    digest = hashlib.sha256()
-    byte_count = 0
-    with path.open("rb") as handle:
+    """Hash one opened regular file and reject path/descriptor changes during capture."""
+    try:
+        path_before = path.lstat()
+    except OSError as exc:
+        raise ReceiptError(f"cannot inspect local input path: {exc}") from exc
+    if stat.S_ISLNK(path_before.st_mode):
+        raise ReceiptError("symbolic-link inputs are not accepted; hash the reviewed regular file directly")
+    if not stat.S_ISREG(path_before.st_mode):
+        raise ReceiptError("local input must be a regular file, not a directory or special file")
+
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        file_descriptor = os.open(path, flags)
+    except OSError as exc:
+        raise ReceiptError(f"cannot securely open local input for hashing: {exc}") from exc
+
+    def fingerprint(info: os.stat_result) -> tuple[int, int, int, int, int]:
+        return (
+            info.st_dev,
+            info.st_ino,
+            info.st_size,
+            info.st_mtime_ns,
+            info.st_ctime_ns,
+        )
+
+    with os.fdopen(file_descriptor, "rb") as handle:
+        before = os.fstat(handle.fileno())
+        if not stat.S_ISREG(before.st_mode):
+            raise ReceiptError("opened input is not a regular file")
+        if (path_before.st_dev, path_before.st_ino) != (before.st_dev, before.st_ino):
+            raise ReceiptError("file path changed before hashing; retry with a stable input")
+
+        digest = hashlib.sha256()
+        byte_count = 0
         while chunk := handle.read(CHUNK_SIZE):
             digest.update(chunk)
             byte_count += len(chunk)
-    after = path.stat()
-    if (before.st_size, before.st_mtime_ns, before.st_ino) != (
-        after.st_size, after.st_mtime_ns, after.st_ino
-    ):
-        raise ReceiptError("file changed while hashing; retry with a stable input")
-    if byte_count <= 0:
-        raise ReceiptError("empty input files cannot receive a valid asset receipt")
-    return digest.hexdigest(), byte_count, after.st_mtime_ns, after.st_ino
 
+        after = os.fstat(handle.fileno())
+        try:
+            path_after = path.lstat()
+        except OSError as exc:
+            raise ReceiptError(f"file path changed while hashing: {exc}") from exc
+        if stat.S_ISLNK(path_after.st_mode) or not stat.S_ISREG(path_after.st_mode):
+            raise ReceiptError("file path changed type while hashing; retry with a stable input")
+        if fingerprint(before) != fingerprint(after) or fingerprint(after) != fingerprint(path_after):
+            raise ReceiptError("file changed or was replaced while hashing; retry with a stable input")
+        if byte_count <= 0:
+            raise ReceiptError("empty input files cannot receive a valid asset receipt")
+        if byte_count != after.st_size:
+            raise ReceiptError("bytes read do not match the final file size; retry with a stable input")
+
+    return digest.hexdigest(), byte_count, after.st_mtime_ns, after.st_ino
 
 def build_receipt(
     catalog: dict[str, Any],
