@@ -4,6 +4,8 @@
 **Target repository:** `Luminous-Dynamics/sol-atlas-leptos`  
 **Related work:** [SOL-ATLAS-007 / #90](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/90), [SOL-FIN-001 / #10](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/10), [Mycelix supply-chain provenance](https://github.com/Luminous-Dynamics/mycelix-supplychain), [Symthaea financial fragility profile / #5605](https://github.com/Luminous-Dynamics/symthaea/issues/5605)
 
+**Broader economic model:** [Real and Shadow Economy Atlas — Measurement Architecture](real-and-shadow-economy-atlas.md) separates production/value added, livelihoods, unpaid care, financial circulation, informality, statistical visibility, legal disposition and environmental flows. It defines the South Africa aggregate pilot, anti-double-counting rules, source ladder and acceptance tests.
+
 ## 1. Product boundary
 
 Build a global, evidence-grounded atlas for exploring:
