@@ -234,7 +234,11 @@ fn parse_natural_events(
     let mut events = Vec::new();
 
     // Parse GeoJSON FeatureCollections (all share same structure)
-    fn parse_geojson(dataset_name: &str, json: &str, event_type: NaturalEventType) -> Vec<NaturalEvent> {
+    fn parse_geojson(
+        dataset_name: &str,
+        json: &str,
+        event_type: NaturalEventType,
+    ) -> Vec<NaturalEvent> {
         #[derive(Deserialize)]
         struct FeatureCollection {
             features: Vec<Feature>,
@@ -341,7 +345,8 @@ fn parse_natural_events(
                             )
                         }),
                         _ => None,
-                    }.map(str::to_string),
+                    }
+                    .map(str::to_string),
                     occurred_at_ms: f.properties.time.as_i64(),
                     updated_at_ms: f.properties.updated.as_i64(),
                     depth_km: coords.get(2).copied().filter(|depth| depth.is_finite()),
@@ -579,7 +584,6 @@ mod e2e_tests {
         assert!(data.sites.is_empty());
     }
 }
-
 
 #[cfg(test)]
 mod live_timestamp_compat_tests {
