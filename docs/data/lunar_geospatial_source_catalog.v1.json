@@ -2,7 +2,7 @@
   "schema": "org.luminousdynamics.sol-atlas.lunar-source-catalog/v1",
   "created_utc_date": "2026-10-12",
   "status": "source_catalogue_ingestion_plan_not_ingested",
-  "decision_rule": "Expose authoritative source products and their limitations before deriving any site metric. A product being listed here does not mean it has been downloaded, calibrated, spatially crosswalked, or validated for a current landing ellipse.",
+  "decision_rule": "Expose authoritative source products and their limitations before deriving any site metric. A product being listed here does not mean it has been downloaded, calibrated, spatially crosswalked, or validated for a current landing ellipse. Preserve the historical leads as source-reported clues, not repository-computed measurements; their time windows, heights, and interpretation boundaries must travel with any reuse.",
   "metric_policy": "No derived site metrics or site rankings are asserted by this catalogue. Keep candidate values unknown until source bytes, labels, spatial masks, units, resolution, acquisition/model epoch, uncertainty, and transformation provenance are verified.",
   "sources": [
     {
@@ -177,5 +177,55 @@
     "Add long-period illumination/PSR/Earth-visibility products only as coarse screening layers, preserving their averaging window and pixel scale.",
     "Compute epoch-specific lighting, cold-soak and traverse/relay constraints only after a documented mission epoch, height, path, coordinate frame and geometry model are supplied.",
     "Emit each derived result with input checksums, transform and mask versions, units, statistic, uncertainty treatment, excluded area, software version and a replayable receipt."
+  ],
+  "historical_leads": [
+    {
+      "id": "connecting-ridge-illumination-lead",
+      "title": "Test Connecting Ridge / Site 01 as a historical comparator",
+      "related_region": "Site01: Connecting ridge; legacy LOLA product ROI boundaries",
+      "finding": "The PGDA product description reports that, from 2024-01-01 through 2026-01-01, Site 1 had the largest area with average illumination greater than 70% at 1 m above the surface among the compared sites; ROIs 4–6 at this site generally had favorable illumination even when uncertainty was considered. The page also reports longer continuous illumination periods at 5 m above the surface for Site 1.",
+      "evidence_state": "published_regional_model_result_historical_window_not_recomputed",
+      "source_url": "https://pgda.gsfc.nasa.gov/products/78",
+      "time_window": "2024-01-01 to 2026-01-01",
+      "heights_above_surface_m": [
+        1,
+        5
+      ],
+      "next_action": "Keep as a named historical comparator and retrieve the Site01 ROI shapefile and uncertainty-clone products before any same-method reanalysis.",
+      "interpretation_limits": [
+        "This is a historical illumination comparison, not an evaluation for a future crewed mission window.",
+        "The result covers illumination only; it does not establish touchdown roughness, safe approach corridors, surface operations, communications link margin, thermal survival or resource access.",
+        "Site01 / ROI4–6 are legacy research identifiers. Spatial boundaries and compatibility with any modern agency candidate region must be explicitly validated.",
+        "The original page result has not been independently recomputed in this repository. Preserve it as a source-reported finding, not a new measurement."
+      ]
+    },
+    {
+      "id": "five-metre-pixels-are-not-five-metre-ground-truth",
+      "title": "Treat DEM pixel size separately from terrain certainty",
+      "related_region": "All regions using the high-resolution LOLA site products",
+      "finding": "NASA PGDA states that around 90% of pixels in the described 5 m/pixel polar LDEMs are interpolated and reports median RMS height uncertainty around 0.30–0.50 m and median RMS slope uncertainty around 1.5–2.5 degrees across the cited regions.",
+      "evidence_state": "source_reported_uncertainty_characterization",
+      "source_url": "https://pgda.gsfc.nasa.gov/products/78",
+      "time_window": "Static topographic product; verify individual asset labels and retrieval version",
+      "next_action": "Carry uncertainty layers, LOLA return-count maps and clone ensembles into every zonal estimate; never report nominal 5 m pixel pitch as 5 m independent measurement spacing.",
+      "interpretation_limits": [
+        "Summary uncertainty values are regional descriptions from the product page; they are not per-pixel errors or candidate-specific safety limits.",
+        "Interpolation error varies spatially with data gaps and terrain slope."
+      ]
+    },
+    {
+      "id": "long-period-illumination-is-not-an-operational-forecast",
+      "title": "Keep long-period illumination separate from mission-window illumination",
+      "related_region": "South-polar illumination products",
+      "finding": "NASA's polar illumination product page describes several illumination, permanent-shadow and Earth-visibility products as averages over an approximately 18.6-year lunar nutation cycle, and warns that further analysis is needed for shorter periods, greater resolution and height above the surface.",
+      "evidence_state": "product_temporal_scope_and_limit",
+      "source_url": "https://pgda.gsfc.nasa.gov/products/69",
+      "time_window": "Approximately 18.6-year cycle averages for applicable products",
+      "next_action": "Use the products only for coarse screening; obtain or compute a mission-epoch timeline at the relevant lander, habitat and rover heights before comparing energy storage or direct-to-Earth availability.",
+      "interpretation_limits": [
+        "An average does not describe illumination continuity, longest darkness interval or the power-storage requirement for a given mission period.",
+        "Earth-disc visibility is not by itself a communications link budget or relay geometry."
+      ]
+    }
   ]
 }
