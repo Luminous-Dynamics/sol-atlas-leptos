@@ -10,7 +10,8 @@ use leptos::prelude::*;
 use leptos_router::components::A;
 
 use sol_atlas_core::community_energy_demo::{
-    simulate, verify, BatteryConfiguration, GovernanceVoteFixture, SCENARIO_INPUTS, CASE_ID, EVIDENCE_CLASS,
+    simulate, verify, BatteryConfiguration, GovernanceVoteFixture, SCENARIO_INPUTS, CASE_ID,
+    EVIDENCE_CLASS,
 };
 
 #[component]
