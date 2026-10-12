@@ -99,8 +99,8 @@ fn eligible_real_layers() -> [Layer; 10] {
 /// default — a single category alone isn't a confluence, it's just that
 /// layer's own marker).
 /// Whether each live natural-event source currently has a valid or
-/// acceptably recent last-known snapshot. Core tests default both to true;
-/// browser callers must derive these flags from feed-health state.
+/// acceptably recent last-known snapshot. The default is fail-closed;
+/// callers must affirmatively supply source health before live records count.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LiveSourceFreshness {
     pub usgs_is_current: bool,
@@ -110,16 +110,16 @@ pub struct LiveSourceFreshness {
 impl Default for LiveSourceFreshness {
     fn default() -> Self {
         Self {
-            usgs_is_current: true,
-            eonet_is_current: true,
+            usgs_is_current: false,
+            eonet_is_current: false,
         }
     }
 }
 
-/// Compute confluence assuming the caller accepts the freshness of all live
-/// source records. Browser integrations should use
-/// compute_with_live_source_freshness so stale/offline records cannot
-/// masquerade as current co-location.
+/// Compute confluence with a fail-closed assumption about live-source freshness.
+/// Live-feed records are omitted unless the caller explicitly supplies current
+/// source health through compute_with_live_source_freshness. Curated references
+/// and other eligible static layers remain available.
 pub fn compute(data: &LoadedData, min_layers: usize) -> Vec<ConfluenceCell> {
     compute_with_live_source_freshness(data, min_layers, LiveSourceFreshness::default())
 }
@@ -376,7 +376,14 @@ mod tests {
             chokepoints: vec![chokepoint(35.0002, 139.0002)],
             ..Default::default()
         };
-        let result = compute(&data, 2);
+        let result = compute_with_live_source_freshness(
+            &data,
+            2,
+            LiveSourceFreshness {
+                usgs_is_current: true,
+                eonet_is_current: false,
+            },
+        );
         assert_eq!(result.len(), 1);
         let cell = &result[0];
         assert_eq!(cell.layers.len(), 3);
@@ -385,6 +392,31 @@ mod tests {
         assert!(cell.layers.contains(&Layer::Chokepoints));
         assert_eq!(cell.entity_count, 3);
         assert!(cell.summary().contains("3 real systems"));
+    }
+
+    #[test]
+    fn live_feed_records_require_explicit_freshness() {
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            natural_events: vec![quake(10.0001, 10.0001)],
+            ..Default::default()
+        };
+
+        assert!(
+            compute(&data, 2).is_empty(),
+            "the default freshness policy must not assume live feeds are current"
+        );
+
+        let current = compute_with_live_source_freshness(
+            &data,
+            2,
+            LiveSourceFreshness {
+                usgs_is_current: true,
+                eonet_is_current: false,
+            },
+        );
+        assert_eq!(current.len(), 1);
+        assert!(current[0].layers.contains(&Layer::Earthquakes));
     }
 
     #[test]
