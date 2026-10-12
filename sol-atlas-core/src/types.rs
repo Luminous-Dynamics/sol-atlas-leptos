@@ -335,7 +335,10 @@ impl DataProvenance {
                 format!("{} — snapshot {}", self.source, self.snapshot_date)
             }
             DataTimeBasis::LiveFeedWithBundledFallback => {
-                format!("{} — live feed or bundled fallback; snapshot depends on retrieval/source", self.source)
+                format!(
+                    "{} — live feed or bundled fallback; snapshot depends on retrieval/source",
+                    self.source
+                )
             }
             DataTimeBasis::UndatedReference => self.source.to_string(),
         }
