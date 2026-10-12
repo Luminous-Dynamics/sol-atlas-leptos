@@ -20,6 +20,7 @@ use crate::economic_intelligence::{
 use serde::Deserialize;
 use serde_json::Value;
 use std::collections::BTreeMap;
+use std::collections::HashSet;
 use std::error::Error;
 use std::fmt;
 
@@ -217,12 +218,24 @@ pub fn parse_un_comtrade_preview(
 
     let mut records = Vec::new();
     let mut rejected_rows = Vec::new();
+    let mut seen_record_ids = HashSet::new();
     for (row_index, raw_record) in envelope.data.into_iter().enumerate() {
         match normalize_record(&raw_record, context) {
-            Ok(observation) => records.push(UnComtradeRecord {
-                observation,
-                raw_record,
-            }),
+            Ok(observation) => {
+                if !seen_record_ids.insert(observation.record_id.clone()) {
+                    rejected_rows.push(RejectedUnComtradeRow {
+                        row_index,
+                        reason: UnComtradeRowRejection::DuplicateRecordKey(
+                            observation.record_id,
+                        ),
+                    });
+                } else {
+                    records.push(UnComtradeRecord {
+                        observation,
+                        raw_record,
+                    });
+                }
+            }
             Err(reason) => rejected_rows.push(RejectedUnComtradeRow { row_index, reason }),
         }
     }
@@ -336,6 +349,8 @@ fn normalize_record(
     let second_partner_code = required_scalar(object, "partner2Code")?;
     let transport_mode_code = required_scalar(object, "motCode")?;
     let customs_procedure_code = required_scalar(object, "customsCode")?;
+    let reported_flag = required_scalar(object, "isReported")?;
+    let legacy_estimation_flag = required_scalar(object, "legacyEstimationFlag")?;
 
     let reporter_kind = context
         .area_kinds
@@ -382,10 +397,10 @@ fn normalize_record(
         _ => return Err(UnComtradeRowRejection::UnsupportedFlowCode(flow_code)),
     };
     let dimension_signature = format!(
-        "{UN_COMTRADE_DIMENSIONS_VERSION}|partner2={second_partner_code}|mot={transport_mode_code}|customs={customs_procedure_code}"
+        "{UN_COMTRADE_DIMENSIONS_VERSION}|partner2={second_partner_code}|mot={transport_mode_code}|customs={customs_procedure_code}|reported={reported_flag}|legacy_estimation={legacy_estimation_flag}"
     );
     let record_id = format!(
-        "comtrade:{}/{}/{}/{}/{}/{}/{}/{}/partner2={}/mot={}/customs={}",
+        "comtrade:{}/{}/{}/{}/{}/{}/{}/{}/partner2={}/mot={}/customs={}/reported={}/legacy_estimation={}",
         query.type_code,
         query.frequency_code,
         query.classification_code,
@@ -396,7 +411,9 @@ fn normalize_record(
         commodity_code,
         second_partner_code,
         transport_mode_code,
-        customs_procedure_code
+        customs_procedure_code,
+        reported_flag,
+        legacy_estimation_flag
     );
 
     Ok(TradeObservation {
@@ -459,6 +476,7 @@ fn scalar_to_text(value: &Value) -> Option<String> {
     match value {
         Value::String(text) => Some(text.clone()),
         Value::Number(number) => Some(number.to_string()),
+        Value::Bool(value) => Some(value.to_string()),
         _ => None,
     }
 }
@@ -519,6 +537,8 @@ mod tests {
             "motCode": "0",
             "customsCode": "C00",
             "primaryValue": 9007199254740993,
+            "isReported": true,
+            "legacyEstimationFlag": 0,
             "netWgt": 12.5,
             "qtyUnitAbbr": "kg",
             "refYear": 2025,
@@ -555,7 +575,7 @@ mod tests {
         );
         assert_eq!(
             parsed.records[0].observation.disaggregation_signature,
-            "uncomtrade-dimensions/v1|partner2=0|mot=0|customs=C00"
+            "uncomtrade-dimensions/v1|partner2=0|mot=0|customs=C00|reported=true|legacy_estimation=0"
         );
         assert_eq!(
             parsed.records[0]
@@ -573,14 +593,34 @@ mod tests {
 
     #[test]
     fn reaching_requested_limit_is_marked_as_possibly_truncated() {
-        let parsed = parse_un_comtrade_preview(&response(vec![row(), row()], 2), &context(2))
+        let mut second = row();
+        second["motCode"] = Value::String("1".to_string());
+        let parsed = parse_un_comtrade_preview(&response(vec![row(), second], 2), &context(2))
             .unwrap();
+        assert_eq!(parsed.records.len(), 2);
+        assert!(parsed.rejected_rows.is_empty());
         assert_eq!(
             parsed.coverage,
             PreviewCoverage::AtRequestedLimitPossiblyTruncated
         );
         assert!(parsed.coverage.may_be_truncated());
         assert!(!parsed.coverage.completeness_proven());
+    }
+
+    #[test]
+    fn duplicate_source_keys_are_quarantined() {
+        let parsed = parse_un_comtrade_preview(&response(vec![row(), row()], 2), &context(10))
+            .unwrap();
+        assert_eq!(parsed.records.len(), 1);
+        assert_eq!(parsed.rejected_rows.len(), 1);
+        assert!(matches!(
+            parsed.rejected_rows[0].reason,
+            UnComtradeRowRejection::DuplicateRecordKey(_)
+        ));
+        assert_eq!(
+            parsed.coverage,
+            PreviewCoverage::BelowLimitWithRejectedRows
+        );
     }
 
     #[test]
