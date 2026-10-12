@@ -74,12 +74,13 @@ pub enum PreviewCoverage {
     /// Fewer than the requested maximum were returned, but total-query coverage
     /// has not been independently proven.
     BelowRequestedLimitCompletenessUnproven,
-    /// Returned rows reached the requested maximum and may be truncated.
-    AtRequestedLimitPossiblyTruncated,
-    /// Some rows were rejected and the returned set is not safe to treat as complete.
-    BelowLimitWithRejectedRows,
-    /// The limit was reached and one or more rows were rejected.
-    AtLimitWithRejectedRows,
+    /// The source count exceeds the rows carried in the payload or the requested
+    /// record ceiling was reached; completeness cannot be assumed.
+    PossiblyTruncated,
+    /// Some rows were rejected; completeness cannot be assumed.
+    RowsRejectedCompletenessUnproven,
+    /// Truncation is possible and one or more rows were rejected.
+    PossiblyTruncatedWithRejectedRows,
 }
 
 impl PreviewCoverage {
@@ -91,7 +92,7 @@ impl PreviewCoverage {
     pub fn may_be_truncated(self) -> bool {
         matches!(
             self,
-            Self::AtRequestedLimitPossiblyTruncated | Self::AtLimitWithRejectedRows
+            Self::PossiblyTruncated | Self::PossiblyTruncatedWithRejectedRows
         )
     }
 }
@@ -129,7 +130,11 @@ pub struct ParsedUnComtradePreview {
     pub retrieved_at: String,
     pub query: UnComtradePreviewQuery,
     pub elapsed_time: Option<String>,
-    pub response_count: usize,
+    /// Count value reported by the source envelope. Its semantics may differ
+    /// from payload row count across endpoint variants.
+    pub source_reported_count: usize,
+    /// Number of row objects actually included in this response payload.
+    pub rows_returned: usize,
     pub records: Vec<UnComtradeRecord>,
     pub rejected_rows: Vec<RejectedUnComtradeRow>,
     pub coverage: PreviewCoverage,
@@ -142,7 +147,7 @@ pub enum UnComtradePreviewError {
     InvalidJson(String),
     EnvelopeSchema(String),
     ApiReportedError(String),
-    CountDataMismatch { reported: usize, actual: usize },
+    CountLessThanRowsReturned { reported: usize, actual: usize },
     MoreRecordsThanRequested { requested: usize, actual: usize },
 }
 
@@ -157,9 +162,9 @@ impl fmt::Display for UnComtradePreviewError {
             Self::ApiReportedError(message) => {
                 write!(f, "UN Comtrade API reported an error: {message}")
             }
-            Self::CountDataMismatch { reported, actual } => write!(
+            Self::CountLessThanRowsReturned { reported, actual } => write!(
                 f,
-                "UN Comtrade count/data mismatch: count={reported}, rows={actual}"
+                "UN Comtrade reported count is smaller than returned rows: count={reported}, rows={actual}"
             ),
             Self::MoreRecordsThanRequested { requested, actual } => write!(
                 f,
@@ -223,8 +228,11 @@ pub fn parse_un_comtrade_preview(
         return Err(UnComtradePreviewError::ApiReportedError(error.to_string()));
     }
 
-    if envelope.count != envelope.data.len() {
-        return Err(UnComtradePreviewError::CountDataMismatch {
+    // Some API modes may report the underlying match count while returning
+    // only a capped page. Keep the source count and payload length separate;
+    // a larger count is a truncation signal, not a parser failure.
+    if envelope.count < envelope.data.len() {
+        return Err(UnComtradePreviewError::CountLessThanRowsReturned {
             reported: envelope.count,
             actual: envelope.data.len(),
         });
@@ -260,16 +268,18 @@ pub fn parse_un_comtrade_preview(
         }
     }
 
-    let response_count = envelope.count;
-    let at_limit = response_count >= context.query.max_records;
-    let coverage = if response_count == 0 {
+    let source_reported_count = envelope.count;
+    let rows_returned = envelope.data.len();
+    let possibly_truncated =
+        rows_returned >= context.query.max_records || source_reported_count > rows_returned;
+    let coverage = if rows_returned == 0 && source_reported_count == 0 {
         PreviewCoverage::EmptyResponse
-    } else if !rejected_rows.is_empty() && at_limit {
-        PreviewCoverage::AtLimitWithRejectedRows
+    } else if !rejected_rows.is_empty() && possibly_truncated {
+        PreviewCoverage::PossiblyTruncatedWithRejectedRows
     } else if !rejected_rows.is_empty() {
-        PreviewCoverage::BelowLimitWithRejectedRows
-    } else if at_limit {
-        PreviewCoverage::AtRequestedLimitPossiblyTruncated
+        PreviewCoverage::RowsRejectedCompletenessUnproven
+    } else if possibly_truncated {
+        PreviewCoverage::PossiblyTruncated
     } else {
         PreviewCoverage::BelowRequestedLimitCompletenessUnproven
     };
@@ -280,7 +290,8 @@ pub fn parse_un_comtrade_preview(
         retrieved_at: context.retrieved_at.clone(),
         query: context.query.clone(),
         elapsed_time: envelope.elapsed_time.as_ref().map(value_to_text),
-        response_count,
+        source_reported_count,
+        rows_returned,
         records,
         rejected_rows,
         coverage,
@@ -638,7 +649,7 @@ mod tests {
         assert!(parsed.rejected_rows.is_empty());
         assert_eq!(
             parsed.coverage,
-            PreviewCoverage::AtRequestedLimitPossiblyTruncated
+            PreviewCoverage::PossiblyTruncated
         );
         assert!(parsed.coverage.may_be_truncated());
         assert!(!parsed.coverage.completeness_proven());
@@ -656,7 +667,7 @@ mod tests {
         ));
         assert_eq!(
             parsed.coverage,
-            PreviewCoverage::BelowLimitWithRejectedRows
+            PreviewCoverage::RowsRejectedCompletenessUnproven
         );
     }
 
@@ -725,9 +736,9 @@ mod tests {
     #[test]
     fn count_mismatch_and_unknown_envelope_fields_fail_closed() {
         assert_eq!(
-            parse_un_comtrade_preview(&response(vec![row()], 2), &context(10)),
-            Err(UnComtradePreviewError::CountDataMismatch {
-                reported: 2,
+            parse_un_comtrade_preview(&response(vec![row()], 0), &context(10)),
+            Err(UnComtradePreviewError::CountLessThanRowsReturned {
+                reported: 0,
                 actual: 1
             })
         );
