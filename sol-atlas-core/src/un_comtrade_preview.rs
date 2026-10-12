@@ -473,6 +473,7 @@ fn normalize_record(
         record_id,
         source_id: UN_COMTRADE_SOURCE_ID.to_string(),
         source_snapshot_id: context.source_snapshot_id.clone(),
+        area_reference_snapshot_id: context.area_reference_snapshot_id.clone(),
         source_record_id: None,
         source_url: None,
         reporter: reporter_code,
