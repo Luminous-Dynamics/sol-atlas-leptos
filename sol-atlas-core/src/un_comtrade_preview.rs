@@ -112,6 +112,7 @@ pub enum UnComtradeRowRejection {
     NotAnObject,
     MissingField(String),
     InvalidFieldType(String),
+    InvalidFieldValue(String),
     QueryDimensionMismatch(String),
     /// The source marks a value aggregated above the requested commodity level.
     CommodityAggregationAboveRequestedLevel,
@@ -444,16 +445,17 @@ fn normalize_record(
     let flow_code = required_scalar(object, "flowCode")?;
     let commodity_code = required_scalar(object, "cmdCode")?;
     let record_classification_code = required_scalar(object, "classificationCode")?;
-    let is_aggregated_above = required_scalar(object, "isAggrAbove")?;
-    let primary_value = required_scalar(object, "primaryValue")?;
+    let is_aggregated_above = required_bool(object, "isAggrAbove")?;
+    let primary_value = required_number_token(object, "primaryValue")?;
 
     // These are required dimensions because they can alter the meaning/grain
     // of the reported value even when the main bilateral query fields match.
     let second_partner_code = required_scalar(object, "partner2Code")?;
     let transport_mode_code = required_scalar(object, "motCode")?;
     let customs_procedure_code = required_scalar(object, "customsCode")?;
-    let reported_flag = required_scalar(object, "isReported")?;
-    let legacy_estimation_flag = required_scalar(object, "legacyEstimationFlag")?;
+    let reported_flag = required_bool(object, "isReported")?.to_string();
+    let legacy_estimation_flag =
+        required_nonnegative_integer(object, "legacyEstimationFlag")?;
 
     let reporter_kind = context
         .area_kinds
@@ -504,7 +506,7 @@ fn normalize_record(
         "M" => TradeFlow::Import,
         _ => return Err(UnComtradeRowRejection::UnsupportedFlowCode(flow_code)),
     };
-    if is_aggregated_above != "false" {
+    if is_aggregated_above {
         return Err(UnComtradeRowRejection::CommodityAggregationAboveRequestedLevel);
     }
     let dimension_signature = format!(
@@ -596,6 +598,40 @@ fn required_scalar(
                 UnComtradeRowRejection::InvalidFieldType(key.to_string())
             })
         })
+}
+
+fn required_bool(
+    object: &serde_json::Map<String, Value>,
+    key: &'static str,
+) -> Result<bool, UnComtradeRowRejection> {
+    match object.get(key) {
+        None => Err(UnComtradeRowRejection::MissingField(key.to_string())),
+        Some(Value::Bool(value)) => Ok(*value),
+        Some(_) => Err(UnComtradeRowRejection::InvalidFieldType(key.to_string())),
+    }
+}
+
+fn required_number_token(
+    object: &serde_json::Map<String, Value>,
+    key: &'static str,
+) -> Result<String, UnComtradeRowRejection> {
+    match object.get(key) {
+        None => Err(UnComtradeRowRejection::MissingField(key.to_string())),
+        Some(Value::Number(number)) => Ok(number.to_string()),
+        Some(_) => Err(UnComtradeRowRejection::InvalidFieldType(key.to_string())),
+    }
+}
+
+fn required_nonnegative_integer(
+    object: &serde_json::Map<String, Value>,
+    key: &'static str,
+) -> Result<String, UnComtradeRowRejection> {
+    match object.get(key) {
+        None => Err(UnComtradeRowRejection::MissingField(key.to_string())),
+        Some(Value::Number(number)) if number.as_u64().is_some() => Ok(number.to_string()),
+        Some(Value::Number(_)) => Err(UnComtradeRowRejection::InvalidFieldValue(key.to_string())),
+        Some(_) => Err(UnComtradeRowRejection::InvalidFieldType(key.to_string())),
+    }
 }
 
 fn optional_scalar(object: &serde_json::Map<String, Value>, key: &str) -> Option<String> {
@@ -910,6 +946,53 @@ mod tests {
             result,
             Err(UnComtradePreviewError::EnvelopeSchema(_))
         ));
+    }
+
+    #[test]
+    fn rejects_string_flags_and_non_numeric_primary_values() {
+        let ctx = context(10);
+        for (field, bad_value) in [
+            ("isAggrAbove", Value::String("false".to_string())),
+            ("isReported", Value::String("true".to_string())),
+            ("primaryValue", Value::String("9007199254740993".to_string())),
+        ] {
+            let mut candidate = row();
+            candidate[field] = bad_value;
+            let parsed =
+                parse_un_comtrade_preview(&response(vec![candidate], 1), &ctx).unwrap();
+            assert!(parsed.records.is_empty(), "{field} must be type-checked");
+            assert_eq!(
+                parsed.rejected_rows,
+                vec![RejectedUnComtradeRow {
+                    row_index: 0,
+                    reason: UnComtradeRowRejection::InvalidFieldType(field.to_string()),
+                }],
+                "{field} should fail with an explicit field-type rejection"
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_invalid_legacy_estimation_flag_type_and_value() {
+        let ctx = context(10);
+        for bad_value in [
+            Value::String("0".to_string()),
+            Value::Bool(false),
+            Value::from(1.5),
+            Value::from(-1),
+        ] {
+            let mut candidate = row();
+            candidate["legacyEstimationFlag"] = bad_value;
+            let parsed =
+                parse_un_comtrade_preview(&response(vec![candidate], 1), &ctx).unwrap();
+            assert!(parsed.records.is_empty());
+            assert_eq!(parsed.rejected_rows.len(), 1);
+            assert!(matches!(
+                parsed.rejected_rows[0].reason,
+                UnComtradeRowRejection::InvalidFieldType(_)
+                    | UnComtradeRowRejection::InvalidFieldValue(_)
+            ));
+        }
     }
 
     #[test]
