@@ -22,6 +22,29 @@ FIXTURE = (
     / "fixtures"
     / "economic_intelligence_trade_mirror_v1.json"
 )
+COMTRADE_PREVIEW_FIXTURE = (
+    ROOT
+    / "sol-atlas-core"
+    / "tests"
+    / "fixtures"
+    / "synthetic_un_comtrade_preview_v1.json"
+)
+COMTRADE_ENVELOPE_KEYS = {"elapsedTime", "count", "data", "error"}
+COMTRADE_REQUIRED_ROW_KEYS = {
+    "typeCode",
+    "freqCode",
+    "period",
+    "reporterCode",
+    "partnerCode",
+    "flowCode",
+    "cmdCode",
+    "partner2Code",
+    "motCode",
+    "customsCode",
+    "primaryValue",
+    "isReported",
+    "legacyEstimationFlag",
+}
 MAX_I128 = (1 << 127) - 1
 MIN_I128 = -(1 << 127)
 DECIMAL_TOKEN = re.compile(r"-?[0-9]+(?:\.[0-9]{1,18})?\Z")
@@ -151,7 +174,42 @@ def evaluate(case: dict[str, Any]) -> tuple[str, str | None, str | None]:
     return "compared", format_scaled(signed, scale), format_scaled(absolute, scale)
 
 
+def verify_comtrade_preview_fixture() -> list[str]:
+    """Validate the source-shaped payload without treating it as real-world data."""
+    try:
+        response = json.loads(COMTRADE_PREVIEW_FIXTURE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        return [f"Comtrade preview fixture cannot be loaded: {error}"]
+
+    if not isinstance(response, dict) or set(response) != COMTRADE_ENVELOPE_KEYS:
+        return ["Comtrade preview fixture has an unexpected envelope schema"]
+    records = response.get("data")
+    if not isinstance(records, list) or response.get("count") != len(records):
+        return ["Comtrade preview fixture count/data length mismatch"]
+    if len(records) != 1:
+        return ["Comtrade preview fixture must contain exactly one synthetic row"]
+
+    row = records[0]
+    if not isinstance(row, dict) or not COMTRADE_REQUIRED_ROW_KEYS.issubset(row):
+        return ["Comtrade preview fixture is missing required row fields"]
+    if "Synthetic fixture" not in row.get("reporterDesc", ""):
+        return ["Comtrade preview fixture reporter must be explicitly labelled synthetic"]
+    if "Synthetic fixture" not in row.get("partnerDesc", ""):
+        return ["Comtrade preview fixture partner must be explicitly labelled synthetic"]
+    if row.get("primaryValue") != 9007199254740993:
+        return ["Comtrade preview fixture lost the exact large integer primaryValue"]
+    if row.get("flowCode") != "X" or row.get("period") != "2025":
+        return ["Comtrade preview fixture core query dimensions drifted"]
+    return []
+
+
 def main() -> int:
+    comtrade_errors = verify_comtrade_preview_fixture()
+    if comtrade_errors:
+        for error in comtrade_errors:
+            print(f"FAIL: {error}", file=sys.stderr)
+        return 1
+
     try:
         corpus = json.loads(FIXTURE.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
@@ -214,6 +272,7 @@ def main() -> int:
         f"PASS: {len(corpus['cases'])}/{len(corpus['cases'])} frozen synthetic "
         "trade-mirror reference cases; exact decimal/status oracle agrees."
     )
+    print("PASS: source-shaped UN Comtrade preview fixture; synthetic-only, exact primaryValue retained.")
     print("SCOPE: fixture validation only; not live data, source qualification, or IFF estimation.")
     return 0
 
