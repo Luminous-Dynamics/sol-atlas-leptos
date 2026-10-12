@@ -720,7 +720,12 @@ mod tests {
         assert_eq!(health[0].state, DatasetLoadState::PartiallyLoaded);
         assert_eq!(health[0].record_count, Some(1));
         assert_eq!(health[0].rejected_record_count, Some(1));
-        assert!(health[0].diagnostic.as_deref().is_some_and(|d| d.contains("1 source records")));
+        assert!(
+            health[0]
+                .diagnostic
+                .as_deref()
+                .is_some_and(|d| d.contains("1 source records"))
+        );
     }
 
     #[test]
