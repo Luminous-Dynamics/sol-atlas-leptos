@@ -69,6 +69,7 @@ Before claiming an improvement:
 - [Baseline reproduction audit](MINERAL_PROSPECTIVITY_BASELINE_AUDIT.md) records the published workflow, the 142 MB supplement ingestion blocker, and target-specific spatial validation requirements.
 - [Dataset manifest JSON Schema](schemas/mineral-dataset-manifest.schema.json) defines the provenance/rights/quality contract for a source or derived layer, with exact 64-hex-character checksums for SHA-256/BLAKE3 digests.
 - [Read-only bundle preflight CLI](../scripts/mineral-prospectivity/README.md), [GIS metadata inspector](../scripts/mineral-prospectivity/inspect_gis.py), and [synthetic tests](../tests/test_inspect_bundle.py) / [GIS tests](../tests/test_inspect_gis.py) provide an executable two-stage intake. Stage one hashes and inventories a bundle without extraction; stage two invokes GDAL/OGR in read-only mode on a manually staged GIS file. Neither tool is a geological model.
+- [Ingestion runbook](MINERAL_PROSPECTIVITY_INGEST_RUNBOOK.md) gives the manual acquisition, archive preflight, controlled staging, FileGDB metadata inspection, per-layer provenance, and acceptance-gate sequence. The USGS archive is still not downloaded in this work.
 
 These are desk-research artifacts only. They do not certify individual datasets as licensed, downloaded, validated, or ready for ingestion.
 
