@@ -476,6 +476,21 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
             "source URI must be HTTPS",
         ));
     }
+    if !is_utc_timestamp(&provenance.retrieved_at) {
+        issues.push(issue(
+            "invalid_retrieved_at",
+            "provenance.retrieved_at",
+            "retrieval time must be a UTC RFC3339 timestamp in YYYY-MM-DDTHH:MM:SSZ form",
+        ));
+    }
+    if matches!(provenance.published_at.as_deref(), Some(value) if !is_iso_date(value)) {
+        issues.push(issue(
+            "invalid_published_at",
+            "provenance.published_at",
+            "publication date must use YYYY-MM-DD form",
+        ));
+    }
+
     if provenance.reference_year_start > provenance.reference_year_end {
         issues.push(issue(
             "invalid_reference_period",
@@ -560,6 +575,13 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
                     ));
                 }
             }
+            if !is_iso_date(reviewed_at) {
+                issues.push(issue(
+                    "invalid_reuse_review_date",
+                    "provenance.reuse_review.reviewed_at",
+                    "review date must use YYYY-MM-DD form",
+                ));
+            }
             issues.push(issue(
                 "reuse_not_approved",
                 "provenance.reuse_review",
@@ -585,6 +607,13 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
                         "reuse approval must include its reviewer, date, terms, and scoped purpose",
                     ));
                 }
+            }
+            if !is_iso_date(reviewed_at) {
+                issues.push(issue(
+                    "invalid_reuse_review_date",
+                    "provenance.reuse_review.reviewed_at",
+                    "review date must use YYYY-MM-DD form",
+                ));
             }
             if !terms_uri.starts_with("https://") {
                 issues.push(issue(
@@ -705,6 +734,46 @@ fn hex_lower(bytes: &[u8]) -> String {
     output
 }
 
+fn is_iso_date(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 10
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || !bytes[..4].iter().all(u8::is_ascii_digit)
+        || !bytes[5..7].iter().all(u8::is_ascii_digit)
+        || !bytes[8..10].iter().all(u8::is_ascii_digit)
+    {
+        return false;
+    }
+    let month = (bytes[5] - b'0') as u16 * 10 + (bytes[6] - b'0') as u16;
+    let day = (bytes[8] - b'0') as u16 * 10 + (bytes[9] - b'0') as u16;
+    let year = (bytes[0] - b'0') as u16 * 1000
+        + (bytes[1] - b'0') as u16 * 100
+        + (bytes[2] - b'0') as u16 * 10
+        + (bytes[3] - b'0') as u16;
+    year > 0 && (1..=12).contains(&month) && (1..=31).contains(&day)
+}
+
+fn is_utc_timestamp(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 20
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+        || !is_iso_date(&value[..10])
+        || !bytes[11..13].iter().all(u8::is_ascii_digit)
+        || !bytes[14..16].iter().all(u8::is_ascii_digit)
+        || !bytes[17..19].iter().all(u8::is_ascii_digit)
+    {
+        return false;
+    }
+    let hour = (bytes[11] - b'0') as u16 * 10 + (bytes[12] - b'0') as u16;
+    let minute = (bytes[14] - b'0') as u16 * 10 + (bytes[15] - b'0') as u16;
+    let second = (bytes[17] - b'0') as u16 * 10 + (bytes[18] - b'0') as u16;
+    hour <= 23 && minute <= 59 && second <= 59
+}
+
 fn is_sha256_hex(value: &str) -> bool {
     value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
@@ -735,7 +804,7 @@ mod tests {
             },
             snapshot_sha256: "a".repeat(64),
             published_at: None,
-            retrieved_at: "not-applicable-synthetic-fixture".into(),
+            retrieved_at: "2026-10-12T00:00:00Z".into(),
             reference_year_start: 2024,
             reference_year_end: 2025,
             attribution: "Synthetic unit-test data only; no real World Bank source values included".into(),
@@ -860,6 +929,16 @@ mod tests {
         let issues = admit_snapshot(snapshot).expect_err("invalid values must fail closed");
         assert!(issues.iter().any(|item| item.code == "invalid_latitude"));
         assert!(issues.iter().any(|item| item.code == "invalid_flare_volume"));
+    }
+
+    #[test]
+    fn malformed_source_timestamps_reject_snapshot() {
+        let mut snapshot = sample_snapshot();
+        snapshot.provenance.retrieved_at = "yesterday".into();
+        snapshot.provenance.published_at = Some("2026-13-44".into());
+        let issues = admit_snapshot(snapshot).expect_err("invalid dates must reject");
+        assert!(issues.iter().any(|item| item.code == "invalid_retrieved_at"));
+        assert!(issues.iter().any(|item| item.code == "invalid_published_at"));
     }
 
     #[test]
