@@ -27,6 +27,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Run standard-library tests
-        run: python -m unittest discover -s tests -p "test_inspect_bundle.py" -v
+        run: python -m unittest discover -s tests -p "test_inspect*.py" -v
       - name: Check command-line help
-        run: python scripts/mineral-prospectivity/inspect_bundle.py --help
+        run: |
+          python scripts/mineral-prospectivity/inspect_bundle.py --help
+          python scripts/mineral-prospectivity/inspect_gis.py --help
