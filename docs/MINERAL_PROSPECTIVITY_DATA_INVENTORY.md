@@ -31,6 +31,10 @@
 8. **Spatial support differs across input layers.** The paper uses H3 resolution 7 (average cell area ~5.16 km²; edge ~1.22 km), but reports regional Bouguer gravity station spacing around 14 km. H3 aggregation makes a common index; it does not improve the underlying measurement resolution. Preserve source support and quality masks per layer.
 9. **No source files have been downloaded, verified, or added to this repository by this inventory.** This status must not be confused with a completed data pipeline.
 
+## Executable preflight available
+
+A read-only Python standard-library tool now exists at [scripts/mineral-prospectivity/inspect_bundle.py](../scripts/mineral-prospectivity/inspect_bundle.py), with usage notes in its README and synthetic safety tests in [tests/test_inspect_bundle.py](../tests/test_inspect_bundle.py). It hashes the original file and inspects ZIP central-directory paths, extensions, size/compression indicators, and probable Shapefile sidecars without extracting content. It does not establish archive payload integrity, parse CRS/geometry/attributes, or establish rights. The source geodatabase has not yet been run through this tool because this environment cannot directly fetch the source archive.
+
 ## M0 completion checklist
 
 - [ ] USGS Africa geodatabase layers inventoried and used for a metadata/spatial-join smoke test, with source ancestry preserved.
