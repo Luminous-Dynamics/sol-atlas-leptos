@@ -431,5 +431,138 @@
       }
     }
   },
-  "$comment": "Digest values for SHA-256 and BLAKE3 are lowercase or uppercase hexadecimal, exactly 64 characters. Keep source checksum algorithms explicit."
+  "$comment": "Digest values for SHA-256 and BLAKE3 are lowercase or uppercase hexadecimal, exactly 64 characters. Keep source checksum algorithms explicit. Rights state consistency is enforced: verified terms require a named license/terms check; unknown rights cannot claim redistribution permission; restricted/not-permitted states cannot be treated as freely redistributable.",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "rights": {
+            "properties": {
+              "status": {
+                "const": "verified"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "rights"
+        ]
+      },
+      "then": {
+        "properties": {
+          "rights": {
+            "properties": {
+              "license_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "redistribution_allowed": {
+                "type": "boolean"
+              },
+              "terms_checked_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "rights": {
+            "properties": {
+              "status": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "rights"
+        ]
+      },
+      "then": {
+        "properties": {
+          "rights": {
+            "properties": {
+              "redistribution_allowed": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "rights": {
+            "properties": {
+              "status": {
+                "const": "not_permitted"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "rights"
+        ]
+      },
+      "then": {
+        "properties": {
+          "rights": {
+            "properties": {
+              "redistribution_allowed": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "rights": {
+            "properties": {
+              "status": {
+                "const": "restricted"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "rights"
+        ]
+      },
+      "then": {
+        "properties": {
+          "rights": {
+            "properties": {
+              "redistribution_allowed": {
+                "enum": [
+                  false,
+                  null
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }
