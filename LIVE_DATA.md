@@ -48,22 +48,28 @@ validation, state updates, and UI remain in Rust.
   layer is marked mixed provenance because live EONET fire observations and
   synthetic bundled FIRMS examples can coexist in the same Fires view.
 - Bundled USGS and EONET files are dated fallbacks, not a claim of currentness.
-  Source metadata is retained per record; a file slot alone never establishes
+  Every natural-event record now separates two dimensions:
+  `data_kind` (Observed, Curated, Synthetic, Mixed, or Scenario) and
+  `record_temporal_origin` (LiveFeed, BundledSnapshot, or CuratedReference).
+  An old bundled USGS event may be a genuine Observed record while still being
+  a bundled snapshot, not a current live observation.
+- Source metadata is retained per record; a file slot alone never establishes
   official provenance. Missing or conflicting provenance stays unclassified.
-  Official event links are exposed only when the record class, source, ID, and
-  expected official URL path agree.
+  Official event links are exposed only when source classification, source
+  identity, record ID, and expected official URL path agree.
 - EONET is a curated event catalog, not an exhaustive or uniformly real-time
   sensor feed. Point records retain their coordinates; polygons use an
   approximate spherical vertex-center, labeled in the event dossier.
   EONET measurements may have category-specific units, so they are not
   presented as a globally comparable earthquake-style magnitude.
-- The selected-event dossier shows the record's provenance class. Numeric
-  measures are shown only for supported source-specific cases (USGS magnitude
-  and EONET's own measure/unit); synthetic, curated-without-measure, mixed, and
-  unclassified records are not displayed as verified earthquake-style magnitudes.
+- The selected-event dossier shows both provenance class and temporal
+  origin, and shows numeric measures only for supported source-specific cases
+  (USGS magnitude and EONET's own measure/unit). Synthetic, mixed, unclassified,
+  or unsupported numeric values are never presented as verified magnitudes.
 - The derived Confluence overlay accepts event records only when the individual
-  record is explicitly Observed or Curated. Synthetic and unclassified records
-  are excluded, even when they share coordinates with real infrastructure.
+  record is (Observed + LiveFeed) or (Curated + CuratedReference). Bundled
+  snapshots remain inspectable but cannot create a claim of current co-location;
+  Synthetic, Mixed, and unclassified records fail closed.
 - The selected-event dossier lists up to four nearest curated infrastructure
   records inside 100 km, using the Rust core's great-circle distance helper.
   This is geographic context only: the inventory is incomplete, and proximity
