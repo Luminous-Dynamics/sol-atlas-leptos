@@ -354,15 +354,15 @@ pub fn admit_snapshot(
                 ));
             }
             if let AnnualFlareValue::Estimated {
-                volume_million_m3_per_year,
+                volume_million_m3,
             } = &estimate.value
             {
-                if !volume_million_m3_per_year.is_finite()
-                    || *volume_million_m3_per_year < 0.0
+                if !volume_million_m3.is_finite()
+                    || *volume_million_m3 < 0.0
                 {
                     issues.push(issue(
                         "invalid_flare_volume",
-                        format!("{row_path}.value.volume_million_m3_per_year"),
+                        format!("{row_path}.value.volume_million_m3"),
                         "estimated flare volume must be finite and non-negative",
                     ));
                 }
@@ -420,7 +420,7 @@ pub fn coverage_summary(admitted: &ValidatedFlareSnapshot) -> FlareCoverageSumma
             matches!(
                 &row.value,
                 AnnualFlareValue::Estimated {
-                    volume_million_m3_per_year: value
+                    volume_million_m3: value
                 } if *value == 0.0
             )
         })
@@ -674,7 +674,7 @@ fn derive_site_key(
     }
 
     let mut hasher = Sha256::new();
-    hasher.update(b"luminous-dynamics/sol-atlas/gas-flaring/site-identity\\0");
+    hasher.update(b"luminous-dynamics/sol-atlas/gas-flaring/site-identity\0");
     update_len_prefixed(&mut hasher, algorithm_version.as_bytes());
     hasher.update((source_fields.len() as u64).to_be_bytes());
     for field in source_fields {
@@ -772,7 +772,7 @@ mod tests {
                         estimate(
                             2025,
                             AnnualFlareValue::Estimated {
-                                volume_million_m3_per_year: 0.0,
+                                volume_million_m3: 0.0,
                             },
                         ),
                         estimate(
@@ -788,7 +788,7 @@ mod tests {
                     vec![estimate(
                         2024,
                         AnnualFlareValue::Estimated {
-                            volume_million_m3_per_year: 2.5,
+                            volume_million_m3: 2.5,
                         },
                     )],
                 ),
@@ -850,7 +850,7 @@ mod tests {
         let mut snapshot = sample_snapshot();
         snapshot.sites[0].location.as_mut().unwrap().latitude_deg = 91.0;
         snapshot.sites[1].annual_estimates[0].value = AnnualFlareValue::Estimated {
-            volume_million_m3_per_year: f64::NAN,
+            volume_million_m3: f64::NAN,
         };
         let issues = admit_snapshot(snapshot).expect_err("invalid values must fail closed");
         assert!(issues.iter().any(|item| item.code == "invalid_latitude"));
