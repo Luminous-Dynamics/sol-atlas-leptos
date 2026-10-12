@@ -192,6 +192,93 @@ pub struct ValidationIssue {
     pub message: String,
 }
 
+/// Off-band record that a trusted ingestion workflow has manually reviewed
+/// one exact source snapshot for one approved purpose.
+///
+/// This type is intentionally not serializable/deserializable. The caller must
+/// create it in trusted code after review; do not populate it directly from the
+/// normalized dataset being admitted. It is a recorded human attestation, not a
+/// cryptographic proof of the reviewer's identity or legal interpretation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrustedReuseAuthorization {
+    source_uri: String,
+    source_version: String,
+    snapshot_sha256: String,
+    reviewer: String,
+    reviewed_at: String,
+    terms_uri: String,
+    approved_purpose: String,
+}
+
+impl TrustedReuseAuthorization {
+    /// Record an explicit manual review in trusted ingestion/deployment code.
+    ///
+    /// Call only after independently checking the linked terms and any
+    /// third-party restrictions for the intended use.
+    #[allow(clippy::too_many_arguments)]
+    pub fn record_manual_review(
+        source_uri: &str,
+        source_version: &str,
+        snapshot_sha256: &str,
+        reviewer: &str,
+        reviewed_at: &str,
+        terms_uri: &str,
+        approved_purpose: &str,
+    ) -> Result<Self, Vec<ValidationIssue>> {
+        let mut issues = Vec::new();
+        for (field, value) in [
+            ("source_uri", source_uri),
+            ("source_version", source_version),
+            ("reviewer", reviewer),
+            ("reviewed_at", reviewed_at),
+            ("terms_uri", terms_uri),
+            ("approved_purpose", approved_purpose),
+        ] {
+            if value.trim().is_empty() {
+                issues.push(issue(
+                    "incomplete_trusted_reuse_authorization",
+                    format!("authorization.{field}"),
+                    "manual review authorization requires every binding field",
+                ));
+            }
+        }
+        if !source_uri.starts_with("https://") || !terms_uri.starts_with("https://") {
+            issues.push(issue(
+                "invalid_authorization_uri",
+                "authorization",
+                "source and terms URIs must use HTTPS",
+            ));
+        }
+        if !is_sha256_hex(snapshot_sha256) {
+            issues.push(issue(
+                "invalid_authorization_digest",
+                "authorization.snapshot_sha256",
+                "authorization must bind a 64-character SHA-256 hex digest",
+            ));
+        }
+        if !is_iso_date(reviewed_at) {
+            issues.push(issue(
+                "invalid_authorization_date",
+                "authorization.reviewed_at",
+                "manual review date must use YYYY-MM-DD form",
+            ));
+        }
+        if !issues.is_empty() {
+            issues.sort();
+            return Err(issues);
+        }
+        Ok(Self {
+            source_uri: source_uri.to_string(),
+            source_version: source_version.to_string(),
+            snapshot_sha256: snapshot_sha256.to_string(),
+            reviewer: reviewer.to_string(),
+            reviewed_at: reviewed_at.to_string(),
+            terms_uri: terms_uri.to_string(),
+            approved_purpose: approved_purpose.to_string(),
+        })
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AdmissionError {
     InvalidJson(String),
@@ -232,10 +319,13 @@ pub struct FlareCoverageSummary {
 /// digest against source bytes; nor does it authenticate the reviewer or confirm
 /// the legal scope of the terms. Those checks belong in the trusted acquisition
 /// and review workflow. Any structural admission issue rejects the snapshot.
-pub fn parse_json_snapshot(json: &str) -> Result<ValidatedFlareSnapshot, AdmissionError> {
+pub fn parse_json_snapshot(
+    json: &str,
+    authorization: &TrustedReuseAuthorization,
+) -> Result<ValidatedFlareSnapshot, AdmissionError> {
     let snapshot: FlareSnapshot =
         serde_json::from_str(json).map_err(|error| AdmissionError::InvalidJson(error.to_string()))?;
-    admit_snapshot(snapshot).map_err(AdmissionError::Rejected)
+    admit_snapshot(snapshot, authorization).map_err(AdmissionError::Rejected)
 }
 
 /// Fail-closed validation followed by deterministic ordering.
@@ -245,9 +335,11 @@ pub fn parse_json_snapshot(json: &str) -> Result<ValidatedFlareSnapshot, Admissi
 /// sorted only after the input passes validation.
 pub fn admit_snapshot(
     mut snapshot: FlareSnapshot,
+    authorization: &TrustedReuseAuthorization,
 ) -> Result<ValidatedFlareSnapshot, Vec<ValidationIssue>> {
     let mut issues = Vec::new();
     validate_provenance(&snapshot.provenance, &mut issues);
+    validate_reuse_authorization(&snapshot.provenance, authorization, &mut issues);
 
     if snapshot.schema_version.trim().is_empty() {
         issues.push(issue(
@@ -627,6 +719,43 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
     }
 }
 
+fn validate_reuse_authorization(
+    provenance: &FlareSourceProvenance,
+    authorization: &TrustedReuseAuthorization,
+    issues: &mut Vec<ValidationIssue>,
+) {
+    if provenance.source_uri != authorization.source_uri
+        || provenance.source_version != authorization.source_version
+        || provenance.snapshot_sha256 != authorization.snapshot_sha256
+    {
+        issues.push(issue(
+            "reuse_authorization_binding_mismatch",
+            "provenance",
+            "trusted reuse authorization must bind this exact source URI, version, and snapshot digest",
+        ));
+    }
+
+    let review_matches = matches!(
+        &provenance.reuse_review,
+        ReuseReview::Approved {
+            reviewer,
+            reviewed_at,
+            terms_uri,
+            approved_purpose,
+        } if reviewer == &authorization.reviewer
+            && reviewed_at == &authorization.reviewed_at
+            && terms_uri == &authorization.terms_uri
+            && approved_purpose == &authorization.approved_purpose
+    );
+    if !review_matches {
+        issues.push(issue(
+            "reuse_authorization_attestation_mismatch",
+            "provenance.reuse_review",
+            "snapshot review metadata must exactly match the separately supplied trusted authorization",
+        ));
+    }
+}
+
 fn validate_site_identity(
     method: &SiteIdentityMethod,
     site: &FlareSite,
@@ -809,6 +938,26 @@ fn issue(
 mod tests {
     use super::*;
 
+    fn test_authorization() -> TrustedReuseAuthorization {
+        let digest = "a".repeat(64);
+        TrustedReuseAuthorization::record_manual_review(
+            "https://example.invalid/synthetic-flare-fixture",
+            "synthetic-fixture-v1",
+            &digest,
+            "test-fixture-review",
+            "2026-10-12",
+            "https://example.invalid/synthetic-test-terms",
+            "Synthetic unit-test fixture only; source workbook redistribution not implied",
+        )
+        .expect("synthetic fixture authorization should be well formed")
+    }
+
+    fn admit(
+        snapshot: FlareSnapshot,
+    ) -> Result<ValidatedFlareSnapshot, Vec<ValidationIssue>> {
+        super::admit_snapshot(snapshot, &test_authorization())
+    }
+
     fn provenance() -> FlareSourceProvenance {
         FlareSourceProvenance {
             source_name: "Synthetic flare fixture (not real World Bank data)".into(),
@@ -887,7 +1036,7 @@ mod tests {
 
     #[test]
     fn admission_orders_sites_and_years_deterministically() {
-        let validated = admit_snapshot(sample_snapshot()).expect("sample should be admitted");
+        let validated = admit(sample_snapshot()).expect("sample should be admitted");
         assert!(validated.claim_ceiling().contains("screening only"));
         assert_eq!(validated.snapshot.sites[0].site_key, "site-a");
         assert_eq!(validated.snapshot.sites[1].site_key, "site-b");
@@ -899,12 +1048,12 @@ mod tests {
         for site in &mut shuffled.sites {
             site.annual_estimates.reverse();
         }
-        assert_eq!(validated, admit_snapshot(shuffled).expect("shuffled sample"));
+        assert_eq!(validated, admit(shuffled).expect("shuffled sample"));
     }
 
     #[test]
     fn missing_and_zero_remain_distinct() {
-        let admitted = admit_snapshot(sample_snapshot()).expect("sample should be admitted");
+        let admitted = admit(sample_snapshot()).expect("sample should be admitted");
         let summary = coverage_summary(&admitted);
         assert_eq!(summary.site_count, 2);
         assert_eq!(summary.expected_site_year_pairs, 4);
@@ -921,7 +1070,7 @@ mod tests {
         let mut snapshot = sample_snapshot();
         let duplicate = snapshot.sites[0].clone();
         snapshot.sites.push(duplicate);
-        let issues = admit_snapshot(snapshot).expect_err("duplicate must fail closed");
+        let issues = admit(snapshot).expect_err("duplicate must fail closed");
         assert!(issues.iter().any(|item| item.code == "duplicate_site_identity"));
     }
 
@@ -930,7 +1079,7 @@ mod tests {
         let mut snapshot = sample_snapshot();
         let duplicate_year = snapshot.sites[0].annual_estimates[0].clone();
         snapshot.sites[0].annual_estimates.push(duplicate_year);
-        let issues = admit_snapshot(snapshot).expect_err("duplicate year must fail closed");
+        let issues = admit(snapshot).expect_err("duplicate year must fail closed");
         assert!(issues.iter().any(|item| item.code == "duplicate_site_year"));
     }
 
@@ -941,9 +1090,36 @@ mod tests {
         snapshot.sites[1].annual_estimates[0].value = AnnualFlareValue::Estimated {
             volume_million_m3_per_year: f64::NAN,
         };
-        let issues = admit_snapshot(snapshot).expect_err("invalid values must fail closed");
+        let issues = admit(snapshot).expect_err("invalid values must fail closed");
         assert!(issues.iter().any(|item| item.code == "invalid_latitude"));
         assert!(issues.iter().any(|item| item.code == "invalid_flare_volume"));
+    }
+
+    #[test]
+    fn snapshot_cannot_self_authorize_reuse() {
+        let mut snapshot = sample_snapshot();
+        snapshot.provenance.reuse_review = ReuseReview::Approved {
+            reviewer: "untrusted-file-author".into(),
+            reviewed_at: "2026-10-12".into(),
+            terms_uri: "https://example.invalid/terms".into(),
+            approved_purpose: "claiming approval".into(),
+        };
+        let issues = super::admit_snapshot(snapshot, &test_authorization())
+            .expect_err("snapshot metadata cannot substitute for trusted review");
+        assert!(issues
+            .iter()
+            .any(|item| item.code == "reuse_authorization_attestation_mismatch"));
+    }
+
+    #[test]
+    fn authorization_is_bound_to_exact_source_digest() {
+        let mut snapshot = sample_snapshot();
+        snapshot.provenance.snapshot_sha256 = "b".repeat(64);
+        let issues = super::admit_snapshot(snapshot, &test_authorization())
+            .expect_err("digest mismatch must reject");
+        assert!(issues
+            .iter()
+            .any(|item| item.code == "reuse_authorization_binding_mismatch"));
     }
 
     #[test]
@@ -951,7 +1127,7 @@ mod tests {
         let mut snapshot = sample_snapshot();
         snapshot.provenance.retrieved_at = "yesterday".into();
         snapshot.provenance.published_at = Some("2026-13-44".into());
-        let issues = admit_snapshot(snapshot).expect_err("invalid dates must reject");
+        let issues = admit(snapshot).expect_err("invalid dates must reject");
         assert!(issues.iter().any(|item| item.code == "invalid_retrieved_at"));
         assert!(issues.iter().any(|item| item.code == "invalid_published_at"));
     }
@@ -961,7 +1137,7 @@ mod tests {
         let mut snapshot = sample_snapshot();
         snapshot.provenance.snapshot_sha256 = "not-a-digest".into();
         snapshot.provenance.reuse_review = ReuseReview::Unreviewed;
-        let issues = admit_snapshot(snapshot).expect_err("unreviewed source must fail closed");
+        let issues = admit(snapshot).expect_err("unreviewed source must fail closed");
         assert!(issues.iter().any(|item| item.code == "invalid_snapshot_digest"));
         assert!(issues.iter().any(|item| item.code == "reuse_terms_unreviewed"));
     }
@@ -970,7 +1146,7 @@ mod tests {
     fn no_geolocation_is_retained_but_not_counted_as_mappable() {
         let mut snapshot = sample_snapshot();
         snapshot.sites[0].location = None;
-        let admitted = admit_snapshot(snapshot).expect("location may be unknown");
+        let admitted = admit(snapshot).expect("location may be unknown");
         let summary = coverage_summary(&admitted);
         assert_eq!(summary.site_count, 2);
         assert_eq!(summary.geolocated_site_count, 1);
@@ -1006,11 +1182,11 @@ mod tests {
             .map(|site| site.site_key.clone())
             .min()
             .unwrap();
-        let admitted = admit_snapshot(snapshot.clone()).expect("canonical fingerprints pass");
+        let admitted = admit(snapshot.clone()).expect("canonical fingerprints pass");
         assert_eq!(admitted.snapshot.sites[0].site_key, expected_first_key);
 
         snapshot.sites[0].site_key = "0".repeat(64);
-        let issues = admit_snapshot(snapshot).expect_err("incorrect digest rejects");
+        let issues = admit(snapshot).expect_err("incorrect digest rejects");
         assert!(issues.iter().any(|item| item.code == "site_fingerprint_mismatch"));
     }
 
@@ -1020,7 +1196,7 @@ mod tests {
         snapshot.sites[0]
             .identity_values
             .insert("Synthetic Site ID".into(), "different-site".into());
-        let issues = admit_snapshot(snapshot).expect_err("mismatched source ID must reject");
+        let issues = admit(snapshot).expect_err("mismatched source ID must reject");
         assert!(issues.iter().any(|item| item.code == "source_identity_mismatch"));
     }
 
@@ -1047,13 +1223,13 @@ mod tests {
     #[test]
     fn json_parser_requires_the_same_admission_checks() {
         let json = serde_json::to_string(&sample_snapshot()).unwrap();
-        let admitted = parse_json_snapshot(&json).expect("valid normalized JSON");
+        let admitted = parse_json_snapshot(&json, &test_authorization()).expect("valid normalized JSON");
         assert_eq!(admitted.snapshot.schema_version, "gas-flaring-screening-v1");
 
         let mut invalid = sample_snapshot();
         invalid.provenance.source_uri = "http://example.invalid".into();
         let invalid_json = serde_json::to_string(&invalid).unwrap();
-        let error = parse_json_snapshot(&invalid_json).expect_err("HTTP sources must reject");
+        let error = parse_json_snapshot(&invalid_json, &test_authorization()).expect_err("HTTP sources must reject");
         match error {
             AdmissionError::Rejected(issues) => {
                 assert!(issues.iter().any(|item| item.code == "invalid_source_uri"));
@@ -1065,7 +1241,7 @@ mod tests {
         drifted["surprise_field"] = serde_json::json!("must not be ignored");
         let drifted_json = serde_json::to_string(&drifted).unwrap();
         assert!(matches!(
-            parse_json_snapshot(&drifted_json),
+            parse_json_snapshot(&drifted_json, &test_authorization()),
             Err(AdmissionError::InvalidJson(_))
         ));
 
@@ -1074,7 +1250,7 @@ mod tests {
             serde_json::json!("must not be ignored");
         let enum_drift_json = serde_json::to_string(&enum_drift).unwrap();
         assert!(matches!(
-            parse_json_snapshot(&enum_drift_json),
+            parse_json_snapshot(&enum_drift_json, &test_authorization()),
             Err(AdmissionError::InvalidJson(_))
         ));
     }
