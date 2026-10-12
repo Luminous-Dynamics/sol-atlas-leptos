@@ -20,6 +20,8 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
+      - name: Check focused core crate formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml --all -- --check
 
   check-wasm:
     runs-on: ubuntu-latest
@@ -65,3 +67,5 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      - name: Test Sol Atlas core, including community energy fixture
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
