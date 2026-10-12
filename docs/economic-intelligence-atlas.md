@@ -18,7 +18,31 @@ The product must **not** claim to see every hidden transaction, equate informali
 
 UNCTAD and UNODC define IFFs for statistical purposes as cross-border flows reflecting an exchange of value that are illicit in origin, transfer, or use. Their framework exists partly because consistent data and measurement remain difficult. This definition is a useful baseline, not a warrant to classify every unusual flow as illicit.
 
-## 2. First vertical slice: trade-mirror discrepancy workbench
+## 2. Market reality and positioning
+
+This is an established category, not an empty market. The product should benchmark existing capabilities and avoid claiming differentiation based only on a 3D globe or generic entity graph.
+
+- [Sayari Graph](https://sayari.com/platform/graph/) markets source-linked corporate ownership, trade and supply-chain network analysis, sanctions context, and investigation workspaces at substantial claimed data scale.
+- [S&P Global Trade Compliance Secure](https://www.spglobal.com/market-intelligence/en/solutions/products/trade-compliance-secure) markets trade-risk tooling across shipping, cargo, goods, prices, volumes, and vessel/company relationships.
+- [LSEG Risk Intelligence / World-Check](https://www.lseg.com/en/risk-intelligence) provides sanctions, politically exposed person (PEP), adverse-media, enforcement and due-diligence screening.
+- [Chainalysis](https://www.chainalysis.com/solution/crypto-investigations/) is a specialist benchmark for tracing blockchain transactions and crypto-related illicit-finance networks.
+
+These vendors' public pages are vendor descriptions, not independent audits of coverage or accuracy. Their existence nevertheless shows that “map shadow economies” is not a defensible unique-value claim by itself.
+
+### Plausible differentiation
+
+Sol-Atlas should not try to outbid established vendors for the world's largest proprietary company/trade dataset as its first move. A more credible wedge is:
+
+1. **Research-grade transparency:** every metric and alert ships with its exact recipe, input snapshot identity, exclusions, sensitivity, counter-explanations and claim ceiling.
+2. **Macro-to-micro context:** connect country/sector-level informal-economy and IFF estimates to carefully qualified trade/ownership/logistics evidence without pretending these use the same unit of analysis.
+3. **Reproducible and inspectable results:** frozen fixtures, versioned transformations, public methodology and deterministic exports that independent researchers can reproduce.
+4. **Source-policy clarity:** publish which sources are open, non-commercial, commercial-licensed, conditional, stale, or unavailable. Never imply that “publicly reachable” means “commercially reusable.”
+5. **Interoperable provenance:** use Mycelix for durable lineage, corrections and controlled sharing while preserving portable source citations and conventional exports. Cryptographic integrity must not be marketed as proof of the truth of a claim.
+6. **Explicit uncertainty and fairness:** no opaque universal risk score and no treating poverty, informality, jurisdiction, shared addresses, or network proximity as evidence of criminality.
+
+The best initial audience is likely researchers, investigative journalists, and public-interest oversight teams working on reproducible evidence. A commercial compliance product is possible later, but it needs a sustainable licence/data-partner strategy and stronger operational controls before relying on datasets with non-commercial terms. A research-only prototype should not quietly become a commercial service using the same restricted feed.
+
+## 3. First vertical slice: trade-mirror discrepancy workbench
 
 Start with one reproducible, offline analysis over a small, frozen UN Comtrade fixture. Do not begin with a global risk score, a large live-ingestion program, or a claim about named suspects.
 
@@ -48,7 +72,7 @@ Use neutral, method-bound labels such as:
 
 These are proposed product semantics, not existing Rust enum variants. Their definitions, serialization, migration and exhaustive-match implications must be decided before implementation.
 
-## 3. Keep independent semantic axes separate
+## 4. Keep independent semantic axes separate
 
 The current Sol Atlas `DataKind` (Observed / Curated / Scenario) is useful for broad layer provenance but is insufficient by itself for a mixed intelligence product. Do not overload it into a criminality or confidence score. Add a separate, versioned observation/claim envelope when implementation begins, keeping the existing enum backward compatible unless an explicit migration is designed.
 
@@ -72,7 +96,7 @@ Model at least two times:
 
 A later investigation or corrected dataset must not silently rewrite what the system could have known at an earlier date.
 
-## 4. Source onboarding and legal gates
+## 5. Source onboarding and legal gates
 
 Maintain a source registry. No source becomes an automated production dependency until its owner, terms, coverage, freshness, schema, attribution, redistribution rights, and use class are recorded.
 
@@ -101,7 +125,7 @@ Minimum initial source set:
 
 The source register must distinguish **available for research** from **approved for public display**, **approved for commercial use**, and **approved for redistribution**. A public URL does not imply permission to republish its entire dataset. Keep credentials server-side; never embed tokens in the WASM bundle or public frontend.
 
-## 5. Architecture boundaries
+## 6. Architecture boundaries
 
 ### Sol Atlas — map, inspect, and compare
 
@@ -126,7 +150,7 @@ The source register must distinguish **available for research** from **approved 
 - Enforce purpose and audience boundaries. Do not publish private financial intelligence, personal data, credentials, or sensitive case-linkage edges merely because they are present in an internal graph.
 - Treat cryptographic signatures as evidence of origin/integrity, not proof that the underlying statement is true.
 
-## 6. Qualification plan
+## 7. Qualification plan
 
 All initial fixtures should be frozen and deterministic. Include positive examples and negative controls before adding real-world alerting:
 
@@ -155,7 +179,7 @@ Acceptance gates:
 
 A queued or green workflow is not evidence by itself. Record the exact tested commit, commands, fixture manifest digest, counts, exit status, and captured UI state.
 
-## 7. Explicit non-goals
+## 8. Explicit non-goals
 
 The initial slice does not:
 - estimate the total dollar value of all illicit activity in the world;
@@ -167,7 +191,7 @@ The initial slice does not:
 - make a public map of vulnerable people, operational enforcement targets, or sensitive facilities;
 - replace specialist statistical methods or competent legal authorities.
 
-## 8. Decision and next implementation step
+## 9. Decision and next implementation step
 
 Proceed in this order:
 
