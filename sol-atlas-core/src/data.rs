@@ -493,6 +493,11 @@ fn parse_natural_events(
                     magnitude_description: None,
                     source_name,
                     data_kind,
+                    record_temporal_origin: Some(if dataset_name == "volcanoes" {
+                        RecordTemporalOrigin::CuratedReference
+                    } else {
+                        RecordTemporalOrigin::BundledSnapshot
+                    }),
                     source_id,
                     source_url,
                     occurred_at_ms: parse_timestamp_ms(
@@ -646,6 +651,10 @@ mod tests {
         assert_eq!(events[0].source_id.as_deref(), Some("EONET_15458"));
         assert_eq!(events[0].occurred_at_ms, Some(1_757_980_800_000));
         assert_eq!(
+            events[0].record_temporal_origin,
+            Some(RecordTemporalOrigin::BundledSnapshot)
+        );
+        assert_eq!(
             events[0].source_url.as_deref(),
             Some("https://eonet.gsfc.nasa.gov/api/v3/events/EONET_15458")
         );
@@ -714,6 +723,12 @@ mod tests {
             events.iter().all(|event| event.source_url.is_none()),
             "synthetic fixture records must not receive official-source links"
         );
+        assert!(
+            events.iter().all(|event| {
+                event.record_temporal_origin == Some(RecordTemporalOrigin::BundledSnapshot)
+            }),
+            "embedded FIRMS records are bundled snapshots, not live feed records"
+        );
     }
 
     #[test]
@@ -725,6 +740,7 @@ mod tests {
             events.iter().any(|event| {
                 event.source_name.as_deref() == Some("USGS ComCat")
                     && event.data_kind == Some(DataKind::Observed)
+                    && event.record_temporal_origin == Some(RecordTemporalOrigin::BundledSnapshot)
             }),
             "official USGS records should retain observed classification and canonical display source"
         );
