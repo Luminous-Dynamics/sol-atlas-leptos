@@ -1194,11 +1194,12 @@ mod tests {
     }
 
     #[test]
-    fn manual_review_requires_exact_source_and_terms_bytes() {
+    fn manual_review_requires_nonempty_source_normalized_and_terms_bytes() {
         let source_empty = TrustedReuseAuthorization::record_manual_review(
             "https://example.invalid/source",
             "fixture-v1",
             b"",
+            b"normalized snapshot bytes",
             "reviewer",
             "2026-10-12",
             "https://example.invalid/terms",
@@ -1210,10 +1211,27 @@ mod tests {
             .iter()
             .any(|item| item.code == "missing_source_snapshot_bytes"));
 
+        let normalized_empty = TrustedReuseAuthorization::record_manual_review(
+            "https://example.invalid/source",
+            "fixture-v1",
+            b"source bytes",
+            b"",
+            "reviewer",
+            "2026-10-12",
+            "https://example.invalid/terms",
+            b"terms bytes",
+            "synthetic test",
+        )
+        .expect_err("empty normalized snapshot cannot be authorized");
+        assert!(normalized_empty
+            .iter()
+            .any(|item| item.code == "missing_normalized_snapshot_bytes"));
+
         let terms_empty = TrustedReuseAuthorization::record_manual_review(
             "https://example.invalid/source",
             "fixture-v1",
             b"source bytes",
+            b"normalized snapshot bytes",
             "reviewer",
             "2026-10-12",
             "https://example.invalid/terms",
