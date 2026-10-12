@@ -783,6 +783,18 @@ mod tests {
         assert_eq!(partial_json["state"], "partially_loaded");
         assert_eq!(partial_json["record_count"], 1);
         assert_eq!(partial_json["rejected_record_count"], 2);
+
+        let rejected = DatasetLoadHealth {
+            dataset: "sites-clustered".to_string(),
+            state: DatasetLoadState::Rejected,
+            record_count: Some(0),
+            rejected_record_count: Some(3),
+            diagnostic: Some("3 source records failed semantic validation".to_string()),
+        };
+        assert_eq!(
+            serde_json::to_value(rejected).unwrap()["state"],
+            "rejected"
+        );
     }
 
     #[test]
