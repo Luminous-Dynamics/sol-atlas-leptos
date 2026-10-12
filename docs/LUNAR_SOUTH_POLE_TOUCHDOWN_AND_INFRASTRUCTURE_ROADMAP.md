@@ -175,12 +175,12 @@ python3 scripts/validate_lunar_site_screening.py
 python3 -m unittest discover -s tests -p 'test_lunar_site_screening_contract.py'
 ```
 
-The gate intentionally requires all ten reviewed region/comparator records to remain identifiable, forbids point-coordinate and ranking fields, requires scalar scoring and comparison weights to remain null, and requires each `known_metrics` object to remain empty until comparable evidence can be bound to provenance. It also requires the comparison layer set, evidence state, unresolved questions, and HTTPS source references.
+The gate intentionally requires all eleven reviewed region/comparator records to remain identifiable, forbids point-coordinate and ranking fields, requires scalar scoring and comparison weights to remain null, and requires each `known_metrics` object to remain empty until comparable evidence can be bound to provenance. It also requires the comparison layer set, evidence state, unresolved questions, and HTTPS source references.
 
 This is a protective boundary, not a claim that the regions are equally promising. A future version may add measurements only with explicit units, coordinate frame, spatial resolution, acquisition epoch/date, uncertainty, source/version, and evidence state; the accompanying analysis must explain comparability and preserve missing values as unknown. A site-specific coordinate must never be inferred from a broad region name or presented as an agency-approved landing ellipse.
 
 
-## Geospatial data ingestion: actionable sources and a historical comparator
+## Geospatial data ingestion: actionable sources and historical comparators
 
 The first useful data-ingestion pass should not start by assigning site scores. It should start by resolving exact region polygons and source-product identities, then joining terrain, uncertainty and illumination only where their coordinate references and time windows are compatible.
 
