@@ -372,6 +372,7 @@ pub fn admit_snapshot(
     validate_provenance(&snapshot.provenance, &mut issues);
     validate_reuse_authorization(&snapshot.provenance, authorization, &mut issues);
 
+    canonicalize_snapshot_order(&mut snapshot);
     match serde_json::to_vec(&snapshot) {
         Ok(canonical_bytes)
             if sha256_hex(&canonical_bytes) == authorization.normalized_snapshot_sha256 => {}
@@ -822,6 +823,16 @@ fn validate_reuse_authorization(
     }
 }
 
+/// Canonicalize only record order; values and identity material are not altered.
+fn canonicalize_snapshot_order(snapshot: &mut FlareSnapshot) {
+    snapshot
+        .sites
+        .sort_by(|left, right| left.site_key.cmp(&right.site_key));
+    for site in &mut snapshot.sites {
+        site.annual_estimates.sort_by_key(|estimate| estimate.year);
+    }
+}
+
 fn validate_site_identity(
     method: &SiteIdentityMethod,
     site: &FlareSite,
@@ -1013,7 +1024,11 @@ mod tests {
             "https://example.invalid/synthetic-flare-fixture",
             "synthetic-fixture-v1",
             b"synthetic workbook bytes",
-            &serde_json::to_vec(snapshot).expect("serialize synthetic normalized snapshot"),
+            &{
+                let mut canonical = snapshot.clone();
+                canonicalize_snapshot_order(&mut canonical);
+                serde_json::to_vec(&canonical).expect("serialize canonical synthetic snapshot")
+            },
             "test-fixture-review",
             "2026-10-12",
             "https://example.invalid/synthetic-test-terms",
@@ -1225,6 +1240,21 @@ mod tests {
         assert!(issues
             .iter()
             .any(|item| item.code == "reuse_authorization_attestation_mismatch"));
+    }
+
+    #[test]
+    fn authorization_rejects_tampered_normalized_values() {
+        let original = sample_snapshot();
+        let authorization = test_authorization(&original);
+        let mut tampered = original;
+        tampered.sites[0].annual_estimates[0].value = AnnualFlareValue::Estimated {
+            volume_million_m3_per_year: 999.0,
+        };
+        let issues = super::admit_snapshot(tampered, &authorization)
+            .expect_err("tampered normalized value must reject");
+        assert!(issues
+            .iter()
+            .any(|item| item.code == "normalized_snapshot_digest_mismatch"));
     }
 
     #[test]
