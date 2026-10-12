@@ -114,6 +114,9 @@ pub struct TradeObservation {
     /// upstream canonicalization. Plain base-10 decimal notation only:
     /// no exponent notation, separators, or surrounding whitespace.
     pub trade_value_source_text: Option<String>,
+    /// Source-reviewed valuation basis, e.g. `known:fob`, `known:cif`, or `unknown`.
+    /// Never infer this solely from flow direction; national reporting practices vary.
+    pub valuation_basis_signature: String,
     /// Currency identifier for the source-reported value; no implicit conversion.
     pub currency: String,
     /// Exact source-native denomination/scale label, for example USD or USD_thousands.
@@ -228,6 +231,11 @@ pub struct MirrorPairResult {
     pub importer_area_reference_snapshot_id: Option<String>,
     /// Unit context is populated only for a valid comparison.
     pub currency: Option<String>,
+    /// Source valuation-basis signatures, retained even when they do not match.
+    pub exporter_valuation_basis_signature: Option<String>,
+    pub importer_valuation_basis_signature: Option<String>,
+    /// true/false only when both bases are explicitly known; None means unknown.
+    pub valuation_basis_match: Option<bool>,
     /// Source-native denomination/scale label for the exact gap.
     pub value_unit: Option<String>,
     pub method_id: String,
@@ -265,6 +273,9 @@ impl MirrorPairResult {
             exporter_area_reference_snapshot_id: None,
             importer_area_reference_snapshot_id: None,
             currency: None,
+            exporter_valuation_basis_signature: None,
+            importer_valuation_basis_signature: None,
+            valuation_basis_match: None,
             value_unit: None,
             method_id: RAW_MIRROR_METHOD_ID.to_string(),
             signed_difference_source_text: None,
@@ -279,10 +290,10 @@ impl MirrorPairResult {
 }
 
 /// Versioned name for the intentionally narrow calculation in this module.
-pub const RAW_MIRROR_METHOD_ID: &str = "raw_mirror_value_difference/v4";
+pub const RAW_MIRROR_METHOD_ID: &str = "raw_mirror_value_difference/v5";
 
 /// Current version of the normalized TradeObservation wire contract.
-pub const TRADE_OBSERVATION_SCHEMA_VERSION: u16 = 5;
+pub const TRADE_OBSERVATION_SCHEMA_VERSION: u16 = 6;
 
 /// Compare candidate bilateral reports without silently resolving ambiguity.
 ///
@@ -564,6 +575,12 @@ pub fn compare_mirror_pair(
         exporter_area_reference_snapshot_id: Some(exporter.area_reference_snapshot_id.clone()),
         importer_area_reference_snapshot_id: Some(importer.area_reference_snapshot_id.clone()),
         currency: Some(exporter.currency.clone()),
+        exporter_valuation_basis_signature: Some(exporter.valuation_basis_signature.clone()),
+        importer_valuation_basis_signature: Some(importer.valuation_basis_signature.clone()),
+        valuation_basis_match: valuation_basis_match(
+            &exporter.valuation_basis_signature,
+            &importer.valuation_basis_signature,
+        ),
         value_unit: Some(exporter.value_unit.clone()),
         method_id: RAW_MIRROR_METHOD_ID.to_string(),
         signed_difference_source_text: Some(signed_difference_source_text),
@@ -671,6 +688,17 @@ fn format_scaled_decimal(coefficient: i128, scale: u32) -> String {
     value
 }
 
+fn valuation_basis_match(exporter: &str, importer: &str) -> Option<bool> {
+    // "known:<basis>" is the only qualified vocabulary accepted here.
+    // Evidence/mapping provenance is carried separately in the source snapshot.
+    let exporter_basis = exporter.strip_prefix("known:")?;
+    let importer_basis = importer.strip_prefix("known:")?;
+    if exporter_basis.is_empty() || importer_basis.is_empty() {
+        return None;
+    }
+    Some(exporter_basis == importer_basis)
+}
+
 fn has_identity(observation: &TradeObservation) -> bool {
     !observation.record_id.trim().is_empty()
         && !observation.source_id.trim().is_empty()
@@ -686,6 +714,7 @@ fn has_identity(observation: &TradeObservation) -> bool {
         && !observation.commodity_code.trim().is_empty()
         && !observation.classification_revision.trim().is_empty()
         && !observation.currency.trim().is_empty()
+        && !observation.valuation_basis_signature.trim().is_empty()
         && !observation.value_unit.trim().is_empty()
         && !observation.retrieved_at.trim().is_empty()
 }
@@ -736,6 +765,7 @@ mod tests {
             flow,
             trade_value_source_text: value.map(str::to_owned),
             currency: "USD".to_string(),
+            valuation_basis_signature: "known:fob".to_string(),
             value_unit: "USD".to_string(),
             quantity: Some(10.0),
             quantity_unit: Some("kg".to_string()),
@@ -788,6 +818,11 @@ mod tests {
         assert_eq!(result.method_id, RAW_MIRROR_METHOD_ID);
         assert_eq!(result.currency.as_deref(), Some("USD"));
         assert_eq!(result.value_unit.as_deref(), Some("USD"));
+        assert_eq!(result.valuation_basis_match, Some(true));
+        assert_eq!(
+            result.exporter_valuation_basis_signature.as_deref(),
+            Some("known:fob")
+        );
         assert_eq!(
             result.exporter_source_snapshot_id.as_deref(),
             Some("synthetic-fixture-v1")
@@ -815,6 +850,36 @@ mod tests {
             result.claim_ceiling,
             MirrorClaimCeiling::DescriptiveValueDifferenceOnly
         );
+    }
+
+    #[test]
+    fn exact_gap_marks_known_cif_fob_mismatch_instead_of_hiding_it() {
+        let exporter =
+            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer =
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        importer.valuation_basis_signature = "known:cif".to_string();
+
+        let result = compare_mirror_pair(&[exporter], &[importer]);
+        assert_eq!(result.status, MirrorPairStatus::Compared);
+        assert_eq!(result.absolute_difference_source_text.as_deref(), Some("20"));
+        assert_eq!(result.valuation_basis_match, Some(false));
+        assert_eq!(
+            result.importer_valuation_basis_signature.as_deref(),
+            Some("known:cif")
+        );
+    }
+
+    #[test]
+    fn unknown_valuation_basis_is_not_mistaken_for_a_match() {
+        let mut exporter =
+            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let importer =
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        exporter.valuation_basis_signature = "unknown".to_string();
+        let result = compare_mirror_pair(&[exporter], &[importer]);
+        assert_eq!(result.status, MirrorPairStatus::Compared);
+        assert_eq!(result.valuation_basis_match, None);
     }
 
     #[test]
