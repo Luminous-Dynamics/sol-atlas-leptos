@@ -68,6 +68,9 @@ pub struct TradeObservation {
     pub trade_value_source_text: Option<String>,
     /// Currency identifier for the source-reported value; no implicit conversion.
     pub currency: String,
+    /// Exact source-native denomination/scale label, for example USD or USD_thousands.
+    /// Values are compared only when this label matches; no implicit rescaling.
+    pub value_unit: String,
     /// Optional source-reported quantity; not used in the raw value comparison.
     pub quantity: Option<f64>,
     /// Optional source-native quantity unit; preserve rather than guess.
@@ -110,6 +113,8 @@ pub enum MirrorPairStatus {
     ClassificationMismatch,
     /// Currency identifiers differ; no implicit conversion is applied.
     CurrencyMismatch,
+    /// Source-native denomination/scale labels differ; no implicit rescaling is applied.
+    ValueUnitMismatch,
     /// Exporter-side value is missing.
     MissingExporterValue,
     /// Importer-side value is missing.
@@ -148,6 +153,10 @@ pub struct MirrorPairResult {
     pub status: MirrorPairStatus,
     pub exporter_record_id: Option<String>,
     pub importer_record_id: Option<String>,
+    /// Unit context is populated only for a valid comparison.
+    pub currency: Option<String>,
+    /// Source-native denomination/scale label for the exact gap.
+    pub value_unit: Option<String>,
     pub method_id: String,
     /// Exact normalized decimal difference as text; preferred for display/audit.
     pub signed_difference_source_text: Option<String>,
@@ -176,6 +185,8 @@ impl MirrorPairResult {
             status,
             exporter_record_id,
             importer_record_id,
+            currency: None,
+            value_unit: None,
             method_id: RAW_MIRROR_METHOD_ID.to_string(),
             signed_difference_source_text: None,
             absolute_difference_source_text: None,
@@ -301,6 +312,13 @@ pub fn compare_mirror_pair(
             importer_id,
         );
     }
+    if exporter.value_unit != importer.value_unit {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::ValueUnitMismatch,
+            exporter_id,
+            importer_id,
+        );
+    }
 
     let Some(export_text) = exporter.trade_value_source_text.as_deref() else {
         return MirrorPairResult::excluded(
@@ -392,6 +410,8 @@ pub fn compare_mirror_pair(
         status: MirrorPairStatus::Compared,
         exporter_record_id: exporter_id,
         importer_record_id: importer_id,
+        currency: Some(exporter.currency.clone()),
+        value_unit: Some(exporter.value_unit.clone()),
         method_id: RAW_MIRROR_METHOD_ID.to_string(),
         signed_difference_source_text: Some(signed_difference_source_text),
         absolute_difference_source_text: Some(absolute_difference_source_text),
@@ -508,6 +528,7 @@ fn has_identity(observation: &TradeObservation) -> bool {
         && !observation.commodity_code.trim().is_empty()
         && !observation.classification_revision.trim().is_empty()
         && !observation.currency.trim().is_empty()
+        && !observation.value_unit.trim().is_empty()
         && !observation.retrieved_at.trim().is_empty()
 }
 
@@ -536,6 +557,7 @@ mod tests {
             flow,
             trade_value_source_text: value.map(str::to_owned),
             currency: "USD".to_string(),
+            value_unit: "USD".to_string(),
             quantity: Some(10.0),
             quantity_unit: Some("kg".to_string()),
             source_published_at: Some("2026-01-15".to_string()),
@@ -572,6 +594,8 @@ mod tests {
             MirrorClaimCeiling::DescriptiveValueDifferenceOnly
         );
         assert_eq!(result.method_id, RAW_MIRROR_METHOD_ID);
+        assert_eq!(result.currency.as_deref(), Some("USD"));
+        assert_eq!(result.value_unit.as_deref(), Some("USD"));
     }
 
     #[test]
@@ -658,6 +682,17 @@ mod tests {
             compare_mirror_pair(&[exporter], &[importer]).status,
             MirrorPairStatus::CurrencyMismatch
         );
+    }
+
+    #[test]
+    fn refuses_to_compare_values_with_different_source_units_or_scales() {
+        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        importer.value_unit = "USD_thousands".to_string();
+        let result = compare_mirror_pair(&[exporter], &[importer]);
+        assert_eq!(result.status, MirrorPairStatus::ValueUnitMismatch);
+        assert_eq!(result.absolute_difference_source_text, None);
+        assert_eq!(result.value_unit, None);
     }
 
     #[test]
