@@ -48,6 +48,35 @@ WebGPU remains limited-availability rather than universally supported. Do not re
 5. **Migrate capabilities in slices.** Start with sphere + textures + camera, then markers/arcs and picking, then atmosphere/post-processing, then camera-driven tile imagery. Keep the existing full-globe Earth texture as a fallback while tile scheduling, decoding, cache eviction, texture memory limits, parent-tile fallback, stale-request cancellation and attribution are proven.
 6. **Pin and report the toolchain.** Pin the selected `wgpu` version and Rust toolchain; avoid copying feature flags from the moving `latest` docs without checking that version. Keep per-target CI separate and report results for the exact commit and build feature set.
 
+### Version-pinned browser fallback experiment (researched 2026-10-12)
+
+The current `wgpu` 30.0.0 feature documentation lists `webgpu` for the browser WebGPU backend and `webgl` for the WASM WebGL2/GLES backend. Upstream issue [wgpu #10014](https://github.com/gfx-rs/wgpu/issues/10014), opened in August 2026, documents a real edge case for the combined feature build: Firefox exposed `navigator.gpu` but `requestAdapter()` returned null, and automatic instance selection did not then retry the compiled-in GL backend. An explicit GL-backend instance did work. In other words, API presence is not an operational capability check, and compiling both backends does not by itself prove runtime fallback.
+
+For a disposable proof-of-concept only, test these pinned feature candidates against the checked-in lockfile and target-specific build:
+
+- Browser WASM candidate: `wgpu = { version = "=30.0.0", default-features = false, features = ["std", "wgsl", "web", "webgpu", "webgl"] }`
+- Native Linux candidate: `wgpu = { version = "=30.0.0", default-features = false, features = ["std", "wgsl", "vulkan", "gles"] }`
+
+These are experiment inputs, not approved production dependency declarations. Verify Cargo's resolved feature graph for both target triples before relying on the snippets; do not blindly add the combined WASM features to the production package.
+
+Browser selection must be an explicit, recoverable state machine:
+
+1. Construct a WebGPU-configured instance and require successful adapter acquisition, required-feature/limit negotiation, device creation, surface configuration, and first-frame submission.
+2. If any step fails, record a bounded diagnostic category and explicitly construct/request a GL/WebGL2-configured `wgpu` path. Do not interpret the mere presence of `navigator.gpu` as readiness.
+3. Exercise context-creation order and recovery in real browsers; if the selected `wgpu`/browser combination cannot safely switch paths, use separate versioned WASM artifacts or retain the existing direct-WebGL2 renderer as the compatibility fallback.
+4. Keep the current direct-WebGL2 production renderer available until browser fallback, resize, context/device loss, picking, texture orientation, and startup-to-first-frame all pass the same fixed-scene gate.
+
+On native Linux, build a separate native target that prefers Vulkan through `wgpu`. Make any GLES fallback an explicit, tested path with its selected backend reported. Browser WebGPU is **not** direct Vulkan access: the browser owns the underlying graphics implementation, while native `wgpu` can select Vulkan explicitly.
+
+The initial CI/runtime matrix should contain separate rows for:
+- Native Linux `cargo check` and tests with Vulkan compiled in; record whether a real Vulkan adapter is available on the runner.
+- `wasm32-unknown-unknown` compilation with the pinned WebGPU-only experiment.
+- WASM compilation with both WebGPU and WebGL2 features.
+- Browser runtime: WebGPU adapter success, WebGPU adapter failure despite API exposure, explicit GL fallback, and final legacy-renderer fallback.
+- A hardware-backed Linux Vulkan run on a named device/driver separate from generic CI compilation.
+
+The upstream behavior and feature list are documented at [wgpu 30.0.0 feature flags](https://wgpu.rs/doc/wgpu/documentation/features/) and [wgpu issue #10014](https://github.com/gfx-rs/wgpu/issues/10014). All outcomes must name the exact `wgpu` version, target, resolved features, browser/device/driver and commit; a successful compile does not establish runtime GPU availability.
+
 The renderer should log the selected backend and a bounded summary of adapter capabilities. No user data or sensitive source URLs should be emitted in diagnostics. A request to use an unsupported GPU feature must fail closed to an explicitly tested path, not silently render a different scientific result.
 
 ## Solar-system model: catalogue first, renderer second
