@@ -100,9 +100,13 @@ def format_scaled(value: int, scale: int) -> str:
 
 def evaluate(case: dict[str, Any]) -> tuple[str, str | None, str | None]:
     """Mirror the documented disposition order using independent Python math."""
+    if case.get("exporter_reporter_kind", "reporting_area") != "reporting_area":
+        return "aggregate_party_not_supported", None, None
     if case.get("exporter_partner_kind", "reporting_area") != "reporting_area":
         return "aggregate_party_not_supported", None, None
     if case.get("importer_reporter_kind", "reporting_area") != "reporting_area":
+        return "aggregate_party_not_supported", None, None
+    if case.get("importer_partner_kind", "reporting_area") != "reporting_area":
         return "aggregate_party_not_supported", None, None
     if case.get("exporter_geography_code_system", "TEST_ALPHA3") != case.get(
         "importer_geography_code_system", "TEST_ALPHA3"
