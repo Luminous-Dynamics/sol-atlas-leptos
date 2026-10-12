@@ -650,7 +650,7 @@ fn scalar_to_text(value: &Value) -> Option<String> {
     match value {
         Value::String(text) => Some(text.clone()),
         Value::Number(number) => Some(number.to_string()),
-        Value::Bool(value) => Some(value.to_string()),
+        // Boolean values are not valid substitute identifiers or code tokens.
         _ => None,
     }
 }
@@ -970,6 +970,19 @@ mod tests {
                 "{field} should fail with an explicit field-type rejection"
             );
         }
+    }
+
+    #[test]
+    fn rejects_boolean_dimensions_instead_of_stringifying_them() {
+        let ctx = context(10);
+        let mut candidate = row();
+        candidate["partner2Code"] = Value::Bool(false);
+        let parsed = parse_un_comtrade_preview(&response(vec![candidate], 1), &ctx).unwrap();
+        assert!(parsed.records.is_empty());
+        assert_eq!(
+            parsed.rejected_rows[0].reason,
+            UnComtradeRowRejection::InvalidFieldType("partner2Code".to_string())
+        );
     }
 
     #[test]
