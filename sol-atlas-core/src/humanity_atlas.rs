@@ -9,8 +9,8 @@
 //! evidence, or scientific truth of a result.
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
 use sha2::{Digest, Sha256};
+use std::collections::BTreeSet;
 
 pub mod technology_tree;
 
@@ -188,16 +188,25 @@ impl ScenarioRunEnvelope {
         // again below so Serde still rejects duplicate struct fields.
         let value: serde_json::Value = serde_json::from_str(raw)
             .map_err(|error| format!("invalid Humanity Atlas run JSON: {error}"))?;
-        let object = value.as_object()
-            .ok_or_else(|| "invalid Humanity Atlas run JSON: top level must be an object".to_string())?;
+        let object = value.as_object().ok_or_else(|| {
+            "invalid Humanity Atlas run JSON: top level must be an object".to_string()
+        })?;
         if !object.contains_key("deterministic") {
-            return Err("invalid Humanity Atlas run JSON: missing required field deterministic".into());
+            return Err(
+                "invalid Humanity Atlas run JSON: missing required field deterministic".into(),
+            );
         }
-        let inputs = object.get("inputs")
+        let inputs = object
+            .get("inputs")
             .and_then(serde_json::Value::as_object)
-            .ok_or_else(|| "invalid Humanity Atlas run JSON: inputs must be an object".to_string())?;
+            .ok_or_else(|| {
+                "invalid Humanity Atlas run JSON: inputs must be an object".to_string()
+            })?;
         if !inputs.contains_key("dataset_sha256") {
-            return Err("invalid Humanity Atlas run JSON: missing required field inputs.dataset_sha256".into());
+            return Err(
+                "invalid Humanity Atlas run JSON: missing required field inputs.dataset_sha256"
+                    .into(),
+            );
         }
 
         let run: Self = serde_json::from_str(raw)
@@ -259,21 +268,31 @@ impl ScenarioRunEnvelope {
         }
         for (field, digest) in digests {
             if !is_lowercase_sha256(digest) {
-                return Err(format!("{field} must be 64 lowercase hexadecimal characters"));
+                return Err(format!(
+                    "{field} must be 64 lowercase hexadecimal characters"
+                ));
             }
         }
         if let Some(kind) = self.inputs.scenario_identity_kind.as_deref() {
-            if !matches!(kind, "scenario_document_bytes" | "canonical_effective_scenario") {
+            if !matches!(
+                kind,
+                "scenario_document_bytes" | "canonical_effective_scenario"
+            ) {
                 return Err("unsupported scenario_identity_kind".into());
             }
         }
         if let Some(source) = self.inputs.selected_definition_source.as_deref() {
             if source.trim().is_empty() || unicode_len(source) > 200 {
-                return Err("selected_definition_source must be 1..=200 characters when present".into());
+                return Err(
+                    "selected_definition_source must be 1..=200 characters when present".into(),
+                );
             }
         }
         if let Some(kind) = self.engine.model_identity_kind.as_deref() {
-            if !matches!(kind, "full_model" | "technology_tree_definition" | "unknown") {
+            if !matches!(
+                kind,
+                "full_model" | "technology_tree_definition" | "unknown"
+            ) {
                 return Err("unsupported model_identity_kind".into());
             }
         }
@@ -290,14 +309,26 @@ impl ScenarioRunEnvelope {
                 return Err("technology_tree_definition identity requires canonical scenario identity, selected/effective definition source, and resolved config/params digests".into());
             }
             if input_source != engine_source {
-                return Err("selected_definition_source disagrees with engine definition_source".into());
+                return Err(
+                    "selected_definition_source disagrees with engine definition_source".into(),
+                );
             }
         }
-        if self.engine.source_revision.as_deref().is_some_and(
-            |value| value.trim().is_empty() || unicode_len(value) > 120
-        )
-            || self.engine.definition_source.as_deref().is_some_and(|value| value.trim().is_empty())
-            || self.engine.definition_source.as_deref().is_some_and(|value| unicode_len(value) > 200)
+        if self
+            .engine
+            .source_revision
+            .as_deref()
+            .is_some_and(|value| value.trim().is_empty() || unicode_len(value) > 120)
+            || self
+                .engine
+                .definition_source
+                .as_deref()
+                .is_some_and(|value| value.trim().is_empty())
+            || self
+                .engine
+                .definition_source
+                .as_deref()
+                .is_some_and(|value| unicode_len(value) > 200)
         {
             return Err("source_revision must be non-empty and at most 120 characters; definition_source must be non-empty and at most 200 characters".into());
         }
@@ -306,7 +337,9 @@ impl ScenarioRunEnvelope {
             || self.engine.engine_version.trim().is_empty()
             || unicode_len(&self.engine.engine_version) > 120
         {
-            return Err("engine adapter and version must be non-empty and at most 120 characters".into());
+            return Err(
+                "engine adapter and version must be non-empty and at most 120 characters".into(),
+            );
         }
         if self.replicates == 0 || self.replicates > 1_000_000 {
             return Err("replicates must be within the schema range 1..=1000000".into());
@@ -314,10 +347,19 @@ impl ScenarioRunEnvelope {
         if self.run_status == RunStatus::Completed && self.outputs.is_empty() {
             return Err("a completed run must contain at least one output row".into());
         }
-        if self.validation.notes.iter().any(|note| note.trim().is_empty()) {
+        if self
+            .validation
+            .notes
+            .iter()
+            .any(|note| note.trim().is_empty())
+        {
             return Err("validation notes must be non-empty strings".into());
         }
-        if self.warnings.iter().any(|warning| warning.trim().is_empty()) {
+        if self
+            .warnings
+            .iter()
+            .any(|warning| warning.trim().is_empty())
+        {
             return Err("warnings must be non-empty strings".into());
         }
         for evidence in &self.validation.evidence {
@@ -353,16 +395,23 @@ impl ScenarioRunEnvelope {
             }
             if let Some(reference_digest) = artifact.artifact_ref.strip_prefix("urn:sha256:") {
                 if !is_lowercase_sha256(reference_digest) {
-                    return Err("urn:sha256 artifact_ref must contain a lowercase SHA-256 digest".into());
+                    return Err(
+                        "urn:sha256 artifact_ref must contain a lowercase SHA-256 digest".into(),
+                    );
                 }
                 if reference_digest != artifact.artifact_sha256 {
-                    return Err("urn:sha256 artifact_ref digest disagrees with artifact_sha256".into());
+                    return Err(
+                        "urn:sha256 artifact_ref digest disagrees with artifact_sha256".into(),
+                    );
                 }
             }
-            if artifact.json_pointer.as_deref().is_some_and(
-                |pointer| unicode_len(pointer) > 1000 || !is_valid_json_pointer(pointer)
-            ) {
-                return Err(format!("invalid JSON Pointer for artifact {}", artifact.artifact_id));
+            if artifact.json_pointer.as_deref().is_some_and(|pointer| {
+                unicode_len(pointer) > 1000 || !is_valid_json_pointer(pointer)
+            }) {
+                return Err(format!(
+                    "invalid JSON Pointer for artifact {}",
+                    artifact.artifact_id
+                ));
             }
             if !artifact_ids.insert(artifact.artifact_id.as_str()) {
                 return Err(format!("duplicate artifact_id: {}", artifact.artifact_id));
@@ -381,15 +430,29 @@ impl ScenarioRunEnvelope {
                 return Err("metric_id must be non-empty and 1..=200 characters; unit must be non-empty and 1..=80 characters".into());
             }
             if !(-100_000..=100_000).contains(&row.year) {
-                return Err(format!("metric {} year is outside the schema range", row.metric_id));
+                return Err(format!(
+                    "metric {} year is outside the schema range",
+                    row.metric_id
+                ));
             }
             if !row.value.is_finite() {
-                return Err(format!("metric {} contains a non-finite value", row.metric_id));
+                return Err(format!(
+                    "metric {} contains a non-finite value",
+                    row.metric_id
+                ));
             }
             if row.sample_count == 0 || row.sample_count > 1_000_000 {
-                return Err(format!("metric {} sample_count must be within 1..=1000000", row.metric_id));
+                return Err(format!(
+                    "metric {} sample_count must be within 1..=1000000",
+                    row.metric_id
+                ));
             }
-            let key = (row.metric_id.as_str(), row.year, row.time_basis, row.statistic);
+            let key = (
+                row.metric_id.as_str(),
+                row.year,
+                row.time_basis,
+                row.statistic,
+            );
             if !unique_rows.insert(key) {
                 return Err(format!(
                     "duplicate metric row: {} / {} / {:?}",
@@ -403,11 +466,17 @@ impl ScenarioRunEnvelope {
             OutputClassification::CalibratedSimulation | OutputClassification::ProspectiveForecast
         ) && self.run_status != RunStatus::Completed
         {
-            return Err("calibrated_simulation and prospective_forecast require a completed run".into());
+            return Err(
+                "calibrated_simulation and prospective_forecast require a completed run".into(),
+            );
         }
 
-        let evidence_kinds: BTreeSet<ValidationEvidenceKind> =
-            self.validation.evidence.iter().map(|item| item.kind).collect();
+        let evidence_kinds: BTreeSet<ValidationEvidenceKind> = self
+            .validation
+            .evidence
+            .iter()
+            .map(|item| item.kind)
+            .collect();
         match self.output_classification {
             OutputClassification::CalibratedSimulation => {
                 if !matches!(
@@ -436,9 +505,7 @@ impl ScenarioRunEnvelope {
                     );
                 }
                 if !evidence_kinds.contains(&ValidationEvidenceKind::ProspectiveForecast) {
-                    return Err(
-                        "prospective_forecast requires forecast receipt evidence".into(),
-                    );
+                    return Err("prospective_forecast requires forecast receipt evidence".into());
                 }
             }
             _ => {}
@@ -504,8 +571,12 @@ mod tests {
 
     #[test]
     fn parses_synthetic_contract_envelope() {
-        let run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture should parse");
-        assert_eq!(run.output_classification.epistemic_label(), "Synthetic fixture — not empirical");
+        let run =
+            ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture should parse");
+        assert_eq!(
+            run.output_classification.epistemic_label(),
+            "Synthetic fixture — not empirical"
+        );
         assert_eq!(run.outputs.len(), 1);
         assert_eq!(run.deterministic, Some(true));
     }
@@ -545,7 +616,11 @@ mod tests {
             json_pointer: None,
         };
         run.artifacts = vec![artifact.clone(), artifact];
-        assert!(run.validate().unwrap_err().contains("duplicate artifact_id"));
+        assert!(
+            run.validate()
+                .unwrap_err()
+                .contains("duplicate artifact_id")
+        );
     }
 
     #[test]
@@ -591,10 +666,14 @@ mod tests {
             artifact_sha256: digest,
             json_pointer: Some("/technology_tree".into()),
         });
-        assert!(run
-            .verify_artifact_bytes("source-output", br#"{"technology_tree":{"milestone_count":5}}"#)
+        assert!(
+            run.verify_artifact_bytes(
+                "source-output",
+                br#"{"technology_tree":{"milestone_count":5}}"#
+            )
             .unwrap_err()
-            .contains("artifact digest mismatch"));
+            .contains("artifact digest mismatch")
+        );
     }
 
     #[test]
@@ -608,7 +687,11 @@ mod tests {
             artifact_sha256: "d".repeat(64),
             json_pointer: None,
         });
-        assert!(run.validate().unwrap_err().contains("disagrees with artifact_sha256"));
+        assert!(
+            run.validate()
+                .unwrap_err()
+                .contains("disagrees with artifact_sha256")
+        );
     }
 
     #[test]
@@ -633,7 +716,10 @@ mod tests {
         );
         let run = ScenarioRunEnvelope::from_json(&payload).expect("valid relative-time run");
         assert_eq!(run.outputs[0].year, 150);
-        assert_eq!(run.outputs[0].time_basis, Some(OutputTimeBasis::ScenarioRelativeYear));
+        assert_eq!(
+            run.outputs[0].time_basis,
+            Some(OutputTimeBasis::ScenarioRelativeYear)
+        );
     }
 
     #[test]
@@ -646,7 +732,11 @@ mod tests {
     fn rejects_tree_scoped_model_without_resolved_input_bindings() {
         let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
         run.engine.model_identity_kind = Some("technology_tree_definition".into());
-        assert!(run.validate().unwrap_err().contains("requires canonical scenario identity"));
+        assert!(
+            run.validate()
+                .unwrap_err()
+                .contains("requires canonical scenario identity")
+        );
     }
 
     #[test]
@@ -658,39 +748,63 @@ mod tests {
         run.inputs.resolved_config_sha256 = Some("a".repeat(64));
         run.inputs.resolved_params_sha256 = Some("b".repeat(64));
         run.engine.definition_source = Some("loaded_external_toml".into());
-        assert!(run.validate().unwrap_err().contains("disagrees with engine definition_source"));
+        assert!(
+            run.validate()
+                .unwrap_err()
+                .contains("disagrees with engine definition_source")
+        );
     }
 
     #[test]
     fn rejects_missing_required_nullable_deterministic_field() {
         let bad = valid_payload().replace("\"deterministic\":true,", "");
-        assert!(ScenarioRunEnvelope::from_json(&bad).unwrap_err().contains("missing required field deterministic"));
+        assert!(
+            ScenarioRunEnvelope::from_json(&bad)
+                .unwrap_err()
+                .contains("missing required field deterministic")
+        );
     }
 
     #[test]
     fn rejects_missing_required_nullable_dataset_digest_field() {
         let digest = "b".repeat(64);
         let bad = valid_payload().replace(&format!(",\"dataset_sha256\":\"{digest}\""), "");
-        assert!(ScenarioRunEnvelope::from_json(&bad).unwrap_err().contains("missing required field inputs.dataset_sha256"));
+        assert!(
+            ScenarioRunEnvelope::from_json(&bad)
+                .unwrap_err()
+                .contains("missing required field inputs.dataset_sha256")
+        );
     }
 
     #[test]
     fn rejects_source_revision_above_schema_limit() {
         let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
         run.engine.source_revision = Some("r".repeat(121));
-        assert!(run.validate().unwrap_err().contains("source_revision must be non-empty and at most 120"));
+        assert!(
+            run.validate()
+                .unwrap_err()
+                .contains("source_revision must be non-empty and at most 120")
+        );
     }
 
     #[test]
     fn rejects_seed_above_schema_safe_integer_limit() {
         let bad = valid_payload().replace("\"seed\":0", "\"seed\":9007199254740992");
-        assert!(ScenarioRunEnvelope::from_json(&bad).unwrap_err().contains("seed exceeds"));
+        assert!(
+            ScenarioRunEnvelope::from_json(&bad)
+                .unwrap_err()
+                .contains("seed exceeds")
+        );
     }
 
     #[test]
     fn rejects_replicates_above_schema_limit() {
         let bad = valid_payload().replace("\"replicates\":1", "\"replicates\":1000001");
-        assert!(ScenarioRunEnvelope::from_json(&bad).unwrap_err().contains("replicates must be within"));
+        assert!(
+            ScenarioRunEnvelope::from_json(&bad)
+                .unwrap_err()
+                .contains("replicates must be within")
+        );
     }
 
     #[test]
@@ -704,7 +818,11 @@ mod tests {
     fn rejects_metric_sample_count_above_schema_limit() {
         let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
         run.outputs[0].sample_count = 1_000_001;
-        assert!(run.validate().unwrap_err().contains("sample_count must be within"));
+        assert!(
+            run.validate()
+                .unwrap_err()
+                .contains("sample_count must be within")
+        );
     }
 
     #[test]
@@ -721,39 +839,56 @@ mod tests {
     fn rejects_overlong_source_revision() {
         let mut run = ScenarioRunEnvelope::from_json(&valid_payload()).expect("valid fixture");
         run.engine.source_revision = Some("r".repeat(121));
-        assert!(run.validate().unwrap_err().contains("source_revision must be non-empty and at most 120"));
+        assert!(
+            run.validate()
+                .unwrap_err()
+                .contains("source_revision must be non-empty and at most 120")
+        );
     }
 
     #[test]
     fn rejects_overlong_run_id() {
         let long_id = "r".repeat(201);
-        let raw = valid_payload().replace("\"run_id\":\"test-run-001\"", &format!("\"run_id\":\"{long_id}\""));
-        assert!(ScenarioRunEnvelope::from_json(&raw).unwrap_err().contains("run_id must be"));
+        let raw = valid_payload().replace(
+            "\"run_id\":\"test-run-001\"",
+            &format!("\"run_id\":\"{long_id}\""),
+        );
+        assert!(
+            ScenarioRunEnvelope::from_json(&raw)
+                .unwrap_err()
+                .contains("run_id must be")
+        );
     }
 
     #[test]
     fn rejects_unrecognized_schema_version() {
         let bad = valid_payload().replace("humanity-atlas.run.v0.1", "humanity-atlas.run.v9.9");
-        assert!(ScenarioRunEnvelope::from_json(&bad)
-            .unwrap_err()
-            .contains("unsupported run schema version"));
+        assert!(
+            ScenarioRunEnvelope::from_json(&bad)
+                .unwrap_err()
+                .contains("unsupported run schema version")
+        );
     }
 
     #[test]
     fn rejects_malformed_digest() {
         let digest = "a".repeat(64);
         let bad = valid_payload().replace(digest.as_str(), "not-a-sha256");
-        assert!(ScenarioRunEnvelope::from_json(&bad)
-            .unwrap_err()
-            .contains("scenario_sha256"));
+        assert!(
+            ScenarioRunEnvelope::from_json(&bad)
+                .unwrap_err()
+                .contains("scenario_sha256")
+        );
     }
 
     #[test]
     fn rejects_forecast_label_without_forecast_validation() {
         let bad = valid_payload().replace("synthetic_fixture", "prospective_forecast");
-        assert!(ScenarioRunEnvelope::from_json(&bad)
-            .unwrap_err()
-            .contains("prospective_forecast requires"));
+        assert!(
+            ScenarioRunEnvelope::from_json(&bad)
+                .unwrap_err()
+                .contains("prospective_forecast requires")
+        );
     }
 
     #[test]
@@ -761,9 +896,11 @@ mod tests {
         let bad = valid_payload()
             .replace("synthetic_fixture", "calibrated_simulation")
             .replace("contract_smoke", "retrospective");
-        assert!(ScenarioRunEnvelope::from_json(&bad)
-            .unwrap_err()
-            .contains("calibrated_simulation requires retrospective evaluation evidence"));
+        assert!(
+            ScenarioRunEnvelope::from_json(&bad)
+                .unwrap_err()
+                .contains("calibrated_simulation requires retrospective evaluation evidence")
+        );
     }
 
     #[test]
@@ -771,9 +908,11 @@ mod tests {
         let bad = valid_payload()
             .replace("synthetic_fixture", "prospective_forecast")
             .replace("contract_smoke", "prospective");
-        assert!(ScenarioRunEnvelope::from_json(&bad)
-            .unwrap_err()
-            .contains("prospective_forecast requires forecast receipt evidence"));
+        assert!(
+            ScenarioRunEnvelope::from_json(&bad)
+                .unwrap_err()
+                .contains("prospective_forecast requires forecast receipt evidence")
+        );
     }
 
     #[test]
@@ -788,9 +927,11 @@ mod tests {
             artifact_sha256: "e".repeat(64),
             description: "Review alone is not a retrospective evaluation".into(),
         });
-        assert!(run.validate().unwrap_err().contains(
-            "calibrated_simulation requires retrospective evaluation evidence"
-        ));
+        assert!(
+            run.validate()
+                .unwrap_err()
+                .contains("calibrated_simulation requires retrospective evaluation evidence")
+        );
     }
 
     #[test]
@@ -806,7 +947,11 @@ mod tests {
             description: "Synthetic receipt shape test only".into(),
         });
         run.run_status = RunStatus::Failed;
-        assert!(run.validate().unwrap_err().contains("require a completed run"));
+        assert!(
+            run.validate()
+                .unwrap_err()
+                .contains("require a completed run")
+        );
     }
 
     #[test]
@@ -822,7 +967,11 @@ mod tests {
             description: "Synthetic receipt shape test only".into(),
         });
         run.run_status = RunStatus::Failed;
-        assert!(run.validate().unwrap_err().contains("require a completed run"));
+        assert!(
+            run.validate()
+                .unwrap_err()
+                .contains("require a completed run")
+        );
     }
 
     #[test]
@@ -862,8 +1011,10 @@ mod tests {
             "\"warnings\":[\"not empirical\"]",
             "\"unknown_claim\":true,\"warnings\":[\"not empirical\"]",
         );
-        assert!(ScenarioRunEnvelope::from_json(&bad)
-            .unwrap_err()
-            .contains("unknown field"));
+        assert!(
+            ScenarioRunEnvelope::from_json(&bad)
+                .unwrap_err()
+                .contains("unknown field")
+        );
     }
 }
