@@ -35,8 +35,10 @@ CASE_KEYS = {
     "importer_currency",
     "exporter_value_unit",
     "importer_value_unit",
+    "exporter_reporter_kind",
     "exporter_partner_kind",
     "importer_reporter_kind",
+    "importer_partner_kind",
     "exporter_geography_code_system",
     "importer_geography_code_system",
     "expected_status",
@@ -58,6 +60,10 @@ def parse_decimal_token(token: Any) -> tuple[int, int] | None:
         whole, fraction = unsigned, ""
 
     coefficient = int(whole + fraction)
+    # The Rust parser first parses a positive i128 magnitude, then applies the
+    # sign with checked_neg; match that representable input domain exactly.
+    if coefficient > MAX_I128:
+        return None
     if negative:
         coefficient = -coefficient
     if not MIN_I128 <= coefficient <= MAX_I128:
