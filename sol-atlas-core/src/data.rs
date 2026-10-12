@@ -239,10 +239,10 @@ fn normalized_source_name(raw: Option<&str>) -> Option<String> {
 
 fn has_synthetic_lineage(source: Option<&str>, lineage: &[String]) -> bool {
     let looks_synthetic = |value: &str| {
-        let value = value.trim().to_ascii_lowercase();
-        ["demo", "synthetic", "generated", "fixture", "mock"]
-            .iter()
-            .any(|marker| value.contains(marker))
+        value
+            .split(|character: char| !character.is_ascii_alphanumeric())
+            .any(|token| matches!(token.to_ascii_lowercase().as_str(),
+                "demo" | "synthetic" | "generated" | "fixture" | "mock"))
     };
 
     source.is_some_and(looks_synthetic)
@@ -290,13 +290,20 @@ fn source_url_for_record(
         return None;
     }
 
+    let accepted_usgs_source = source_name.is_some_and(|source| {
+        matches!(
+            source.trim().to_ascii_lowercase().as_str(),
+            "usgs" | "usgs comcat"
+        )
+    });
+    let accepted_eonet_source =
+        source_name.is_some_and(|source| source.trim().eq_ignore_ascii_case("NASA EONET"));
+
     let (candidate, prefix) = match dataset_name {
-        "usgs-earthquakes"
-            if source_name.is_some_and(|s| matches!(s.trim().to_ascii_lowercase().as_str(), "usgs" | "usgs comcat")) =>
-        {
+        "usgs-earthquakes" if accepted_usgs_source => {
             (url, crate::usgs::USGS_EVENT_PAGE_PREFIX)
         }
-        "nasa-eonet" if source_name.is_some_and(|s| s.trim().eq_ignore_ascii_case("NASA EONET")) => {
+        "nasa-eonet" if accepted_eonet_source => {
             (link, crate::eonet::EONET_EVENT_API_PREFIX)
         }
         _ => return None,
