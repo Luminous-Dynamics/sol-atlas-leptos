@@ -102,6 +102,13 @@
           "note": "Exact Site01 asset linked from NASA PGDA product 78. Download, inspect label/metadata and compute SHA-256 before analysis."
         },
         {
+          "title": "Site01 LOLA return-count map",
+          "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_ldec.tif",
+          "asset_type": "GeoTIFF",
+          "verification_state": "source_link_listed_not_downloaded_or_hashed",
+          "note": "Use to distinguish measured-return coverage from interpolated DEM cells. Read the product label before interpreting count values."
+        },
+        {
           "title": "Site01 slope",
           "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_slp.tif",
           "asset_type": "GeoTIFF",
@@ -204,6 +211,20 @@
           "asset_type": "PDS GeoJPEG2000 raster",
           "verification_state": "listed_in_pds_directory_binary_not_downloaded_or_hashed",
           "note": "Earth-disc visibility is not itself a radio link budget; confirm label semantics and units before use."
+        },
+        {
+          "title": "Sampled PGDA COG URL (404 at time of check)",
+          "url": "https://pgda.gsfc.nasa.gov/data/MoonIllumination/AVGVISIB_85S_060M_201608_COG.TIF",
+          "asset_type": "Cloud-Optimized GeoTIFF URL",
+          "verification_state": "sampled_url_returned_html_404_on_2026-10-12",
+          "note": "The linked URL returned NASA's HTML 404 page during this check. This is one URL observation only, not evidence that every COG/TIFF product is unavailable."
+        },
+        {
+          "title": "MIT LOLA PDS GeoJPEG2000 directory",
+          "url": "https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/",
+          "asset_type": "PDS directory listing",
+          "verification_state": "directory_listing_opened_on_2026-10-12",
+          "note": "Directory listing showed south-polar illumination/visibility JP2 files and matching labels; payload bytes and labels were not downloaded or parsed."
         }
       ],
       "asset_access_notes": [
