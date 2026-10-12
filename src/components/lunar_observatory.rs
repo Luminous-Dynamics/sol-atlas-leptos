@@ -93,6 +93,16 @@ struct LunarSource {
     uncertainty_and_limitations: Vec<String>,
     recommended_use: String,
     required_acceptance_checks: Vec<String>,
+    candidate_crosswalk: Vec<LunarSourceCrosswalk>,
+}
+
+#[derive(Clone, Deserialize)]
+struct LunarSourceCrosswalk {
+    candidate_id: String,
+    product_site: Option<String>,
+    mapping_state: String,
+    #[serde(default)]
+    note: Option<String>,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -522,6 +532,27 @@ fn LunarSourceCard(source: LunarSource) -> impl IntoView {
             view! { <li>{item}</li> }
         })
         .collect::<Vec<_>>();
+    let crosswalks = source
+        .candidate_crosswalk
+        .iter()
+        .map(|entry| {
+            let candidate_id = entry.candidate_id.clone();
+            let product_site = entry
+                .product_site
+                .clone()
+                .unwrap_or_else(|| "No exact product-site mapping asserted".to_string());
+            let mapping_state = entry.mapping_state.replace('_', " ");
+            let note = entry.note.clone();
+            view! {
+                <li class="lunar-crosswalk-entry">
+                    <strong>{candidate_id}</strong>
+                    <span>{product_site}</span>
+                    <span class="lunar-crosswalk-state">{mapping_state}</span>
+                    {note.map(|text| view! { <p>{text}</p> })}
+                </li>
+            }
+        })
+        .collect::<Vec<_>>();
 
     view! {
         <article class="lunar-source-card">
@@ -544,6 +575,10 @@ fn LunarSourceCard(source: LunarSource) -> impl IntoView {
             <div class="lunar-card-section">
                 <h4>"Available products"</h4>
                 <ul>{product_families}</ul>
+            </div>
+            <div class="lunar-card-section">
+                <h4>"Candidate coverage / crosswalk state"</h4>
+                <ul class="lunar-crosswalk-list">{crosswalks}</ul>
             </div>
             <div class="lunar-card-section unresolved">
                 <h4>"Limitations to preserve"</h4>
@@ -615,6 +650,11 @@ mod tests {
         let catalog: LunarSourceCatalog = serde_json::from_str(LUNAR_SOURCE_CATALOG_JSON)
             .expect("embedded source catalogue must parse");
         assert_eq!(catalog.sources.len(), 4);
+        assert_eq!(catalog.sources[0].candidate_crosswalk.len(), 11);
+        assert!(catalog
+            .sources
+            .iter()
+            .all(|source| !source.candidate_crosswalk.is_empty()));
         assert_eq!(catalog.ingestion_sequence.len(), 6);
         assert_eq!(catalog.historical_leads.len(), 3);
         assert!(catalog.metric_policy.contains("No derived site metrics"));
