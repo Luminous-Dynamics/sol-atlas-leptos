@@ -77,7 +77,11 @@ pub fn DatasetHealthPanel() -> impl IntoView {
                 };
                 let diagnostic = item.diagnostic.unwrap_or_default();
                 view! {
-                    <li class:malformed=malformed class:partially-loaded=partially_loaded>
+                    <li
+                        class:malformed=malformed
+                        class:partially-loaded=partially_loaded
+                        class:rejected=fully_rejected
+                    >
                         <span class="data-health-name">{item.dataset}</span>
                         <span class="data-health-state">{state}</span>
                         <span class="data-health-count">{format!("records: {count}")}</span>
