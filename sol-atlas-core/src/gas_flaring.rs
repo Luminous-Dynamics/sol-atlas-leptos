@@ -263,7 +263,7 @@ pub fn admit_snapshot(
                 "site key must not contain leading or trailing whitespace",
             ));
         } else if matches!(
-            snapshot.provenance.site_identity_method,
+            &snapshot.provenance.site_identity_method,
             SiteIdentityMethod::DerivedFingerprint { .. }
         ) && !is_sha256_hex(&site.site_key) {
             issues.push(issue(
@@ -752,6 +752,28 @@ mod tests {
         let summary = coverage_summary(&admitted);
         assert_eq!(summary.site_count, 2);
         assert_eq!(summary.geolocated_site_count, 1);
+    }
+
+    #[test]
+    fn derived_identity_requires_a_versioned_canonical_fingerprint() {
+        let mut snapshot = sample_snapshot();
+        snapshot.provenance.site_identity_method = SiteIdentityMethod::DerivedFingerprint {
+            algorithm_version: "sha256-canonical-json-v1".into(),
+            source_fields: vec![
+                "Country".into(),
+                "Field Name".into(),
+                "Latitude".into(),
+                "Longitude".into(),
+            ],
+        };
+        snapshot.sites[0].site_key = "b".repeat(64);
+        snapshot.sites[1].site_key = "a".repeat(64);
+        let admitted = admit_snapshot(snapshot.clone()).expect("canonical fingerprints pass");
+        assert_eq!(admitted.snapshot.sites[0].site_key, "a".repeat(64));
+
+        snapshot.sites[0].site_key = "not-a-fingerprint".into();
+        let issues = admit_snapshot(snapshot).expect_err("non-digest derived key rejects");
+        assert!(issues.iter().any(|item| item.code == "invalid_derived_site_fingerprint"));
     }
 
     #[test]
