@@ -27,6 +27,17 @@ pub enum TradeFlow {
     Import,
 }
 
+/// Grain of a reporter/partner geography in source data.
+///
+/// Aggregate areas (for example, World, a region, or a trade bloc) must not
+/// be treated as an individual reporting area for a bilateral mirror pair.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TradeAreaKind {
+    ReportingArea,
+    Aggregate,
+}
+
 /// A normalized shell around one source-reported trade observation.
 ///
 /// Preserve source-native identifiers and values alongside normalized fields.
@@ -47,10 +58,16 @@ pub struct TradeObservation {
     pub source_record_id: Option<String>,
     /// Canonical source record or dataset URL when redistribution policy permits.
     pub source_url: Option<String>,
-    /// Reporter of this observation.
+    /// Reporter identifier in the declared geography code system.
     pub reporter: String,
-    /// Partner named by the reporter.
+    /// Grain/class of the reporter identifier.
+    pub reporter_kind: TradeAreaKind,
+    /// Partner identifier in the declared geography code system.
     pub partner: String,
+    /// Grain/class of the partner identifier.
+    pub partner_kind: TradeAreaKind,
+    /// Code system used by reporter and partner (for example, UN M49).
+    pub geography_code_system: String,
     /// Source-defined reference period.
     pub period: String,
     /// Commodity code as supplied/normalized under the source contract.
@@ -103,8 +120,12 @@ pub enum MirrorPairStatus {
     InvalidRecordIdentity,
     /// Candidate records do not have export/import flow directions as expected.
     InvalidFlowDirection,
+    /// At least one party is an aggregate rather than an individual reporting area.
+    AggregatePartyNotSupported,
     /// Reporter and partner identifiers are not reciprocal.
     NonReciprocalReporters,
+    /// Geography identifiers came from different code systems.
+    GeographyCodeSystemMismatch,
     /// The source-defined periods differ.
     PeriodMismatch,
     /// Commodity codes differ.
@@ -273,6 +294,24 @@ pub fn compare_mirror_pair(
     if exporter.flow != TradeFlow::Export || importer.flow != TradeFlow::Import {
         return MirrorPairResult::excluded(
             MirrorPairStatus::InvalidFlowDirection,
+            exporter_id,
+            importer_id,
+        );
+    }
+    if exporter.reporter_kind != TradeAreaKind::ReportingArea
+        || exporter.partner_kind != TradeAreaKind::ReportingArea
+        || importer.reporter_kind != TradeAreaKind::ReportingArea
+        || importer.partner_kind != TradeAreaKind::ReportingArea
+    {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::AggregatePartyNotSupported,
+            exporter_id,
+            importer_id,
+        );
+    }
+    if exporter.geography_code_system != importer.geography_code_system {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::GeographyCodeSystemMismatch,
             exporter_id,
             importer_id,
         );
@@ -524,6 +563,7 @@ fn has_identity(observation: &TradeObservation) -> bool {
         && !observation.source_snapshot_id.trim().is_empty()
         && !observation.reporter.trim().is_empty()
         && !observation.partner.trim().is_empty()
+        && !observation.geography_code_system.trim().is_empty()
         && !observation.period.trim().is_empty()
         && !observation.commodity_code.trim().is_empty()
         && !observation.classification_revision.trim().is_empty()
@@ -550,7 +590,10 @@ mod tests {
             source_record_id: Some(format!("source-{record_id}")),
             source_url: Some("https://example.invalid/frozen-fixture".to_string()),
             reporter: reporter.to_string(),
+            reporter_kind: TradeAreaKind::ReportingArea,
             partner: partner.to_string(),
+            partner_kind: TradeAreaKind::ReportingArea,
+            geography_code_system: "TEST_ALPHA3".to_string(),
             period: "2025".to_string(),
             commodity_code: "010121".to_string(),
             classification_revision: "HS-2022".to_string(),
@@ -620,6 +663,28 @@ mod tests {
         assert_eq!(
             down.signed_difference_percent_of_exporter,
             Some(-20.0)
+        );
+    }
+
+    #[test]
+    fn rejects_aggregate_geographies_and_mismatched_code_systems() {
+        let mut exporter =
+            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let importer =
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        exporter.partner_kind = TradeAreaKind::Aggregate;
+        assert_eq!(
+            compare_mirror_pair(&[exporter], &[importer.clone()]).status,
+            MirrorPairStatus::AggregatePartyNotSupported
+        );
+
+        let exporter =
+            observation("exp-2", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer = importer;
+        importer.geography_code_system = "UN_M49".to_string();
+        assert_eq!(
+            compare_mirror_pair(&[exporter], &[importer]).status,
+            MirrorPairStatus::GeographyCodeSystemMismatch
         );
     }
 
