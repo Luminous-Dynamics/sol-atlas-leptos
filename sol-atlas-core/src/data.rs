@@ -623,6 +623,40 @@ mod tests {
     }
 
     #[test]
+    fn actual_bundled_firms_fixture_is_classified_as_synthetic() {
+        let bundled_firms = include_str!("../../assets/data/nasa-firms.json");
+        let events = parse_natural_events("[]", bundled_firms, "[]", "[]");
+        assert!(!events.is_empty(), "the bundled FIRMS fixture should parse");
+
+        assert!(
+            events.iter().all(|event| event.source_name.as_deref() == Some("Demo Data")),
+            "the static fixture must retain its own declared source, never be relabeled NASA FIRMS"
+        );
+        assert!(
+            events.iter().all(|event| event.data_kind == Some(DataKind::Synthetic)),
+            "the fixture's Demo/Synthetic/Generated lineage must be preserved per record"
+        );
+        assert!(
+            events.iter().all(|event| event.source_url.is_none()),
+            "synthetic fixture records must not receive official-source links"
+        );
+    }
+
+    #[test]
+    fn actual_bundled_usgs_fixture_uses_observed_source_classification() {
+        let bundled_quakes = include_str!("../../assets/data/usgs-earthquakes.json");
+        let events = parse_natural_events(bundled_quakes, "[]", "[]", "[]");
+        assert!(!events.is_empty(), "the bundled USGS fixture should parse");
+        assert!(
+            events.iter().any(|event| {
+                event.source_name.as_deref() == Some("USGS ComCat")
+                    && event.data_kind == Some(DataKind::Observed)
+            }),
+            "official USGS records should retain observed classification and canonical display source"
+        );
+    }
+
+    #[test]
     fn parse_geojson_empty() {
         let events = parse_natural_events("[]", "[]", "[]", "[]");
         assert!(events.is_empty());
