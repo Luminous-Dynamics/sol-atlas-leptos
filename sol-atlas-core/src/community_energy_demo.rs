@@ -284,6 +284,34 @@ pub fn verify(
         if row.battery_charge_input_kwh > EPS && row.battery_discharge_withdrawn_kwh > EPS {
             return Err(format!("simultaneous charge and discharge at interval {}", position));
         }
+        let input = *input;
+        let renewable_to_load_expected = input.load_kwh.min(input.renewable_generation_kwh);
+        if !near(row.renewable_to_load_kwh, renewable_to_load_expected)
+            || row.renewable_to_load_kwh > input.load_kwh + EPS
+            || row.renewable_to_load_kwh > input.renewable_generation_kwh + EPS
+        {
+            return Err(format!("renewable-to-load allocation mismatch at interval {}", position));
+        }
+        if row.battery_charge_input_kwh > configuration.max_charge_power_kw * INTERVAL_HOURS + EPS
+            || row.battery_discharge_withdrawn_kwh > configuration.max_discharge_power_kw * INTERVAL_HOURS + EPS
+        {
+            return Err(format!("battery power limit exceeded at interval {}", position));
+        }
+        let input_surplus = (input.renewable_generation_kwh - input.load_kwh).max(0.0);
+        let input_deficit = (input.load_kwh - input.renewable_generation_kwh).max(0.0);
+        if row.battery_charge_input_kwh > input_surplus + EPS
+            || row.grid_export_kwh > input_surplus + EPS
+            || row.battery_discharge_to_load_kwh > input_deficit + EPS
+        {
+            return Err(format!("flow direction exceeds available surplus/deficit at interval {}", position));
+        }
+        if input.grid_available {
+            if row.grid_import_kwh > input_deficit + EPS || row.grid_export_kwh > EPS && input_deficit > EPS {
+                return Err(format!("grid flow direction mismatch at interval {}", position));
+            }
+        } else if row.grid_import_kwh > EPS || row.grid_export_kwh > EPS {
+            return Err(format!("grid flow recorded during outage at interval {}", position));
+        }
         if !input.grid_available && (row.grid_import_kwh > EPS || row.grid_export_kwh > EPS) {
             return Err(format!("grid flow recorded during outage at interval {}", position));
         }
