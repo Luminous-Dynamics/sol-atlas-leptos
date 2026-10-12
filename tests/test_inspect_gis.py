@@ -52,6 +52,25 @@ class GisMetadataTests(unittest.TestCase):
             self.assertNotIn("-update", calls[1])
             self.assertNotIn("-features", calls[1])
 
+    def test_geopackage_can_be_raster_inspected_by_override(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "tiles.gpkg"
+            path.write_bytes(b"placeholder; command output is mocked")
+            calls = []
+            def fake_run(cmd, **kwargs):
+                calls.append(cmd)
+                if cmd[-1] == "--version":
+                    return FakeResult("GDAL 3.13")
+                return FakeResult(json.dumps({"description":str(path),"driverShortName":"GPKG",
+                                              "size":[256,256],"coordinateSystem":{"wkt":"WKT","projjson":{"name":"WGS 84"}},
+                                              "bands":[{"band":1,"type":"Byte"}]}))
+            with patch.object(inspect_gis.shutil, "which", return_value="/usr/bin/gdalinfo"), \
+                 patch.object(inspect_gis.subprocess, "run", side_effect=fake_run):
+                report = inspect_gis.inspect_gis(path, "T", "tiles", "", "unknown", "unreviewed", kind_override="raster")
+            self.assertEqual(report["inspection"]["kind"], "raster")
+            self.assertIn("-nomd", calls[1])
+            self.assertEqual(report["inspection"]["metadata"]["size"], [256,256])
+
     def test_blocks_missing_gdal_tool(self):
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / "t.tif"
