@@ -114,7 +114,14 @@
         "Earth visibility is defined by whether any part of Earth's disc is unobscured and can be optimistic for a specific radio link budget or ground-station geometry.",
         "NASA notes that Cloud-Optimized GeoTIFF overviews average the full-resolution values; quantitative analysis must sample full-resolution data rather than zoomed-out overviews."
       ],
-      "candidate_crosswalk": "Regional south-polar coverage; candidate-specific measurements require an explicit ROI and compatible coordinate transform.",
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "all-current-south-polar-regions",
+          "product_site": "regional raster coverage",
+          "mapping_state": "regional_coverage_only_candidate_roi_required",
+          "note": "The product supplies broad polar-band rasters; a candidate-specific value still requires an exact ROI, product-label/CRS verification, and full-resolution sampling."
+        }
+      ],
       "recommended_use": "Use for an initial coarse layer and permanent-shadow context, explicitly labelled as long-period mean. For operations, derive or obtain epoch-specific illumination and communication visibility.",
       "required_acceptance_checks": [
         "Verify band identity, unit/scale/offset, nodata, CRS, pixel registration and full-resolution block reads from the product labels.",
@@ -142,7 +149,14 @@
         "The DEM interpolates empty pixels. Its nominal grid spacing must not be interpreted as uniform independent terrain measurement coverage.",
         "The files are large; use windowed/COG access where supported rather than requiring every consumer to download all rasters."
       ],
-      "candidate_crosswalk": "Use only for regions within its documented 87°S–90°S coverage after explicit spatial overlap is verified.",
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "candidate-rois-intersecting-87s-to-90s",
+          "product_site": "87°S–90°S mosaic footprint",
+          "mapping_state": "use_only_after_verified_roi_intersection",
+          "note": "This mosaic is not a substitute for per-region coverage checks and must not be assumed to cover all candidate regions."
+        }
+      ],
       "recommended_use": "High-resolution topographic context for eligible southern areas; do not substitute it for absent candidate ROI boundaries or infer full coverage for Mons Mouton or other sites.",
       "required_acceptance_checks": [
         "Verify geographic bounds and actual ROI intersection before computing a candidate statistic.",
@@ -167,7 +181,14 @@
         "These are useful for communicating and visually checking illumination sequences, not a replacement for the numerical terrain/illumination model or data labels.",
         "Do not digitize video pixels to create site illumination percentages or claim exact local conditions from a regional animation."
       ],
-      "candidate_crosswalk": "Regional visual context only; no candidate-level numerical value may be inferred from the movie or frame thumbnails.",
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "all-current-candidates",
+          "product_site": "regional rendered visualization",
+          "mapping_state": "qualitative_only_no_numeric_candidate_values",
+          "note": "The rendered movie/frame series is not a georeferenced analysis raster and cannot supply numerical illumination metrics."
+        }
+      ],
       "recommended_use": "Link as a qualitative orientation resource alongside machine-readable LOLA/illumination data.",
       "required_acceptance_checks": [
         "Keep every value extracted from imagery explicitly classified as visual interpretation, not an authoritative measurement.",
