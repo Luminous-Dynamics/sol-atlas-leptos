@@ -279,10 +279,10 @@ impl MirrorPairResult {
 }
 
 /// Versioned name for the intentionally narrow calculation in this module.
-pub const RAW_MIRROR_METHOD_ID: &str = "raw_mirror_value_difference/v3";
+pub const RAW_MIRROR_METHOD_ID: &str = "raw_mirror_value_difference/v4";
 
 /// Current version of the normalized TradeObservation wire contract.
-pub const TRADE_OBSERVATION_SCHEMA_VERSION: u16 = 4;
+pub const TRADE_OBSERVATION_SCHEMA_VERSION: u16 = 5;
 
 /// Compare candidate bilateral reports without silently resolving ambiguity.
 ///
