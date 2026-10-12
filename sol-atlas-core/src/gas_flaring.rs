@@ -16,7 +16,8 @@
 //! workbook's sheet names, columns, units, terms, and snapshot digest are reviewed.
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use sha2::{Digest, Sha256};
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 /// Current World Bank Global Gas Flaring Tracker individual-site dataset page.
@@ -60,12 +61,13 @@ pub enum ReuseReview {
 pub enum SiteIdentityMethod {
     /// Use a stable identifier that is explicitly present in the source workbook.
     SourceField { field_name: String },
-    /// SHA-256 of a canonical encoding of the listed exact source fields.
+    /// SHA-256 of a canonical, length-prefixed encoding of the listed exact source fields.
     ///
-    /// Field names must be sorted and unique. The adapter must not round
-    /// coordinates or use workbook row numbers in this fingerprint. A changed
-    /// source field value can change identity; this is not a fuzzy entity-resolution
-    /// claim.
+    /// Field names must be sorted and unique, and every selected field must have a
+    /// non-empty exact normalized cell representation for each record. The adapter
+    /// must not round coordinates or use workbook row numbers in this fingerprint.
+    /// A changed source field value can change identity; this is not fuzzy entity
+    /// resolution. Admission recomputes the fingerprint instead of only checking its shape.
     DerivedFingerprint {
         algorithm_version: String,
         source_fields: Vec<String>,
@@ -110,16 +112,18 @@ pub enum MissingValueReason {
     Unknown,
 }
 
-/// A source-reported annual volume estimate or explicit missingness.
+/// A source-reported volume estimate for the stated calendar year, or explicit missingness.
 ///
-/// Units are fixed to million cubic metres per year (million m³/year), matching
-/// the World Bank page's individual flare-site visualization. This value remains
-/// a satellite-derived estimate; unit clarity does not elevate its evidence class.
+/// Units are million cubic metres in that year, matching the workbook's
+/// `Flaring Vol (million m3)` field as documented by a secondary extraction.
+/// The exact current workbook header and semantics must still be reviewed
+/// against the downloaded source before a production importer is qualified.
+/// This remains a satellite-derived estimate; units do not elevate its evidence class.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "status", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AnnualFlareValue {
     Estimated {
-        volume_million_m3_per_year: f64,
+        volume_million_m3: f64,
     },
     Missing {
         reason: MissingValueReason,
@@ -139,6 +143,10 @@ pub struct AnnualFlareEstimate {
 #[serde(deny_unknown_fields)]
 pub struct FlareSite {
     pub site_key: String,
+    /// Exact, normalized values for the source fields used to derive this key.
+    /// Values preserve lexical precision; they are not rounded display values.
+    /// Keys must exactly match the field(s) declared by `site_identity_method`.
+    pub identity_values: BTreeMap<String, String>,
     pub name: Option<String>,
     pub country: Option<String>,
     /// May be absent or stale in the source. No map marker is allowed without it.
@@ -267,15 +275,6 @@ pub fn admit_snapshot(
                 format!("{base}.site_key"),
                 "site key must not contain leading or trailing whitespace",
             ));
-        } else if matches!(
-            &snapshot.provenance.site_identity_method,
-            SiteIdentityMethod::DerivedFingerprint { .. }
-        ) && !is_sha256_hex(&site.site_key) {
-            issues.push(issue(
-                "invalid_derived_site_fingerprint",
-                format!("{base}.site_key"),
-                "derived site keys must be SHA-256 hex digests of canonical source fields",
-            ));
         } else if !seen_site_keys.insert(site.site_key.clone()) {
             issues.push(issue(
                 "duplicate_site_identity",
@@ -283,6 +282,13 @@ pub fn admit_snapshot(
                 "duplicate site keys are ambiguous and must be reconciled upstream",
             ));
         }
+
+        validate_site_identity(
+            &snapshot.provenance.site_identity_method,
+            site,
+            &base,
+            &mut issues,
+        );
 
         if matches!(site.name.as_deref(), Some(name) if name.trim().is_empty()) {
             issues.push(issue(
@@ -586,6 +592,114 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
     }
 }
 
+fn validate_site_identity(
+    method: &SiteIdentityMethod,
+    site: &FlareSite,
+    base: &str,
+    issues: &mut Vec<ValidationIssue>,
+) {
+    match method {
+        SiteIdentityMethod::SourceField { field_name } => {
+            match site.identity_values.get(field_name) {
+                Some(value) if value == &site.site_key && !value.trim().is_empty() => {
+                    if site.identity_values.len() != 1 {
+                        issues.push(issue(
+                            "unexpected_identity_material",
+                            format!("{base}.identity_values"),
+                            "source-field identity must carry only the declared source identity field",
+                        ));
+                    }
+                }
+                _ => issues.push(issue(
+                    "source_identity_mismatch",
+                    format!("{base}.identity_values.{field_name}"),
+                    "site key must exactly equal the non-empty source field declared by provenance",
+                )),
+            }
+        }
+        SiteIdentityMethod::DerivedFingerprint {
+            algorithm_version,
+            source_fields,
+        } => {
+            let actual_fields: Vec<&str> =
+                site.identity_values.keys().map(String::as_str).collect();
+            let expected_fields: Vec<&str> =
+                source_fields.iter().map(String::as_str).collect();
+
+            if actual_fields != expected_fields {
+                issues.push(issue(
+                    "identity_material_mismatch",
+                    format!("{base}.identity_values"),
+                    "identity material keys must exactly match the ordered source fields in provenance",
+                ));
+                return;
+            }
+
+            for field in source_fields {
+                if matches!(site.identity_values.get(field), Some(value) if value.trim().is_empty()) {
+                    issues.push(issue(
+                        "empty_identity_value",
+                        format!("{base}.identity_values.{field}"),
+                        "selected fingerprint fields must have non-empty source values",
+                    ));
+                    return;
+                }
+            }
+
+            match derive_site_key(algorithm_version, source_fields, &site.identity_values) {
+                Some(expected) if expected == site.site_key => {}
+                _ => issues.push(issue(
+                    "site_fingerprint_mismatch",
+                    format!("{base}.site_key"),
+                    "derived site key does not match the canonical source-field fingerprint",
+                )),
+            }
+        }
+    }
+}
+
+/// Return the lowercase SHA-256 digest of a domain-separated, length-prefixed
+/// encoding. Length prefixes eliminate delimiter ambiguity when source cells
+/// contain punctuation. Field names must already be in canonical sorted order.
+fn derive_site_key(
+    algorithm_version: &str,
+    source_fields: &[String],
+    identity_values: &BTreeMap<String, String>,
+) -> Option<String> {
+    if algorithm_version != "sha256-lp-v1"
+        || source_fields.is_empty()
+        || source_fields.windows(2).any(|pair| pair[0].as_str() >= pair[1].as_str())
+    {
+        return None;
+    }
+
+    let mut hasher = Sha256::new();
+    hasher.update(b"luminous-dynamics/sol-atlas/gas-flaring/site-identity\\0");
+    update_len_prefixed(&mut hasher, algorithm_version.as_bytes());
+    hasher.update((source_fields.len() as u64).to_be_bytes());
+    for field in source_fields {
+        let value = identity_values.get(field)?;
+        update_len_prefixed(&mut hasher, field.as_bytes());
+        update_len_prefixed(&mut hasher, value.as_bytes());
+    }
+    Some(hex_lower(&hasher.finalize()))
+}
+
+fn update_len_prefixed(hasher: &mut Sha256, bytes: &[u8]) {
+    hasher.update((bytes.len() as u64).to_be_bytes());
+    hasher.update(bytes);
+}
+
+fn hex_lower(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut output = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        output.push(HEX[(byte >> 4) as usize] as char);
+        output.push(HEX[(byte & 0x0f) as usize] as char);
+    }
+    output
+}
+
 fn is_sha256_hex(value: &str) -> bool {
     value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
@@ -632,6 +746,7 @@ mod tests {
     fn site(id: &str, estimates: Vec<AnnualFlareEstimate>) -> FlareSite {
         FlareSite {
             site_key: id.into(),
+            identity_values: BTreeMap::from([("Synthetic Site ID".to_string(), id.to_string())]),
             name: Some(format!("Fixture {id}")),
             country: Some("Example".into()),
             location: Some(GeoPoint {
@@ -765,23 +880,39 @@ mod tests {
     #[test]
     fn derived_identity_requires_a_versioned_canonical_fingerprint() {
         let mut snapshot = sample_snapshot();
+        let fields = vec![
+            "Country".to_string(),
+            "Field Name".to_string(),
+            "Latitude".to_string(),
+            "Longitude".to_string(),
+        ];
         snapshot.provenance.site_identity_method = SiteIdentityMethod::DerivedFingerprint {
-            algorithm_version: "sha256-canonical-json-v1".into(),
-            source_fields: vec![
-                "Country".into(),
-                "Field Name".into(),
-                "Latitude".into(),
-                "Longitude".into(),
-            ],
+            algorithm_version: "sha256-lp-v1".into(),
+            source_fields: fields.clone(),
         };
-        snapshot.sites[0].site_key = "b".repeat(64);
-        snapshot.sites[1].site_key = "a".repeat(64);
+        for site in &mut snapshot.sites {
+            let fixture_name = format!("Fixture {}", site.site_key);
+            site.identity_values = BTreeMap::from([
+                ("Country".to_string(), "Example".to_string()),
+                ("Field Name".to_string(), fixture_name),
+                ("Latitude".to_string(), "0".to_string()),
+                ("Longitude".to_string(), "0".to_string()),
+            ]);
+            site.site_key = derive_site_key("sha256-lp-v1", &fields, &site.identity_values)
+                .expect("complete identity values");
+        }
+        let expected_first_key = snapshot
+            .sites
+            .iter()
+            .map(|site| site.site_key.clone())
+            .min()
+            .unwrap();
         let admitted = admit_snapshot(snapshot.clone()).expect("canonical fingerprints pass");
-        assert_eq!(admitted.snapshot.sites[0].site_key, "a".repeat(64));
+        assert_eq!(admitted.snapshot.sites[0].site_key, expected_first_key);
 
-        snapshot.sites[0].site_key = "not-a-fingerprint".into();
-        let issues = admit_snapshot(snapshot).expect_err("non-digest derived key rejects");
-        assert!(issues.iter().any(|item| item.code == "invalid_derived_site_fingerprint"));
+        snapshot.sites[0].site_key = "0".repeat(64);
+        let issues = admit_snapshot(snapshot).expect_err("incorrect digest rejects");
+        assert!(issues.iter().any(|item| item.code == "site_fingerprint_mismatch"));
     }
 
     #[test]
