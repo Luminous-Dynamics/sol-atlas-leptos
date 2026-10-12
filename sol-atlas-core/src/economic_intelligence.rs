@@ -123,7 +123,6 @@ pub enum MirrorPairStatus {
     /// Exporter-side value is zero or negative and is excluded from this method.
     NonPositiveExporterValue,
     /// Importer-side value is zero or negative and is excluded from this method.
-    /// Importer-side value is zero or negative and is excluded from this method.
     NonPositiveImporterValue,
 }
 
@@ -702,7 +701,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_exponent_notation_and_decimal_precision_overflow() {
+    fn rejects_exponent_notation_precision_and_integer_overflow() {
         let mut exporter = observation(
             "exp-1",
             "AAA",
@@ -733,6 +732,27 @@ mod tests {
         exporter.trade_value_source_text = Some("1.0000000000000000001".to_string());
         let importer = observation(
             "imp-2",
+            "BBB",
+            "AAA",
+            TradeFlow::Import,
+            Some(120.0),
+        );
+        assert_eq!(
+            compare_mirror_pair(&[exporter], &[importer]).status,
+            MirrorPairStatus::InvalidExporterValueFormat
+        );
+
+        let mut exporter = observation(
+            "exp-3",
+            "AAA",
+            "BBB",
+            TradeFlow::Export,
+            Some(100.0),
+        );
+        exporter.trade_value_source_text =
+            Some("999999999999999999999999999999999999999999".to_string());
+        let importer = observation(
+            "imp-3",
             "BBB",
             "AAA",
             TradeFlow::Import,
