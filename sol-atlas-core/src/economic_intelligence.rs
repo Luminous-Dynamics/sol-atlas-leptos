@@ -604,8 +604,8 @@ mod tests {
         TradeObservation {
             schema_version: TRADE_OBSERVATION_SCHEMA_VERSION,
             record_id: record_id.to_string(),
-            source_id: "un-comtrade-fixture".to_string(),
-            source_snapshot_id: "sha256:fixture-v1".to_string(),
+            source_id: "synthetic-un-comtrade-fixture".to_string(),
+            source_snapshot_id: "synthetic-fixture-v1".to_string(),
             source_record_id: Some(format!("source-{record_id}")),
             source_url: Some("https://example.invalid/frozen-fixture".to_string()),
             reporter: reporter.to_string(),
