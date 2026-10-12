@@ -27,6 +27,9 @@ GEO_TYPES = {
     ".csv": "CSV; inspect coordinates and units",
     ".parquet": "Parquet; inspect geometry encoding",
     ".fgb": "FlatGeobuf", ".grd": "Grid candidate; confirm format",
+    ".gdbtable": "Esri File Geodatabase component; parent .gdb directory is required",
+    ".gdbtablx": "Esri File Geodatabase index component", ".gdbindexes": "Esri File Geodatabase index component",
+    ".spx": "Esri File Geodatabase spatial index component", ".atx": "Esri File Geodatabase attribute index component",
 }
 MAX_RATIO_WARNING = 200.0
 MAX_MEMBER_WARNING_BYTES = 2 * 1024**3
@@ -121,6 +124,23 @@ def inspect_zip(path: Path, verify_crc: bool = False) -> dict[str, Any]:
         if unsafe:
             warnings.append("Unsafe archive paths found; archive must not be extracted before manual review")
 
+    file_gdb_roots: dict[str, dict[str, Any]] = {}
+    for member in members:
+        parts = PurePosixPath(member["path"]).parts
+        gdb_position = next((i for i, part in enumerate(parts) if part.lower().endswith(".gdb")), None)
+        if gdb_position is not None and gdb_position < len(parts) - 1:
+            root = PurePosixPath(*parts[:gdb_position + 1]).as_posix()
+            entry = file_gdb_roots.setdefault(root, {"root": root, "member_count": 0,
+                                                      "component_bytes": 0, "component_extensions": Counter()})
+            entry["member_count"] += 1
+            entry["component_bytes"] += member["bytes"]
+            entry["component_extensions"][member["extension"] or "[no extension]"] += 1
+    gdb_results = []
+    for root, info in sorted(file_gdb_roots.items()):
+        gdb_results.append({"root": root, "member_count": info["member_count"],
+                            "component_bytes": info["component_bytes"],
+                            "component_extensions": dict(sorted(info["component_extensions"].items()))})
+
     sidecars_by_base: dict[str, set[str]] = {}
     for member in members:
         if member["extension"] in {".shp", ".shx", ".dbf", ".prj", ".cpg"}:
@@ -161,7 +181,7 @@ def inspect_zip(path: Path, verify_crc: bool = False) -> dict[str, Any]:
         "portable_filename_collisions": portable_collisions,
         "extensions": dict(sorted(extensions.items())),
         "geospatial_extension_types": sorted({m["extension"] for m in members if m["geospatial_candidate"]}),
-        "shapefile_sidecar_checks": sidecar_results,
+        "shapefile_sidecar_checks": sidecar_results, "file_geodatabase_roots": gdb_results,
         "uncompressed_bytes_total": total_uncompressed,
         "compressed_bytes_total": total_compressed, "compression_ratio": ratio,
         "payload_crc_status": crc_status, "warnings": warnings, "preflight_status": status,
