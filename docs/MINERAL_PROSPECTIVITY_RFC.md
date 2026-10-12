@@ -66,7 +66,8 @@ Before claiming an improvement:
 ## Companion artifacts
 
 - [Initial data inventory](MINERAL_PROSPECTIVITY_DATA_INVENTORY.md) records what source access has been verified, what remains unchecked, and the next M0 actions.
-- [Dataset manifest JSON Schema](schemas/mineral-dataset-manifest.schema.json) defines the provenance/rights/quality contract for a source or derived layer.
+- [Baseline reproduction audit](MINERAL_PROSPECTIVITY_BASELINE_AUDIT.md) records the published workflow, the 142 MB supplement ingestion blocker, and target-specific spatial validation requirements.
+- [Dataset manifest JSON Schema](schemas/mineral-dataset-manifest.schema.json) defines the provenance/rights/quality contract for a source or derived layer, with exact 64-hex-character checksums for SHA-256/BLAKE3 digests.
 
 These are desk-research artifacts only. They do not certify individual datasets as licensed, downloaded, validated, or ready for ingestion.
 
