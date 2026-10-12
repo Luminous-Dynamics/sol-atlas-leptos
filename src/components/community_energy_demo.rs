@@ -10,8 +10,7 @@ use leptos::prelude::*;
 use leptos_router::components::A;
 
 use sol_atlas_core::community_energy_demo::{
-    simulate, verify, BatteryConfiguration, EnergyIntervalInput, SimulationResult,
-    VerificationReport, GovernanceVoteFixture, SCENARIO_INPUTS, CASE_ID, EVIDENCE_CLASS,
+    simulate, verify, BatteryConfiguration, GovernanceVoteFixture, SCENARIO_INPUTS, CASE_ID, EVIDENCE_CLASS,
 };
 
 #[component]
@@ -155,7 +154,7 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                                 each=move || selected_run().intervals
                                 key=|row| row.input.interval
                                 children=move |row| view! {
-                                    <tr class:community-energy-outage=move || !row.input.grid_available>
+                                    <tr class:community-energy-outage=!row.input.grid_available>
                                         <td>{row.input.interval + 1}</td>
                                         <td>{if row.input.grid_available { "UP" } else { "OUTAGE" }}</td>
                                         <td>{format!("{:.2}", row.input.load_kwh)}</td>
@@ -190,7 +189,7 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                 <div class="community-energy-vote">
                     <div class="community-energy-vote-result">
                         <span class="community-energy-label">"ILLUSTRATIVE DECISION"</span>
-                        <strong>"{if vote.passed() { "PASSED" } else { "NOT PASSED" }}"</strong>
+                        <strong>{if vote.passed() { "PASSED" } else { "NOT PASSED" }}</strong>
                         <p>"A simple one-person/one-vote rule is used only for this exhibit. Mycelix Governance describes a different, experimental MATL/stake-weighted model; this page does not claim conformance to that policy."</p>
                     </div>
                     <div class="community-energy-vote-numbers">
@@ -230,5 +229,3 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
     }
 }
 
-#[allow(dead_code)]
-fn _types_are_explicitly_bound(_input: EnergyIntervalInput, _run: SimulationResult, _report: VerificationReport) {}
