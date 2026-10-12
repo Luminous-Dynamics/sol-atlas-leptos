@@ -200,3 +200,18 @@ Therefore keep Connecting Ridge / Site 01–ROI 4–6 as a separate historical c
 ### Ingestion acceptance gate
 
 No raster-derived number should enter the candidate register until the record contains a source URL/version, downloaded asset hash, retrieval time, product-label reference, coordinate frame, units, pixel registration, spatial resolution, nodata/scale-offset handling, ROI mask version, temporal window where applicable, uncertainty treatment, software version and replayable calculation receipt. Store source-reported observations separately from repository-computed measurements, and keep missing or incompatible data as unknown.
+
+
+## Current infrastructure demand signal (checked 12 October 2026)
+
+NASA's 8 September 2026 announcement for the NextSTEP-3 Broad Agency Announcement, Appendix A — Lunar Enabling Infrastructure Accelerator, was updated on 28 September 2026 to extend the response deadline. The published target capability areas are:
+
+1. **Vertical solar arrays and power distribution/storage** — include deployment geometry, dust response, cable/connector standards, storage state-of-charge reserve, thermal cycling and power continuity under the intended surface timeline.
+2. **Oxygen extraction from regolith** — require a measured feedstock assay and process energy/material balance. Do not assume that regolith oxygen production proves accessible water ice or that the product is immediately safe for crew use.
+3. **Radioisotope Stirling power** — treat as a firm-power option requiring heat-flow, radiator, lifetime, maintenance, launch-safety and deployment analysis; the existence of a NASA call is not a finding that a given design is flight-ready.
+4. **In-space advanced manufacturing** — prioritize repairable interfaces, qualified feedstocks and replacement parts that materially reduce Earth resupply, not broad “manufacturing capability” claims without demonstrated part requirements.
+5. **Nanomaterials production** — keep a separate technology-demonstration track with product specifications, process yields, power/thermal demand and contamination controls. Do not assume it is a first-base prerequisite.
+
+These are useful external alignment signals for the proposed infrastructure roadmap, not procurement eligibility or award advice. The solicitation is U.S.-led and its participation rules need to be checked in the live [SAM.gov opportunity](https://sam.gov/workspace/contract/opp/a6de3e86307449dbbf316af25147e35e/view); the NASA announcement states that industry, academia, non-profits and international partners participating through U.S.-led teams may be eligible. Recheck the live notice before acting because the response deadline and detailed terms can change.
+
+**Design implication:** make the first lunar node a set of interoperable services with explicit interfaces: primary solar generation, firm-power contingency, energy storage, DC distribution, dust-tolerant connectors, thermal rejection, communications/navigation, robotic inspection/repair, and telemetry with independently checkable evidence. Tie later oxygen extraction/manufacturing modules to measured throughput, kWh/kg, useful yield, availability, maintenance and spares. Shared electrical/mechanical interfaces and evidence contracts are higher leverage than choosing a single “hero” reactor or factory prematurely.
