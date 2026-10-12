@@ -233,7 +233,7 @@ impl MirrorPairResult {
 }
 
 /// Versioned name for the intentionally narrow calculation in this module.
-pub const RAW_MIRROR_METHOD_ID: &str = "raw_mirror_value_difference/v1";
+pub const RAW_MIRROR_METHOD_ID: &str = "raw_mirror_value_difference/v2";
 
 /// Current version of the normalized TradeObservation wire contract.
 pub const TRADE_OBSERVATION_SCHEMA_VERSION: u16 = 2;
@@ -1004,7 +1004,7 @@ mod tests {
 
     #[test]
     fn rejects_different_source_reporting_states() {
-        let mut exporter =
+        let exporter =
             observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
         let mut importer =
             observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
@@ -1014,10 +1014,6 @@ mod tests {
             compare_mirror_pair(&[exporter.clone()], &[importer]).status,
             MirrorPairStatus::SourceStateMismatch
         );
-        // Keep mutability intentional for future test dimensions; assert a
-        // matching state passes that particular gate.
-        exporter.source_state_signature =
-            "synthetic-state/v1|reported=true|legacy_estimation=0".to_string();
     }
 
     #[test]
