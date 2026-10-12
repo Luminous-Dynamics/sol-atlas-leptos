@@ -32,6 +32,8 @@ pub const WORLD_BANK_FLARING_WORKBOOK_URL: &str =
 /// Explicitly bounded statement about what a site record represents.
 pub const CLAIM_CEILING: &str = "Satellite-derived flaring-volume estimate for screening only; not recoverability, methane leakage, verified emissions reduction, engineering viability, or financial return.";
 
+/// Records a declared reuse review decision. The fields are not signed proof;
+/// arbitrary normalized JSON must not be allowed to self-authorize data reuse.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub enum ReuseReview {
@@ -114,16 +116,16 @@ pub enum MissingValueReason {
 
 /// A source-reported volume estimate for the stated calendar year, or explicit missingness.
 ///
-/// Units are million cubic metres in that year, matching the workbook's
-/// `Flaring Vol (million m3)` field as documented by a secondary extraction.
-/// The exact current workbook header and semantics must still be reviewed
-/// against the downloaded source before a production importer is qualified.
-/// This remains a satellite-derived estimate; units do not elevate its evidence class.
+/// The World Bank's official individual-site visualization labels this quantity
+/// in million cubic metres per year (million m³/yr). The exact current workbook
+/// header and column semantics still require direct inspection before a production
+/// importer is qualified. This remains a satellite-derived estimate; units do not
+/// elevate its evidence class.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "status", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AnnualFlareValue {
     Estimated {
-        volume_million_m3: f64,
+        volume_million_m3_per_year: f64,
     },
     Missing {
         reason: MissingValueReason,
@@ -222,11 +224,14 @@ pub struct FlareCoverageSummary {
     pub represented_years: Vec<u16>,
 }
 
-/// Parse and admit a normalized JSON source snapshot.
+/// Parse and structurally admit a normalized JSON source snapshot.
 ///
 /// The caller must compute `snapshot_sha256` over the exact downloaded XLSX
-/// bytes, map the reviewed worksheet columns explicitly, and attach the source
-/// attribution and reuse decision. Any admission issue rejects the whole snapshot.
+/// bytes, map reviewed worksheet columns explicitly, and attach attribution and
+/// the reuse-review attestation. This function validates digest *shape*, not the
+/// digest against source bytes; nor does it authenticate the reviewer or confirm
+/// the legal scope of the terms. Those checks belong in the trusted acquisition
+/// and review workflow. Any structural admission issue rejects the snapshot.
 pub fn parse_json_snapshot(json: &str) -> Result<ValidatedFlareSnapshot, AdmissionError> {
     let snapshot: FlareSnapshot =
         serde_json::from_str(json).map_err(|error| AdmissionError::InvalidJson(error.to_string()))?;
@@ -354,15 +359,15 @@ pub fn admit_snapshot(
                 ));
             }
             if let AnnualFlareValue::Estimated {
-                volume_million_m3,
+                volume_million_m3_per_year,
             } = &estimate.value
             {
-                if !volume_million_m3.is_finite()
-                    || *volume_million_m3 < 0.0
+                if !volume_million_m3_per_year.is_finite()
+                    || *volume_million_m3_per_year < 0.0
                 {
                     issues.push(issue(
                         "invalid_flare_volume",
-                        format!("{row_path}.value.volume_million_m3"),
+                        format!("{row_path}.value.volume_million_m3_per_year"),
                         "estimated flare volume must be finite and non-negative",
                     ));
                 }
@@ -420,7 +425,7 @@ pub fn coverage_summary(admitted: &ValidatedFlareSnapshot) -> FlareCoverageSumma
             matches!(
                 &row.value,
                 AnnualFlareValue::Estimated {
-                    volume_million_m3: value
+                    volume_million_m3_per_year: value
                 } if *value == 0.0
             )
         })
@@ -772,7 +777,7 @@ mod tests {
                         estimate(
                             2025,
                             AnnualFlareValue::Estimated {
-                                volume_million_m3: 0.0,
+                                volume_million_m3_per_year: 0.0,
                             },
                         ),
                         estimate(
@@ -788,7 +793,7 @@ mod tests {
                     vec![estimate(
                         2024,
                         AnnualFlareValue::Estimated {
-                            volume_million_m3: 2.5,
+                            volume_million_m3_per_year: 2.5,
                         },
                     )],
                 ),
@@ -850,7 +855,7 @@ mod tests {
         let mut snapshot = sample_snapshot();
         snapshot.sites[0].location.as_mut().unwrap().latitude_deg = 91.0;
         snapshot.sites[1].annual_estimates[0].value = AnnualFlareValue::Estimated {
-            volume_million_m3: f64::NAN,
+            volume_million_m3_per_year: f64::NAN,
         };
         let issues = admit_snapshot(snapshot).expect_err("invalid values must fail closed");
         assert!(issues.iter().any(|item| item.code == "invalid_latitude"));
@@ -913,6 +918,36 @@ mod tests {
         snapshot.sites[0].site_key = "0".repeat(64);
         let issues = admit_snapshot(snapshot).expect_err("incorrect digest rejects");
         assert!(issues.iter().any(|item| item.code == "site_fingerprint_mismatch"));
+    }
+
+    #[test]
+    fn source_field_identity_must_match_the_preserved_identity_value() {
+        let mut snapshot = sample_snapshot();
+        snapshot.sites[0]
+            .identity_values
+            .insert("Synthetic Site ID".into(), "different-site".into());
+        let issues = admit_snapshot(snapshot).expect_err("mismatched source ID must reject");
+        assert!(issues.iter().any(|item| item.code == "source_identity_mismatch"));
+    }
+
+    #[test]
+    fn derived_identity_has_a_pinned_sha256_test_vector() {
+        let fields = vec![
+            "Country".to_string(),
+            "Field Name".to_string(),
+            "Latitude".to_string(),
+            "Longitude".to_string(),
+        ];
+        let identity_values = BTreeMap::from([
+            ("Country".to_string(), "Example".to_string()),
+            ("Field Name".to_string(), "Fixture site-a".to_string()),
+            ("Latitude".to_string(), "0".to_string()),
+            ("Longitude".to_string(), "0".to_string()),
+        ]);
+        assert_eq!(
+            derive_site_key("sha256-lp-v1", &fields, &identity_values).as_deref(),
+            Some("ddaafb859e491e9e2d9dd3a532686b170fa5c67e74b1af0c6c73e1fd676f3819")
+        );
     }
 
     #[test]
