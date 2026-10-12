@@ -30,6 +30,11 @@
       ],
       "candidate_crosswalk": [
         {
+          "candidate_id": "connecting-ridge",
+          "product_site": "Site01: Connecting ridge; legacy ROI boundaries",
+          "mapping_state": "name_match_roi_validation_required"
+        },
+        {
           "candidate_id": "peak-near-shackleton",
           "product_site": "Site07: Peak near Shackleton",
           "mapping_state": "name_match_roi_validation_required"
