@@ -231,7 +231,7 @@ impl Layer {
                 source: "USGS ComCat M1.0+ live feed; bundled fallback",
                 snapshot_date: "",
                 kind: Observed,
-                time_basis: DataTimeBasis::LiveFeed,
+                time_basis: DataTimeBasis::LiveFeedWithBundledFallback,
             },
             Self::Fires => DataProvenance {
                 source: "NASA FIRMS active-fire feed",
@@ -309,7 +309,7 @@ pub enum DataTimeBasis {
     /// Data corresponds to a dated, frozen source snapshot.
     FrozenSnapshot,
     /// A live source is refreshed over time; the effective snapshot date is per retrieval.
-    LiveFeed,
+    LiveFeedWithBundledFallback,
     /// Real-world reference data whose capture date is not recorded.
     UndatedReference,
     /// Fictional/planning content rather than an observation of the present world.
@@ -334,8 +334,8 @@ impl DataProvenance {
             DataTimeBasis::FrozenSnapshot => {
                 format!("{} — snapshot {}", self.source, self.snapshot_date)
             }
-            DataTimeBasis::LiveFeed => {
-                format!("{} — live feed; snapshot varies by retrieval", self.source)
+            DataTimeBasis::LiveFeedWithBundledFallback => {
+                format!("{} — live feed or bundled fallback; snapshot depends on retrieval/source", self.source)
             }
             DataTimeBasis::UndatedReference => self.source.to_string(),
         }
@@ -894,7 +894,7 @@ mod provenance_tests {
                         "{layer:?} has a frozen observed snapshot but is not Observed"
                     );
                 }
-                DataTimeBasis::LiveFeed => {
+                DataTimeBasis::LiveFeedWithBundledFallback => {
                     assert!(
                         p.snapshot_date.is_empty(),
                         "{layer:?} uses a fixed date for a live feed"
@@ -927,7 +927,8 @@ mod provenance_tests {
         );
         let earthquake = Layer::Earthquakes.provenance();
         assert!(earthquake.summary().contains("live feed"));
-        assert!(earthquake.summary().contains("snapshot varies by retrieval"));
+        assert!(earthquake.summary().contains("snapshot depends on retrieval/source"));
+        assert!(earthquake.summary().contains("bundled fallback"));
         assert!(earthquake.snapshot_date.is_empty());
     }
 }
