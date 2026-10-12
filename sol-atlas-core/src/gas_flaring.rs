@@ -729,7 +729,7 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
                     issues.push(issue(
                         "incomplete_reuse_approval",
                         format!("provenance.reuse_review.{field}"),
-                        "reuse approval must include reviewer, date, terms URI, terms digest, and scoped purpose",
+                        "reuse approval must include reviewer, date, terms URI, digest, and purpose",
                     ));
                 }
             }
@@ -770,7 +770,7 @@ fn validate_reuse_authorization(
         issues.push(issue(
             "reuse_authorization_binding_mismatch",
             "provenance",
-            "trusted reuse authorization must bind this exact source URI, version, and snapshot digest",
+            "authorization must bind the exact source URI, version, and snapshot digest",
         ));
     }
 
@@ -792,7 +792,7 @@ fn validate_reuse_authorization(
         issues.push(issue(
             "reuse_authorization_attestation_mismatch",
             "provenance.reuse_review",
-            "snapshot review metadata must exactly match the separately supplied trusted authorization",
+            "review metadata must match the separately supplied trusted authorization",
         ));
     }
 }
@@ -811,7 +811,7 @@ fn validate_site_identity(
                         issues.push(issue(
                             "unexpected_identity_material",
                             format!("{base}.identity_values"),
-                            "source-field identity must carry only the declared source identity field",
+                            "source-field identity must carry only the declared ID field",
                         ));
                     }
                 }
@@ -835,7 +835,7 @@ fn validate_site_identity(
                 issues.push(issue(
                     "identity_material_mismatch",
                     format!("{base}.identity_values"),
-                    "identity material keys must exactly match the ordered source fields in provenance",
+                    "identity material keys must match the declared source fields in order",
                 ));
                 return;
             }
@@ -1016,13 +1016,21 @@ mod tests {
             retrieved_at: "2026-10-12T00:00:00Z".into(),
             reference_year_start: 2024,
             reference_year_end: 2025,
-            attribution: "Synthetic unit-test data only; no real World Bank source values included".into(),
+            attribution: concat!(
+                "Synthetic unit-test data only; no real World Bank source values ",
+                "included"
+            )
+            .into(),
             reuse_review: ReuseReview::Approved {
                 reviewer: "test-fixture-review".into(),
                 reviewed_at: "2026-10-12".into(),
                 terms_uri: "https://example.invalid/synthetic-test-terms".into(),
                 terms_snapshot_sha256: sha256_hex(b"synthetic terms snapshot bytes"),
-                approved_purpose: "Synthetic unit-test fixture only; source workbook redistribution not implied".into(),
+                approved_purpose: concat!(
+                    "Synthetic unit-test fixture only; source workbook ",
+                    "redistribution not implied"
+                )
+                .into(),
             },
         }
     }
@@ -1277,8 +1285,8 @@ mod tests {
         let mut invalid = sample_snapshot();
         invalid.provenance.source_uri = "http://example.invalid".into();
         let invalid_json = serde_json::to_string(&invalid).unwrap();
-        let error =
-            parse_json_snapshot(&invalid_json, &test_authorization()).expect_err("HTTP sources must reject");
+        let error = parse_json_snapshot(&invalid_json, &test_authorization())
+            .expect_err("HTTP sources must reject");
         match error {
             AdmissionError::Rejected(issues) => {
                 assert!(issues.iter().any(|item| item.code == "invalid_source_uri"));
