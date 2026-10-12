@@ -19,6 +19,20 @@ Inspected on the repository's `main` branch on 2026-10-10:
 
 Therefore the current bodies are an artistic/stylized visualization, not an ephemeris-accurate solar-system simulator. This is fine as an explicitly stylized starting view, but its output must not be described as real-time or physically accurate positions.
 
+## Existing Bevy Sol Atlas implementation (confirmed 2026-10-12)
+
+There is already a substantial Bevy edition. Do not plan as though Sol Atlas has only the Leptos/WebGL2 renderer.
+
+- The monorepo contains `sol-atlas-bevy`, a Bevy 0.19 plugin depending on `sol-atlas-core`. Its public `SolAtlasPlugin` registers globe, camera, cloud/holographic material, H3 hover, and cell-entry systems.
+- The app is integrated into `symtropy-launcher` behind the `atlas` Cargo feature and is launched through `symtropy/run-sol-atlas.sh`. That launcher explicitly provisions `vulkan-loader` and native X11 libraries.
+- The launcher manifest enables Bevy's `bevy_render`, `bevy_pbr`, mesh, camera, shader and post-processing features. Bevy's 0.19 render stack uses `wgpu`; the native renderer can use Vulkan when its resolved feature set, driver, and runtime adapter permit it.
+- The Bevy version already has a richer 3D scene than the deployed browser app: textured globe, atmosphere/clouds, night lights, orbital camera, H3-cell drill-down and walk-in mode, timeline interaction, data markers/routes, and frame capture.
+- The browser edition remains valuable as the public zero-install front door. The Bevy edition is the native immersive/deep-inspection application. Their domain data should continue to converge through `sol-atlas-core`, rather than duplicating business logic.
+
+**Important evidence distinction:** the repository manifests and launcher prove that a Bevy/wgpu/Vulkan-capable native path exists in source. They do not alone prove which backend was selected on a particular run, that Vulkan rendered successfully on the target machine, or that a performance benchmark passed. Record the actual adapter/backend from a run before making those stronger claims.
+
+This changes the migration priority: validate and improve the existing Bevy/wgpu native path first. A second standalone native `wgpu` sphere app should only be created if it isolates a specific rendering/backend issue that cannot be measured in the existing Bevy scene.
+
 ## Rendering backend decision
 
 ### Recommended direction: one renderer API, multiple backends
@@ -43,9 +57,9 @@ WebGPU remains limited-availability rather than universally supported. Do not re
 
 1. **Freeze a renderer baseline.** Capture deterministic screenshots and interaction recordings for the existing Earth sphere, lighting/cloud/night textures, marker/arc layers, atmosphere, bloom, camera controls and context-loss behavior. Record startup-to-first-frame, frame-time distribution, GPU/CPU memory where available, shader/program count and texture residency on named devices/browsers.
 2. **Define a narrow renderer contract.** Keep domain and astronomical data free of `web_sys` objects. Add explicit scene/view inputs and renderer-owned lifecycle APIs; do not leak `WebGlTexture` or `wgpu::Texture` into `sol-atlas-core`.
-3. **Build a small `wgpu` proof.** Render one sphere, one texture, one camera and one selected object with WGSL. First prove the WebAssembly WebGPU path and native Linux Vulkan path independently. Verify whether a combined WebGPU + WebGL WASM artifact works reliably with the selected pinned `wgpu` release; if not, use distinct browser build variants or the existing WebGL2 fallback rather than claiming one artifact can cover all devices.
-4. **Compare, don't assume.** Render the same frozen scene in the current WebGL2 implementation, browser `wgpu`, and native Vulkan. Compare projection, texture orientation, depth ordering, colour/tone mapping, picking, resize behavior, surface/device loss, and deterministic frame inputs. Do not remove the old renderer until the replacement passes the predeclared gate.
-5. **Migrate capabilities in slices.** Start with sphere + textures + camera, then markers/arcs and picking, then atmosphere/post-processing, then camera-driven tile imagery. Keep the existing full-globe Earth texture as a fallback while tile scheduling, decoding, cache eviction, texture memory limits, parent-tile fallback, stale-request cancellation and attribution are proven.
+3. **Validate the two real targets, not a duplicate app.** For native Linux, run the existing `symtropy-launcher --features atlas` and instrument/record the selected Bevy/wgpu backend, adapter, driver, startup, and first frame. Confirm that the exact resolved Bevy/wgpu feature graph includes Vulkan. If backend initialization or diagnostics cannot isolate the issue in Bevy, then create a disposable one-sphere `wgpu` proof as a diagnostic tool, not a second production renderer. For browser WASM, separately prove the WebGPU path and whether the pinned dependency graph supports a reliable WebGL2 fallback.
+4. **Compare, don't assume.** Use matching camera pose, scene snapshot, textures, layer state and resolution to compare the current browser WebGL2 path, browser WebGPU prototype, and existing Bevy native path. Compare globe projection, texture orientation, depth ordering, colour/tone mapping, picking, resize, context/device loss, deterministic frame inputs, startup-to-first-frame, frame-time distributions and GPU memory. Do not remove the existing browser renderer until the replacement passes the predeclared gate.
+5. **Migrate capabilities in slices.** In the browser, start with sphere + textures + camera, then markers/arcs and picking, then atmosphere/post-processing, then camera-driven tile imagery. In Bevy, improve the existing corresponding scene rather than rewriting it. Keep the full-globe Earth texture as a fallback while tile scheduling, decoding, cache eviction, texture memory limits, parent-tile fallback, stale-request cancellation and attribution are proven.
 6. **Pin and report the toolchain.** Pin the selected `wgpu` version and Rust toolchain; avoid copying feature flags from the moving `latest` docs without checking that version. Keep per-target CI separate and report results for the exact commit and build feature set.
 
 ### Version-pinned browser fallback experiment (researched 2026-10-12)
@@ -69,8 +83,8 @@ Browser selection must be an explicit, recoverable state machine:
 On native Linux, build a separate native target that prefers Vulkan through `wgpu`. Make any GLES fallback an explicit, tested path with its selected backend reported. Browser WebGPU is **not** direct Vulkan access: the browser owns the underlying graphics implementation, while native `wgpu` can select Vulkan explicitly.
 
 The initial CI/runtime matrix should contain separate rows for:
-- Native Linux `cargo check` and tests with Vulkan compiled in; record whether a real Vulkan adapter is available on the runner.
-- `wasm32-unknown-unknown` compilation with the pinned WebGPU-only experiment.
+- Existing native Bevy target: exact-head `cargo check -p symtropy-launcher --features atlas` plus tests; record whether the target runner has a Vulkan adapter. Hardware-backed runtime evidence is separate from compile success.
+- Browser-native Leptos target: `wasm32-unknown-unknown` compilation with the pinned WebGPU-only experiment.
 - WASM compilation with both WebGPU and WebGL2 features.
 - Browser runtime: WebGPU adapter success, WebGPU adapter failure despite API exposure, explicit GL fallback, and final legacy-renderer fallback.
 - A hardware-backed Linux Vulkan run on a named device/driver separate from generic CI compilation.
