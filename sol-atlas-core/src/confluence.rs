@@ -7,14 +7,13 @@
 //!
 //! # Design constraints (why this is NOT a risk/danger score)
 //!
-//! 1. **Never Scenario data.** Only layers whose [`DataProvenance`] kind is
-//!    `Observed` or `Curated` may contribute. Resontia Vaults, Maglev,
-//!    Geothermal, Terra Lumina, Robotics Dispatch, and the DeSci demo are
-//!    speculative planning fiction — mixing them into a "real systems
-//!    overlap here" signal would be actively dishonest, not just
-//!    incomplete. [`eligible_real_layers`] is the single, tested
-//!    enforcement point for this.
-//! 2. **No weighting, no hidden coefficients.** A [`ConfluenceCell`] is
+//! 1. **Never fiction, synthetic data, or unclassified observations.** Point
+//!    records contribute only when the record itself is explicitly classified
+//!    as `Observed` or `Curated`. Layer-level `Mixed` provenance is not
+//!    enough: a bundled synthetic FIRMS fixture must not become a real-world
+//!    confluence just because its layer also has live EONET records. Scenario
+//!    layers and records with unknown provenance are excluded.
+//! //! 2. **No weighting, no hidden coefficients.** A [`ConfluenceCell`] is
 //!    just the plain set of distinct real categories present and a raw
 //!    entity count — not a blended "severity" or "risk" number. Every
 //!    lit cell can answer "why are you lit?" with a factual sentence
@@ -71,12 +70,9 @@ impl ConfluenceCell {
     }
 }
 
-/// The layers eligible to contribute to confluence — every one is
-/// `Observed` or `Curated` (never `Scenario`), and every one is
-/// point-like data (not a region centroid or a line route). This is the
-/// single source of truth `compute` draws from; the accompanying test
-/// (`eligible_layers_are_never_scenario`) is what makes that a checked
-/// invariant, not just a comment.
+/// Candidate point-like layers. For layers with mixed source histories
+/// (notably Fires), `compute` also gates each record on explicit provenance;
+/// this list alone never authorizes an individual record to contribute.
 fn eligible_real_layers() -> [Layer; 10] {
     [
         Layer::Energy,
@@ -132,6 +128,12 @@ pub fn compute(data: &LoadedData, min_layers: usize) -> Vec<ConfluenceCell> {
         bin(f.lat, f.lon, Layer::FossilDeposits);
     }
     for e in &data.natural_events {
+        // Live adapters set Observed only after source-specific validation.
+        // Bundled fixtures classified as Synthetic, unknown legacy records,
+        // and any record marked Mixed fail closed.
+        if !matches!(e.data_kind, Some(DataKind::Observed | DataKind::Curated)) {
+            continue;
+        }
         let layer = match e.event_type {
             NaturalEventType::Earthquake => Layer::Earthquakes,
             NaturalEventType::Fire => Layer::Fires,
@@ -188,7 +190,7 @@ mod tests {
     /// If someone adds a new real layer to `compute` without adding it
     /// here (or vice versa), this is the test that should fail.
     #[test]
-    fn eligible_layers_are_never_scenario() {
+    fn eligible_point_layers_are_not_scenarios() {
         for layer in eligible_real_layers() {
             assert_ne!(
                 layer.provenance().kind,
@@ -252,19 +254,37 @@ mod tests {
     }
 
     fn quake(lat: f64, lon: f64) -> NaturalEvent {
+        // Represents a validated source observation for the spatial algorithm tests.
         NaturalEvent {
             lat,
             lon,
             event_type: NaturalEventType::Earthquake,
             magnitude: 5.0,
             name: "Test Quake".into(),
-            // The confluence fixture has no source record: keep every
-            // source-derived field explicitly unknown instead of fabricating
-            // provenance or timestamp metadata for synthetic test data.
             magnitude_unit: None,
             magnitude_description: None,
-            source_name: None,
-            data_kind: None,
+            source_name: Some("USGS ComCat".into()),
+            data_kind: Some(DataKind::Observed),
+            source_id: Some("test-quake-1".into()),
+            source_url: None,
+            occurred_at_ms: Some(1_759_996_800_000),
+            updated_at_ms: None,
+            depth_km: Some(10.0),
+            geometry_note: None,
+        }
+    }
+
+    fn synthetic_fire(lat: f64, lon: f64) -> NaturalEvent {
+        NaturalEvent {
+            lat,
+            lon,
+            event_type: NaturalEventType::Fire,
+            magnitude: 3.8,
+            name: "Demo Fire".into(),
+            magnitude_unit: None,
+            magnitude_description: None,
+            source_name: Some("Demo Data".into()),
+            data_kind: Some(DataKind::Synthetic),
             source_id: None,
             source_url: None,
             occurred_at_ms: None,
@@ -326,6 +346,25 @@ mod tests {
         for layer in &result[0].layers {
             assert_ne!(layer.provenance().kind, DataKind::Scenario);
         }
+    }
+
+    #[test]
+    fn synthetic_and_unclassified_events_do_not_create_real_confluence() {
+        let mut unclassified = quake(10.0001, 10.0001);
+        unclassified.source_name = None;
+        unclassified.data_kind = None;
+        unclassified.source_id = None;
+        unclassified.occurred_at_ms = None;
+
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            natural_events: vec![synthetic_fire(10.0001, 10.0001), unclassified],
+            ..Default::default()
+        };
+        assert!(
+            compute(&data, 2).is_empty(),
+            "Synthetic or unclassified events must not be counted as real-world layers"
+        );
     }
 
     #[test]
