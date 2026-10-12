@@ -422,7 +422,7 @@ fn representative_point(kind: &str, coordinates: &Value) -> Option<(f64, f64, Eo
 }
 
 /// Parse a UTC date or RFC3339 timestamp with Z / numeric UTC offset.
-fn parse_iso8601_ms(value: &str) -> Option<i64> {
+pub(crate) fn parse_iso8601_ms(value: &str) -> Option<i64> {
     let bytes = value.as_bytes();
     if bytes.len() < 10 {
         return None;
