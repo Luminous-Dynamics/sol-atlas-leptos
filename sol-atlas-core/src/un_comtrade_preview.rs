@@ -105,6 +105,7 @@ pub enum UnComtradeRowRejection {
     InvalidFieldType(String),
     QueryDimensionMismatch(String),
     UnknownAreaCode(String),
+    DuplicateRecordKey(String),
     UnsupportedFlowCode(String),
 }
 
