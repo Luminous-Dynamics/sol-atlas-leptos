@@ -1393,3 +1393,126 @@ canvas#globe-canvas.has-hover {
     font-size: 13px;
     text-align: center;
 }
+
+/* ─── Lunar geospatial source catalogue ──────────────────────────── */
+
+.lunar-source-catalog {
+    margin-top: 26px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: var(--sa-radius);
+    background: rgba(var(--sa-panel), 0.58);
+}
+
+.lunar-catalog-intro {
+    color: rgba(224, 224, 224, 0.78);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.lunar-source-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    align-items: start;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.lunar-source-card {
+    min-width: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--sa-radius-sm);
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.23);
+}
+
+.lunar-source-card h3 {
+    color: #fff;
+    font-size: 17px;
+    font-weight: 520;
+    line-height: 1.3;
+    margin: 0 0 7px;
+}
+
+.lunar-source-publisher {
+    color: rgba(224, 224, 224, 0.52);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.lunar-source-open {
+    display: inline-block;
+    color: rgb(var(--sa-accent));
+    font-size: 12px;
+    text-decoration: none;
+    margin-top: 9px;
+}
+
+.lunar-source-open:hover {
+    text-decoration: underline;
+}
+
+.lunar-source-metadata {
+    display: grid;
+    grid-template-columns: minmax(88px, 0.34fr) minmax(0, 1fr);
+    gap: 7px 12px;
+    margin-top: 14px;
+    padding: 12px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.lunar-source-metadata dt {
+    color: rgba(224, 224, 224, 0.48);
+}
+
+.lunar-source-metadata dd {
+    margin: 0;
+    color: rgba(224, 224, 224, 0.78);
+    overflow-wrap: anywhere;
+}
+
+.lunar-ingestion-sequence {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 16px;
+    margin-top: 18px;
+}
+
+.lunar-ingestion-sequence h3 {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 550;
+    margin-bottom: 10px;
+}
+
+.lunar-ingestion-sequence ol {
+    padding-left: 20px;
+    color: rgba(224, 224, 224, 0.68);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.lunar-ingestion-sequence li + li {
+    margin-top: 7px;
+}
+
+@media (max-width: 640px) {
+    .lunar-source-catalog {
+        padding: 14px;
+    }
+
+    .lunar-source-card {
+        padding: 13px;
+    }
+
+    .lunar-source-metadata {
+        grid-template-columns: 1fr;
+        gap: 3px;
+    }
+
+    .lunar-source-metadata dd + dt {
+        margin-top: 7px;
+    }
+}
