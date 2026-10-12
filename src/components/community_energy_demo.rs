@@ -30,12 +30,26 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
     .expect("candidate simulation output must satisfy accounting invariants");
 
     let selected_candidate = RwSignal::new(true);
-    let selected_run = move || {
-        if selected_candidate.get() { candidate.clone() } else { baseline.clone() }
-    };
-    let selected_report = move || {
-        if selected_candidate.get() { candidate_report.clone() } else { baseline_report.clone() }
-    };
+    // Copy the values used by individual reactive closures. This avoids moving
+    // one non-Copy helper closure into several UI closures.
+    let baseline_accounting = baseline_report.accounting_consistent;
+    let candidate_accounting = candidate_report.accounting_consistent;
+    let baseline_critical_pass = baseline_report.critical_service_limit_satisfied;
+    let candidate_critical_pass = candidate_report.critical_service_limit_satisfied;
+    let baseline_load = baseline.totals.total_load_kwh;
+    let candidate_load = candidate.totals.total_load_kwh;
+    let baseline_generation = baseline.totals.total_renewable_generation_kwh;
+    let candidate_generation = candidate.totals.total_renewable_generation_kwh;
+    let baseline_import = baseline.totals.total_grid_import_kwh;
+    let candidate_import = candidate.totals.total_grid_import_kwh;
+    let baseline_unserved = baseline.totals.total_unserved_load_kwh;
+    let candidate_unserved = candidate.totals.total_unserved_load_kwh;
+    let baseline_critical_unserved = baseline.totals.total_critical_unserved_kwh;
+    let candidate_critical_unserved = candidate.totals.total_critical_unserved_kwh;
+    let baseline_noncritical_unserved = baseline.totals.total_noncritical_unserved_kwh;
+    let candidate_noncritical_unserved = candidate.totals.total_noncritical_unserved_kwh;
+    let baseline_rows = baseline.intervals.clone();
+    let candidate_rows = candidate.intervals.clone();
     let vote = GovernanceVoteFixture::NETWORK_STATE_DEMO;
 
     view! {
@@ -100,17 +114,17 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                 <div class="community-energy-status-row">
                     <div class="community-energy-status-card">
                         <span class="community-energy-label">"ACCOUNTING VERIFICATION"</span>
-                        <strong class="community-energy-status-pass">{move || if selected_report().accounting_consistent { "PASS" } else { "FAIL" }}</strong>
+                        <strong class="community-energy-status-pass">{move || if (if selected_candidate.get() { candidate_accounting } else { baseline_accounting }) { "PASS" } else { "FAIL" }}</strong>
                         <p>"Balances, storage transitions, grid boundaries, and reported totals were rechecked from interval rows."</p>
                     </div>
                     <div class="community-energy-status-card">
                         <span class="community-energy-label">"CRITICAL-LOAD POLICY"</span>
-                        <strong class=move || if selected_report().critical_service_limit_satisfied {
+                        <strong class=move || if (if selected_candidate.get() { candidate_critical_pass } else { baseline_critical_pass }) {
                                 "community-energy-status-pass"
                             } else {
                                 "community-energy-status-fail"
                             }>
-                            {move || if selected_report().critical_service_limit_satisfied { "PASS" } else { "FAIL" }}
+                            {move || if (if selected_candidate.get() { candidate_critical_pass } else { baseline_critical_pass }) { "PASS" } else { "FAIL" }}
                         </strong>
                         <p>"Hard requirement: no critical-load energy may remain unserved during the frozen outage scenario."</p>
                     </div>
@@ -119,27 +133,27 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                 <div class="community-energy-metrics">
                     <div class="community-energy-metric">
                         <span>"Total load"</span>
-                        <strong>{move || format!("{:.2} kWh", selected_run().totals.total_load_kwh)}</strong>
+                        <strong>{move || format!("{:.2} kWh", if selected_candidate.get() { candidate_load } else { baseline_load })}</strong>
                     </div>
                     <div class="community-energy-metric">
                         <span>"Renewable input"</span>
-                        <strong>{move || format!("{:.2} kWh", selected_run().totals.total_renewable_generation_kwh)}</strong>
+                        <strong>{move || format!("{:.2} kWh", if selected_candidate.get() { candidate_generation } else { baseline_generation })}</strong>
                     </div>
                     <div class="community-energy-metric">
                         <span>"Grid import"</span>
-                        <strong>{move || format!("{:.2} kWh", selected_run().totals.total_grid_import_kwh)}</strong>
+                        <strong>{move || format!("{:.2} kWh", if selected_candidate.get() { candidate_import } else { baseline_import })}</strong>
                     </div>
                     <div class="community-energy-metric">
                         <span>"Unserved load"</span>
-                        <strong>{move || format!("{:.2} kWh", selected_run().totals.total_unserved_load_kwh)}</strong>
+                        <strong>{move || format!("{:.2} kWh", if selected_candidate.get() { candidate_unserved } else { baseline_unserved })}</strong>
                     </div>
                     <div class="community-energy-metric">
                         <span>"Critical unserved"</span>
-                        <strong>{move || format!("{:.2} kWh", selected_run().totals.total_critical_unserved_kwh)}</strong>
+                        <strong>{move || format!("{:.2} kWh", if selected_candidate.get() { candidate_critical_unserved } else { baseline_critical_unserved })}</strong>
                     </div>
                     <div class="community-energy-metric">
                         <span>"Noncritical unserved"</span>
-                        <strong>{move || format!("{:.2} kWh", selected_run().totals.total_noncritical_unserved_kwh)}</strong>
+                        <strong>{move || format!("{:.2} kWh", if selected_candidate.get() { candidate_noncritical_unserved } else { baseline_noncritical_unserved })}</strong>
                     </div>
                 </div>
 
@@ -160,7 +174,7 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                         </thead>
                         <tbody>
                             <For
-                                each=move || selected_run().intervals
+                                each=move || if selected_candidate.get() { candidate_rows.clone() } else { baseline_rows.clone() }
                                 key=|row| row.input.interval
                                 children=move |row| view! {
                                     <tr class=if row.input.grid_available { "" } else { "community-energy-outage" }>
