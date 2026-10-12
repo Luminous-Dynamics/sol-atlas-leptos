@@ -506,6 +506,29 @@ mod tests {
     }
 
     #[test]
+    fn verifier_rejects_grid_import_during_a_frozen_outage() {
+        let mut run = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
+        run.intervals[4].grid_import_kwh = 0.25;
+        assert!(verify(BatteryConfiguration::RESILIENCE_CANDIDATE, &SCENARIO_INPUTS, &run).is_err());
+    }
+
+    #[test]
+    fn verifier_rejects_charge_power_limit_violation() {
+        let mut run = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
+        run.intervals[0].battery_charge_input_kwh = 2.01;
+        assert!(verify(BatteryConfiguration::RESILIENCE_CANDIDATE, &SCENARIO_INPUTS, &run).is_err());
+    }
+
+    #[test]
+    fn frozen_scenario_known_answer_preserves_the_tradeoff() {
+        let baseline = simulate(BatteryConfiguration::BASELINE).unwrap();
+        let resilience = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
+        assert!((baseline.totals.total_critical_unserved_kwh - 1.6168).abs() < 1e-8);
+        assert!(resilience.totals.total_critical_unserved_kwh.abs() < 1e-8);
+        assert!((resilience.totals.total_noncritical_unserved_kwh - 5.82).abs() < 1e-8);
+    }
+
+    #[test]
     fn governance_fixture_preserves_dissent_and_passes_its_declared_rule() {
         let vote = GovernanceVoteFixture::NETWORK_STATE_DEMO;
         assert_eq!(vote.yes, 4);
