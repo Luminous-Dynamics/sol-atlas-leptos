@@ -29,7 +29,7 @@
 //!    excluded — binning either into a single H3 cell would misrepresent
 //!    what's actually physically co-located there.
 
-use crate::types::{DataKind, Layer, LoadedData, NaturalEventType};
+use crate::types::{DataKind, Layer, LoadedData, NaturalEventType, RecordTemporalOrigin};
 use h3o::{CellIndex, LatLng, Resolution};
 use std::collections::HashMap;
 
@@ -128,10 +128,16 @@ pub fn compute(data: &LoadedData, min_layers: usize) -> Vec<ConfluenceCell> {
         bin(f.lat, f.lon, Layer::FossilDeposits);
     }
     for e in &data.natural_events {
-        // Live adapters set Observed only after source-specific validation.
-        // Bundled fixtures classified as Synthetic, unknown legacy records,
-        // and any record marked Mixed fail closed.
-        if !matches!(e.data_kind, Some(DataKind::Observed | DataKind::Curated)) {
+        // Temporal origin is independent from source classification:
+        // only accepted live observations and persistent curated references
+        // may contribute. Bundled snapshots stay visible, but cannot imply
+        // present-day co-location.
+        let eligible_origin = matches!(
+            (e.data_kind, e.record_temporal_origin),
+            (Some(DataKind::Observed), Some(RecordTemporalOrigin::LiveFeed))
+                | (Some(DataKind::Curated), Some(RecordTemporalOrigin::CuratedReference))
+        );
+        if !eligible_origin {
             continue;
         }
         let layer = match e.event_type {
@@ -265,6 +271,7 @@ mod tests {
             magnitude_description: None,
             source_name: Some("USGS ComCat".into()),
             data_kind: Some(DataKind::Observed),
+            record_temporal_origin: Some(RecordTemporalOrigin::LiveFeed),
             source_id: Some("test-quake-1".into()),
             source_url: None,
             occurred_at_ms: Some(1_759_996_800_000),
@@ -285,6 +292,7 @@ mod tests {
             magnitude_description: None,
             source_name: Some("Demo Data".into()),
             data_kind: Some(DataKind::Synthetic),
+            record_temporal_origin: Some(RecordTemporalOrigin::BundledSnapshot),
             source_id: None,
             source_url: None,
             occurred_at_ms: None,
@@ -364,6 +372,22 @@ mod tests {
         assert!(
             compute(&data, 2).is_empty(),
             "Synthetic or unclassified events must not be counted as real-world layers"
+        );
+    }
+
+    #[test]
+    fn bundled_observed_snapshot_does_not_create_current_confluence() {
+        let mut bundled_quake = quake(10.0001, 10.0001);
+        bundled_quake.record_temporal_origin = Some(RecordTemporalOrigin::BundledSnapshot);
+
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            natural_events: vec![bundled_quake],
+            ..Default::default()
+        };
+        assert!(
+            compute(&data, 2).is_empty(),
+            "a bundled observed event must not be treated as a current live co-location"
         );
     }
 
