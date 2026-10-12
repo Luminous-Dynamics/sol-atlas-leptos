@@ -609,6 +609,7 @@ mod tests {
                     "source": "NASA EONET",
                     "event_id": "EONET_15458",
                     "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_15458",
+                    "date": "2025-09-16T00:00:00Z",
                     "data_lineage": ["NASA", "EONET", "Satellite Observation"],
                     "title": "Tropical Storm Mario",
                     "type": "natural_event"
@@ -621,6 +622,7 @@ mod tests {
         assert_eq!(events[0].source_name.as_deref(), Some("NASA EONET"));
         assert_eq!(events[0].data_kind, Some(DataKind::Observed));
         assert_eq!(events[0].source_id.as_deref(), Some("EONET_15458"));
+        assert_eq!(events[0].occurred_at_ms, Some(1_757_980_800_000));
         assert_eq!(
             events[0].source_url.as_deref(),
             Some("https://eonet.gsfc.nasa.gov/api/v3/events/EONET_15458")
