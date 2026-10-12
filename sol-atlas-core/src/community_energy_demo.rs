@@ -27,14 +27,62 @@ pub struct EnergyIntervalInput {
 }
 
 pub const SCENARIO_INPUTS: [EnergyIntervalInput; 8] = [
-    EnergyIntervalInput { interval: 0, load_kwh: 2.0, critical_load_kwh: 1.0, renewable_generation_kwh: 2.5, grid_available: true },
-    EnergyIntervalInput { interval: 1, load_kwh: 2.5, critical_load_kwh: 1.0, renewable_generation_kwh: 1.2, grid_available: true },
-    EnergyIntervalInput { interval: 2, load_kwh: 3.0, critical_load_kwh: 1.2, renewable_generation_kwh: 0.9, grid_available: true },
-    EnergyIntervalInput { interval: 3, load_kwh: 4.0, critical_load_kwh: 1.5, renewable_generation_kwh: 1.0, grid_available: true },
-    EnergyIntervalInput { interval: 4, load_kwh: 5.0, critical_load_kwh: 1.5, renewable_generation_kwh: 0.5, grid_available: false },
-    EnergyIntervalInput { interval: 5, load_kwh: 5.0, critical_load_kwh: 1.5, renewable_generation_kwh: 0.0, grid_available: false },
-    EnergyIntervalInput { interval: 6, load_kwh: 3.5, critical_load_kwh: 1.2, renewable_generation_kwh: 0.0, grid_available: true },
-    EnergyIntervalInput { interval: 7, load_kwh: 3.0, critical_load_kwh: 1.0, renewable_generation_kwh: 0.0, grid_available: true },
+    EnergyIntervalInput {
+        interval: 0,
+        load_kwh: 2.0,
+        critical_load_kwh: 1.0,
+        renewable_generation_kwh: 2.5,
+        grid_available: true,
+    },
+    EnergyIntervalInput {
+        interval: 1,
+        load_kwh: 2.5,
+        critical_load_kwh: 1.0,
+        renewable_generation_kwh: 1.2,
+        grid_available: true,
+    },
+    EnergyIntervalInput {
+        interval: 2,
+        load_kwh: 3.0,
+        critical_load_kwh: 1.2,
+        renewable_generation_kwh: 0.9,
+        grid_available: true,
+    },
+    EnergyIntervalInput {
+        interval: 3,
+        load_kwh: 4.0,
+        critical_load_kwh: 1.5,
+        renewable_generation_kwh: 1.0,
+        grid_available: true,
+    },
+    EnergyIntervalInput {
+        interval: 4,
+        load_kwh: 5.0,
+        critical_load_kwh: 1.5,
+        renewable_generation_kwh: 0.5,
+        grid_available: false,
+    },
+    EnergyIntervalInput {
+        interval: 5,
+        load_kwh: 5.0,
+        critical_load_kwh: 1.5,
+        renewable_generation_kwh: 0.0,
+        grid_available: false,
+    },
+    EnergyIntervalInput {
+        interval: 6,
+        load_kwh: 3.5,
+        critical_load_kwh: 1.2,
+        renewable_generation_kwh: 0.0,
+        grid_available: true,
+    },
+    EnergyIntervalInput {
+        interval: 7,
+        load_kwh: 3.0,
+        critical_load_kwh: 1.0,
+        renewable_generation_kwh: 0.0,
+        grid_available: true,
+    },
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -249,7 +297,9 @@ pub fn verify(
     if candidate.case_id != CASE_ID || candidate.configuration != configuration {
         return Err("candidate identity/configuration mismatch".into());
     }
-    if candidate.intervals.len() != expected_inputs.len() || expected_inputs.len() != SCENARIO_INPUTS.len() {
+    if candidate.intervals.len() != expected_inputs.len()
+        || expected_inputs.len() != SCENARIO_INPUTS.len()
+    {
         return Err("interval count differs from the frozen scenario".into());
     }
 
@@ -294,7 +344,8 @@ pub fn verify(
             return Err(format!("renewable-to-load allocation mismatch at interval {}", position));
         }
         if row.battery_charge_input_kwh > configuration.max_charge_power_kw * INTERVAL_HOURS + EPS
-            || row.battery_discharge_withdrawn_kwh > configuration.max_discharge_power_kw * INTERVAL_HOURS + EPS
+            || row.battery_discharge_withdrawn_kwh
+                > configuration.max_discharge_power_kw * INTERVAL_HOURS + EPS
         {
             return Err(format!("battery power limit exceeded at interval {}", position));
         }
@@ -304,10 +355,15 @@ pub fn verify(
             || row.grid_export_kwh > input_surplus + EPS
             || row.battery_discharge_to_load_kwh > input_deficit + EPS
         {
-            return Err(format!("flow direction exceeds available surplus/deficit at interval {}", position));
+            return Err(format!(
+                "flow direction exceeds available surplus/deficit at interval {}",
+                position
+            ));
         }
         if input.grid_available {
-            if row.grid_import_kwh > input_deficit + EPS || row.grid_export_kwh > EPS && input_deficit > EPS {
+            if row.grid_import_kwh > input_deficit + EPS
+                || row.grid_export_kwh > EPS && input_deficit > EPS
+            {
                 return Err(format!("grid flow direction mismatch at interval {}", position));
             }
         } else if row.grid_import_kwh > EPS || row.grid_export_kwh > EPS {
@@ -321,9 +377,13 @@ pub fn verify(
         {
             return Err(format!("battery state outside bounds at interval {}", position));
         }
-        if !near(row.battery_charge_stored_kwh, row.battery_charge_input_kwh * configuration.charge_efficiency)
-            || !near(row.battery_discharge_to_load_kwh, row.battery_discharge_withdrawn_kwh * configuration.discharge_efficiency)
-        {
+        if !near(
+            row.battery_charge_stored_kwh,
+            row.battery_charge_input_kwh * configuration.charge_efficiency,
+        ) || !near(
+            row.battery_discharge_to_load_kwh,
+            row.battery_discharge_withdrawn_kwh * configuration.discharge_efficiency,
+        ) {
             return Err(format!("battery efficiency accounting mismatch at interval {}", position));
         }
 
@@ -348,10 +408,13 @@ pub fn verify(
 
         let served = input.load_kwh - row.unserved_load_kwh;
         let expected_critical_served = input.critical_load_kwh.min(served);
-        let expected_critical_unserved = (input.critical_load_kwh - expected_critical_served).max(0.0);
+        let expected_critical_unserved =
+            (input.critical_load_kwh - expected_critical_served).max(0.0);
         let noncritical_load = input.load_kwh - input.critical_load_kwh;
-        let expected_noncritical_served = (served - expected_critical_served).max(0.0).min(noncritical_load);
-        let expected_noncritical_unserved = (noncritical_load - expected_noncritical_served).max(0.0);
+        let expected_noncritical_served =
+            (served - expected_critical_served).max(0.0).min(noncritical_load);
+        let expected_noncritical_unserved =
+            (noncritical_load - expected_noncritical_served).max(0.0);
         if !near(row.critical_served_kwh, expected_critical_served)
             || !near(row.critical_unserved_kwh, expected_critical_unserved)
             || !near(row.noncritical_served_kwh, expected_noncritical_served)
@@ -404,7 +467,10 @@ pub fn verify(
     })
 }
 
-pub fn tampered_aggregate_rejected(configuration: BatteryConfiguration, candidate: &SimulationResult) -> bool {
+pub fn tampered_aggregate_rejected(
+    configuration: BatteryConfiguration,
+    candidate: &SimulationResult,
+) -> bool {
     let mut tampered = candidate.clone();
     tampered.totals.total_grid_import_kwh += 1.0;
     verify(configuration, &SCENARIO_INPUTS, &tampered).is_err()
@@ -474,11 +540,14 @@ impl GovernanceVoteFixture {
         approval_percent: 60,
     };
 
-    pub fn cast_ballots(self) -> u8 { self.yes.saturating_add(self.no).saturating_add(self.abstain) }
+    pub fn cast_ballots(self) -> u8 {
+        self.yes.saturating_add(self.no).saturating_add(self.abstain)
+    }
 
     pub fn quorum_met(self) -> bool {
         self.eligible_members > 0
-            && u16::from(self.cast_ballots()) * 100 >= u16::from(self.eligible_members) * u16::from(self.quorum_percent)
+            && u16::from(self.cast_ballots()) * 100
+                >= u16::from(self.eligible_members) * u16::from(self.quorum_percent)
     }
 
     pub fn approval_met(self) -> bool {
@@ -511,7 +580,8 @@ mod tests {
     #[test]
     fn resilience_sensitivity_passes_critical_service_bound_but_sheds_noncritical_load() {
         let run = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
-        let report = verify(BatteryConfiguration::RESILIENCE_CANDIDATE, &SCENARIO_INPUTS, &run).unwrap();
+        let report =
+            verify(BatteryConfiguration::RESILIENCE_CANDIDATE, &SCENARIO_INPUTS, &run).unwrap();
         assert!(report.accounting_consistent);
         assert!(report.critical_service_limit_satisfied);
         assert!(run.totals.total_noncritical_unserved_kwh > 0.0);
@@ -536,7 +606,12 @@ mod tests {
     fn verifier_rejects_grid_import_during_a_frozen_outage() {
         let mut run = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
         run.intervals[4].grid_import_kwh = 0.25;
-        assert!(verify(BatteryConfiguration::RESILIENCE_CANDIDATE, &SCENARIO_INPUTS, &run).is_err());
+        assert!(verify(
+            BatteryConfiguration::RESILIENCE_CANDIDATE,
+            &SCENARIO_INPUTS,
+            &run
+        )
+        .is_err());
     }
 
     #[test]
