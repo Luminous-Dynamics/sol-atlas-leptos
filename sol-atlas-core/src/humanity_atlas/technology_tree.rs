@@ -1232,6 +1232,34 @@ mod tests {
     }
 
     #[test]
+    fn checked_in_run_manifest_schema_matches_importer_contract() {
+        let schema: Value = serde_json::from_str(include_str!(
+            "../../schemas/humanity-atlas-run-manifest-v1.schema.json"
+        ))
+        .expect("checked-in run-manifest schema must be valid JSON");
+        assert_eq!(
+            schema["$id"],
+            "https://atlas.luminousdynamics.io/schemas/humanity-atlas-run-manifest-v1.schema.json"
+        );
+        assert_eq!(
+            schema["properties"]["schema_version"]["const"],
+            RUN_MANIFEST_SCHEMA_VERSION
+        );
+        let required = schema["required"]
+            .as_array()
+            .expect("run-manifest required fields");
+        assert!(required.iter().any(|field| field == "source_revision"));
+        assert_eq!(
+            schema["properties"]["source_revision"]["maxLength"],
+            120
+        );
+        assert_eq!(
+            schema["properties"]["source_revision"]["type"],
+            serde_json::json!(["string", "null"])
+        );
+    }
+
+    #[test]
     fn imports_and_binds_a_valid_synthetic_source_artifact() {
         let (run, raw) = fixture(vec![
             test_milestone("Fusion Demo", vec![], vec![(0, 0.5)]),
