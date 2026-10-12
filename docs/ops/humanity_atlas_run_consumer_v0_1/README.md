@@ -75,3 +75,12 @@ package is installed; otherwise that one test reports a skip. Treat a queued CI
 run as pending, not as a pass. Until the commands above have actually completed
 and the captured artifact is verified end-to-end, this boundary is not
 build-qualified.
+
+
+The standalone schema directory now contains both versioned producer contracts:
+`mycelix-multiworld-sim-tech-tree-v1.schema.json` and
+`humanity-atlas-run-manifest-v1.schema.json`. The manifest schema test pins
+the schema ID/version, the required nullable `source_revision` key, and its
+120-character limit. The cross-repository qualification harness checks both
+schema files byte-for-byte against the canonical monorepo copies and records
+the SHA-256 of each snapshot in its evidence metadata.
