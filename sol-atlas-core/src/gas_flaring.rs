@@ -133,12 +133,18 @@ pub struct FlareSnapshot {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ValidatedFlareSnapshot {
     snapshot: FlareSnapshot,
+    claim_ceiling: &'static str,
 }
 
 impl ValidatedFlareSnapshot {
     /// Access the immutable snapshot that passed admission checks.
     pub fn snapshot(&self) -> &FlareSnapshot {
         &self.snapshot
+    }
+
+    /// Explicitly state the strongest claim this admitted data supports.
+    pub fn claim_ceiling(&self) -> &'static str {
+        self.claim_ceiling
     }
 }
 
@@ -332,7 +338,10 @@ pub fn admit_snapshot(
     for site in &mut snapshot.sites {
         site.annual_estimates.sort_by_key(|estimate| estimate.year);
     }
-    Ok(ValidatedFlareSnapshot { snapshot })
+    Ok(ValidatedFlareSnapshot {
+        snapshot,
+        claim_ceiling: CLAIM_CEILING,
+    })
 }
 
 /// Summarize data coverage without calculating gas totals or economic potential.
@@ -533,7 +542,7 @@ mod tests {
             reuse_review: ReuseReview::Approved {
                 reviewer: "test-fixture-review".into(),
                 reviewed_at: "2026-10-12".into(),
-                terms_uri: "https://www.worldbank.org/en/programs/gasflaringreduction/global-flaring-data".into(),
+                terms_uri: "https://example.invalid/synthetic-test-terms".into(),
                 approved_purpose: "Synthetic unit-test fixture only; source workbook redistribution not implied".into(),
             },
         }
@@ -594,6 +603,7 @@ mod tests {
     #[test]
     fn admission_orders_sites_and_years_deterministically() {
         let validated = admit_snapshot(sample_snapshot()).expect("sample should be admitted");
+        assert!(validated.claim_ceiling().contains("screening only"));
         assert_eq!(validated.snapshot.sites[0].source_site_id, "site-a");
         assert_eq!(validated.snapshot.sites[1].source_site_id, "site-b");
         assert_eq!(validated.snapshot.sites[1].annual_estimates[0].year, 2024);
