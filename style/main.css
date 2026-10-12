@@ -1516,3 +1516,44 @@ canvas#globe-canvas.has-hover {
         margin-top: 7px;
     }
 }
+
+.lunar-subsection-title {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    font-weight: 550;
+    margin: 18px 0 8px;
+}
+
+.lunar-historical-lead-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    align-items: start;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.lunar-historical-lead {
+    min-width: 0;
+    border: 1px solid rgba(var(--sa-vital), 0.2);
+    border-radius: var(--sa-radius-sm);
+    padding: 15px;
+    background: rgba(var(--sa-vital), 0.025);
+}
+
+.lunar-historical-lead h4 {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 550;
+    line-height: 1.4;
+    margin: 6px 0 9px;
+}
+
+.lunar-historical-finding {
+    color: rgba(224, 224, 224, 0.8);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.lunar-historical-lead .lunar-card-section li + li {
+    margin-top: 6px;
+}
