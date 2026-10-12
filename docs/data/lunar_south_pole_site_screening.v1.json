@@ -223,6 +223,32 @@
       ]
     },
     {
+      "id": "connecting-ridge",
+      "name": "Connecting Ridge",
+      "status": "historical_candidate_region_comparator",
+      "proposed_roles": [
+        "touchdown_comparator",
+        "power_and_illumination_comparator",
+        "robotic_science_access"
+      ],
+      "evidence_state": "historical_regional_model_evidence",
+      "supported_observations": [
+        "NASA PGDA product 78 reports a historical Site01 / Connecting Ridge illumination comparison over 2024-01-01 through 2026-01-01: it had the most area with average illumination above 70% at 1 m among the compared sites; ROIs 4–6 were generally favorable considering uncertainty, and Site01 showed longer continuous illumination at 5 m.",
+        "This is a source-reported regional modelling result, not a new calculation in this repository."
+      ],
+      "interpretation_boundary": "Historical comparator only. The result addresses illumination during a past analysis window, not touchdown safety or a future mission window. Site01 and ROI boundaries must be spatially verified and cannot be assumed to equal a current agency candidate region.",
+      "unresolved": [
+        "Retrieve and hash the Site01 LDEM, slope and uncertainty rasters, LOLA count map, clone ensemble and ROI shapefiles",
+        "Verify exact Site01 ROI 4–6 boundaries and crosswalk before computing any zonal statistics",
+        "Recompute mission-epoch illumination at required lander, habitat and rover heights",
+        "Compare landing dispersion, small-crater/boulder hazards, communications, thermal survival, safe traverse/egress and resource access"
+      ],
+      "known_metrics": {},
+      "sources": [
+        "https://pgda.gsfc.nasa.gov/products/78"
+      ]
+    },
+    {
       "id": "peak-near-shackleton",
       "name": "Peak near Shackleton",
       "status": "historical_candidate_region_comparator",
