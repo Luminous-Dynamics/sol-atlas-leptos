@@ -65,6 +65,7 @@ pub fn DatasetHealthPanel() -> impl IntoView {
             .map(|item: DatasetLoadHealth| {
                 let malformed = item.state == DatasetLoadState::Malformed;
                 let partially_loaded = item.state == DatasetLoadState::PartiallyLoaded;
+                let fully_rejected = item.state == DatasetLoadState::Rejected;
                 let state = label(&item.state);
                 let rejected = item.rejected_record_count.unwrap_or(0);
                 let count = match item.record_count {
