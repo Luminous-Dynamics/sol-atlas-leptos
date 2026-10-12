@@ -44,6 +44,7 @@ pub enum ReuseReview {
         reviewer: String,
         reviewed_at: String,
         terms_uri: String,
+        terms_snapshot_sha256: String,
         approved_purpose: String,
     },
     /// Review found that the intended use is not approved.
@@ -51,6 +52,7 @@ pub enum ReuseReview {
         reviewer: String,
         reviewed_at: String,
         terms_uri: String,
+        terms_snapshot_sha256: String,
         reason: String,
     },
 }
@@ -207,6 +209,7 @@ pub struct TrustedReuseAuthorization {
     reviewer: String,
     reviewed_at: String,
     terms_uri: String,
+    terms_snapshot_sha256: String,
     approved_purpose: String,
 }
 
@@ -223,6 +226,7 @@ impl TrustedReuseAuthorization {
         reviewer: &str,
         reviewed_at: &str,
         terms_uri: &str,
+        terms_snapshot_sha256: &str,
         approved_purpose: &str,
     ) -> Result<Self, Vec<ValidationIssue>> {
         let mut issues = Vec::new();
@@ -232,6 +236,7 @@ impl TrustedReuseAuthorization {
             ("reviewer", reviewer),
             ("reviewed_at", reviewed_at),
             ("terms_uri", terms_uri),
+            ("terms_snapshot_sha256", terms_snapshot_sha256),
             ("approved_purpose", approved_purpose),
         ] {
             if value.trim().is_empty() {
@@ -256,6 +261,13 @@ impl TrustedReuseAuthorization {
                 "authorization must bind a 64-character SHA-256 hex digest",
             ));
         }
+        if !is_sha256_hex(terms_snapshot_sha256) {
+            issues.push(issue(
+                "invalid_terms_snapshot_digest",
+                "authorization.terms_snapshot_sha256",
+                "authorization must pin a 64-character SHA-256 digest of the reviewed terms snapshot",
+            ));
+        }
         if !is_iso_date(reviewed_at) {
             issues.push(issue(
                 "invalid_authorization_date",
@@ -274,6 +286,7 @@ impl TrustedReuseAuthorization {
             reviewer: reviewer.to_string(),
             reviewed_at: reviewed_at.to_string(),
             terms_uri: terms_uri.to_string(),
+            terms_snapshot_sha256: terms_snapshot_sha256.to_string(),
             approved_purpose: approved_purpose.to_string(),
         })
     }
@@ -652,12 +665,14 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
             reviewer,
             reviewed_at,
             terms_uri,
+            terms_snapshot_sha256,
             reason,
         } => {
             for (field, value) in [
                 ("reviewer", reviewer.as_str()),
                 ("reviewed_at", reviewed_at.as_str()),
                 ("terms_uri", terms_uri.as_str()),
+                ("terms_snapshot_sha256", terms_snapshot_sha256.as_str()),
                 ("reason", reason.as_str()),
             ] {
                 if value.trim().is_empty() {
@@ -675,6 +690,13 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
                     "review date must use YYYY-MM-DD form",
                 ));
             }
+            if !is_sha256_hex(terms_snapshot_sha256) {
+                issues.push(issue(
+                    "invalid_terms_snapshot_digest",
+                    "provenance.reuse_review.terms_snapshot_sha256",
+                    "reviewed terms must be pinned by a 64-character SHA-256 digest",
+                ));
+            }
             issues.push(issue(
                 "reuse_not_approved",
                 "provenance.reuse_review",
@@ -685,19 +707,21 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
             reviewer,
             reviewed_at,
             terms_uri,
+            terms_snapshot_sha256,
             approved_purpose,
         } => {
             for (field, value) in [
                 ("reviewer", reviewer.as_str()),
                 ("reviewed_at", reviewed_at.as_str()),
                 ("terms_uri", terms_uri.as_str()),
+                ("terms_snapshot_sha256", terms_snapshot_sha256.as_str()),
                 ("approved_purpose", approved_purpose.as_str()),
             ] {
                 if value.trim().is_empty() {
                     issues.push(issue(
                         "incomplete_reuse_approval",
                         format!("provenance.reuse_review.{field}"),
-                        "reuse approval must include its reviewer, date, terms, and scoped purpose",
+                        "reuse approval must include reviewer, date, terms URI, terms digest, and scoped purpose",
                     ));
                 }
             }
@@ -713,6 +737,13 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
                     "invalid_terms_uri",
                     "provenance.reuse_review.terms_uri",
                     "terms URI must be HTTPS",
+                ));
+            }
+            if !is_sha256_hex(terms_snapshot_sha256) {
+                issues.push(issue(
+                    "invalid_terms_snapshot_digest",
+                    "provenance.reuse_review.terms_snapshot_sha256",
+                    "reviewed terms must be pinned by a 64-character SHA-256 digest",
                 ));
             }
         }
@@ -741,10 +772,12 @@ fn validate_reuse_authorization(
             reviewer,
             reviewed_at,
             terms_uri,
+            terms_snapshot_sha256,
             approved_purpose,
         } if reviewer == &authorization.reviewer
             && reviewed_at == &authorization.reviewed_at
             && terms_uri == &authorization.terms_uri
+            && terms_snapshot_sha256 == &authorization.terms_snapshot_sha256
             && approved_purpose == &authorization.approved_purpose
     );
     if !review_matches {
@@ -947,6 +980,7 @@ mod tests {
             "test-fixture-review",
             "2026-10-12",
             "https://example.invalid/synthetic-test-terms",
+            &"b".repeat(64),
             "Synthetic unit-test fixture only; source workbook redistribution not implied",
         )
         .expect("synthetic fixture authorization should be well formed")
@@ -976,6 +1010,7 @@ mod tests {
                 reviewer: "test-fixture-review".into(),
                 reviewed_at: "2026-10-12".into(),
                 terms_uri: "https://example.invalid/synthetic-test-terms".into(),
+                terms_snapshot_sha256: "b".repeat(64),
                 approved_purpose: "Synthetic unit-test fixture only; source workbook redistribution not implied".into(),
             },
         }
@@ -1102,6 +1137,7 @@ mod tests {
             reviewer: "untrusted-file-author".into(),
             reviewed_at: "2026-10-12".into(),
             terms_uri: "https://example.invalid/terms".into(),
+            terms_snapshot_sha256: "c".repeat(64),
             approved_purpose: "claiming approval".into(),
         };
         let issues = super::admit_snapshot(snapshot, &test_authorization())
