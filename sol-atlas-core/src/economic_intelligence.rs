@@ -693,7 +693,13 @@ fn valuation_basis_match(exporter: &str, importer: &str) -> Option<bool> {
     // Evidence/mapping provenance is carried separately in the source snapshot.
     let exporter_basis = exporter.strip_prefix("known:")?;
     let importer_basis = importer.strip_prefix("known:")?;
-    if exporter_basis.is_empty() || importer_basis.is_empty() {
+    if exporter_basis.is_empty()
+        || importer_basis.is_empty()
+        || exporter_basis.eq_ignore_ascii_case("unknown")
+        || importer_basis.eq_ignore_ascii_case("unknown")
+        || exporter_basis.eq_ignore_ascii_case("unspecified")
+        || importer_basis.eq_ignore_ascii_case("unspecified")
+    {
         return None;
     }
     Some(exporter_basis == importer_basis)
@@ -877,6 +883,12 @@ mod tests {
         let importer =
             observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         exporter.valuation_basis_signature = "unknown".to_string();
+        let result = compare_mirror_pair(&[exporter.clone()], &[importer.clone()]);
+        assert_eq!(result.status, MirrorPairStatus::Compared);
+        assert_eq!(result.valuation_basis_match, None);
+
+        // Even malformed "known:unknown" must not be treated as a known basis.
+        exporter.valuation_basis_signature = "known:unknown".to_string();
         let result = compare_mirror_pair(&[exporter], &[importer]);
         assert_eq!(result.status, MirrorPairStatus::Compared);
         assert_eq!(result.valuation_basis_match, None);
