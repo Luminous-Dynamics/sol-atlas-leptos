@@ -167,6 +167,10 @@ pub enum MirrorPairStatus {
     SeriesDefinitionMismatch,
     /// The source-defined periods differ.
     PeriodMismatch,
+    /// Additional disaggregation dimensions differ (e.g. second partner or mode).
+    DisaggregationMismatch,
+    /// Source reporting/estimation status differs between the candidate records.
+    SourceStateMismatch,
     /// Commodity codes differ.
     CommodityMismatch,
     /// Commodity classification systems/revisions differ.
