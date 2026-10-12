@@ -212,6 +212,62 @@ fn parse_or_log_with_health<T: Default>(
     }
 }
 
+/// Parse a vector dataset and preserve the difference between syntax errors,
+/// valid empty input, partial acceptance, and total semantic rejection.
+fn parse_vector_with_health<T>(
+    dataset: &str,
+    result: Result<Vec<T>, serde_json::Error>,
+    is_valid: impl Fn(&T) -> bool,
+    health: &mut Vec<DatasetLoadHealth>,
+) -> Vec<T> {
+    match result {
+        Ok(records) => {
+            let source_count = records.len();
+            let mut accepted = Vec::with_capacity(source_count);
+            let mut rejected_count = 0;
+            for record in records {
+                if is_valid(&record) {
+                    accepted.push(record);
+                } else {
+                    rejected_count += 1;
+                }
+            }
+            let accepted_count = accepted.len();
+            let state = if source_count == 0 {
+                DatasetLoadState::ValidEmpty
+            } else if rejected_count == 0 {
+                DatasetLoadState::Loaded
+            } else if accepted_count == 0 {
+                DatasetLoadState::Rejected
+            } else {
+                DatasetLoadState::PartiallyLoaded
+            };
+            health.push(DatasetLoadHealth {
+                dataset: dataset.to_string(),
+                state,
+                record_count: Some(accepted_count),
+                rejected_record_count: Some(rejected_count),
+                diagnostic: (rejected_count > 0).then(|| {
+                    format!("{rejected_count} source records failed semantic validation")
+                }),
+            });
+            accepted
+        }
+        Err(error) => {
+            let diagnostic = error.to_string();
+            log::warn!("sol-atlas-core: failed to parse dataset '{dataset}': {diagnostic}");
+            health.push(DatasetLoadHealth {
+                dataset: dataset.to_string(),
+                state: DatasetLoadState::Malformed,
+                record_count: None,
+                rejected_record_count: None,
+                diagnostic: Some(diagnostic),
+            });
+            Vec::new()
+        }
+    }
+}
+
 /// Load all datasets from their respective JSON strings into a single `LoadedData`.
 pub fn load_all_with_health(
     sites_json: &str,
