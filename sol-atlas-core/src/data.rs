@@ -289,10 +289,15 @@ pub fn load_all_with_health(
     critical_infra_json: &str,
 ) -> LoadedDataReport {
     let mut health = Vec::new();
-    let sites = parse_or_log_with_health(
+    let sites = parse_vector_with_health(
         "sites-clustered",
         parse_sites(sites_json),
-        |v| v.len(),
+        |site: &Site| {
+            site.lat.is_finite()
+                && (-90.0..=90.0).contains(&site.lat)
+                && site.lon.is_finite()
+                && (-180.0..=180.0).contains(&site.lon)
+        },
         &mut health,
     );
     let (geothermal_nodes, maglev_corridors) = parse_or_log_with_health(
