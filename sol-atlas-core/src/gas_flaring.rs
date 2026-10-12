@@ -26,11 +26,17 @@ pub const WORLD_BANK_FLARING_DATA_URL: &str =
 
 /// Direct workbook attachment linked from the World Bank's June 2026 tracker page.
 /// Reconfirm this URL, workbook schema, and applicable terms before every ingestion.
-pub const WORLD_BANK_FLARING_WORKBOOK_URL: &str =
-    "https://thedocs.worldbank.org/en/doc/b34e0c054bb3fe3695e70154c28eef3f-0400072026/related/Flare-Volume-Estimates-by-individual-Flare-Location-2012-2025.xlsx";
+pub const WORLD_BANK_FLARING_WORKBOOK_URL: &str = concat!(
+    "https://thedocs.worldbank.org/en/doc/b34e0c054bb3fe3695e70154c28eef3f-0400072026/related/",
+    "Flare-Volume-Estimates-by-individual-Flare-Location-2012-2025.xlsx",
+);
 
 /// Explicitly bounded statement about what a site record represents.
-pub const CLAIM_CEILING: &str = "Satellite-derived flaring-volume estimate for screening only; not recoverability, methane leakage, verified emissions reduction, engineering viability, or financial return.";
+pub const CLAIM_CEILING: &str = concat!(
+    "Satellite-derived flaring-volume estimate for screening only; ",
+    "not recoverability, methane leakage, verified emissions reduction, ",
+    "engineering viability, or financial return.",
+);
 
 /// Records a declared reuse review decision. The fields are not signed proof;
 /// arbitrary normalized JSON must not be allowed to self-authorize data reuse.
@@ -1259,13 +1265,15 @@ mod tests {
     #[test]
     fn json_parser_requires_the_same_admission_checks() {
         let json = serde_json::to_string(&sample_snapshot()).unwrap();
-        let admitted = parse_json_snapshot(&json, &test_authorization()).expect("valid normalized JSON");
+        let admitted = parse_json_snapshot(&json, &test_authorization())
+            .expect("valid normalized JSON");
         assert_eq!(admitted.snapshot.schema_version, "gas-flaring-screening-v1");
 
         let mut invalid = sample_snapshot();
         invalid.provenance.source_uri = "http://example.invalid".into();
         let invalid_json = serde_json::to_string(&invalid).unwrap();
-        let error = parse_json_snapshot(&invalid_json, &test_authorization()).expect_err("HTTP sources must reject");
+        let error = parse_json_snapshot(&invalid_json, &test_authorization())
+            .expect_err("HTTP sources must reject");
         match error {
             AdmissionError::Rejected(issues) => {
                 assert!(issues.iter().any(|item| item.code == "invalid_source_uri"));
