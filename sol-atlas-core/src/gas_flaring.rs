@@ -179,6 +179,7 @@ pub struct FlareSnapshot {
 pub struct ValidatedFlareSnapshot {
     snapshot: FlareSnapshot,
     claim_ceiling: &'static str,
+    approved_purpose: String,
 }
 
 impl ValidatedFlareSnapshot {
@@ -190,6 +191,15 @@ impl ValidatedFlareSnapshot {
     /// Explicitly state the strongest claim this admitted data supports.
     pub fn claim_ceiling(&self) -> &'static str {
         self.claim_ceiling
+    }
+
+    /// Return the exact purpose string that the separate reuse review approved.
+    ///
+    /// Consumers must still ensure their real downstream operation matches this
+    /// purpose. This string is an auditable scope label, not a legal opinion or
+    /// technical prevention of misuse after the admitted data leaves this boundary.
+    pub fn approved_purpose(&self) -> &str {
+        &self.approved_purpose
     }
 }
 
@@ -344,35 +354,46 @@ pub struct FlareCoverageSummary {
     pub represented_years: Vec<u16>,
 }
 
-/// Parse and structurally admit a normalized JSON source snapshot.
+/// Parse and structurally admit a normalized JSON source snapshot for one declared use.
 ///
 /// The caller must create `authorization` by passing the exact downloaded source
 /// bytes and exact reviewed terms snapshot bytes to `record_manual_review`, then
-/// map reviewed worksheet columns explicitly. This function checks that source and
-/// review metadata match that off-band authorization. It does not fetch the bytes,
-/// externally authenticate the reviewer, or independently decide legal scope.
-/// Any structural admission issue rejects the snapshot.
+/// map reviewed worksheet columns explicitly. The caller must also supply the
+/// operation's requested purpose; admission succeeds only when it exactly matches
+/// the reviewed purpose. This prevents accidental purpose drift at this boundary,
+/// but it cannot verify the caller's honesty or constrain misuse after data is returned.
+/// The function does not fetch source bytes, authenticate reviewer identity, or
+/// independently decide legal scope. Any structural or purpose-scope issue rejects
+/// the snapshot.
 pub fn parse_json_snapshot(
     json: &str,
     authorization: &TrustedReuseAuthorization,
+    requested_purpose: &str,
 ) -> Result<ValidatedFlareSnapshot, AdmissionError> {
     let snapshot: FlareSnapshot =
         serde_json::from_str(json).map_err(|error| AdmissionError::InvalidJson(error.to_string()))?;
-    admit_snapshot(snapshot, authorization).map_err(AdmissionError::Rejected)
+    admit_snapshot(snapshot, authorization, requested_purpose).map_err(AdmissionError::Rejected)
 }
 
 /// Fail-closed validation followed by deterministic ordering.
 ///
 /// Duplicate site IDs and duplicate year observations are rejected rather than
-/// silently deduplicated or chosen by input order. Sites and annual rows are
+/// silently deduplicated or chosen by input order. The declared requested purpose
+/// must exactly match the separately reviewed purpose. Sites and annual rows are
 /// sorted only after the input passes validation.
 pub fn admit_snapshot(
     mut snapshot: FlareSnapshot,
     authorization: &TrustedReuseAuthorization,
+    requested_purpose: &str,
 ) -> Result<ValidatedFlareSnapshot, Vec<ValidationIssue>> {
     let mut issues = Vec::new();
     validate_provenance(&snapshot.provenance, &mut issues);
-    validate_reuse_authorization(&snapshot.provenance, authorization, &mut issues);
+    validate_reuse_authorization(
+        &snapshot.provenance,
+        authorization,
+        requested_purpose,
+        &mut issues,
+    );
 
     canonicalize_snapshot_order(&mut snapshot);
     match serde_json::to_vec(&snapshot) {
@@ -528,6 +549,7 @@ pub fn admit_snapshot(
     Ok(ValidatedFlareSnapshot {
         snapshot,
         claim_ceiling: CLAIM_CEILING,
+        approved_purpose: authorization.approved_purpose.clone(),
     })
 }
 
@@ -789,6 +811,7 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
 fn validate_reuse_authorization(
     provenance: &FlareSourceProvenance,
     authorization: &TrustedReuseAuthorization,
+    requested_purpose: &str,
     issues: &mut Vec<ValidationIssue>,
 ) {
     if provenance.source_uri != authorization.source_uri
@@ -799,6 +822,20 @@ fn validate_reuse_authorization(
             "reuse_authorization_binding_mismatch",
             "provenance",
             "authorization must bind the exact source URI, version, and snapshot digest",
+        ));
+    }
+
+    if requested_purpose.trim().is_empty() {
+        issues.push(issue(
+            "missing_requested_purpose",
+            "requested_purpose",
+            "admission requires a non-empty declaration of the intended downstream use",
+        ));
+    } else if requested_purpose != authorization.approved_purpose {
+        issues.push(issue(
+            "requested_purpose_not_approved",
+            "requested_purpose",
+            "requested purpose must exactly match the purpose bound by the trusted reuse authorization",
         ));
     }
 
@@ -1044,7 +1081,11 @@ mod tests {
         snapshot: FlareSnapshot,
     ) -> Result<ValidatedFlareSnapshot, Vec<ValidationIssue>> {
         let authorization = test_authorization(&snapshot);
-        super::admit_snapshot(snapshot, &authorization)
+        super::admit_snapshot(
+            snapshot,
+            &authorization,
+            "Synthetic unit-test fixture only; source workbook redistribution not implied",
+        )
     }
 
     fn provenance() -> FlareSourceProvenance {
@@ -1255,8 +1296,12 @@ mod tests {
             approved_purpose: "claiming approval".into(),
         };
         let authorization = test_authorization(&sample_snapshot());
-        let issues = super::admit_snapshot(snapshot, &authorization)
-            .expect_err("snapshot metadata cannot substitute for trusted review");
+        let issues = super::admit_snapshot(
+            snapshot,
+            &authorization,
+            "Synthetic unit-test fixture only; source workbook redistribution not implied",
+        )
+        .expect_err("snapshot metadata cannot substitute for trusted review");
         assert!(issues
             .iter()
             .any(|item| item.code == "reuse_authorization_attestation_mismatch"));
@@ -1270,8 +1315,12 @@ mod tests {
         tampered.sites[0].annual_estimates[0].value = AnnualFlareValue::Estimated {
             volume_million_m3_per_year: 999.0,
         };
-        let issues = super::admit_snapshot(tampered, &authorization)
-            .expect_err("tampered normalized value must reject");
+        let issues = super::admit_snapshot(
+            tampered,
+            &authorization,
+            "Synthetic unit-test fixture only; source workbook redistribution not implied",
+        )
+        .expect_err("tampered normalized value must reject");
         assert!(issues
             .iter()
             .any(|item| item.code == "normalized_snapshot_digest_mismatch"));
@@ -1282,8 +1331,12 @@ mod tests {
         let mut snapshot = sample_snapshot();
         snapshot.provenance.snapshot_sha256 = "b".repeat(64);
         let authorization = test_authorization(&sample_snapshot());
-        let issues = super::admit_snapshot(snapshot, &authorization)
-            .expect_err("digest mismatch must reject");
+        let issues = super::admit_snapshot(
+            snapshot,
+            &authorization,
+            "Synthetic unit-test fixture only; source workbook redistribution not implied",
+        )
+        .expect_err("digest mismatch must reject");
         assert!(issues
             .iter()
             .any(|item| item.code == "reuse_authorization_binding_mismatch"));
@@ -1396,17 +1449,55 @@ mod tests {
     }
 
     #[test]
+    fn admission_rejects_a_purpose_outside_the_reviewed_scope() {
+        let snapshot = sample_snapshot();
+        let authorization = test_authorization(&snapshot);
+        let issues = super::admit_snapshot(
+            snapshot,
+            &authorization,
+            "Commercial redistribution of workbook-derived data",
+        )
+        .expect_err("different downstream purpose must fail closed");
+        assert!(issues
+            .iter()
+            .any(|item| item.code == "requested_purpose_not_approved"));
+
+        let empty_purpose = super::admit_snapshot(
+            sample_snapshot(),
+            &authorization,
+            "   ",
+        )
+        .expect_err("empty requested purpose must fail closed");
+        assert!(empty_purpose
+            .iter()
+            .any(|item| item.code == "missing_requested_purpose"));
+    }
+
+    #[test]
     fn json_parser_requires_the_same_admission_checks() {
         let json = serde_json::to_string(&sample_snapshot()).unwrap();
         let authorization = test_authorization(&sample_snapshot());
-        let admitted = parse_json_snapshot(&json, &authorization).expect("valid normalized JSON");
+        let admitted = parse_json_snapshot(
+            &json,
+            &authorization,
+            "Synthetic unit-test fixture only; source workbook redistribution not implied",
+        )
+        .expect("valid normalized JSON");
+        assert_eq!(
+            admitted.approved_purpose(),
+            "Synthetic unit-test fixture only; source workbook redistribution not implied"
+        );
         assert_eq!(admitted.snapshot.schema_version, "gas-flaring-screening-v1");
 
         let mut invalid = sample_snapshot();
         invalid.provenance.source_uri = "http://example.invalid".into();
         let invalid_json = serde_json::to_string(&invalid).unwrap();
-        let error = parse_json_snapshot(&invalid_json, &authorization)
-            .expect_err("HTTP sources must reject");
+        let error = parse_json_snapshot(
+            &invalid_json,
+            &authorization,
+            "Synthetic unit-test fixture only; source workbook redistribution not implied",
+        )
+        .expect_err("HTTP sources must reject");
         match error {
             AdmissionError::Rejected(issues) => {
                 assert!(issues.iter().any(|item| item.code == "invalid_source_uri"));
@@ -1418,7 +1509,11 @@ mod tests {
         drifted["surprise_field"] = serde_json::json!("must not be ignored");
         let drifted_json = serde_json::to_string(&drifted).unwrap();
         assert!(matches!(
-            parse_json_snapshot(&drifted_json, &authorization),
+            parse_json_snapshot(
+                &drifted_json,
+                &authorization,
+                "Synthetic unit-test fixture only; source workbook redistribution not implied",
+            ),
             Err(AdmissionError::InvalidJson(_))
         ));
 
@@ -1427,7 +1522,11 @@ mod tests {
             serde_json::json!("must not be ignored");
         let enum_drift_json = serde_json::to_string(&enum_drift).unwrap();
         assert!(matches!(
-            parse_json_snapshot(&enum_drift_json, &authorization),
+            parse_json_snapshot(
+                &enum_drift_json,
+                &authorization,
+                "Synthetic unit-test fixture only; source workbook redistribution not implied",
+            ),
             Err(AdmissionError::InvalidJson(_))
         ));
     }
