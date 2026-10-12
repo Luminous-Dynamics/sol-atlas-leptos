@@ -187,22 +187,9 @@ pub fn compare_mirror_pair(
     if exporter_count == 0 && importer_count == 0 {
         return MirrorPairResult::excluded(MirrorPairStatus::NoCandidateReports, None, None);
     }
-    if exporter_count == 0 {
-        let importer_id = (importer_count == 1).then(|| importer_candidates[0].record_id.clone());
-        return MirrorPairResult::excluded(
-            MirrorPairStatus::MissingExporterReport,
-            None,
-            importer_id,
-        );
-    }
-    if importer_count == 0 {
-        let exporter_id = (exporter_count == 1).then(|| exporter_candidates[0].record_id.clone());
-        return MirrorPairResult::excluded(
-            MirrorPairStatus::MissingImporterReport,
-            exporter_id,
-            None,
-        );
-    }
+    // Report duplicate candidates even when the reciprocal side is absent.
+    // Otherwise a missing counterpart could hide ambiguity on the side that
+    // does have records.
     if exporter_count > 1 && importer_count > 1 {
         return MirrorPairResult::excluded(
             MirrorPairStatus::AmbiguousReportsBothSides,
@@ -214,12 +201,26 @@ pub fn compare_mirror_pair(
         return MirrorPairResult::excluded(
             MirrorPairStatus::AmbiguousExporterReports,
             None,
-            Some(importer_candidates[0].record_id.clone()),
+            None,
         );
     }
     if importer_count > 1 {
         return MirrorPairResult::excluded(
             MirrorPairStatus::AmbiguousImporterReports,
+            None,
+            None,
+        );
+    }
+    if exporter_count == 0 {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::MissingExporterReport,
+            None,
+            Some(importer_candidates[0].record_id.clone()),
+        );
+    }
+    if importer_count == 0 {
+        return MirrorPairResult::excluded(
+            MirrorPairStatus::MissingImporterReport,
             Some(exporter_candidates[0].record_id.clone()),
             None,
         );
@@ -451,6 +452,15 @@ mod tests {
             )
             .status,
             MirrorPairStatus::MissingImporterReport
+        );
+
+        let duplicate_a =
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some(120.0));
+        let duplicate_b =
+            observation("imp-2", "BBB", "AAA", TradeFlow::Import, Some(121.0));
+        assert_eq!(
+            compare_mirror_pair(&[], &[duplicate_a, duplicate_b]).status,
+            MirrorPairStatus::AmbiguousImporterReports
         );
     }
 
