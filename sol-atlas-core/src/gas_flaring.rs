@@ -1462,11 +1462,7 @@ mod tests {
             .iter()
             .any(|item| item.code == "requested_purpose_not_approved"));
 
-        let empty_purpose = super::admit_snapshot(
-            sample_snapshot(),
-            &authorization,
-            "   ",
-        )
+        let empty_purpose = super::admit_snapshot(sample_snapshot(), &authorization, "   ")
         .expect_err("empty requested purpose must fail closed");
         assert!(empty_purpose
             .iter()
