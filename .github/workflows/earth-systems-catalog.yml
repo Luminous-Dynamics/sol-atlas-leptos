@@ -1,0 +1,36 @@
+name: Earth systems catalog validation
+
+on:
+  pull_request:
+    paths:
+      - "docs/earth-systems-domain-catalog.json"
+      - "docs/schemas/earth-systems-domain-catalog.schema.json"
+      - "scripts/earth-systems/**"
+      - "tests/test_earth_systems_catalog.py"
+      - ".github/workflows/earth-systems-catalog.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/earth-systems-domain-catalog.json"
+      - "docs/schemas/earth-systems-domain-catalog.schema.json"
+      - "scripts/earth-systems/**"
+      - "tests/test_earth_systems_catalog.py"
+      - ".github/workflows/earth-systems-catalog.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-catalog:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Validate catalog
+        run: python scripts/earth-systems/validate_catalog.py
+      - name: Run catalog tests
+        run: python -m unittest discover -s tests -p "test_earth_systems_catalog.py" -v
