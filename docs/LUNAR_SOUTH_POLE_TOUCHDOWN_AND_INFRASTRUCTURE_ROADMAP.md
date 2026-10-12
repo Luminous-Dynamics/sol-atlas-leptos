@@ -178,3 +178,25 @@ python3 -m unittest discover -s tests -p 'test_lunar_site_screening_contract.py'
 The gate intentionally requires all ten reviewed region/comparator records to remain identifiable, forbids point-coordinate and ranking fields, requires scalar scoring and comparison weights to remain null, and requires each `known_metrics` object to remain empty until comparable evidence can be bound to provenance. It also requires the comparison layer set, evidence state, unresolved questions, and HTTPS source references.
 
 This is a protective boundary, not a claim that the regions are equally promising. A future version may add measurements only with explicit units, coordinate frame, spatial resolution, acquisition epoch/date, uncertainty, source/version, and evidence state; the accompanying analysis must explain comparability and preserve missing values as unknown. A site-specific coordinate must never be inferred from a broad region name or presented as an agency-approved landing ellipse.
+
+
+## Geospatial data ingestion: actionable sources and a historical comparator
+
+The first useful data-ingestion pass should not start by assigning site scores. It should start by resolving exact region polygons and source-product identities, then joining terrain, uncertainty and illumination only where their coordinate references and time windows are compatible.
+
+The repository's `docs/data/lunar_geospatial_source_catalog.v1.json` records four source families, their limits, candidate-name crosswalk state and acceptance checks:
+
+1. **NASA PGDA high-resolution LOLA site products** — [product 78](https://pgda.gsfc.nasa.gov/products/78) exposes per-region elevation, slope, LOLA-count and uncertainty rasters, clone ensembles and ROI shapefiles. Its page notes that around 90% of pixels in the cited 5 m/pixel LDEMs are interpolated; across the cited regions it reports median RMS height uncertainty around 0.30–0.50 m and slope uncertainty around 1.5–2.5°. These are not uniform per-pixel errors or operational safety limits.
+2. **NASA PGDA lunar polar illumination** — [product 69](https://pgda.gsfc.nasa.gov/products/69) provides average solar illumination, permanent-shadow, Earth-visibility and sky-visibility layers at different polar resolutions. Some products average over an approximately 18.6-year nutation cycle; they are screening context, not mission-window power forecasts. Cloud-Optimized GeoTIFF overviews may average pixels, so quantitative sampling must use full-resolution data and product labels.
+3. **South Pole LOLA DEM mosaic** — [product 81](https://pgda.gsfc.nasa.gov/products/81) provides 5 m/pixel products for 87–90°S, including elevation, slope and LOLA return counts. It is large and does not cover every candidate region; only use it after proving the region of interest intersects its documented bounds.
+4. **NASA SVS 2025–2028 illumination visualizations** — [SVS 5027](https://svs.gsfc.nasa.gov/5027) illustrates the temporal progression of sunlight and shadow at two-hour intervals. Treat these rendered videos/frames as qualitative context, not georeferenced numeric source rasters.
+
+### Connecting Ridge: evidence to investigate, not a winner
+
+NASA PGDA product 78 describes Site 01 (Connecting Ridge) as having the largest area with average illumination above 70% at 1 m above the surface among the sites compared for 1 January 2024–1 January 2026. It also identifies ROIs 4–6 as generally favorable when uncertainty is considered, and describes longer continuous illumination at 5 m for Site 01. This is a **source-reported historical illumination result**, not a new measurement by this project and not evidence of crewed touchdown safety.
+
+Therefore keep Connecting Ridge / Site 01–ROI 4–6 as a separate historical comparator for future, same-method evaluation. Before using it in candidate selection, retrieve and hash the source rasters, ROI shapefile and clone products; validate exact boundary correspondence; then recompute equivalent illumination, slope, roughness, communications, thermal and access metrics for a clearly declared mission epoch. Do not silently equate legacy Site 01 boundaries with any current Artemis landing-region label.
+
+### Ingestion acceptance gate
+
+No raster-derived number should enter the candidate register until the record contains a source URL/version, downloaded asset hash, retrieval time, product-label reference, coordinate frame, units, pixel registration, spatial resolution, nodata/scale-offset handling, ROI mask version, temporal window where applicable, uncertainty treatment, software version and replayable calculation receipt. Store source-reported observations separately from repository-computed measurements, and keep missing or incompatible data as unknown.
