@@ -377,7 +377,7 @@ pub fn load_all(
         chokepoints_json,
         critical_infra_json,
     )
-    .data
+        .data
 }
 
 /// Parse simplified shipping lane routes (Vec of Vec of [lon, lat]).
@@ -603,7 +603,9 @@ mod tests {
             r#"{"type":"FeatureCollection","features":[]}"#,
             r#"{"type":"FeatureCollection","features":[]}"#,
             r#"{"type":"FeatureCollection","features":[]}"#,
-            "[]", "[]", "[]",
+            "[]",
+            "[]",
+            "[]",
         );
         assert_eq!(report.health.len(), 17);
         assert!(report.data.sites.is_empty());
