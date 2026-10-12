@@ -37,14 +37,33 @@ validation, state updates, and UI remain in Rust.
 - A failed, invalid, oversized, or stale refresh does not clear the last accepted
   earthquake records. The HUD distinguishes LIVE, LAST KNOWN, STALE, OFFLINE,
   and CONNECTING states.
-- USGS refresh replaces only USGS-owned earthquake records. EONET refresh
-  replaces only NASA EONET-owned fire, storm, and volcano records; separate
-  NASA FIRMS fires and the curated volcano inventory remain intact.
+- USGS refresh replaces only records validated and owned by USGS ComCat.
+  EONET refresh replaces only records validated and owned by NASA EONET; bundled
+  records from other sources remain untouched.
+- Important bundled-data correction: `assets/data/nasa-firms.json` declares
+  `source: "Demo Data"` and per-record `data_lineage: ["Demo", "Synthetic",
+  "Generated"]`. It is a synthetic fixture, **not a NASA FIRMS observation**.
+  The parser preserves that declared source and classifies each record as
+  Synthetic rather than inferring NASA attribution from the filename. Its
+  layer is marked mixed provenance because live EONET fire observations and
+  synthetic bundled FIRMS examples can coexist in the same Fires view.
+- Bundled USGS and EONET files are dated fallbacks, not a claim of currentness.
+  Source metadata is retained per record; a file slot alone never establishes
+  official provenance. Missing or conflicting provenance stays unclassified.
+  Official event links are exposed only when the record class, source, ID, and
+  expected official URL path agree.
 - EONET is a curated event catalog, not an exhaustive or uniformly real-time
   sensor feed. Point records retain their coordinates; polygons use an
   approximate spherical vertex-center, labeled in the event dossier.
   EONET measurements may have category-specific units, so they are not
   presented as a globally comparable earthquake-style magnitude.
+- The selected-event dossier shows the record's provenance class. Numeric
+  measures are shown only for supported source-specific cases (USGS magnitude
+  and EONET's own measure/unit); synthetic, curated-without-measure, mixed, and
+  unclassified records are not displayed as verified earthquake-style magnitudes.
+- The derived Confluence overlay accepts event records only when the individual
+  record is explicitly Observed or Curated. Synthetic and unclassified records
+  are excluded, even when they share coordinates with real infrastructure.
 - The selected-event dossier lists up to four nearest curated infrastructure
   records inside 100 km, using the Rust core's great-circle distance helper.
   This is geographic context only: the inventory is incomplete, and proximity
