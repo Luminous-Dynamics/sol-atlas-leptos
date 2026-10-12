@@ -512,7 +512,7 @@ mod tests {
         reporter: &str,
         partner: &str,
         flow: TradeFlow,
-        value: Option<f64>,
+        value: Option<&str>,
     ) -> TradeObservation {
         TradeObservation {
             record_id: record_id.to_string(),
@@ -526,7 +526,7 @@ mod tests {
             commodity_code: "010121".to_string(),
             classification_revision: "HS-2022".to_string(),
             flow,
-            trade_value_source_text: value.map(|v| v.to_string()),
+            trade_value_source_text: value.map(str::to_owned),
             currency: "USD".to_string(),
             quantity: Some(10.0),
             quantity_unit: Some("kg".to_string()),
@@ -535,7 +535,7 @@ mod tests {
         }
     }
 
-    fn pair(export_value: Option<f64>, import_value: Option<f64>) -> MirrorPairResult {
+    fn pair(export_value: Option<&str>, import_value: Option<&str>) -> MirrorPairResult {
         let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, export_value);
         let importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, import_value);
         compare_mirror_pair(&[exporter], &[importer])
@@ -543,10 +543,10 @@ mod tests {
 
     #[test]
     fn computes_raw_difference_and_never_exceeds_claim_ceiling() {
-        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
+        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
         // The source token is retained as the calculation input.
         assert_eq!(exporter.trade_value_source_text.as_deref(), Some("100"));
-        let result = pair(Some(100.0), Some(120.0));
+        let result = pair(Some("100"), Some("120"));
         assert_eq!(result.status, MirrorPairStatus::Compared);
         assert_eq!(
             result.signed_difference_importer_minus_exporter,
@@ -566,9 +566,9 @@ mod tests {
 
     #[test]
     fn equal_reported_values_are_not_proof_of_no_illicit_activity() {
-        let result = pair(Some(100.0), Some(100.0));
+        let result = pair(Some("100"), Some("100"));
         assert_eq!(result.status, MirrorPairStatus::Compared);
-        assert_eq!(result.absolute_difference, Some(0.0));
+        assert_eq!(result.absolute_difference, Some("0"));
         assert_eq!(
             result.claim_ceiling,
             MirrorClaimCeiling::DescriptiveValueDifferenceOnly
@@ -577,9 +577,9 @@ mod tests {
 
     #[test]
     fn rejects_duplicate_candidates_instead_of_silent_deduplication() {
-        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
-        let duplicate = observation("exp-2", "AAA", "BBB", TradeFlow::Export, Some(100.0));
-        let importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some(120.0));
+        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let duplicate = observation("exp-2", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         let result = compare_mirror_pair(&[exporter, duplicate], &[importer]);
         assert_eq!(result.status, MirrorPairStatus::AmbiguousExporterReports);
         assert_eq!(result.absolute_difference, None);
@@ -594,14 +594,14 @@ mod tests {
         assert_eq!(
             compare_mirror_pair(
                 &[],
-                &[observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some(120.0))]
+                &[observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"))]
             )
             .status,
             MirrorPairStatus::MissingExporterReport
         );
         assert_eq!(
             compare_mirror_pair(
-                &[observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0))],
+                &[observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"))],
                 &[]
             )
             .status,
@@ -609,9 +609,9 @@ mod tests {
         );
 
         let duplicate_a =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some(120.0));
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         let duplicate_b =
-            observation("imp-2", "BBB", "AAA", TradeFlow::Import, Some(121.0));
+            observation("imp-2", "BBB", "AAA", TradeFlow::Import, Some("121"));
         assert_eq!(
             compare_mirror_pair(&[], &[duplicate_a, duplicate_b]).status,
             MirrorPairStatus::AmbiguousImporterReports
@@ -620,15 +620,15 @@ mod tests {
 
     #[test]
     fn rejects_mismatched_period_and_currency() {
-        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
-        let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some(120.0));
+        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         importer.period = "2024".to_string();
         assert_eq!(
             compare_mirror_pair(&[exporter.clone()], &[importer]).status,
             MirrorPairStatus::PeriodMismatch
         );
 
-        let mut importer = observation("imp-2", "BBB", "AAA", TradeFlow::Import, Some(120.0));
+        let mut importer = observation("imp-2", "BBB", "AAA", TradeFlow::Import, Some("120"));
         importer.currency = "EUR".to_string();
         assert_eq!(
             compare_mirror_pair(&[exporter], &[importer]).status,
@@ -639,15 +639,15 @@ mod tests {
     #[test]
     fn zero_missing_and_invalid_values_are_not_gaps() {
         assert_eq!(
-            pair(Some(0.0), Some(120.0)).status,
+            pair(Some("0"), Some("120")).status,
             MirrorPairStatus::NonPositiveExporterValue
         );
         assert_eq!(
-            pair(Some(100.0), None).status,
+            pair(Some("100"), None).status,
             MirrorPairStatus::MissingImporterValue
         );
         assert_eq!(
-            pair(Some(f64::NAN), Some(120.0)).status,
+            pair(Some("NaN"), Some("120")).status,
             MirrorPairStatus::InvalidExporterValueFormat
         );
     }
@@ -659,14 +659,14 @@ mod tests {
             "AAA",
             "BBB",
             TradeFlow::Export,
-            Some(9_007_199_254_740_992.0),
+            Some("9007199254740992"),
         );
         let mut importer = observation(
             "imp-1",
             "BBB",
             "AAA",
             TradeFlow::Import,
-            Some(9_007_199_254_740_992.0),
+            Some("9007199254740992"),
         );
         // This source value differs by one, despite rounding to the same f64.
         importer.trade_value_source_text = Some("9007199254740993".to_string());
@@ -684,7 +684,7 @@ mod tests {
             "AAA",
             "BBB",
             TradeFlow::Export,
-            Some(100.0),
+            Some("100"),
         );
         exporter.trade_value_source_text = Some("100.00".to_string());
         let mut importer = observation(
@@ -692,7 +692,7 @@ mod tests {
             "BBB",
             "AAA",
             TradeFlow::Import,
-            Some(120.0),
+            Some("120"),
         );
         importer.trade_value_source_text = Some("120.000".to_string());
         let result = compare_mirror_pair(&[exporter], &[importer]);
@@ -707,7 +707,7 @@ mod tests {
             "AAA",
             "BBB",
             TradeFlow::Export,
-            Some(100.0),
+            Some("100"),
         );
         exporter.trade_value_source_text = Some("1e2".to_string());
         let importer = observation(
@@ -715,7 +715,7 @@ mod tests {
             "BBB",
             "AAA",
             TradeFlow::Import,
-            Some(120.0),
+            Some("120"),
         );
         assert_eq!(
             compare_mirror_pair(&[exporter], &[importer]).status,
@@ -727,7 +727,7 @@ mod tests {
             "AAA",
             "BBB",
             TradeFlow::Export,
-            Some(100.0),
+            Some("100"),
         );
         exporter.trade_value_source_text = Some("1.0000000000000000001".to_string());
         let importer = observation(
@@ -735,7 +735,7 @@ mod tests {
             "BBB",
             "AAA",
             TradeFlow::Import,
-            Some(120.0),
+            Some("120"),
         );
         assert_eq!(
             compare_mirror_pair(&[exporter], &[importer]).status,
@@ -747,7 +747,7 @@ mod tests {
             "AAA",
             "BBB",
             TradeFlow::Export,
-            Some(100.0),
+            Some("100"),
         );
         exporter.trade_value_source_text =
             Some("999999999999999999999999999999999999999999".to_string());
@@ -756,7 +756,7 @@ mod tests {
             "BBB",
             "AAA",
             TradeFlow::Import,
-            Some(120.0),
+            Some("120"),
         );
         assert_eq!(
             compare_mirror_pair(&[exporter], &[importer]).status,
@@ -767,10 +767,10 @@ mod tests {
     #[test]
     fn preserves_negative_signed_difference_and_small_fractional_values() {
         let mut exporter =
-            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
+            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
         exporter.trade_value_source_text = Some("100.000".to_string());
         let mut importer =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some(99.999));
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("99.999"));
         importer.trade_value_source_text = Some("99.999".to_string());
 
         let result = compare_mirror_pair(&[exporter], &[importer]);
@@ -788,11 +788,11 @@ mod tests {
     #[test]
     fn returns_explicit_overflow_instead_of_rounding_large_mixed_scale_values() {
         let mut exporter =
-            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
+            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
         exporter.trade_value_source_text =
             Some("170141183460469231731687303715884105727".to_string());
         let mut importer =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some(0.000000000000000001));
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("0.000000000000000001"));
         importer.trade_value_source_text = Some("0.000000000000000001".to_string());
 
         let result = compare_mirror_pair(&[exporter], &[importer]);
@@ -802,15 +802,15 @@ mod tests {
 
     #[test]
     fn rejects_incompatible_commodity_revision_and_nonreciprocal_reports() {
-        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
-        let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some(120.0));
+        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         importer.classification_revision = "HS-2017".to_string();
         assert_eq!(
             compare_mirror_pair(&[exporter.clone()], &[importer]).status,
             MirrorPairStatus::ClassificationMismatch
         );
 
-        let importer = observation("imp-2", "BBB", "CCC", TradeFlow::Import, Some(120.0));
+        let importer = observation("imp-2", "BBB", "CCC", TradeFlow::Import, Some("120"));
         assert_eq!(
             compare_mirror_pair(&[exporter], &[importer]).status,
             MirrorPairStatus::NonReciprocalReporters
@@ -819,16 +819,16 @@ mod tests {
 
     #[test]
     fn rejects_wrong_flow_and_invalid_identity() {
-        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Import, Some(100.0));
-        let importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some(120.0));
+        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Import, Some("100"));
+        let importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         assert_eq!(
             compare_mirror_pair(&[exporter], &[importer]).status,
             MirrorPairStatus::InvalidFlowDirection
         );
 
-        let mut exporter = observation("exp-2", "AAA", "BBB", TradeFlow::Export, Some(100.0));
+        let mut exporter = observation("exp-2", "AAA", "BBB", TradeFlow::Export, Some("100"));
         exporter.source_snapshot_id.clear();
-        let importer = observation("imp-2", "BBB", "AAA", TradeFlow::Import, Some(120.0));
+        let importer = observation("imp-2", "BBB", "AAA", TradeFlow::Import, Some("120"));
         assert_eq!(
             compare_mirror_pair(&[exporter], &[importer]).status,
             MirrorPairStatus::InvalidRecordIdentity
