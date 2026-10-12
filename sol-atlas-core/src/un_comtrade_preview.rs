@@ -244,6 +244,8 @@ pub fn parse_un_comtrade_preview(
         });
     }
 
+    let source_reported_count = envelope.count;
+    let rows_returned = envelope.data.len();
     let mut records = Vec::new();
     let mut rejected_rows = Vec::new();
     let mut seen_record_ids = HashSet::new();
@@ -268,8 +270,6 @@ pub fn parse_un_comtrade_preview(
         }
     }
 
-    let source_reported_count = envelope.count;
-    let rows_returned = envelope.data.len();
     let possibly_truncated =
         rows_returned >= context.query.max_records || source_reported_count > rows_returned;
     let coverage = if rows_returned == 0 && source_reported_count == 0 {
