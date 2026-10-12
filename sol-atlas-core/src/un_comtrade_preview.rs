@@ -446,7 +446,7 @@ fn normalize_record(
     let commodity_code = required_scalar(object, "cmdCode")?;
     let record_classification_code = required_scalar(object, "classificationCode")?;
     let is_aggregated_above = required_bool(object, "isAggrAbove")?;
-    let primary_value = required_number_token(object, "primaryValue")?;
+    let primary_value = required_nullable_number_token(object, "primaryValue")?;
 
     // These are required dimensions because they can alter the meaning/grain
     // of the reported value even when the main bilateral query fields match.
@@ -575,7 +575,7 @@ fn normalize_record(
         commodity_code,
         classification_revision: query.classification_revision.clone(),
         flow,
-        trade_value_source_text: Some(primary_value),
+        trade_value_source_text: primary_value,
         currency: "USD".to_string(),
         valuation_basis_signature: query.valuation_basis_signature.clone(),
         value_unit: "USD".to_string(),
@@ -614,13 +614,14 @@ fn required_bool(
     }
 }
 
-fn required_number_token(
+fn required_nullable_number_token(
     object: &serde_json::Map<String, Value>,
     key: &'static str,
-) -> Result<String, UnComtradeRowRejection> {
+) -> Result<Option<String>, UnComtradeRowRejection> {
     match object.get(key) {
         None => Err(UnComtradeRowRejection::MissingField(key.to_string())),
-        Some(Value::Number(number)) => Ok(number.to_string()),
+        Some(Value::Null) => Ok(None),
+        Some(Value::Number(number)) => Ok(Some(number.to_string())),
         Some(_) => Err(UnComtradeRowRejection::InvalidFieldType(key.to_string())),
     }
 }
@@ -993,6 +994,17 @@ mod tests {
                 "{field} should fail with an explicit field-type rejection"
             );
         }
+    }
+
+    #[test]
+    fn preserves_null_primary_value_as_missing_not_zero() {
+        let ctx = context(10);
+        let mut candidate = row();
+        candidate["primaryValue"] = Value::Null;
+        let parsed = parse_un_comtrade_preview(&response(vec![candidate], 1), &ctx).unwrap();
+        assert_eq!(parsed.records.len(), 1);
+        assert_eq!(parsed.rejected_rows.len(), 0);
+        assert_eq!(parsed.records[0].observation.trade_value_source_text, None);
     }
 
     #[test]
