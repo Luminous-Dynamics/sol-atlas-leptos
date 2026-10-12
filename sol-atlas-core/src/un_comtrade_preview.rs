@@ -45,6 +45,9 @@ pub struct UnComtradePreviewQuery {
     pub record_classification_code: String,
     /// Pinned human-reviewed meaning/revision associated with the row-level code.
     pub classification_revision: String,
+    /// Source-reviewed valuation basis for primaryValue; never guessed from flow.
+    /// Use e.g. known:fob, known:cif, or unknown, grounded in metadata.
+    pub valuation_basis_signature: String,
     pub period: String,
     pub reporter_code: String,
     pub partner_code: String,
@@ -341,6 +344,10 @@ fn validate_context(
             query.record_classification_code.as_str(),
         ),
         ("classification_revision", query.classification_revision.as_str()),
+        (
+            "valuation_basis_signature",
+            query.valuation_basis_signature.as_str(),
+        ),
         ("period", query.period.as_str()),
         ("reporter_code", query.reporter_code.as_str()),
         ("partner_code", query.partner_code.as_str()),
@@ -536,6 +543,7 @@ fn normalize_record(
         flow,
         trade_value_source_text: Some(primary_value),
         currency: "USD".to_string(),
+        valuation_basis_signature: query.valuation_basis_signature.clone(),
         value_unit: "USD".to_string(),
         quantity: optional_f64(object, "qty"),
         quantity_unit: optional_scalar(object, "qtyUnitAbbr"),
@@ -600,6 +608,7 @@ mod tests {
             classification_code: "HS".to_string(),
             record_classification_code: "H6".to_string(),
             classification_revision: "HS-2022".to_string(),
+            valuation_basis_signature: "known:fob".to_string(),
             period: "2025".to_string(),
             reporter_code: "842".to_string(),
             partner_code: "156".to_string(),
@@ -754,6 +763,19 @@ mod tests {
     }
 
     #[test]
+    fn parser_preserves_caller_reviewed_valuation_basis_without_inference() {
+        let parsed = parse_un_comtrade_preview(
+            &response(vec![row()], 1),
+            &context(10),
+        )
+        .unwrap();
+        assert_eq!(
+            parsed.records[0].observation.valuation_basis_signature,
+            "known:fob"
+        );
+    }
+
+    #[test]
     fn preview_rows_cannot_be_used_for_gap_calculations_without_complete_coverage() {
         let exporter_raw = row();
         let mut importer_raw = row();
@@ -768,6 +790,7 @@ mod tests {
         importer_context.query.reporter_code = "156".to_string();
         importer_context.query.partner_code = "842".to_string();
         importer_context.query.flow_code = "M".to_string();
+        importer_context.query.valuation_basis_signature = "known:cif".to_string();
 
         let exporter =
             parse_un_comtrade_preview(&response(vec![exporter_raw], 1), &exporter_context)
