@@ -624,7 +624,7 @@ fn LunarSourceCard(source: LunarSource) -> impl IntoView {
                 <ul>{product_families}</ul>
             </div>
             <div class="lunar-card-section">
-                <h4>"Sample direct assets and retrieval state"</h4>
+                <h4>"Asset / release links and retrieval state"</h4>
                 {if direct_assets.is_empty() {
                     view! { <p class="lunar-role-text">"No asset URLs independently audited in this catalogue entry yet."</p> }.into_any()
                 } else {
@@ -712,18 +712,63 @@ mod tests {
     fn embedded_source_catalog_declares_real_products_and_limitations() {
         let catalog: LunarSourceCatalog = serde_json::from_str(LUNAR_SOURCE_CATALOG_JSON)
             .expect("embedded source catalogue must parse");
-        assert_eq!(catalog.sources.len(), 4);
-        assert_eq!(catalog.sources[0].sample_direct_assets.len(), 6);
-        assert_eq!(catalog.sources[1].sample_direct_assets.len(), 7);
-        assert!(catalog.sources[1]
+        assert_eq!(catalog.sources.len(), 7);
+
+        // Bind assertions by stable source IDs, not array position. New source
+        // families must not silently redirect existing regression checks.
+        let topography = catalog
+            .sources
+            .iter()
+            .find(|source| source.id == "pgda-lola-high-resolution-site-products")
+            .expect("primary LOLA topography source must be present");
+        let illumination = catalog
+            .sources
+            .iter()
+            .find(|source| source.id == "pgda-lola-polar-illumination")
+            .expect("LOLA illumination source must be present");
+        let connecting_ridge_dtm = catalog
+            .sources
+            .iter()
+            .find(|source| source.id == "lroc-nac-shackleton-de-gerlache-connecting-ridge-dtm")
+            .expect("LROC Connecting Ridge DTM source must be present");
+        let lroc_inventory = catalog
+            .sources
+            .iter()
+            .find(|source| source.id == "lroc-global-nac-dtm-footprint-shapefiles")
+            .expect("LROC global DTM inventory must be present");
+        let usgs_navigation = catalog
+            .sources
+            .iter()
+            .find(|source| source.id == "usgs-artemis-iii-candidate-navigation-grids")
+            .expect("USGS candidate navigation-grid source must be present");
+
+        assert_eq!(topography.sample_direct_assets.len(), 6);
+        assert_eq!(illumination.sample_direct_assets.len(), 7);
+        assert!(illumination
             .asset_access_notes
             .iter()
             .any(|note| note.contains("HTML 404")));
-        assert!(catalog.sources[1]
+        assert!(illumination
             .sample_direct_assets
             .iter()
             .any(|asset| asset.url.ends_with("_JP2.LBL")));
-        assert_eq!(catalog.sources[0].candidate_crosswalk.len(), 11);
+        assert_eq!(topography.candidate_crosswalk.len(), 11);
+
+        assert_eq!(connecting_ridge_dtm.sample_direct_assets.len(), 5);
+        assert!(connecting_ridge_dtm
+            .sample_direct_assets
+            .iter()
+            .all(|asset| !asset.verification_state.contains("downloaded_and_hashed")));
+        assert_eq!(lroc_inventory.sample_direct_assets.len(), 3);
+        assert_eq!(usgs_navigation.candidate_crosswalk.len(), 9);
+        assert_eq!(usgs_navigation.sample_direct_assets.len(), 1);
+        assert!(usgs_navigation.sample_direct_assets[0]
+            .asset_type
+            .contains("not a direct archive URL"));
+        assert!(!usgs_navigation.sample_direct_assets[0]
+            .verification_state
+            .contains("downloaded_and_hashed"));
+
         assert!(catalog
             .sources
             .iter()
