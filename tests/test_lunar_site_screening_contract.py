@@ -92,7 +92,7 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
             "org.luminousdynamics.sol-atlas.lunar-source-catalog/v1",
         )
         self.assertEqual(self.catalog["status"], "source_catalogue_ingestion_plan_not_ingested")
-        self.assertEqual(len(self.catalog["sources"]), 6)
+        self.assertEqual(len(self.catalog["sources"]), 7)
         self.assertEqual(len(self.catalog["ingestion_sequence"]), 6)
         self.assertIn("No derived site metrics", self.catalog["metric_policy"])
         for source in self.catalog["sources"]:
@@ -155,6 +155,34 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
             "downloaded_and_hashed" not in asset["verification_state"]
             for asset in source["sample_direct_assets"]
         ))
+
+    def test_usgs_candidate_navigation_grids_do_not_overclaim_candidate_boundaries(self) -> None:
+        source = next(
+            item for item in self.catalog["sources"]
+            if item["id"] == "usgs-artemis-iii-candidate-navigation-grids"
+        )
+        self.assertEqual(
+            source["url"],
+            "https://www.usgs.gov/data/down-selected-artemis-iii-candidate-landing-site-navigational-grids",
+        )
+        self.assertIn("1 km", source["spatial_resolution"])
+        self.assertIn("JPL DE421", source["coordinate_reference"])
+        self.assertEqual(len(source["candidate_crosswalk"]), 9)
+        self.assertEqual(
+            {entry["candidate_id"] for entry in source["candidate_crosswalk"]},
+            {
+                "peak-near-cabeus-b", "haworth", "malapert-massif",
+                "mons-mouton-plateau", "mons-mouton", "nobile-rim-1",
+                "nobile-rim-2", "de-gerlache-rim-2", "slater-plain",
+            },
+        )
+        self.assertTrue(all(
+            "boundary_not_validated" in entry["mapping_state"]
+            for entry in source["candidate_crosswalk"]
+        ))
+        self.assertEqual(source["sample_direct_assets"][0]["url"], "https://doi.org/10.5066/P1MEQ6UK")
+        self.assertIn("not a direct archive URL", source["sample_direct_assets"][0]["asset_type"])
+        self.assertNotIn("downloaded_and_hashed", source["sample_direct_assets"][0]["verification_state"])
 
     def test_source_catalog_crosswalk_covers_every_reviewed_candidate(self) -> None:
         expected_ids = {candidate["id"] for candidate in self.canonical["candidates"]}

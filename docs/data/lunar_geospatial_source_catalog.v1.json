@@ -224,6 +224,96 @@
       ]
     },
     {
+      "id": "usgs-artemis-iii-candidate-navigation-grids",
+      "title": "Down Selected Artemis III Candidate Landing Site Navigational Grids",
+      "publisher": "U.S. Geological Survey, Astrogeology Science Center",
+      "url": "https://www.usgs.gov/data/down-selected-artemis-iii-candidate-landing-site-navigational-grids",
+      "product_families": [
+        "Lunar Grid Reference System (LGRS) Artemis Condensed Coordinates (ACC) grid shapefiles at 1 km, 100 m and 10 m for nine refined Artemis III candidate regions",
+        "Candidate-region navigation-grid coverage for Peak near Cabeus B, Haworth, Malapert Massif, Mons Mouton Plateau, Mons Mouton, Nobile Rim 1, Nobile Rim 2, de Gerlache Rim 2 and Slater Plain",
+        "USGS data-release DOI 10.5066/P1MEQ6UK"
+      ],
+      "spatial_resolution": "Navigation-grid cells are available at 1 km, 100 m and 10 m scales; Mons Mouton Plateau's 1 km grid is split into four quadrant shapefiles. These are coordinate-reference/navigation grids, not terrain raster resolution or proof of candidate boundary geometry.",
+      "coordinate_reference": "USGS documents project-specific lunar LTM or LPS projected coordinate reference systems for grid shapefiles and recommends JPL DE421, Mean Earth (ME) principal-axis orientation. Grid shapefiles must be interpreted with their correct projection and datum. For applicable geographic-coordinate grids, use a registered lunar GCS such as IAU_2015:30100 or ESRI:104903. Do not assume terrestrial EPSG:4326 or reproject by a name-only heuristic.",
+      "temporal_scope": "USGS data release dated 5 December 2024; candidate regions were sourced from LROC QuickMap for the then-current nine-region Artemis III down-selection. This is navigation reference data, not mission-epoch terrain, illumination, or landing safety data.",
+      "uncertainty_and_limitations": [
+        "The release supplies LGRS/ACC navigation grids designed for nine named candidate regions; grid cells do not by themselves establish the authoritative candidate-region perimeter or an approved landing ellipse.",
+        "The source page says the nine candidate regions were sourced from LROC QuickMap. Region label correspondence is useful evidence, but exact polygon identity/version and footprint intersection must still be reviewed.",
+        "Different LTM/LPS and lunar geographic coordinate systems serve different grid products. A shapefile must be read with its actual projection/datum and correct longitude conventions before overlay or measurement.",
+        "The grid precision labels (1 km, 100 m, 10 m) describe navigation grid spacing, not terrain measurement accuracy, hazard detection, DTM resolution, or positional uncertainty of a landing system.",
+        "The DOI-linked ScienceBase download landing page could not be inspected by this research browser. No shapefile archive, geometry, coordinate transform, record count, or polygon intersection was downloaded or verified."
+      ],
+      "recommended_use": "Use as a standardized navigation-grid/georeferencing source for the nine refined candidate-region names, after obtaining the DOI data release and validating each shapefile's PRJ, datum and bounds. Keep grid availability separate from boundary validation; use separately versioned candidate-region outlines for definitive ROI masks.",
+      "required_acceptance_checks": [
+        "Retrieve the USGS data release DOI 10.5066/P1MEQ6UK and all relevant grid shapefiles/README; record URL, retrieval time, archive size and SHA-256.",
+        "Confirm the package's candidate name, grid resolution, geometry extent, projection definition, datum, axis order and coordinate interpretation for each shapefile.",
+        "Verify the nine named candidate-grid records against the release manifest. Do not infer that omitted historic comparators such as Connecting Ridge or Peak near Shackleton are covered by this release.",
+        "Obtain or independently version the actual candidate-region boundary polygons and measure each grid-to-boundary relationship; never use grid-cell extents as substitute candidate boundaries.",
+        "Only after CRS acceptance, perform spatial overlays against LOLA and LROC DTM footprints; preserve the chosen candidate/ROI polygon hash and the projection transformation provenance.",
+        "Preserve the release date and candidate-list version so historical navigation grids are not silently presented as an updated Artemis site selection."
+      ],
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "peak-near-cabeus-b",
+          "product_site": "Peak_Near_Cabeus_B navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "haworth",
+          "product_site": "Haworth navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "malapert-massif",
+          "product_site": "Malapert_Massif navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "mons-mouton-plateau",
+          "product_site": "Mons_Mouton_Plateau navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "mons-mouton",
+          "product_site": "Mons_Mouton navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "nobile-rim-1",
+          "product_site": "Nobile_Rim_1 navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "nobile-rim-2",
+          "product_site": "Nobile_Rim_2 navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "de-gerlache-rim-2",
+          "product_site": "de_Gerlache_Rim_2 navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "slater-plain",
+          "product_site": "Slater_Plain navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        }
+      ],
+      "sample_direct_assets": [
+        {
+          "title": "USGS candidate landing-site navigation grids data release",
+          "url": "https://doi.org/10.5066/P1MEQ6UK",
+          "asset_type": "USGS data release DOI landing page (not a direct archive URL)",
+          "verification_state": "official_usgs_doi_linked_download_not_retrieved",
+          "note": "USGS lists this DOI for the nine-region ACC navigation grid shapefiles; the redirected ScienceBase page was inaccessible to the research tool, so no grid file or geometry has been inspected."
+        }
+      ],
+      "asset_access_notes": [
+        "The USGS source page is accessible and explicitly lists 1 km, 100 m and 10 m navigation grids for all nine refined candidate regions, with Mons Mouton Plateau 1 km grids split across four quadrants.",
+        "The DOI landing page redirected to ScienceBase, which was inaccessible to this research tool. The data release and its geometries remain unverified in this research pass."
+      ]
+    },
+    {
       "id": "lroc-global-nac-dtm-footprint-shapefiles",
       "title": "Global LROC NAC DTM Footprint Shapefiles",
       "publisher": "Lunar Reconnaissance Orbiter Camera (LROC), Arizona State University / NASA Planetary Data System",
@@ -448,7 +538,7 @@
     }
   ],
   "ingestion_sequence": [
-    "Resolve exact candidate-region polygons and their published versions. Use the separately catalogued Global LROC NAC DTM footprint inventory to discover available overlapping stereo terrain products, but never treat DTM footprints as candidate-region boundaries.",
+    "Resolve the exact candidate-region polygons and their published versions before drawing or clipping site rasters. Use USGS Artemis candidate navigation grids for CRS/reference support and the LROC NAC DTM footprint inventory to discover overlapping stereo products, but never treat navigation-grid cells or DTM footprints as candidate-region boundaries.",
     "Inventory and hash source assets and parse labels/metadata before analysis.",
     "Ingest per-site LDEM, slope, elevation uncertainty, slope uncertainty, LOLA count and clone ensemble as aligned layers where available; where the published footprint overlaps a reviewed ROI, add stereo-derived LROC DTM, slope and confidence products only after their labels, grid alignment and confidence semantics are accepted.",
     "Add long-period illumination/PSR/Earth-visibility products only as coarse screening layers, preserving their averaging window and pixel scale.",
