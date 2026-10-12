@@ -145,6 +145,12 @@ pub fn compute_with_live_source_freshness(
     min_layers: usize,
     freshness: LiveSourceFreshness,
 ) -> Vec<ConfluenceCell> {
+    // A ConfluenceCell represents a relation between at least two distinct
+    // real categories. Never let a caller configure away that invariant.
+    if min_layers < 2 {
+        return Vec::new();
+    }
+
     let mut cells: HashMap<CellIndex, (Vec<Layer>, u32)> = HashMap::new();
 
     let mut bin = |lat: f64, lon: f64, layer: Layer| {
@@ -367,6 +373,17 @@ mod tests {
             depth_km: None,
             geometry_note: None,
         }
+    }
+
+    #[test]
+    fn minimum_layer_threshold_cannot_downgrade_confluence_semantics() {
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            ..Default::default()
+        };
+
+        assert!(compute(&data, 0).is_empty());
+        assert!(compute(&data, 1).is_empty());
     }
 
     #[test]
