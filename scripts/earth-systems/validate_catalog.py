@@ -25,6 +25,11 @@ ALLOWED_ACCESS = {
 }
 ALLOWED_PRIORITIES = {"P0", "P1", "P2", "P3"}
 ALLOWED_READINESS = {"candidate", "benchmark_in_progress", "future_research"}
+ALLOWED_RIGHTS_STATES = {
+    "review_per_artifact", "release_level_cc0_component_review", "review_product_metadata",
+    "cc_by_4_0_with_attribution", "review_sensor_product_version", "review_product_attribution",
+    "review_product_terms", "odbl_1_0_attribution_and_share_alike_review", "review_dataset_version",
+}
 REDISTRIBUTION_ALLOWLIST = {"cc_by_4_0_with_attribution"}
 
 
@@ -136,6 +141,8 @@ def validate_catalog(doc: Any) -> list[str]:
             allowed = source.get("redistribution_allowed")
             if allowed not in (True, False, None):
                 errors.append(f"{sw}.redistribution_allowed must be true, false or null")
+            if source.get("rights_state") not in ALLOWED_RIGHTS_STATES:
+                errors.append(f"{sw}.rights_state is not a recognized review state")
             if allowed is True and source.get("rights_state") not in REDISTRIBUTION_ALLOWLIST:
                 errors.append(f"{sw}: fail-closed rule: rights state does not permit redistribution=true")
             limitations = source.get("key_limitations")
