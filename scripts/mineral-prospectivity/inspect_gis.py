@@ -111,19 +111,21 @@ def summarize_raster(doc: dict[str, Any]) -> dict[str, Any]:
 
 
 def inspect_gis(path: Path, source_id: str, title: str, source_url: str, rights_status: str,
-                rights_notes: str, timeout_seconds: int = 120) -> dict[str, Any]:
+                rights_notes: str, timeout_seconds: int = 120, kind_override: str = "auto") -> dict[str, Any]:
     path = path.expanduser().resolve(strict=True)
     if not path.is_file():
         raise ValueError("Input must be a single GIS data file")
     suffix = path.suffix.lower()
-    if suffix in RASTER_EXTENSIONS:
+    if kind_override not in {"auto", "vector", "raster"}:
+        raise ValueError(f"Unsupported inspection kind: {kind_override}")
+    if kind_override == "raster" or (kind_override == "auto" and suffix in RASTER_EXTENSIONS):
         tool, kind = shutil.which("gdalinfo"), "raster"
         command = [tool, "-json", "-nomd", str(path)] if tool else None
-    elif suffix in VECTOR_EXTENSIONS:
+    elif kind_override == "vector" or (kind_override == "auto" and suffix in VECTOR_EXTENSIONS):
         tool, kind = shutil.which("ogrinfo"), "vector"
         command = [tool, "-json", "-ro", str(path)] if tool else None
     else:
-        raise ValueError(f"Unsupported/ambiguous GIS extension: {suffix or '[none]'}")
+        raise ValueError(f"Unsupported/ambiguous GIS extension: {suffix or '[none]'}; pass --kind if appropriate")
     if command is None:
         raise FileNotFoundError(f"Required GDAL/OGR tool missing: {'gdalinfo' if kind == 'raster' else 'ogrinfo'}")
     try:
@@ -151,7 +153,7 @@ def inspect_gis(path: Path, source_id: str, title: str, source_url: str, rights_
             "Read-only metadata inspection; no features/pixels were exported or altered.",
             "A successful GDAL/OGR open does not prove scientific suitability, licensing, or completeness.",
             "Feature counts/extents/CRS may be absent or driver-dependent; inspect source metadata.",
-            "GeoPackage files may contain vectors or raster tiles; this extension-based mode inspects the vector interface.",
+            "GeoPackage files may contain vectors or raster tiles; auto mode inspects vectors, and --kind raster can inspect raster tiles.",
             "No prospectivity score or geological interpretation was calculated.",
         ],
     }
@@ -166,13 +168,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--rights-status", choices=["verified", "restricted", "unknown", "not_permitted"], default="unknown")
     p.add_argument("--rights-notes", default="Rights not independently reviewed")
     p.add_argument("--timeout-seconds", type=int, default=120)
+    p.add_argument("--kind", choices=["auto", "vector", "raster"], default="auto", help="Force GDAL/OGR interface; use raster for raster-tile GeoPackages")
     p.add_argument("--output", type=Path)
     args = p.parse_args(argv)
     if not 1 <= args.timeout_seconds <= 3600:
         p.error("--timeout-seconds must be in [1, 3600]")
     try:
         report = inspect_gis(args.input, args.source_id, args.title, args.source_url,
-                             args.rights_status, args.rights_notes, args.timeout_seconds)
+                             args.rights_status, args.rights_notes, args.timeout_seconds, args.kind)
     except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
         print(f"GIS inspection blocked: {exc}", file=sys.stderr)
         return 2
