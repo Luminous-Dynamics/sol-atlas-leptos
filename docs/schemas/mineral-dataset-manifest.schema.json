@@ -185,7 +185,7 @@
             },
             "value": {
               "type": "string",
-              "pattern": "^[a-fA-F0-9]{32,128}$"
+              "pattern": "^[a-fA-F0-9]{64}$"
             }
           }
         },
@@ -401,7 +401,7 @@
               },
               "parameters_digest": {
                 "type": "string",
-                "pattern": "^[a-fA-F0-9]{32,128}$"
+                "pattern": "^[a-fA-F0-9]{64}$"
               },
               "notes": {
                 "type": "string"
@@ -430,5 +430,6 @@
         }
       }
     }
-  }
+  },
+  "$comment": "Digest values for SHA-256 and BLAKE3 are lowercase or uppercase hexadecimal, exactly 64 characters. Keep source checksum algorithms explicit."
 }
