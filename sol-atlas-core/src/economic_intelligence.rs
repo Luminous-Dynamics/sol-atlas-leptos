@@ -59,7 +59,13 @@ pub struct TradeObservation {
     pub classification_revision: String,
     /// Direction from the reporter's perspective.
     pub flow: TradeFlow,
-    /// Source-reported trade value before any transformation.
+    /// Source-native textual value token where the adapter can preserve it.
+    ///
+    /// Keep this for audit/replay; do not regenerate it from the float below.
+    /// The numeric field is a calculation projection, not the canonical source
+    /// representation.
+    pub trade_value_source_text: Option<String>,
+    /// Parsed numeric projection of the source-reported trade value.
     pub trade_value: Option<f64>,
     /// Currency identifier for `trade_value`; no implicit currency conversion.
     pub currency: String,
@@ -377,6 +383,7 @@ mod tests {
             commodity_code: "010121".to_string(),
             classification_revision: "HS-2022".to_string(),
             flow,
+            trade_value_source_text: value.map(|v| v.to_string()),
             trade_value: value,
             currency: "USD".to_string(),
             quantity: Some(10.0),
@@ -394,6 +401,9 @@ mod tests {
 
     #[test]
     fn computes_raw_difference_and_never_exceeds_claim_ceiling() {
+        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
+        // The source token is retained separately from the numeric projection.
+        assert_eq!(exporter.trade_value_source_text.as_deref(), Some("100"));
         let result = pair(Some(100.0), Some(120.0));
         assert_eq!(result.status, MirrorPairStatus::Compared);
         assert_eq!(
