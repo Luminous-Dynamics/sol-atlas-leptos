@@ -11,8 +11,7 @@ use serde::Deserialize;
 use serde_json::Value;
 use std::fmt;
 
-pub const EONET_OPEN_EVENTS_URL: &str =
-    "https://eonet.gsfc.nasa.gov/api/v3/events?category=severeStorms,wildfires,volcanoes&status=open&days=7&limit=500";
+pub const EONET_OPEN_EVENTS_URL: &str = "https://eonet.gsfc.nasa.gov/api/v3/events?category=severeStorms,wildfires,volcanoes&status=open&days=7&limit=500";
 pub const EONET_EVENT_API_PREFIX: &str = "https://eonet.gsfc.nasa.gov/api/v3/events/";
 pub const MAX_EONET_BODY_BYTES: usize = 4 * 1024 * 1024;
 pub const MAX_EONET_EVENTS: usize = 1_000;
@@ -69,11 +68,21 @@ pub struct EonetFeedSnapshot {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EonetFeedError {
-    BodyTooLarge { actual: usize, maximum: usize },
+    BodyTooLarge {
+        actual: usize,
+        maximum: usize,
+    },
     InvalidJson(String),
     InvalidFetchTimestamp,
-    TooManyEvents { actual: usize, maximum: usize },
-    TooManyGeometries { event_id: String, actual: usize, maximum: usize },
+    TooManyEvents {
+        actual: usize,
+        maximum: usize,
+    },
+    TooManyGeometries {
+        event_id: String,
+        actual: usize,
+        maximum: usize,
+    },
     NoValidEvents,
     InvalidRootTitle,
 }
@@ -89,13 +98,26 @@ impl fmt::Display for EonetFeedError {
             Self::TooManyEvents { actual, maximum } => {
                 write!(f, "EONET returned {actual} events; limit is {maximum}")
             }
-            Self::TooManyGeometries { event_id, actual, maximum } => {
-                write!(f, "EONET event {event_id} has {actual} geometries; limit is {maximum}")
+            Self::TooManyGeometries {
+                event_id,
+                actual,
+                maximum,
+            } => {
+                write!(
+                    f,
+                    "EONET event {event_id} has {actual} geometries; limit is {maximum}"
+                )
             }
             Self::NoValidEvents => {
-                write!(f, "EONET returned events but none passed category, time, and geometry validation")
+                write!(
+                    f,
+                    "EONET returned events but none passed category, time, and geometry validation"
+                )
             }
-            Self::InvalidRootTitle => write!(f, "response title does not identify the NASA EONET events catalog"),
+            Self::InvalidRootTitle => write!(
+                f,
+                "response title does not identify the NASA EONET events catalog"
+            ),
         }
     }
 }
@@ -196,7 +218,13 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<EonetFeedSnapshot, E
         }
 
         let mut latest: Option<(
-            i64, f64, f64, EonetGeometryKind, Option<f64>, Option<String>, Option<String>,
+            i64,
+            f64,
+            f64,
+            EonetGeometryKind,
+            Option<f64>,
+            Option<String>,
+            Option<String>,
         )> = None;
         for geometry in &event.geometry {
             let Some(timestamp_ms) = parse_iso8601_ms(&geometry.date) else {
@@ -212,10 +240,13 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<EonetFeedSnapshot, E
             else {
                 continue;
             };
-            if latest.as_ref().is_none_or(|current| timestamp_ms > current.0) {
-                let geometry_magnitude = geometry.magnitude_value.filter(|value| {
-                    value.is_finite() && (0.0..=1_000_000.0).contains(value)
-                });
+            if latest
+                .as_ref()
+                .is_none_or(|current| timestamp_ms > current.0)
+            {
+                let geometry_magnitude = geometry
+                    .magnitude_value
+                    .filter(|value| value.is_finite() && (0.0..=1_000_000.0).contains(value));
                 let geometry_unit = geometry.magnitude_unit.clone().filter(|unit| {
                     !unit.trim().is_empty()
                         && unit.len() <= 64
@@ -227,29 +258,45 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<EonetFeedSnapshot, E
                         && !value.chars().any(char::is_control)
                 });
                 latest = Some((
-                    timestamp_ms, latitude, longitude, geometry_kind,
-                    geometry_magnitude, geometry_unit, geometry_description,
+                    timestamp_ms,
+                    latitude,
+                    longitude,
+                    geometry_kind,
+                    geometry_magnitude,
+                    geometry_unit,
+                    geometry_description,
                 ));
             }
         }
 
         let Some((
-            occurred_at_ms, latitude, longitude, geometry_kind,
-            geometry_magnitude, geometry_unit, geometry_description,
-        )) = latest else {
+            occurred_at_ms,
+            latitude,
+            longitude,
+            geometry_kind,
+            geometry_magnitude,
+            geometry_unit,
+            geometry_description,
+        )) = latest
+        else {
             skipped_events += 1;
             continue;
         };
-        let event_url = event.link.as_deref()
+        let event_url = event
+            .link
+            .as_deref()
             .filter(|url| valid_event_url(url, &event.id))
             .map(str::to_string);
         let magnitude_value = geometry_magnitude.or_else(|| {
-            event.magnitude_value
+            event
+                .magnitude_value
                 .filter(|value| value.is_finite() && (0.0..=1_000_000.0).contains(value))
         });
-        let magnitude_unit = geometry_unit.or_else(|| event.magnitude_unit.filter(|unit| {
-            !unit.trim().is_empty() && unit.len() <= 64 && !unit.chars().any(char::is_control)
-        }));
+        let magnitude_unit = geometry_unit.or_else(|| {
+            event.magnitude_unit.filter(|unit| {
+                !unit.trim().is_empty() && unit.len() <= 64 && !unit.chars().any(char::is_control)
+            })
+        });
         let magnitude_description = geometry_description.or_else(|| {
             event.magnitude_description.filter(|description| {
                 !description.trim().is_empty()
@@ -277,10 +324,16 @@ pub fn parse_feed(json: &str, fetched_at_ms: i64) -> Result<EonetFeedSnapshot, E
         return Err(EonetFeedError::NoValidEvents);
     }
     events.sort_by(|left, right| {
-        right.occurred_at_ms.cmp(&left.occurred_at_ms)
+        right
+            .occurred_at_ms
+            .cmp(&left.occurred_at_ms)
             .then_with(|| left.id.cmp(&right.id))
     });
-    Ok(EonetFeedSnapshot { fetched_at_ms, skipped_events, events })
+    Ok(EonetFeedSnapshot {
+        fetched_at_ms,
+        skipped_events,
+        events,
+    })
 }
 
 fn classify_categories(categories: &[CategoryWire]) -> Option<EonetEventType> {
@@ -297,8 +350,11 @@ fn classify_categories(categories: &[CategoryWire]) -> Option<EonetEventType> {
 }
 
 fn valid_identifier(value: &str) -> bool {
-    !value.is_empty() && value.len() <= 160
-        && value.bytes().all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
+    !value.is_empty()
+        && value.len() <= 160
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
 }
 
 fn valid_event_url(value: &str, event_id: &str) -> bool {
@@ -309,22 +365,23 @@ fn valid_event_url(value: &str, event_id: &str) -> bool {
 }
 
 fn valid_coordinate(latitude: f64, longitude: f64) -> bool {
-    latitude.is_finite() && longitude.is_finite()
+    latitude.is_finite()
+        && longitude.is_finite()
         && (-90.0..=90.0).contains(&latitude)
         && (-180.0..=180.0).contains(&longitude)
 }
 
-fn representative_point(
-    kind: &str,
-    coordinates: &Value,
-) -> Option<(f64, f64, EonetGeometryKind)> {
+fn representative_point(kind: &str, coordinates: &Value) -> Option<(f64, f64, EonetGeometryKind)> {
     match kind {
         "Point" => {
             let pair = coordinates.as_array()?;
             let longitude = pair.first()?.as_f64()?;
             let latitude = pair.get(1)?.as_f64()?;
-            valid_coordinate(latitude, longitude)
-                .then_some((latitude, longitude, EonetGeometryKind::Point))
+            valid_coordinate(latitude, longitude).then_some((
+                latitude,
+                longitude,
+                EonetGeometryKind::Point,
+            ))
         }
         "Polygon" => {
             let rings = coordinates.as_array()?;
@@ -373,9 +430,7 @@ fn parse_iso8601_ms(value: &str) -> Option<i64> {
     let year = parse_digits(bytes, 0, 4)? as i64;
     let month = parse_digits(bytes, 5, 2)?;
     let day = parse_digits(bytes, 8, 2)?;
-    if bytes.get(4) != Some(&b'-') || bytes.get(7) != Some(&b'-')
-        || !(1..=12).contains(&month)
-    {
+    if bytes.get(4) != Some(&b'-') || bytes.get(7) != Some(&b'-') || !(1..=12).contains(&month) {
         return None;
     }
     let days_in_month = match month {
@@ -392,8 +447,10 @@ fn parse_iso8601_ms(value: &str) -> Option<i64> {
     let (mut hour, mut minute, mut second, mut fraction_ms, mut offset_seconds) =
         (0i64, 0i64, 0i64, 0i64, 0i64);
     if bytes.len() > 10 {
-        if bytes.get(10) != Some(&b'T') || bytes.len() < 20
-            || bytes.get(13) != Some(&b':') || bytes.get(16) != Some(&b':')
+        if bytes.get(10) != Some(&b'T')
+            || bytes.len() < 20
+            || bytes.get(13) != Some(&b':')
+            || bytes.get(16) != Some(&b':')
         {
             return None;
         }
@@ -421,8 +478,9 @@ fn parse_iso8601_ms(value: &str) -> Option<i64> {
 
         match bytes.get(suffix_start).copied()? {
             b'Z' if suffix_start + 1 == bytes.len() => {}
-            sign @ (b'+' | b'-') if suffix_start + 6 == bytes.len()
-                && bytes.get(suffix_start + 3) == Some(&b':') =>
+            sign @ (b'+' | b'-')
+                if suffix_start + 6 == bytes.len()
+                    && bytes.get(suffix_start + 3) == Some(&b':') =>
             {
                 let offset_hour = parse_digits(bytes, suffix_start + 1, 2)? as i64;
                 let offset_minute = parse_digits(bytes, suffix_start + 4, 2)? as i64;
@@ -505,7 +563,9 @@ impl EonetFeedStatus {
         match self.last_fetched_at_ms {
             Some(fetched) => format!(
                 "{}. Last validated EONET fetch: {fetched} ms UTC. Active mapped events: {}; rejected events: {}. This is curated metadata, not an exhaustive sensor feed.",
-                self.label(), self.event_count, self.skipped_events
+                self.label(),
+                self.event_count,
+                self.skipped_events
             ),
             None => format!(
                 "{}. No validated NASA EONET snapshot has been accepted.",
@@ -538,11 +598,16 @@ mod tests {
     #[test]
     fn parses_point_and_polygon_events_with_time_and_trusted_links() {
         let point = event(
-            "EONET_1", "severeStorms", "null",
-            &point_geometry("2026-05-01T12:00:00Z", -80.0, 12.0), "EONET_1",
+            "EONET_1",
+            "severeStorms",
+            "null",
+            &point_geometry("2026-05-01T12:00:00Z", -80.0, 12.0),
+            "EONET_1",
         );
         let polygon = event(
-            "EONET_2", "wildfires", "null",
+            "EONET_2",
+            "wildfires",
+            "null",
             r#"{"date":"2026-05-01T13:00:00Z","type":"Polygon","coordinates":[[[-179.8,10.0],[179.8,10.0],[179.8,11.0],[-179.8,11.0],[-179.8,10.0]]]}"#,
             "EONET_2",
         );
@@ -551,7 +616,10 @@ mod tests {
         assert_eq!(feed.events.len(), 2);
         assert_eq!(feed.events[0].id, "EONET_2");
         assert_eq!(feed.events[0].event_type, EonetEventType::Fire);
-        assert_eq!(feed.events[0].geometry_kind, EonetGeometryKind::PolygonCenter);
+        assert_eq!(
+            feed.events[0].geometry_kind,
+            EonetGeometryKind::PolygonCenter
+        );
         assert!(feed.events[0].longitude.abs() > 170.0);
         assert_eq!(feed.events[1].event_type, EonetEventType::Storm);
         assert_eq!(
@@ -563,15 +631,17 @@ mod tests {
     #[test]
     fn geometry_specific_measurement_overrides_event_level_measurement() {
         let geometry = r#"{"date":"2026-05-01T12:00:00Z","type":"Point","coordinates":[-80.0,12.0],"magnitudeValue":12.0,"magnitudeUnit":"km/h","magnitudeDescription":"Peak wind"}"#;
-        let source = event("EONET_1", "severeStorms", "null", geometry, "EONET_1")
-            .replace(
-                r#""title":"Test event""#,
-                r#""title":"Test event","magnitudeValue":5.0,"magnitudeUnit":"m""#,
-            );
+        let source = event("EONET_1", "severeStorms", "null", geometry, "EONET_1").replace(
+            r#""title":"Test event""#,
+            r#""title":"Test event","magnitudeValue":5.0,"magnitudeUnit":"m""#,
+        );
         let feed = parse_feed(&fixture(&source), NOW).unwrap();
         assert_eq!(feed.events[0].magnitude_value, Some(12.0));
         assert_eq!(feed.events[0].magnitude_unit.as_deref(), Some("km/h"));
-        assert_eq!(feed.events[0].magnitude_description.as_deref(), Some("Peak wind"));
+        assert_eq!(
+            feed.events[0].magnitude_description.as_deref(),
+            Some("Peak wind")
+        );
     }
 
     #[test]
@@ -584,21 +654,33 @@ mod tests {
     #[test]
     fn rejects_nonempty_catalog_when_all_events_are_invalid() {
         let bad = event(
-            "EONET_1", "wildfires", "null",
-            &point_geometry("2026-05-01T12:00:00Z", 400.0, 10.0), "EONET_1",
+            "EONET_1",
+            "wildfires",
+            "null",
+            &point_geometry("2026-05-01T12:00:00Z", 400.0, 10.0),
+            "EONET_1",
         );
-        assert_eq!(parse_feed(&fixture(&bad), NOW), Err(EonetFeedError::NoValidEvents));
+        assert_eq!(
+            parse_feed(&fixture(&bad), NOW),
+            Err(EonetFeedError::NoValidEvents)
+        );
     }
 
     #[test]
     fn rejects_url_id_mismatch_and_skips_closed_events() {
         let mismatch = event(
-            "EONET_1", "wildfires", "null",
-            &point_geometry("2026-05-01T12:00:00Z", 10.0, 20.0), "EONET_9",
+            "EONET_1",
+            "wildfires",
+            "null",
+            &point_geometry("2026-05-01T12:00:00Z", 10.0, 20.0),
+            "EONET_9",
         );
         let closed = event(
-            "EONET_2", "volcanoes", r#""2026-05-02T00:00:00Z""#,
-            &point_geometry("2026-05-01T12:00:00Z", 11.0, 21.0), "EONET_2",
+            "EONET_2",
+            "volcanoes",
+            r#""2026-05-02T00:00:00Z""#,
+            &point_geometry("2026-05-01T12:00:00Z", 11.0, 21.0),
+            "EONET_2",
         );
         let feed = parse_feed(&fixture(&format!("{mismatch},{closed}")), NOW).unwrap();
         assert_eq!(feed.events.len(), 1);
@@ -645,7 +727,10 @@ mod tests {
         assert_eq!(parse_iso8601_ms("1970-01-01"), Some(0));
         assert_eq!(parse_iso8601_ms("1970-01-01T00:00:00Z"), Some(0));
         assert_eq!(parse_iso8601_ms("1970-01-01T01:00:00+01:00"), Some(0));
-        assert_eq!(parse_iso8601_ms("1970-01-01T01:00:00.1234+01:00"), Some(123));
+        assert_eq!(
+            parse_iso8601_ms("1970-01-01T01:00:00.1234+01:00"),
+            Some(123)
+        );
         assert_eq!(parse_iso8601_ms("2025-02-30T00:00:00Z"), None);
         assert_eq!(parse_iso8601_ms("not-a-date"), None);
     }
