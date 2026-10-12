@@ -68,7 +68,7 @@ Before claiming an improvement:
 - [Initial data inventory](MINERAL_PROSPECTIVITY_DATA_INVENTORY.md) records what source access has been verified, what remains unchecked, and the next M0 actions.
 - [Baseline reproduction audit](MINERAL_PROSPECTIVITY_BASELINE_AUDIT.md) records the published workflow, the 142 MB supplement ingestion blocker, and target-specific spatial validation requirements.
 - [Dataset manifest JSON Schema](schemas/mineral-dataset-manifest.schema.json) defines the provenance/rights/quality contract for a source or derived layer, with exact 64-hex-character checksums for SHA-256/BLAKE3 digests.
-- [Read-only bundle preflight CLI](../scripts/mineral-prospectivity/README.md) and [synthetic safety tests](../tests/test_inspect_bundle.py) provide the first executable data-engineering increment. It inspects ZIP central-directory metadata and hashes the original bundle without extracting files; it is not a GIS parser or a geological model.
+- [Read-only bundle preflight CLI](../scripts/mineral-prospectivity/README.md), [GIS metadata inspector](../scripts/mineral-prospectivity/inspect_gis.py), and [synthetic tests](../tests/test_inspect_bundle.py) / [GIS tests](../tests/test_inspect_gis.py) provide an executable two-stage intake. Stage one hashes and inventories a bundle without extraction; stage two invokes GDAL/OGR in read-only mode on a manually staged GIS file. Neither tool is a geological model.
 
 These are desk-research artifacts only. They do not certify individual datasets as licensed, downloaded, validated, or ready for ingestion.
 
@@ -275,11 +275,12 @@ Pass only after M2 passes and the planner is evaluated against baselines such as
 ## 12. Immediate implementation tasks
 
 1. Use the [read-only bundle preflight](../scripts/mineral-prospectivity/README.md) on an authorized local copy of the Africa geodatabase; inspect its manifest output and investigate warnings without extracting anything automatically.
-2. Create a source inventory for the 2024 paper and identify which supplementary assets and input layers can legally and practically be used.
-3. Define the canonical dataset manifest and spatial-fold schema before processing any large rasters.
-4. Build a baseline reproduction in a separate research pipeline; do not load large source data into the Leptos/WASM client.
-5. Publish generated, license-compatible vector/raster tiles through a data-serving boundary; the Sol-Atlas client should visualize derived, attributable products, not act as a research compute engine.
-6. Run M1 and M2 before implementing any active targeting or adding Symthaea-produced hypotheses to a published map.
+2. In an isolated, quota-limited workspace, manually stage only reviewed archive members, then run the [GDAL/OGR metadata inspector](../scripts/mineral-prospectivity/inspect_gis.py) against each authorized GIS file. Keep raw inputs outside Git and never run OGR with update flags.
+3. Create a source inventory for the 2024 paper and identify which supplementary assets and input layers can legally and practically be used.
+4. Define the canonical dataset manifest and spatial-fold schema before processing any large rasters.
+5. Build a baseline reproduction in a separate research pipeline; do not load large source data into the Leptos/WASM client.
+6. Publish generated, license-compatible vector/raster tiles through a data-serving boundary; the Sol-Atlas client should visualize derived, attributable products, not act as a research compute engine.
+7. Run M1 and M2 before implementing any active targeting or adding Symthaea-produced hypotheses to a published map.
 
 ## References
 
