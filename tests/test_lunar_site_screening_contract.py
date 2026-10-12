@@ -106,6 +106,17 @@ class LunarSiteScreeningContractTests(unittest.TestCase):
             any(item["mapping_state"] == "no_exact_name_match_validated" for item in crosswalk)
         )
 
+    def test_every_source_uses_structured_crosswalk_states(self) -> None:
+        for source in self.catalog["sources"]:
+            crosswalk = source["candidate_crosswalk"]
+            self.assertIsInstance(crosswalk, list)
+            self.assertTrue(crosswalk)
+            for entry in crosswalk:
+                self.assertTrue(entry["candidate_id"])
+                self.assertTrue(entry["mapping_state"])
+                self.assertIn("product_site", entry)
+                self.assertIn("note", entry)
+
     def test_uncertain_region_name_overlaps_are_not_claimed_as_exact(self) -> None:
         crosswalk = self.catalog["sources"][0]["candidate_crosswalk"]
         de_gerlache = next(item for item in crosswalk if item["candidate_id"] == "de-gerlache-rim-2")
