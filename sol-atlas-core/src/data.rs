@@ -138,8 +138,8 @@ fn parse_or_log<T: Default>(dataset: &str, result: Result<T, serde_json::Error>)
 ///
 /// ValidEmpty means the source parsed successfully and contained zero records.
 /// Malformed means parsing failed; it must not be presented as a valid empty
-/// inventory. Unavailable, StaleCache and Rejected are reserved for retrieval,
-/// cache and authentication layers that own those decisions.
+/// inventory. Rejected means parsing succeeded but every source record failed
+/// semantic validation. Unavailable and StaleCache remain retrieval-layer states.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DatasetLoadState {
