@@ -20,6 +20,9 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
+      # The shared core is a path dependency, not a workspace member; root
+      # cargo fmt does not include it unless its manifest is addressed.
+      - run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml --all -- --check
 
   check-wasm:
     runs-on: ubuntu-latest
@@ -43,6 +46,7 @@ jobs:
       # (a closure type-inference error in layer_panel.rs) before it
       # would otherwise have shipped, 2026-07-10.
       - run: cargo check --target wasm32-unknown-unknown
+      - run: cargo check --manifest-path sol-atlas-core/Cargo.toml --target wasm32-unknown-unknown
 
   test-native:
     runs-on: ubuntu-latest
@@ -59,8 +63,14 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
+      - name: Compile independent fixture verifier
+        run: python3 -m py_compile scripts/verify_economic_intelligence_fixture.py
       - name: Verify frozen economic-intelligence reference corpus
         run: python3 scripts/verify_economic_intelligence_fixture.py
+      # sol-atlas-core is not a workspace member, so its own unit and integration
+      # tests must be invoked explicitly; testing the top-level binary does not
+      # run test targets inside path dependencies.
+      - run: cargo test --manifest-path sol-atlas-core/Cargo.toml
       # This crate is a wasm-bindgen-heavy [[bin]] with no [lib] target —
       # native `cargo test` still works (verified 2026-07-11) and is much
       # faster than a wasm test harness for the pure-logic unit tests
