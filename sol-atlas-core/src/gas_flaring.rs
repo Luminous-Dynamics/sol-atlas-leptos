@@ -445,7 +445,8 @@ pub fn coverage_summary(admitted: &ValidatedFlareSnapshot) -> FlareCoverageSumma
             .count(),
         expected_site_year_pairs,
         represented_site_year_pairs,
-        omitted_site_year_pairs: expected_site_year_pairs.saturating_sub(represented_site_year_pairs),
+        omitted_site_year_pairs: expected_site_year_pairs
+            .saturating_sub(represented_site_year_pairs),
         estimated_value_count,
         explicit_missing_value_count,
         reported_zero_count,
@@ -670,7 +671,10 @@ fn validate_site_identity(
             }
 
             for field in source_fields {
-                if matches!(site.identity_values.get(field), Some(value) if value.trim().is_empty()) {
+                if matches!(
+                    site.identity_values.get(field),
+                    Some(value) if value.trim().is_empty()
+                ) {
                     issues.push(issue(
                         "empty_identity_value",
                         format!("{base}.identity_values.{field}"),
