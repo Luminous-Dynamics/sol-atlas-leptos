@@ -70,6 +70,71 @@ CASE_KEYS = {
     "expected_signed_difference",
     "expected_absolute_difference",
 }
+CASE_REQUIRED_KEYS = {"case_id", "expected_status"}
+EXPECTED_CASE_IDS = {
+    "ordinary_gap",
+    "equal_values",
+    "f64_integer_precision_boundary",
+    "negative_signed_fraction",
+    "incompatible_value_units",
+    "aggregate_partner",
+    "mixed_geography_code_systems",
+    "exponent_notation",
+    "missing_import_value",
+}
+# Guard the identity and key distinguishing inputs of every frozen edge case.
+# The arithmetic oracle checks results; these assertions stop the corpus from
+# silently losing or redefining the scenarios that give it regression value.
+EXPECTED_CASE_MARKERS = {
+    "ordinary_gap": {
+        "exporter_value": "100.00",
+        "importer_value": "120.000",
+        "expected_status": "compared",
+        "expected_signed_difference": "20",
+        "expected_absolute_difference": "20",
+    },
+    "equal_values": {
+        "exporter_value": "100",
+        "importer_value": "100.00",
+        "expected_status": "compared",
+        "expected_signed_difference": "0",
+        "expected_absolute_difference": "0",
+    },
+    "f64_integer_precision_boundary": {
+        "exporter_value": "9007199254740992",
+        "importer_value": "9007199254740993",
+        "expected_status": "compared",
+        "expected_signed_difference": "1",
+        "expected_absolute_difference": "1",
+    },
+    "negative_signed_fraction": {
+        "exporter_value": "100.000",
+        "importer_value": "99.999",
+        "expected_status": "compared",
+        "expected_signed_difference": "-0.001",
+        "expected_absolute_difference": "0.001",
+    },
+    "incompatible_value_units": {
+        "importer_value_unit": "USD_thousands",
+        "expected_status": "value_unit_mismatch",
+    },
+    "aggregate_partner": {
+        "exporter_partner_kind": "aggregate",
+        "expected_status": "aggregate_party_not_supported",
+    },
+    "mixed_geography_code_systems": {
+        "importer_geography_code_system": "UN_M49",
+        "expected_status": "geography_code_system_mismatch",
+    },
+    "exponent_notation": {
+        "exporter_value": "1e2",
+        "expected_status": "invalid_exporter_value_format",
+    },
+    "missing_import_value": {
+        "importer_value": None,
+        "expected_status": "missing_importer_value",
+    },
+}
 
 
 def parse_decimal_token(token: Any) -> tuple[int, int] | None:
@@ -237,6 +302,18 @@ def main() -> int:
     if not isinstance(corpus["cases"], list) or not corpus["cases"]:
         print("FAIL: fixture corpus has no cases", file=sys.stderr)
         return 1
+    case_ids_in_fixture = {
+        case.get("case_id") for case in corpus["cases"] if isinstance(case, dict)
+    }
+    if len(corpus["cases"]) != len(EXPECTED_CASE_IDS) or case_ids_in_fixture != EXPECTED_CASE_IDS:
+        missing = sorted(EXPECTED_CASE_IDS - case_ids_in_fixture)
+        unexpected = sorted(str(item) for item in case_ids_in_fixture - EXPECTED_CASE_IDS)
+        print(
+            "FAIL: frozen reference case inventory drifted "
+            f"(missing={missing}, unexpected={unexpected}, count={len(corpus['cases'])})",
+            file=sys.stderr,
+        )
+        return 1
 
     seen: set[str] = set()
     failures: list[str] = []
@@ -244,11 +321,22 @@ def main() -> int:
         if not isinstance(case, dict) or not CASE_KEYS.issuperset(case):
             failures.append(f"case[{index}]: malformed or unknown fields")
             continue
+        if not CASE_REQUIRED_KEYS.issubset(case):
+            missing_required = sorted(CASE_REQUIRED_KEYS - set(case))
+            failures.append(f"case[{index}]: missing required fields {missing_required}")
+            continue
         case_id = case.get("case_id")
         if not isinstance(case_id, str) or not case_id or case_id in seen:
             failures.append(f"case[{index}]: missing or duplicate case_id")
             continue
         seen.add(case_id)
+
+        for field, expected in EXPECTED_CASE_MARKERS[case_id].items():
+            if case.get(field) != expected:
+                failures.append(
+                    f"{case_id}: frozen edge-case marker {field!r} must be "
+                    f"{expected!r}, got {case.get(field)!r}"
+                )
 
         actual_status, actual_signed, actual_absolute = evaluate(case)
         expected_status = case.get("expected_status")
