@@ -222,17 +222,19 @@ pub struct TrustedReuseAuthorization {
 impl TrustedReuseAuthorization {
     /// Record an explicit manual review in trusted ingestion/deployment code.
     ///
-    /// Call only after independently checking the linked terms and any
-    /// third-party restrictions for the intended use.
+    /// Hashes are calculated from the exact source and terms bytes passed to
+    /// this function. Call only after independently checking the linked terms
+    /// and any third-party restrictions for the intended use. This records a
+    /// human attestation; it does not authenticate the reviewer externally.
     #[allow(clippy::too_many_arguments)]
     pub fn record_manual_review(
         source_uri: &str,
         source_version: &str,
-        snapshot_sha256: &str,
+        source_bytes: &[u8],
         reviewer: &str,
         reviewed_at: &str,
         terms_uri: &str,
-        terms_snapshot_sha256: &str,
+        terms_snapshot_bytes: &[u8],
         approved_purpose: &str,
     ) -> Result<Self, Vec<ValidationIssue>> {
         let mut issues = Vec::new();
@@ -242,7 +244,6 @@ impl TrustedReuseAuthorization {
             ("reviewer", reviewer),
             ("reviewed_at", reviewed_at),
             ("terms_uri", terms_uri),
-            ("terms_snapshot_sha256", terms_snapshot_sha256),
             ("approved_purpose", approved_purpose),
         ] {
             if value.trim().is_empty() {
@@ -253,25 +254,25 @@ impl TrustedReuseAuthorization {
                 ));
             }
         }
+        if source_bytes.is_empty() {
+            issues.push(issue(
+                "missing_source_snapshot_bytes",
+                "authorization.source_bytes",
+                "hash the exact non-empty source snapshot bytes before authorizing ingestion",
+            ));
+        }
+        if terms_snapshot_bytes.is_empty() {
+            issues.push(issue(
+                "missing_terms_snapshot_bytes",
+                "authorization.terms_snapshot_bytes",
+                "hash the exact non-empty reviewed terms snapshot bytes",
+            ));
+        }
         if !source_uri.starts_with("https://") || !terms_uri.starts_with("https://") {
             issues.push(issue(
                 "invalid_authorization_uri",
                 "authorization",
                 "source and terms URIs must use HTTPS",
-            ));
-        }
-        if !is_sha256_hex(snapshot_sha256) {
-            issues.push(issue(
-                "invalid_authorization_digest",
-                "authorization.snapshot_sha256",
-                "authorization must bind a 64-character SHA-256 hex digest",
-            ));
-        }
-        if !is_sha256_hex(terms_snapshot_sha256) {
-            issues.push(issue(
-                "invalid_terms_snapshot_digest",
-                "authorization.terms_snapshot_sha256",
-                "authorization must pin a 64-character SHA-256 digest of the reviewed terms snapshot",
             ));
         }
         if !is_iso_date(reviewed_at) {
@@ -288,11 +289,11 @@ impl TrustedReuseAuthorization {
         Ok(Self {
             source_uri: source_uri.to_string(),
             source_version: source_version.to_string(),
-            snapshot_sha256: snapshot_sha256.to_string(),
+            snapshot_sha256: sha256_hex(source_bytes),
             reviewer: reviewer.to_string(),
             reviewed_at: reviewed_at.to_string(),
             terms_uri: terms_uri.to_string(),
-            terms_snapshot_sha256: terms_snapshot_sha256.to_string(),
+            terms_snapshot_sha256: sha256_hex(terms_snapshot_bytes),
             approved_purpose: approved_purpose.to_string(),
         })
     }
@@ -957,6 +958,10 @@ fn is_utc_timestamp(value: &str) -> bool {
     hour <= 23 && minute <= 59 && second <= 59
 }
 
+fn sha256_hex(bytes: &[u8]) -> String {
+    hex_lower(&Sha256::digest(bytes))
+}
+
 fn is_sha256_hex(value: &str) -> bool {
     value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
@@ -978,15 +983,14 @@ mod tests {
     use super::*;
 
     fn test_authorization() -> TrustedReuseAuthorization {
-        let digest = "a".repeat(64);
         TrustedReuseAuthorization::record_manual_review(
             "https://example.invalid/synthetic-flare-fixture",
             "synthetic-fixture-v1",
-            &digest,
+            b"synthetic workbook bytes",
             "test-fixture-review",
             "2026-10-12",
             "https://example.invalid/synthetic-test-terms",
-            &"b".repeat(64),
+            b"synthetic terms snapshot bytes",
             "Synthetic unit-test fixture only; source workbook redistribution not implied",
         )
         .expect("synthetic fixture authorization should be well formed")
@@ -1006,7 +1010,7 @@ mod tests {
             site_identity_method: SiteIdentityMethod::SourceField {
                 field_name: "Synthetic Site ID".into(),
             },
-            snapshot_sha256: "a".repeat(64),
+            snapshot_sha256: sha256_hex(b"synthetic workbook bytes"),
             published_at: None,
             retrieved_at: "2026-10-12T00:00:00Z".into(),
             reference_year_start: 2024,
@@ -1016,7 +1020,7 @@ mod tests {
                 reviewer: "test-fixture-review".into(),
                 reviewed_at: "2026-10-12".into(),
                 terms_uri: "https://example.invalid/synthetic-test-terms".into(),
-                terms_snapshot_sha256: "b".repeat(64),
+                terms_snapshot_sha256: sha256_hex(b"synthetic terms snapshot bytes"),
                 approved_purpose: "Synthetic unit-test fixture only; source workbook redistribution not implied".into(),
             },
         }
