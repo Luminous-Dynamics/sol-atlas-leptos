@@ -172,26 +172,60 @@ pub fn InfoPanel() -> impl IntoView {
                         );
                         let nearby_count = nearby.len();
                         let source_label = e.source_name.clone().unwrap_or_else(|| {
-                            if e.source_id.is_some() { "Source-linked observation".to_string() }
-                            else { "Bundled dataset".to_string() }
+                            if e.source_id.is_some() {
+                                "Source-linked record".to_string()
+                            } else {
+                                "Source not identified".to_string()
+                            }
                         });
-                        let measurement = if e.source_name.as_deref() == Some("NASA EONET") {
-                            let label = match (
-                                e.magnitude_description.as_deref(),
-                                e.magnitude_unit.as_deref(),
-                            ) {
-                                (Some(description), Some(unit)) => {
-                                    format!("{description} ({:.1} {unit})", e.magnitude)
-                                }
-                                (Some(description), None) => description.to_string(),
-                                (None, Some(unit)) => format!("{:.1} {unit}", e.magnitude),
-                                (None, None) => {
-                                    "No standardized magnitude across EONET categories".to_string()
-                                }
-                            };
-                            row("Reported measure", label).into_any()
-                        } else {
-                            hero(format!("{:.1}", e.magnitude), "magnitude").into_any()
+                        let provenance_label = e
+                            .data_kind
+                            .map(|kind| kind.label().to_string())
+                            .unwrap_or_else(|| "unclassified".to_string());
+                        let measurement = match e.data_kind {
+                            Some(sol_atlas_core::types::DataKind::Observed)
+                                if e.source_name.as_deref() == Some("NASA EONET") =>
+                            {
+                                let label = match (
+                                    e.magnitude_description.as_deref(),
+                                    e.magnitude_unit.as_deref(),
+                                ) {
+                                    (Some(description), Some(unit)) => {
+                                        format!("{description} ({:.1} {unit})", e.magnitude)
+                                    }
+                                    (Some(description), None) => description.to_string(),
+                                    (None, Some(unit)) => format!("{:.1} {unit}", e.magnitude),
+                                    (None, None) => {
+                                        "No standardized measure across EONET categories".to_string()
+                                    }
+                                };
+                                row("Reported measure", label).into_any()
+                            }
+                            Some(sol_atlas_core::types::DataKind::Observed)
+                                if e.source_name.as_deref() == Some("USGS ComCat") =>
+                            {
+                                hero(format!("{:.1}", e.magnitude), "magnitude").into_any()
+                            }
+                            Some(sol_atlas_core::types::DataKind::Synthetic) => row(
+                                "Measurement",
+                                "Synthetic demo value; not a real-world observation".to_string(),
+                            )
+                            .into_any(),
+                            Some(sol_atlas_core::types::DataKind::Mixed) => row(
+                                "Measurement",
+                                "Mixed provenance; value is not treated as a verified measurement".to_string(),
+                            )
+                            .into_any(),
+                            Some(sol_atlas_core::types::DataKind::Curated) => row(
+                                "Measurement",
+                                "No source-validated measurement is available".to_string(),
+                            )
+                            .into_any(),
+                            _ => row(
+                                "Measurement",
+                                "Unknown provenance; value is not shown as verified".to_string(),
+                            )
+                            .into_any(),
                         };
                         let nearby_rows: Vec<_> = if nearby.is_empty() {
                             vec![view! {
@@ -223,10 +257,11 @@ pub fn InfoPanel() -> impl IntoView {
                                 <div class="subtitle">{format!(
                                     "{:?} · {}",
                                     e.event_type,
-                                    if e.source_id.is_some() { "source-linked observation" } else { "bundled snapshot" }
+                                    provenance_label
                                 )}</div>
                                 {measurement}
                                 {row("Source", source_label)}
+                                {row("Classification", provenance_label)}
                                 {e.source_id.clone().map(|id| row("Source ID", id))}
                                 {e.occurred_at_ms.map(|timestamp| row("Occurred (UTC)", format_timestamp_ms(timestamp)))}
                                 {e.updated_at_ms.map(|timestamp| row("Updated (UTC)", format_timestamp_ms(timestamp)))}
@@ -234,10 +269,13 @@ pub fn InfoPanel() -> impl IntoView {
                                 {e.geometry_note.clone().map(|note| row("Location representation", note))}
                                 {match e.source_url.clone() {
                                     Some(url) if
-                                        (e.source_name.as_deref() == Some("USGS ComCat")
-                                            && url.starts_with("https://earthquake.usgs.gov/earthquakes/eventpage/"))
-                                        || (e.source_name.as_deref() == Some("NASA EONET")
-                                            && url.starts_with("https://eonet.gsfc.nasa.gov/api/v3/events/")) =>
+                                        e.data_kind == Some(sol_atlas_core::types::DataKind::Observed)
+                                        && (
+                                            (e.source_name.as_deref() == Some("USGS ComCat")
+                                                && url.starts_with("https://earthquake.usgs.gov/earthquakes/eventpage/"))
+                                            || (e.source_name.as_deref() == Some("NASA EONET")
+                                                && url.starts_with("https://eonet.gsfc.nasa.gov/api/v3/events/"))
+                                        ) =>
                                         view! {
                                             <a class="stat-row source-link" href=url target="_blank" rel="noopener noreferrer">
                                                 <span class="stat-label">"Evidence"</span>
