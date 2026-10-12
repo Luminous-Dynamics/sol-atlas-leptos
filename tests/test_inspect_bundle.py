@@ -1,9 +1,11 @@
+import sys
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
 
-from scripts.inspect_bundle import inspect_path, safe_member_name
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts" / "mineral-prospectivity"))
+from inspect_bundle import inspect_path, safe_member_name
 
 
 class BundlePreflightTests(unittest.TestCase):
