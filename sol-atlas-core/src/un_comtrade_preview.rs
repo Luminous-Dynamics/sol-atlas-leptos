@@ -421,8 +421,10 @@ fn normalize_record(
         value_unit: "USD".to_string(),
         quantity: optional_f64(object, "netWgt"),
         quantity_unit: optional_scalar(object, "qtyUnitAbbr"),
-        source_published_at: optional_scalar(object, "refYear")
-            .or_else(|| optional_scalar(object, "period")),
+        // The API row reference period is not the publication/revision time.
+        // Preserve it separately as period; leave source_published_at absent
+        // until qualified metadata provides a distinct publication timestamp.
+        source_published_at: None,
         retrieved_at: context.retrieved_at.clone(),
     })
 }
