@@ -60,8 +60,24 @@ struct LunarSourceCatalog {
     status: String,
     decision_rule: String,
     metric_policy: String,
+    historical_leads: Vec<LunarHistoricalLead>,
     sources: Vec<LunarSource>,
     ingestion_sequence: Vec<String>,
+}
+
+#[derive(Clone, Deserialize)]
+struct LunarHistoricalLead {
+    id: String,
+    title: String,
+    related_region: String,
+    finding: String,
+    evidence_state: String,
+    source_url: String,
+    time_window: String,
+    #[serde(default)]
+    heights_above_surface_m: Vec<f64>,
+    next_action: String,
+    interpretation_limits: Vec<String>,
 }
 
 #[derive(Clone, Deserialize)]
@@ -174,6 +190,7 @@ pub fn LunarObservatory() -> impl IntoView {
             let catalog_status = source_catalog.status;
             let catalog_decision_rule = source_catalog.decision_rule;
             let catalog_metric_policy = source_catalog.metric_policy;
+            let historical_leads = source_catalog.historical_leads;
             let source_products = source_catalog.sources;
             let ingestion_sequence = source_catalog.ingestion_sequence;
 
@@ -308,6 +325,13 @@ pub fn LunarObservatory() -> impl IntoView {
                             </div>
                             <p class="lunar-catalog-intro">{catalog_decision_rule}</p>
                             <p class="lunar-policy-note">{catalog_metric_policy}</p>
+                            <h3 class="lunar-subsection-title">"Research leads to test — not site rankings"</h3>
+                            <div class="lunar-historical-lead-grid">
+                                {historical_leads.into_iter().map(|lead| view! {
+                                    <LunarHistoricalLeadCard lead=lead/>
+                                }).collect::<Vec<_>>()}
+                            </div>
+                            <h3 class="lunar-subsection-title">"Source products and ingestion requirements"</h3>
                             <div class="lunar-source-grid">
                                 {source_products.into_iter().map(|source| view! {
                                     <LunarSourceCard source=source/>
@@ -418,6 +442,56 @@ fn LunarCandidateCard(candidate: LunarCandidate) -> impl IntoView {
             <div class="lunar-card-sources">
                 {sources}
             </div>
+        </article>
+    }
+}
+
+#[component]
+fn LunarHistoricalLeadCard(lead: LunarHistoricalLead) -> impl IntoView {
+    let heights = if lead.heights_above_surface_m.is_empty() {
+        "not specified".to_string()
+    } else {
+        lead.heights_above_surface_m
+            .iter()
+            .map(|height| format!("{height:g} m"))
+            .collect::<Vec<_>>()
+            .join(" / ")
+    };
+    let limits = lead
+        .interpretation_limits
+        .iter()
+        .map(|item| {
+            let item = item.clone();
+            view! { <li>{item}</li> }
+        })
+        .collect::<Vec<_>>();
+
+    view! {
+        <article class="lunar-historical-lead">
+            <div class="lunar-card-topline">
+                <span class="lunar-candidate-id">{lead.id}</span>
+                <span class="lunar-register-state">{lead.evidence_state.replace('_', " ")}</span>
+            </div>
+            <h4>{lead.title}</h4>
+            <p class="lunar-role-label">{lead.related_region}</p>
+            <p class="lunar-historical-finding">{lead.finding}</p>
+            <dl class="lunar-source-metadata">
+                <dt>"Model window"</dt>
+                <dd>{lead.time_window}</dd>
+                <dt>"Heights above surface"</dt>
+                <dd>{heights}</dd>
+            </dl>
+            <div class="lunar-card-section">
+                <h4>"Interpretation limits"</h4>
+                <ul>{limits}</ul>
+            </div>
+            <div class="lunar-card-section">
+                <h4>"Next action"</h4>
+                <p class="lunar-role-text">{lead.next_action}</p>
+            </div>
+            <a class="lunar-source-open" href=lead.source_url target="_blank" rel="noopener noreferrer">
+                "Read source evidence ↗"
+            </a>
         </article>
     }
 }
@@ -542,7 +616,15 @@ mod tests {
             .expect("embedded source catalogue must parse");
         assert_eq!(catalog.sources.len(), 4);
         assert_eq!(catalog.ingestion_sequence.len(), 6);
+        assert_eq!(catalog.historical_leads.len(), 3);
         assert!(catalog.metric_policy.contains("No derived site metrics"));
+        assert!(catalog.historical_leads[0]
+            .title
+            .contains("Connecting Ridge"));
+        assert!(catalog.historical_leads[0]
+            .interpretation_limits
+            .iter()
+            .any(|item| item.contains("not a new measurement")));
         assert!(catalog
             .sources
             .iter()
