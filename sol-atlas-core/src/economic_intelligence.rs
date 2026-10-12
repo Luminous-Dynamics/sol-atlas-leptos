@@ -1103,6 +1103,19 @@ mod tests {
     }
 
     #[test]
+    fn refuses_to_compare_when_source_coverage_is_unproven() {
+        let exporter =
+            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer =
+            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        importer.source_coverage = ObservationSourceCoverage::PreviewCompletenessUnproven;
+
+        let result = compare_mirror_pair(&[exporter], &[importer]);
+        assert_eq!(result.status, MirrorPairStatus::SourceCoverageInsufficient);
+        assert_eq!(result.absolute_difference_source_text, None);
+    }
+
+    #[test]
     fn refuses_to_compare_across_different_series_definitions() {
         let exporter =
             observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
