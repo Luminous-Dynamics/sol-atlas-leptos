@@ -23,6 +23,11 @@ use std::fmt;
 pub const WORLD_BANK_FLARING_DATA_URL: &str =
     "https://www.worldbank.org/en/programs/gasflaringreduction/global-flaring-data";
 
+/// Direct workbook attachment linked from the World Bank's June 2026 tracker page.
+/// Reconfirm this URL, workbook schema, and applicable terms before every ingestion.
+pub const WORLD_BANK_FLARING_WORKBOOK_URL: &str =
+    "https://thedocs.worldbank.org/en/doc/b34e0c054bb3fe3695e70154c28eef3f-0400072026/related/Flare-Volume-Estimates-by-individual-Flare-Location-2012-2025.xlsx";
+
 /// Explicitly bounded statement about what a site record represents.
 pub const CLAIM_CEILING: &str = "Satellite-derived flaring-volume estimate for screening only; not recoverability, methane leakage, verified emissions reduction, engineering viability, or financial return.";
 
