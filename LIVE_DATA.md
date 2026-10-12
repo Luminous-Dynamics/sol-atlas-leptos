@@ -67,9 +67,14 @@ validation, state updates, and UI remain in Rust.
   (USGS magnitude and EONET's own measure/unit). Synthetic, mixed, unclassified,
   or unsupported numeric values are never presented as verified magnitudes.
 - The derived Confluence overlay accepts event records only when the individual
-  record is (Observed + LiveFeed) or (Curated + CuratedReference). Bundled
-  snapshots remain inspectable but cannot create a claim of current co-location;
-  Synthetic, Mixed, and unclassified records fail closed.
+  record is (Observed + LiveFeed from a currently LIVE or acceptably recent
+  LAST KNOWN feed) or (Curated + CuratedReference). Bundled snapshots remain
+  inspectable but cannot create a claim of current co-location. STALE/OFFLINE
+  USGS/EONET records, Synthetic, Mixed, and unclassified records fail closed.
+- Feed-health changes and accepted record updates bump a shared render revision.
+  The globe renderer checks that revision and rebuilds marker/picking buffers,
+  rather than waiting for the user to toggle a layer or timeline year to see a
+  newly accepted snapshot.
 - The selected-event dossier lists up to four nearest curated infrastructure
   records inside 100 km, using the Rust core's great-circle distance helper.
   This is geographic context only: the inventory is incomplete, and proximity
