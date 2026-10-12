@@ -1,0 +1,714 @@
+{
+  "catalog_version": "1.0.0",
+  "last_reviewed": "2026-10-13",
+  "title": "Earth and Planetary Systems Intelligence — Research Domain Catalog",
+  "policy": {
+    "purpose": "Register separate research domains that share evidence-ingestion, provenance, uncertainty and review infrastructure without forcing their scientific targets into one model or score.",
+    "common_rules": [
+      "Missing observations remain unknown; they are not automatically negative evidence.",
+      "Observations, derived products, model outputs and expert hypotheses have distinct evidence types.",
+      "Products sharing the same upstream observation are not independent corroboration.",
+      "Predictions must state spatial and temporal support, coverage, uncertainty, domain of validity and known failure modes.",
+      "A high score is a screening hypothesis, not ground truth, a causal claim, or an operational instruction.",
+      "Dataset access, license, attribution and redistribution permissions are checked per artifact and layer.",
+      "Local communities, land rights, permits, ecological safeguards and human priorities constrain action; they are not optional score weights."
+    ],
+    "architecture": {
+      "sol_atlas": "Spatial and temporal presentation, evidence-layer toggles, coverage and dissent views.",
+      "symthaea": "Generate and compare explicit hypotheses, detect contradictions, and propose discriminating observations; never act as authoritative evidence.",
+      "mycelix": "Bind claims to immutable dataset/artifact digests, provenance, consent/access constraints, review attestations and supersession history.",
+      "symtropy": "Run only domain-appropriate, validated scenario simulations; do not substitute its current generic rigid-body physics for geoscience, hydrology or climate solvers."
+    },
+    "acceptance_rule": "A domain remains candidate research until its data rights, metadata, reproducible baseline, domain-appropriate validation, uncertainty report, failure analysis and independent review gates are satisfied."
+  },
+  "domains": [
+    {
+      "id": "mineral-prospectivity",
+      "title": "Mineral systems and geological resources",
+      "priority": "P0",
+      "readiness": "benchmark_in_progress",
+      "question": "Where should additional geological investigation be prioritized for a specified mineral system, given spatially incomplete and differently resolved evidence?",
+      "scope": "Deposit-type-specific prospectivity using geology, geophysics, geochemistry, remote sensing where appropriate, and tectonic context only when relevant.",
+      "target_geography": [
+        "South Africa pilot",
+        "Africa comparison"
+      ],
+      "output_types": [
+        "prospectivity hypotheses",
+        "model disagreement",
+        "coverage and extrapolation maps",
+        "next-measurement proposals"
+      ],
+      "data_sources": [
+        {
+          "source_id": "SA-MPM-2024",
+          "name": "South African consensus-based prospectivity benchmark",
+          "provider": "Nwaila et al. / Natural Resources Research",
+          "url": "https://doi.org/10.1007/s11053-024-10390-w",
+          "role": "Primary reproducibility benchmark for PGE–Ni–Cu–Cr and Witwatersrand-type Au.",
+          "access_status": "published_reference",
+          "rights_state": "review_per_artifact",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Supporting material is a large supplementary PDF and has not been extracted in this work.",
+            "Unlabeled areas are not equivalent to confirmed barren ground."
+          ]
+        },
+        {
+          "source_id": "USGS-AFRICA-GIS",
+          "name": "Compilation of geospatial data for mineral industries and related infrastructure in Africa",
+          "provider": "USGS",
+          "url": "https://doi.org/10.5066/P97EQWXP",
+          "role": "Data-ingestion smoke test and regional context; not ground truth for modelled undiscovered tracts.",
+          "access_status": "public_catalog",
+          "rights_state": "release_level_cc0_component_review",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Component-layer metadata and source ancestry need review.",
+            "Some layers are existing assessments and would create leakage if treated as independent labels."
+          ]
+        }
+      ],
+      "required_checks": [
+        "source and component-layer lineage",
+        "target-specific label definitions",
+        "spatially independent holdouts",
+        "negative/unlabeled sensitivity",
+        "source-resolution preservation"
+      ],
+      "prohibited_inferences": [
+        "A prospectivity score proves an economic deposit.",
+        "Satellite data directly resolve deep ore bodies.",
+        "A modeled undiscovered-resource tract is independent ground truth."
+      ],
+      "validation": {
+        "split_strategy": "Grouped spatial holdouts by district, deposit cluster or geological unit; temporal backtests only when source dates permit.",
+        "metrics": [
+          "PR-AUC with prevalence",
+          "recall within top 1/5/10 percent of eligible area",
+          "area nominated",
+          "enrichment over transparent baseline",
+          "fold and label-sampling stability"
+        ],
+        "baseline_required": true,
+        "independent_review_required": true
+      }
+    },
+    {
+      "id": "water-security",
+      "title": "Water security, drought and water-storage change",
+      "priority": "P1",
+      "readiness": "candidate",
+      "question": "Where are water-storage, soil-moisture or drought indicators changing, and which local measurements would distinguish climate variability from local abstraction or infrastructure problems?",
+      "scope": "Combine satellite-supported water-storage indicators with precipitation, soil moisture, hydrography, reservoir observations, aquifer maps and local measurements when available.",
+      "target_geography": [
+        "Southern Africa",
+        "Africa",
+        "global at source-supported resolution"
+      ],
+      "output_types": [
+        "water-stress indicators",
+        "change detection",
+        "coverage gaps",
+        "measurement-priority proposals"
+      ],
+      "data_sources": [
+        {
+          "source_id": "NASA-GRACE-DA-DM",
+          "name": "GRACE and GRACE-FO groundwater and soil-moisture drought indicators",
+          "provider": "NASA Goddard / GES DISC",
+          "url": "https://earth.gsfc.nasa.gov/hydro/data/groundwater-and-soil-moisture-conditions-grace-data-assimilation",
+          "role": "Regional water-storage and model-assimilated groundwater/soil-moisture drought indicators.",
+          "access_status": "public_catalog",
+          "rights_state": "review_product_metadata",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Global product is coarse (about 0.25-degree grid).",
+            "Indicators are model-assimilated and do not directly identify individual wells or local aquifer depletion caused by pumping."
+          ]
+        },
+        {
+          "source_id": "FAO-WAPOR",
+          "name": "WaPOR remote-sensing data for water productivity",
+          "provider": "FAO",
+          "url": "https://www.fao.org/in-action/remote-sensing-for-water-productivity/wapor-data/",
+          "role": "Water and land productivity variables for agriculture across Africa and the Near East.",
+          "access_status": "public_catalog",
+          "rights_state": "review_product_metadata",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Coverage and variable resolution differ by WaPOR level and product.",
+            "Water productivity is not a direct measure of household access, water quality or groundwater reserves."
+          ]
+        }
+      ],
+      "required_checks": [
+        "water-balance semantics",
+        "spatial and temporal support",
+        "distinguish observation from assimilated estimate",
+        "compare with gauges/wells/reservoir records when available",
+        "separate climate variability from pumping attribution"
+      ],
+      "prohibited_inferences": [
+        "Coarse GRACE grids identify an individual depleted well.",
+        "Drought correlation proves groundwater over-abstraction.",
+        "Agricultural water productivity equals safe drinking-water access."
+      ],
+      "validation": {
+        "split_strategy": "Hold out basins or regions and test time periods not used to tune thresholds; compare against appropriate in-situ records when available.",
+        "metrics": [
+          "anomaly skill by region/season",
+          "calibration and uncertainty",
+          "detection lead time where forecast is explicitly evaluated",
+          "false-alert rate",
+          "performance by gauge/data coverage"
+        ],
+        "baseline_required": true,
+        "independent_review_required": true
+      }
+    },
+    {
+      "id": "food-land-water-productivity",
+      "title": "Agricultural productivity and land-water management",
+      "priority": "P1",
+      "readiness": "candidate",
+      "question": "Where do crop and land-water productivity indicators deteriorate, where are they improving, and what local evidence would identify the responsible process?",
+      "scope": "Monitor land-cover context, rainfall, evapotranspiration and water productivity. Crop-type and yield inference requires crop calendars, ground observations and locally validated models.",
+      "target_geography": [
+        "Africa and Near East first",
+        "global only where input products support it"
+      ],
+      "output_types": [
+        "seasonal anomaly layers",
+        "water-productivity indicators",
+        "coverage-aware alerts",
+        "investigation priorities"
+      ],
+      "data_sources": [
+        {
+          "source_id": "FAO-WAPOR",
+          "name": "WaPOR remote-sensing data for water productivity",
+          "provider": "FAO",
+          "url": "https://www.fao.org/in-action/remote-sensing-for-water-productivity/wapor-data/",
+          "role": "Core Africa/Near East land and water productivity observations and derived products.",
+          "access_status": "public_catalog",
+          "rights_state": "review_product_metadata",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Coverage and spatial resolution vary by level.",
+            "A derived productivity layer does not uniquely identify agronomic cause."
+          ]
+        },
+        {
+          "source_id": "ESA-WORLDCOVER",
+          "name": "ESA WorldCover",
+          "provider": "ESA WorldCover consortium",
+          "url": "https://esa-worldcover.org/en/data-access",
+          "role": "Land-cover and land-use context.",
+          "access_status": "public_with_terms",
+          "rights_state": "cc_by_4_0_with_attribution",
+          "redistribution_allowed": true,
+          "key_limitations": [
+            "2020 v100 and 2021 v200 use different algorithm versions; naive differencing confounds real change with algorithm change.",
+            "Nominal 10 m products do not make every downstream estimate 10 m accurate."
+          ]
+        },
+        {
+          "source_id": "NASA-GPM",
+          "name": "Global Precipitation Measurement data",
+          "provider": "NASA",
+          "url": "https://gpm.nasa.gov/data/directory",
+          "role": "Precipitation context across seasons and extreme rainfall events.",
+          "access_status": "public_catalog",
+          "rights_state": "review_product_metadata",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Products vary in latency, grid, algorithm and sensor combination.",
+            "Rainfall alone does not determine crop yield or soil-water availability."
+          ]
+        }
+      ],
+      "required_checks": [
+        "crop-calendar and seasonal alignment",
+        "land-cover version comparability",
+        "cloud/quality masking",
+        "local ground-truth sampling",
+        "distinguish productivity indicator from yield"
+      ],
+      "prohibited_inferences": [
+        "Remote sensing alone proves crop yield, food availability or farmer intent.",
+        "A difference between WorldCover versions is necessarily land-cover change.",
+        "A productivity anomaly identifies its cause without corroborating evidence."
+      ],
+      "validation": {
+        "split_strategy": "Hold out agricultural regions and seasons; test across crop/ecological zones rather than random neighboring pixels.",
+        "metrics": [
+          "season-specific error",
+          "anomaly detection precision/recall",
+          "calibration by crop/zone where ground truth exists",
+          "robustness to source product/version"
+        ],
+        "baseline_required": true,
+        "independent_review_required": true
+      }
+    },
+    {
+      "id": "ecosystem-restoration-carbon",
+      "title": "Ecosystems, restoration and carbon stocks",
+      "priority": "P2",
+      "readiness": "candidate",
+      "question": "Where is land cover or vegetation structure changing, and where would field ecology be most valuable to distinguish degradation, recovery and natural variability?",
+      "scope": "Map land-cover context, forest structure and biomass proxies. Carbon-stock estimates and restoration success require product-specific uncertainty and suitable field or inventory validation.",
+      "target_geography": [
+        "Africa",
+        "global within data-product coverage"
+      ],
+      "output_types": [
+        "land-cover context",
+        "vegetation-structure indicators",
+        "change candidates",
+        "restoration monitoring priorities"
+      ],
+      "data_sources": [
+        {
+          "source_id": "ESA-WORLDCOVER",
+          "name": "ESA WorldCover",
+          "provider": "ESA WorldCover consortium",
+          "url": "https://esa-worldcover.org/en/data-access",
+          "role": "Land-cover context at nominal 10 m resolution.",
+          "access_status": "public_with_terms",
+          "rights_state": "cc_by_4_0_with_attribution",
+          "redistribution_allowed": true,
+          "key_limitations": [
+            "Different algorithm versions in 2020 and 2021 mean naive pixelwise difference is not a pure change product.",
+            "Class and geography-specific accuracy must be consulted."
+          ]
+        },
+        {
+          "source_id": "NASA-GEDI",
+          "name": "Global Ecosystem Dynamics Investigation (GEDI)",
+          "provider": "NASA",
+          "url": "https://www.earthdata.nasa.gov/data/instruments/gedi",
+          "role": "Lidar-derived vegetation structure and biomass-related observations/products.",
+          "access_status": "public_catalog",
+          "rights_state": "review_product_metadata",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "GEDI observations are footprint-based and mission/product coverage varies; gridded products aggregate sparse lidar sampling.",
+            "Biomass is not a complete measure of biodiversity or ecosystem condition."
+          ]
+        },
+        {
+          "source_id": "GFW-API",
+          "name": "Global Forest Watch data API",
+          "provider": "World Resources Institute / Global Forest Watch",
+          "url": "https://data-api.globalforestwatch.org/docs",
+          "role": "Additional forest-change dataset discovery and queries where terms and API access permit.",
+          "access_status": "account_or_api_key",
+          "rights_state": "review_dataset_version",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "API authentication and dataset versions matter.",
+            "Forest loss products do not alone establish illegality, ecological outcome or local consent."
+          ]
+        }
+      ],
+      "required_checks": [
+        "version-aware change detection",
+        "biome/ecoregion stratification",
+        "field/inventory validation",
+        "biomass uncertainty",
+        "land tenure and community rights"
+      ],
+      "prohibited_inferences": [
+        "A vegetation index alone proves biodiversity or restoration success.",
+        "Aboveground biomass equals total ecosystem carbon.",
+        "A forest-loss alert proves illegality or identifies a responsible person."
+      ],
+      "validation": {
+        "split_strategy": "Hold out landscapes and years; compare to independent plots, inventories or field assessments.",
+        "metrics": [
+          "change-detection precision/recall",
+          "biomass uncertainty and calibration",
+          "performance by biome and canopy type",
+          "false-change rate caused by algorithms or seasonality"
+        ],
+        "baseline_required": true,
+        "independent_review_required": true
+      }
+    },
+    {
+      "id": "hazards-extremes",
+      "title": "Wildfire, flood, rainfall extremes and drought monitoring",
+      "priority": "P1",
+      "readiness": "candidate",
+      "question": "Where are hazards developing or impacts accumulating, what is the observation latency, and which independent source can confirm the signal?",
+      "scope": "Monitoring and retrospective validation first; forecasts only when an independently evaluated forecast model and uncertainty are explicitly supplied.",
+      "target_geography": [
+        "South Africa and Southern Africa first",
+        "global within each product's coverage"
+      ],
+      "output_types": [
+        "event observations",
+        "impact overlays",
+        "data-latency warnings",
+        "coverage gaps",
+        "post-event change analysis"
+      ],
+      "data_sources": [
+        {
+          "source_id": "NASA-FIRMS",
+          "name": "Fire Information for Resource Management System",
+          "provider": "NASA LANCE",
+          "url": "https://firms.modaps.eosdis.nasa.gov/web-services/",
+          "role": "Satellite active-fire detections and web-service distribution.",
+          "access_status": "api_and_product_terms",
+          "rights_state": "review_sensor_product_version",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Active-fire pixels are detections, not a perfect fire perimeter or proof of cause.",
+            "Sensor, product version and latency are material; the API page currently announces a Suomi NPP product transition effective 1 November 2026."
+          ]
+        },
+        {
+          "source_id": "COPERNICUS-EMS",
+          "name": "Copernicus Emergency Management Service data",
+          "provider": "European Commission / Copernicus",
+          "url": "https://emergency.copernicus.eu/data/",
+          "role": "Drought, flood and emergency mapping products where geography and activation coverage apply.",
+          "access_status": "public_catalog",
+          "rights_state": "review_product_attribution",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Some products are regional, event-triggered or service-specific rather than uniform global observations.",
+            "Map availability and publication time differ from event time."
+          ]
+        },
+        {
+          "source_id": "NASA-GPM",
+          "name": "Global Precipitation Measurement data",
+          "provider": "NASA",
+          "url": "https://gpm.nasa.gov/data/directory",
+          "role": "Rainfall context for hydrometeorological extremes.",
+          "access_status": "public_catalog",
+          "rights_state": "review_product_metadata",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Precipitation estimates have product-dependent resolution, latency and uncertainty.",
+            "Rainfall intensity alone does not equal local flood impact."
+          ]
+        }
+      ],
+      "required_checks": [
+        "event time vs observation time vs publication time",
+        "sensor/version lifecycle",
+        "false positives and missed events",
+        "latency and missing-data display",
+        "human emergency-service authority"
+      ],
+      "prohibited_inferences": [
+        "A hotspot detection is a confirmed perimeter or fire cause.",
+        "A near-real-time observation is a forecast.",
+        "Absence of a detection means no hazard."
+      ],
+      "validation": {
+        "split_strategy": "Event-based holdouts across seasons/regions; never split neighboring detections from the same event between train and test.",
+        "metrics": [
+          "event detection precision/recall",
+          "false-alert rate",
+          "latency",
+          "miss rate by cloud/sensor/region",
+          "impact-overlay coverage"
+        ],
+        "baseline_required": true,
+        "independent_review_required": true
+      }
+    },
+    {
+      "id": "renewable-energy-planning",
+      "title": "Renewable energy and low-carbon infrastructure screening",
+      "priority": "P2",
+      "readiness": "candidate",
+      "question": "Where may solar, wind or other energy projects merit a feasibility study when resource quality, demand, grid access, land use, ecology, water and community constraints are considered together?",
+      "scope": "Pre-feasibility screening only; site-level decisions require validated resource measurements, engineering studies, grid capacity, land/permit checks and community process.",
+      "target_geography": [
+        "Southern Africa first",
+        "other regions when input data and rules are suitable"
+      ],
+      "output_types": [
+        "candidate zones",
+        "constraint layers",
+        "resource/data uncertainty",
+        "measurement and survey priorities"
+      ],
+      "data_sources": [
+        {
+          "source_id": "GLOBAL-SOLAR-ATLAS",
+          "name": "Global Solar Atlas",
+          "provider": "World Bank / ESMAP and technical partners",
+          "url": "https://globalsolaratlas.info/",
+          "role": "Solar-resource screening and map context.",
+          "access_status": "public_catalog",
+          "rights_state": "review_product_terms",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Map-derived resource estimates are not a substitute for site measurements or bankable yield assessment.",
+            "Grid, land, ecology, water and social constraints require separate evidence."
+          ]
+        },
+        {
+          "source_id": "CDSE-STAC",
+          "name": "Copernicus Data Space catalogue",
+          "provider": "Copernicus",
+          "url": "https://documentation.dataspace.copernicus.eu/APIs/STAC.html",
+          "role": "Land-cover and Earth-observation context where appropriate.",
+          "access_status": "public_catalog",
+          "rights_state": "review_product_metadata",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Sensor products have different spatial/temporal support, processing levels and masking needs.",
+            "A satellite image does not reveal grid hosting capacity."
+          ]
+        },
+        {
+          "source_id": "OPENSTREETMAP",
+          "name": "OpenStreetMap data",
+          "provider": "OpenStreetMap contributors",
+          "url": "https://www.openstreetmap.org/copyright",
+          "role": "Infrastructure and accessibility context.",
+          "access_status": "public_with_terms",
+          "rights_state": "odbl_1_0_attribution_and_share_alike_review",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Coverage/completeness varies geographically and by feature type.",
+            "ODbL attribution and share-alike obligations need careful review for derived databases."
+          ]
+        }
+      ],
+      "required_checks": [
+        "resource model uncertainty",
+        "grid capacity and interconnection evidence",
+        "land-use/ecology/water constraints",
+        "permissions and community consent",
+        "transparent multi-objective trade-offs"
+      ],
+      "prohibited_inferences": [
+        "Best solar resource alone means best build site.",
+        "OpenStreetMap infrastructure coverage is complete.",
+        "A ranked site is permitted, feasible or socially accepted."
+      ],
+      "validation": {
+        "split_strategy": "Compare known operational projects and held-out regions; evaluate against measured resource/production where available.",
+        "metrics": [
+          "resource-model error",
+          "constraint completeness",
+          "rank stability to assumptions",
+          "known-site recovery",
+          "false-feasibility rate"
+        ],
+        "baseline_required": true,
+        "independent_review_required": true
+      }
+    },
+    {
+      "id": "infrastructure-and-service-access",
+      "title": "Infrastructure resilience and access to essential services",
+      "priority": "P2",
+      "readiness": "candidate",
+      "question": "Which areas may be poorly connected to essential services or exposed to infrastructure disruption, and which local records should be checked first?",
+      "scope": "Aggregate accessibility and exposure estimates using public roads, settlements, population surfaces and authoritative service locations where permitted. No individual surveillance or sensitive-person inference.",
+      "target_geography": [
+        "South Africa pilot",
+        "Africa",
+        "other regions where source data support it"
+      ],
+      "output_types": [
+        "aggregate accessibility gaps",
+        "infrastructure exposure overlays",
+        "coverage confidence",
+        "survey priorities"
+      ],
+      "data_sources": [
+        {
+          "source_id": "OPENSTREETMAP",
+          "name": "OpenStreetMap data",
+          "provider": "OpenStreetMap contributors",
+          "url": "https://www.openstreetmap.org/copyright",
+          "role": "Road and mapped facility context.",
+          "access_status": "public_with_terms",
+          "rights_state": "odbl_1_0_attribution_and_share_alike_review",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Mapped roads/facilities may be incomplete or out of date.",
+            "ODbL terms must be considered for derived databases."
+          ]
+        },
+        {
+          "source_id": "COPERNICUS-GHSL",
+          "name": "Global Human Settlement Layer (GHSL)",
+          "provider": "European Commission / Joint Research Centre",
+          "url": "https://human-settlement.emergency.copernicus.eu/",
+          "role": "Settlement and built-up context at product-specific temporal/spatial resolution.",
+          "access_status": "public_catalog",
+          "rights_state": "review_product_metadata",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Gridded population/settlement data are estimates, not a census of every household.",
+            "Product epochs and modeling assumptions differ."
+          ]
+        }
+      ],
+      "required_checks": [
+        "aggregate-scale reporting",
+        "uncertainty in population and road coverage",
+        "route-network assumptions",
+        "no individual-level inference",
+        "community/local authority validation"
+      ],
+      "prohibited_inferences": [
+        "A mapped gap proves an essential service is absent.",
+        "Population surfaces identify specific people or households.",
+        "A model may determine aid eligibility without accountable local review."
+      ],
+      "validation": {
+        "split_strategy": "Hold out municipalities/districts and compare against independent service inventories, travel times or surveys.",
+        "metrics": [
+          "accessibility error",
+          "coverage completeness",
+          "equity distribution by aggregate geography",
+          "sensitivity to missing roads/facilities"
+        ],
+        "baseline_required": true,
+        "independent_review_required": true
+      }
+    },
+    {
+      "id": "circular-materials-and-waste",
+      "title": "Circular materials, secondary resources and industrial waste",
+      "priority": "P3",
+      "readiness": "future_research",
+      "question": "Where might documented industrial by-products, tailings or end-of-life materials be recoverable or reused, and what evidence is needed to assess safety and material composition?",
+      "scope": "Join reported facilities, waste inventories, material-flow data, assays and regulatory records where available. Remote sensing can show landform/change but cannot alone determine composition, toxicity or recoverability.",
+      "target_geography": [
+        "South Africa and Africa first"
+      ],
+      "output_types": [
+        "documented secondary-resource inventory",
+        "data gaps",
+        "sampling/review priorities",
+        "material-flow scenarios"
+      ],
+      "data_sources": [
+        {
+          "source_id": "USGS-AFRICA-GIS",
+          "name": "USGS Africa mineral-industries geodatabase",
+          "provider": "USGS",
+          "url": "https://doi.org/10.5066/P97EQWXP",
+          "role": "Mining, processing and exploration context where source layers are appropriate.",
+          "access_status": "public_catalog",
+          "rights_state": "release_level_cc0_component_review",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Not a complete registry of tailings, waste chemistry or recycling facilities.",
+            "Existing resource assessments must not be treated as measured recoverable material."
+          ]
+        }
+      ],
+      "required_checks": [
+        "facility and waste-record provenance",
+        "sampling/assay confirmation",
+        "hazardous-material and regulatory review",
+        "mass-balance assumptions",
+        "owner and community rights"
+      ],
+      "prohibited_inferences": [
+        "A visible tailings feature reveals chemical composition.",
+        "Recorded mass equals economically or environmentally recoverable material.",
+        "Modelled value overrides safety and permitting."
+      ],
+      "validation": {
+        "split_strategy": "Site-by-site cross-checks against independent inventories and laboratory/assay results; scenario assumptions stress-tested.",
+        "metrics": [
+          "inventory completeness",
+          "mass-balance error",
+          "sampling coverage",
+          "uncertainty in composition and recoverability"
+        ],
+        "baseline_required": true,
+        "independent_review_required": true
+      }
+    },
+    {
+      "id": "planetary-surface-science",
+      "title": "Planetary surfaces and comparative geology",
+      "priority": "P3",
+      "readiness": "future_research",
+      "question": "What do mapped geology, topography, morphology and spectral observations suggest about surface processes on the Moon, Mars and other bodies?",
+      "scope": "Separate planetary bodies, coordinate reference systems, projections, sensor calibrations and geological priors. Start with published maps and calibrated data; do not port Earth-specific models without validation.",
+      "target_geography": [
+        "Moon",
+        "Mars",
+        "other bodies where data and models support the question"
+      ],
+      "output_types": [
+        "planetary map layers",
+        "terrain/feature analysis",
+        "map lineage",
+        "hypotheses for follow-up observation"
+      ],
+      "data_sources": [
+        {
+          "source_id": "NASA-PDS",
+          "name": "NASA Planetary Data System",
+          "provider": "NASA",
+          "url": "https://pds.nasa.gov/",
+          "role": "Archive of spacecraft, mission, ground-based and laboratory planetary science data.",
+          "access_status": "public_catalog",
+          "rights_state": "review_dataset_metadata",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Calibration, coordinate frames, projection, mission timing and product documentation are mission-specific.",
+            "Archive availability does not make all product processing or scientific interpretations equivalent."
+          ]
+        },
+        {
+          "source_id": "USGS-ASTROGEOLOGY",
+          "name": "USGS planetary geologic maps and analysis-ready data",
+          "provider": "USGS Astrogeology Science Center",
+          "url": "https://www.usgs.gov/special-topics/planetary-geologic-mapping",
+          "role": "Published planetary geologic maps, GIS resources and selected analysis-ready data.",
+          "access_status": "public_catalog",
+          "rights_state": "review_product_metadata",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Map scale and positional accuracy vary by body/product; some published maps are coarse for local exploration.",
+            "Earth grid assumptions, sea-level datums and coordinate semantics do not transfer directly."
+          ]
+        }
+      ],
+      "required_checks": [
+        "body-specific coordinate system and datum",
+        "sensor and calibration lineage",
+        "map-scale/positional-accuracy limits",
+        "product documentation and mission context",
+        "independent scientific review"
+      ],
+      "prohibited_inferences": [
+        "Earth-trained geology model transfers unmodified to the Moon/Mars.",
+        "A spectral signature uniquely establishes mineralogy without calibration/context.",
+        "A resource proxy establishes technical/economic extraction feasibility."
+      ],
+      "validation": {
+        "split_strategy": "Hold out mapped regions, mission observations or bodies where legitimate; validate against published maps and independent calibrated measurements.",
+        "metrics": [
+          "map agreement at stated scale",
+          "feature detection precision/recall",
+          "spatial-registration error",
+          "sensitivity to calibration/projection"
+        ],
+        "baseline_required": true,
+        "independent_review_required": true
+      }
+    }
+  ]
+}
