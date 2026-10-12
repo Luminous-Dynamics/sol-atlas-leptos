@@ -123,7 +123,7 @@ pub enum MirrorPairStatus {
     /// Exporter-side value is zero or negative and is excluded from this method.
     NonPositiveExporterValue,
     /// Importer-side value is zero or negative and is excluded from this method.
-    NonPositiveImporterValue,    /// Importer-side value is zero or negative and is excluded from this method.
+    /// Importer-side value is zero or negative and is excluded from this method.
     NonPositiveImporterValue,
 }
 
@@ -545,7 +545,7 @@ mod tests {
     #[test]
     fn computes_raw_difference_and_never_exceeds_claim_ceiling() {
         let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
-        // The source token is retained separately from the numeric projection.
+        // The source token is retained as the calculation input.
         assert_eq!(exporter.trade_value_source_text.as_deref(), Some("100"));
         let result = pair(Some(100.0), Some(120.0));
         assert_eq!(result.status, MirrorPairStatus::Compared);
@@ -743,6 +743,7 @@ mod tests {
             MirrorPairStatus::InvalidExporterValueFormat
         );
     }
+
     #[test]
     fn rejects_incompatible_commodity_revision_and_nonreciprocal_reports() {
         let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some(100.0));
