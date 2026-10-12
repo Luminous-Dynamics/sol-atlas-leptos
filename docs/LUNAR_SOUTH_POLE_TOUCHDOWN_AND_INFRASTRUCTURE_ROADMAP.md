@@ -215,3 +215,26 @@ NASA's 8 September 2026 announcement for the NextSTEP-3 Broad Agency Announcemen
 These are useful external alignment signals for the proposed infrastructure roadmap, not procurement eligibility or award advice. The solicitation is U.S.-led and its participation rules need to be checked in the live [SAM.gov opportunity](https://sam.gov/workspace/contract/opp/a6de3e86307449dbbf316af25147e35e/view); the NASA announcement states that industry, academia, non-profits and international partners participating through U.S.-led teams may be eligible. Recheck the live notice before acting because the response deadline and detailed terms can change.
 
 **Design implication:** make the first lunar node a set of interoperable services with explicit interfaces: primary solar generation, firm-power contingency, energy storage, DC distribution, dust-tolerant connectors, thermal rejection, communications/navigation, robotic inspection/repair, and telemetry with independently checkable evidence. Tie later oxygen extraction/manufacturing modules to measured throughput, kWh/kg, useful yield, availability, maintenance and spares. Shared electrical/mechanical interfaces and evidence contracts are higher leverage than choosing a single “hero” reactor or factory prematurely.
+
+
+### Local asset receipt workflow
+
+When a source asset has been downloaded outside this constrained research environment, create a content-addressed receipt against the exact URL listed in the catalogue:
+
+```sh
+python3 scripts/lunar_asset_receipt.py \
+  --asset-url 'https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/AVGVISIB_85S_060M_201608_JP2.LBL' \
+  --file ./incoming/AVGVISIB_85S_060M_201608_JP2.LBL \
+  --output ./evidence/lunar/AVGVISIB_85S_060M_201608_JP2.receipt.json
+```
+
+The helper streams the local file to compute SHA-256, records byte count and file-observation details, and binds the receipt to the exact catalogue bytes by catalogue SHA-256. It refuses URLs not present in the reviewed catalogue, known-broken URLs recorded as 404, empty files, a source file that changes while being hashed, and a catalogue that changed after parsing.
+
+**A receipt is not source authentication.** The helper does not fetch the network, authenticate that local bytes came from the asserted URL, parse a PDS label, validate raster CRS/scale/offsets, or calculate site metrics. It deliberately sets those verification flags to false. A human/reviewer must examine source headers and product labels, compare the receipt with the retrieval record, and only then propose a separate reviewable catalog-state change. Do not change an asset to `downloaded_and_hashed` merely because a local file exists.
+
+The same guard suite can be run locally with:
+
+```sh
+python3 scripts/validate_lunar_site_screening.py
+python3 -m unittest discover -s tests -p 'test_lunar_site_screening_contract.py'
+```
