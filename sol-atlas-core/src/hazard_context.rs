@@ -38,12 +38,8 @@ pub fn nearby_infrastructure<'a>(
         .filter(|asset| valid_coordinate(asset.lat, asset.lon))
         .filter_map(|asset| {
             let distance_km = haversine_km(event.lat, event.lon, asset.lat, asset.lon);
-            (distance_km.is_finite() && distance_km <= radius_km).then_some(
-                NearbyInfrastructure {
-                    asset,
-                    distance_km,
-                },
-            )
+            (distance_km.is_finite() && distance_km <= radius_km)
+                .then_some(NearbyInfrastructure { asset, distance_km })
         })
         .collect();
 
