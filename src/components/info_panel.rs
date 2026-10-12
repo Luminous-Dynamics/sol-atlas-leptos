@@ -221,6 +221,11 @@ pub fn InfoPanel() -> impl IntoView {
                                 "No source-validated measurement is available".to_string(),
                             )
                             .into_any(),
+                            Some(sol_atlas_core::types::DataKind::Observed) => row(
+                                "Measurement",
+                                "No supported source-specific measure; numeric value suppressed".to_string(),
+                            )
+                            .into_any(),
                             _ => row(
                                 "Measurement",
                                 "Unknown provenance; value is not shown as verified".to_string(),
