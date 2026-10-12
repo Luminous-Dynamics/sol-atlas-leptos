@@ -139,7 +139,7 @@ def validate_catalog(doc: Any) -> list[str]:
             if access not in ALLOWED_ACCESS:
                 errors.append(f"{sw}.access_status is invalid")
             allowed = source.get("redistribution_allowed")
-            if allowed not in (True, False, None):
+            if allowed is not True and allowed is not False and allowed is not None:
                 errors.append(f"{sw}.redistribution_allowed must be true, false or null")
             if source.get("rights_state") not in ALLOWED_RIGHTS_STATES:
                 errors.append(f"{sw}.rights_state is not a recognized review state")
