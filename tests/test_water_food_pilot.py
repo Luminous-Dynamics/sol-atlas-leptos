@@ -68,6 +68,18 @@ class WaterFoodPilotTests(unittest.TestCase):
             for error in validate_pilot(doc)
         ))
 
+    def test_validator_rejects_automatic_legates_grid_use_or_missing_caveat(self):
+        doc = copy.deepcopy(self.pilot)
+        source = next(s for s in doc["sources"] if s["source_id"] == "CHIRPS3")
+        source["required_checks"] = [
+            check for check in source["required_checks"]
+            if "Legates-Willmott" not in check
+        ]
+        self.assertTrue(any(
+            "Legates-Willmott grids" in error
+            for error in validate_pilot(doc)
+        ))
+
     def test_chirps_reference_comparison_preserves_gauge_correction_provenance(self):
         source = next(s for s in self.pilot["sources"] if s["source_id"] == "CHIRPS3")
         overlap = source["upstream_overlap"].lower()
