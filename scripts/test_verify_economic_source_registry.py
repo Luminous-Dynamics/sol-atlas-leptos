@@ -37,6 +37,33 @@ class SourceRegistryVerifierTests(unittest.TestCase):
         with self.assertRaisesRegex(verifier.ContractError, "missing or duplicated"):
             verifier.validate(self.source)
 
+    def test_employment_indicator_substitution_is_rejected(self) -> None:
+        indicators = self.source["source_page_claims"]["employment_indicators"]
+        indicators[0] = "invented_indicator"
+        with self.assertRaisesRegex(verifier.ContractError, "employment inventory content/type drift"):
+            verifier.validate(self.source)
+
+    def test_perception_source_count_change_is_rejected(self) -> None:
+        perception = self.source["source_page_claims"]["perception_sources"]
+        perception[1]["count"] = 2
+        with self.assertRaisesRegex(verifier.ContractError, "perception source inventory drift"):
+            verifier.validate(self.source)
+
+    def test_methodology_author_substitution_is_rejected(self) -> None:
+        self.source["primary_methodology_citation"]["authors"][0] = "Unreviewed Author"
+        with self.assertRaisesRegex(verifier.ContractError, "methodology citation authors drift"):
+            verifier.validate(self.source)
+
+    def test_period_year_must_be_an_integer_not_a_float(self) -> None:
+        self.source["source_period_start"] = 1990.0
+        with self.assertRaisesRegex(verifier.ContractError, "source_period_start must remain integer 1990"):
+            verifier.validate(self.source)
+
+    def test_non_text_license_evidence_id_fails_as_contract_error(self) -> None:
+        self.source["license_evidence_matrix"][0]["evidence_id"] = ["bad", "shape"]
+        with self.assertRaisesRegex(verifier.ContractError, "evidence_id must be non-empty text"):
+            verifier.validate(self.source)
+
 
 if __name__ == "__main__":
     unittest.main()
