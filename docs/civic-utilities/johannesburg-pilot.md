@@ -32,13 +32,17 @@ The initial product is not an autonomous SCADA replacement. It is a replayable t
 | **Satellite remote sensing** | Optical imagery, radar, thermal observations, satellite-derived rainfall/soil-moisture products | Reservoir/surface-water extent, inundation, selected vegetation/land-cover changes, environmental context, and longer-horizon risk indicators | Pipe pressure, flow-meter values, drinking-water potability, breaker state, or sub-minute protection |
 | **Satellite communications** | Existing site sensor data relayed over a satellite link, with store-and-forward delivery | Connectivity for remote/unreliable-network sites where justified by a cost, latency, coverage and security assessment | Direct physical observation; the transport path is not the observation source |
 
-The Rust observation contract in sol-atlas-core/src/utility_telemetry.rs explicitly separates source from transport. It rejects satellite-source records that claim metrics outside the supported remote-sensing set; satellite products require a version identifier. Delayed data retains separate observed and received timestamps.
+The Rust observation contract in `sol-atlas-core/src/utility_telemetry.rs` explicitly separates observation source from transport. It validates metric/unit compatibility, timestamps, source version, derived-data lineage and quality metadata. Satellite-derived values can be represented as observations only when explicitly classified as derived estimates; this schema does not itself prove a product or sensor reading is authentic.
 
-The current draft implementation now has four connected parts:
-- `sol-atlas-core/src/gibs.rs` is wired into the crate alongside validated XYZ tile coordinates in `tiles.rs`, so the pre-existing GIBS helper is no longer an unexported file.
-- `earth_observation.rs` builds STAC search request bodies for Sentinel-2 L2A and Landsat 8 Collection 2 Level-2 surface reflectance, and normalizes returned item metadata and asset links. It intentionally does not execute HTTP requests or download imagery. A Landsat 8 query filters Landsat 9 items from the shared collection; missing cloud metadata remains unknown rather than becoming 0%.
-- `surface_water.rs` implements deterministic NDWI/MNDWI calculations and area accounting for reflectance pixels that have already been aligned to one grid and masked by an upstream, product-specific QA policy. It withholds an area result if valid coverage is below the declared threshold.
-- These are initial core building blocks, not a complete operational pipeline. Actual STAC requests, COG/raster reads, projection/resampling, product-specific QA-bit decoding, validated reservoir-boundary clipping, calibrated thresholds, cross-sensor validation and evidence-bundle capture remain to be implemented and tested.
+### Avoid duplicated satellite providers
+
+The canonical provider-specific STAC discovery implementation belongs in **Mycelix Earth**, where the existing evidence model and `EarthProvider` interface already live. [Draft PR #3776](https://github.com/Luminous-Dynamics/luminous-dynamics/pull/3776) adds bounded read-only catalogue search for Sentinel-2 Level-2A and Landsat 8 Collection 2 Level-2, plus explicit synthetic-fixture labeling. Its scene search has not yet been exercised against a live catalogue, and raster download/QA/index processing remains incomplete.
+
+Sol-Atlas should not maintain a competing STAC parser. This PR instead keeps the responsibilities distinct:
+- `sol-atlas-core/src/gibs.rs` provides configured NASA GIBS visualization tile URL construction, now wired into the core crate with validated XYZ coordinates in `tiles.rs`.
+- `sol-atlas-core/src/utility_telemetry.rs` defines the common read-only observation/evidence contract.
+- `sol-atlas-core/src/surface_water.rs` implements deterministic NDWI/MNDWI calculation and area accounting over already aligned reflectance samples whose product-specific QA mask has already been applied. It withholds estimates below the declared usable-pixel coverage threshold and can convert a qualified estimate into a provenance-bearing derived observation.
+- The end-to-end raster pipeline is still outstanding: authenticated/allowlisted asset retrieval, exact input hashing, COG/raster reads, source-specific reflectance scale factors, scene-classification/QA masking, band alignment/resampling, reservoir polygon clipping, threshold calibration, cross-sensor evaluation and independent evidence review.
 
 ## Proposed system boundary
 
