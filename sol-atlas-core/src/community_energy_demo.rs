@@ -369,9 +369,6 @@ pub fn verify(
         } else if row.grid_import_kwh > EPS || row.grid_export_kwh > EPS {
             return Err(format!("grid flow recorded during outage at interval {}", position));
         }
-        if !input.grid_available && (row.grid_import_kwh > EPS || row.grid_export_kwh > EPS) {
-            return Err(format!("grid flow recorded during outage at interval {}", position));
-        }
         if row.battery_soc_kwh < configuration.minimum_soc_kwh - EPS
             || row.battery_soc_kwh > configuration.capacity_kwh + EPS
         {
@@ -618,6 +615,25 @@ mod tests {
             &run
         )
         .is_err());
+    }
+
+    #[test]
+    fn verifier_rejects_tampered_frozen_interval_input() {
+        let run = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
+        let mut tampered = run.clone();
+        tampered.intervals[0].input.load_kwh += 0.1;
+        assert!(verify(
+            BatteryConfiguration::RESILIENCE_CANDIDATE,
+            &SCENARIO_INPUTS,
+            &tampered
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn verifier_rejects_candidate_configuration_mismatch() {
+        let run = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
+        assert!(verify(BatteryConfiguration::BASELINE, &SCENARIO_INPUTS, &run).is_err());
     }
 
     #[test]
