@@ -22,6 +22,28 @@ The pilot profile and JSON Schema are located at [docs/pilots/baixo-limpopo-wate
 
 The pilot validator uses only Python's standard library. It ensures that planned artifacts are not assigned invented hashes, that acquired artifacts require SHA-256 and verified product metadata, source rights remain explicit, CHIRPS station overlap is disclosed, and a baseline/independent-validation/operational state cannot be claimed without its prerequisites.
 
+## Inventory the official WaPOR v3 catalogue before choosing raster layers
+
+First list candidate mapsets and preserve the raw JSON response bytes:
+```sh
+python3 scripts/earth-systems/inspect_wapor_catalog.py \
+  --search MBL \
+  --snapshot-dir /tmp/wapor-mbl-mapsets-snapshot \
+  --output /tmp/wapor-mbl-mapsets.json
+```
+
+Review the returned records, then use an exact `code` from that output to list its raster metadata:
+```sh
+python3 scripts/earth-systems/inspect_wapor_catalog.py \
+  --mapset-code EXACT_MAPSET_CODE \
+  --snapshot-dir /tmp/wapor-exact-mapset-snapshot \
+  --output /tmp/wapor-exact-mapset.json
+```
+
+The inventory reads the official public FAO WaPOR v3 mapset and raster API metadata only. It follows pagination only within the official HTTPS API path, limits response sizes/pages/record counts, records retrieval times and response SHA-256 digests, and can preserve each raw JSON response in a new directory. Output/snapshot paths must be new, so earlier snapshots cannot be silently overwritten. **It never downloads raster data.** Confirm mapset units, temporal codes, quality/coverage information, final versus near-real-time status, 2024 Level III re-release and March 2025 Baixo Limpopo NPP/AGBP correction history, plus exact product reuse terms before selecting files.
+
+The first command is a catalogue search, not a guarantee that the search result is the correct mapset. The second command must use a reviewed exact code; the profile must remain `design_only` until product selection, access/rights review, boundary and source artifacts have been frozen.
+
 ## Interpretation limit
 
 All validators here check metadata and state-machine invariants only. They do not fetch external sources, prove a license, validate a scientific model, establish source independence, or show that any domain is operational. The pilot profile is intentionally `design_only`: no WaPOR or CHIRPS artifacts have been acquired or processed. The current product IDs, temporal coverage, boundary, processing vintages, exact rights snapshots and independent reference records must be checked before the profile may advance.
