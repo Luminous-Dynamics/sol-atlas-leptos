@@ -109,6 +109,7 @@ pub enum SurfaceWaterError {
     AreaOverflow,
     InsufficientValidCoverage,
     MissingUpstreamLineage,
+    InvalidUpstreamLineage,
     MissingProcessingVersion,
     InvalidObservation(Vec<ObservationValidationError>),
 }
@@ -206,9 +207,26 @@ impl SurfaceWaterEstimate {
         if context.upstream_observation_ids.is_empty() {
             return Err(SurfaceWaterError::MissingUpstreamLineage);
         }
+        if context
+            .upstream_observation_ids
+            .iter()
+            .any(|id| id.trim().is_empty())
+        {
+            return Err(SurfaceWaterError::InvalidUpstreamLineage);
+        }
         if context.processing_version.trim().is_empty() {
             return Err(SurfaceWaterError::MissingProcessingVersion);
         }
+
+        // Keep classifier parameters in the observation version string so the
+        // decision boundary is not lost when only a receipt is retained.
+        let effective_processing_version = format!(
+            "{};index={:?};threshold={:.17};minimum_valid_area_fraction={:.17}",
+            context.processing_version,
+            self.index,
+            self.threshold,
+            self.valid_area_fraction
+        );
 
         let observation = UtilityObservation {
             schema_version: 1,
@@ -227,7 +245,7 @@ impl SurfaceWaterEstimate {
             transport: DataTransport::BatchImport,
             provenance: ObservationProvenance {
                 source_id: context.source_id,
-                source_version: Some(context.processing_version),
+                source_version: Some(effective_processing_version),
                 evidence_sha256: context.evidence_sha256,
                 upstream_observation_ids: context.upstream_observation_ids,
             },
@@ -405,6 +423,18 @@ mod tests {
         assert_eq!(
             estimate.to_utility_observation(context),
             Err(SurfaceWaterError::MissingUpstreamLineage)
+        );
+    }
+
+    #[test]
+    fn rejects_blank_upstream_observation_identifiers() {
+        let pixels = [pixel(0.3, 0.1, Some(0.05), 100.0, PixelQuality::Clear)];
+        let estimate = estimate_surface_water(&pixels, config(WaterIndex::Ndwi)).unwrap();
+        let mut context = observation_context();
+        context.upstream_observation_ids = vec!["   ".into()];
+        assert_eq!(
+            estimate.to_utility_observation(context),
+            Err(SurfaceWaterError::InvalidUpstreamLineage)
         );
     }
 
