@@ -57,6 +57,13 @@ class WaterFoodPilotTests(unittest.TestCase):
         self.assertTrue(any("status is not a recognized pilot status" in e for e in errors))
         self.assertTrue(any("validation.gates.D3 is missing or invalid" in e for e in errors))
 
+    def test_local_reference_leads_keep_scale_and_status_caveats(self):
+        candidates = " ".join(self.pilot["validation"]["independent_reference_candidates"]).lower()
+        self.assertIn("inir.gov.mz", candidates)
+        self.assertIn("ine.gov.mz", candidates)
+        self.assertIn("province-scale context only", candidates)
+        self.assertIn("not evidence of data availability", candidates)
+
     def test_wapor_redistribution_is_fail_closed(self):
         doc = copy.deepcopy(self.pilot)
         doc["sources"][0]["redistribution_allowed"] = True
