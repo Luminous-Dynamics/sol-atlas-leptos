@@ -9,10 +9,11 @@
 //! redistribution permissions. Configurations should be populated from the
 //! selected layer's current GIBS capabilities metadata and usage terms.
 
-use crate::tiles::{MAX_TILE_ZOOM, TileCoordinate, TileError};
+use crate::tiles::{TileCoordinate, TileError, MAX_TILE_ZOOM};
 use std::fmt;
 
-pub const NASA_GIBS_SERVICE_ACKNOWLEDGEMENT: &str = "NASA Global Imagery Browse Services (GIBS)";
+pub const NASA_GIBS_SERVICE_ACKNOWLEDGEMENT: &str =
+    "NASA Global Imagery Browse Services (GIBS)";
 pub const NASA_GIBS_ACCESS_DOCUMENTATION: &str =
     "https://nasa-gibs.github.io/gibs-api-docs/access-basics/";
 const NASA_GIBS_EPSG3857_BASE: &str = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best";
@@ -53,14 +54,26 @@ pub enum GibsUrlError {
 impl fmt::Display for GibsUrlError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidLayerIdentifier => write!(f, "GIBS layer identifier is not path-safe"),
-            Self::InvalidTileMatrixSet => write!(f, "GIBS tile matrix set identifier is not path-safe"),
-            Self::InvalidTimeDimension => write!(f, "GIBS time dimension must be 'default', a YYYY-MM-DD date, or an RFC3339 UTC timestamp"),
-            Self::InvalidLayerAttribution => write!(f, "GIBS layer attribution must be present and non-empty"),
-            Self::InvalidMaximumZoom(zoom) => write!(f, "GIBS maximum zoom {zoom} exceeds {MAX_TILE_ZOOM}"),
-            Self::ZoomExceedsLayerMaximum { requested, maximum } => {
-                write!(f, "tile zoom {requested} exceeds this GIBS layer's configured maximum {maximum}")
+            Self::InvalidLayerIdentifier => {
+                write!(f, "GIBS layer identifier is not path-safe")
             }
+            Self::InvalidTileMatrixSet => {
+                write!(f, "GIBS tile matrix set identifier is not path-safe")
+            }
+            Self::InvalidTimeDimension => write!(
+                f,
+                "GIBS time must be 'default', a valid YYYY-MM-DD date, or a UTC timestamp"
+            ),
+            Self::InvalidLayerAttribution => {
+                write!(f, "GIBS layer attribution must be present and non-empty")
+            }
+            Self::InvalidMaximumZoom(zoom) => {
+                write!(f, "GIBS maximum zoom {zoom} exceeds {MAX_TILE_ZOOM}")
+            }
+            Self::ZoomExceedsLayerMaximum { requested, maximum } => write!(
+                f,
+                "tile zoom {requested} exceeds this GIBS layer's configured maximum {maximum}"
+            ),
             Self::Tile(error) => write!(f, "invalid tile address: {error}"),
         }
     }
@@ -77,7 +90,7 @@ impl From<TileError> for GibsUrlError {
 /// A configured GIBS layer in the EPSG:3857 REST XYZ-compatible interface.
 ///
 /// The matrix-set and maximum zoom must come from the selected layer's service
-/// capabilities. The helper is intentionally not a layer catalog: it cannot
+/// capabilities. This helper is intentionally not a layer catalog: it cannot
 /// infer supported dates, coverage, or maximum zoom from a layer identifier.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GibsWebMercatorSource {
@@ -204,35 +217,67 @@ fn is_supported_time_dimension(value: &str) -> bool {
         return true;
     }
     let bytes = value.as_bytes();
-    if bytes.len() == 10
-        && bytes[4] == b'-'
-        && bytes[7] == b'-'
-        && bytes
-            .iter()
-            .enumerate()
-            .all(|(index, byte)| matches!(index, 4 | 7) || byte.is_ascii_digit())
-    {
-        return true;
+    if bytes.len() == 10 {
+        return is_valid_date(value);
     }
-    bytes.len() == 20
-        && bytes[4] == b'-'
-        && bytes[7] == b'-'
-        && bytes[10] == b'T'
-        && bytes[13] == b':'
-        && bytes[16] == b':'
-        && bytes[19] == b'Z'
-        && bytes.iter().enumerate().all(|(index, byte)| {
+    if bytes.len() != 20
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+        || !bytes.iter().enumerate().all(|(index, byte)| {
             matches!(index, 4 | 7 | 10 | 13 | 16 | 19) || byte.is_ascii_digit()
         })
+        || !is_valid_date(&value[..10])
+    {
+        return false;
+    }
+
+    let hour = parse_digits(&bytes[11..13]);
+    let minute = parse_digits(&bytes[14..16]);
+    let second = parse_digits(&bytes[17..19]);
+    hour <= 23 && minute <= 59 && second <= 59
+}
+
+fn is_valid_date(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 10
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || !bytes.iter().enumerate().all(|(index, byte)| {
+            matches!(index, 4 | 7) || byte.is_ascii_digit()
+        })
+    {
+        return false;
+    }
+    let year = parse_digits(&bytes[0..4]);
+    let month = parse_digits(&bytes[5..7]);
+    let day = parse_digits(&bytes[8..10]);
+    if year == 0 || !(1..=12).contains(&month) {
+        return false;
+    }
+    let leap_year = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let days_in_month = match month {
+        2 if leap_year => 29,
+        2 => 28,
+        4 | 6 | 9 | 11 => 30,
+        _ => 31,
+    };
+    (1..=days_in_month).contains(&day)
+}
+
+fn parse_digits(bytes: &[u8]) -> u32 {
+    bytes.iter().fold(0_u32, |value, byte| {
+        value * 10 + u32::from(byte - b'0')
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn generates_deterministic_gibs_url_for_selected_matrix_set() {
-        let source = GibsWebMercatorSource::new(
+    fn source() -> GibsWebMercatorSource {
+        GibsWebMercatorSource::new(
             "MODIS_Terra_Aerosol",
             "GoogleMapsCompatible_Level6",
             6,
@@ -240,7 +285,12 @@ mod tests {
             TileImageFormat::Png,
             "Fixture layer attribution",
         )
-        .unwrap();
+        .unwrap()
+    }
+
+    #[test]
+    fn generates_deterministic_gibs_url_for_selected_matrix_set() {
+        let source = source();
         let tile = TileCoordinate::new(3, 2, 1).unwrap();
         assert_eq!(
             source.tile_url(tile).unwrap(),
@@ -265,38 +315,92 @@ mod tests {
             "Fixture layer attribution",
         )
         .unwrap();
-        assert!(default.tile_url(TileCoordinate::new(0, 0, 0).unwrap()).unwrap().ends_with("/0/0/0.jpg"));
+        assert!(
+            default
+                .tile_url(TileCoordinate::new(0, 0, 0).unwrap())
+                .unwrap()
+                .ends_with("/0/0/0.jpg")
+        );
 
-        assert!(GibsWebMercatorSource::new(
-            "layer",
-            "matrix",
-            5,
-            "2026-10-10T12:00:00Z",
-            TileImageFormat::Png,
-            "Fixture layer attribution",
-        ).is_ok());
-        assert!(GibsWebMercatorSource::new(
-            "layer",
-            "matrix",
-            5,
-            "2026-10-10/2026-10-11",
-            TileImageFormat::Png,
-            "Fixture layer attribution",
-        ).is_err());
+        assert!(
+            GibsWebMercatorSource::new(
+                "layer",
+                "matrix",
+                5,
+                "2026-10-10T12:00:00Z",
+                TileImageFormat::Png,
+                "Fixture layer attribution",
+            )
+            .is_ok()
+        );
+        assert!(
+            GibsWebMercatorSource::new(
+                "layer",
+                "matrix",
+                5,
+                "2026-10-10/2026-10-11",
+                TileImageFormat::Png,
+                "Fixture layer attribution",
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn rejects_impossible_dates_and_clock_values() {
+        for invalid in [
+            "2026-99-99",
+            "2026-02-29",
+            "2026-10-10T25:00:00Z",
+            "2026-10-10T12:61:00Z",
+        ] {
+            assert_eq!(
+                GibsWebMercatorSource::new(
+                    "layer",
+                    "matrix",
+                    5,
+                    invalid,
+                    TileImageFormat::Png,
+                    "Fixture layer attribution",
+                ),
+                Err(GibsUrlError::InvalidTimeDimension)
+            );
+        }
     }
 
     #[test]
     fn rejects_path_injection_and_layer_zoom_mismatch() {
         assert_eq!(
-            GibsWebMercatorSource::new("../other", "matrix", 6, "default", TileImageFormat::Png, "Fixture layer attribution"),
+            GibsWebMercatorSource::new(
+                "../other",
+                "matrix",
+                6,
+                "default",
+                TileImageFormat::Png,
+                "Fixture layer attribution",
+            ),
             Err(GibsUrlError::InvalidLayerIdentifier)
         );
         assert_eq!(
-            GibsWebMercatorSource::new("..", "matrix", 6, "default", TileImageFormat::Png, "Fixture layer attribution"),
+            GibsWebMercatorSource::new(
+                "..",
+                "matrix",
+                6,
+                "default",
+                TileImageFormat::Png,
+                "Fixture layer attribution",
+            ),
             Err(GibsUrlError::InvalidLayerIdentifier)
         );
         assert_eq!(
-            GibsWebMercatorSource::new("layer", "../matrix", 6, "default", TileImageFormat::Png, "Fixture layer attribution"),
+            GibsWebMercatorSource::new(
+                "layer",
+                "../matrix",
+                6,
+                "default",
+                TileImageFormat::Png,
+                "Fixture layer attribution",
+            ),
             Err(GibsUrlError::InvalidTileMatrixSet)
         );
 
@@ -311,7 +415,10 @@ mod tests {
         .unwrap();
         assert_eq!(
             source.tile_url(TileCoordinate::new(3, 2, 1).unwrap()),
-            Err(GibsUrlError::ZoomExceedsLayerMaximum { requested: 3, maximum: 2 })
+            Err(GibsUrlError::ZoomExceedsLayerMaximum {
+                requested: 3,
+                maximum: 2,
+            })
         );
     }
 }
