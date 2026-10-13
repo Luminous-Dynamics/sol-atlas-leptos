@@ -397,7 +397,13 @@ impl UtilityObservation {
         if self.provenance.source_id.trim().is_empty() {
             errors.push(E::EmptySourceId);
         }
-        if self.received_at_unix_ms < self.observed_at_unix_ms {
+        // Source clocks can run ahead of the trusted ingestion clock. Preserve the
+        // reported source time only when the producer explicitly flags suspected skew;
+        // freshness_at can then distinguish a future source time from a not-yet-received
+        // record without silently rewriting the timestamp.
+        if self.received_at_unix_ms < self.observed_at_unix_ms
+            && !self.quality.flags.contains(&QualityFlag::ClockSkewSuspected)
+        {
             errors.push(E::InvalidTimestampOrder);
         }
 
@@ -598,10 +604,23 @@ mod tests {
     }
 
     #[test]
-    fn rejects_receive_time_before_observation_time() {
+    fn future_source_timestamp_requires_clock_skew_flag_and_remains_visible() {
         let mut observation = valid_pressure_observation();
-        observation.received_at_unix_ms = 999;
-        assert!(has_error(&observation, ObservationValidationError::InvalidTimestampOrder));
+        observation.observed_at_unix_ms = 1_200;
+        observation.received_at_unix_ms = 1_100;
+
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::InvalidTimestampOrder
+        ));
+
+        observation.quality.flags.push(QualityFlag::ClockSkewSuspected);
+        assert!(observation.validate().is_ok());
+        assert_eq!(
+            observation.freshness_at(1_150, 500),
+            Freshness::FutureObserved
+        );
+        assert_eq!(observation.observed_at_unix_ms, 1_200);
     }
 
     #[test]
