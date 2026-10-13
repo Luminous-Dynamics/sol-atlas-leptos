@@ -538,32 +538,48 @@ impl GovernanceVoteFixture {
         approval_percent: 75,
     };
 
-    pub fn cast_ballots(self) -> u8 {
-        self.yes.saturating_add(self.no).saturating_add(self.abstain)
+    /// Total ballots without saturating arithmetic.
+    pub fn cast_ballots(self) -> u16 {
+        u16::from(self.yes) + u16::from(self.no) + u16::from(self.abstain)
+    }
+
+    /// Reject malformed fixture/tally values before deriving a result.
+    pub fn is_valid(self) -> bool {
+        self.eligible_members > 0
+            && self.cast_ballots() <= u16::from(self.eligible_members)
+            && self.quorum_percent <= 100
+            && self.approval_percent <= 100
     }
 
     pub fn quorum_met(self) -> bool {
-        self.eligible_members > 0
-            && u16::from(self.cast_ballots()) * 100
+        self.is_valid()
+            && self.cast_ballots() * 100
                 >= u16::from(self.eligible_members) * u16::from(self.quorum_percent)
     }
 
     pub fn approval_met(self) -> bool {
-        let decisive = self.yes.saturating_add(self.no);
+        if !self.is_valid() {
+            return false;
+        }
+        let decisive = u16::from(self.yes) + u16::from(self.no);
         decisive > 0
-            && u16::from(self.yes) * 100 >= u16::from(decisive) * u16::from(self.approval_percent)
+            && u16::from(self.yes) * 100
+                >= decisive * u16::from(self.approval_percent)
     }
 
     pub fn passed(self) -> bool {
-        self.quorum_met() && self.approval_met()
+        self.is_valid() && self.quorum_met() && self.approval_met()
     }
 
     pub fn approval_rate_percent(self) -> u8 {
-        let decisive = self.yes.saturating_add(self.no);
+        if !self.is_valid() {
+            return 0;
+        }
+        let decisive = u16::from(self.yes) + u16::from(self.no);
         if decisive == 0 {
             0
         } else {
-            ((u16::from(self.yes) * 100) / u16::from(decisive)) as u8
+            ((u16::from(self.yes) * 100) / decisive) as u8
         }
     }
 }
@@ -675,5 +691,40 @@ mod tests {
         assert_eq!(vote.approval_percent, 75);
         assert!(vote.passed());
         assert_eq!(vote.approval_rate_percent(), 80);
+    }
+
+    #[test]
+    fn governance_tally_rejects_more_ballots_than_eligible_members() {
+        let malformed = GovernanceVoteFixture {
+            eligible_members: 255,
+            yes: 200,
+            no: 100,
+            abstain: 0,
+            quorum_percent: 100,
+            approval_percent: 75,
+        };
+        assert_eq!(malformed.cast_ballots(), 300);
+        assert!(!malformed.is_valid());
+        assert!(!malformed.quorum_met());
+        assert!(!malformed.approval_met());
+        assert!(!malformed.passed());
+        assert_eq!(malformed.approval_rate_percent(), 0);
+    }
+
+    #[test]
+    fn governance_tally_rejects_invalid_population_and_thresholds() {
+        let mut invalid = GovernanceVoteFixture::NETWORK_STATE_DEMO;
+        invalid.eligible_members = 0;
+        assert!(!invalid.passed());
+
+        let mut invalid = GovernanceVoteFixture::NETWORK_STATE_DEMO;
+        invalid.quorum_percent = 101;
+        assert!(!invalid.quorum_met());
+        assert!(!invalid.passed());
+
+        let mut invalid = GovernanceVoteFixture::NETWORK_STATE_DEMO;
+        invalid.approval_percent = 101;
+        assert!(!invalid.approval_met());
+        assert!(!invalid.passed());
     }
 }
