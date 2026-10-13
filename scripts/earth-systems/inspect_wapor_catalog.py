@@ -52,7 +52,7 @@ def validate_api_url(url: str) -> None:
         traversal_segment = any(
             segment in {".", ".."}
             for layer in decoded_layers
-            for segment in layer.replace("\\\\", "/").split("/")
+            for segment in layer.replace("\\", "/").split("/")
         )
         normalized_path = posixpath.normpath(decoded_path)
     except (TypeError, ValueError) as exc:
@@ -69,7 +69,7 @@ def validate_api_url(url: str) -> None:
         or not parts.path.startswith(API_PREFIX)
         or not path_stays_in_scope
         or traversal_segment
-        or "\\\\" in decoded_path
+        or "\\" in decoded_path
         or parts.username is not None
         or parts.password is not None
     ):
