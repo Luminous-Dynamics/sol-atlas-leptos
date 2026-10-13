@@ -27,7 +27,8 @@ The inputs are synthetic and are embedded in `sol-atlas-core/src/community_energ
 
 | Result | Baseline equipment | Resilience sensitivity |
 |---|---:|---:|
-| Capacity / starting SOC / charge-discharge limit | 6 kWh / 3 kWh / 2 kW | 20 kWh / 16 kWh / 8 kW |\n| Total grid import | 11.52 kWh | 4.24 kWh |
+| Capacity / starting SOC / charge-discharge limit | 6 kWh / 3 kWh / 2 kW | 20 kWh / 16 kWh / 8 kW |
+| Total grid import | 11.52 kWh | 4.24 kWh |
 | Total unserved load | 8.6168 kWh | 5.82 kWh |
 | Critical energy unserved | 1.6168 kWh | 0.00 kWh |
 | Noncritical energy unserved | 7.00 kWh | 5.82 kWh |
@@ -37,6 +38,8 @@ The inputs are synthetic and are embedded in `sol-atlas-core/src/community_energ
 These are in-model results, not field measurements or performance predictions. The candidate's 20 kWh battery and 8 kW charge/discharge limits are an intentionally oversized sensitivity scenario. It also starts at 16 kWh state of charge versus 3 kWh for the baseline. The upstream source/cost of the precharged reserve is not modeled, so this is not a like-for-like battery-sizing result and is not a costed engineering recommendation. Costs, state-of-health degradation, inverter conversion, feeder limits, protection systems, weather uncertainty and calibrated real loads are not modeled.
 
 The key teaching point is that **accounting consistency and policy success are different outcomes**. The baseline accounting can be correct while its result fails the declared critical-load constraint. The candidate meets the critical-load limit in this frozen fixture but still sheds noncritical load.
+
+**Critical-first allocation assumption:** the model divides total unserved energy by allocating service to critical demand first, then noncritical demand. It does not simulate circuit topology, priority relays, selective load shedding, or a controller that enforces this ordering. The reported critical-unserved values therefore describe the declared accounting assumption; they do not establish that a physical site can guarantee critical-load service. A different service-allocation assumption could change the critical/noncritical split without changing total unserved energy.
 
 ## Evidence boundaries
 
@@ -80,5 +83,6 @@ The command above runs the focused core tests; also run the repository's require
 - Both cases render the known-answer results above.
 - Tampering with totals, outage grid flows or battery limits is rejected by the verifier.
 - Evidence labels are visible without opening developer tools.
+- The critical-first allocation assumption and absence of physical priority-control modelling remain visible.
 - There are no undocumented network requests, no real meter/identity collection, and no physical control path.
 - Public pitch materials consistently say synthetic scenario, same-codebase verifier, illustrative vote, and no real actuation.
