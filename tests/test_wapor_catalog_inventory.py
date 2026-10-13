@@ -138,6 +138,16 @@ class WaporCatalogTests(unittest.TestCase):
             with self.assertRaises(WaporCatalogError):
                 save_snapshots(target, [("mapsets", pages, [raw])])
 
+    def test_snapshot_write_failure_removes_partial_directory(self):
+        raw = b'{"response":{"items":[],"links":[]}}'
+        pages = [{"response_sha256": hashlib.sha256(raw).hexdigest()}]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir) / "partial-snapshot"
+            with patch.object(Path, "open", side_effect=OSError("simulated write failure")):
+                with self.assertRaisesRegex(WaporCatalogError, "cannot preserve raw API response"):
+                    save_snapshots(target, [("mapsets", pages, [raw])])
+            self.assertFalse(target.exists())
+
     def test_existing_output_is_rejected_without_network_or_overwrite(self):
         from inspect_wapor_catalog import main
         with tempfile.TemporaryDirectory() as temp_dir:
