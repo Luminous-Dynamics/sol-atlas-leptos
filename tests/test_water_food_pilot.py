@@ -30,6 +30,14 @@ class WaterFoodPilotTests(unittest.TestCase):
         doc["sources"][0]["artifact_sha256"] = "a" * 64
         self.assertTrue(any("not_acquired source must not claim" in e for e in validate_pilot(doc)))
 
+    def test_acquired_artifact_requires_exact_product_identifier(self):
+        doc = copy.deepcopy(self.pilot)
+        doc["sources"][0]["acquisition_state"] = "acquired"
+        doc["sources"][0]["artifact_sha256"] = "a" * 64
+        doc["sources"][0]["source_catalog_verified"] = True
+        doc["sources"][0]["selected_product"] = None
+        self.assertTrue(any("requires an exact selected_product identifier" in e for e in validate_pilot(doc)))
+
     def test_acquired_artifact_requires_sha256(self):
         doc = copy.deepcopy(self.pilot)
         doc["sources"][0]["acquisition_state"] = "acquired"
