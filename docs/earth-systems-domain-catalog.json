@@ -154,6 +154,8 @@
             "The 0.05-degree rainfall grid is an areal estimate, not a local rain gauge; effective ground support varies with latitude.",
             "Preliminary and final products are distinct and must not be silently mixed; the selected product release and publication vintage must be frozen.",
             "The product blends satellite-based estimates with in-situ station observations, so station overlap must be checked before claiming independent validation.",
+            "The provider recommends gauge-undercatch-corrected station observations for comparisons; record the correction method and version rather than mixing raw and corrected series silently.",
+            "The published monthly 0.5-degree Legates-Willmott correction-factor rasters are ancillary grids, not independent station observations or automatic corrections to every gauge series.",
             "Monthly and pentadal are the fundamental CHIRPS v3 timescales; daily rnl/sat values are disaggregations from pentadal totals using ERA5 or IMERG and should not be treated as equivalent independent daily gauge observations.",
             "The Africa-subset monthly GeoTIFF directory lists gridded files (0.05 degree); these areal estimates must not be resampled to a finer grid and presented as new spatial information."
           ],
@@ -258,6 +260,8 @@
             "The 0.05-degree rainfall grid is an areal estimate, not a local rain gauge; effective ground support varies with latitude.",
             "Preliminary and final products are distinct and must not be silently mixed; the selected product release and publication vintage must be frozen.",
             "The product blends satellite-based estimates with in-situ station observations, so station overlap must be checked before claiming independent validation.",
+            "The provider recommends gauge-undercatch-corrected station observations for comparisons; record the correction method and version rather than mixing raw and corrected series silently.",
+            "The published monthly 0.5-degree Legates-Willmott correction-factor rasters are ancillary grids, not independent station observations or automatic corrections to every gauge series.",
             "Monthly and pentadal are the fundamental CHIRPS v3 timescales; daily rnl/sat values are disaggregations from pentadal totals using ERA5 or IMERG and should not be treated as equivalent independent daily gauge observations.",
             "The Africa-subset monthly GeoTIFF directory lists gridded files (0.05 degree); these areal estimates must not be resampled to a finer grid and presented as new spatial information."
           ],
