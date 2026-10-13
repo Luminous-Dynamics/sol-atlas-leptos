@@ -76,6 +76,17 @@ class EarthSystemsCatalogTests(unittest.TestCase):
         self.assertEqual(source_schema["properties"]["redistribution_allowed"]["type"], ["boolean", "null"])
         self.assertTrue(source_schema["allOf"])
 
+    def test_chirps_v3_has_version_and_station_lineage_caveats_in_both_domains(self):
+        for domain_id in ("water-security", "food-land-water-productivity"):
+            with self.subTest(domain=domain_id):
+                domain = next(d for d in self.catalog["domains"] if d["id"] == domain_id)
+                source = next(s for s in domain["data_sources"] if s["source_id"] == "CHIRPS3")
+                self.assertEqual(source["rights_state"], "cc_by_4_0_with_attribution")
+                self.assertIs(source["redistribution_allowed"], True)
+                limitations = " ".join(source["key_limitations"]).lower()
+                self.assertIn("preliminary and final", limitations)
+                self.assertIn("station", limitations)
+
     def test_missing_domain_limitations_are_rejected(self):
         doc = copy.deepcopy(self.catalog)
         del doc["domains"][0]["data_sources"][0]["key_limitations"]
