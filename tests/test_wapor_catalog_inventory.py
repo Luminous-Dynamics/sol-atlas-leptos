@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "scripts" / "earth-systems"))
 import inspect_wapor_catalog as wapor_module
 from inspect_wapor_catalog import (
     API_ORIGIN, API_PREFIX, MAPSETS_URL, MAX_RESPONSE_BYTES,
-    MAX_TOTAL_RESPONSE_BYTES, SameOriginRedirectHandler, WaporCatalogError, paginate, save_snapshots,
+    MAX_TOTAL_RESPONSE_BYTES, SameOriginRedirectHandler, WaporCatalogError, cleanup_snapshot_after_output_failure, paginate, save_snapshots,
     validate_api_url, validate_mapset_code,
 )
 
@@ -157,6 +157,21 @@ class WaporCatalogTests(unittest.TestCase):
                 with patch.object(wapor_module.shutil, "rmtree", side_effect=OSError("simulated cleanup failure")):
                     with self.assertRaisesRegex(WaporCatalogError, "also failed to remove partial snapshot"):
                         save_snapshots(target, [("mapsets", pages, [raw])])
+            self.assertTrue(target.exists())
+
+    def test_manifest_failure_removes_only_new_snapshot_and_reports_cleanup_failure(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir) / "snapshot"
+            target.mkdir()
+            (target / "page.json").write_text("raw response", encoding="utf-8")
+            note = cleanup_snapshot_after_output_failure(target, [{"filename": "page.json"}])
+            self.assertIn("removed newly created snapshot directory", note)
+            self.assertFalse(target.exists())
+
+            target.mkdir()
+            with patch.object(wapor_module.shutil, "rmtree", side_effect=OSError("simulated cleanup failure")):
+                note = cleanup_snapshot_after_output_failure(target, [{"filename": "page.json"}])
+            self.assertIn("failed to remove newly created snapshot directory", note)
             self.assertTrue(target.exists())
 
     def test_existing_output_is_rejected_without_network_or_overwrite(self):
