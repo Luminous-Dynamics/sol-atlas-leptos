@@ -24,6 +24,10 @@ class WaporCatalogTests(unittest.TestCase):
             "https://attacker.example" + API_PREFIX + "mapsets",
             API_ORIGIN + "/other/path",
             "https://user@data.apps.fao.org" + API_PREFIX + "mapsets",
+            API_ORIGIN + API_PREFIX + "../private",
+            API_ORIGIN + API_PREFIX + "%2e%2e/private",
+            API_ORIGIN + API_PREFIX + "mapsets/%2e%2e/../../private",
+            API_ORIGIN + API_PREFIX + "mapsets\\\\..\\\\private",
         ):
             with self.subTest(url=url), self.assertRaises(WaporCatalogError):
                 validate_api_url(url)
@@ -123,6 +127,14 @@ class WaporCatalogTests(unittest.TestCase):
             self.assertEqual((target / saved[0]["filename"]).read_bytes(), raw)
             with self.assertRaises(WaporCatalogError):
                 save_snapshots(target, [("mapsets", pages, [raw])])
+
+    def test_existing_output_is_rejected_without_network_or_overwrite(self):
+        from inspect_wapor_catalog import main
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = Path(temp_dir) / "inventory.json"
+            output.write_text("preserve this evidence\\n", encoding="utf-8")
+            self.assertEqual(main(["--output", str(output)]), 2)
+            self.assertEqual(output.read_text(encoding="utf-8"), "preserve this evidence\\n")
 
     def test_large_response_cap_is_declared(self):
         self.assertLessEqual(MAX_RESPONSE_BYTES, 16 * 1024 * 1024)
