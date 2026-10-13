@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 from urllib.request import Request
 import argparse
+from io import StringIO
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +17,29 @@ from inspect_wapor_catalog import (
     MAX_TOTAL_RESPONSE_BYTES, SameOriginRedirectHandler, WaporCatalogError, cleanup_snapshot_after_output_failure, paginate, save_snapshots,
     validate_api_url, validate_mapset_code,
 )
+
+
+class PartialWriteFailure:
+    """File-like wrapper that leaves a prefix behind before failing a write."""
+
+    def __init__(self, handle):
+        self.handle = handle
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        self.handle.close()
+        return False
+
+    def write(self, value):
+        self.handle.write(value[:8])
+        raise OSError("simulated partial write")
+
+
+class BrokenStdout:
+    def write(self, value):
+        raise OSError("simulated broken pipe")
 
 
 class WaporCatalogTests(unittest.TestCase):
@@ -196,6 +220,50 @@ class WaporCatalogTests(unittest.TestCase):
             output.write_text("preserve this evidence\\n", encoding="utf-8")
             self.assertEqual(main(["--output", str(output)]), 2)
             self.assertEqual(output.read_text(encoding="utf-8"), "preserve this evidence\\n")
+
+    def test_partial_inventory_write_removes_output_and_new_snapshot(self):
+        from inspect_wapor_catalog import main
+
+        raw = b'{"response":{"items":[],"links":[]}}'
+        page = {"response_sha256": hashlib.sha256(raw).hexdigest()}
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            output = root / "inventory.json"
+            snapshot = root / "snapshot"
+
+            def fail_output_open(path_obj, mode="r", *args, **kwargs):
+                handle = Path.open(path_obj, mode, *args, **kwargs)
+                if path_obj == output and mode == "x":
+                    return PartialWriteFailure(handle)
+                return handle
+
+            with patch.object(wapor_module, "paginate", return_value=([{"code": "A"}], [page], [raw])):
+                with patch.object(Path, "open", new=fail_output_open):
+                    with patch.object(sys, "stderr", StringIO()) as stderr:
+                        code = main(["--snapshot-dir", str(snapshot), "--output", str(output)])
+
+            self.assertEqual(code, 2)
+            self.assertFalse(output.exists())
+            self.assertFalse(snapshot.exists())
+            self.assertIn("removed partial artifact inventory.json", stderr.getvalue())
+            self.assertIn("removed newly created snapshot directory", stderr.getvalue())
+
+    def test_broken_stdout_removes_new_snapshot(self):
+        from inspect_wapor_catalog import main
+
+        raw = b'{"response":{"items":[],"links":[]}}'
+        page = {"response_sha256": hashlib.sha256(raw).hexdigest()}
+        with tempfile.TemporaryDirectory() as temp_dir:
+            snapshot = Path(temp_dir) / "snapshot"
+            with patch.object(wapor_module, "paginate", return_value=([{"code": "A"}], [page], [raw])):
+                with patch.object(sys, "stdout", BrokenStdout()):
+                    with patch.object(sys, "stderr", StringIO()) as stderr:
+                        code = main(["--snapshot-dir", str(snapshot)])
+
+            self.assertEqual(code, 2)
+            self.assertFalse(snapshot.exists())
+            self.assertIn("cannot write inventory JSON to stdout", stderr.getvalue())
+            self.assertIn("removed newly created snapshot directory", stderr.getvalue())
 
     def test_pagination_rejects_aggregate_response_byte_cap(self):
         document = {"response": {"items": [], "links": []}}
