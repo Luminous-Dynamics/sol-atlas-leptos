@@ -139,7 +139,67 @@ impl ScientificDatasetSnapshotV1 {
     }
 }
 
-/// Stable, machine-readable validation findings for this schema.
+/// The relationship this adapter can state without claiming that any external
+/// canonical object has been verified.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ScientificRecordBindingStateV1 {
+    /// Only a provider-native identifier and optional mutable URL are known.
+    LocatorOnly,
+    /// Mycelix artifact-snapshot and selector references are both present.
+    /// Their resolution/qualification is owned by Mycelix, not this projection.
+    CanonicalEvidenceRefsPresent,
+}
+
+/// Sol-Atlas projection-only binding for a provider-native record.
+///
+/// This deliberately does not copy biomedical assertions or create an
+/// epistemic relation. A provider record ID/URL is a locator until Mycelix
+/// admits an exact artifact snapshot and selector. External refs are opaque:
+/// their presence does not prove that they resolve, are authentic, or support
+/// any scientific proposition.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct ScientificDatasetRecordRefV1 {
+    schema_version: u16,
+    record_ref_id: String,
+    source_snapshot_id: String,
+    provider_record_id: String,
+    record_locator_url: Option<String>,
+    mycelix_artifact_snapshot_ref: Option<String>,
+    mycelix_selector_ref: Option<String>,
+    symthaea_analysis_ref: Option<String>,
+}
+
+impl ScientificDatasetRecordRefV1 {
+    pub fn schema_version(&self) -> u16 { self.schema_version }
+    pub fn record_ref_id(&self) -> &str { &self.record_ref_id }
+    pub fn source_snapshot_id(&self) -> &str { &self.source_snapshot_id }
+    pub fn provider_record_id(&self) -> &str { &self.provider_record_id }
+    pub fn record_locator_url(&self) -> Option<&str> { self.record_locator_url.as_deref() }
+    pub fn mycelix_artifact_snapshot_ref(&self) -> Option<&str> {
+        self.mycelix_artifact_snapshot_ref.as_deref()
+    }
+    pub fn mycelix_selector_ref(&self) -> Option<&str> {
+        self.mycelix_selector_ref.as_deref()
+    }
+    pub fn symthaea_analysis_ref(&self) -> Option<&str> {
+        self.symthaea_analysis_ref.as_deref()
+    }
+    pub fn binding_state(&self) -> ScientificRecordBindingStateV1 {
+        if self.mycelix_artifact_snapshot_ref.is_some() {
+            ScientificRecordBindingStateV1::CanonicalEvidenceRefsPresent
+        } else {
+            ScientificRecordBindingStateV1::LocatorOnly
+        }
+    }
+    /// Fixed claim ceiling for this Sol-Atlas adapter. External references
+    /// cannot upgrade this value; canonical admission lives upstream.
+    pub fn authority_scope(&self) -> &'static str {
+        "sol_atlas_projection_only"
+    }
+}
+
+/// Stable, machine-readable validation findings for record-reference bindings.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SnapshotValidationIssue {
@@ -158,6 +218,113 @@ pub enum SnapshotValidationIssue {
     ArtifactDigestMissingOrMalformed,
     UnexpectedDigestForMetadataOnly,
     ArtifactCaptureKindMismatch,
+}
+
+/// Stable validation issues for provider-native record bindings.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ScientificRecordRefValidationIssueV1 {
+    UnsupportedSchemaVersion,
+    InvalidRecordRefId,
+    InvalidSourceSnapshotId,
+    SourceSnapshotDoesNotMatch,
+    InvalidProviderRecordId,
+    InvalidRecordLocatorUrl,
+    InvalidMycelixArtifactSnapshotRef,
+    InvalidMycelixSelectorRef,
+    MycelixArtifactSelectorPairMismatch,
+    InvalidSymthaeaAnalysisRef,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawScientificDatasetRecordRefV1 {
+    schema_version: u16,
+    record_ref_id: String,
+    source_snapshot_id: String,
+    provider_record_id: String,
+    record_locator_url: Option<String>,
+    mycelix_artifact_snapshot_ref: Option<String>,
+    mycelix_selector_ref: Option<String>,
+    symthaea_analysis_ref: Option<String>,
+}
+
+/// Parse and validate a record reference against a previously validated source
+/// metadata snapshot. No network lookup or Mycelix/Symthaea qualification is
+/// performed.
+pub fn parse_record_ref_v1(
+    json: &str,
+    source_snapshot: &ScientificDatasetSnapshotV1,
+) -> Result<ScientificDatasetRecordRefV1, ScientificRecordRefParseError> {
+    let raw: RawScientificDatasetRecordRefV1 = serde_json::from_str(json)
+        .map_err(|error| ScientificRecordRefParseError::InvalidPayload(error.to_string()))?;
+    validate_record_ref_raw(raw, source_snapshot)
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ScientificRecordRefParseError {
+    InvalidPayload(String),
+    InvalidRecordRef(Vec<ScientificRecordRefValidationIssueV1>),
+}
+
+fn validate_record_ref_raw(
+    raw: RawScientificDatasetRecordRefV1,
+    source_snapshot: &ScientificDatasetSnapshotV1,
+) -> Result<ScientificDatasetRecordRefV1, ScientificRecordRefParseError> {
+    let mut issues = Vec::new();
+    if raw.schema_version != 1 {
+        issues.push(ScientificRecordRefValidationIssueV1::UnsupportedSchemaVersion);
+    }
+    if !is_identifier(&raw.record_ref_id) {
+        issues.push(ScientificRecordRefValidationIssueV1::InvalidRecordRefId);
+    }
+    if !is_identifier(&raw.source_snapshot_id) {
+        issues.push(ScientificRecordRefValidationIssueV1::InvalidSourceSnapshotId);
+    }
+    if raw.source_snapshot_id != source_snapshot.snapshot_id() {
+        issues.push(ScientificRecordRefValidationIssueV1::SourceSnapshotDoesNotMatch);
+    }
+    if !is_identifier(&raw.provider_record_id) {
+        issues.push(ScientificRecordRefValidationIssueV1::InvalidProviderRecordId);
+    }
+    if raw.record_locator_url.as_deref().is_some_and(|url| !is_https_url(url)) {
+        issues.push(ScientificRecordRefValidationIssueV1::InvalidRecordLocatorUrl);
+    }
+
+    match (
+        raw.mycelix_artifact_snapshot_ref.as_deref(),
+        raw.mycelix_selector_ref.as_deref(),
+    ) {
+        (None, None) => {}
+        (Some(snapshot_ref), Some(selector_ref)) => {
+            if !is_bounded_nonblank(snapshot_ref) {
+                issues.push(ScientificRecordRefValidationIssueV1::InvalidMycelixArtifactSnapshotRef);
+            }
+            if !is_bounded_nonblank(selector_ref) {
+                issues.push(ScientificRecordRefValidationIssueV1::InvalidMycelixSelectorRef);
+            }
+        }
+        _ => issues.push(ScientificRecordRefValidationIssueV1::MycelixArtifactSelectorPairMismatch),
+    }
+
+    if raw.symthaea_analysis_ref.as_deref().is_some_and(|value| !is_bounded_nonblank(value)) {
+        issues.push(ScientificRecordRefValidationIssueV1::InvalidSymthaeaAnalysisRef);
+    }
+
+    if !issues.is_empty() {
+        return Err(ScientificRecordRefParseError::InvalidRecordRef(issues));
+    }
+
+    Ok(ScientificDatasetRecordRefV1 {
+        schema_version: raw.schema_version,
+        record_ref_id: raw.record_ref_id,
+        source_snapshot_id: raw.source_snapshot_id,
+        provider_record_id: raw.provider_record_id,
+        record_locator_url: raw.record_locator_url,
+        mycelix_artifact_snapshot_ref: raw.mycelix_artifact_snapshot_ref,
+        mycelix_selector_ref: raw.mycelix_selector_ref,
+        symthaea_analysis_ref: raw.symthaea_analysis_ref,
+    })
 }
 
 /// A parse failure distinguishes invalid JSON from structurally invalid metadata.
@@ -407,6 +574,98 @@ mod tests {
             snapshot.source_record_license().status,
             LicenseStatus::ReviewRequired
         );
+    }
+
+    fn record_ref_fixture(snapshot_id: &str) -> serde_json::Value {
+        serde_json::json!({
+            "schema_version": 1,
+            "record_ref_id": "record-ref-test-1",
+            "source_snapshot_id": snapshot_id,
+            "provider_record_id": "provider-native-record-123",
+            "record_locator_url": "https://example.org/records/provider-native-record-123",
+            "mycelix_artifact_snapshot_ref": null,
+            "mycelix_selector_ref": null,
+            "symthaea_analysis_ref": null
+        })
+    }
+
+    #[test]
+    fn record_ref_is_locator_only_without_canonical_snapshot_and_selector() {
+        let snapshot = parse_snapshot_v1(FIXTURE).expect("fixture should validate");
+        let raw = record_ref_fixture(snapshot.snapshot_id()).to_string();
+        let record_ref = parse_record_ref_v1(&raw, &snapshot).expect("record ref should validate");
+        assert_eq!(record_ref.binding_state(), ScientificRecordBindingStateV1::LocatorOnly);
+        assert_eq!(record_ref.authority_scope(), "sol_atlas_projection_only");
+        assert_eq!(record_ref.mycelix_artifact_snapshot_ref(), None);
+    }
+
+    #[test]
+    fn record_ref_keeps_mycelix_and_symthaea_refs_as_non_authoritative_pointers() {
+        let snapshot = parse_snapshot_v1(FIXTURE).expect("fixture should validate");
+        let mut value = record_ref_fixture(snapshot.snapshot_id());
+        value["mycelix_artifact_snapshot_ref"] = serde_json::json!("epi-artifact-ref:v1:opaque");
+        value["mycelix_selector_ref"] = serde_json::json!("epi-selector-ref:v1:opaque");
+        value["symthaea_analysis_ref"] = serde_json::json!("symthaea-analysis:run-42");
+        let record_ref = parse_record_ref_v1(&value.to_string(), &snapshot)
+            .expect("opaque refs should be carried without claiming resolution");
+        assert_eq!(
+            record_ref.binding_state(),
+            ScientificRecordBindingStateV1::CanonicalEvidenceRefsPresent
+        );
+        assert_eq!(record_ref.authority_scope(), "sol_atlas_projection_only");
+        assert_eq!(
+            record_ref.symthaea_analysis_ref(),
+            Some("symthaea-analysis:run-42")
+        );
+    }
+
+    #[test]
+    fn record_ref_cannot_bind_to_a_different_metadata_snapshot() {
+        let snapshot = parse_snapshot_v1(FIXTURE).expect("fixture should validate");
+        let value = record_ref_fixture("some-other-snapshot").to_string();
+        let result = parse_record_ref_v1(&value, &snapshot);
+        assert!(matches!(
+            result,
+            Err(ScientificRecordRefParseError::InvalidRecordRef(ref issues))
+                if issues.contains(&ScientificRecordRefValidationIssueV1::SourceSnapshotDoesNotMatch)
+        ));
+    }
+
+    #[test]
+    fn mycelix_artifact_and_selector_refs_must_appear_as_a_pair() {
+        let snapshot = parse_snapshot_v1(FIXTURE).expect("fixture should validate");
+        let mut value = record_ref_fixture(snapshot.snapshot_id());
+        value["mycelix_artifact_snapshot_ref"] = serde_json::json!("epi-artifact-ref:v1:opaque");
+        let result = parse_record_ref_v1(&value.to_string(), &snapshot);
+        assert!(matches!(
+            result,
+            Err(ScientificRecordRefParseError::InvalidRecordRef(ref issues))
+                if issues.contains(&ScientificRecordRefValidationIssueV1::MycelixArtifactSelectorPairMismatch)
+        ));
+    }
+
+    #[test]
+    fn record_ref_rejects_unknown_wire_fields() {
+        let snapshot = parse_snapshot_v1(FIXTURE).expect("fixture should validate");
+        let mut value = record_ref_fixture(snapshot.snapshot_id());
+        value["unreviewed_authority"] = serde_json::json!("trusted");
+        assert!(matches!(
+            parse_record_ref_v1(&value.to_string(), &snapshot),
+            Err(ScientificRecordRefParseError::InvalidPayload(_))
+        ));
+    }
+
+    #[test]
+    fn record_ref_rejects_http_locator() {
+        let snapshot = parse_snapshot_v1(FIXTURE).expect("fixture should validate");
+        let mut value = record_ref_fixture(snapshot.snapshot_id());
+        value["record_locator_url"] = serde_json::json!("http://example.org/records/123");
+        let result = parse_record_ref_v1(&value.to_string(), &snapshot);
+        assert!(matches!(
+            result,
+            Err(ScientificRecordRefParseError::InvalidRecordRef(ref issues))
+                if issues.contains(&ScientificRecordRefValidationIssueV1::InvalidRecordLocatorUrl)
+        ));
     }
 
     #[test]
