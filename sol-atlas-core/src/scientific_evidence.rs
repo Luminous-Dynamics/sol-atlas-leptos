@@ -156,6 +156,7 @@ pub enum SnapshotValidationIssue {
     InvalidRetrievedOn,
     ArtifactDigestMissingOrMalformed,
     UnexpectedDigestForMetadataOnly,
+    ArtifactCaptureKindMismatch,
 }
 
 /// A parse failure distinguishes invalid JSON from structurally invalid metadata.
@@ -249,6 +250,20 @@ fn validate_raw(
         (ArtifactCapture::DigestRecorded, _) => {
             issues.push(SnapshotValidationIssue::ArtifactDigestMissingOrMalformed);
         }
+    }
+
+    let artifact_kind_mismatch = matches!(
+        (raw.source_record_kind, raw.artifact_capture),
+        (
+            SourceRecordKind::ReleaseAnnouncement | SourceRecordKind::DatasetLandingPage,
+            ArtifactCapture::DigestRecorded
+        ) | (
+            SourceRecordKind::DatasetArtifact,
+            ArtifactCapture::MetadataOnly
+        )
+    );
+    if artifact_kind_mismatch {
+        issues.push(SnapshotValidationIssue::ArtifactCaptureKindMismatch);
     }
 
     if !issues.is_empty() {
@@ -486,6 +501,34 @@ mod tests {
             result,
             Err(SnapshotParseError::InvalidSnapshot(ref issues))
                 if issues.contains(&SnapshotValidationIssue::UnsupportedSchemaVersion)
+        ));
+    }
+
+    #[test]
+    fn announcement_cannot_claim_a_dataset_artifact_digest() {
+        let mut value: serde_json::Value =
+            serde_json::from_str(FIXTURE).expect("fixture JSON is valid");
+        value["artifact_capture"] = serde_json::json!("digest_recorded");
+        value["artifact_sha256"] =
+            serde_json::json!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        let result = parse_snapshot_v1(&value.to_string());
+        assert!(matches!(
+            result,
+            Err(SnapshotParseError::InvalidSnapshot(ref issues))
+                if issues.contains(&SnapshotValidationIssue::ArtifactCaptureKindMismatch)
+        ));
+    }
+
+    #[test]
+    fn malformed_unicode_date_is_rejected_without_panicking() {
+        let mut value: serde_json::Value =
+            serde_json::from_str(FIXTURE).expect("fixture JSON is valid");
+        value["retrieved_on"] = serde_json::json!("20é-01-01");
+        let result = parse_snapshot_v1(&value.to_string());
+        assert!(matches!(
+            result,
+            Err(SnapshotParseError::InvalidSnapshot(ref issues))
+                if issues.contains(&SnapshotValidationIssue::InvalidRetrievedOn)
         ));
     }
 
