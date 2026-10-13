@@ -83,7 +83,7 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
 
                 <div class="community-energy-choice-row">
                     <button
-                        class=move || if selected_candidate.get() {
+                        class=move || if !selected_candidate.get() {
                             "community-energy-choice community-energy-choice-active"
                         } else {
                             "community-energy-choice"
@@ -112,6 +112,10 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                     "The larger case is intentionally oversized and starts with 16 kWh already stored; the baseline starts at 3 kWh. The source and cost of precharging that reserve are not modeled, so this does not isolate battery size. Cost, degradation, inverter behavior, network constraints, and real load calibration are also outside scope."
                 </p>
 
+                <p class="community-energy-candidate-warning">
+                    "The critical-first service split is an accounting assumption. This demo has no circuit-level load model, priority controls, or load-shedding controller, so it does not demonstrate that a real site could physically protect critical loads in this way."
+                </p>
+
                 <div class="community-energy-status-row">
                     <div class="community-energy-status-card">
                         <span class="community-energy-label">"ACCOUNTING VERIFICATION"</span>
@@ -127,7 +131,7 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                             }>
                             {move || if (if selected_candidate.get() { candidate_critical_pass } else { baseline_critical_pass }) { "PASS" } else { "FAIL" }}
                         </strong>
-                        <p>"Hard requirement: no critical-load energy may remain unserved during the frozen outage scenario."</p>
+                        <p>"Modelled check: zero critical-load energy remains unserved under the declared critical-first allocation assumption. No circuit-priority controller or load-shedding hardware is represented."</p>
                     </div>
                 </div>
 
