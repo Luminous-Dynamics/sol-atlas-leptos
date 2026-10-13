@@ -214,6 +214,17 @@ def build_plan(raw: bytes, start: str, end: str, retrieved_at: str | None, mode:
     }
 
 
+def remove_created_file(path: Path) -> str:
+    """Remove a path created by this invocation and report cleanup failure explicitly."""
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        return ""
+    except OSError as exc:
+        return f"; also could not remove partial artifact {path.name}: {exc}"
+    return f"; removed partial artifact {path.name}"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--start", required=True, type=parse_month, help="first month, inclusive (YYYY-MM)")
@@ -233,17 +244,22 @@ def main(argv: list[str] | None = None) -> int:
     if args.output is not None and (args.output.exists() or args.output.is_symlink()):
         print("output path already exists; refusing to overwrite", file=sys.stderr)
         return 2
+    snapshot_created = False
     try:
         raw, retrieved_at, mode = read_index(args.index_file, args.timeout)
         plan = build_plan(raw, args.start, args.end, retrieved_at, mode)
         if args.snapshot_index is not None:
             try:
                 with args.snapshot_index.open("xb") as snapshot:
-                    snapshot.write(raw)
+                    snapshot_created = True
+                    written = snapshot.write(raw)
+                    if written != len(raw):
+                        raise OSError(f"short write: captured {written} of {len(raw)} bytes")
             except FileExistsError as exc:
                 raise IndexError(f"snapshot path already exists; refusing to overwrite: {args.snapshot_index.name}") from exc
             except OSError as exc:
-                raise IndexError(f"cannot save index snapshot: {exc}") from exc
+                cleanup_note = remove_created_file(args.snapshot_index) if snapshot_created else ""
+                raise IndexError(f"cannot save index snapshot: {exc}{cleanup_note}") from exc
             plan["index_snapshot_saved"] = True
             plan["index_snapshot_filename"] = args.snapshot_index.name
     except (IndexError, ValueError) as exc:
@@ -254,14 +270,27 @@ def main(argv: list[str] | None = None) -> int:
     if args.output is None:
         sys.stdout.write(output)
     else:
+        output_created = False
         try:
             with args.output.open("x", encoding="utf-8") as handle:
-                handle.write(output)
+                output_created = True
+                written = handle.write(output)
+                if written != len(output):
+                    raise OSError(f"short write: emitted {written} of {len(output)} characters")
         except FileExistsError:
-            print("output path already exists; refusing to overwrite", file=sys.stderr)
+            snapshot_cleanup = (
+                remove_created_file(args.snapshot_index)
+                if snapshot_created and args.snapshot_index is not None else ""
+            )
+            print("output path already exists; refusing to overwrite" + snapshot_cleanup, file=sys.stderr)
             return 2
         except OSError as exc:
-            print(f"cannot write plan: {exc}", file=sys.stderr)
+            output_cleanup = remove_created_file(args.output) if output_created else ""
+            snapshot_cleanup = (
+                remove_created_file(args.snapshot_index)
+                if snapshot_created and args.snapshot_index is not None else ""
+            )
+            print(f"cannot write plan: {exc}{output_cleanup}{snapshot_cleanup}", file=sys.stderr)
             return 2
 
     if not plan["complete"]:
