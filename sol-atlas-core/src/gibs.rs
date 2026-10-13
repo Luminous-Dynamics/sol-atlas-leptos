@@ -9,7 +9,7 @@
 //! redistribution permissions. Configurations should be populated from the
 //! selected layer's current GIBS capabilities metadata and usage terms.
 
-use crate::tiles::{TileCoordinate, TileError, MAX_TILE_ZOOM};
+use crate::tiles::{MAX_TILE_ZOOM, TileCoordinate, TileError};
 use std::fmt;
 
 pub const NASA_GIBS_SERVICE_ACKNOWLEDGEMENT: &str =
