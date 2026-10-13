@@ -138,6 +138,21 @@ class WaporCatalogTests(unittest.TestCase):
             with self.assertRaises(WaporCatalogError):
                 save_snapshots(target, [("mapsets", pages, [raw])])
 
+    def test_snapshot_rejects_manifest_mismatch_before_creating_directory(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            cases = [
+                ("count-mismatch", [("mapsets", [], [b"orphan bytes"])]),
+                ("digest-mismatch", [("mapsets", [{"response_sha256": hashlib.sha256(b"other bytes").hexdigest()}], [b"actual bytes"])]),
+                ("unsafe-label", [("../escape", [], [])]),
+            ]
+            for name, groups in cases:
+                with self.subTest(name=name):
+                    target = root / name
+                    with self.assertRaises(WaporCatalogError):
+                        save_snapshots(target, groups)
+                    self.assertFalse(target.exists())
+
     def test_snapshot_write_failure_removes_partial_directory(self):
         raw = b'{"response":{"items":[],"links":[]}}'
         pages = [{"response_sha256": hashlib.sha256(raw).hexdigest()}]
