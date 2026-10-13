@@ -1129,6 +1129,294 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "source_artifacts_downloaded": {
+                "const": true
+              }
+            },
+            "required": [
+              "source_artifacts_downloaded"
+            ]
+          }
+        },
+        "required": [
+          "evidence_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D1": {
+                    "const": "passed"
+                  }
+                }
+              }
+            }
+          },
+          "sources": {
+            "items": {
+              "properties": {
+                "acquisition_state": {
+                  "const": "acquired"
+                },
+                "artifact_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{64}$"
+                },
+                "selected_product": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "source_catalog_verified": {
+                  "const": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "observations_processed": {
+                "const": true
+              }
+            },
+            "required": [
+              "observations_processed"
+            ]
+          }
+        },
+        "required": [
+          "evidence_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "source_artifacts_downloaded": {
+                "const": true
+              }
+            }
+          },
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D1": {
+                    "const": "passed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "baseline_computed": {
+                "const": true
+              }
+            },
+            "required": [
+              "baseline_computed"
+            ]
+          }
+        },
+        "required": [
+          "evidence_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "observations_processed": {
+                "const": true
+              }
+            }
+          },
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D2": {
+                    "const": "passed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "independent_validation_complete": {
+                "const": true
+              }
+            },
+            "required": [
+              "independent_validation_complete"
+            ]
+          }
+        },
+        "required": [
+          "evidence_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "baseline_computed": {
+                "const": true
+              }
+            }
+          },
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D3": {
+                    "const": "passed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "independent_review_complete": {
+                "const": true
+              }
+            },
+            "required": [
+              "independent_review_complete"
+            ]
+          }
+        },
+        "required": [
+          "evidence_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D4": {
+                    "const": "passed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "d5_accepted": {
+                "const": true
+              }
+            },
+            "required": [
+              "d5_accepted"
+            ]
+          }
+        },
+        "required": [
+          "evidence_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "independent_validation_complete": {
+                "const": true
+              },
+              "independent_review_complete": {
+                "const": true
+              }
+            }
+          },
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D5": {
+                    "const": "passed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "operational_claim_authorized": {
+                "const": true
+              }
+            },
+            "required": [
+              "operational_claim_authorized"
+            ]
+          }
+        },
+        "required": [
+          "evidence_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "const": "operational"
+          },
+          "evidence_state": {
+            "properties": {
+              "d5_accepted": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
