@@ -135,6 +135,26 @@ class WaterFoodPilotTests(unittest.TestCase):
         self.assertTrue(self.schema["additionalProperties"] is False)
         self.assertEqual(self.schema["properties"]["sources"]["maxItems"], 2)
 
+    def test_schema_requires_maturity_prerequisites(self):
+        rules = {}
+        for rule in self.schema["allOf"]:
+            status = rule.get("if", {}).get("properties", {}).get("status", {}).get("const")
+            if status:
+                rules[status] = rule
+        for status in ("data_readiness", "descriptive_baseline", "independently_validated", "decision_support_candidate"):
+            self.assertIn(status, rules)
+        independent = rules["independently_validated"]["then"]["properties"]["validation"]["properties"]["gates"]["properties"]
+        self.assertEqual(independent["D3"]["const"], "passed")
+        candidate = rules["decision_support_candidate"]["then"]["properties"]["validation"]["properties"]["gates"]["properties"]
+        self.assertTrue(all(candidate[g]["const"] == "passed" for g in ("D0", "D1", "D2", "D3", "D4", "D5")))
+
+    def test_schema_makes_d0_depend_on_frozen_boundary(self):
+        self.assertTrue(any(
+            "D0" in rule.get("if", {}).get("properties", {}).get("validation", {}).get("properties", {}).get("gates", {}).get("properties", {})
+            and rule.get("then", {}).get("properties", {}).get("geography", {}).get("properties", {}).get("boundary_state", {}).get("const") == "verified_and_frozen"
+            for rule in self.schema["allOf"]
+        ))
+
     def test_invalid_gate_state_is_rejected(self):
         doc = copy.deepcopy(self.pilot)
         doc["validation"]["gates"]["D3"] = "queued"
