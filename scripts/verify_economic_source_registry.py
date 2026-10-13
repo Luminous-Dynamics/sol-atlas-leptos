@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_PATH = ROOT / "data" / "economic_sources" / "world_bank_informal_economy_database_v5.json"
+SOURCE_PATH = ROOT / "data" / "economic_sources" / "world_bank_informal_economy_database.json"
 
 TOP_KEYS = {
     "schema_version", "registry_id", "registry_version", "supersedes_registry_version",
@@ -22,7 +22,7 @@ TOP_KEYS = {
     "max_economies_claimed", "measure_count_claimed_by_source_page",
     "source_page_update_frequency", "source_page_claims", "primary_methodology_citation",
     "official_asset", "reproducibility_package_evidence", "license_review",
-    "provenance", "qualification_gates", "interpretation_ceiling", "cross_catalog_evidence", "derivative_candidate", "license_evidence_matrix", "rights_adjudication",
+    "provenance", "qualification_gates", "interpretation_ceiling", "cross_catalog_evidence", "derivative_candidate", "license_evidence_matrix", "rights_adjudication", "package_access_scope", "asset_acquisition",
 }
 CLAIMS_KEYS = {"output_methods", "employment_indicators", "perception_sources",
                "count_reconciliation", "concept_inventory"}
@@ -52,6 +52,20 @@ LICENSE_EVIDENCE_KEYS = {
 }
 RIGHTS_ADJUDICATION_KEYS = {"status", "project_status", "not_a_legal_finding",
                             "reconciliation_note", "required_actions"}
+PACKAGE_ACCESS_KEYS = {
+    "package_id", "package_catalog_url", "package_zip", "package_zip_status",
+    "package_data_and_code_status", "source_dataset_row_status", "source_dataset_filename",
+    "source_dataset_url", "resolution",
+}
+ASSET_ACQUISITION_KEYS = {
+    "official_page_url", "official_excel_url", "browser_attempt", "direct_container_attempt",
+    "snapshot_id", "sha256", "byte_length", "workbook_inspected", "column_inventory",
+    "data_ingestion_authorized", "note",
+}
+BROWSER_ATTEMPT_KEYS = {"attempted_on", "result", "detail"}
+CONTAINER_ATTEMPT_KEYS = {
+    "attempted_on", "result", "detail", "destination_path", "bytes_captured", "http_status",
+}
 DERIVATIVE_KEYS = {
     "candidate_id", "status", "catalog_url", "catalog_created_date", "catalog_last_modified_date",
     "source_access_date", "dataset_names_in_package", "source_sheets_reported",
@@ -83,6 +97,8 @@ EXPECTED_GATES = {
     "do not transfer the derivative's CC BY 4.0 metadata to the current official Excel workbook or to the separately author-provided companion file",
     "reconcile CC BY 4.0 evidence for informal-economy-database.xlsx with the Custom license catalogue entry",
     "distinguish parent-package embargo from the access policy for the separately linked official Excel dataset",
+    "preserve the distinction between a catalogue's embargoed reproduction ZIP and its separately linked original dataset asset",
+    "capture an HTTP response, workbook byte length and SHA-256 before claiming exact-asset verification",
 }
 
 
@@ -116,8 +132,8 @@ def read_source() -> dict[str, Any]:
 def validate(source: dict[str, Any]) -> int:
     require(source["schema_version"] == 1, "unsupported record schema")
     require(source["registry_id"] == "sol-atlas-economic-source-registry", "registry ID drift")
-    require(source["registry_version"] == "world-bank-informal-economy-database/v5", "version drift")
-    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v4",
+    require(source["registry_version"] == "world-bank-informal-economy-database/v6", "version drift")
+    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v5",
             "superseded record reference drift")
     require(source["record_kind"] == "source_qualification_candidate", "record kind drift")
     require(source["status"] == "metadata_only_not_approved_for_data_ingestion_or_redistribution",
@@ -272,9 +288,47 @@ def validate(source: dict[str, Any]) -> int:
             "project approval gate must not be described as legal prohibition")
     require(len(adjudication["required_actions"]) == 6,
             "exact-asset and licence reconciliation actions must remain explicit")
+    require(len(adjudication["required_actions"]) == 7,
+            "rights reconciliation actions must remain explicit")
     require(any("Custom license entry" in action and "reproduction catalogue" in action
                 for action in adjudication["required_actions"]),
             "reconciliation of catalogue-label conflict missing")
+    require(any("embargoed parent ZIP" in action for action in adjudication["required_actions"]),
+            "parent-package embargo and source asset scope must remain separate")
+
+    package_scope = exact_keys(source["package_access_scope"], PACKAGE_ACCESS_KEYS, "package_access_scope")
+    require(package_scope["package_id"] == "RR_WLD_2025_286", "catalog parent package ID drift")
+    require(package_scope["package_zip_status"] == "temporarily_embargoed_per_package_overview",
+            "parent package embargo must remain explicit")
+    require(package_scope["source_dataset_row_status"] == "publicly_available_and_included_per_dataset_row",
+            "source row's separate availability claim was lost")
+    require(package_scope["source_dataset_filename"] == "informal-economy-database.xlsx",
+            "official dataset filename drift")
+    require("scope ambiguity" in package_scope["resolution"],
+            "catalog's conflicting scope language must be recorded")
+
+    acquisition = exact_keys(source["asset_acquisition"], ASSET_ACQUISITION_KEYS, "asset_acquisition")
+    require(acquisition["official_page_url"] == "https://www.worldbank.org/en/brief/2024/01/09/informal-economy-database",
+            "official source page URL drift")
+    require(acquisition["official_excel_url"] == source["data_url"], "official Excel URL mismatch")
+    browser = exact_keys(acquisition["browser_attempt"], BROWSER_ATTEMPT_KEYS, "asset_acquisition.browser_attempt")
+    require(browser["result"] == "reader_rejected_binary_workbook_content_type",
+            "do not hide the browser reader limitation")
+    require("not a source HTTP failure" in browser["detail"],
+            "browser parser limitation must not be attributed to the World Bank host")
+    direct = exact_keys(acquisition["direct_container_attempt"], CONTAINER_ATTEMPT_KEYS,
+                        "asset_acquisition.direct_container_attempt")
+    require(direct["result"] == "failed_dns_resolution_in_execution_environment",
+            "direct fetch attempt status drift")
+    require("Could not resolve host" in direct["detail"] and direct["http_status"] is None,
+            "DNS failure must not be represented as a remote HTTP response")
+    require(direct["bytes_captured"] is False, "do not claim workbook bytes were captured")
+    require(acquisition["snapshot_id"] is None and acquisition["sha256"] is None and
+            acquisition["byte_length"] is None and acquisition["workbook_inspected"] is False and
+            acquisition["column_inventory"] is None,
+            "do not fabricate source snapshot, digest, length, or workbook inventory")
+    require(acquisition["data_ingestion_authorized"] is False,
+            "source ingestion must remain blocked until qualification is completed")
 
     derivative = exact_keys(source["derivative_candidate"], DERIVATIVE_KEYS, "derivative_candidate")
     require(derivative["candidate_id"] == "world-bank-informal-economy-database-with-fixes",
@@ -348,6 +402,8 @@ def main() -> int:
     print("PASS: the 11-versus-12 measure count remains unresolved pending exact workbook inspection.")
     print("PASS: CC BY 4.0 and Custom license catalogue evidence remain distinct and unresolved for the exact workbook.")
     print("PASS: the processed derivative's CC BY 4.0 metadata remains separate from the official workbook rights gate.")
+    print("PASS: parent-package embargo, source-row availability, and environment-level fetch failure are distinct.")
+    print("SCOPE: workbook bytes/digest/sheets unavailable in this environment; data ingestion remains blocked.")
     print("PASS: availability evidence stays separate from project approval of redistribution/commercial use.")
     print("SCOPE: metadata contract only; no workbook values/digest or exact official sheet inventory.")
     print(f"OPEN: {count} source qualification gates; ingestion and redistribution remain unapproved.")
