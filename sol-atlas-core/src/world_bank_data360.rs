@@ -320,9 +320,9 @@ fn normalize_record(
 
     // Length-prefix every key component to avoid delimiter-collision identities.
     let components = [
-        database_id,
-        indicator_id,
-        data_source,
+        database_id.as_str(),
+        indicator_id.as_str(),
+        data_source.as_str(),
         reference_area.as_str(),
         period_text.as_str(),
         frequency.as_str(),
@@ -805,7 +805,8 @@ mod tests {
             vec![row("AAA", "1990", Some("1")), row("BBB", "1990", Some("2"))],
             2, 0, 10, "mutated-index",
         );
-        page.records[1].row_index = page.records[0].row_index;
+        let first_row_index = page.records[0].row_index;
+        page.records[1].row_index = first_row_index;
         assert_eq!(
             assess_data360_snapshot(&[page]).status,
             Data360SnapshotStatus::PageAccountingMismatch
