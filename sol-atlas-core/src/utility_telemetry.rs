@@ -149,13 +149,37 @@ impl MetricKind {
         use ObservationValue as V;
 
         match self {
-            Self::WaterFlowRate => matches!(value, V::Numeric { unit: U::LitresPerSecond | U::CubicMetresPerSecond, .. }),
+            Self::WaterFlowRate => matches!(
+                value,
+                V::Numeric {
+                    unit: U::LitresPerSecond | U::CubicMetresPerSecond,
+                    ..
+                }
+            ),
             Self::WaterPressure => matches!(value, V::Numeric { unit: U::Kilopascal | U::Bar, .. }),
             Self::ReservoirLevel => matches!(value, V::Numeric { unit: U::Metre | U::Percent, .. }),
             Self::WaterPh => matches!(value, V::Numeric { unit: U::Ph, .. }),
-            Self::WaterTurbidity => matches!(value, V::Numeric { unit: U::NephelometricTurbidityUnit, .. }),
-            Self::FreeChlorineResidual => matches!(value, V::Numeric { unit: U::MilligramPerLitre, .. }),
-            Self::ElectricalPower => matches!(value, V::Numeric { unit: U::Kilowatt | U::Megawatt, .. }),
+            Self::WaterTurbidity => matches!(
+                value,
+                V::Numeric {
+                    unit: U::NephelometricTurbidityUnit,
+                    ..
+                }
+            ),
+            Self::FreeChlorineResidual => matches!(
+                value,
+                V::Numeric {
+                    unit: U::MilligramPerLitre,
+                    ..
+                }
+            ),
+            Self::ElectricalPower => matches!(
+                value,
+                V::Numeric {
+                    unit: U::Kilowatt | U::Megawatt,
+                    ..
+                }
+            ),
             Self::Voltage => matches!(value, V::Numeric { unit: U::Volt | U::Kilovolt, .. }),
             Self::Current => matches!(value, V::Numeric { unit: U::Ampere, .. }),
             Self::GridFrequency => matches!(value, V::Numeric { unit: U::Hertz, .. }),
@@ -171,7 +195,13 @@ impl MetricKind {
             }
             Self::VegetationEncroachment => matches!(value, V::Numeric { unit: U::Metre, .. }),
             Self::Precipitation => matches!(value, V::Numeric { unit: U::Millimetre, .. }),
-            Self::SoilMoisture => matches!(value, V::Numeric { unit: U::Fraction | U::Percent, .. }),
+            Self::SoilMoisture => matches!(
+                value,
+                V::Numeric {
+                    unit: U::Fraction | U::Percent,
+                    ..
+                }
+            ),
             Self::TelemetryLinkQuality => matches!(value, V::Numeric { unit: U::Percent, .. }),
         }
     }
@@ -209,8 +239,14 @@ impl ObservationSource {
     fn supports_metric(self, metric: MetricKind) -> bool {
         use MetricKind as M;
         match self {
-            Self::SatelliteOptical => matches!(metric, M::SurfaceWaterExtent | M::VegetationEncroachment),
-            Self::SatelliteRadar => matches!(metric, M::SurfaceWaterExtent | M::InundationExtent | M::VegetationEncroachment),
+            Self::SatelliteOptical => matches!(
+                metric,
+                M::SurfaceWaterExtent | M::VegetationEncroachment
+            ),
+            Self::SatelliteRadar => matches!(
+                metric,
+                M::SurfaceWaterExtent | M::InundationExtent | M::VegetationEncroachment
+            ),
             Self::SatelliteThermal => matches!(metric, M::ThermalAnomaly),
             Self::SatelliteMeteorology => matches!(metric, M::Precipitation | M::SoilMoisture),
             _ => true,
@@ -410,7 +446,9 @@ impl UtilityObservation {
             }
         }
 
-        if self.source == S::DerivedEstimate && self.provenance.upstream_observation_ids.is_empty() {
+        if self.source == S::DerivedEstimate
+            && self.provenance.upstream_observation_ids.is_empty()
+        {
             errors.push(E::MissingDerivationLineage);
         }
         if matches!(self.source, S::DerivedEstimate | S::SyntheticSimulation)
@@ -481,7 +519,10 @@ mod tests {
     #[test]
     fn rejects_non_finite_measurements() {
         let mut observation = valid_pressure_observation();
-        observation.value = ObservationValue::Numeric { value: f64::NAN, unit: MeasurementUnit::Kilopascal };
+        observation.value = ObservationValue::Numeric {
+            value: f64::NAN,
+            unit: MeasurementUnit::Kilopascal,
+        };
         assert!(has_error(&observation, ObservationValidationError::NonFiniteMeasurement));
     }
 
@@ -489,7 +530,10 @@ mod tests {
     fn rejects_metric_unit_mismatch() {
         let mut observation = valid_pressure_observation();
         observation.value = ObservationValue::Numeric { value: 420.0, unit: MeasurementUnit::Volt };
-        assert!(has_error(&observation, ObservationValidationError::IncompatibleMeasurementShapeOrUnit));
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::IncompatibleMeasurementShapeOrUnit
+        ));
     }
 
     #[test]
@@ -573,7 +617,10 @@ mod tests {
         };
         observation.source = ObservationSource::SatelliteOptical;
         observation.provenance.source_version = None;
-        assert!(has_error(&observation, ObservationValidationError::MissingSatelliteProductVersion));
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::MissingSatelliteProductVersion
+        ));
     }
 
     #[test]
