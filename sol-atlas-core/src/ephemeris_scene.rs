@@ -13,8 +13,8 @@ use std::collections::{BTreeMap, HashSet};
 
 use crate::horizons::HashBoundStateVector;
 use crate::system_catalog::{
-    catalog_object, ObjectKind, ReferencePlane, ReferenceSystem, StateVector, TimeScale,
-    VectorCorrection,
+    ObjectKind, ReferencePlane, ReferenceSystem, StateVector, TimeScale, VectorCorrection,
+    catalog_object,
 };
 
 /// Problems that prevent a deterministic scene from being composed.
@@ -45,11 +45,17 @@ impl std::fmt::Display for SceneBuildError {
             Self::InvalidStateVector(reason) => write!(f, "invalid state vector: {reason}"),
             Self::UnknownTarget(id) => write!(f, "target is not in the Sol Atlas catalogue: {id}"),
             Self::AggregateTarget(id) => {
-                write!(f, "aggregate catalogue layer cannot be plotted as a point: {id}")
+                write!(
+                    f,
+                    "aggregate catalogue layer cannot be plotted as a point: {id}"
+                )
             }
             Self::UnknownCenter(id) => write!(f, "centre is not in the Sol Atlas catalogue: {id}"),
             Self::AggregateCenter(id) => {
-                write!(f, "aggregate catalogue layer cannot be a point centre: {id}")
+                write!(
+                    f,
+                    "aggregate catalogue layer cannot be a point centre: {id}"
+                )
             }
             Self::DuplicateTarget(id) => {
                 write!(f, "multiple samples for target at one epoch: {id}")
@@ -59,10 +65,16 @@ impl std::fmt::Display for SceneBuildError {
                 write!(f, "no state sample supplied to resolve centre: {id}")
             }
             Self::ReferenceCycle(id) => {
-                write!(f, "cyclic centre references prevent absolute position resolution: {id}")
+                write!(
+                    f,
+                    "cyclic centre references prevent absolute position resolution: {id}"
+                )
             }
             Self::EpochMismatch(id) => {
-                write!(f, "ephemeris sample epoch is incompatible with the scene: {id}")
+                write!(
+                    f,
+                    "ephemeris sample epoch is incompatible with the scene: {id}"
+                )
             }
             Self::IncompatibleMetadata(field) => {
                 write!(f, "ephemeris samples disagree on {field}")
@@ -75,10 +87,16 @@ impl std::fmt::Display for SceneBuildError {
                 write!(f, "resolved state for {id} contains a non-finite component")
             }
             Self::InvalidDisplayScale => {
-                write!(f, "display_units_per_km must be finite and greater than zero")
+                write!(
+                    f,
+                    "display_units_per_km must be finite and greater than zero"
+                )
             }
             Self::DisplayCoordinateOutOfRange => {
-                write!(f, "camera-relative display coordinate is outside the finite f32 range")
+                write!(
+                    f,
+                    "camera-relative display coordinate is outside the finite f32 range"
+                )
             }
         }
     }
@@ -190,12 +208,7 @@ impl EphemerisScene {
 
         let mut resolved = BTreeMap::new();
         for target_id in states.keys() {
-            resolve_state(
-                target_id,
-                &states,
-                &mut HashSet::new(),
-                &mut resolved,
-            )?;
+            resolve_state(target_id, &states, &mut HashSet::new(), &mut resolved)?;
         }
 
         Ok(Self {
@@ -273,8 +286,14 @@ fn resolve_state(
             (position_km, velocity_km_s, sources)
         };
 
-        if position_km.iter().chain(velocity_km_s.iter()).any(|x| !x.is_finite()) {
-            return Err(SceneBuildError::NonFiniteResolvedState(target_id.to_owned()));
+        if position_km
+            .iter()
+            .chain(velocity_km_s.iter())
+            .any(|x| !x.is_finite())
+        {
+            return Err(SceneBuildError::NonFiniteResolvedState(
+                target_id.to_owned(),
+            ));
         }
         sources.sort();
         sources.dedup();
@@ -307,11 +326,7 @@ fn source_receipt(state: &StateVector) -> SceneSourceReceipt {
 }
 
 fn add_vectors(left: [f64; 3], right: [f64; 3]) -> [f64; 3] {
-    [
-        left[0] + right[0],
-        left[1] + right[1],
-        left[2] + right[2],
-    ]
+    [left[0] + right[0], left[1] + right[1], left[2] + right[2]]
 }
 
 /// Convert to renderer precision only after subtracting the camera origin.
@@ -330,9 +345,7 @@ pub fn camera_relative_display_position(
     for index in 0..3 {
         let delta_km = position_km[index] - camera_origin_km[index];
         let display_coordinate = delta_km * display_units_per_km;
-        if !display_coordinate.is_finite()
-            || display_coordinate.abs() > f32::MAX as f64
-        {
+        if !display_coordinate.is_finite() || display_coordinate.abs() > f32::MAX as f64 {
             return Err(SceneBuildError::DisplayCoordinateOutOfRange);
         }
         output[index] = display_coordinate as f32;
@@ -343,10 +356,10 @@ pub fn camera_relative_display_position(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::horizons::{parse_horizons_vectors_json, HorizonsVectorRequest};
+    use crate::horizons::{HorizonsVectorRequest, parse_horizons_vectors_json};
     use crate::system_catalog::{
-        catalog_object, EphemerisProvenance, ReferencePlane, ReferenceSystem, TimeScale,
-        VectorCorrection,
+        EphemerisProvenance, ReferencePlane, ReferenceSystem, TimeScale, VectorCorrection,
+        catalog_object,
     };
 
     const EPOCH_JD: f64 = 2_461_323.5;
@@ -489,7 +502,10 @@ $EOE\n\
 
         assert_eq!(scene.len(), 3);
         assert_eq!(scene.body("sun").unwrap().position_km, [100.0, 0.0, 0.0]);
-        assert_eq!(scene.body("earth").unwrap().position_km, [1_100.0, 0.0, 0.0]);
+        assert_eq!(
+            scene.body("earth").unwrap().position_km,
+            [1_100.0, 0.0, 0.0]
+        );
         assert_eq!(scene.body("moon").unwrap().position_km, [1_110.0, 0.0, 0.0]);
         assert_eq!(scene.body("sun").unwrap().velocity_km_s, [1.0, 0.0, 0.0]);
         assert_eq!(scene.body("earth").unwrap().velocity_km_s, [3.0, 0.0, 0.0]);
@@ -497,12 +513,14 @@ $EOE\n\
         assert_eq!(scene.body("sun").unwrap().sources.len(), 1);
         assert_eq!(scene.body("earth").unwrap().sources.len(), 2);
         assert_eq!(scene.body("moon").unwrap().sources.len(), 3);
-        assert!(scene
-            .body("moon")
-            .unwrap()
-            .sources
-            .iter()
-            .any(|receipt| receipt.target_id == "earth"));
+        assert!(
+            scene
+                .body("moon")
+                .unwrap()
+                .sources
+                .iter()
+                .any(|receipt| receipt.target_id == "earth")
+        );
     }
 
     #[test]
@@ -538,7 +556,10 @@ $EOE\n\
             [12.0, 20.0, 4.0],
         );
         let scene = EphemerisScene::build(&[mars]).unwrap();
-        assert_eq!(scene.body("mars").unwrap().position_km, [2.0e8, -7.0e7, 3.0e7]);
+        assert_eq!(
+            scene.body("mars").unwrap().position_km,
+            [2.0e8, -7.0e7, 3.0e7]
+        );
         assert_eq!(scene.body("mars").unwrap().sources.len(), 1);
     }
 
