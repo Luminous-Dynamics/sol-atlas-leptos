@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the World Bank informal-economy source qualification record v3.
+"""Verify the World Bank informal-economy source qualification record v6.
 
 This checks source metadata and project approval gates only. It is not a workbook
 parser, source-authenticity check, empirical replication, or legal opinion.
@@ -130,7 +130,8 @@ def read_source() -> dict[str, Any]:
 
 
 def validate(source: dict[str, Any]) -> int:
-    require(source["schema_version"] == 1, "unsupported record schema")
+    require(type(source["schema_version"]) is int and source["schema_version"] == 1,
+            "unsupported record schema (schema_version must be integer 1; booleans are not integers here)")
     require(source["registry_id"] == "sol-atlas-economic-source-registry", "registry ID drift")
     require(source["registry_version"] == "world-bank-informal-economy-database/v6", "version drift")
     require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v5",
@@ -262,6 +263,11 @@ def validate(source: dict[str, Any]) -> int:
         by_evidence[item["evidence_id"]] = item
         require(item["data_url"] == "https://www.worldbank.org/en/research/brief/informal-economy-database",
                 "catalogue entry should resolve to official source page")
+    require(set(by_evidence) == {
+        "world_bank_catalog_jobless_development_265",
+        "world_bank_catalog_informalizing_jobs_330",
+        "world_bank_catalog_sme_training_583",
+    }, "license evidence IDs differ from the three reviewed source records")
     ccby = by_evidence["world_bank_catalog_jobless_development_265"]
     require(ccby["named_asset"] == "informal-economy-database.xlsx", "specific Excel asset filename drift")
     require(ccby["license_label"] == "Creative Commons Attribution 4.0 International License",
@@ -288,6 +294,8 @@ def validate(source: dict[str, Any]) -> int:
             "project approval gate must not be described as legal prohibition")
     require(len(adjudication["required_actions"]) == 7,
             "rights reconciliation actions must remain explicit")
+    require(len(set(adjudication["required_actions"])) == len(adjudication["required_actions"]),
+            "rights reconciliation actions must not be duplicated")
     require(any("Custom license entry" in action and "reproduction catalogue" in action
                 for action in adjudication["required_actions"]),
             "reconciliation of catalogue-label conflict missing")
@@ -368,9 +376,10 @@ def validate(source: dict[str, Any]) -> int:
             "not_approved_for_import_until_package_asset_is_obtained_hashed_and_its_metadata_reconciled",
             "derivative import gate weakened")
     require(len(derivative["next_actions"]) == 5 and
+            len(set(derivative["next_actions"])) == len(derivative["next_actions"]) and
             any("do not infer the raw workbook has the same rights" in item
                 for item in derivative["next_actions"]),
-            "derivative rights scope guard missing")
+            "derivative rights scope guard missing or duplicated")
 
     provenance = exact_keys(source["provenance"], PROVENANCE_KEYS, "provenance")
     require(provenance["workbook_downloaded"] is False, "workbook acquisition must remain unclaimed")
