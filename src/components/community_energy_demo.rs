@@ -64,7 +64,7 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                 <p class="community-energy-eyebrow">"CIVIC CAPACITY · ENERGY RESILIENCE"</p>
                 <h1>"One community. One outage. Two choices."</h1>
                 <p class="community-energy-intro">
-                    "See how a community could compare resilience options, inspect the evidence, and record a decision without giving an AI system the authority to make that decision."
+                    "Explore how modelled evidence could inform a community decision without giving an AI system decision authority. The tally below is pre-seeded; this page is not a voting interface."
                 </p>
                 <div class="community-energy-disclaimer" role="note">
                     <strong>"Scenario-only demo."</strong>
@@ -88,6 +88,7 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                         } else {
                             "community-energy-choice"
                         }
+                        aria-pressed=move || !selected_candidate.get()
                         on:click=move |_| selected_candidate.set(false)
                     >
                         <span class="community-energy-choice-label">"BASELINE"</span>
@@ -100,6 +101,7 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                         } else {
                             "community-energy-choice"
                         }
+                        aria-pressed=move || selected_candidate.get()
                         on:click=move |_| selected_candidate.set(true)
                     >
                         <span class="community-energy-choice-label">"SENSITIVITY CANDIDATE"</span>
@@ -168,13 +170,13 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                             <tr>
                                 <th>"Interval"</th>
                                 <th>"Grid"</th>
-                                <th>"Load"</th>
-                                <th>"Renewables"</th>
-                                <th>"Battery out"</th>
-                                <th>"Grid import"</th>
-                                <th>"Unserved"</th>
-                                <th>"Critical unserved"</th>
-                                <th>"Battery SOC"</th>
+                                <th>"Load (kWh)"</th>
+                                <th>"Renewables (kWh)"</th>
+                                <th>"Battery output (kWh)"</th>
+                                <th>"Grid import (kWh)"</th>
+                                <th>"Unserved load (kWh)"</th>
+                                <th>"Critical unserved (kWh)"</th>
+                                <th>"Battery SOC (kWh)"</th>
                             </tr>
                         </thead>
                         <tbody>
