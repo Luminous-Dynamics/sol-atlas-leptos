@@ -14,6 +14,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 import posixpath
+import shutil
 from urllib.parse import quote, unquote, urljoin, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
@@ -219,6 +220,10 @@ def save_snapshots(snapshot_dir: Path, groups: list[tuple[str, list[dict], list[
                     "bytes": len(raw),
                 })
     except OSError as exc:
+        # The directory was created exclusively by this call. Remove partial
+        # files so a failed capture cannot be mistaken for a complete snapshot
+        # or block a clean retry with an existing-directory error.
+        shutil.rmtree(snapshot_dir, ignore_errors=True)
         raise WaporCatalogError(f"cannot preserve raw API response: {exc}") from exc
     return saved
 
