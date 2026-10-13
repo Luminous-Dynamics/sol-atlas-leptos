@@ -410,6 +410,20 @@ mod tests {
             observation.provenance.upstream_observation_ids,
             vec!["sentinel-scene-001"]
         );
+        assert_eq!(
+            observation.provenance.source_version.as_deref(),
+            Some("surface-water-index-v1")
+        );
+        let parameters = observation
+            .provenance
+            .processing_parameters
+            .as_ref()
+            .expect("index parameters must be captured");
+        assert_eq!(parameters["index"], "ndwi");
+        assert_eq!(parameters["threshold"], 0.2);
+        assert_eq!(parameters["minimum_valid_area_fraction"], 0.5);
+        assert_eq!(parameters["valid_area_fraction"], 1.0);
+        assert_eq!(parameters["water_pixel_count"], 1);
         assert_eq!(observation.observed_at_unix_ms, 1_000);
     }
 
