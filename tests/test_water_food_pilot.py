@@ -56,6 +56,15 @@ class WaterFoodPilotTests(unittest.TestCase):
         source["upstream_overlap"] = "Satellite-only source with no overlap."
         self.assertTrue(any("station overlap must be disclosed" in e for e in validate_pilot(doc)))
 
+    def test_chirps_reference_comparison_preserves_gauge_correction_provenance(self):
+        source = next(s for s in self.pilot["sources"] if s["source_id"] == "CHIRPS3")
+        overlap = source["upstream_overlap"].lower()
+        checks = " ".join(source["required_checks"]).lower()
+        candidates = " ".join(self.pilot["validation"]["independent_reference_candidates"]).lower()
+        self.assertIn("gauge-undercatch-corrected", overlap)
+        self.assertIn("correction method/version", checks)
+        self.assertIn("gauge-undercatch-corrected observations", candidates)
+
     def test_unknown_source_is_rejected(self):
         doc = copy.deepcopy(self.pilot)
         doc["sources"][0]["source_id"] = "GENERIC-RAINFALL"
