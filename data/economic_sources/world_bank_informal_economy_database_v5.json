@@ -102,7 +102,9 @@
     "resolve source-specific terms and third-party restrictions before any data redistribution or commercial use",
     "do not infer illegality or adjudicated illicit output from informality estimates",
     "obtain and hash the specific reproducibility-package derivative before considering its values for import",
-    "do not transfer the derivative's CC BY 4.0 metadata to the current official Excel workbook or to the separately author-provided companion file"
+    "do not transfer the derivative's CC BY 4.0 metadata to the current official Excel workbook or to the separately author-provided companion file",
+    "reconcile CC BY 4.0 evidence for informal-economy-database.xlsx with the Custom license catalogue entry",
+    "distinguish parent-package embargo from the access policy for the separately linked official Excel dataset"
   ],
   "interpretation_ceiling": "Historical cross-country context only after the workbook variables, methods, coverage and terms have been independently qualified; not a current-year estimate, not a complete global shadow-economy total, and not evidence of illegal activity.",
   "supersedes_registry_version": "world-bank-informal-economy-database/v4",
