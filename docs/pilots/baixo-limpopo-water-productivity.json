@@ -41,7 +41,8 @@
         "current temporal coverage and finality/publication state",
         "units, source CRS, effective spatial resolution and quality mask",
         "no-data semantics and valid-cell coverage",
-        "source methodology, terms and reuse rights"
+        "source methodology, terms and reuse rights",
+        "check the June/July 2024 Level III re-release and March 2025 Baixo Limpopo NPP/AGBP correction history; reacquire affected layers if the selected artifact predates the corrected release"
       ]
     },
     {
