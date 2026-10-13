@@ -146,6 +146,17 @@ def validate_pilot(doc: Any) -> list[str]:
         checks = source.get("required_checks")
         if not isinstance(checks, list) or len(checks) < 3 or any(not isinstance(x, str) or not x.strip() for x in checks):
             errors.append(f"{where}.required_checks must list at least three checks")
+        elif source_id == "CHIRPS3":
+            check_text = " ".join(checks).lower()
+            if (
+                "legates-willmott" not in check_text
+                or "not independent station observations" not in check_text
+                or "must not be applied automatically" not in check_text
+            ):
+                errors.append(
+                    f"{where}: CHIRPS checks must bound Legates-Willmott grids as "
+                    "auxiliary factors, not independent observations or automatic corrections"
+                )
 
     if seen != EXPECTED_SOURCES:
         errors.append(f"source set must be exactly {sorted(EXPECTED_SOURCES)}")
