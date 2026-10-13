@@ -21,6 +21,7 @@ API_ORIGIN = "https://data.apps.fao.org"
 API_PREFIX = "/gismgr/api/v2/catalog/workspaces/WAPOR-3/"
 MAPSETS_URL = API_ORIGIN + API_PREFIX + "mapsets"
 MAX_RESPONSE_BYTES = 16 * 1024 * 1024
+MAX_TOTAL_RESPONSE_BYTES = 64 * 1024 * 1024
 MAX_PAGES = 100
 MAX_RECORDS = 100_000
 DEFAULT_TIMEOUT_SECONDS = 20
@@ -123,6 +124,7 @@ def paginate(endpoint: str, timeout_seconds: float, fetcher=fetch_json) -> tuple
     records: list[dict] = []
     page_metadata: list[dict] = []
     page_bytes: list[bytes] = []
+    total_response_bytes = 0
     next_url: str | None = endpoint
     visited: set[str] = set()
 
@@ -135,6 +137,15 @@ def paginate(endpoint: str, timeout_seconds: float, fetcher=fetch_json) -> tuple
         visited.add(next_url)
 
         document, raw, final_url = fetcher(next_url, timeout_seconds)
+        if not isinstance(raw, bytes):
+            raise WaporCatalogError("API response body must be raw bytes")
+        if len(raw) > MAX_RESPONSE_BYTES:
+            raise WaporCatalogError(f"API page exceeds {MAX_RESPONSE_BYTES} byte limit")
+        if total_response_bytes + len(raw) > MAX_TOTAL_RESPONSE_BYTES:
+            raise WaporCatalogError(
+                f"paginated catalogue exceeds {MAX_TOTAL_RESPONSE_BYTES} total response byte limit"
+            )
+        total_response_bytes += len(raw)
         payload = document.get("response")
         if not isinstance(payload, dict):
             raise WaporCatalogError("API response is missing object field 'response'")
