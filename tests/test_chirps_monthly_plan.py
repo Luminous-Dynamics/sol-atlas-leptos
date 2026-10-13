@@ -1,3 +1,4 @@
+import argparse
 import hashlib
 import json
 import sys
@@ -23,7 +24,7 @@ class ChirpsMonthlyPlanTests(unittest.TestCase):
     def test_parse_month_rejects_invalid_format_or_month(self):
         for value in ("2024-2", "2024-13", "1980-12", "nonsense"):
             with self.subTest(value=value):
-                with self.assertRaises(Exception):
+                with self.assertRaises(argparse.ArgumentTypeError):
                     parse_month(value)
 
     def test_month_range_is_inclusive_across_year_boundary(self):
@@ -115,8 +116,14 @@ class ChirpsMonthlyPlanTests(unittest.TestCase):
     def test_local_index_file_is_read_only_input(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             source = Path(temp_dir) / "index.html"
-            source.write_bytes(listing("chirps-v3.0.2024.01.tif"))
-            self.assertEqual(source.read_bytes(), listing("chirps-v3.0.2024.01.tif"))
+            raw = listing("chirps-v3.0.2024.01.tif")
+            source.write_bytes(raw)
+            from plan_chirps_monthly import read_index
+            loaded, retrieved_at, mode = read_index(source, 1.0)
+            self.assertEqual(loaded, raw)
+            self.assertIsNone(retrieved_at)
+            self.assertEqual(mode, "local_html_snapshot")
+            self.assertEqual(source.read_bytes(), raw)
 
     def test_plan_claim_ceiling_disallows_false_resolution(self):
         raw = listing("chirps-v3.0.2024.01.tif")
