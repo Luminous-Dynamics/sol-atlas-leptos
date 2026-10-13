@@ -223,7 +223,13 @@ def save_snapshots(snapshot_dir: Path, groups: list[tuple[str, list[dict], list[
         # The directory was created exclusively by this call. Remove partial
         # files so a failed capture cannot be mistaken for a complete snapshot
         # or block a clean retry with an existing-directory error.
-        shutil.rmtree(snapshot_dir, ignore_errors=True)
+        try:
+            shutil.rmtree(snapshot_dir)
+        except OSError as cleanup_exc:
+            raise WaporCatalogError(
+                f"cannot preserve raw API response: {exc}; also failed to remove "
+                f"partial snapshot directory: {cleanup_exc}"
+            ) from exc
         raise WaporCatalogError(f"cannot preserve raw API response: {exc}") from exc
     return saved
 
