@@ -34,7 +34,7 @@ From the repository root:
     cargo test --manifest-path sol-atlas-core/Cargo.toml scientific_evidence
     cargo clippy --manifest-path sol-atlas-core/Cargo.toml -- -D warnings
 
-The module currently has 22 focused unit tests covering source metadata, strict parsing, digest semantics, malformed dates, cross-project record bindings, and attempts to upgrade or misstate the serialized authority boundary. CI results, not the test count in this document, determine whether a build or test run passed.
+The module currently has 24 focused unit tests covering source metadata, strict parsing, digest semantics, malformed dates, cross-project record bindings, and attempts to upgrade or misstate the serialized authority boundary. CI results, not the test count in this document, determine whether a build or test run passed.
 
 ## References
 
