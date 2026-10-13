@@ -13,7 +13,7 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import quote, urlsplit
+from urllib.parse import quote, urljoin, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 API_ORIGIN = "https://data.apps.fao.org"
@@ -135,8 +135,13 @@ def paginate(endpoint: str, timeout_seconds: float, fetcher=fetch_json) -> tuple
         if len(next_links) > 1:
             raise WaporCatalogError("API response has multiple 'next' links")
         next_url = next_links[0] if next_links else None
-        if next_url is not None and not isinstance(next_url, str):
-            raise WaporCatalogError("pagination next-link href must be a string")
+        if next_url is not None:
+            if not isinstance(next_url, str):
+                raise WaporCatalogError("pagination next-link href must be a string")
+            # Some API implementations emit relative links. Resolve them against
+            # the verified final response URL, then re-apply the strict origin/path guard.
+            next_url = urljoin(final_url, next_url)
+            validate_api_url(next_url)
 
     return records, page_metadata, page_bytes
 
