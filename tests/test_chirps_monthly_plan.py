@@ -113,6 +113,35 @@ class ChirpsMonthlyPlanTests(unittest.TestCase):
         )
         self.assertIsInstance(result, Request)
 
+    def test_cli_saves_exact_index_snapshot_without_overwriting(self):
+        from plan_chirps_monthly import main
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "source-index.html"
+            saved = root / "captured-index.html"
+            plan_out = root / "plan.json"
+            raw = listing("chirps-v3.0.2024.01.tif")
+            source.write_bytes(raw)
+            code = main([
+                "--start", "2024-01", "--end", "2024-01",
+                "--index-file", str(source),
+                "--snapshot-index", str(saved),
+                "--output", str(plan_out),
+            ])
+            self.assertEqual(code, 0)
+            self.assertEqual(saved.read_bytes(), raw)
+            plan = json.loads(plan_out.read_text(encoding="utf-8"))
+            self.assertTrue(plan["index_snapshot_saved"])
+            self.assertEqual(plan["index_snapshot_filename"], "captured-index.html")
+            self.assertEqual(plan["index_sha256"], hashlib.sha256(raw).hexdigest())
+            self.assertEqual(source.read_bytes(), raw)
+            self.assertEqual(main([
+                "--start", "2024-01", "--end", "2024-01",
+                "--index-file", str(source),
+                "--snapshot-index", str(saved),
+                "--output", str(root / "second-plan.json"),
+            ]), 2)
+
     def test_local_index_file_is_read_only_input(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             source = Path(temp_dir) / "index.html"
