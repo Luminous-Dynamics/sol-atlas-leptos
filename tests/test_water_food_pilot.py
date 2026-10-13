@@ -148,6 +148,22 @@ class WaterFoodPilotTests(unittest.TestCase):
         candidate = rules["decision_support_candidate"]["then"]["properties"]["validation"]["properties"]["gates"]["properties"]
         self.assertTrue(all(candidate[g]["const"] == "passed" for g in ("D0", "D1", "D2", "D3", "D4", "D5")))
 
+    def test_schema_evidence_flags_require_matching_passed_gates(self):
+        state_rules = {}
+        for rule in self.schema["allOf"]:
+            properties = rule.get("if", {}).get("properties", {}).get("evidence_state", {}).get("properties", {})
+            for field, definition in properties.items():
+                if definition == {"const": True}:
+                    state_rules[field] = rule
+        for field in ("source_artifacts_downloaded", "observations_processed", "baseline_computed",
+                      "independent_validation_complete", "independent_review_complete", "d5_accepted"):
+            self.assertIn(field, state_rules)
+            self.assertIn("validation", state_rules[field]["then"]["properties"])
+        downloaded = state_rules["source_artifacts_downloaded"]["then"]["properties"]["validation"]["properties"]["gates"]["properties"]
+        self.assertEqual(downloaded["D1"]["const"], "passed")
+        baseline = state_rules["baseline_computed"]["then"]["properties"]["validation"]["properties"]["gates"]["properties"]
+        self.assertEqual(baseline["D2"]["const"], "passed")
+
     def test_schema_makes_d0_depend_on_frozen_boundary(self):
         self.assertTrue(any(
             "D0" in rule.get("if", {}).get("properties", {}).get("validation", {}).get("properties", {}).get("gates", {}).get("properties", {})
