@@ -4,12 +4,10 @@ on:
   pull_request:
     paths:
       - "docs/earth-systems-domain-catalog.json"
-      - "docs/pilots/baixo-limpopo-water-productivity.json"
-      - "docs/pilots/BAIXO_LIMPOPO_WATER_PRODUCTIVITY.md"
+      - "docs/pilots/**"
       - "docs/schemas/earth-systems-domain-catalog.schema.json"
       - "docs/schemas/water-food-pilot.schema.json"
       - "scripts/earth-systems/**"
-      - "scripts/earth-systems/validate_pilot.py"
       - "tests/test_earth_systems_catalog.py"
       - "tests/test_water_food_pilot.py"
       - ".github/workflows/earth-systems-catalog.yml"
@@ -17,9 +15,12 @@ on:
     branches: [main]
     paths:
       - "docs/earth-systems-domain-catalog.json"
+      - "docs/pilots/**"
       - "docs/schemas/earth-systems-domain-catalog.schema.json"
+      - "docs/schemas/water-food-pilot.schema.json"
       - "scripts/earth-systems/**"
       - "tests/test_earth_systems_catalog.py"
+      - "tests/test_water_food_pilot.py"
       - ".github/workflows/earth-systems-catalog.yml"
 
 permissions:
