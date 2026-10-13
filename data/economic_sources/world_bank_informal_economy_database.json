@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "registry_id": "sol-atlas-economic-source-registry",
-  "registry_version": "world-bank-informal-economy-database/v6",
+  "registry_version": "world-bank-informal-economy-database/v7",
   "record_kind": "source_qualification_candidate",
   "status": "metadata_only_not_approved_for_data_ingestion_or_redistribution",
   "source_id": "world_bank_informal_economy_database",
@@ -40,7 +40,7 @@
         "count": 1
       }
     ],
-    "count_reconciliation": "Count remains unresolved at the observed-series level. The World Bank page lists two output estimates (DGE and MIMIC), four employment indicators, and six perception indicators, which is 12 listed series if DGE and MIMIC are counted separately, versus the page's stated 11 measures. One conceptual output category with two estimators would yield 11 conceptual categories, but the OECD/QoG downstream catalog lists DGE and MIMIC as distinct variables, and a World Bank reproducibility package reports DGE_p and MIMIC_p sheets/variables. The actual official workbook edition and its inventory must be inspected before deciding how the source intends the measure count.",
+    "count_reconciliation": "Count remains unresolved at the observed-series and edition level. The 2024 official brief claims 11 measures across a 1990–2020 period, while its bullets list two output estimates (DGE and MIMIC), four employment indicators, and six perception indicators—12 listed series if DGE and MIMIC are counted separately. Separately, the World Bank Data360 WB_INFECDB dataset metadata describes 12 measures over 1990–2018, and the Data360 catalogue search labels the dataset as containing 12 indicators. The period and measure-count differences may reflect different editions or metadata taxonomies; available evidence does not settle which workbook edition underlies each description. Downstream catalogues also list DGE and MIMIC separately, and a reproduction package reports DGE_p and MIMIC_p sheets/variables. The exact official workbook edition and its inventory must be captured and inspected before resolving the count or joining series across vintages.",
     "concept_inventory": {
       "source_page_claimed_measure_count": 11,
       "output_series_listed": 2,
@@ -48,8 +48,8 @@
       "perception_indicators_listed": 6,
       "series_count_if_all_listed_as_separate": 12,
       "conceptual_count_if_output_estimators_grouped": 11,
-      "count_reconciliation_status": "unresolved_until_exact_workbook_inventory",
-      "note": "The source page taxonomy supports both a one-concept/two-estimator interpretation and a twelve-series interpretation; downstream catalogs list DGE and MIMIC separately. Do not select an interpretation without inspecting the exact workbook edition."
+      "count_reconciliation_status": "unresolved_until_exact_workbook_inventory_and_edition_reconciliation",
+      "note": "The 2024 official brief taxonomy supports both a one-concept/two-estimator interpretation and a twelve-series interpretation. A separate World Bank Data360 WB_INFECDB metadata record describes a 1990–2018 period and twelve measures, while the brief describes 1990–2020 and eleven measures; the catalogue search also lists twelve indicators. This is material evidence of an edition or metadata discrepancy, not proof of the exact current workbook inventory. Downstream catalogues list DGE and MIMIC separately. Do not select a count interpretation or merge values across editions without inspecting the exact source asset."
     }
   },
   "primary_methodology_citation": {
@@ -106,10 +106,11 @@
     "reconcile CC BY 4.0 evidence for informal-economy-database.xlsx with the Custom license catalogue entry",
     "distinguish parent-package embargo from the access policy for the separately linked official Excel dataset",
     "preserve the distinction between a catalogue's embargoed reproduction ZIP and its separately linked original dataset asset",
-    "capture an HTTP response, workbook byte length and SHA-256 before claiming exact-asset verification"
+    "capture an HTTP response, workbook byte length and SHA-256 before claiming exact-asset verification",
+    "reconcile the Data360 WB_INFECDB metadata claim of 12 measures over 1990–2018 against the official brief claim of 11 measures over 1990–2020 and the exact workbook edition"
   ],
   "interpretation_ceiling": "Historical cross-country context only after the workbook variables, methods, coverage and terms have been independently qualified; not a current-year estimate, not a complete global shadow-economy total, and not evidence of illegal activity.",
-  "supersedes_registry_version": "world-bank-informal-economy-database/v5",
+  "supersedes_registry_version": "world-bank-informal-economy-database/v6",
   "official_asset": {
     "label": "Informal economy data (Excel)",
     "format": "xlsx",
@@ -301,5 +302,36 @@
     "column_inventory": null,
     "data_ingestion_authorized": false,
     "note": "Retrieval failed at the execution environment, not at an observed remote response. No local workbook file, digest, byte length or workbook inventory is claimed."
+  },
+  "edition_history_evidence": {
+    "evidence_id": "world_bank_data360_wb_infecdb_metadata_alternate_edition",
+    "dataset_id": "WB_INFECDB",
+    "dataset_title": "Informal Economy Database",
+    "metadata_url": "https://data360files.worldbank.org/data360-data/datasetmetadata/WB_INFECDB.pdf",
+    "api_documentation_url": "https://data360.worldbank.org/en/api",
+    "catalogue_search_url": "https://data360.worldbank.org/en/search",
+    "reviewed_on": "2026-10-13",
+    "metadata_version_date": null,
+    "source_period_start": 1990,
+    "source_period_end": 2018,
+    "measure_count_claimed": 12,
+    "catalogue_indicator_count": 12,
+    "measure_breakdown": {
+      "output_methods": 2,
+      "employment_indicators": 4,
+      "perception_indicators": 6,
+      "total_if_each_output_estimator_is_separate": 12
+    },
+    "competing_official_brief": {
+      "url": "https://www.worldbank.org/en/brief/2024/01/09/informal-economy-database",
+      "source_period_start": 1990,
+      "source_period_end": 2020,
+      "measure_count_claimed": 11
+    },
+    "exact_workbook_inventory_captured": false,
+    "metadata_pdf_bytes_captured": false,
+    "data_observations_captured": false,
+    "interpretation": "This is an alternate World Bank Data360 metadata record and a catalogue-level indicator count. Its reported 1990–2018 period and 12 measures differ from the 2024 official brief's 1990–2020 period and 11 measures. The record's version date is not established by the retrieved metadata excerpt. Treat the mismatch as an edition/metadata discrepancy; do not infer which record matches the currently linked Excel workbook until its bytes, digest, sheets and indicator inventory are inspected.",
+    "access_note": "The published Data360 API documentation was reviewed, but its data endpoint was not successfully queried in this review. The metadata PDF and workbook bytes were not captured locally. No observations, digest, or current workbook inventory are claimed."
   }
 }
