@@ -86,6 +86,9 @@ class EarthSystemsCatalogTests(unittest.TestCase):
                 limitations = " ".join(source["key_limitations"]).lower()
                 self.assertIn("preliminary and final", limitations)
                 self.assertIn("station", limitations)
+                self.assertIn("gauge-undercatch-corrected", limitations)
+                self.assertIn("legates-willmott", limitations)
+                self.assertIn("not independent station observations", limitations)
 
     def test_wapor_level_three_correction_history_is_a_catalogued_limitation(self):
         for domain_id in ("water-security", "food-land-water-productivity"):
