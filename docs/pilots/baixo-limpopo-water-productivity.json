@@ -51,22 +51,25 @@
       "url": "https://www.chc.ucsb.edu/data/chirps3",
       "product_family": "CHIRPS",
       "product_version": "v3",
-      "selected_product": "Final product required; exact file/release and analysis period are not yet selected",
-      "product_selection_state": "product_family_verified_artifact_unlocked",
+      "selected_product": "CHIRPS v3.0 monthly Africa-subset GeoTIFF collection at https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/africa/tifs/; exact month window must intersect the frozen WaPOR layer coverage.",
+      "product_selection_state": "official_monthly_africa_index_verified; exact_month_window_pending_WaPOR_selection",
       "acquisition_state": "not_acquired",
       "artifact_sha256": null,
       "source_catalog_verified": true,
       "rights_state": "cc_by_4_0_with_attribution",
       "redistribution_allowed": true,
-      "native_spatial_support": "0.05-degree precipitation grid; effective ground distance varies with latitude and grid cells are not local rain gauges.",
-      "native_temporal_support": "CHIRPS v3 has distinct preliminary and final releases; select exact files and time aggregation only after the WaPOR period is known.",
+      "native_spatial_support": "0.05-degree areal precipitation grid, approximately 5 km across at Baixo Limpopo; not a local gauge or 20 m field observation.",
+      "native_temporal_support": "Monthly is the primary pilot choice and a fundamental CHIRPS v3 timescale; daily products are derived by partitioning pentadal totals with ERA5 or IMERG and are excluded from the first pass.",
       "upstream_overlap": "CHIRPS blends satellite-based precipitation estimates with in-situ station observations. Candidate validation gauges must be checked against the selected release's station lineage and excluded from the independent test when used in the blend.",
       "required_checks": [
         "exact v3 final-product file IDs and publication/retrieval timestamps",
         "citation and CC BY 4.0 attribution retained",
         "valid-data semantics, units, period and temporal aggregation",
         "station-input overlap reviewed for any independent validation claim",
-        "sensitivity to product release and aggregation recorded"
+        "sensitivity to product release and aggregation recorded",
+        "inventory the official monthly Africa GeoTIFF directory with plan_chirps_monthly.py and retain the raw index SHA-256 and retrieved-at timestamp",
+        "confirm the exact requested month set is complete and intersects actual final WaPOR monthly coverage",
+        "do not treat daily rnl/sat downscaled products as independent high-frequency observations"
       ]
     }
   ],
@@ -74,7 +77,7 @@
     "estimand": "Descriptive co-variation between source-supported seasonal precipitation anomalies and selected WaPOR water/productivity indicators; not a causal effect, yield estimate, or operational metric.",
     "baseline": "Use a predeclared season-aware median and robust spread only if the frozen WaPOR record contains enough complete comparable seasons; otherwise report coverage and raw time series only.",
     "spatial_alignment": "Aggregate finer data to a common defensible support and publish valid-area counts; never rasterize a coarse product to imply finer information.",
-    "temporal_alignment": "Compare matching monthly/dekadal windows only where both selected layers support them; preserve period, retrieval time, publication time, and preliminary/final state.",
+    "temporal_alignment": "Use monthly as the primary alignment between the selected WaPOR monthly AETI layer and CHIRPS v3 monthly Africa-subset GeoTIFFs. Confirm actual product support first; keep pentadal/dekadal alternatives as versioned sensitivity analyses rather than mixing cadence semantics. Preserve observation period, source publication time, index retrieval time, acquisition time, and final/preliminary status.",
     "missingness_policy": "Carry source quality masks and no-data separately from zero; report missingness and valid-area fraction before any interpretation.",
     "independence_policy": "Treat source dependence as unresolved until each product's upstream inputs and reference-data overlap are reviewed. WaPOR and CHIRPS are not assumed independent."
   },
