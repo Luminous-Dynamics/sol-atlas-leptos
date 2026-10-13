@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from urllib.request import Request
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "earth-systems"))
@@ -15,6 +16,24 @@ from plan_chirps_monthly import INDEX_URL, IndexError, SameOriginRedirectHandler
 def listing(*hrefs):
     links = "".join(f'<a href="{href}">{href}</a>\n' for href in hrefs)
     return f"<html><body>{links}</body></html>".encode("utf-8")
+
+
+class PartialWriteFailure:
+    """File-like wrapper that leaves partial bytes before raising on write."""
+
+    def __init__(self, handle):
+        self.handle = handle
+
+    def __enter__(self):
+        self.handle.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return self.handle.__exit__(exc_type, exc, tb)
+
+    def write(self, value):
+        self.handle.write(value[:10])
+        raise OSError("simulated write failure")
 
 
 class ChirpsMonthlyPlanTests(unittest.TestCase):
@@ -156,6 +175,82 @@ class ChirpsMonthlyPlanTests(unittest.TestCase):
             ])
             self.assertEqual(code, 2)
             self.assertEqual(output.read_text(encoding="utf-8"), "preserve this evidence\\n")
+
+    def test_snapshot_partial_write_is_removed(self):
+        from plan_chirps_monthly import main
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "index.html"
+            snapshot = root / "snapshot.html"
+            source.write_bytes(listing("chirps-v3.0.2024.01.tif"))
+            real_open = Path.open
+
+            def fail_snapshot_open(path_obj, mode="r", *args, **kwargs):
+                handle = real_open(path_obj, mode, *args, **kwargs)
+                if path_obj == snapshot and mode == "xb":
+                    return PartialWriteFailure(handle)
+                return handle
+
+            with patch.object(Path, "open", new=fail_snapshot_open):
+                code = main([
+                    "--start", "2024-01", "--end", "2024-01",
+                    "--index-file", str(source), "--snapshot-index", str(snapshot),
+                ])
+            self.assertEqual(code, 2)
+            self.assertFalse(snapshot.exists())
+
+    def test_plan_partial_write_removes_plan_and_new_snapshot(self):
+        from plan_chirps_monthly import main
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "index.html"
+            snapshot = root / "snapshot.html"
+            output = root / "plan.json"
+            source.write_bytes(listing("chirps-v3.0.2024.01.tif"))
+            real_open = Path.open
+
+            def fail_output_open(path_obj, mode="r", *args, **kwargs):
+                handle = real_open(path_obj, mode, *args, **kwargs)
+                if path_obj == output and mode == "x":
+                    return PartialWriteFailure(handle)
+                return handle
+
+            with patch.object(Path, "open", new=fail_output_open):
+                code = main([
+                    "--start", "2024-01", "--end", "2024-01",
+                    "--index-file", str(source), "--snapshot-index", str(snapshot),
+                    "--output", str(output),
+                ])
+            self.assertEqual(code, 2)
+            self.assertFalse(output.exists())
+            self.assertFalse(snapshot.exists())
+
+    def test_output_collision_race_removes_new_snapshot_not_existing_output(self):
+        from plan_chirps_monthly import main
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "index.html"
+            snapshot = root / "snapshot.html"
+            output = root / "plan.json"
+            source.write_bytes(listing("chirps-v3.0.2024.01.tif"))
+            existing_bytes = b"created by another process"
+            real_open = Path.open
+
+            def collide_on_output(path_obj, mode="r", *args, **kwargs):
+                if path_obj == output and mode == "x":
+                    output.write_bytes(existing_bytes)
+                    raise FileExistsError("simulated concurrent creator")
+                return real_open(path_obj, mode, *args, **kwargs)
+
+            with patch.object(Path, "open", new=collide_on_output):
+                code = main([
+                    "--start", "2024-01", "--end", "2024-01",
+                    "--index-file", str(source), "--snapshot-index", str(snapshot),
+                    "--output", str(output),
+                ])
+            self.assertEqual(code, 2)
+            self.assertEqual(output.read_bytes(), existing_bytes)
+            self.assertFalse(snapshot.exists())
 
     def test_local_index_file_is_read_only_input(self):
         with tempfile.TemporaryDirectory() as temp_dir:
