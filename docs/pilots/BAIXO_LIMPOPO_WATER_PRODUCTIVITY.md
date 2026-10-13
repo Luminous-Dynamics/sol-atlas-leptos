@@ -61,6 +61,15 @@ WaPOR is marked **product-level rights review required** until the exact selecte
 
 The profile and validator encode **design-only status** today. They do not grant any gate.
 
+## Local independent-evidence leads
+
+Desk research found two candidate paths for local reference records. Both remain unadmitted until the exact table/record, geography, time period, provenance and reuse terms are inspected.
+
+- **Instituto Nacional de Irrigação (INIR), Mozambique:** its official site announced the Plataforma de Irrigação de Moçambique (PIM) on 29 June 2026 and also reported preliminary flood impacts at Regadio do Baixo Limpopo in June 2026, including a report that about 3,500 hectares of rice had been cultivated before the floods. This is a strong lead for locating irrigation-scheme boundaries, operations, or event records; the announcement does not establish an accessible API, export format, full record set, or independent validation labels. See [INIR](https://inir.gov.mz/).
+- **Instituto Nacional de Estatística (INE), Gaza provincial yearbook 2024:** the official yearbook includes basic-food crop area and production tables for 2020–2024. These are province-scale aggregates. They can inform broad plausibility checks, but must not be presented as validation of a particular irrigation scheme, individual fields, or 20 m pixels. See the [Gaza provincial statistical yearbook 2024](https://www.ine.gov.mz/documents/20119/334668/ANUARIO_ESTATISTICO_PROVINCIA_GAZA_2024.pdf/facd30cd-f7dc-83ac-1a35-3e92df08ea22?download=true&t=1751365783760&version=1.0).
+
+For either path, first capture the primary source bytes/metadata and its version/date, identify who collected or estimated the values, understand whether the reported footprint overlaps WaPOR or CHIRPS inputs, and review terms. A preliminary flood-impact report is an investigation target—not a ground-truth label until its method and spatial/temporal definitions can be reproduced.
+
 ## Metrics if the evidence supports them
 
 Report data availability and valid-area fraction first. If baseline analysis becomes justified, report seasonal anomaly error/agreement against the frozen baseline, sensitivity to masks and product vintages, and performance stratified by season/zone. Only a pre-registered alert threshold should produce precision/recall or false-alert rate. Independent gauge comparisons must disclose whether those stations were absent from the selected CHIRPS blend. Metrics without suitable reference data are not evidence of scientific validity.
