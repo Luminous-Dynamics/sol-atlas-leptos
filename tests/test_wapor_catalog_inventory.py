@@ -5,7 +5,6 @@ import hashlib
 import unittest
 from pathlib import Path
 from urllib.request import Request
-from urllib.parse import quote
 import argparse
 from unittest.mock import patch
 
@@ -24,7 +23,7 @@ class WaporCatalogTests(unittest.TestCase):
         validate_api_url(MAPSETS_URL)
         deeply_encoded_parent = ".."
         for _ in range(8):
-            deeply_encoded_parent = quote(deeply_encoded_parent, safe="")
+            deeply_encoded_parent = deeply_encoded_parent.replace("%", "%25").replace(".", "%2e")
         for url in (
             "http://data.apps.fao.org" + API_PREFIX + "mapsets",
             "https://attacker.example" + API_PREFIX + "mapsets",
