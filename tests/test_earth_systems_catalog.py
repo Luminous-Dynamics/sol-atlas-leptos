@@ -96,6 +96,22 @@ class EarthSystemsCatalogTests(unittest.TestCase):
                 self.assertIn("march 2025", limitations)
                 self.assertIn("correction-vintage review", limitations)
 
+    def test_malformed_enum_and_url_values_fail_closed_without_crashing(self):
+        doc = copy.deepcopy(self.catalog)
+        domain = doc["domains"][0]
+        domain["priority"] = []
+        domain["readiness"] = {}
+        source = domain["data_sources"][0]
+        source["access_status"] = []
+        source["rights_state"] = {}
+        source["url"] = "https://[malformed"
+        errors = validate_catalog(doc)
+        self.assertTrue(any(".priority is invalid" in e for e in errors))
+        self.assertTrue(any(".readiness is invalid" in e for e in errors))
+        self.assertTrue(any(".access_status is invalid" in e for e in errors))
+        self.assertTrue(any("not a recognized review state" in e for e in errors))
+        self.assertTrue(any(".url must be an HTTPS URL" in e for e in errors))
+
     def test_missing_domain_limitations_are_rejected(self):
         doc = copy.deepcopy(self.catalog)
         del doc["domains"][0]["data_sources"][0]["key_limitations"]
