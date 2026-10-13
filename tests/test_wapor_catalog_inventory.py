@@ -5,6 +5,7 @@ import hashlib
 import unittest
 from pathlib import Path
 from urllib.request import Request
+import argparse
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "earth-systems"))
@@ -30,7 +31,7 @@ class WaporCatalogTests(unittest.TestCase):
     def test_mapset_code_is_restricted_to_safe_path_characters(self):
         self.assertEqual(validate_mapset_code("L3-MBL-AETI-M"), "L3-MBL-AETI-M")
         for code in ("../mapsets", "MBL/AETI", "", "x" * 129):
-            with self.subTest(code=code), self.assertRaises(Exception):
+            with self.subTest(code=code), self.assertRaises(argparse.ArgumentTypeError):
                 validate_mapset_code(code)
 
     def test_redirect_rejects_external_url(self):
@@ -62,6 +63,20 @@ class WaporCatalogTests(unittest.TestCase):
             return doc, json.dumps(doc).encode(), url
         records, pages, _ = paginate(MAPSETS_URL, 10, fetcher=fetch)
         self.assertEqual([x["code"] for x in records], ["A", "B"])
+        self.assertEqual(len(pages), 2)
+
+    def test_paginate_resolves_relative_next_link_within_approved_path(self):
+        relative_next = "?page=2"
+        second = MAPSETS_URL + relative_next
+        docs = {
+            MAPSETS_URL: {"response": {"items": [{"code": "A"}], "links": [{"rel": "next", "href": relative_next}]}},
+            second: {"response": {"items": [{"code": "B"}], "links": []}},
+        }
+        def fetch(url, timeout):
+            doc = docs[url]
+            return doc, json.dumps(doc).encode(), url
+        records, pages, _ = paginate(MAPSETS_URL, 10, fetcher=fetch)
+        self.assertEqual([item["code"] for item in records], ["A", "B"])
         self.assertEqual(len(pages), 2)
 
     def test_paginate_rejects_pagination_loop(self):
