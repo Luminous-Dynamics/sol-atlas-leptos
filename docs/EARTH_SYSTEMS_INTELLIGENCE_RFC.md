@@ -79,11 +79,13 @@ Missing evidence stays missing. A coarse pixel remains coarse after rasterizatio
 
 Continue the South African PGE–Ni–Cu–Cr / Witwatersrand-type Au reproduction in PR #95. Reproduce the published baseline as faithfully as the actual supplement permits, then separately test generalization using district/deposit-grouped spatial holdouts. Do not call modeled undiscovered-resource tracts independent labels.
 
-### P1 — Water–food security in Southern Africa
+### P1 — Baixo Limpopo irrigation water–food productivity
 
-This is the strongest second pilot because it exercises different physics and decision context while using established data systems. Combine FAO WaPOR water/land productivity, precipitation products, land-cover context and—where spatial support is appropriate—NASA GRACE-derived regional water-storage indicators. Seek local precipitation/gauge, reservoir, borehole/well, irrigation and agricultural statistics for independent validation.
+The first water–food experiment is now scoped to the FAO WaPOR Level III Baixo Limpopo area in Mozambique, rather than a whole-basin or continent-wide claim. The dedicated [pilot protocol](pilots/BAIXO_LIMPOPO_WATER_PRODUCTIVITY.md) and [machine-readable profile](pilots/baixo-limpopo-water-productivity.json) define a source-readiness report first, followed by a seasonal baseline only if exact product layers, dates, quality masks, and common support justify it.
 
-Questions should be carefully scoped: where are indicators changing; what is the seasonal anomaly; where are data gaps; and which next local measurement distinguishes competing explanations? Do not infer individual wells, exact aquifer depletion, drinking-water safety, crop yield or causal over-abstraction from coarse remote-sensing indicators alone.
+Candidate inputs are WaPOR v3 product layers selected only after the live catalogue and product metadata have been frozen, plus CHIRPS v3 final precipitation. CHIRPS v3 supersedes v2 for this design because v2 production is scheduled to end after December 2026; its blended station inputs must be audited before any purported gauge-based independent validation. WaPOR remains product-level rights-review-required until the exact layer's metadata and reuse terms are checked.
+
+This pilot asks where source-supported indicators change and whether their seasonal co-variation merits further measurement. It does not estimate farm yield, prove causal irrigation effects, identify individual wells or authorize water allocation. GRACE is excluded from the first pass because its regional grid is not an irrigation-scheme or well-scale observation.
 
 ### P1 — Hazard observation and impact review
 
@@ -147,7 +149,7 @@ Catalog checks are structural safeguards only. They do not fetch datasets, adjud
 
 1. Land and maintain the catalog/schema/validator with CI.
 2. Continue PR #95 for mineral-specific ingestion and benchmark work; do not blend mineral labels into other domains.
-3. Prepare a data-source manifest for the Southern Africa water–food pilot, marking access/license state and source resolution for every product.
+3. Use the [Baixo Limpopo water–food pilot](pilots/BAIXO_LIMPOPO_WATER_PRODUCTIVITY.md) and machine-readable profile to freeze the exact WaPOR/CHIRPS product artifacts, metadata and rights before analysis.
 4. Build a small, reproducible baseline/coverage report before any advanced model.
 5. Test against independent ground observations and report limits; if the required local reference data cannot be obtained, keep the pilot at data-readiness status.
 6. Add Sol-Atlas presentation only after the output has a validated evidence packet.
@@ -157,6 +159,7 @@ Catalog checks are structural safeguards only. They do not fetch datasets, adjud
 - Copernicus Data Space APIs: https://documentation.dataspace.copernicus.eu/APIs.html
 - NASA GRACE/GRACE-FO groundwater and soil-moisture indicators: https://earth.gsfc.nasa.gov/hydro/data/groundwater-and-soil-moisture-conditions-grace-data-assimilation
 - FAO WaPOR data: https://www.fao.org/in-action/remote-sensing-for-water-productivity/wapor-data/
+- CHIRPS v3 rainfall data and citation: https://www.chc.ucsb.edu/data/chirps3
 - ESA WorldCover data and license: https://esa-worldcover.org/en/data-access
 - NASA FIRMS web services and API: https://firms.modaps.eosdis.nasa.gov/web-services/
 - Copernicus Emergency Management Service data: https://emergency.copernicus.eu/data/
