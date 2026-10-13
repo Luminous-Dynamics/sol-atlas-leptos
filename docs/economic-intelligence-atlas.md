@@ -8,7 +8,7 @@
 
 **First machine-readable seed:** [South Africa QLFS Q4 2025 metric registry](../data/economic_metrics/south_africa_qlfs_q4_2025_v1.json), checked by `scripts/verify_economic_metric_registry.py` in CI. It preserves the 21.4% informal-sector and 33.5% informal-employment headline values as separate measures, leaves unsupplied counts and source digest null, and records the Q3 2025 definition break explicitly.
 
-**Cross-country source candidate:** [World Bank Informal Economy Database qualification record](../data/economic_sources/world_bank_informal_economy_database_v1.json), checked by `scripts/verify_economic_source_registry.py` in CI. It records metadata, the 1990–2020 source period, distinct DGE/MIMIC and survey indicator families, a source-specific terms gate, and the unresolved mismatch between the page's count claim and its enumerated categories. No workbook observations are included.
+**Cross-country source candidate:** [World Bank Informal Economy Database qualification record](../data/economic_sources/world_bank_informal_economy_database_v1.json), checked by `scripts/verify_economic_source_registry.py` in CI. It records metadata, the 1990–2020 source period, distinct DGE/MIMIC and survey indicator families, and a source-specific terms gate. It flags a count-mapping question for workbook review: DGE and MIMIC may be two alternative estimates of one conceptual output indicator, so the page's 11-measure claim should be reconciled to the workbook variables and methods paper rather than called a confirmed mismatch. No workbook observations are included.
 
 ## 1. Product boundary
 
