@@ -300,7 +300,9 @@ fn validate_record_ref_raw(
         (None, None) => {}
         (Some(snapshot_ref), Some(selector_ref)) => {
             if !is_bounded_nonblank(snapshot_ref) {
-                issues.push(ScientificRecordRefValidationIssueV1::InvalidMycelixArtifactSnapshotRef);
+                issues.push(
+                    ScientificRecordRefValidationIssueV1::InvalidMycelixArtifactSnapshotRef,
+                );
             }
             if !is_bounded_nonblank(selector_ref) {
                 issues.push(ScientificRecordRefValidationIssueV1::InvalidMycelixSelectorRef);
@@ -648,7 +650,9 @@ mod tests {
         assert!(matches!(
             result,
             Err(ScientificRecordRefParseError::InvalidRecordRef(ref issues))
-                if issues.contains(&ScientificRecordRefValidationIssueV1::SourceSnapshotDoesNotMatch)
+                if issues.contains(
+                    &ScientificRecordRefValidationIssueV1::SourceSnapshotDoesNotMatch,
+                )
         ));
     }
 
@@ -661,7 +665,9 @@ mod tests {
         assert!(matches!(
             result,
             Err(ScientificRecordRefParseError::InvalidRecordRef(ref issues))
-                if issues.contains(&ScientificRecordRefValidationIssueV1::MycelixArtifactSelectorPairMismatch)
+                if issues.contains(
+                    &ScientificRecordRefValidationIssueV1::MycelixArtifactSelectorPairMismatch,
+                )
         ));
     }
 
@@ -822,7 +828,8 @@ mod tests {
         value["artifact_capture"] = serde_json::json!("digest_recorded");
         value["artifact_sha256"] =
             serde_json::json!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-        let snapshot = parse_snapshot_v1(&value.to_string()).expect("syntactic digest should validate");
+        let snapshot = parse_snapshot_v1(&value.to_string())
+            .expect("syntactic digest should validate");
         assert_eq!(snapshot.artifact_capture(), ArtifactCapture::DigestRecorded);
         assert_eq!(
             snapshot.artifact_sha256(),
@@ -848,7 +855,7 @@ mod tests {
         let mut value: serde_json::Value =
             serde_json::from_str(FIXTURE).expect("fixture JSON is valid");
         value["source_record_url"] =
-            serde_json::json!("http://blog.opentargets.org/open-targets-platform-26-09-has-been-released/");
+            serde_json::json!("http://example.org/release");
         let result = parse_snapshot_v1(&value.to_string());
         assert!(matches!(
             result,
