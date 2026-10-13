@@ -1704,7 +1704,7 @@ mod tests {
             r#""result":"Target body name: Mars"}"#,
         );
         assert_eq!(
-            parse_horizons_vectors_json(missing, &request(), &provenance_for(missing)),
+            parse_horizons_vectors_json(missing, &request(), &provenance_for(&missing)),
             Err(HorizonsParseError::MissingStartMarker)
         );
     }
