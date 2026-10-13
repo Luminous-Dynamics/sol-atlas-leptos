@@ -13,6 +13,8 @@ FAO's WaPOR overview lists Baixo Limpopo as a Level III area in Mozambique. Its 
 
 CHIRPS v3 offers a long historical precipitation series at 0.05-degree grid spacing, with separate preliminary and final products. The new pilot uses v3 and requires a pinned **final** product for retrospective analysis; CHIRPS v2 production is scheduled to end after December 2026. CHIRPS blends satellite-derived estimates with station observations, so station data that participated in the blend cannot automatically be treated as independent ground truth. The Climate Hazards Center also recommends comparing CHIRPS v3 with gauge-undercatch-corrected station observations; record the gauge correction method and source version in any reference-data manifest rather than mixing raw and corrected series silently. References: [CHIRPS v3](https://www.chc.ucsb.edu/data/chirps3) and [CHIRPS overview / v2 lifecycle notice](https://www.chc.ucsb.edu/data/chirps).
 
+CHC also publishes monthly Legates–Willmott correction-factor rasters at 0.5° resolution ([official directory](https://data.chc.ucsb.edu/products/CHIRPS/v3.0/diagnostics/legates-willmott_corrections/)). These are ancillary grids, not station observations or independent validation data. Do not apply them automatically to individual gauge series: first verify the published method, intended correction target, units, temporal support and spatial support, then preserve the raw and transformed artifacts separately.
+
 The pilot does **not** need GRACE in its first pass. Its broad grid and model-assimilated drought semantics do not resolve irrigation-scheme operations or individual wells. GRACE-derived indicators can be reconsidered only as a regional context layer, never as a local well measurement.
 
 ## Scientific question
