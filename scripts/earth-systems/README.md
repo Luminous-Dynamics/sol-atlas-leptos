@@ -27,3 +27,16 @@ The pilot validator uses only Python's standard library. It ensures that planned
 All validators here check metadata and state-machine invariants only. They do not fetch external sources, prove a license, validate a scientific model, establish source independence, or show that any domain is operational. The pilot profile is intentionally `design_only`: no WaPOR or CHIRPS artifacts have been acquired or processed. The current product IDs, temporal coverage, boundary, processing vintages, exact rights snapshots and independent reference records must be checked before the profile may advance.
 
 The wider architecture, cross-domain boundaries, priorities and D0–D5 gates are described in [the Earth Systems Intelligence RFC](../../docs/EARTH_SYSTEMS_INTELLIGENCE_RFC.md). The highest-priority work remains the mineral benchmark in parallel with this independently scoped water–food pilot.
+
+## Inventory CHIRPS monthly Africa files before downloading
+
+From the repository root, run:
+```sh
+python3 scripts/earth-systems/plan_chirps_monthly.py \
+  --start 2018-01 --end 2024-12 \
+  --output /tmp/chirps-monthly-plan.json
+```
+
+The planner reads the official CHIRPS v3 monthly Africa-subset GeoTIFF directory index only. It saves the index SHA-256 and retrieval timestamp, verifies that every requested month is listed, and emits candidate source URLs with null raster digests. It does not download, extract, crop or process any raster. Choose the actual range only after the matching WaPOR product's final coverage has been confirmed; the example range is not a scientific recommendation.
+
+The planner has an offline mode for testing a saved HTML listing with `--index-file path/to/index.html`. This yields `index_retrieved_at_utc: null` so an offline fixture cannot masquerade as a live source query.
