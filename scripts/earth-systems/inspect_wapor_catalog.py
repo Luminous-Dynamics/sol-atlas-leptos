@@ -209,6 +209,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if not 0 < args.timeout <= 120:
         parser.error("--timeout must be greater than 0 and no more than 120 seconds")
+    if args.output is not None and (args.output.exists() or args.output.is_symlink()):
+        print("output path already exists; refusing to overwrite", file=sys.stderr)
+        return 2
     if args.output is not None and args.snapshot_dir is not None:
         try:
             if args.output.resolve().is_relative_to(args.snapshot_dir.resolve()):
