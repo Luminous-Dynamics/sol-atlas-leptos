@@ -360,15 +360,30 @@ pub fn verify(
                 position
             ));
         }
-        if input.grid_available {
-            if row.grid_import_kwh > input_deficit + EPS
-                || row.grid_export_kwh > EPS && input_deficit > EPS
-            {
-                return Err(format!("grid flow direction mismatch at interval {}", position));
-            }
-        } else if row.grid_import_kwh > EPS || row.grid_export_kwh > EPS {
-            return Err(format!("grid flow recorded during outage at interval {}", position));
+        let expected_discharge_withdrawal = (prior_soc - configuration.minimum_soc_kwh)
+            .max(0.0)
+            .min(configuration.max_discharge_power_kw * INTERVAL_HOURS);
+        let expected_discharge_delivery = input_deficit
+            .min(expected_discharge_withdrawal * configuration.discharge_efficiency);
+        if !near(row.battery_discharge_to_load_kwh, expected_discharge_delivery) {
+            return Err(format!(
+                "battery dispatch differs from the declared deficit-first rule at interval {}",
+                position
+            ));
         }
+
+        let charge_room_input = (configuration.capacity_kwh - prior_soc).max(0.0)
+            / configuration.charge_efficiency;
+        let expected_charge_input = input_surplus
+            .min(configuration.max_charge_power_kw * INTERVAL_HOURS)
+            .min(charge_room_input);
+        if !near(row.battery_charge_input_kwh, expected_charge_input) {
+            return Err(format!(
+                "battery dispatch differs from the declared surplus-first rule at interval {}",
+                position
+            ));
+        }
+
         if row.battery_soc_kwh < configuration.minimum_soc_kwh - EPS
             || row.battery_soc_kwh > configuration.capacity_kwh + EPS
         {
@@ -384,7 +399,37 @@ pub fn verify(
             return Err(format!("battery efficiency accounting mismatch at interval {}", position));
         }
 
+        if input.grid_available {
+            let expected_grid_import =
+                (input_deficit - expected_discharge_delivery).max(0.0);
+            let expected_grid_export = (input_surplus - expected_charge_input).max(0.0);
+            if !near(row.grid_import_kwh, expected_grid_import)
+                || row.unserved_load_kwh > EPS
+                || !near(row.grid_export_kwh, expected_grid_export)
+                || row.renewable_curtailed_kwh > EPS
+            {
+                return Err(format!(
+                    "available-grid dispatch does not satisfy the declared supply/export rule at interval {}",
+                    position
+                ));
+            }
+        } else {
+            let expected_unserved = (input_deficit - expected_discharge_delivery).max(0.0);
+            let expected_curtailed = (input_surplus - expected_charge_input).max(0.0);
+            if row.grid_import_kwh > EPS
+                || row.grid_export_kwh > EPS
+                || !near(row.unserved_load_kwh, expected_unserved)
+                || !near(row.renewable_curtailed_kwh, expected_curtailed)
+            {
+                return Err(format!(
+                    "outage dispatch differs from the declared battery-first rule at interval {}",
+                    position
+                ));
+            }
+        }
+
         let load_left = row.renewable_to_load_kwh
+
             + row.battery_discharge_to_load_kwh
             + row.grid_import_kwh
             + row.unserved_load_kwh;
@@ -632,6 +677,18 @@ mod tests {
             &run
         )
         .is_err());
+    }
+
+    #[test]
+    fn verifier_rejects_unserved_load_while_grid_is_available() {
+        let mut run = simulate(BatteryConfiguration::BASELINE).unwrap();
+        // Rebalance the same interval so the energy equation still balances:
+        // a naive conservation-only verifier would accept this forged shed.
+        run.intervals[1].grid_import_kwh -= 0.25;
+        run.intervals[1].unserved_load_kwh += 0.25;
+        let final_soc = run.intervals.last().unwrap().battery_soc_kwh;
+        run.totals = aggregate_totals(&run.intervals, final_soc);
+        assert!(verify(BatteryConfiguration::BASELINE, &SCENARIO_INPUTS, &run).is_err());
     }
 
     #[test]
