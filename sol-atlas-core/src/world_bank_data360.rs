@@ -52,6 +52,7 @@ pub struct Data360PageContext {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Data360Observation {
+    pub row_index: usize,
     pub record_id: String,
     pub period: u16,
     pub reference_area: String,
@@ -189,7 +190,7 @@ pub fn parse_data360_page(
     let mut rejected_rows = Vec::new();
     let mut seen = HashSet::new();
     for (row_index, raw) in rows.iter().enumerate() {
-        match normalize_record(raw, context) {
+        match normalize_record(raw, context, row_index) {
             Ok(record) => {
                 if !seen.insert(record.record_id.clone()) {
                     rejected_rows.push(RejectedData360Row {
@@ -253,6 +254,7 @@ fn validate_context(context: &Data360PageContext) -> Result<(), Data360PageError
 fn normalize_record(
     raw: &Value,
     context: &Data360PageContext,
+    row_index: usize,
 ) -> Result<Data360Observation, Data360RowRejection> {
     let object = raw.as_object().ok_or(Data360RowRejection::NotAnObject)?;
     if let Some(key) = object.keys().find(|key| !ROW_KEYS.contains(&key.as_str())) {
@@ -344,6 +346,7 @@ fn normalize_record(
     record_id.push_str(&format!("{}:{multiplier_token}|", multiplier_token.len()));
 
     Ok(Data360Observation {
+        row_index,
         record_id,
         period,
         reference_area,
@@ -445,6 +448,11 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
             || page.rows_returned > page.query.requested_top
             || page.query.requested_skip.checked_add(page.rows_returned).is_none()
             || page.source_reported_count < page.rows_returned
+            || page.collection_snapshot_id.trim().is_empty()
+            || page.query.database_id.trim().is_empty()
+            || page.query.indicator_id.trim().is_empty()
+            || page.query.period_start == 0
+            || page.query.period_end < page.query.period_start
             || page.page_snapshot_id.trim().is_empty()
             || page.retrieved_at.trim().is_empty()
         {
@@ -493,10 +501,40 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
         if !page.rejected_rows.is_empty() {
             status = Data360SnapshotStatus::RowsRejected;
         }
+        let page_context = Data360PageContext {
+            collection_snapshot_id: page.collection_snapshot_id.clone(),
+            page_snapshot_id: page.page_snapshot_id.clone(),
+            retrieved_at: page.retrieved_at.clone(),
+            query: page.query.clone(),
+        };
+        let mut seen_row_indices = HashSet::new();
         for record in &page.records {
+            if record.row_index >= page.rows_returned || !seen_row_indices.insert(record.row_index) {
+                status = Data360SnapshotStatus::PageAccountingMismatch;
+                break;
+            }
+            match normalize_record(&record.raw_record, &page_context, record.row_index) {
+                Ok(rebuilt) if &rebuilt == record => {}
+                _ => {
+                    status = Data360SnapshotStatus::PageAccountingMismatch;
+                    break;
+                }
+            }
             if !seen.insert(record.record_id.clone()) {
                 status = Data360SnapshotStatus::DuplicateRecordKey;
             }
+        }
+        for rejected in &page.rejected_rows {
+            if rejected.row_index >= page.rows_returned
+                || !seen_row_indices.insert(rejected.row_index)
+            {
+                status = Data360SnapshotStatus::PageAccountingMismatch;
+                break;
+            }
+        }
+        if seen_row_indices.len() != page.rows_returned {
+            status = Data360SnapshotStatus::PageAccountingMismatch;
+            break;
         }
         let Some(next_skip) = expected_skip.checked_add(page.rows_returned) else {
             status = Data360SnapshotStatus::OffsetGapOrOverlap;
@@ -748,6 +786,29 @@ mod tests {
         assert_eq!(
             assess_data360_snapshot(&[page]).status,
             Data360SnapshotStatus::UnsupportedSchemaVersion
+        );
+    }
+
+    #[test]
+    fn assessment_rejects_mutated_normalized_values() {
+        let mut page = parse(vec![row("AAA", "1990", Some("1"))], 1, 0, 10, "mutated-value");
+        page.records[0].period = 1992;
+        assert_eq!(
+            assess_data360_snapshot(&[page]).status,
+            Data360SnapshotStatus::PageAccountingMismatch
+        );
+    }
+
+    #[test]
+    fn assessment_rejects_duplicate_or_missing_row_indices() {
+        let mut page = parse(
+            vec![row("AAA", "1990", Some("1")), row("BBB", "1990", Some("2"))],
+            2, 0, 10, "mutated-index",
+        );
+        page.records[1].row_index = page.records[0].row_index;
+        assert_eq!(
+            assess_data360_snapshot(&[page]).status,
+            Data360SnapshotStatus::PageAccountingMismatch
         );
     }
 
