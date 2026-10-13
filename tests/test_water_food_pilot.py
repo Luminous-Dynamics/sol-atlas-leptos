@@ -71,6 +71,15 @@ class WaterFoodPilotTests(unittest.TestCase):
         self.assertTrue(any("status is not a recognized pilot status" in e for e in errors))
         self.assertTrue(any("validation.gates.D3 is missing or invalid" in e for e in errors))
 
+    def test_latest_chirps_month_observation_is_dated_and_requires_fresh_snapshot(self):
+        source = next(s for s in self.pilot["sources"] if s["source_id"] == "CHIRPS3")
+        checks = " ".join(source["required_checks"]).lower()
+        self.assertIn("2026-10-13", checks)
+        self.assertIn("2026-08", checks)
+        self.assertIn("2026-09 not listed", checks)
+        self.assertIn("not a byte snapshot", checks)
+        self.assertIn("fresh raw index", checks)
+
     def test_chirps_primary_selection_is_monthly_africa_geotiff(self):
         source = next(s for s in self.pilot["sources"] if s["source_id"] == "CHIRPS3")
         self.assertIn("monthly Africa-subset GeoTIFF", source["selected_product"])
