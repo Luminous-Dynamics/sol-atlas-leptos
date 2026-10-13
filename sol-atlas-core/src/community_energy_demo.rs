@@ -652,7 +652,15 @@ mod tests {
     fn frozen_scenario_known_answer_preserves_the_tradeoff() {
         let baseline = simulate(BatteryConfiguration::BASELINE).unwrap();
         let resilience = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
+
+        // Keep the documented table pinned to exact synthetic-fixture outputs.
+        assert!((baseline.totals.total_grid_import_kwh - 11.52).abs() < 1e-8);
+        assert!((baseline.totals.total_unserved_load_kwh - 8.6168).abs() < 1e-8);
         assert!((baseline.totals.total_critical_unserved_kwh - 1.6168).abs() < 1e-8);
+        assert!((baseline.totals.total_noncritical_unserved_kwh - 7.0).abs() < 1e-8);
+
+        assert!((resilience.totals.total_grid_import_kwh - 4.24).abs() < 1e-8);
+        assert!((resilience.totals.total_unserved_load_kwh - 5.82).abs() < 1e-8);
         assert!(resilience.totals.total_critical_unserved_kwh.abs() < 1e-8);
         assert!((resilience.totals.total_noncritical_unserved_kwh - 5.82).abs() < 1e-8);
     }
