@@ -25,7 +25,18 @@ The first deliverable is a **source-readiness and coverage report**. A descripti
 
 ### 1. Freeze the spatial and product definitions
 
-Use the current WaPOR catalogue to record the exact Level III area/product IDs, layer names, units, processing version, available dates, nominal and effective resolution, quality mask, no-data semantics, and publication/finality status. Record the area boundary from the source product or an explicitly versioned authoritative boundary; do not trace it from an image or silently substitute the whole Limpopo Basin.
+Start with a live, reproducible metadata snapshot—not a guessed mapset code. Run the read-only [WaPOR catalogue inventory](../../scripts/earth-systems/inspect_wapor_catalog.py) against the official public API:
+
+```sh
+python3 scripts/earth-systems/inspect_wapor_catalog.py \
+  --search MBL \
+  --snapshot-dir /tmp/wapor-mbl-mapsets-snapshot \
+  --output /tmp/wapor-mbl-mapsets.json
+```
+
+Review the complete metadata records and use the exact selected `code` to inventory its raster records using `--mapset-code EXACT_MAPSET_CODE` in a second run with a new snapshot directory. Keep both the JSON summary and raw response snapshots outside the repository. The tool records per-page response hashes and timestamps but **does not download raster files**, prove that a mapset matches the required study area, or determine the layer's legal reuse status.
+
+From the reviewed live record, freeze the exact Level III area/product IDs, layer codes, units, processing version, available dates, nominal and effective resolution, quality mask, no-data semantics, time granularity and publication/finality state. Record the area boundary from the source product or an explicitly versioned authoritative boundary; do not trace it from an image or silently substitute the whole Limpopo Basin.
 
 The first candidate WaPOR layers are actual evapotranspiration and interception (AETI), its documented water-balance components when available, and a documented biomass/water-productivity output. The live catalogue—not this document—determines the final subset. Do not assume that all layers exist for the selected area or period.
 
