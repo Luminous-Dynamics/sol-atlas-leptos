@@ -6,12 +6,14 @@ import unittest
 from pathlib import Path
 from urllib.request import Request
 import argparse
+from unittest.mock import patch
+import inspect_wapor_catalog as wapor_module
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "earth-systems"))
 from inspect_wapor_catalog import (
     API_ORIGIN, API_PREFIX, MAPSETS_URL, MAX_RESPONSE_BYTES,
-    SameOriginRedirectHandler, WaporCatalogError, paginate, save_snapshots,
+    MAX_TOTAL_RESPONSE_BYTES, SameOriginRedirectHandler, WaporCatalogError, paginate, save_snapshots,
     validate_api_url, validate_mapset_code,
 )
 
@@ -139,8 +141,18 @@ class WaporCatalogTests(unittest.TestCase):
             self.assertEqual(main(["--output", str(output)]), 2)
             self.assertEqual(output.read_text(encoding="utf-8"), "preserve this evidence\\n")
 
-    def test_large_response_cap_is_declared(self):
+    def test_pagination_rejects_aggregate_response_byte_cap(self):
+        document = {"response": {"items": [], "links": []}}
+        raw = b'{"response":{"items":[],"links":[]}}'
+        def fetch(url, timeout):
+            return document, raw, url
+        with patch.object(wapor_module, "MAX_TOTAL_RESPONSE_BYTES", len(raw) - 1):
+            with self.assertRaisesRegex(WaporCatalogError, "total response byte limit"):
+                paginate(MAPSETS_URL, 10, fetcher=fetch)
+
+    def test_large_response_caps_are_declared(self):
         self.assertLessEqual(MAX_RESPONSE_BYTES, 16 * 1024 * 1024)
+        self.assertLessEqual(MAX_TOTAL_RESPONSE_BYTES, 64 * 1024 * 1024)
 
 
 
