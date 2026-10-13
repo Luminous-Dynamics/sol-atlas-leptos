@@ -268,11 +268,12 @@ def validate(source: dict[str, Any]) -> int:
     adjudication = exact_keys(source["rights_adjudication"], RIGHTS_ADJUDICATION_KEYS, "rights_adjudication")
     require(adjudication["status"] == license_review["rights_decision"],
             "rights adjudication status and source review status differ")
-    require("not a legal finding" in adjudication["not_a_legal_finding"],
+    require("does not assert that the dataset is legally prohibited" in adjudication["not_a_legal_finding"],
             "project approval gate must not be described as legal prohibition")
     require(len(adjudication["required_actions"]) == 6,
             "exact-asset and licence reconciliation actions must remain explicit")
-    require(any("Custom license catalogue entry" in action for action in adjudication["required_actions"]),
+    require(any("Custom license entry" in action and "reproduction catalogue" in action
+                for action in adjudication["required_actions"]),
             "reconciliation of catalogue-label conflict missing")
 
     derivative = exact_keys(source["derivative_candidate"], DERIVATIVE_KEYS, "derivative_candidate")
