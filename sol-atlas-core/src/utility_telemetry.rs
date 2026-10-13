@@ -303,6 +303,9 @@ pub struct ObservationProvenance {
     pub evidence_sha256: Option<String>,
     /// IDs of upstream observations used to derive this result.
     pub upstream_observation_ids: Vec<String>,
+    /// Structured algorithm parameters for a derived result (e.g. index,
+    /// threshold, grid/resampling policy). Never infer these from a version string.
+    pub processing_parameters: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -497,6 +500,7 @@ mod tests {
                 source_version: Some("fixture-v1".into()),
                 evidence_sha256: None,
                 upstream_observation_ids: Vec::new(),
+                processing_parameters: None,
             },
             quality: ObservationQuality {
                 confidence: Some(0.98),
