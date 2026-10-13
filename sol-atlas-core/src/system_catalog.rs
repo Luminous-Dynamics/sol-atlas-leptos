@@ -103,7 +103,6 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some("@10"),
         Some("/assets/globe-textures/sun.jpg")
     ),
-
     body!(
         "mercury",
         "Mercury",
@@ -200,7 +199,6 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some("@899"),
         None
     ),
-
     body!(
         "ceres",
         "Ceres",
@@ -261,7 +259,6 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some("@2136199"),
         None
     ),
-
     // Representative natural satellites. Satellite orbit distances are
     // parent-centered; they are never interpreted as heliocentric AU values.
     body!(
@@ -300,7 +297,6 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some("@402"),
         None
     ),
-
     body!(
         "io",
         "Io",
@@ -349,7 +345,6 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some("@504"),
         None
     ),
-
     body!(
         "mimas",
         "Mimas",
@@ -434,7 +429,6 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some("@608"),
         None
     ),
-
     body!(
         "miranda",
         "Miranda",
@@ -495,7 +489,6 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some("@704"),
         None
     ),
-
     body!(
         "triton",
         "Triton",
@@ -520,7 +513,6 @@ pub const SOLAR_SYSTEM_CATALOG: &[CatalogObject] = &[
         Some("@901"),
         None
     ),
-
     // Aggregate layers: never substitute a single representative object for
     // these collections. Their members and positions require separate data.
     body!(
@@ -628,7 +620,9 @@ pub fn catalog_object(id: &str) -> Option<&'static CatalogObject> {
 
 /// Iterate catalogue entries by kind, including aggregate layers when requested.
 pub fn objects_of_kind(kind: ObjectKind) -> impl Iterator<Item = &'static CatalogObject> {
-    SOLAR_SYSTEM_CATALOG.iter().filter(move |object| object.kind == kind)
+    SOLAR_SYSTEM_CATALOG
+        .iter()
+        .filter(move |object| object.kind == kind)
 }
 
 /// Time scale explicitly attached to an ephemeris epoch.
@@ -740,7 +734,12 @@ impl StateVector {
         if !self.epoch_jd.is_finite() {
             return Err("epoch_jd must be finite");
         }
-        if self.position_km.iter().chain(self.velocity_km_s.iter()).any(|v| !v.is_finite()) {
+        if self
+            .position_km
+            .iter()
+            .chain(self.velocity_km_s.iter())
+            .any(|v| !v.is_finite())
+        {
             return Err("position and velocity components must be finite");
         }
         if self.provenance.provider.trim().is_empty() {
@@ -834,12 +833,8 @@ mod tests {
 
     #[test]
     fn provenance_hashes_exact_query_and_response_bytes() {
-        let provenance = EphemerisProvenance::from_bytes(
-            "test provider",
-            "abc",
-            b"",
-            "2026-10-10T16:00:00Z",
-        );
+        let provenance =
+            EphemerisProvenance::from_bytes("test provider", "abc", b"", "2026-10-10T16:00:00Z");
         assert_eq!(
             provenance.canonical_request_sha256,
             "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
@@ -854,8 +849,7 @@ mod tests {
 
     #[test]
     fn shared_horizons_manifest_matches_catalogue_bindings() {
-        const MANIFEST: &str =
-            include_str!("../tests/fixtures/horizons/catalogue-bindings.json");
+        const MANIFEST: &str = include_str!("../tests/fixtures/horizons/catalogue-bindings.json");
         let manifest: serde_json::Value = serde_json::from_str(MANIFEST).unwrap();
         assert_eq!(manifest["schema_version"].as_u64(), Some(1));
         let rows = manifest["objects"].as_array().unwrap();
@@ -876,9 +870,19 @@ mod tests {
                 .find(|row| row["id"].as_str() == Some(object.id))
                 .unwrap_or_else(|| panic!("manifest is missing {}", object.id));
             assert_eq!(row["name"].as_str(), Some(object.name), "{}", object.id);
-            assert_eq!(row["kind"].as_str(), Some(kind_name(object.kind)), "{}", object.id);
+            assert_eq!(
+                row["kind"].as_str(),
+                Some(kind_name(object.kind)),
+                "{}",
+                object.id
+            );
             assert_eq!(row["parent_id"].as_str(), object.parent_id, "{}", object.id);
-            assert_eq!(row["mean_radius_km"].as_f64(), object.mean_radius_km, "{}", object.id);
+            assert_eq!(
+                row["mean_radius_km"].as_f64(),
+                object.mean_radius_km,
+                "{}",
+                object.id
+            );
             assert_eq!(
                 row["heliocentric_semi_major_axis_au"].as_f64(),
                 object.heliocentric_semi_major_axis_au,
@@ -911,17 +915,25 @@ mod tests {
             );
         }
 
-        assert!(manifest["special_centers"].as_array().unwrap().iter().any(|center| {
-            center["id"].as_str() == Some("ssb")
-                && center["provider_center"].as_str() == Some("@0")
-                && center["name"].as_str() == Some("Solar System Barycenter")
-        }));
+        assert!(
+            manifest["special_centers"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|center| {
+                    center["id"].as_str() == Some("ssb")
+                        && center["provider_center"].as_str() == Some("@0")
+                        && center["name"].as_str() == Some("Solar System Barycenter")
+                })
+        );
     }
 
     #[test]
     fn catalogue_contains_all_eight_planets() {
         assert_eq!(objects_of_kind(ObjectKind::Planet).count(), 8);
-        for id in ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune"] {
+        for id in [
+            "mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune",
+        ] {
             assert_eq!(catalog_object(id).unwrap().kind, ObjectKind::Planet);
         }
     }
@@ -988,7 +1000,11 @@ mod tests {
 
         let mut ids = HashSet::new();
         for object in SOLAR_SYSTEM_CATALOG {
-            assert!(ids.insert(object.id), "duplicate catalogue ID: {}", object.id);
+            assert!(
+                ids.insert(object.id),
+                "duplicate catalogue ID: {}",
+                object.id
+            );
 
             match object.kind {
                 ObjectKind::Star => {
@@ -1007,7 +1023,11 @@ mod tests {
                         "{}",
                         object.id
                     );
-                    assert!(object.parent_orbit_semi_major_axis_km.is_none(), "{}", object.id);
+                    assert!(
+                        object.parent_orbit_semi_major_axis_km.is_none(),
+                        "{}",
+                        object.id
+                    );
                 }
                 ObjectKind::NaturalSatellite => {
                     assert!(object.parent_id.is_some(), "{}", object.id);
@@ -1019,13 +1039,25 @@ mod tests {
                         "{}",
                         object.id
                     );
-                    assert!(object.heliocentric_semi_major_axis_au.is_none(), "{}", object.id);
+                    assert!(
+                        object.heliocentric_semi_major_axis_au.is_none(),
+                        "{}",
+                        object.id
+                    );
                 }
                 ObjectKind::SmallBodyPopulation | ObjectKind::SpacecraftPopulation => {
                     assert!(object.mean_radius_km.is_none(), "{}", object.id);
                     assert!(object.ephemeris_target.is_none(), "{}", object.id);
-                    assert!(object.heliocentric_semi_major_axis_au.is_none(), "{}", object.id);
-                    assert!(object.parent_orbit_semi_major_axis_km.is_none(), "{}", object.id);
+                    assert!(
+                        object.heliocentric_semi_major_axis_au.is_none(),
+                        "{}",
+                        object.id
+                    );
+                    assert!(
+                        object.parent_orbit_semi_major_axis_km.is_none(),
+                        "{}",
+                        object.id
+                    );
                 }
             }
         }
@@ -1064,10 +1096,22 @@ mod tests {
                 }
             }
         }
-        assert_eq!(catalog_object("earth").unwrap().ephemeris_target, Some("399"));
-        assert_eq!(catalog_object("earth").unwrap().ephemeris_center, Some("@399"));
-        assert_eq!(catalog_object("ceres").unwrap().ephemeris_target, Some("1;"));
-        assert_eq!(catalog_object("ceres").unwrap().ephemeris_center, Some("@2000001"));
+        assert_eq!(
+            catalog_object("earth").unwrap().ephemeris_target,
+            Some("399")
+        );
+        assert_eq!(
+            catalog_object("earth").unwrap().ephemeris_center,
+            Some("@399")
+        );
+        assert_eq!(
+            catalog_object("ceres").unwrap().ephemeris_target,
+            Some("1;")
+        );
+        assert_eq!(
+            catalog_object("ceres").unwrap().ephemeris_center,
+            Some("@2000001")
+        );
     }
 
     #[test]
@@ -1075,8 +1119,16 @@ mod tests {
         for object in objects_of_kind(ObjectKind::SmallBodyPopulation)
             .chain(objects_of_kind(ObjectKind::SpacecraftPopulation))
         {
-            assert!(object.ephemeris_target.is_none(), "{} is an aggregate layer", object.id);
-            assert!(object.mean_radius_km.is_none(), "{} is not one physical body", object.id);
+            assert!(
+                object.ephemeris_target.is_none(),
+                "{} is an aggregate layer",
+                object.id
+            );
+            assert!(
+                object.mean_radius_km.is_none(),
+                "{} is not one physical body",
+                object.id
+            );
         }
     }
 
@@ -1127,7 +1179,10 @@ mod tests {
 
         let mut invalid = valid_sample();
         invalid.position_km[1] = f64::NAN;
-        assert_eq!(invalid.validate(), Err("position and velocity components must be finite"));
+        assert_eq!(
+            invalid.validate(),
+            Err("position and velocity components must be finite")
+        );
 
         let mut invalid = valid_sample();
         invalid.provenance.raw_response_sha256 = "not-a-hash".into();
@@ -1138,7 +1193,10 @@ mod tests {
 
         let mut invalid = valid_sample();
         invalid.center_id.clear();
-        assert_eq!(invalid.validate(), Err("target_id and center_id are required"));
+        assert_eq!(
+            invalid.validate(),
+            Err("target_id and center_id are required")
+        );
 
         let mut invalid = valid_sample();
         invalid.provenance.retrieved_at_utc = "yesterday".into();
