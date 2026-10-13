@@ -261,6 +261,16 @@ def cleanup_snapshot_after_output_failure(snapshot_dir: Path | None, snapshot_fi
         return f"; also failed to remove newly created snapshot directory: {exc}"
     return "; removed newly created snapshot directory"
 
+def remove_created_file(path: Path) -> str:
+    """Remove an output created by this invocation after an incomplete write."""
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        return ""
+    except OSError as exc:
+        return f"; also could not remove partial artifact {path.name}: {exc}"
+    return f"; removed partial artifact {path.name}"
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -338,18 +348,30 @@ def main(argv: list[str] | None = None) -> int:
     }
     rendered = json.dumps(output_document, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
     if args.output is None:
-        sys.stdout.write(rendered)
+        try:
+            written = sys.stdout.write(rendered)
+            if written != len(rendered):
+                raise OSError(f"short write: emitted {written} of {len(rendered)} characters")
+        except OSError as exc:
+            cleanup_note = cleanup_snapshot_after_output_failure(args.snapshot_dir, snapshot_files)
+            print(f"cannot write inventory JSON to stdout: {exc}" + cleanup_note, file=sys.stderr)
+            return 2
     else:
+        output_created = False
         try:
             with args.output.open("x", encoding="utf-8") as handle:
-                handle.write(rendered)
+                output_created = True
+                written = handle.write(rendered)
+                if written != len(rendered):
+                    raise OSError(f"short write: emitted {written} of {len(rendered)} characters")
         except FileExistsError:
             cleanup_note = cleanup_snapshot_after_output_failure(args.snapshot_dir, snapshot_files)
             print("output path already exists; refusing to overwrite" + cleanup_note, file=sys.stderr)
             return 2
         except OSError as exc:
-            cleanup_note = cleanup_snapshot_after_output_failure(args.snapshot_dir, snapshot_files)
-            print(f"cannot write inventory JSON: {exc}" + cleanup_note, file=sys.stderr)
+            output_cleanup = remove_created_file(args.output) if output_created else ""
+            snapshot_cleanup = cleanup_snapshot_after_output_failure(args.snapshot_dir, snapshot_files)
+            print(f"cannot write inventory JSON: {exc}{output_cleanup}{snapshot_cleanup}", file=sys.stderr)
             return 2
     print(
         f"Inventory only: {len(selected)} of {len(mapsets)} mapsets; "
