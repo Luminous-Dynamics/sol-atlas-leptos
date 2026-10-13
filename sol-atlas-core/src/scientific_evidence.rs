@@ -800,7 +800,7 @@ mod tests {
     }
 
     #[test]
-    fn recorded_digest_requires_valid_sha256_syntax() {
+    fn dataset_artifact_digest_requires_valid_sha256_syntax() {
         let mut value: serde_json::Value =
             serde_json::from_str(FIXTURE).expect("fixture JSON is valid");
         value["source_record_kind"] = serde_json::json!("dataset_artifact");
