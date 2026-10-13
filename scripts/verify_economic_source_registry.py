@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Verify the World Bank informal-economy source qualification record v2.
+"""Verify the World Bank informal-economy source qualification record v3.
 
-This contract audit validates source metadata and project approval gates only.
-It is not a workbook parser, source-authenticity check, or legal opinion.
+This checks source metadata and project approval gates only. It is not a workbook
+parser, source-authenticity check, empirical replication, or legal opinion.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_PATH = ROOT / "data" / "economic_sources" / "world_bank_informal_economy_database_v2.json"
+SOURCE_PATH = ROOT / "data" / "economic_sources" / "world_bank_informal_economy_database_v3.json"
 
 TOP_KEYS = {
     "schema_version", "registry_id", "registry_version", "supersedes_registry_version",
@@ -22,12 +22,15 @@ TOP_KEYS = {
     "max_economies_claimed", "measure_count_claimed_by_source_page",
     "source_page_update_frequency", "source_page_claims", "primary_methodology_citation",
     "official_asset", "reproducibility_package_evidence", "license_review",
-    "provenance", "qualification_gates", "interpretation_ceiling",
+    "provenance", "qualification_gates", "interpretation_ceiling", "cross_catalog_evidence",
 }
 CLAIMS_KEYS = {"output_methods", "employment_indicators", "perception_sources",
                "count_reconciliation", "concept_inventory"}
-CONCEPT_KEYS = {"output_concepts", "output_estimators", "employment_measures",
-                "perception_measures", "derived_concept_count", "reconciliation_status"}
+CONCEPT_KEYS = {
+    "source_page_claimed_measure_count", "output_series_listed", "employment_indicators_listed",
+    "perception_indicators_listed", "series_count_if_all_listed_as_separate",
+    "conceptual_count_if_output_estimators_grouped", "count_reconciliation_status", "note",
+}
 CITATION_KEYS = {"authors", "year", "title", "publication", "url"}
 ASSET_KEYS = {"label", "format", "url", "discovered_on_official_page",
               "downloaded_in_this_review", "source_page_update_frequency", "note"}
@@ -47,6 +50,10 @@ PROVENANCE_KEYS = {
     "source_snapshot_digest", "digest_status", "raw_observations_embedded",
     "observed_column_inventory", "last_reviewed_at",
 }
+CROSS_CATALOG_KEYS = {"catalog_url", "reviewed_on", "catalog_name", "variables", "interpretation_limit"}
+VARIABLE_KEYS = {"id", "label"}
+REPRO_CROSS_CATALOG_KEYS = {"catalog_url", "reviewed_on", "catalog_name", "reported_sheets",
+                            "reported_variables", "source_context"}
 EXPECTED_GATES = {
     "confirm exact workbook edition and digest",
     "capture workbook sheet and variable inventory without altering the original",
@@ -90,8 +97,8 @@ def read_source() -> dict[str, Any]:
 def validate(source: dict[str, Any]) -> int:
     require(source["schema_version"] == 1, "unsupported record schema")
     require(source["registry_id"] == "sol-atlas-economic-source-registry", "registry ID drift")
-    require(source["registry_version"] == "world-bank-informal-economy-database/v2", "version drift")
-    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v1",
+    require(source["registry_version"] == "world-bank-informal-economy-database/v3", "version drift")
+    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v2",
             "superseded record reference drift")
     require(source["record_kind"] == "source_qualification_candidate", "record kind drift")
     require(source["status"] == "metadata_only_not_approved_for_data_ingestion_or_redistribution",
@@ -114,21 +121,29 @@ def validate(source: dict[str, Any]) -> int:
     claims = exact_keys(source["source_page_claims"], CLAIMS_KEYS, "source_page_claims")
     require(set(claims["output_methods"]) == {
         "dynamic_general_equilibrium_model", "multiple_indicators_multiple_causes_model"
-    }, "both output estimators must remain explicit")
+    }, "both output methods must remain explicit")
     require(len(claims["employment_indicators"]) == 4, "employment inventory drift")
     require(len(claims["perception_sources"]) == 3, "perception source inventory drift")
     inventory = exact_keys(claims["concept_inventory"], CONCEPT_KEYS, "concept_inventory")
-    require(inventory["output_concepts"] == 1, "DGE/MIMIC should be grouped as estimators of one output concept")
-    require(set(inventory["output_estimators"]) == set(claims["output_methods"]),
-            "output estimator list must match source taxonomy")
-    require(inventory["employment_measures"] == 4 and inventory["perception_measures"] == 6,
-            "employment/perception concept counts drift")
-    require(inventory["derived_concept_count"] == (
-        inventory["output_concepts"] + inventory["employment_measures"] + inventory["perception_measures"]
-    ) == 11, "concept-level count does not reconcile to 11")
-    require(inventory["reconciliation_status"] == "concept_level_reconciled_workbook_inventory_unverified",
-            "do not claim actual workbook inventory was audited")
-    require("actual DGE_Raw.xlsx worksheets" in claims["count_reconciliation"],
+    require(inventory["source_page_claimed_measure_count"] == 11, "claimed measure count drift")
+    require(inventory["output_series_listed"] == len(claims["output_methods"]) == 2,
+            "two output series/methods must stay explicit")
+    require(inventory["employment_indicators_listed"] == len(claims["employment_indicators"]) == 4,
+            "employment series count drift")
+    require(inventory["perception_indicators_listed"] == 6,
+            "one WEF, four enterprise-survey and one WVS indicators must remain documented")
+    require(inventory["series_count_if_all_listed_as_separate"] ==
+            inventory["output_series_listed"] + inventory["employment_indicators_listed"] +
+            inventory["perception_indicators_listed"] == 12,
+            "literal listed-series count must stay 12")
+    require(inventory["conceptual_count_if_output_estimators_grouped"] == 11,
+            "optional conceptual grouping arithmetic drift")
+    require(inventory["count_reconciliation_status"] == "unresolved_until_exact_workbook_inventory",
+            "do not prematurely resolve source page's 11-versus-12 inventory question")
+    require("exact official workbook edition" in inventory["note"] and
+            "do not select an interpretation" in inventory["note"],
+            "uncertainty about source's intended count must remain explicit")
+    require("actual official workbook edition" in claims["count_reconciliation"],
             "workbook-level qualification requirement missing")
 
     citation = exact_keys(source["primary_methodology_citation"], CITATION_KEYS, "primary_methodology_citation")
@@ -159,12 +174,32 @@ def validate(source: dict[str, Any]) -> int:
     require("not a complete rights analysis" in package["interpretation"],
             "availability must remain distinct from permission")
 
+    cross = source["cross_catalog_evidence"]
+    require(isinstance(cross, list) and len(cross) == 2, "expected two secondary catalog records")
+    qog = exact_keys(cross[0], CROSS_CATALOG_KEYS, "cross_catalog_evidence[0]")
+    require(qog["catalog_url"] == "https://datafinder.qog.gu.se/dataset/ied", "QoG catalog URL drift")
+    require([x["id"] for x in qog["variables"]] == ["ied_dge", "ied_mimic"],
+            "separate DGE/MIMIC downstream variables not recorded")
+    for index, variable in enumerate(qog["variables"]):
+        exact_keys(variable, VARIABLE_KEYS, f"QoG variable[{index}]")
+    require("does not establish the exact sheet/column inventory" in qog["interpretation_limit"],
+            "secondary catalog overclaimed as official workbook schema")
+    repro = exact_keys(cross[1], REPRO_CROSS_CATALOG_KEYS, "cross_catalog_evidence[1]")
+    require(repro["catalog_url"] == "https://reproducibility.worldbank.org/catalog/330",
+            "secondary reproduction catalog URL drift")
+    require(set(repro["reported_sheets"]) == {"DGE_p", "MIMIC_p"},
+            "processed derivative sheet names drift")
+    require(set(repro["reported_variables"]) == {"dge_paverage_1993_2019", "mimic_paverage_1993_2019"},
+            "processed derivative variable names drift")
+    require("must not be assumed to match" in repro["source_context"],
+            "derivative must remain distinct from the current official workbook")
+
     license_review = exact_keys(source["license_review"], LICENSE_KEYS, "license_review")
     require(license_review["status"] == "source_specific_review_required", "terms gate weakened")
     require(license_review["rights_decision"] == "not_determined", "rights conclusion overstated")
     require(license_review["official_page_download_present"] is True, "official download evidence missing")
     require(license_review["publicly_available_in_reproducibility_package"] is True,
-            "reproducibility catalog availability evidence missing")
+            "public availability evidence missing")
     require(license_review["dataset_license_label"] == "Custom license", "license label drift")
     require(license_review["redistribution_approved"] is False, "project has not approved redistribution")
     require(license_review["commercial_use_approved"] is False, "project has not approved commercial use")
@@ -199,9 +234,10 @@ def main() -> int:
     except ContractError as error:
         print(f"FAIL: {error}", file=sys.stderr)
         return 1
-    print("PASS: World Bank source v2 preserves source, period, methods and concept-level count.")
-    print("PASS: public availability is separated from unresolved license rights and project approval.")
-    print("SCOPE: metadata contract only; workbook values and exact sheet/column inventory remain unverified.")
+    print("PASS: World Bank source v3 preserves official metadata and cross-catalog evidence.")
+    print("PASS: the 11-versus-12 measure count remains unresolved pending exact workbook inspection.")
+    print("PASS: availability evidence stays separate from project approval of redistribution/commercial use.")
+    print("SCOPE: metadata contract only; no workbook values/digest or exact official sheet inventory.")
     print(f"OPEN: {count} source qualification gates; ingestion and redistribution remain unapproved.")
     return 0
 
