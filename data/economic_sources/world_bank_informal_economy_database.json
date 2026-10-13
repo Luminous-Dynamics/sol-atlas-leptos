@@ -276,7 +276,7 @@
     "source_dataset_row_status": "publicly_available_and_included_per_dataset_row",
     "source_dataset_filename": "informal-economy-database.xlsx",
     "source_dataset_url": "https://www.worldbank.org/en/research/brief/informal-economy-database",
-    "resolution": "Do not use the parent reproduction ZIP as a download route. Resolve the original dataset through the official dataset page/direct Excel link and verify bytes independently. Preserve the metadata conflict until exact asset is captured."
+    "resolution": "Preserve the scope ambiguity in catalogue metadata until the exact asset is captured. Do not use the parent reproduction ZIP as a download route. Resolve the original dataset through the official dataset page/direct Excel link and verify bytes independently."
   },
   "asset_acquisition": {
     "official_page_url": "https://www.worldbank.org/en/brief/2024/01/09/informal-economy-database",
