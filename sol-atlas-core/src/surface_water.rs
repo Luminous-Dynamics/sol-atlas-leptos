@@ -7,6 +7,11 @@
 //! must supply surface reflectance on a declared common grid and apply the
 //! product-specific cloud/shadow/invalid-pixel QA masks before estimation.
 
+use crate::utility_telemetry::{
+    Coordinates, DataTransport, MetricKind, ObservationProvenance, ObservationQuality,
+    ObservationSource, ObservationValidationError, ObservationValue, QualityFlag, SubjectKind,
+    UtilityDomain, UtilityObservation,
+};
 use std::fmt;
 
 const DENOMINATOR_EPSILON: f64 = 1.0e-9;
@@ -62,6 +67,23 @@ impl SurfaceWaterConfig {
     }
 }
 
+/// Metadata required to turn an area estimate into a provenance-bearing
+/// civic-utility observation. The caller must supply the effective observation
+/// time and upstream scene/product identifiers; they are never guessed here.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SurfaceWaterObservationContext {
+    pub observation_id: String,
+    pub subject_id: String,
+    pub subject_kind: SubjectKind,
+    pub observed_at_unix_ms: u64,
+    pub received_at_unix_ms: u64,
+    pub source_id: String,
+    pub processing_version: String,
+    pub evidence_sha256: Option<String>,
+    pub upstream_observation_ids: Vec<String>,
+    pub location: Option<Coordinates>,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct SurfaceWaterEstimate {
     pub index: WaterIndex,
@@ -79,12 +101,16 @@ pub struct SurfaceWaterEstimate {
     pub valid_area_fraction: f64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SurfaceWaterError {
     InvalidThreshold,
     InvalidCoverageThreshold,
     InvalidPixelArea { index: usize },
     AreaOverflow,
+    InsufficientValidCoverage,
+    MissingUpstreamLineage,
+    MissingProcessingVersion,
+    InvalidObservation(Vec<ObservationValidationError>),
 }
 
 impl fmt::Display for SurfaceWaterError {
@@ -164,6 +190,59 @@ pub fn estimate_surface_water(
         water_area_m2,
         valid_area_fraction,
     })
+}
+
+impl SurfaceWaterEstimate {
+    /// Convert a qualified area estimate into the existing civic telemetry
+    /// contract. This emits a derived observation, never an in-situ measurement.
+    /// The output is validated before it is returned.
+    pub fn to_utility_observation(
+        &self,
+        context: SurfaceWaterObservationContext,
+    ) -> Result<UtilityObservation, SurfaceWaterError> {
+        let water_area_m2 = self
+            .water_area_m2
+            .ok_or(SurfaceWaterError::InsufficientValidCoverage)?;
+        if context.upstream_observation_ids.is_empty() {
+            return Err(SurfaceWaterError::MissingUpstreamLineage);
+        }
+        if context.processing_version.trim().is_empty() {
+            return Err(SurfaceWaterError::MissingProcessingVersion);
+        }
+
+        let observation = UtilityObservation {
+            schema_version: 1,
+            observation_id: context.observation_id,
+            subject_id: context.subject_id,
+            subject_kind: context.subject_kind,
+            domain: UtilityDomain::Water,
+            metric: MetricKind::SurfaceWaterExtent,
+            value: ObservationValue::Numeric {
+                value: water_area_m2,
+                unit: crate::utility_telemetry::MeasurementUnit::SquareMetre,
+            },
+            observed_at_unix_ms: context.observed_at_unix_ms,
+            received_at_unix_ms: context.received_at_unix_ms,
+            source: ObservationSource::DerivedEstimate,
+            transport: DataTransport::BatchImport,
+            provenance: ObservationProvenance {
+                source_id: context.source_id,
+                source_version: Some(context.processing_version),
+                evidence_sha256: context.evidence_sha256,
+                upstream_observation_ids: context.upstream_observation_ids,
+            },
+            quality: ObservationQuality {
+                confidence: None,
+                uncertainty: None,
+                flags: vec![QualityFlag::ModelDerived],
+            },
+            location: context.location,
+        };
+        observation
+            .validate()
+            .map_err(SurfaceWaterError::InvalidObservation)?;
+        Ok(observation)
+    }
 }
 
 fn calculate_index(pixel: ReflectancePixel, index: WaterIndex) -> Option<f64> {
@@ -272,6 +351,60 @@ mod tests {
         assert_eq!(
             estimate_surface_water(&pixels, config(WaterIndex::Ndwi)),
             Err(SurfaceWaterError::InvalidPixelArea { index: 0 })
+        );
+    }
+
+    fn observation_context() -> SurfaceWaterObservationContext {
+        SurfaceWaterObservationContext {
+            observation_id: "derived-water-area-1".into(),
+            subject_id: "vaal-dam-study-area".into(),
+            subject_kind: SubjectKind::Reservoir,
+            observed_at_unix_ms: 1_000,
+            received_at_unix_ms: 1_100,
+            source_id: "sol-atlas-water-index".into(),
+            processing_version: "surface-water-index-v1".into(),
+            evidence_sha256: None,
+            upstream_observation_ids: vec!["sentinel-scene-001".into()],
+            location: Some(Coordinates {
+                latitude_deg: -26.9,
+                longitude_deg: 28.1,
+            }),
+        }
+    }
+
+    #[test]
+    fn qualified_area_becomes_validated_derived_telemetry() {
+        let pixels = [pixel(0.3, 0.1, Some(0.05), 100.0, PixelQuality::Clear)];
+        let estimate = estimate_surface_water(&pixels, config(WaterIndex::Ndwi)).unwrap();
+        let observation = estimate
+            .to_utility_observation(observation_context())
+            .unwrap();
+        assert_eq!(observation.validate(), Ok(()));
+        assert_eq!(observation.metric, MetricKind::SurfaceWaterExtent);
+        assert_eq!(observation.source, ObservationSource::DerivedEstimate);
+        assert_eq!(
+            observation.provenance.upstream_observation_ids,
+            vec!["sentinel-scene-001"]
+        );
+        assert_eq!(observation.observed_at_unix_ms, 1_000);
+    }
+
+    #[test]
+    fn low_coverage_and_missing_lineage_cannot_become_observations() {
+        let pixels = [pixel(0.3, 0.1, None, 100.0, PixelQuality::Clear)];
+        let estimate = estimate_surface_water(&pixels, config(WaterIndex::Mndwi)).unwrap();
+        assert_eq!(
+            estimate.to_utility_observation(observation_context()),
+            Err(SurfaceWaterError::InsufficientValidCoverage)
+        );
+
+        let pixels = [pixel(0.3, 0.1, Some(0.05), 100.0, PixelQuality::Clear)];
+        let estimate = estimate_surface_water(&pixels, config(WaterIndex::Ndwi)).unwrap();
+        let mut context = observation_context();
+        context.upstream_observation_ids.clear();
+        assert_eq!(
+            estimate.to_utility_observation(context),
+            Err(SurfaceWaterError::MissingUpstreamLineage)
         );
     }
 
