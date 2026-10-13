@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_PATH = ROOT / "data" / "economic_sources" / "world_bank_informal_economy_database_v4.json"
+SOURCE_PATH = ROOT / "data" / "economic_sources" / "world_bank_informal_economy_database_v5.json"
 
 TOP_KEYS = {
     "schema_version", "registry_id", "registry_version", "supersedes_registry_version",
@@ -22,7 +22,7 @@ TOP_KEYS = {
     "max_economies_claimed", "measure_count_claimed_by_source_page",
     "source_page_update_frequency", "source_page_claims", "primary_methodology_citation",
     "official_asset", "reproducibility_package_evidence", "license_review",
-    "provenance", "qualification_gates", "interpretation_ceiling", "cross_catalog_evidence", "derivative_candidate",
+    "provenance", "qualification_gates", "interpretation_ceiling", "cross_catalog_evidence", "derivative_candidate", "license_evidence_matrix", "rights_adjudication",
 }
 CLAIMS_KEYS = {"output_methods", "employment_indicators", "perception_sources",
                "count_reconciliation", "concept_inventory"}
@@ -45,6 +45,13 @@ LICENSE_KEYS = {
     "specific_evidence_url", "specific_evidence_label", "specific_evidence_url_points_to",
     "interpretation_limit", "required_next_action",
 }
+LICENSE_EVIDENCE_KEYS = {
+    "evidence_id", "source_url", "source_title", "source_record_date", "named_dataset",
+    "named_asset", "data_url", "access_policy_label", "license_label", "license_url",
+    "evidence_strength", "caveat",
+}
+RIGHTS_ADJUDICATION_KEYS = {"status", "project_status", "not_a_legal_finding",
+                            "reconciliation_note", "required_actions"}
 DERIVATIVE_KEYS = {
     "candidate_id", "status", "catalog_url", "catalog_created_date", "catalog_last_modified_date",
     "source_access_date", "dataset_names_in_package", "source_sheets_reported",
@@ -74,6 +81,8 @@ EXPECTED_GATES = {
     "do not infer illegality or adjudicated illicit output from informality estimates",
     "obtain and hash the specific reproducibility-package derivative before considering its values for import",
     "do not transfer the derivative's CC BY 4.0 metadata to the current official Excel workbook or to the separately author-provided companion file",
+    "reconcile CC BY 4.0 evidence for informal-economy-database.xlsx with the Custom license catalogue entry",
+    "distinguish parent-package embargo from the access policy for the separately linked official Excel dataset",
 }
 
 
@@ -107,8 +116,8 @@ def read_source() -> dict[str, Any]:
 def validate(source: dict[str, Any]) -> int:
     require(source["schema_version"] == 1, "unsupported record schema")
     require(source["registry_id"] == "sol-atlas-economic-source-registry", "registry ID drift")
-    require(source["registry_version"] == "world-bank-informal-economy-database/v4", "version drift")
-    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v3",
+    require(source["registry_version"] == "world-bank-informal-economy-database/v5", "version drift")
+    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v4",
             "superseded record reference drift")
     require(source["record_kind"] == "source_qualification_candidate", "record kind drift")
     require(source["status"] == "metadata_only_not_approved_for_data_ingestion_or_redistribution",
@@ -206,19 +215,65 @@ def validate(source: dict[str, Any]) -> int:
 
     license_review = exact_keys(source["license_review"], LICENSE_KEYS, "license_review")
     require(license_review["status"] == "source_specific_review_required", "terms gate weakened")
-    require(license_review["rights_decision"] == "not_determined", "rights conclusion overstated")
+    require(license_review["rights_decision"] ==
+            "conflicting_secondary_catalog_labels_exact_workbook_rights_not_yet_adjudicated",
+            "catalog conflict must not be resolved by assumption")
     require(license_review["official_page_download_present"] is True, "official download evidence missing")
     require(license_review["publicly_available_in_reproducibility_package"] is True,
             "public availability evidence missing")
-    require(license_review["dataset_license_label"] == "Custom license", "license label drift")
+    require(license_review["dataset_license_label"] ==
+            "conflicting_metadata_cc_by_4_0_and_custom_license", "catalog-label conflict was lost")
     require(license_review["redistribution_approved"] is False, "project has not approved redistribution")
     require(license_review["commercial_use_approved"] is False, "project has not approved commercial use")
-    require(license_review["approval_status"] == "not_approved_pending_terms_check",
-            "project approval state drift")
-    require(license_review["specific_evidence_url"] == package["catalog_url"], "license evidence URL mismatch")
-    require(license_review["specific_evidence_label"] == "Custom license", "specific evidence label drift")
+    require(license_review["approval_status"] ==
+            "not_approved_pending_exact_asset_and_terms_reconciliation", "project approval state drift")
+    require(license_review["specific_evidence_url"] == "https://reproducibility.worldbank.org/catalog/265",
+            "explicit CC BY 4.0 evidence URL missing")
+    require("CC BY 4.0" in license_review["specific_evidence_label"] and
+            "Custom license" in license_review["specific_evidence_label"],
+            "both conflicting catalogue labels must be recorded")
+    require(license_review["specific_evidence_url_points_to"] ==
+            "https://datacatalog.worldbank.org/public-licenses#cc-by", "CC BY license URL drift")
     require("not a legal finding" in license_review["interpretation_limit"],
             "do not misstate project approval status as legal prohibition")
+
+    evidence = source["license_evidence_matrix"]
+    require(isinstance(evidence, list) and len(evidence) == 3, "expected three separate license evidence records")
+    by_evidence = {}
+    for index, raw in enumerate(evidence):
+        item = exact_keys(raw, LICENSE_EVIDENCE_KEYS, f"license_evidence_matrix[{index}]")
+        require(item["evidence_id"] not in by_evidence, "duplicate license evidence ID")
+        by_evidence[item["evidence_id"]] = item
+        require(item["data_url"] == "https://www.worldbank.org/en/research/brief/informal-economy-database",
+                "catalogue entry should resolve to official source page")
+    ccby = by_evidence["world_bank_catalog_jobless_development_265"]
+    require(ccby["named_asset"] == "informal-economy-database.xlsx", "specific Excel asset filename drift")
+    require(ccby["license_label"] == "Creative Commons Attribution 4.0 International License",
+            "explicit CC BY evidence was weakened")
+    require(ccby["license_url"] == "https://datacatalog.worldbank.org/public-licenses#cc-by",
+            "explicit CC BY terms link drift")
+    require("parent reproduction package also states" in ccby["caveat"],
+            "parent package embargo caveat missing")
+    custom = by_evidence["world_bank_catalog_sme_training_583"]
+    require(custom["named_asset"] == "DGE_Raw.xlsx" and custom["license_label"] == "Custom license",
+            "Custom license evidence was lost")
+    require(custom["license_url"] == "https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets",
+            "Custom license evidence URL drift")
+    derivative_evidence = by_evidence["world_bank_catalog_informalizing_jobs_330"]
+    require(derivative_evidence["named_asset"] == "informal-economy-database-with-fixes.dta",
+            "processed derivative evidence was confused with raw workbook")
+    require(derivative_evidence["evidence_strength"] == "processed_derivative_license_record",
+            "derivative licence evidence scope drift")
+
+    adjudication = exact_keys(source["rights_adjudication"], RIGHTS_ADJUDICATION_KEYS, "rights_adjudication")
+    require(adjudication["status"] == license_review["rights_decision"],
+            "rights adjudication status and source review status differ")
+    require("not a legal finding" in adjudication["not_a_legal_finding"],
+            "project approval gate must not be described as legal prohibition")
+    require(len(adjudication["required_actions"]) == 6,
+            "exact-asset and licence reconciliation actions must remain explicit")
+    require(any("Custom license catalogue entry" in action for action in adjudication["required_actions"]),
+            "reconciliation of catalogue-label conflict missing")
 
     derivative = exact_keys(source["derivative_candidate"], DERIVATIVE_KEYS, "derivative_candidate")
     require(derivative["candidate_id"] == "world-bank-informal-economy-database-with-fixes",
@@ -248,8 +303,8 @@ def validate(source: dict[str, Any]) -> int:
     require(derivative["license_label_reported"] ==
             "Creative Commons Attribution 4.0 International License (CC BY 4.0)",
             "derivative-specific reported license drift")
-    require(derivative["license_url"] == license_review["specific_evidence_url_points_to"],
-            "derivative license URL drift")
+    require(derivative["license_url"] == "https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets",
+            "derivative-specific license URL drift")
     require(derivative["raw_or_derivative"] == "processed derivative; not the current official Excel workbook",
             "derivative/source distinction weakened")
     require(derivative["downloaded_in_this_review"] is False and
@@ -290,7 +345,8 @@ def main() -> int:
         return 1
     print("PASS: World Bank source v3 preserves official metadata and cross-catalog evidence.")
     print("PASS: the 11-versus-12 measure count remains unresolved pending exact workbook inspection.")
-    print("PASS: the CC BY 4.0 derivative candidate remains separate from the official Excel workbook rights gate.")
+    print("PASS: CC BY 4.0 and Custom license catalogue evidence remain distinct and unresolved for the exact workbook.")
+    print("PASS: the processed derivative's CC BY 4.0 metadata remains separate from the official workbook rights gate.")
     print("PASS: availability evidence stays separate from project approval of redistribution/commercial use.")
     print("SCOPE: metadata contract only; no workbook values/digest or exact official sheet inventory.")
     print(f"OPEN: {count} source qualification gates; ingestion and redistribution remain unapproved.")
