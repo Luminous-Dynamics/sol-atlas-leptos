@@ -194,6 +194,8 @@ def build_plan(raw: bytes, start: str, end: str, retrieved_at: str | None, mode:
         "official_landing_page": "https://www.chc.ucsb.edu/data/chirps3",
         "index_url": INDEX_URL,
         "index_snapshot_mode": mode,
+        "index_snapshot_saved": False,
+        "index_snapshot_filename": None,
         "index_retrieved_at_utc": retrieved_at,
         "index_sha256": hashlib.sha256(raw).hexdigest(),
         "requested_period": {"start_month": start, "end_month": end},
@@ -217,15 +219,30 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--start", required=True, type=parse_month, help="first month, inclusive (YYYY-MM)")
     parser.add_argument("--end", required=True, type=parse_month, help="last month, inclusive (YYYY-MM)")
     parser.add_argument("--index-file", type=Path, help="use a saved HTML directory index instead of the network")
+    parser.add_argument("--snapshot-index", type=Path, help="save the exact retrieved HTML index bytes to a new file (never overwrites)")
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT_SECONDS, help="HTTPS index timeout in seconds")
     parser.add_argument("--output", type=Path, help="write the JSON plan to a file; default is stdout")
     args = parser.parse_args(argv)
 
     if not 0 < args.timeout <= 120:
         parser.error("--timeout must be greater than 0 and no more than 120 seconds")
+    if args.output is not None and args.index_file is not None and args.output.resolve() == args.index_file.resolve():
+        parser.error("--output must not overwrite --index-file")
+    if args.output is not None and args.snapshot_index is not None and args.output.resolve() == args.snapshot_index.resolve():
+        parser.error("--output and --snapshot-index must be different paths")
     try:
         raw, retrieved_at, mode = read_index(args.index_file, args.timeout)
         plan = build_plan(raw, args.start, args.end, retrieved_at, mode)
+        if args.snapshot_index is not None:
+            try:
+                with args.snapshot_index.open("xb") as snapshot:
+                    snapshot.write(raw)
+            except FileExistsError as exc:
+                raise IndexError(f"snapshot path already exists; refusing to overwrite: {args.snapshot_index.name}") from exc
+            except OSError as exc:
+                raise IndexError(f"cannot save index snapshot: {exc}") from exc
+            plan["index_snapshot_saved"] = True
+            plan["index_snapshot_filename"] = args.snapshot_index.name
     except (IndexError, ValueError) as exc:
         print(f"CHIRPS index planning failed: {exc}", file=sys.stderr)
         return 2
