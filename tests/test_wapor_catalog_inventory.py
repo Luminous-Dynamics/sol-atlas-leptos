@@ -29,7 +29,7 @@ class WaporCatalogTests(unittest.TestCase):
                 validate_api_url(url)
 
     def test_mapset_code_is_restricted_to_safe_path_characters(self):
-        self.assertEqual(validate_mapset_code("L3-MBL-AETI-M"), "L3-MBL-AETI-M")
+        self.assertEqual(validate_mapset_code("EXAMPLE-MAPSET-AETI-M"), "EXAMPLE-MAPSET-AETI-M")
         for code in ("../mapsets", "MBL/AETI", "", "x" * 129):
             with self.subTest(code=code), self.assertRaises(argparse.ArgumentTypeError):
                 validate_mapset_code(code)
@@ -40,14 +40,14 @@ class WaporCatalogTests(unittest.TestCase):
             handler.redirect_request(Request(MAPSETS_URL), None, 302, "Found", {}, "https://attacker.example/")
 
     def test_paginate_reads_items_and_stops_without_next_link(self):
-        document = {"response": {"items": [{"code": "L3-MBL-AETI-M"}], "links": []}}
+        document = {"response": {"items": [{"code": "EXAMPLE-MAPSET-AETI-M"}], "links": []}}
         raw = json.dumps(document).encode()
         calls = []
         def fetch(url, timeout):
             calls.append(url)
             return document, raw, url
         records, pages, payloads = paginate(MAPSETS_URL, 10, fetcher=fetch)
-        self.assertEqual(records, [{"code": "L3-MBL-AETI-M"}])
+        self.assertEqual(records, [{"code": "EXAMPLE-MAPSET-AETI-M"}])
         self.assertEqual(len(pages), 1)
         self.assertEqual(payloads, [raw])
         self.assertEqual(calls, [MAPSETS_URL])
