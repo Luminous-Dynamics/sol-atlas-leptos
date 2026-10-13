@@ -55,21 +55,36 @@ impl SatelliteMission {
         }
     }
 
-    fn matches_item(self, id: &str, platform: Option<&str>) -> bool {
+    fn matches_item(
+        self,
+        id: &str,
+        platform: Option<&str>,
+    ) -> Result<bool, SatelliteCatalogError> {
         let id_upper = id.to_ascii_uppercase();
         let platform_lower = platform.unwrap_or_default().to_ascii_lowercase();
         match self {
-            Self::Sentinel2L2a => {
+            Self::Sentinel2L2a => Ok(
                 platform_lower.contains("sentinel-2")
                     || id_upper.starts_with("S2A")
                     || id_upper.starts_with("S2B")
-                    || id_upper.starts_with("S2C")
-            }
+                    || id_upper.starts_with("S2C"),
+            ),
             Self::Landsat8Collection2Level2 => {
-                platform_lower == "landsat-8"
-                    || platform_lower == "landsat_8"
-                    || id_upper.starts_with("LC08_")
-                    || id_upper.starts_with("LC08-")
+                let id_is_landsat8 =
+                    id_upper.starts_with("LC08_") || id_upper.starts_with("LC08-");
+                let id_is_landsat9 =
+                    id_upper.starts_with("LC09_") || id_upper.starts_with("LC09-");
+                let platform_is_landsat8 =
+                    platform_lower == "landsat-8" || platform_lower == "landsat_8";
+                let platform_is_landsat9 =
+                    platform_lower == "landsat-9" || platform_lower == "landsat_9";
+
+                if (id_is_landsat8 && platform_is_landsat9)
+                    || (id_is_landsat9 && platform_is_landsat8)
+                {
+                    return Err(SatelliteCatalogError::ContradictoryMissionMetadata);
+                }
+                Ok(id_is_landsat8 || (!id_is_landsat9 && platform_is_landsat8))
             }
         }
     }
@@ -228,6 +243,7 @@ pub enum SatelliteCatalogError {
     MissingFeatures,
     InvalidFeature,
     InvalidItemId,
+    ContradictoryMissionMetadata,
     MissingAcquisitionTime,
     InvalidCloudCover,
 }
@@ -265,7 +281,7 @@ pub fn parse_stac_items(
             .and_then(Value::as_object)
             .ok_or(SatelliteCatalogError::InvalidFeature)?;
         let platform = properties.get("platform").and_then(Value::as_str);
-        if !mission.matches_item(id, platform) {
+        if !mission.matches_item(id, platform)? {
             continue;
         }
 
@@ -516,6 +532,26 @@ mod tests {
             parse_stac_items(json, SatelliteMission::Landsat8Collection2Level2).unwrap();
         assert_eq!(scenes.len(), 1);
         assert!(scenes[0].item_id.starts_with("LC08_"));
+    }
+
+    #[test]
+    fn rejects_contradictory_landsat_platform_and_scene_identifier() {
+        let json = r#"{
+            "features":[{
+                "id":"LC09_L2SP_171081_20251012_20251020_02_T1",
+                "collection":"landsat-c2l2-sr",
+                "properties":{
+                    "platform":"landsat-8",
+                    "datetime":"2025-10-12T08:00:00Z",
+                    "eo:cloud_cover":3.0
+                },
+                "assets":{}
+            }]
+        }"#;
+        assert_eq!(
+            parse_stac_items(json, SatelliteMission::Landsat8Collection2Level2),
+            Err(SatelliteCatalogError::ContradictoryMissionMetadata)
+        );
     }
 
     #[test]
