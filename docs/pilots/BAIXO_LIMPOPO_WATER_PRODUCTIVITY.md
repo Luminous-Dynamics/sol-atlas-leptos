@@ -29,6 +29,8 @@ Use the current WaPOR catalogue to record the exact Level III area/product IDs, 
 
 The first candidate WaPOR layers are actual evapotranspiration and interception (AETI), its documented water-balance components when available, and a documented biomass/water-productivity output. The live catalogue—not this document—determines the final subset. Do not assume that all layers exist for the selected area or period.
 
+**Release-history guard:** FAO documents a WaPOR Level III methodology re-release in June/July 2024 and a separate correction to Level III net primary production (NPP) and above-ground biomass production (AGBP) for Baixo Limpopo and other areas announced in March 2025. The provider warns that affected NPP/AGBP files downloaded before 21 March 2025 likely underestimated plant-production variables. If those layers are selected, confirm the correction applies to the exact product, reacquire corrected artifacts, and freeze their hashes and release metadata. Never mix old and corrected vintages without a documented compatibility analysis. See [WaPOR access notes and correction history](https://www.fao.org/in-action/remote-sensing-for-water-productivity/wapor-data-access/en).
+
 ### 2. Freeze rainfall
 
 Select CHIRPS v3 **final** data matching the pilot time window and temporal aggregation. Save the exact product identifier / filenames, publication timestamp, source README and citation, terms snapshot, acquisition timestamp, file hashes, and valid-data mask. Keep preliminary and final products separate; a replacement final release creates a new artifact identity rather than silently overwriting the older run.
