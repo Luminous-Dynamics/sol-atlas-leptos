@@ -80,9 +80,9 @@ def validate_catalog(doc: Any) -> list[str]:
             errors.append(f"duplicate domain id: {domain_id}")
         else:
             ids.add(domain_id)
-        if domain.get("priority") not in ALLOWED_PRIORITIES:
+        if not isinstance(domain.get("priority"), str) or domain["priority"] not in ALLOWED_PRIORITIES:
             errors.append(f"{where}.priority is invalid")
-        if domain.get("readiness") not in ALLOWED_READINESS:
+        if not isinstance(domain.get("readiness"), str) or domain["readiness"] not in ALLOWED_READINESS:
             errors.append(f"{where}.readiness is invalid")
         for field in ("title", "question", "scope"):
             if not isinstance(domain.get(field), str) or not domain[field].strip():
@@ -132,16 +132,19 @@ def validate_catalog(doc: Any) -> list[str]:
                 if not isinstance(source.get(field), str) or not source[field].strip():
                     errors.append(f"{sw}.{field} must be a non-empty string")
             url = source.get("url")
-            parts = urlsplit(url) if isinstance(url, str) else None
+            try:
+                parts = urlsplit(url) if isinstance(url, str) else None
+            except ValueError:
+                parts = None
             if not parts or parts.scheme != "https" or not parts.netloc:
                 errors.append(f"{sw}.url must be an HTTPS URL")
             access = source.get("access_status")
-            if access not in ALLOWED_ACCESS:
+            if not isinstance(access, str) or access not in ALLOWED_ACCESS:
                 errors.append(f"{sw}.access_status is invalid")
             allowed = source.get("redistribution_allowed")
             if allowed is not True and allowed is not False and allowed is not None:
                 errors.append(f"{sw}.redistribution_allowed must be true, false or null")
-            if source.get("rights_state") not in ALLOWED_RIGHTS_STATES:
+            if not isinstance(source.get("rights_state"), str) or source["rights_state"] not in ALLOWED_RIGHTS_STATES:
                 errors.append(f"{sw}.rights_state is not a recognized review state")
             if allowed is True and source.get("rights_state") not in REDISTRIBUTION_ALLOWLIST:
                 errors.append(f"{sw}: fail-closed rule: rights state does not permit redistribution=true")
