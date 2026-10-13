@@ -5,6 +5,7 @@ import hashlib
 import unittest
 from pathlib import Path
 from urllib.request import Request
+from urllib.parse import quote
 import argparse
 from unittest.mock import patch
 
@@ -21,6 +22,9 @@ from inspect_wapor_catalog import (
 class WaporCatalogTests(unittest.TestCase):
     def test_valid_api_url_requires_official_https_origin_and_prefix(self):
         validate_api_url(MAPSETS_URL)
+        deeply_encoded_parent = ".."
+        for _ in range(8):
+            deeply_encoded_parent = quote(deeply_encoded_parent, safe="")
         for url in (
             "http://data.apps.fao.org" + API_PREFIX + "mapsets",
             "https://attacker.example" + API_PREFIX + "mapsets",
@@ -36,6 +40,8 @@ class WaporCatalogTests(unittest.TestCase):
         ):
             with self.subTest(url=url), self.assertRaises(WaporCatalogError):
                 validate_api_url(url)
+        with self.assertRaises(WaporCatalogError):
+            validate_api_url(API_ORIGIN + API_PREFIX + deeply_encoded_parent + "/private")
 
     def test_mapset_code_is_restricted_to_safe_path_characters(self):
         self.assertEqual(validate_mapset_code("EXAMPLE-MAPSET-AETI-M"), "EXAMPLE-MAPSET-AETI-M")
