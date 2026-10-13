@@ -231,8 +231,10 @@ class WaporCatalogTests(unittest.TestCase):
             output = root / "inventory.json"
             snapshot = root / "snapshot"
 
+            real_open = Path.open
+
             def fail_output_open(path_obj, mode="r", *args, **kwargs):
-                handle = Path.open(path_obj, mode, *args, **kwargs)
+                handle = real_open(path_obj, mode, *args, **kwargs)
                 if path_obj == output and mode == "x":
                     return PartialWriteFailure(handle)
                 return handle
