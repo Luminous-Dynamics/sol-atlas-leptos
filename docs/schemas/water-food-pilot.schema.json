@@ -568,6 +568,564 @@
                 "const": false
               }
             }
+          },
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D0": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  },
+                  "D1": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  },
+                  "D2": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  },
+                  "D3": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  },
+                  "D4": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  },
+                  "D5": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "data_readiness"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D0": {
+                    "const": "passed"
+                  },
+                  "D2": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  },
+                  "D3": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  },
+                  "D4": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  },
+                  "D5": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "evidence_state": {
+            "properties": {
+              "observations_processed": {
+                "const": false
+              },
+              "baseline_computed": {
+                "const": false
+              },
+              "independent_validation_complete": {
+                "const": false
+              },
+              "independent_review_complete": {
+                "const": false
+              },
+              "d5_accepted": {
+                "const": false
+              },
+              "operational_claim_authorized": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "descriptive_baseline"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D0": {
+                    "const": "passed"
+                  },
+                  "D1": {
+                    "const": "passed"
+                  },
+                  "D2": {
+                    "const": "passed"
+                  },
+                  "D3": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  },
+                  "D4": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  },
+                  "D5": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "evidence_state": {
+            "properties": {
+              "source_artifacts_downloaded": {
+                "const": true
+              },
+              "observations_processed": {
+                "const": true
+              },
+              "baseline_computed": {
+                "const": true
+              },
+              "independent_validation_complete": {
+                "const": false
+              },
+              "independent_review_complete": {
+                "const": false
+              },
+              "d5_accepted": {
+                "const": false
+              },
+              "operational_claim_authorized": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "independently_validated"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D0": {
+                    "const": "passed"
+                  },
+                  "D1": {
+                    "const": "passed"
+                  },
+                  "D2": {
+                    "const": "passed"
+                  },
+                  "D3": {
+                    "const": "passed"
+                  },
+                  "D4": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  },
+                  "D5": {
+                    "enum": [
+                      "not_started",
+                      "blocked"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "evidence_state": {
+            "properties": {
+              "source_artifacts_downloaded": {
+                "const": true
+              },
+              "observations_processed": {
+                "const": true
+              },
+              "baseline_computed": {
+                "const": true
+              },
+              "independent_validation_complete": {
+                "const": true
+              },
+              "independent_review_complete": {
+                "const": false
+              },
+              "d5_accepted": {
+                "const": false
+              },
+              "operational_claim_authorized": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "decision_support_candidate"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D0": {
+                    "const": "passed"
+                  },
+                  "D1": {
+                    "const": "passed"
+                  },
+                  "D2": {
+                    "const": "passed"
+                  },
+                  "D3": {
+                    "const": "passed"
+                  },
+                  "D4": {
+                    "const": "passed"
+                  },
+                  "D5": {
+                    "const": "passed"
+                  }
+                }
+              }
+            }
+          },
+          "evidence_state": {
+            "properties": {
+              "source_artifacts_downloaded": {
+                "const": true
+              },
+              "observations_processed": {
+                "const": true
+              },
+              "baseline_computed": {
+                "const": true
+              },
+              "independent_validation_complete": {
+                "const": true
+              },
+              "independent_review_complete": {
+                "const": true
+              },
+              "d5_accepted": {
+                "const": true
+              },
+              "operational_claim_authorized": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D0": {
+                    "const": "passed"
+                  }
+                },
+                "required": [
+                  "D0"
+                ]
+              }
+            },
+            "required": [
+              "gates"
+            ]
+          }
+        },
+        "required": [
+          "validation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "geography": {
+            "properties": {
+              "boundary_state": {
+                "const": "verified_and_frozen"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D1": {
+                    "const": "passed"
+                  }
+                },
+                "required": [
+                  "D1"
+                ]
+              }
+            },
+            "required": [
+              "gates"
+            ]
+          }
+        },
+        "required": [
+          "validation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "source_artifacts_downloaded": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D2": {
+                    "const": "passed"
+                  }
+                },
+                "required": [
+                  "D2"
+                ]
+              }
+            },
+            "required": [
+              "gates"
+            ]
+          }
+        },
+        "required": [
+          "validation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "observations_processed": {
+                "const": true
+              },
+              "baseline_computed": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D3": {
+                    "const": "passed"
+                  }
+                },
+                "required": [
+                  "D3"
+                ]
+              }
+            },
+            "required": [
+              "gates"
+            ]
+          }
+        },
+        "required": [
+          "validation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "independent_validation_complete": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D4": {
+                    "const": "passed"
+                  }
+                },
+                "required": [
+                  "D4"
+                ]
+              }
+            },
+            "required": [
+              "gates"
+            ]
+          }
+        },
+        "required": [
+          "validation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "independent_review_complete": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gates": {
+                "properties": {
+                  "D5": {
+                    "const": "passed"
+                  }
+                },
+                "required": [
+                  "D5"
+                ]
+              }
+            },
+            "required": [
+              "gates"
+            ]
+          }
+        },
+        "required": [
+          "validation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_state": {
+            "properties": {
+              "d5_accepted": {
+                "const": true
+              }
+            }
           }
         }
       }
