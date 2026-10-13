@@ -1,0 +1,119 @@
+{
+  "pilot_id": "water-food-baixo-limpopo-v0",
+  "status": "design_only",
+  "review_date": "2026-10-13",
+  "title": "Baixo Limpopo irrigation water-productivity and rainfall-anomaly pilot",
+  "geography": {
+    "name": "Baixo Limpopo irrigation area",
+    "country": "Mozambique",
+    "boundary_state": "unverified",
+    "boundary_source": "Current FAO WaPOR catalogue; freeze the exact Level III area/product boundary before intake",
+    "spatial_scope_rule": "Use a versioned published product footprint or recorded authoritative area polygon; do not infer the irrigation-area boundary from a basemap",
+    "cross_border_note": "This pilot does not represent the full transboundary Limpopo Basin or all users within it."
+  },
+  "question": "Within a verified WaPOR Level III Baixo Limpopo product footprint, describe source-supported seasonal water/productivity anomalies and their temporal consistency with CHIRPS v3 rainfall anomalies without claiming causality.",
+  "intended_outputs": [
+    "per-product coverage and missingness matrix",
+    "frozen source-and-rights manifest",
+    "descriptive aligned time series where common support is sufficient",
+    "conditional season-aware anomaly report only when the common record passes D2",
+    "independent-reference readiness and source-overlap report"
+  ],
+  "sources": [
+    {
+      "source_id": "FAO-WAPOR",
+      "provider": "FAO",
+      "url": "https://www.fao.org/in-action/remote-sensing-for-water-productivity/wapor-data/",
+      "product_family": "WaPOR",
+      "product_version": "v3",
+      "selected_product": null,
+      "product_selection_state": "needs_current_catalogue_snapshot",
+      "acquisition_state": "not_acquired",
+      "artifact_sha256": null,
+      "source_catalog_verified": false,
+      "rights_state": "review_product_metadata",
+      "redistribution_allowed": null,
+      "native_spatial_support": "Product level varies; overview lists global, national/river-basin and selected sub-national products. Confirm actual Level III layer metadata and resolution in the current catalogue.",
+      "native_temporal_support": "Layer-dependent; temporal frequency and available dates must be read from the selected product metadata.",
+      "upstream_overlap": "Derived remote-sensing products may share satellite or meteorological inputs with other sources; inspect the selected layer methodology before claiming independent corroboration.",
+      "required_checks": [
+        "exact Level III product/area and layer identifier",
+        "current temporal coverage and finality/publication state",
+        "units, source CRS, effective spatial resolution and quality mask",
+        "no-data semantics and valid-cell coverage",
+        "source methodology, terms and reuse rights"
+      ]
+    },
+    {
+      "source_id": "CHIRPS3",
+      "provider": "Climate Hazards Center, University of California Santa Barbara",
+      "url": "https://www.chc.ucsb.edu/data/chirps3",
+      "product_family": "CHIRPS",
+      "product_version": "v3",
+      "selected_product": "Final product required; exact file/release and analysis period are not yet selected",
+      "product_selection_state": "product_family_verified_artifact_unlocked",
+      "acquisition_state": "not_acquired",
+      "artifact_sha256": null,
+      "source_catalog_verified": true,
+      "rights_state": "cc_by_4_0_with_attribution",
+      "redistribution_allowed": true,
+      "native_spatial_support": "0.05-degree precipitation grid; effective ground distance varies with latitude and grid cells are not local rain gauges.",
+      "native_temporal_support": "CHIRPS v3 has distinct preliminary and final releases; select exact files and time aggregation only after the WaPOR period is known.",
+      "upstream_overlap": "CHIRPS blends satellite-based precipitation estimates with in-situ station observations. Candidate validation gauges must be checked against the selected release's station lineage and excluded from the independent test when used in the blend.",
+      "required_checks": [
+        "exact v3 final-product file IDs and publication/retrieval timestamps",
+        "citation and CC BY 4.0 attribution retained",
+        "valid-data semantics, units, period and temporal aggregation",
+        "station-input overlap reviewed for any independent validation claim",
+        "sensitivity to product release and aggregation recorded"
+      ]
+    }
+  ],
+  "analysis": {
+    "estimand": "Descriptive co-variation between source-supported seasonal precipitation anomalies and selected WaPOR water/productivity indicators; not a causal effect, yield estimate, or operational metric.",
+    "baseline": "Use a predeclared season-aware median and robust spread only if the frozen WaPOR record contains enough complete comparable seasons; otherwise report coverage and raw time series only.",
+    "spatial_alignment": "Aggregate finer data to a common defensible support and publish valid-area counts; never rasterize a coarse product to imply finer information.",
+    "temporal_alignment": "Compare matching monthly/dekadal windows only where both selected layers support them; preserve period, retrieval time, publication time, and preliminary/final state.",
+    "missingness_policy": "Carry source quality masks and no-data separately from zero; report missingness and valid-area fraction before any interpretation.",
+    "independence_policy": "Treat source dependence as unresolved until each product's upstream inputs and reference-data overlap are reviewed. WaPOR and CHIRPS are not assumed independent."
+  },
+  "validation": {
+    "gates": {
+      "D0": "not_started",
+      "D1": "not_started",
+      "D2": "not_started",
+      "D3": "not_started",
+      "D4": "not_started",
+      "D5": "not_started"
+    },
+    "independent_reference_candidates": [
+      "rain-gauge records whose inclusion in the selected CHIRPS v3 release has been checked and which are withheld from any CHIRPS-blend comparison",
+      "irrigation delivery, reservoir/canal operation, or scheme records with compatible dates and spatial scope",
+      "official crop statistics only where target definition, units, time span and geography can be matched"
+    ],
+    "independence_review_required": true,
+    "metrics": [
+      "source coverage and valid-area fraction by season",
+      "season-specific anomaly agreement against a frozen baseline when justified",
+      "sensitivity to quality masks, temporal windows, aggregation and release vintage",
+      "precision/recall or false-alert rate only for a pre-registered threshold with an adequate independent reference"
+    ]
+  },
+  "claim_ceiling": [
+    "No crop-yield, farm-level, farmer-intent or household food-availability claim from remote sensing alone.",
+    "No individual well level, exact aquifer depletion or groundwater over-abstraction claim.",
+    "No causal attribution from temporal co-variation alone.",
+    "No drinking-water access or safety claim from water-productivity layers.",
+    "No forecast, irrigation-control authority, water allocation or emergency-aid direction.",
+    "Do not call a source independent until its upstream inputs and reference overlap have been reviewed."
+  ],
+  "evidence_state": {
+    "source_artifacts_downloaded": false,
+    "observations_processed": false,
+    "baseline_computed": false,
+    "independent_validation_complete": false,
+    "independent_review_complete": false,
+    "d5_accepted": false,
+    "operational_claim_authorized": false
+  }
+}
