@@ -60,12 +60,13 @@
       "redistribution_allowed": true,
       "native_spatial_support": "0.05-degree areal precipitation grid, approximately 5 km across at Baixo Limpopo; not a local gauge or 20 m field observation.",
       "native_temporal_support": "Monthly is the primary pilot choice and a fundamental CHIRPS v3 timescale; daily products are derived by partitioning pentadal totals with ERA5 or IMERG and are excluded from the first pass.",
-      "upstream_overlap": "CHIRPS blends satellite-based precipitation estimates with in-situ station observations. Candidate validation gauges must be checked against the selected release's station lineage and excluded from the independent test when used in the blend.",
+      "upstream_overlap": "CHIRPS blends satellite-based precipitation estimates with in-situ station observations. Candidate validation gauges must be checked against the selected release's station lineage and excluded from the independent test when used in the blend. The provider recommends gauge-undercatch-corrected station observations for comparisons; preserve original and corrected artifacts, correction method, and correction-data version.",
       "required_checks": [
         "exact v3 final-product file IDs and publication/retrieval timestamps",
         "citation and CC BY 4.0 attribution retained",
         "valid-data semantics, units, period and temporal aggregation",
         "station-input overlap reviewed for any independent validation claim",
+        "where available, compare against provider-recommended gauge-undercatch-corrected observations and preserve the correction method/version",
         "sensitivity to product release and aggregation recorded",
         "inventory the official monthly Africa GeoTIFF directory with plan_chirps_monthly.py and retain the raw index SHA-256 and retrieved-at timestamp",
         "confirm the exact requested month set is complete and intersects actual final WaPOR monthly coverage",
@@ -95,7 +96,7 @@
       "INIR / Plataforma de Irrigação de Moçambique (PIM), announced 2026-06-29: investigate accessible scheme boundaries/operations and dataset terms; an announcement is not evidence of data availability. https://inir.gov.mz/",
       "INIR's June 2026 preliminary Regadio do Baixo Limpopo flood-impact report: candidate event lead only; verify original values, method, date, geometry, and lineage before using as a target. https://inir.gov.mz/",
       "INE Gaza Provincial Statistical Yearbook 2024, crop area/production tables for 2020-2024: province-scale context only, not irrigation-scheme or field-level validation. https://www.ine.gov.mz/documents/20119/334668/ANUARIO_ESTATISTICO_PROVINCIA_GAZA_2024.pdf/facd30cd-f7dc-83ac-1a35-3e92df08ea22?download=true&t=1751365783760&version=1.0",
-      "Rain-gauge records whose inclusion in the selected CHIRPS v3 final release has been checked; withhold contributing gauges from any independent test. https://www.chc.ucsb.edu/data/chirps3",
+      "Rain-gauge records whose inclusion in the selected CHIRPS v3 final release has been checked; withhold contributing gauges from any independent test. Use the provider-recommended gauge-undercatch-corrected observations when available and retain the correction method/version. https://www.chc.ucsb.edu/data/chirps3",
       "Irrigation delivery, reservoir/canal operation or scheme records with compatible dates and spatial scope; independently document provenance and any overlap with WaPOR source inputs."
     ],
     "independence_review_required": true,
