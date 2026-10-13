@@ -80,6 +80,36 @@ class WaterFoodPilotTests(unittest.TestCase):
         doc["evidence_state"]["baseline_computed"] = True
         self.assertTrue(any("baseline_computed=true requires" in e for e in validate_pilot(doc)))
 
+    def test_independently_validated_status_requires_d3_and_evidence(self):
+        doc = copy.deepcopy(self.pilot)
+        doc["status"] = "independently_validated"
+        errors = validate_pilot(doc)
+        self.assertTrue(any("independently_validated status requires D0-D3=passed" in e for e in errors))
+        self.assertTrue(any("independent-validation evidence" in e for e in errors))
+
+    def test_baseline_status_cannot_skip_d1_or_d2(self):
+        doc = copy.deepcopy(self.pilot)
+        doc["status"] = "descriptive_baseline"
+        errors = validate_pilot(doc)
+        self.assertTrue(any("descriptive_baseline status requires D0-D2=passed" in e for e in errors))
+
+    def test_decision_support_candidate_requires_all_gates_and_review(self):
+        doc = copy.deepcopy(self.pilot)
+        doc["status"] = "decision_support_candidate"
+        errors = validate_pilot(doc)
+        self.assertTrue(any("decision_support_candidate status requires every D0-D5 gate" in e for e in errors))
+        self.assertTrue(any("requires source, baseline, validation, review and D5 evidence" in e for e in errors))
+
+    def test_passed_d0_requires_frozen_study_boundary(self):
+        doc = copy.deepcopy(self.pilot)
+        doc["validation"]["gates"]["D0"] = "passed"
+        self.assertTrue(any("D0=passed requires a verified and frozen study boundary" in e for e in validate_pilot(doc)))
+
+    def test_passed_d1_requires_all_source_hashes(self):
+        doc = copy.deepcopy(self.pilot)
+        doc["validation"]["gates"]["D1"] = "passed"
+        self.assertTrue(any("D1=passed requires every admitted source" in e for e in validate_pilot(doc)))
+
     def test_operational_status_requires_all_evidence_gates(self):
         doc = copy.deepcopy(self.pilot)
         doc["status"] = "operational"
