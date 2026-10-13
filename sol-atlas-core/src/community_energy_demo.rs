@@ -429,7 +429,6 @@ pub fn verify(
         }
 
         let load_left = row.renewable_to_load_kwh
-
             + row.battery_discharge_to_load_kwh
             + row.grid_import_kwh
             + row.unserved_load_kwh;
