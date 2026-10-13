@@ -47,6 +47,16 @@ class WaterFoodPilotTests(unittest.TestCase):
         doc["sources"][0]["source_id"] = "GENERIC-RAINFALL"
         self.assertTrue(any("not an admitted source" in e for e in validate_pilot(doc)))
 
+    def test_malformed_unhashable_values_are_rejected_without_crashing(self):
+        doc = copy.deepcopy(self.pilot)
+        doc["sources"][0]["source_id"] = ["FAO-WAPOR"]
+        doc["status"] = []
+        doc["validation"]["gates"]["D3"] = []
+        errors = validate_pilot(doc)
+        self.assertTrue(any("source_id is not an admitted source" in e for e in errors))
+        self.assertTrue(any("status is not a recognized pilot status" in e for e in errors))
+        self.assertTrue(any("validation.gates.D3 is missing or invalid" in e for e in errors))
+
     def test_wapor_redistribution_is_fail_closed(self):
         doc = copy.deepcopy(self.pilot)
         doc["sources"][0]["redistribution_allowed"] = True
