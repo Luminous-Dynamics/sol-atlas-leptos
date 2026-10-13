@@ -17,6 +17,8 @@ The initial product is not an autonomous SCADA replacement. It is a replayable t
 - A South African study has assessed Sentinel-2 and Landsat 8 for monitoring Vaal Dam, a major water resource supplying Johannesburg and surrounding areas. Source: [Assessing high-resolution satellite monitoring of Vaal Dam](https://doi.org/10.1016/j.rsase.2021.100521).
 - Sentinel-1 synthetic-aperture radar supports flood-extent assessment in cloud and darkness; its acquisition timing and resolution still limit which decisions it can support. Source: [European Space Agency: Sentinel-1 emergency response](https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-1/Emergency_response).
 - South Africa's National Geo-spatial Information services include a national Water Areas layer useful for inventory and spatial context. Treat it as a reference dataset, not a live telemetry feed. Source: [NGI National Datasets — Water Areas](https://nspdr.dlrrd.gov.za/server/rest/services/NationalDatasets/Hydrology/MapServer/3).
+- The Department of Water and Sanitation reported the Integrated Vaal River System at 97.1% combined storage and Vaal Dam at 95.4% on 6 October 2026. That weekly report is useful as a dated external comparison point, not as an instantaneous operational sensor. Source: [DWS, Vaal Dam reservoir levels (6 October 2026)](https://www.gov.za/news/media-statements/water-and-sanitation-vaal-dam-reservoir-levels-06-oct-2026).
+- Sentinel Hub within the Copernicus Data Space Ecosystem exposes catalog, processing and statistical interfaces for satellite imagery, with free use within published quotas; requests require versioned product details and any necessary authentication. This is a concrete public-data ingestion route for a prototype. Sources: [Copernicus Data Space Sentinel Hub](https://dataspace.copernicus.eu/ecosystem/services/sentinel-hub), [Sentinel Hub API overview](https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Overview.html), [API beginner's guide](https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/UserGuides/BeginnersGuide.html).
 
 ## Three separate data planes
 
@@ -58,9 +60,17 @@ This is a target integration shape, not a claim that these integrations already 
 - **Symthaea:** anomaly hypotheses, cross-domain correlation, forecast/risk ranking, and readable reasons with uncertainty. It proposes; it does not grant itself authority.
 - **Satiate/satellite tooling:** no repository or integration named “Satiate” was located during this research pass. The current design therefore treats satellite-derived products and satellite communication as separate, replaceable adapters. If “Satiate” is a distinct system name, its actual interface and semantics remain unverified.
 
-## First pilot: one water-pressure zone and its power dependency
+## First pilot: two linked workstreams
 
-Do not select a neighbourhood by guesswork. Ask Johannesburg Water and City Power to identify a candidate zone with an accountable operational owner, approved data access, adequate instrumentation, and a useful incident history. Include Rand Water/upstream-system dependencies only where the data agreement and scope permit it.
+### Public-data prototype (can start before a municipal partnership)
+
+Use Vaal Dam as the first repeatable satellite-observation case. Retrieve versioned Sentinel-2 optical and/or Sentinel-1 radar acquisitions from the Copernicus Data Space Ecosystem, preserve acquisition/product metadata, and compare a derived surface-water extent time series against dated DWS reservoir-level reports. Use a stable study-area polygon and fixed cloud/quality rules; show gaps when acquisitions are unusable instead of interpolating them away. The output is an evaluated surface-water indicator and evidence bundle—not a claim that imagery measures reservoir elevation or that this alone improves Johannesburg household supply.
+
+This phase tests data discovery, processing reproducibility, acquisition-time handling, quality flags, geospatial alignment, lineage and Sol-Atlas visualization without requiring access to restricted utility data.
+
+### Operational shadow pilot (requires a utility agreement)
+
+Do not select a neighbourhood by guesswork. Ask Johannesburg Water and City Power to identify a candidate water-pressure zone with its upstream pumping/electricity dependencies, an accountable operational owner, approved data access, adequate instrumentation, and useful incident history. Include Rand Water/upstream-system dependencies only where the data agreement and scope permit it. Start with read-only historical exports, then shadow mode; do not connect to control systems for actuation.
 
 ### Minimum data contract
 
