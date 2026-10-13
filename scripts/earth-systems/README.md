@@ -34,6 +34,7 @@ From the repository root, run:
 ```sh
 python3 scripts/earth-systems/plan_chirps_monthly.py \
   --start 2018-01 --end 2024-12 \
+  --snapshot-index /tmp/chirps-index.html \
   --output /tmp/chirps-monthly-plan.json
 ```
 
