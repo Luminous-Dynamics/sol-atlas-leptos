@@ -87,6 +87,15 @@ class EarthSystemsCatalogTests(unittest.TestCase):
                 self.assertIn("preliminary and final", limitations)
                 self.assertIn("station", limitations)
 
+    def test_wapor_level_three_correction_history_is_a_catalogued_limitation(self):
+        for domain_id in ("water-security", "food-land-water-productivity"):
+            with self.subTest(domain=domain_id):
+                domain = next(d for d in self.catalog["domains"] if d["id"] == domain_id)
+                source = next(s for s in domain["data_sources"] if s["source_id"] == "FAO-WAPOR")
+                limitations = " ".join(source["key_limitations"]).lower()
+                self.assertIn("march 2025", limitations)
+                self.assertIn("correction-vintage review", limitations)
+
     def test_missing_domain_limitations_are_rejected(self):
         doc = copy.deepcopy(self.catalog)
         del doc["domains"][0]["data_sources"][0]["key_limitations"]
