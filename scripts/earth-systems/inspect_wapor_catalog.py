@@ -199,6 +199,21 @@ def validate_mapset_code(code: str) -> str:
 
 
 def save_snapshots(snapshot_dir: Path, groups: list[tuple[str, list[dict], list[bytes]]]) -> list[dict]:
+    # Validate the complete manifest-to-byte mapping before creating anything.
+    # zip() alone would silently truncate mismatched lists and could produce an
+    # apparently successful but incomplete evidence snapshot.
+    for label, metadata, payloads in groups:
+        if not isinstance(label, str) or not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", label):
+            raise WaporCatalogError("snapshot group label contains unsafe path characters")
+        if len(metadata) != len(payloads):
+            raise WaporCatalogError("snapshot metadata count does not match raw response count")
+        for page, raw in zip(metadata, payloads):
+            if not isinstance(page, dict) or not isinstance(raw, bytes):
+                raise WaporCatalogError("snapshot metadata and raw response types are invalid")
+            digest = hashlib.sha256(raw).hexdigest()
+            if page.get("response_sha256") != digest:
+                raise WaporCatalogError("snapshot metadata SHA-256 does not match raw response bytes")
+
     try:
         snapshot_dir.mkdir(parents=False, exist_ok=False, mode=0o700)
     except FileExistsError as exc:
@@ -213,7 +228,9 @@ def save_snapshots(snapshot_dir: Path, groups: list[tuple[str, list[dict], list[
                 filename = f"{label}-page-{index:03d}-{page['response_sha256'][:12]}.json"
                 path = snapshot_dir / filename
                 with path.open("xb") as handle:
-                    handle.write(raw)
+                    written = handle.write(raw)
+                    if written != len(raw):
+                        raise OSError(f"short write: captured {written} of {len(raw)} bytes")
                 saved.append({
                     "filename": filename,
                     "sha256": hashlib.sha256(raw).hexdigest(),
