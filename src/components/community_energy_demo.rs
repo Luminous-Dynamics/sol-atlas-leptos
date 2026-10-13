@@ -218,7 +218,7 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                     <div class="community-energy-vote-result">
                         <span class="community-energy-label">"ILLUSTRATIVE RULE RESULT"</span>
                         <strong>{if vote.passed() { "PASSED" } else { "NOT PASSED" }}</strong>
-                        <p>"A simple one-person/one-vote rule is used only for this exhibit. Mycelix Governance describes a different, experimental MATL/stake-weighted model; this page does not claim conformance to that policy."</p>
+                        <p>"This exhibit uses demo-only one-person/one-vote rules with 60% quorum and 75% approval thresholds. Mycelix Governance's public README documents different Standard proposal thresholds (25% / 60%) and MATL/stake/participation weighting; this fixture is not a policy evaluation or a vote."</p>
                     </div>
                     <div class="community-energy-vote-numbers">
                         <div><span>"YES"</span><strong>{vote.yes}</strong></div>
