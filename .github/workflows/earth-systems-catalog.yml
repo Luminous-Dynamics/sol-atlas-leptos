@@ -4,9 +4,14 @@ on:
   pull_request:
     paths:
       - "docs/earth-systems-domain-catalog.json"
+      - "docs/pilots/baixo-limpopo-water-productivity.json"
+      - "docs/pilots/BAIXO_LIMPOPO_WATER_PRODUCTIVITY.md"
       - "docs/schemas/earth-systems-domain-catalog.schema.json"
+      - "docs/schemas/water-food-pilot.schema.json"
       - "scripts/earth-systems/**"
+      - "scripts/earth-systems/validate_pilot.py"
       - "tests/test_earth_systems_catalog.py"
+      - "tests/test_water_food_pilot.py"
       - ".github/workflows/earth-systems-catalog.yml"
   push:
     branches: [main]
@@ -34,3 +39,7 @@ jobs:
         run: python scripts/earth-systems/validate_catalog.py
       - name: Run catalog tests
         run: python -m unittest discover -s tests -p "test_earth_systems_catalog.py" -v
+      - name: Validate Baixo Limpopo pilot profile
+        run: python scripts/earth-systems/validate_pilot.py
+      - name: Run pilot tests
+        run: python -m unittest discover -s tests -p "test_water_food_pilot.py" -v
