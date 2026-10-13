@@ -199,7 +199,7 @@ impl ScientificDatasetRecordRefV1 {
     }
 }
 
-/// Stable, machine-readable validation findings for record-reference bindings.
+/// Stable, machine-readable validation findings for dataset snapshot metadata.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SnapshotValidationIssue {
