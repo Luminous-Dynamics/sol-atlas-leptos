@@ -14,7 +14,7 @@
 //! GET /data360/data. Synthetic tests are explicitly not World Bank observations.
 
 use serde_json::{Map, Value};
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::error::Error;
 use std::fmt;
 
@@ -23,6 +23,22 @@ pub const DATA360_MAX_PAGE_SIZE: usize = 1_000;
 pub const DATA360_SCHEMA_VERSION: u16 = 1;
 
 const ENVELOPE_KEYS: [&str; 2] = ["count", "value"];
+const FILTER_KEYS: [&str; 13] = [
+    "REF_AREA",
+    "SEX",
+    "AGE",
+    "URBANISATION",
+    "COMP_BREAKDOWN_1",
+    "COMP_BREAKDOWN_2",
+    "COMP_BREAKDOWN_3",
+    "TIME_PERIOD",
+    "FREQ",
+    "UNIT_MEASURE",
+    "UNIT_TYPE",
+    "UNIT_MULT",
+    "isLatestData",
+];
+
 const ROW_KEYS: [&str; 24] = [
     "OBS_VALUE", "TIME_FORMAT", "UNIT_MULT", "COMMENT_OBS", "OBS_STATUS", "OBS_CONF",
     "AGG_METHOD", "DECIMALS", "COMMENT_TS", "DATA_SOURCE", "LATEST_DATA", "DATABASE_ID",
@@ -36,6 +52,12 @@ pub struct Data360PageQuery {
     pub indicator_id: String,
     pub period_start: u16,
     pub period_end: u16,
+    /// Exact single-value dimension filters actually used for the request,
+    /// excluding DATABASE_ID, INDICATOR, skip, and the period-range bounds.
+    /// Supported keys are the documented Data360 query parameter spellings.
+    /// This records caller-supplied request context; it cannot prove the HTTP
+    /// request sent by a separate acquisition layer used these values.
+    pub filters: BTreeMap<String, String>,
     pub requested_skip: usize,
     pub requested_top: usize,
 }
@@ -73,6 +95,7 @@ pub enum Data360RowRejection {
     DatabaseMismatch,
     IndicatorMismatch,
     PeriodOutOfQueryRange,
+    QueryFilterMismatch(String),
     DuplicateRecordKey(String),
 }
 
@@ -238,6 +261,33 @@ fn validate_context(context: &Data360PageContext) -> Result<(), Data360PageError
             "period range must be ordered and use positive years".to_string(),
         ));
     }
+    for (key, value) in &q.filters {
+        if !FILTER_KEYS.contains(&key.as_str()) {
+            return Err(Data360PageError::InvalidContext(format!(
+                "unsupported Data360 query filter {key:?}"
+            )));
+        }
+        if value.trim().is_empty() {
+            return Err(Data360PageError::InvalidContext(format!(
+                "query filter {key:?} must not be empty; omit an unused filter"
+            )));
+        }
+        match key.as_str() {
+            "UNIT_MULT" => {
+                value.parse::<i64>().map_err(|_| {
+                    Data360PageError::InvalidContext(
+                        "UNIT_MULT query filter must be an integer".to_string(),
+                    )
+                })?;
+            }
+            "isLatestData" if value != "true" && value != "false" => {
+                return Err(Data360PageError::InvalidContext(
+                    "isLatestData query filter must be exactly true or false".to_string(),
+                ));
+            }
+            _ => {}
+        }
+    }
     if q.requested_top == 0 || q.requested_top > DATA360_MAX_PAGE_SIZE {
         return Err(Data360PageError::InvalidContext(format!(
             "requested_top must be in 1..={DATA360_MAX_PAGE_SIZE}"
@@ -291,9 +341,10 @@ fn normalize_record(
         .get("UNIT_MULT")
         .and_then(Value::as_i64)
         .ok_or_else(|| Data360RowRejection::InvalidFieldType("UNIT_MULT".to_string()))?;
-    if object.get("LATEST_DATA").and_then(Value::as_bool).is_none() {
-        return Err(Data360RowRejection::InvalidFieldType("LATEST_DATA".to_string()));
-    }
+    let latest_data = object
+        .get("LATEST_DATA")
+        .and_then(Value::as_bool)
+        .ok_or_else(|| Data360RowRejection::InvalidFieldType("LATEST_DATA".to_string()))?;
     nullable_text(object, "COMMENT_OBS")?;
     let value_source_text = match object.get("OBS_VALUE") {
         Some(Value::String(value)) => Some(value.clone()),
@@ -316,6 +367,31 @@ fn normalize_record(
         .map_err(|_| Data360RowRejection::InvalidFieldValue("TIME_PERIOD".to_string()))?;
     if period < context.query.period_start || period > context.query.period_end {
         return Err(Data360RowRejection::PeriodOutOfQueryRange);
+    }
+
+    // A collection must retain and apply the full supported dimension-filter
+    // context, not merely the dataset/indicator/year range. A caller that
+    // records filters inaccurately is still responsible for request provenance.
+    for (name, expected) in &context.query.filters {
+        let actual = match name.as_str() {
+            "REF_AREA" => Some(reference_area.clone()),
+            "SEX" => Some(sex.clone()),
+            "AGE" => Some(age.clone()),
+            "URBANISATION" => Some(urbanisation.clone()),
+            "COMP_BREAKDOWN_1" => Some(breakdown_1.clone()),
+            "COMP_BREAKDOWN_2" => Some(breakdown_2.clone()),
+            "COMP_BREAKDOWN_3" => Some(breakdown_3.clone()),
+            "TIME_PERIOD" => Some(period_text.clone()),
+            "FREQ" => Some(frequency.clone()),
+            "UNIT_MEASURE" => Some(unit_measure.clone()),
+            "UNIT_TYPE" => unit_type_value.clone(),
+            "UNIT_MULT" => Some(unit_multiplier.to_string()),
+            "isLatestData" => Some(latest_data.to_string()),
+            _ => None, // validate_context rejects unsupported keys first
+        };
+        if actual.as_deref() != Some(expected.as_str()) {
+            return Err(Data360RowRejection::QueryFilterMismatch(name.clone()));
+        }
     }
 
     // Length-prefix every key component to avoid delimiter-collision identities.
@@ -470,6 +546,7 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
             || page.query.indicator_id != first.query.indicator_id
             || page.query.period_start != first.query.period_start
             || page.query.period_end != first.query.period_end
+            || page.query.filters != first.query.filters
             || page.query.requested_top != first.query.requested_top
         {
             status = Data360SnapshotStatus::QueryMismatch;
@@ -581,6 +658,7 @@ mod tests {
                 indicator_id: "SYNTHETIC_INFECDB_DGE".to_string(),
                 period_start: 1990,
                 period_end: 1992,
+                filters: BTreeMap::new(),
                 requested_skip: skip,
                 requested_top: top,
             },
@@ -881,6 +959,59 @@ mod tests {
         assert_eq!(
             assess_data360_snapshot(&[first]).status,
             Data360SnapshotStatus::RowsRejected
+        );
+    }
+
+    #[test]
+    fn declared_dimension_filter_is_checked_against_each_row() {
+        let mut query = context(0, 10, "dimension-filter").clone();
+        query.query.filters.insert("REF_AREA".to_string(), "ZAF".to_string());
+        let page = parse_data360_page(
+            &response(
+                vec![row("ZAF", "1990", Some("1")), row("AAA", "1990", Some("2"))],
+                2,
+            ),
+            &query,
+        )
+        .unwrap();
+        assert_eq!(page.records.len(), 1);
+        assert_eq!(page.records[0].reference_area, "ZAF");
+        assert_eq!(page.rejected_rows.len(), 1);
+        assert_eq!(
+            page.rejected_rows[0].reason,
+            Data360RowRejection::QueryFilterMismatch("REF_AREA".to_string())
+        );
+    }
+
+    #[test]
+    fn unsupported_query_filter_fails_closed() {
+        let mut query = context(0, 10, "unknown-filter");
+        query.query.filters.insert("COUNTRY_NAME".to_string(), "South Africa".to_string());
+        assert!(matches!(
+            parse_data360_page(&response(vec![], 0), &query),
+            Err(Data360PageError::InvalidContext(_))
+        ));
+    }
+
+    #[test]
+    fn differing_dimension_filters_cannot_form_one_complete_collection() {
+        let mut first_context = context(0, 1, "filter-page-0");
+        first_context.query.filters.insert("REF_AREA".to_string(), "AAA".to_string());
+        let first = parse_data360_page(
+            &response(vec![row("AAA", "1990", Some("1"))], 2),
+            &first_context,
+        ).unwrap();
+
+        let mut second_context = context(1, 1, "filter-page-1");
+        second_context.query.filters.insert("REF_AREA".to_string(), "BBB".to_string());
+        let second = parse_data360_page(
+            &response(vec![row("BBB", "1991", Some("2"))], 2),
+            &second_context,
+        ).unwrap();
+
+        assert_eq!(
+            assess_data360_snapshot(&[first, second]).status,
+            Data360SnapshotStatus::QueryMismatch
         );
     }
 
