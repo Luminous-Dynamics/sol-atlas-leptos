@@ -13,7 +13,7 @@ class SourceRegistryVerifierTests(unittest.TestCase):
         self.source = copy.deepcopy(verifier.read_source())
 
     def test_checked_in_record_passes_contract(self) -> None:
-        self.assertEqual(verifier.validate(self.source), 15)
+        self.assertEqual(verifier.validate(self.source), 16)
 
     def test_boolean_cannot_masquerade_as_integer_schema_version(self) -> None:
         self.source["schema_version"] = True
@@ -62,6 +62,21 @@ class SourceRegistryVerifierTests(unittest.TestCase):
     def test_non_text_license_evidence_id_fails_as_contract_error(self) -> None:
         self.source["license_evidence_matrix"][0]["evidence_id"] = ["bad", "shape"]
         with self.assertRaisesRegex(verifier.ContractError, "evidence_id must be non-empty text"):
+            verifier.validate(self.source)
+
+    def test_data360_period_is_distinct_from_current_official_brief(self) -> None:
+        self.source["edition_history_evidence"]["source_period_end"] = 2020
+        with self.assertRaisesRegex(verifier.ContractError, "Data360 edition source_period_end must remain integer 2018"):
+            verifier.validate(self.source)
+
+    def test_data360_measure_count_must_remain_twelve(self) -> None:
+        self.source["edition_history_evidence"]["measure_count_claimed"] = 11
+        with self.assertRaisesRegex(verifier.ContractError, "Data360 edition measure_count_claimed must remain integer 12"):
+            verifier.validate(self.source)
+
+    def test_data360_metadata_does_not_claim_data_bytes_or_observations(self) -> None:
+        self.source["edition_history_evidence"]["data_observations_captured"] = True
+        with self.assertRaisesRegex(verifier.ContractError, "do not overstate Data360 metadata or observation acquisition"):
             verifier.validate(self.source)
 
 
