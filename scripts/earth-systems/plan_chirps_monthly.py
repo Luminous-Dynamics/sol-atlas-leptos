@@ -15,7 +15,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 INDEX_URL = (
     "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/"
@@ -30,6 +30,16 @@ FILENAME_RE = re.compile(r"^chirps-v3\.0\.(\d{4})\.(\d{2})\.tif$")
 
 class IndexError(ValueError):
     """Raised when the remote index cannot be interpreted safely."""
+
+
+class SameOriginRedirectHandler(HTTPRedirectHandler):
+    """Reject directory-index redirects to any other URL or path."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        target = urlsplit(newurl)
+        if target.scheme != "https" or target.netloc != INDEX_HOST or target.path != INDEX_PATH:
+            raise IndexError("directory index attempted to redirect outside the approved HTTPS path")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 class MonthlyIndexParser(html.parser.HTMLParser):
@@ -117,13 +127,10 @@ def read_index(index_file: Path | None, timeout_seconds: float) -> tuple[bytes, 
         method="GET",
     )
     try:
-        with urlopen(request, timeout=timeout_seconds) as response:
+        opener = build_opener(SameOriginRedirectHandler())
+        with opener.open(request, timeout=timeout_seconds) as response:
             final = urlsplit(response.geturl())
-            if (
-                final.scheme != "https"
-                or final.netloc != INDEX_HOST
-                or not final.path.startswith(INDEX_PATH)
-            ):
+            if final.scheme != "https" or final.netloc != INDEX_HOST or final.path != INDEX_PATH:
                 raise IndexError("directory index redirected outside the approved HTTPS path")
             content_type = response.headers.get("Content-Type", "").lower()
             if "text/html" not in content_type and "application/xhtml+xml" not in content_type:
