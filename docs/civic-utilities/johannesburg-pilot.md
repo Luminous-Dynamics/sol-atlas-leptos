@@ -37,7 +37,7 @@ The Rust observation contract in `sol-atlas-core/src/utility_telemetry.rs` expli
 
 ### Avoid duplicated satellite providers
 
-The canonical provider-specific STAC discovery implementation belongs in **Mycelix Earth**, where the existing evidence model and `EarthProvider` interface already live. [Draft PR #3776](https://github.com/Luminous-Dynamics/luminous-dynamics/pull/3776) adds bounded read-only catalogue search for Sentinel-2 Level-2A and Landsat 8 Collection 2 Level-2, plus explicit synthetic-fixture labeling. Its scene search has not yet been exercised against a live catalogue, and raster download/QA/index processing remains incomplete.
+The canonical provider-specific STAC discovery implementation belongs in **Mycelix Earth**, where the existing evidence model and `EarthProvider` interface already live. [Draft PR #3776](https://github.com/Luminous-Dynamics/luminous-dynamics/pull/3776) adds bounded read-only catalogue search for Sentinel-2 Level-2A and Landsat 8 Collection 2 Level-2, plus explicit synthetic-fixture labeling. Its scene search has not yet been exercised against a live catalogue; the exact-head `test-stac` CI run failed, and its job logs were unavailable through the current integration, so the cause remains unknown. Raster download/QA/index processing remains incomplete. Do not treat this provider as passing validation until the failure is triaged and the exact current head passes.
 
 Sol-Atlas should not maintain a competing STAC parser. This PR instead keeps the responsibilities distinct:
 - `sol-atlas-core/src/gibs.rs` provides configured NASA GIBS visualization tile URL construction, now wired into the core crate with validated XYZ coordinates in `tiles.rs`.
