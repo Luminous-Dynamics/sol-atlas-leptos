@@ -1,6 +1,7 @@
 import json
 import sys
 import tempfile
+import hashlib
 import unittest
 from pathlib import Path
 from urllib.request import Request
@@ -12,19 +13,6 @@ from inspect_wapor_catalog import (
     SameOriginRedirectHandler, WaporCatalogError, paginate, save_snapshots,
     validate_api_url, validate_mapset_code,
 )
-
-
-def response(items, links=None):
-    return json.dumps({"response": {"items": items, "links": links or []}}).encode("utf-8")
-
-
-class FakeResponse:
-    def __init__(self, document, raw=None, url=None):
-        self.document = document
-        self.raw = raw if raw is not None else json.dumps(document).encode()
-        self.url = url or MAPSETS_URL
-    def geturl(self):
-        return self.url
 
 
 class WaporCatalogTests(unittest.TestCase):
@@ -72,7 +60,7 @@ class WaporCatalogTests(unittest.TestCase):
         def fetch(url, timeout):
             doc = docs[url]
             return doc, json.dumps(doc).encode(), url
-        records, pages, _ = paginate_with_fetch(MAPSETS_URL, 10, fetch)
+        records, pages, _ = paginate(MAPSETS_URL, 10, fetcher=fetch)
         self.assertEqual([x["code"] for x in records], ["A", "B"])
         self.assertEqual(len(pages), 2)
 
@@ -81,7 +69,7 @@ class WaporCatalogTests(unittest.TestCase):
             doc = {"response": {"items": [], "links": [{"rel": "next", "href": url}]}}
             return doc, json.dumps(doc).encode(), url
         with self.assertRaises(WaporCatalogError):
-            paginate_with_fetch(MAPSETS_URL, 10, fetch)
+            paginate(MAPSETS_URL, 10, fetcher=fetch)
 
     def test_paginate_rejects_multiple_next_links(self):
         def fetch(url, timeout):
@@ -91,7 +79,7 @@ class WaporCatalogTests(unittest.TestCase):
             ]}}
             return doc, json.dumps(doc).encode(), url
         with self.assertRaises(WaporCatalogError):
-            paginate_with_fetch(MAPSETS_URL, 10, fetch)
+            paginate(MAPSETS_URL, 10, fetcher=fetch)
 
     def test_paginate_rejects_external_next_link(self):
         def fetch(url, timeout):
@@ -100,7 +88,7 @@ class WaporCatalogTests(unittest.TestCase):
             ]}}
             return doc, json.dumps(doc).encode(), url
         with self.assertRaises(WaporCatalogError):
-            paginate_with_fetch(MAPSETS_URL, 10, fetch)
+            paginate(MAPSETS_URL, 10, fetcher=fetch)
 
     def test_pagination_requires_response_items_objects(self):
         for items in ("bad", [3], None):
@@ -108,11 +96,11 @@ class WaporCatalogTests(unittest.TestCase):
                 def fetch(url, timeout):
                     return {"response": {"items": items, "links": []}}, b"{}", url
                 with self.assertRaises(WaporCatalogError):
-                    paginate_with_fetch(MAPSETS_URL, 10, fetch)
+                    paginate(MAPSETS_URL, 10, fetcher=fetch)
 
     def test_snapshot_files_preserve_exact_raw_bytes_and_never_overwrite(self):
         raw = b'{"response":{"items":[],"links":[]}}'
-        pages = [{"response_sha256": __import__("hashlib").sha256(raw).hexdigest()}]
+        pages = [{"response_sha256": hashlib.sha256(raw).hexdigest()}]
         with tempfile.TemporaryDirectory() as tmp:
             parent = Path(tmp)
             target = parent / "wapor-catalog-snapshot"
