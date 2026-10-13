@@ -494,6 +494,37 @@ mod tests {
     }
 
     #[test]
+    fn recorded_digest_requires_valid_sha256_syntax() {
+        let mut value: serde_json::Value =
+            serde_json::from_str(FIXTURE).expect("fixture JSON is valid");
+        value["source_record_kind"] = serde_json::json!("dataset_artifact");
+        value["artifact_capture"] = serde_json::json!("digest_recorded");
+        value["artifact_sha256"] = serde_json::json!("not-a-digest");
+        let result = parse_snapshot_v1(&value.to_string());
+        assert!(matches!(
+            result,
+            Err(SnapshotParseError::InvalidSnapshot(ref issues))
+                if issues.contains(&SnapshotValidationIssue::ArtifactDigestMissingOrMalformed)
+        ));
+    }
+
+    #[test]
+    fn valid_digest_is_recorded_without_claiming_verification() {
+        let mut value: serde_json::Value =
+            serde_json::from_str(FIXTURE).expect("fixture JSON is valid");
+        value["source_record_kind"] = serde_json::json!("dataset_artifact");
+        value["artifact_capture"] = serde_json::json!("digest_recorded");
+        value["artifact_sha256"] =
+            serde_json::json!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        let snapshot = parse_snapshot_v1(&value.to_string()).expect("syntactic digest should validate");
+        assert_eq!(snapshot.artifact_capture(), ArtifactCapture::DigestRecorded);
+        assert_eq!(
+            snapshot.artifact_sha256(),
+            Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        );
+    }
+
+    #[test]
     fn invalid_date_is_rejected() {
         let mut value: serde_json::Value =
             serde_json::from_str(FIXTURE).expect("fixture JSON is valid");
