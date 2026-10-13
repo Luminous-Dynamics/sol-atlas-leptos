@@ -28,7 +28,7 @@ class WaporCatalogTests(unittest.TestCase):
             API_ORIGIN + API_PREFIX + "%2e%2e/private",
             API_ORIGIN + API_PREFIX + "%252e%252e/private",
             API_ORIGIN + API_PREFIX + "mapsets%2f..%2fprivate",
-            API_ORIGIN + API_PREFIX + "mapsets\..\private",
+            API_ORIGIN + API_PREFIX + r"mapsets\..\private",
             API_ORIGIN + API_PREFIX + "mapsets/%2e%2e/../../private",
             API_ORIGIN + API_PREFIX + "mapsets\\\\..\\\\private",
         ):
