@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "registry_id": "sol-atlas-economic-source-registry",
-  "registry_version": "world-bank-informal-economy-database/v7",
+  "registry_version": "world-bank-informal-economy-database/v8",
   "record_kind": "source_qualification_candidate",
   "status": "metadata_only_not_approved_for_data_ingestion_or_redistribution",
   "source_id": "world_bank_informal_economy_database",
@@ -107,10 +107,11 @@
     "distinguish parent-package embargo from the access policy for the separately linked official Excel dataset",
     "preserve the distinction between a catalogue's embargoed reproduction ZIP and its separately linked original dataset asset",
     "capture an HTTP response, workbook byte length and SHA-256 before claiming exact-asset verification",
-    "reconcile the Data360 WB_INFECDB metadata claim of 12 measures over 1990–2018 against the official brief claim of 11 measures over 1990–2020 and the exact workbook edition"
+    "reconcile the Data360 WB_INFECDB metadata claim of 12 measures over 1990–2018 against the official brief claim of 11 measures over 1990–2020 and the exact workbook edition",
+    "qualify the World Bank Data360 API response and indicator-level terms: capture immutable paginated responses, counts, indicator IDs, digests, and any third-party reuse restrictions before importing observations"
   ],
   "interpretation_ceiling": "Historical cross-country context only after the workbook variables, methods, coverage and terms have been independently qualified; not a current-year estimate, not a complete global shadow-economy total, and not evidence of illegal activity.",
-  "supersedes_registry_version": "world-bank-informal-economy-database/v6",
+  "supersedes_registry_version": "world-bank-informal-economy-database/v7",
   "official_asset": {
     "label": "Informal economy data (Excel)",
     "format": "xlsx",
@@ -333,5 +334,70 @@
     "data_observations_captured": false,
     "interpretation": "This is an alternate World Bank Data360 metadata record and a catalogue-level indicator count. Its reported 1990–2018 period and 12 measures differ from the 2024 official brief's 1990–2020 period and 11 measures. The record's version date is not established by the retrieved metadata excerpt. Treat the mismatch as an edition/metadata discrepancy; do not infer which record matches the currently linked Excel workbook until its bytes, digest, sheets and indicator inventory are inspected.",
     "access_note": "The published Data360 API documentation was reviewed, but its data endpoint was not successfully queried in this review. The metadata PDF and workbook bytes were not captured locally. No observations, digest, or current workbook inventory are claimed."
+  },
+  "data360_api_review": {
+    "evidence_id": "world_bank_data360_open_api_v1",
+    "api_root": "https://data360api.worldbank.org",
+    "api_spec_url": "https://raw.githubusercontent.com/worldbank/open-api-specs/refs/heads/main/Data360%20Open_API.json",
+    "official_api_documentation_url": "https://data360.worldbank.org/en/api",
+    "official_terms_url": "https://data360.worldbank.org/en/about",
+    "reviewed_on": "2026-10-13",
+    "documented_routes": {
+      "list_indicator_ids": {
+        "method": "GET",
+        "path": "/data360/indicators",
+        "dataset_query_parameter": "datasetId",
+        "purpose": "List indicator IDs for a dataset; use to discover published series before requesting observations"
+      },
+      "retrieve_observations": {
+        "method": "GET",
+        "path": "/data360/data",
+        "dataset_query_parameter": "DATABASE_ID",
+        "indicator_query_parameter": "INDICATOR",
+        "period_query_parameters": [
+          "timePeriodFrom",
+          "timePeriodTo",
+          "TIME_PERIOD"
+        ],
+        "pagination_parameter": "skip",
+        "documented_max_records_per_response": 1000
+      },
+      "retrieve_metadata": {
+        "method": "POST",
+        "path": "/data360/metadata",
+        "request_body_field": "query",
+        "query_language": "OData-like filter/select expression as documented by the OpenAPI specification"
+      }
+    },
+    "probe": {
+      "attempted_on": "2026-10-13",
+      "route_probe_result": "web_reader_refused_direct_api_url",
+      "attempted_indicator_url": "https://data360api.worldbank.org/data360/indicators?datasetId=WB_INFECDB",
+      "http_status": null,
+      "response_bytes_captured": false,
+      "indicator_ids_captured": false,
+      "data_observations_captured": false,
+      "digest": null,
+      "interpretation": "The direct API URL could not be opened by the web retrieval tool. This is not an observed API HTTP response and does not establish that the World Bank endpoint is unavailable. Use a normal HTTP client in the repository or a network-enabled environment to probe the official documented endpoint, capture status/headers/body, and record a digest."
+    },
+    "terms_review": {
+      "default_label": "Creative Commons Attribution 4.0 International License (CC BY 4.0), unless specifically labelled otherwise",
+      "third_party_exception_disclosed": true,
+      "specific_indicator_terms_must_be_checked": true,
+      "official_terms_summary": "Data360 terms say datasets are generally CC BY 4.0 unless specifically labelled otherwise, and that some third-party datasets or indicators can have different conditions or require provider consent. Terms applicable to Data360 do not by themselves resolve rights for the separately linked official Excel workbook or every Data360 indicator.",
+      "data360_api_or_metadata_ingestion_approved": false,
+      "derived_data_redistribution_approved": false
+    },
+    "acquisition_protocol": [
+      "Query GET /data360/indicators?datasetId=WB_INFECDB and preserve the exact URL, request time, HTTP status, relevant response headers, raw response bytes, and SHA-256 before parsing.",
+      "Validate the returned indicator list and compare it with the twelve-indicator metadata description and the competing 2024 official brief before requesting values.",
+      "Request each discovered indicator separately using GET /data360/data with DATABASE_ID=WB_INFECDB and a bounded period filter; do not assume undocumented indicator codes.",
+      "Follow the documented skip pagination parameter and verify the source count, returned row count, uniqueness, and page boundaries; the OpenAPI documentation states a maximum of 1000 records per response.",
+      "Persist each immutable page response and manifest, then calculate a combined dataset digest over a documented manifest rather than concatenating pages without provenance.",
+      "Preserve each observation's indicator ID, source period, reference area, value, unit, missing/status flags, and all dimensions; do not convert nulls to zero.",
+      "Inspect indicator-level licensing/attribution and third-party exceptions before approving reuse or redistribution; keep Data360 observations distinct from the uninspected Excel workbook.",
+      "Reconcile the resulting country/period/indicator inventory against the workbook only after the exact workbook bytes and terms have been captured."
+    ],
+    "qualification_status": "documented_acquisition_route_not_execution_verified"
   }
 }
