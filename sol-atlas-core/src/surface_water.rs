@@ -190,7 +190,7 @@ fn calculate_index(pixel: ReflectancePixel, index: WaterIndex) -> Option<f64> {
         return None;
     }
     let index_value = numerator / denominator;
-    index_value.is_finite().then_some(index_value)
+    (index_value.is_finite() && (-1.0..=1.0).contains(&index_value)).then_some(index_value)
 }
 
 #[cfg(test)]
@@ -256,6 +256,14 @@ mod tests {
         assert_eq!(estimate.invalid_index_pixel_count, 1);
         assert_eq!(estimate.water_area_m2, None);
         assert_eq!(estimate.valid_area_fraction, 0.0);
+    }
+
+    #[test]
+    fn out_of_range_normalized_index_is_invalid_not_water() {
+        let pixels = [pixel(0.8, -0.2, Some(0.1), 100.0, PixelQuality::Clear)];
+        let estimate = estimate_surface_water(&pixels, config(WaterIndex::Ndwi)).unwrap();
+        assert_eq!(estimate.invalid_index_pixel_count, 1);
+        assert_eq!(estimate.water_area_m2, None);
     }
 
     #[test]
