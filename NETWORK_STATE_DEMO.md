@@ -47,7 +47,7 @@ The key teaching point is that **accounting consistency and policy success are d
 - **Scenario data:** all input profiles and the vote fixture.
 - **Model:** deterministic Rust interval accounting.
 - **Verifier:** separate function in the same Rust crate, not an independent process or organization. It does not authenticate the fixture's source or prove that any physical meter reported these values.
-- **Governance:** illustrative worksheet, not an authenticated vote and not a Holochain transaction.
+- **Governance:** pre-seeded illustrative tally only. The page accepts no ballots, persists no vote, and does not create a Holochain transaction.
 - **Authority:** no physical actuator, inverter, breaker, payment or market integration exists in this demo.
 - **Economics:** no cost, tariff, finance, ROI, or optimal sizing conclusion is claimed.
 
@@ -69,10 +69,10 @@ The command above runs the focused core tests; also run the repository's require
 ## Proposed Network State walkthrough
 
 1. Open the energy scenario and point out that every input is marked synthetic.
-2. Select the baseline and show that accounting passes but the hard critical-load constraint fails.
-3. Select the larger sensitivity candidate and compare unserved critical versus noncritical demand; explain that the candidate is not cost-optimized.
+2. Select the baseline and show that accounting passes but the critical-load check fails under the declared critical-first allocation assumption.
+3. Select the larger sensitivity candidate and compare unserved critical versus noncritical demand; call out both the critical-first allocation assumption and the higher precharged starting SOC (16 kWh versus 3 kWh), then explain that the candidate is not cost-optimized.
 4. Inspect the interval rows across outage periods and ask attendees to identify which assumptions they would challenge.
-5. Show the illustrative vote including the dissenting member, then explicitly state that it is not yet an actual Mycelix governance transaction.
+5. Show the pre-seeded example tally including dissent; state that this page accepts no ballots, persists no vote, and does not send a transaction to Mycelix/Holochain.
 6. Ask which evidence, privacy and appeal safeguards the community would require before deploying this workflow with real members and real meters.
 
 ## Acceptance gates before calling it a qualified demo
