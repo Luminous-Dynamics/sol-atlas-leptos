@@ -528,13 +528,14 @@ pub struct GovernanceVoteFixture {
 }
 
 impl GovernanceVoteFixture {
+    /// Deliberately demo-only thresholds; these are not a Mycelix policy snapshot.
     pub const NETWORK_STATE_DEMO: Self = Self {
         eligible_members: 5,
         yes: 4,
         no: 1,
         abstain: 0,
-        quorum_percent: 25,
-        approval_percent: 60,
+        quorum_percent: 60,
+        approval_percent: 75,
     };
 
     pub fn cast_ballots(self) -> u8 {
@@ -670,6 +671,8 @@ mod tests {
         let vote = GovernanceVoteFixture::NETWORK_STATE_DEMO;
         assert_eq!(vote.yes, 4);
         assert_eq!(vote.no, 1);
+        assert_eq!(vote.quorum_percent, 60);
+        assert_eq!(vote.approval_percent, 75);
         assert!(vote.passed());
         assert_eq!(vote.approval_rate_percent(), 80);
     }
