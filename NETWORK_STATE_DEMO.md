@@ -17,8 +17,8 @@ This is a deliberately bounded entry point for a Network State audience: a resou
 - Two explicitly defined battery configurations: a baseline and an oversized resilience sensitivity candidate.
 - Deterministic interval accounting for renewable-to-load, charge/discharge, grid import/export, curtailed generation, unserved load, and battery state of charge.
 - A critical-first accounting split that reports critical and noncritical served/unserved energy separately.
-- A separate verifier function that recomputes interval balances and aggregate totals from the candidate's rows without calling the simulation function again.
-- Negative tests for forged aggregate totals, an import recorded during an outage, battery power-limit violations, and the frozen scenario's expected trade-off.
+- A separate verifier function that recomputes interval balances and aggregate totals without calling the simulator, and checks the declared dispatch behavior: battery-first deficit supply, surplus-first charging, full residual grid supply when available, and outage curtailment/unserved load.
+- Negative tests for forged aggregate totals, an import recorded during an outage, battery power-limit violations, unserved load while the grid is available (even if energy totals are rebalanced), tampered frozen inputs/configuration, malformed governance tallies, and the frozen scenario's expected trade-off.
 - A pre-seeded tally worksheet with 4 yes / 1 no / 0 abstain, demo-only 60% quorum and 75% approval thresholds, and visible dissent. It accepts no ballots and persists no vote. The [Mycelix Governance README](https://github.com/Luminous-Dynamics/mycelix/blob/main/mycelix-governance/README.md) lists 25% / 60% Standard proposal thresholds and MATL/stake/participation weighting, but [Mycelix issue #851](https://github.com/Luminous-Dynamics/mycelix/issues/851) records that executable voting paths diverge and the README is not an authority source. Neither the README nor this worksheet should be read as the authoritative current policy. The fixture arithmetic also fails closed on over-counted ballots, zero eligible population, or thresholds outside 0–100%, rather than allowing saturating integer arithmetic to produce an apparent pass.
 
 ## Frozen scenario result
@@ -81,7 +81,7 @@ The command above runs the focused core tests; also run the repository's require
 - Root Rust format, native and WASM/browser build checks pass at the same exact commit.
 - The browser route loads directly and at narrow/mobile widths.
 - Both cases render the known-answer results above.
-- Tampering with totals, outage grid flows or battery limits is rejected by the verifier.
+- Tampering with totals, outage grid flows, battery limits, or dispatch behavior (such as unserved load while the grid is available) is rejected by the verifier.
 - Evidence labels are visible without opening developer tools.
 - The critical-first allocation assumption and absence of physical priority-control modelling remain visible.
 - Malformed tally data (ballots exceeding the eligible population or thresholds above 100%) fails closed.
