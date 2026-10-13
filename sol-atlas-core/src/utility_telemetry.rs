@@ -282,6 +282,8 @@ pub enum QualityFlag {
     DuplicateSuspected,
     MissingBaseline,
     OperatorReviewed,
+    /// The derived spatial quantity only covers valid pixels, not the full study area.
+    PartialSpatialCoverage,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -373,6 +375,7 @@ pub enum ObservationValidationError {
     MissingDerivationVersion,
     MissingDerivationParameters,
     MissingModelDerivedFlag,
+    PartialCoverageFlagMismatch,
 }
 
 impl UtilityObservation {
@@ -497,6 +500,23 @@ impl UtilityObservation {
             if !self.quality.flags.contains(&QualityFlag::ModelDerived) {
                 errors.push(E::MissingModelDerivedFlag);
             }
+        }
+
+        // A partial-coverage claim must be visible in both the structured
+        // processing record and the quality flags. Neither side alone is enough.
+        let partial_coverage_flag = self
+            .quality
+            .flags
+            .contains(&QualityFlag::PartialSpatialCoverage);
+        let partial_coverage_parameter = self
+            .provenance
+            .processing_parameters
+            .as_ref()
+            .and_then(|parameters| parameters.get("partial_spatial_coverage"))
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        if partial_coverage_flag != partial_coverage_parameter {
+            errors.push(E::PartialCoverageFlagMismatch);
         }
 
         if errors.is_empty() { Ok(()) } else { Err(errors) }
@@ -721,6 +741,35 @@ mod tests {
                 ObservationValidationError::MissingDerivationParameters
             ));
         }
+    }
+
+    #[test]
+    fn partial_spatial_coverage_requires_matching_flag_and_provenance() {
+        let mut observation = valid_pressure_observation();
+        observation.source = ObservationSource::DerivedEstimate;
+        observation.provenance.upstream_observation_ids = vec!["upstream-1".into()];
+        observation.provenance.source_version = Some("model-v1".into());
+        observation.provenance.processing_parameters =
+            Some(serde_json::json!({"method": "fixture", "partial_spatial_coverage": true}));
+        observation.quality.flags = vec![QualityFlag::ModelDerived];
+
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::PartialCoverageFlagMismatch
+        ));
+
+        observation
+            .quality
+            .flags
+            .push(QualityFlag::PartialSpatialCoverage);
+        assert!(observation.validate().is_ok());
+
+        observation.provenance.processing_parameters =
+            Some(serde_json::json!({"method": "fixture", "partial_spatial_coverage": false}));
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::PartialCoverageFlagMismatch
+        ));
     }
 
     #[test]

@@ -97,7 +97,8 @@ pub struct SurfaceWaterEstimate {
     pub total_area_m2: f64,
     pub valid_area_m2: f64,
     pub masked_or_invalid_area_m2: f64,
-    /// None when valid clear-pixel coverage is below the configured minimum.
+    /// Classified water area within valid pixels only. Masked or invalid regions
+    /// are never extrapolated; None when valid coverage is below the configured minimum.
     pub water_area_m2: Option<f64>,
     pub valid_area_fraction: f64,
 }
@@ -220,6 +221,12 @@ impl SurfaceWaterEstimate {
             return Err(SurfaceWaterError::MissingProcessingVersion);
         }
 
+        let partial_spatial_coverage = self.valid_pixel_count < self.total_pixel_count;
+        let mut quality_flags = vec![QualityFlag::ModelDerived];
+        if partial_spatial_coverage {
+            quality_flags.push(QualityFlag::PartialSpatialCoverage);
+        }
+
         let observation = UtilityObservation {
             schema_version: 1,
             observation_id: context.observation_id,
@@ -245,6 +252,9 @@ impl SurfaceWaterEstimate {
                         WaterIndex::Ndwi => "ndwi",
                         WaterIndex::Mndwi => "mndwi",
                     },
+                    "area_reporting_policy": "valid_pixels_only_no_extrapolation",
+                    "partial_spatial_coverage": partial_spatial_coverage,
+                    "complete_study_area_coverage": !partial_spatial_coverage,
                     "threshold": self.threshold,
                     "minimum_valid_area_fraction": self.minimum_valid_area_fraction,
                     "valid_area_fraction": self.valid_area_fraction,
@@ -258,7 +268,7 @@ impl SurfaceWaterEstimate {
             quality: ObservationQuality {
                 confidence: None,
                 uncertainty: None,
-                flags: vec![QualityFlag::ModelDerived],
+                flags: quality_flags,
             },
             location: context.location,
         };
@@ -406,6 +416,10 @@ mod tests {
         assert_eq!(observation.validate(), Ok(()));
         assert_eq!(observation.metric, MetricKind::SurfaceWaterExtent);
         assert_eq!(observation.source, ObservationSource::DerivedEstimate);
+        assert!(!observation
+            .quality
+            .flags
+            .contains(&QualityFlag::PartialSpatialCoverage));
         assert_eq!(
             observation.provenance.upstream_observation_ids,
             vec!["sentinel-scene-001"]
@@ -425,6 +439,47 @@ mod tests {
         assert_eq!(parameters["valid_area_fraction"], 1.0);
         assert_eq!(parameters["water_pixel_count"], 1);
         assert_eq!(observation.observed_at_unix_ms, 1_000);
+    }
+
+    #[test]
+    fn partial_coverage_is_flagged_and_never_extrapolated_to_the_full_area() {
+        let pixels = [
+            pixel(0.3, 0.1, Some(0.05), 100.0, PixelQuality::Clear),
+            pixel(0.5, 0.1, Some(0.03), 300.0, PixelQuality::Cloud),
+        ];
+        let mut cfg = config(WaterIndex::Ndwi);
+        cfg.minimum_valid_area_fraction = 0.25;
+
+        let estimate = estimate_surface_water(&pixels, cfg).unwrap();
+        assert_eq!(estimate.total_area_m2, 400.0);
+        assert_eq!(estimate.valid_area_m2, 100.0);
+        assert_eq!(estimate.valid_area_fraction, 0.25);
+        // The masked 300 m² is unknown, not assumed dry and not imputed as water.
+        assert_eq!(estimate.water_area_m2, Some(100.0));
+
+        let observation = estimate
+            .to_utility_observation(observation_context())
+            .unwrap();
+        assert!(observation
+            .quality
+            .flags
+            .contains(&QualityFlag::PartialSpatialCoverage));
+        let parameters = observation
+            .provenance
+            .processing_parameters
+            .as_ref()
+            .expect("processing semantics must be retained");
+        assert_eq!(parameters["area_reporting_policy"], "valid_pixels_only_no_extrapolation");
+        assert_eq!(parameters["partial_spatial_coverage"], true);
+        assert_eq!(parameters["complete_study_area_coverage"], false);
+        assert_eq!(
+            observation.value,
+            ObservationValue::Numeric {
+                value: 100.0,
+                unit: crate::utility_telemetry::MeasurementUnit::SquareMetre
+            }
+        );
+        assert!(observation.validate().is_ok());
     }
 
     #[test]
