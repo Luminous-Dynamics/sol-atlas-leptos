@@ -89,7 +89,7 @@ def fetch_json(url: str, timeout_seconds: float) -> tuple[dict, bytes, str]:
     return document, raw, final_url
 
 
-def paginate(endpoint: str, timeout_seconds: float) -> tuple[list[dict], list[dict], list[bytes]]:
+def paginate(endpoint: str, timeout_seconds: float, fetcher=fetch_json) -> tuple[list[dict], list[dict], list[bytes]]:
     records: list[dict] = []
     page_metadata: list[dict] = []
     page_bytes: list[bytes] = []
@@ -104,7 +104,7 @@ def paginate(endpoint: str, timeout_seconds: float) -> tuple[list[dict], list[di
             raise WaporCatalogError("pagination loop detected")
         visited.add(next_url)
 
-        document, raw, final_url = fetch_json(next_url, timeout_seconds)
+        document, raw, final_url = fetcher(next_url, timeout_seconds)
         payload = document.get("response")
         if not isinstance(payload, dict):
             raise WaporCatalogError("API response is missing object field 'response'")
