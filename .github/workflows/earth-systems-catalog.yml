@@ -24,6 +24,7 @@ on:
       - "tests/test_earth_systems_catalog.py"
       - "tests/test_water_food_pilot.py"
       - "tests/test_chirps_monthly_plan.py"
+      - "tests/test_wapor_catalog_inventory.py"
       - ".github/workflows/earth-systems-catalog.yml"
 
 permissions:
