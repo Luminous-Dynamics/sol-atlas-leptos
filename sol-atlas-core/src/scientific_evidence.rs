@@ -168,6 +168,8 @@ pub struct ScientificDatasetRecordRefV1 {
     mycelix_artifact_snapshot_ref: Option<String>,
     mycelix_selector_ref: Option<String>,
     symthaea_analysis_ref: Option<String>,
+    binding_state: ScientificRecordBindingStateV1,
+    authority_scope: String,
 }
 
 impl ScientificDatasetRecordRefV1 {
@@ -186,16 +188,12 @@ impl ScientificDatasetRecordRefV1 {
         self.symthaea_analysis_ref.as_deref()
     }
     pub fn binding_state(&self) -> ScientificRecordBindingStateV1 {
-        if self.mycelix_artifact_snapshot_ref.is_some() {
-            ScientificRecordBindingStateV1::CanonicalEvidenceRefsPresent
-        } else {
-            ScientificRecordBindingStateV1::LocatorOnly
-        }
+        self.binding_state
     }
-    /// Fixed claim ceiling for this Sol-Atlas adapter. External references
-    /// cannot upgrade this value; canonical admission lives upstream.
-    pub fn authority_scope(&self) -> &'static str {
-        "sol_atlas_projection_only"
+    /// Fixed claim ceiling serialized with every record binding. External
+    /// references cannot upgrade this value; canonical admission lives upstream.
+    pub fn authority_scope(&self) -> &str {
+        &self.authority_scope
     }
 }
 
@@ -234,6 +232,8 @@ pub enum ScientificRecordRefValidationIssueV1 {
     InvalidMycelixSelectorRef,
     MycelixArtifactSelectorPairMismatch,
     InvalidSymthaeaAnalysisRef,
+    BindingStateMismatch,
+    AuthorityScopeMismatch,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -247,6 +247,8 @@ struct RawScientificDatasetRecordRefV1 {
     mycelix_artifact_snapshot_ref: Option<String>,
     mycelix_selector_ref: Option<String>,
     symthaea_analysis_ref: Option<String>,
+    binding_state: ScientificRecordBindingStateV1,
+    authority_scope: String,
 }
 
 /// Parse and validate a record reference against a previously validated source
@@ -311,6 +313,20 @@ fn validate_record_ref_raw(
         issues.push(ScientificRecordRefValidationIssueV1::InvalidSymthaeaAnalysisRef);
     }
 
+    let expected_binding_state = match (
+        raw.mycelix_artifact_snapshot_ref.is_some(),
+        raw.mycelix_selector_ref.is_some(),
+    ) {
+        (true, true) => ScientificRecordBindingStateV1::CanonicalEvidenceRefsPresent,
+        _ => ScientificRecordBindingStateV1::LocatorOnly,
+    };
+    if raw.binding_state != expected_binding_state {
+        issues.push(ScientificRecordRefValidationIssueV1::BindingStateMismatch);
+    }
+    if raw.authority_scope != "sol_atlas_projection_only" {
+        issues.push(ScientificRecordRefValidationIssueV1::AuthorityScopeMismatch);
+    }
+
     if !issues.is_empty() {
         return Err(ScientificRecordRefParseError::InvalidRecordRef(issues));
     }
@@ -324,6 +340,8 @@ fn validate_record_ref_raw(
         mycelix_artifact_snapshot_ref: raw.mycelix_artifact_snapshot_ref,
         mycelix_selector_ref: raw.mycelix_selector_ref,
         symthaea_analysis_ref: raw.symthaea_analysis_ref,
+        binding_state: expected_binding_state,
+        authority_scope: "sol_atlas_projection_only".to_string(),
     })
 }
 
@@ -585,7 +603,9 @@ mod tests {
             "record_locator_url": "https://example.org/records/provider-native-record-123",
             "mycelix_artifact_snapshot_ref": null,
             "mycelix_selector_ref": null,
-            "symthaea_analysis_ref": null
+            "symthaea_analysis_ref": null,
+            "binding_state": "locator_only",
+            "authority_scope": "sol_atlas_projection_only"
         })
     }
 
@@ -606,6 +626,7 @@ mod tests {
         value["mycelix_artifact_snapshot_ref"] = serde_json::json!("epi-artifact-ref:v1:opaque");
         value["mycelix_selector_ref"] = serde_json::json!("epi-selector-ref:v1:opaque");
         value["symthaea_analysis_ref"] = serde_json::json!("symthaea-analysis:run-42");
+        value["binding_state"] = serde_json::json!("canonical_evidence_refs_present");
         let record_ref = parse_record_ref_v1(&value.to_string(), &snapshot)
             .expect("opaque refs should be carried without claiming resolution");
         assert_eq!(
@@ -652,6 +673,32 @@ mod tests {
         assert!(matches!(
             parse_record_ref_v1(&value.to_string(), &snapshot),
             Err(ScientificRecordRefParseError::InvalidPayload(_))
+        ));
+    }
+
+    #[test]
+    fn record_ref_cannot_claim_canonical_binding_without_both_refs() {
+        let snapshot = parse_snapshot_v1(FIXTURE).expect("fixture should validate");
+        let mut value = record_ref_fixture(snapshot.snapshot_id());
+        value["binding_state"] = serde_json::json!("canonical_evidence_refs_present");
+        let result = parse_record_ref_v1(&value.to_string(), &snapshot);
+        assert!(matches!(
+            result,
+            Err(ScientificRecordRefParseError::InvalidRecordRef(ref issues))
+                if issues.contains(&ScientificRecordRefValidationIssueV1::BindingStateMismatch)
+        ));
+    }
+
+    #[test]
+    fn record_ref_cannot_upgrade_projection_authority_on_wire() {
+        let snapshot = parse_snapshot_v1(FIXTURE).expect("fixture should validate");
+        let mut value = record_ref_fixture(snapshot.snapshot_id());
+        value["authority_scope"] = serde_json::json!("clinical_authority");
+        let result = parse_record_ref_v1(&value.to_string(), &snapshot);
+        assert!(matches!(
+            result,
+            Err(ScientificRecordRefParseError::InvalidRecordRef(ref issues))
+                if issues.contains(&ScientificRecordRefValidationIssueV1::AuthorityScopeMismatch)
         ));
     }
 
