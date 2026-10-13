@@ -56,6 +56,18 @@ class WaterFoodPilotTests(unittest.TestCase):
         source["upstream_overlap"] = "Satellite-only source with no overlap."
         self.assertTrue(any("station overlap must be disclosed" in e for e in validate_pilot(doc)))
 
+    def test_validator_rejects_removed_gauge_correction_guidance(self):
+        doc = copy.deepcopy(self.pilot)
+        source = next(s for s in doc["sources"] if s["source_id"] == "CHIRPS3")
+        source["upstream_overlap"] = (
+            "CHIRPS blends satellite estimates with station observations. "
+            "Check station lineage and exclude contributing gauges from independent tests."
+        )
+        self.assertTrue(any(
+            "gauge-undercatch-correction recommendation" in error
+            for error in validate_pilot(doc)
+        ))
+
     def test_chirps_reference_comparison_preserves_gauge_correction_provenance(self):
         source = next(s for s in self.pilot["sources"] if s["source_id"] == "CHIRPS3")
         overlap = source["upstream_overlap"].lower()
