@@ -12,13 +12,14 @@ This fixture is a small source/metadata exercise, not a biomedical evidence set 
 
 ## Contract invariants
 
-- Parse untrusted JSON through `parse_snapshot_v1`; public snapshots are returned only after validation.
+- Parse untrusted JSON through `parse_snapshot_v1`; unknown schema fields are rejected and public snapshots are returned only after validation.
 - Keep source-record licensing separate from dataset licensing.
 - Preserve unknown and review-required licence states rather than silently upgrading them.
 - Preserve source publication/release date separately from the date metadata was retrieved.
 - A metadata-only record must not carry a dataset artifact digest.
 - A recorded digest is syntactically checked SHA-256 hex only. The module does not compute the digest from bytes, authenticate the publisher, or prove integrity.
 - Snapshot validation does not qualify a scientific proposition or clinical use.
+- `Known` licence status requires an identifier; `Unknown` and `ReviewRequired` prohibit one to prevent contradictory metadata.
 - URLs are limited to HTTPS syntax checks; this is not a full URL parser or network verification.
 
 ## Run
@@ -28,6 +29,8 @@ From the repository root:
     cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
     cargo test --manifest-path sol-atlas-core/Cargo.toml scientific_evidence
     cargo clippy --manifest-path sol-atlas-core/Cargo.toml -- -D warnings
+
+The schema currently has 13 focused unit tests. CI results, not the test count in this document, determine whether a build or test run passed.
 
 ## References
 
