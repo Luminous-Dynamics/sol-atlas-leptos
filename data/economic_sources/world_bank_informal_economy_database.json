@@ -49,7 +49,7 @@
       "series_count_if_all_listed_as_separate": 12,
       "conceptual_count_if_output_estimators_grouped": 11,
       "count_reconciliation_status": "unresolved_until_exact_workbook_inventory_and_edition_reconciliation",
-      "note": "The 2024 official brief taxonomy supports both a one-concept/two-estimator interpretation and a twelve-series interpretation. A separate World Bank Data360 WB_INFECDB metadata record describes a 1990–2018 period and twelve measures, while the brief describes 1990–2020 and eleven measures; the catalogue search also lists twelve indicators. This is material evidence of an edition or metadata discrepancy, not proof of the exact current workbook inventory. Downstream catalogues list DGE and MIMIC separately. Do not select a count interpretation or merge values across editions without inspecting the exact source asset."
+      "note": "The 2024 official brief taxonomy supports both a one-concept/two-estimator interpretation and a twelve-series interpretation. A separate World Bank Data360 WB_INFECDB metadata record describes a 1990–2018 period and twelve measures, while the brief describes 1990–2020 and eleven measures; the catalogue search also lists twelve indicators. This is material evidence of an edition or metadata discrepancy, not proof of the exact current workbook inventory. Downstream catalogues list DGE and MIMIC separately. The exact official workbook edition and its inventory remain unverified. Do not select an interpretation or merge values across editions until the exact asset and its sheets/indicator inventory have been inspected."
     }
   },
   "primary_methodology_citation": {
