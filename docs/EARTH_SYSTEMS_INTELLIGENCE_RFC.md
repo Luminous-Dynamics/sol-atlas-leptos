@@ -149,7 +149,7 @@ Catalog checks are structural safeguards only. They do not fetch datasets, adjud
 
 1. Land and maintain the catalog/schema/validator with CI.
 2. Continue PR #95 for mineral-specific ingestion and benchmark work; do not blend mineral labels into other domains.
-3. Use the [Baixo Limpopo water–food pilot](pilots/BAIXO_LIMPOPO_WATER_PRODUCTIVITY.md) and machine-readable profile to freeze the exact WaPOR/CHIRPS product artifacts, metadata and rights before analysis.
+3. Use [the WaPOR catalogue inventory](../scripts/earth-systems/inspect_wapor_catalog.py) and [CHIRPS monthly index planner](../scripts/earth-systems/plan_chirps_monthly.py) to snapshot public metadata first, then freeze the exact WaPOR layer and CHIRPS month window, artifact bytes, release metadata and rights before analysis. These tools do not download raster files.
 4. Build a small, reproducible baseline/coverage report before any advanced model.
 5. Test against independent ground observations and report limits; if the required local reference data cannot be obtained, keep the pilot at data-readiness status.
 6. Add Sol-Atlas presentation only after the output has a validated evidence packet.
