@@ -370,6 +370,8 @@ pub enum ObservationValidationError {
     MissingDerivationLineage,
     EmptyUpstreamObservationId,
     DuplicateUpstreamObservationId,
+    MissingDerivationVersion,
+    MissingDerivationParameters,
     MissingModelDerivedFlag,
 }
 
@@ -467,10 +469,28 @@ impl UtilityObservation {
                 }
             }
         }
-        if matches!(self.source, S::DerivedEstimate | S::SyntheticSimulation)
-            && !self.quality.flags.contains(&QualityFlag::ModelDerived)
-        {
-            errors.push(E::MissingModelDerivedFlag);
+        if matches!(self.source, S::DerivedEstimate | S::SyntheticSimulation) {
+            if self.provenance.source_version
+                .as_deref()
+                .is_none_or(|version| version.trim().is_empty())
+            {
+                errors.push(E::MissingDerivationVersion);
+            }
+            if self
+                .provenance
+                .processing_parameters
+                .as_ref()
+                .is_none_or(|parameters| {
+                    parameters
+                        .as_object()
+                        .is_none_or(|object| object.is_empty())
+                })
+            {
+                errors.push(E::MissingDerivationParameters);
+            }
+            if !self.quality.flags.contains(&QualityFlag::ModelDerived) {
+                errors.push(E::MissingModelDerivedFlag);
+            }
         }
 
         if errors.is_empty() { Ok(()) } else { Err(errors) }
@@ -646,6 +666,42 @@ mod tests {
         observation.source = ObservationSource::DerivedEstimate;
         assert!(has_error(&observation, ObservationValidationError::MissingDerivationLineage));
         assert!(has_error(&observation, ObservationValidationError::MissingModelDerivedFlag));
+    }
+
+    #[test]
+    fn derived_and_synthetic_results_require_versioned_processing_parameters() {
+        for source in [
+            ObservationSource::DerivedEstimate,
+            ObservationSource::SyntheticSimulation,
+        ] {
+            let mut observation = valid_pressure_observation();
+            observation.source = source;
+            observation.quality.flags = vec![QualityFlag::ModelDerived];
+            if source == ObservationSource::DerivedEstimate {
+                observation.provenance.upstream_observation_ids = vec!["upstream-1".into()];
+            }
+
+            assert!(has_error(
+                &observation,
+                ObservationValidationError::MissingDerivationVersion
+            ));
+            assert!(has_error(
+                &observation,
+                ObservationValidationError::MissingDerivationParameters
+            ));
+
+            observation.provenance.source_version = Some("synthetic-method-v1".into());
+            observation.provenance.processing_parameters =
+                Some(serde_json::json!({"method": "synthetic-test", "parameter": 1}));
+            assert!(!has_error(
+                &observation,
+                ObservationValidationError::MissingDerivationVersion
+            ));
+            assert!(!has_error(
+                &observation,
+                ObservationValidationError::MissingDerivationParameters
+            ));
+        }
     }
 
     #[test]
