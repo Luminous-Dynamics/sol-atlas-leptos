@@ -40,7 +40,20 @@ def validate_api_url(url: str) -> None:
     """
     try:
         parts = urlsplit(url)
-        decoded_path = unquote(parts.path)
+        # Inspect successive decoding layers to reject encoded and double-encoded
+        # dot segments, encoded separators, and Windows-style path separators.
+        decoded_layers = [parts.path]
+        for _ in range(5):
+            decoded = unquote(decoded_layers[-1])
+            if decoded == decoded_layers[-1]:
+                break
+            decoded_layers.append(decoded)
+        decoded_path = decoded_layers[-1]
+        traversal_segment = any(
+            segment in {".", ".."}
+            for layer in decoded_layers
+            for segment in layer.replace("\\\\", "/").split("/")
+        )
         normalized_path = posixpath.normpath(decoded_path)
     except (TypeError, ValueError) as exc:
         raise WaporCatalogError("malformed URL in catalogue response") from exc
@@ -55,7 +68,8 @@ def validate_api_url(url: str) -> None:
         or parts.netloc != "data.apps.fao.org"
         or not parts.path.startswith(API_PREFIX)
         or not path_stays_in_scope
-        or "\\" in decoded_path
+        or traversal_segment
+        or "\\\\" in decoded_path
         or parts.username is not None
         or parts.password is not None
     ):
