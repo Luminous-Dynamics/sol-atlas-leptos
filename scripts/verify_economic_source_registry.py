@@ -148,18 +148,56 @@ def validate(source: dict[str, Any]) -> int:
         "https://thedocs.worldbank.org/en/doc/37511318c092e6fd4ca3c60f0af0bea3-0350012021/"
         "related/informal-economy-database.xlsx"
     ), "source workbook URL drift")
-    require(source["source_period_start"] == 1990 and source["source_period_end"] == 2020,
-            "historical period boundary drift")
-    require(source["max_economies_claimed"] == 196, "economy-count claim drift")
-    require(source["measure_count_claimed_by_source_page"] == 11, "source-page measure-count claim drift")
+    require(source["source_page_date"] == "2024-01-09", "official source-page date drift")
+    for field, expected in (
+        ("source_period_start", 1990),
+        ("source_period_end", 2020),
+        ("max_economies_claimed", 196),
+        ("measure_count_claimed_by_source_page", 11),
+    ):
+        require(type(source[field]) is int and source[field] == expected,
+                f"{field} must remain integer {expected}")
     require(source["source_page_update_frequency"] == "every_two_years", "update-frequency claim drift")
 
     claims = exact_keys(source["source_page_claims"], CLAIMS_KEYS, "source_page_claims")
-    require(set(claims["output_methods"]) == {
+    expected_output_methods = {
         "dynamic_general_equilibrium_model", "multiple_indicators_multiple_causes_model"
-    }, "both output methods must remain explicit")
-    require(len(claims["employment_indicators"]) == 4, "employment inventory drift")
-    require(len(claims["perception_sources"]) == 3, "perception source inventory drift")
+    }
+    require(isinstance(claims["output_methods"], list)
+            and len(claims["output_methods"]) == 2
+            and all(isinstance(item, str) for item in claims["output_methods"])
+            and set(claims["output_methods"]) == expected_output_methods,
+            "output method inventory content/type drift")
+
+    expected_employment = {
+        "self_employment", "informal_employment",
+        "employment_outside_formal_sector", "labor_force_without_pension_insurance",
+    }
+    employment = claims["employment_indicators"]
+    require(isinstance(employment, list)
+            and len(employment) == 4
+            and all(isinstance(item, str) for item in employment)
+            and set(employment) == expected_employment,
+            "employment inventory content/type drift")
+
+    expected_perception = {
+        ("World Economic Forum Executive Opinion Surveys", 1),
+        ("World Bank Enterprise Surveys", 4),
+        ("World Values Survey", 1),
+    }
+    perception = claims["perception_sources"]
+    require(isinstance(perception, list) and len(perception) == 3,
+            "perception source inventory shape drift")
+    perception_pairs = set()
+    for index, raw in enumerate(perception):
+        item = exact_keys(raw, {"source", "count"}, f"perception_sources[{index}]")
+        require(isinstance(item["source"], str) and item["source"].strip(),
+                f"perception_sources[{index}].source must be non-empty text")
+        require(type(item["count"]) is int and item["count"] > 0,
+                f"perception_sources[{index}].count must be a positive integer")
+        perception_pairs.add((item["source"], item["count"]))
+    require(perception_pairs == expected_perception,
+            "perception source inventory drift")
     inventory = exact_keys(claims["concept_inventory"], CONCEPT_KEYS, "concept_inventory")
     require(inventory["source_page_claimed_measure_count"] == 11, "claimed measure count drift")
     require(inventory["output_series_listed"] == len(claims["output_methods"]) == 2,
@@ -183,7 +221,15 @@ def validate(source: dict[str, Any]) -> int:
             "workbook-level qualification requirement missing")
 
     citation = exact_keys(source["primary_methodology_citation"], CITATION_KEYS, "primary_methodology_citation")
-    require(citation["year"] == 2021, "methodology citation year drift")
+    require(type(citation["year"]) is int and citation["year"] == 2021,
+            "methodology citation year must be integer 2021")
+    require(citation["authors"] == [
+        "Ceyhun Elgin", "M. Ayhan Kose", "Franziska Ohnsorge", "Shu Yu"
+    ], "methodology citation authors drift")
+    require(citation["title"] == "Understanding Informality",
+            "methodology citation title drift")
+    require(citation["publication"] == "CERP Discussion Paper 16497",
+            "methodology publication identifier drift")
     require(citation["url"] == "https://cepr.org/publications/dp16497", "methodology URL drift")
 
     asset = exact_keys(source["official_asset"], ASSET_KEYS, "official_asset")
@@ -259,6 +305,8 @@ def validate(source: dict[str, Any]) -> int:
     by_evidence = {}
     for index, raw in enumerate(evidence):
         item = exact_keys(raw, LICENSE_EVIDENCE_KEYS, f"license_evidence_matrix[{index}]")
+        require(isinstance(item["evidence_id"], str) and item["evidence_id"].strip(),
+                f"license_evidence_matrix[{index}].evidence_id must be non-empty text")
         require(item["evidence_id"] not in by_evidence, "duplicate license evidence ID")
         by_evidence[item["evidence_id"]] = item
         require(item["data_url"] == "https://www.worldbank.org/en/research/brief/informal-economy-database",
