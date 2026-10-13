@@ -209,14 +209,14 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
                 <div class="community-energy-section-heading">
                     <span class="community-energy-step">"02"</span>
                     <div>
-                        <h2>"Record the community’s choice"</h2>
-                        <p>"Illustrative vote fixture with a visible minority—not an executed Mycelix governance transaction."</p>
+                        <h2>"Inspect a governance tally example"</h2>
+                        <p>"Pre-seeded illustration with a visible minority; this page does not accept ballots, persist a vote, or submit a Holochain transaction."</p>
                     </div>
                 </div>
 
                 <div class="community-energy-vote">
                     <div class="community-energy-vote-result">
-                        <span class="community-energy-label">"ILLUSTRATIVE DECISION"</span>
+                        <span class="community-energy-label">"ILLUSTRATIVE RULE RESULT"</span>
                         <strong>{if vote.passed() { "PASSED" } else { "NOT PASSED" }}</strong>
                         <p>"A simple one-person/one-vote rule is used only for this exhibit. Mycelix Governance describes a different, experimental MATL/stake-weighted model; this page does not claim conformance to that policy."</p>
                     </div>
@@ -235,7 +235,7 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
 
                 <div class="community-energy-governance-boundary">
                     <strong>"What this does—and does not—show"</strong>
-                    <p>"It demonstrates a possible interface between a scenario result and a recorded decision. No vote was sent to Holochain; there is no authentication, member eligibility verification, delegation, appeal workflow, or governance execution in this demo."</p>
+                    <p>"This is a pre-seeded tally display, not a voting interface: the page accepts no ballots and persists no decision. No vote was sent to Holochain; there is no authentication, member eligibility verification, delegation, appeal workflow, or governance execution."</p>
                 </div>
             </section>
 
