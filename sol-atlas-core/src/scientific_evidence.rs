@@ -40,6 +40,7 @@ pub enum LicenseStatus {
 /// Licence metadata for one specific scope (for example, the dataset rather
 /// than the release-announcement webpage).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LicenseEvidence {
     pub status: LicenseStatus,
     pub identifier: Option<String>,
@@ -162,11 +163,12 @@ pub enum SnapshotValidationIssue {
 /// A parse failure distinguishes invalid JSON from structurally invalid metadata.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SnapshotParseError {
-    InvalidJson(String),
+    InvalidPayload(String),
     InvalidSnapshot(Vec<SnapshotValidationIssue>),
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct RawScientificDatasetSnapshotV1 {
     schema_version: u16,
     snapshot_id: String,
@@ -191,7 +193,7 @@ pub fn parse_snapshot_v1(
     json: &str,
 ) -> Result<ScientificDatasetSnapshotV1, SnapshotParseError> {
     let raw: RawScientificDatasetSnapshotV1 = serde_json::from_str(json)
-        .map_err(|error| SnapshotParseError::InvalidJson(error.to_string()))?;
+        .map_err(|error| SnapshotParseError::InvalidPayload(error.to_string()))?;
     validate_raw(raw)
 }
 
@@ -324,7 +326,9 @@ fn valid_license(license: &LicenseEvidence) -> bool {
     terms_url_is_valid
         && match license.status {
             LicenseStatus::Known => identifier_is_valid,
-            LicenseStatus::Unknown | LicenseStatus::ReviewRequired => !identifier_is_valid,
+            LicenseStatus::Unknown | LicenseStatus::ReviewRequired => {
+                license.identifier.is_none()
+            }
         }
 }
 
@@ -421,6 +425,31 @@ mod tests {
         let snapshot = parse_snapshot_v1(&value.to_string()).expect("unknown licence is valid");
         assert_eq!(snapshot.source_record_license().status, LicenseStatus::Unknown);
         assert_eq!(snapshot.source_record_license().identifier, None);
+    }
+
+    #[test]
+    fn unknown_license_cannot_smuggle_an_identifier() {
+        let mut value: serde_json::Value =
+            serde_json::from_str(FIXTURE).expect("fixture JSON is valid");
+        value["source_record_license"]["status"] = serde_json::json!("unknown");
+        value["source_record_license"]["identifier"] = serde_json::json!("CC0-1.0");
+        let result = parse_snapshot_v1(&value.to_string());
+        assert!(matches!(
+            result,
+            Err(SnapshotParseError::InvalidSnapshot(ref issues))
+                if issues.contains(&SnapshotValidationIssue::InvalidSourceRecordLicense)
+        ));
+    }
+
+    #[test]
+    fn unknown_top_level_fields_are_rejected() {
+        let mut value: serde_json::Value =
+            serde_json::from_str(FIXTURE).expect("fixture JSON is valid");
+        value["unreviewed_extra"] = serde_json::json!(true);
+        assert!(matches!(
+            parse_snapshot_v1(&value.to_string()),
+            Err(SnapshotParseError::InvalidPayload(_))
+        ));
     }
 
     #[test]
