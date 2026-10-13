@@ -33,7 +33,19 @@ The first candidate WaPOR layers are actual evapotranspiration and interception 
 
 ### 2. Freeze rainfall
 
-Select CHIRPS v3 **final** data matching the pilot time window and temporal aggregation. Save the exact product identifier / filenames, publication timestamp, source README and citation, terms snapshot, acquisition timestamp, file hashes, and valid-data mask. Keep preliminary and final products separate; a replacement final release creates a new artifact identity rather than silently overwriting the older run.
+Use **CHIRPS v3 monthly Africa-subset GeoTIFFs** as the first-pass candidate, not the daily products. The official monthly directory includes separate global/Africa/Latin America areas and TIFF subdirectories; the Africa TIFF index exposes monthly names of the form `chirps-v3.0.YYYY.MM.tif`. The monthly product is suitable for a first monthly alignment to a WaPOR monthly AETI layer when that exact layer is confirmed. The exact period must be the intersection of actual final WaPOR coverage and available CHIRPS months—not a guessed date range.
+
+CHIRPS v3 documentation describes pentadal and monthly values as the fundamental product; its two daily variants partition pentadal totals using ERA5 ('rnl') or IMERG Late ('sat'). Daily labels are not uniform gauge-observation windows. Therefore, use monthly for the primary baseline; treat pentadal/dekadal alternatives only as separately versioned sensitivity analyses with explicit temporal-support justification. Never mix preliminary and final products.
+
+Create a reproducible index inventory before downloading:
+```sh
+python3 scripts/earth-systems/plan_chirps_monthly.py \
+  --start 2018-01 --end 2024-12 \
+  --output /tmp/chirps-monthly-plan.json
+```
+The command fetches only the official HTML directory listing, hashes those exact index bytes, checks each requested month is listed, and emits source URLs with `artifact_sha256: null`. It **does not download rainfall rasters**. The example period is only a command example, not an approved study period. Choose the actual interval after WaPOR coverage is frozen. Retain the index snapshot and the generated plan as provenance records; re-run and diff them when the upstream directory changes.
+
+Official source locations: [CHIRPS v3 documentation](https://www.chc.ucsb.edu/data/chirps3), [monthly Africa-subset GeoTIFF index](https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/africa/tifs/), and [CHIRPS v3 README](https://data.chc.ucsb.edu/products/CHIRPS/v3.0/README-CHIRPSv3.0.txt). CHIRPS v3 is CC BY 4.0; retain provider attribution and the release-specific citation. Save each downloaded artifact's actual SHA-256, byte count, acquisition timestamp, and file metadata separately from the index hash.
 
 ### 3. Preserve source dependence and rights
 
@@ -45,7 +57,7 @@ WaPOR is marked **product-level rights review required** until the exact selecte
 
 1. **Coverage first.** Produce a per-product matrix of dates, missingness, quality-mask coverage, boundary overlap, and valid-cell/valid-period counts. If the common period is too short or incomplete, stop at coverage/time-series description.
 2. **Match support.** Aggregate finer products to a common defensible support. Never interpolate coarse rainfall to a fine grid and present it as new fine-scale information. Record spatial aggregation, masks, area weighting and CRS transformation.
-3. **Match time.** Compare like with like (e.g., matching monthly or dekadal windows only when both exact product layers support them). Record event time, observation period, retrieval time, publication time, and final/preliminary status separately.
+3. **Match time.** Use monthly as the primary alignment: confirm a WaPOR monthly AETI layer and use monthly CHIRPS v3 Africa TIFFs. Do not infer that a WaPOR dekad layer and CHIRPS-derived dekads have equal temporal semantics without a separate check. Record observation period, source publication time, index retrieval time, acquisition time, and final/preliminary status separately.
 4. **Use an honest baseline.** If the frozen WaPOR layer provides enough complete comparable seasons, compute a predeclared season-aware reference (median and a robust spread such as MAD) using only the training period. If data are insufficient, report coverage and raw time series without anomaly labels. Do not choose thresholds after examining the target period.
 5. **Test sensitivity.** Report results under alternative reasonable masks, aggregation choices, season windows and data vintages. Keep uncertainty, coverage, and source disagreement visibly separate.
 6. **Validate independently.** Before calling a result validated, seek rain gauges whose contribution to the chosen CHIRPS v3 release is known and excluded from the independent test; also seek irrigation delivery/operations records and official crop statistics with compatible time/geographic support. If input overlap cannot be resolved, classify the comparison as contextual agreement—not independent validation.
@@ -89,4 +101,4 @@ A real-world decision would need appropriate local evidence, domain review, cons
 
 ## Current state
 
-No WaPOR or CHIRPS artifacts have been downloaded or processed as part of this pilot. The exact WaPOR Level III layer, period, boundary, CHIRPS file release, rights snapshots and independent reference sources remain unlocked. The machine-readable profile intentionally records those gaps instead of filling them with assumptions.
+No WaPOR or CHIRPS raster artifacts have been downloaded or processed as part of this pilot. The CHIRPS inventory planner can snapshot the official monthly Africa-subset GeoTIFF index without downloading any rainfall files. The exact WaPOR Level III layer, period, boundary, CHIRPS file release, rights snapshots and independent reference sources remain unlocked. The machine-readable profile intentionally records those gaps instead of filling them with assumptions.
