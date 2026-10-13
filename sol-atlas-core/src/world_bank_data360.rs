@@ -389,6 +389,7 @@ pub enum Data360SnapshotStatus {
     UnsupportedSchemaVersion,
     QueryMismatch,
     SourceCountDrift,
+    DuplicatePageSnapshotIdentity,
     OffsetGapOrOverlap,
     PageAccountingMismatch,
     CountLessThanPageRows,
@@ -431,6 +432,7 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
     let mut accepted_rows = 0usize;
     let mut rejected_rows = 0usize;
     let mut seen = HashSet::new();
+    let mut seen_page_snapshot_ids = HashSet::new();
     let mut status = Data360SnapshotStatus::CompleteAgainstStableCount;
 
     for (index, page) in pages.iter().enumerate() {
@@ -475,6 +477,10 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
         }
         if page.source_reported_count != expected_count {
             status = Data360SnapshotStatus::SourceCountDrift;
+            break;
+        }
+        if !seen_page_snapshot_ids.insert(page.page_snapshot_id.as_str()) {
+            status = Data360SnapshotStatus::DuplicatePageSnapshotIdentity;
             break;
         }
         if page.query.requested_skip != expected_skip
@@ -822,6 +828,22 @@ mod tests {
         assert_eq!(
             assess_data360_snapshot(&[first]).status,
             Data360SnapshotStatus::IncompletePageSet
+        );
+    }
+
+    #[test]
+    fn reusing_page_snapshot_identity_prevents_complete_collection() {
+        let first = parse(
+            vec![row("AAA", "1990", Some("1")), row("BBB", "1990", Some("2"))],
+            3, 0, 2, "same-page-snapshot",
+        );
+        let second = parse(
+            vec![row("CCC", "1991", Some("3"))],
+            3, 2, 2, "same-page-snapshot",
+        );
+        assert_eq!(
+            assess_data360_snapshot(&[first, second]).status,
+            Data360SnapshotStatus::DuplicatePageSnapshotIdentity
         );
     }
 
