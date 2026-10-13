@@ -52,7 +52,7 @@ def validate_pilot(doc: Any) -> list[str]:
         errors.append(f"pilot missing top-level fields: {missing}")
     if not isinstance(doc.get("pilot_id"), str) or not doc.get("pilot_id", "").startswith("water-food-"):
         errors.append("pilot_id must start with 'water-food-'")
-    if doc.get("status") not in PILOT_STATUSES:
+    if not isinstance(doc.get("status"), str) or doc["status"] not in PILOT_STATUSES:
         errors.append("status is not a recognized pilot status")
     try:
         date.fromisoformat(doc.get("review_date", ""))
@@ -73,7 +73,7 @@ def validate_pilot(doc: Any) -> list[str]:
         for field in geography_fields:
             if not isinstance(geography.get(field), str) or not geography[field].strip():
                 errors.append(f"geography.{field} must be a non-empty string")
-        if geography.get("boundary_state") not in {"unverified", "verified_and_frozen"}:
+        if not isinstance(geography.get("boundary_state"), str) or geography["boundary_state"] not in {"unverified", "verified_and_frozen"}:
             errors.append("geography.boundary_state must be explicit")
 
     outputs = doc.get("intended_outputs")
@@ -97,17 +97,20 @@ def validate_pilot(doc: Any) -> list[str]:
         if missing_source:
             errors.append(f"{where} missing fields: {missing_source}")
         source_id = source.get("source_id")
-        if source_id not in EXPECTED_SOURCES:
+        if not isinstance(source_id, str) or source_id not in EXPECTED_SOURCES:
             errors.append(f"{where}.source_id is not an admitted source")
         elif source_id in seen:
             errors.append(f"duplicate source_id: {source_id}")
         else:
             seen.add(source_id)
         url = source.get("url")
-        parts = urlsplit(url) if isinstance(url, str) else None
+        try:
+            parts = urlsplit(url) if isinstance(url, str) else None
+        except ValueError:
+            parts = None
         if not parts or parts.scheme != "https" or not parts.netloc:
             errors.append(f"{where}.url must be an HTTPS URL")
-        if source.get("acquisition_state") not in {"not_acquired", "acquired", "rejected"}:
+        if not isinstance(source.get("acquisition_state"), str) or source["acquisition_state"] not in {"not_acquired", "acquired", "rejected"}:
             errors.append(f"{where}.acquisition_state is invalid")
         digest = source.get("artifact_sha256")
         if source.get("acquisition_state") == "not_acquired" and digest is not None:
@@ -169,7 +172,7 @@ def validate_pilot(doc: Any) -> list[str]:
             errors.append("validation.gates must be an object")
             gates = {}
         for gate in EXPECTED_GATES:
-            if gates.get(gate) not in GATE_STATES:
+            if not isinstance(gates.get(gate), str) or gates[gate] not in GATE_STATES:
                 errors.append(f"validation.gates.{gate} is missing or invalid")
 
     state = doc.get("evidence_state")
