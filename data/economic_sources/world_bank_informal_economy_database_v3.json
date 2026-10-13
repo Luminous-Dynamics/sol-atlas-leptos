@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "registry_id": "sol-atlas-economic-source-registry",
+  "registry_version": "world-bank-informal-economy-database/v3",
+  "record_kind": "source_qualification_candidate",
+  "status": "metadata_only_not_approved_for_data_ingestion_or_redistribution",
+  "source_id": "world_bank_informal_economy_database",
+  "publisher": "World Bank Prospects Group",
+  "title": "Informal Economy Database",
+  "canonical_url": "https://www.worldbank.org/en/brief/2024/01/09/informal-economy-database",
+  "data_url": "https://thedocs.worldbank.org/en/doc/37511318c092e6fd4ca3c60f0af0bea3-0350012021/related/informal-economy-database.xlsx",
+  "source_page_date": "2024-01-09",
+  "source_period_start": 1990,
+  "source_period_end": 2020,
+  "max_economies_claimed": 196,
+  "measure_count_claimed_by_source_page": 11,
+  "source_page_update_frequency": "every_two_years",
+  "source_page_claims": {
+    "output_methods": [
+      "dynamic_general_equilibrium_model",
+      "multiple_indicators_multiple_causes_model"
+    ],
+    "employment_indicators": [
+      "self_employment",
+      "informal_employment",
+      "employment_outside_formal_sector",
+      "labor_force_without_pension_insurance"
+    ],
+    "perception_sources": [
+      {
+        "source": "World Economic Forum Executive Opinion Surveys",
+        "count": 1
+      },
+      {
+        "source": "World Bank Enterprise Surveys",
+        "count": 4
+      },
+      {
+        "source": "World Values Survey",
+        "count": 1
+      }
+    ],
+    "count_reconciliation": "Count remains unresolved at the observed-series level. The World Bank page lists two output estimates (DGE and MIMIC), four employment indicators, and six perception indicators, which is 12 listed series if DGE and MIMIC are counted separately, versus the page's stated 11 measures. One conceptual output category with two estimators would yield 11 conceptual categories, but the OECD/QoG downstream catalog lists DGE and MIMIC as distinct variables, and a World Bank reproducibility package reports DGE_p and MIMIC_p sheets/variables. The actual official workbook edition and its inventory must be inspected before deciding how the source intends the measure count.",
+    "concept_inventory": {
+      "source_page_claimed_measure_count": 11,
+      "output_series_listed": 2,
+      "employment_indicators_listed": 4,
+      "perception_indicators_listed": 6,
+      "series_count_if_all_listed_as_separate": 12,
+      "conceptual_count_if_output_estimators_grouped": 11,
+      "count_reconciliation_status": "unresolved_until_exact_workbook_inventory",
+      "note": "The source page taxonomy supports both a one-concept/two-estimator interpretation and a twelve-series interpretation; downstream catalogs list DGE and MIMIC separately. Do not select an interpretation without inspecting the exact workbook edition."
+    }
+  },
+  "primary_methodology_citation": {
+    "authors": [
+      "Ceyhun Elgin",
+      "M. Ayhan Kose",
+      "Franziska Ohnsorge",
+      "Shu Yu"
+    ],
+    "year": 2021,
+    "title": "Understanding Informality",
+    "publication": "CERP Discussion Paper 16497",
+    "url": "https://cepr.org/publications/dp16497"
+  },
+  "license_review": {
+    "status": "source_specific_review_required",
+    "rights_decision": "not_determined",
+    "official_page_download_present": true,
+    "publicly_available_in_reproducibility_package": true,
+    "dataset_license_label": "Custom license",
+    "redistribution_approved": false,
+    "commercial_use_approved": false,
+    "approval_status": "not_approved_pending_terms_check",
+    "general_world_bank_dataset_terms_url": "https://www.worldbank.org/ext/en/legal/terms-conditions/datasets",
+    "general_world_bank_terms_summary": "World Bank Data Catalog datasets default to CC BY 4.0 unless specifically labeled otherwise; third-party datasets may have separate restrictions.",
+    "specific_evidence_url": "https://reproducibility.worldbank.org/catalog/583",
+    "specific_evidence_label": "Custom license",
+    "specific_evidence_url_points_to": "https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets",
+    "interpretation_limit": "The label Custom license is a reason to establish the exact governing terms, not proof that the dataset is prohibited or permitted for redistribution. A reproducibility package says publicly available and included; that is evidence of availability, not a complete rights analysis. False approval flags mean not approved by this project pending review, not a legal finding that usage is forbidden.",
+    "required_next_action": "Determine whether the actual workbook is governed by the linked World Bank dataset terms or a dataset-specific notice, then record explicit rights evidence for attribution, modification, redistribution, and commercial use before ingestion or publication."
+  },
+  "provenance": {
+    "acquisition_method": "official_source_page_review_only",
+    "workbook_downloaded": false,
+    "source_snapshot_id": null,
+    "source_snapshot_digest": null,
+    "digest_status": "not_captured",
+    "raw_observations_embedded": false,
+    "observed_column_inventory": null,
+    "last_reviewed_at": "2026-10-13"
+  },
+  "qualification_gates": [
+    "confirm exact workbook edition and digest",
+    "capture workbook sheet and variable inventory without altering the original",
+    "reconcile measure count against the 2021 methodology paper and workbook variables",
+    "record definition, unit, denominator, geography, period, method, missingness and source for each variable",
+    "separate DGE and MIMIC estimates as alternative model-based measures; do not average or sum by default",
+    "separate model estimates from survey-derived employment and perception indicators",
+    "check country-year coverage and missingness before comparing economies",
+    "resolve source-specific terms and third-party restrictions before any data redistribution or commercial use",
+    "do not infer illegality or adjudicated illicit output from informality estimates"
+  ],
+  "interpretation_ceiling": "Historical cross-country context only after the workbook variables, methods, coverage and terms have been independently qualified; not a current-year estimate, not a complete global shadow-economy total, and not evidence of illegal activity.",
+  "supersedes_registry_version": "world-bank-informal-economy-database/v2",
+  "official_asset": {
+    "label": "Informal economy data (Excel)",
+    "format": "xlsx",
+    "url": "https://thedocs.worldbank.org/en/doc/37511318c092e6fd4ca3c60f0af0bea3-0350012021/related/informal-economy-database.xlsx",
+    "discovered_on_official_page": true,
+    "downloaded_in_this_review": false,
+    "source_page_update_frequency": "every_two_years",
+    "note": "The official page links to an Excel download. The bytes have not been retrieved and inspected in this review; do not claim workbook sheet/column inventory or a digest."
+  },
+  "reproducibility_package_evidence": {
+    "catalog_url": "https://reproducibility.worldbank.org/catalog/583",
+    "catalog_created_date": "2026-06-17",
+    "dataset_access_date": "2026-05-05",
+    "filename_in_package": "DGE_Raw.xlsx",
+    "access_policy_claim": "publicly_available_and_included_in_reproducibility_package",
+    "license_label": "Custom license",
+    "license_url": "https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets",
+    "interpretation": "The package metadata establishes that a 2026 reproduction effort reports the dataset publicly available and included in its package, while applying a Custom license label and linking the World Bank dataset terms. This is availability evidence, not a complete rights analysis. A separate World Bank reproduction package for a different paper describes DGE_p and MIMIC_p sheets in a processed derivative; it is supplementary evidence about downstream variable separation, not proof of the exact current workbook inventory or its license."
+  },
+  "cross_catalog_evidence": [
+    {
+      "catalog_url": "https://datafinder.qog.gu.se/dataset/ied",
+      "reviewed_on": "2026-10-13",
+      "catalog_name": "Quality of Government (QoG) Datafinder",
+      "variables": [
+        {
+          "id": "ied_dge",
+          "label": "DGE Model-based Informal Output"
+        },
+        {
+          "id": "ied_mimic",
+          "label": "MIMIC Model-based Informal Output"
+        }
+      ],
+      "interpretation_limit": "The downstream catalog treats DGE and MIMIC as separately selectable variables. This corroborates distinct series in that catalog; it does not establish the exact sheet/column inventory of the current World Bank Excel workbook."
+    },
+    {
+      "catalog_url": "https://reproducibility.worldbank.org/catalog/330",
+      "reviewed_on": "2026-10-13",
+      "catalog_name": "World Bank reproducibility package for (In)Formalizing Jobs in Latin America and the Caribbean",
+      "reported_sheets": [
+        "DGE_p",
+        "MIMIC_p"
+      ],
+      "reported_variables": [
+        "dge_paverage_1993_2019",
+        "mimic_paverage_1993_2019"
+      ],
+      "source_context": "The package documents a processed derivative of the Informal Economy Database and a distinct additional author-provided file. Its column names and license terms must not be assumed to match the current official Excel workbook."
+    }
+  ]
+}
