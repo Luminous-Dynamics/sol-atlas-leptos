@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "earth-systems"))
-from plan_chirps_monthly import INDEX_URL, IndexError, SameOriginRedirectHandler, build_plan, month_range, parse_month
+from plan_chirps_monthly import INDEX_URL, MAX_INDEX_BYTES, IndexError, SameOriginRedirectHandler, build_plan, month_range, parse_month
 
 
 def listing(*hrefs):
@@ -251,6 +251,25 @@ class ChirpsMonthlyPlanTests(unittest.TestCase):
             self.assertEqual(code, 2)
             self.assertEqual(output.read_bytes(), existing_bytes)
             self.assertFalse(snapshot.exists())
+
+    def test_local_index_rejects_oversized_or_nonregular_path_before_reading(self):
+        from plan_chirps_monthly import read_index
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            oversized = root / "oversized-index.html"
+            oversized.touch()
+            with oversized.open("wb") as handle:
+                handle.truncate(MAX_INDEX_BYTES + 1)
+
+            # An oversized local file must be rejected from metadata alone.
+            # If read_index tries to open/read it, fail this test immediately.
+            with patch.object(Path, "open", side_effect=AssertionError("oversized source must not be opened")):
+                with self.assertRaisesRegex(IndexError, "exceeds"):
+                    read_index(oversized, 1.0)
+
+            with self.assertRaisesRegex(IndexError, "regular file"):
+                read_index(root, 1.0)
 
     def test_local_index_file_is_read_only_input(self):
         with tempfile.TemporaryDirectory() as temp_dir:
