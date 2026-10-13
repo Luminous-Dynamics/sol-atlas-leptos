@@ -116,6 +116,9 @@ def validate_pilot(doc: Any) -> list[str]:
         if source.get("acquisition_state") == "not_acquired" and digest is not None:
             errors.append(f"{where}: not_acquired source must not claim an artifact digest")
         if source.get("acquisition_state") == "acquired":
+            selected = source.get("selected_product")
+            if not isinstance(selected, str) or not selected.strip():
+                errors.append(f"{where}: acquired source requires an exact selected_product identifier")
             if not isinstance(digest, str) or not SHA256_RE.fullmatch(digest):
                 errors.append(f"{where}: acquired source requires a 64-character SHA-256")
             if source.get("source_catalog_verified") is not True:
