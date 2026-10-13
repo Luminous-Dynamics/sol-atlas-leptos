@@ -44,7 +44,7 @@ def validate_api_url(url: str) -> None:
         # Inspect successive decoding layers to reject encoded and double-encoded
         # dot segments, encoded separators, and Windows-style path separators.
         decoded_layers = [parts.path]
-        for _ in range(5):
+        while True:
             decoded = unquote(decoded_layers[-1])
             if decoded == decoded_layers[-1]:
                 break
