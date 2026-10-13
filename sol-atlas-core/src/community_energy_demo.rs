@@ -685,9 +685,13 @@ mod tests {
         // a naive conservation-only verifier would accept this forged shed.
         run.intervals[1].grid_import_kwh -= 0.25;
         run.intervals[1].unserved_load_kwh += 0.25;
+        run.intervals[1].noncritical_served_kwh -= 0.25;
+        run.intervals[1].noncritical_unserved_kwh += 0.25;
         let final_soc = run.intervals.last().unwrap().battery_soc_kwh;
         run.totals = aggregate_totals(&run.intervals, final_soc);
-        assert!(verify(BatteryConfiguration::BASELINE, &SCENARIO_INPUTS, &run).is_err());
+
+        let error = verify(BatteryConfiguration::BASELINE, &SCENARIO_INPUTS, &run).unwrap_err();
+        assert!(error.contains("available-grid dispatch"));
     }
 
     #[test]
