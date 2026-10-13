@@ -148,6 +148,17 @@ class WaporCatalogTests(unittest.TestCase):
                     save_snapshots(target, [("mapsets", pages, [raw])])
             self.assertFalse(target.exists())
 
+    def test_snapshot_cleanup_failure_is_reported(self):
+        raw = b'{"response":{"items":[],"links":[]}}'
+        pages = [{"response_sha256": hashlib.sha256(raw).hexdigest()}]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir) / "partial-snapshot"
+            with patch.object(Path, "open", side_effect=OSError("simulated write failure")):
+                with patch.object(wapor_module.shutil, "rmtree", side_effect=OSError("simulated cleanup failure")):
+                    with self.assertRaisesRegex(WaporCatalogError, "also failed to remove partial snapshot"):
+                        save_snapshots(target, [("mapsets", pages, [raw])])
+            self.assertTrue(target.exists())
+
     def test_existing_output_is_rejected_without_network_or_overwrite(self):
         from inspect_wapor_catalog import main
         with tempfile.TemporaryDirectory() as temp_dir:
