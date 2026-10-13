@@ -7,10 +7,10 @@ from pathlib import Path
 from urllib.request import Request
 import argparse
 from unittest.mock import patch
-import inspect_wapor_catalog as wapor_module
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "earth-systems"))
+import inspect_wapor_catalog as wapor_module
 from inspect_wapor_catalog import (
     API_ORIGIN, API_PREFIX, MAPSETS_URL, MAX_RESPONSE_BYTES,
     MAX_TOTAL_RESPONSE_BYTES, SameOriginRedirectHandler, WaporCatalogError, paginate, save_snapshots,
