@@ -99,7 +99,7 @@ pub struct SurfaceWaterEstimate {
     pub masked_or_invalid_area_m2: f64,
     /// Classified water area within valid pixels only. Masked or invalid regions
     /// are never extrapolated; None when valid coverage is below the configured minimum.
-    pub water_area_m2: Option<f64>,
+    pub classified_water_area_m2: Option<f64>,
     pub valid_area_fraction: f64,
 }
 
@@ -173,7 +173,7 @@ pub fn estimate_surface_water(
     } else {
         0.0
     };
-    let water_area_m2 = if valid_area_fraction >= config.minimum_valid_area_fraction {
+    let classified_water_area_m2 = if valid_area_fraction >= config.minimum_valid_area_fraction {
         Some(water_area_m2_accumulator)
     } else {
         None
@@ -191,7 +191,7 @@ pub fn estimate_surface_water(
         total_area_m2,
         valid_area_m2,
         masked_or_invalid_area_m2,
-        water_area_m2,
+        classified_water_area_m2,
         valid_area_fraction,
     })
 }
@@ -204,8 +204,8 @@ impl SurfaceWaterEstimate {
         &self,
         context: SurfaceWaterObservationContext,
     ) -> Result<UtilityObservation, SurfaceWaterError> {
-        let water_area_m2 = self
-            .water_area_m2
+        let classified_water_area_m2 = self
+            .classified_water_area_m2
             .ok_or(SurfaceWaterError::InsufficientValidCoverage)?;
         if context.upstream_observation_ids.is_empty() {
             return Err(SurfaceWaterError::MissingUpstreamLineage);
@@ -235,7 +235,7 @@ impl SurfaceWaterEstimate {
             domain: UtilityDomain::Water,
             metric: MetricKind::SurfaceWaterExtent,
             value: ObservationValue::Numeric {
-                value: water_area_m2,
+                value: classified_water_area_m2,
                 unit: crate::utility_telemetry::MeasurementUnit::SquareMetre,
             },
             observed_at_unix_ms: context.observed_at_unix_ms,
@@ -346,7 +346,7 @@ mod tests {
         assert_eq!(estimate.valid_pixel_count, 2);
         assert_eq!(estimate.masked_pixel_count, 1);
         assert_eq!(estimate.water_pixel_count, 1);
-        assert_eq!(estimate.water_area_m2, Some(100.0));
+        assert_eq!(estimate.classified_water_area_m2, Some(100.0));
         assert!((estimate.valid_area_fraction - 0.5).abs() < 1e-12);
     }
 
@@ -359,7 +359,7 @@ mod tests {
         ];
         let estimate = estimate_surface_water(&pixels, config(WaterIndex::Mndwi)).unwrap();
         assert_eq!(estimate.invalid_index_pixel_count, 1);
-        assert_eq!(estimate.water_area_m2, None);
+        assert_eq!(estimate.classified_water_area_m2, None);
     }
 
     #[test]
@@ -367,7 +367,7 @@ mod tests {
         let pixels = [pixel(0.0, 0.0, Some(0.0), 100.0, PixelQuality::Clear)];
         let estimate = estimate_surface_water(&pixels, config(WaterIndex::Ndwi)).unwrap();
         assert_eq!(estimate.invalid_index_pixel_count, 1);
-        assert_eq!(estimate.water_area_m2, None);
+        assert_eq!(estimate.classified_water_area_m2, None);
         assert_eq!(estimate.valid_area_fraction, 0.0);
     }
 
@@ -376,7 +376,7 @@ mod tests {
         let pixels = [pixel(0.8, -0.2, Some(0.1), 100.0, PixelQuality::Clear)];
         let estimate = estimate_surface_water(&pixels, config(WaterIndex::Ndwi)).unwrap();
         assert_eq!(estimate.invalid_index_pixel_count, 1);
-        assert_eq!(estimate.water_area_m2, None);
+        assert_eq!(estimate.classified_water_area_m2, None);
     }
 
     #[test]
@@ -455,7 +455,7 @@ mod tests {
         assert_eq!(estimate.valid_area_m2, 100.0);
         assert_eq!(estimate.valid_area_fraction, 0.25);
         // The masked 300 m² is unknown, not assumed dry and not imputed as water.
-        assert_eq!(estimate.water_area_m2, Some(100.0));
+        assert_eq!(estimate.classified_water_area_m2, Some(100.0));
 
         let observation = estimate
             .to_utility_observation(observation_context())
