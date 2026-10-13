@@ -286,8 +286,6 @@ def validate(source: dict[str, Any]) -> int:
             "rights adjudication status and source review status differ")
     require("does not assert that the dataset is legally prohibited" in adjudication["not_a_legal_finding"],
             "project approval gate must not be described as legal prohibition")
-    require(len(adjudication["required_actions"]) == 6,
-            "exact-asset and licence reconciliation actions must remain explicit")
     require(len(adjudication["required_actions"]) == 7,
             "rights reconciliation actions must remain explicit")
     require(any("Custom license entry" in action and "reproduction catalogue" in action
@@ -398,7 +396,7 @@ def main() -> int:
     except ContractError as error:
         print(f"FAIL: {error}", file=sys.stderr)
         return 1
-    print("PASS: World Bank source v3 preserves official metadata and cross-catalog evidence.")
+    print("PASS: World Bank source v6 preserves official metadata, retrieval state, and license-scope distinctions.")
     print("PASS: the 11-versus-12 measure count remains unresolved pending exact workbook inspection.")
     print("PASS: CC BY 4.0 and Custom license catalogue evidence remain distinct and unresolved for the exact workbook.")
     print("PASS: the processed derivative's CC BY 4.0 metadata remains separate from the official workbook rights gate.")
