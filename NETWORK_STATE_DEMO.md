@@ -44,6 +44,7 @@ The key teaching point is that **accounting consistency and policy success are d
 ## Evidence boundaries
 
 - **Observed data:** none.
+- **Mycelix Energy records:** do not treat an agent-authored `EnergyProduction` record or a `verified` boolean as authenticated meter evidence. [Issue #4882](https://github.com/Luminous-Dynamics/mycelix/issues/4882) tracks the attestation boundary, [PR #4939](https://github.com/Luminous-Dynamics/mycelix/pull/4939) adds relevant structural guards but still requires executed qualification, and [issue #4944](https://github.com/Luminous-Dynamics/mycelix/issues/4944) tracks append-only production attestations. Even a structurally valid Holochain record proves what an agent published, not physical energy delivered.
 - **Scenario data:** all input profiles and the vote fixture.
 - **Model:** deterministic Rust interval accounting.
 - **Verifier:** separate function in the same Rust crate, not an independent process or organization. It does not authenticate the fixture's source or prove that any physical meter reported these values.
@@ -87,3 +88,4 @@ The command above runs the focused core tests; also run the repository's require
 - Malformed tally data (ballots exceeding the eligible population or thresholds above 100%) fails closed.
 - There are no undocumented network requests, no real meter/identity collection, and no physical control path.
 - Public pitch materials consistently say synthetic scenario, same-codebase verifier, illustrative vote, and no real actuation.
+- Any future Mycelix Energy adapter preserves the distinction between agent-reported records, authenticated meter evidence, and independently reconciled physical delivery.
