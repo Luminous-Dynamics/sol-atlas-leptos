@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the World Bank informal-economy source qualification record v7.
+"""Verify the World Bank informal-economy source qualification record v8.
 
 This checks source metadata and project approval gates only. It is not a workbook
 parser, source-authenticity check, empirical replication, or legal opinion.
@@ -14,9 +14,10 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_PATH = ROOT / "data" / "economic_sources" / "world_bank_informal_economy_database.json"
+ARCHIVED_V7_PATH = ROOT / "data" / "economic_sources" / "world_bank_informal_economy_database_v7.json"
 
 TOP_KEYS = {
-    "schema_version", "registry_id", "registry_version", "supersedes_registry_version", "edition_history_evidence",
+    "schema_version", "registry_id", "registry_version", "supersedes_registry_version", "edition_history_evidence", "data360_api_review",
     "record_kind", "status", "source_id", "publisher", "title", "canonical_url",
     "data_url", "source_page_date", "source_period_start", "source_period_end",
     "max_economies_claimed", "measure_count_claimed_by_source_page",
@@ -80,6 +81,27 @@ MEASURE_BREAKDOWN_KEYS = {
 COMPETING_BRIEF_KEYS = {
     "url", "source_period_start", "source_period_end", "measure_count_claimed",
 }
+DATA360_API_REVIEW_KEYS = {
+    "evidence_id", "api_root", "api_spec_url", "official_api_documentation_url",
+    "official_terms_url", "reviewed_on", "documented_routes", "probe", "terms_review",
+    "acquisition_protocol", "qualification_status",
+}
+API_ROUTE_KEYS = {"method", "path", "dataset_query_parameter", "purpose"}
+API_DATA_ROUTE_KEYS = {
+    "method", "path", "dataset_query_parameter", "indicator_query_parameter",
+    "period_query_parameters", "pagination_parameter", "documented_max_records_per_response",
+}
+API_METADATA_ROUTE_KEYS = {"method", "path", "request_body_field", "query_language"}
+API_PROBE_KEYS = {
+    "attempted_on", "route_probe_result", "attempted_indicator_url", "http_status",
+    "response_bytes_captured", "indicator_ids_captured", "data_observations_captured",
+    "digest", "interpretation",
+}
+DATA360_TERMS_KEYS = {
+    "default_label", "third_party_exception_disclosed", "specific_indicator_terms_must_be_checked",
+    "official_terms_summary", "data360_api_or_metadata_ingestion_approved",
+    "derived_data_redistribution_approved",
+}
 DERIVATIVE_KEYS = {
     "candidate_id", "status", "catalog_url", "catalog_created_date", "catalog_last_modified_date",
     "source_access_date", "dataset_names_in_package", "source_sheets_reported",
@@ -114,6 +136,7 @@ EXPECTED_GATES = {
     "preserve the distinction between a catalogue's embargoed reproduction ZIP and its separately linked original dataset asset",
     "capture an HTTP response, workbook byte length and SHA-256 before claiming exact-asset verification",
     "reconcile the Data360 WB_INFECDB metadata claim of 12 measures over 1990–2018 against the official brief claim of 11 measures over 1990–2020 and the exact workbook edition",
+    "qualify the World Bank Data360 API response and indicator-level terms: capture immutable paginated responses, counts, indicator IDs, digests, and any third-party reuse restrictions before importing observations",
 }
 
 
@@ -144,12 +167,52 @@ def read_source() -> dict[str, Any]:
     return exact_keys(value, TOP_KEYS, "source")
 
 
+def read_archived_v7() -> dict[str, Any]:
+    try:
+        value = json.loads(ARCHIVED_V7_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ContractError(f"cannot load archived v7 source record: {error}") from error
+    archived_keys = TOP_KEYS - {"data360_api_review"}
+    return exact_keys(value, archived_keys, "archived_v7_source")
+
+
+def validate_archived_v7(source: dict[str, Any]) -> int:
+    require(type(source["schema_version"]) is int and source["schema_version"] == 1,
+            "archived v7 schema version drift")
+    require(source["registry_version"] == "world-bank-informal-economy-database/v7",
+            "archived snapshot must remain v7")
+    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v6",
+            "archived v7 history link drift")
+    require(source["status"] == "metadata_only_not_approved_for_data_ingestion_or_redistribution",
+            "archived v7 must remain metadata-only")
+    require(source["source_period_start"] == 1990 and source["source_period_end"] == 2020,
+            "archived official-brief period drift")
+    require(source["measure_count_claimed_by_source_page"] == 11,
+            "archived official-brief measure-count claim drift")
+    require(source["source_page_claims"]["concept_inventory"]["count_reconciliation_status"] ==
+            "unresolved_until_exact_workbook_inventory_and_edition_reconciliation",
+            "archived v7 edition uncertainty must remain")
+    gates = source["qualification_gates"]
+    expected_v7_gates = EXPECTED_GATES - {
+        "qualify the World Bank Data360 API response and indicator-level terms: capture immutable paginated responses, counts, indicator IDs, digests, and any third-party reuse restrictions before importing observations"
+    }
+    require(isinstance(gates, list) and len(gates) == 16 and set(gates) == expected_v7_gates,
+            "archived v7 qualification gates were unexpectedly changed")
+    require(source["edition_history_evidence"]["source_period_end"] == 2018
+            and source["edition_history_evidence"]["measure_count_claimed"] == 12,
+            "archived v7 must preserve Data360 edition evidence")
+    require(source["asset_acquisition"]["sha256"] is None
+            and source["asset_acquisition"]["data_ingestion_authorized"] is False,
+            "archived v7 must not claim workbook acquisition or authorization")
+    return len(gates)
+
+
 def validate(source: dict[str, Any]) -> int:
     require(type(source["schema_version"]) is int and source["schema_version"] == 1,
             "unsupported record schema (schema_version must be integer 1; booleans are not integers here)")
     require(source["registry_id"] == "sol-atlas-economic-source-registry", "registry ID drift")
-    require(source["registry_version"] == "world-bank-informal-economy-database/v7", "version drift")
-    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v6",
+    require(source["registry_version"] == "world-bank-informal-economy-database/v8", "version drift")
+    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v7",
             "superseded record reference drift")
     require(source["record_kind"] == "source_qualification_candidate", "record kind drift")
     require(source["status"] == "metadata_only_not_approved_for_data_ingestion_or_redistribution",
@@ -293,6 +356,94 @@ def validate(source: dict[str, Any]) -> int:
             "Data360 metadata must not be conflated with the current workbook")
     require("not successfully queried" in edition["access_note"],
             "Data360 API retrieval limitation must remain explicit")
+
+    api = exact_keys(source["data360_api_review"], DATA360_API_REVIEW_KEYS, "data360_api_review")
+    require(api["evidence_id"] == "world_bank_data360_open_api_v1",
+            "Data360 API evidence ID drift")
+    require(api["api_root"] == "https://data360api.worldbank.org",
+            "Data360 API root drift")
+    require(api["api_spec_url"] ==
+            "https://raw.githubusercontent.com/worldbank/open-api-specs/refs/heads/main/Data360%20Open_API.json",
+            "Data360 OpenAPI specification URL drift")
+    require(api["official_api_documentation_url"] == "https://data360.worldbank.org/en/api",
+            "Data360 API documentation URL drift")
+    require(api["official_terms_url"] == "https://data360.worldbank.org/en/about",
+            "Data360 terms URL drift")
+    require(api["reviewed_on"] == "2026-10-13"
+            and api["qualification_status"] == "documented_acquisition_route_not_execution_verified",
+            "Data360 API execution status must stay unqualified")
+
+    routes = exact_keys(api["documented_routes"], {
+        "list_indicator_ids", "retrieve_observations", "retrieve_metadata"
+    }, "data360_api_review.documented_routes")
+    indicator_route = exact_keys(routes["list_indicator_ids"], API_ROUTE_KEYS,
+                                 "Data360 API indicator route")
+    require(indicator_route["method"] == "GET"
+            and indicator_route["path"] == "/data360/indicators"
+            and indicator_route["dataset_query_parameter"] == "datasetId",
+            "Data360 indicator discovery route drift")
+    require("discover published series" in indicator_route["purpose"],
+            "indicator discovery purpose missing")
+    data_route = exact_keys(routes["retrieve_observations"], API_DATA_ROUTE_KEYS,
+                            "Data360 API data route")
+    require(data_route["method"] == "GET"
+            and data_route["path"] == "/data360/data"
+            and data_route["dataset_query_parameter"] == "DATABASE_ID"
+            and data_route["indicator_query_parameter"] == "INDICATOR",
+            "Data360 observation route identity drift")
+    require(data_route["period_query_parameters"] == ["timePeriodFrom", "timePeriodTo", "TIME_PERIOD"],
+            "Data360 bounded period query parameters drift")
+    require(data_route["pagination_parameter"] == "skip"
+            and type(data_route["documented_max_records_per_response"]) is int
+            and data_route["documented_max_records_per_response"] == 1000,
+            "Data360 pagination contract must preserve the documented 1000-row limit")
+    metadata_route = exact_keys(routes["retrieve_metadata"], API_METADATA_ROUTE_KEYS,
+                                "Data360 API metadata route")
+    require(metadata_route["method"] == "POST"
+            and metadata_route["path"] == "/data360/metadata"
+            and metadata_route["request_body_field"] == "query",
+            "Data360 metadata route identity drift")
+    require("OData-like" in metadata_route["query_language"],
+            "Data360 metadata query semantics missing")
+
+    probe = exact_keys(api["probe"], API_PROBE_KEYS, "data360_api_review.probe")
+    require(probe["attempted_on"] == "2026-10-13"
+            and probe["route_probe_result"] == "web_reader_refused_direct_api_url",
+            "do not misstate the direct API probe result")
+    require(probe["attempted_indicator_url"] ==
+            "https://data360api.worldbank.org/data360/indicators?datasetId=WB_INFECDB",
+            "Data360 indicator probe URL drift")
+    require(probe["http_status"] is None and probe["digest"] is None
+            and probe["response_bytes_captured"] is False
+            and probe["indicator_ids_captured"] is False
+            and probe["data_observations_captured"] is False,
+            "do not claim Data360 HTTP status, response bytes, indicator IDs, data, or digest")
+    require("does not establish that the World Bank endpoint is unavailable" in probe["interpretation"],
+            "browser retrieval restriction must not be described as an API outage")
+
+    terms = exact_keys(api["terms_review"], DATA360_TERMS_KEYS, "data360_api_review.terms_review")
+    require(terms["default_label"] ==
+            "Creative Commons Attribution 4.0 International License (CC BY 4.0), unless specifically labelled otherwise",
+            "Data360 default licensing language drift")
+    require(terms["third_party_exception_disclosed"] is True
+            and terms["specific_indicator_terms_must_be_checked"] is True,
+            "Data360 third-party licensing exception must remain explicit")
+    require(terms["data360_api_or_metadata_ingestion_approved"] is False
+            and terms["derived_data_redistribution_approved"] is False,
+            "Data360 rights must not be treated as project approval")
+    require("do not by themselves resolve rights" in terms["official_terms_summary"],
+            "Data360 terms scope must remain separate from workbook rights")
+    protocol = api["acquisition_protocol"]
+    require(isinstance(protocol, list) and len(protocol) == 8
+            and len(set(protocol)) == 8
+            and all(isinstance(item, str) and item.strip() for item in protocol),
+            "Data360 acquisition protocol must contain eight distinct, non-empty actions")
+    require(any("immutable page response" in action for action in protocol),
+            "immutable per-page response retention requirement missing")
+    require(any("1000 records per response" in action for action in protocol),
+            "1000-record pagination requirement missing")
+    require(any("third-party exceptions" in action for action in protocol),
+            "indicator-level reuse terms gate missing")
 
     citation = exact_keys(source["primary_methodology_citation"], CITATION_KEYS, "primary_methodology_citation")
     require(type(citation["year"]) is int and citation["year"] == 2021,
@@ -524,11 +675,14 @@ def validate(source: dict[str, Any]) -> int:
 def main() -> int:
     try:
         count = validate(read_source())
+        archived_count = validate_archived_v7(read_archived_v7())
     except ContractError as error:
         print(f"FAIL: {error}", file=sys.stderr)
         return 1
-    print("PASS: World Bank source v7 preserves official metadata, retrieval state, licence scope, and edition evidence.")
+    print("PASS: World Bank source v8 preserves official metadata, edition evidence, and Data360 acquisition gates.")
+    print(f"PASS: archived v7 remains unchanged in scope with {archived_count} qualification gates.")
     print("PASS: the 11-versus-12 and 1990–2018-versus-1990–2020 metadata differences remain unresolved pending exact workbook/edition inspection.")
+    print("PASS: Data360 routes, 1000-record pagination, direct-probe limitation, and third-party terms remain explicit.")
     print("PASS: CC BY 4.0 and Custom license catalogue evidence remain distinct and unresolved for the exact workbook.")
     print("PASS: the processed derivative's CC BY 4.0 metadata remains separate from the official workbook rights gate.")
     print("PASS: parent-package embargo, source-row availability, and environment-level fetch failure are distinct.")
