@@ -105,6 +105,44 @@ pub enum ObservationValue {
 }
 
 impl MetricKind {
+    /// Rejects metrics attached to unrelated utility domains.
+    ///
+    /// MultiUtility is explicit: it must not be inferred simply because a
+    /// source happens to be shared by multiple operators.
+    pub fn accepts_domain(&self, domain: UtilityDomain) -> bool {
+        use MetricKind as M;
+        use UtilityDomain as D;
+
+        match self {
+            M::WaterFlowRate
+            | M::WaterPressure
+            | M::ReservoirLevel
+            | M::WaterPh
+            | M::WaterTurbidity
+            | M::FreeChlorineResidual
+            | M::PumpOperatingState => {
+                matches!(domain, D::Water | D::Wastewater | D::Stormwater | D::MultiUtility)
+            }
+            M::ElectricalPower
+            | M::Voltage
+            | M::Current
+            | M::GridFrequency
+            | M::TransformerTemperature
+            | M::FeederOutage => matches!(domain, D::Electricity | D::MultiUtility),
+            M::SurfaceWaterExtent
+            | M::InundationExtent
+            | M::Precipitation
+            | M::SoilMoisture => {
+                matches!(domain, D::Water | D::Stormwater | D::MultiUtility)
+            }
+            M::VegetationEncroachment => matches!(
+                domain,
+                D::Electricity | D::Water | D::Wastewater | D::Stormwater | D::MultiUtility
+            ),
+            M::ThermalAnomaly | M::AssetCondition | M::TelemetryLinkQuality => true,
+        }
+    }
+
     /// Returns whether a value has the unit/shape expected for this metric.
     pub fn accepts(&self, value: &ObservationValue) -> bool {
         use MeasurementUnit as U;
@@ -281,6 +319,7 @@ pub enum ObservationValidationError {
     InvalidTimestampOrder,
     NonFiniteMeasurement,
     IncompatibleMeasurementShapeOrUnit,
+    MetricDomainMismatch,
     EmptyCategoryCode,
     InvalidCoordinate,
     InvalidConfidence,
@@ -325,6 +364,9 @@ impl UtilityObservation {
         }
         if !self.metric.accepts(&self.value) {
             errors.push(E::IncompatibleMeasurementShapeOrUnit);
+        }
+        if !self.metric.accepts_domain(self.domain) {
+            errors.push(E::MetricDomainMismatch);
         }
 
         if let Some(location) = self.location {
@@ -448,6 +490,30 @@ mod tests {
         let mut observation = valid_pressure_observation();
         observation.value = ObservationValue::Numeric { value: 420.0, unit: MeasurementUnit::Volt };
         assert!(has_error(&observation, ObservationValidationError::IncompatibleMeasurementShapeOrUnit));
+    }
+
+    #[test]
+    fn rejects_electrical_voltage_labelled_as_water_domain() {
+        let mut observation = valid_pressure_observation();
+        observation.metric = MetricKind::Voltage;
+        observation.domain = UtilityDomain::Water;
+        observation.value = ObservationValue::Numeric {
+            value: 230.0,
+            unit: MeasurementUnit::Volt,
+        };
+        assert!(has_error(&observation, ObservationValidationError::MetricDomainMismatch));
+    }
+
+    #[test]
+    fn explicit_multi_utility_domain_allows_cross_utility_voltage() {
+        let mut observation = valid_pressure_observation();
+        observation.metric = MetricKind::Voltage;
+        observation.domain = UtilityDomain::MultiUtility;
+        observation.value = ObservationValue::Numeric {
+            value: 230.0,
+            unit: MeasurementUnit::Volt,
+        };
+        assert!(observation.validate().is_ok());
     }
 
     #[test]
