@@ -134,6 +134,11 @@ def validate_pilot(doc: Any) -> list[str]:
             overlap = source.get("upstream_overlap")
             if not isinstance(overlap, str) or "station" not in overlap.lower():
                 errors.append(f"{where}: CHIRPS upstream station overlap must be disclosed")
+            elif "gauge-undercatch-corrected" not in overlap.lower():
+                errors.append(
+                    f"{where}: CHIRPS reference-comparison guidance must retain "
+                    "the provider's gauge-undercatch-correction recommendation"
+                )
         for field in ("provider", "product_family", "product_version", "product_selection_state",
                       "native_spatial_support", "native_temporal_support", "upstream_overlap"):
             if not isinstance(source.get(field), str) or not source[field].strip():
