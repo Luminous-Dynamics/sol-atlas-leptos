@@ -234,6 +234,17 @@ def save_snapshots(snapshot_dir: Path, groups: list[tuple[str, list[dict], list[
     return saved
 
 
+def cleanup_snapshot_after_output_failure(snapshot_dir: Path | None, snapshot_files: list[dict]) -> str:
+    """Remove this invocation's new snapshot if its inventory manifest cannot be saved."""
+    if snapshot_dir is None or not snapshot_files:
+        return ""
+    try:
+        shutil.rmtree(snapshot_dir)
+    except OSError as exc:
+        return f"; also failed to remove newly created snapshot directory: {exc}"
+    return "; removed newly created snapshot directory"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--search", help="case-insensitive substring filter over mapset metadata")
@@ -316,10 +327,12 @@ def main(argv: list[str] | None = None) -> int:
             with args.output.open("x", encoding="utf-8") as handle:
                 handle.write(rendered)
         except FileExistsError:
-            print("output path already exists; refusing to overwrite", file=sys.stderr)
+            cleanup_note = cleanup_snapshot_after_output_failure(args.snapshot_dir, snapshot_files)
+            print("output path already exists; refusing to overwrite" + cleanup_note, file=sys.stderr)
             return 2
         except OSError as exc:
-            print(f"cannot write inventory JSON: {exc}", file=sys.stderr)
+            cleanup_note = cleanup_snapshot_after_output_failure(args.snapshot_dir, snapshot_files)
+            print(f"cannot write inventory JSON: {exc}" + cleanup_note, file=sys.stderr)
             return 2
     print(
         f"Inventory only: {len(selected)} of {len(mapsets)} mapsets; "
