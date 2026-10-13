@@ -69,7 +69,8 @@
         "sensitivity to product release and aggregation recorded",
         "inventory the official monthly Africa GeoTIFF directory with plan_chirps_monthly.py and retain the raw index SHA-256 and retrieved-at timestamp",
         "confirm the exact requested month set is complete and intersects actual final WaPOR monthly coverage",
-        "do not treat daily rnl/sat downscaled products as independent high-frequency observations"
+        "do not treat daily rnl/sat downscaled products as independent high-frequency observations",
+        "dated browser inspection on 2026-10-13 saw the monthly Africa index through 2026-08 (server timestamp 2026-09-11), with 2026-09 not listed; this is not a byte snapshot, so capture a fresh raw index before fixing the study window"
       ]
     }
   ],
