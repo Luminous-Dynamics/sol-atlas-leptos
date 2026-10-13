@@ -1,20 +1,29 @@
-# Earth systems domain catalog
+# Earth systems domain catalog and pilot protocols
 
-This directory contains a machine-readable registry of research domains beyond mineral exploration.
+This directory contains the machine-readable registry of research domains beyond mineral exploration, plus fail-closed checks for a focused water–food pilot.
 
-## Validate the registry
+## Validate the domain registry
 
 From the repository root:
 
     python3 scripts/earth-systems/validate_catalog.py
     python3 -m unittest discover -s tests -p "test_earth_systems_catalog.py" -v
 
-The validator uses only the Python standard library. It checks required domain/source fields, unique domain IDs, repeated source-ID consistency, HTTPS source links, required data limitations, domain-specific validation metrics, and fail-closed rights states.
+The catalog validator checks required domain/source fields, unique domain IDs, repeated source-ID consistency, HTTPS source links, required data limitations, domain-specific validation metrics, and fail-closed rights states.
 
-Validation is structural only: it does not fetch external sources, prove a license, validate a scientific model, or establish that a domain is implemented.
+## Validate the Baixo Limpopo pilot profile
 
-## Current domain inventory
+From the repository root:
 
-The canonical machine-readable file is [docs/earth-systems-domain-catalog.json](../../docs/earth-systems-domain-catalog.json). The architecture, prioritized pilots, source limits and validation gates are described in [the Earth Systems Intelligence RFC](../../docs/EARTH_SYSTEMS_INTELLIGENCE_RFC.md).
+    python3 scripts/earth-systems/validate_pilot.py
+    python3 -m unittest discover -s tests -p "test_water_food_pilot.py" -v
 
-The highest-priority follow-on to the mineral benchmark is a Southern Africa water–food-security pilot, with hazard observation as another good validation domain. This choice tests different scientific assumptions and decision contexts using established public source systems, while keeping local ground-truth needs explicit.
+The pilot profile and JSON Schema are located at [docs/pilots/baixo-limpopo-water-productivity.json](../../docs/pilots/baixo-limpopo-water-productivity.json) and [docs/schemas/water-food-pilot.schema.json](../../docs/schemas/water-food-pilot.schema.json). The scientific protocol is [docs/pilots/BAIXO_LIMPOPO_WATER_PRODUCTIVITY.md](../../docs/pilots/BAIXO_LIMPOPO_WATER_PRODUCTIVITY.md).
+
+The pilot validator uses only Python's standard library. It ensures that planned artifacts are not assigned invented hashes, that acquired artifacts require SHA-256 and verified product metadata, source rights remain explicit, CHIRPS station overlap is disclosed, and a baseline/independent-validation/operational state cannot be claimed without its prerequisites.
+
+## Interpretation limit
+
+All validators here check metadata and state-machine invariants only. They do not fetch external sources, prove a license, validate a scientific model, establish source independence, or show that any domain is operational. The pilot profile is intentionally `design_only`: no WaPOR or CHIRPS artifacts have been acquired or processed. The current product IDs, temporal coverage, boundary, processing vintages, exact rights snapshots and independent reference records must be checked before the profile may advance.
+
+The wider architecture, cross-domain boundaries, priorities and D0–D5 gates are described in [the Earth Systems Intelligence RFC](../../docs/EARTH_SYSTEMS_INTELLIGENCE_RFC.md). The highest-priority work remains the mineral benchmark in parallel with this independently scoped water–food pilot.
