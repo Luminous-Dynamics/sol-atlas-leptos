@@ -36,6 +36,12 @@ class WaterFoodPilotTests(unittest.TestCase):
         doc["sources"][0]["source_catalog_verified"] = True
         self.assertTrue(any("requires a 64-character SHA-256" in e for e in validate_pilot(doc)))
 
+    def test_wapor_level_three_correction_history_must_be_checked(self):
+        source = next(s for s in self.pilot["sources"] if s["source_id"] == "FAO-WAPOR")
+        checks = " ".join(source["required_checks"]).lower()
+        self.assertIn("march 2025", checks)
+        self.assertIn("reacquire affected layers", checks)
+
     def test_chirps_station_overlap_must_be_disclosed(self):
         doc = copy.deepcopy(self.pilot)
         source = next(s for s in doc["sources"] if s["source_id"] == "CHIRPS3")
