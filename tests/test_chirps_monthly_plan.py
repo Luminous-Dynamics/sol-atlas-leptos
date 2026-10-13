@@ -4,10 +4,11 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from urllib.request import Request
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "earth-systems"))
-from plan_chirps_monthly import INDEX_URL, IndexError, build_plan, month_range, parse_month
+from plan_chirps_monthly import INDEX_URL, IndexError, SameOriginRedirectHandler, build_plan, month_range, parse_month
 
 
 def listing(*hrefs):
@@ -92,6 +93,24 @@ class ChirpsMonthlyPlanTests(unittest.TestCase):
     def test_large_or_non_utf8_index_is_rejected(self):
         with self.assertRaises(IndexError):
             build_plan(b"\xff\xfe", "2024-01", "2024-01", None, "local_html_snapshot")
+
+    def test_redirect_handler_rejects_external_location_before_following(self):
+        handler = SameOriginRedirectHandler()
+        request = Request(INDEX_URL)
+        with self.assertRaises(IndexError):
+            handler.redirect_request(
+                request, None, 302, "Found", {}, 
+                "https://attacker.example/steal"
+            )
+
+    def test_redirect_handler_accepts_only_exact_same_index_path(self):
+        handler = SameOriginRedirectHandler()
+        request = Request(INDEX_URL)
+        result = handler.redirect_request(
+            request, None, 302, "Found", {},
+            INDEX_URL
+        )
+        self.assertIsInstance(result, Request)
 
     def test_local_index_file_is_read_only_input(self):
         with tempfile.TemporaryDirectory() as temp_dir:
