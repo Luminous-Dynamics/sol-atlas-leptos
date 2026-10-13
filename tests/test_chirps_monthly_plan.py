@@ -142,6 +142,21 @@ class ChirpsMonthlyPlanTests(unittest.TestCase):
                 "--output", str(root / "second-plan.json"),
             ]), 2)
 
+    def test_cli_refuses_to_overwrite_existing_plan(self):
+        from plan_chirps_monthly import main
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "index.html"
+            output = root / "existing-plan.json"
+            source.write_bytes(listing("chirps-v3.0.2024.01.tif"))
+            output.write_text("preserve this evidence\\n", encoding="utf-8")
+            code = main([
+                "--start", "2024-01", "--end", "2024-01",
+                "--index-file", str(source), "--output", str(output),
+            ])
+            self.assertEqual(code, 2)
+            self.assertEqual(output.read_text(encoding="utf-8"), "preserve this evidence\\n")
+
     def test_local_index_file_is_read_only_input(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             source = Path(temp_dir) / "index.html"
