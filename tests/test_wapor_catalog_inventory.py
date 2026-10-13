@@ -57,7 +57,7 @@ class WaporCatalogTests(unittest.TestCase):
         def fetch(url, timeout):
             calls.append(url)
             return document, raw, url
-        records, pages, payloads = paginate_with_fetch(MAPSETS_URL, 10, fetch)
+        records, pages, payloads = paginate(MAPSETS_URL, 10, fetcher=fetch)
         self.assertEqual(records, [{"code": "L3-MBL-AETI-M"}])
         self.assertEqual(len(pages), 1)
         self.assertEqual(payloads, [raw])
@@ -124,39 +124,6 @@ class WaporCatalogTests(unittest.TestCase):
     def test_large_response_cap_is_declared(self):
         self.assertLessEqual(MAX_RESPONSE_BYTES, 16 * 1024 * 1024)
 
-
-def paginate_with_fetch(endpoint, timeout, fetch):
-    """Exercise pagination logic with an injected deterministic response reader."""
-    # Keep test seams separate from the network transport: this mirrors the
-    # real pager's invariants while avoiding external service dependencies.
-    records, page_metadata, page_bytes = [], [], []
-    next_url = endpoint
-    visited = set()
-    while next_url is not None:
-        if len(page_metadata) >= 100:
-            raise WaporCatalogError("catalogue exceeded page cap")
-        validate_api_url(next_url)
-        if next_url in visited:
-            raise WaporCatalogError("pagination loop detected")
-        visited.add(next_url)
-        document, raw, final_url = fetch(next_url, timeout)
-        payload = document.get("response")
-        if not isinstance(payload, dict):
-            raise WaporCatalogError("missing response")
-        items = payload.get("items")
-        if not isinstance(items, list) or any(not isinstance(item, dict) for item in items):
-            raise WaporCatalogError("items must be an array of objects")
-        records.extend(items)
-        page_metadata.append({"request_url": next_url, "final_url": final_url, "item_count": len(items)})
-        page_bytes.append(raw)
-        links = payload.get("links", [])
-        next_links = [item.get("href") for item in links if isinstance(item, dict) and item.get("rel") == "next"]
-        if len(next_links) > 1:
-            raise WaporCatalogError("multiple next links")
-        next_url = next_links[0] if next_links else None
-        if next_url is not None and not isinstance(next_url, str):
-            raise WaporCatalogError("next href must be string")
-    return records, page_metadata, page_bytes
 
 
 if __name__ == "__main__":
