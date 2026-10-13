@@ -24,6 +24,7 @@ pub mod math;
 pub mod picking;
 pub mod simulation;
 pub mod solar_system;
+pub mod raster_quality;
 pub mod surface_water;
 pub mod tiles;
 pub mod timeline;
