@@ -8,6 +8,7 @@
 //! is not confused with satellite communications backhaul.
 
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeSet;
 
 /// Utility domain represented by an observation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -367,6 +368,8 @@ pub enum ObservationValidationError {
     MissingSatelliteProductVersion,
     SatelliteMetricMismatch,
     MissingDerivationLineage,
+    EmptyUpstreamObservationId,
+    DuplicateUpstreamObservationId,
     MissingModelDerivedFlag,
 }
 
@@ -449,10 +452,20 @@ impl UtilityObservation {
             }
         }
 
-        if self.source == S::DerivedEstimate
-            && self.provenance.upstream_observation_ids.is_empty()
-        {
-            errors.push(E::MissingDerivationLineage);
+        if self.source == S::DerivedEstimate {
+            if self.provenance.upstream_observation_ids.is_empty() {
+                errors.push(E::MissingDerivationLineage);
+            }
+
+            let mut upstream_ids = BTreeSet::new();
+            for upstream_id in &self.provenance.upstream_observation_ids {
+                let normalized_id = upstream_id.trim();
+                if normalized_id.is_empty() {
+                    errors.push(E::EmptyUpstreamObservationId);
+                } else if !upstream_ids.insert(normalized_id) {
+                    errors.push(E::DuplicateUpstreamObservationId);
+                }
+            }
         }
         if matches!(self.source, S::DerivedEstimate | S::SyntheticSimulation)
             && !self.quality.flags.contains(&QualityFlag::ModelDerived)
@@ -633,6 +646,37 @@ mod tests {
         observation.source = ObservationSource::DerivedEstimate;
         assert!(has_error(&observation, ObservationValidationError::MissingDerivationLineage));
         assert!(has_error(&observation, ObservationValidationError::MissingModelDerivedFlag));
+    }
+
+    #[test]
+    fn derived_estimate_rejects_blank_upstream_ids() {
+        let mut observation = valid_pressure_observation();
+        observation.source = ObservationSource::DerivedEstimate;
+        observation.provenance.upstream_observation_ids = vec!["upstream-1".into(), "   ".into()];
+        observation.quality.flags.push(QualityFlag::ModelDerived);
+
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::EmptyUpstreamObservationId
+        ));
+        assert!(!has_error(
+            &observation,
+            ObservationValidationError::MissingDerivationLineage
+        ));
+    }
+
+    #[test]
+    fn derived_estimate_rejects_duplicate_upstream_ids() {
+        let mut observation = valid_pressure_observation();
+        observation.source = ObservationSource::DerivedEstimate;
+        observation.provenance.upstream_observation_ids =
+            vec![" upstream-1 ".into(), "upstream-1".into()];
+        observation.quality.flags.push(QualityFlag::ModelDerived);
+
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::DuplicateUpstreamObservationId
+        ));
     }
 
     #[test]
