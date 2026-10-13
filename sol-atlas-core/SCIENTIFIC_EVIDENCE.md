@@ -30,7 +30,7 @@ From the repository root:
     cargo test --manifest-path sol-atlas-core/Cargo.toml scientific_evidence
     cargo clippy --manifest-path sol-atlas-core/Cargo.toml -- -D warnings
 
-The schema currently has 13 focused unit tests. CI results, not the test count in this document, determine whether a build or test run passed.
+The schema currently has 14 focused unit tests, including both malformed and syntactically valid recorded-digest cases. CI results, not the test count in this document, determine whether a build or test run passed.
 
 ## References
 
