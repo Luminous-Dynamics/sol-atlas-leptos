@@ -88,6 +88,7 @@ pub struct SurfaceWaterObservationContext {
 pub struct SurfaceWaterEstimate {
     pub index: WaterIndex,
     pub threshold: f64,
+    pub minimum_valid_area_fraction: f64,
     pub total_pixel_count: usize,
     pub water_pixel_count: usize,
     pub valid_pixel_count: usize,
@@ -180,6 +181,7 @@ pub fn estimate_surface_water(
     Ok(SurfaceWaterEstimate {
         index: config.index,
         threshold: config.threshold,
+        minimum_valid_area_fraction: config.minimum_valid_area_fraction,
         total_pixel_count: pixels.len(),
         water_pixel_count,
         valid_pixel_count,
@@ -225,7 +227,7 @@ impl SurfaceWaterEstimate {
             context.processing_version,
             self.index,
             self.threshold,
-            self.valid_area_fraction
+            self.minimum_valid_area_fraction
         );
 
         let observation = UtilityObservation {
