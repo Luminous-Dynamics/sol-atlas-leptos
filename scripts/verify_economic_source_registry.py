@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the World Bank informal-economy source qualification record v6.
+"""Verify the World Bank informal-economy source qualification record v7.
 
 This checks source metadata and project approval gates only. It is not a workbook
 parser, source-authenticity check, empirical replication, or legal opinion.
@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_PATH = ROOT / "data" / "economic_sources" / "world_bank_informal_economy_database.json"
 
 TOP_KEYS = {
-    "schema_version", "registry_id", "registry_version", "supersedes_registry_version",
+    "schema_version", "registry_id", "registry_version", "supersedes_registry_version", "edition_history_evidence",
     "record_kind", "status", "source_id", "publisher", "title", "canonical_url",
     "data_url", "source_page_date", "source_period_start", "source_period_end",
     "max_economies_claimed", "measure_count_claimed_by_source_page",
@@ -66,6 +66,20 @@ BROWSER_ATTEMPT_KEYS = {"attempted_on", "result", "detail"}
 CONTAINER_ATTEMPT_KEYS = {
     "attempted_on", "result", "detail", "destination_path", "bytes_captured", "http_status",
 }
+EDITION_HISTORY_KEYS = {
+    "evidence_id", "dataset_id", "dataset_title", "metadata_url", "api_documentation_url",
+    "catalogue_search_url", "reviewed_on", "metadata_version_date", "source_period_start",
+    "source_period_end", "measure_count_claimed", "catalogue_indicator_count",
+    "measure_breakdown", "competing_official_brief", "exact_workbook_inventory_captured",
+    "metadata_pdf_bytes_captured", "data_observations_captured", "interpretation", "access_note",
+}
+MEASURE_BREAKDOWN_KEYS = {
+    "output_methods", "employment_indicators", "perception_indicators",
+    "total_if_each_output_estimator_is_separate",
+}
+COMPETING_BRIEF_KEYS = {
+    "url", "source_period_start", "source_period_end", "measure_count_claimed",
+}
 DERIVATIVE_KEYS = {
     "candidate_id", "status", "catalog_url", "catalog_created_date", "catalog_last_modified_date",
     "source_access_date", "dataset_names_in_package", "source_sheets_reported",
@@ -99,6 +113,7 @@ EXPECTED_GATES = {
     "distinguish parent-package embargo from the access policy for the separately linked official Excel dataset",
     "preserve the distinction between a catalogue's embargoed reproduction ZIP and its separately linked original dataset asset",
     "capture an HTTP response, workbook byte length and SHA-256 before claiming exact-asset verification",
+    "reconcile the Data360 WB_INFECDB metadata claim of 12 measures over 1990–2018 against the official brief claim of 11 measures over 1990–2020 and the exact workbook edition",
 }
 
 
@@ -133,8 +148,8 @@ def validate(source: dict[str, Any]) -> int:
     require(type(source["schema_version"]) is int and source["schema_version"] == 1,
             "unsupported record schema (schema_version must be integer 1; booleans are not integers here)")
     require(source["registry_id"] == "sol-atlas-economic-source-registry", "registry ID drift")
-    require(source["registry_version"] == "world-bank-informal-economy-database/v6", "version drift")
-    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v5",
+    require(source["registry_version"] == "world-bank-informal-economy-database/v7", "version drift")
+    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v6",
             "superseded record reference drift")
     require(source["record_kind"] == "source_qualification_candidate", "record kind drift")
     require(source["status"] == "metadata_only_not_approved_for_data_ingestion_or_redistribution",
@@ -212,13 +227,72 @@ def validate(source: dict[str, Any]) -> int:
             "literal listed-series count must stay 12")
     require(inventory["conceptual_count_if_output_estimators_grouped"] == 11,
             "optional conceptual grouping arithmetic drift")
-    require(inventory["count_reconciliation_status"] == "unresolved_until_exact_workbook_inventory",
-            "do not prematurely resolve source page's 11-versus-12 inventory question")
+    require(inventory["count_reconciliation_status"] ==
+            "unresolved_until_exact_workbook_inventory_and_edition_reconciliation",
+            "do not prematurely resolve the 11-versus-12 measure and edition question")
     require("exact official workbook edition" in inventory["note"] and
             "do not select an interpretation" in inventory["note"],
             "uncertainty about source's intended count must remain explicit")
     require("actual official workbook edition" in claims["count_reconciliation"],
             "workbook-level qualification requirement missing")
+    require("1990–2018" in claims["count_reconciliation"]
+            and "1990–2020" in claims["count_reconciliation"]
+            and "edition" in claims["count_reconciliation"].lower(),
+            "alternate World Bank Data360 metadata edition must remain part of count reconciliation")
+
+    edition = exact_keys(source["edition_history_evidence"], EDITION_HISTORY_KEYS,
+                         "edition_history_evidence")
+    require(edition["evidence_id"] == "world_bank_data360_wb_infecdb_metadata_alternate_edition",
+            "alternate Data360 edition evidence ID drift")
+    require(edition["dataset_id"] == "WB_INFECDB"
+            and edition["dataset_title"] == "Informal Economy Database",
+            "Data360 dataset identity drift")
+    require(edition["metadata_url"] ==
+            "https://data360files.worldbank.org/data360-data/datasetmetadata/WB_INFECDB.pdf",
+            "Data360 metadata URL drift")
+    require(edition["api_documentation_url"] == "https://data360.worldbank.org/en/api",
+            "Data360 API documentation URL drift")
+    require(edition["catalogue_search_url"] == "https://data360.worldbank.org/en/search",
+            "Data360 catalogue URL drift")
+    require(edition["reviewed_on"] == "2026-10-13" and edition["metadata_version_date"] is None,
+            "unknown metadata edition date must remain explicit")
+    for field, expected in (
+        ("source_period_start", 1990),
+        ("source_period_end", 2018),
+        ("measure_count_claimed", 12),
+        ("catalogue_indicator_count", 12),
+    ):
+        require(type(edition[field]) is int and edition[field] == expected,
+                f"Data360 edition {field} must remain integer {expected}")
+    breakdown = exact_keys(edition["measure_breakdown"], MEASURE_BREAKDOWN_KEYS,
+                           "edition_history_evidence.measure_breakdown")
+    for field, expected in (
+        ("output_methods", 2),
+        ("employment_indicators", 4),
+        ("perception_indicators", 6),
+        ("total_if_each_output_estimator_is_separate", 12),
+    ):
+        require(type(breakdown[field]) is int and breakdown[field] == expected,
+                f"Data360 measure breakdown {field} must remain integer {expected}")
+    competing = exact_keys(edition["competing_official_brief"], COMPETING_BRIEF_KEYS,
+                           "edition_history_evidence.competing_official_brief")
+    require(competing["url"] == source["canonical_url"],
+            "competing source brief must match canonical official page")
+    for field, expected in (
+        ("source_period_start", 1990),
+        ("source_period_end", 2020),
+        ("measure_count_claimed", 11),
+    ):
+        require(type(competing[field]) is int and competing[field] == expected,
+                f"competing official brief {field} must remain integer {expected}")
+    require(edition["exact_workbook_inventory_captured"] is False
+            and edition["metadata_pdf_bytes_captured"] is False
+            and edition["data_observations_captured"] is False,
+            "do not overstate Data360 metadata or observation acquisition")
+    require("not proof of the exact current workbook inventory" in edition["interpretation"],
+            "Data360 metadata must not be conflated with the current workbook")
+    require("not successfully queried" in edition["access_note"],
+            "Data360 API retrieval limitation must remain explicit")
 
     citation = exact_keys(source["primary_methodology_citation"], CITATION_KEYS, "primary_methodology_citation")
     require(type(citation["year"]) is int and citation["year"] == 2021,
