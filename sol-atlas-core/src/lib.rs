@@ -14,7 +14,6 @@ pub mod constants;
 pub mod data;
 pub mod economics;
 pub mod energy_trading;
-pub mod earth_observation;
 pub mod geo;
 pub mod gibs;
 pub mod lod;
@@ -32,7 +31,6 @@ pub mod types;
 pub mod utility_telemetry;
 pub mod visual_validation;
 
-pub use earth_observation::*;
 pub use surface_water::*;
 pub use types::*;
 pub use utility_telemetry::*;
