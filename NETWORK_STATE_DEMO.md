@@ -19,7 +19,7 @@ This is a deliberately bounded entry point for a Network State audience: a resou
 - A critical-first accounting split that reports critical and noncritical served/unserved energy separately.
 - A separate verifier function that recomputes interval balances and aggregate totals from the candidate's rows without calling the simulation function again.
 - Negative tests for forged aggregate totals, an import recorded during an outage, battery power-limit violations, and the frozen scenario's expected trade-off.
-- An illustrative vote worksheet with 4 yes / 1 no / 0 abstain, quorum and approval thresholds, and visible dissent. It is a demonstration fixture only and does not use Mycelix's actual governance policy or persist a vote.
+- A pre-seeded tally worksheet with 4 yes / 1 no / 0 abstain, demo-only 60% quorum and 75% approval thresholds, and visible dissent. It accepts no ballots and persists no vote. Mycelix Governance's [public README](https://github.com/Luminous-Dynamics/mycelix/blob/main/mycelix-governance/README.md) documents different Standard proposal thresholds (25% quorum / 60% approval) and MATL/stake/participation weighting; this worksheet does not evaluate that policy.
 
 ## Frozen scenario result
 
