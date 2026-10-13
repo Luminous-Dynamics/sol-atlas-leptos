@@ -138,7 +138,8 @@
           "redistribution_allowed": null,
           "key_limitations": [
             "Coverage and variable resolution differ by WaPOR level and product.",
-            "Water productivity is not a direct measure of household access, water quality or groundwater reserves."
+            "Water productivity is not a direct measure of household access, water quality or groundwater reserves.",
+            "WaPOR Level III has a 2024 methodology re-release, and NPP/AGBP for Baixo Limpopo received a separate correction announced in March 2025; historical artifacts require correction-vintage review."
           ]
         },
         {
@@ -211,7 +212,8 @@
           "redistribution_allowed": null,
           "key_limitations": [
             "Coverage and spatial resolution vary by level.",
-            "A derived productivity layer does not uniquely identify agronomic cause."
+            "A derived productivity layer does not uniquely identify agronomic cause.",
+            "WaPOR Level III has a 2024 methodology re-release, and NPP/AGBP for Baixo Limpopo received a separate correction announced in March 2025; historical artifacts require correction-vintage review."
           ]
         },
         {
