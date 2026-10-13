@@ -322,20 +322,37 @@ fn is_sha256_hex(value: &str) -> bool {
 
 fn is_iso_date(value: &str) -> bool {
     let bytes = value.as_bytes();
-    if bytes.len() != 10 || bytes[4] != b'-' || bytes[7] != b'-' {
+    if bytes.len() != 10
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || !bytes[0..4].iter().all(|byte| byte.is_ascii_digit())
+        || !bytes[5..7].iter().all(|byte| byte.is_ascii_digit())
+        || !bytes[8..10].iter().all(|byte| byte.is_ascii_digit())
+    {
         return false;
     }
-    let year = match value[0..4].parse::<u32>() {
-        Ok(value) => value,
-        Err(_) => return false,
+    // Numeric bytes are checked before slicing, so malformed UTF-8 boundaries
+    // cannot panic validation on hostile input.
+    let year = match std::str::from_utf8(&bytes[0..4])
+        .ok()
+        .and_then(|part| part.parse::<u32>().ok())
+    {
+        Some(value) => value,
+        None => return false,
     };
-    let month = match value[5..7].parse::<u32>() {
-        Ok(value) => value,
-        Err(_) => return false,
+    let month = match std::str::from_utf8(&bytes[5..7])
+        .ok()
+        .and_then(|part| part.parse::<u32>().ok())
+    {
+        Some(value) => value,
+        None => return false,
     };
-    let day = match value[8..10].parse::<u32>() {
-        Ok(value) => value,
-        Err(_) => return false,
+    let day = match std::str::from_utf8(&bytes[8..10])
+        .ok()
+        .and_then(|part| part.parse::<u32>().ok())
+    {
+        Some(value) => value,
+        None => return false,
     };
     if year == 0 || !(1..=12).contains(&month) {
         return false;
