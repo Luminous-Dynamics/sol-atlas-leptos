@@ -527,8 +527,8 @@ def main() -> int:
     except ContractError as error:
         print(f"FAIL: {error}", file=sys.stderr)
         return 1
-    print("PASS: World Bank source v6 preserves official metadata, retrieval state, and license-scope distinctions.")
-    print("PASS: the 11-versus-12 measure count remains unresolved pending exact workbook inspection.")
+    print("PASS: World Bank source v7 preserves official metadata, retrieval state, licence scope, and edition evidence.")
+    print("PASS: the 11-versus-12 and 1990–2018-versus-1990–2020 metadata differences remain unresolved pending exact workbook/edition inspection.")
     print("PASS: CC BY 4.0 and Custom license catalogue evidence remain distinct and unresolved for the exact workbook.")
     print("PASS: the processed derivative's CC BY 4.0 metadata remains separate from the official workbook rights gate.")
     print("PASS: parent-package embargo, source-row availability, and environment-level fetch failure are distinct.")
