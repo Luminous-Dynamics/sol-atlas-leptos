@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_PATH = ROOT / "data" / "economic_sources" / "world_bank_informal_economy_database_v3.json"
+SOURCE_PATH = ROOT / "data" / "economic_sources" / "world_bank_informal_economy_database_v4.json"
 
 TOP_KEYS = {
     "schema_version", "registry_id", "registry_version", "supersedes_registry_version",
@@ -22,7 +22,7 @@ TOP_KEYS = {
     "max_economies_claimed", "measure_count_claimed_by_source_page",
     "source_page_update_frequency", "source_page_claims", "primary_methodology_citation",
     "official_asset", "reproducibility_package_evidence", "license_review",
-    "provenance", "qualification_gates", "interpretation_ceiling", "cross_catalog_evidence",
+    "provenance", "qualification_gates", "interpretation_ceiling", "cross_catalog_evidence", "derivative_candidate",
 }
 CLAIMS_KEYS = {"output_methods", "employment_indicators", "perception_sources",
                "count_reconciliation", "concept_inventory"}
@@ -45,6 +45,14 @@ LICENSE_KEYS = {
     "specific_evidence_url", "specific_evidence_label", "specific_evidence_url_points_to",
     "interpretation_limit", "required_next_action",
 }
+DERIVATIVE_KEYS = {
+    "candidate_id", "status", "catalog_url", "catalog_created_date", "catalog_last_modified_date",
+    "source_access_date", "dataset_names_in_package", "source_sheets_reported",
+    "processed_variables_reported", "other_reported_variables", "license_label_reported",
+    "license_url", "rights_scope", "raw_or_derivative", "downloaded_in_this_review",
+    "source_snapshot_digest", "digest_status", "project_status", "next_actions",
+}
+DERIVATIVE_VARIABLE_KEYS = {"id", "meaning"}
 PROVENANCE_KEYS = {
     "acquisition_method", "workbook_downloaded", "source_snapshot_id",
     "source_snapshot_digest", "digest_status", "raw_observations_embedded",
@@ -64,6 +72,8 @@ EXPECTED_GATES = {
     "check country-year coverage and missingness before comparing economies",
     "resolve source-specific terms and third-party restrictions before any data redistribution or commercial use",
     "do not infer illegality or adjudicated illicit output from informality estimates",
+    "obtain and hash the specific reproducibility-package derivative before considering its values for import",
+    "do not transfer the derivative's CC BY 4.0 metadata to the current official Excel workbook or to the separately author-provided companion file",
 }
 
 
@@ -97,8 +107,8 @@ def read_source() -> dict[str, Any]:
 def validate(source: dict[str, Any]) -> int:
     require(source["schema_version"] == 1, "unsupported record schema")
     require(source["registry_id"] == "sol-atlas-economic-source-registry", "registry ID drift")
-    require(source["registry_version"] == "world-bank-informal-economy-database/v3", "version drift")
-    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v2",
+    require(source["registry_version"] == "world-bank-informal-economy-database/v4", "version drift")
+    require(source["supersedes_registry_version"] == "world-bank-informal-economy-database/v3",
             "superseded record reference drift")
     require(source["record_kind"] == "source_qualification_candidate", "record kind drift")
     require(source["status"] == "metadata_only_not_approved_for_data_ingestion_or_redistribution",
@@ -210,6 +220,50 @@ def validate(source: dict[str, Any]) -> int:
     require("not a legal finding" in license_review["interpretation_limit"],
             "do not misstate project approval status as legal prohibition")
 
+    derivative = exact_keys(source["derivative_candidate"], DERIVATIVE_KEYS, "derivative_candidate")
+    require(derivative["candidate_id"] == "world-bank-informal-economy-database-with-fixes",
+            "derivative candidate ID drift")
+    require(derivative["status"] == "public_reproducibility_package_candidate_not_yet_materialized_or_hash_verified",
+            "derivative candidate must not be treated as captured/approved")
+    require(derivative["catalog_url"] == "https://reproducibility.worldbank.org/catalog/330",
+            "derivative catalog URL drift")
+    require(derivative["catalog_created_date"] == "2025-09-15" and
+            derivative["catalog_last_modified_date"] == "2026-01-06" and
+            derivative["source_access_date"] == "2024-09", "derivative dates drift")
+    require(set(derivative["dataset_names_in_package"]) == {
+        "informal-economy-database-with-fixes.dta", "INFORMALITY DATA SET.dta"
+    }, "derivative filenames drift")
+    require(set(derivative["source_sheets_reported"]) == {"DGE_p", "MIMIC_p"},
+            "reported DGE/MIMIC source sheets drift")
+    vars_reported = derivative["processed_variables_reported"]
+    require(len(vars_reported) == 2, "expected DGE and MIMIC period-average variables")
+    by_var = {}
+    for index, raw in enumerate(vars_reported):
+        variable = exact_keys(raw, DERIVATIVE_VARIABLE_KEYS, f"derivative variable[{index}]")
+        by_var[variable["id"]] = variable
+    require(set(by_var) == {"dge_paverage_1993_2019", "mimic_paverage_1993_2019"},
+            "processed derivative variable IDs drift")
+    require(set(derivative["other_reported_variables"]) == {"economy", "ccode", "var4", "var5"},
+            "processed derivative identifier columns drift")
+    require(derivative["license_label_reported"] ==
+            "Creative Commons Attribution 4.0 International License (CC BY 4.0)",
+            "derivative-specific reported license drift")
+    require(derivative["license_url"] == license_review["specific_evidence_url_points_to"],
+            "derivative license URL drift")
+    require(derivative["raw_or_derivative"] == "processed derivative; not the current official Excel workbook",
+            "derivative/source distinction weakened")
+    require(derivative["downloaded_in_this_review"] is False and
+            derivative["source_snapshot_digest"] is None and
+            derivative["digest_status"] == "not_captured",
+            "do not claim derivative bytes/digest were captured")
+    require(derivative["project_status"] ==
+            "not_approved_for_import_until_package_asset_is_obtained_hashed_and_its_metadata_reconciled",
+            "derivative import gate weakened")
+    require(len(derivative["next_actions"]) == 5 and
+            any("do not infer the raw workbook has the same rights" in item
+                for item in derivative["next_actions"]),
+            "derivative rights scope guard missing")
+
     provenance = exact_keys(source["provenance"], PROVENANCE_KEYS, "provenance")
     require(provenance["workbook_downloaded"] is False, "workbook acquisition must remain unclaimed")
     require(provenance["source_snapshot_id"] is None, "snapshot ID not captured")
@@ -236,6 +290,7 @@ def main() -> int:
         return 1
     print("PASS: World Bank source v3 preserves official metadata and cross-catalog evidence.")
     print("PASS: the 11-versus-12 measure count remains unresolved pending exact workbook inspection.")
+    print("PASS: the CC BY 4.0 derivative candidate remains separate from the official Excel workbook rights gate.")
     print("PASS: availability evidence stays separate from project approval of redistribution/commercial use.")
     print("SCOPE: metadata contract only; no workbook values/digest or exact official sheet inventory.")
     print(f"OPEN: {count} source qualification gates; ingestion and redistribution remain unapproved.")
