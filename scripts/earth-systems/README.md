@@ -37,6 +37,6 @@ python3 scripts/earth-systems/plan_chirps_monthly.py \
   --output /tmp/chirps-monthly-plan.json
 ```
 
-The planner reads the official CHIRPS v3 monthly Africa-subset GeoTIFF directory index only. It saves the index SHA-256 and retrieval timestamp, verifies that every requested month is listed, and emits candidate source URLs with null raster digests. It does not download, extract, crop or process any raster. Choose the actual range only after the matching WaPOR product's final coverage has been confirmed; the example range is not a scientific recommendation.
+The planner reads the official CHIRPS v3 monthly Africa-subset GeoTIFF directory index only. It can save the exact HTML index bytes at a new `--snapshot-index` path, hashes those bytes, records the retrieval timestamp, verifies that every requested month is listed, and emits candidate source URLs with null raster digests. It refuses to overwrite a snapshot. It does not download, extract, crop or process any raster. Choose the actual range only after the matching WaPOR product's final coverage has been confirmed; the example range is not a scientific recommendation.
 
 The planner has an offline mode for testing a saved HTML listing with `--index-file path/to/index.html`. This yields `index_retrieved_at_utc: null` so an offline fixture cannot masquerade as a live source query.
