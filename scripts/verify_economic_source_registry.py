@@ -268,7 +268,7 @@ def validate(source: dict[str, Any]) -> int:
             "explicit CC BY evidence was weakened")
     require(ccby["license_url"] == "https://datacatalog.worldbank.org/public-licenses#cc-by",
             "explicit CC BY terms link drift")
-    require("parent reproduction package also states" in ccby["caveat"],
+    require("same catalogue page states in its package-level overview" in ccby["caveat"],
             "parent package embargo caveat missing")
     custom = by_evidence["world_bank_catalog_sme_training_583"]
     require(custom["named_asset"] == "DGE_Raw.xlsx" and custom["license_label"] == "Custom license",
