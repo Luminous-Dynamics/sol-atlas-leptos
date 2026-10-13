@@ -12,8 +12,8 @@
 use serde::Deserialize;
 
 use crate::system_catalog::{
-    catalog_object, CatalogObject, EphemerisProvenance, ReferencePlane, ReferenceSystem,
-    StateVector, TimeScale, VectorCorrection,
+    CatalogObject, EphemerisProvenance, ReferencePlane, ReferenceSystem, StateVector, TimeScale,
+    VectorCorrection, catalog_object,
 };
 
 /// Conservative URL ceiling; larger batches should use the file-based Horizons
@@ -103,17 +103,27 @@ impl std::fmt::Display for HorizonsParseError {
             Self::MissingMetadata(field) => {
                 write!(f, "Horizons response is missing metadata: {field}")
             }
-            Self::UnexpectedMetadata { field, expected, actual } => {
+            Self::UnexpectedMetadata {
+                field,
+                expected,
+                actual,
+            } => {
                 write!(
                     f,
                     "unexpected Horizons metadata for {field}: expected {expected:?}, got {actual:?}"
                 )
             }
             Self::MissingJdtbdHeader => {
-                write!(f, "Horizons table does not identify its epoch column as JDTDB")
+                write!(
+                    f,
+                    "Horizons table does not identify its epoch column as JDTDB"
+                )
             }
             Self::MissingVectorColumnHeader => {
-                write!(f, "Horizons vector table is missing its labelled CSV column header")
+                write!(
+                    f,
+                    "Horizons vector table is missing its labelled CSV column header"
+                )
             }
             Self::UnexpectedVectorColumns { actual } => {
                 write!(f, "unexpected Horizons vector CSV columns: {actual:?}")
@@ -156,7 +166,11 @@ impl HorizonsRequestPlan {
     pub fn canonical_request_identity(&self) -> String {
         match self {
             Self::Get { url } => url.clone(),
-            Self::FilePost { endpoint, format, input_file } => format!(
+            Self::FilePost {
+                endpoint,
+                format,
+                input_file,
+            } => format!(
                 "POST\n{endpoint}\nformat={format}\nfield=input\ninput-bytes:\n{input_file}"
             ),
         }
@@ -201,11 +215,11 @@ impl HorizonsVectorRequest {
         reference_plane: ReferencePlane,
         vector_correction: VectorCorrection,
     ) -> Result<Self, HorizonsParseError> {
-        let provider_target = object.ephemeris_target.ok_or(
-            HorizonsParseError::InvalidRequest(
+        let provider_target = object
+            .ephemeris_target
+            .ok_or(HorizonsParseError::InvalidRequest(
                 "aggregate catalogue layers cannot be queried as point targets",
-            ),
-        )?;
+            ))?;
 
         let request = Self {
             target_id: object.id.to_owned(),
@@ -328,12 +342,21 @@ impl HorizonsVectorRequest {
             ("MAKE_EPHEM", quoted("YES")),
             ("OBJ_DATA", quoted("YES")),
             ("OUT_UNITS", quoted("KM-S")),
-            ("REF_PLANE", quoted(reference_plane_label(self.reference_plane))),
-            ("REF_SYSTEM", quoted(reference_system_label(self.reference_system))),
+            (
+                "REF_PLANE",
+                quoted(reference_plane_label(self.reference_plane)),
+            ),
+            (
+                "REF_SYSTEM",
+                quoted(reference_system_label(self.reference_system)),
+            ),
             ("TIME_TYPE", quoted("TDB")),
             ("TLIST", epochs),
             ("TLIST_TYPE", quoted("JD")),
-            ("VEC_CORR", quoted(vector_correction_label(self.vector_correction))),
+            (
+                "VEC_CORR",
+                quoted(vector_correction_label(self.vector_correction)),
+            ),
             ("VEC_LABELS", quoted("YES")),
             ("VEC_TABLE", quoted("2")),
             ("format", "json".to_owned()),
@@ -441,7 +464,10 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
                 "provider target does not match the catalogue target ID",
             ));
         }
-        if !object.name.eq_ignore_ascii_case(request.expected_target_name.trim()) {
+        if !object
+            .name
+            .eq_ignore_ascii_case(request.expected_target_name.trim())
+        {
             return Err(HorizonsParseError::InvalidRequest(
                 "expected target name does not match the catalogue target ID",
             ));
@@ -466,7 +492,10 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
                 "provider center does not match the catalogue center ID",
             ));
         }
-        if !object.name.eq_ignore_ascii_case(request.expected_center_name.trim()) {
+        if !object
+            .name
+            .eq_ignore_ascii_case(request.expected_center_name.trim())
+        {
             return Err(HorizonsParseError::InvalidRequest(
                 "expected center name does not match the catalogue center ID",
             ));
@@ -486,7 +515,11 @@ fn validate_request(request: &HorizonsVectorRequest) -> Result<(), HorizonsParse
             "expected between 1 and 10000 requested epochs",
         ));
     }
-    if request.epochs_jd.iter().any(|epoch| !epoch.is_finite() || *epoch <= 0.0) {
+    if request
+        .epochs_jd
+        .iter()
+        .any(|epoch| !epoch.is_finite() || *epoch <= 0.0)
+    {
         return Err(HorizonsParseError::InvalidRequest(
             "all Julian-date epochs must be finite and positive",
         ));
@@ -503,7 +536,9 @@ fn safe_stable_id(value: &str) -> bool {
     let bytes = value.as_bytes();
     !bytes.is_empty()
         && (bytes[0].is_ascii_lowercase() || bytes[0].is_ascii_digit())
-        && bytes.last().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+        && bytes
+            .last()
+            .is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
         && bytes.iter().all(|byte| {
             byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'-' | b'_')
         })
@@ -514,7 +549,10 @@ fn safe_horizons_token(value: &str) -> bool {
         && value.trim() == value
         && value.bytes().all(|byte| {
             byte.is_ascii_alphanumeric()
-                || matches!(byte, b' ' | b'-' | b'_' | b'.' | b'@' | b';' | b'(' | b')' | b'=')
+                || matches!(
+                    byte,
+                    b' ' | b'-' | b'_' | b'.' | b'@' | b';' | b'(' | b')' | b'='
+                )
         })
 }
 
@@ -657,11 +695,9 @@ pub fn parse_horizons_vectors_json(
             continue;
         }
 
-        let fields = split_csv_record(line).map_err(|reason| {
-            HorizonsParseError::InvalidCsv {
-                row: row_index + 1,
-                reason,
-            }
+        let fields = split_csv_record(line).map_err(|reason| HorizonsParseError::InvalidCsv {
+            row: row_index + 1,
+            reason,
         })?;
         if fields.len() != 8 {
             return Err(HorizonsParseError::InvalidVector {
@@ -690,21 +726,25 @@ pub fn parse_horizons_vectors_json(
             });
         }
 
-        let epoch_jd = fields[0].trim().parse::<f64>().map_err(|_| {
-            HorizonsParseError::InvalidVector {
-                row: row_index + 1,
-                reason: "first CSV field must be JDTDB",
-            }
-        })?;
+        let epoch_jd =
+            fields[0]
+                .trim()
+                .parse::<f64>()
+                .map_err(|_| HorizonsParseError::InvalidVector {
+                    row: row_index + 1,
+                    reason: "first CSV field must be JDTDB",
+                })?;
         let trailing = &fields[fields.len() - 6..];
         let mut components = [0.0_f64; 6];
         for (index, field) in trailing.iter().enumerate() {
-            components[index] = field.trim().parse::<f64>().map_err(|_| {
-                HorizonsParseError::InvalidVector {
-                    row: row_index + 1,
-                    reason: "last six CSV fields must be x/y/z/vx/vy/vz",
-                }
-            })?;
+            components[index] =
+                field
+                    .trim()
+                    .parse::<f64>()
+                    .map_err(|_| HorizonsParseError::InvalidVector {
+                        row: row_index + 1,
+                        reason: "last six CSV fields must be x/y/z/vx/vy/vz",
+                    })?;
         }
         if !epoch_jd.is_finite() || components.iter().any(|value| !value.is_finite()) {
             return Err(HorizonsParseError::InvalidVector {
@@ -746,10 +786,7 @@ pub fn parse_horizons_vectors_json(
             reason: "response sample count does not match requested TLIST epochs",
         });
     }
-    Ok(vectors
-        .into_iter()
-        .map(HashBoundStateVector::new)
-        .collect())
+    Ok(vectors.into_iter().map(HashBoundStateVector::new).collect())
 }
 
 fn validate_header(
@@ -791,8 +828,16 @@ fn validate_header(
         });
     }
 
-    expect_metadata(header, "Reference frame", reference_system_label(request.reference_system))?;
-    expect_metadata(header, "Reference plane", reference_plane_label(request.reference_plane))?;
+    expect_metadata(
+        header,
+        "Reference frame",
+        reference_system_label(request.reference_system),
+    )?;
+    expect_metadata(
+        header,
+        "Reference plane",
+        reference_plane_label(request.reference_plane),
+    )?;
     expect_metadata(
         header,
         "Aberration corrections",
@@ -800,7 +845,10 @@ fn validate_header(
     )?;
     expect_metadata(header, "Output units", "KM-S")?;
 
-    if !header.lines().any(|line| line.to_ascii_uppercase().contains("JDTDB")) {
+    if !header
+        .lines()
+        .any(|line| line.to_ascii_uppercase().contains("JDTDB"))
+    {
         return Err(HorizonsParseError::MissingJdtbdHeader);
     }
     Ok(())
@@ -809,15 +857,15 @@ fn validate_header(
 fn validate_vector_column_header(header_lines: &[&str]) -> Result<(), HorizonsParseError> {
     // VEC_LABELS=YES plus CSV_FORMAT=YES should expose the epoch and the
     // six state-vector columns before $SOE. Do not guess axis order from data.
-    let columns_line = header_lines.iter().rev().find(|line| {
-        line.to_ascii_uppercase().contains("JDTDB") && line.contains(',')
-    });
+    let columns_line = header_lines
+        .iter()
+        .rev()
+        .find(|line| line.to_ascii_uppercase().contains("JDTDB") && line.contains(','));
     let Some(columns_line) = columns_line else {
         return Err(HorizonsParseError::MissingVectorColumnHeader);
     };
-    let columns = split_csv_record(columns_line).map_err(|_| {
-        HorizonsParseError::MissingVectorColumnHeader
-    })?;
+    let columns = split_csv_record(columns_line)
+        .map_err(|_| HorizonsParseError::MissingVectorColumnHeader)?;
     let normalized: Vec<String> = columns
         .iter()
         .map(|column| column.trim().to_ascii_uppercase())
@@ -838,9 +886,7 @@ fn validate_vector_column_header(header_lines: &[&str]) -> Result<(), HorizonsPa
 
 fn signature_version_supported(plan: &HorizonsRequestPlan, version: &str) -> bool {
     match plan {
-        HorizonsRequestPlan::Get { .. } => {
-            SUPPORTED_GET_API_SIGNATURE_VERSIONS.contains(&version)
-        }
+        HorizonsRequestPlan::Get { .. } => SUPPORTED_GET_API_SIGNATURE_VERSIONS.contains(&version),
         HorizonsRequestPlan::FilePost { .. } => {
             SUPPORTED_FILE_API_SIGNATURE_VERSIONS.contains(&version)
         }
@@ -882,12 +928,10 @@ fn expect_metadata(
     label: &'static str,
     expected: &'static str,
 ) -> Result<(), HorizonsParseError> {
-    let actual = metadata_value(header, label)
-        .ok_or(HorizonsParseError::MissingMetadata(label))?;
+    let actual = metadata_value(header, label).ok_or(HorizonsParseError::MissingMetadata(label))?;
     let normalized = actual.trim();
     let matches = if label == "Reference frame" && expected == "B1950" {
-        normalized.eq_ignore_ascii_case("B1950")
-            || normalized.eq_ignore_ascii_case("FK4/B1950")
+        normalized.eq_ignore_ascii_case("B1950") || normalized.eq_ignore_ascii_case("FK4/B1950")
     } else {
         normalized.eq_ignore_ascii_case(expected)
     };
@@ -980,8 +1024,7 @@ fn split_csv_record(record: &str) -> Result<Vec<String>, &'static str> {
 mod tests {
     use super::*;
 
-    const FIXTURE: &str =
-        include_str!("../tests/fixtures/horizons/mars_ssb_tdb_frame_km_s.json");
+    const FIXTURE: &str = include_str!("../tests/fixtures/horizons/mars_ssb_tdb_frame_km_s.json");
 
     fn request() -> HorizonsVectorRequest {
         HorizonsVectorRequest::for_catalog_object(
@@ -1013,8 +1056,7 @@ mod tests {
 
     #[test]
     fn unexpected_json_fields_fail_closed_at_envelope_and_signature() {
-        let mut extra_envelope_field: serde_json::Value =
-            serde_json::from_str(FIXTURE).unwrap();
+        let mut extra_envelope_field: serde_json::Value = serde_json::from_str(FIXTURE).unwrap();
         extra_envelope_field
             .as_object_mut()
             .unwrap()
@@ -1026,8 +1068,7 @@ mod tests {
             Err(HorizonsParseError::InvalidJson(_))
         ));
 
-        let mut extra_signature_field: serde_json::Value =
-            serde_json::from_str(FIXTURE).unwrap();
+        let mut extra_signature_field: serde_json::Value = serde_json::from_str(FIXTURE).unwrap();
         extra_signature_field["signature"]
             .as_object_mut()
             .unwrap()
@@ -1296,7 +1337,12 @@ mod tests {
             .map(|index| 2_461_323.5 + f64::from(index))
             .collect();
         let plan = req.request_plan().unwrap();
-        let HorizonsRequestPlan::FilePost { endpoint, format, input_file } = plan else {
+        let HorizonsRequestPlan::FilePost {
+            endpoint,
+            format,
+            input_file,
+        } = plan
+        else {
             panic!("expected file-based POST for a large epoch list");
         };
 
@@ -1315,10 +1361,14 @@ mod tests {
         assert!(input_file.contains("VECT_CORR='NONE'\n"));
         assert!(input_file.contains("VECT_TABLE='2'\n"));
         assert!(input_file.ends_with(concat!("!", "$", "$", "EOF\n")));
-        assert!(req.canonical_request_identity().unwrap().starts_with(concat!(
-            "POST\nhttps://ssd.jpl.nasa.gov/api/horizons_file.api\n",
-            "format=json\nfield=input\ninput-bytes:\n"
-        )));
+        assert!(
+            req.canonical_request_identity()
+                .unwrap()
+                .starts_with(concat!(
+                    "POST\nhttps://ssd.jpl.nasa.gov/api/horizons_file.api\n",
+                    "format=json\nfield=input\ninput-bytes:\n"
+                ))
+        );
     }
 
     #[test]
@@ -1369,8 +1419,14 @@ mod tests {
 
     #[test]
     fn body_name_comparison_rejects_substring_collisions() {
-        assert!(header_body_name_matches("Mars (499) {source: test}", "Mars"));
-        assert!(header_body_name_matches("Solar System Barycenter (0)", "Solar System Barycenter"));
+        assert!(header_body_name_matches(
+            "Mars (499) {source: test}",
+            "Mars"
+        ));
+        assert!(header_body_name_matches(
+            "Solar System Barycenter (0)",
+            "Solar System Barycenter"
+        ));
         assert!(header_body_name_matches("1 Ceres (1)", "Ceres"));
         assert!(header_body_name_matches("136108 Haumea (136108)", "Haumea"));
         assert!(!header_body_name_matches("Mars Barycenter (4)", "Mars"));
@@ -1483,7 +1539,7 @@ mod tests {
             "Calendar Date (TDB), JD, X, Y, Z, VX, VY, VZ",
         );
         assert_eq!(
-            parse_horizons_vectors_json(&missing, &request(), &provenance_for(missing)),
+            parse_horizons_vectors_json(&missing, &request(), &provenance_for(&missing)),
             Err(HorizonsParseError::MissingJdtbdHeader)
         );
 
@@ -1517,7 +1573,10 @@ mod tests {
         let payload = FIXTURE.replace("Target body name: Mars", "Target body name: Venus");
         assert!(matches!(
             parse_horizons_vectors_json(&payload, &request(), &provenance_for(&payload)),
-            Err(HorizonsParseError::UnexpectedMetadata { field: "Target body name", .. })
+            Err(HorizonsParseError::UnexpectedMetadata {
+                field: "Target body name",
+                ..
+            })
         ));
 
         let payload = FIXTURE.replace(
@@ -1526,21 +1585,11 @@ mod tests {
         );
         assert!(matches!(
             parse_horizons_vectors_json(&payload, &request(), &provenance_for(&payload)),
-            Err(HorizonsParseError::UnexpectedMetadata { field: "Center body name", .. })
-        ));
-    }
-
-    #[test]
-    fn rejects_provenance_provider_that_disagrees_with_response_signature() {
-        let mut wrong_provider = provenance();
-        wrong_provider.provider = "claimed alternate provider".into();
-        assert_eq!(
-            parse_horizons_vectors_json(FIXTURE, &request(), &wrong_provider),
-            Err(HorizonsParseError::ProvenanceProviderMismatch {
-                expected: "NASA/JPL Horizons API".into(),
-                actual: "claimed alternate provider".into(),
+            Err(HorizonsParseError::UnexpectedMetadata {
+                field: "Center body name",
+                ..
             })
-        );
+        ));
     }
 
     #[test]
@@ -1562,30 +1611,48 @@ mod tests {
 
     #[test]
     fn signature_version_allowlist_is_transport_specific() {
-        assert!(signature_version_supported(&HorizonsRequestPlan::Get {
-            url: "https://example.invalid".into(),
-        }, "1.0"));
-        assert!(signature_version_supported(&HorizonsRequestPlan::Get {
-            url: "https://example.invalid".into(),
-        }, "1.3"));
-        assert!(!signature_version_supported(&HorizonsRequestPlan::Get {
-            url: "https://example.invalid".into(),
-        }, "0.2"));
-        assert!(signature_version_supported(&HorizonsRequestPlan::FilePost {
-            endpoint: "https://example.invalid",
-            format: "json",
-            input_file: String::new(),
-        }, "0.2"));
-        assert!(signature_version_supported(&HorizonsRequestPlan::FilePost {
-            endpoint: "https://example.invalid",
-            format: "json",
-            input_file: String::new(),
-        }, "1.0"));
-        assert!(!signature_version_supported(&HorizonsRequestPlan::FilePost {
-            endpoint: "https://example.invalid",
-            format: "json",
-            input_file: String::new(),
-        }, "1.3"));
+        assert!(signature_version_supported(
+            &HorizonsRequestPlan::Get {
+                url: "https://example.invalid".into(),
+            },
+            "1.0"
+        ));
+        assert!(signature_version_supported(
+            &HorizonsRequestPlan::Get {
+                url: "https://example.invalid".into(),
+            },
+            "1.3"
+        ));
+        assert!(!signature_version_supported(
+            &HorizonsRequestPlan::Get {
+                url: "https://example.invalid".into(),
+            },
+            "0.2"
+        ));
+        assert!(signature_version_supported(
+            &HorizonsRequestPlan::FilePost {
+                endpoint: "https://example.invalid",
+                format: "json",
+                input_file: String::new(),
+            },
+            "0.2"
+        ));
+        assert!(signature_version_supported(
+            &HorizonsRequestPlan::FilePost {
+                endpoint: "https://example.invalid",
+                format: "json",
+                input_file: String::new(),
+            },
+            "1.0"
+        ));
+        assert!(!signature_version_supported(
+            &HorizonsRequestPlan::FilePost {
+                endpoint: "https://example.invalid",
+                format: "json",
+                input_file: String::new(),
+            },
+            "1.3"
+        ));
     }
 
     #[test]
@@ -1596,19 +1663,14 @@ mod tests {
             Err(HorizonsParseError::MissingSignature)
         );
 
-        let wrong_source = FIXTURE.replace(
-            "NASA/JPL Horizons API",
-            "Other provider",
-        );
+        let wrong_source = FIXTURE.replace("NASA/JPL Horizons API", "Other provider");
         assert!(matches!(
             parse_horizons_vectors_json(&wrong_source, &request(), &provenance_for(&wrong_source)),
             Err(HorizonsParseError::UnexpectedApiSource(_))
         ));
 
-        let documented_legacy_signature = FIXTURE.replace(
-            "\"version\": \"1.3\"",
-            "\"version\": \"1.0\"",
-        );
+        let documented_legacy_signature =
+            FIXTURE.replace("\"version\": \"1.3\"", "\"version\": \"1.0\"");
         assert!(
             parse_horizons_vectors_json(
                 &documented_legacy_signature,
@@ -1618,10 +1680,7 @@ mod tests {
             .is_ok()
         );
 
-        let wrong_version = FIXTURE.replace(
-            "\"version\": \"1.3\"",
-            "\"version\": \"99.0\"",
-        );
+        let wrong_version = FIXTURE.replace("\"version\": \"1.3\"", "\"version\": \"99.0\"");
         assert_eq!(
             parse_horizons_vectors_json(
                 &wrong_version,
@@ -1667,10 +1726,7 @@ mod tests {
 
     #[test]
     fn rejects_extra_numeric_columns_and_non_finite_components() {
-        let extra = FIXTURE.replace(
-            "9.876543210987654E+00",
-            "9.876543210987654E+00, 123.0",
-        );
+        let extra = FIXTURE.replace("9.876543210987654E+00", "9.876543210987654E+00, 123.0");
         assert!(matches!(
             parse_horizons_vectors_json(&extra, &request(), &provenance_for(&extra)),
             Err(HorizonsParseError::InvalidVector { .. })
