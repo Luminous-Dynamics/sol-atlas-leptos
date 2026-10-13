@@ -114,7 +114,17 @@ def read_index(index_file: Path | None, timeout_seconds: float) -> tuple[bytes, 
     """Return index bytes, retrieval timestamp (if remote), and acquisition mode."""
     if index_file is not None:
         try:
-            raw = index_file.read_bytes()
+            if not index_file.is_file():
+                raise IndexError("local HTML index path must be a regular file")
+            # Check size before reading, then use a capped read as a second guard
+            # against growth between stat and open. Never read an arbitrary local
+            # path fully into memory before enforcing the index budget.
+            if index_file.stat().st_size > MAX_INDEX_BYTES:
+                raise IndexError(f"local index exceeds {MAX_INDEX_BYTES} byte limit")
+            with index_file.open("rb") as handle:
+                raw = handle.read(MAX_INDEX_BYTES + 1)
+        except IndexError:
+            raise
         except OSError as exc:
             raise IndexError(f"cannot read local HTML index: {exc}") from exc
         if len(raw) > MAX_INDEX_BYTES:
