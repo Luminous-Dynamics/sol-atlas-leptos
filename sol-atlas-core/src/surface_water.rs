@@ -220,16 +220,6 @@ impl SurfaceWaterEstimate {
             return Err(SurfaceWaterError::MissingProcessingVersion);
         }
 
-        // Keep classifier parameters in the observation version string so the
-        // decision boundary is not lost when only a receipt is retained.
-        let effective_processing_version = format!(
-            "{};index={:?};threshold={:.17};minimum_valid_area_fraction={:.17}",
-            context.processing_version,
-            self.index,
-            self.threshold,
-            self.minimum_valid_area_fraction
-        );
-
         let observation = UtilityObservation {
             schema_version: 1,
             observation_id: context.observation_id,
@@ -247,9 +237,23 @@ impl SurfaceWaterEstimate {
             transport: DataTransport::BatchImport,
             provenance: ObservationProvenance {
                 source_id: context.source_id,
-                source_version: Some(effective_processing_version),
+                source_version: Some(context.processing_version),
                 evidence_sha256: context.evidence_sha256,
                 upstream_observation_ids: context.upstream_observation_ids,
+                processing_parameters: Some(serde_json::json!({
+                    "index": match self.index {
+                        WaterIndex::Ndwi => "ndwi",
+                        WaterIndex::Mndwi => "mndwi",
+                    },
+                    "threshold": self.threshold,
+                    "minimum_valid_area_fraction": self.minimum_valid_area_fraction,
+                    "valid_area_fraction": self.valid_area_fraction,
+                    "total_pixel_count": self.total_pixel_count,
+                    "valid_pixel_count": self.valid_pixel_count,
+                    "water_pixel_count": self.water_pixel_count,
+                    "masked_pixel_count": self.masked_pixel_count,
+                    "invalid_index_pixel_count": self.invalid_index_pixel_count,
+                })),
             },
             quality: ObservationQuality {
                 confidence: None,
