@@ -57,6 +57,8 @@ python3 scripts/earth-systems/plan_chirps_monthly.py \
 ```
 The command fetches only the official HTML directory listing, can preserve those exact bytes at a new `--snapshot-index` path, hashes the index, checks each requested month is listed, and emits source URLs with `artifact_sha256: null`. It refuses to overwrite a snapshot. It **does not download rainfall rasters**. The example period is only a command example, not an approved study period. Choose the actual interval after WaPOR coverage is frozen. Retain the index snapshot and the generated plan as provenance records; re-run and diff them when the upstream directory changes.
 
+A dated browser review on 2026-10-13 observed the directory listing through `chirps-v3.0.2026.08.tif` (server timestamp 2026-09-11); September 2026 was not listed in that browser view. This is a time-bound observation, not a raw-byte snapshot. See the [dated review note](CHIRPS_MONTHLY_INDEX_REVIEW_2026-10-13.md), then capture the actual HTML index with `--snapshot-index` before choosing an analysis interval.
+
 Official source locations: [CHIRPS v3 documentation](https://www.chc.ucsb.edu/data/chirps3), [monthly Africa-subset GeoTIFF index](https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/africa/tifs/), and [CHIRPS v3 README](https://data.chc.ucsb.edu/products/CHIRPS/v3.0/README-CHIRPSv3.0.txt). CHIRPS v3 is CC BY 4.0; retain provider attribution and the release-specific citation. Save each downloaded artifact's actual SHA-256, byte count, acquisition timestamp, and file metadata separately from the index hash.
 
 ### 3. Preserve source dependence and rights
