@@ -679,6 +679,31 @@ mod tests {
     }
 
     #[test]
+    fn verifier_rejects_curtailed_renewables_when_grid_export_is_available() {
+        let configuration = BatteryConfiguration {
+            name: "Full-battery export test",
+            capacity_kwh: 1.0,
+            initial_soc_kwh: 1.0,
+            minimum_soc_kwh: 0.0,
+            max_charge_power_kw: 2.0,
+            max_discharge_power_kw: 2.0,
+            charge_efficiency: 0.92,
+            discharge_efficiency: 0.92,
+        };
+        let mut run = simulate(configuration).unwrap();
+        assert!((run.intervals[0].grid_export_kwh - 0.5).abs() < EPS);
+
+        // Preserve the generation balance but relabel export as curtailment.
+        run.intervals[0].grid_export_kwh = 0.0;
+        run.intervals[0].renewable_curtailed_kwh = 0.5;
+        let final_soc = run.intervals.last().unwrap().battery_soc_kwh;
+        run.totals = aggregate_totals(&run.intervals, final_soc);
+
+        let error = verify(configuration, &SCENARIO_INPUTS, &run).unwrap_err();
+        assert!(error.contains("available-grid dispatch"));
+    }
+
+    #[test]
     fn verifier_rejects_unserved_load_while_grid_is_available() {
         let mut run = simulate(BatteryConfiguration::BASELINE).unwrap();
         // Rebalance the same interval so the energy equation still balances:
