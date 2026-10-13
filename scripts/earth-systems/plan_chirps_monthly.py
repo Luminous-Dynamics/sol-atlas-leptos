@@ -230,6 +230,9 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--output must not overwrite --index-file")
     if args.output is not None and args.snapshot_index is not None and args.output.resolve() == args.snapshot_index.resolve():
         parser.error("--output and --snapshot-index must be different paths")
+    if args.output is not None and (args.output.exists() or args.output.is_symlink()):
+        print("output path already exists; refusing to overwrite", file=sys.stderr)
+        return 2
     try:
         raw, retrieved_at, mode = read_index(args.index_file, args.timeout)
         plan = build_plan(raw, args.start, args.end, retrieved_at, mode)
@@ -252,7 +255,11 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.write(output)
     else:
         try:
-            args.output.write_text(output, encoding="utf-8")
+            with args.output.open("x", encoding="utf-8") as handle:
+                handle.write(output)
+        except FileExistsError:
+            print("output path already exists; refusing to overwrite", file=sys.stderr)
+            return 2
         except OSError as exc:
             print(f"cannot write plan: {exc}", file=sys.stderr)
             return 2
