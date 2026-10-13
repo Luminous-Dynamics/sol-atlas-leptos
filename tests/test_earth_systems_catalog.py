@@ -112,6 +112,16 @@ class EarthSystemsCatalogTests(unittest.TestCase):
         self.assertTrue(any("not a recognized review state" in e for e in errors))
         self.assertTrue(any(".url must be an HTTPS URL" in e for e in errors))
 
+    def test_chirps_catalogue_discloses_monthly_primary_and_daily_downscaling(self):
+        for domain_id in ("water-security", "food-land-water-productivity"):
+            with self.subTest(domain=domain_id):
+                domain = next(d for d in self.catalog["domains"] if d["id"] == domain_id)
+                source = next(s for s in domain["data_sources"] if s["source_id"] == "CHIRPS3")
+                limitations = " ".join(source["key_limitations"]).lower()
+                self.assertIn("fundamental chirps v3 timescales", limitations)
+                self.assertIn("daily rnl/sat", limitations)
+                self.assertIn("20 m", limitations)
+
     def test_missing_domain_limitations_are_rejected(self):
         doc = copy.deepcopy(self.catalog)
         del doc["domains"][0]["data_sources"][0]["key_limitations"]
