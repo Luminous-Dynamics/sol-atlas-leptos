@@ -27,6 +27,12 @@ on:
       - "tests/test_wapor_catalog_inventory.py"
       - ".github/workflows/earth-systems-catalog.yml"
 
+# Only the latest PR-head validation matters. Cancel stale queued/running
+# validations for the same PR instead of spending runners on superseded heads.
+concurrency:
+  group: earth-systems-catalog-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
