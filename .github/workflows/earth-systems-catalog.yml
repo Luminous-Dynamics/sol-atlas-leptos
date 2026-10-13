@@ -10,6 +10,7 @@ on:
       - "scripts/earth-systems/**"
       - "tests/test_earth_systems_catalog.py"
       - "tests/test_water_food_pilot.py"
+      - "tests/test_chirps_monthly_plan.py"
       - ".github/workflows/earth-systems-catalog.yml"
   push:
     branches: [main]
@@ -21,6 +22,7 @@ on:
       - "scripts/earth-systems/**"
       - "tests/test_earth_systems_catalog.py"
       - "tests/test_water_food_pilot.py"
+      - "tests/test_chirps_monthly_plan.py"
       - ".github/workflows/earth-systems-catalog.yml"
 
 permissions:
@@ -44,3 +46,5 @@ jobs:
         run: python scripts/earth-systems/validate_pilot.py
       - name: Run pilot tests
         run: python -m unittest discover -s tests -p "test_water_food_pilot.py" -v
+      - name: Run CHIRPS index-planner tests
+        run: python -m unittest discover -s tests -p "test_chirps_monthly_plan.py" -v
