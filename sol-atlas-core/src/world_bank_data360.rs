@@ -381,11 +381,14 @@ fn nullable_text(
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Data360SnapshotStatus {
-    QualifiedComplete,
+    CompleteAgainstStableCount,
     NoPages,
+    UnsupportedSchemaVersion,
     QueryMismatch,
     SourceCountDrift,
     OffsetGapOrOverlap,
+    PageAccountingMismatch,
+    CountLessThanPageRows,
     RowsRejected,
     DuplicateRecordKey,
     IncompletePageSet,
@@ -402,7 +405,11 @@ pub struct Data360SnapshotAssessment {
 }
 
 /// Qualifies internal collection completeness only. It says nothing about
-/// source truth, edition identity, licensing, or empirical validity.
+/// source truth, edition identity, licensing, or empirical validity. A
+/// CompleteAgainstStableCount result does not prove that values stayed unchanged
+/// between requests; this response contract has no source snapshot token. It
+/// means only that these captured pages are internally contiguous against one
+/// stable reported count, with no rejected rows or duplicate observation keys.
 pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAssessment {
     if pages.is_empty() {
         return Data360SnapshotAssessment {
@@ -421,9 +428,33 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
     let mut accepted_rows = 0usize;
     let mut rejected_rows = 0usize;
     let mut seen = HashSet::new();
-    let mut status = Data360SnapshotStatus::QualifiedComplete;
+    let mut status = Data360SnapshotStatus::CompleteAgainstStableCount;
 
     for (index, page) in pages.iter().enumerate() {
+        if page.schema_version != DATA360_SCHEMA_VERSION {
+            status = Data360SnapshotStatus::UnsupportedSchemaVersion;
+            break;
+        }
+        let Some(accounted_rows) = page.records.len().checked_add(page.rejected_rows.len()) else {
+            status = Data360SnapshotStatus::PageAccountingMismatch;
+            break;
+        };
+        if accounted_rows != page.rows_returned
+            || page.query.requested_top == 0
+            || page.query.requested_top > DATA360_MAX_PAGE_SIZE
+            || page.rows_returned > page.query.requested_top
+            || page.query.requested_skip.checked_add(page.rows_returned).is_none()
+            || page.source_reported_count < page.rows_returned
+            || page.page_snapshot_id.trim().is_empty()
+            || page.retrieved_at.trim().is_empty()
+        {
+            status = if page.source_reported_count < page.rows_returned {
+                Data360SnapshotStatus::CountLessThanPageRows
+            } else {
+                Data360SnapshotStatus::PageAccountingMismatch
+            };
+            break;
+        }
         if page.collection_snapshot_id != first.collection_snapshot_id
             || page.query.database_id != first.query.database_id
             || page.query.indicator_id != first.query.indicator_id
@@ -444,9 +475,21 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
             status = Data360SnapshotStatus::OffsetGapOrOverlap;
             break;
         }
-        rows_returned = rows_returned.saturating_add(page.rows_returned);
-        rejected_rows = rejected_rows.saturating_add(page.rejected_rows.len());
-        accepted_rows = accepted_rows.saturating_add(page.records.len());
+        let Some(next_rows_returned) = rows_returned.checked_add(page.rows_returned) else {
+            status = Data360SnapshotStatus::PageAccountingMismatch;
+            break;
+        };
+        let Some(next_rejected_rows) = rejected_rows.checked_add(page.rejected_rows.len()) else {
+            status = Data360SnapshotStatus::PageAccountingMismatch;
+            break;
+        };
+        let Some(next_accepted_rows) = accepted_rows.checked_add(page.records.len()) else {
+            status = Data360SnapshotStatus::PageAccountingMismatch;
+            break;
+        };
+        rows_returned = next_rows_returned;
+        rejected_rows = next_rejected_rows;
+        accepted_rows = next_accepted_rows;
         if !page.rejected_rows.is_empty() {
             status = Data360SnapshotStatus::RowsRejected;
         }
@@ -455,7 +498,11 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
                 status = Data360SnapshotStatus::DuplicateRecordKey;
             }
         }
-        expected_skip = expected_skip.saturating_add(page.rows_returned);
+        let Some(next_skip) = expected_skip.checked_add(page.rows_returned) else {
+            status = Data360SnapshotStatus::OffsetGapOrOverlap;
+            break;
+        };
+        expected_skip = next_skip;
         if expected_skip > expected_count {
             status = Data360SnapshotStatus::OffsetGapOrOverlap;
             break;
@@ -466,7 +513,7 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
         }
     }
 
-    if status == Data360SnapshotStatus::QualifiedComplete && expected_skip != expected_count {
+    if status == Data360SnapshotStatus::CompleteAgainstStableCount && expected_skip != expected_count {
         status = Data360SnapshotStatus::IncompletePageSet;
     }
     Data360SnapshotAssessment {
@@ -676,12 +723,32 @@ mod tests {
         );
         let second = parse(vec![row("CCC", "1991", Some("3"))], 3, 2, 2, "page-1");
         let assessment = assess_data360_snapshot(&[first, second]);
-        assert_eq!(assessment.status, Data360SnapshotStatus::QualifiedComplete);
+        assert_eq!(assessment.status, Data360SnapshotStatus::CompleteAgainstStableCount);
         assert_eq!(assessment.expected_count, Some(3));
         assert_eq!(assessment.rows_returned, 3);
         assert_eq!(assessment.accepted_rows, 3);
         assert_eq!(assessment.rejected_rows, 0);
         assert_eq!(assessment.next_skip, 3);
+    }
+
+    #[test]
+    fn collection_assessor_rechecks_public_page_accounting() {
+        let mut page = parse(vec![row("AAA", "1990", Some("1"))], 1, 0, 10, "accounting");
+        page.rows_returned = 0;
+        assert_eq!(
+            assess_data360_snapshot(&[page]).status,
+            Data360SnapshotStatus::PageAccountingMismatch
+        );
+    }
+
+    #[test]
+    fn unsupported_public_page_schema_cannot_qualify() {
+        let mut page = parse(vec![row("AAA", "1990", Some("1"))], 1, 0, 10, "schema");
+        page.schema_version = DATA360_SCHEMA_VERSION + 1;
+        assert_eq!(
+            assess_data360_snapshot(&[page]).status,
+            Data360SnapshotStatus::UnsupportedSchemaVersion
+        );
     }
 
     #[test]
