@@ -211,13 +211,76 @@ def validate_pilot(doc: Any) -> list[str]:
     if state.get("operational_claim_authorized") is True:
         if doc.get("status") != "operational" or state.get("d5_accepted") is not True:
             errors.append("operational_claim_authorized=true requires status=operational and d5_accepted=true")
-    if doc.get("status") == "operational":
+    # A passed gate must be backed by its minimum evidence, and evidence cannot
+    # be marked complete while its corresponding gate remains unpassed.
+    if gates.get("D0") == "passed":
+        if not isinstance(geography, dict) or geography.get("boundary_state") != "verified_and_frozen":
+            errors.append("D0=passed requires a verified and frozen study boundary")
+    if gates.get("D1") == "passed":
+        if state.get("source_artifacts_downloaded") is not True or not all_sources_acquired:
+            errors.append("D1=passed requires every admitted source to be acquired, verified and hashed")
+    if gates.get("D2") == "passed":
+        if state.get("observations_processed") is not True or state.get("baseline_computed") is not True:
+            errors.append("D2=passed requires processed observations and a computed baseline")
+    if gates.get("D3") == "passed" and state.get("independent_validation_complete") is not True:
+        errors.append("D3=passed requires independent_validation_complete=true")
+    if gates.get("D4") == "passed" and state.get("independent_review_complete") is not True:
+        errors.append("D4=passed requires independent_review_complete=true")
+    if gates.get("D5") == "passed" and state.get("d5_accepted") is not True:
+        errors.append("D5=passed requires d5_accepted=true")
+    if state.get("source_artifacts_downloaded") is True and gates.get("D1") != "passed":
+        errors.append("source_artifacts_downloaded=true requires D1=passed")
+    if state.get("operational_claim_authorized") is True:
+        if doc.get("status") != "operational" or state.get("d5_accepted") is not True:
+            errors.append("operational_claim_authorized=true requires status=operational and d5_accepted=true")
+
+    status = doc.get("status")
+    state_true = lambda key: state.get(key) is True
+    no_downstream_states = ("observations_processed", "baseline_computed",
+                            "independent_validation_complete", "independent_review_complete",
+                            "d5_accepted", "operational_claim_authorized")
+    if status == "design_only":
+        if any(state_true(k) for k in STATE_FIELDS) or any(gates.get(g) == "passed" for g in EXPECTED_GATES):
+            errors.append("design_only cannot claim evidence or passed gates")
+    elif status == "data_readiness":
+        if gates.get("D0") != "passed":
+            errors.append("data_readiness status requires D0=passed")
+        if any(state_true(k) for k in no_downstream_states):
+            errors.append("data_readiness cannot claim processed, baseline, validated or later-stage evidence")
+        if any(gates.get(g) == "passed" for g in ("D2", "D3", "D4", "D5")):
+            errors.append("data_readiness status cannot have D2-D5 passed")
+    elif status == "descriptive_baseline":
+        if not all(gates.get(g) == "passed" for g in ("D0", "D1", "D2")):
+            errors.append("descriptive_baseline status requires D0-D2=passed")
+        if not all(state_true(k) for k in ("source_artifacts_downloaded", "observations_processed", "baseline_computed")):
+            errors.append("descriptive_baseline status requires acquired sources, processed observations and baseline evidence")
+        if any(state_true(k) for k in ("independent_validation_complete", "independent_review_complete", "d5_accepted", "operational_claim_authorized")):
+            errors.append("descriptive_baseline status cannot claim validation/review/D5 or operational authorization")
+        if any(gates.get(g) == "passed" for g in ("D3", "D4", "D5")):
+            errors.append("descriptive_baseline status cannot have D3-D5 passed")
+    elif status == "independently_validated":
+        if not all(gates.get(g) == "passed" for g in ("D0", "D1", "D2", "D3")):
+            errors.append("independently_validated status requires D0-D3=passed")
+        if not all(state_true(k) for k in ("source_artifacts_downloaded", "observations_processed", "baseline_computed", "independent_validation_complete")):
+            errors.append("independently_validated status requires source, baseline and independent-validation evidence")
+        if any(state_true(k) for k in ("d5_accepted", "operational_claim_authorized")):
+            errors.append("independently_validated status cannot claim D5 acceptance or operational authorization")
+        if any(gates.get(g) == "passed" for g in ("D4", "D5")):
+            errors.append("independently_validated status cannot have D4-D5 passed")
+    elif status == "decision_support_candidate":
+        required_state = ("source_artifacts_downloaded", "observations_processed", "baseline_computed",
+                          "independent_validation_complete", "independent_review_complete", "d5_accepted")
+        if not all(gates.get(g) == "passed" for g in EXPECTED_GATES):
+            errors.append("decision_support_candidate status requires every D0-D5 gate to be passed")
+        if not all(state_true(k) for k in required_state):
+            errors.append("decision_support_candidate status requires source, baseline, validation, review and D5 evidence")
+        if state_true("operational_claim_authorized"):
+            errors.append("decision_support_candidate cannot claim operational authorization")
+    elif status == "operational":
         if not all_sources_acquired or any(state.get(k) is not True for k in STATE_FIELDS):
             errors.append("operational status requires all source digests, completed evidence gates, and explicit authorization")
         if any(gates.get(g) != "passed" for g in EXPECTED_GATES):
             errors.append("operational status requires every D0-D5 gate to be passed")
-    if doc.get("status") == "design_only" and any(state.get(k) is True for k in STATE_FIELDS):
-        errors.append("design_only profile cannot claim acquired/processed/validated/operational evidence")
 
     return errors
 
