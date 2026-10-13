@@ -13,7 +13,8 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import quote, urljoin, urlsplit
+import posixpath
+from urllib.parse import quote, unquote, urljoin, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 API_ORIGIN = "https://data.apps.fao.org"
@@ -31,15 +32,30 @@ class WaporCatalogError(ValueError):
 
 
 def validate_api_url(url: str) -> None:
-    """Require HTTPS to the official FAO host and within the WaPOR v3 API path."""
+    """Require HTTPS to the official FAO host and within the WaPOR v3 API path.
+
+    Check the decoded, normalized path as well as the literal prefix. A
+    startswith-only check can admit dot-segment traversal, including encoded
+    segments whose interpretation may differ between clients and proxies.
+    """
     try:
         parts = urlsplit(url)
-    except ValueError as exc:
+        decoded_path = unquote(parts.path)
+        normalized_path = posixpath.normpath(decoded_path)
+    except (TypeError, ValueError) as exc:
         raise WaporCatalogError("malformed URL in catalogue response") from exc
+
+    api_root = API_PREFIX.rstrip("/")
+    path_stays_in_scope = (
+        normalized_path == api_root
+        or normalized_path.startswith(api_root + "/")
+    )
     if (
         parts.scheme != "https"
         or parts.netloc != "data.apps.fao.org"
         or not parts.path.startswith(API_PREFIX)
+        or not path_stays_in_scope
+        or "\\" in decoded_path
         or parts.username is not None
         or parts.password is not None
     ):
