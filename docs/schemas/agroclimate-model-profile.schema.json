@@ -767,7 +767,8 @@
         "soil_condition_and_contamination",
         "land_access_and_permission",
         "postharvest_storage_energy_and_transport",
-        "market_nutrition_and_affordability"
+        "market_nutrition_and_affordability",
+        "regional_supply_and_contingency"
       ],
       "properties": {
         "irrigation_water_quantity_and_quality": {
@@ -1159,6 +1160,103 @@
           ]
         },
         "market_nutrition_and_affordability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "required_evidence",
+            "claim_limit",
+            "evidence_refs",
+            "reviewed_by"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "not_assessed",
+                "assessment_required",
+                "assessed",
+                "blocked"
+              ]
+            },
+            "required_evidence": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "string",
+                "minLength": 12
+              },
+              "uniqueItems": true
+            },
+            "claim_limit": {
+              "type": "string",
+              "minLength": 30
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 8,
+                "pattern": "^(https://|urn:|sha256:)"
+              },
+              "uniqueItems": true
+            },
+            "reviewed_by": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 3
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "assessed"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "evidence_refs": {
+                    "minItems": 1
+                  },
+                  "reviewed_by": {
+                    "type": "string",
+                    "minLength": 3
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "not_assessed"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "evidence_refs": {
+                    "maxItems": 0
+                  },
+                  "reviewed_by": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "regional_supply_and_contingency": {
           "type": "object",
           "additionalProperties": false,
           "required": [
