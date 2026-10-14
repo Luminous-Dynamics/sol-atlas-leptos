@@ -373,7 +373,8 @@
         "Record water source, lawful access, seasonal volume, storage, competing demand and interruption history.",
         "Obtain qualified microbial and chemical water-quality review appropriate to the crop, irrigation/contact method and food-safety context.",
         "Assess crop/soil-relevant salinity or sodicity where appropriate; unknown water quality remains unknown.",
-        "Review legal permissions and applicable requirements before considering wastewater or greywater."
+        "Review legal permissions and applicable requirements before considering wastewater or greywater.",
+        "Review the applicable Department of Water and Sanitation irrigation-water quality guidance and verify current regulatory applicability with a qualified local specialist."
       ],
       "claim_limit": "Water availability, appearance, remote sensing or one reading does not establish irrigation suitability. This profile cannot authorize irrigation.",
       "evidence_refs": [],
@@ -525,6 +526,17 @@
       "limitations": [
         "Country-level summaries cannot resolve the Johannesburg municipality, a specific garden or a farm site.",
         "Exact crop names, categories, period and water-supply/model settings must be checked; a summary statistic is not an independent field observation or yield validation."
+      ]
+    },
+    {
+      "reference_id": "DWS-IRRIGATION-WATER-QUALITY-GUIDELINES",
+      "title": "South African Water Quality Guidelines, Volume 4: Agricultural Use—Irrigation, second edition (1996)",
+      "url": "https://www.dws.gov.za/iwqs/wq_guide/edited/Pol_saWQguideFRESHIrrigationvol4.pdf",
+      "reference_type": "technical_guidance",
+      "role": "Technical reference lead for evaluating irrigation-water quality against crop, soil and environmental conditions in the South African context.",
+      "limitations": [
+        "The referenced guideline is dated 1996; verify the currently authoritative edition, subsequent requirements and activity-specific applicability with the Department of Water and Sanitation or a qualified local water specialist.",
+        "Water outside an ideal range is not automatically unusable and water within a target range does not certify food safety; interpret chemistry, crop, soil, irrigation method and microbiological risk together."
       ]
     }
   ],
