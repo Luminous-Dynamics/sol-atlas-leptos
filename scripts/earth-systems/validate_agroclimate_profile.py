@@ -66,6 +66,24 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
         if any(term in boundary_source for term in ("not yet acquired", "not frozen", "unverified")):
             errors.append("verified boundary state conflicts with unresolved boundary_source text")
 
+    context_refs = doc.get("context_references")
+    if not isinstance(context_refs, list) or not context_refs:
+        errors.append("context_references must contain at least one reviewed context lead")
+        context_refs = []
+    context_ids: set[str] = set()
+    for index, raw_ref in enumerate(context_refs):
+        context_ref = _as_dict(raw_ref)
+        reference_id = context_ref.get("reference_id")
+        if not isinstance(reference_id, str) or not reference_id.strip():
+            errors.append(f"context_references[{index}].reference_id must be a non-empty identifier")
+        elif reference_id in context_ids:
+            errors.append(f"duplicate context reference_id: {reference_id}")
+        else:
+            context_ids.add(reference_id)
+        limitations = context_ref.get("limitations")
+        if not isinstance(limitations, list) or not limitations:
+            errors.append(f"context_references[{index}] must retain explicit limitations")
+
     sources = doc.get("sources")
     if not isinstance(sources, list):
         sources = []
