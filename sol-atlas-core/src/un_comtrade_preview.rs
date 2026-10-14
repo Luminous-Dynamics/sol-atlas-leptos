@@ -735,7 +735,7 @@ mod tests {
             "partner2Code": 0,
             "motCode": "0",
             "customsCode": "C00",
-            "primaryValue": 9007199254740993,
+            "primaryValue": 9007199254740993u64,
             "isReported": true,
             "legacyEstimationFlag": 0,
             "netWgt": 12.5,
