@@ -185,6 +185,27 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
     model_arch = _as_dict(doc.get("model_architecture"))
     evaluation = _as_dict(doc.get("evaluation"))
 
+    site_constraints = _as_dict(doc.get("site_constraints"))
+    required_site_constraints = (
+        "irrigation_water_quantity_and_quality",
+        "soil_condition_and_contamination",
+        "land_access_and_permission",
+        "postharvest_storage_energy_and_transport",
+        "market_nutrition_and_affordability",
+    )
+    site_states: dict[str, str] = {}
+    for constraint_id in required_site_constraints:
+        constraint = _as_dict(site_constraints.get(constraint_id))
+        state = constraint.get("state")
+        if state not in {"not_assessed", "assessment_required", "assessed", "blocked"}:
+            errors.append(f"site_constraints.{constraint_id}.state is missing or invalid")
+        elif isinstance(state, str):
+            site_states[constraint_id] = state
+        if not isinstance(constraint.get("required_evidence"), list) or len(constraint["required_evidence"]) < 2:
+            errors.append(f"site_constraints.{constraint_id}.required_evidence must contain at least two evidence items")
+        if not isinstance(constraint.get("claim_limit"), str) or len(constraint["claim_limit"].strip()) < 30:
+            errors.append(f"site_constraints.{constraint_id}.claim_limit must state a specific decision limit")
+
     if any(gates.get(gate) not in {"not_started", "blocked", "passed"} for gate in GATES):
         errors.append("validation.gates must contain valid D0-D5 states")
 
@@ -233,6 +254,8 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
         if evidence.get("expert_review_complete") is not True:
             errors.append("D4=passed requires expert_review_complete=true")
     if gates.get("D5") == "passed":
+        if any(site_states.get(constraint_id) != "assessed" for constraint_id in required_site_constraints):
+            errors.append("D5=passed requires assessment of every site constraint")
         if any(gates.get(gate) != "passed" for gate in ("D0", "D1", "D2", "D3", "D4")):
             errors.append("D5=passed requires D0-D4=passed")
         if evidence.get("independent_validation_complete") is not True or evidence.get("expert_review_complete") is not True:
@@ -241,6 +264,8 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
             errors.append("D5=passed requires decision_support_authorized=true")
 
     if status == "design_only":
+        if any(site_states.get(constraint_id) != "not_assessed" for constraint_id in required_site_constraints):
+            errors.append("design_only status requires every site constraint to remain not_assessed")
         if any(evidence.get(flag) is not False for flag in EVIDENCE_FLAGS):
             errors.append("design_only status requires every evidence_state flag to be false")
         if any(gates.get(gate) != "not_started" for gate in GATES):
@@ -285,6 +310,11 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
         any(gates.get(gate) != "passed" for gate in GATES)
     ):
         errors.append("decision_support_candidate status requires all evidence and D0-D5=passed")
+
+    if status == "decision_support_candidate" and any(
+        site_states.get(constraint_id) != "assessed" for constraint_id in required_site_constraints
+    ):
+        errors.append("decision_support_candidate status requires all site constraints assessed")
 
     return errors
 
