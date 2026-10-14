@@ -105,6 +105,21 @@ Keep model decisions staged:
 
 Report multiple outcomes independently: rainfall/ET0 error, water-balance residual, irrigation-demand error, measured harvest/marketable-yield error, stress-event calibration, water per marketable kilogram, cost and supply continuity. Preserve uncertainty intervals, sample sizes, denominators and missingness. Show failures by crop, site, cultivation type and season. A model that saves water but collapses marketable harvest—or raises yield but consumes unavailable water—is not a success just because one scalar metric improves.
 
+## How to expand globally without multiplying unvalidated models
+
+Use the same profile schema and evidence gates for every region. Add a new regional profile only when it represents a meaningful change in climate, crop/production system, water constraint or local decision context—not merely because a map can be divided into another climate label.
+
+A candidate expansion sequence is:
+
+1. **Johannesburg / Highveld:** local water-resilience and food-network use case. Freeze a real study boundary, select a small crop/production profile, and acquire authorized local weather, soil/water and harvest records.
+2. **Baixo Limpopo:** retain the existing WaPOR/CHIRPS irrigation-area water-productivity study as a complementary pilot with its own question and evidence gates. Do not pretend its current source stack is a direct crop-yield model or an independent validation set for Johannesburg.
+3. **Western Cape winter-rainfall region:** a potential later contrast for winter-wet/summer-dry seasonality, selected only after the South African data and local review path are confirmed.
+4. **Additional global regions:** choose one or more tropical, semi-arid, Mediterranean, humid-subtropical or temperate profiles based on real partner/site data and source readiness. Do not promise coverage of every Köppen class upfront.
+
+For model transfer, compare at least three distinct baselines: a simple transparent climatology/water-balance reference; the selected regional model after local calibration; and a shared model applied to a held-out region without local tuning. Then separately measure transfer performance after local calibration. Use leave-one-region/site/season-out tests where the evidence volume permits and report the performance drop and uncertainty. Climate labels may be used to stratify errors, but never replace the actual covariates or prove that a model transfers.
+
+The global success criterion is not the number of climate profiles. It is repeated evidence that the same data contract, baselines and validation methods reveal where a model transfers, where it fails, and what local measurements reduce error.
+
 ## Integration boundaries
 
 - **Sol Atlas:** spatial/time visualization and source/uncertainty layers. It is not the physical-inventory authority or climate solver.
