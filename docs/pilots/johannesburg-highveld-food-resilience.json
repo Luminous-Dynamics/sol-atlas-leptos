@@ -397,7 +397,9 @@
         "Keep local production, regional supply, imported/wholesale supply, planned supply and observed available stock as distinct states.",
         "Stress-test supply disruptions, road/energy/water constraints and correlated regional drought exposure without treating modeled scenarios as observations."
       ],
-      "claim_limit": "Johannesburg resilience does not require all food to be produced locally. A map of farms or a modeled route does not establish available supply; supply plans require current source, stock, price, capacity and fulfillment evidence."
+      "claim_limit": "Johannesburg resilience does not require all food to be produced locally. A map of farms or a modeled route does not establish available supply; supply plans require current source, stock, price, capacity and fulfillment evidence.",
+      "evidence_refs": [],
+      "reviewed_by": null
     }
   },
   "context_references": [
