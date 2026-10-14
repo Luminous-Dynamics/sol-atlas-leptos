@@ -31,6 +31,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["geography"]["boundary_source"] = (
             "Synthetic fixture boundary artifact with explicit CRS and digest for contract tests."
         )
+        doc["geography"]["boundary_source_uri"] = "https://example.invalid/mdb/MapServer/3"
         doc["geography"]["boundary_evidence_ref"] = "urn:fixture:boundary:joburg-v1"
         doc["geography"]["boundary_sha256"] = "a" * 64
         doc["geography"]["boundary_crs"] = "EPSG:4326"
@@ -711,6 +712,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["status"] = "data_readiness"
         doc["geography"]["boundary_state"] = "verified_and_frozen"
         doc["geography"]["boundary_source"] = "Authoritative municipal boundary artifact reviewed and hash recorded."
+        doc["geography"]["boundary_source_uri"] = "https://example.invalid/mdb/MapServer/3"
         doc["geography"]["boundary_evidence_ref"] = "urn:fixture:boundary:joburg-v1"
         doc["geography"]["boundary_sha256"] = "a" * 64
         doc["geography"]["boundary_crs"] = "EPSG:4326"
@@ -727,6 +729,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["status"] = "data_readiness"
         doc["geography"]["boundary_state"] = "verified_and_frozen"
         doc["geography"]["boundary_source"] = "Authoritative municipal boundary artifact reviewed and hash recorded."
+        doc["geography"]["boundary_source_uri"] = "https://example.invalid/mdb/MapServer/3"
         doc["geography"]["boundary_evidence_ref"] = "urn:fixture:boundary:joburg-v1"
         doc["geography"]["boundary_crs"] = "EPSG:4326"
         doc["validation"]["gates"]["D0"] = "passed"
@@ -736,6 +739,15 @@ class AgroclimateProfileTests(unittest.TestCase):
             "reason": None,
         }
         self.assertTrue(any("boundary_sha256" in error for error in self.errors(doc)))
+
+    def test_D0_rejects_live_service_as_frozen_boundary_artifact(self):
+        doc = self.synthetic_complete_profile()
+        doc["geography"]["boundary_evidence_ref"] = doc["geography"]["boundary_source_uri"]
+        doc["validation"]["gate_evidence"]["D0"]["evidence_refs"] = [
+            doc["geography"]["boundary_evidence_ref"],
+            f"sha256:{doc['geography']['boundary_sha256']}",
+        ]
+        self.assertTrue(any("boundary_evidence_ref must identify frozen geometry bytes" in error for error in self.errors(doc)))
 
     def test_unverified_boundary_cannot_claim_hash_crs_or_reference(self):
         doc = copy.deepcopy(self.profile)
@@ -749,6 +761,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["status"] = "data_readiness"
         doc["geography"]["boundary_state"] = "verified_and_frozen"
         doc["geography"]["boundary_source"] = "Authoritative municipal boundary artifact reviewed and hash recorded."
+        doc["geography"]["boundary_source_uri"] = "https://example.invalid/mdb/MapServer/3"
         doc["geography"]["boundary_evidence_ref"] = "urn:fixture:boundary:joburg-v1"
         doc["geography"]["boundary_sha256"] = "a" * 64
         doc["geography"]["boundary_crs"] = "EPSG:4326"
@@ -765,6 +778,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["status"] = "data_readiness"
         doc["geography"]["boundary_state"] = "verified_and_frozen"
         doc["geography"]["boundary_source"] = "Authoritative municipal boundary artifact reviewed and hash recorded."
+        doc["geography"]["boundary_source_uri"] = "https://example.invalid/mdb/MapServer/3"
         doc["geography"]["boundary_evidence_ref"] = "urn:fixture:boundary:joburg-v1"
         doc["geography"]["boundary_sha256"] = "a" * 64
         doc["geography"]["boundary_crs"] = "EPSG:4326"
