@@ -10,6 +10,14 @@
 
 Johannesburg/Highveld gives the project a concrete local problem: produce reliable, affordable food while handling seasonal water stress, heat, uneven water access, and variable production methods. The intended users include community gardens, small farms, growers using protected cultivation, and neighborhood food cooperatives.
 
+For the first boundary, use the **City of Johannesburg municipal area** as the local-production study extent. “Highveld” is the climate context, not a substitute polygon, and the regional food-supply catchment is a separate supplier/market network that can extend beyond municipal borders. This prevents an administrative boundary from being mistaken for a climate boundary or from excluding incoming food supply.
+
+Two official boundary discovery leads are recorded in the machine-readable profile: the City of Johannesburg Corporate Geo-Informatics Spatial Data Inventory (labelled 2024) and the government-hosted Municipal Demarcation Board local-municipality feature service. The City inventory documents custodian, format, creation-date and usage-limit fields and says it is reviewed annually; the MDB service describes itself as a municipality polygon layer and reports WKID 4148. Neither has yet been frozen as the study geometry. Confirm the current authoritative boundary/effective date, native CRS semantics, usage terms and exact geometry bytes; then record its URI, SHA-256 and independent D0 review before analysis.
+
+References:
+- City of Johannesburg CGIS inventory and data-custodian guidance: https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx
+- Municipal Demarcation Board local-municipality service: https://nspdr.dlrrd.gov.za/server/rest/services/NationalDatasets/MunicipalDemarcationBoard/MapServer/3
+
 GAEZ's source-defined scenario projection windows must retain their own model-time semantics; the 2021–2040 window is partly elapsed as of this profile's review date and is not a forward operational forecast.
 
 The South African Government published an agricultural weather notice on 2 September 2026, summarizing the South African Weather Service (SAWS) Seasonal Climate Watch dated 31 August 2026. It says El Niño conditions are expected through the 2026/27 summer season and below-normal rainfall may affect many areas. This is a **risk signal motivating readiness work**, not a deterministic forecast for Johannesburg, a particular farm, or the current growing plot. The original SAWS bulletin, local spatial probabilities and validity dates must be acquired and reviewed before its output is used by a model.
