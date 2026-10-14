@@ -621,6 +621,29 @@ pub fn normalized_transport_projection(
     projection
         .infrastructure_dependencies
         .sort_by(|a, b| a.id.cmp(&b.id));
+
+    for node in &mut projection.physical_nodes {
+        node.evidence_ids.sort();
+    }
+    for segment in &mut projection.physical_segments {
+        segment.evidence_ids.sort();
+    }
+    for milestone in &mut projection.shipment_milestones {
+        milestone.evidence_ids.sort();
+    }
+    for endpoint in &mut projection.communication_endpoints {
+        endpoint.evidence_ids.sort();
+    }
+    for contact in &mut projection.communication_contacts {
+        contact.evidence_ids.sort();
+    }
+    for asset in &mut projection.infrastructure_assets {
+        asset.evidence_ids.sort();
+    }
+    for dependency in &mut projection.infrastructure_dependencies {
+        dependency.evidence_ids.sort();
+    }
+
     projection
 }
 
@@ -952,6 +975,12 @@ mod tests {
         reordered.evidence_relations.reverse();
         reordered.infrastructure_assets.reverse();
         reordered.infrastructure_dependencies.reverse();
+        let rail = reordered
+            .physical_segments
+            .iter_mut()
+            .find(|segment| segment.id == "rail-haul")
+            .expect("rail segment");
+        rail.evidence_ids.reverse();
         let after = normalized_transport_projection_json(&reordered).expect("serialize");
         assert_eq!(before, after);
     }
