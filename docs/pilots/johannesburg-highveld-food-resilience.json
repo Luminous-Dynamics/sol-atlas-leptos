@@ -613,7 +613,8 @@
         "The service metadata does not itself freeze the Johannesburg feature's exact effective date; inspect the selected feature's timestamp and authoritative demarcation period, then archive the exact geometry export and retrieval time.",
         "The service reports WKID 4148, which the EPSG registry identifies as Hartebeesthoek94 geographic with latitude/longitude axis order. The service's extent is presented as x/y values resembling longitude/latitude, so verify actual exported-file axis mapping and known control locations before reprojection; do not silently relabel as EPSG:4326.",
         "The service reports isDataVersioned=false and does not support historic-moment queries, so later requests may return changed geometry. Keep the exact downloaded bytes and SHA-256 as the canonical analysis artifact.",
-        "Review current service availability, attribution, usage terms and redistribution rights for the exported geometry before passing D0."
+        "Review current service availability, attribution, usage terms and redistribution rights for the exported geometry before passing D0.",
+        "Do not infer that Stretford Ext 1 is part of the effective Johannesburg boundary from the January 2024 DEM7008 notice: the MDB's Circular 2 of 2024 records DEM7008 as withdrawn under Section 21(5) of the Municipal Demarcation Act. Confirm the effective/current geometry from the frozen data source and legal demarcation record."
       ]
     },
     {
@@ -625,6 +626,39 @@
       "limitations": [
         "The coordinate reference definition alone does not establish how a particular ArcGIS export encodes coordinate tuples; inspect the exported artifact and validate against known control locations.",
         "Do not silently change a CRS label or treat datum transformation, axis order and coordinate reordering as interchangeable operations."
+      ]
+    },
+    {
+      "reference_id": "MDB-DEM7008-WITHDRAWN-2024",
+      "title": "MDB Circular 2 of 2024 — DEM7008 withdrawal under Section 21(5)",
+      "url": "https://www.demarcation.org.za/wp-content/uploads/2024/03/Final-Circular-2-2024.pdf",
+      "reference_type": "official_bulletin",
+      "role": "Official follow-up record that the DEM7008 proposal affecting Stretford Ext 1 and Johannesburg/Emfuleni/Sedibeng was withdrawn under Section 21(5), after the January 2024 notice had listed it for objections.",
+      "limitations": [
+        "This withdrawal record means the January 2024 proposal must not be treated as an effective boundary change. It does not by itself provide the frozen geometry bytes for Johannesburg's current municipal boundary.",
+        "Use the official source history to resolve what boundary version is legally effective, then archive and hash the exact municipal polygon used by the study."
+      ]
+    },
+    {
+      "reference_id": "MDB-GAUTENG-WARD-DELIMITATION-2026",
+      "title": "Gauteng Provincial Gazette Extraordinary, 17 December 2025 — ward delimitation for 2026 local-government elections",
+      "url": "https://www.demarcation.org.za/wp-content/uploads/2025/12/473-17-12-2025-GautengDem.pdf",
+      "reference_type": "official_bulletin",
+      "role": "Official electoral-ward context identifying Johannesburg Metropolitan Municipality for the 2026 local-government ward delimitation; useful for dated electoral geography cross-checks.",
+      "limitations": [
+        "Ward polygons are not a replacement for the municipal-boundary polygon and should not be merged to approximate it without an explicit audited procedure.",
+        "Electoral ward delimitation has its own effective date and process; do not assume it changes the municipal boundary."
+      ]
+    },
+    {
+      "reference_id": "MDB-MUNICIPAL-BOUNDARIES-PROCESS",
+      "title": "Municipal Demarcation Board — municipal boundaries and redetermination process",
+      "url": "https://www.demarcation.org.za/municipal-boundaries/",
+      "reference_type": "official_program",
+      "role": "Official explanation of the MDB's role in municipal boundary determination/redetermination and the relationship to local-government elections.",
+      "limitations": [
+        "A program overview is not an exact current municipal geometry, gazette or effective-date record for Johannesburg.",
+        "Specific changes require the case identifier, legal process outcome and geometry artifact to be checked individually."
       ]
     }
   ],
