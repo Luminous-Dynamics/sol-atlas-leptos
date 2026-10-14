@@ -36,15 +36,19 @@ pub fn reference_price_per_boe(fuel_type: &FuelType) -> f64 {
 // ─── Legacy EROI thresholds ─────────────────────────────────────
 
 /// Legacy numeric cutoff retained for API compatibility. This does not establish a universal energy boundary.
+#[deprecated(note = "Legacy EROI threshold; use methodology-qualified evidence instead.")]
 pub const EROI_CIVILIZATION: f64 = 12.0;
 /// Legacy numeric cutoff retained for API compatibility. This does not establish a universal energy boundary.
+#[deprecated(note = "Legacy EROI threshold; use methodology-qualified evidence instead.")]
 pub const EROI_SUSTAINABILITY: f64 = 5.0;
 /// Legacy numeric cutoff retained for API compatibility. This does not establish a universal energy boundary.
+#[deprecated(note = "Legacy EROI threshold; use methodology-qualified evidence instead.")]
 pub const EROI_MINIMUM: f64 = 3.0;
 
 /// Legacy value-only bands kept for compatibility. These bands do not encode
 /// primary/final/useful energy stage, included inputs, source quality, or model version.
 /// The variant names must not be interpreted as findings about societal viability.
+#[deprecated(note = "Legacy EROI classification; use qualified EroiEvidence rather than numeric tiers.")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EroiTier {
     /// Legacy highest numeric band (ratio >= 12).
@@ -57,6 +61,7 @@ pub enum EroiTier {
     Unviable,
 }
 
+#[allow(deprecated)]
 impl EroiTier {
     /// Classify a number with the legacy cutoffs only; no boundary or source is considered.
     pub fn from_eroi(eroi: f64) -> Self {
@@ -116,6 +121,8 @@ pub fn can_compare_eroi(left: &FossilDeposit, right: &FossilDeposit) -> bool {
 /// Legacy numerical colors retained for API compatibility only. They do not
 /// encode source qualification or a versioned system boundary and are not used
 /// by the globe or detail-panel classification.
+#[allow(deprecated)]
+#[deprecated(note = "Legacy EROI colors are boundary-agnostic; encode evidence/status instead.")]
 pub fn eroi_color(eroi: f64) -> [f32; 3] {
     match EroiTier::from_eroi(eroi) {
         EroiTier::Civilization => [0.06, 0.73, 0.51], // teal-green
@@ -260,6 +267,7 @@ pub fn compute_irr(initial: f64, cashflows: &[f64]) -> Option<f64> {
 }
 
 #[cfg(test)]
+#[allow(deprecated)]
 mod tests {
     use super::*;
 
