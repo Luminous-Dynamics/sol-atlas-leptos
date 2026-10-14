@@ -158,6 +158,8 @@ class ChirpsMonthlyPlanTests(unittest.TestCase):
             self.assertEqual(manifest["raster_files_downloaded"], 0)
             self.assertEqual(manifest["index_bytes"], len(raw))
             self.assertEqual(manifest["index_sha256"], hashlib.sha256(raw).hexdigest())
+            self.assertEqual(manifest["source_doi"], "https://doi.org/10.15780/G2JQ0P")
+            self.assertIn("CC BY 4.0", manifest["license"])
             self.assertEqual(manifest["index_snapshot_filename"], snapshot.name)
             self.assertIsNone(manifest["index_retrieved_at_utc"])
 
