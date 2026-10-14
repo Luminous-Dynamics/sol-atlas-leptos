@@ -13,10 +13,12 @@ Johannesburg/Highveld gives the project a concrete local problem: produce reliab
 For the first boundary, use the **City of Johannesburg municipal area** as the local-production study extent. “Highveld” is the climate context, not a substitute polygon, and the regional food-supply catchment is a separate supplier/market network that can extend beyond municipal borders. This prevents an administrative boundary from being mistaken for a climate boundary or from excluding incoming food supply.
 
 Two official boundary discovery leads are recorded in the machine-readable profile: the City of Johannesburg Corporate Geo-Informatics Spatial Data Inventory (labelled 2024) and the government-hosted Municipal Demarcation Board local-municipality feature service. The City inventory documents custodian, format, creation-date and usage-limit fields and says it is reviewed annually; the MDB service describes itself as a municipality polygon layer and reports WKID 4148. Neither has yet been frozen as the study geometry. Confirm the current authoritative boundary/effective date, native CRS semantics, usage terms and exact geometry bytes; then record its URI, SHA-256 and independent D0 review before analysis.
+The MDB service metadata also reports `isDataVersioned=false` and no historical-moment query support, so the live service is not an immutable historical record. Its `Timestamp` field is a version clue to investigate, not automatically the legal boundary effective date. Archive the selected feature's exact response/export and retrieval time before the source changes. The EPSG registry defines WKID 4148 as Hartebeesthoek94 geographic with latitude/longitude axis order, while ArcGIS service metadata presents extents in x/y fields. Inspect actual exported coordinate tuples and validate known control locations; do not silently relabel the artifact as EPSG:4326 or assume axis order from the metadata alone.
 
 References:
 - City of Johannesburg CGIS inventory and data-custodian guidance: https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx
 - Municipal Demarcation Board local-municipality service: https://nspdr.dlrrd.gov.za/server/rest/services/NationalDatasets/MunicipalDemarcationBoard/MapServer/3
+- EPSG:4148 Hartebeesthoek94 CRS definition: https://epsg.io/4148
 
 GAEZ's source-defined scenario projection windows must retain their own model-time semantics; the 2021–2040 window is partly elapsed as of this profile's review date and is not a forward operational forecast.
 
