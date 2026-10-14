@@ -711,6 +711,18 @@ impl EroiEvidence {
                 .map_or(true, EroiUncertaintyRange::is_valid)
     }
 
+    /// A ratio qualifies only if it passes metadata validation and falls within any
+    /// declared uncertainty interval. This does not authenticate the source.
+    pub fn supports_value(&self, ratio: f64) -> bool {
+        self.is_qualified()
+            && ratio.is_finite()
+            && ratio > 0.0
+            && self
+                .uncertainty
+                .as_ref()
+                .map_or(true, |range| range.lower <= ratio && ratio <= range.upper)
+    }
+
     /// Conservative comparability rule: no implicit conversion between energy
     /// stages, input/output definitions, analysis periods, or evidence bases.
     ///
@@ -1215,6 +1227,15 @@ mod eroi_evidence_tests {
         item.period_start_year = 2021;
         item.period_end_year = 2020;
         assert!(!item.is_qualified());
+    }
+
+    #[test]
+    fn uncertainty_interval_must_contain_the_reported_ratio() {
+        let item = evidence(EroiStage::Final);
+        assert!(item.supports_value(5.0));
+        assert!(!item.supports_value(25.0));
+        assert!(!item.supports_value(f64::NAN));
+        assert!(!item.supports_value(f64::INFINITY));
     }
 
     #[test]
