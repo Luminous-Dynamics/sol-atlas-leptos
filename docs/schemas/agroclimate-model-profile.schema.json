@@ -1290,16 +1290,13 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "source_artifacts_acquired",
+        "required_source_artifacts_acquired",
         "baseline_computed",
         "independent_validation_complete",
         "expert_review_complete",
         "decision_support_authorized"
       ],
       "properties": {
-        "source_artifacts_acquired": {
-          "type": "boolean"
-        },
         "baseline_computed": {
           "type": "boolean"
         },
@@ -1310,6 +1307,9 @@
           "type": "boolean"
         },
         "decision_support_authorized": {
+          "type": "boolean"
+        },
+        "required_source_artifacts_acquired": {
           "type": "boolean"
         }
       }
