@@ -428,6 +428,7 @@ mod tests {
             Some(crate::types::EroiUncertaintyRange {
                 lower: 4.0,
                 upper: 6.0,
+                interpretation: Some(crate::types::EroiUncertaintyKind::SensitivityRange),
             });
         assert_eq!(qualified_eroi(&deposit), None);
 
@@ -461,6 +462,7 @@ mod tests {
             Some(crate::types::EroiUncertaintyRange {
                 lower: 4.0,
                 upper: 6.0,
+                interpretation: Some(crate::types::EroiUncertaintyKind::SensitivityRange),
             });
         assert!(!can_compare_eroi(&left, &right));
 
