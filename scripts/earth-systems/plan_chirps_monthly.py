@@ -258,6 +258,8 @@ def snapshot_manifest(raw: bytes, retrieved_at: str | None, mode: str, filename:
         "dataset": "CHIRPS v3.0 monthly Africa-subset directory index",
         "status": "index_snapshot_only",
         "source_provider": "Climate Hazards Center, University of California Santa Barbara",
+        "source_doi": "https://doi.org/10.15780/G2JQ0P",
+        "license": "CC BY 4.0; retain provider attribution and release citation",
         "official_landing_page": "https://www.chc.ucsb.edu/data/chirps3",
         "index_url": INDEX_URL,
         "index_snapshot_mode": mode,
