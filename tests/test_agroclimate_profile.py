@@ -73,6 +73,12 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["sources"][0]["url"] = "http://example.invalid/data"
         self.assertTrue(any("must be an HTTPS URL" in error for error in self.errors(doc)))
 
+    def test_shared_schema_rejects_non_https_source_urls(self):
+        doc = copy.deepcopy(self.profile)
+        doc["sources"][0]["url"] = "http://example.invalid/data"
+        schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
+        self.assertTrue(any(list(error.path)[-1:] == ["url"] for error in schema_errors))
+
     def test_local_observation_lead_does_not_invent_a_url(self):
         doc = copy.deepcopy(self.profile)
         source = next(item for item in doc["sources"] if item["source_id"] == "LOCAL-OBSERVATIONS")
