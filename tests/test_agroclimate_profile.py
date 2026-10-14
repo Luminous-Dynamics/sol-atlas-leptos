@@ -22,6 +22,60 @@ class AgroclimateProfileTests(unittest.TestCase):
     def errors(self, doc):
         return validate_profile(doc, self.schema)
 
+    def synthetic_complete_profile(self):
+        """Build a synthetic contract fixture, not real agricultural evidence."""
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "decision_support_candidate"
+        doc["geography"]["boundary_state"] = "verified_and_frozen"
+        doc["geography"]["boundary_source"] = (
+            "Synthetic fixture boundary artifact with explicit CRS and digest for contract tests."
+        )
+        doc["geography"]["boundary_evidence_ref"] = "urn:fixture:boundary:joburg-v1"
+        doc["geography"]["boundary_sha256"] = "a" * 64
+        doc["geography"]["boundary_crs"] = "EPSG:4326"
+        doc["model_architecture"]["model_selection_state"] = "selected_and_calibrated"
+        doc["evaluation"]["state"] = "completed_review_pending"
+        doc["candidate_crop_cohorts"][0]["selection_state"] = "selected_for_baseline"
+
+        for index, source in enumerate(doc["sources"]):
+            source["acquisition_state"] = "acquired"
+            source["selected_product"] = f"urn:fixture:source:{source['source_id']}:v1"
+            source["artifact_sha256"] = format(index + 11, "x") * 64
+            source["source_identity_verified"] = True
+            if source["source_id"] == "LOCAL-OBSERVATIONS":
+                source["rights_state"] = "permission_granted"
+                source["redistribution_allowed"] = None
+            else:
+                source["rights_state"] = "license_reviewed"
+                source["redistribution_allowed"] = True
+
+        for constraint_id, constraint in doc["site_constraints"].items():
+            constraint["state"] = "assessed"
+            constraint["evidence_refs"] = [f"urn:fixture:site-assessment:{constraint_id}:v1"]
+            constraint["reviewed_by"] = "synthetic-qualified-reviewer"
+
+        doc["validation"]["gates"] = {gate: "passed" for gate in ("D0", "D1", "D2", "D3", "D4", "D5")}
+        doc["validation"]["gate_evidence"] = {
+            gate: {
+                "evidence_refs": [f"urn:fixture:gate-evidence:{gate}:v1"],
+                "reviewed_by": "synthetic-independent-reviewer",
+                "reason": None,
+            }
+            for gate in ("D0", "D1", "D2", "D3", "D4", "D5")
+        }
+        doc["validation"]["gate_evidence"]["D0"]["evidence_refs"] = [
+            doc["geography"]["boundary_evidence_ref"],
+            f"sha256:{doc['geography']['boundary_sha256']}",
+        ]
+        doc["evidence_state"] = {
+            "source_artifacts_acquired": True,
+            "baseline_computed": True,
+            "independent_validation_complete": True,
+            "expert_review_complete": True,
+            "decision_support_authorized": True,
+        }
+        return doc
+
     def test_design_profile_passes_structural_and_semantic_validation(self):
         self.assertEqual(self.errors(self.profile), [])
 
@@ -193,6 +247,14 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc = copy.deepcopy(self.profile)
         doc["site_constraints"]["soil_condition_and_contamination"]["state"] = "assessed"
         self.assertTrue(any("requires every site constraint to remain not_assessed" in error for error in self.errors(doc)))
+
+    def test_complete_synthetic_profile_can_satisfy_all_contract_gates(self):
+        doc = self.synthetic_complete_profile()
+        self.assertEqual(
+            self.errors(doc),
+            [],
+            "a complete synthetic fixture should prove the gated workflow is reachable; it is not real evidence",
+        )
 
     def test_decision_support_requires_every_site_constraint_assessed(self):
         doc = copy.deepcopy(self.profile)
