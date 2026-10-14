@@ -375,7 +375,13 @@ impl CivicServiceCase {
             match self.public_area.as_ref() {
                 None => errors.push(E::MissingPublicAreaReference),
                 Some(area) => {
-                    let valid_code = !area.code.trim().is_empty()
+                    let prefix_matches = match area.granularity {
+                        PublicAreaGranularity::CityRegion => area.code.starts_with("region-"),
+                        PublicAreaGranularity::Ward => area.code.starts_with("ward-"),
+                        PublicAreaGranularity::Precinct => area.code.starts_with("precinct-"),
+                    };
+                    let valid_code = prefix_matches
+                        && !area.code.trim().is_empty()
                         && area.code.len() <= 80
                         && area.code.bytes().all(|byte| {
                             byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.')
