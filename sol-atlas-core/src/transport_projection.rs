@@ -999,9 +999,14 @@ mod tests {
             .expect("rail segment");
         assert_eq!(rail.capacity, None);
         assert_eq!(rail.evidence_ids.len(), 2);
-        assert!(projection.evidence_records.iter().filter(|record| {
-            record.qualification == EvidenceQualificationV1::Conflicted
-        }).count() == 2);
+        assert_eq!(
+            projection
+                .evidence_records
+                .iter()
+                .filter(|record| record.qualification == EvidenceQualificationV1::Conflicted)
+                .count(),
+            2
+        );
         assert_eq!(projection.evidence_relations[0].relation, EvidenceRelationKindV1::Conflicts);
         assert_eq!(validate_transport_projection(&projection), Ok(()));
     }
@@ -1018,6 +1023,26 @@ mod tests {
 
         let mut projection = synthetic_freight_corridor_v1();
         projection.communication_contacts[0].time_profile_id = "other-clock".to_owned();
+        assert_eq!(
+            validate_transport_projection(&projection),
+            Err(TransportProjectionError::InvalidTimeProfile)
+        );
+    }
+
+    #[test]
+    fn milestone_kind_and_time_meaning_must_agree() {
+        let mut projection = synthetic_freight_corridor_v1();
+        projection.shipment_milestones[0].time_meaning = EventTimeMeaningV1::Forecast;
+        assert_eq!(
+            validate_transport_projection(&projection),
+            Err(TransportProjectionError::InvalidMilestoneTimeMeaning)
+        );
+    }
+
+    #[test]
+    fn evidence_timestamps_must_use_the_projection_time_profile() {
+        let mut projection = synthetic_freight_corridor_v1();
+        projection.evidence_records[0].time_profile_id = "unmapped-source-clock".to_owned();
         assert_eq!(
             validate_transport_projection(&projection),
             Err(TransportProjectionError::InvalidTimeProfile)
