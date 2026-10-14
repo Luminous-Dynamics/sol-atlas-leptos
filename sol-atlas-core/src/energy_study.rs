@@ -131,7 +131,10 @@ impl std::fmt::Display for EnergyStudyValidationError {
                 write!(f, "energy-study field {field} is empty or invalid")
             }
             Self::InvalidSha256(field) => {
-                write!(f, "energy-study field {field} is not a lowercase SHA-256 digest")
+                write!(
+                    f,
+                    "energy-study field {field} is not a lowercase SHA-256 digest"
+                )
             }
             Self::InvalidGitRevision(field) => {
                 write!(f, "energy-study field {field} is not an exact Git revision")
@@ -141,18 +144,16 @@ impl std::fmt::Display for EnergyStudyValidationError {
                 f,
                 "energy study exceeds the {MAX_ENERGY_STUDY_DATASETS}-dataset limit"
             ),
-            Self::DuplicateDatasetId => {
-                f.write_str("energy study contains a duplicate dataset_id")
-            }
+            Self::DuplicateDatasetId => f.write_str("energy study contains a duplicate dataset_id"),
             Self::InvalidTimeAxis => {
                 f.write_str("energy-study time interval and count must be positive")
             }
             Self::TimeHorizonOverflow => {
                 f.write_str("energy-study horizon overflows the UTC Unix timestamp range")
             }
-            Self::TimeOutsidePortableRange => {
-                f.write_str("energy-study time values exceed the exact cross-language integer range")
-            }
+            Self::TimeOutsidePortableRange => f.write_str(
+                "energy-study time values exceed the exact cross-language integer range",
+            ),
         }
     }
 }
@@ -284,8 +285,6 @@ impl EnergyStudyManifestV1 {
 
         Ok(to_lower_hex(&hasher.finalize()))
     }
-
-
 }
 
 impl EnergyEvidenceClass {
@@ -311,10 +310,7 @@ impl EnergyPolicyKind {
     }
 }
 
-fn validate_text(
-    value: &str,
-    field: &'static str,
-) -> Result<(), EnergyStudyValidationError> {
+fn validate_text(value: &str, field: &'static str) -> Result<(), EnergyStudyValidationError> {
     if value.is_empty()
         || value.len() > MAX_TEXT_BYTES
         || value.starts_with(' ')
@@ -332,10 +328,7 @@ fn is_lower_hex(value: &str) -> bool {
         .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
-fn validate_sha256(
-    value: &str,
-    field: &'static str,
-) -> Result<(), EnergyStudyValidationError> {
+fn validate_sha256(value: &str, field: &'static str) -> Result<(), EnergyStudyValidationError> {
     if value.len() != 64 || !is_lower_hex(value) {
         return Err(EnergyStudyValidationError::InvalidSha256(field));
     }
@@ -441,7 +434,10 @@ mod tests {
         let mut forward = manifest();
         let mut reversed = manifest();
         reversed.datasets.reverse();
-        assert_eq!(forward.digest_sha256().unwrap(), reversed.digest_sha256().unwrap());
+        assert_eq!(
+            forward.digest_sha256().unwrap(),
+            reversed.digest_sha256().unwrap()
+        );
 
         // Reordering is canonicalized, but duplicate identities are not allowed.
         forward.datasets.push(forward.datasets[0].clone());
@@ -478,14 +474,18 @@ mod tests {
         unpinned.model.git_revision = "main".into();
         assert_eq!(
             unpinned.validate(),
-            Err(EnergyStudyValidationError::InvalidGitRevision("model.git_revision"))
+            Err(EnergyStudyValidationError::InvalidGitRevision(
+                "model.git_revision"
+            ))
         );
 
         let mut malformed = manifest();
         malformed.datasets[0].content_sha256 = "ABC".into();
         assert_eq!(
             malformed.validate(),
-            Err(EnergyStudyValidationError::InvalidSha256("datasets.content_sha256"))
+            Err(EnergyStudyValidationError::InvalidSha256(
+                "datasets.content_sha256"
+            ))
         );
     }
 
@@ -493,7 +493,10 @@ mod tests {
     fn rejects_bad_time_axis_and_overflow() {
         let mut zero = manifest();
         zero.interval_seconds = 0;
-        assert_eq!(zero.validate(), Err(EnergyStudyValidationError::InvalidTimeAxis));
+        assert_eq!(
+            zero.validate(),
+            Err(EnergyStudyValidationError::InvalidTimeAxis)
+        );
 
         let mut overflow = manifest();
         overflow.start_unix_seconds = i64::MAX - 1;
@@ -581,7 +584,6 @@ mod tests {
         );
         assert_eq!(study.policy.git_revision, study.model.git_revision);
     }
-
 
     #[test]
     fn case_digest_excludes_model_and_policy_but_binds_case_inputs() {
