@@ -12,8 +12,8 @@
 //! not a signature proving that the caller truthfully reported the exchange.
 
 use crate::world_bank_data360::{
-    DATA360_MAX_PAGE_SIZE, Data360PageContext, Data360PageError, ParsedData360Page,
-    parse_data360_page,
+    DATA360_MAX_PAGE_SIZE, Data360PageContext, Data360PageError, Data360SnapshotAssessment,
+    Data360SnapshotStatus, ParsedData360Page, assess_data360_snapshot, parse_data360_page,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -24,6 +24,19 @@ use std::fmt;
 pub const DATA360_EVIDENCE_SCHEMA_VERSION: u16 = 1;
 const DATA360_DATA_URL: &str = "https://data360api.worldbank.org/data360/data";
 pub const DATA360_BODY_CAPTURE_LAYER: &str = "http_client_entity_body_after_content_decoding/v1";
+const SAFE_RESPONSE_HEADERS: [&str; 11] = [
+    "content-type",
+    "content-length",
+    "date",
+    "etag",
+    "last-modified",
+    "cache-control",
+    "content-encoding",
+    "vary",
+    "x-request-id",
+    "request-id",
+    "expires",
+];
 const DOCUMENTED_QUERY_KEYS: [&str; 16] = [
     "DATABASE_ID",
     "INDICATOR",
@@ -127,10 +140,12 @@ impl Data360AcquisitionEvidence {
         let mut normalized_headers = BTreeMap::new();
         for (name, value) in response_headers {
             let normalized_name = name.trim().to_ascii_lowercase();
-            if normalized_name.is_empty() || value.bytes().any(|byte| byte == 0x0d || byte == 0x0a)
+            if normalized_name.is_empty()
+                || !SAFE_RESPONSE_HEADERS.contains(&normalized_name.as_str())
+                || value.bytes().any(|byte| byte == 0x0d || byte == 0x0a)
             {
                 return Err(Data360EvidenceError::InvalidResponse(
-                    "response headers must have non-empty names and single-line values".to_string(),
+                    "response headers must use the safe allowlist and single-line values".to_string(),
                 ));
             }
             if normalized_headers
@@ -203,6 +218,16 @@ impl Data360AcquisitionEvidence {
             )));
         }
 
+        for (name, value) in &self.response_headers {
+            if name != &name.to_ascii_lowercase()
+                || !SAFE_RESPONSE_HEADERS.contains(&name.as_str())
+                || value.bytes().any(|byte| byte == 0x0d || byte == 0x0a || byte == 0)
+            {
+                return Err(Data360EvidenceError::InvalidResponse(format!(
+                    "response header {name:?} is not a safe normalized capture"
+                )));
+            }
+        }
         let content_type = self.response_headers.get("content-type").ok_or_else(|| {
             Data360EvidenceError::InvalidResponse(
                 "missing content-type response header".to_string(),
@@ -274,6 +299,72 @@ pub fn parse_data360_page_with_evidence(
         .map_err(|error: Data360PageError| Data360EvidenceError::PageParse(error.to_string()))
 }
 
+/// A replayable, evidence-bound page bundle. Raw entity bytes and the receipt
+/// are retained so an assessor can revalidate them instead of trusting only
+/// the normalized records that were produced earlier.
+#[derive(Debug, Clone, PartialEq)]
+pub struct EvidenceBoundData360Page {
+    pub acquisition: Data360AcquisitionEvidence,
+    pub context: Data360PageContext,
+    pub response_body: Vec<u8>,
+    pub parsed_page: ParsedData360Page,
+}
+
+pub fn parse_evidence_bound_data360_page(
+    response_body: &[u8],
+    context: &Data360PageContext,
+    evidence: &Data360AcquisitionEvidence,
+) -> Result<EvidenceBoundData360Page, Data360EvidenceError> {
+    let parsed_page = parse_data360_page_with_evidence(response_body, context, evidence)?;
+    Ok(EvidenceBoundData360Page {
+        acquisition: evidence.clone(),
+        context: context.clone(),
+        response_body: response_body.to_vec(),
+        parsed_page,
+    })
+}
+
+/// Revalidate receipts and replay the page parser before assessing collection
+/// completeness. A changed receipt, body, query context, or normalized page
+/// invalidates the evidence-bound collection.
+pub fn assess_data360_acquired_snapshot(
+    pages: &[EvidenceBoundData360Page],
+) -> Data360SnapshotAssessment {
+    if pages.is_empty() {
+        return assess_data360_snapshot(&[]);
+    }
+
+    let mut reparsed_pages = Vec::with_capacity(pages.len());
+    for acquired in pages {
+        let Ok(reparsed) = parse_data360_page_with_evidence(
+            &acquired.response_body,
+            &acquired.context,
+            &acquired.acquisition,
+        ) else {
+            return Data360SnapshotAssessment {
+                status: Data360SnapshotStatus::AcquisitionEvidenceInvalid,
+                expected_count: None,
+                rows_returned: 0,
+                accepted_rows: 0,
+                rejected_rows: 0,
+                next_skip: 0,
+            };
+        };
+        if reparsed != acquired.parsed_page {
+            return Data360SnapshotAssessment {
+                status: Data360SnapshotStatus::AcquisitionEvidenceInvalid,
+                expected_count: None,
+                rows_returned: 0,
+                accepted_rows: 0,
+                rejected_rows: 0,
+                next_skip: 0,
+            };
+        }
+        reparsed_pages.push(reparsed);
+    }
+    assess_data360_snapshot(&reparsed_pages)
+}
+
 fn validate_documented_request_url(
     request_url: &str,
     context: &Data360PageContext,
@@ -325,8 +416,29 @@ fn validate_documented_request_url(
     let q = &context.query;
     require_query_value(&actual, "DATABASE_ID", &q.database_id)?;
     require_query_value(&actual, "INDICATOR", &q.indicator_id)?;
-    require_query_value(&actual, "timePeriodFrom", &q.period_start.to_string())?;
-    require_query_value(&actual, "timePeriodTo", &q.period_end.to_string())?;
+    match q.filters.get("TIME_PERIOD") {
+        Some(single_year) => {
+            if q.period_start != q.period_end
+                || single_year != &q.period_start.to_string()
+                || actual.contains_key("timePeriodFrom")
+                || actual.contains_key("timePeriodTo")
+            {
+                return Err(Data360EvidenceError::InvalidRequest(
+                    "TIME_PERIOD must be a single year and cannot be combined with timePeriodFrom/timePeriodTo".to_string(),
+                ));
+            }
+            require_query_value(&actual, "TIME_PERIOD", single_year)?;
+        }
+        None => {
+            require_query_value(&actual, "timePeriodFrom", &q.period_start.to_string())?;
+            require_query_value(&actual, "timePeriodTo", &q.period_end.to_string())?;
+            if actual.contains_key("TIME_PERIOD") {
+                return Err(Data360EvidenceError::InvalidRequest(
+                    "TIME_PERIOD cannot be combined with timePeriodFrom/timePeriodTo".to_string(),
+                ));
+            }
+        }
+    }
 
     match actual.get("skip") {
         Some(value) if value == &q.requested_skip.to_string() => {}
@@ -413,11 +525,17 @@ fn percent_decode(input: &str) -> Result<String, Data360EvidenceError> {
             }
         }
     }
-    String::from_utf8(decoded).map_err(|_| {
+    let decoded = String::from_utf8(decoded).map_err(|_| {
         Data360EvidenceError::InvalidRequest(
             "query parameter is not valid UTF-8 after percent decoding".to_string(),
         )
-    })
+    })?;
+    if decoded.chars().any(char::is_control) {
+        return Err(Data360EvidenceError::InvalidRequest(
+            "query parameter contains a control character".to_string(),
+        ));
+    }
+    Ok(decoded)
 }
 
 fn hex_nibble(byte: u8) -> Option<u8> {
