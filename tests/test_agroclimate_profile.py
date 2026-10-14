@@ -381,9 +381,30 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["sources"][0]["artifacts"][0]["asset_uri"] = "https://example.invalid/data?access_token=secret"
         self.assertTrue(any("must not contain a bearer or signed URL credential" in error for error in self.errors(doc)))
 
+    def test_asset_url_userinfo_credentials_are_rejected(self):
+        doc = self.synthetic_complete_profile()
+        doc["sources"][0]["artifacts"][0]["asset_uri"] = "https://username:password@example.invalid/data.tif"
+        self.assertTrue(any("must not embed URL username/password credentials" in error for error in self.errors(doc)))
+
+    def test_transform_input_must_be_declared_in_lineage(self):
+        doc = self.synthetic_complete_profile()
+        artifact = doc["sources"][0]["artifacts"][0]
+        artifact["transformations"] = [{
+            "transform_id": "fixture.transform:untraced-v1",
+            "method": "Example deterministic transformation",
+            "implementation_version": "fixture-1",
+            "configuration_sha256": "a" * 64,
+            "input_artifact_refs": ["urn:fixture:untracked:input"],
+            "output_sha256": artifact["sha256"],
+            "lossy": False,
+            "notes": "Synthetic untraced input test.",
+        }]
+        self.assertTrue(any("input references must be declared in asset lineage" in error for error in self.errors(doc)))
+
     def test_transformation_chain_must_end_at_manifest_artifact_digest(self):
         doc = self.synthetic_complete_profile()
         artifact = doc["sources"][0]["artifacts"][0]
+        artifact["lineage_refs"].append("urn:fixture:input:raster-v1")
         artifact["transformations"] = [{
             "transform_id": "fixture.transform:resample-v1",
             "method": "Example deterministic resampling implementation",
@@ -400,6 +421,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc = self.synthetic_complete_profile()
         artifact = doc["sources"][0]["artifacts"][0]
         digest = artifact["sha256"]
+        artifact["lineage_refs"].append("urn:fixture:input:original-raster-v1")
         artifact["transformations"] = [
             {
                 "transform_id": "fixture.transform:step-1",
@@ -435,6 +457,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc = self.synthetic_complete_profile()
         artifact = doc["sources"][0]["artifacts"][0]
         digest = artifact["sha256"]
+        artifact["lineage_refs"].append("urn:fixture:input:original-v1")
         artifact["transformations"] = [
             {
                 "transform_id": "fixture.transform:step-1",
