@@ -88,8 +88,32 @@ class AgroclimateProfileTests(unittest.TestCase):
     def test_local_observations_require_permission_review(self):
         doc = copy.deepcopy(self.profile)
         source = next(item for item in doc["sources"] if item["source_id"] == "LOCAL-OBSERVATIONS")
-        source["rights_state"] = "cc_by_4_0_with_attribution"
+        source["rights_state"] = "license_reviewed"
         self.assertTrue(any("local observations must retain permission_required" in error for error in self.errors(doc)))
+
+    def test_authorized_local_observations_can_remain_private(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        source = next(item for item in doc["sources"] if item["source_id"] == "LOCAL-OBSERVATIONS")
+        source["acquisition_state"] = "acquired"
+        source["selected_product"] = "urn:mycelix:measurement-protocol:highveld-site-v1"
+        source["artifact_sha256"] = "a" * 64
+        source["source_catalog_verified"] = True
+        source["rights_state"] = "permission_granted"
+        source["redistribution_allowed"] = None
+        self.assertEqual(self.errors(doc), [])
+
+    def test_acquired_local_observations_cannot_claim_public_redistribution(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        source = next(item for item in doc["sources"] if item["source_id"] == "LOCAL-OBSERVATIONS")
+        source["acquisition_state"] = "acquired"
+        source["selected_product"] = "urn:mycelix:measurement-protocol:highveld-site-v1"
+        source["artifact_sha256"] = "a" * 64
+        source["source_catalog_verified"] = True
+        source["rights_state"] = "permission_granted"
+        source["redistribution_allowed"] = False
+        self.assertTrue(any("redistribution_allowed=null" in error for error in self.errors(doc)))
 
     def test_soilgrids_farm_scale_limit_is_preserved(self):
         doc = copy.deepcopy(self.profile)
