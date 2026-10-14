@@ -695,6 +695,8 @@ pub struct EroiEvidence {
 impl EroiEvidence {
     /// True only when the record supplies enough well-formed metadata to
     /// qualify an EROI value for like-boundary comparison.
+    /// Validate the declared metadata shape. This does not authenticate the
+    /// source or verify that the numeric EROI is consistent with its interval.
     pub fn is_qualified(&self) -> bool {
         is_clean_evidence_text(&self.output_definition)
             && is_clean_evidence_text(&self.input_definition)
@@ -709,6 +711,18 @@ impl EroiEvidence {
                 .uncertainty
                 .as_ref()
                 .map_or(true, EroiUncertaintyRange::is_valid)
+    }
+
+    /// True when a reported numeric ratio is valid and lies within any declared
+    /// uncertainty interval. An interval cannot qualify a conflicting point value.
+    pub fn supports_value(&self, ratio: f64) -> bool {
+        self.is_qualified()
+            && ratio.is_finite()
+            && ratio > 0.0
+            && self
+                .uncertainty
+                .as_ref()
+                .map_or(true, |range| range.lower <= ratio && ratio <= range.upper)
     }
 
     /// Conservative comparability rule: no implicit conversion between energy
@@ -1097,6 +1111,15 @@ mod eroi_evidence_tests {
         item.period_start_year = 2021;
         item.period_end_year = 2020;
         assert!(!item.is_qualified());
+    }
+
+    #[test]
+    fn uncertainty_interval_must_contain_the_reported_ratio() {
+        let item = evidence(EroiStage::Final);
+        assert!(item.supports_value(5.0));
+        assert!(!item.supports_value(25.0));
+        assert!(!item.supports_value(f64::NAN));
+        assert!(!item.supports_value(f64::INFINITY));
     }
 
     #[test]
