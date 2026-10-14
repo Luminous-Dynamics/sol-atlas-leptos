@@ -666,7 +666,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc = copy.deepcopy(self.profile)
         doc["status"] = "data_readiness"
         doc["validation"]["gates"]["D1"] = "passed"
-        self.assertTrue(any("D1=passed requires acquisition" in error for error in self.errors(doc)))
+        self.assertTrue(any("D1=passed requires every source marked required_for_baseline to be acquired" in error for error in self.errors(doc)))
 
     def test_D1_cannot_skip_the_frozen_study_boundary(self):
         doc = copy.deepcopy(self.profile)
