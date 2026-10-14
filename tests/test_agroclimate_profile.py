@@ -168,7 +168,8 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["status"] = "data_readiness"
         doc["geography"]["boundary_state"] = "verified_and_frozen"
         doc["geography"]["boundary_source"] = "Authoritative municipal boundary artifact reviewed and hash recorded."
-        self.assertFalse(self.errors(doc)) if doc["validation"]["gates"].update({"D0": "passed"}) is None else None
+        doc["validation"]["gates"]["D0"] = "passed"
+        self.assertFalse(self.errors(doc))
 
     def test_D1_cannot_pass_with_unacquired_sources(self):
         doc = copy.deepcopy(self.profile)
