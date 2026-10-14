@@ -56,9 +56,7 @@ pub fn Tooltip() -> impl IntoView {
             }
             Some(HoverInfo::FossilDeposit(d)) => {
                 let eroi_str = match sol_atlas_core::economics::compute_eroi(d) {
-                    Some(value)
-                        if sol_atlas_core::economics::qualified_eroi(d).is_some() =>
-                    {
+                    Some(value) if sol_atlas_core::economics::qualified_eroi(d).is_some() => {
                         format!(
                             " | reported EROI {:.1}:1 (metadata-qualified; source unverified)",
                             value
