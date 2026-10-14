@@ -120,6 +120,7 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
         sources = []
     seen: set[str] = set()
     source_by_id: dict[str, dict] = {}
+    global_artifact_ids: set[str] = set()
     for index, raw in enumerate(sources):
         source = _as_dict(raw)
         source_id = source.get("source_id")
@@ -177,10 +178,13 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
                 artifact_where = f"{where}.artifacts[{artifact_index}]"
                 if not isinstance(artifact_id, str) or not artifact_id.strip():
                     errors.append(f"{artifact_where}.artifact_id must be non-empty")
-                elif artifact_id in artifact_ids:
-                    errors.append(f"{where}: duplicate artifact_id {artifact_id}")
                 else:
+                    if artifact_id in artifact_ids:
+                        errors.append(f"{where}: duplicate artifact_id {artifact_id} within source")
+                    if artifact_id in global_artifact_ids:
+                        errors.append(f"duplicate artifact_id across profile: {artifact_id}")
                     artifact_ids.add(artifact_id)
+                    global_artifact_ids.add(artifact_id)
                 if artifact.get("role") == "primary":
                     primary_artifacts.append(artifact)
                 asset_uri = artifact.get("asset_uri")
