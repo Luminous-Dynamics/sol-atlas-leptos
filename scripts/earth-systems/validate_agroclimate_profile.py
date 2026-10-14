@@ -206,6 +206,21 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
         if not isinstance(constraint.get("claim_limit"), str) or len(constraint["claim_limit"].strip()) < 30:
             errors.append(f"site_constraints.{constraint_id}.claim_limit must state a specific decision limit")
 
+        evidence_refs = constraint.get("evidence_refs")
+        reviewer = constraint.get("reviewed_by")
+        if not isinstance(evidence_refs, list) or any(
+            not isinstance(ref, str) or not ref.startswith(("https://", "urn:", "sha256:"))
+            for ref in evidence_refs
+        ):
+            errors.append(f"site_constraints.{constraint_id}.evidence_refs must contain valid auditable references")
+        if state == "assessed":
+            if not isinstance(evidence_refs, list) or not evidence_refs:
+                errors.append(f"site_constraints.{constraint_id}=assessed requires at least one evidence reference")
+            if not isinstance(reviewer, str) or len(reviewer.strip()) < 3:
+                errors.append(f"site_constraints.{constraint_id}=assessed requires a reviewer identity or role")
+        if state == "not_assessed" and (evidence_refs or reviewer is not None):
+            errors.append(f"site_constraints.{constraint_id}=not_assessed must not carry assessment evidence or reviewer")
+
     if any(gates.get(gate) not in {"not_started", "blocked", "passed"} for gate in GATES):
         errors.append("validation.gates must contain valid D0-D5 states")
 
