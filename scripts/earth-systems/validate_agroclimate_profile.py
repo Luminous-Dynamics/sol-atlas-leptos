@@ -109,8 +109,11 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
                 errors.append(f"{where}: acquired source requires an exact selected_product identifier")
             if source.get("source_catalog_verified") is not True:
                 errors.append(f"{where}: acquisition requires source catalog/product identity verification")
-            if source.get("rights_state") in {"review_product_metadata", "permission_required"}:
+            if source.get("rights_state") in {"license_not_reviewed", "permission_required"}:
                 errors.append(f"{where}: acquisition cannot be promoted before required rights/permission review")
+            if source.get("redistribution_allowed") is None:
+                errors.append(f"{where}: acquired artifact requires an explicit redistribution decision")
+
         if source_id == "LOCAL-OBSERVATIONS":
             if source.get("rights_state") != "permission_required":
                 errors.append("local observations must retain permission_required until scope and authorization are recorded")
