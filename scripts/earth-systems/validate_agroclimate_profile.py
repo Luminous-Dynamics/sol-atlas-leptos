@@ -307,6 +307,11 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
     if gates.get("D0") == "passed" and geography.get("boundary_state") != "verified_and_frozen":
         errors.append("D0=passed requires an authoritative, verified-and-frozen study boundary")
 
+    if gates.get("D0") == "passed" and isinstance(boundary_digest, str):
+        d0_refs = _as_dict(gate_evidence.get("D0")).get("evidence_refs", [])
+        if boundary_ref not in d0_refs or f"sha256:{boundary_digest}" not in d0_refs:
+            errors.append("D0=passed gate evidence must reference the exact boundary artifact and its matching SHA-256")
+
     if gates.get("D1") == "passed":
         if len(sources) != len(EXPECTED_SOURCES) or any(
             _as_dict(source).get("acquisition_state") != "acquired" for source in sources
