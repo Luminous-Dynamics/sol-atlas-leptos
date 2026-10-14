@@ -113,6 +113,14 @@ class WaterFoodPilotTests(unittest.TestCase):
         self.assertIn("not a byte snapshot", checks)
         self.assertIn("fresh raw index", checks)
 
+    def test_latest_chirps_followup_recheck_remains_observation_only(self):
+        source = next(s for s in self.pilot["sources"] if s["source_id"] == "CHIRPS3")
+        checks = " ".join(source["required_checks"]).lower()
+        self.assertIn("follow-up browser-only recheck on 2026-10-14", checks)
+        self.assertIn("2026-08 as latest", checks)
+        self.assertIn("no september/later file", checks)
+        self.assertIn("not a raw-byte snapshot", checks)
+
     def test_chirps_primary_selection_is_monthly_africa_geotiff(self):
         source = next(s for s in self.pilot["sources"] if s["source_id"] == "CHIRPS3")
         self.assertIn("monthly Africa-subset GeoTIFF", source["selected_product"])
