@@ -30,7 +30,7 @@ EXPECTED_SOURCES = {
 }
 GATES = ("D0", "D1", "D2", "D3", "D4", "D5")
 EVIDENCE_FLAGS = (
-    "required_required_source_artifacts_acquired",
+    "required_source_artifacts_acquired",
     "baseline_computed",
     "independent_validation_complete",
     "expert_review_complete",
@@ -478,7 +478,7 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
     if evidence.get("baseline_computed") is True:
         if any(gates.get(gate) != "passed" for gate in ("D0", "D1", "D2")):
             errors.append("baseline_computed=true requires D0-D2=passed")
-        if evidence.get("required_required_source_artifacts_acquired") is not True:
+        if evidence.get("required_source_artifacts_acquired") is not True:
             errors.append("baseline_computed=true requires required_source_artifacts_acquired=true")
     if evidence.get("independent_validation_complete") is True:
         if evidence.get("baseline_computed") is not True or gates.get("D3") != "passed":
