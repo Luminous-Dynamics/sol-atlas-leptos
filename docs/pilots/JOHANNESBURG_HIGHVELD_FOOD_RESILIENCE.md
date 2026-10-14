@@ -10,6 +10,8 @@
 
 Johannesburg/Highveld gives the project a concrete local problem: produce reliable, affordable food while handling seasonal water stress, heat, uneven water access, and variable production methods. The intended users include community gardens, small farms, growers using protected cultivation, and neighborhood food cooperatives.
 
+GAEZ's source-defined scenario projection windows must retain their own model-time semantics; the 2021–2040 window is partly elapsed as of this profile's review date and is not a forward operational forecast.
+
 The South African Government published an agricultural weather notice on 2 September 2026, summarizing the South African Weather Service (SAWS) Seasonal Climate Watch dated 31 August 2026. It says El Niño conditions are expected through the 2026/27 summer season and below-normal rainfall may affect many areas. This is a **risk signal motivating readiness work**, not a deterministic forecast for Johannesburg, a particular farm, or the current growing plot. The original SAWS bulletin, local spatial probabilities and validity dates must be acquired and reviewed before its output is used by a model.
 
 Reference: https://www.gov.za/news/media-statements/agriculture-el-nino-weather-climate-02-sep-2026
