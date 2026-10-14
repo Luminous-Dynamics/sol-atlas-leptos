@@ -110,6 +110,12 @@ class AgroclimateProfileTests(unittest.TestCase):
         self.assertTrue(any("not a substitute" in limit.lower()
                             for item in references.values() for limit in item["limitations"]))
 
+    def test_duplicate_context_reference_ids_are_rejected(self):
+        doc = copy.deepcopy(self.profile)
+        duplicate = copy.deepcopy(doc["context_references"][0])
+        doc["context_references"].append(duplicate)
+        self.assertTrue(any("duplicate context reference_id" in error for error in self.errors(doc)))
+
     def test_design_only_cannot_claim_a_site_constraint_was_assessed(self):
         doc = copy.deepcopy(self.profile)
         doc["site_constraints"]["soil_condition_and_contamination"]["state"] = "assessed"
