@@ -177,17 +177,11 @@ impl fmt::Display for UnComtradePreviewError {
             }
             Self::CountLessThanRowsReturned { reported, actual } => write!(
                 f,
-                concat!(
-                    "UN Comtrade reported count is smaller than returned rows: ",
-                    "count={reported}, rows={actual}"
-                )
+                "UN Comtrade reported count is smaller than returned rows: count={reported}, rows={actual}"
             ),
             Self::MoreRecordsThanRequested { requested, actual } => write!(
                 f,
-                concat!(
-                    "UN Comtrade response exceeded requested limit: ",
-                    "requested={requested}, rows={actual}"
-                )
+                "UN Comtrade response exceeded requested limit: requested={requested}, rows={actual}"
             ),
         }
     }
