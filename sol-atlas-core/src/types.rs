@@ -1348,6 +1348,30 @@ mod eroi_evidence_tests {
     }
 
     #[test]
+    fn legacy_confidence_interval_without_level_deserializes_but_is_unqualified() {
+        let mut json = serde_json::to_value(evidence(EroiStage::Final)).unwrap();
+        json["uncertainty"]["interpretation"] =
+            serde_json::Value::String("confidence_interval".to_string());
+        json["uncertainty"]
+            .as_object_mut()
+            .unwrap()
+            .remove("probability_level");
+
+        let restored: EroiEvidence = serde_json::from_value(json).unwrap();
+        assert!(restored.uncertainty.is_some());
+        assert!(!restored.is_qualified());
+    }
+
+    #[test]
+    fn unknown_uncertainty_interpretation_fails_closed() {
+        let mut json = serde_json::to_value(evidence(EroiStage::Final)).unwrap();
+        json["uncertainty"]["interpretation"] =
+            serde_json::Value::String("statistical_guess".to_string());
+
+        assert!(serde_json::from_value::<EroiEvidence>(json).is_err());
+    }
+
+    #[test]
     fn legacy_uncertainty_bounds_without_interpretation_remain_unqualified() {
         let mut json = serde_json::to_value(evidence(EroiStage::Final)).unwrap();
         json["uncertainty"]
