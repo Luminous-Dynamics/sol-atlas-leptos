@@ -13,4 +13,3 @@ serde_json = { version = "1", features = ["arbitrary_precision"] }
 log = "0.4"
 h3o = "0.10"
 sha2 = "0.10.9"
-url = "2.5.8"
