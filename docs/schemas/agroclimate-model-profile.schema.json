@@ -517,6 +517,43 @@
                 }
               }
             }
+          },
+          {
+            "if": {
+              "properties": {
+                "source_id": {
+                  "type": "string",
+                  "pattern": "^LOCAL-"
+                }
+              },
+              "required": [
+                "source_id"
+              ]
+            },
+            "then": {
+              "properties": {
+                "url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uri",
+                  "pattern": "^https://"
+                }
+              }
+            },
+            "else": {
+              "required": [
+                "url"
+              ],
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https://"
+                }
+              }
+            }
           }
         ]
       }
