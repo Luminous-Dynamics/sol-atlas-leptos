@@ -513,19 +513,16 @@ fn normalize_record(
         return Err(UnComtradeRowRejection::CommodityAggregationAboveRequestedLevel);
     }
     let dimension_signature = format!(
-        concat!(
-            "{UN_COMTRADE_DIMENSIONS_VERSION}|partner2={}|",
-            "mot={}|customs={}"
-        ),
+        "{}|partner2={}|mot={}|customs={}",
+        UN_COMTRADE_DIMENSIONS_VERSION,
         second_partner_code,
         transport_mode_code,
         customs_procedure_code
     );
     let source_state_signature = format!(
-        concat!(
-            "uncomtrade-source-state/v1|reported={reported_flag}|",
-            "legacy_estimation={legacy_estimation_flag}"
-        )
+        "uncomtrade-source-state/v1|reported={}|legacy_estimation={}",
+        reported_flag,
+        legacy_estimation_flag
     );
     // Malformed optional fields are rejected, not silently collapsed into None.
     let quantity = optional_f64(object, "qty")?;
