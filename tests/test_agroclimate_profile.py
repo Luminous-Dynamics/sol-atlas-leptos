@@ -355,6 +355,41 @@ class AgroclimateProfileTests(unittest.TestCase):
         }]
         self.assertTrue(any("final transformation output SHA-256 must equal" in error for error in self.errors(doc)))
 
+    def test_valid_transformation_chain_can_be_audited_end_to_end(self):
+        doc = self.synthetic_complete_profile()
+        artifact = doc["sources"][0]["artifacts"][0]
+        digest = artifact["sha256"]
+        artifact["transformations"] = [
+            {
+                "transform_id": "fixture.transform:step-1",
+                "method": "Example deterministic reproject operation",
+                "implementation_version": "fixture-1",
+                "configuration_sha256": "a" * 64,
+                "input_artifact_refs": ["urn:fixture:input:original-raster-v1"],
+                "output_sha256": "b" * 64,
+                "lossy": True,
+                "notes": "Synthetic intermediate output and reprojection parameters.",
+            },
+            {
+                "transform_id": "fixture.transform:step-2",
+                "method": "Example deterministic masking operation",
+                "implementation_version": "fixture-1",
+                "configuration_sha256": "c" * 64,
+                "input_artifact_refs": ["sha256:" + "b" * 64],
+                "output_sha256": digest,
+                "lossy": True,
+                "notes": "Synthetic final output and mask parameters.",
+            }
+        ]
+        self.assertEqual(self.errors(doc), [])
+
+    def test_duplicate_artifact_ids_are_rejected(self):
+        doc = self.synthetic_complete_profile()
+        source = doc["sources"][0]
+        duplicate = copy.deepcopy(source["artifacts"][0])
+        source["artifacts"].append(duplicate)
+        self.assertTrue(any("duplicate artifact_id" in error for error in self.errors(doc)))
+
     def test_transformation_chain_must_reference_preceding_output_digest(self):
         doc = self.synthetic_complete_profile()
         artifact = doc["sources"][0]["artifacts"][0]
