@@ -307,6 +307,15 @@ impl PhysicsRunManifest {
             return EvidenceReadiness::Exploratory;
         }
 
+        // A producer-supplied "passed" gate cannot override an energy ledger
+        // whose own declared tolerance is exceeded or whose terms are absent.
+        if !self
+            .energy_balance
+            .is_some_and(|balance| balance.passes_declared_tolerance())
+        {
+            return EvidenceReadiness::Reproducible;
+        }
+
         let core_gates = [
             VerificationGateKind::InputValidation,
             VerificationGateKind::SinglePhysicsReference,
@@ -474,6 +483,44 @@ mod tests {
 
         run.gates.push(passed_gate(VerificationGateKind::CouplingStability, &commit));
         assert_eq!(run.readiness(), EvidenceReadiness::CoupledNumericallyVerified);
+    }
+
+    #[test]
+    fn energy_gate_cannot_override_a_failed_declared_balance_tolerance() {
+        let commit = full_sha('a');
+        let mut run = fixture();
+        run.energy_balance = Some(EnergyBalance {
+            energy_in_j: 181.0,
+            energy_out_j: 0.0,
+            stored_energy_change_j: 180.0,
+            residual_j: 1.0,
+            tolerance_j: 0.1,
+        });
+        run.gates = vec![
+            passed_gate(VerificationGateKind::InputValidation, &commit),
+            passed_gate(VerificationGateKind::SinglePhysicsReference, &commit),
+            passed_gate(VerificationGateKind::EnergyConservation, &commit),
+        ];
+
+        assert_eq!(run.validate(), Ok(())); // retain the recorded run and its failure
+        assert_eq!(run.readiness(), EvidenceReadiness::Reproducible);
+        assert!(!run.energy_balance.unwrap().passes_declared_tolerance());
+    }
+
+    #[test]
+    fn serialized_manifest_round_trips_with_stable_gate_names() {
+        let commit = full_sha('a');
+        let mut run = fixture();
+        run.gates.push(passed_gate(
+            VerificationGateKind::SinglePhysicsReference,
+            &commit,
+        ));
+
+        let json = serde_json::to_string(&run).unwrap();
+        assert!(json.contains("\\"single_physics_reference\\""));
+        let decoded: PhysicsRunManifest = serde_json::from_str(&json).unwrap();
+        assert_eq!(decoded, run);
+        assert_eq!(decoded.validate(), Ok(()));
     }
 
     #[test]
