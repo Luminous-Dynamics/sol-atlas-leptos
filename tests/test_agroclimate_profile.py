@@ -43,6 +43,8 @@ class AgroclimateProfileTests(unittest.TestCase):
         for index, source in enumerate(doc["sources"], start=1):
             source["source_id"] = f"GLOBAL-CLIMATE-SOURCE-{index}"
             source["rights_state"] = "license_not_reviewed"
+            if source["url"] is None:
+                source["url"] = f"https://example.invalid/local-evidence-{index}"
         schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
         self.assertEqual(
             schema_errors,
@@ -76,6 +78,12 @@ class AgroclimateProfileTests(unittest.TestCase):
     def test_shared_schema_rejects_non_https_source_urls(self):
         doc = copy.deepcopy(self.profile)
         doc["sources"][0]["url"] = "http://example.invalid/data"
+        schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
+        self.assertTrue(any(list(error.path)[-1:] == ["url"] for error in schema_errors))
+
+    def test_shared_schema_requires_external_source_url(self):
+        doc = copy.deepcopy(self.profile)
+        doc["sources"][0]["url"] = None
         schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
         self.assertTrue(any(list(error.path)[-1:] == ["url"] for error in schema_errors))
 
