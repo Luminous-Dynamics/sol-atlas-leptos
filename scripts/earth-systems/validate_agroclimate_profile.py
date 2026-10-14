@@ -60,6 +60,24 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
     if profile_id != "agroclimate-johannesburg-highveld-v1":
         errors.append("profile_id must identify the Johannesburg/Highveld V1 profile")
 
+    crop_cohorts = doc.get("candidate_crop_cohorts")
+    if not isinstance(crop_cohorts, list) or not crop_cohorts:
+        errors.append("candidate_crop_cohorts must define at least one region-specific candidate cohort")
+        crop_cohorts = []
+    cohort_ids: set[str] = set()
+    selected_cohorts = []
+    for index, raw_cohort in enumerate(crop_cohorts):
+        cohort = _as_dict(raw_cohort)
+        cohort_id = cohort.get("cohort_id")
+        if not isinstance(cohort_id, str) or not cohort_id.strip():
+            errors.append(f"candidate_crop_cohorts[{index}].cohort_id must be non-empty")
+        elif cohort_id in cohort_ids:
+            errors.append(f"duplicate candidate crop cohort id: {cohort_id}")
+        else:
+            cohort_ids.add(cohort_id)
+        if cohort.get("selection_state") == "selected_for_baseline":
+            selected_cohorts.append(cohort_id)
+
     geography = _as_dict(doc.get("geography"))
     if geography.get("boundary_state") == "verified_and_frozen":
         boundary_source = str(geography.get("boundary_source", "")).lower()
@@ -279,6 +297,8 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
             errors.append("D2=passed requires D0-D1=passed")
         if evidence.get("baseline_computed") is not True:
             errors.append("D2=passed requires baseline_computed=true")
+        if not selected_cohorts:
+            errors.append("D2=passed requires at least one crop cohort selected for baseline evaluation")
     if gates.get("D3") == "passed" and evidence.get("independent_validation_complete") is not True:
         errors.append("D3=passed requires independent_validation_complete=true")
     if gates.get("D4") == "passed":
@@ -299,6 +319,8 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
     if status == "design_only":
         if any(site_states.get(constraint_id) != "not_assessed" for constraint_id in required_site_constraints):
             errors.append("design_only status requires every site constraint to remain not_assessed")
+        if any(_as_dict(cohort).get("selection_state") != "candidate_not_selected" for cohort in crop_cohorts):
+            errors.append("design_only status requires all crop cohorts to remain candidate_not_selected")
         if any(evidence.get(flag) is not False for flag in EVIDENCE_FLAGS):
             errors.append("design_only status requires every evidence_state flag to be false")
         if any(gates.get(gate) != "not_started" for gate in GATES):
@@ -348,6 +370,9 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
         site_states.get(constraint_id) != "assessed" for constraint_id in required_site_constraints
     ):
         errors.append("decision_support_candidate status requires all site constraints assessed")
+
+    if status == "decision_support_candidate" and not selected_cohorts:
+        errors.append("decision_support_candidate status requires a crop cohort selected for baseline evaluation")
 
     return errors
 
