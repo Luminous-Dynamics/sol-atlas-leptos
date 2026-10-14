@@ -648,11 +648,40 @@ impl EroiEvidenceBasis {
     }
 }
 
+/// Meaning of a reported EROI uncertainty interval. These interpretations are
+/// not interchangeable, even when their numeric bounds happen to match.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EroiUncertaintyKind {
+    ConfidenceInterval,
+    CredibleInterval,
+    SensitivityRange,
+    ScenarioRange,
+    MeasurementRange,
+    ObservedRange,
+}
+
+impl EroiUncertaintyKind {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::ConfidenceInterval => "Confidence interval",
+            Self::CredibleInterval => "Credible interval",
+            Self::SensitivityRange => "Sensitivity-analysis range",
+            Self::ScenarioRange => "Scenario range",
+            Self::MeasurementRange => "Measurement-uncertainty range",
+            Self::ObservedRange => "Observed min–max range",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct EroiUncertaintyRange {
     pub lower: f64,
     pub upper: f64,
+    /// Optional for legacy compatibility; absence leaves an evidence record unqualified.
+    #[serde(default)]
+    pub interpretation: Option<EroiUncertaintyKind>,
 }
 
 impl EroiUncertaintyRange {
@@ -661,6 +690,7 @@ impl EroiUncertaintyRange {
             && self.upper.is_finite()
             && self.lower > 0.0
             && self.upper >= self.lower
+            && self.interpretation.is_some()
     }
 }
 
@@ -1049,6 +1079,7 @@ mod eroi_evidence_tests {
             uncertainty: Some(EroiUncertaintyRange {
                 lower: 4.0,
                 upper: 6.0,
+                interpretation: Some(EroiUncertaintyKind::SensitivityRange),
             }),
         }
     }
@@ -1143,6 +1174,7 @@ mod eroi_evidence_tests {
         item.uncertainty = Some(EroiUncertaintyRange {
             lower: 6.0,
             upper: 4.0,
+            interpretation: Some(EroiUncertaintyKind::SensitivityRange),
         });
         assert!(!item.is_qualified());
 
@@ -1150,8 +1182,20 @@ mod eroi_evidence_tests {
         item.uncertainty = Some(EroiUncertaintyRange {
             lower: 1.0,
             upper: f64::INFINITY,
+            interpretation: Some(EroiUncertaintyKind::SensitivityRange),
         });
         assert!(!item.is_qualified());
+    }
+
+    #[test]
+    fn legacy_uncertainty_bounds_without_interpretation_remain_unqualified() {
+        let mut json = serde_json::to_value(evidence(EroiStage::Final)).unwrap();
+        json["uncertainty"].as_object_mut().unwrap().remove("interpretation");
+
+        let restored: EroiEvidence = serde_json::from_value(json).unwrap();
+        assert!(restored.uncertainty.is_some());
+        assert!(!restored.is_qualified());
+        assert!(!restored.supports_value(5.0));
     }
 
     #[test]
