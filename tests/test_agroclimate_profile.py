@@ -356,7 +356,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["geography"]["boundary_crs"] = "EPSG:4326"
         doc["validation"]["gates"]["D0"] = "passed"
         doc["validation"]["gate_evidence"]["D0"] = {
-            "evidence_refs": ["sha256:" + "a" * 64],
+            "evidence_refs": ["urn:fixture:boundary:joburg-v1", "sha256:" + "a" * 64],
             "reviewed_by": "independent-boundary-reviewer",
             "reason": None,
         }
@@ -383,6 +383,22 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["geography"]["boundary_crs"] = "EPSG:4326"
         doc["geography"]["boundary_evidence_ref"] = "urn:fixture:premature-boundary"
         self.assertTrue(any("unverified boundary must not claim" in error for error in self.errors(doc)))
+
+    def test_D0_gate_evidence_must_match_the_boundary_reference_and_digest(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["geography"]["boundary_state"] = "verified_and_frozen"
+        doc["geography"]["boundary_source"] = "Authoritative municipal boundary artifact reviewed and hash recorded."
+        doc["geography"]["boundary_evidence_ref"] = "urn:fixture:boundary:joburg-v1"
+        doc["geography"]["boundary_sha256"] = "a" * 64
+        doc["geography"]["boundary_crs"] = "EPSG:4326"
+        doc["validation"]["gates"]["D0"] = "passed"
+        doc["validation"]["gate_evidence"]["D0"] = {
+            "evidence_refs": ["urn:fixture:other-boundary", "sha256:" + "a" * 64],
+            "reviewed_by": "independent-boundary-reviewer",
+            "reason": None,
+        }
+        self.assertTrue(any("exact boundary artifact and its matching SHA-256" in error for error in self.errors(doc)))
 
     def test_passed_gate_cannot_skip_evidence_reference_or_reviewer(self):
         doc = copy.deepcopy(self.profile)
