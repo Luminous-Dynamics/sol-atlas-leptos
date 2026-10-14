@@ -808,7 +808,20 @@
             "then": {
               "properties": {
                 "artifacts": {
-                  "minItems": 1
+                  "minItems": 1,
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "role": {
+                        "const": "primary"
+                      }
+                    },
+                    "required": [
+                      "role"
+                    ]
+                  },
+                  "minContains": 1,
+                  "maxContains": 1
                 }
               }
             }
