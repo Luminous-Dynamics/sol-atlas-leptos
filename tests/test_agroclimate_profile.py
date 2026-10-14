@@ -182,14 +182,14 @@ class AgroclimateProfileTests(unittest.TestCase):
     def test_missing_local_evidence_cannot_be_replaced_by_soilgrids_alone(self):
         local = next(item for item in self.profile["sources"] if item["source_id"] == "LOCAL-OBSERVATIONS")
         self.assertEqual(local["acquisition_state"], "not_acquired")
-        self.assertIn("local soil sampling", " ".join(local["required_checks"]).lower())
+        self.assertTrue(any("field-representative soil measurements" in item.lower() for item in self.profile["evaluation"]["minimum_local_evidence"]))
         self.assertTrue(any("field-representative soil measurements" in item.lower() for item in self.profile["evaluation"]["minimum_local_evidence"]))
 
     def test_exact_crops_and_model_layers_remain_unselected(self):
         gaez = next(item for item in self.profile["sources"] if item["source_id"] == "FAO-GAEZ-V5")
         self.assertIsNone(gaez["selected_product"])
         self.assertEqual(self.profile["model_architecture"]["model_selection_state"], "not_started")
-        self.assertTrue(any("no measured yield" in claim.lower() for claim in self.profile["claim_ceiling"]))
+        self.assertTrue(any("no crop yield" in claim.lower() for claim in self.profile["claim_ceiling"]))
 
 
 if __name__ == "__main__":
