@@ -218,12 +218,20 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
                 if source.get("rights_state") in {"license_not_reviewed", "permission_required"}:
                     errors.append(f"D1=passed cannot include unresolved rights for sources[{index}]")
 
-    if gates.get("D2") == "passed" and evidence.get("baseline_computed") is not True:
-        errors.append("D2=passed requires baseline_computed=true")
+    if gates.get("D1") == "passed" and gates.get("D0") != "passed":
+        errors.append("D1=passed requires D0=passed")
+    if gates.get("D2") == "passed":
+        if any(gates.get(gate) != "passed" for gate in ("D0", "D1")):
+            errors.append("D2=passed requires D0-D1=passed")
+        if evidence.get("baseline_computed") is not True:
+            errors.append("D2=passed requires baseline_computed=true")
     if gates.get("D3") == "passed" and evidence.get("independent_validation_complete") is not True:
         errors.append("D3=passed requires independent_validation_complete=true")
-    if gates.get("D4") == "passed" and evidence.get("expert_review_complete") is not True:
-        errors.append("D4=passed requires expert_review_complete=true")
+    if gates.get("D4") == "passed":
+        if any(gates.get(gate) != "passed" for gate in ("D0", "D1", "D2", "D3")):
+            errors.append("D4=passed requires D0-D3=passed")
+        if evidence.get("expert_review_complete") is not True:
+            errors.append("D4=passed requires expert_review_complete=true")
     if gates.get("D5") == "passed":
         if any(gates.get(gate) != "passed" for gate in ("D0", "D1", "D2", "D3", "D4")):
             errors.append("D5=passed requires D0-D4=passed")
