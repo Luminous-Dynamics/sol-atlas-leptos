@@ -400,7 +400,8 @@ impl CivicServiceCase {
         for reference in &self.official_references {
             let system = reference.system_code.trim();
             let value = reference.reference.trim();
-            if system.is_empty() || value.is_empty()
+            if system.is_empty()
+                || value.is_empty()
                 || !official_refs.insert((system.to_owned(), value.to_owned()))
             {
                 errors.push(E::DuplicateOfficialReference);
@@ -420,7 +421,10 @@ impl CivicServiceCase {
                 errors.push(E::EmptyEvidenceId);
                 continue;
             }
-            if evidence_by_id.insert(evidence.evidence_id.as_str(), evidence).is_some() {
+            if evidence_by_id
+                .insert(evidence.evidence_id.as_str(), evidence)
+                .is_some()
+            {
                 errors.push(E::DuplicateEvidenceId);
             }
             if let Some(digest) = evidence.sha256.as_deref() {
@@ -455,9 +459,7 @@ impl CivicServiceCase {
             if event.actor_ref.trim().is_empty() {
                 errors.push(E::EmptyActorReference);
             }
-            if previous_recorded_at
-                .is_some_and(|previous| event.recorded_at_unix_ms < previous)
-            {
+            if previous_recorded_at.is_some_and(|previous| event.recorded_at_unix_ms < previous) {
                 errors.push(E::NonMonotonicRecordTime);
             }
             previous_recorded_at = Some(event.recorded_at_unix_ms);
@@ -499,9 +501,11 @@ impl CivicServiceCase {
 
             if next_status == CaseStatus::VerifiedResolved {
                 let independent_evidence = event.evidence_ids.iter().any(|evidence_id| {
-                    evidence_by_id.get(evidence_id.as_str()).is_some_and(|evidence| {
-                        evidence.review == EvidenceReview::IndependentlyVerified
-                    })
+                    evidence_by_id
+                        .get(evidence_id.as_str())
+                        .is_some_and(|evidence| {
+                            evidence.review == EvidenceReview::IndependentlyVerified
+                        })
                 });
                 if event.actor_kind != CaseActorKind::IndependentReviewer
                     || previous_status != Some(CaseStatus::ResolutionClaimed)
@@ -532,10 +536,19 @@ fn transition_allowed(from: CaseStatus, to: CaseStatus) -> bool {
         (S::Reported, S::Triaged | S::Dismissed)
             | (S::Triaged, S::Assigned | S::Dismissed)
             | (S::Assigned, S::WorkStarted | S::Triaged | S::Dismissed)
-            | (S::WorkStarted, S::ResolutionClaimed | S::Assigned | S::Reopened)
-            | (S::ResolutionClaimed, S::VerifiedResolved | S::WorkStarted | S::Reopened)
+            | (
+                S::WorkStarted,
+                S::ResolutionClaimed | S::Assigned | S::Reopened
+            )
+            | (
+                S::ResolutionClaimed,
+                S::VerifiedResolved | S::WorkStarted | S::Reopened
+            )
             | (S::VerifiedResolved, S::Reopened)
-            | (S::Reopened, S::Triaged | S::Assigned | S::WorkStarted | S::Dismissed)
+            | (
+                S::Reopened,
+                S::Triaged | S::Assigned | S::WorkStarted | S::Dismissed
+            )
             | (S::Dismissed, S::Reopened)
     )
 }
@@ -656,7 +669,9 @@ mod tests {
         case.updated_at_unix_ms = 1_100;
 
         assert!(case.validate().is_ok());
-        let public_case = case.public_projection().expect("explicit public visibility");
+        let public_case = case
+            .public_projection()
+            .expect("explicit public visibility");
         assert_eq!(public_case.evidence.len(), 1);
         assert_eq!(public_case.evidence[0].evidence_id, "public-evidence-1");
         assert!(public_case.events[1].evidence_ids.is_empty());
@@ -675,20 +690,22 @@ mod tests {
     fn public_case_requires_a_coarse_public_area_reference() {
         let mut case = valid_case();
         case.visibility = CaseVisibility::PublicCase;
-        assert!(case
-            .validate()
-            .unwrap_err()
-            .contains(&CivicCaseValidationError::MissingPublicAreaReference));
+        assert!(
+            case.validate()
+                .unwrap_err()
+                .contains(&CivicCaseValidationError::MissingPublicAreaReference)
+        );
         assert!(case.public_projection().is_none());
 
         case.public_area = Some(PublicAreaReference {
             code: "-26.2_28.1".into(),
             granularity: PublicAreaGranularity::Ward,
         });
-        assert!(case
-            .validate()
-            .unwrap_err()
-            .contains(&CivicCaseValidationError::InvalidPublicAreaReference));
+        assert!(
+            case.validate()
+                .unwrap_err()
+                .contains(&CivicCaseValidationError::InvalidPublicAreaReference)
+        );
     }
 
     #[test]
@@ -696,10 +713,11 @@ mod tests {
         let mut case = valid_case();
         case.official_references[0].public_url =
             Some("https://example.invalid/case?id=secret-token".into());
-        assert!(case
-            .validate()
-            .unwrap_err()
-            .contains(&CivicCaseValidationError::InvalidPublicUrl));
+        assert!(
+            case.validate()
+                .unwrap_err()
+                .contains(&CivicCaseValidationError::InvalidPublicUrl)
+        );
     }
 
     #[test]
@@ -727,10 +745,11 @@ mod tests {
         claimed.actor_ref = "repair-team".into();
         case.events.extend([triaged, assigned, started, claimed]);
         case.updated_at_unix_ms = 1_400;
-        assert!(case
-            .validate()
-            .unwrap_err()
-            .contains(&CivicCaseValidationError::ResolutionClaimWithoutEvidence));
+        assert!(
+            case.validate()
+                .unwrap_err()
+                .contains(&CivicCaseValidationError::ResolutionClaimWithoutEvidence)
+        );
     }
 
     #[test]
@@ -763,7 +782,8 @@ mod tests {
         verified.actor_kind = CaseActorKind::IndependentReviewer;
         verified.actor_ref = "independent-reviewer-1".into();
         verified.evidence_ids = vec!["after-photo-1".into()];
-        case.events.extend([triaged, assigned, started, claimed, verified]);
+        case.events
+            .extend([triaged, assigned, started, claimed, verified]);
         case.updated_at_unix_ms = 1_500;
         assert!(case.validate().is_ok());
         assert_eq!(case.current_status(), Some(CaseStatus::VerifiedResolved));
@@ -804,12 +824,14 @@ mod tests {
         let mut verified = event("event-6", CaseEventKind::ResolutionVerified, 1_500);
         verified.actor_kind = CaseActorKind::ServiceOperator;
         verified.evidence_ids = vec!["evidence-1".into()];
-        case.events.extend([triaged, assigned, started, claimed, verified]);
+        case.events
+            .extend([triaged, assigned, started, claimed, verified]);
         case.updated_at_unix_ms = 1_500;
-        assert!(case
-            .validate()
-            .unwrap_err()
-            .contains(&CivicCaseValidationError::ResolutionVerificationNotIndependent));
+        assert!(
+            case.validate()
+                .unwrap_err()
+                .contains(&CivicCaseValidationError::ResolutionVerificationNotIndependent)
+        );
     }
 
     #[test]
@@ -817,12 +839,9 @@ mod tests {
         let mut case = valid_case();
         let mut correction = event("event-2", CaseEventKind::Correction, 1_100);
         correction.actor_ref = "data-steward-1".into();
-        assert!(case
-            .validate()
-            .err()
-            .is_some_and(|errors| {
-                errors.contains(&CivicCaseValidationError::CorrectionWithoutReasonOrEvidence)
-            }));
+        assert!(case.validate().err().is_some_and(|errors| {
+            errors.contains(&CivicCaseValidationError::CorrectionWithoutReasonOrEvidence)
+        }));
         correction.reason_code = Some("metadata.corrected".into());
         correction.evidence_ids = vec!["proof-1".into()];
         case.evidence.push(EvidenceReference {
