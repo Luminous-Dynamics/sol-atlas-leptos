@@ -110,6 +110,29 @@ class AgroclimateProfileTests(unittest.TestCase):
         self.assertTrue(any("not a substitute" in limit.lower()
                             for item in references.values() for limit in item["limitations"]))
 
+    def test_local_crop_cohort_is_evidence_led_but_not_selected(self):
+        cohorts = self.profile["candidate_crop_cohorts"]
+        self.assertEqual(len(cohorts), 1)
+        cohort = cohorts[0]
+        self.assertEqual(
+            cohort["crop_names"],
+            ["tomato", "spinach", "green pepper", "cucumber"],
+        )
+        self.assertEqual(cohort["selection_state"], "candidate_not_selected")
+        self.assertGreaterEqual(len(cohort["review_requirements"]), 3)
+        self.assertIn("not a recommendation", cohort["claim_limit"].lower())
+
+    def test_design_only_cannot_claim_crop_cohort_selected_for_baseline(self):
+        doc = copy.deepcopy(self.profile)
+        doc["candidate_crop_cohorts"][0]["selection_state"] = "selected_for_baseline"
+        self.assertTrue(any("design_only status requires all crop cohorts" in error for error in self.errors(doc)))
+
+    def test_duplicate_crop_cohort_ids_are_rejected(self):
+        doc = copy.deepcopy(self.profile)
+        duplicate = copy.deepcopy(doc["candidate_crop_cohorts"][0])
+        doc["candidate_crop_cohorts"].append(duplicate)
+        self.assertTrue(any("duplicate candidate crop cohort id" in error for error in self.errors(doc)))
+
     def test_duplicate_context_reference_ids_are_rejected(self):
         doc = copy.deepcopy(self.profile)
         duplicate = copy.deepcopy(doc["context_references"][0])
@@ -306,6 +329,17 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["status"] = "data_readiness"
         doc["validation"]["gates"]["D2"] = "passed"
         self.assertTrue(any("D2=passed requires baseline_computed=true" in error for error in self.errors(doc)))
+
+    def test_D2_requires_a_selected_crop_cohort(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["validation"]["gates"]["D2"] = "passed"
+        doc["validation"]["gates"]["D0"] = "passed"
+        doc["validation"]["gates"]["D1"] = "passed"
+        doc["evidence_state"]["source_artifacts_acquired"] = True
+        doc["evidence_state"]["baseline_computed"] = True
+        doc["geography"]["boundary_state"] = "verified_and_frozen"
+        self.assertTrue(any("D2=passed requires at least one crop cohort selected" in error for error in self.errors(doc)))
 
     def test_D3_cannot_pass_before_independent_validation(self):
         doc = copy.deepcopy(self.profile)
