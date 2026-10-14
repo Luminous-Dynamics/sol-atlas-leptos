@@ -14,6 +14,7 @@
 //! GET /data360/data. Synthetic tests are explicitly not World Bank observations.
 
 use serde_json::{Map, Value};
+use sha2::Digest;
 use std::collections::{BTreeMap, HashSet};
 use std::error::Error;
 use std::fmt;
@@ -1120,6 +1121,162 @@ mod tests {
         page_id: &str,
     ) -> ParsedData360Page {
         parse_data360_page(&response(rows, count), &context(skip, top, page_id)).unwrap()
+    }
+
+    fn acquisition_evidence(
+        response_body: &[u8],
+        context: &mut Data360PageContext,
+    ) -> Data360AcquisitionEvidence {
+        let digest = format!("{:x}", sha2::Sha256::digest(response_body));
+        context.page_snapshot_id = format!("sha256:{digest}");
+        let mut parameters = BTreeMap::new();
+        parameters.insert("DATABASE_ID".to_string(), context.query.database_id.clone());
+        parameters.insert("INDICATOR".to_string(), context.query.indicator_id.clone());
+        parameters.insert("skip".to_string(), context.query.requested_skip.to_string());
+        if let Some(year) = context.query.filters.get("TIME_PERIOD") {
+            parameters.insert("TIME_PERIOD".to_string(), year.clone());
+        } else {
+            parameters.insert("timePeriodFrom".to_string(), context.query.period_start.to_string());
+            parameters.insert("timePeriodTo".to_string(), context.query.period_end.to_string());
+        }
+        for (key, value) in &context.query.filters {
+            parameters.insert(key.clone(), value.clone());
+        }
+        let mut url = url::Url::parse("https://data360api.worldbank.org/data360/data").unwrap();
+        url.query_pairs_mut()
+            .extend_pairs(parameters.iter().map(|(key, value)| (key.as_str(), value.as_str())));
+        let response_headers = BTreeMap::from([
+            ("content-type".to_string(), "application/json; charset=utf-8".to_string()),
+            ("content-length".to_string(), response_body.len().to_string()),
+            ("etag".to_string(), "\"synthetic-fixture\"".to_string()),
+        ]);
+        Data360AcquisitionEvidence {
+            schema_version: DATA360_ACQUISITION_EVIDENCE_SCHEMA_VERSION,
+            request_method: "GET".to_string(),
+            request_url: url.to_string(),
+            request_parameters: parameters,
+            response_status: 200,
+            response_headers,
+            response_body_byte_length: response_body.len() as u64,
+            response_body_sha256: digest,
+            retrieved_at: context.retrieved_at.clone(),
+        }
+    }
+
+    #[test]
+    fn acquisition_evidence_binds_exact_bytes_query_and_response_metadata() {
+        let body = include_str!("../tests/fixtures/synthetic_world_bank_data360_page_v1.json").as_bytes();
+        let mut context = context(0, 2, "unused");
+        let evidence = acquisition_evidence(body, &mut context);
+        let acquired = parse_data360_page_with_evidence(body, &evidence, &context).unwrap();
+        assert_eq!(acquired.parsed_page.rows_returned, 2);
+        assert_eq!(
+            acquired.parsed_page.page_snapshot_id,
+            format!("sha256:{}", evidence.response_body_sha256)
+        );
+        assert_eq!(
+            assess_data360_acquired_snapshot(&[acquired]).status,
+            Data360SnapshotStatus::IncompletePageSet
+        );
+    }
+
+    #[test]
+    fn acquired_page_rejects_body_tampering_even_when_length_is_unchanged() {
+        let mut body = include_str!("../tests/fixtures/synthetic_world_bank_data360_page_v1.json")
+            .as_bytes().to_vec();
+        let mut context = context(0, 2, "unused");
+        let evidence = acquisition_evidence(&body, &mut context);
+        let index = body.windows(6).position(|window| window == b"12.340").unwrap();
+        body[index + 5] = b'1';
+        assert_eq!(
+            validate_data360_acquisition_evidence(&body, &evidence, &context),
+            Err(Data360AcquisitionError::ResponseBodyDigestMismatch)
+        );
+    }
+
+    #[test]
+    fn acquisition_requires_url_parameters_to_match_captured_parameter_map() {
+        let body = include_str!("../tests/fixtures/synthetic_world_bank_data360_page_v1.json").as_bytes();
+        let mut context = context(0, 2, "unused");
+        let mut evidence = acquisition_evidence(body, &mut context);
+        evidence.request_parameters.insert("skip".to_string(), "1".to_string());
+        assert_eq!(
+            validate_data360_acquisition_evidence(body, &evidence, &context),
+            Err(Data360AcquisitionError::RequestUrlParameterMismatch)
+        );
+    }
+
+    #[test]
+    fn acquisition_requires_the_official_https_observation_endpoint() {
+        let body = include_str!("../tests/fixtures/synthetic_world_bank_data360_page_v1.json").as_bytes();
+        let mut context = context(0, 2, "unused");
+        let mut evidence = acquisition_evidence(body, &mut context);
+        evidence.request_url = evidence.request_url.replace("/data360/data?", "/data360/indicators?");
+        assert_eq!(
+            validate_data360_acquisition_evidence(body, &evidence, &context),
+            Err(Data360AcquisitionError::InvalidRequestUrl)
+        );
+    }
+
+    #[test]
+    fn acquisition_rejects_non_success_http_status() {
+        let body = include_str!("../tests/fixtures/synthetic_world_bank_data360_page_v1.json").as_bytes();
+        let mut context = context(0, 2, "unused");
+        let mut evidence = acquisition_evidence(body, &mut context);
+        evidence.response_status = 503;
+        assert_eq!(
+            validate_data360_acquisition_evidence(body, &evidence, &context),
+            Err(Data360AcquisitionError::NonSuccessResponseStatus(503))
+        );
+    }
+
+    #[test]
+    fn acquisition_rejects_unapproved_or_sensitive_response_headers() {
+        let body = include_str!("../tests/fixtures/synthetic_world_bank_data360_page_v1.json").as_bytes();
+        let mut context = context(0, 2, "unused");
+        let mut evidence = acquisition_evidence(body, &mut context);
+        evidence.response_headers.insert("set-cookie".to_string(), "session=secret".to_string());
+        assert!(matches!(
+            validate_data360_acquisition_evidence(body, &evidence, &context),
+            Err(Data360AcquisitionError::InvalidResponseHeaders(_))
+        ));
+    }
+
+    #[test]
+    fn acquisition_requires_page_identity_to_be_the_body_digest() {
+        let body = include_str!("../tests/fixtures/synthetic_world_bank_data360_page_v1.json").as_bytes();
+        let mut context = context(0, 2, "unused");
+        let evidence = acquisition_evidence(body, &mut context);
+        context.page_snapshot_id = "manually-assigned-id".to_string();
+        assert_eq!(
+            validate_data360_acquisition_evidence(body, &evidence, &context),
+            Err(Data360AcquisitionError::PageSnapshotIdentityMismatch)
+        );
+    }
+
+    #[test]
+    fn acquisition_filters_must_match_the_captured_request() {
+        let body = include_str!("../tests/fixtures/synthetic_world_bank_data360_page_v1.json").as_bytes();
+        let mut context = context(0, 2, "unused");
+        let evidence = acquisition_evidence(body, &mut context);
+        context.query.filters.insert("REF_AREA".to_string(), "ZAF".to_string());
+        assert_eq!(
+            validate_data360_acquisition_evidence(body, &evidence, &context),
+            Err(Data360AcquisitionError::MissingOrMismatchedRequestParameter("REF_AREA".to_string()))
+        );
+    }
+
+    #[test]
+    fn acquired_snapshot_rejects_mutated_normalized_page_after_capture() {
+        let body = include_str!("../tests/fixtures/synthetic_world_bank_data360_page_v1.json").as_bytes();
+        let mut context = context(0, 2, "unused");
+        let evidence = acquisition_evidence(body, &mut context);
+        let mut acquired = parse_data360_page_with_evidence(body, &evidence, &context).unwrap();
+        acquired.parsed_page.records[0].period = 1992;
+        assert_eq!(
+            assess_data360_acquired_snapshot(&[acquired]).status,
+            Data360SnapshotStatus::AcquisitionEvidenceInvalid
+        );
     }
 
     #[test]
