@@ -13,11 +13,13 @@ use crate::world_bank_data360::{
     DATA360_MAX_PAGE_SIZE, Data360PageContext, Data360PageError, ParsedData360Page,
     parse_data360_page,
 };
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::fmt;
 
+pub const DATA360_EVIDENCE_SCHEMA_VERSION: u16 = 1;
 const DATA360_DATA_URL: &str = "https://data360api.worldbank.org/data360/data";
 const DOCUMENTED_QUERY_KEYS: [&str; 16] = [
     "DATABASE_ID",
@@ -38,8 +40,10 @@ const DOCUMENTED_QUERY_KEYS: [&str; 16] = [
     "timePeriodTo",
 ];
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Data360AcquisitionEvidence {
+    pub schema_version: u16,
     pub request_method: String,
     pub request_url: String,
     pub response_status: u16,
@@ -130,6 +134,7 @@ impl Data360AcquisitionEvidence {
         }
 
         Ok(Self {
+            schema_version: DATA360_EVIDENCE_SCHEMA_VERSION,
             request_method: request_method.into(),
             request_url: request_url.into(),
             response_status,
@@ -151,6 +156,12 @@ impl Data360AcquisitionEvidence {
         response_body: &[u8],
         context: &Data360PageContext,
     ) -> Result<(), Data360EvidenceError> {
+        if self.schema_version != DATA360_EVIDENCE_SCHEMA_VERSION {
+            return Err(Data360EvidenceError::InvalidResponse(format!(
+                "unsupported evidence schema version {}; expected {}",
+                self.schema_version, DATA360_EVIDENCE_SCHEMA_VERSION
+            )));
+        }
         if self.request_method != "GET" {
             return Err(Data360EvidenceError::InvalidRequest(
                 "observation acquisition must use GET".to_string(),
@@ -533,6 +544,27 @@ mod tests {
             evidence.validate(&bytes, &ctx),
             Err(Data360EvidenceError::RetrievalTimeMismatch)
         );
+    }
+
+    #[test]
+    fn receipt_serialization_is_versioned_and_rejects_unknown_fields() {
+        let bytes = body();
+        let original = receipt(&bytes, BASE_URL, 200);
+        let encoded = serde_json::to_string(&original).unwrap();
+        let decoded: Data360AcquisitionEvidence = serde_json::from_str(&encoded).unwrap();
+        assert_eq!(decoded, original);
+
+        let mut unknown: serde_json::Value = serde_json::from_str(&encoded).unwrap();
+        unknown["future_field"] = serde_json::json!("must not be dropped");
+        assert!(serde_json::from_value::<Data360AcquisitionEvidence>(unknown).is_err());
+
+        let mut unsupported = original;
+        unsupported.schema_version += 1;
+        let ctx = context(&unsupported.page_snapshot_id());
+        assert!(matches!(
+            unsupported.validate(&bytes, &ctx),
+            Err(Data360EvidenceError::InvalidResponse(message)) if message.contains("unsupported evidence schema version")
+        ));
     }
 
     #[test]
