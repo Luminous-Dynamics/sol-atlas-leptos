@@ -142,7 +142,7 @@ impl Data360AcquisitionEvidence {
             let normalized_name = name.trim().to_ascii_lowercase();
             if normalized_name.is_empty()
                 || !SAFE_RESPONSE_HEADERS.contains(&normalized_name.as_str())
-                || value.bytes().any(|byte| byte == 0x0d || byte == 0x0a)
+                || value.bytes().any(|byte| byte.is_ascii_control() && byte != b'\t')
             {
                 return Err(Data360EvidenceError::InvalidResponse(
                     "response headers must use the safe allowlist and single-line values".to_string(),
@@ -221,7 +221,7 @@ impl Data360AcquisitionEvidence {
         for (name, value) in &self.response_headers {
             if name != &name.to_ascii_lowercase()
                 || !SAFE_RESPONSE_HEADERS.contains(&name.as_str())
-                || value.bytes().any(|byte| byte == 0x0d || byte == 0x0a || byte == 0)
+                || value.bytes().any(|byte| byte.is_ascii_control() && byte != b'\t')
             {
                 return Err(Data360EvidenceError::InvalidResponse(format!(
                     "response header {name:?} is not a safe normalized capture"
@@ -855,6 +855,20 @@ mod tests {
         let context = context(&evidence.page_snapshot_id());
         assert!(matches!(
             evidence.validate(&bytes, &context),
+            Err(Data360EvidenceError::InvalidResponse(_))
+        ));
+    }
+
+    #[test]
+    fn response_header_capture_rejects_non_whitespace_ascii_controls() {
+        let bytes = body();
+        let mut headers = BTreeMap::new();
+        headers.insert("Content-Type".to_string(), "application/json".to_string());
+        headers.insert("ETag".to_string(), "unsafe\u{001b}value".to_string());
+        assert!(matches!(
+            Data360AcquisitionEvidence::capture(
+                "GET", BASE_URL, BASE_URL, 200, headers, RETRIEVED_AT, &bytes
+            ),
             Err(Data360EvidenceError::InvalidResponse(_))
         ));
     }
