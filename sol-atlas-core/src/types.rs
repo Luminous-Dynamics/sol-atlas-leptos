@@ -607,6 +607,166 @@ pub struct EarthRegion {
     pub spaceport: bool,
 }
 
+// ─── EROI evidence and system boundaries ─────────────────────────
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EroiStage {
+    /// Energy content at resource extraction (for example, crude oil at wellhead).
+    Primary,
+    /// Energy carrier delivered for end-user consumption (for example, gasoline or grid electricity).
+    Final,
+    /// Energy service delivered after end-use conversion (for example, vehicle motion or useful heat).
+    Useful,
+}
+
+impl EroiStage {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Primary => "Primary energy",
+            Self::Final => "Final energy",
+            Self::Useful => "Useful energy",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EroiEvidenceBasis {
+    Measured,
+    Modeled,
+    Literature,
+}
+
+impl EroiEvidenceBasis {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Measured => "Measured",
+            Self::Modeled => "Modeled",
+            Self::Literature => "Literature-reported",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct EroiUncertaintyRange {
+    pub lower: f64,
+    pub upper: f64,
+}
+
+impl EroiUncertaintyRange {
+    pub fn is_valid(&self) -> bool {
+        self.lower.is_finite()
+            && self.upper.is_finite()
+            && self.lower > 0.0
+            && self.upper >= self.lower
+    }
+}
+
+/// Source and boundary metadata for a supplied physical EROI value.
+///
+/// This metadata records the claim made by a source; it does not authenticate
+/// the source, reproduce its calculation, or establish that the estimate is true.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct EroiEvidence {
+    pub stage: EroiStage,
+    pub output_definition: String,
+    pub input_definition: String,
+    pub geographic_scope: String,
+    pub period_start_year: u16,
+    pub period_end_year: u16,
+    pub source_citation: String,
+    /// Stable identifier for the EROI calculation protocol, not merely its source.
+    /// Missing legacy fields default empty and keep the evidence unqualified.
+    #[serde(default)]
+    pub methodology_id: String,
+    /// Explicit revision/edition of that protocol or model.
+    #[serde(default)]
+    pub methodology_version: String,
+    #[serde(default)]
+    pub publication_date: Option<String>,
+    pub basis: EroiEvidenceBasis,
+    #[serde(default)]
+    pub uncertainty: Option<EroiUncertaintyRange>,
+}
+
+impl EroiEvidence {
+    /// True only when the record supplies enough well-formed metadata to
+    /// qualify an EROI value for like-boundary comparison.
+    pub fn is_qualified(&self) -> bool {
+        is_clean_evidence_text(&self.output_definition)
+            && is_clean_evidence_text(&self.input_definition)
+            && is_clean_evidence_text(&self.geographic_scope)
+            && is_clean_evidence_text(&self.source_citation)
+            && is_clean_evidence_text(&self.methodology_id)
+            && is_clean_evidence_text(&self.methodology_version)
+            && self.period_start_year > 0
+            && self.period_end_year >= self.period_start_year
+            && self.publication_date.as_deref().map_or(true, is_iso_date)
+            && self
+                .uncertainty
+                .as_ref()
+                .map_or(true, EroiUncertaintyRange::is_valid)
+    }
+
+    /// Conservative comparability rule: no implicit conversion between energy
+    /// stages, input/output definitions, analysis periods, or evidence bases.
+    ///
+    /// Geographic scope and citation are retained as per-record context so
+    /// sites from different regions can still be compared under the same
+    /// explicitly named energy boundary and analysis period.
+    pub fn compatible_with(&self, other: &Self) -> bool {
+        self.is_qualified()
+            && other.is_qualified()
+            && self.stage == other.stage
+            && self.output_definition == other.output_definition
+            && self.input_definition == other.input_definition
+            && self.period_start_year == other.period_start_year
+            && self.period_end_year == other.period_end_year
+            && self.basis == other.basis
+            && self.methodology_id == other.methodology_id
+            && self.methodology_version == other.methodology_version
+    }
+}
+
+fn is_clean_evidence_text(value: &str) -> bool {
+    !value.trim().is_empty() && value.trim() == value && !value.chars().any(char::is_control)
+}
+
+/// Validate an optional publication date using the unambiguous YYYY-MM-DD form.
+fn is_iso_date(value: &str) -> bool {
+    if value.len() != 10 || value.as_bytes()[4] != b'-' || value.as_bytes()[7] != b'-' {
+        return false;
+    }
+    let mut parts = value.split('-');
+    let (Some(year), Some(month), Some(day), None) =
+        (parts.next(), parts.next(), parts.next(), parts.next())
+    else {
+        return false;
+    };
+    let (Ok(year), Ok(month), Ok(day)) = (
+        year.parse::<u32>(),
+        month.parse::<u32>(),
+        day.parse::<u32>(),
+    ) else {
+        return false;
+    };
+    if year == 0 || !(1..=12).contains(&month) {
+        return false;
+    }
+    let leap_year = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let last_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap_year => 29,
+        2 => 28,
+        _ => return false,
+    };
+    (1..=last_day).contains(&day)
+}
+
 // ─── Fossil Deposit ─────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -629,6 +789,9 @@ pub struct FossilDeposit {
     /// Energy Return on Investment (energy out / energy in). None if unknown.
     #[serde(default)]
     pub eroi: Option<f64>,
+    /// Optional source/boundary metadata; without it the numeric EROI is unqualified.
+    #[serde(default)]
+    pub eroi_evidence: Option<EroiEvidence>,
 }
 
 // ─── Nuclear Site ───────────────────────────────────────────────
@@ -842,5 +1005,158 @@ mod provenance_tests {
                 .summary()
                 .contains("snapshot")
         );
+    }
+}
+
+#[cfg(test)]
+mod eroi_evidence_tests {
+    use super::*;
+
+    fn evidence(stage: EroiStage) -> EroiEvidence {
+        EroiEvidence {
+            stage,
+            output_definition: "energy carrier delivered".to_string(),
+            input_definition: "direct and indirect energy invested".to_string(),
+            geographic_scope: "country-level, 2020".to_string(),
+            period_start_year: 2018,
+            period_end_year: 2020,
+            source_citation: "Example Study, DOI:10.0000/example".to_string(),
+            methodology_id: "eroi-boundary-accounting".to_string(),
+            methodology_version: "1.0.0".to_string(),
+            publication_date: Some("2024-02-29".to_string()),
+            basis: EroiEvidenceBasis::Literature,
+            uncertainty: Some(EroiUncertaintyRange {
+                lower: 4.0,
+                upper: 6.0,
+            }),
+        }
+    }
+
+    #[test]
+    fn valid_evidence_is_qualified_and_unknown_fields_fail_closed() {
+        let valid = evidence(EroiStage::Final);
+        assert!(valid.is_qualified());
+        let json = serde_json::to_string(&valid).unwrap();
+        assert_eq!(serde_json::from_str::<EroiEvidence>(&json).unwrap(), valid);
+
+        let with_unknown = json.trim_end_matches('}').to_string() + r#", "unexpected": true}"#;
+        assert!(serde_json::from_str::<EroiEvidence>(&with_unknown).is_err());
+    }
+
+    #[test]
+    fn missing_methodology_fields_remain_inspectable_but_unqualified() {
+        let mut json = serde_json::to_value(evidence(EroiStage::Final)).unwrap();
+        let object = json.as_object_mut().unwrap();
+        object.remove("methodology_id");
+        object.remove("methodology_version");
+
+        let restored: EroiEvidence = serde_json::from_value(json).unwrap();
+        assert_eq!(restored.methodology_id, "");
+        assert_eq!(restored.methodology_version, "");
+        assert!(!restored.is_qualified());
+    }
+
+    #[test]
+    fn legacy_deposit_json_defaults_new_evidence_to_unknown() {
+        let json = r#"{
+            "name": "Synthetic Field",
+            "lat": 0.0,
+            "lon": 0.0,
+            "fuel_type": "oil",
+            "proven_reserves_mboe": 100.0,
+            "annual_production_mboe": 5.0,
+            "status": "producing",
+            "country": "Testland",
+            "discovery_year": 2000,
+            "eroi": 5.0
+        }"#;
+        let deposit: FossilDeposit = serde_json::from_str(json).unwrap();
+        assert_eq!(deposit.eroi, Some(5.0));
+        assert!(deposit.eroi_evidence.is_none());
+    }
+
+    #[test]
+    fn missing_source_boundary_or_invalid_period_leaves_evidence_unqualified() {
+        let mut item = evidence(EroiStage::Primary);
+        item.source_citation.clear();
+        assert!(!item.is_qualified());
+
+        let mut item = evidence(EroiStage::Primary);
+        item.output_definition = "  ".to_string();
+        assert!(!item.is_qualified());
+
+        let mut item = evidence(EroiStage::Primary);
+        item.methodology_id.clear();
+        assert!(!item.is_qualified());
+
+        let mut item = evidence(EroiStage::Primary);
+        item.methodology_version = " ".to_string();
+        assert!(!item.is_qualified());
+
+        let mut item = evidence(EroiStage::Primary);
+        item.period_start_year = 2021;
+        item.period_end_year = 2020;
+        assert!(!item.is_qualified());
+    }
+
+    #[test]
+    fn invalid_publication_date_and_uncertainty_are_rejected_for_comparison() {
+        let mut item = evidence(EroiStage::Final);
+        item.publication_date = Some("2023-02-29".to_string());
+        assert!(!item.is_qualified());
+
+        let mut item = evidence(EroiStage::Final);
+        item.uncertainty = Some(EroiUncertaintyRange {
+            lower: 6.0,
+            upper: 4.0,
+        });
+        assert!(!item.is_qualified());
+
+        let mut item = evidence(EroiStage::Final);
+        item.uncertainty = Some(EroiUncertaintyRange {
+            lower: 1.0,
+            upper: f64::INFINITY,
+        });
+        assert!(!item.is_qualified());
+    }
+
+    #[test]
+    fn primary_final_and_useful_boundaries_do_not_compare_by_default() {
+        let primary = evidence(EroiStage::Primary);
+        let final_stage = evidence(EroiStage::Final);
+        let useful = evidence(EroiStage::Useful);
+        assert!(!primary.compatible_with(&final_stage));
+        assert!(!primary.compatible_with(&useful));
+        assert!(!final_stage.compatible_with(&useful));
+        assert!(final_stage.compatible_with(&evidence(EroiStage::Final)));
+    }
+
+    #[test]
+    fn energy_definitions_period_and_basis_are_part_of_comparison_identity() {
+        let baseline = evidence(EroiStage::Final);
+
+        let mut other = baseline.clone();
+        other.input_definition = "direct energy only".to_string();
+        assert!(!baseline.compatible_with(&other));
+
+        let mut other = baseline.clone();
+        other.period_end_year = 2021;
+        assert!(!baseline.compatible_with(&other));
+
+        let mut other = baseline.clone();
+        other.basis = EroiEvidenceBasis::Modeled;
+        assert!(!baseline.compatible_with(&other));
+
+        let mut other = baseline.clone();
+        other.methodology_id = "different-method".to_string();
+        assert!(!baseline.compatible_with(&other));
+
+        let mut other = baseline.clone();
+        other.methodology_version = "2.0.0".to_string();
+        assert!(!baseline.compatible_with(&other));
+
+        let mut other = baseline.clone();
+        other.geographic_scope = "different country, same study years".to_string();
+        assert!(baseline.compatible_with(&other));
     }
 }

@@ -198,14 +198,17 @@ pub fn LayerPanel() -> impl IntoView {
                 </span>
             </button>
 
-            // EROI legend surfaces only while fossil deposits are visible
+            // Keep classification uncertainty visible instead of implying that
+            // the legacy numerical thresholds are universal system boundaries.
             <Show when=fossil_active>
-                <div class="dock-eroi" aria-hidden="true">
-                    <span class="eroi-step" style="--c: 15,186,130" title="> 12:1 — powers civilization"></span>
-                    <span class="eroi-step" style="--c: 250,191,36" title="5-12:1 — sustainable"></span>
-                    <span class="eroi-step" style="--c: 240,69,69" title="3-5:1 — marginal"></span>
-                    <span class="eroi-step" style="--c: 128,26,26" title="< 3:1 — unviable"></span>
-                    <span class="eroi-label">"EROI"</span>
+                <div
+                    class="dock-eroi"
+                    role="note"
+                    aria-label="EROI tiers withheld until threshold methodology and system boundary are identified"
+                    title="EROI tiers are withheld until the threshold methodology and energy boundary are named and versioned"
+                >
+                    <span class="eroi-step" style="--c: 184,134,11"></span>
+                    <span class="eroi-label">"EROI TIERS WITHHELD"</span>
                 </div>
             </Show>
         </nav>

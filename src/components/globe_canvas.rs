@@ -832,8 +832,9 @@ fn update_renderer_data(
         let deposits = data_state.fossil_deposits.read();
         for deposit in deposits.iter() {
             let pos = geo::lat_lon_to_xyz(deposit.lat, deposit.lon, 1.005);
-            let eroi = sol_atlas_core::economics::compute_eroi(deposit).unwrap_or(5.0);
-            let c = sol_atlas_core::economics::eroi_color(eroi);
+            // Marker color encodes the fossil-deposit layer only. Do not invent a
+            // 5:1 value for missing EROI or render legacy thresholds as validated tiers.
+            let c = Layer::FossilDeposits.rgb();
             let emissive = sol_atlas_core::geo::fossil_emissive_factor(&deposit.status);
             let scale = sol_atlas_core::geo::fossil_scale_factor(&deposit.status);
             let size = sol_atlas_core::geo::marker_size_from_reserves(deposit.proven_reserves_mboe)

@@ -126,20 +126,101 @@ pub fn InfoPanel() -> impl IntoView {
                     }.into_any(),
                     Some(SelectedItem::FossilDeposit(d)) => {
                         let eroi = sol_atlas_core::economics::compute_eroi(d);
+                        let qualified_eroi = sol_atlas_core::economics::qualified_eroi(d);
+                        // Render supplied metadata even when malformed so the evidence gap
+                        // remains inspectable; only qualified evidence affects classification.
+                        let evidence = d.eroi_evidence.as_ref();
                         view! {
                             <div>
                                 <h2>{d.name.clone()}</h2>
-                                <div class="subtitle">{format!("{:?} \u{00b7} {} \u{00b7} curated; EROI estimated", d.fuel_type, d.country)}</div>
+                                <div class="subtitle">{format!("{:?} \u{00b7} {} \u{00b7} curated", d.fuel_type, d.country)}</div>
                                 {match eroi {
-                                    Some(e) => hero(format!("{:.1}:1", e), "EROI estimate").into_any(),
+                                    Some(e) => hero(
+                                        format!("{:.1}:1", e),
+                                        if qualified_eroi.is_some() { "EROI estimate" } else { "EROI value — unqualified" },
+                                    ).into_any(),
                                     None => hero("Unknown".to_string(), "physical EROI").into_any(),
                                 }}
-                                {match eroi {
-                                    Some(e) => row(
-                                        "Indicative tier",
-                                        sol_atlas_core::economics::EroiTier::from_eroi(e).label().to_string(),
+                                {row(
+                                    "EROI classification",
+                                    if eroi.is_none() {
+                                        "Unknown — physical EROI not supplied".to_string()
+                                    } else if qualified_eroi.is_none() {
+                                        "Unqualified — source or boundary metadata missing".to_string()
+                                    } else {
+                                        "Not tiered — threshold methodology lacks a named system boundary".to_string()
+                                    },
+                                )}
+                                {match evidence {
+                                    Some(evidence) => row(
+                                        "EROI metadata",
+                                        if evidence.is_qualified() {
+                                            "Shape valid; source not authenticated".to_string()
+                                        } else {
+                                            "Incomplete or invalid — not comparable".to_string()
+                                        },
                                     ),
-                                    None => row("EROI data", "Not supplied".to_string()),
+                                    None => row("EROI metadata", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI stage", evidence.stage.label().to_string()),
+                                    None => row("EROI stage", "Not qualified".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) if evidence.methodology_id.trim().is_empty() => {
+                                        row("EROI methodology", "Missing — not qualified".to_string())
+                                    }
+                                    Some(evidence) => row("EROI methodology", evidence.methodology_id.clone()),
+                                    None => row("EROI methodology", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) if evidence.methodology_version.trim().is_empty() => {
+                                        row("EROI method version", "Missing — not qualified".to_string())
+                                    }
+                                    Some(evidence) => row("EROI method version", evidence.methodology_version.clone()),
+                                    None => row("EROI method version", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI output", evidence.output_definition.clone()),
+                                    None => row("EROI output definition", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI input", evidence.input_definition.clone()),
+                                    None => row("EROI input definition", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI geography", evidence.geographic_scope.clone()),
+                                    None => row("EROI geography", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row(
+                                        "EROI period",
+                                        format!("{}–{}", evidence.period_start_year, evidence.period_end_year),
+                                    ),
+                                    None => row("EROI period", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI source", evidence.source_citation.clone()),
+                                    None => row("EROI source", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row("EROI basis", evidence.basis.label().to_string()),
+                                    None => row("EROI basis", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row(
+                                        "EROI publication date",
+                                        evidence.publication_date.clone().unwrap_or_else(|| "Not supplied".to_string()),
+                                    ),
+                                    None => row("EROI publication date", "Not supplied".to_string()),
+                                }}
+                                {match evidence {
+                                    Some(evidence) => row(
+                                        "EROI interval",
+                                        evidence.uncertainty.map(|range| format!("{:.2}–{:.2}", range.lower, range.upper))
+                                            .unwrap_or_else(|| "Not supplied".to_string()),
+                                    ),
+                                    None => row("EROI interval", "Not supplied".to_string()),
                                 }}
                                 {row("Reserves", format!("{:.0} Mboe", d.proven_reserves_mboe))}
                                 {row("Production", format!("{:.0} Mboe/yr", d.annual_production_mboe))}
