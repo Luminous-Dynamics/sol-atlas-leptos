@@ -142,6 +142,17 @@ class AgroclimateProfileTests(unittest.TestCase):
         self.assertTrue(any("not a substitute" in limit.lower()
                             for item in references.values() for limit in item["limitations"]))
 
+    def test_irrigation_quality_guidance_carries_legacy_date_caveat(self):
+        reference = next(
+            item for item in self.profile["context_references"]
+            if item["reference_id"] == "DWS-IRRIGATION-WATER-QUALITY-GUIDELINES"
+        )
+        self.assertIn("1996", reference["title"])
+        self.assertTrue(any(
+            "verify the currently authoritative edition" in limit.lower()
+            for limit in reference["limitations"]
+        ))
+
     def test_local_crop_cohort_is_evidence_led_but_not_selected(self):
         cohorts = self.profile["candidate_crop_cohorts"]
         self.assertEqual(len(cohorts), 1)
@@ -365,6 +376,13 @@ class AgroclimateProfileTests(unittest.TestCase):
             "reason": None,
         }
         self.assertTrue(any("boundary_sha256" in error for error in self.errors(doc)))
+
+    def test_unverified_boundary_cannot_claim_hash_crs_or_reference(self):
+        doc = copy.deepcopy(self.profile)
+        doc["geography"]["boundary_sha256"] = "a" * 64
+        doc["geography"]["boundary_crs"] = "EPSG:4326"
+        doc["geography"]["boundary_evidence_ref"] = "urn:fixture:premature-boundary"
+        self.assertTrue(any("unverified boundary must not claim" in error for error in self.errors(doc)))
 
     def test_passed_gate_cannot_skip_evidence_reference_or_reviewer(self):
         doc = copy.deepcopy(self.profile)
