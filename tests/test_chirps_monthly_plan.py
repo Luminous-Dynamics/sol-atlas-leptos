@@ -132,6 +132,64 @@ class ChirpsMonthlyPlanTests(unittest.TestCase):
         )
         self.assertIsInstance(result, Request)
 
+    def test_snapshot_only_captures_index_without_selecting_period(self):
+        from plan_chirps_monthly import main
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "source-index.html"
+            snapshot = root / "captured-index.html"
+            manifest_out = root / "snapshot-manifest.json"
+            raw = listing("chirps-v3.0.2026.08.tif")
+            source.write_bytes(raw)
+
+            code = main([
+                "--snapshot-only",
+                "--index-file", str(source),
+                "--snapshot-index", str(snapshot),
+                "--output", str(manifest_out),
+            ])
+            self.assertEqual(code, 0)
+            self.assertEqual(snapshot.read_bytes(), raw)
+            manifest = json.loads(manifest_out.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["status"], "index_snapshot_only")
+            self.assertIsNone(manifest["requested_period"])
+            self.assertFalse(manifest["analysis_period_selected"])
+            self.assertEqual(manifest["raster_files_downloaded"], 0)
+            self.assertEqual(manifest["index_bytes"], len(raw))
+            self.assertEqual(manifest["index_sha256"], hashlib.sha256(raw).hexdigest())
+            self.assertEqual(manifest["index_snapshot_filename"], snapshot.name)
+            self.assertIsNone(manifest["index_retrieved_at_utc"])
+
+    def test_snapshot_only_manifest_partial_write_removes_manifest_and_snapshot(self):
+        from plan_chirps_monthly import main
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "source-index.html"
+            snapshot = root / "captured-index.html"
+            manifest_out = root / "snapshot-manifest.json"
+            source.write_bytes(listing("chirps-v3.0.2026.08.tif"))
+            real_open = Path.open
+
+            def fail_output_open(path_obj, mode="r", *args, **kwargs):
+                handle = real_open(path_obj, mode, *args, **kwargs)
+                if path_obj == manifest_out and mode == "x":
+                    return PartialWriteFailure(handle)
+                return handle
+
+            with patch.object(Path, "open", new=fail_output_open):
+                code = main([
+                    "--snapshot-only",
+                    "--index-file", str(source),
+                    "--snapshot-index", str(snapshot),
+                    "--output", str(manifest_out),
+                ])
+
+            self.assertEqual(code, 2)
+            self.assertFalse(manifest_out.exists())
+            self.assertFalse(snapshot.exists())
+
     def test_cli_saves_exact_index_snapshot_without_overwriting(self):
         from plan_chirps_monthly import main
         with tempfile.TemporaryDirectory() as temp_dir:
