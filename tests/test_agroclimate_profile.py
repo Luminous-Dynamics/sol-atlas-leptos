@@ -305,6 +305,11 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["sources"][0]["artifact_sha256"] = "a" * 64
         self.assertTrue(any("cannot claim an artifact SHA-256" in error for error in self.errors(doc)))
 
+    def test_unacquired_source_cannot_claim_exact_selected_product(self):
+        doc = copy.deepcopy(self.profile)
+        doc["sources"][0]["selected_product"] = "urn:fixture:product:misrepresented-as-acquired"
+        self.assertTrue(list(Draft202012Validator(self.schema).iter_errors(doc)))
+
     def test_unacquired_source_cannot_claim_asset_manifest(self):
         doc = copy.deepcopy(self.profile)
         doc["sources"][0]["artifacts"] = [{
@@ -323,6 +328,11 @@ class AgroclimateProfileTests(unittest.TestCase):
             "transformations": [],
         }]
         self.assertTrue(any("cannot claim acquired artifact records" in error for error in self.errors(doc)))
+
+    def test_D1_requires_catalog_review_for_external_sources(self):
+        doc = self.synthetic_complete_profile()
+        doc["sources"][0]["source_catalog_verified"] = False
+        self.assertTrue(any("requires official source catalogue review" in error for error in self.errors(doc)))
 
     def test_primary_asset_digest_must_match_source_digest(self):
         doc = self.synthetic_complete_profile()
