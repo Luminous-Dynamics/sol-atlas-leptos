@@ -201,6 +201,7 @@ pub enum CivicCaseValidationError {
     EmptyAreaReference,
     InvalidCaseTimeRange,
     DuplicateOfficialReference,
+    EmptyEvidenceId,
     DuplicateEvidenceId,
     InvalidEvidenceDigest,
     InvalidPublicUrl,
@@ -219,6 +220,73 @@ pub enum CivicCaseValidationError {
 }
 
 impl CivicServiceCase {
+    /// Build a sanitised public projection only when an explicit public-case
+    /// visibility classification permits individual publication. Aggregate-only,
+    /// restricted, and sensitive cases must go through a separate aggregation layer.
+    /// Official ticket identifiers, actor references, and artifact pointers are omitted.
+    pub fn public_projection(&self) -> Option<PublicCivicCase> {
+        if self.visibility != CaseVisibility::PublicCase {
+            return None;
+        }
+
+        let public_evidence_ids: BTreeSet<&str> = self
+            .evidence
+            .iter()
+            .filter(|item| {
+                matches!(
+                    item.visibility,
+                    EvidenceVisibility::Public | EvidenceVisibility::RedactedPublic
+                )
+            })
+            .map(|item| item.evidence_id.as_str())
+            .collect();
+
+        let evidence = self
+            .evidence
+            .iter()
+            .filter(|item| public_evidence_ids.contains(item.evidence_id.as_str()))
+            .map(|item| PublicEvidenceSummary {
+                evidence_id: item.evidence_id.clone(),
+                source_kind: item.source_kind,
+                captured_at_unix_ms: item.captured_at_unix_ms,
+                sha256: item.sha256.clone(),
+                review: item.review,
+            })
+            .collect();
+
+        let events = self
+            .events
+            .iter()
+            .map(|event| PublicCaseEvent {
+                kind: event.kind,
+                recorded_at_unix_ms: event.recorded_at_unix_ms,
+                occurred_at_unix_ms: event.occurred_at_unix_ms,
+                actor_kind: event.actor_kind,
+                evidence_ids: event
+                    .evidence_ids
+                    .iter()
+                    .filter(|evidence_id| public_evidence_ids.contains(evidence_id.as_str()))
+                    .cloned()
+                    .collect(),
+                reason_code: event.reason_code.clone(),
+            })
+            .collect();
+
+        Some(PublicCivicCase {
+            schema_version: self.schema_version,
+            case_id: self.case_id.clone(),
+            domain: self.domain,
+            category_code: self.category_code.clone(),
+            area_ref: self.area_ref.clone(),
+            severity: self.severity,
+            current_status: self.current_status(),
+            opened_at_unix_ms: self.opened_at_unix_ms,
+            updated_at_unix_ms: self.updated_at_unix_ms,
+            evidence,
+            events,
+        })
+    }
+
     /// Current logical status derived from the append-only history.
     pub fn current_status(&self) -> Option<CaseStatus> {
         self.events
@@ -259,7 +327,9 @@ impl CivicServiceCase {
                 errors.push(E::DuplicateOfficialReference);
             }
             if let Some(url) = reference.public_url.as_deref() {
-                if !url.starts_with("https://") {
+                // Public links must not contain query/fragment tokens. Use a
+                // separately reviewed public link rather than exposing a signed URL.
+                if !url.starts_with("https://") || url.contains('?') || url.contains('#') {
                     errors.push(E::InvalidPublicUrl);
                 }
             }
@@ -267,9 +337,11 @@ impl CivicServiceCase {
 
         let mut evidence_by_id = BTreeMap::new();
         for evidence in &self.evidence {
-            if evidence.evidence_id.trim().is_empty()
-                || evidence_by_id.insert(evidence.evidence_id.as_str(), evidence).is_some()
-            {
+            if evidence.evidence_id.trim().is_empty() {
+                errors.push(E::EmptyEvidenceId);
+                continue;
+            }
+            if evidence_by_id.insert(evidence.evidence_id.as_str(), evidence).is_some() {
                 errors.push(E::DuplicateEvidenceId);
             }
             if let Some(digest) = evidence.sha256.as_deref() {
@@ -463,6 +535,68 @@ mod tests {
     }
 
     #[test]
+    fn public_projection_requires_explicit_visibility_and_redacts_private_links() {
+        let mut case = valid_case();
+        assert!(case.public_projection().is_none());
+
+        case.visibility = CaseVisibility::PublicCase;
+        case.evidence = vec![
+            EvidenceReference {
+                evidence_id: "public-evidence-1".into(),
+                source_kind: EvidenceSourceKind::FieldInspection,
+                captured_at_unix_ms: 1_050,
+                sha256: Some("b".repeat(64)),
+                review: EvidenceReview::Corroborated,
+                visibility: EvidenceVisibility::RedactedPublic,
+                artifact_ref: Some("private-artifact-url?token=never-export".into()),
+                reviewer_ref: None,
+                reviewed_at_unix_ms: None,
+            },
+            EvidenceReference {
+                evidence_id: "private-evidence-1".into(),
+                source_kind: EvidenceSourceKind::ResidentSubmission,
+                captured_at_unix_ms: 1_060,
+                sha256: None,
+                review: EvidenceReview::Unreviewed,
+                visibility: EvidenceVisibility::Private,
+                artifact_ref: Some("restricted-private-pointer".into()),
+                reviewer_ref: None,
+                reviewed_at_unix_ms: None,
+            },
+        ];
+        let mut correction = event("event-2", CaseEventKind::Correction, 1_100);
+        correction.actor_ref = "internal-steward-reference".into();
+        correction.reason_code = Some("metadata.corrected".into());
+        correction.evidence_ids = vec!["private-evidence-1".into()];
+        case.events.push(correction);
+        case.updated_at_unix_ms = 1_100;
+
+        assert!(case.validate().is_ok());
+        let public_case = case.public_projection().expect("explicit public visibility");
+        assert_eq!(public_case.evidence.len(), 1);
+        assert_eq!(public_case.evidence[0].evidence_id, "public-evidence-1");
+        assert!(public_case.events[1].evidence_ids.is_empty());
+
+        let serialized = serde_json::to_string(&public_case).unwrap();
+        assert!(!serialized.contains("internal-steward-reference"));
+        assert!(!serialized.contains("restricted-private-pointer"));
+        assert!(!serialized.contains("private-artifact-url"));
+        assert!(!serialized.contains("REF-EXAMPLE-001"));
+        assert!(!serialized.contains("official_references"));
+    }
+
+    #[test]
+    fn public_urls_reject_query_or_fragment_tokens() {
+        let mut case = valid_case();
+        case.official_references[0].public_url =
+            Some("https://example.invalid/case?id=secret-token".into());
+        assert!(case
+            .validate()
+            .unwrap_err()
+            .contains(&CivicCaseValidationError::InvalidPublicUrl));
+    }
+
+    #[test]
     fn duplicate_event_ids_and_out_of_order_record_times_fail_closed() {
         let mut case = valid_case();
         let mut second = event("event-1", CaseEventKind::Triaged, 900);
@@ -580,7 +714,9 @@ mod tests {
         assert!(case
             .validate()
             .err()
-            .is_some_and(|errors| errors.contains(&CivicCaseValidationError::CorrectionWithoutReasonOrEvidence)));
+            .is_some_and(|errors| {
+                errors.contains(&CivicCaseValidationError::CorrectionWithoutReasonOrEvidence)
+            }));
         correction.reason_code = Some("metadata.corrected".into());
         correction.evidence_ids = vec!["proof-1".into()];
         case.evidence.push(EvidenceReference {
