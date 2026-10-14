@@ -88,8 +88,15 @@ class AgroclimateProfileTests(unittest.TestCase):
             doc["geography"]["boundary_evidence_ref"],
             f"sha256:{doc['geography']['boundary_sha256']}",
         ]
+        for source in doc["sources"]:
+            if source["required_for_baseline"]:
+                primary = next(asset for asset in source["artifacts"] if asset["role"] == "primary")
+                doc["validation"]["gate_evidence"]["D1"]["evidence_refs"].extend([
+                    primary["asset_uri"],
+                    f"sha256:{source['artifact_sha256']}",
+                ])
         doc["evidence_state"] = {
-            "source_artifacts_acquired": True,
+            "required_source_artifacts_acquired": True,
             "baseline_computed": True,
             "independent_validation_complete": True,
             "expert_review_complete": True,
@@ -151,7 +158,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         )
 
     def test_profile_does_not_claim_source_artifacts_are_acquired(self):
-        self.assertFalse(self.profile["evidence_state"]["source_artifacts_acquired"])
+        self.assertFalse(self.profile["evidence_state"]["required_source_artifacts_acquired"])
         self.assertTrue(all(source["acquisition_state"] == "not_acquired" for source in self.profile["sources"]))
         self.assertTrue(all(source["artifact_sha256"] is None for source in self.profile["sources"]))
 
@@ -283,7 +290,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc = copy.deepcopy(self.profile)
         doc["status"] = "decision_support_candidate"
         doc["evidence_state"] = {
-            "source_artifacts_acquired": True,
+            "required_source_artifacts_acquired": True,
             "baseline_computed": True,
             "independent_validation_complete": True,
             "expert_review_complete": True,
@@ -333,6 +340,27 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc = self.synthetic_complete_profile()
         doc["sources"][0]["source_catalog_verified"] = False
         self.assertTrue(any("requires official source catalogue review" in error for error in self.errors(doc)))
+
+    def test_optional_source_families_can_remain_unacquired_after_D1(self):
+        doc = self.synthetic_complete_profile()
+        for source in doc["sources"]:
+            if source["required_for_baseline"]:
+                continue
+            source["acquisition_state"] = "not_acquired"
+            source["selected_product"] = None
+            source["selected_product_identity_verified"] = False
+            source["artifact_sha256"] = None
+            source["artifacts"] = []
+        self.assertEqual(self.errors(doc), [])
+
+    def test_D1_must_reference_each_required_primary_asset_and_digest(self):
+        doc = self.synthetic_complete_profile()
+        required_source = next(
+            source for source in doc["sources"] if source["required_for_baseline"]
+        )
+        primary = next(asset for asset in required_source["artifacts"] if asset["role"] == "primary")
+        doc["validation"]["gate_evidence"]["D1"]["evidence_refs"].remove(primary["asset_uri"])
+        self.assertTrue(any("primary asset URI and matching digest" in error for error in self.errors(doc)))
 
     def test_primary_asset_digest_must_match_source_digest(self):
         doc = self.synthetic_complete_profile()
@@ -659,7 +687,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["validation"]["gates"]["D2"] = "passed"
         doc["validation"]["gates"]["D0"] = "passed"
         doc["validation"]["gates"]["D1"] = "passed"
-        doc["evidence_state"]["source_artifacts_acquired"] = True
+        doc["evidence_state"]["required_source_artifacts_acquired"] = True
         doc["evidence_state"]["baseline_computed"] = True
         doc["geography"]["boundary_state"] = "verified_and_frozen"
         self.assertTrue(any("D2=passed requires at least one crop cohort selected" in error for error in self.errors(doc)))
@@ -670,7 +698,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["validation"]["gates"]["D0"] = "passed"
         doc["validation"]["gates"]["D1"] = "passed"
         doc["validation"]["gates"]["D2"] = "passed"
-        doc["evidence_state"]["source_artifacts_acquired"] = True
+        doc["evidence_state"]["required_source_artifacts_acquired"] = True
         doc["evidence_state"]["baseline_computed"] = True
         doc["candidate_crop_cohorts"][0]["selection_state"] = "selected_for_baseline"
         self.assertTrue(any("D2=passed requires model_selection_state to freeze" in error for error in self.errors(doc)))
@@ -688,7 +716,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["validation"]["gates"]["D1"] = "passed"
         doc["validation"]["gates"]["D2"] = "passed"
         doc["validation"]["gates"]["D3"] = "passed"
-        doc["evidence_state"]["source_artifacts_acquired"] = True
+        doc["evidence_state"]["required_source_artifacts_acquired"] = True
         doc["evidence_state"]["baseline_computed"] = True
         doc["evidence_state"]["independent_validation_complete"] = True
         doc["candidate_crop_cohorts"][0]["selection_state"] = "selected_for_baseline"
@@ -722,7 +750,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc = copy.deepcopy(self.profile)
         doc["status"] = "descriptive_baseline"
         doc["evidence_state"]["baseline_computed"] = True
-        doc["evidence_state"]["source_artifacts_acquired"] = True
+        doc["evidence_state"]["required_source_artifacts_acquired"] = True
         self.assertTrue(any("baseline_computed=true requires D0-D2=passed" in error for error in self.errors(doc)))
 
     def test_independent_validation_cannot_skip_baseline_or_D3(self):
