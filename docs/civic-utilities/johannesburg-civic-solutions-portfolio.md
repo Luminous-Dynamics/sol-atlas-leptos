@@ -121,7 +121,7 @@ The contract checks:
 - evidence references must resolve to known evidence IDs;
 - legal status transitions, evidence-linked resolution claims, and independent review evidence before the `ResolutionVerified` event is accepted;
 - correction events carry a reason code and evidence but do not rewrite current status or prior history;
-- a public projection is returned only for explicitly `PublicCase` records, and filters private evidence and suppresses actor references, raw official ticket IDs, and artifact pointers.
+- a public projection is returned only for explicitly `PublicCase` records, requires a separate region/ward/precinct `PublicAreaReference`, and never reuses the internal area reference. It filters private evidence and suppresses actor references, raw official ticket IDs, and artifact pointers. The prefix/granularity check is a guardrail, not proof that the underlying geography is correctly classified.
 
 The module has unit tests authored for normal cases, duplicate/out-of-order events, resolution evidence, independent verification, reopening, append-only corrections, public projection redaction, and unsafe public URLs. The latest head's `fmt`, `test-native`, and `check-wasm` jobs are queued; these tests must not be described as passing until the exact head completes successfully.
 

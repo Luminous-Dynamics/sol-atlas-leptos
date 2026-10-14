@@ -6,7 +6,7 @@
 //! This is a read-only case/evidence contract, not a municipal ticketing service.
 //! It deliberately stores no resident name, phone number, free-form narrative, or
 //! precise home location. Keep identity mapping and restricted evidence outside
-//! public exports; area_ref should be appropriately coarse for the chosen visibility.
+//! public exports; only a separate, reviewed region/ward/precinct code is exposed publicly.
 
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
