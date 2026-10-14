@@ -322,7 +322,7 @@ impl PhysicsRunManifest {
             VerificationGateKind::EnergyConservation,
         ];
         if !core_gates.iter().all(|gate| self.exact_head_gate_passed(*gate)) {
-            return EvidenceReadiness::Reproducible;
+            return EvidenceReadiness::ProvenanceRecorded;
         }
 
         let refinement_and_reference = [
@@ -347,10 +347,10 @@ impl PhysicsRunManifest {
 /// Derived evidence stage for visualization and workflow triage.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EvidenceReadiness {
-    /// Manifest invalid/incomplete, or no reproducible inputs/outputs described.
+    /// Manifest invalid/incomplete or required provenance/hash fields are malformed.
     Exploratory,
     /// Provenance and hash strings are recorded, but matching artifacts have not been replayed or verified here.
-    Reproducible,
+    ProvenanceRecorded,
     /// Input, single-physics reference, and energy-conservation gates passed at exact head.
     NumericallyVerified,
     /// Above plus grid/time refinement and reference-comparison gates.
@@ -437,7 +437,7 @@ mod tests {
     fn valid_fixture_records_provenance_without_claiming_verification() {
         let run = fixture();
         assert_eq!(run.validate(), Ok(()));
-        assert_eq!(run.readiness(), EvidenceReadiness::Reproducible);
+        assert_eq!(run.readiness(), EvidenceReadiness::ProvenanceRecorded);
     }
 
     #[test]
@@ -463,7 +463,7 @@ mod tests {
         assert!(!run.exact_head_gate_passed(VerificationGateKind::InputValidation));
         assert!(!run.exact_head_gate_passed(VerificationGateKind::SinglePhysicsReference));
         assert!(!run.exact_head_gate_passed(VerificationGateKind::EnergyConservation));
-        assert_eq!(run.readiness(), EvidenceReadiness::Reproducible);
+        assert_eq!(run.readiness(), EvidenceReadiness::ProvenanceRecorded);
     }
 
     #[test]
@@ -503,7 +503,7 @@ mod tests {
         ];
 
         assert_eq!(run.validate(), Ok(())); // retain the recorded run and its failure
-        assert_eq!(run.readiness(), EvidenceReadiness::Reproducible);
+        assert_eq!(run.readiness(), EvidenceReadiness::ProvenanceRecorded);
         assert!(!run.energy_balance.unwrap().passes_declared_tolerance());
     }
 
