@@ -257,7 +257,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         source["acquisition_state"] = "acquired"
         source["selected_product"] = "urn:mycelix:measurement-protocol:highveld-site-v1"
         source["artifact_sha256"] = "a" * 64
-        source["source_catalog_verified"] = True
+        source["source_identity_verified"] = True
         source["rights_state"] = "permission_granted"
         source["redistribution_allowed"] = None
         self.assertEqual(self.errors(doc), [])
@@ -269,7 +269,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         source["acquisition_state"] = "acquired"
         source["selected_product"] = "urn:mycelix:measurement-protocol:highveld-site-v1"
         source["artifact_sha256"] = "a" * 64
-        source["source_catalog_verified"] = True
+        source["source_identity_verified"] = True
         source["rights_state"] = "permission_granted"
         source["redistribution_allowed"] = False
         self.assertTrue(any("redistribution_allowed=null" in error for error in self.errors(doc)))
