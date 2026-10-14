@@ -335,7 +335,7 @@
           "product_selection_state",
           "acquisition_state",
           "artifact_sha256",
-          "source_catalog_verified",
+          "source_identity_verified",
           "rights_state",
           "redistribution_allowed",
           "native_spatial_support",
@@ -393,9 +393,6 @@
             ],
             "pattern": "^[a-f0-9]{64}$"
           },
-          "source_catalog_verified": {
-            "type": "boolean"
-          },
           "rights_state": {
             "enum": [
               "license_not_reviewed",
@@ -436,6 +433,9 @@
           "license_reference": {
             "type": "string",
             "minLength": 12
+          },
+          "source_identity_verified": {
+            "type": "boolean"
           }
         },
         "allOf": [
