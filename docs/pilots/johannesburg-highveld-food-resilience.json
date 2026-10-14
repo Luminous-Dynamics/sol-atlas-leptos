@@ -430,6 +430,59 @@
         "The listed regulations have different scopes and may have amendments; a qualified local operator must establish which provisions currently apply to the exact activity.",
         "A software profile or provenance credential is not regulatory approval, inspection, or a food-safety certificate."
       ]
+    },
+    {
+      "reference_id": "COJ-FOOD-RESILIENCE-OPERATIONS",
+      "title": "City of Johannesburg food-resilience projects and agri-resource centres",
+      "url": "https://joburg.org.za/media_/Pages/Media/Marang%20Newsletter/Quarter%201/City-of-Johannesburg-food-resilience-projects.aspx",
+      "reference_type": "official_program",
+      "role": "Operational-context lead describing local agri-resource centres, extension/advisory support, market intelligence, hubs, packing, grading and distribution.",
+      "limitations": [
+        "The page is not a current machine-readable inventory of all centres, facilities, prices, or their present capacity.",
+        "Any hub, service, price or market-demand record used in a model needs a fresh site/operator confirmation and source timestamp."
+      ]
+    },
+    {
+      "reference_id": "COJ-JOBURG-MARKET-COLD-ROOMS-2026",
+      "title": "Joburg Market cold-room commissioning report, 10 June 2026",
+      "url": "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Joburg-Market-unveils-new-cold-rooms-to-boost-food-security.aspx",
+      "reference_type": "official_program",
+      "role": "Shows that wholesale-market cold-chain capacity is an active infrastructure concern for the local food system and merits inclusion in postharvest/transport planning.",
+      "limitations": [
+        "Market-level commissioning does not prove capacity, access, operating status, price or suitability for an individual producer or neighborhood.",
+        "Storage and cold-chain capability must be measured and validated for each actual product flow."
+      ]
+    },
+    {
+      "reference_id": "COJ-URBAN-AGRI-CROP-LEAD-2020",
+      "title": "Johannesburg small-scale farming programme crop mix (2020 statement)",
+      "url": "https://joburg.org.za/media_/Pages/Media/Media%20Statements/2020%20Media%20Statements/December/Mayor-Makhubo-launches-a-R34-million-commercialization-and-mechanization-programme-for-small-scale-farmers.aspx",
+      "reference_type": "research_reference",
+      "role": "Dated local lead recording tomatoes, spinach, green pepper and cucumber among crop-farming cooperatives, supporting a candidate rather than selected crop cohort.",
+      "limitations": [
+        "This is a 2020 programme statement and must not be treated as current crop production, market demand, crop suitability or measured outcomes.",
+        "Crop selection must be rechecked against current growers, extension advice, seasonal climate, water, soil, affordability and postharvest data."
+      ]
+    }
+  ],
+  "candidate_crop_cohorts": [
+    {
+      "cohort_id": "joburg-vegetable-mix-candidate-v1",
+      "crop_names": [
+        "tomato",
+        "spinach",
+        "green pepper",
+        "cucumber"
+      ],
+      "selection_state": "candidate_not_selected",
+      "rationale": "A dated City of Johannesburg statement about a small-scale-farmer programme documented cooperatives dealing in tomatoes, spinach, green pepper and cucumber. These are locally grounded candidate crops to discuss with extension officers and current growers, not a claim that those crops dominate current production or are optimal under 2026 conditions.",
+      "review_requirements": [
+        "Confirm with current City/Gauteng extension officers and participating growers whether the crops, varieties and cultivation systems remain relevant to the chosen sites.",
+        "Obtain crop-specific calendar, thermal/frost sensitivity, water-demand parameters, soil needs and harvesting/market handling information from a suitable technical source.",
+        "Require local price/demand, nutrition priorities, water availability, soil assessment and postharvest feasibility before selecting crops for the baseline.",
+        "Check that the chosen version of the crop-water model supports each crop; use a separately qualified method for unsupported crops."
+      ],
+      "claim_limit": "This is a candidate cohort derived from a dated programme reference. It is not a recommendation, validated local crop calendar, proof of current demand or evidence of yield suitability."
     }
   ]
 }
