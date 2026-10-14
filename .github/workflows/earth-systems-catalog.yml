@@ -13,6 +13,7 @@ on:
       - "tests/test_chirps_monthly_plan.py"
       - "tests/test_wapor_catalog_inventory.py"
       - ".github/workflows/earth-systems-catalog.yml"
+      - ".github/workflows/earth-systems-source-snapshot.yml"
   push:
     branches: [main]
     paths:
@@ -26,6 +27,7 @@ on:
       - "tests/test_chirps_monthly_plan.py"
       - "tests/test_wapor_catalog_inventory.py"
       - ".github/workflows/earth-systems-catalog.yml"
+      - ".github/workflows/earth-systems-source-snapshot.yml"
 
 # Only the latest PR-head validation matters. Cancel stale queued/running
 # validations for the same PR instead of spending runners on superseded heads.
