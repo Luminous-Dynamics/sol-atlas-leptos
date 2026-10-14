@@ -154,10 +154,12 @@ pub fn InfoPanel() -> impl IntoView {
                                 {match evidence {
                                     Some(evidence) => row(
                                         "EROI metadata",
-                                        if evidence.is_qualified() {
-                                            "Shape valid; source not authenticated".to_string()
-                                        } else {
+                                        if !evidence.is_qualified() {
                                             "Incomplete or invalid — not comparable".to_string()
+                                        } else if eroi.is_some_and(|value| !evidence.supports_value(value)) {
+                                            "Value outside stated uncertainty interval — not comparable".to_string()
+                                        } else {
+                                            "Shape valid; source not authenticated".to_string()
                                         },
                                     ),
                                     None => row("EROI metadata", "Not supplied".to_string()),
