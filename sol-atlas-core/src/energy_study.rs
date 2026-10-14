@@ -321,6 +321,8 @@ impl EnergyStudyManifestV1 {
 
         Ok(to_lower_hex(&hasher.finalize()))
     }
+
+
 }
 
 impl EnergyEvidenceClass {
@@ -624,6 +626,21 @@ mod tests {
             "739b51d33d549bf6fd9057eb5fcbd947e76a8266"
         );
         assert_eq!(study.policy.git_revision, study.model.git_revision);
+    }
+
+
+    #[test]
+    fn case_digest_excludes_model_and_policy_but_binds_case_inputs() {
+        let json = include_str!("../../fixtures/energy-study/v1/cloud-evening-outage.json");
+        let mut study: EnergyStudyManifestV1 = serde_json::from_str(json).unwrap();
+        let original = study.case_digest_sha256().unwrap();
+
+        study.model.configuration_sha256 = "8".repeat(64);
+        study.policy.git_revision = "3".repeat(40);
+        assert_eq!(study.case_digest_sha256().unwrap(), original);
+
+        study.datasets[0].content_sha256 = "9".repeat(64);
+        assert_ne!(study.case_digest_sha256().unwrap(), original);
     }
 
     #[test]

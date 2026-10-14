@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "policy_id": "critical-first-service-v1",
+  "allocation": "critical_first",
+  "service_order": ["critical", "noncritical"]
+}
