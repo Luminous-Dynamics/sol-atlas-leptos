@@ -611,9 +611,20 @@
       "role": "Government-hosted polygon feature service attributed to the Municipal Demarcation Board; metadata identifies a Local Municipality layer, service currentVersion 10.91, native sourceSpatialReference WKID 4148, a per-feature Timestamp field, and isDataVersioned=false. It can help identify candidate Johannesburg metropolitan geometry, but must not be treated as a frozen historical boundary.",
       "limitations": [
         "The service metadata does not itself freeze the Johannesburg feature's exact effective date; inspect the selected feature's timestamp and authoritative demarcation period, then archive the exact geometry export and retrieval time.",
-        "The feature service reports WKID 4148 (Hartebeesthoek94 geographic). Preserve native CRS metadata and verify axis-order behavior from the actual exported file before reprojection; do not relabel coordinates as EPSG:4326 without a documented transformation.",
+        "The service reports WKID 4148, which the EPSG registry identifies as Hartebeesthoek94 geographic with latitude/longitude axis order. The service's extent is presented as x/y values resembling longitude/latitude, so verify actual exported-file axis mapping and known control locations before reprojection; do not silently relabel as EPSG:4326.",
         "The service reports isDataVersioned=false and does not support historic-moment queries, so later requests may return changed geometry. Keep the exact downloaded bytes and SHA-256 as the canonical analysis artifact.",
         "Review current service availability, attribution, usage terms and redistribution rights for the exported geometry before passing D0."
+      ]
+    },
+    {
+      "reference_id": "EPSG-4148-HARTEBEESTHOEK94",
+      "title": "EPSG:4148 — Hartebeesthoek94 geographic coordinate reference system",
+      "url": "https://epsg.io/4148",
+      "reference_type": "technical_guidance",
+      "role": "Authority registry reference for interpreting the datum, angular units and axis order of the municipal boundary discovery service's WKID 4148.",
+      "limitations": [
+        "The coordinate reference definition alone does not establish how a particular ArcGIS export encodes coordinate tuples; inspect the exported artifact and validate against known control locations.",
+        "Do not silently change a CRS label or treat datum transformation, axis order and coordinate reordering as interchangeable operations."
       ]
     }
   ],
