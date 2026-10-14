@@ -775,7 +775,9 @@
           "required": [
             "state",
             "required_evidence",
-            "claim_limit"
+            "claim_limit",
+            "evidence_refs",
+            "reviewed_by"
           ],
           "properties": {
             "state": {
@@ -798,8 +800,71 @@
             "claim_limit": {
               "type": "string",
               "minLength": 30
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 8,
+                "pattern": "^(https://|urn:|sha256:)"
+              },
+              "uniqueItems": true
+            },
+            "reviewed_by": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 3
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "assessed"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "evidence_refs": {
+                    "minItems": 1
+                  },
+                  "reviewed_by": {
+                    "type": "string",
+                    "minLength": 3
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "not_assessed"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "evidence_refs": {
+                    "maxItems": 0
+                  },
+                  "reviewed_by": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          ]
         },
         "soil_condition_and_contamination": {
           "type": "object",
@@ -807,7 +872,9 @@
           "required": [
             "state",
             "required_evidence",
-            "claim_limit"
+            "claim_limit",
+            "evidence_refs",
+            "reviewed_by"
           ],
           "properties": {
             "state": {
@@ -830,8 +897,71 @@
             "claim_limit": {
               "type": "string",
               "minLength": 30
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 8,
+                "pattern": "^(https://|urn:|sha256:)"
+              },
+              "uniqueItems": true
+            },
+            "reviewed_by": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 3
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "assessed"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "evidence_refs": {
+                    "minItems": 1
+                  },
+                  "reviewed_by": {
+                    "type": "string",
+                    "minLength": 3
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "not_assessed"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "evidence_refs": {
+                    "maxItems": 0
+                  },
+                  "reviewed_by": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          ]
         },
         "land_access_and_permission": {
           "type": "object",
@@ -839,7 +969,9 @@
           "required": [
             "state",
             "required_evidence",
-            "claim_limit"
+            "claim_limit",
+            "evidence_refs",
+            "reviewed_by"
           ],
           "properties": {
             "state": {
@@ -862,8 +994,71 @@
             "claim_limit": {
               "type": "string",
               "minLength": 30
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 8,
+                "pattern": "^(https://|urn:|sha256:)"
+              },
+              "uniqueItems": true
+            },
+            "reviewed_by": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 3
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "assessed"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "evidence_refs": {
+                    "minItems": 1
+                  },
+                  "reviewed_by": {
+                    "type": "string",
+                    "minLength": 3
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "not_assessed"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "evidence_refs": {
+                    "maxItems": 0
+                  },
+                  "reviewed_by": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          ]
         },
         "postharvest_storage_energy_and_transport": {
           "type": "object",
@@ -871,7 +1066,9 @@
           "required": [
             "state",
             "required_evidence",
-            "claim_limit"
+            "claim_limit",
+            "evidence_refs",
+            "reviewed_by"
           ],
           "properties": {
             "state": {
@@ -894,8 +1091,71 @@
             "claim_limit": {
               "type": "string",
               "minLength": 30
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 8,
+                "pattern": "^(https://|urn:|sha256:)"
+              },
+              "uniqueItems": true
+            },
+            "reviewed_by": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 3
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "assessed"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "evidence_refs": {
+                    "minItems": 1
+                  },
+                  "reviewed_by": {
+                    "type": "string",
+                    "minLength": 3
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "not_assessed"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "evidence_refs": {
+                    "maxItems": 0
+                  },
+                  "reviewed_by": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          ]
         },
         "market_nutrition_and_affordability": {
           "type": "object",
@@ -903,7 +1163,9 @@
           "required": [
             "state",
             "required_evidence",
-            "claim_limit"
+            "claim_limit",
+            "evidence_refs",
+            "reviewed_by"
           ],
           "properties": {
             "state": {
@@ -926,8 +1188,71 @@
             "claim_limit": {
               "type": "string",
               "minLength": 30
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 8,
+                "pattern": "^(https://|urn:|sha256:)"
+              },
+              "uniqueItems": true
+            },
+            "reviewed_by": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 3
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "assessed"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "evidence_refs": {
+                    "minItems": 1
+                  },
+                  "reviewed_by": {
+                    "type": "string",
+                    "minLength": 3
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "not_assessed"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "evidence_refs": {
+                    "maxItems": 0
+                  },
+                  "reviewed_by": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          ]
         }
       }
     },
