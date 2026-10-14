@@ -578,7 +578,7 @@ mod tests {
     fn recorded_filter_matches_request_and_normalized_row() {
         let original = String::from_utf8(body()).unwrap();
         let bytes = original
-            .replace("\\\"REF_AREA\\\":\\\"AAA\\\"", "\\\"REF_AREA\\\":\\\"ZAF\\\"")
+            .replace("\"REF_AREA\":\"AAA\"", "\"REF_AREA\":\"ZAF\"")
             .into_bytes();
         let url = format!("{BASE_URL}&REF_AREA=ZAF");
         let evidence = receipt(&bytes, &url, 200);
