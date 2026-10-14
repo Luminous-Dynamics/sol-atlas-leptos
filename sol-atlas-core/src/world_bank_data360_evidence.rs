@@ -21,6 +21,8 @@ use std::fmt;
 
 pub const DATA360_EVIDENCE_SCHEMA_VERSION: u16 = 1;
 const DATA360_DATA_URL: &str = "https://data360api.worldbank.org/data360/data";
+pub const DATA360_BODY_CAPTURE_LAYER: &str =
+    "http_client_entity_body_after_content_decoding/v1";
 const DOCUMENTED_QUERY_KEYS: [&str; 16] = [
     "DATABASE_ID",
     "INDICATOR",
@@ -46,10 +48,14 @@ pub struct Data360AcquisitionEvidence {
     pub schema_version: u16,
     pub request_method: String,
     pub request_url: String,
+    /// Final URL reported by the HTTP client after redirect handling.
+    pub response_url: String,
     pub response_status: u16,
     /// Header names are normalized to lowercase; values are trimmed.
     pub response_headers: BTreeMap<String, String>,
     pub retrieved_at: String,
+    /// Identifies which byte representation the digest/length describe.
+    pub body_capture_layer: String,
     pub body_len_bytes: usize,
     /// Lowercase 64-character SHA-256 of the exact captured response bytes.
     pub body_sha256: String,
@@ -111,6 +117,7 @@ impl Data360AcquisitionEvidence {
     pub fn capture(
         request_method: impl Into<String>,
         request_url: impl Into<String>,
+        response_url: impl Into<String>,
         response_status: u16,
         response_headers: BTreeMap<String, String>,
         retrieved_at: impl Into<String>,
@@ -137,9 +144,11 @@ impl Data360AcquisitionEvidence {
             schema_version: DATA360_EVIDENCE_SCHEMA_VERSION,
             request_method: request_method.into(),
             request_url: request_url.into(),
+            response_url: response_url.into(),
             response_status,
             response_headers: normalized_headers,
             retrieved_at: retrieved_at.into(),
+            body_capture_layer: DATA360_BODY_CAPTURE_LAYER.to_string(),
             body_len_bytes: response_body.len(),
             body_sha256: sha256_hex(response_body),
         })
@@ -161,6 +170,17 @@ impl Data360AcquisitionEvidence {
                 "unsupported evidence schema version {}; expected {}",
                 self.schema_version, DATA360_EVIDENCE_SCHEMA_VERSION
             )));
+        }
+        if self.body_capture_layer != DATA360_BODY_CAPTURE_LAYER {
+            return Err(Data360EvidenceError::InvalidResponse(format!(
+                "unsupported body capture layer {:?}",
+                self.body_capture_layer
+            )));
+        }
+        if self.request_url != self.response_url {
+            return Err(Data360EvidenceError::InvalidRequest(
+                "redirected response URLs are not qualified; request_url and response_url must match".to_string(),
+            ));
         }
         if self.request_method != "GET" {
             return Err(Data360EvidenceError::InvalidRequest(
@@ -198,17 +218,29 @@ impl Data360AcquisitionEvidence {
                 "expected application/json, received {content_type:?}"
             )));
         }
-        if let Some(length) = self.response_headers.get("content-length") {
-            let parsed_length = length.parse::<usize>().map_err(|_| {
-                Data360EvidenceError::InvalidResponse(
-                    "content-length must be a non-negative integer".to_string(),
-                )
-            })?;
-            if parsed_length != response_body.len() {
-                return Err(Data360EvidenceError::BodyLengthMismatch {
-                    recorded: parsed_length,
-                    actual: response_body.len(),
-                });
+        // Content-Length describes the encoded entity when Content-Encoding
+        // is present. This receipt hashes the HTTP client's post-decoding entity
+        // bytes, so compare lengths only when the header describes those bytes.
+        let content_encoding = self
+            .response_headers
+            .get("content-encoding")
+            .map(|value| value.trim().to_ascii_lowercase());
+        let length_applies_to_captured_bytes = content_encoding
+            .as_deref()
+            .is_none_or(|value| value.is_empty() || value == "identity");
+        if length_applies_to_captured_bytes {
+            if let Some(length) = self.response_headers.get("content-length") {
+                let parsed_length = length.parse::<usize>().map_err(|_| {
+                    Data360EvidenceError::InvalidResponse(
+                        "content-length must be a non-negative integer".to_string(),
+                    )
+                })?;
+                if parsed_length != response_body.len() {
+                    return Err(Data360EvidenceError::BodyLengthMismatch {
+                        recorded: parsed_length,
+                        actual: response_body.len(),
+                    });
+                }
             }
         }
         if self.body_len_bytes != response_body.len() {
@@ -442,8 +474,9 @@ mod tests {
             "application/json; charset=utf-8".to_string(),
         );
         headers.insert("Content-Length".to_string(), bytes.len().to_string());
-        Data360AcquisitionEvidence::capture("GET", url, status, headers, RETRIEVED_AT, bytes)
-            .unwrap()
+        Data360AcquisitionEvidence::capture(
+            "GET", url, url, status, headers, RETRIEVED_AT, bytes
+        ).unwrap()
     }
 
     #[test]
@@ -601,6 +634,29 @@ mod tests {
             Err(Data360EvidenceError::InvalidRequest(message))
                 if message.contains("skip query parameter")
         ));
+    }
+
+    #[test]
+    fn redirected_response_url_is_not_qualified() {
+        let bytes = body();
+        let mut evidence = receipt(&bytes, BASE_URL, 200);
+        evidence.response_url = "https://example.invalid/redirected-data".to_string();
+        let ctx = context(&evidence.page_snapshot_id());
+        assert!(matches!(
+            evidence.validate(&bytes, &ctx),
+            Err(Data360EvidenceError::InvalidRequest(message))
+                if message.contains("redirected response URLs")
+        ));
+    }
+
+    #[test]
+    fn encoded_content_length_is_not_compared_to_decoded_entity_bytes() {
+        let bytes = body();
+        let mut evidence = receipt(&bytes, BASE_URL, 200);
+        evidence.response_headers.insert("content-encoding".to_string(), "gzip".to_string());
+        evidence.response_headers.insert("content-length".to_string(), "999".to_string());
+        let ctx = context(&evidence.page_snapshot_id());
+        assert!(evidence.validate(&bytes, &ctx).is_ok());
     }
 
     #[test]
