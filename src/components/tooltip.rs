@@ -55,15 +55,16 @@ pub fn Tooltip() -> impl IntoView {
                 )
             }
             Some(HoverInfo::FossilDeposit(d)) => {
-                let eroi_str = sol_atlas_core::economics::compute_eroi(d)
-                    .map(|e| {
+                let eroi_str = match sol_atlas_core::economics::compute_eroi(d) {
+                    Some(value) if sol_atlas_core::economics::qualified_eroi(d).is_some() => {
                         format!(
-                            " | EROI {:.0}:1 ({})",
-                            e,
-                            sol_atlas_core::economics::EroiTier::from_eroi(e).label()
+                            " | reported EROI {:.1}:1 (metadata-qualified; source unverified)",
+                            value
                         )
-                    })
-                    .unwrap_or_default();
+                    }
+                    Some(value) => format!(" | reported EROI {:.1}:1 (unqualified)", value),
+                    None => " | physical EROI unknown".to_string(),
+                };
                 format!(
                     "{} ({:?})\n{:.0} Mboe reserves | {} | {}{}",
                     d.name, d.fuel_type, d.proven_reserves_mboe, d.status, d.country, eroi_str

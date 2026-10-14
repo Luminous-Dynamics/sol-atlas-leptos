@@ -33,28 +33,39 @@ pub fn reference_price_per_boe(fuel_type: &FuelType) -> f64 {
     }
 }
 
-// ─── EROI thresholds ────────────────────────────────────────────
+// ─── Legacy EROI thresholds ─────────────────────────────────────
 
-/// Full modern civilization with arts & culture (Hall & Lambert).
+/// Legacy numeric cutoff retained for API compatibility. This does not establish a universal energy boundary.
+#[deprecated(note = "Legacy EROI threshold; use methodology-qualified evidence instead.")]
 pub const EROI_CIVILIZATION: f64 = 12.0;
-/// Basic sustainability — transport, healthcare, education.
+/// Legacy numeric cutoff retained for API compatibility. This does not establish a universal energy boundary.
+#[deprecated(note = "Legacy EROI threshold; use methodology-qualified evidence instead.")]
 pub const EROI_SUSTAINABILITY: f64 = 5.0;
-/// Bare minimum — enough to drive a truck.
+/// Legacy numeric cutoff retained for API compatibility. This does not establish a universal energy boundary.
+#[deprecated(note = "Legacy EROI threshold; use methodology-qualified evidence instead.")]
 pub const EROI_MINIMUM: f64 = 3.0;
 
+/// Legacy value-only bands kept for compatibility. These bands do not encode
+/// primary/final/useful energy stage, included inputs, source quality, or model version.
+/// The variant names must not be interpreted as findings about societal viability.
+#[deprecated(
+    note = "Legacy EROI classification; use qualified EroiEvidence rather than numeric tiers."
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EroiTier {
-    /// EROI > 12: can sustain modern civilization
+    /// Legacy highest numeric band (ratio >= 12).
     Civilization,
-    /// EROI 5-12: basic sustainability
+    /// Legacy 5-to-12 numeric band.
     Sustainability,
-    /// EROI 3-5: marginal, declining returns
+    /// Legacy 3-to-5 numeric band.
     Marginal,
-    /// EROI < 3: thermodynamically unviable
+    /// Legacy lowest numeric band (ratio < 3).
     Unviable,
 }
 
+#[allow(deprecated)]
 impl EroiTier {
+    /// Classify a number with the legacy cutoffs only; no boundary or source is considered.
     pub fn from_eroi(eroi: f64) -> Self {
         if eroi >= EROI_CIVILIZATION {
             Self::Civilization
@@ -67,6 +78,7 @@ impl EroiTier {
         }
     }
 
+    /// Legacy presentation label, not a conclusion about energy-system viability.
     pub fn label(&self) -> &'static str {
         match self {
             Self::Civilization => "Civilization",
@@ -88,7 +100,31 @@ pub fn compute_eroi(deposit: &FossilDeposit) -> Option<f64> {
     deposit.eroi.filter(|eroi| eroi.is_finite() && *eroi > 0.0)
 }
 
-/// EROI-based color for visualization: green → amber → red → dark red.
+/// Return a numeric EROI only when its source and system-boundary metadata
+/// are complete enough for like-boundary comparison. The raw reported value
+/// remains available through compute_eroi but must not receive a tier by default.
+pub fn qualified_eroi(deposit: &FossilDeposit) -> Option<f64> {
+    let ratio = compute_eroi(deposit)?;
+    let evidence = deposit.eroi_evidence.as_ref()?;
+    evidence.supports_value(ratio).then_some(ratio)
+}
+
+/// Whether two supplied EROI values may be compared without a conversion model.
+pub fn can_compare_eroi(left: &FossilDeposit, right: &FossilDeposit) -> bool {
+    if qualified_eroi(left).is_none() || qualified_eroi(right).is_none() {
+        return false;
+    }
+    match (&left.eroi_evidence, &right.eroi_evidence) {
+        (Some(left), Some(right)) => left.compatible_with(right),
+        _ => false,
+    }
+}
+
+/// Legacy numerical colors retained for API compatibility only. They do not
+/// encode source qualification or a versioned system boundary and are not used
+/// by the globe or detail-panel classification.
+#[allow(deprecated)]
+#[deprecated(note = "Legacy EROI colors are boundary-agnostic; encode evidence/status instead.")]
 pub fn eroi_color(eroi: f64) -> [f32; 3] {
     match EroiTier::from_eroi(eroi) {
         EroiTier::Civilization => [0.06, 0.73, 0.51], // teal-green
@@ -233,6 +269,7 @@ pub fn compute_irr(initial: f64, cashflows: &[f64]) -> Option<f64> {
 }
 
 #[cfg(test)]
+#[allow(deprecated)]
 mod tests {
     use super::*;
 
@@ -250,6 +287,7 @@ mod tests {
             extraction_cost_per_boe: Some(10.0),
             decommission_cost_m: None,
             eroi: None,
+            eroi_evidence: None,
         }
     }
 
@@ -285,6 +323,7 @@ mod tests {
             extraction_cost_per_boe: Some(55.0), // expensive extraction
             decommission_cost_m: None,
             eroi: None,
+            eroi_evidence: None,
         };
         let econ = compute_economics(&deposit).unwrap();
         // Revenue: 50 * $65 = $3,250M
@@ -358,11 +397,90 @@ mod tests {
     }
 
     #[test]
-    fn test_eroi_tier_classification() {
+    fn test_legacy_eroi_numeric_bands_remain_stable() {
         assert_eq!(EroiTier::from_eroi(25.0), EroiTier::Civilization);
         assert_eq!(EroiTier::from_eroi(7.0), EroiTier::Sustainability);
         assert_eq!(EroiTier::from_eroi(4.0), EroiTier::Marginal);
         assert_eq!(EroiTier::from_eroi(2.0), EroiTier::Unviable);
+    }
+
+    fn qualified_evidence(stage: crate::types::EroiStage) -> crate::types::EroiEvidence {
+        crate::types::EroiEvidence {
+            stage,
+            output_definition: "energy carrier delivered".to_string(),
+            input_definition: "direct and indirect energy invested".to_string(),
+            geographic_scope: "country-level".to_string(),
+            period_start_year: 2018,
+            period_end_year: 2020,
+            source_citation: "Example Study, DOI:10.0000/example".to_string(),
+            methodology_id: "eroi-boundary-accounting".to_string(),
+            methodology_version: "1.0.0".to_string(),
+            publication_date: Some("2024-02-29".to_string()),
+            basis: crate::types::EroiEvidenceBasis::Literature,
+            uncertainty: None,
+        }
+    }
+
+    #[test]
+    fn eroi_qualification_requires_complete_boundary_and_source_evidence() {
+        let mut deposit = ghawar();
+        deposit.eroi = Some(25.0);
+        assert_eq!(compute_eroi(&deposit), Some(25.0));
+        assert_eq!(qualified_eroi(&deposit), None);
+
+        deposit.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
+        assert_eq!(qualified_eroi(&deposit), Some(25.0));
+
+        deposit.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Useful));
+        assert_eq!(qualified_eroi(&deposit), Some(25.0));
+
+        deposit.eroi_evidence.as_mut().unwrap().uncertainty =
+            Some(crate::types::EroiUncertaintyRange {
+                lower: 4.0,
+                upper: 6.0,
+                interpretation: Some(crate::types::EroiUncertaintyKind::SensitivityRange),
+                probability_level: None,
+            });
+        assert_eq!(qualified_eroi(&deposit), None);
+
+        deposit
+            .eroi_evidence
+            .as_mut()
+            .unwrap()
+            .source_citation
+            .clear();
+        assert_eq!(qualified_eroi(&deposit), None);
+    }
+
+    #[test]
+    fn comparisons_require_matching_stage_definitions_period_basis_and_method() {
+        let mut left = ghawar();
+        let mut right = ghawar();
+        left.eroi = Some(25.0);
+        right.eroi = Some(20.0);
+        left.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
+        right.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Final));
+        assert!(!can_compare_eroi(&left, &right));
+
+        right.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
+        assert!(can_compare_eroi(&left, &right));
+
+        right.eroi_evidence.as_mut().unwrap().period_end_year = 2021;
+        assert!(!can_compare_eroi(&left, &right));
+
+        right.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
+        right.eroi_evidence.as_mut().unwrap().uncertainty =
+            Some(crate::types::EroiUncertaintyRange {
+                lower: 4.0,
+                upper: 6.0,
+                interpretation: Some(crate::types::EroiUncertaintyKind::SensitivityRange),
+                probability_level: None,
+            });
+        assert!(!can_compare_eroi(&left, &right));
+
+        right.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
+        right.eroi_evidence.as_mut().unwrap().methodology_version = "2.0.0".to_string();
+        assert!(!can_compare_eroi(&left, &right));
     }
 
     #[test]
