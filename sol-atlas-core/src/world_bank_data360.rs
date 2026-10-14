@@ -1101,7 +1101,10 @@ mod tests {
     #[test]
     fn undocumented_is_latest_data_filter_is_rejected() {
         let mut query = context(0, 10, "undocumented-latest-filter");
-        query.query.filters.insert("isLatestData".to_string(), "true".to_string());
+        query
+            .query
+            .filters
+            .insert("isLatestData".to_string(), "true".to_string());
         assert!(matches!(
             parse_data360_page(&response(vec![], 0), &query),
             Err(Data360PageError::InvalidContext(_))

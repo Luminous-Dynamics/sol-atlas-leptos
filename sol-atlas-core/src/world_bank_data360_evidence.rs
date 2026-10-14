@@ -23,8 +23,7 @@ use std::fmt;
 
 pub const DATA360_EVIDENCE_SCHEMA_VERSION: u16 = 1;
 const DATA360_DATA_URL: &str = "https://data360api.worldbank.org/data360/data";
-pub const DATA360_BODY_CAPTURE_LAYER: &str =
-    "http_client_entity_body_after_content_decoding/v1";
+pub const DATA360_BODY_CAPTURE_LAYER: &str = "http_client_entity_body_after_content_decoding/v1";
 const DOCUMENTED_QUERY_KEYS: [&str; 16] = [
     "DATABASE_ID",
     "INDICATOR",
@@ -476,9 +475,8 @@ mod tests {
             "application/json; charset=utf-8".to_string(),
         );
         headers.insert("Content-Length".to_string(), bytes.len().to_string());
-        Data360AcquisitionEvidence::capture(
-            "GET", url, url, status, headers, RETRIEVED_AT, bytes
-        ).unwrap()
+        Data360AcquisitionEvidence::capture("GET", url, url, status, headers, RETRIEVED_AT, bytes)
+            .unwrap()
     }
 
     #[test]
@@ -618,7 +616,9 @@ mod tests {
         let url = format!("{BASE_URL}&REF_AREA=ZAF");
         let evidence = receipt(&bytes, &url, 200);
         let mut ctx = context(&evidence.page_snapshot_id());
-        ctx.query.filters.insert("REF_AREA".to_string(), "ZAF".to_string());
+        ctx.query
+            .filters
+            .insert("REF_AREA".to_string(), "ZAF".to_string());
         let parsed = parse_data360_page_with_evidence(&bytes, &ctx, &evidence).unwrap();
         assert_eq!(parsed.records.len(), 1);
         assert_eq!(parsed.records[0].reference_area, "ZAF");
@@ -655,8 +655,12 @@ mod tests {
     fn encoded_content_length_is_not_compared_to_decoded_entity_bytes() {
         let bytes = body();
         let mut evidence = receipt(&bytes, BASE_URL, 200);
-        evidence.response_headers.insert("content-encoding".to_string(), "gzip".to_string());
-        evidence.response_headers.insert("content-length".to_string(), "999".to_string());
+        evidence
+            .response_headers
+            .insert("content-encoding".to_string(), "gzip".to_string());
+        evidence
+            .response_headers
+            .insert("content-length".to_string(), "999".to_string());
         let ctx = context(&evidence.page_snapshot_id());
         assert!(evidence.validate(&bytes, &ctx).is_ok());
     }
