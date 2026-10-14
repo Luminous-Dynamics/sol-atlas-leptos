@@ -23,7 +23,8 @@
     "claim_ceiling",
     "evidence_state",
     "site_constraints",
-    "context_references"
+    "context_references",
+    "candidate_crop_cohorts"
   ],
   "properties": {
     "profile_id": {
@@ -1306,6 +1307,61 @@
               "minLength": 20
             },
             "uniqueItems": true
+          }
+        }
+      }
+    },
+    "candidate_crop_cohorts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cohort_id",
+          "crop_names",
+          "selection_state",
+          "rationale",
+          "review_requirements",
+          "claim_limit"
+        ],
+        "properties": {
+          "cohort_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "crop_names": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 2
+            },
+            "uniqueItems": true
+          },
+          "selection_state": {
+            "enum": [
+              "candidate_not_selected",
+              "selected_for_baseline",
+              "rejected_with_reason"
+            ]
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 40
+          },
+          "review_requirements": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "string",
+              "minLength": 12
+            },
+            "uniqueItems": true
+          },
+          "claim_limit": {
+            "type": "string",
+            "minLength": 30
           }
         }
       }
