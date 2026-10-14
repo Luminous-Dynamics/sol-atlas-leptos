@@ -300,10 +300,10 @@ impl PhysicsRunManifest {
         if self.validate().is_err() {
             return EvidenceReadiness::Exploratory;
         }
-        let reproducible_inputs = is_sha256(&self.inputs_sha256)
+        let hashes_recorded = is_sha256(&self.inputs_sha256)
             && !self.outputs_sha256.is_empty()
             && self.outputs_sha256.iter().all(|hash| is_sha256(hash));
-        if !reproducible_inputs {
+        if !hashes_recorded {
             return EvidenceReadiness::Exploratory;
         }
 
@@ -313,7 +313,7 @@ impl PhysicsRunManifest {
             .energy_balance
             .is_some_and(|balance| balance.passes_declared_tolerance())
         {
-            return EvidenceReadiness::Reproducible;
+            return EvidenceReadiness::ProvenanceRecorded;
         }
 
         let core_gates = [
@@ -349,7 +349,7 @@ impl PhysicsRunManifest {
 pub enum EvidenceReadiness {
     /// Manifest invalid/incomplete, or no reproducible inputs/outputs described.
     Exploratory,
-    /// Provenance and artifact hashes present, but core exact-head gates are incomplete.
+    /// Provenance and hash strings are recorded, but matching artifacts have not been replayed or verified here.
     Reproducible,
     /// Input, single-physics reference, and energy-conservation gates passed at exact head.
     NumericallyVerified,
@@ -434,7 +434,7 @@ mod tests {
     }
 
     #[test]
-    fn valid_fixture_is_reproducible_but_not_claimed_verified_without_gates() {
+    fn valid_fixture_records_provenance_without_claiming_verification() {
         let run = fixture();
         assert_eq!(run.validate(), Ok(()));
         assert_eq!(run.readiness(), EvidenceReadiness::Reproducible);
