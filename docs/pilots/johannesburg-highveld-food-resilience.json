@@ -538,6 +538,39 @@
         "The referenced guideline is dated 1996; verify the currently authoritative edition, subsequent requirements and activity-specific applicability with the Department of Water and Sanitation or a qualified local water specialist.",
         "Water outside an ideal range is not automatically unusable and water within a target range does not certify food safety; interpret chemistry, crop, soil, irrigation method and microbiological risk together."
       ]
+    },
+    {
+      "reference_id": "OGC-STAC-1-1",
+      "title": "OGC SpatioTemporal Asset Catalog (STAC) Community Standard 1.1.0",
+      "url": "https://www.ogc.org/standards/stac/",
+      "reference_type": "technical_guidance",
+      "role": "Recommended discovery/metadata convention for geospatial assets, including identity, spatial/temporal extent, asset links and metadata extension points.",
+      "limitations": [
+        "STAC does not make a source scientifically valid or guarantee that a provider publishes a STAC catalog; use a documented adapter for non-STAC sources.",
+        "Metadata fields and extensions must still be checked for completeness, units, rights, native support and source lineage."
+      ]
+    },
+    {
+      "reference_id": "OGC-COG-1-0",
+      "title": "OGC Cloud Optimized GeoTIFF Standard 1.0",
+      "url": "https://www.ogc.org/standards/ogc-cloud-optimized-geotiff/",
+      "reference_type": "technical_guidance",
+      "role": "Candidate delivery convention for authorized raster assets that benefit from tiled access, overviews, georeferencing and HTTP range requests.",
+      "limitations": [
+        "COG is a delivery/access format, not evidence of raster accuracy, resolution, completeness or model validation.",
+        "Do not repackage or redistribute an upstream asset unless its exact rights permit it, and preserve the original artifact and provenance."
+      ]
+    },
+    {
+      "reference_id": "CF-NETCDF-CONVENTIONS",
+      "title": "Climate and Forecast (CF) Metadata Conventions for NetCDF",
+      "url": "https://cfconventions.org/cf-conventions/cf-conventions.html",
+      "reference_type": "technical_guidance",
+      "role": "Metadata conventions for climate and forecast variables, including standard names, units, calendars, coordinate systems, cell boundaries and missing-data semantics.",
+      "limitations": [
+        "CF conformance does not prove the data are correct or suitable for a specific crop/site; validate product provenance and the relevant variables.",
+        "Do not discard native time bounds, calendars, cell methods, scale/offset or missing-value information during conversion."
+      ]
     }
   ],
   "candidate_crop_cohorts": [
