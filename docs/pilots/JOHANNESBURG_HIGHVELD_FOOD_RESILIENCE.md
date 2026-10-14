@@ -27,6 +27,7 @@ Reference leads:
 - City urban-agriculture infrastructure project: https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg%E2%80%99s-new-urban-agriculture-project-to-boost-community-farming.aspx
 - Upper Jukskei eco-filter and water-quality monitoring: https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Joburg-launches-innovative-eco-filter-system-to-address-pollution-in-Jukskei-River.aspx
 - National Department of Health food-control regulation index: https://www.health.gov.za/food-control-regulations/
+- Department of Water and Sanitation, South African Water Quality Guidelines, Volume 4: Agricultural Use—Irrigation (second edition, 1996; verify current applicability): https://www.dws.gov.za/iwqs/wq_guide/edited/Pol_saWQguideFRESHIrrigationvol4.pdf
 
 Accordingly, the profile separates six site-level assessments from climate suitability:
 
@@ -128,6 +129,19 @@ References:
 - https://www.fao.org/aquacrop/overview/en
 - https://www.fao.org/aquacrop/software/
 - https://www.fao.org/4/i2800e/i2800e00.htm
+
+## What counts as gate evidence
+
+The gate status is not the evidence artifact. A `passed` gate must have at least one auditable evidence reference and an independent reviewer identity/role; a `not_started` gate must have neither. A `blocked` gate must record a specific reason.
+
+- **D0:** source-authoritative study-boundary artifact, exact SHA-256, coordinate reference system, privacy/location-precision rule and boundary review.
+- **D1:** source manifest with selected product IDs, byte digests, terms/access decisions, units, temporal/spatial support and upstream overlap.
+- **D2:** reproducible baseline output, selected crop cohort, model/configuration digest and data coverage report.
+- **D3:** independently held-out evaluation report, split manifest, metrics, uncertainty and source-overlap analysis.
+- **D4:** dated local agronomist, soil/water specialist, grower or other relevant expert review artifact with scope and limitations.
+- **D5:** reviewed decision-support authorization record naming the accountable operator, permitted use, confidence/uncertainty limits and stop conditions.
+
+References use stable HTTPS/URN/SHA-256-style identifiers. Hashes identify bytes, not correctness; reviewers must be able to retrieve or inspect the underlying artifacts and verify their provenance. The current validator checks the structure and gate-order invariants only; it does not claim that a referenced URL resolves or that an artifact's content is scientifically valid.
 
 ## Evaluation plan
 
