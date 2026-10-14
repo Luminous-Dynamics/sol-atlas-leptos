@@ -141,9 +141,21 @@ pub enum CapacityUnitV1 {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CapacityBasisV1 {
+    Concurrent,
+    PerHour,
+    PerShift,
+    PerDay,
+    Total,
+    Unspecified,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CapacityValueV1 {
     pub amount: u64,
     pub unit: CapacityUnitV1,
+    /// Never infer a rate period or concurrent-use meaning from the quantity unit.
+    pub basis: CapacityBasisV1,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -323,6 +335,7 @@ pub enum TransportProjectionError {
     InvalidCapacity,
     InvalidContactWindow,
     InvalidTimeProfile,
+    InvalidMilestoneTimeMeaning,
     SelfReferentialDependency,
 }
 
@@ -430,6 +443,9 @@ pub fn validate_transport_projection(
         {
             return Err(TransportProjectionError::MissingIdentityOrSourceReference);
         }
+        if record.time_profile_id != projection.time_profile_id {
+            return Err(TransportProjectionError::InvalidTimeProfile);
+        }
         if record
             .content_sha256
             .as_deref()
@@ -508,6 +524,19 @@ pub fn validate_transport_projection(
         }
         if milestone.time_profile_id != projection.time_profile_id {
             return Err(TransportProjectionError::InvalidTimeProfile);
+        }
+        let expected_time_meaning = match milestone.milestone {
+            ShipmentMilestoneKindV1::Planned => EventTimeMeaningV1::Planned,
+            ShipmentMilestoneKindV1::ForecastArrival => EventTimeMeaningV1::Forecast,
+            ShipmentMilestoneKindV1::ReservationProposed
+            | ShipmentMilestoneKindV1::ReservationAccepted
+            | ShipmentMilestoneKindV1::Dispatched
+            | ShipmentMilestoneKindV1::ArrivalReported
+            | ShipmentMilestoneKindV1::DeliveryConfirmed
+            | ShipmentMilestoneKindV1::Cancelled => EventTimeMeaningV1::Occurred,
+        };
+        if milestone.time_meaning != expected_time_meaning {
+            return Err(TransportProjectionError::InvalidMilestoneTimeMeaning);
         }
         validate_evidence_refs(&milestone.evidence_ids, &evidence_ids)?;
     }
@@ -711,6 +740,7 @@ pub fn synthetic_freight_corridor_v1() -> TransportProjectionV1 {
                 capacity: Some(CapacityValueV1 {
                     amount: 24,
                     unit: CapacityUnitV1::Shipments,
+                    basis: CapacityBasisV1::Unspecified,
                 }),
                 evidence_ids: baseline_ref.clone(),
             },
@@ -728,6 +758,7 @@ pub fn synthetic_freight_corridor_v1() -> TransportProjectionV1 {
                 capacity: Some(CapacityValueV1 {
                     amount: 4,
                     unit: CapacityUnitV1::Shipments,
+                    basis: CapacityBasisV1::Unspecified,
                 }),
                 evidence_ids: baseline_ref.clone(),
             },
@@ -761,6 +792,7 @@ pub fn synthetic_freight_corridor_v1() -> TransportProjectionV1 {
                 capacity: Some(CapacityValueV1 {
                     amount: 4,
                     unit: CapacityUnitV1::Shipments,
+                    basis: CapacityBasisV1::Unspecified,
                 }),
                 evidence_ids: baseline_ref.clone(),
             },
@@ -777,6 +809,7 @@ pub fn synthetic_freight_corridor_v1() -> TransportProjectionV1 {
                 capacity: Some(CapacityValueV1 {
                     amount: 24,
                     unit: CapacityUnitV1::Shipments,
+                    basis: CapacityBasisV1::Unspecified,
                 }),
                 evidence_ids: baseline_ref.clone(),
             },
