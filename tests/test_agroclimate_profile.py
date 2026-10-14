@@ -430,11 +430,37 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["geography"]["boundary_state"] = "verified_and_frozen"
         self.assertTrue(any("D2=passed requires at least one crop cohort selected" in error for error in self.errors(doc)))
 
+    def test_D2_requires_a_frozen_model_choice(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["validation"]["gates"]["D0"] = "passed"
+        doc["validation"]["gates"]["D1"] = "passed"
+        doc["validation"]["gates"]["D2"] = "passed"
+        doc["evidence_state"]["source_artifacts_acquired"] = True
+        doc["evidence_state"]["baseline_computed"] = True
+        doc["candidate_crop_cohorts"][0]["selection_state"] = "selected_for_baseline"
+        self.assertTrue(any("D2=passed requires model_selection_state to freeze" in error for error in self.errors(doc)))
+
     def test_D3_cannot_pass_before_independent_validation(self):
         doc = copy.deepcopy(self.profile)
         doc["status"] = "data_readiness"
         doc["validation"]["gates"]["D3"] = "passed"
         self.assertTrue(any("D3=passed requires independent_validation_complete=true" in error for error in self.errors(doc)))
+
+    def test_D3_requires_calibrated_model_state(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["validation"]["gates"]["D0"] = "passed"
+        doc["validation"]["gates"]["D1"] = "passed"
+        doc["validation"]["gates"]["D2"] = "passed"
+        doc["validation"]["gates"]["D3"] = "passed"
+        doc["evidence_state"]["source_artifacts_acquired"] = True
+        doc["evidence_state"]["baseline_computed"] = True
+        doc["evidence_state"]["independent_validation_complete"] = True
+        doc["candidate_crop_cohorts"][0]["selection_state"] = "selected_for_baseline"
+        doc["model_architecture"]["model_selection_state"] = "selected_for_baseline"
+        errors = self.errors(doc)
+        self.assertTrue(any("D3=passed requires model_selection_state=selected_and_calibrated" in error for error in errors))
 
     def test_D4_cannot_pass_before_expert_review(self):
         doc = copy.deepcopy(self.profile)
