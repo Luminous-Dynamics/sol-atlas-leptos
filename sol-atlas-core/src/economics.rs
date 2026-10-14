@@ -33,28 +33,32 @@ pub fn reference_price_per_boe(fuel_type: &FuelType) -> f64 {
     }
 }
 
-// ─── EROI thresholds ────────────────────────────────────────────
+// ─── Legacy EROI thresholds ─────────────────────────────────────
 
-/// Legacy numeric cutoff retained for API compatibility; not a validated universal boundary.
+/// Legacy numeric cutoff retained for API compatibility. This does not establish a universal energy boundary.
 pub const EROI_CIVILIZATION: f64 = 12.0;
-/// Legacy numeric cutoff retained for API compatibility; not a validated universal boundary.
+/// Legacy numeric cutoff retained for API compatibility. This does not establish a universal energy boundary.
 pub const EROI_SUSTAINABILITY: f64 = 5.0;
-/// Legacy numeric cutoff retained for API compatibility; not a validated universal boundary.
+/// Legacy numeric cutoff retained for API compatibility. This does not establish a universal energy boundary.
 pub const EROI_MINIMUM: f64 = 3.0;
 
+/// Legacy value-only bands kept for compatibility. These bands do not encode
+/// primary/final/useful energy stage, included inputs, source quality, or model version.
+/// The variant names must not be interpreted as findings about societal viability.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EroiTier {
-    /// EROI > 12: can sustain modern civilization
+    /// Legacy highest numeric band (ratio >= 12).
     Civilization,
-    /// EROI 5-12: basic sustainability
+    /// Legacy 5-to-12 numeric band.
     Sustainability,
-    /// EROI 3-5: marginal, declining returns
+    /// Legacy 3-to-5 numeric band.
     Marginal,
-    /// EROI < 3: thermodynamically unviable
+    /// Legacy lowest numeric band (ratio < 3).
     Unviable,
 }
 
 impl EroiTier {
+    /// Classify a number with the legacy cutoffs only; no boundary or source is considered.
     pub fn from_eroi(eroi: f64) -> Self {
         if eroi >= EROI_CIVILIZATION {
             Self::Civilization
@@ -67,6 +71,7 @@ impl EroiTier {
         }
     }
 
+    /// Legacy presentation label, not a conclusion about energy-system viability.
     pub fn label(&self) -> &'static str {
         match self {
             Self::Civilization => "Civilization",
@@ -108,10 +113,9 @@ pub fn can_compare_eroi(left: &FossilDeposit, right: &FossilDeposit) -> bool {
     }
 }
 
-/// Legacy numerical tier colors do not identify an EROI system boundary.
-/// They should not be applied to evidence unless the threshold methodology
-/// is explicitly matched to the recorded output and input boundaries.
-/// EROI-based color for visualization: green → amber → red → dark red.
+/// Legacy numerical colors retained for API compatibility only. They do not
+/// encode source qualification or a versioned system boundary and are not used
+/// by the globe or detail-panel classification.
 pub fn eroi_color(eroi: f64) -> [f32; 3] {
     match EroiTier::from_eroi(eroi) {
         EroiTier::Civilization => [0.06, 0.73, 0.51], // teal-green
@@ -383,7 +387,7 @@ mod tests {
     }
 
     #[test]
-    fn test_eroi_tier_classification() {
+    fn test_legacy_eroi_numeric_bands_remain_stable() {
         assert_eq!(EroiTier::from_eroi(25.0), EroiTier::Civilization);
         assert_eq!(EroiTier::from_eroi(7.0), EroiTier::Sustainability);
         assert_eq!(EroiTier::from_eroi(4.0), EroiTier::Marginal);
