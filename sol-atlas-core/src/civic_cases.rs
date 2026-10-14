@@ -273,6 +273,8 @@ pub enum CivicCaseValidationError {
     InvalidStatusTransition,
     ResolutionClaimWithoutEvidence,
     ResolutionVerificationNotIndependent,
+    ResolutionReviewerIdentityMismatch,
+    ResolutionReviewerConflictsWithWorkActor,
     CorrectionWithoutReasonOrEvidence,
 }
 
@@ -452,6 +454,10 @@ impl CivicServiceCase {
         let mut event_ids = BTreeSet::new();
         let mut previous_recorded_at = None;
         let mut previous_status = None;
+        // Track work/claim actors for the current remediation cycle so a person/team
+        // cannot be relabelled as an independent reviewer of its own work.
+        let mut work_actor_refs = BTreeSet::new();
+        let mut resolution_claim_actor_refs = BTreeSet::new();
         for event in &self.events {
             if event.event_id.trim().is_empty() || !event_ids.insert(event.event_id.as_str()) {
                 errors.push(E::DuplicateEventId);
@@ -463,6 +469,15 @@ impl CivicServiceCase {
                 errors.push(E::NonMonotonicRecordTime);
             }
             previous_recorded_at = Some(event.recorded_at_unix_ms);
+
+            if event.kind == CaseEventKind::Reopened {
+                work_actor_refs.clear();
+                resolution_claim_actor_refs.clear();
+            } else if event.kind == CaseEventKind::WorkStarted {
+                work_actor_refs.insert(event.actor_ref.clone());
+            } else if event.kind == CaseEventKind::ResolutionClaimed {
+                resolution_claim_actor_refs.insert(event.actor_ref.clone());
+            }
 
             let mut event_evidence_ids = BTreeSet::new();
             for evidence_id in &event.evidence_ids {
@@ -507,11 +522,25 @@ impl CivicServiceCase {
                             evidence.review == EvidenceReview::IndependentlyVerified
                         })
                 });
+                let reviewer_bound_evidence = event.evidence_ids.iter().any(|evidence_id| {
+                    evidence_by_id.get(evidence_id.as_str()).is_some_and(|evidence| {
+                        evidence.review == EvidenceReview::IndependentlyVerified
+                            && evidence.reviewer_ref.as_deref() == Some(event.actor_ref.as_str())
+                    })
+                });
                 if event.actor_kind != CaseActorKind::IndependentReviewer
                     || previous_status != Some(CaseStatus::ResolutionClaimed)
                     || !independent_evidence
                 {
                     errors.push(E::ResolutionVerificationNotIndependent);
+                }
+                if !reviewer_bound_evidence {
+                    errors.push(E::ResolutionReviewerIdentityMismatch);
+                }
+                if work_actor_refs.contains(&event.actor_ref)
+                    || resolution_claim_actor_refs.contains(&event.actor_ref)
+                {
+                    errors.push(E::ResolutionReviewerConflictsWithWorkActor);
                 }
             }
             previous_status = Some(next_status);
@@ -617,6 +646,23 @@ mod tests {
             evidence_ids: Vec::new(),
             reason_code: None,
         }
+    }
+
+    fn case_with_claimed_resolution() -> CivicServiceCase {
+        let mut case = valid_case();
+        case.evidence = vec![independently_verified_evidence()];
+        let mut triaged = event("event-2", CaseEventKind::Triaged, 1_100);
+        triaged.actor_ref = "triage-team".into();
+        let mut assigned = event("event-3", CaseEventKind::Assigned, 1_200);
+        assigned.actor_ref = "dispatch-team".into();
+        let mut started = event("event-4", CaseEventKind::WorkStarted, 1_300);
+        started.actor_ref = "repair-team".into();
+        let mut claimed = event("event-5", CaseEventKind::ResolutionClaimed, 1_400);
+        claimed.actor_ref = "repair-team".into();
+        claimed.evidence_ids = vec!["after-photo-1".into()];
+        case.events.extend([triaged, assigned, started, claimed]);
+        case.updated_at_unix_ms = 1_400;
+        case
     }
 
     #[test]
@@ -832,6 +878,40 @@ mod tests {
                 .unwrap_err()
                 .contains(&CivicCaseValidationError::ResolutionVerificationNotIndependent)
         );
+    }
+
+    #[test]
+    fn verification_evidence_reviewer_must_match_verification_actor() {
+        let mut case = case_with_claimed_resolution();
+        case.evidence[0].reviewer_ref = Some("different-reviewer".into());
+        let mut verified = event("event-6", CaseEventKind::ResolutionVerified, 1_500);
+        verified.actor_kind = CaseActorKind::IndependentReviewer;
+        verified.actor_ref = "independent-reviewer-1".into();
+        verified.evidence_ids = vec!["after-photo-1".into()];
+        case.events.push(verified);
+        case.updated_at_unix_ms = 1_500;
+
+        assert!(case
+            .validate()
+            .unwrap_err()
+            .contains(&CivicCaseValidationError::ResolutionReviewerIdentityMismatch));
+    }
+
+    #[test]
+    fn work_provider_cannot_verify_its_own_resolution() {
+        let mut case = case_with_claimed_resolution();
+        case.evidence[0].reviewer_ref = Some("repair-team".into());
+        let mut verified = event("event-6", CaseEventKind::ResolutionVerified, 1_500);
+        verified.actor_kind = CaseActorKind::IndependentReviewer;
+        verified.actor_ref = "repair-team".into();
+        verified.evidence_ids = vec!["after-photo-1".into()];
+        case.events.push(verified);
+        case.updated_at_unix_ms = 1_500;
+
+        assert!(case
+            .validate()
+            .unwrap_err()
+            .contains(&CivicCaseValidationError::ResolutionReviewerConflictsWithWorkActor));
     }
 
     #[test]
