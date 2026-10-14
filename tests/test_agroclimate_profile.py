@@ -64,6 +64,7 @@ class AgroclimateProfileTests(unittest.TestCase):
             "land_access_and_permission",
             "postharvest_storage_energy_and_transport",
             "market_nutrition_and_affordability",
+            "regional_supply_and_contingency",
         }
         self.assertEqual(set(self.profile["site_constraints"]), required)
         self.assertTrue(all(
@@ -101,6 +102,16 @@ class AgroclimateProfileTests(unittest.TestCase):
         constraint["evidence_refs"] = ["urn:fixture:should-not-be-here"]
         schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
         self.assertTrue(schema_errors)
+
+    def test_food_resilience_does_not_assume_local_self_sufficiency(self):
+        constraint = self.profile["site_constraints"]["regional_supply_and_contingency"]
+        self.assertIn("does not require all food to be produced locally", constraint["claim_limit"])
+        self.assertTrue(any(
+            "Regional supply" in item for item in self.profile["model_architecture"]["required_inputs"]
+        ))
+        self.assertTrue(any(
+            "regional supply" in item.lower() for item in self.profile["evaluation"]["minimum_local_evidence"]
+        ))
 
     def test_policy_context_references_are_explicit_and_limited(self):
         references = {item["reference_id"]: item for item in self.profile["context_references"]}
