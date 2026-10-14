@@ -234,6 +234,22 @@ class AgroclimateProfileTests(unittest.TestCase):
         self.assertTrue(any("not a substitute" in limit.lower()
                             for item in references.values() for limit in item["limitations"]))
 
+    def test_official_municipal_boundary_discovery_leads_have_caveats(self):
+        references = {item["reference_id"]: item for item in self.profile["context_references"]}
+        for reference_id in ("COJ-CGIS-SPATIAL-DATA-INVENTORY-2024", "MDB-LOCAL-MUNICIPALITY-FEATURE-SERVICE"):
+            self.assertIn(reference_id, references)
+            self.assertTrue(references[reference_id]["limitations"])
+        mdb = references["MDB-LOCAL-MUNICIPALITY-FEATURE-SERVICE"]
+        self.assertTrue(any("WKID 4148" in limit for limit in mdb["limitations"]))
+
+    def test_municipality_climate_context_and_supply_catchment_are_distinct(self):
+        geography = self.profile["geography"]
+        self.assertIn("City of Johannesburg municipal area", geography["name"])
+        self.assertIn("Treat Highveld as climatic context", geography["spatial_scope_rule"])
+        self.assertIn("separately versioned regional-supply network nodes", geography["spatial_scope_rule"])
+        self.assertEqual(geography["boundary_state"], "unverified")
+        self.assertIsNone(geography["boundary_sha256"])
+
     def test_irrigation_quality_guidance_carries_legacy_date_caveat(self):
         reference = next(
             item for item in self.profile["context_references"]
