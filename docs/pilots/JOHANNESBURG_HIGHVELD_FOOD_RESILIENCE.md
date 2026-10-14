@@ -156,6 +156,27 @@ Keep model decisions staged:
 
 Report multiple outcomes independently: rainfall/ET0 error, water-balance residual, irrigation-demand error, measured harvest/marketable-yield error, stress-event calibration, water per marketable kilogram, cost and supply continuity. Preserve uncertainty intervals, sample sizes, denominators and missingness. Show failures by crop, site, cultivation type and season. A model that saves water but collapses marketable harvest—or raises yield but consumes unavailable water—is not a success just because one scalar metric improves.
 
+## Interoperable source metadata and artifact rules
+
+A global framework only transfers cleanly if source adapters preserve the original product semantics. Prefer the **OGC STAC 1.1.0** family for discovery where a provider offers it; use a documented adapter for catalogs that do not expose STAC. For authorized raster serving, consider **OGC Cloud Optimized GeoTIFF (COG 1.0)** where it fits the native product. For climate/forecast NetCDF, validate relevant **CF metadata conventions** such as units, standard names, calendars, time bounds, grid mapping, cell methods and missing-value definitions.
+
+References:
+- OGC STAC: https://www.ogc.org/standards/stac/
+- OGC Cloud Optimized GeoTIFF: https://www.ogc.org/standards/ogc-cloud-optimized-geotiff/
+- CF Metadata Conventions: https://cfconventions.org/cf-conventions/cf-conventions.html
+
+These formats are interoperability conventions, not accuracy certificates. Do not force a format on an upstream product, silently resample to finer grids, infer missing unit metadata, discard time bounds/calendar semantics, or republish data without checking exact rights.
+
+Every acquired product should have a reproducible intake manifest containing:
+- provider, exact product/version/map code, retrieval time and original source URI;
+- original byte SHA-256, terms/licence/attribution and a product-specific redistribution decision;
+- native CRS, spatial/temporal support, units, scale/offset, nodata/mask, variable/band names and grid-cell interpretation;
+- upstream input/source overlap and known corrections or vintage changes;
+- every transformation, software version, configuration and output hash;
+- study-boundary digest, model/configuration digest, frozen evaluation split and review evidence.
+
+Preserve the original artifact and derive normalized/analysis-ready assets as separate outputs. A digest guarantees identity of bytes, not correctness of the underlying measurement or scientific interpretation.
+
 ## How to expand globally without multiplying unvalidated models
 
 Use the same profile schema and evidence gates for every region. Add a new regional profile only when it represents a meaningful change in climate, crop/production system, water constraint or local decision context—not merely because a map can be divided into another climate label.
