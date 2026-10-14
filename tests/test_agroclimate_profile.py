@@ -251,6 +251,25 @@ class AgroclimateProfileTests(unittest.TestCase):
         self.assertEqual(geography["boundary_state"], "unverified")
         self.assertIsNone(geography["boundary_sha256"])
 
+    def test_boundary_discovery_source_is_not_the_frozen_geometry_artifact(self):
+        geography = self.profile["geography"]
+        self.assertTrue(geography["boundary_source_uri"].startswith("https://"))
+        self.assertIsNone(geography["boundary_evidence_ref"])
+        self.assertIsNone(geography["boundary_sha256"])
+        self.assertEqual(geography["boundary_state"], "unverified")
+
+    def test_mdb_live_boundary_service_is_not_treated_as_versioned_truth(self):
+        references = {item["reference_id"]: item for item in self.profile["context_references"]}
+        mdb = references["MDB-LOCAL-MUNICIPALITY-FEATURE-SERVICE"]
+        self.assertTrue(any("isDataVersioned=false" in limit for limit in mdb["limitations"]))
+        self.assertTrue(any("exact downloaded bytes" in limit.lower() for limit in mdb["limitations"]))
+
+    def test_EPSG_4148_axis_order_caveat_is_recorded(self):
+        references = {item["reference_id"]: item for item in self.profile["context_references"]}
+        ref = references["EPSG-4148-HARTEBEESTHOEK94"]
+        self.assertIn("EPSG:4148", ref["title"])
+        self.assertTrue(any("axis order" in limit.lower() for limit in ref["limitations"]))
+
     def test_irrigation_quality_guidance_carries_legacy_date_caveat(self):
         reference = next(
             item for item in self.profile["context_references"]
