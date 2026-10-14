@@ -503,6 +503,7 @@ pub enum Data360SnapshotStatus {
     QueryMismatch,
     SourceCountDrift,
     DuplicatePageSnapshotIdentity,
+    AcquisitionEvidenceInvalid,
     OffsetGapOrOverlap,
     PageAccountingMismatch,
     CountLessThanPageRows,
@@ -690,6 +691,368 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
         next_skip: expected_skip,
     }
 }
+
+
+/// Schema version for byte-bound acquisition evidence manifests.
+pub const DATA360_ACQUISITION_EVIDENCE_SCHEMA_VERSION: u16 = 1;
+
+const ACQUISITION_QUERY_KEYS: [&str; 17] = [
+    "DATABASE_ID",
+    "INDICATOR",
+    "REF_AREA",
+    "SEX",
+    "AGE",
+    "URBANISATION",
+    "COMP_BREAKDOWN_1",
+    "COMP_BREAKDOWN_2",
+    "COMP_BREAKDOWN_3",
+    "TIME_PERIOD",
+    "FREQ",
+    "UNIT_MEASURE",
+    "UNIT_TYPE",
+    "UNIT_MULT",
+    "timePeriodFrom",
+    "timePeriodTo",
+    "skip",
+];
+
+const ACQUISITION_RESPONSE_HEADERS: [&str; 11] = [
+    "content-type",
+    "content-length",
+    "date",
+    "etag",
+    "last-modified",
+    "cache-control",
+    "content-encoding",
+    "vary",
+    "x-request-id",
+    "request-id",
+    "expires",
+];
+
+/// Evidence recorded by an HTTP acquisition layer for the exact body bytes it
+/// hands to the parser. This structure does not itself prove that the collector
+/// told the truth; it makes mismatches detectable and the capture auditable.
+///
+/// Only allowlisted, lower-case response headers are retained. Request
+/// credentials and cookies must not be stored in this evidence object.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Data360AcquisitionEvidence {
+    pub schema_version: u16,
+    pub request_method: String,
+    /// Complete HTTPS URL including its query string.
+    pub request_url: String,
+    /// Decoded query parameters from that URL; duplicate parameter names are
+    /// rejected because a single map cannot faithfully represent duplicates.
+    pub request_parameters: BTreeMap<String, String>,
+    pub response_status: u16,
+    /// Selected response headers only; names must be lower-case allowlisted keys.
+    pub response_headers: BTreeMap<String, String>,
+    /// Length and SHA-256 are computed over the exact body bytes passed to this
+    /// module, before UTF-8 decoding or JSON parsing.
+    pub response_body_byte_length: u64,
+    /// 64 lowercase hexadecimal characters.
+    pub response_body_sha256: String,
+    pub retrieved_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Data360AcquisitionError {
+    UnsupportedSchemaVersion,
+    InvalidRequestMethod,
+    InvalidRequestUrl,
+    DuplicateUrlQueryParameter(String),
+    RequestUrlParameterMismatch,
+    UnsupportedRequestParameter(String),
+    MissingOrMismatchedRequestParameter(String),
+    NonSuccessResponseStatus(u16),
+    InvalidResponseHeaders(String),
+    MissingContentType,
+    UnsupportedContentType(String),
+    ResponseBodyLengthMismatch,
+    InvalidSha256Format,
+    ResponseBodyDigestMismatch,
+    PageSnapshotIdentityMismatch,
+    RetrievalTimestampMismatch,
+    ResponseBodyNotUtf8,
+    PageParseFailed(String),
+}
+
+impl fmt::Display for Data360AcquisitionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Data360 acquisition evidence error: {self:?}")
+    }
+}
+impl Error for Data360AcquisitionError {}
+
+/// Validate capture provenance before treating response bytes as a parsed page.
+/// The URL and query map must agree, the endpoint must be the official HTTPS
+/// observation route, query values must match the parser context, the response
+/// must be HTTP 200 with a JSON-compatible content type, and the digest/length
+/// must match the exact bytes supplied by the caller.
+pub fn validate_data360_acquisition_evidence(
+    response_body: &[u8],
+    evidence: &Data360AcquisitionEvidence,
+    context: &Data360PageContext,
+) -> Result<(), Data360AcquisitionError> {
+    if evidence.schema_version != DATA360_ACQUISITION_EVIDENCE_SCHEMA_VERSION {
+        return Err(Data360AcquisitionError::UnsupportedSchemaVersion);
+    }
+    if evidence.request_method != "GET" {
+        return Err(Data360AcquisitionError::InvalidRequestMethod);
+    }
+    if evidence.retrieved_at.trim().is_empty() || evidence.retrieved_at != context.retrieved_at {
+        return Err(Data360AcquisitionError::RetrievalTimestampMismatch);
+    }
+
+    let url = url::Url::parse(&evidence.request_url)
+        .map_err(|_| Data360AcquisitionError::InvalidRequestUrl)?;
+    if url.scheme() != "https"
+        || url.host_str() != Some("data360api.worldbank.org")
+        || url.path() != "/data360/data"
+        || !url.username().is_empty()
+        || url.password().is_some()
+        || url.port().is_some()
+        || url.fragment().is_some()
+    {
+        return Err(Data360AcquisitionError::InvalidRequestUrl);
+    }
+
+    let mut url_parameters = BTreeMap::new();
+    for (key, value) in url.query_pairs() {
+        let key = key.into_owned();
+        if url_parameters.insert(key.clone(), value.into_owned()).is_some() {
+            return Err(Data360AcquisitionError::DuplicateUrlQueryParameter(key));
+        }
+    }
+    if url_parameters != evidence.request_parameters {
+        return Err(Data360AcquisitionError::RequestUrlParameterMismatch);
+    }
+
+    for key in evidence.request_parameters.keys() {
+        if !ACQUISITION_QUERY_KEYS.contains(&key.as_str()) {
+            return Err(Data360AcquisitionError::UnsupportedRequestParameter(key.clone()));
+        }
+    }
+    let query = &context.query;
+    for (key, expected) in [
+        ("DATABASE_ID", query.database_id.as_str()),
+        ("INDICATOR", query.indicator_id.as_str()),
+        ("skip", ""),
+    ] {
+        let actual = evidence.request_parameters.get(key);
+        let matches = if key == "skip" {
+            actual.and_then(|value| value.parse::<usize>().ok()) == Some(query.requested_skip)
+                && actual.map(|value| value == &query.requested_skip.to_string()) == Some(true)
+        } else {
+            actual.map(String::as_str) == Some(expected)
+        };
+        if !matches {
+            return Err(Data360AcquisitionError::MissingOrMismatchedRequestParameter(
+                key.to_string(),
+            ));
+        }
+    }
+
+    // TIME_PERIOD is a single-year query; otherwise require the documented
+    // inclusive timePeriodFrom/timePeriodTo pair. Do not infer a requested
+    // range merely from the parser's filtering bounds.
+    match query.filters.get("TIME_PERIOD") {
+        Some(single_year) => {
+            if query.period_start != query.period_end
+                || single_year != &query.period_start.to_string()
+                || evidence.request_parameters.get("TIME_PERIOD") != Some(single_year)
+                || evidence.request_parameters.contains_key("timePeriodFrom")
+                || evidence.request_parameters.contains_key("timePeriodTo")
+            {
+                return Err(Data360AcquisitionError::MissingOrMismatchedRequestParameter(
+                    "TIME_PERIOD".to_string(),
+                ));
+            }
+        }
+        None => {
+            if evidence.request_parameters.get("TIME_PERIOD").is_some()
+                || evidence.request_parameters.get("timePeriodFrom")
+                    != Some(&query.period_start.to_string())
+                || evidence.request_parameters.get("timePeriodTo")
+                    != Some(&query.period_end.to_string())
+            {
+                return Err(Data360AcquisitionError::MissingOrMismatchedRequestParameter(
+                    "timePeriodFrom/timePeriodTo".to_string(),
+                ));
+            }
+        }
+    }
+
+    for key in FILTER_KEYS {
+        if key == "TIME_PERIOD" {
+            continue;
+        }
+        match (query.filters.get(key), evidence.request_parameters.get(key)) {
+            (Some(expected), Some(actual)) if expected == actual => {}
+            (None, None) => {}
+            _ => {
+                return Err(Data360AcquisitionError::MissingOrMismatchedRequestParameter(
+                    key.to_string(),
+                ));
+            }
+        }
+    }
+
+    if evidence.response_status != 200 {
+        return Err(Data360AcquisitionError::NonSuccessResponseStatus(
+            evidence.response_status,
+        ));
+    }
+    for (name, value) in &evidence.response_headers {
+        if !ACQUISITION_RESPONSE_HEADERS.contains(&name.as_str())
+            || name != &name.to_ascii_lowercase()
+            || value.chars().any(|character| {
+                (character.is_control() && character != '\t')
+                    || character == '\r'
+                    || character == '\n'
+            })
+        {
+            return Err(Data360AcquisitionError::InvalidResponseHeaders(
+                name.clone(),
+            ));
+        }
+    }
+    let content_type = evidence
+        .response_headers
+        .get("content-type")
+        .ok_or(Data360AcquisitionError::MissingContentType)?;
+    let media_type = content_type
+        .split(';')
+        .next()
+        .unwrap_or("")
+        .trim()
+        .to_ascii_lowercase();
+    if !["application/json", "text/json", "text/plain"].contains(&media_type.as_str()) {
+        return Err(Data360AcquisitionError::UnsupportedContentType(
+            media_type,
+        ));
+    }
+    if let Some(length) = evidence.response_headers.get("content-length") {
+        if length.is_empty() || !length.bytes().all(|byte| byte.is_ascii_digit()) {
+            return Err(Data360AcquisitionError::InvalidResponseHeaders(
+                "content-length".to_string(),
+            ));
+        }
+    }
+
+    if evidence.response_body_byte_length != response_body.len() as u64 {
+        return Err(Data360AcquisitionError::ResponseBodyLengthMismatch);
+    }
+    let digest = evidence.response_body_sha256.as_str();
+    if digest.len() != 64
+        || !digest
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
+        return Err(Data360AcquisitionError::InvalidSha256Format);
+    }
+    let actual_digest = format!("{:x}", sha2::Sha256::digest(response_body));
+    if digest != actual_digest {
+        return Err(Data360AcquisitionError::ResponseBodyDigestMismatch);
+    }
+    if context.page_snapshot_id != format!("sha256:{actual_digest}") {
+        return Err(Data360AcquisitionError::PageSnapshotIdentityMismatch);
+    }
+    Ok(())
+}
+
+/// Parse a response only after its capture evidence has passed validation.
+/// The returned object retains the original bytes and evidence so a collection
+/// assessor can independently re-check both rather than trusting a mutable
+/// normalized page object alone.
+#[derive(Debug, Clone, PartialEq)]
+pub struct EvidenceBoundData360Page {
+    pub acquisition: Data360AcquisitionEvidence,
+    pub context: Data360PageContext,
+    pub response_body: Vec<u8>,
+    pub parsed_page: ParsedData360Page,
+}
+
+pub fn parse_data360_page_with_evidence(
+    response_body: &[u8],
+    evidence: &Data360AcquisitionEvidence,
+    context: &Data360PageContext,
+) -> Result<EvidenceBoundData360Page, Data360AcquisitionError> {
+    validate_data360_acquisition_evidence(response_body, evidence, context)?;
+    let response_text = std::str::from_utf8(response_body)
+        .map_err(|_| Data360AcquisitionError::ResponseBodyNotUtf8)?;
+    let parsed_page = parse_data360_page(response_text, context)
+        .map_err(|error| Data360AcquisitionError::PageParseFailed(error.to_string()))?;
+    Ok(EvidenceBoundData360Page {
+        acquisition: evidence.clone(),
+        context: context.clone(),
+        response_body: response_body.to_vec(),
+        parsed_page,
+    })
+}
+
+/// A collection-level gate that rechecks bytes, evidence, and normalized page
+/// equality for each member before invoking the ordinary pagination assessor.
+pub fn assess_data360_acquired_snapshot(
+    pages: &[EvidenceBoundData360Page],
+) -> Data360SnapshotAssessment {
+    if pages.is_empty() {
+        return assess_data360_snapshot(&[]);
+    }
+    let mut reparsed_pages = Vec::with_capacity(pages.len());
+    for acquired in pages {
+        if validate_data360_acquisition_evidence(
+            &acquired.response_body,
+            &acquired.acquisition,
+            &acquired.context,
+        )
+        .is_err()
+        {
+            return Data360SnapshotAssessment {
+                status: Data360SnapshotStatus::AcquisitionEvidenceInvalid,
+                expected_count: None,
+                rows_returned: 0,
+                accepted_rows: 0,
+                rejected_rows: 0,
+                next_skip: 0,
+            };
+        }
+        let Ok(response_text) = std::str::from_utf8(&acquired.response_body) else {
+            return Data360SnapshotAssessment {
+                status: Data360SnapshotStatus::AcquisitionEvidenceInvalid,
+                expected_count: None,
+                rows_returned: 0,
+                accepted_rows: 0,
+                rejected_rows: 0,
+                next_skip: 0,
+            };
+        };
+        let Ok(reparsed) = parse_data360_page(response_text, &acquired.context) else {
+            return Data360SnapshotAssessment {
+                status: Data360SnapshotStatus::AcquisitionEvidenceInvalid,
+                expected_count: None,
+                rows_returned: 0,
+                accepted_rows: 0,
+                rejected_rows: 0,
+                next_skip: 0,
+            };
+        };
+        if reparsed != acquired.parsed_page {
+            return Data360SnapshotAssessment {
+                status: Data360SnapshotStatus::AcquisitionEvidenceInvalid,
+                expected_count: None,
+                rows_returned: 0,
+                accepted_rows: 0,
+                rejected_rows: 0,
+                next_skip: 0,
+            };
+        }
+        reparsed_pages.push(reparsed);
+    }
+    assess_data360_snapshot(&reparsed_pages)
+}
+
 
 #[cfg(test)]
 mod tests {
