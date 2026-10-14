@@ -111,14 +111,19 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
                 errors.append(f"{where}: acquisition requires source catalog/product identity verification")
             if source.get("rights_state") in {"license_not_reviewed", "permission_required"}:
                 errors.append(f"{where}: acquisition cannot be promoted before required rights/permission review")
-            if source.get("redistribution_allowed") is None:
-                errors.append(f"{where}: acquired artifact requires an explicit redistribution decision")
+            if source_id != "LOCAL-OBSERVATIONS" and not isinstance(source.get("redistribution_allowed"), bool):
+                errors.append(f"{where}: acquired external artifact requires an explicit redistribution decision")
 
         if source_id == "LOCAL-OBSERVATIONS":
-            if source.get("rights_state") != "permission_required":
+            if acquisition in {"not_acquired", "rejected"} and source.get("rights_state") != "permission_required":
                 errors.append("local observations must retain permission_required until scope and authorization are recorded")
-            if acquisition == "acquired" and source.get("selected_product") is None:
-                errors.append("acquired local observations require a versioned authorized source/measurement protocol")
+            if acquisition == "acquired":
+                if source.get("rights_state") != "permission_granted":
+                    errors.append("acquired local observations require explicit permission_granted state")
+                if source.get("redistribution_allowed") is not None:
+                    errors.append("private local observations keep redistribution_allowed=null unless a separate sharing licence is modeled")
+                if not isinstance(selected, str) or not selected.strip():
+                    errors.append("acquired local observations require a versioned authorized source/measurement protocol")
 
     if seen != EXPECTED_SOURCES:
         errors.append(f"source set mismatch: expected {sorted(EXPECTED_SOURCES)}, got {sorted(seen)}")
@@ -202,10 +207,16 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
                 errors.append(f"D1=passed requires a frozen SHA-256 for sources[{index}]")
             if not isinstance(source.get("selected_product"), str) or not source.get("selected_product", "").strip():
                 errors.append(f"D1=passed requires an exact product identity for sources[{index}]")
-            if source.get("source_catalog_verified") is not True or not isinstance(source.get("redistribution_allowed"), bool):
-                errors.append(f"D1=passed requires product-identity and rights decisions for sources[{index}]")
-            if source.get("rights_state") in {"license_not_reviewed", "permission_required"}:
-                errors.append(f"D1=passed cannot include unresolved rights for sources[{index}]")
+            if source.get("source_catalog_verified") is not True:
+                errors.append(f"D1=passed requires product-identity verification for sources[{index}]")
+            if source.get("source_id") == "LOCAL-OBSERVATIONS":
+                if source.get("rights_state") != "permission_granted" or source.get("redistribution_allowed") is not None:
+                    errors.append(f"D1=passed requires recorded processing permission and private-by-default rights for sources[{index}]")
+            else:
+                if not isinstance(source.get("redistribution_allowed"), bool):
+                    errors.append(f"D1=passed requires an explicit external-source rights decision for sources[{index}]")
+                if source.get("rights_state") in {"license_not_reviewed", "permission_required"}:
+                    errors.append(f"D1=passed cannot include unresolved rights for sources[{index}]")
 
     if gates.get("D2") == "passed" and evidence.get("baseline_computed") is not True:
         errors.append("D2=passed requires baseline_computed=true")
