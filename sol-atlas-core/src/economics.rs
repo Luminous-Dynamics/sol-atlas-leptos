@@ -85,9 +85,7 @@ impl EroiTier {
 /// as thermodynamic performance. Deposits without a valid physical EROI remain
 /// `None` so the caller can display "unknown" rather than a fabricated value.
 pub fn compute_eroi(deposit: &FossilDeposit) -> Option<f64> {
-    deposit
-        .eroi
-        .filter(|eroi| eroi.is_finite() && *eroi > 0.0)
+    deposit.eroi.filter(|eroi| eroi.is_finite() && *eroi > 0.0)
 }
 
 /// EROI-based color for visualization: green → amber → red → dark red.
