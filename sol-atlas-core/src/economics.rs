@@ -85,9 +85,7 @@ impl EroiTier {
 /// as thermodynamic performance. Deposits without a valid physical EROI remain
 /// `None` so the caller can display "unknown" rather than a fabricated value.
 pub fn compute_eroi(deposit: &FossilDeposit) -> Option<f64> {
-    deposit
-        .eroi
-        .filter(|eroi| eroi.is_finite() && *eroi > 0.0)
+    deposit.eroi.filter(|eroi| eroi.is_finite() && *eroi > 0.0)
 }
 
 
@@ -312,6 +310,7 @@ mod tests {
             extraction_cost_per_boe: Some(55.0), // expensive extraction
             decommission_cost_m: None,
             eroi: None,
+            eroi_evidence: None,
         };
         let econ = compute_economics(&deposit).unwrap();
         // Revenue: 50 * $65 = $3,250M
@@ -422,7 +421,12 @@ mod tests {
         deposit.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Useful));
         assert_eq!(qualified_eroi(&deposit), Some(25.0));
 
-        deposit.eroi_evidence.as_mut().unwrap().source_citation.clear();
+        deposit
+            .eroi_evidence
+            .as_mut()
+            .unwrap()
+            .source_citation
+            .clear();
         assert_eq!(qualified_eroi(&deposit), None);
     }
 
