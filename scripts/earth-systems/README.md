@@ -62,7 +62,7 @@ python3 scripts/earth-systems/plan_chirps_monthly.py \
 
 The manifest marks `requested_period: null` and states that no analysis period was selected; no GeoTIFF is downloaded. Use this first when studying source availability before the WaPOR layer and temporal overlap are known. The snapshot and manifest paths must be new.
 
-For one-click source capture on GitHub, open **Actions → Earth systems source snapshot (manual) → Run workflow**. The workflow independently attempts to preserve a CHIRPS index snapshot and a WaPOR mapset-catalog snapshot as 14-day artifacts. The WaPOR capture contains API metadata and raw JSON responses only—not raster files. A failed WaPOR capture is a failed/blocked inventory, not evidence that the catalog is empty or the product is unavailable. Review both artifact manifests and their SHA-256 digests before proceeding.
+The existing **Earth systems catalog validation** workflow now also attempts separate CHIRPS-index and WaPOR-mapset source captures on relevant PR/main runs. Each successful capture is uploaded as a 14-day artifact; the source jobs are explicitly non-gating, so a source outage does not invalidate deterministic unit tests. Read the job logs and inspect the artifact presence before claiming a source snapshot exists. A failed or missing WaPOR capture is a blocked inventory—not evidence that the catalog is empty or the product unavailable. The WaPOR capture contains API metadata and raw JSON responses only, not raster files. After this manual workflow is available on the repository's default branch, **Actions → Earth systems source snapshot (manual) → Run workflow** can be used for an intentional refresh between code changes.
 
 ## Inventory CHIRPS monthly Africa files before downloading
 
