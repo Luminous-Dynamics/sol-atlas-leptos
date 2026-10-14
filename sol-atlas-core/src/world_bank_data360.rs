@@ -305,11 +305,6 @@ fn validate_context(context: &Data360PageContext) -> Result<(), Data360PageError
                     )
                 })?;
             }
-            "isLatestData" if value != "true" && value != "false" => {
-                return Err(Data360PageError::InvalidContext(
-                    "isLatestData query filter must be exactly true or false".to_string(),
-                ));
-            }
             _ => {}
         }
     }
@@ -1087,6 +1082,16 @@ mod tests {
             .query
             .filters
             .insert("COUNTRY_NAME".to_string(), "South Africa".to_string());
+        assert!(matches!(
+            parse_data360_page(&response(vec![], 0), &query),
+            Err(Data360PageError::InvalidContext(_))
+        ));
+    }
+
+    #[test]
+    fn undocumented_is_latest_data_filter_is_rejected() {
+        let mut query = context(0, 10, "undocumented-latest-filter");
+        query.query.filters.insert("isLatestData".to_string(), "true".to_string());
         assert!(matches!(
             parse_data360_page(&response(vec![], 0), &query),
             Err(Data360PageError::InvalidContext(_))
