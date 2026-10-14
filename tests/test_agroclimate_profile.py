@@ -243,6 +243,19 @@ class AgroclimateProfileTests(unittest.TestCase):
         mdb = references["MDB-LOCAL-MUNICIPALITY-FEATURE-SERVICE"]
         self.assertTrue(any("WKID 4148" in limit for limit in mdb["limitations"]))
 
+    def test_MDB_dem7008_withdrawal_is_not_misread_as_boundary_change(self):
+        references = {item["reference_id"]: item for item in self.profile["context_references"]}
+        dem7008 = references["MDB-DEM7008-WITHDRAWN-2024"]
+        self.assertTrue(any("withdrawn under Section 21(5)" in limit for limit in dem7008["limitations"]))
+        mdb = references["MDB-LOCAL-MUNICIPALITY-FEATURE-SERVICE"]
+        self.assertTrue(any("Do not infer that Stretford Ext 1" in limit for limit in mdb["limitations"]))
+
+    def test_2026_ward_delimitation_is_not_municipal_geometry(self):
+        references = {item["reference_id"]: item for item in self.profile["context_references"]}
+        ward = references["MDB-GAUTENG-WARD-DELIMITATION-2026"]
+        self.assertTrue(any("not a replacement for the municipal-boundary polygon" in limit for limit in ward["limitations"]))
+        self.assertEqual(self.profile["geography"]["boundary_state"], "unverified")
+
     def test_municipality_climate_context_and_supply_catchment_are_distinct(self):
         geography = self.profile["geography"]
         self.assertIn("City of Johannesburg municipal area", geography["name"])
