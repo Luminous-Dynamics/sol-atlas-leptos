@@ -168,6 +168,7 @@ References:
 These formats are interoperability conventions, not accuracy certificates. Do not force a format on an upstream product, silently resample to finer grids, infer missing unit metadata, discard time bounds/calendar semantics, or republish data without checking exact rights.
 
 Every source record carries an explicit `artifacts` list. It is empty while the source is `not_acquired`; an acquired source must have exactly one primary artifact. The source-level primary digest must exactly match that artifact's digest. This avoids a common trap where an acquisition status and a 64-character hash string are recorded without any asset-level provenance.
+The source record distinguishes `source_catalog_verified` (the official provider/product-family reference was reviewed) from `selected_product_identity_verified` (the exact data product acquired for this profile was identified and checked). The latter must remain false and `selected_product` null while acquisition is `not_acquired`. A general provider homepage review is not proof that an exact raster/time slice/configuration has been acquired.
 
 Every acquired product should have a reproducible intake manifest containing:
 - provider, exact product/version/map code, retrieval time and original source URI;
