@@ -219,14 +219,33 @@ pub fn InfoPanel() -> impl IntoView {
                                 {match evidence {
                                     Some(evidence) => row(
                                         "EROI interval",
-                                        evidence.uncertainty.map(|range| format!(
-                                            "{} — {:.2}–{:.2}",
-                                            range.interpretation
+                                        evidence.uncertainty.map(|range| {
+                                            let interpretation = range
+                                                .interpretation
                                                 .map(|kind| kind.label())
-                                                .unwrap_or("Interpretation missing — not qualified"),
-                                            range.lower,
-                                            range.upper,
-                                        )).unwrap_or_else(|| "Not supplied".to_string()),
+                                                .unwrap_or("Interpretation missing — not qualified");
+                                            let level = match (range.interpretation, range.probability_level) {
+                                                (
+                                                    Some(sol_atlas_core::types::EroiUncertaintyKind::ConfidenceInterval),
+                                                    Some(value),
+                                                ) => format!(" ({:.0}% confidence)", value * 100.0),
+                                                (
+                                                    Some(sol_atlas_core::types::EroiUncertaintyKind::CredibleInterval),
+                                                    Some(value),
+                                                ) => format!(" ({:.0}% credible mass)", value * 100.0),
+                                                (
+                                                    Some(sol_atlas_core::types::EroiUncertaintyKind::ConfidenceInterval),
+                                                    None,
+                                                ) => " (confidence level missing)".to_string(),
+                                                (
+                                                    Some(sol_atlas_core::types::EroiUncertaintyKind::CredibleInterval),
+                                                    None,
+                                                ) => " (credible mass missing)".to_string(),
+                                                (_, Some(_)) => " (unexpected level)".to_string(),
+                                                _ => String::new(),
+                                            };
+                                            format!("{}{} — {:.2}–{:.2}", interpretation, level, range.lower, range.upper)
+                                        }).unwrap_or_else(|| "Not supplied".to_string()),
                                     ),
                                     None => row("EROI interval", "Not supplied".to_string()),
                                 }}
