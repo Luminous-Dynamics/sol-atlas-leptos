@@ -193,7 +193,13 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
                         errors.append(f"{artifact_where}.asset_uri must be a valid stable HTTPS URI")
                     else:
                         query = asset_url.query.lower()
-                        if any(secret in query for secret in ("access_token", "api_key", "signature=", "x-amz-credential", "token=")):
+                        if asset_url.username is not None or asset_url.password is not None:
+                            errors.append(f"{artifact_where}.asset_uri must not embed URL username/password credentials")
+                        if any(secret in query for secret in (
+                            "access_token", "api_key", "signature=", "sig=", "x-amz-credential",
+                            "x-amz-security-token", "x-goog-signature", "x-goog-credential",
+                            "authorization=", "bearer=", "token=",
+                        )):
                             errors.append(f"{artifact_where}.asset_uri must not contain a bearer or signed URL credential")
                 lineage_refs = artifact.get("lineage_refs")
                 if not isinstance(lineage_refs, list) or not lineage_refs:
@@ -202,6 +208,7 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
                 if not isinstance(transforms, list):
                     errors.append(f"{artifact_where}.transformations must be an array")
                     transforms = []
+                lineage_set = set(lineage_refs) if isinstance(lineage_refs, list) else set()
                 transform_ids: set[str] = set()
                 previous_output: str | None = None
                 for transform_index, raw_transform in enumerate(transforms):
@@ -216,10 +223,17 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
                         transform_ids.add(transform_id)
                     output_hash = transform.get("output_sha256")
                     inputs = transform.get("input_artifact_refs")
-                    if previous_output is not None and (
-                        not isinstance(inputs, list) or f"sha256:{previous_output}" not in inputs
-                    ):
-                        errors.append(f"{transform_where} must link the preceding transform output digest")
+                    if not isinstance(inputs, list):
+                        errors.append(f"{transform_where}.input_artifact_refs must be an array")
+                        inputs = []
+                    allowed_inputs = set(lineage_set)
+                    if previous_output is not None:
+                        allowed_inputs.add(f"sha256:{previous_output}")
+                        if f"sha256:{previous_output}" not in inputs:
+                            errors.append(f"{transform_where} must link the preceding transform output digest")
+                    untraced_inputs = [item for item in inputs if item not in allowed_inputs]
+                    if untraced_inputs:
+                        errors.append(f"{transform_where} input references must be declared in asset lineage or link the preceding transform output")
                     if isinstance(output_hash, str) and SHA256_RE.fullmatch(output_hash):
                         previous_output = output_hash
                 artifact_hash = artifact.get("sha256")
