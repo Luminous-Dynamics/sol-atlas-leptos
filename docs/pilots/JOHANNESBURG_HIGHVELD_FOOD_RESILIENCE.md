@@ -22,6 +22,8 @@ The proposed architecture is a shared global evidence/model contract plus region
 
 This lets the same software and evaluation rules work in the Highveld, Mediterranean climates, humid tropics, semi-arid regions and protected growing systems without claiming that one parameterization transfers everywhere.
 
+The JSON Schema is a shared contract: it accepts other region/profile identifiers and source families. The Johannesburg-specific validator separately pins this pilot's six expected sources, local-source permissions, source-resolution caveats, and maturity claims. The reusable schema therefore does not imply that any one region's source set or crop parameters are globally applicable.
+
 Shared capabilities should include:
 - versioned source manifests and immutable artifact digests;
 - explicit units, spatial/temporal support, uncertainty and missingness;
@@ -33,6 +35,8 @@ Shared capabilities should include:
 ## Candidate data and models
 
 These source families are candidates, not acquired evidence. Every row in the machine-readable profile remains not acquired until the exact product/artifact is selected, access and reuse terms are reviewed, and bytes are hashed.
+
+The common rights field is a review state; exact licence details belong in a separate licence reference. A known dataset-family licence does not automatically grant redistribution rights for an unselected derivative or justify skipping product-specific metadata review.
 
 ### FAO GAEZ v5 — global screening, not farm truth
 
