@@ -164,7 +164,7 @@
       "product_family": "CHIRPS precipitation estimates",
       "product_version": "v3",
       "selected_product": null,
-      "product_selection_state": "monthly_Africa_product_candidate_fresh_index_snapshot_and_common_window_required",
+      "product_selection_state": "official_V3_product_page_reviewed_exact_monthly_Africa_index_and_product_not_frozen",
       "acquisition_state": "not_acquired",
       "artifact_sha256": null,
       "rights_state": "license_reviewed",
@@ -180,7 +180,7 @@
       ],
       "license_reference": "CHIRPS v3 is documented under CC BY 4.0 with attribution; verify the selected file and metadata when acquired.",
       "artifacts": [],
-      "source_catalog_verified": false,
+      "source_catalog_verified": true,
       "selected_product_identity_verified": false,
       "required_for_baseline": false
     },
