@@ -14,7 +14,8 @@
     "regional_model_limit": "Johannesburg municipality is not identical to the broader Highveld agroclimatic region or to the food-supply catchment. Regional rasters cannot resolve farm-level soil, microclimate, irrigation reliability or management; external supplier relationships require their own timestamped evidence and must not be inferred from geographic proximity.",
     "boundary_evidence_ref": null,
     "boundary_sha256": null,
-    "boundary_crs": null
+    "boundary_crs": null,
+    "boundary_source_uri": "https://nspdr.dlrrd.gov.za/server/rest/services/NationalDatasets/MunicipalDemarcationBoard/MapServer/3?f=pjson"
   },
   "candidate_systems": [
     "Rainfed open-field production with crop and season not yet selected",
