@@ -48,7 +48,9 @@ pub const EROI_MINIMUM: f64 = 3.0;
 /// Legacy value-only bands kept for compatibility. These bands do not encode
 /// primary/final/useful energy stage, included inputs, source quality, or model version.
 /// The variant names must not be interpreted as findings about societal viability.
-#[deprecated(note = "Legacy EROI classification; use qualified EroiEvidence rather than numeric tiers.")]
+#[deprecated(
+    note = "Legacy EROI classification; use qualified EroiEvidence rather than numeric tiers."
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EroiTier {
     /// Legacy highest numeric band (ratio >= 12).
