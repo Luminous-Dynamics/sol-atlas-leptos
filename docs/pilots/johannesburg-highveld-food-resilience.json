@@ -336,7 +336,9 @@
         "Assess crop/soil-relevant salinity or sodicity where appropriate; unknown water quality remains unknown.",
         "Review legal permissions and applicable requirements before considering wastewater or greywater."
       ],
-      "claim_limit": "Water availability, appearance, remote sensing or one reading does not establish irrigation suitability. This profile cannot authorize irrigation."
+      "claim_limit": "Water availability, appearance, remote sensing or one reading does not establish irrigation suitability. This profile cannot authorize irrigation.",
+      "evidence_refs": [],
+      "reviewed_by": null
     },
     "soil_condition_and_contamination": {
       "state": "not_assessed",
@@ -346,7 +348,9 @@
         "Keep SoilGrids as a regional uncertain prior, never site-level contaminant clearance.",
         "Record sample location precision, depth, laboratory method, units and quality controls."
       ],
-      "claim_limit": "A regional soil map or visually healthy garden does not establish food safety or contaminant absence. The model must not recommend edible cropping on an unassessed site."
+      "claim_limit": "A regional soil map or visually healthy garden does not establish food safety or contaminant absence. The model must not recommend edible cropping on an unassessed site.",
+      "evidence_refs": [],
+      "reviewed_by": null
     },
     "land_access_and_permission": {
       "state": "not_assessed",
@@ -354,7 +358,9 @@
         "Record site-use permission, duration, restrictions, responsible operator and applicable land-use, water-use or municipal approvals.",
         "Obtain permission before retaining participant or farm-level data and apply the declared privacy/location-precision policy."
       ],
-      "claim_limit": "A vacant-looking parcel, map class or model score does not establish tenure, consent, legal access or permission to cultivate."
+      "claim_limit": "A vacant-looking parcel, map class or model score does not establish tenure, consent, legal access or permission to cultivate.",
+      "evidence_refs": [],
+      "reviewed_by": null
     },
     "postharvest_storage_energy_and_transport": {
       "state": "not_assessed",
@@ -363,7 +369,9 @@
         "Record power reliability, backup, packaging, handling, delivery/pickup, travel time and observed postharvest losses.",
         "Distinguish nameplate/planned capacity from verified available capacity."
       ],
-      "claim_limit": "Production potential is not reliable marketable supply without suitable handling and transport. A cold-room map point or one temperature reading does not certify a cold chain."
+      "claim_limit": "Production potential is not reliable marketable supply without suitable handling and transport. A cold-room map point or one temperature reading does not certify a cold chain.",
+      "evidence_refs": [],
+      "reviewed_by": null
     },
     "market_nutrition_and_affordability": {
       "state": "not_assessed",
@@ -373,7 +381,9 @@
         "Include labour, inputs, water, energy, storage, distribution costs and marketable fraction in any cost comparison.",
         "Review seasonality, cultural fit and access constraints with participants without exposing household purchase histories."
       ],
-      "claim_limit": "Agronomic suitability does not establish affordability, nutrition, demand, producer income or reduced food insecurity."
+      "claim_limit": "Agronomic suitability does not establish affordability, nutrition, demand, producer income or reduced food insecurity.",
+      "evidence_refs": [],
+      "reviewed_by": null
     }
   },
   "context_references": [
