@@ -9,12 +9,10 @@
 //! source data is genuine, or that a model is scientifically accurate. Callers
 //! must still run the independent physical verifier.
 
-use crate::energy_study::{
-    EnergyEvidenceClass, EnergyStudyManifestV1, EnergyStudyValidationError,
-};
+use crate::energy_study::{EnergyEvidenceClass, EnergyStudyManifestV1, EnergyStudyValidationError};
 use crate::microgrid::{BatteryConfig, MicrogridSimulation};
 use crate::microgrid_verifier::{
-    verify_microgrid_simulation, MicrogridVerificationError, MicrogridVerificationReport,
+    MicrogridVerificationError, MicrogridVerificationReport, verify_microgrid_simulation,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -111,19 +109,31 @@ impl std::fmt::Display for EnergyStudyQualificationError {
             }
             Self::DuplicateArtifactId => f.write_str("duplicate input artifact ID"),
             Self::ArtifactHashMismatch(field) => {
-                write!(f, "input artifact bytes do not match declared digest: {field}")
+                write!(
+                    f,
+                    "input artifact bytes do not match declared digest: {field}"
+                )
             }
             Self::IntervalCountMismatch => {
                 f.write_str("interval receipt and output counts must equal manifest interval_count")
             }
             Self::IntervalIndexMismatch { position } => {
-                write!(f, "interval receipt at position {position} is missing, duplicated, or reordered")
+                write!(
+                    f,
+                    "interval receipt at position {position} is missing, duplicated, or reordered"
+                )
             }
             Self::IntervalTimestampMismatch { position } => {
-                write!(f, "interval receipt at position {position} is outside the declared time axis")
+                write!(
+                    f,
+                    "interval receipt at position {position} is outside the declared time axis"
+                )
             }
             Self::IntervalOutputHashMismatch { position } => {
-                write!(f, "interval output bytes do not match receipt at position {position}")
+                write!(
+                    f,
+                    "interval output bytes do not match receipt at position {position}"
+                )
             }
             Self::TimeArithmeticOverflow { position } => {
                 write!(f, "timestamp arithmetic overflow at interval {position}")
@@ -135,7 +145,10 @@ impl std::fmt::Display for EnergyStudyQualificationError {
                 f.write_str("critical-load profile is malformed or outside its physical domain")
             }
             Self::CriticalLoadInputMismatch { interval } => {
-                write!(f, "interval {interval} load does not match the hashed load-profile artifact")
+                write!(
+                    f,
+                    "interval {interval} load does not match the hashed load-profile artifact"
+                )
             }
             Self::CriticalLoadAccountingOverflow => {
                 f.write_str("critical-load accounting produced a non-finite aggregate")
@@ -149,9 +162,9 @@ impl std::fmt::Display for EnergyStudyQualificationError {
             Self::InvalidGridAvailabilityProfile => {
                 f.write_str("grid-availability profile is malformed")
             }
-            Self::ConstraintAssetMismatch => {
-                f.write_str("battery minimum state of charge differs between constraints and asset registry")
-            }
+            Self::ConstraintAssetMismatch => f.write_str(
+                "battery minimum state of charge differs between constraints and asset registry",
+            ),
             Self::IntervalOutputSerializationFailure => {
                 f.write_str("could not canonically serialize a microgrid interval")
             }
@@ -190,7 +203,10 @@ pub fn verify_energy_study_artifacts_v1(
     }
     if artifacts.datasets.len() != manifest.datasets.len()
         || manifest.datasets.iter().any(|expected| {
-            !artifacts.datasets.iter().any(|artifact| artifact.0 == expected.dataset_id.as_str())
+            !artifacts
+                .datasets
+                .iter()
+                .any(|artifact| artifact.0 == expected.dataset_id.as_str())
         })
     {
         return Err(EnergyStudyQualificationError::ArtifactSetMismatch);
@@ -198,27 +214,49 @@ pub fn verify_energy_study_artifacts_v1(
 
     let mut entries: Vec<(String, String)> = Vec::with_capacity(manifest.datasets.len() + 4);
     for dataset in &manifest.datasets {
-        let bytes = artifacts.datasets.iter()
+        let bytes = artifacts
+            .datasets
+            .iter()
             .find(|artifact| artifact.0 == dataset.dataset_id.as_str())
             .map(|artifact| artifact.1)
             .ok_or(EnergyStudyQualificationError::ArtifactSetMismatch)?;
         let actual_hash = sha256_hex(bytes);
         if actual_hash != dataset.content_sha256 {
-            return Err(EnergyStudyQualificationError::ArtifactHashMismatch("dataset"));
+            return Err(EnergyStudyQualificationError::ArtifactHashMismatch(
+                "dataset",
+            ));
         }
         entries.push((format!("dataset:{}", dataset.dataset_id), actual_hash));
     }
 
     let configs = [
-        ("asset_registry", artifacts.asset_registry, manifest.asset_registry_sha256.as_str()),
-        ("constraints", artifacts.constraints, manifest.constraints_sha256.as_str()),
-        ("model_configuration", artifacts.model_configuration, manifest.model.configuration_sha256.as_str()),
-        ("policy_configuration", artifacts.policy_configuration, manifest.policy.configuration_sha256.as_str()),
+        (
+            "asset_registry",
+            artifacts.asset_registry,
+            manifest.asset_registry_sha256.as_str(),
+        ),
+        (
+            "constraints",
+            artifacts.constraints,
+            manifest.constraints_sha256.as_str(),
+        ),
+        (
+            "model_configuration",
+            artifacts.model_configuration,
+            manifest.model.configuration_sha256.as_str(),
+        ),
+        (
+            "policy_configuration",
+            artifacts.policy_configuration,
+            manifest.policy.configuration_sha256.as_str(),
+        ),
     ];
     for (artifact_id, bytes, expected_hash) in configs {
         let actual_hash = sha256_hex(bytes);
         if actual_hash != expected_hash {
-            return Err(EnergyStudyQualificationError::ArtifactHashMismatch(artifact_id));
+            return Err(EnergyStudyQualificationError::ArtifactHashMismatch(
+                artifact_id,
+            ));
         }
         entries.push((artifact_id.to_owned(), actual_hash));
     }
@@ -232,7 +270,9 @@ pub fn verify_energy_study_artifacts_v1(
         write_text(&mut canonical, digest);
     }
 
-    let declared_evidence_classes = manifest.datasets.iter()
+    let declared_evidence_classes = manifest
+        .datasets
+        .iter()
         .map(|dataset| (dataset.dataset_id.clone(), dataset.evidence_class))
         .collect();
 
@@ -263,10 +303,14 @@ pub fn verify_energy_study_run_receipt_v1(
     let manifest_sha256 = manifest.digest_sha256()?;
     let case_sha256 = manifest.case_digest_sha256()?;
     if !is_sha256(&receipt.manifest_sha256) {
-        return Err(EnergyStudyQualificationError::InvalidSha256("receipt.manifest_sha256"));
+        return Err(EnergyStudyQualificationError::InvalidSha256(
+            "receipt.manifest_sha256",
+        ));
     }
     if !is_sha256(&receipt.case_sha256) {
-        return Err(EnergyStudyQualificationError::InvalidSha256("receipt.case_sha256"));
+        return Err(EnergyStudyQualificationError::InvalidSha256(
+            "receipt.case_sha256",
+        ));
     }
     if receipt.manifest_sha256 != manifest_sha256 || receipt.case_sha256 != case_sha256 {
         return Err(EnergyStudyQualificationError::ArtifactSetMismatch);
@@ -282,8 +326,11 @@ pub fn verify_energy_study_run_receipt_v1(
     canonical.extend_from_slice(b"luminous-dynamics.energy-study-interval-outputs.v1\0");
     canonical.extend_from_slice(&manifest.interval_count.to_be_bytes());
 
-    for (position, (interval, output_bytes)) in receipt.intervals.iter()
-        .zip(interval_output_bytes.iter()).enumerate()
+    for (position, (interval, output_bytes)) in receipt
+        .intervals
+        .iter()
+        .zip(interval_output_bytes.iter())
+        .enumerate()
     {
         let expected_index = u32::try_from(position)
             .map_err(|_| EnergyStudyQualificationError::IntervalCountMismatch)?;
@@ -293,13 +340,17 @@ pub fn verify_energy_study_run_receipt_v1(
         let offset = i64::from(manifest.interval_seconds)
             .checked_mul(i64::from(expected_index))
             .ok_or(EnergyStudyQualificationError::TimeArithmeticOverflow { position })?;
-        let expected_timestamp = manifest.start_unix_seconds.checked_add(offset)
+        let expected_timestamp = manifest
+            .start_unix_seconds
+            .checked_add(offset)
             .ok_or(EnergyStudyQualificationError::TimeArithmeticOverflow { position })?;
         if interval.interval_start_unix_seconds != expected_timestamp {
             return Err(EnergyStudyQualificationError::IntervalTimestampMismatch { position });
         }
         if !is_sha256(&interval.output_sha256) {
-            return Err(EnergyStudyQualificationError::InvalidSha256("interval.output_sha256"));
+            return Err(EnergyStudyQualificationError::InvalidSha256(
+                "interval.output_sha256",
+            ));
         }
         let actual_hash = sha256_hex(output_bytes);
         if actual_hash != interval.output_sha256 {
@@ -359,13 +410,19 @@ pub fn assess_critical_load_constraint_v1(
 ) -> Result<CriticalLoadConstraintAssessmentV1, EnergyStudyQualificationError> {
     manifest.validate()?;
     if sha256_hex(constraints_bytes) != manifest.constraints_sha256 {
-        return Err(EnergyStudyQualificationError::ArtifactHashMismatch("constraints"));
+        return Err(EnergyStudyQualificationError::ArtifactHashMismatch(
+            "constraints",
+        ));
     }
-    let load_dataset = manifest.datasets.iter()
+    let load_dataset = manifest
+        .datasets
+        .iter()
         .find(|dataset| dataset.dataset_id == "load-profile")
         .ok_or(EnergyStudyQualificationError::ArtifactSetMismatch)?;
     if sha256_hex(load_profile_csv_bytes) != load_dataset.content_sha256 {
-        return Err(EnergyStudyQualificationError::ArtifactHashMismatch("load-profile"));
+        return Err(EnergyStudyQualificationError::ArtifactHashMismatch(
+            "load-profile",
+        ));
     }
 
     let constraints: EnergyStudyConstraintSetV1 = serde_json::from_slice(constraints_bytes)
@@ -375,7 +432,9 @@ pub fn assess_critical_load_constraint_v1(
         || constraints.critical_unserved_energy_max_kwh < 0.0
         || !constraints.battery_minimum_soc_kwh.is_finite()
         || constraints.battery_minimum_soc_kwh < 0.0
-        || !constraints.require_power_balance_residual_max_kwh.is_finite()
+        || !constraints
+            .require_power_balance_residual_max_kwh
+            .is_finite()
         || constraints.require_power_balance_residual_max_kwh < 0.0
         || constraints.allow_physical_actuation
     {
@@ -383,14 +442,14 @@ pub fn assess_critical_load_constraint_v1(
     }
 
     let (loads, critical_loads) = parse_critical_load_profile_v1(load_profile_csv_bytes)?;
-    if loads.len() != manifest.interval_count as usize
-        || loads.len() != simulation.intervals.len()
+    if loads.len() != manifest.interval_count as usize || loads.len() != simulation.intervals.len()
     {
         return Err(EnergyStudyQualificationError::IntervalCountMismatch);
     }
 
     let mut upper_bound_kwh = 0.0;
-    for (interval_index, ((expected_load, critical_load), interval)) in loads.iter()
+    for (interval_index, ((expected_load, critical_load), interval)) in loads
+        .iter()
         .zip(critical_loads.iter())
         .zip(simulation.intervals.iter())
         .enumerate()
@@ -439,11 +498,14 @@ fn parse_critical_load_profile_v1(
         if fields.len() != 3 {
             return Err(EnergyStudyQualificationError::InvalidCriticalLoadProfile);
         }
-        let index = fields[0].parse::<usize>()
+        let index = fields[0]
+            .parse::<usize>()
             .map_err(|_| EnergyStudyQualificationError::InvalidCriticalLoadProfile)?;
-        let load = fields[1].parse::<f64>()
+        let load = fields[1]
+            .parse::<f64>()
             .map_err(|_| EnergyStudyQualificationError::InvalidCriticalLoadProfile)?;
-        let critical = fields[2].parse::<f64>()
+        let critical = fields[2]
+            .parse::<f64>()
             .map_err(|_| EnergyStudyQualificationError::InvalidCriticalLoadProfile)?;
         if index != loads.len()
             || !load.is_finite()
@@ -567,7 +629,10 @@ pub fn qualify_microgrid_study_v1(
 
     let timestep_hours = f64::from(manifest.interval_seconds) / 3600.0;
     let rated_interval_generation = asset_registry.renewable_asset.rated_power_kw * timestep_hours;
-    if generation.iter().any(|value| *value > rated_interval_generation + 1e-9) {
+    if generation
+        .iter()
+        .any(|value| *value > rated_interval_generation + 1e-9)
+    {
         return Err(EnergyStudyQualificationError::InvalidRenewableGenerationProfile);
     }
 
@@ -581,18 +646,17 @@ pub fn qualify_microgrid_study_v1(
     )
     .map_err(EnergyStudyQualificationError::InvalidMicrogridSimulation)?;
 
-    let serialized_intervals: Vec<Vec<u8>> = simulation.intervals.iter()
-        .map(|interval| serde_json::to_vec(interval)
-            .map_err(|_| EnergyStudyQualificationError::IntervalOutputSerializationFailure))
+    let serialized_intervals: Vec<Vec<u8>> = simulation
+        .intervals
+        .iter()
+        .map(|interval| {
+            serde_json::to_vec(interval)
+                .map_err(|_| EnergyStudyQualificationError::IntervalOutputSerializationFailure)
+        })
         .collect::<Result<_, _>>()?;
-    let serialized_slices: Vec<&[u8]> = serialized_intervals.iter()
-        .map(Vec::as_slice)
-        .collect();
-    let run_verification = verify_energy_study_run_receipt_v1(
-        manifest,
-        run_receipt,
-        &serialized_slices,
-    )?;
+    let serialized_slices: Vec<&[u8]> = serialized_intervals.iter().map(Vec::as_slice).collect();
+    let run_verification =
+        verify_energy_study_run_receipt_v1(manifest, run_receipt, &serialized_slices)?;
 
     let critical_load = assess_critical_load_constraint_v1(
         manifest,
@@ -600,13 +664,13 @@ pub fn qualify_microgrid_study_v1(
         load_bytes,
         simulation,
     )?;
-    let maximum_residual = physical_accounting.max_load_balance_residual_kwh
+    let maximum_residual = physical_accounting
+        .max_load_balance_residual_kwh
         .max(physical_accounting.max_generation_balance_residual_kwh)
         .max(physical_accounting.max_battery_transition_residual_kwh);
     let power_balance_within_limit =
         maximum_residual <= constraint_set.require_power_balance_residual_max_kwh;
-    let qualification_passed =
-        power_balance_within_limit && critical_load.proven_within_limit;
+    let qualification_passed = power_balance_within_limit && critical_load.proven_within_limit;
 
     Ok(EnergyStudyMicrogridQualificationReportV1 {
         artifacts: artifact_receipt,
@@ -622,7 +686,8 @@ fn dataset_bytes<'a>(
     datasets: &'a [(&'a str, &'a [u8])],
     required_id: &str,
 ) -> Result<&'a [u8], EnergyStudyQualificationError> {
-    datasets.iter()
+    datasets
+        .iter()
         .find(|artifact| artifact.0 == required_id)
         .map(|artifact| artifact.1)
         .ok_or(EnergyStudyQualificationError::ArtifactSetMismatch)
@@ -643,9 +708,11 @@ fn parse_renewable_generation_profile_v1(
         if fields.len() != 2 {
             return Err(EnergyStudyQualificationError::InvalidRenewableGenerationProfile);
         }
-        let index = fields[0].parse::<usize>()
+        let index = fields[0]
+            .parse::<usize>()
             .map_err(|_| EnergyStudyQualificationError::InvalidRenewableGenerationProfile)?;
-        let value = fields[1].parse::<f64>()
+        let value = fields[1]
+            .parse::<f64>()
             .map_err(|_| EnergyStudyQualificationError::InvalidRenewableGenerationProfile)?;
         if index != generation.len() || !value.is_finite() || value < 0.0 {
             return Err(EnergyStudyQualificationError::InvalidRenewableGenerationProfile);
@@ -673,7 +740,8 @@ fn parse_grid_availability_profile_v1(
         if fields.len() != 2 {
             return Err(EnergyStudyQualificationError::InvalidGridAvailabilityProfile);
         }
-        let index = fields[0].parse::<usize>()
+        let index = fields[0]
+            .parse::<usize>()
             .map_err(|_| EnergyStudyQualificationError::InvalidGridAvailabilityProfile)?;
         let value = match fields[1] {
             "true" => true,
@@ -739,14 +807,17 @@ fn write_text(output: &mut Vec<u8>, value: &str) {
 
 fn is_sha256(value: &str) -> bool {
     value.len() == 64
-        && value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 fn hex_to_bytes(value: &str) -> Option<Vec<u8>> {
     if !is_sha256(value) {
         return None;
     }
-    (0..value.len()).step_by(2)
+    (0..value.len())
+        .step_by(2)
         .map(|index| u8::from_str_radix(&value[index..index + 2], 16).ok())
         .collect()
 }
@@ -765,30 +836,46 @@ mod tests {
     fn input_artifacts() -> EnergyStudyArtifactBytesV1<'static> {
         EnergyStudyArtifactBytesV1 {
             datasets: &[
-                ("grid-availability", include_bytes!("../../fixtures/energy-study/v1/grid-availability.csv")),
-                ("load-profile", include_bytes!("../../fixtures/energy-study/v1/load-profile.csv")),
-                ("renewable-generation", include_bytes!("../../fixtures/energy-study/v1/renewable-generation.csv")),
+                (
+                    "grid-availability",
+                    include_bytes!("../../fixtures/energy-study/v1/grid-availability.csv"),
+                ),
+                (
+                    "load-profile",
+                    include_bytes!("../../fixtures/energy-study/v1/load-profile.csv"),
+                ),
+                (
+                    "renewable-generation",
+                    include_bytes!("../../fixtures/energy-study/v1/renewable-generation.csv"),
+                ),
             ],
             asset_registry: include_bytes!("../../fixtures/energy-study/v1/asset-registry.json"),
             constraints: include_bytes!("../../fixtures/energy-study/v1/constraints.json"),
             model_configuration: include_bytes!("../../fixtures/energy-study/v1/model-config.json"),
-            policy_configuration: include_bytes!("../../fixtures/energy-study/v1/policy-config.json"),
+            policy_configuration: include_bytes!(
+                "../../fixtures/energy-study/v1/policy-config.json"
+            ),
         }
     }
 
-    fn run_receipt(manifest: &EnergyStudyManifestV1, outputs: &[Vec<u8>]) -> EnergyStudyRunReceiptV1 {
+    fn run_receipt(
+        manifest: &EnergyStudyManifestV1,
+        outputs: &[Vec<u8>],
+    ) -> EnergyStudyRunReceiptV1 {
         EnergyStudyRunReceiptV1 {
             schema_version: ENERGY_STUDY_RECEIPT_SCHEMA_VERSION,
             manifest_sha256: manifest.digest_sha256().unwrap(),
             case_sha256: manifest.case_digest_sha256().unwrap(),
-            intervals: outputs.iter().enumerate().map(|(position, bytes)| {
-                EnergyStudyIntervalReceiptV1 {
+            intervals: outputs
+                .iter()
+                .enumerate()
+                .map(|(position, bytes)| EnergyStudyIntervalReceiptV1 {
                     interval_index: position as u32,
                     interval_start_unix_seconds: manifest.start_unix_seconds
                         + i64::from(manifest.interval_seconds) * position as i64,
                     output_sha256: sha256_hex(bytes),
-                }
-            }).collect(),
+                })
+                .collect(),
         }
     }
 
@@ -796,49 +883,106 @@ mod tests {
     fn verifies_exact_fixture_artifact_set_and_preserves_declared_evidence_class() {
         let manifest = manifest();
         let verified = verify_energy_study_artifacts_v1(&manifest, input_artifacts()).unwrap();
-        assert_eq!(verified.manifest_sha256, "896b4579a632dac32bafd3b2347f19f5da5a74f7173c14cf818b00a8e5c484da");
-        assert_eq!(verified.case_sha256, "1612238432409a5282145479c7c585c53b4ae9a45832de5213722ee75d438f63");
+        assert_eq!(
+            verified.manifest_sha256,
+            "896b4579a632dac32bafd3b2347f19f5da5a74f7173c14cf818b00a8e5c484da"
+        );
+        assert_eq!(
+            verified.case_sha256,
+            "1612238432409a5282145479c7c585c53b4ae9a45832de5213722ee75d438f63"
+        );
         // Golden vector independently pinned by Mycelix SDK TypeScript tests.
-        assert_eq!(verified.artifact_set_sha256, "74a2bb57ea351ab2f0d68502443d27a971db33293fa4c11e12a45d0afa3b30e2");
+        assert_eq!(
+            verified.artifact_set_sha256,
+            "74a2bb57ea351ab2f0d68502443d27a971db33293fa4c11e12a45d0afa3b30e2"
+        );
         assert_eq!(verified.verified_dataset_count, 3);
 
         let all = input_artifacts();
         let reversed_datasets = [all.datasets[2], all.datasets[1], all.datasets[0]];
-        let reversed = EnergyStudyArtifactBytesV1 { datasets: &reversed_datasets, ..all };
+        let reversed = EnergyStudyArtifactBytesV1 {
+            datasets: &reversed_datasets,
+            ..all
+        };
         let reversed_receipt = verify_energy_study_artifacts_v1(&manifest, reversed).unwrap();
-        assert_eq!(reversed_receipt.artifact_set_sha256, verified.artifact_set_sha256);
+        assert_eq!(
+            reversed_receipt.artifact_set_sha256,
+            verified.artifact_set_sha256
+        );
         assert_eq!(verified.verified_configuration_count, 4);
-        assert!(verified.declared_evidence_classes.iter().all(|(_, class)| *class == EnergyEvidenceClass::Scenario));
+        assert!(
+            verified
+                .declared_evidence_classes
+                .iter()
+                .all(|(_, class)| *class == EnergyEvidenceClass::Scenario)
+        );
     }
 
     #[test]
     fn rejects_missing_extra_duplicate_and_mutated_input_artifacts() {
         let manifest = manifest();
         let all = input_artifacts();
-        let missing = EnergyStudyArtifactBytesV1 { datasets: &all.datasets[..2], ..all };
-        assert_eq!(verify_energy_study_artifacts_v1(&manifest, missing), Err(EnergyStudyQualificationError::ArtifactSetMismatch));
+        let missing = EnergyStudyArtifactBytesV1 {
+            datasets: &all.datasets[..2],
+            ..all
+        };
+        assert_eq!(
+            verify_energy_study_artifacts_v1(&manifest, missing),
+            Err(EnergyStudyQualificationError::ArtifactSetMismatch)
+        );
 
-        let extra_datasets = [all.datasets[0], all.datasets[1], all.datasets[2], ("unlisted", b"extra".as_slice())];
-        let extra = EnergyStudyArtifactBytesV1 { datasets: &extra_datasets, ..all };
-        assert_eq!(verify_energy_study_artifacts_v1(&manifest, extra), Err(EnergyStudyQualificationError::ArtifactSetMismatch));
+        let extra_datasets = [
+            all.datasets[0],
+            all.datasets[1],
+            all.datasets[2],
+            ("unlisted", b"extra".as_slice()),
+        ];
+        let extra = EnergyStudyArtifactBytesV1 {
+            datasets: &extra_datasets,
+            ..all
+        };
+        assert_eq!(
+            verify_energy_study_artifacts_v1(&manifest, extra),
+            Err(EnergyStudyQualificationError::ArtifactSetMismatch)
+        );
 
         let duplicate_datasets = [all.datasets[0], all.datasets[0], all.datasets[2]];
-        let duplicate = EnergyStudyArtifactBytesV1 { datasets: &duplicate_datasets, ..all };
-        assert_eq!(verify_energy_study_artifacts_v1(&manifest, duplicate), Err(EnergyStudyQualificationError::DuplicateArtifactId));
+        let duplicate = EnergyStudyArtifactBytesV1 {
+            datasets: &duplicate_datasets,
+            ..all
+        };
+        assert_eq!(
+            verify_energy_study_artifacts_v1(&manifest, duplicate),
+            Err(EnergyStudyQualificationError::DuplicateArtifactId)
+        );
 
-        let mutated_datasets = [all.datasets[0], all.datasets[1], ("renewable-generation", b"tampered".as_slice())];
-        let mutated = EnergyStudyArtifactBytesV1 { datasets: &mutated_datasets, ..all };
-        assert_eq!(verify_energy_study_artifacts_v1(&manifest, mutated), Err(EnergyStudyQualificationError::ArtifactHashMismatch("dataset")));
+        let mutated_datasets = [
+            all.datasets[0],
+            all.datasets[1],
+            ("renewable-generation", b"tampered".as_slice()),
+        ];
+        let mutated = EnergyStudyArtifactBytesV1 {
+            datasets: &mutated_datasets,
+            ..all
+        };
+        assert_eq!(
+            verify_energy_study_artifacts_v1(&manifest, mutated),
+            Err(EnergyStudyQualificationError::ArtifactHashMismatch(
+                "dataset"
+            ))
+        );
     }
 
     #[test]
     fn binds_ordered_timestamped_output_bytes_to_manifest() {
         let manifest = manifest();
         let outputs: Vec<Vec<u8>> = (0..manifest.interval_count)
-            .map(|index| format!("fixture-output-{index}").into_bytes()).collect();
+            .map(|index| format!("fixture-output-{index}").into_bytes())
+            .collect();
         let receipt = run_receipt(&manifest, &outputs);
         let output_slices: Vec<&[u8]> = outputs.iter().map(Vec::as_slice).collect();
-        let verified = verify_energy_study_run_receipt_v1(&manifest, &receipt, &output_slices).unwrap();
+        let verified =
+            verify_energy_study_run_receipt_v1(&manifest, &receipt, &output_slices).unwrap();
         assert_eq!(verified.verified_interval_count, manifest.interval_count);
         assert_eq!(verified.manifest_sha256, manifest.digest_sha256().unwrap());
     }
@@ -847,24 +991,40 @@ mod tests {
     fn rejects_manifest_substitution_missing_rows_reordering_and_timestamp_changes() {
         let manifest = manifest();
         let outputs: Vec<Vec<u8>> = (0..manifest.interval_count)
-            .map(|index| format!("fixture-output-{index}").into_bytes()).collect();
+            .map(|index| format!("fixture-output-{index}").into_bytes())
+            .collect();
         let output_slices: Vec<&[u8]> = outputs.iter().map(Vec::as_slice).collect();
         let good = run_receipt(&manifest, &outputs);
 
         let mut substituted = good.clone();
         substituted.manifest_sha256 = "0".repeat(64);
-        assert_eq!(verify_energy_study_run_receipt_v1(&manifest, &substituted, &output_slices), Err(EnergyStudyQualificationError::ArtifactSetMismatch));
+        assert_eq!(
+            verify_energy_study_run_receipt_v1(&manifest, &substituted, &output_slices),
+            Err(EnergyStudyQualificationError::ArtifactSetMismatch)
+        );
 
-        let missing = EnergyStudyRunReceiptV1 { intervals: good.intervals[..7].to_vec(), ..good.clone() };
-        assert_eq!(verify_energy_study_run_receipt_v1(&manifest, &missing, &output_slices), Err(EnergyStudyQualificationError::IntervalCountMismatch));
+        let missing = EnergyStudyRunReceiptV1 {
+            intervals: good.intervals[..7].to_vec(),
+            ..good.clone()
+        };
+        assert_eq!(
+            verify_energy_study_run_receipt_v1(&manifest, &missing, &output_slices),
+            Err(EnergyStudyQualificationError::IntervalCountMismatch)
+        );
 
         let mut reordered = good.clone();
         reordered.intervals.swap(0, 1);
-        assert_eq!(verify_energy_study_run_receipt_v1(&manifest, &reordered, &output_slices), Err(EnergyStudyQualificationError::IntervalIndexMismatch { position: 0 }));
+        assert_eq!(
+            verify_energy_study_run_receipt_v1(&manifest, &reordered, &output_slices),
+            Err(EnergyStudyQualificationError::IntervalIndexMismatch { position: 0 })
+        );
 
         let mut wrong_time = good;
         wrong_time.intervals[3].interval_start_unix_seconds += 1;
-        assert_eq!(verify_energy_study_run_receipt_v1(&manifest, &wrong_time, &output_slices), Err(EnergyStudyQualificationError::IntervalTimestampMismatch { position: 3 }));
+        assert_eq!(
+            verify_energy_study_run_receipt_v1(&manifest, &wrong_time, &output_slices),
+            Err(EnergyStudyQualificationError::IntervalTimestampMismatch { position: 3 })
+        );
     }
 
     #[test]
@@ -875,12 +1035,14 @@ mod tests {
         let artifacts = input_artifacts();
         let load_bytes = include_bytes!("../../fixtures/energy-study/v1/load-profile.csv");
         let (loads, _) = parse_critical_load_profile_v1(load_bytes).unwrap();
-        let generation = parse_renewable_generation_profile_v1(
-            include_bytes!("../../fixtures/energy-study/v1/renewable-generation.csv")
-        ).unwrap();
-        let grid = parse_grid_availability_profile_v1(
-            include_bytes!("../../fixtures/energy-study/v1/grid-availability.csv")
-        ).unwrap();
+        let generation = parse_renewable_generation_profile_v1(include_bytes!(
+            "../../fixtures/energy-study/v1/renewable-generation.csv"
+        ))
+        .unwrap();
+        let grid = parse_grid_availability_profile_v1(include_bytes!(
+            "../../fixtures/energy-study/v1/grid-availability.csv"
+        ))
+        .unwrap();
         let battery = BatteryConfig {
             capacity_kwh: 6.0,
             initial_soc_kwh: 3.0,
@@ -891,18 +1053,31 @@ mod tests {
             discharge_efficiency: 0.92,
         };
         let simulation = simulate_microgrid(&loads, &generation, &grid, 0.25, battery).unwrap();
-        let serialized: Vec<Vec<u8>> = simulation.intervals.iter()
-            .map(|interval| serde_json::to_vec(interval).unwrap()).collect();
+        let serialized: Vec<Vec<u8>> = simulation
+            .intervals
+            .iter()
+            .map(|interval| serde_json::to_vec(interval).unwrap())
+            .collect();
         let mut receipt = run_receipt(&manifest, &serialized);
-        receipt.intervals.iter_mut().zip(serialized.iter()).for_each(|(row, bytes)| {
-            row.output_sha256 = sha256_hex(bytes);
-        });
+        receipt
+            .intervals
+            .iter_mut()
+            .zip(serialized.iter())
+            .for_each(|(row, bytes)| {
+                row.output_sha256 = sha256_hex(bytes);
+            });
 
-        let report = qualify_microgrid_study_v1(&manifest, artifacts, &receipt, &simulation).unwrap();
+        let report =
+            qualify_microgrid_study_v1(&manifest, artifacts, &receipt, &simulation).unwrap();
         assert_eq!(report.physical_accounting.interval_count, 8);
         assert_eq!(report.run.verified_interval_count, 8);
         assert!(report.power_balance_within_limit);
-        assert!(report.critical_load.critical_unserved_energy_upper_bound_kwh > 0.0);
+        assert!(
+            report
+                .critical_load
+                .critical_unserved_energy_upper_bound_kwh
+                > 0.0
+        );
         assert!(!report.critical_load.proven_within_limit);
         assert!(!report.qualification_passed);
     }
@@ -932,18 +1107,28 @@ mod tests {
             constraint_bytes,
             load_bytes,
             &simulation,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(assessment.critical_unserved_energy_upper_bound_kwh > 0.0);
         assert_eq!(assessment.maximum_allowed_kwh, 0.0);
         assert!(!assessment.proven_within_limit);
 
         assert_eq!(
             assess_critical_load_constraint_v1(&manifest, b"tampered", load_bytes, &simulation),
-            Err(EnergyStudyQualificationError::ArtifactHashMismatch("constraints"))
+            Err(EnergyStudyQualificationError::ArtifactHashMismatch(
+                "constraints"
+            ))
         );
         assert_eq!(
-            assess_critical_load_constraint_v1(&manifest, constraint_bytes, b"tampered", &simulation),
-            Err(EnergyStudyQualificationError::ArtifactHashMismatch("load-profile"))
+            assess_critical_load_constraint_v1(
+                &manifest,
+                constraint_bytes,
+                b"tampered",
+                &simulation
+            ),
+            Err(EnergyStudyQualificationError::ArtifactHashMismatch(
+                "load-profile"
+            ))
         );
     }
 
@@ -951,15 +1136,13 @@ mod tests {
     fn combined_qualification_binds_inputs_and_outputs_to_same_study() {
         let manifest = manifest();
         let outputs: Vec<Vec<u8>> = (0..manifest.interval_count)
-            .map(|index| format!("fixture-output-{index}").into_bytes()).collect();
+            .map(|index| format!("fixture-output-{index}").into_bytes())
+            .collect();
         let receipt = run_receipt(&manifest, &outputs);
         let output_slices: Vec<&[u8]> = outputs.iter().map(Vec::as_slice).collect();
-        let report = qualify_energy_study_run_v1(
-            &manifest,
-            input_artifacts(),
-            &receipt,
-            &output_slices,
-        ).unwrap();
+        let report =
+            qualify_energy_study_run_v1(&manifest, input_artifacts(), &receipt, &output_slices)
+                .unwrap();
         assert_eq!(report.artifacts.manifest_sha256, report.run.manifest_sha256);
         assert_eq!(report.artifacts.case_sha256, report.run.case_sha256);
         assert_eq!(report.run.verified_interval_count, manifest.interval_count);
@@ -969,11 +1152,15 @@ mod tests {
     fn rejects_changed_output_bytes_even_when_other_rows_are_intact() {
         let manifest = manifest();
         let outputs: Vec<Vec<u8>> = (0..manifest.interval_count)
-            .map(|index| format!("fixture-output-{index}").into_bytes()).collect();
+            .map(|index| format!("fixture-output-{index}").into_bytes())
+            .collect();
         let receipt = run_receipt(&manifest, &outputs);
         let mut changed_outputs = outputs.clone();
         changed_outputs[4] = b"tampered-output".to_vec();
         let changed_slices: Vec<&[u8]> = changed_outputs.iter().map(Vec::as_slice).collect();
-        assert_eq!(verify_energy_study_run_receipt_v1(&manifest, &receipt, &changed_slices), Err(EnergyStudyQualificationError::IntervalOutputHashMismatch { position: 4 }));
+        assert_eq!(
+            verify_energy_study_run_receipt_v1(&manifest, &receipt, &changed_slices),
+            Err(EnergyStudyQualificationError::IntervalOutputHashMismatch { position: 4 })
+        );
     }
 }
