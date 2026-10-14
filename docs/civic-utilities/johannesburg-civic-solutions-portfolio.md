@@ -109,6 +109,24 @@ The 90-day plan is a proposed schedule contingent on access, staffing and commun
 
 Start with open, documented data contracts and portable exports. Do not create a brittle integration that only one team can operate. No autonomous connection to pumps, breakers, traffic signals, access-control systems or other operational technology is included.
 
+## What is implemented now versus still proposed
+
+The public Sol-Atlas branch contains a reusable Rust contract at `sol-atlas-core/src/civic_cases.rs` and exports it from the core crate. It currently models service domains, severity, privacy classification, official references, evidence review state, append-only status events, and a derived current status.
+
+The contract checks:
+- required case/category/area identifiers and schema version;
+- unique official references, evidence IDs, and event IDs;
+- SHA-256 digest syntax and HTTPS-only public reference links without query/fragment tokens;
+- monotonic record time and consistency between the last event and the case's updated time;
+- evidence references must resolve to known evidence IDs;
+- legal status transitions, evidence-linked resolution claims, and independent review evidence before the `ResolutionVerified` event is accepted;
+- correction events carry a reason code and evidence but do not rewrite current status or prior history;
+- a public projection is returned only for explicitly `PublicCase` records, and filters private evidence and suppresses actor references, raw official ticket IDs, and artifact pointers.
+
+The module has unit tests authored for normal cases, duplicate/out-of-order events, resolution evidence, independent verification, reopening, append-only corrections, public projection redaction, and unsafe public URLs. The latest head's `fmt`, `test-native`, and `check-wasm` jobs are queued; these tests must not be described as passing until the exact head completes successfully.
+
+This is not yet an application or a production case-management service. Persistence, access control, authentication, evidence-byte hashing, retention/deletion policy, redaction review, import/export adapters, map UI, resident intake, official ticket-system integration, and human dispatch workflows remain unimplemented. The type's `PublicCase` visibility is an explicit publication gate, not a substitute for area-level privacy review or legal authority to publish.
+
 ## Evaluation scorecard
 
 Every pilot should publish a baseline and then track:
