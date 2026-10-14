@@ -117,6 +117,14 @@ class AgroclimateProfileTests(unittest.TestCase):
         self.assertEqual(len(ids), 6)
         self.assertEqual(len(set(ids)), 6)
 
+    def test_baseline_required_sources_are_explicit_and_minimal(self):
+        required = {
+            source["source_id"]
+            for source in self.profile["sources"]
+            if source["required_for_baseline"]
+        }
+        self.assertEqual(required, {"ERA5-LAND", "LOCAL-OBSERVATIONS"})
+
     def test_shared_schema_accepts_other_regions_and_source_families(self):
         doc = copy.deepcopy(self.profile)
         doc["profile_id"] = "agroclimate-mediterranean-v1"
@@ -361,6 +369,24 @@ class AgroclimateProfileTests(unittest.TestCase):
         primary = next(asset for asset in required_source["artifacts"] if asset["role"] == "primary")
         doc["validation"]["gate_evidence"]["D1"]["evidence_refs"].remove(primary["asset_uri"])
         self.assertTrue(any("primary asset URI and matching digest" in error for error in self.errors(doc)))
+
+    def test_D1_evidence_digest_must_match_required_source(self):
+        doc = self.synthetic_complete_profile()
+        required_source = next(
+            source for source in doc["sources"] if source["required_for_baseline"]
+        )
+        doc["validation"]["gate_evidence"]["D1"]["evidence_refs"].remove(
+            f"sha256:{required_source['artifact_sha256']}"
+        )
+        doc["validation"]["gate_evidence"]["D1"]["evidence_refs"].append("sha256:" + "f" * 64)
+        self.assertTrue(any("primary asset URI and matching digest" in error for error in self.errors(doc)))
+
+    def test_D1_requires_at_least_one_baseline_source(self):
+        doc = self.synthetic_complete_profile()
+        for source in doc["sources"]:
+            source["required_for_baseline"] = False
+        self.assertTrue(any("requires at least one source marked required_for_baseline" in error
+                            for error in self.errors(doc)))
 
     def test_primary_asset_digest_must_match_source_digest(self):
         doc = self.synthetic_complete_profile()
