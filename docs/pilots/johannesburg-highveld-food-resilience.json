@@ -256,7 +256,8 @@
       "use rolling-origin hindcasts for seasonal forecasts and preserve the historical issue date to avoid look-ahead leakage",
       "hold out whole sites, growing seasons or farm-years where sample volume allows; do not randomly split near-duplicate records across folds",
       "inspect upstream source overlap before labelling any station, rainfall or derived-product comparison independent",
-      "report observation count, missingness, uncertainty interval and performance by site/crop/season rather than only an aggregate mean"
+      "report observation count, missingness, uncertainty interval and performance by site/crop/season rather than only an aggregate mean",
+      "compare an unadapted shared model on held-out regions/sites against the same model after local calibration; report transfer penalty, uncertainty and calibration benefit separately"
     ],
     "metrics": [
       "daily and seasonal precipitation/ET0 error where an independent reference is available",
