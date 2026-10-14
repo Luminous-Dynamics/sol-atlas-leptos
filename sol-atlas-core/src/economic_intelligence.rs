@@ -835,7 +835,7 @@ mod tests {
     fn equal_reported_values_are_not_proof_of_no_illicit_activity() {
         let result = pair(Some("100"), Some("100"));
         assert_eq!(result.status, MirrorPairStatus::Compared);
-        assert_eq!(result.absolute_difference, Some("0"));
+        assert_eq!(result.absolute_difference, Some(0.0));
         assert_eq!(
             result.claim_ceiling,
             MirrorClaimCeiling::DescriptiveValueDifferenceOnly
