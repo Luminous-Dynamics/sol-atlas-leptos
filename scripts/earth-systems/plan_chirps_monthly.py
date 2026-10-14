@@ -235,16 +235,66 @@ def remove_created_file(path: Path) -> str:
     return f"; removed partial artifact {path.name}"
 
 
+def save_index_snapshot(raw: bytes, path: Path) -> None:
+    """Create an exact, create-only index snapshot and remove a partial write."""
+    created = False
+    try:
+        with path.open("xb") as handle:
+            created = True
+            written = handle.write(raw)
+            if written != len(raw):
+                raise OSError(f"short write: captured {written} of {len(raw)} bytes")
+    except FileExistsError as exc:
+        raise IndexError(f"snapshot path already exists; refusing to overwrite: {path.name}") from exc
+    except OSError as exc:
+        cleanup_note = remove_created_file(path) if created else ""
+        raise IndexError(f"cannot save index snapshot: {exc}{cleanup_note}") from exc
+
+
+def snapshot_manifest(raw: bytes, retrieved_at: str | None, mode: str, filename: str) -> dict:
+    """Describe a captured index without implying a study period or raster acquisition."""
+    return {
+        "manifest_version": "1.0.0",
+        "dataset": "CHIRPS v3.0 monthly Africa-subset directory index",
+        "status": "index_snapshot_only",
+        "source_provider": "Climate Hazards Center, University of California Santa Barbara",
+        "official_landing_page": "https://www.chc.ucsb.edu/data/chirps3",
+        "index_url": INDEX_URL,
+        "index_snapshot_mode": mode,
+        "index_snapshot_saved": True,
+        "index_snapshot_filename": filename,
+        "index_retrieved_at_utc": retrieved_at,
+        "index_sha256": hashlib.sha256(raw).hexdigest(),
+        "index_bytes": len(raw),
+        "requested_period": None,
+        "analysis_period_selected": False,
+        "raster_files_downloaded": 0,
+        "claim_ceiling": [
+            "This manifest records exact directory-index bytes only; it does not select or endorse an analysis period.",
+            "The index digest identifies the captured bytes, not the remote GeoTIFF contents or their scientific validity.",
+            "No rainfall raster was downloaded, and no product finality, independent validation, or WaPOR temporal overlap is established.",
+        ],
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--start", required=True, type=parse_month, help="first month, inclusive (YYYY-MM)")
-    parser.add_argument("--end", required=True, type=parse_month, help="last month, inclusive (YYYY-MM)")
+    parser.add_argument("--start", type=parse_month, help="first month, inclusive (YYYY-MM)")
+    parser.add_argument("--end", type=parse_month, help="last month, inclusive (YYYY-MM)")
+    parser.add_argument("--snapshot-only", action="store_true", help="capture and hash the index without selecting an analysis period")
     parser.add_argument("--index-file", type=Path, help="use a saved HTML directory index instead of the network")
     parser.add_argument("--snapshot-index", type=Path, help="save the exact retrieved HTML index bytes to a new file (never overwrites)")
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT_SECONDS, help="HTTPS index timeout in seconds")
-    parser.add_argument("--output", type=Path, help="write the JSON plan to a file; default is stdout")
+    parser.add_argument("--output", type=Path, help="write the JSON manifest/plan to a new file; default is stdout")
     args = parser.parse_args(argv)
 
+    if args.snapshot_only:
+        if args.start is not None or args.end is not None:
+            parser.error("--snapshot-only cannot be combined with --start or --end")
+        if args.snapshot_index is None:
+            parser.error("--snapshot-only requires --snapshot-index")
+    elif args.start is None or args.end is None:
+        parser.error("--start and --end are required unless --snapshot-only is used")
     if not 0 < args.timeout <= 120:
         parser.error("--timeout must be greater than 0 and no more than 120 seconds")
     if args.output is not None and args.index_file is not None and args.output.resolve() == args.index_file.resolve():
@@ -257,28 +307,34 @@ def main(argv: list[str] | None = None) -> int:
     snapshot_created = False
     try:
         raw, retrieved_at, mode = read_index(args.index_file, args.timeout)
-        plan = build_plan(raw, args.start, args.end, retrieved_at, mode)
-        if args.snapshot_index is not None:
-            try:
-                with args.snapshot_index.open("xb") as snapshot:
-                    snapshot_created = True
-                    written = snapshot.write(raw)
-                    if written != len(raw):
-                        raise OSError(f"short write: captured {written} of {len(raw)} bytes")
-            except FileExistsError as exc:
-                raise IndexError(f"snapshot path already exists; refusing to overwrite: {args.snapshot_index.name}") from exc
-            except OSError as exc:
-                cleanup_note = remove_created_file(args.snapshot_index) if snapshot_created else ""
-                raise IndexError(f"cannot save index snapshot: {exc}{cleanup_note}") from exc
-            plan["index_snapshot_saved"] = True
-            plan["index_snapshot_filename"] = args.snapshot_index.name
+        if args.snapshot_only:
+            save_index_snapshot(raw, args.snapshot_index)
+            snapshot_created = True
+            plan = snapshot_manifest(raw, retrieved_at, mode, args.snapshot_index.name)
+        else:
+            plan = build_plan(raw, args.start, args.end, retrieved_at, mode)
+            if args.snapshot_index is not None:
+                save_index_snapshot(raw, args.snapshot_index)
+                snapshot_created = True
+                plan["index_snapshot_saved"] = True
+                plan["index_snapshot_filename"] = args.snapshot_index.name
     except (IndexError, ValueError) as exc:
         print(f"CHIRPS index planning failed: {exc}", file=sys.stderr)
         return 2
 
     output = json.dumps(plan, indent=2, sort_keys=True) + "\n"
     if args.output is None:
-        sys.stdout.write(output)
+        try:
+            written = sys.stdout.write(output)
+            if written != len(output):
+                raise OSError(f"short write: emitted {written} of {len(output)} characters")
+        except OSError as exc:
+            snapshot_cleanup = (
+                remove_created_file(args.snapshot_index)
+                if snapshot_created and args.snapshot_index is not None else ""
+            )
+            print(f"cannot write manifest to stdout: {exc}{snapshot_cleanup}", file=sys.stderr)
+            return 2
     else:
         output_created = False
         try:
@@ -300,8 +356,16 @@ def main(argv: list[str] | None = None) -> int:
                 remove_created_file(args.snapshot_index)
                 if snapshot_created and args.snapshot_index is not None else ""
             )
-            print(f"cannot write plan: {exc}{output_cleanup}{snapshot_cleanup}", file=sys.stderr)
+            print(f"cannot write manifest/plan: {exc}{output_cleanup}{snapshot_cleanup}", file=sys.stderr)
             return 2
+
+    if args.snapshot_only:
+        print(
+            f"Snapshot only: captured {plan['index_bytes']} index bytes; "
+            "no analysis period selected and no raster files downloaded.",
+            file=sys.stderr,
+        )
+        return 0
 
     if not plan["complete"]:
         print(
