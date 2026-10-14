@@ -352,7 +352,7 @@ def validate(source: dict[str, Any]) -> int:
             and edition["metadata_pdf_bytes_captured"] is False
             and edition["data_observations_captured"] is False,
             "do not overstate Data360 metadata or observation acquisition")
-    require("not proof of the exact current workbook inventory" in edition["interpretation"],
+    require("do not infer which record matches the currently linked Excel workbook" in edition["interpretation"],
             "Data360 metadata must not be conflated with the current workbook")
     require("not successfully queried" in edition["access_note"],
             "Data360 API retrieval limitation must remain explicit")
