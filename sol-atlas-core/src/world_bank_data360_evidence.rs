@@ -793,4 +793,98 @@ mod tests {
             Err(Data360EvidenceError::InvalidRequest(message)) if message.contains("not declared")
         ));
     }
+
+    #[test]
+    fn evidence_bound_page_retains_raw_receipt_and_can_qualify_a_collection() {
+        let bytes = body();
+        let evidence = receipt(&bytes, BASE_URL, 200);
+        let context = context(&evidence.page_snapshot_id());
+        let acquired =
+            parse_evidence_bound_data360_page(&bytes, &context, &evidence).unwrap();
+        assert_eq!(acquired.response_body, bytes);
+        assert_eq!(acquired.acquisition, evidence);
+        assert_eq!(
+            assess_data360_acquired_snapshot(&[acquired]).status,
+            Data360SnapshotStatus::CompleteAgainstStableCount
+        );
+    }
+
+    #[test]
+    fn acquired_collection_rejects_body_mutation_after_initial_parse() {
+        let bytes = body();
+        let evidence = receipt(&bytes, BASE_URL, 200);
+        let context = context(&evidence.page_snapshot_id());
+        let mut acquired =
+            parse_evidence_bound_data360_page(&bytes, &context, &evidence).unwrap();
+        acquired.response_body[0] = b'[';
+        assert_eq!(
+            assess_data360_acquired_snapshot(&[acquired]).status,
+            Data360SnapshotStatus::AcquisitionEvidenceInvalid
+        );
+    }
+
+    #[test]
+    fn acquired_collection_rejects_mutated_normalized_observation() {
+        let bytes = body();
+        let evidence = receipt(&bytes, BASE_URL, 200);
+        let context = context(&evidence.page_snapshot_id());
+        let mut acquired =
+            parse_evidence_bound_data360_page(&bytes, &context, &evidence).unwrap();
+        acquired.parsed_page.records[0].value_source_text = Some("999.0".to_string());
+        assert_eq!(
+            assess_data360_acquired_snapshot(&[acquired]).status,
+            Data360SnapshotStatus::AcquisitionEvidenceInvalid
+        );
+    }
+
+    #[test]
+    fn capture_and_validation_reject_sensitive_or_unallowlisted_headers() {
+        let bytes = body();
+        let mut headers = BTreeMap::new();
+        headers.insert("Content-Type".to_string(), "application/json".to_string());
+        headers.insert("Set-Cookie".to_string(), "session=private".to_string());
+        assert!(matches!(
+            Data360AcquisitionEvidence::capture(
+                "GET", BASE_URL, BASE_URL, 200, headers, RETRIEVED_AT, &bytes
+            ),
+            Err(Data360EvidenceError::InvalidResponse(_))
+        ));
+
+        let mut evidence = receipt(&bytes, BASE_URL, 200);
+        evidence.response_headers.insert("set-cookie".to_string(), "session=private".to_string());
+        let context = context(&evidence.page_snapshot_id());
+        assert!(matches!(
+            evidence.validate(&bytes, &context),
+            Err(Data360EvidenceError::InvalidResponse(_))
+        ));
+    }
+
+    #[test]
+    fn single_period_filter_cannot_be_combined_with_year_range_parameters() {
+        let bytes = body();
+        let evidence = receipt(&bytes, BASE_URL, 200);
+        let mut context = context(&evidence.page_snapshot_id());
+        context.query.filters.insert("TIME_PERIOD".to_string(), "1990".to_string());
+        assert!(matches!(
+            evidence.validate(&bytes, &context),
+            Err(Data360EvidenceError::InvalidRequest(message))
+                if message.contains("TIME_PERIOD cannot be combined")
+                    || message.contains("TIME_PERIOD must be a single year")
+        ));
+    }
+
+    #[test]
+    fn percent_encoded_control_characters_in_query_filters_are_rejected() {
+        let bytes = body();
+        let url = format!("{BASE_URL}&REF_AREA=ZA%0A");
+        let evidence = receipt(&bytes, &url, 200);
+        let mut context = context(&evidence.page_snapshot_id());
+        context.query.filters.insert("REF_AREA".to_string(), "ZA\n".to_string());
+        assert!(matches!(
+            evidence.validate(&bytes, &context),
+            Err(Data360EvidenceError::InvalidRequest(message))
+                if message.contains("control character")
+        ));
+    }
+
 }
