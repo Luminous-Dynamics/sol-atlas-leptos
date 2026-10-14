@@ -14,11 +14,18 @@ For the first boundary, use the **City of Johannesburg municipal area** as the l
 
 Two official boundary discovery leads are recorded in the machine-readable profile: the City of Johannesburg Corporate Geo-Informatics Spatial Data Inventory (labelled 2024) and the government-hosted Municipal Demarcation Board local-municipality feature service. The City inventory documents custodian, format, creation-date and usage-limit fields and says it is reviewed annually; the MDB service describes itself as a municipality polygon layer and reports WKID 4148. Neither has yet been frozen as the study geometry. Confirm the current authoritative boundary/effective date, native CRS semantics, usage terms and exact geometry bytes; then record its URI, SHA-256 and independent D0 review before analysis.
 The MDB service metadata also reports `isDataVersioned=false` and no historical-moment query support, so the live service is not an immutable historical record. Its `Timestamp` field is a version clue to investigate, not automatically the legal boundary effective date. Archive the selected feature's exact response/export and retrieval time before the source changes. The EPSG registry defines WKID 4148 as Hartebeesthoek94 geographic with latitude/longitude axis order, while ArcGIS service metadata presents extents in x/y fields. Inspect actual exported coordinate tuples and validate known control locations; do not silently relabel the artifact as EPSG:4326 or assume axis order from the metadata alone.
+There is also a real boundary-process history to account for. The MDB's January 2024 Section 21 publication listed DEM7008 as a re-determination involving Stretford Ext 1, Emfuleni, Sedibeng and Johannesburg; MDB Circular 2 of 2024 later records DEM7008 as **withdrawn under Section 21(5)**. The earlier proposal must not be treated as an effective inclusion in Johannesburg. A 2026 ward-delimitation Gazette is a separate electoral geography reference and is not a substitute for the municipal polygon. These records demonstrate why D0 must record the legal effective date/source version alongside the geometry digest.
+
+References:
+- MDB Circular 2 of 2024 (DEM7008 withdrawn): https://www.demarcation.org.za/wp-content/uploads/2024/03/Final-Circular-2-2024.pdf
+- January 2024 Gauteng Gazette containing the Section 21 notice: https://www.demarcation.org.za/wp-content/uploads/2024/01/Gauteng_S21_009-10-1-2024.pdf
+- Gauteng ward delimitation for 2026 local-government elections, published 17 December 2025: https://www.demarcation.org.za/wp-content/uploads/2025/12/473-17-12-2025-GautengDem.pdf
 
 References:
 - City of Johannesburg CGIS inventory and data-custodian guidance: https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx
 - Municipal Demarcation Board local-municipality service: https://nspdr.dlrrd.gov.za/server/rest/services/NationalDatasets/MunicipalDemarcationBoard/MapServer/3
 - EPSG:4148 Hartebeesthoek94 CRS definition: https://epsg.io/4148
+- MDB municipal-boundary process and redetermination overview: https://www.demarcation.org.za/municipal-boundaries/
 
 GAEZ's source-defined scenario projection windows must retain their own model-time semantics; the 2021–2040 window is partly elapsed as of this profile's review date and is not a forward operational forecast.
 
