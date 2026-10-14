@@ -157,6 +157,51 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["validation"]["gates"]["D0"] = "passed"
         self.assertTrue(any("all D0-D5 gates to remain not_started" in error for error in self.errors(doc)))
 
+    def test_D0_requires_a_verified_frozen_boundary(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["validation"]["gates"]["D0"] = "passed"
+        self.assertTrue(any("D0=passed requires an authoritative" in error for error in self.errors(doc)))
+
+    def test_D0_can_pass_when_boundary_is_verified_and_frozen(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["geography"]["boundary_state"] = "verified_and_frozen"
+        doc["geography"]["boundary_source"] = "Authoritative municipal boundary artifact reviewed and hash recorded."
+        self.assertFalse(self.errors(doc)) if doc["validation"]["gates"].update({"D0": "passed"}) is None else None
+
+    def test_D1_cannot_pass_with_unacquired_sources(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["validation"]["gates"]["D1"] = "passed"
+        self.assertTrue(any("D1=passed requires acquisition" in error for error in self.errors(doc)))
+
+    def test_D2_cannot_pass_before_a_baseline_exists(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["validation"]["gates"]["D2"] = "passed"
+        self.assertTrue(any("D2=passed requires baseline_computed=true" in error for error in self.errors(doc)))
+
+    def test_D3_cannot_pass_before_independent_validation(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["validation"]["gates"]["D3"] = "passed"
+        self.assertTrue(any("D3=passed requires independent_validation_complete=true" in error for error in self.errors(doc)))
+
+    def test_D4_cannot_pass_before_expert_review(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["validation"]["gates"]["D4"] = "passed"
+        self.assertTrue(any("D4=passed requires expert_review_complete=true" in error for error in self.errors(doc)))
+
+    def test_D5_cannot_pass_without_prior_gates_and_authority(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["validation"]["gates"]["D5"] = "passed"
+        errors = self.errors(doc)
+        self.assertTrue(any("D5=passed requires D0-D4=passed" in error for error in errors))
+        self.assertTrue(any("D5=passed requires decision_support_authorized=true" in error for error in errors))
+
     def test_baseline_requires_D0_through_D2(self):
         doc = copy.deepcopy(self.profile)
         doc["status"] = "descriptive_baseline"
