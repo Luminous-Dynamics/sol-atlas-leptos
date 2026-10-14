@@ -75,6 +75,41 @@ class AgroclimateProfileTests(unittest.TestCase):
             for item in self.profile["site_constraints"].values()
         ))
 
+    def test_assessed_site_constraint_requires_evidence_and_reviewer(self):
+        doc = copy.deepcopy(self.profile)
+        constraint = doc["site_constraints"]["soil_condition_and_contamination"]
+        constraint["state"] = "assessed"
+        schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
+        self.assertTrue(any("evidence_refs" in error.message or "reviewed_by" in error.message for error in schema_errors))
+
+    def test_assessed_site_constraint_accepts_auditable_reference_shape(self):
+        doc = copy.deepcopy(self.profile)
+        constraint = doc["site_constraints"]["soil_condition_and_contamination"]
+        constraint["state"] = "assessed"
+        constraint["evidence_refs"] = ["urn:fixture:evidence:soil-screening-1"]
+        constraint["reviewed_by"] = "qualified-reviewer-role"
+        schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
+        self.assertFalse(any(
+            list(error.path)[:2] == ["site_constraints", "soil_condition_and_contamination"]
+            and ("evidence_refs" in error.message or "reviewed_by" in error.message)
+            for error in schema_errors
+        ))
+
+    def test_site_constraint_references_are_empty_when_unassessed(self):
+        doc = copy.deepcopy(self.profile)
+        constraint = doc["site_constraints"]["irrigation_water_quantity_and_quality"]
+        constraint["evidence_refs"] = ["urn:fixture:should-not-be-here"]
+        schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
+        self.assertTrue(schema_errors)
+
+    def test_policy_context_references_are_explicit_and_limited(self):
+        references = {item["reference_id"]: item for item in self.profile["context_references"]}
+        self.assertIn("COJ-FOOD-RESILIENCE-POLICY", references)
+        self.assertIn("COJ-UPPER-JUKSKEI-WATER-QUALITY-2026", references)
+        self.assertTrue(all(item["limitations"] for item in references.values()))
+        self.assertTrue(any("not a substitute" in limit.lower()
+                            for item in references.values() for limit in item["limitations"]))
+
     def test_design_only_cannot_claim_a_site_constraint_was_assessed(self):
         doc = copy.deepcopy(self.profile)
         doc["site_constraints"]["soil_condition_and_contamination"]["state"] = "assessed"
