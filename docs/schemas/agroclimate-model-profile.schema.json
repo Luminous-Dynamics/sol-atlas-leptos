@@ -25,10 +25,12 @@
   ],
   "properties": {
     "profile_id": {
-      "const": "agroclimate-johannesburg-highveld-v1"
+      "type": "string",
+      "pattern": "^agroclimate-[a-z0-9-]+-v[0-9]+$"
     },
     "profile_version": {
-      "const": "1.0.0"
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
     },
     "status": {
       "enum": [
@@ -68,7 +70,8 @@
           "minLength": 5
         },
         "country": {
-          "const": "South Africa"
+          "type": "string",
+          "minLength": 2
         },
         "boundary_state": {
           "enum": [
@@ -233,8 +236,8 @@
     },
     "sources": {
       "type": "array",
-      "minItems": 6,
-      "maxItems": 6,
+      "minItems": 1,
+      "maxItems": 64,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -254,18 +257,13 @@
           "native_spatial_support",
           "native_temporal_support",
           "upstream_overlap",
-          "required_checks"
+          "required_checks",
+          "license_reference"
         ],
         "properties": {
           "source_id": {
-            "enum": [
-              "FAO-GAEZ-V5",
-              "ERA5-LAND",
-              "CHIRPS-V3",
-              "SOILGRIDS-V2",
-              "SAWS-SEASONAL",
-              "LOCAL-OBSERVATIONS"
-            ]
+            "type": "string",
+            "pattern": "^[A-Z0-9]+(?:-[A-Z0-9]+)*$"
           },
           "provider": {
             "type": "string",
@@ -314,8 +312,8 @@
           },
           "rights_state": {
             "enum": [
-              "cc_by_4_0_with_attribution",
-              "review_product_metadata",
+              "license_not_reviewed",
+              "license_reviewed",
               "permission_required",
               "reviewed_not_redistributable",
               "not_applicable"
@@ -347,8 +345,116 @@
               "minLength": 8
             },
             "uniqueItems": true
+          },
+          "license_reference": {
+            "type": "string",
+            "minLength": 12
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "acquisition_state": {
+                  "const": "acquired"
+                }
+              },
+              "required": [
+                "acquisition_state"
+              ]
+            },
+            "then": {
+              "required": [
+                "selected_product",
+                "artifact_sha256",
+                "source_catalog_verified",
+                "redistribution_allowed"
+              ],
+              "properties": {
+                "selected_product": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "artifact_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "source_catalog_verified": {
+                  "const": true
+                },
+                "redistribution_allowed": {
+                  "type": "boolean"
+                },
+                "rights_state": {
+                  "enum": [
+                    "license_reviewed",
+                    "reviewed_not_redistributable"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "acquisition_state": {
+                  "enum": [
+                    "not_acquired",
+                    "rejected"
+                  ]
+                }
+              },
+              "required": [
+                "acquisition_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "artifact_sha256": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "redistribution_allowed": {
+                  "const": true
+                }
+              },
+              "required": [
+                "redistribution_allowed"
+              ]
+            },
+            "then": {
+              "properties": {
+                "rights_state": {
+                  "const": "license_reviewed"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "redistribution_allowed": {
+                  "const": false
+                }
+              },
+              "required": [
+                "redistribution_allowed"
+              ]
+            },
+            "then": {
+              "properties": {
+                "rights_state": {
+                  "const": "reviewed_not_redistributable"
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "intended_outputs": {
