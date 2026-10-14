@@ -80,6 +80,7 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
 
     geography = _as_dict(doc.get("geography"))
     boundary_state = geography.get("boundary_state")
+    boundary_source_uri = geography.get("boundary_source_uri")
     boundary_ref = geography.get("boundary_evidence_ref")
     boundary_digest = geography.get("boundary_sha256")
     boundary_crs = geography.get("boundary_crs")
@@ -87,8 +88,19 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
         boundary_source = str(geography.get("boundary_source", "")).lower()
         if any(term in boundary_source for term in ("not yet acquired", "not frozen", "unverified")):
             errors.append("verified boundary state conflicts with unresolved boundary_source text")
+        if not isinstance(boundary_source_uri, str) or not boundary_source_uri.startswith("https://"):
+            errors.append("verified boundary requires the original boundary_source_uri")
         if not isinstance(boundary_ref, str) or not boundary_ref.startswith(("https://", "urn:", "sha256:")):
             errors.append("verified boundary requires an auditable boundary_evidence_ref")
+        if boundary_ref == boundary_source_uri:
+            errors.append("boundary_evidence_ref must identify frozen geometry bytes, not the discovery/source URI")
+        if isinstance(boundary_ref, str) and boundary_ref.startswith("https://"):
+            try:
+                frozen_ref = urlsplit(boundary_ref)
+            except ValueError:
+                frozen_ref = None
+            if frozen_ref and any(part in frozen_ref.path.lower() for part in ("/mapserver/", "/featureserver/")):
+                errors.append("boundary_evidence_ref must not be a live ArcGIS MapServer/FeatureServer endpoint")
         if not isinstance(boundary_digest, str) or not SHA256_RE.fullmatch(boundary_digest):
             errors.append("verified boundary requires a lowercase 64-character boundary_sha256")
         if not isinstance(boundary_crs, str) or len(boundary_crs.strip()) < 3:
