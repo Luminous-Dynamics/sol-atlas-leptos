@@ -725,8 +725,6 @@ pub struct EroiEvidence {
 impl EroiEvidence {
     /// True only when the record supplies enough well-formed metadata to
     /// qualify an EROI value for like-boundary comparison.
-    /// Validate the declared metadata shape. This does not authenticate the
-    /// source or verify that the numeric EROI is consistent with its interval.
     pub fn is_qualified(&self) -> bool {
         is_clean_evidence_text(&self.output_definition)
             && is_clean_evidence_text(&self.input_definition)
@@ -743,8 +741,8 @@ impl EroiEvidence {
                 .map_or(true, EroiUncertaintyRange::is_valid)
     }
 
-    /// True when a reported numeric ratio is valid and lies within any declared
-    /// uncertainty interval. An interval cannot qualify a conflicting point value.
+    /// A ratio qualifies only if it passes metadata validation and falls within any
+    /// declared uncertainty interval. This does not authenticate the source.
     pub fn supports_value(&self, ratio: f64) -> bool {
         self.is_qualified()
             && ratio.is_finite()
@@ -821,6 +819,7 @@ fn is_iso_date(value: &str) -> bool {
 // ─── Fossil Deposit ─────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(try_from = "FossilDepositWire")]
 pub struct FossilDeposit {
     pub name: String,
     pub lat: f64,
@@ -843,6 +842,123 @@ pub struct FossilDeposit {
     /// Optional source/boundary metadata; without it the numeric EROI is unqualified.
     #[serde(default)]
     pub eroi_evidence: Option<EroiEvidence>,
+}
+
+/// Strict wire type shared by the indexed dataset parser and direct deserialization.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct FossilDepositWire {
+    pub name: String,
+    pub lat: f64,
+    pub lon: f64,
+    pub fuel_type: FuelType,
+    pub proven_reserves_mboe: f64,
+    pub annual_production_mboe: f64,
+    pub status: String,
+    pub country: String,
+    pub discovery_year: u32,
+    #[serde(default)]
+    pub extraction_cost_per_boe: Option<f64>,
+    #[serde(default)]
+    pub decommission_cost_m: Option<f64>,
+    #[serde(default)]
+    pub eroi: Option<f64>,
+    #[serde(default)]
+    pub eroi_evidence: Option<EroiEvidence>,
+}
+
+impl FossilDepositWire {
+    pub(crate) fn into_record(self) -> FossilDeposit {
+        FossilDeposit {
+            name: self.name,
+            lat: self.lat,
+            lon: self.lon,
+            fuel_type: self.fuel_type,
+            proven_reserves_mboe: self.proven_reserves_mboe,
+            annual_production_mboe: self.annual_production_mboe,
+            status: self.status,
+            country: self.country,
+            discovery_year: self.discovery_year,
+            extraction_cost_per_boe: self.extraction_cost_per_boe,
+            decommission_cost_m: self.decommission_cost_m,
+            eroi: self.eroi,
+            eroi_evidence: self.eroi_evidence,
+        }
+    }
+}
+
+impl TryFrom<FossilDepositWire> for FossilDeposit {
+    type Error = &'static str;
+
+    fn try_from(wire: FossilDepositWire) -> Result<Self, Self::Error> {
+        let record = wire.into_record();
+        record.validate()?;
+        Ok(record)
+    }
+}
+
+impl FossilDeposit {
+    /// Validate the physical-domain shape of one curated source record.
+    ///
+    /// This is input validation only: it does not verify the source, qualify
+    /// reserve classifications, or establish that any estimate is true.
+    pub fn validate(&self) -> Result<(), &'static str> {
+        for (value, message) in [
+            (
+                self.name.as_str(),
+                "name must be non-empty and contain no control characters",
+            ),
+            (
+                self.country.as_str(),
+                "country must be non-empty and contain no control characters",
+            ),
+            (
+                self.status.as_str(),
+                "status must be non-empty and contain no control characters",
+            ),
+        ] {
+            if value.trim().is_empty() || value.chars().any(char::is_control) {
+                return Err(message);
+            }
+        }
+
+        if !self.lat.is_finite() || !(-90.0..=90.0).contains(&self.lat) {
+            return Err("latitude must be finite and within [-90, 90]");
+        }
+        if !self.lon.is_finite() || !(-180.0..=180.0).contains(&self.lon) {
+            return Err("longitude must be finite and within [-180, 180]");
+        }
+
+        if !self.proven_reserves_mboe.is_finite() || self.proven_reserves_mboe < 0.0 {
+            return Err("proven reserves must be finite and non-negative");
+        }
+        if !self.annual_production_mboe.is_finite() || self.annual_production_mboe < 0.0 {
+            return Err("annual production must be finite and non-negative");
+        }
+        if self
+            .extraction_cost_per_boe
+            .is_some_and(|value| !value.is_finite() || value < 0.0)
+        {
+            return Err("extraction cost must be finite and non-negative when present");
+        }
+        if self
+            .decommission_cost_m
+            .is_some_and(|value| !value.is_finite() || value < 0.0)
+        {
+            return Err("decommissioning cost must be finite and non-negative when present");
+        }
+        if self
+            .eroi
+            .is_some_and(|value| !value.is_finite() || value <= 0.0)
+        {
+            return Err("physical EROI must be finite and positive when present");
+        }
+        if self.discovery_year == 0 {
+            return Err("discovery year must be non-zero");
+        }
+
+        Ok(())
+    }
 }
 
 // ─── Nuclear Site ───────────────────────────────────────────────
