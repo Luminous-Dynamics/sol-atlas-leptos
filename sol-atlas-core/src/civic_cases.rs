@@ -523,10 +523,13 @@ impl CivicServiceCase {
                         })
                 });
                 let reviewer_bound_evidence = event.evidence_ids.iter().any(|evidence_id| {
-                    evidence_by_id.get(evidence_id.as_str()).is_some_and(|evidence| {
-                        evidence.review == EvidenceReview::IndependentlyVerified
-                            && evidence.reviewer_ref.as_deref() == Some(event.actor_ref.as_str())
-                    })
+                    evidence_by_id
+                        .get(evidence_id.as_str())
+                        .is_some_and(|evidence| {
+                            evidence.review == EvidenceReview::IndependentlyVerified
+                                && evidence.reviewer_ref.as_deref()
+                                    == Some(event.actor_ref.as_str())
+                        })
                 });
                 if event.actor_kind != CaseActorKind::IndependentReviewer
                     || previous_status != Some(CaseStatus::ResolutionClaimed)
@@ -891,10 +894,11 @@ mod tests {
         case.events.push(verified);
         case.updated_at_unix_ms = 1_500;
 
-        assert!(case
-            .validate()
-            .unwrap_err()
-            .contains(&CivicCaseValidationError::ResolutionReviewerIdentityMismatch));
+        assert!(
+            case.validate()
+                .unwrap_err()
+                .contains(&CivicCaseValidationError::ResolutionReviewerIdentityMismatch)
+        );
     }
 
     #[test]
@@ -908,10 +912,11 @@ mod tests {
         case.events.push(verified);
         case.updated_at_unix_ms = 1_500;
 
-        assert!(case
-            .validate()
-            .unwrap_err()
-            .contains(&CivicCaseValidationError::ResolutionReviewerConflictsWithWorkActor));
+        assert!(
+            case.validate()
+                .unwrap_err()
+                .contains(&CivicCaseValidationError::ResolutionReviewerConflictsWithWorkActor)
+        );
     }
 
     #[test]
