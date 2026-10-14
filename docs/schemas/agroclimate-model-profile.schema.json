@@ -861,6 +861,34 @@
                 }
               }
             }
+          },
+          {
+            "if": {
+              "properties": {
+                "acquisition_state": {
+                  "const": "not_acquired"
+                }
+              },
+              "required": [
+                "acquisition_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "selected_product": {
+                  "type": "null"
+                },
+                "selected_product_identity_verified": {
+                  "const": false
+                },
+                "artifact_sha256": {
+                  "type": "null"
+                },
+                "artifacts": {
+                  "maxItems": 0
+                }
+              }
+            }
           }
         ]
       }
