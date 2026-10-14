@@ -156,8 +156,8 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
                 errors.append(f"{where}: acquired source requires a lowercase 64-character SHA-256")
             if not isinstance(selected, str) or not selected.strip():
                 errors.append(f"{where}: acquired source requires an exact selected_product identifier")
-            if source.get("source_catalog_verified") is not True:
-                errors.append(f"{where}: acquisition requires source catalog/product identity verification")
+            if source.get("source_identity_verified") is not True:
+                errors.append(f"{where}: acquisition requires source identity and exact product verification")
             if source.get("rights_state") in {"license_not_reviewed", "permission_required"}:
                 errors.append(f"{where}: acquisition cannot be promoted before required rights/permission review")
             if source_id != "LOCAL-OBSERVATIONS" and not isinstance(source.get("redistribution_allowed"), bool):
@@ -321,7 +321,7 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
                 errors.append(f"D1=passed requires a frozen SHA-256 for sources[{index}]")
             if not isinstance(source.get("selected_product"), str) or not source.get("selected_product", "").strip():
                 errors.append(f"D1=passed requires an exact product identity for sources[{index}]")
-            if source.get("source_catalog_verified") is not True:
+            if source.get("source_identity_verified") is not True:
                 errors.append(f"D1=passed requires product-identity verification for sources[{index}]")
             if source.get("source_id") == "LOCAL-OBSERVATIONS":
                 if source.get("rights_state") != "permission_granted" or source.get("redistribution_allowed") is not None:
