@@ -58,3 +58,97 @@ jobs:
         run: python -m unittest discover -s tests -p "test_chirps_monthly_plan.py" -v
       - name: Run WaPOR catalogue inventory tests
         run: python -m unittest discover -s tests -p "test_wapor_catalog_inventory.py" -v
+
+  # These source snapshots are evidence artifacts, not a scientific pass/fail
+  # gate. The deterministic validators/tests remain the required quality gate.
+  # A failed or missing capture means source evidence is still unavailable.
+  source-snapshot-chirps:
+    name: Capture CHIRPS index (non-gating evidence)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Capture exact monthly directory index without selecting a period
+        run: |
+          set -euo pipefail
+          mkdir -p source-evidence/chirps
+          python scripts/earth-systems/plan_chirps_monthly.py \
+            --snapshot-only \
+            --snapshot-index source-evidence/chirps/index.html \
+            --output source-evidence/chirps/manifest.json
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("source-evidence/chirps")
+          manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+          raw = (root / "index.html").read_bytes()
+          assert manifest["status"] == "index_snapshot_only"
+          assert manifest["requested_period"] is None
+          assert manifest["raster_files_downloaded"] == 0
+          assert manifest["index_bytes"] == len(raw)
+          assert manifest["index_sha256"] == hashlib.sha256(raw).hexdigest()
+          PY
+      - name: Upload CHIRPS source evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: chirps-index-snapshot-${{ github.run_id }}
+          path: source-evidence/chirps/
+          if-no-files-found: warn
+          retention-days: 14
+
+  source-snapshot-wapor:
+    name: Capture WaPOR mapset catalog (non-gating evidence)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Capture official WaPOR v3 mapset catalog
+        run: |
+          set -euo pipefail
+          mkdir -p source-evidence/wapor
+          python scripts/earth-systems/inspect_wapor_catalog.py \
+            --snapshot-dir source-evidence/wapor/raw-mapsets \
+            --output source-evidence/wapor/mapsets-inventory.json
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("source-evidence/wapor")
+          manifest = json.loads((root / "mapsets-inventory.json").read_text(encoding="utf-8"))
+          pages = manifest["mapset_pages"]
+          snapshots = manifest["raw_response_snapshots"]
+          assert manifest["status"] == "catalogue_inventory_only"
+          assert manifest["requested_mapset_code"] is None
+          assert manifest["rasters"] is None
+          assert len(snapshots) == len(pages)
+          expected = {page["response_sha256"]: page["response_bytes"] for page in pages}
+          for item in snapshots:
+              raw = (root / "raw-mapsets" / item["filename"]).read_bytes()
+              assert item["bytes"] == len(raw)
+              assert item["sha256"] == hashlib.sha256(raw).hexdigest()
+              assert expected.get(item["sha256"]) == len(raw)
+          PY
+      - name: Upload WaPOR source evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wapor-mapsets-snapshot-${{ github.run_id }}
+          path: source-evidence/wapor/
+          if-no-files-found: warn
+          retention-days: 14
