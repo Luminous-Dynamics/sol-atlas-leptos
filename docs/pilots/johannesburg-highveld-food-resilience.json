@@ -125,7 +125,8 @@
         "distinguish country-level crop summaries and 5-arc-minute layers from selected 30-arc-second suitability/attainable-yield layers"
       ],
       "license_reference": "Exact crop/output-layer licence and redistribution terms not selected; review the exact catalogue record.",
-      "source_identity_verified": true
+      "source_identity_verified": true,
+      "artifacts": []
     },
     {
       "source_id": "ERA5-LAND",
@@ -149,7 +150,8 @@
         "compare with local station observations only after station quality and spatial representativeness review"
       ],
       "license_reference": "Copernicus catalogue indicates a CC-BY licence; the exact licence version and selected-product terms still need review.",
-      "source_identity_verified": true
+      "source_identity_verified": true,
+      "artifacts": []
     },
     {
       "source_id": "CHIRPS-V3",
@@ -173,7 +175,8 @@
         "preserve source attribution and distinguish monthly rainfall estimates from station observations"
       ],
       "license_reference": "CHIRPS v3 is documented under CC BY 4.0 with attribution; verify the selected file and metadata when acquired.",
-      "source_identity_verified": false
+      "source_identity_verified": false,
+      "artifacts": []
     },
     {
       "source_id": "SOILGRIDS-V2",
@@ -197,7 +200,8 @@
         "use as regional prior only; require local soil sampling for field or plot calibration"
       ],
       "license_reference": "ISRIC documents SoilGrids under CC BY 4.0 with attribution; verify exact artifact and preserve its provenance.",
-      "source_identity_verified": true
+      "source_identity_verified": true,
+      "artifacts": []
     },
     {
       "source_id": "SAWS-SEASONAL",
@@ -221,7 +225,8 @@
         "re-check the official bulletin before operational seasonal use"
       ],
       "license_reference": "Original SAWS bulletin reuse, attribution and redistribution terms require review.",
-      "source_identity_verified": true
+      "source_identity_verified": true,
+      "artifacts": []
     },
     {
       "source_id": "LOCAL-OBSERVATIONS",
@@ -245,7 +250,8 @@
         "freeze held-out site/season assignments before tuning and retain original failures and corrected records"
       ],
       "license_reference": "Site-owner and participant authorization, retention and sharing conditions must be agreed per local source.",
-      "source_identity_verified": false
+      "source_identity_verified": false,
+      "artifacts": []
     }
   ],
   "intended_outputs": [
