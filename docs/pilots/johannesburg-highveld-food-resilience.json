@@ -55,7 +55,11 @@
       "Crop species and variety, planting/transplanting dates and phenology parameters",
       "Irrigation access, application schedule, storage constraints and water-source reliability",
       "Management, nutrient inputs and protected/open-field cultivation profile",
-      "Measured harvest quantity, quality/marketability and measurement protocol for validation"
+      "Measured harvest quantity, quality/marketability and measurement protocol for validation",
+      "Irrigation water-source quality, seasonal reliability, permissions and crop-contact suitability",
+      "Local soil sampling and targeted contaminant screening where site history/exposure warrants it",
+      "Postharvest storage, power reliability, transport and observed loss records",
+      "Site-use permission, aggregated demand, affordability and local nutrition priorities"
     ]
   },
   "candidate_reference_periods": [
@@ -279,7 +283,10 @@
       "local daily weather and source-specific coverage including temperature, rainfall and reference evapotranspiration or its input variables",
       "field-representative soil measurements or a documented reason a regional soil prior is adequate for the intended question",
       "water availability, irrigation volumes/application timing and any outage or restriction history",
-      "crop/variety, planting dates, input/management records, harvested and marketable quantity and observation protocol"
+      "crop/variety, planting dates, input/management records, harvested and marketable quantity and observation protocol",
+      "Documented seasonal irrigation-water availability and qualified, crop-specific quality assessment where relevant",
+      "Site permission and a land-history-informed contaminant sampling plan where exposure pathways warrant screening",
+      "Storage, power, transport, price/demand and observed loss evidence to distinguish production from reliable marketable supply"
     ]
   },
   "validation": {
@@ -319,5 +326,54 @@
     "independent_validation_complete": false,
     "expert_review_complete": false,
     "decision_support_authorized": false
+  },
+  "site_constraints": {
+    "irrigation_water_quantity_and_quality": {
+      "state": "not_assessed",
+      "required_evidence": [
+        "Record water source, lawful access, seasonal volume, storage, competing demand and interruption history.",
+        "Obtain qualified microbial and chemical water-quality review appropriate to the crop, irrigation/contact method and food-safety context.",
+        "Assess crop/soil-relevant salinity or sodicity where appropriate; unknown water quality remains unknown.",
+        "Review legal permissions and applicable requirements before considering wastewater or greywater."
+      ],
+      "claim_limit": "Water availability, appearance, remote sensing or one reading does not establish irrigation suitability. This profile cannot authorize irrigation."
+    },
+    "soil_condition_and_contamination": {
+      "state": "not_assessed",
+      "required_evidence": [
+        "Collect representative site soil samples and laboratory results for crop-relevant fertility, pH, salinity and physical properties.",
+        "Review land history and exposure pathways; commission targeted contaminant screening where justified before edible cropping.",
+        "Keep SoilGrids as a regional uncertain prior, never site-level contaminant clearance.",
+        "Record sample location precision, depth, laboratory method, units and quality controls."
+      ],
+      "claim_limit": "A regional soil map or visually healthy garden does not establish food safety or contaminant absence. The model must not recommend edible cropping on an unassessed site."
+    },
+    "land_access_and_permission": {
+      "state": "not_assessed",
+      "required_evidence": [
+        "Record site-use permission, duration, restrictions, responsible operator and applicable land-use, water-use or municipal approvals.",
+        "Obtain permission before retaining participant or farm-level data and apply the declared privacy/location-precision policy."
+      ],
+      "claim_limit": "A vacant-looking parcel, map class or model score does not establish tenure, consent, legal access or permission to cultivate."
+    },
+    "postharvest_storage_energy_and_transport": {
+      "state": "not_assessed",
+      "required_evidence": [
+        "Record suitable storage capacity, measured operating conditions where relevant, monitoring gaps, cleaning and excursion response.",
+        "Record power reliability, backup, packaging, handling, delivery/pickup, travel time and observed postharvest losses.",
+        "Distinguish nameplate/planned capacity from verified available capacity."
+      ],
+      "claim_limit": "Production potential is not reliable marketable supply without suitable handling and transport. A cold-room map point or one temperature reading does not certify a cold chain."
+    },
+    "market_nutrition_and_affordability": {
+      "state": "not_assessed",
+      "required_evidence": [
+        "Use appropriately aggregated, consented demand and price data with time window, denominator and missingness.",
+        "Set nutrition priorities with locally appropriate expertise and avoid selecting crops by yield-per-area alone.",
+        "Include labour, inputs, water, energy, storage, distribution costs and marketable fraction in any cost comparison.",
+        "Review seasonality, cultural fit and access constraints with participants without exposing household purchase histories."
+      ],
+      "claim_limit": "Agronomic suitability does not establish affordability, nutrition, demand, producer income or reduced food insecurity."
+    }
   }
 }
