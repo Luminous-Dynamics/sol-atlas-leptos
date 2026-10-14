@@ -344,7 +344,8 @@
           "required_checks",
           "license_reference",
           "artifacts",
-          "source_catalog_verified"
+          "source_catalog_verified",
+          "required_for_baseline"
         ],
         "properties": {
           "source_id": {
@@ -594,6 +595,9 @@
             "type": "boolean"
           },
           "selected_product_identity_verified": {
+            "type": "boolean"
+          },
+          "required_for_baseline": {
             "type": "boolean"
           }
         },
