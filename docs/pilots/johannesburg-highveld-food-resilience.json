@@ -375,5 +375,51 @@
       ],
       "claim_limit": "Agronomic suitability does not establish affordability, nutrition, demand, producer income or reduced food insecurity."
     }
-  }
+  },
+  "context_references": [
+    {
+      "reference_id": "COJ-FOOD-RESILIENCE-POLICY",
+      "title": "City of Johannesburg Food Resilience Policy 2024",
+      "url": "https://joburg.org.za/documents_/Documents/FOOD-RESILIENCE-FINAL-APPROVED-POLICY-2024.pdf",
+      "reference_type": "official_policy",
+      "role": "Local policy context for food access, urban agriculture, use of technology and municipal support for producers.",
+      "limitations": [
+        "Policy intent is not evidence that a specific garden, service, subsidy or dataset is available now.",
+        "Any implementation analysis must verify current programme status with the accountable municipal unit."
+      ]
+    },
+    {
+      "reference_id": "COJ-URBAN-AGRI-PROJECT-2025",
+      "title": "Johannesburg urban agriculture infrastructure project",
+      "url": "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg%E2%80%99s-new-urban-agriculture-project-to-boost-community-farming.aspx",
+      "reference_type": "official_program",
+      "role": "Local implementation example indicating water tanks, agricultural tunnels and cold rooms are practical resilience assets worth modelling as site constraints.",
+      "limitations": [
+        "The report describes selected programme sites, not a citywide inventory or verified live capacity.",
+        "A reported planned or installed facility must not be treated as currently available capacity without site-level verification."
+      ]
+    },
+    {
+      "reference_id": "COJ-UPPER-JUKSKEI-WATER-QUALITY-2026",
+      "title": "Joburg eco-filter project and Upper Jukskei water-quality monitoring",
+      "url": "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Joburg-launches-innovative-eco-filter-system-to-address-pollution-in-Jukskei-River.aspx",
+      "reference_type": "official_program",
+      "role": "Local water-quality context: city reporting describes microbial contamination, excess nutrients, organic waste and heavy metals as catchment concerns and monitoring linked to irrigation at Victoria Yards.",
+      "limitations": [
+        "This is a catchment- and project-specific report; it does not establish the water quality of every Johannesburg source or garden.",
+        "Monitoring system descriptions are not a substitute for a qualified, crop- and use-specific assessment at any participating site."
+      ]
+    },
+    {
+      "reference_id": "NDOH-FOOD-CONTROL-REGULATIONS",
+      "title": "South African National Department of Health food-control regulations",
+      "url": "https://www.health.gov.za/food-control-regulations/",
+      "reference_type": "regulation",
+      "role": "Starting point for reviewing applicable food hygiene, transport, contaminants and category-specific requirements before an operator distributes food.",
+      "limitations": [
+        "The listed regulations have different scopes and may have amendments; a qualified local operator must establish which provisions currently apply to the exact activity.",
+        "A software profile or provenance credential is not regulatory approval, inspection, or a food-safety certificate."
+      ]
+    }
+  ]
 }
