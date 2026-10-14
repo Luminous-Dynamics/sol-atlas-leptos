@@ -76,20 +76,20 @@
       "scenario_note": "GAEZ v5 documents this historical reference period; do not join it to the earlier baseline without explicitly documenting source and method consistency."
     },
     {
-      "period_id": "future-2021-2040",
+      "period_id": "scenario-2021-2040",
       "start_year": 2021,
       "end_year": 2040,
-      "role": "future_scenario_candidate",
+      "role": "scenario_projection_period",
       "state": "candidate_not_frozen",
-      "scenario_note": "A GAEZ v5 CMIP6-derived future-period candidate. Select the exact emissions pathway and climate-model members after the product catalogue and local decision question are frozen."
+      "scenario_note": "A GAEZ v5 CMIP6-derived scenario projection period. This source-defined interval is partly elapsed at the 2026-10-14 profile review date; do not present the full interval as a forward operational forecast. Select the exact pathway and climate-model members only after catalogue review."
     },
     {
-      "period_id": "future-2041-2060",
+      "period_id": "scenario-2041-2060",
       "start_year": 2041,
       "end_year": 2060,
-      "role": "future_scenario_candidate",
+      "role": "scenario_projection_period",
       "state": "candidate_not_frozen",
-      "scenario_note": "A GAEZ v5 CMIP6-derived future-period candidate. Use scenario ensembles and uncertainty ranges rather than a single deterministic future."
+      "scenario_note": "A GAEZ v5 CMIP6-derived scenario projection period. Select the exact emissions pathway and climate-model members after the product catalogue and local decision question are frozen; report scenario spread rather than a single deterministic future."
     }
   ],
   "sources": [
