@@ -40,7 +40,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         for index, source in enumerate(doc["sources"]):
             source["acquisition_state"] = "acquired"
             source["selected_product"] = f"urn:fixture:source:{source['source_id']}:v1"
-            source["artifact_sha256"] = format(index + 11, "x") * 64
+            source["artifact_sha256"] = format(index + 1, "064x")
             source["source_identity_verified"] = True
             if source["source_id"] == "LOCAL-OBSERVATIONS":
                 source["rights_state"] = "permission_granted"
