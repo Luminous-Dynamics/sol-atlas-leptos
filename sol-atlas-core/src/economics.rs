@@ -35,11 +35,11 @@ pub fn reference_price_per_boe(fuel_type: &FuelType) -> f64 {
 
 // ─── EROI thresholds ────────────────────────────────────────────
 
-/// Full modern civilization with arts & culture (Hall & Lambert).
+/// Legacy numeric cutoff retained for API compatibility; not a validated universal boundary.
 pub const EROI_CIVILIZATION: f64 = 12.0;
-/// Basic sustainability — transport, healthcare, education.
+/// Legacy numeric cutoff retained for API compatibility; not a validated universal boundary.
 pub const EROI_SUSTAINABILITY: f64 = 5.0;
-/// Bare minimum — enough to drive a truck.
+/// Legacy numeric cutoff retained for API compatibility; not a validated universal boundary.
 pub const EROI_MINIMUM: f64 = 3.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -94,12 +94,12 @@ pub fn compute_eroi(deposit: &FossilDeposit) -> Option<f64> {
 pub fn qualified_eroi(deposit: &FossilDeposit) -> Option<f64> {
     let ratio = compute_eroi(deposit)?;
     let evidence = deposit.eroi_evidence.as_ref()?;
-    evidence.is_qualified().then_some(ratio)
+    evidence.supports_value(ratio).then_some(ratio)
 }
 
 /// Whether two supplied EROI values may be compared without a conversion model.
 pub fn can_compare_eroi(left: &FossilDeposit, right: &FossilDeposit) -> bool {
-    if compute_eroi(left).is_none() || compute_eroi(right).is_none() {
+    if qualified_eroi(left).is_none() || qualified_eroi(right).is_none() {
         return false;
     }
     match (&left.eroi_evidence, &right.eroi_evidence) {
@@ -420,6 +420,13 @@ mod tests {
         deposit.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Useful));
         assert_eq!(qualified_eroi(&deposit), Some(25.0));
 
+        deposit.eroi_evidence.as_mut().unwrap().uncertainty =
+            Some(crate::types::EroiUncertaintyRange {
+                lower: 4.0,
+                upper: 6.0,
+            });
+        assert_eq!(qualified_eroi(&deposit), None);
+
         deposit
             .eroi_evidence
             .as_mut()
@@ -443,6 +450,14 @@ mod tests {
         assert!(can_compare_eroi(&left, &right));
 
         right.eroi_evidence.as_mut().unwrap().period_end_year = 2021;
+        assert!(!can_compare_eroi(&left, &right));
+
+        right.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
+        right.eroi_evidence.as_mut().unwrap().uncertainty =
+            Some(crate::types::EroiUncertaintyRange {
+                lower: 4.0,
+                upper: 6.0,
+            });
         assert!(!can_compare_eroi(&left, &right));
 
         right.eroi_evidence = Some(qualified_evidence(crate::types::EroiStage::Primary));
