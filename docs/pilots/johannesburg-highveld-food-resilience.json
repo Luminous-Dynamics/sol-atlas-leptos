@@ -1,0 +1,316 @@
+{
+  "profile_id": "agroclimate-johannesburg-highveld-v1",
+  "profile_version": "1.0.0",
+  "status": "design_only",
+  "review_date": "2026-10-14",
+  "title": "Johannesburg and Highveld food-resilience model",
+  "decision_question": "Which locally feasible food-production strategies remain comparatively resilient to seasonal water stress and heat under explicitly described weather, soil, water-access, crop, and management assumptions, and what additional observations are needed before a recommendation can be trusted?",
+  "geography": {
+    "name": "Johannesburg / Highveld candidate study region",
+    "country": "South Africa",
+    "boundary_state": "unverified",
+    "boundary_source": "City of Johannesburg or relevant Gauteng administrative boundary and any explicitly defined surrounding Highveld catchment; authoritative polygon not yet acquired, reviewed, or hashed.",
+    "spatial_scope_rule": "This is region-level scoping only. Freeze an authoritative study polygon and coordinate reference system before clipping or comparing grids. Store individual farm plots and households as access-controlled site records rather than publishing precise locations by default.",
+    "regional_model_limit": "The municipality is not identical to the Highveld agroclimatic region or the food-supply catchment. A regional raster cannot resolve farm-level soil variation, rooftop or shade microclimates, irrigation reliability, crop variety, growing method, or operator practices."
+  },
+  "candidate_systems": [
+    "Rainfed open-field production with crop and season not yet selected",
+    "Supplemental-irrigation production with measured water-source and storage constraints",
+    "Protected cultivation or greenhouse production with site-specific microclimate observations",
+    "Community gardens and mixed smallholder production linked to neighborhood pickup demand"
+  ],
+  "model_architecture": {
+    "strategy": "Use a shared evidence contract, source manifests, evaluation protocol and reusable model components worldwide, with locally calibrated site profiles and crop- or production-system-specific science packs. Keep climate and site covariates continuous beneath any climate-archetype labels, and preserve source resolution, uncertainty, and model disagreement.",
+    "climate_archetypes_are_labels_only": true,
+    "candidate_models": [
+      {
+        "model_id": "FAO-GAEZ-v5",
+        "role": "Global screening prior for agroecological constraints and crop suitability; not farm-level truth.",
+        "state": "candidate_not_run",
+        "scope": "Use only a reviewed exact crop, management level, rainfed/irrigated output and scenario product. Treat roughly 1 km suitability layers as screening, not a plot yield estimate.",
+        "reference_url": "https://www.fao.org/gaez/en"
+      },
+      {
+        "model_id": "FAO-AquaCrop-7.3",
+        "role": "Candidate independent crop-water reference model for suitable herbaceous crops.",
+        "state": "candidate_not_run",
+        "scope": "Evaluate only if crop coverage and required daily weather, reference evapotranspiration, soil, crop and management inputs are available and locally parameterized. Model results remain unvalidated until compared with held-out field outcomes.",
+        "reference_url": "https://www.fao.org/aquacrop/overview/en"
+      },
+      {
+        "model_id": "transparent-daily-water-balance",
+        "role": "Simple deterministic baseline for rainfall, irrigation, evapotranspiration and root-zone storage accounting.",
+        "state": "candidate_not_run",
+        "scope": "Use as an interpretable comparator only after equations, units, crop/root-zone assumptions, drainage and missing-data behavior are reviewed; it must not claim crop yield by itself.",
+        "reference_url": "https://www.fao.org/4/x0490e/x0490e00.htm"
+      }
+    ],
+    "model_selection_state": "not_started",
+    "production_runtime_policy": "No Python process or model library is embedded into Sol Atlas's Rust/WASM client. Reference models may be evaluated offline behind a versioned batch interface. Any future Rust implementation or adapter must reproduce documented reference vectors and be independently validated before decision support.",
+    "required_inputs": [
+      "Daily minimum and maximum air temperature with source and unit",
+      "Precipitation with native time interval and source-overlap disclosure",
+      "Reference evapotranspiration or sufficient weather fields and method to calculate it",
+      "Soil profile or soil-water parameters appropriate to the selected site and crop",
+      "Crop species and variety, planting/transplanting dates and phenology parameters",
+      "Irrigation access, application schedule, storage constraints and water-source reliability",
+      "Management, nutrient inputs and protected/open-field cultivation profile",
+      "Measured harvest quantity, quality/marketability and measurement protocol for validation"
+    ]
+  },
+  "candidate_reference_periods": [
+    {
+      "period_id": "historical-1981-2000",
+      "start_year": 1981,
+      "end_year": 2000,
+      "role": "historical_reference",
+      "state": "candidate_not_frozen",
+      "scenario_note": "GAEZ v5 documents this historical reference period; exact local source coverage, product support and selected layers still need review."
+    },
+    {
+      "period_id": "historical-2001-2020",
+      "start_year": 2001,
+      "end_year": 2020,
+      "role": "historical_reference",
+      "state": "candidate_not_frozen",
+      "scenario_note": "GAEZ v5 documents this historical reference period; do not join it to the earlier baseline without explicitly documenting source and method consistency."
+    },
+    {
+      "period_id": "future-2021-2040",
+      "start_year": 2021,
+      "end_year": 2040,
+      "role": "future_scenario_candidate",
+      "state": "candidate_not_frozen",
+      "scenario_note": "A GAEZ v5 CMIP6-derived future-period candidate. Select the exact emissions pathway and climate-model members after the product catalogue and local decision question are frozen."
+    },
+    {
+      "period_id": "future-2041-2060",
+      "start_year": 2041,
+      "end_year": 2060,
+      "role": "future_scenario_candidate",
+      "state": "candidate_not_frozen",
+      "scenario_note": "A GAEZ v5 CMIP6-derived future-period candidate. Use scenario ensembles and uncertainty ranges rather than a single deterministic future."
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "FAO-GAEZ-V5",
+      "provider": "FAO and IIASA",
+      "url": "https://www.fao.org/gaez/en",
+      "product_family": "Global Agro-Ecological Zones",
+      "product_version": "v5",
+      "selected_product": null,
+      "product_selection_state": "catalogue_reviewed_exact_crop_management_and_scenario_layer_not_selected",
+      "acquisition_state": "not_acquired",
+      "artifact_sha256": null,
+      "source_catalog_verified": true,
+      "rights_state": "review_product_metadata",
+      "redistribution_allowed": null,
+      "native_spatial_support": "Key suitability and attainable-yield products are approximately 30 arc-seconds or about 1 km; exact selected layer, mask and effective support must be checked.",
+      "native_temporal_support": "Historical reference windows include 1981-2000 and 2001-2020; GAEZ v5 documents CMIP6-derived future periods. Exact variable/product time support still requires selection.",
+      "upstream_overlap": "GAEZ uses AgERA5 historical inputs and CMIP6-based future forcing. These inputs and related derivatives cannot automatically count as independent validation data.",
+      "required_checks": [
+        "select exact crop or land-utilization type, crop calendar, management level and rainfed/irrigated product",
+        "record product identifier, units, nodata mask, effective resolution, model configuration, scenario and model-member metadata",
+        "review dataset licence, citation, redistribution and derivative-output terms before copying any artifact",
+        "do not interpret suitability classes or attainable regional yield as a plot-specific forecast"
+      ]
+    },
+    {
+      "source_id": "ERA5-LAND",
+      "provider": "Copernicus Climate Change Service / ECMWF",
+      "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land",
+      "product_family": "ERA5-Land hourly land reanalysis",
+      "product_version": "reanalysis-era5-land; exact retrieval release to be recorded",
+      "selected_product": null,
+      "product_selection_state": "dataset_documented_variable_set_and_window_not_selected",
+      "acquisition_state": "not_acquired",
+      "artifact_sha256": null,
+      "source_catalog_verified": true,
+      "rights_state": "cc_by_4_0_with_attribution",
+      "redistribution_allowed": null,
+      "native_spatial_support": "Native land-model support is about 9 km; CDS distributes a regular 0.1-degree grid. Regridding does not create new observational detail.",
+      "native_temporal_support": "Hourly dataset from 1950 to present according to the catalogue; inspect selected variable, consolidation/finality and retrieval time.",
+      "upstream_overlap": "ERA5-Land is driven by ERA5 atmospheric fields; its estimates are not independent station observations and can share upstream information with derived products.",
+      "required_checks": [
+        "choose required variables, temporal window, units, timezone/day boundary and missing-value semantics",
+        "record CDS product identifier, retrieval timestamp, exact file-byte SHA-256 and licence attribution",
+        "retain native-grid support and document any interpolation, downscaling or aggregation",
+        "compare with local station observations only after station quality and spatial representativeness review"
+      ]
+    },
+    {
+      "source_id": "CHIRPS-V3",
+      "provider": "Climate Hazards Center, University of California Santa Barbara",
+      "url": "https://www.chc.ucsb.edu/data/chirps3",
+      "product_family": "CHIRPS precipitation estimates",
+      "product_version": "v3",
+      "selected_product": null,
+      "product_selection_state": "monthly_Africa_product_candidate_fresh_index_snapshot_and_common_window_required",
+      "acquisition_state": "not_acquired",
+      "artifact_sha256": null,
+      "source_catalog_verified": false,
+      "rights_state": "cc_by_4_0_with_attribution",
+      "redistribution_allowed": null,
+      "native_spatial_support": "Monthly Africa-subset GeoTIFF collection uses a 0.05-degree grid, roughly 5 km across in this region; it is not a local rain gauge or field-scale observation.",
+      "native_temporal_support": "Monthly is the first-pass candidate timescale. The exact available months, file IDs, finality and common period with other sources must come from a fresh captured official index.",
+      "upstream_overlap": "CHIRPS blends satellite-based precipitation estimates with in-situ station observations. Any candidate gauge must be checked for input overlap; station overlap prevents treating that gauge as an independent test without further evidence.",
+      "required_checks": [
+        "capture and hash the current official monthly Africa GeoTIFF index before freezing a time window",
+        "record exact month file IDs, publication timestamps, units, coordinate reference, valid-data masks and file hashes",
+        "disclose station-input overlap and use an appropriate independent reference where available",
+        "preserve source attribution and distinguish monthly rainfall estimates from station observations"
+      ]
+    },
+    {
+      "source_id": "SOILGRIDS-V2",
+      "provider": "ISRIC - World Soil Information",
+      "url": "https://docs.isric.org/globaldata/soilgrids/index.html",
+      "product_family": "SoilGrids global gridded soil properties",
+      "product_version": "SoilGrids 2.0",
+      "selected_product": null,
+      "product_selection_state": "regional_prior_candidate_REST_API_reported_paused_on_2026-10-14_access_route_unresolved",
+      "acquisition_state": "not_acquired",
+      "artifact_sha256": null,
+      "source_catalog_verified": true,
+      "rights_state": "cc_by_4_0_with_attribution",
+      "redistribution_allowed": null,
+      "native_spatial_support": "250 m global soil-property predictions over six depth intervals with per-pixel uncertainty; ISRIC advises the global product is not suitable for farm-level conclusions.",
+      "native_temporal_support": "Static/rolling-release mapped soil properties rather than a daily seasonal weather series; confirm release vintage and covariate dates.",
+      "upstream_overlap": "Predictions use soil-profile observations and environmental covariates including climate, land cover and terrain; preserve prediction intervals and do not treat the map estimate as a local sample.",
+      "required_checks": [
+        "do not depend on the SoilGrids REST API while ISRIC reports it paused; review the documented WebDAV/global-VRT access path instead",
+        "select exact soil properties and depth intervals and retain the 5th, 50th and 95th percentile layers where available",
+        "record release vintage, exact file hash and CC BY 4.0 attribution",
+        "use as regional prior only; require local soil sampling for field or plot calibration"
+      ]
+    },
+    {
+      "source_id": "SAWS-SEASONAL",
+      "provider": "South African Weather Service; government summary published by the South African Government",
+      "url": "https://www.gov.za/news/media-statements/agriculture-el-nino-weather-climate-02-sep-2026",
+      "product_family": "Seasonal Climate Watch / agricultural climate-risk notice",
+      "product_version": "Government notice 2026-09-02 summarizing a SAWS bulletin dated 2026-08-31",
+      "selected_product": "Reference lead only; original 2026-08-31 SAWS Seasonal Climate Watch bulletin not acquired or hashed.",
+      "product_selection_state": "public_summary_reviewed_original_bulletin_and_spatial_probabilities_required",
+      "acquisition_state": "not_acquired",
+      "artifact_sha256": null,
+      "source_catalog_verified": true,
+      "rights_state": "review_product_metadata",
+      "redistribution_allowed": null,
+      "native_spatial_support": "Government summary discusses South African regions; do not assume the national statement is a Johannesburg or farm-scale forecast.",
+      "native_temporal_support": "Seasonal outlook for the 2026/27 summer context; obtain and archive the exact bulletin, issue date, valid period and probability maps before use.",
+      "upstream_overlap": "Seasonal outlooks may share model systems or observations with other forecast products; document provenance before treating any second product as independent corroboration.",
+      "required_checks": [
+        "obtain and hash the original SAWS bulletin and preserve the issuance/validity timestamps",
+        "verify Gauteng or Johannesburg spatial coverage, forecast probabilities, ensemble assumptions and update history",
+        "never use a national summary as a plot-level deterministic forecast",
+        "re-check the official bulletin before operational seasonal use"
+      ]
+    },
+    {
+      "source_id": "LOCAL-OBSERVATIONS",
+      "provider": "Participating growers, site owners, soil laboratories, water providers and authorized local observers",
+      "url": null,
+      "product_family": "Site weather, soil tests, water availability, crop management and measured harvest outcomes",
+      "product_version": "Per-site measurement and schema versions to be specified before intake",
+      "selected_product": null,
+      "product_selection_state": "required_local_evidence_not_identified_or_authorized",
+      "acquisition_state": "not_acquired",
+      "artifact_sha256": null,
+      "source_catalog_verified": false,
+      "rights_state": "permission_required",
+      "redistribution_allowed": null,
+      "native_spatial_support": "Potentially field/site scale only if sensor placement, sampling design, calibration and site identity are documented.",
+      "native_temporal_support": "Expected daily weather observations and per-operation/crop-cycle records; actual sampling interval, gaps and historical coverage remain unknown.",
+      "upstream_overlap": "Record sensor source, station provenance, laboratory method and relationship to any gridded product. Retain missing intervals and conflicting observations; do not silently impute them as fact.",
+      "required_checks": [
+        "obtain site-owner and participant permission with clear retention, access, publication and withdrawal rules",
+        "record sensor or lab identity, method, calibration, units, time standard, sampling interval and missingness",
+        "record crop/variety, dates, irrigation, management, harvested mass and marketable fraction with measurement procedure",
+        "freeze held-out site/season assignments before tuning and retain original failures and corrected records"
+      ]
+    }
+  ],
+  "intended_outputs": [
+    "source-readiness and spatial-temporal compatibility matrix with exact products still to be selected",
+    "versioned regional climate and water-risk baseline only after source and boundary gates pass",
+    "crop- and production-system-specific water-demand and seasonal sensitivity comparisons with uncertainty intervals",
+    "a grower-reviewed list of additional local measurements needed to reduce uncertainty",
+    "a distinct evaluation report separating water use, yield, marketable fraction, cost and supply reliability"
+  ],
+  "evaluation": {
+    "state": "not_started",
+    "baseline_comparators": [
+      "transparent climatology and seasonal water-balance baseline",
+      "FAO AquaCrop reference implementation where crop scope and input data fit",
+      "simple persistence or seasonal-normal comparator for any predictive component"
+    ],
+    "validation_design": [
+      "use rolling-origin hindcasts for seasonal forecasts and preserve the historical issue date to avoid look-ahead leakage",
+      "hold out whole sites, growing seasons or farm-years where sample volume allows; do not randomly split near-duplicate records across folds",
+      "inspect upstream source overlap before labelling any station, rainfall or derived-product comparison independent",
+      "report observation count, missingness, uncertainty interval and performance by site/crop/season rather than only an aggregate mean"
+    ],
+    "metrics": [
+      "daily and seasonal precipitation/ET0 error where an independent reference is available",
+      "soil-water balance residual and irrigation-demand error",
+      "harvest quantity and marketable-fraction error by crop and season",
+      "heat/water stress event detection and probability calibration",
+      "water consumed per marketable kilogram and its uncertainty",
+      "cost and supply-continuity metrics with explicit denominators"
+    ],
+    "stratification": [
+      "open-field versus protected cultivation",
+      "rainfed versus measured supplementary/full irrigation",
+      "crop species, variety and management profile",
+      "site elevation, soil-texture class and local water-source reliability",
+      "normal, dry, hot and compound heat-drought seasons when observed data support classification"
+    ],
+    "minimum_local_evidence": [
+      "authoritative study boundary, coordinate reference and exact site locations held under suitable access controls",
+      "local daily weather and source-specific coverage including temperature, rainfall and reference evapotranspiration or its input variables",
+      "field-representative soil measurements or a documented reason a regional soil prior is adequate for the intended question",
+      "water availability, irrigation volumes/application timing and any outage or restriction history",
+      "crop/variety, planting dates, input/management records, harvested and marketable quantity and observation protocol"
+    ]
+  },
+  "validation": {
+    "gates": {
+      "D0": "not_started",
+      "D1": "not_started",
+      "D2": "not_started",
+      "D3": "not_started",
+      "D4": "not_started",
+      "D5": "not_started"
+    },
+    "independent_reference_candidates": [
+      "quality-controlled SAWS stations whose spatial and temporal representativeness and source lineage are confirmed",
+      "authorized grower and farm records from held-out sites/seasons with a documented measurement protocol",
+      "independently collected soil-laboratory results and measured irrigation/harvest records"
+    ],
+    "review_requirements": [
+      "local agronomist or agricultural-extension review of crop and management parameterization",
+      "soil and irrigation expert review of water-balance assumptions and site measurements",
+      "independent reviewer checks source overlap, leakage, uncertainty calibration and claim ceiling",
+      "participating growers review practical constraints and whether measured outputs are actionable and affordable"
+    ]
+  },
+  "claim_ceiling": [
+    "This profile is design_only; no source raster or local field-observation artifact has been acquired by this profile.",
+    "A valid JSON profile and a successful contract test do not establish crop suitability, yield accuracy or agricultural benefit.",
+    "GAEZ v5 and ERA5-Land are regional screening/reanalysis products, not field observations or farm-specific weather truth.",
+    "SoilGrids must not be treated as plot-level ground truth; its quantified mapping uncertainty must be retained.",
+    "The 2026 seasonal El Niño notice is a contextual risk lead, not a deterministic Johannesburg prediction or irrigation instruction.",
+    "CHIRPS and other derived datasets may share upstream station/model inputs; independent validation requires lineage review.",
+    "No crop yield, profitability, food-security improvement, water allocation, regulatory compliance or operational recommendation is claimed.",
+    "No model output can authorize planting, irrigation changes, spending, refrigeration control or robotic actuation."
+  ],
+  "evidence_state": {
+    "source_artifacts_acquired": false,
+    "baseline_computed": false,
+    "independent_validation_complete": false,
+    "expert_review_complete": false,
+    "decision_support_authorized": false
+  }
+}
