@@ -118,7 +118,9 @@
         "select exact crop or land-utilization type, crop calendar, management level and rainfed/irrigated product",
         "record product identifier, units, nodata mask, effective resolution, model configuration, scenario and model-member metadata",
         "review dataset licence, citation, redistribution and derivative-output terms before copying any artifact",
-        "do not interpret suitability classes or attainable regional yield as a plot-specific forecast"
+        "do not interpret suitability classes or attainable regional yield as a plot-specific forecast",
+        "use GAEZ crop-summary tables only as a first-stage crop shortlist; confirm whether each candidate exists in the selected model configuration and then review spatial outputs",
+        "distinguish country-level crop summaries and 5-arc-minute layers from selected 30-arc-second suitability/attainable-yield layers"
       ],
       "license_reference": "Exact crop/output-layer licence and redistribution terms not selected; review the exact catalogue record."
     },
@@ -475,6 +477,17 @@
       "limitations": [
         "This is a 2020 programme statement and must not be treated as current crop production, market demand, crop suitability or measured outcomes.",
         "Crop selection must be rechecked against current growers, extension advice, seasonal climate, water, soil, affordability and postharvest data."
+      ]
+    },
+    {
+      "reference_id": "FAO-GAEZ-CROP-SUMMARY",
+      "title": "FAO GAEZ v5 Crop Summary Data",
+      "url": "https://data.fao.org/catalog/dataset/crop-summary-gaez",
+      "reference_type": "research_reference",
+      "role": "Potential first-stage table screening across crop, country, climate source, scenario, water supply and input-management dimensions before exact spatial crop layers are selected.",
+      "limitations": [
+        "Country-level summaries cannot resolve the Johannesburg municipality, a specific garden or a farm site.",
+        "Exact crop names, categories, period and water-supply/model settings must be checked; a summary statistic is not an independent field observation or yield validation."
       ]
     }
   ],
