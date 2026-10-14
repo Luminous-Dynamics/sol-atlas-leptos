@@ -250,6 +250,12 @@ class AgroclimateProfileTests(unittest.TestCase):
         mdb = references["MDB-LOCAL-MUNICIPALITY-FEATURE-SERVICE"]
         self.assertTrue(any("Do not infer that Stretford Ext 1" in limit for limit in mdb["limitations"]))
 
+    def test_MDB_2025_deferred_boundary_status_is_case_scoped(self):
+        references = {item["reference_id"]: item for item in self.profile["context_references"]}
+        status = references["MDB-BOUNDARY-DEFERRALS-STATUS-2025"]
+        self.assertTrue(any("deferred cases" in limit.lower() for limit in status["limitations"]))
+        self.assertTrue(any("not a substitute for the exact current Johannesburg boundary" in limit for limit in status["limitations"]))
+
     def test_2026_ward_delimitation_is_not_municipal_geometry(self):
         references = {item["reference_id"]: item for item in self.profile["context_references"]}
         ward = references["MDB-GAUTENG-WARD-DELIMITATION-2026"]
