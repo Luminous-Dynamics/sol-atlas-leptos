@@ -59,7 +59,8 @@
       "Irrigation water-source quality, seasonal reliability, permissions and crop-contact suitability",
       "Local soil sampling and targeted contaminant screening where site history/exposure warrants it",
       "Postharvest storage, power reliability, transport and observed loss records",
-      "Site-use permission, aggregated demand, affordability and local nutrition priorities"
+      "Site-use permission, aggregated demand, affordability and local nutrition priorities",
+      "Regional supplier, market/hub, transport, seasonal availability and disruption-contingency records"
     ]
   },
   "candidate_reference_periods": [
@@ -286,7 +287,8 @@
       "crop/variety, planting dates, input/management records, harvested and marketable quantity and observation protocol",
       "Documented seasonal irrigation-water availability and qualified, crop-specific quality assessment where relevant",
       "Site permission and a land-history-informed contaminant sampling plan where exposure pathways warrant screening",
-      "Storage, power, transport, price/demand and observed loss evidence to distinguish production from reliable marketable supply"
+      "Storage, power, transport, price/demand and observed loss evidence to distinguish production from reliable marketable supply",
+      "Regional supply and market/hub connectivity, delivered cost, actual capacity and disruption alternatives, with local production and incoming supply kept distinct"
     ]
   },
   "validation": {
@@ -384,6 +386,16 @@
       "claim_limit": "Agronomic suitability does not establish affordability, nutrition, demand, producer income or reduced food insecurity.",
       "evidence_refs": [],
       "reviewed_by": null
+    },
+    "regional_supply_and_contingency": {
+      "state": "not_assessed",
+      "required_evidence": [
+        "Map current and potential suppliers, market/hub links, seasonal availability, transport corridors and the evidence date for each asserted relationship.",
+        "Estimate delivered availability, price, lead time, transport reliability and substitution options using measured or attributed records rather than inferred proximity alone.",
+        "Keep local production, regional supply, imported/wholesale supply, planned supply and observed available stock as distinct states.",
+        "Stress-test supply disruptions, road/energy/water constraints and correlated regional drought exposure without treating modeled scenarios as observations."
+      ],
+      "claim_limit": "Johannesburg resilience does not require all food to be produced locally. A map of farms or a modeled route does not establish available supply; supply plans require current source, stock, price, capacity and fulfillment evidence."
     }
   },
   "context_references": [
