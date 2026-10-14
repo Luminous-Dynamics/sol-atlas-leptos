@@ -717,7 +717,11 @@ mod fossil_deposit_admission_tests {
                 "methodology_version": "1.0.0",
                 "publication_date": "2024-02-29",
                 "basis": "literature",
-                "uncertainty": {"lower": 4.0, "upper": 6.0}
+                "uncertainty": {
+                    "lower": 4.0,
+                    "upper": 6.0,
+                    "interpretation": "sensitivity_range"
+                }
             }}"#
         );
         let records = parse_record(&with_evidence).expect("valid evidence should be preserved");
