@@ -104,7 +104,7 @@
       "acquisition_state": "not_acquired",
       "artifact_sha256": null,
       "source_catalog_verified": true,
-      "rights_state": "review_product_metadata",
+      "rights_state": "license_not_reviewed",
       "redistribution_allowed": null,
       "native_spatial_support": "Key suitability and attainable-yield products are approximately 30 arc-seconds or about 1 km; exact selected layer, mask and effective support must be checked.",
       "native_temporal_support": "Historical reference windows include 1981-2000 and 2001-2020; GAEZ v5 documents CMIP6-derived future periods. Exact variable/product time support still requires selection.",
@@ -114,7 +114,8 @@
         "record product identifier, units, nodata mask, effective resolution, model configuration, scenario and model-member metadata",
         "review dataset licence, citation, redistribution and derivative-output terms before copying any artifact",
         "do not interpret suitability classes or attainable regional yield as a plot-specific forecast"
-      ]
+      ],
+      "license_reference": "Exact crop/output-layer licence and redistribution terms not selected; review the exact catalogue record."
     },
     {
       "source_id": "ERA5-LAND",
@@ -127,7 +128,7 @@
       "acquisition_state": "not_acquired",
       "artifact_sha256": null,
       "source_catalog_verified": true,
-      "rights_state": "cc_by_4_0_with_attribution",
+      "rights_state": "license_not_reviewed",
       "redistribution_allowed": null,
       "native_spatial_support": "Native land-model support is about 9 km; CDS distributes a regular 0.1-degree grid. Regridding does not create new observational detail.",
       "native_temporal_support": "Hourly dataset from 1950 to present according to the catalogue; inspect selected variable, consolidation/finality and retrieval time.",
@@ -137,7 +138,8 @@
         "record CDS product identifier, retrieval timestamp, exact file-byte SHA-256 and licence attribution",
         "retain native-grid support and document any interpolation, downscaling or aggregation",
         "compare with local station observations only after station quality and spatial representativeness review"
-      ]
+      ],
+      "license_reference": "Copernicus catalogue indicates a CC-BY licence; the exact licence version and selected-product terms still need review."
     },
     {
       "source_id": "CHIRPS-V3",
@@ -150,7 +152,7 @@
       "acquisition_state": "not_acquired",
       "artifact_sha256": null,
       "source_catalog_verified": false,
-      "rights_state": "cc_by_4_0_with_attribution",
+      "rights_state": "license_reviewed",
       "redistribution_allowed": null,
       "native_spatial_support": "Monthly Africa-subset GeoTIFF collection uses a 0.05-degree grid, roughly 5 km across in this region; it is not a local rain gauge or field-scale observation.",
       "native_temporal_support": "Monthly is the first-pass candidate timescale. The exact available months, file IDs, finality and common period with other sources must come from a fresh captured official index.",
@@ -160,7 +162,8 @@
         "record exact month file IDs, publication timestamps, units, coordinate reference, valid-data masks and file hashes",
         "disclose station-input overlap and use an appropriate independent reference where available",
         "preserve source attribution and distinguish monthly rainfall estimates from station observations"
-      ]
+      ],
+      "license_reference": "CHIRPS v3 is documented under CC BY 4.0 with attribution; verify the selected file and metadata when acquired."
     },
     {
       "source_id": "SOILGRIDS-V2",
@@ -173,7 +176,7 @@
       "acquisition_state": "not_acquired",
       "artifact_sha256": null,
       "source_catalog_verified": true,
-      "rights_state": "cc_by_4_0_with_attribution",
+      "rights_state": "license_reviewed",
       "redistribution_allowed": null,
       "native_spatial_support": "250 m global soil-property predictions over six depth intervals with per-pixel uncertainty; ISRIC advises the global product is not suitable for farm-level conclusions.",
       "native_temporal_support": "Static/rolling-release mapped soil properties rather than a daily seasonal weather series; confirm release vintage and covariate dates.",
@@ -183,7 +186,8 @@
         "select exact soil properties and depth intervals and retain the 5th, 50th and 95th percentile layers where available",
         "record release vintage, exact file hash and CC BY 4.0 attribution",
         "use as regional prior only; require local soil sampling for field or plot calibration"
-      ]
+      ],
+      "license_reference": "ISRIC documents SoilGrids under CC BY 4.0 with attribution; verify exact artifact and preserve its provenance."
     },
     {
       "source_id": "SAWS-SEASONAL",
@@ -196,7 +200,7 @@
       "acquisition_state": "not_acquired",
       "artifact_sha256": null,
       "source_catalog_verified": true,
-      "rights_state": "review_product_metadata",
+      "rights_state": "license_not_reviewed",
       "redistribution_allowed": null,
       "native_spatial_support": "Government summary discusses South African regions; do not assume the national statement is a Johannesburg or farm-scale forecast.",
       "native_temporal_support": "Seasonal outlook for the 2026/27 summer context; obtain and archive the exact bulletin, issue date, valid period and probability maps before use.",
@@ -206,7 +210,8 @@
         "verify Gauteng or Johannesburg spatial coverage, forecast probabilities, ensemble assumptions and update history",
         "never use a national summary as a plot-level deterministic forecast",
         "re-check the official bulletin before operational seasonal use"
-      ]
+      ],
+      "license_reference": "Original SAWS bulletin reuse, attribution and redistribution terms require review."
     },
     {
       "source_id": "LOCAL-OBSERVATIONS",
@@ -229,7 +234,8 @@
         "record sensor or lab identity, method, calibration, units, time standard, sampling interval and missingness",
         "record crop/variety, dates, irrigation, management, harvested mass and marketable fraction with measurement procedure",
         "freeze held-out site/season assignments before tuning and retain original failures and corrected records"
-      ]
+      ],
+      "license_reference": "Site-owner and participant authorization, retention and sharing conditions must be agreed per local source."
     }
   ],
   "intended_outputs": [
