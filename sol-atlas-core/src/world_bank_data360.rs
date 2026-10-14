@@ -39,10 +39,30 @@ const FILTER_KEYS: [&str; 13] = [
 ];
 
 const ROW_KEYS: [&str; 24] = [
-    "OBS_VALUE", "TIME_FORMAT", "UNIT_MULT", "COMMENT_OBS", "OBS_STATUS", "OBS_CONF",
-    "AGG_METHOD", "DECIMALS", "COMMENT_TS", "DATA_SOURCE", "LATEST_DATA", "DATABASE_ID",
-    "INDICATOR", "REF_AREA", "SEX", "AGE", "URBANISATION", "COMP_BREAKDOWN_1",
-    "COMP_BREAKDOWN_2", "COMP_BREAKDOWN_3", "TIME_PERIOD", "FREQ", "UNIT_MEASURE", "UNIT_TYPE",
+    "OBS_VALUE",
+    "TIME_FORMAT",
+    "UNIT_MULT",
+    "COMMENT_OBS",
+    "OBS_STATUS",
+    "OBS_CONF",
+    "AGG_METHOD",
+    "DECIMALS",
+    "COMMENT_TS",
+    "DATA_SOURCE",
+    "LATEST_DATA",
+    "DATABASE_ID",
+    "INDICATOR",
+    "REF_AREA",
+    "SEX",
+    "AGE",
+    "URBANISATION",
+    "COMP_BREAKDOWN_1",
+    "COMP_BREAKDOWN_2",
+    "COMP_BREAKDOWN_3",
+    "TIME_PERIOD",
+    "FREQ",
+    "UNIT_MEASURE",
+    "UNIT_TYPE",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -170,7 +190,10 @@ pub fn parse_data360_page(
     let envelope = parsed.as_object().ok_or_else(|| {
         Data360PageError::EnvelopeSchema("response must be a JSON object".to_string())
     })?;
-    if let Some(key) = envelope.keys().find(|key| !ENVELOPE_KEYS.contains(&key.as_str())) {
+    if let Some(key) = envelope
+        .keys()
+        .find(|key| !ENVELOPE_KEYS.contains(&key.as_str()))
+    {
         return Err(Data360PageError::EnvelopeSchema(format!(
             "unsupported top-level field {key:?}"
         )));
@@ -245,7 +268,10 @@ fn validate_context(context: &Data360PageContext) -> Result<(), Data360PageError
     for (name, value) in [
         ("database_id", q.database_id.as_str()),
         ("indicator_id", q.indicator_id.as_str()),
-        ("collection_snapshot_id", context.collection_snapshot_id.as_str()),
+        (
+            "collection_snapshot_id",
+            context.collection_snapshot_id.as_str(),
+        ),
         ("page_snapshot_id", context.page_snapshot_id.as_str()),
         ("retrieved_at", context.retrieved_at.as_str()),
     ] {
@@ -348,7 +374,11 @@ fn normalize_record(
     let value_source_text = match object.get("OBS_VALUE") {
         Some(Value::String(value)) => Some(value.clone()),
         Some(Value::Null) => None,
-        Some(_) => return Err(Data360RowRejection::InvalidFieldType("OBS_VALUE".to_string())),
+        Some(_) => {
+            return Err(Data360RowRejection::InvalidFieldType(
+                "OBS_VALUE".to_string(),
+            ));
+        }
         None => return Err(Data360RowRejection::MissingField("OBS_VALUE".to_string())),
     };
 
@@ -359,7 +389,9 @@ fn normalize_record(
         return Err(Data360RowRejection::IndicatorMismatch);
     }
     if period_text.len() != 4 || !period_text.bytes().all(|byte| byte.is_ascii_digit()) {
-        return Err(Data360RowRejection::InvalidFieldValue("TIME_PERIOD".to_string()));
+        return Err(Data360RowRejection::InvalidFieldValue(
+            "TIME_PERIOD".to_string(),
+        ));
     }
     let period = period_text
         .parse::<u16>()
@@ -408,9 +440,21 @@ fn normalize_record(
         breakdown_3.as_str(),
         unit_measure.as_str(),
         unit_type_value.as_deref().unwrap_or(""),
-        if object["UNIT_TYPE"].is_null() { "null" } else { "string" },
-        if object["COMMENT_TS"].is_null() { "null" } else { "string" },
-        if object["OBS_CONF"].is_null() { "null" } else { "string" },
+        if object["UNIT_TYPE"].is_null() {
+            "null"
+        } else {
+            "string"
+        },
+        if object["COMMENT_TS"].is_null() {
+            "null"
+        } else {
+            "string"
+        },
+        if object["OBS_CONF"].is_null() {
+            "null"
+        } else {
+            "string"
+        },
     ];
     let mut record_id = String::from("world-bank-data360-observation/v1|");
     for component in components {
@@ -522,7 +566,11 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
             || page.query.requested_top == 0
             || page.query.requested_top > DATA360_MAX_PAGE_SIZE
             || page.rows_returned > page.query.requested_top
-            || page.query.requested_skip.checked_add(page.rows_returned).is_none()
+            || page
+                .query
+                .requested_skip
+                .checked_add(page.rows_returned)
+                .is_none()
             || page.source_reported_count < page.rows_returned
             || page.collection_snapshot_id.trim().is_empty()
             || page.query.database_id.trim().is_empty()
@@ -590,7 +638,8 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
         };
         let mut seen_row_indices = HashSet::new();
         for record in &page.records {
-            if record.row_index >= page.rows_returned || !seen_row_indices.insert(record.row_index) {
+            if record.row_index >= page.rows_returned || !seen_row_indices.insert(record.row_index)
+            {
                 status = Data360SnapshotStatus::PageAccountingMismatch;
                 break;
             }
@@ -632,7 +681,9 @@ pub fn assess_data360_snapshot(pages: &[ParsedData360Page]) -> Data360SnapshotAs
         }
     }
 
-    if status == Data360SnapshotStatus::CompleteAgainstStableCount && expected_skip != expected_count {
+    if status == Data360SnapshotStatus::CompleteAgainstStableCount
+        && expected_skip != expected_count
+    {
         status = Data360SnapshotStatus::IncompletePageSet;
     }
     Data360SnapshotAssessment {
@@ -781,9 +832,18 @@ mod tests {
         );
         assert!(page.records.is_empty());
         assert_eq!(page.rejected_rows.len(), 3);
-        assert!(matches!(page.rejected_rows[0].reason, Data360RowRejection::DatabaseMismatch));
-        assert!(matches!(page.rejected_rows[1].reason, Data360RowRejection::IndicatorMismatch));
-        assert!(matches!(page.rejected_rows[2].reason, Data360RowRejection::PeriodOutOfQueryRange));
+        assert!(matches!(
+            page.rejected_rows[0].reason,
+            Data360RowRejection::DatabaseMismatch
+        ));
+        assert!(matches!(
+            page.rejected_rows[1].reason,
+            Data360RowRejection::IndicatorMismatch
+        ));
+        assert!(matches!(
+            page.rejected_rows[2].reason,
+            Data360RowRejection::PeriodOutOfQueryRange
+        ));
     }
 
     #[test]
@@ -839,11 +899,17 @@ mod tests {
     fn contiguous_pages_with_stable_count_qualify_complete_collection() {
         let first = parse(
             vec![row("AAA", "1990", Some("1")), row("BBB", "1990", Some("2"))],
-            3, 0, 2, "page-0",
+            3,
+            0,
+            2,
+            "page-0",
         );
         let second = parse(vec![row("CCC", "1991", Some("3"))], 3, 2, 2, "page-1");
         let assessment = assess_data360_snapshot(&[first, second]);
-        assert_eq!(assessment.status, Data360SnapshotStatus::CompleteAgainstStableCount);
+        assert_eq!(
+            assessment.status,
+            Data360SnapshotStatus::CompleteAgainstStableCount
+        );
         assert_eq!(assessment.expected_count, Some(3));
         assert_eq!(assessment.rows_returned, 3);
         assert_eq!(assessment.accepted_rows, 3);
@@ -873,7 +939,13 @@ mod tests {
 
     #[test]
     fn assessment_rejects_mutated_normalized_values() {
-        let mut page = parse(vec![row("AAA", "1990", Some("1"))], 1, 0, 10, "mutated-value");
+        let mut page = parse(
+            vec![row("AAA", "1990", Some("1"))],
+            1,
+            0,
+            10,
+            "mutated-value",
+        );
         page.records[0].period = 1992;
         assert_eq!(
             assess_data360_snapshot(&[page]).status,
@@ -885,7 +957,10 @@ mod tests {
     fn assessment_rejects_duplicate_or_missing_row_indices() {
         let mut page = parse(
             vec![row("AAA", "1990", Some("1")), row("BBB", "1990", Some("2"))],
-            2, 0, 10, "mutated-index",
+            2,
+            0,
+            10,
+            "mutated-index",
         );
         let first_row_index = page.records[0].row_index;
         page.records[1].row_index = first_row_index;
@@ -899,7 +974,10 @@ mod tests {
     fn missing_pages_do_not_qualify_complete_collection() {
         let first = parse(
             vec![row("AAA", "1990", Some("1")), row("BBB", "1990", Some("2"))],
-            3, 0, 2, "page-0",
+            3,
+            0,
+            2,
+            "page-0",
         );
         assert_eq!(
             assess_data360_snapshot(&[first]).status,
@@ -911,11 +989,17 @@ mod tests {
     fn reusing_page_snapshot_identity_prevents_complete_collection() {
         let first = parse(
             vec![row("AAA", "1990", Some("1")), row("BBB", "1990", Some("2"))],
-            3, 0, 2, "same-page-snapshot",
+            3,
+            0,
+            2,
+            "same-page-snapshot",
         );
         let second = parse(
             vec![row("CCC", "1991", Some("3"))],
-            3, 2, 2, "same-page-snapshot",
+            3,
+            2,
+            2,
+            "same-page-snapshot",
         );
         assert_eq!(
             assess_data360_snapshot(&[first, second]).status,
@@ -927,7 +1011,10 @@ mod tests {
     fn page_count_drift_prevents_complete_collection() {
         let first = parse(
             vec![row("AAA", "1990", Some("1")), row("BBB", "1990", Some("2"))],
-            3, 0, 2, "page-0",
+            3,
+            0,
+            2,
+            "page-0",
         );
         let second = parse(vec![row("CCC", "1991", Some("3"))], 4, 2, 2, "page-1");
         assert_eq!(
@@ -940,7 +1027,10 @@ mod tests {
     fn offset_gap_prevents_complete_collection() {
         let first = parse(
             vec![row("AAA", "1990", Some("1")), row("BBB", "1990", Some("2"))],
-            3, 0, 2, "page-0",
+            3,
+            0,
+            2,
+            "page-0",
         );
         let second = parse(vec![row("CCC", "1991", Some("3"))], 3, 3, 2, "page-1");
         assert_eq!(
@@ -953,7 +1043,13 @@ mod tests {
     fn rejected_rows_prevent_complete_collection() {
         let mut invalid = row("AAA", "1990", Some("1"));
         invalid["DATABASE_ID"] = Value::String("OTHER".to_string());
-        let first = parse(vec![invalid, row("BBB", "1990", Some("2"))], 2, 0, 2, "page-0");
+        let first = parse(
+            vec![invalid, row("BBB", "1990", Some("2"))],
+            2,
+            0,
+            2,
+            "page-0",
+        );
         assert_eq!(
             assess_data360_snapshot(&[first]).status,
             Data360SnapshotStatus::RowsRejected
@@ -963,7 +1059,10 @@ mod tests {
     #[test]
     fn declared_dimension_filter_is_checked_against_each_row() {
         let mut query = context(0, 10, "dimension-filter").clone();
-        query.query.filters.insert("REF_AREA".to_string(), "ZAF".to_string());
+        query
+            .query
+            .filters
+            .insert("REF_AREA".to_string(), "ZAF".to_string());
         let page = parse_data360_page(
             &response(
                 vec![row("ZAF", "1990", Some("1")), row("AAA", "1990", Some("2"))],
@@ -984,7 +1083,10 @@ mod tests {
     #[test]
     fn unsupported_query_filter_fails_closed() {
         let mut query = context(0, 10, "unknown-filter");
-        query.query.filters.insert("COUNTRY_NAME".to_string(), "South Africa".to_string());
+        query
+            .query
+            .filters
+            .insert("COUNTRY_NAME".to_string(), "South Africa".to_string());
         assert!(matches!(
             parse_data360_page(&response(vec![], 0), &query),
             Err(Data360PageError::InvalidContext(_))
@@ -994,18 +1096,26 @@ mod tests {
     #[test]
     fn differing_dimension_filters_cannot_form_one_complete_collection() {
         let mut first_context = context(0, 1, "filter-page-0");
-        first_context.query.filters.insert("REF_AREA".to_string(), "AAA".to_string());
+        first_context
+            .query
+            .filters
+            .insert("REF_AREA".to_string(), "AAA".to_string());
         let first = parse_data360_page(
             &response(vec![row("AAA", "1990", Some("1"))], 2),
             &first_context,
-        ).unwrap();
+        )
+        .unwrap();
 
         let mut second_context = context(1, 1, "filter-page-1");
-        second_context.query.filters.insert("REF_AREA".to_string(), "BBB".to_string());
+        second_context
+            .query
+            .filters
+            .insert("REF_AREA".to_string(), "BBB".to_string());
         let second = parse_data360_page(
             &response(vec![row("BBB", "1991", Some("2"))], 2),
             &second_context,
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(
             assess_data360_snapshot(&[first, second]).status,
@@ -1017,7 +1127,10 @@ mod tests {
     fn duplicate_record_across_pages_prevents_complete_collection() {
         let first = parse(
             vec![row("AAA", "1990", Some("1")), row("BBB", "1990", Some("2"))],
-            3, 0, 2, "page-0",
+            3,
+            0,
+            2,
+            "page-0",
         );
         let second = parse(vec![row("AAA", "1990", Some("3"))], 3, 2, 2, "page-1");
         assert_eq!(

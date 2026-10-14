@@ -9,8 +9,8 @@
 
 use serde::Deserialize;
 use sol_atlas_core::economic_intelligence::{
-    compare_mirror_pair, MirrorPairStatus, ObservationSourceCoverage, TradeAreaKind, TradeFlow,
-    TradeObservation, TRADE_OBSERVATION_SCHEMA_VERSION,
+    MirrorPairStatus, ObservationSourceCoverage, TRADE_OBSERVATION_SCHEMA_VERSION, TradeAreaKind,
+    TradeFlow, TradeObservation, compare_mirror_pair,
 };
 
 fn observation(
@@ -58,20 +58,8 @@ fn observation(
 
 #[test]
 fn public_api_preserves_source_lexeme_and_exact_gap() {
-    let exporter = observation(
-        "exp-1",
-        "AAA",
-        "BBB",
-        TradeFlow::Export,
-        "9007199254740992",
-    );
-    let importer = observation(
-        "imp-1",
-        "BBB",
-        "AAA",
-        TradeFlow::Import,
-        "9007199254740993",
-    );
+    let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, "9007199254740992");
+    let importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, "9007199254740993");
 
     let serialized = serde_json::to_string(&exporter).expect("serialize observation");
     let decoded: TradeObservation =
@@ -91,15 +79,8 @@ fn public_api_preserves_source_lexeme_and_exact_gap() {
 
 #[test]
 fn public_observation_contract_rejects_unknown_fields() {
-    let observation = observation(
-        "exp-1",
-        "AAA",
-        "BBB",
-        TradeFlow::Export,
-        "100.00",
-    );
-    let mut value =
-        serde_json::to_value(observation).expect("serialize observation as JSON");
+    let observation = observation("exp-1", "AAA", "BBB", TradeFlow::Export, "100.00");
+    let mut value = serde_json::to_value(observation).expect("serialize observation as JSON");
     value["unexpected_future_field"] = serde_json::json!("must not be silently dropped");
 
     assert!(
@@ -177,8 +158,12 @@ fn frozen_synthetic_reference_corpus_matches_exact_expected_results() {
         }
         exporter.currency = case.exporter_currency.unwrap_or_else(|| "USD".to_string());
         importer.currency = case.importer_currency.unwrap_or_else(|| "USD".to_string());
-        exporter.value_unit = case.exporter_value_unit.unwrap_or_else(|| "USD".to_string());
-        importer.value_unit = case.importer_value_unit.unwrap_or_else(|| "USD".to_string());
+        exporter.value_unit = case
+            .exporter_value_unit
+            .unwrap_or_else(|| "USD".to_string());
+        importer.value_unit = case
+            .importer_value_unit
+            .unwrap_or_else(|| "USD".to_string());
         exporter.partner_kind = case
             .exporter_partner_kind
             .unwrap_or(TradeAreaKind::ReportingArea);
@@ -199,14 +184,12 @@ fn frozen_synthetic_reference_corpus_matches_exact_expected_results() {
             case.case_id
         );
         assert_eq!(
-            result.signed_difference_source_text,
-            case.expected_signed_difference,
+            result.signed_difference_source_text, case.expected_signed_difference,
             "unexpected signed value gap for fixture case {}",
             case.case_id
         );
         assert_eq!(
-            result.absolute_difference_source_text,
-            case.expected_absolute_difference,
+            result.absolute_difference_source_text, case.expected_absolute_difference,
             "unexpected absolute value gap for fixture case {}",
             case.case_id
         );

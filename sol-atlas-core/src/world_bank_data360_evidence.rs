@@ -10,8 +10,8 @@
 //! truthfully reported the HTTP exchange.
 
 use crate::world_bank_data360::{
-    parse_data360_page, Data360PageContext, Data360PageError, ParsedData360Page,
-    DATA360_MAX_PAGE_SIZE,
+    DATA360_MAX_PAGE_SIZE, Data360PageContext, Data360PageError, ParsedData360Page,
+    parse_data360_page,
 };
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
@@ -20,9 +20,22 @@ use std::fmt;
 
 const DATA360_DATA_URL: &str = "https://data360api.worldbank.org/data360/data";
 const DOCUMENTED_QUERY_KEYS: [&str; 16] = [
-    "DATABASE_ID", "INDICATOR", "REF_AREA", "SEX", "AGE", "URBANISATION",
-    "COMP_BREAKDOWN_1", "COMP_BREAKDOWN_2", "COMP_BREAKDOWN_3", "TIME_PERIOD",
-    "FREQ", "UNIT_MEASURE", "UNIT_TYPE", "UNIT_MULT", "timePeriodFrom", "timePeriodTo",
+    "DATABASE_ID",
+    "INDICATOR",
+    "REF_AREA",
+    "SEX",
+    "AGE",
+    "URBANISATION",
+    "COMP_BREAKDOWN_1",
+    "COMP_BREAKDOWN_2",
+    "COMP_BREAKDOWN_3",
+    "TIME_PERIOD",
+    "FREQ",
+    "UNIT_MEASURE",
+    "UNIT_TYPE",
+    "UNIT_MULT",
+    "timePeriodFrom",
+    "timePeriodTo",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -54,18 +67,35 @@ pub enum Data360EvidenceError {
 impl fmt::Display for Data360EvidenceError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidRequest(message) => write!(f, "invalid Data360 acquisition request: {message}"),
-            Self::InvalidResponse(message) => write!(f, "invalid Data360 acquisition response: {message}"),
-            Self::DuplicateHeader(name) => write!(f, "duplicate normalized response header {name:?}"),
+            Self::InvalidRequest(message) => {
+                write!(f, "invalid Data360 acquisition request: {message}")
+            }
+            Self::InvalidResponse(message) => {
+                write!(f, "invalid Data360 acquisition response: {message}")
+            }
+            Self::DuplicateHeader(name) => {
+                write!(f, "duplicate normalized response header {name:?}")
+            }
             Self::BodyLengthMismatch { recorded, actual } => write!(
                 f,
                 "Data360 response byte length mismatch: recorded={recorded}, actual={actual}"
             ),
-            Self::BodyDigestMismatch => write!(f, "Data360 response SHA-256 does not match captured bytes"),
-            Self::PageIdentityMismatch => write!(f, "page_snapshot_id is not the SHA-256 identity of the captured response body"),
-            Self::RetrievalTimeMismatch => write!(f, "response evidence retrieval time does not match page context"),
+            Self::BodyDigestMismatch => {
+                write!(f, "Data360 response SHA-256 does not match captured bytes")
+            }
+            Self::PageIdentityMismatch => write!(
+                f,
+                "page_snapshot_id is not the SHA-256 identity of the captured response body"
+            ),
+            Self::RetrievalTimeMismatch => write!(
+                f,
+                "response evidence retrieval time does not match page context"
+            ),
             Self::InvalidUtf8Body => write!(f, "Data360 JSON response body is not valid UTF-8"),
-            Self::PageParse(message) => write!(f, "Data360 page parser rejected the captured response: {message}"),
+            Self::PageParse(message) => write!(
+                f,
+                "Data360 page parser rejected the captured response: {message}"
+            ),
         }
     }
 }
@@ -85,8 +115,7 @@ impl Data360AcquisitionEvidence {
         let mut normalized_headers = BTreeMap::new();
         for (name, value) in response_headers {
             let normalized_name = name.trim().to_ascii_lowercase();
-            if normalized_name.is_empty()
-                || value.bytes().any(|byte| byte == 0x0d || byte == 0x0a)
+            if normalized_name.is_empty() || value.bytes().any(|byte| byte == 0x0d || byte == 0x0a)
             {
                 return Err(Data360EvidenceError::InvalidResponse(
                     "response headers must have non-empty names and single-line values".to_string(),
@@ -137,14 +166,22 @@ impl Data360AcquisitionEvidence {
         }
         if self.response_status != 200 {
             return Err(Data360EvidenceError::InvalidResponse(format!(
-                "expected HTTP 200, received {}", self.response_status
+                "expected HTTP 200, received {}",
+                self.response_status
             )));
         }
 
         let content_type = self.response_headers.get("content-type").ok_or_else(|| {
-            Data360EvidenceError::InvalidResponse("missing content-type response header".to_string())
+            Data360EvidenceError::InvalidResponse(
+                "missing content-type response header".to_string(),
+            )
         })?;
-        let media_type = content_type.split(';').next().unwrap_or("").trim().to_ascii_lowercase();
+        let media_type = content_type
+            .split(';')
+            .next()
+            .unwrap_or("")
+            .trim()
+            .to_ascii_lowercase();
         if media_type != "application/json" {
             return Err(Data360EvidenceError::InvalidResponse(format!(
                 "expected application/json, received {content_type:?}"
@@ -187,8 +224,8 @@ pub fn parse_data360_page_with_evidence(
     evidence: &Data360AcquisitionEvidence,
 ) -> Result<ParsedData360Page, Data360EvidenceError> {
     evidence.validate(response_body, context)?;
-    let body = std::str::from_utf8(response_body)
-        .map_err(|_| Data360EvidenceError::InvalidUtf8Body)?;
+    let body =
+        std::str::from_utf8(response_body).map_err(|_| Data360EvidenceError::InvalidUtf8Body)?;
     parse_data360_page(body, context)
         .map_err(|error: Data360PageError| Data360EvidenceError::PageParse(error.to_string()))
 }
@@ -250,9 +287,11 @@ fn validate_documented_request_url(
     match actual.get("skip") {
         Some(value) if value == &q.requested_skip.to_string() => {}
         None if q.requested_skip == 0 => {}
-        _ => return Err(Data360EvidenceError::InvalidRequest(
-            "skip query parameter does not match requested_skip".to_string(),
-        )),
+        _ => {
+            return Err(Data360EvidenceError::InvalidRequest(
+                "skip query parameter does not match requested_skip".to_string(),
+            ));
+        }
     }
     for (name, expected) in &q.filters {
         require_query_value(&actual, name, expected)?;
@@ -330,9 +369,11 @@ fn percent_decode(input: &str) -> Result<String, Data360EvidenceError> {
             }
         }
     }
-    String::from_utf8(decoded).map_err(|_| Data360EvidenceError::InvalidRequest(
-        "query parameter is not valid UTF-8 after percent decoding".to_string(),
-    ))
+    String::from_utf8(decoded).map_err(|_| {
+        Data360EvidenceError::InvalidRequest(
+            "query parameter is not valid UTF-8 after percent decoding".to_string(),
+        )
+    })
 }
 
 fn hex_nibble(byte: u8) -> Option<u8> {
@@ -385,11 +426,13 @@ mod tests {
 
     fn receipt(bytes: &[u8], url: &str, status: u16) -> Data360AcquisitionEvidence {
         let mut headers = BTreeMap::new();
-        headers.insert("Content-Type".to_string(), "application/json; charset=utf-8".to_string());
+        headers.insert(
+            "Content-Type".to_string(),
+            "application/json; charset=utf-8".to_string(),
+        );
         headers.insert("Content-Length".to_string(), bytes.len().to_string());
-        Data360AcquisitionEvidence::capture(
-            "GET", url, status, headers, RETRIEVED_AT, bytes
-        ).unwrap()
+        Data360AcquisitionEvidence::capture("GET", url, status, headers, RETRIEVED_AT, bytes)
+            .unwrap()
     }
 
     #[test]
@@ -406,7 +449,10 @@ mod tests {
         let evidence = receipt(&bytes, BASE_URL, 200);
         let context = context(&evidence.page_snapshot_id());
         let parsed = parse_data360_page_with_evidence(&bytes, &context, &evidence).unwrap();
-        assert_eq!(parsed.records[0].value_source_text.as_deref(), Some("12.340"));
+        assert_eq!(
+            parsed.records[0].value_source_text.as_deref(),
+            Some("12.340")
+        );
     }
 
     #[test]
@@ -438,13 +484,17 @@ mod tests {
         let bytes = body();
         let mut evidence = receipt(&bytes, BASE_URL, 200);
         let context = context(&evidence.page_snapshot_id());
-        evidence.response_headers.insert("content-length".to_string(), "999".to_string());
+        evidence
+            .response_headers
+            .insert("content-length".to_string(), "999".to_string());
         assert!(matches!(
             evidence.validate(&bytes, &context),
             Err(Data360EvidenceError::BodyLengthMismatch { .. })
         ));
         evidence.response_headers.remove("content-length");
-        evidence.response_headers.insert("content-type".to_string(), "text/html".to_string());
+        evidence
+            .response_headers
+            .insert("content-type".to_string(), "text/html".to_string());
         assert!(matches!(
             evidence.validate(&bytes, &context),
             Err(Data360EvidenceError::InvalidResponse(_))

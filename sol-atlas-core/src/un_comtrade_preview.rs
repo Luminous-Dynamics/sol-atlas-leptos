@@ -15,8 +15,8 @@
 //! This parser is not a trade-misinvoicing estimator and does not infer crime.
 
 use crate::economic_intelligence::{
-    compare_mirror_pair, MirrorPairStatus, ObservationSourceCoverage, TradeAreaKind, TradeFlow,
-    TradeObservation, TRADE_OBSERVATION_SCHEMA_VERSION,
+    MirrorPairStatus, ObservationSourceCoverage, TRADE_OBSERVATION_SCHEMA_VERSION, TradeAreaKind,
+    TradeFlow, TradeObservation, compare_mirror_pair,
 };
 use serde::Deserialize;
 use serde_json::Value;
@@ -228,7 +228,10 @@ pub fn parse_un_comtrade_preview(
         )
     })?;
     const ENVELOPE_KEYS: [&str; 4] = ["elapsedTime", "count", "data", "error"];
-    if let Some(unknown) = object.keys().find(|key| !ENVELOPE_KEYS.contains(&key.as_str())) {
+    if let Some(unknown) = object
+        .keys()
+        .find(|key| !ENVELOPE_KEYS.contains(&key.as_str()))
+    {
         return Err(UnComtradePreviewError::EnvelopeSchema(format!(
             "unsupported top-level field {unknown:?}"
         )));
@@ -243,7 +246,11 @@ pub fn parse_un_comtrade_preview(
     let envelope: PreviewEnvelope = serde_json::from_value(parsed)
         .map_err(|error| UnComtradePreviewError::EnvelopeSchema(error.to_string()))?;
 
-    if let Some(error) = envelope.error.as_ref().filter(|value| api_error_present(value)) {
+    if let Some(error) = envelope
+        .error
+        .as_ref()
+        .filter(|value| api_error_present(value))
+    {
         return Err(UnComtradePreviewError::ApiReportedError(error.to_string()));
     }
 
@@ -274,9 +281,7 @@ pub fn parse_un_comtrade_preview(
                 if !seen_record_ids.insert(observation.record_id.clone()) {
                     rejected_rows.push(RejectedUnComtradeRow {
                         row_index,
-                        reason: UnComtradeRowRejection::DuplicateRecordKey(
-                            observation.record_id,
-                        ),
+                        reason: UnComtradeRowRejection::DuplicateRecordKey(observation.record_id),
                     });
                 } else {
                     records.push(UnComtradeRecord {
@@ -334,9 +339,7 @@ pub fn parse_un_comtrade_preview(
     })
 }
 
-fn validate_context(
-    context: &UnComtradePreviewContext,
-) -> Result<(), UnComtradePreviewError> {
+fn validate_context(context: &UnComtradePreviewContext) -> Result<(), UnComtradePreviewError> {
     let query = &context.query;
     for (name, value) in [
         ("type_code", query.type_code.as_str()),
@@ -346,7 +349,10 @@ fn validate_context(
             "record_classification_code",
             query.record_classification_code.as_str(),
         ),
-        ("classification_revision", query.classification_revision.as_str()),
+        (
+            "classification_revision",
+            query.classification_revision.as_str(),
+        ),
         (
             "valuation_basis_signature",
             query.valuation_basis_signature.as_str(),
@@ -411,9 +417,7 @@ fn validate_context(
     if !context
         .area_kinds
         .contains_key(query.reporter_code.as_str())
-        || !context
-            .area_kinds
-            .contains_key(query.partner_code.as_str())
+        || !context.area_kinds.contains_key(query.partner_code.as_str())
     {
         return Err(UnComtradePreviewError::InvalidContext(
             "request reporter and partner must exist in the pinned area reference table"
@@ -435,9 +439,7 @@ fn normalize_record(
     raw: &Value,
     context: &UnComtradePreviewContext,
 ) -> Result<TradeObservation, UnComtradeRowRejection> {
-    let object = raw
-        .as_object()
-        .ok_or(UnComtradeRowRejection::NotAnObject)?;
+    let object = raw.as_object().ok_or(UnComtradeRowRejection::NotAnObject)?;
     let query = &context.query;
 
     let type_code = required_scalar(object, "typeCode")?;
@@ -457,8 +459,7 @@ fn normalize_record(
     let transport_mode_code = required_scalar(object, "motCode")?;
     let customs_procedure_code = required_scalar(object, "customsCode")?;
     let reported_flag = required_bool(object, "isReported")?.to_string();
-    let legacy_estimation_flag =
-        required_nonnegative_integer(object, "legacyEstimationFlag")?;
+    let legacy_estimation_flag = required_nonnegative_integer(object, "legacyEstimationFlag")?;
 
     let reporter_kind = context
         .area_kinds
@@ -473,7 +474,11 @@ fn normalize_record(
 
     for (name, actual, expected) in [
         ("typeCode", type_code.as_str(), query.type_code.as_str()),
-        ("freqCode", frequency_code.as_str(), query.frequency_code.as_str()),
+        (
+            "freqCode",
+            frequency_code.as_str(),
+            query.frequency_code.as_str(),
+        ),
         ("period", period.as_str(), query.period.as_str()),
         (
             "reporterCode",
@@ -521,8 +526,7 @@ fn normalize_record(
     );
     let source_state_signature = format!(
         "uncomtrade-source-state/v1|reported={}|legacy_estimation={}",
-        reported_flag,
-        legacy_estimation_flag
+        reported_flag, legacy_estimation_flag
     );
     // Malformed optional fields are rejected, not silently collapsed into None.
     let quantity = optional_f64(object, "qty")?;
@@ -597,9 +601,8 @@ fn required_scalar(
         .get(key)
         .ok_or_else(|| UnComtradeRowRejection::MissingField(key.to_string()))
         .and_then(|value| {
-            scalar_to_text(value).ok_or_else(|| {
-                UnComtradeRowRejection::InvalidFieldType(key.to_string())
-            })
+            scalar_to_text(value)
+                .ok_or_else(|| UnComtradeRowRejection::InvalidFieldType(key.to_string()))
         })
 }
 
@@ -771,10 +774,7 @@ mod tests {
                 .as_deref(),
             Some("9007199254740993")
         );
-        assert_eq!(
-            parsed.records[0].observation.reporter,
-            "842"
-        );
+        assert_eq!(parsed.records[0].observation.reporter, "842");
         assert_eq!(
             parsed.records[0].observation.disaggregation_signature,
             "uncomtrade-dimensions/v1|partner2=0|mot=0|customs=C00"
@@ -819,14 +819,11 @@ mod tests {
     fn reaching_requested_limit_is_marked_as_possibly_truncated() {
         let mut second = row();
         second["motCode"] = Value::String("1".to_string());
-        let parsed = parse_un_comtrade_preview(&response(vec![row(), second], 2), &context(2))
-            .unwrap();
+        let parsed =
+            parse_un_comtrade_preview(&response(vec![row(), second], 2), &context(2)).unwrap();
         assert_eq!(parsed.records.len(), 2);
         assert!(parsed.rejected_rows.is_empty());
-        assert_eq!(
-            parsed.coverage,
-            PreviewCoverage::PossiblyTruncated
-        );
+        assert_eq!(parsed.coverage, PreviewCoverage::PossiblyTruncated);
         assert!(parsed.coverage.may_be_truncated());
         assert!(!parsed.coverage.completeness_proven());
         assert_eq!(
@@ -837,8 +834,8 @@ mod tests {
 
     #[test]
     fn duplicate_source_keys_are_quarantined() {
-        let parsed = parse_un_comtrade_preview(&response(vec![row(), row()], 2), &context(10))
-            .unwrap();
+        let parsed =
+            parse_un_comtrade_preview(&response(vec![row(), row()], 2), &context(10)).unwrap();
         assert_eq!(parsed.records.len(), 1);
         assert_eq!(parsed.rejected_rows.len(), 1);
         assert!(matches!(
@@ -853,11 +850,7 @@ mod tests {
 
     #[test]
     fn parser_preserves_caller_reviewed_valuation_basis_without_inference() {
-        let parsed = parse_un_comtrade_preview(
-            &response(vec![row()], 1),
-            &context(10),
-        )
-        .unwrap();
+        let parsed = parse_un_comtrade_preview(&response(vec![row()], 1), &context(10)).unwrap();
         assert_eq!(
             parsed.records[0].observation.valuation_basis_signature,
             "known:fob"
@@ -882,11 +875,9 @@ mod tests {
         importer_context.query.valuation_basis_signature = "known:cif".to_string();
 
         let exporter =
-            parse_un_comtrade_preview(&response(vec![exporter_raw], 1), &exporter_context)
-                .unwrap();
+            parse_un_comtrade_preview(&response(vec![exporter_raw], 1), &exporter_context).unwrap();
         let importer =
-            parse_un_comtrade_preview(&response(vec![importer_raw], 1), &importer_context)
-                .unwrap();
+            parse_un_comtrade_preview(&response(vec![importer_raw], 1), &importer_context).unwrap();
         let result = compare_mirror_pair(
             &[exporter.records[0].observation.clone()],
             &[importer.records[0].observation.clone()],
@@ -899,8 +890,8 @@ mod tests {
     fn query_mismatched_rows_are_rejected_not_silently_used() {
         let mut mismatched = row();
         mismatched["partnerCode"] = Value::from(0);
-        let parsed = parse_un_comtrade_preview(&response(vec![mismatched], 1), &context(10))
-            .unwrap();
+        let parsed =
+            parse_un_comtrade_preview(&response(vec![mismatched], 1), &context(10)).unwrap();
         assert_eq!(parsed.records.len(), 0);
         assert_eq!(parsed.rejected_rows.len(), 1);
         assert_eq!(
@@ -930,8 +921,8 @@ mod tests {
     fn value_aggregated_above_requested_commodity_is_rejected() {
         let mut aggregated = row();
         aggregated["isAggrAbove"] = Value::Bool(true);
-        let parsed = parse_un_comtrade_preview(&response(vec![aggregated], 1), &context(10))
-            .unwrap();
+        let parsed =
+            parse_un_comtrade_preview(&response(vec![aggregated], 1), &context(10)).unwrap();
         assert_eq!(parsed.records.len(), 0);
         assert_eq!(
             parsed.rejected_rows[0].reason,
@@ -978,12 +969,14 @@ mod tests {
         for (field, bad_value) in [
             ("isAggrAbove", Value::String("false".to_string())),
             ("isReported", Value::String("true".to_string())),
-            ("primaryValue", Value::String("9007199254740993".to_string())),
+            (
+                "primaryValue",
+                Value::String("9007199254740993".to_string()),
+            ),
         ] {
             let mut candidate = row();
             candidate[field] = bad_value;
-            let parsed =
-                parse_un_comtrade_preview(&response(vec![candidate], 1), &ctx).unwrap();
+            let parsed = parse_un_comtrade_preview(&response(vec![candidate], 1), &ctx).unwrap();
             assert!(parsed.records.is_empty(), "{field} must be type-checked");
             assert_eq!(
                 parsed.rejected_rows,
@@ -1066,8 +1059,7 @@ mod tests {
         ] {
             let mut candidate = row();
             candidate["legacyEstimationFlag"] = bad_value;
-            let parsed =
-                parse_un_comtrade_preview(&response(vec![candidate], 1), &ctx).unwrap();
+            let parsed = parse_un_comtrade_preview(&response(vec![candidate], 1), &ctx).unwrap();
             assert!(parsed.records.is_empty());
             assert_eq!(parsed.rejected_rows.len(), 1);
             assert!(matches!(

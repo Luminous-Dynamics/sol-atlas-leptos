@@ -316,25 +316,13 @@ pub fn compare_mirror_pair(
     // Otherwise a missing counterpart could hide ambiguity on the side that
     // does have records.
     if exporter_count > 1 && importer_count > 1 {
-        return MirrorPairResult::excluded(
-            MirrorPairStatus::AmbiguousReportsBothSides,
-            None,
-            None,
-        );
+        return MirrorPairResult::excluded(MirrorPairStatus::AmbiguousReportsBothSides, None, None);
     }
     if exporter_count > 1 {
-        return MirrorPairResult::excluded(
-            MirrorPairStatus::AmbiguousExporterReports,
-            None,
-            None,
-        );
+        return MirrorPairResult::excluded(MirrorPairStatus::AmbiguousExporterReports, None, None);
     }
     if importer_count > 1 {
-        return MirrorPairResult::excluded(
-            MirrorPairStatus::AmbiguousImporterReports,
-            None,
-            None,
-        );
+        return MirrorPairResult::excluded(MirrorPairStatus::AmbiguousImporterReports, None, None);
     }
     if exporter_count == 0 {
         return MirrorPairResult::excluded(
@@ -545,10 +533,8 @@ pub fn compare_mirror_pair(
     };
 
     let absolute_scaled_difference = signed_scaled_difference.abs();
-    let signed_difference_source_text =
-        format_scaled_decimal(signed_scaled_difference, scale);
-    let absolute_difference_source_text =
-        format_scaled_decimal(absolute_scaled_difference, scale);
+    let signed_difference_source_text = format_scaled_decimal(signed_scaled_difference, scale);
+    let absolute_difference_source_text = format_scaled_decimal(absolute_scaled_difference, scale);
 
     // Float projections exist for plots only. Exact decimal text above remains
     // authoritative for audit and display of the measured difference.
@@ -788,10 +774,8 @@ mod tests {
 
     #[test]
     fn rejects_unsupported_observation_schema_versions() {
-        let mut exporter =
-            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
-        let importer =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        let mut exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         exporter.schema_version = TRADE_OBSERVATION_SCHEMA_VERSION + 1;
         assert_eq!(
             compare_mirror_pair(&[exporter], &[importer]).status,
@@ -806,13 +790,13 @@ mod tests {
         assert_eq!(exporter.trade_value_source_text.as_deref(), Some("100"));
         let result = pair(Some("100"), Some("120"));
         assert_eq!(result.status, MirrorPairStatus::Compared);
-        assert_eq!(
-            result.signed_difference_importer_minus_exporter,
-            Some(20.0)
-        );
+        assert_eq!(result.signed_difference_importer_minus_exporter, Some(20.0));
         assert_eq!(result.absolute_difference, Some(20.0));
         assert_eq!(result.signed_difference_source_text.as_deref(), Some("20"));
-        assert_eq!(result.absolute_difference_source_text.as_deref(), Some("20"));
+        assert_eq!(
+            result.absolute_difference_source_text.as_deref(),
+            Some("20")
+        );
         let pct = result.difference_percent_of_mean.unwrap();
         assert!((pct - (20.0 / 110.0 * 100.0)).abs() < 1e-12);
         let exporter_pct = result.signed_difference_percent_of_exporter.unwrap();
@@ -860,15 +844,16 @@ mod tests {
 
     #[test]
     fn exact_gap_marks_known_cif_fob_mismatch_instead_of_hiding_it() {
-        let exporter =
-            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
-        let mut importer =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         importer.valuation_basis_signature = "known:cif".to_string();
 
         let result = compare_mirror_pair(&[exporter], &[importer]);
         assert_eq!(result.status, MirrorPairStatus::Compared);
-        assert_eq!(result.absolute_difference_source_text.as_deref(), Some("20"));
+        assert_eq!(
+            result.absolute_difference_source_text.as_deref(),
+            Some("20")
+        );
         assert_eq!(result.valuation_basis_match, Some(false));
         assert_eq!(
             result.importer_valuation_basis_signature.as_deref(),
@@ -878,10 +863,8 @@ mod tests {
 
     #[test]
     fn unknown_valuation_basis_is_not_mistaken_for_a_match() {
-        let mut exporter =
-            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
-        let importer =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        let mut exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         exporter.valuation_basis_signature = "unknown".to_string();
         let result = compare_mirror_pair(&[exporter.clone()], &[importer.clone()]);
         assert_eq!(result.status, MirrorPairStatus::Compared);
@@ -898,30 +881,21 @@ mod tests {
     fn exporter_denominator_metric_preserves_direction() {
         let up = pair(Some("100"), Some("120"));
         let down = pair(Some("100"), Some("80"));
-        assert_eq!(
-            up.signed_difference_percent_of_exporter,
-            Some(20.0)
-        );
-        assert_eq!(
-            down.signed_difference_percent_of_exporter,
-            Some(-20.0)
-        );
+        assert_eq!(up.signed_difference_percent_of_exporter, Some(20.0));
+        assert_eq!(down.signed_difference_percent_of_exporter, Some(-20.0));
     }
 
     #[test]
     fn rejects_aggregate_geographies_and_mismatched_code_systems() {
-        let mut exporter =
-            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
-        let importer =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        let mut exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         exporter.partner_kind = TradeAreaKind::Aggregate;
         assert_eq!(
             compare_mirror_pair(&[exporter], &[importer.clone()]).status,
             MirrorPairStatus::AggregatePartyNotSupported
         );
 
-        let exporter =
-            observation("exp-2", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let exporter = observation("exp-2", "AAA", "BBB", TradeFlow::Export, Some("100"));
         let mut importer = importer;
         importer.geography_code_system = "UN_M49".to_string();
         assert_eq!(
@@ -949,24 +923,34 @@ mod tests {
         assert_eq!(
             compare_mirror_pair(
                 &[],
-                &[observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"))]
+                &[observation(
+                    "imp-1",
+                    "BBB",
+                    "AAA",
+                    TradeFlow::Import,
+                    Some("120")
+                )]
             )
             .status,
             MirrorPairStatus::MissingExporterReport
         );
         assert_eq!(
             compare_mirror_pair(
-                &[observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"))],
+                &[observation(
+                    "exp-1",
+                    "AAA",
+                    "BBB",
+                    TradeFlow::Export,
+                    Some("100")
+                )],
                 &[]
             )
             .status,
             MirrorPairStatus::MissingImporterReport
         );
 
-        let duplicate_a =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
-        let duplicate_b =
-            observation("imp-2", "BBB", "AAA", TradeFlow::Import, Some("121"));
+        let duplicate_a = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        let duplicate_b = observation("imp-2", "BBB", "AAA", TradeFlow::Import, Some("121"));
         assert_eq!(
             compare_mirror_pair(&[], &[duplicate_a, duplicate_b]).status,
             MirrorPairStatus::AmbiguousImporterReports
@@ -1045,21 +1029,9 @@ mod tests {
 
     #[test]
     fn decimal_text_normalizes_scale_without_losing_exact_difference() {
-        let mut exporter = observation(
-            "exp-1",
-            "AAA",
-            "BBB",
-            TradeFlow::Export,
-            Some("100"),
-        );
+        let mut exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
         exporter.trade_value_source_text = Some("100.00".to_string());
-        let mut importer = observation(
-            "imp-1",
-            "BBB",
-            "AAA",
-            TradeFlow::Import,
-            Some("120"),
-        );
+        let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         importer.trade_value_source_text = Some("120.000".to_string());
         let result = compare_mirror_pair(&[exporter], &[importer]);
         assert_eq!(result.status, MirrorPairStatus::Compared);
@@ -1068,62 +1040,26 @@ mod tests {
 
     #[test]
     fn rejects_exponent_notation_precision_and_integer_overflow() {
-        let mut exporter = observation(
-            "exp-1",
-            "AAA",
-            "BBB",
-            TradeFlow::Export,
-            Some("100"),
-        );
+        let mut exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
         exporter.trade_value_source_text = Some("1e2".to_string());
-        let importer = observation(
-            "imp-1",
-            "BBB",
-            "AAA",
-            TradeFlow::Import,
-            Some("120"),
-        );
+        let importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         assert_eq!(
             compare_mirror_pair(&[exporter], &[importer]).status,
             MirrorPairStatus::InvalidExporterValueFormat
         );
 
-        let mut exporter = observation(
-            "exp-2",
-            "AAA",
-            "BBB",
-            TradeFlow::Export,
-            Some("100"),
-        );
+        let mut exporter = observation("exp-2", "AAA", "BBB", TradeFlow::Export, Some("100"));
         exporter.trade_value_source_text = Some("1.0000000000000000001".to_string());
-        let importer = observation(
-            "imp-2",
-            "BBB",
-            "AAA",
-            TradeFlow::Import,
-            Some("120"),
-        );
+        let importer = observation("imp-2", "BBB", "AAA", TradeFlow::Import, Some("120"));
         assert_eq!(
             compare_mirror_pair(&[exporter], &[importer]).status,
             MirrorPairStatus::InvalidExporterValueFormat
         );
 
-        let mut exporter = observation(
-            "exp-3",
-            "AAA",
-            "BBB",
-            TradeFlow::Export,
-            Some("100"),
-        );
+        let mut exporter = observation("exp-3", "AAA", "BBB", TradeFlow::Export, Some("100"));
         exporter.trade_value_source_text =
             Some("999999999999999999999999999999999999999999".to_string());
-        let importer = observation(
-            "imp-3",
-            "BBB",
-            "AAA",
-            TradeFlow::Import,
-            Some("120"),
-        );
+        let importer = observation("imp-3", "BBB", "AAA", TradeFlow::Import, Some("120"));
         assert_eq!(
             compare_mirror_pair(&[exporter], &[importer]).status,
             MirrorPairStatus::InvalidExporterValueFormat
@@ -1132,11 +1068,9 @@ mod tests {
 
     #[test]
     fn preserves_negative_signed_difference_and_small_fractional_values() {
-        let mut exporter =
-            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
         exporter.trade_value_source_text = Some("100.000".to_string());
-        let mut importer =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("99.999"));
+        let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("99.999"));
         importer.trade_value_source_text = Some("99.999".to_string());
 
         let result = compare_mirror_pair(&[exporter], &[importer]);
@@ -1153,16 +1087,23 @@ mod tests {
 
     #[test]
     fn returns_explicit_overflow_instead_of_rounding_large_mixed_scale_values() {
-        let mut exporter =
-            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
         exporter.trade_value_source_text =
             Some("170141183460469231731687303715884105727".to_string());
-        let mut importer =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("0.000000000000000001"));
+        let mut importer = observation(
+            "imp-1",
+            "BBB",
+            "AAA",
+            TradeFlow::Import,
+            Some("0.000000000000000001"),
+        );
         importer.trade_value_source_text = Some("0.000000000000000001".to_string());
 
         let result = compare_mirror_pair(&[exporter], &[importer]);
-        assert_eq!(result.status, MirrorPairStatus::ComparisonArithmeticOverflow);
+        assert_eq!(
+            result.status,
+            MirrorPairStatus::ComparisonArithmeticOverflow
+        );
         assert_eq!(result.absolute_difference_source_text, None);
     }
 
@@ -1185,10 +1126,8 @@ mod tests {
 
     #[test]
     fn refuses_to_compare_when_source_coverage_is_unproven() {
-        let exporter =
-            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
-        let mut importer =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         importer.source_coverage = ObservationSourceCoverage::PreviewCompletenessUnproven;
 
         let result = compare_mirror_pair(&[exporter], &[importer]);
@@ -1198,10 +1137,8 @@ mod tests {
 
     #[test]
     fn refuses_to_compare_across_different_series_definitions() {
-        let exporter =
-            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
-        let mut importer =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         importer.series_signature =
             "synthetic-series/v1|type=service|frequency=annual|classification=EBOPS".to_string();
         let result = compare_mirror_pair(&[exporter], &[importer]);
@@ -1211,10 +1148,8 @@ mod tests {
 
     #[test]
     fn refuses_to_compare_against_a_different_area_reference_snapshot() {
-        let exporter =
-            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
-        let mut importer =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         importer.area_reference_snapshot_id = "synthetic-area-table-v2".to_string();
         let result = compare_mirror_pair(&[exporter], &[importer]);
         assert_eq!(
@@ -1226,10 +1161,8 @@ mod tests {
 
     #[test]
     fn rejects_different_source_reporting_states() {
-        let exporter =
-            observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
-        let mut importer =
-            observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
+        let exporter = observation("exp-1", "AAA", "BBB", TradeFlow::Export, Some("100"));
+        let mut importer = observation("imp-1", "BBB", "AAA", TradeFlow::Import, Some("120"));
         importer.source_state_signature =
             "synthetic-state/v1|reported=false|legacy_estimation=1".to_string();
         assert_eq!(
