@@ -754,6 +754,13 @@ fn is_iso_date(value: &str) -> bool {
     if value.len() != 10 || value.as_bytes()[4] != b'-' || value.as_bytes()[7] != b'-' {
         return false;
     }
+    let bytes = value.as_bytes();
+    if bytes[..4].iter().any(|byte| !byte.is_ascii_digit())
+        || bytes[5..7].iter().any(|byte| !byte.is_ascii_digit())
+        || bytes[8..10].iter().any(|byte| !byte.is_ascii_digit())
+    {
+        return false;
+    }
     let mut parts = value.split('-');
     let (Some(year), Some(month), Some(day), None) =
         (parts.next(), parts.next(), parts.next(), parts.next())
@@ -1126,6 +1133,10 @@ mod eroi_evidence_tests {
     fn invalid_publication_date_and_uncertainty_are_rejected_for_comparison() {
         let mut item = evidence(EroiStage::Final);
         item.publication_date = Some("2023-02-29".to_string());
+        assert!(!item.is_qualified());
+
+        let mut item = evidence(EroiStage::Final);
+        item.publication_date = Some("+024-02-29".to_string());
         assert!(!item.is_qualified());
 
         let mut item = evidence(EroiStage::Final);
