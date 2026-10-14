@@ -11,7 +11,10 @@
     "boundary_state": "unverified",
     "boundary_source": "City of Johannesburg or relevant Gauteng administrative boundary and any explicitly defined surrounding Highveld catchment; authoritative polygon not yet acquired, reviewed, or hashed.",
     "spatial_scope_rule": "This is region-level scoping only. Freeze an authoritative study polygon and coordinate reference system before clipping or comparing grids. Store individual farm plots and households as access-controlled site records rather than publishing precise locations by default.",
-    "regional_model_limit": "The municipality is not identical to the Highveld agroclimatic region or the food-supply catchment. A regional raster cannot resolve farm-level soil variation, rooftop or shade microclimates, irrigation reliability, crop variety, growing method, or operator practices."
+    "regional_model_limit": "The municipality is not identical to the Highveld agroclimatic region or the food-supply catchment. A regional raster cannot resolve farm-level soil variation, rooftop or shade microclimates, irrigation reliability, crop variety, growing method, or operator practices.",
+    "boundary_evidence_ref": null,
+    "boundary_sha256": null,
+    "boundary_crs": null
   },
   "candidate_systems": [
     "Rainfed open-field production with crop and season not yet selected",
@@ -312,7 +315,39 @@
       "soil and irrigation expert review of water-balance assumptions and site measurements",
       "independent reviewer checks source overlap, leakage, uncertainty calibration and claim ceiling",
       "participating growers review practical constraints and whether measured outputs are actionable and affordable"
-    ]
+    ],
+    "gate_evidence": {
+      "D0": {
+        "evidence_refs": [],
+        "reviewed_by": null,
+        "reason": null
+      },
+      "D1": {
+        "evidence_refs": [],
+        "reviewed_by": null,
+        "reason": null
+      },
+      "D2": {
+        "evidence_refs": [],
+        "reviewed_by": null,
+        "reason": null
+      },
+      "D3": {
+        "evidence_refs": [],
+        "reviewed_by": null,
+        "reason": null
+      },
+      "D4": {
+        "evidence_refs": [],
+        "reviewed_by": null,
+        "reason": null
+      },
+      "D5": {
+        "evidence_refs": [],
+        "reviewed_by": null,
+        "reason": null
+      }
+    }
   },
   "claim_ceiling": [
     "This profile is design_only; no source raster or local field-observation artifact has been acquired by this profile.",
