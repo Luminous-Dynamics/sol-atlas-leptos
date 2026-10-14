@@ -167,15 +167,20 @@ References:
 
 These formats are interoperability conventions, not accuracy certificates. Do not force a format on an upstream product, silently resample to finer grids, infer missing unit metadata, discard time bounds/calendar semantics, or republish data without checking exact rights.
 
+Every source record carries an explicit `artifacts` list. It is empty while the source is `not_acquired`; an acquired source must have exactly one primary artifact. The source-level primary digest must exactly match that artifact's digest. This avoids a common trap where an acquisition status and a 64-character hash string are recorded without any asset-level provenance.
+
 Every acquired product should have a reproducible intake manifest containing:
 - provider, exact product/version/map code, retrieval time and original source URI;
+- a stable asset URI (never a signed URL or bearer token), media type, byte size, exact retrieval timestamp and lowercase SHA-256 for each original/derived asset;
 - original byte SHA-256, terms/licence/attribution and a product-specific redistribution decision;
 - native CRS, spatial/temporal support, units, scale/offset, nodata/mask, variable/band names and grid-cell interpretation;
 - upstream input/source overlap and known corrections or vintage changes;
 - every transformation, software version, configuration and output hash;
+- transformation-chain continuity: each step references the preceding step's output digest, and the final step output digest equals the hashed derived asset;
 - study-boundary digest, model/configuration digest, frozen evaluation split and review evidence.
 
 Preserve the original artifact and derive normalized/analysis-ready assets as separate outputs. A digest guarantees identity of bytes, not correctness of the underlying measurement or scientific interpretation.
+The validator can check manifest consistency without downloading private or licensed assets. It does not independently verify remote bytes; the actual intake process must hash the exact acquired bytes before setting acquisition to `acquired`. A syntactically valid digest field alone is not proof the asset was downloaded or verified.
 
 ## How to expand globally without multiplying unvalidated models
 
