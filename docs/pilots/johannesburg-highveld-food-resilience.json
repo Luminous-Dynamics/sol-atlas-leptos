@@ -614,7 +614,8 @@
         "The service reports WKID 4148, which the EPSG registry identifies as Hartebeesthoek94 geographic with latitude/longitude axis order. The service's extent is presented as x/y values resembling longitude/latitude, so verify actual exported-file axis mapping and known control locations before reprojection; do not silently relabel as EPSG:4326.",
         "The service reports isDataVersioned=false and does not support historic-moment queries, so later requests may return changed geometry. Keep the exact downloaded bytes and SHA-256 as the canonical analysis artifact.",
         "Review current service availability, attribution, usage terms and redistribution rights for the exported geometry before passing D0.",
-        "Do not infer that Stretford Ext 1 is part of the effective Johannesburg boundary from the January 2024 DEM7008 notice: the MDB's Circular 2 of 2024 records DEM7008 as withdrawn under Section 21(5) of the Municipal Demarcation Act. Confirm the effective/current geometry from the frozen data source and legal demarcation record."
+        "Do not infer that Stretford Ext 1 is part of the effective Johannesburg boundary from the January 2024 DEM7008 notice: the MDB's Circular 2 of 2024 records DEM7008 as withdrawn under Section 21(5) of the Municipal Demarcation Act. Confirm the effective/current geometry from the frozen data source and legal demarcation record.",
+        "The MDB's 29 September 2025 public update says it would not redetermine municipal boundaries at that time for the deferred cases discussed under its 2025 circulars. That statement is time- and case-scoped; it does not replace checking the case outcome or the effective boundary version for this study."
       ]
     },
     {
@@ -659,6 +660,17 @@
       "limitations": [
         "A program overview is not an exact current municipal geometry, gazette or effective-date record for Johannesburg.",
         "Specific changes require the case identifier, legal process outcome and geometry artifact to be checked individually."
+      ]
+    },
+    {
+      "reference_id": "MDB-BOUNDARY-DEFERRALS-STATUS-2025",
+      "title": "MDB update, 29 September 2025 — deferred municipal boundary redetermination cases",
+      "url": "https://www.demarcation.org.za/final-chance-to-shape-your-wards-ahead-of-the-2026-local-government-elections/",
+      "reference_type": "official_program",
+      "role": "Recent MDB status note states that, following further investigation, the Board had resolved not to redetermine the municipal boundaries at that time for the deferred cases covered by Circulars 3 of 2025, while ward delimitation continued for the 2026 local-government elections.",
+      "limitations": [
+        "The statement applies to the deferred cases described in that update; do not infer that every municipal boundary proposal or previously withdrawn case has the same procedural status.",
+        "This process update is not an authoritative geometry export or a substitute for the exact current Johannesburg boundary artifact and legal effective date."
       ]
     }
   ],
