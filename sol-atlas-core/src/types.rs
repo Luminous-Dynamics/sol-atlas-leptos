@@ -1190,7 +1190,10 @@ mod eroi_evidence_tests {
     #[test]
     fn legacy_uncertainty_bounds_without_interpretation_remain_unqualified() {
         let mut json = serde_json::to_value(evidence(EroiStage::Final)).unwrap();
-        json["uncertainty"].as_object_mut().unwrap().remove("interpretation");
+        json["uncertainty"]
+            .as_object_mut()
+            .unwrap()
+            .remove("interpretation");
 
         let restored: EroiEvidence = serde_json::from_value(json).unwrap();
         assert!(restored.uncertainty.is_some());
