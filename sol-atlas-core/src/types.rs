@@ -682,15 +682,34 @@ pub struct EroiUncertaintyRange {
     /// Optional for legacy compatibility; absence leaves an evidence record unqualified.
     #[serde(default)]
     pub interpretation: Option<EroiUncertaintyKind>,
+    /// Confidence level or credible mass in (0, 1), required for statistical intervals.
+    /// Forbidden for non-statistical ranges; omission preserves legacy JSON but does not
+    /// make an otherwise unqualified interval comparable.
+    #[serde(default)]
+    pub probability_level: Option<f64>,
 }
 
 impl EroiUncertaintyRange {
     pub fn is_valid(&self) -> bool {
+        let level_is_valid = match (self.interpretation, self.probability_level) {
+            (
+                Some(EroiUncertaintyKind::ConfidenceInterval | EroiUncertaintyKind::CredibleInterval),
+                Some(level),
+            ) => level.is_finite() && level > 0.0 && level < 1.0,
+            (
+                Some(EroiUncertaintyKind::ConfidenceInterval | EroiUncertaintyKind::CredibleInterval),
+                None,
+            ) => false,
+            (Some(_), None) => true,
+            (Some(_), Some(_)) | (None, _) => false,
+        };
+
         self.lower.is_finite()
             && self.upper.is_finite()
             && self.lower > 0.0
             && self.upper >= self.lower
             && self.interpretation.is_some()
+            && level_is_valid
     }
 }
 
@@ -1080,6 +1099,7 @@ mod eroi_evidence_tests {
                 lower: 4.0,
                 upper: 6.0,
                 interpretation: Some(EroiUncertaintyKind::SensitivityRange),
+                probability_level: None,
             }),
         }
     }
@@ -1175,6 +1195,7 @@ mod eroi_evidence_tests {
             lower: 6.0,
             upper: 4.0,
             interpretation: Some(EroiUncertaintyKind::SensitivityRange),
+            probability_level: None,
         });
         assert!(!item.is_qualified());
 
@@ -1183,7 +1204,26 @@ mod eroi_evidence_tests {
             lower: 1.0,
             upper: f64::INFINITY,
             interpretation: Some(EroiUncertaintyKind::SensitivityRange),
+            probability_level: None,
         });
+        assert!(!item.is_qualified());
+    }
+
+    #[test]
+    fn statistical_uncertainty_intervals_require_a_valid_level() {
+        let mut item = evidence(EroiStage::Final);
+        item.uncertainty.as_mut().unwrap().interpretation =
+            Some(EroiUncertaintyKind::ConfidenceInterval);
+        assert!(!item.is_qualified());
+
+        item.uncertainty.as_mut().unwrap().probability_level = Some(0.95);
+        assert!(item.is_qualified());
+
+        item.uncertainty.as_mut().unwrap().probability_level = Some(1.0);
+        assert!(!item.is_qualified());
+
+        let mut item = evidence(EroiStage::Final);
+        item.uncertainty.as_mut().unwrap().probability_level = Some(0.95);
         assert!(!item.is_qualified());
     }
 
