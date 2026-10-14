@@ -479,6 +479,55 @@ class AgroclimateProfileTests(unittest.TestCase):
         source["artifacts"].append(duplicate)
         self.assertTrue(any("duplicate artifact_id" in error for error in self.errors(doc)))
 
+    def test_artifact_ids_must_be_unique_across_source_families(self):
+        doc = self.synthetic_complete_profile()
+        doc["sources"][1]["artifacts"][0]["artifact_id"] = doc["sources"][0]["artifacts"][0]["artifact_id"]
+        self.assertTrue(any("duplicate artifact_id across profile" in error for error in self.errors(doc)))
+
+    def test_derived_output_requires_transformation_history(self):
+        doc = self.synthetic_complete_profile()
+        source = doc["sources"][0]
+        derived = copy.deepcopy(source["artifacts"][0])
+        derived["artifact_id"] = "fixture.asset:derived-output:v1"
+        derived["role"] = "derived_output"
+        source["artifacts"].append(derived)
+        schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
+        self.assertTrue(any("transformations" in error.message for error in schema_errors))
+
+    def test_derived_output_with_traceable_transformation_is_valid(self):
+        doc = self.synthetic_complete_profile()
+        source = doc["sources"][0]
+        primary = source["artifacts"][0]
+        derived_payload = b"synthetic-derived-output-bytes"
+        derived_digest = hashlib.sha256(derived_payload).hexdigest()
+        derived_uri = "urn:fixture:asset:derived-output:v1"
+        derived = {
+            "artifact_id": "fixture.asset:derived-output:v1",
+            "role": "derived_output",
+            "asset_uri": derived_uri,
+            "media_type": "application/octet-stream",
+            "byte_size": len(derived_payload),
+            "sha256": derived_digest,
+            "acquired_at": "2026-10-14T12:01:00Z",
+            "spatial_support": primary["spatial_support"],
+            "temporal_support": primary["temporal_support"],
+            "units": primary["units"],
+            "nodata_semantics": "Not applicable for synthetic fixture bytes.",
+            "lineage_refs": [primary["asset_uri"], f"sha256:{primary['sha256']}"],
+            "transformations": [{
+                "transform_id": "fixture.transform:derive-output-v1",
+                "method": "Example deterministic derived artifact operation",
+                "implementation_version": "fixture-1",
+                "configuration_sha256": "a" * 64,
+                "input_artifact_refs": [f"sha256:{primary['sha256']}"],
+                "output_sha256": derived_digest,
+                "lossy": False,
+                "notes": "Synthetic derived output bytes and transform parameters.",
+            }],
+        }
+        source["artifacts"].append(derived)
+        self.assertEqual(self.errors(doc), [])
+
     def test_transformation_chain_must_reference_preceding_output_digest(self):
         doc = self.synthetic_complete_profile()
         artifact = doc["sources"][0]["artifacts"][0]
