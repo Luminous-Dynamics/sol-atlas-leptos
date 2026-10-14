@@ -142,10 +142,13 @@ impl Data360AcquisitionEvidence {
             let normalized_name = name.trim().to_ascii_lowercase();
             if normalized_name.is_empty()
                 || !SAFE_RESPONSE_HEADERS.contains(&normalized_name.as_str())
-                || value.bytes().any(|byte| byte.is_ascii_control() && byte != b'\t')
+                || value
+                    .bytes()
+                    .any(|byte| byte.is_ascii_control() && byte != b'\t')
             {
                 return Err(Data360EvidenceError::InvalidResponse(
-                    "response headers must use the safe allowlist and single-line values".to_string(),
+                    "response headers must use the safe allowlist and single-line, control-free values"
+                        .to_string(),
                 ));
             }
             if normalized_headers
@@ -221,7 +224,9 @@ impl Data360AcquisitionEvidence {
         for (name, value) in &self.response_headers {
             if name != &name.to_ascii_lowercase()
                 || !SAFE_RESPONSE_HEADERS.contains(&name.as_str())
-                || value.bytes().any(|byte| byte.is_ascii_control() && byte != b'\t')
+                || value
+                    .bytes()
+                    .any(|byte| byte.is_ascii_control() && byte != b'\t')
             {
                 return Err(Data360EvidenceError::InvalidResponse(format!(
                     "response header {name:?} is not a safe normalized capture"
@@ -799,8 +804,7 @@ mod tests {
         let bytes = body();
         let evidence = receipt(&bytes, BASE_URL, 200);
         let context = context(&evidence.page_snapshot_id());
-        let acquired =
-            parse_evidence_bound_data360_page(&bytes, &context, &evidence).unwrap();
+        let acquired = parse_evidence_bound_data360_page(&bytes, &context, &evidence).unwrap();
         assert_eq!(acquired.response_body, bytes);
         assert_eq!(acquired.acquisition, evidence);
         assert_eq!(
@@ -814,8 +818,7 @@ mod tests {
         let bytes = body();
         let evidence = receipt(&bytes, BASE_URL, 200);
         let context = context(&evidence.page_snapshot_id());
-        let mut acquired =
-            parse_evidence_bound_data360_page(&bytes, &context, &evidence).unwrap();
+        let mut acquired = parse_evidence_bound_data360_page(&bytes, &context, &evidence).unwrap();
         acquired.response_body[0] = b'[';
         assert_eq!(
             assess_data360_acquired_snapshot(&[acquired]).status,
@@ -828,8 +831,7 @@ mod tests {
         let bytes = body();
         let evidence = receipt(&bytes, BASE_URL, 200);
         let context = context(&evidence.page_snapshot_id());
-        let mut acquired =
-            parse_evidence_bound_data360_page(&bytes, &context, &evidence).unwrap();
+        let mut acquired = parse_evidence_bound_data360_page(&bytes, &context, &evidence).unwrap();
         acquired.parsed_page.records[0].value_source_text = Some("999.0".to_string());
         assert_eq!(
             assess_data360_acquired_snapshot(&[acquired]).status,
@@ -845,13 +847,21 @@ mod tests {
         headers.insert("Set-Cookie".to_string(), "session=private".to_string());
         assert!(matches!(
             Data360AcquisitionEvidence::capture(
-                "GET", BASE_URL, BASE_URL, 200, headers, RETRIEVED_AT, &bytes
+                "GET",
+                BASE_URL,
+                BASE_URL,
+                200,
+                headers,
+                RETRIEVED_AT,
+                &bytes
             ),
             Err(Data360EvidenceError::InvalidResponse(_))
         ));
 
         let mut evidence = receipt(&bytes, BASE_URL, 200);
-        evidence.response_headers.insert("set-cookie".to_string(), "session=private".to_string());
+        evidence
+            .response_headers
+            .insert("set-cookie".to_string(), "session=private".to_string());
         let context = context(&evidence.page_snapshot_id());
         assert!(matches!(
             evidence.validate(&bytes, &context),
@@ -867,7 +877,13 @@ mod tests {
         headers.insert("ETag".to_string(), "unsafe\u{001b}value".to_string());
         assert!(matches!(
             Data360AcquisitionEvidence::capture(
-                "GET", BASE_URL, BASE_URL, 200, headers, RETRIEVED_AT, &bytes
+                "GET",
+                BASE_URL,
+                BASE_URL,
+                200,
+                headers,
+                RETRIEVED_AT,
+                &bytes
             ),
             Err(Data360EvidenceError::InvalidResponse(_))
         ));
@@ -878,7 +894,10 @@ mod tests {
         let bytes = body();
         let evidence = receipt(&bytes, BASE_URL, 200);
         let mut context = context(&evidence.page_snapshot_id());
-        context.query.filters.insert("TIME_PERIOD".to_string(), "1990".to_string());
+        context
+            .query
+            .filters
+            .insert("TIME_PERIOD".to_string(), "1990".to_string());
         assert!(matches!(
             evidence.validate(&bytes, &context),
             Err(Data360EvidenceError::InvalidRequest(message))
@@ -893,12 +912,14 @@ mod tests {
         let url = format!("{BASE_URL}&REF_AREA=ZA%0A");
         let evidence = receipt(&bytes, &url, 200);
         let mut context = context(&evidence.page_snapshot_id());
-        context.query.filters.insert("REF_AREA".to_string(), "ZA\n".to_string());
+        context
+            .query
+            .filters
+            .insert("REF_AREA".to_string(), "ZA\n".to_string());
         assert!(matches!(
             evidence.validate(&bytes, &context),
             Err(Data360EvidenceError::InvalidRequest(message))
                 if message.contains("control character")
         ));
     }
-
 }
