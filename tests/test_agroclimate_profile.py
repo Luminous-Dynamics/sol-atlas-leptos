@@ -153,6 +153,13 @@ class AgroclimateProfileTests(unittest.TestCase):
             for limit in reference["limitations"]
         ))
 
+    def test_global_metadata_standards_are_recorded_with_claim_limits(self):
+        references = {item["reference_id"]: item for item in self.profile["context_references"]}
+        for reference_id in ("OGC-STAC-1-1", "OGC-COG-1-0", "CF-NETCDF-CONVENTIONS"):
+            self.assertIn(reference_id, references)
+            self.assertTrue(references[reference_id]["url"].startswith("https://"))
+            self.assertTrue(references[reference_id]["limitations"])
+
     def test_local_crop_cohort_is_evidence_led_but_not_selected(self):
         cohorts = self.profile["candidate_crop_cohorts"]
         self.assertEqual(len(cohorts), 1)
