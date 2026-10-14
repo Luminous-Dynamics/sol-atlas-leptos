@@ -28,6 +28,7 @@ pub mod timeline;
 pub mod types;
 pub mod un_comtrade_preview;
 pub mod world_bank_data360;
+pub mod world_bank_data360_evidence;
 pub mod visual_validation;
 
 pub use types::*;
