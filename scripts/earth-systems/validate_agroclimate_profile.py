@@ -79,10 +79,23 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
             selected_cohorts.append(cohort_id)
 
     geography = _as_dict(doc.get("geography"))
-    if geography.get("boundary_state") == "verified_and_frozen":
+    boundary_state = geography.get("boundary_state")
+    boundary_ref = geography.get("boundary_evidence_ref")
+    boundary_digest = geography.get("boundary_sha256")
+    boundary_crs = geography.get("boundary_crs")
+    if boundary_state == "verified_and_frozen":
         boundary_source = str(geography.get("boundary_source", "")).lower()
         if any(term in boundary_source for term in ("not yet acquired", "not frozen", "unverified")):
             errors.append("verified boundary state conflicts with unresolved boundary_source text")
+        if not isinstance(boundary_ref, str) or not boundary_ref.startswith(("https://", "urn:", "sha256:")):
+            errors.append("verified boundary requires an auditable boundary_evidence_ref")
+        if not isinstance(boundary_digest, str) or not SHA256_RE.fullmatch(boundary_digest):
+            errors.append("verified boundary requires a lowercase 64-character boundary_sha256")
+        if not isinstance(boundary_crs, str) or len(boundary_crs.strip()) < 3:
+            errors.append("verified boundary requires an explicit coordinate reference system")
+    elif boundary_state == "unverified":
+        if boundary_ref is not None or boundary_digest is not None or boundary_crs is not None:
+            errors.append("unverified boundary must not claim a frozen artifact, digest or CRS")
 
     context_refs = doc.get("context_references")
     if not isinstance(context_refs, list) or not context_refs:
@@ -216,6 +229,7 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
 
     validation = _as_dict(doc.get("validation"))
     gates = _as_dict(validation.get("gates"))
+    gate_evidence = _as_dict(validation.get("gate_evidence"))
     status = doc.get("status")
     evidence = _as_dict(doc.get("evidence_state"))
     model_arch = _as_dict(doc.get("model_architecture"))
@@ -260,6 +274,33 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
 
     if any(gates.get(gate) not in {"not_started", "blocked", "passed"} for gate in GATES):
         errors.append("validation.gates must contain valid D0-D5 states")
+
+    for gate in GATES:
+        state = gates.get(gate)
+        record = _as_dict(gate_evidence.get(gate))
+        refs = record.get("evidence_refs")
+        reviewer = record.get("reviewed_by")
+        reason = record.get("reason")
+        if not isinstance(refs, list) or any(
+            not isinstance(ref, str) or not ref.startswith(("https://", "urn:", "sha256:"))
+            for ref in refs
+        ):
+            errors.append(f"validation.gate_evidence.{gate}.evidence_refs must contain auditable references")
+        if state == "passed":
+            if not isinstance(refs, list) or not refs:
+                errors.append(f"gate {gate}=passed requires at least one evidence reference")
+            if not isinstance(reviewer, str) or len(reviewer.strip()) < 3:
+                errors.append(f"gate {gate}=passed requires a reviewer identity or role")
+            if reason is not None:
+                errors.append(f"gate {gate}=passed must not retain a blocked reason")
+        elif state == "not_started":
+            if refs or reviewer is not None or reason is not None:
+                errors.append(f"gate {gate}=not_started must not carry evidence, reviewer or a blocked reason")
+        elif state == "blocked":
+            if not isinstance(reason, str) or len(reason.strip()) < 12:
+                errors.append(f"gate {gate}=blocked requires a specific reason")
+        elif state not in {"passed", "not_started", "blocked"}:
+            errors.append(f"gate {gate} has no supported evidence state")
 
     # A passed gate must be backed by the corresponding artifact/state,
     # not merely by a manually edited status label.
