@@ -9,9 +9,7 @@
 //! rerun the dispatch algorithm, prove the meter/source data is genuine, or
 //! qualify a model for live-grid control.
 
-use crate::microgrid::{
-    BatteryConfig, MicrogridInterval, MicrogridSimulation, MicrogridTotals,
-};
+use crate::microgrid::{BatteryConfig, MicrogridInterval, MicrogridSimulation, MicrogridTotals};
 use serde::{Deserialize, Serialize};
 
 /// Fixed absolute-plus-relative tolerance for f64 energy-accounting checks.
@@ -38,20 +36,50 @@ pub enum MicrogridVerificationError {
     IntervalCountMismatch,
     InvalidTimestep,
     InvalidBatteryConfig,
-    NonFiniteOrNegativeFlow { interval: usize, field: &'static str },
-    InputMismatch { interval: usize, field: &'static str },
-    RenewablePriorityViolation { interval: usize },
-    LoadBalanceViolation { interval: usize },
-    GenerationBalanceViolation { interval: usize },
-    BatteryEfficiencyViolation { interval: usize },
-    BatteryTransitionViolation { interval: usize },
-    BatteryStateOutOfBounds { interval: usize },
-    ChargePowerLimitViolation { interval: usize },
-    DischargePowerLimitViolation { interval: usize },
-    SimultaneousChargeAndDischarge { interval: usize },
-    GridBoundaryViolation { interval: usize },
-    GridImportExportConflict { interval: usize },
-    AggregateMismatch { field: &'static str },
+    NonFiniteOrNegativeFlow {
+        interval: usize,
+        field: &'static str,
+    },
+    InputMismatch {
+        interval: usize,
+        field: &'static str,
+    },
+    RenewablePriorityViolation {
+        interval: usize,
+    },
+    LoadBalanceViolation {
+        interval: usize,
+    },
+    GenerationBalanceViolation {
+        interval: usize,
+    },
+    BatteryEfficiencyViolation {
+        interval: usize,
+    },
+    BatteryTransitionViolation {
+        interval: usize,
+    },
+    BatteryStateOutOfBounds {
+        interval: usize,
+    },
+    ChargePowerLimitViolation {
+        interval: usize,
+    },
+    DischargePowerLimitViolation {
+        interval: usize,
+    },
+    SimultaneousChargeAndDischarge {
+        interval: usize,
+    },
+    GridBoundaryViolation {
+        interval: usize,
+    },
+    GridImportExportConflict {
+        interval: usize,
+    },
+    AggregateMismatch {
+        field: &'static str,
+    },
 }
 
 impl std::fmt::Display for MicrogridVerificationError {
@@ -71,46 +99,85 @@ impl std::fmt::Display for MicrogridVerificationError {
                 f.write_str("battery configuration is outside its physical domain")
             }
             Self::NonFiniteOrNegativeFlow { interval, field } => {
-                write!(f, "interval {interval} has a non-finite or negative {field}")
+                write!(
+                    f,
+                    "interval {interval} has a non-finite or negative {field}"
+                )
             }
             Self::InputMismatch { interval, field } => {
-                write!(f, "interval {interval} does not match supplied input {field}")
+                write!(
+                    f,
+                    "interval {interval} does not match supplied input {field}"
+                )
             }
             Self::RenewablePriorityViolation { interval } => {
-                write!(f, "interval {interval} violates renewable-first load service")
+                write!(
+                    f,
+                    "interval {interval} violates renewable-first load service"
+                )
             }
             Self::LoadBalanceViolation { interval } => {
                 write!(f, "interval {interval} fails load-side energy balance")
             }
             Self::GenerationBalanceViolation { interval } => {
-                write!(f, "interval {interval} fails renewable generation accounting")
+                write!(
+                    f,
+                    "interval {interval} fails renewable generation accounting"
+                )
             }
             Self::BatteryEfficiencyViolation { interval } => {
-                write!(f, "interval {interval} violates battery efficiency accounting")
+                write!(
+                    f,
+                    "interval {interval} violates battery efficiency accounting"
+                )
             }
             Self::BatteryTransitionViolation { interval } => {
-                write!(f, "interval {interval} has an impossible battery inventory transition")
+                write!(
+                    f,
+                    "interval {interval} has an impossible battery inventory transition"
+                )
             }
             Self::BatteryStateOutOfBounds { interval } => {
-                write!(f, "interval {interval} battery state is outside configured bounds")
+                write!(
+                    f,
+                    "interval {interval} battery state is outside configured bounds"
+                )
             }
             Self::ChargePowerLimitViolation { interval } => {
-                write!(f, "interval {interval} exceeds the battery charge power limit")
+                write!(
+                    f,
+                    "interval {interval} exceeds the battery charge power limit"
+                )
             }
             Self::DischargePowerLimitViolation { interval } => {
-                write!(f, "interval {interval} exceeds the battery discharge power limit")
+                write!(
+                    f,
+                    "interval {interval} exceeds the battery discharge power limit"
+                )
             }
             Self::SimultaneousChargeAndDischarge { interval } => {
-                write!(f, "interval {interval} charges and discharges simultaneously")
+                write!(
+                    f,
+                    "interval {interval} charges and discharges simultaneously"
+                )
             }
             Self::GridBoundaryViolation { interval } => {
-                write!(f, "interval {interval} violates grid availability boundaries")
+                write!(
+                    f,
+                    "interval {interval} violates grid availability boundaries"
+                )
             }
             Self::GridImportExportConflict { interval } => {
-                write!(f, "interval {interval} imports and exports energy simultaneously")
+                write!(
+                    f,
+                    "interval {interval} imports and exports energy simultaneously"
+                )
             }
             Self::AggregateMismatch { field } => {
-                write!(f, "reported aggregate {field} differs from the recomputed total")
+                write!(
+                    f,
+                    "reported aggregate {field} differs from the recomputed total"
+                )
             }
         }
     }
@@ -156,12 +223,27 @@ fn validate_battery(battery: BatteryConfig) -> bool {
 fn interval_flows(interval: &MicrogridInterval) -> [(&'static str, f64); 12] {
     [
         ("load_kwh", interval.load_kwh),
-        ("renewable_generation_kwh", interval.renewable_generation_kwh),
+        (
+            "renewable_generation_kwh",
+            interval.renewable_generation_kwh,
+        ),
         ("renewable_to_load_kwh", interval.renewable_to_load_kwh),
-        ("battery_charge_input_kwh", interval.battery_charge_input_kwh),
-        ("battery_charge_stored_kwh", interval.battery_charge_stored_kwh),
-        ("battery_discharge_withdrawn_kwh", interval.battery_discharge_withdrawn_kwh),
-        ("battery_discharge_to_load_kwh", interval.battery_discharge_to_load_kwh),
+        (
+            "battery_charge_input_kwh",
+            interval.battery_charge_input_kwh,
+        ),
+        (
+            "battery_charge_stored_kwh",
+            interval.battery_charge_stored_kwh,
+        ),
+        (
+            "battery_discharge_withdrawn_kwh",
+            interval.battery_discharge_withdrawn_kwh,
+        ),
+        (
+            "battery_discharge_to_load_kwh",
+            interval.battery_discharge_to_load_kwh,
+        ),
         ("grid_import_kwh", interval.grid_import_kwh),
         ("grid_export_kwh", interval.grid_export_kwh),
         ("renewable_curtailed_kwh", interval.renewable_curtailed_kwh),
@@ -190,9 +272,7 @@ pub fn verify_microgrid_simulation(
     if load_kwh.is_empty() {
         return Err(MicrogridVerificationError::EmptyProfile);
     }
-    if load_kwh.len() != renewable_generation_kwh.len()
-        || load_kwh.len() != grid_available.len()
-    {
+    if load_kwh.len() != renewable_generation_kwh.len() || load_kwh.len() != grid_available.len() {
         return Err(MicrogridVerificationError::ProfileLengthMismatch);
     }
     if load_kwh.len() != simulation.intervals.len() {
@@ -258,9 +338,7 @@ pub fn verify_microgrid_simulation(
 
         let renewable_direct_expected = expected_load.min(expected_generation);
         if !nearly_equal(interval.renewable_to_load_kwh, renewable_direct_expected) {
-            return Err(MicrogridVerificationError::RenewablePriorityViolation {
-                interval: index,
-            });
+            return Err(MicrogridVerificationError::RenewablePriorityViolation { interval: index });
         }
 
         let load_supply = interval.renewable_to_load_kwh
@@ -270,9 +348,7 @@ pub fn verify_microgrid_simulation(
         let load_residual = expected_load - load_supply;
         max_load_residual = max_load_residual.max(load_residual.abs());
         if !nearly_equal(expected_load, load_supply) {
-            return Err(MicrogridVerificationError::LoadBalanceViolation {
-                interval: index,
-            });
+            return Err(MicrogridVerificationError::LoadBalanceViolation { interval: index });
         }
 
         let generation_use = interval.renewable_to_load_kwh
@@ -282,14 +358,10 @@ pub fn verify_microgrid_simulation(
         let generation_residual = expected_generation - generation_use;
         max_generation_residual = max_generation_residual.max(generation_residual.abs());
         if !nearly_equal(expected_generation, generation_use) {
-            return Err(MicrogridVerificationError::GenerationBalanceViolation {
-                interval: index,
-            });
+            return Err(MicrogridVerificationError::GenerationBalanceViolation { interval: index });
         }
 
-        if interval.battery_charge_input_kwh > 0.0
-            && interval.battery_discharge_to_load_kwh > 0.0
-        {
+        if interval.battery_charge_input_kwh > 0.0 && interval.battery_discharge_to_load_kwh > 0.0 {
             return Err(MicrogridVerificationError::SimultaneousChargeAndDischarge {
                 interval: index,
             });
@@ -302,20 +374,24 @@ pub fn verify_microgrid_simulation(
             interval.battery_discharge_withdrawn_kwh,
             interval.battery_discharge_to_load_kwh / battery.discharge_efficiency,
         ) {
-            return Err(MicrogridVerificationError::BatteryEfficiencyViolation {
-                interval: index,
-            });
+            return Err(MicrogridVerificationError::BatteryEfficiencyViolation { interval: index });
         }
 
-        if interval.battery_charge_input_kwh > battery.max_charge_power_kw * dt
-            + tolerance(interval.battery_charge_input_kwh, battery.max_charge_power_kw * dt)
+        if interval.battery_charge_input_kwh
+            > battery.max_charge_power_kw * dt
+                + tolerance(
+                    interval.battery_charge_input_kwh,
+                    battery.max_charge_power_kw * dt,
+                )
         {
-            return Err(MicrogridVerificationError::ChargePowerLimitViolation {
-                interval: index,
-            });
+            return Err(MicrogridVerificationError::ChargePowerLimitViolation { interval: index });
         }
-        if interval.battery_discharge_to_load_kwh > battery.max_discharge_power_kw * dt
-            + tolerance(interval.battery_discharge_to_load_kwh, battery.max_discharge_power_kw * dt)
+        if interval.battery_discharge_to_load_kwh
+            > battery.max_discharge_power_kw * dt
+                + tolerance(
+                    interval.battery_discharge_to_load_kwh,
+                    battery.max_discharge_power_kw * dt,
+                )
         {
             return Err(MicrogridVerificationError::DischargePowerLimitViolation {
                 interval: index,
@@ -327,25 +403,20 @@ pub fn verify_microgrid_simulation(
         let transition_residual = interval.battery_soc_kwh - expected_soc_kwh;
         max_battery_residual = max_battery_residual.max(transition_residual.abs());
         if !nearly_equal(interval.battery_soc_kwh, expected_soc_kwh) {
-            return Err(MicrogridVerificationError::BatteryTransitionViolation {
-                interval: index,
-            });
+            return Err(MicrogridVerificationError::BatteryTransitionViolation { interval: index });
         }
-        if interval.battery_soc_kwh < battery.minimum_soc_kwh
-            - tolerance(interval.battery_soc_kwh, battery.minimum_soc_kwh)
-            || interval.battery_soc_kwh > battery.capacity_kwh
-                + tolerance(interval.battery_soc_kwh, battery.capacity_kwh)
+        if interval.battery_soc_kwh
+            < battery.minimum_soc_kwh - tolerance(interval.battery_soc_kwh, battery.minimum_soc_kwh)
+            || interval.battery_soc_kwh
+                > battery.capacity_kwh + tolerance(interval.battery_soc_kwh, battery.capacity_kwh)
             || interval.battery_charge_stored_kwh
                 > (battery.capacity_kwh - prior_soc_kwh).max(0.0)
                     + tolerance(interval.battery_charge_stored_kwh, battery.capacity_kwh)
             || interval.battery_discharge_to_load_kwh
-                > (prior_soc_kwh - battery.minimum_soc_kwh).max(0.0)
-                    * battery.discharge_efficiency
+                > (prior_soc_kwh - battery.minimum_soc_kwh).max(0.0) * battery.discharge_efficiency
                     + tolerance(interval.battery_discharge_to_load_kwh, prior_soc_kwh)
         {
-            return Err(MicrogridVerificationError::BatteryStateOutOfBounds {
-                interval: index,
-            });
+            return Err(MicrogridVerificationError::BatteryStateOutOfBounds { interval: index });
         }
 
         if grid_is_available {
@@ -353,9 +424,7 @@ pub fn verify_microgrid_simulation(
                 || interval.renewable_curtailed_kwh
                     > tolerance(interval.renewable_curtailed_kwh, 0.0)
             {
-                return Err(MicrogridVerificationError::GridBoundaryViolation {
-                    interval: index,
-                });
+                return Err(MicrogridVerificationError::GridBoundaryViolation { interval: index });
             }
             if interval.grid_import_kwh > 0.0 && interval.grid_export_kwh > 0.0 {
                 return Err(MicrogridVerificationError::GridImportExportConflict {
@@ -365,9 +434,7 @@ pub fn verify_microgrid_simulation(
         } else if interval.grid_import_kwh > tolerance(interval.grid_import_kwh, 0.0)
             || interval.grid_export_kwh > tolerance(interval.grid_export_kwh, 0.0)
         {
-            return Err(MicrogridVerificationError::GridBoundaryViolation {
-                interval: index,
-            });
+            return Err(MicrogridVerificationError::GridBoundaryViolation { interval: index });
         }
 
         prior_soc_kwh = interval.battery_soc_kwh;
@@ -426,8 +493,16 @@ pub fn verify_microgrid_simulation(
         simulation.totals.battery_discharge_to_load_kwh,
         recomputed.battery_discharge_to_load_kwh,
     )?;
-    compare_aggregate("grid_import_kwh", simulation.totals.grid_import_kwh, recomputed.grid_import_kwh)?;
-    compare_aggregate("grid_export_kwh", simulation.totals.grid_export_kwh, recomputed.grid_export_kwh)?;
+    compare_aggregate(
+        "grid_import_kwh",
+        simulation.totals.grid_import_kwh,
+        recomputed.grid_import_kwh,
+    )?;
+    compare_aggregate(
+        "grid_export_kwh",
+        simulation.totals.grid_export_kwh,
+        recomputed.grid_export_kwh,
+    )?;
     compare_aggregate(
         "renewable_curtailed_kwh",
         simulation.totals.renewable_curtailed_kwh,
@@ -499,8 +574,7 @@ mod tests {
         let grid = vec![true, false, true, true];
         let dt = 1.0;
         let config = battery();
-        let simulation =
-            simulate_microgrid(&load, &generation, &grid, dt, config).unwrap();
+        let simulation = simulate_microgrid(&load, &generation, &grid, dt, config).unwrap();
         (load, generation, grid, dt, config, simulation)
     }
 
@@ -548,8 +622,7 @@ mod tests {
         let load = [5.0];
         let generation = [1.0];
         let grid = [false];
-        let mut simulation =
-            simulate_microgrid(&load, &generation, &grid, 1.0, config).unwrap();
+        let mut simulation = simulate_microgrid(&load, &generation, &grid, 1.0, config).unwrap();
         // Preserve load accounting while forging unavailable grid supply.
         simulation.intervals[0].grid_import_kwh = 4.0;
         simulation.intervals[0].unserved_load_kwh = 0.0;
@@ -620,14 +693,8 @@ mod tests {
                 discharge_efficiency: 0.91,
             };
 
-            let simulation = simulate_microgrid(
-                &load,
-                &generation,
-                &grid,
-                timestep_hours,
-                battery,
-            )
-            .expect("bounded deterministic profile should simulate");
+            let simulation = simulate_microgrid(&load, &generation, &grid, timestep_hours, battery)
+                .expect("bounded deterministic profile should simulate");
             let report = verify_microgrid_simulation(
                 &load,
                 &generation,
@@ -636,9 +703,7 @@ mod tests {
                 battery,
                 &simulation,
             )
-            .unwrap_or_else(|error| {
-                panic!("deterministic case {case_index} rejected: {error}")
-            });
+            .unwrap_or_else(|error| panic!("deterministic case {case_index} rejected: {error}"));
 
             assert_eq!(report.interval_count, count);
             assert!(report.max_load_balance_residual_kwh <= 1e-8);
