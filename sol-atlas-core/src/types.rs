@@ -693,11 +693,15 @@ impl EroiUncertaintyRange {
     pub fn is_valid(&self) -> bool {
         let level_is_valid = match (self.interpretation, self.probability_level) {
             (
-                Some(EroiUncertaintyKind::ConfidenceInterval | EroiUncertaintyKind::CredibleInterval),
+                Some(
+                    EroiUncertaintyKind::ConfidenceInterval | EroiUncertaintyKind::CredibleInterval,
+                ),
                 Some(level),
             ) => level.is_finite() && level > 0.0 && level < 1.0,
             (
-                Some(EroiUncertaintyKind::ConfidenceInterval | EroiUncertaintyKind::CredibleInterval),
+                Some(
+                    EroiUncertaintyKind::ConfidenceInterval | EroiUncertaintyKind::CredibleInterval,
+                ),
                 None,
             ) => false,
             (Some(_), None) => true,
