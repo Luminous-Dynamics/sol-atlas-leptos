@@ -705,7 +705,10 @@ impl EroiEvidence {
             && self.period_start_year > 0
             && self.period_end_year >= self.period_start_year
             && self.publication_date.as_deref().map_or(true, is_iso_date)
-            && self.uncertainty.as_ref().map_or(true, EroiUncertaintyRange::is_valid)
+            && self
+                .uncertainty
+                .as_ref()
+                .map_or(true, EroiUncertaintyRange::is_valid)
     }
 
     /// Conservative comparability rule: no implicit conversion between energy
@@ -729,9 +732,7 @@ impl EroiEvidence {
 }
 
 fn is_clean_evidence_text(value: &str) -> bool {
-    !value.trim().is_empty()
-        && value.trim() == value
-        && !value.chars().any(char::is_control)
+    !value.trim().is_empty() && value.trim() == value && !value.chars().any(char::is_control)
 }
 
 /// Validate an optional publication date using the unambiguous YYYY-MM-DD form.
@@ -1007,7 +1008,6 @@ mod provenance_tests {
     }
 }
 
-
 #[cfg(test)]
 mod eroi_evidence_tests {
     use super::*;
@@ -1025,7 +1025,10 @@ mod eroi_evidence_tests {
             methodology_version: "1.0.0".to_string(),
             publication_date: Some("2024-02-29".to_string()),
             basis: EroiEvidenceBasis::Literature,
-            uncertainty: Some(EroiUncertaintyRange { lower: 4.0, upper: 6.0 }),
+            uncertainty: Some(EroiUncertaintyRange {
+                lower: 4.0,
+                upper: 6.0,
+            }),
         }
     }
 
@@ -1103,11 +1106,17 @@ mod eroi_evidence_tests {
         assert!(!item.is_qualified());
 
         let mut item = evidence(EroiStage::Final);
-        item.uncertainty = Some(EroiUncertaintyRange { lower: 6.0, upper: 4.0 });
+        item.uncertainty = Some(EroiUncertaintyRange {
+            lower: 6.0,
+            upper: 4.0,
+        });
         assert!(!item.is_qualified());
 
         let mut item = evidence(EroiStage::Final);
-        item.uncertainty = Some(EroiUncertaintyRange { lower: 1.0, upper: f64::INFINITY });
+        item.uncertainty = Some(EroiUncertaintyRange {
+            lower: 1.0,
+            upper: f64::INFINITY,
+        });
         assert!(!item.is_qualified());
     }
 
