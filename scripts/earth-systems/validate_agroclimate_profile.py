@@ -228,6 +228,7 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
         "land_access_and_permission",
         "postharvest_storage_energy_and_transport",
         "market_nutrition_and_affordability",
+        "regional_supply_and_contingency",
     )
     site_states: dict[str, str] = {}
     for constraint_id in required_site_constraints:
