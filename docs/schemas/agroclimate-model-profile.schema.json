@@ -65,7 +65,10 @@
         "boundary_state",
         "boundary_source",
         "spatial_scope_rule",
-        "regional_model_limit"
+        "regional_model_limit",
+        "boundary_evidence_ref",
+        "boundary_sha256",
+        "boundary_crs"
       ],
       "properties": {
         "name": {
@@ -93,8 +96,86 @@
         "regional_model_limit": {
           "type": "string",
           "minLength": 30
+        },
+        "boundary_evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 8,
+          "pattern": "^(https://|urn:|sha256:)"
+        },
+        "boundary_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "boundary_crs": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 3
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "boundary_state": {
+                "const": "verified_and_frozen"
+              }
+            },
+            "required": [
+              "boundary_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "boundary_evidence_ref": {
+                "type": "string",
+                "minLength": 8,
+                "pattern": "^(https://|urn:|sha256:)"
+              },
+              "boundary_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "boundary_crs": {
+                "type": "string",
+                "minLength": 3
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "boundary_state": {
+                "const": "unverified"
+              }
+            },
+            "required": [
+              "boundary_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "boundary_evidence_ref": {
+                "type": "null"
+              },
+              "boundary_sha256": {
+                "type": "null"
+              },
+              "boundary_crs": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
     },
     "candidate_systems": {
       "type": "array",
@@ -643,7 +724,8 @@
       "required": [
         "gates",
         "independent_reference_candidates",
-        "review_requirements"
+        "review_requirements",
+        "gate_evidence"
       ],
       "properties": {
         "gates": {
@@ -719,6 +801,224 @@
             "minLength": 12
           },
           "uniqueItems": true
+        },
+        "gate_evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "D0",
+            "D1",
+            "D2",
+            "D3",
+            "D4",
+            "D5"
+          ],
+          "properties": {
+            "D0": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "evidence_refs",
+                "reviewed_by",
+                "reason"
+              ],
+              "properties": {
+                "evidence_refs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 8,
+                    "pattern": "^(https://|urn:|sha256:)"
+                  },
+                  "uniqueItems": true
+                },
+                "reviewed_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 3
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 12
+                }
+              }
+            },
+            "D1": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "evidence_refs",
+                "reviewed_by",
+                "reason"
+              ],
+              "properties": {
+                "evidence_refs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 8,
+                    "pattern": "^(https://|urn:|sha256:)"
+                  },
+                  "uniqueItems": true
+                },
+                "reviewed_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 3
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 12
+                }
+              }
+            },
+            "D2": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "evidence_refs",
+                "reviewed_by",
+                "reason"
+              ],
+              "properties": {
+                "evidence_refs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 8,
+                    "pattern": "^(https://|urn:|sha256:)"
+                  },
+                  "uniqueItems": true
+                },
+                "reviewed_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 3
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 12
+                }
+              }
+            },
+            "D3": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "evidence_refs",
+                "reviewed_by",
+                "reason"
+              ],
+              "properties": {
+                "evidence_refs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 8,
+                    "pattern": "^(https://|urn:|sha256:)"
+                  },
+                  "uniqueItems": true
+                },
+                "reviewed_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 3
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 12
+                }
+              }
+            },
+            "D4": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "evidence_refs",
+                "reviewed_by",
+                "reason"
+              ],
+              "properties": {
+                "evidence_refs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 8,
+                    "pattern": "^(https://|urn:|sha256:)"
+                  },
+                  "uniqueItems": true
+                },
+                "reviewed_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 3
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 12
+                }
+              }
+            },
+            "D5": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "evidence_refs",
+                "reviewed_by",
+                "reason"
+              ],
+              "properties": {
+                "evidence_refs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 8,
+                    "pattern": "^(https://|urn:|sha256:)"
+                  },
+                  "uniqueItems": true
+                },
+                "reviewed_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 3
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 12
+                }
+              }
+            }
+          }
         }
       }
     },
