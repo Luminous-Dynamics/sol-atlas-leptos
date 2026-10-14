@@ -1,7 +1,7 @@
 {
   "pilot_id": "water-food-baixo-limpopo-v0",
   "status": "design_only",
-  "review_date": "2026-10-13",
+  "review_date": "2026-10-14",
   "title": "Baixo Limpopo irrigation water-productivity and rainfall-anomaly pilot",
   "geography": {
     "name": "Baixo Limpopo irrigation area",
@@ -72,7 +72,8 @@
         "inventory the official monthly Africa GeoTIFF directory with plan_chirps_monthly.py and retain the raw index SHA-256 and retrieved-at timestamp",
         "confirm the exact requested month set is complete and intersects actual final WaPOR monthly coverage",
         "do not treat daily rnl/sat downscaled products as independent high-frequency observations",
-        "dated browser inspection on 2026-10-13 saw the monthly Africa index through 2026-08 (server timestamp 2026-09-11), with 2026-09 not listed; this is not a byte snapshot, so capture a fresh raw index before fixing the study window"
+        "dated browser inspection on 2026-10-13 saw the monthly Africa index through 2026-08 (server timestamp 2026-09-11), with 2026-09 not listed; this is not a byte snapshot, so capture a fresh raw index before fixing the study window",
+        "follow-up browser-only recheck on 2026-10-14 still showed 2026-08 as latest (server timestamp 2026-09-11) and no September/later file; this remains an observation, not a raw-byte snapshot"
       ]
     }
   ],
