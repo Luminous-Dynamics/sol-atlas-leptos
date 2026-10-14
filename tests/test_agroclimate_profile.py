@@ -335,13 +335,52 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["validation"]["gates"]["D0"] = "passed"
         self.assertTrue(any("D0=passed requires an authoritative" in error for error in self.errors(doc)))
 
-    def test_D0_can_pass_when_boundary_is_verified_and_frozen(self):
+    def test_D0_can_pass_when_boundary_and_gate_evidence_are_frozen(self):
         doc = copy.deepcopy(self.profile)
         doc["status"] = "data_readiness"
         doc["geography"]["boundary_state"] = "verified_and_frozen"
         doc["geography"]["boundary_source"] = "Authoritative municipal boundary artifact reviewed and hash recorded."
+        doc["geography"]["boundary_evidence_ref"] = "urn:fixture:boundary:joburg-v1"
+        doc["geography"]["boundary_sha256"] = "a" * 64
+        doc["geography"]["boundary_crs"] = "EPSG:4326"
         doc["validation"]["gates"]["D0"] = "passed"
+        doc["validation"]["gate_evidence"]["D0"] = {
+            "evidence_refs": ["sha256:" + "a" * 64],
+            "reviewed_by": "independent-boundary-reviewer",
+            "reason": None,
+        }
         self.assertFalse(self.errors(doc))
+
+    def test_D0_cannot_pass_without_boundary_digest(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["geography"]["boundary_state"] = "verified_and_frozen"
+        doc["geography"]["boundary_source"] = "Authoritative municipal boundary artifact reviewed and hash recorded."
+        doc["geography"]["boundary_evidence_ref"] = "urn:fixture:boundary:joburg-v1"
+        doc["geography"]["boundary_crs"] = "EPSG:4326"
+        doc["validation"]["gates"]["D0"] = "passed"
+        doc["validation"]["gate_evidence"]["D0"] = {
+            "evidence_refs": ["sha256:" + "a" * 64],
+            "reviewed_by": "independent-boundary-reviewer",
+            "reason": None,
+        }
+        self.assertTrue(any("boundary_sha256" in error for error in self.errors(doc)))
+
+    def test_passed_gate_cannot_skip_evidence_reference_or_reviewer(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["geography"]["boundary_state"] = "verified_and_frozen"
+        doc["geography"]["boundary_source"] = "Authoritative municipal boundary artifact reviewed and hash recorded."
+        doc["geography"]["boundary_evidence_ref"] = "urn:fixture:boundary:joburg-v1"
+        doc["geography"]["boundary_sha256"] = "a" * 64
+        doc["geography"]["boundary_crs"] = "EPSG:4326"
+        doc["validation"]["gates"]["D0"] = "passed"
+        self.assertTrue(any("gate D0=passed requires at least one evidence reference" in error for error in self.errors(doc)))
+
+    def test_unstarted_gate_cannot_carry_evidence(self):
+        doc = copy.deepcopy(self.profile)
+        doc["validation"]["gate_evidence"]["D0"]["evidence_refs"] = ["urn:fixture:premature"]
+        self.assertTrue(any("gate D0=not_started must not carry evidence" in error for error in self.errors(doc)))
 
     def test_D1_cannot_pass_with_unacquired_sources(self):
         doc = copy.deepcopy(self.profile)
