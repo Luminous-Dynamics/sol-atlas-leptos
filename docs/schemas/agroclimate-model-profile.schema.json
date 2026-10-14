@@ -68,7 +68,8 @@
         "regional_model_limit",
         "boundary_evidence_ref",
         "boundary_sha256",
-        "boundary_crs"
+        "boundary_crs",
+        "boundary_source_uri"
       ],
       "properties": {
         "name": {
@@ -118,6 +119,14 @@
             "null"
           ],
           "minLength": 3
+        },
+        "boundary_source_uri": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "pattern": "^https://"
         }
       },
       "allOf": [
@@ -146,6 +155,11 @@
               "boundary_crs": {
                 "type": "string",
                 "minLength": 3
+              },
+              "boundary_source_uri": {
+                "type": "string",
+                "format": "uri",
+                "pattern": "^https://"
               }
             }
           }
