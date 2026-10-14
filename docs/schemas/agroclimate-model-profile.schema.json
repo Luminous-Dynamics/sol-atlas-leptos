@@ -1,0 +1,290 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/agroclimate-model-profile.schema.json",
+  "title": "Agroclimate model profile",
+  "description": "Fail-closed, design-stage profile for a regionally grounded agricultural model. Structural validity is not scientific validation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile_id",
+    "profile_version",
+    "status",
+    "review_date",
+    "title",
+    "decision_question",
+    "geography",
+    "candidate_systems",
+    "model_architecture",
+    "candidate_reference_periods",
+    "sources",
+    "intended_outputs",
+    "evaluation",
+    "validation",
+    "claim_ceiling",
+    "evidence_state"
+  ],
+  "properties": {
+    "profile_id": { "const": "agroclimate-johannesburg-highveld-v1" },
+    "profile_version": { "const": "1.0.0" },
+    "status": {
+      "enum": [
+        "design_only",
+        "data_readiness",
+        "descriptive_baseline",
+        "independently_validated",
+        "decision_support_candidate"
+      ]
+    },
+    "review_date": { "type": "string", "format": "date" },
+    "title": { "type": "string", "minLength": 10 },
+    "decision_question": { "type": "string", "minLength": 40 },
+    "geography": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "country",
+        "boundary_state",
+        "boundary_source",
+        "spatial_scope_rule",
+        "regional_model_limit"
+      ],
+      "properties": {
+        "name": { "type": "string", "minLength": 5 },
+        "country": { "const": "South Africa" },
+        "boundary_state": { "enum": ["unverified", "verified_and_frozen"] },
+        "boundary_source": { "type": "string", "minLength": 20 },
+        "spatial_scope_rule": { "type": "string", "minLength": 30 },
+        "regional_model_limit": { "type": "string", "minLength": 30 }
+      }
+    },
+    "candidate_systems": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "string", "minLength": 8 },
+      "uniqueItems": true
+    },
+    "model_architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy",
+        "climate_archetypes_are_labels_only",
+        "candidate_models",
+        "model_selection_state",
+        "production_runtime_policy",
+        "required_inputs"
+      ],
+      "properties": {
+        "strategy": { "type": "string", "minLength": 40 },
+        "climate_archetypes_are_labels_only": { "const": true },
+        "candidate_models": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["model_id", "role", "state", "scope", "reference_url"],
+            "properties": {
+              "model_id": { "type": "string", "minLength": 3 },
+              "role": { "type": "string", "minLength": 8 },
+              "state": {
+                "enum": ["candidate_not_run", "evaluated_not_selected", "selected_not_calibrated", "rejected"]
+              },
+              "scope": { "type": "string", "minLength": 30 },
+              "reference_url": { "type": "string", "format": "uri", "pattern": "^https://" }
+            }
+          }
+        },
+        "model_selection_state": {
+          "enum": ["not_started", "candidate_review", "selected_for_baseline", "selected_and_calibrated"]
+        },
+        "production_runtime_policy": { "type": "string", "minLength": 40 },
+        "required_inputs": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "type": "string", "minLength": 8 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "candidate_reference_periods": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["period_id", "start_year", "end_year", "role", "state", "scenario_note"],
+        "properties": {
+          "period_id": { "type": "string", "minLength": 5 },
+          "start_year": { "type": "integer", "minimum": 1950, "maximum": 2100 },
+          "end_year": { "type": "integer", "minimum": 1950, "maximum": 2100 },
+          "role": { "enum": ["historical_reference", "future_scenario_candidate"] },
+          "state": { "enum": ["candidate_not_frozen", "frozen_after_source_review"] },
+          "scenario_note": { "type": "string", "minLength": 20 }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_id",
+          "provider",
+          "url",
+          "product_family",
+          "product_version",
+          "selected_product",
+          "product_selection_state",
+          "acquisition_state",
+          "artifact_sha256",
+          "source_catalog_verified",
+          "rights_state",
+          "redistribution_allowed",
+          "native_spatial_support",
+          "native_temporal_support",
+          "upstream_overlap",
+          "required_checks"
+        ],
+        "properties": {
+          "source_id": {
+            "enum": ["FAO-GAEZ-V5", "ERA5-LAND", "CHIRPS-V3", "SOILGRIDS-V2", "SAWS-SEASONAL", "LOCAL-OBSERVATIONS"]
+          },
+          "provider": { "type": "string", "minLength": 3 },
+          "url": { "type": ["string", "null"] },
+          "product_family": { "type": "string", "minLength": 3 },
+          "product_version": { "type": "string", "minLength": 1 },
+          "selected_product": { "type": ["string", "null"] },
+          "product_selection_state": { "type": "string", "minLength": 8 },
+          "acquisition_state": { "enum": ["not_acquired", "acquired", "rejected"] },
+          "artifact_sha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+          "source_catalog_verified": { "type": "boolean" },
+          "rights_state": {
+            "enum": ["cc_by_4_0_with_attribution", "review_product_metadata", "permission_required", "reviewed_not_redistributable", "not_applicable"]
+          },
+          "redistribution_allowed": { "type": ["boolean", "null"] },
+          "native_spatial_support": { "type": "string", "minLength": 25 },
+          "native_temporal_support": { "type": "string", "minLength": 25 },
+          "upstream_overlap": { "type": "string", "minLength": 25 },
+          "required_checks": {
+            "type": "array",
+            "minItems": 3,
+            "items": { "type": "string", "minLength": 8 },
+            "uniqueItems": true
+          }
+        }
+      }
+    },
+    "intended_outputs": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "type": "string", "minLength": 8 },
+      "uniqueItems": true
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "baseline_comparators",
+        "validation_design",
+        "metrics",
+        "stratification",
+        "minimum_local_evidence"
+      ],
+      "properties": {
+        "state": { "enum": ["not_started", "design_defined", "in_progress", "completed_review_pending"] },
+        "baseline_comparators": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string", "minLength": 8 },
+          "uniqueItems": true
+        },
+        "validation_design": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "type": "string", "minLength": 12 },
+          "uniqueItems": true
+        },
+        "metrics": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "type": "string", "minLength": 8 },
+          "uniqueItems": true
+        },
+        "stratification": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "type": "string", "minLength": 8 },
+          "uniqueItems": true
+        },
+        "minimum_local_evidence": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "type": "string", "minLength": 12 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gates", "independent_reference_candidates", "review_requirements"],
+      "properties": {
+        "gates": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["D0", "D1", "D2", "D3", "D4", "D5"],
+          "properties": {
+            "D0": { "enum": ["not_started", "blocked", "passed"] },
+            "D1": { "enum": ["not_started", "blocked", "passed"] },
+            "D2": { "enum": ["not_started", "blocked", "passed"] },
+            "D3": { "enum": ["not_started", "blocked", "passed"] },
+            "D4": { "enum": ["not_started", "blocked", "passed"] },
+            "D5": { "enum": ["not_started", "blocked", "passed"] }
+          }
+        },
+        "independent_reference_candidates": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string", "minLength": 12 },
+          "uniqueItems": true
+        },
+        "review_requirements": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "type": "string", "minLength": 12 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "type": "string", "minLength": 12 },
+      "uniqueItems": true
+    },
+    "evidence_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_artifacts_acquired",
+        "baseline_computed",
+        "independent_validation_complete",
+        "expert_review_complete",
+        "decision_support_authorized"
+      ],
+      "properties": {
+        "source_artifacts_acquired": { "type": "boolean" },
+        "baseline_computed": { "type": "boolean" },
+        "independent_validation_complete": { "type": "boolean" },
+        "expert_review_complete": { "type": "boolean" },
+        "decision_support_authorized": { "type": "boolean" }
+      }
+    }
+  }
+}
