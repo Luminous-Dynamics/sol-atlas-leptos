@@ -6,12 +6,12 @@
   "title": "Johannesburg and Highveld food-resilience model",
   "decision_question": "Which locally feasible food-production strategies remain comparatively resilient to seasonal water stress and heat under explicitly described weather, soil, water-access, crop, and management assumptions, and what additional observations are needed before a recommendation can be trusted?",
   "geography": {
-    "name": "Johannesburg / Highveld candidate study region",
+    "name": "City of Johannesburg municipal area (initial local-production study extent)",
     "country": "South Africa",
     "boundary_state": "unverified",
-    "boundary_source": "City of Johannesburg or relevant Gauteng administrative boundary and any explicitly defined surrounding Highveld catchment; authoritative polygon not yet acquired, reviewed, or hashed.",
-    "spatial_scope_rule": "This is region-level scoping only. Freeze an authoritative study polygon and coordinate reference system before clipping or comparing grids. Store individual farm plots and households as access-controlled site records rather than publishing precise locations by default.",
-    "regional_model_limit": "The municipality is not identical to the Highveld agroclimatic region or the food-supply catchment. A regional raster cannot resolve farm-level soil variation, rooftop or shade microclimates, irrigation reliability, crop variety, growing method, or operator practices.",
+    "boundary_source": "Boundary leads: City of Johannesburg Corporate Geo-Informatics Spatial Data Inventory 2024 and the government-hosted Municipal Demarcation Board Local Municipality feature service. Exact product/version/feature, authoritative vintage, CRS, usage terms, polygon bytes and SHA-256 remain unselected and unacquired.",
+    "spatial_scope_rule": "Use one frozen City of Johannesburg municipal polygon to define the initial local-production study extent. Treat Highveld as climatic context from product-supported climate variables, not as an interchangeable administrative boundary. Represent growers, markets and suppliers outside the municipality as separately versioned regional-supply network nodes rather than clipping away incoming supply.",
+    "regional_model_limit": "Johannesburg municipality is not identical to the broader Highveld agroclimatic region or to the food-supply catchment. Regional rasters cannot resolve farm-level soil, microclimate, irrigation reliability or management; external supplier relationships require their own timestamped evidence and must not be inferred from geographic proximity.",
     "boundary_evidence_ref": null,
     "boundary_sha256": null,
     "boundary_crs": null
@@ -588,6 +588,30 @@
       "limitations": [
         "CF conformance does not prove the data are correct or suitable for a specific crop/site; validate product provenance and the relevant variables.",
         "Do not discard native time bounds, calendars, cell methods, scale/offset or missing-value information during conversion."
+      ]
+    },
+    {
+      "reference_id": "COJ-CGIS-SPATIAL-DATA-INVENTORY-2024",
+      "title": "City of Johannesburg Corporate Geo-Informatics Spatial Data Inventory",
+      "url": "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+      "reference_type": "official_program",
+      "role": "Official City GIS discovery and custodian lead for administrative and other city spatial layers; the site says the spatial-data inventory records format, creation date, data owners and usage limitations and is reviewed annually.",
+      "limitations": [
+        "The visible inventory referenced by the official page is labelled 2024; it is not proof that a current, specific municipal polygon has been acquired.",
+        "The City's GIS page says layer ownership can belong to other custodians and directs data requests through the listed custodian contacts; confirm the exact boundary version and reuse terms with the responsible source.",
+        "The municipal boundary is a study extent candidate, not the broader Highveld agroclimatic boundary or complete food-supply catchment."
+      ]
+    },
+    {
+      "reference_id": "MDB-LOCAL-MUNICIPALITY-FEATURE-SERVICE",
+      "title": "Municipal Demarcation Board Local Municipality feature service",
+      "url": "https://nspdr.dlrrd.gov.za/server/rest/services/NationalDatasets/MunicipalDemarcationBoard/MapServer/3",
+      "reference_type": "official_program",
+      "role": "Government-hosted polygon feature service whose description attributes South African local-municipality boundaries to the Municipal Demarcation Board; candidate source for obtaining and verifying the Johannesburg metropolitan boundary.",
+      "limitations": [
+        "The service page does not itself freeze a downloaded geometry or prove the boundary's exact effective date; inspect its per-feature Timestamp, metadata, service version and authoritative demarcation period.",
+        "The service reports spatial reference WKID 4148; preserve the native CRS and verify its datum/axis semantics before reprojection or area calculation.",
+        "Review current service availability, usage terms, attribution and a direct data export's bytes/hash before passing D0."
       ]
     }
   ],
