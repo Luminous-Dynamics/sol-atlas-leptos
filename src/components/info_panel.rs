@@ -219,8 +219,14 @@ pub fn InfoPanel() -> impl IntoView {
                                 {match evidence {
                                     Some(evidence) => row(
                                         "EROI interval",
-                                        evidence.uncertainty.map(|range| format!("{:.2}–{:.2}", range.lower, range.upper))
-                                            .unwrap_or_else(|| "Not supplied".to_string()),
+                                        evidence.uncertainty.map(|range| format!(
+                                            "{} — {:.2}–{:.2}",
+                                            range.interpretation
+                                                .map(|kind| kind.label())
+                                                .unwrap_or("Interpretation missing — not qualified"),
+                                            range.lower,
+                                            range.upper,
+                                        )).unwrap_or_else(|| "Not supplied".to_string()),
                                     ),
                                     None => row("EROI interval", "Not supplied".to_string()),
                                 }}
