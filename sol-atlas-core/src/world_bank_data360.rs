@@ -36,7 +36,6 @@ const FILTER_KEYS: [&str; 13] = [
     "UNIT_MEASURE",
     "UNIT_TYPE",
     "UNIT_MULT",
-    "isLatestData",
 ];
 
 const ROW_KEYS: [&str; 24] = [
@@ -386,7 +385,6 @@ fn normalize_record(
             "UNIT_MEASURE" => Some(unit_measure.clone()),
             "UNIT_TYPE" => unit_type_value.clone(),
             "UNIT_MULT" => Some(unit_multiplier.to_string()),
-            "isLatestData" => Some(latest_data.to_string()),
             _ => None, // validate_context rejects unsupported keys first
         };
         if actual.as_deref() != Some(expected.as_str()) {
