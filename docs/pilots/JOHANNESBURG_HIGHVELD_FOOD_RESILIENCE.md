@@ -18,7 +18,7 @@ Reference: https://www.gov.za/news/media-statements/agriculture-el-nino-weather-
 
 ## Local constraints that a climate model cannot solve by itself
 
-City policy and projects give several local priorities more concrete shape. The City's 2024 Food Resilience Policy discusses urban agriculture and food-system interventions. Its 2025 urban-agriculture project report describes site infrastructure including water tanks, agricultural tunnels and cold rooms. These are useful design references, not an inventory of current available capacity at every garden.
+City policy and projects give several local priorities more concrete shape. The City's 2024 Food Resilience Policy discusses urban agriculture, hubs, market needs and supply from other productive areas. Its front matter calls it final and council-approved, but an internal notice says the PDF is not a policy instrument until a council resolution is passed; we should retrieve that resolution or seek City confirmation before treating the document as binding. Its 2025 urban-agriculture project report describes site infrastructure including water tanks, agricultural tunnels and cold rooms. These are useful design references, not an inventory of current available capacity at every garden.
 
 The City also reported in 2026 that an eco-filter and water-quality monitoring project in the Upper Jukskei catchment addresses microbial contamination, excess nutrients, organic waste and heavy metals, with monitoring linked to irrigation at Victoria Yards. This is a specific catchment/project signal—not proof that every Johannesburg irrigation source is contaminated. It nevertheless argues for profiling each intended water source rather than assuming that visible water, a remote-sensing layer or a generic “available water” quantity is adequate.
 
@@ -28,15 +28,16 @@ Reference leads:
 - Upper Jukskei eco-filter and water-quality monitoring: https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Joburg-launches-innovative-eco-filter-system-to-address-pollution-in-Jukskei-River.aspx
 - National Department of Health food-control regulation index: https://www.health.gov.za/food-control-regulations/
 
-Accordingly, the profile separates five site-level assessments from climate suitability:
+Accordingly, the profile separates six site-level assessments from climate suitability:
 
 1. **Water quantity and quality:** source, lawful access, seasonal reliability, storage and interruptions; appropriate microbiological/chemical assessment for intended crops and irrigation contact; salinity/sodicity where relevant. Reused wastewater/greywater requires specific permissions and risk review.
 2. **Soil condition and contaminants:** representative site sampling; soil fertility and physical parameters; history- and pathway-informed contaminant screening before edible production where warranted. SoilGrids is not contaminant clearance.
 3. **Land access and permission:** authorized cultivation, duration, restrictions, accountable operator and relevant approvals.
 4. **Postharvest, energy and transport:** actual storage conditions, power interruptions, capacity, handling, packing, delivery and measured loss. A cold-room marker is not a qualified cold chain.
 5. **Market, nutrition and affordability:** aggregated demand/prices, local nutrition priorities, labour/input/water/energy/storage/distribution costs, spoilage and access. High yield per hectare alone is not the objective.
+6. **Regional supply and contingency:** current suppliers, seasonality, markets/hubs, transport, delivered price, actual capacity and substitutes under disruption. Johannesburg resilience does not require producing all food within municipal boundaries; regional sourcing and local production should be compared as complementary options.
 
-Each assessment begins as `not_assessed`. Moving to `assessed` requires an auditable evidence reference and reviewer identity/role. The decision-support gate must fail closed until all five assessments have passed their own review. Model output cannot declare water safe, soil uncontaminated, land available or food compliant.
+Each assessment begins as `not_assessed`. Moving to `assessed` requires an auditable evidence reference and reviewer identity/role. The decision-support gate must fail closed until all six assessments have passed their own review. Model output cannot declare water safe, soil uncontaminated, land available or food compliant.
 
 ## Do not build one black-box model per climate zone
 
