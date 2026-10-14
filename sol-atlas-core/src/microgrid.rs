@@ -140,9 +140,7 @@ pub fn simulate_microgrid(
     if load_kwh.is_empty() {
         return Err(MicrogridError::EmptyProfile);
     }
-    if load_kwh.len() != renewable_generation_kwh.len()
-        || load_kwh.len() != grid_available.len()
-    {
+    if load_kwh.len() != renewable_generation_kwh.len() || load_kwh.len() != grid_available.len() {
         return Err(MicrogridError::ProfileLengthMismatch);
     }
     if !timestep_hours.is_finite() || timestep_hours <= 0.0 {
@@ -194,11 +192,27 @@ pub fn simulate_microgrid(
         soc_kwh = (soc_kwh - discharge_withdrawn).max(battery.minimum_soc_kwh);
 
         let remaining_deficit = (deficit - discharge_to_load).max(0.0);
-        let grid_import = if grid_is_available { remaining_deficit } else { 0.0 };
-        let unserved_load = if grid_is_available { 0.0 } else { remaining_deficit };
+        let grid_import = if grid_is_available {
+            remaining_deficit
+        } else {
+            0.0
+        };
+        let unserved_load = if grid_is_available {
+            0.0
+        } else {
+            remaining_deficit
+        };
         let remaining_surplus = (surplus - charge_input).max(0.0);
-        let grid_export = if grid_is_available { remaining_surplus } else { 0.0 };
-        let renewable_curtailed = if grid_is_available { 0.0 } else { remaining_surplus };
+        let grid_export = if grid_is_available {
+            remaining_surplus
+        } else {
+            0.0
+        };
+        let renewable_curtailed = if grid_is_available {
+            0.0
+        } else {
+            remaining_surplus
+        };
 
         intervals.push(MicrogridInterval {
             load_kwh: load,
@@ -216,9 +230,7 @@ pub fn simulate_microgrid(
         });
     }
 
-    let sum = |select: fn(&MicrogridInterval) -> f64| -> f64 {
-        intervals.iter().map(select).sum()
-    };
+    let sum = |select: fn(&MicrogridInterval) -> f64| -> f64 { intervals.iter().map(select).sum() };
     let totals = MicrogridTotals {
         load_kwh: sum(|i| i.load_kwh),
         renewable_generation_kwh: sum(|i| i.renewable_generation_kwh),
@@ -257,7 +269,11 @@ pub fn simulate_microgrid(
         return Err(MicrogridError::NonFiniteResult);
     }
 
-    Ok(MicrogridSimulation { timestep_hours, intervals, totals })
+    Ok(MicrogridSimulation {
+        timestep_hours,
+        intervals,
+        totals,
+    })
 }
 
 #[cfg(test)]
