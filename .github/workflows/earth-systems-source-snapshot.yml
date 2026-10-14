@@ -6,11 +6,7 @@ on:
 permissions:
   contents: read
 
-# Do not cancel a source capture half-way through just because a second
-# evidence request was dispatched. Every run gets a distinct retained artifact.
-concurrency:
-  group: earth-systems-source-snapshot-${{ github.run_id }}
-  cancel-in-progress: false
+# No cancellation group: each manual capture is evidence-producing and should run to completion.
 
 jobs:
   chirps-index:
