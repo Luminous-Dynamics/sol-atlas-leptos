@@ -12,8 +12,7 @@
 use crate::tiles::{MAX_TILE_ZOOM, TileCoordinate, TileError};
 use std::fmt;
 
-pub const NASA_GIBS_SERVICE_ACKNOWLEDGEMENT: &str =
-    "NASA Global Imagery Browse Services (GIBS)";
+pub const NASA_GIBS_SERVICE_ACKNOWLEDGEMENT: &str = "NASA Global Imagery Browse Services (GIBS)";
 pub const NASA_GIBS_ACCESS_DOCUMENTATION: &str =
     "https://nasa-gibs.github.io/gibs-api-docs/access-basics/";
 const NASA_GIBS_EPSG3857_BASE: &str = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best";
@@ -207,9 +206,9 @@ fn is_path_identifier(value: &str) -> bool {
         && value.len() <= 128
         && value != "."
         && value != ".."
-        && value.bytes().all(|byte| {
-            byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-' | b'.')
-        })
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-' | b'.'))
 }
 
 fn is_supported_time_dimension(value: &str) -> bool {
@@ -244,9 +243,10 @@ fn is_valid_date(value: &str) -> bool {
     if bytes.len() != 10
         || bytes[4] != b'-'
         || bytes[7] != b'-'
-        || !bytes.iter().enumerate().all(|(index, byte)| {
-            matches!(index, 4 | 7) || byte.is_ascii_digit()
-        })
+        || !bytes
+            .iter()
+            .enumerate()
+            .all(|(index, byte)| matches!(index, 4 | 7) || byte.is_ascii_digit())
     {
         return false;
     }
@@ -267,9 +267,9 @@ fn is_valid_date(value: &str) -> bool {
 }
 
 fn parse_digits(bytes: &[u8]) -> u32 {
-    bytes.iter().fold(0_u32, |value, byte| {
-        value * 10 + u32::from(byte - b'0')
-    })
+    bytes
+        .iter()
+        .fold(0_u32, |value, byte| value * 10 + u32::from(byte - b'0'))
 }
 
 #[cfg(test)]

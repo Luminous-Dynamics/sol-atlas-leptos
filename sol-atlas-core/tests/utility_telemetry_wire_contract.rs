@@ -31,7 +31,10 @@ fn synthetic_v1_fixture_validates_and_round_trips_without_wire_drift() {
 
     let actual = serde_json::to_value(&observation)
         .expect("the validated observation must serialize back to JSON");
-    assert_eq!(actual, expected, "serialized v1 wire representation changed");
+    assert_eq!(
+        actual, expected,
+        "serialized v1 wire representation changed"
+    );
     assert_eq!(actual["source"], "scada_read_only_export");
     assert_eq!(actual["transport"], "store_and_forward");
     assert_eq!(actual["value"]["kind"], "numeric");

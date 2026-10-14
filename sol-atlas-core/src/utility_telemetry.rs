@@ -93,16 +93,9 @@ pub enum MeasurementUnit {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ObservationValue {
-    Numeric {
-        value: f64,
-        unit: MeasurementUnit,
-    },
-    Boolean {
-        value: bool,
-    },
-    Category {
-        code: String,
-    },
+    Numeric { value: f64, unit: MeasurementUnit },
+    Boolean { value: bool },
+    Category { code: String },
 }
 
 impl MetricKind {
@@ -122,7 +115,10 @@ impl MetricKind {
             | M::WaterTurbidity
             | M::FreeChlorineResidual
             | M::PumpOperatingState => {
-                matches!(domain, D::Water | D::Wastewater | D::Stormwater | D::MultiUtility)
+                matches!(
+                    domain,
+                    D::Water | D::Wastewater | D::Stormwater | D::MultiUtility
+                )
             }
             M::ElectricalPower
             | M::Voltage
@@ -130,10 +126,7 @@ impl MetricKind {
             | M::GridFrequency
             | M::TransformerTemperature
             | M::FeederOutage => matches!(domain, D::Electricity | D::MultiUtility),
-            M::SurfaceWaterExtent
-            | M::InundationExtent
-            | M::Precipitation
-            | M::SoilMoisture => {
+            M::SurfaceWaterExtent | M::InundationExtent | M::Precipitation | M::SoilMoisture => {
                 matches!(domain, D::Water | D::Stormwater | D::MultiUtility)
             }
             M::VegetationEncroachment => matches!(
@@ -157,8 +150,20 @@ impl MetricKind {
                     ..
                 }
             ),
-            Self::WaterPressure => matches!(value, V::Numeric { unit: U::Kilopascal | U::Bar, .. }),
-            Self::ReservoirLevel => matches!(value, V::Numeric { unit: U::Metre | U::Percent, .. }),
+            Self::WaterPressure => matches!(
+                value,
+                V::Numeric {
+                    unit: U::Kilopascal | U::Bar,
+                    ..
+                }
+            ),
+            Self::ReservoirLevel => matches!(
+                value,
+                V::Numeric {
+                    unit: U::Metre | U::Percent,
+                    ..
+                }
+            ),
             Self::WaterPh => matches!(value, V::Numeric { unit: U::Ph, .. }),
             Self::WaterTurbidity => matches!(
                 value,
@@ -181,21 +186,51 @@ impl MetricKind {
                     ..
                 }
             ),
-            Self::Voltage => matches!(value, V::Numeric { unit: U::Volt | U::Kilovolt, .. }),
-            Self::Current => matches!(value, V::Numeric { unit: U::Ampere, .. }),
+            Self::Voltage => matches!(
+                value,
+                V::Numeric {
+                    unit: U::Volt | U::Kilovolt,
+                    ..
+                }
+            ),
+            Self::Current => matches!(
+                value,
+                V::Numeric {
+                    unit: U::Ampere,
+                    ..
+                }
+            ),
             Self::GridFrequency => matches!(value, V::Numeric { unit: U::Hertz, .. }),
             Self::TransformerTemperature | Self::ThermalAnomaly => {
-                matches!(value, V::Numeric { unit: U::DegreeCelsius, .. })
+                matches!(
+                    value,
+                    V::Numeric {
+                        unit: U::DegreeCelsius,
+                        ..
+                    }
+                )
             }
             Self::PumpOperatingState | Self::AssetCondition => {
                 matches!(value, V::Category { code } if !code.trim().is_empty())
             }
             Self::FeederOutage => matches!(value, V::Boolean { .. }),
             Self::SurfaceWaterExtent | Self::InundationExtent => {
-                matches!(value, V::Numeric { unit: U::SquareMetre | U::SquareKilometre, .. })
+                matches!(
+                    value,
+                    V::Numeric {
+                        unit: U::SquareMetre | U::SquareKilometre,
+                        ..
+                    }
+                )
             }
             Self::VegetationEncroachment => matches!(value, V::Numeric { unit: U::Metre, .. }),
-            Self::Precipitation => matches!(value, V::Numeric { unit: U::Millimetre, .. }),
+            Self::Precipitation => matches!(
+                value,
+                V::Numeric {
+                    unit: U::Millimetre,
+                    ..
+                }
+            ),
             Self::SoilMoisture => matches!(
                 value,
                 V::Numeric {
@@ -203,7 +238,13 @@ impl MetricKind {
                     ..
                 }
             ),
-            Self::TelemetryLinkQuality => matches!(value, V::Numeric { unit: U::Percent, .. }),
+            Self::TelemetryLinkQuality => matches!(
+                value,
+                V::Numeric {
+                    unit: U::Percent,
+                    ..
+                }
+            ),
         }
     }
 }
@@ -240,10 +281,9 @@ impl ObservationSource {
     fn supports_metric(self, metric: MetricKind) -> bool {
         use MetricKind as M;
         match self {
-            Self::SatelliteOptical => matches!(
-                metric,
-                M::SurfaceWaterExtent | M::VegetationEncroachment
-            ),
+            Self::SatelliteOptical => {
+                matches!(metric, M::SurfaceWaterExtent | M::VegetationEncroachment)
+            }
             Self::SatelliteRadar => matches!(
                 metric,
                 M::SurfaceWaterExtent | M::InundationExtent | M::VegetationEncroachment
@@ -405,7 +445,10 @@ impl UtilityObservation {
         // freshness_at can then distinguish a future source time from a not-yet-received
         // record without silently rewriting the timestamp.
         if self.received_at_unix_ms < self.observed_at_unix_ms
-            && !self.quality.flags.contains(&QualityFlag::ClockSkewSuspected)
+            && !self
+                .quality
+                .flags
+                .contains(&QualityFlag::ClockSkewSuspected)
         {
             errors.push(E::InvalidTimestampOrder);
         }
@@ -479,7 +522,9 @@ impl UtilityObservation {
             }
         }
         if matches!(self.source, S::DerivedEstimate | S::SyntheticSimulation) {
-            if self.provenance.source_version
+            if self
+                .provenance
+                .source_version
                 .as_deref()
                 .is_none_or(|version| version.trim().is_empty())
             {
@@ -519,7 +564,11 @@ impl UtilityObservation {
             errors.push(E::PartialCoverageFlagMismatch);
         }
 
-        if errors.is_empty() { Ok(()) } else { Err(errors) }
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
     }
 
     /// Classify age without imposing a universal threshold. Pressure telemetry,
@@ -549,7 +598,10 @@ mod tests {
             subject_kind: SubjectKind::PressureZone,
             domain: UtilityDomain::Water,
             metric: MetricKind::WaterPressure,
-            value: ObservationValue::Numeric { value: 420.0, unit: MeasurementUnit::Kilopascal },
+            value: ObservationValue::Numeric {
+                value: 420.0,
+                unit: MeasurementUnit::Kilopascal,
+            },
             observed_at_unix_ms: 1_000,
             received_at_unix_ms: 1_100,
             source: ObservationSource::ScadaReadOnlyExport,
@@ -566,12 +618,18 @@ mod tests {
                 uncertainty: Some(2.0),
                 flags: Vec::new(),
             },
-            location: Some(Coordinates { latitude_deg: -26.2, longitude_deg: 28.0 }),
+            location: Some(Coordinates {
+                latitude_deg: -26.2,
+                longitude_deg: 28.0,
+            }),
         }
     }
 
     fn has_error(observation: &UtilityObservation, expected: ObservationValidationError) -> bool {
-        observation.validate().err().is_some_and(|errors| errors.contains(&expected))
+        observation
+            .validate()
+            .err()
+            .is_some_and(|errors| errors.contains(&expected))
     }
 
     #[test]
@@ -586,13 +644,19 @@ mod tests {
             value: f64::NAN,
             unit: MeasurementUnit::Kilopascal,
         };
-        assert!(has_error(&observation, ObservationValidationError::NonFiniteMeasurement));
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::NonFiniteMeasurement
+        ));
     }
 
     #[test]
     fn rejects_metric_unit_mismatch() {
         let mut observation = valid_pressure_observation();
-        observation.value = ObservationValue::Numeric { value: 420.0, unit: MeasurementUnit::Volt };
+        observation.value = ObservationValue::Numeric {
+            value: 420.0,
+            unit: MeasurementUnit::Volt,
+        };
         assert!(has_error(
             &observation,
             ObservationValidationError::IncompatibleMeasurementShapeOrUnit
@@ -608,7 +672,10 @@ mod tests {
             value: 230.0,
             unit: MeasurementUnit::Volt,
         };
-        assert!(has_error(&observation, ObservationValidationError::MetricDomainMismatch));
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::MetricDomainMismatch
+        ));
     }
 
     #[test]
@@ -634,7 +701,10 @@ mod tests {
             ObservationValidationError::InvalidTimestampOrder
         ));
 
-        observation.quality.flags.push(QualityFlag::ClockSkewSuspected);
+        observation
+            .quality
+            .flags
+            .push(QualityFlag::ClockSkewSuspected);
         assert!(observation.validate().is_ok());
         assert_eq!(
             observation.freshness_at(1_150, 500),
@@ -646,15 +716,24 @@ mod tests {
     #[test]
     fn rejects_out_of_range_coordinates() {
         let mut observation = valid_pressure_observation();
-        observation.location = Some(Coordinates { latitude_deg: -91.0, longitude_deg: 28.0 });
-        assert!(has_error(&observation, ObservationValidationError::InvalidCoordinate));
+        observation.location = Some(Coordinates {
+            latitude_deg: -91.0,
+            longitude_deg: 28.0,
+        });
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::InvalidCoordinate
+        ));
     }
 
     #[test]
     fn rejects_confidence_outside_unit_interval() {
         let mut observation = valid_pressure_observation();
         observation.quality.confidence = Some(1.01);
-        assert!(has_error(&observation, ObservationValidationError::InvalidConfidence));
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::InvalidConfidence
+        ));
     }
 
     #[test]
@@ -663,7 +742,10 @@ mod tests {
         observation.source = ObservationSource::SatelliteRadar;
         observation.transport = DataTransport::BatchImport;
         observation.provenance.source_version = Some("sentinel-1-product-id".into());
-        assert!(has_error(&observation, ObservationValidationError::SatelliteMetricMismatch));
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::SatelliteMetricMismatch
+        ));
     }
 
     #[test]
@@ -703,8 +785,14 @@ mod tests {
     fn derived_estimate_requires_lineage_and_model_flag() {
         let mut observation = valid_pressure_observation();
         observation.source = ObservationSource::DerivedEstimate;
-        assert!(has_error(&observation, ObservationValidationError::MissingDerivationLineage));
-        assert!(has_error(&observation, ObservationValidationError::MissingModelDerivedFlag));
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::MissingDerivationLineage
+        ));
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::MissingModelDerivedFlag
+        ));
     }
 
     #[test]
@@ -808,7 +896,10 @@ mod tests {
         let observation = valid_pressure_observation();
         assert_eq!(observation.freshness_at(1_200, 500), Freshness::Fresh);
         assert_eq!(observation.freshness_at(2_000, 500), Freshness::Stale);
-        assert_eq!(observation.freshness_at(1_050, 500), Freshness::NotYetReceived);
+        assert_eq!(
+            observation.freshness_at(1_050, 500),
+            Freshness::NotYetReceived
+        );
         assert_eq!(observation.observed_at_unix_ms, 1_000);
     }
 
@@ -816,6 +907,9 @@ mod tests {
     fn rejects_malformed_sha256_digest() {
         let mut observation = valid_pressure_observation();
         observation.provenance.evidence_sha256 = Some("not-a-hash".into());
-        assert!(has_error(&observation, ObservationValidationError::InvalidEvidenceDigest));
+        assert!(has_error(
+            &observation,
+            ObservationValidationError::InvalidEvidenceDigest
+        ));
     }
 }

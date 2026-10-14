@@ -79,7 +79,8 @@ pub struct SurfaceWaterObservationContext {
     pub received_at_unix_ms: u64,
     pub source_id: String,
     pub processing_version: String,
-    pub evidence_sha256: Option<String>,
+    /// SHA-256 of the immutable source/processing evidence bundle; canonical lowercase hex.
+    pub evidence_sha256: String,
     pub upstream_observation_ids: Vec<String>,
     pub location: Option<Coordinates>,
 }
@@ -113,6 +114,8 @@ pub enum SurfaceWaterError {
     MissingUpstreamLineage,
     InvalidUpstreamLineage,
     MissingProcessingVersion,
+    MissingEvidenceDigest,
+    InvalidEvidenceDigest,
     InvalidObservation(Vec<ObservationValidationError>),
 }
 
@@ -220,6 +223,12 @@ impl SurfaceWaterEstimate {
         if context.processing_version.trim().is_empty() {
             return Err(SurfaceWaterError::MissingProcessingVersion);
         }
+        if context.evidence_sha256.trim().is_empty() {
+            return Err(SurfaceWaterError::MissingEvidenceDigest);
+        }
+        if !is_canonical_sha256(&context.evidence_sha256) {
+            return Err(SurfaceWaterError::InvalidEvidenceDigest);
+        }
 
         let partial_spatial_coverage = self.valid_pixel_count < self.total_pixel_count;
         let mut quality_flags = vec![QualityFlag::ModelDerived];
@@ -245,7 +254,7 @@ impl SurfaceWaterEstimate {
             provenance: ObservationProvenance {
                 source_id: context.source_id,
                 source_version: Some(context.processing_version),
-                evidence_sha256: context.evidence_sha256,
+                evidence_sha256: Some(context.evidence_sha256),
                 upstream_observation_ids: context.upstream_observation_ids,
                 processing_parameters: Some(serde_json::json!({
                     "index": match self.index {
@@ -277,6 +286,13 @@ impl SurfaceWaterEstimate {
             .map_err(SurfaceWaterError::InvalidObservation)?;
         Ok(observation)
     }
+}
+
+fn is_canonical_sha256(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 fn calculate_index(pixel: ReflectancePixel, index: WaterIndex) -> Option<f64> {
@@ -397,7 +413,7 @@ mod tests {
             received_at_unix_ms: 1_100,
             source_id: "sol-atlas-water-index".into(),
             processing_version: "surface-water-index-v1".into(),
-            evidence_sha256: None,
+            evidence_sha256: "a".repeat(64),
             upstream_observation_ids: vec!["sentinel-scene-001".into()],
             location: Some(Coordinates {
                 latitude_deg: -26.9,
@@ -416,10 +432,12 @@ mod tests {
         assert_eq!(observation.validate(), Ok(()));
         assert_eq!(observation.metric, MetricKind::SurfaceWaterExtent);
         assert_eq!(observation.source, ObservationSource::DerivedEstimate);
-        assert!(!observation
-            .quality
-            .flags
-            .contains(&QualityFlag::PartialSpatialCoverage));
+        assert!(
+            !observation
+                .quality
+                .flags
+                .contains(&QualityFlag::PartialSpatialCoverage)
+        );
         assert_eq!(
             observation.provenance.upstream_observation_ids,
             vec!["sentinel-scene-001"]
@@ -460,16 +478,21 @@ mod tests {
         let observation = estimate
             .to_utility_observation(observation_context())
             .unwrap();
-        assert!(observation
-            .quality
-            .flags
-            .contains(&QualityFlag::PartialSpatialCoverage));
+        assert!(
+            observation
+                .quality
+                .flags
+                .contains(&QualityFlag::PartialSpatialCoverage)
+        );
         let parameters = observation
             .provenance
             .processing_parameters
             .as_ref()
             .expect("processing semantics must be retained");
-        assert_eq!(parameters["area_reporting_policy"], "valid_pixels_only_no_extrapolation");
+        assert_eq!(
+            parameters["area_reporting_policy"],
+            "valid_pixels_only_no_extrapolation"
+        );
         assert_eq!(parameters["partial_spatial_coverage"], true);
         assert_eq!(parameters["complete_study_area_coverage"], false);
         assert_eq!(
@@ -498,6 +521,33 @@ mod tests {
         assert_eq!(
             estimate.to_utility_observation(context),
             Err(SurfaceWaterError::MissingUpstreamLineage)
+        );
+    }
+
+    #[test]
+    fn derived_water_observation_requires_canonical_evidence_digest() {
+        let pixels = [pixel(0.3, 0.1, Some(0.05), 100.0, PixelQuality::Clear)];
+        let estimate = estimate_surface_water(&pixels, config(WaterIndex::Ndwi)).unwrap();
+
+        let mut context = observation_context();
+        context.evidence_sha256.clear();
+        assert_eq!(
+            estimate.to_utility_observation(context),
+            Err(SurfaceWaterError::MissingEvidenceDigest)
+        );
+
+        let mut context = observation_context();
+        context.evidence_sha256 = "not-a-digest".into();
+        assert_eq!(
+            estimate.to_utility_observation(context),
+            Err(SurfaceWaterError::InvalidEvidenceDigest)
+        );
+
+        let mut context = observation_context();
+        context.evidence_sha256 = "A".repeat(64);
+        assert_eq!(
+            estimate.to_utility_observation(context),
+            Err(SurfaceWaterError::InvalidEvidenceDigest)
         );
     }
 

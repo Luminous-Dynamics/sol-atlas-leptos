@@ -116,9 +116,7 @@ pub fn classify_landsat8_c2_pixel(
         return PixelQuality::SnowOrIce;
     }
 
-    if qa_radsat & bands.required_saturation_mask() != 0
-        || qa_radsat & TERRAIN_OCCLUSION != 0
-    {
+    if qa_radsat & bands.required_saturation_mask() != 0 || qa_radsat & TERRAIN_OCCLUSION != 0 {
         return PixelQuality::OtherInvalid;
     }
 
@@ -133,8 +131,7 @@ pub fn scale_landsat_c2_surface_reflectance(dn: u16) -> Option<f64> {
     if dn == 0 {
         return None;
     }
-    let reflectance =
-        f64::from(dn) * LANDSAT_C2_SR_SCALE_FACTOR + LANDSAT_C2_SR_ADD_OFFSET;
+    let reflectance = f64::from(dn) * LANDSAT_C2_SR_SCALE_FACTOR + LANDSAT_C2_SR_ADD_OFFSET;
     reflectance.is_finite().then_some(reflectance)
 }
 
@@ -168,35 +165,86 @@ mod tests {
     #[test]
     fn sentinel_scl_masks_invalid_shadow_cloud_and_snow_classes() {
         assert_eq!(classify_sentinel2_l2a_scl(None, true), PixelQuality::NoData);
-        assert_eq!(classify_sentinel2_l2a_scl(Some(0), true), PixelQuality::NoData);
-        assert_eq!(classify_sentinel2_l2a_scl(Some(1), true), PixelQuality::OtherInvalid);
-        assert_eq!(classify_sentinel2_l2a_scl(Some(2), true), PixelQuality::OtherInvalid);
-        assert_eq!(classify_sentinel2_l2a_scl(Some(3), true), PixelQuality::CloudShadow);
-        assert_eq!(classify_sentinel2_l2a_scl(Some(7), true), PixelQuality::OtherInvalid);
-        assert_eq!(classify_sentinel2_l2a_scl(Some(8), true), PixelQuality::Cloud);
-        assert_eq!(classify_sentinel2_l2a_scl(Some(9), true), PixelQuality::Cloud);
-        assert_eq!(classify_sentinel2_l2a_scl(Some(10), true), PixelQuality::Cloud);
-        assert_eq!(classify_sentinel2_l2a_scl(Some(11), true), PixelQuality::SnowOrIce);
+        assert_eq!(
+            classify_sentinel2_l2a_scl(Some(0), true),
+            PixelQuality::NoData
+        );
+        assert_eq!(
+            classify_sentinel2_l2a_scl(Some(1), true),
+            PixelQuality::OtherInvalid
+        );
+        assert_eq!(
+            classify_sentinel2_l2a_scl(Some(2), true),
+            PixelQuality::OtherInvalid
+        );
+        assert_eq!(
+            classify_sentinel2_l2a_scl(Some(3), true),
+            PixelQuality::CloudShadow
+        );
+        assert_eq!(
+            classify_sentinel2_l2a_scl(Some(7), true),
+            PixelQuality::OtherInvalid
+        );
+        assert_eq!(
+            classify_sentinel2_l2a_scl(Some(8), true),
+            PixelQuality::Cloud
+        );
+        assert_eq!(
+            classify_sentinel2_l2a_scl(Some(9), true),
+            PixelQuality::Cloud
+        );
+        assert_eq!(
+            classify_sentinel2_l2a_scl(Some(10), true),
+            PixelQuality::Cloud
+        );
+        assert_eq!(
+            classify_sentinel2_l2a_scl(Some(11), true),
+            PixelQuality::SnowOrIce
+        );
     }
 
     #[test]
     fn sentinel_scl_retains_surface_classes_and_honors_data_mask() {
         for class in [4, 5, 6] {
-            assert_eq!(classify_sentinel2_l2a_scl(Some(class), true), PixelQuality::Clear);
+            assert_eq!(
+                classify_sentinel2_l2a_scl(Some(class), true),
+                PixelQuality::Clear
+            );
         }
-        assert_eq!(classify_sentinel2_l2a_scl(Some(6), false), PixelQuality::NoData);
+        assert_eq!(
+            classify_sentinel2_l2a_scl(Some(6), false),
+            PixelQuality::NoData
+        );
     }
 
     #[test]
     fn landsat_fill_cloud_shadow_and_snow_bits_are_masked() {
         let bands = Landsat8WaterBandSet::NdwiGreenNir;
         let policy = Landsat8ConfidencePolicy::RejectMediumOrHigh;
-        assert_eq!(classify_landsat8_c2_pixel(1 << 0, 0, bands, policy), PixelQuality::NoData);
-        assert_eq!(classify_landsat8_c2_pixel(1 << 1, 0, bands, policy), PixelQuality::Cloud);
-        assert_eq!(classify_landsat8_c2_pixel(1 << 2, 0, bands, policy), PixelQuality::Cloud);
-        assert_eq!(classify_landsat8_c2_pixel(1 << 3, 0, bands, policy), PixelQuality::Cloud);
-        assert_eq!(classify_landsat8_c2_pixel(1 << 4, 0, bands, policy), PixelQuality::CloudShadow);
-        assert_eq!(classify_landsat8_c2_pixel(1 << 5, 0, bands, policy), PixelQuality::SnowOrIce);
+        assert_eq!(
+            classify_landsat8_c2_pixel(1 << 0, 0, bands, policy),
+            PixelQuality::NoData
+        );
+        assert_eq!(
+            classify_landsat8_c2_pixel(1 << 1, 0, bands, policy),
+            PixelQuality::Cloud
+        );
+        assert_eq!(
+            classify_landsat8_c2_pixel(1 << 2, 0, bands, policy),
+            PixelQuality::Cloud
+        );
+        assert_eq!(
+            classify_landsat8_c2_pixel(1 << 3, 0, bands, policy),
+            PixelQuality::Cloud
+        );
+        assert_eq!(
+            classify_landsat8_c2_pixel(1 << 4, 0, bands, policy),
+            PixelQuality::CloudShadow
+        );
+        assert_eq!(
+            classify_landsat8_c2_pixel(1 << 5, 0, bands, policy),
+            PixelQuality::SnowOrIce
+        );
     }
 
     #[test]
