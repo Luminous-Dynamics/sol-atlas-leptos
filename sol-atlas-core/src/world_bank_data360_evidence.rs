@@ -471,12 +471,19 @@ mod tests {
         let bytes = body();
         let evidence = receipt(&bytes, BASE_URL, 200);
         let context = context(&evidence.page_snapshot_id());
-        let mut altered = bytes.clone();
-        altered.push(b' ');
+        let mut altered_length = bytes.clone();
+        altered_length.push(b' ');
         assert!(matches!(
-            evidence.validate(&altered, &context),
+            evidence.validate(&altered_length, &context),
             Err(Data360EvidenceError::BodyLengthMismatch { .. })
         ));
+
+        let mut altered_same_length = bytes.clone();
+        altered_same_length[0] = b'[';
+        assert_eq!(
+            evidence.validate(&altered_same_length, &context),
+            Err(Data360EvidenceError::BodyDigestMismatch)
+        );
     }
 
     #[test]
@@ -564,6 +571,35 @@ mod tests {
         assert!(matches!(
             unsupported.validate(&bytes, &ctx),
             Err(Data360EvidenceError::InvalidResponse(message)) if message.contains("unsupported evidence schema version")
+        ));
+    }
+
+    #[test]
+    fn recorded_filter_matches_request_and_normalized_row() {
+        let original = String::from_utf8(body()).unwrap();
+        let bytes = original
+            .replace("\\\"REF_AREA\\\":\\\"AAA\\\"", "\\\"REF_AREA\\\":\\\"ZAF\\\"")
+            .into_bytes();
+        let url = format!("{BASE_URL}&REF_AREA=ZAF");
+        let evidence = receipt(&bytes, &url, 200);
+        let mut ctx = context(&evidence.page_snapshot_id());
+        ctx.query.filters.insert("REF_AREA".to_string(), "ZAF".to_string());
+        let parsed = parse_data360_page_with_evidence(&bytes, &ctx, &evidence).unwrap();
+        assert_eq!(parsed.records.len(), 1);
+        assert_eq!(parsed.records[0].reference_area, "ZAF");
+    }
+
+    #[test]
+    fn query_offset_must_match_page_context() {
+        let bytes = body();
+        let url = format!("{BASE_URL}&skip=2");
+        let evidence = receipt(&bytes, &url, 200);
+        let mut ctx = context(&evidence.page_snapshot_id());
+        ctx.query.requested_skip = 1;
+        assert!(matches!(
+            evidence.validate(&bytes, &ctx),
+            Err(Data360EvidenceError::InvalidRequest(message))
+                if message.contains("skip query parameter")
         ));
     }
 
