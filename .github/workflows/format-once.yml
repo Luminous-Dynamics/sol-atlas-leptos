@@ -1,3 +1,4 @@
+# One-time repair only; remove after formatting has been committed and verified.
 name: One-time Rust formatting repair
 
 on:
