@@ -45,6 +45,27 @@ class AgroclimateProfileTests(unittest.TestCase):
             source["rights_state"] = "license_not_reviewed"
             if source["url"] is None:
                 source["url"] = f"https://example.invalid/local-evidence-{index}"
+        doc["candidate_crop_cohorts"] = [{
+            "cohort_id": "mediterranean-baseline-crops",
+            "crop_names": ["wheat", "tomato"],
+            "selection_state": "candidate_not_selected",
+            "rationale": "Illustrative region-specific crop shortlist for a schema portability test; no agronomic decision is implied.",
+            "review_requirements": [
+                "Review region-specific thermal and seasonal requirements.",
+                "Obtain local validation data before selection."
+            ],
+            "claim_limit": "This is a schema fixture and is not an agronomic recommendation."
+        }]
+        doc["context_references"] = [{
+            "reference_id": "GLOBAL-REGION-CONTEXT-1",
+            "title": "Example regional agricultural context source",
+            "url": "https://example.invalid/regional-agriculture",
+            "reference_type": "research_reference",
+            "role": "Illustrative region-specific source role for reusable schema validation.",
+            "limitations": [
+                "This is a synthetic schema fixture, not evidence of real data availability."
+            ]
+        }]
         schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
         self.assertEqual(
             schema_errors,
