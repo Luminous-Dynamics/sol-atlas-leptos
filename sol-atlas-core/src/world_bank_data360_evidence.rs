@@ -5,9 +5,11 @@
 //! Evidence binding for captured World Bank Data360 HTTP responses.
 //!
 //! No network I/O is performed here. The caller must pass request/response
-//! metadata exposed by its HTTP client and the exact response body bytes. This
-//! detects mismatched artifacts but is not a signature proving that the caller
-//! truthfully reported the HTTP exchange.
+//! metadata exposed by its HTTP client and the exact entity bytes exposed to the
+//! parser, usually after automatic content decoding. The digest/length identify
+//! that declared layer, not necessarily compressed wire bytes or TLS records.
+//! Redirects are not yet qualified. This detects mismatched artifacts but is
+//! not a signature proving that the caller truthfully reported the exchange.
 
 use crate::world_bank_data360::{
     DATA360_MAX_PAGE_SIZE, Data360PageContext, Data360PageError, ParsedData360Page,
