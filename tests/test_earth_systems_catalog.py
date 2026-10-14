@@ -123,7 +123,8 @@ class EarthSystemsCatalogTests(unittest.TestCase):
                 limitations = " ".join(source["key_limitations"]).lower()
                 self.assertIn("fundamental chirps v3 timescales", limitations)
                 self.assertIn("daily rnl/sat", limitations)
-                self.assertIn("20 m", limitations)
+                self.assertIn("0.05-degree", limitations)
+                self.assertIn("not be resampled to a finer grid", limitations)
 
     def test_missing_domain_limitations_are_rejected(self):
         doc = copy.deepcopy(self.catalog)
