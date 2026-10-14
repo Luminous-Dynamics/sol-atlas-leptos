@@ -127,7 +127,8 @@
       "license_reference": "Exact crop/output-layer licence and redistribution terms not selected; review the exact catalogue record.",
       "artifacts": [],
       "source_catalog_verified": true,
-      "selected_product_identity_verified": false
+      "selected_product_identity_verified": false,
+      "required_for_baseline": false
     },
     {
       "source_id": "ERA5-LAND",
@@ -153,7 +154,8 @@
       "license_reference": "Copernicus catalogue indicates a CC-BY licence; the exact licence version and selected-product terms still need review.",
       "artifacts": [],
       "source_catalog_verified": true,
-      "selected_product_identity_verified": false
+      "selected_product_identity_verified": false,
+      "required_for_baseline": true
     },
     {
       "source_id": "CHIRPS-V3",
@@ -179,7 +181,8 @@
       "license_reference": "CHIRPS v3 is documented under CC BY 4.0 with attribution; verify the selected file and metadata when acquired.",
       "artifacts": [],
       "source_catalog_verified": false,
-      "selected_product_identity_verified": false
+      "selected_product_identity_verified": false,
+      "required_for_baseline": false
     },
     {
       "source_id": "SOILGRIDS-V2",
@@ -205,7 +208,8 @@
       "license_reference": "ISRIC documents SoilGrids under CC BY 4.0 with attribution; verify exact artifact and preserve its provenance.",
       "artifacts": [],
       "source_catalog_verified": true,
-      "selected_product_identity_verified": false
+      "selected_product_identity_verified": false,
+      "required_for_baseline": false
     },
     {
       "source_id": "SAWS-SEASONAL",
@@ -231,7 +235,8 @@
       "license_reference": "Original SAWS bulletin reuse, attribution and redistribution terms require review.",
       "artifacts": [],
       "source_catalog_verified": true,
-      "selected_product_identity_verified": false
+      "selected_product_identity_verified": false,
+      "required_for_baseline": false
     },
     {
       "source_id": "LOCAL-OBSERVATIONS",
@@ -257,7 +262,8 @@
       "license_reference": "Site-owner and participant authorization, retention and sharing conditions must be agreed per local source.",
       "artifacts": [],
       "source_catalog_verified": false,
-      "selected_product_identity_verified": false
+      "selected_product_identity_verified": false,
+      "required_for_baseline": true
     }
   ],
   "intended_outputs": [
@@ -372,11 +378,11 @@
     "No model output can authorize planting, irrigation changes, spending, refrigeration control or robotic actuation."
   ],
   "evidence_state": {
-    "source_artifacts_acquired": false,
     "baseline_computed": false,
     "independent_validation_complete": false,
     "expert_review_complete": false,
-    "decision_support_authorized": false
+    "decision_support_authorized": false,
+    "required_source_artifacts_acquired": false
   },
   "site_constraints": {
     "irrigation_water_quantity_and_quality": {
