@@ -335,7 +335,7 @@
           "product_selection_state",
           "acquisition_state",
           "artifact_sha256",
-          "source_identity_verified",
+          "selected_product_identity_verified",
           "rights_state",
           "redistribution_allowed",
           "native_spatial_support",
@@ -343,7 +343,8 @@
           "upstream_overlap",
           "required_checks",
           "license_reference",
-          "artifacts"
+          "artifacts",
+          "source_catalog_verified"
         ],
         "properties": {
           "source_id": {
@@ -434,9 +435,6 @@
           "license_reference": {
             "type": "string",
             "minLength": 12
-          },
-          "source_identity_verified": {
-            "type": "boolean"
           },
           "artifacts": {
             "type": "array",
@@ -591,6 +589,12 @@
                 }
               }
             }
+          },
+          "source_catalog_verified": {
+            "type": "boolean"
+          },
+          "selected_product_identity_verified": {
+            "type": "boolean"
           }
         },
         "allOf": [
@@ -609,7 +613,7 @@
               "required": [
                 "selected_product",
                 "artifact_sha256",
-                "source_identity_verified"
+                "selected_product_identity_verified"
               ],
               "properties": {
                 "selected_product": {
@@ -627,7 +631,7 @@
                     "reviewed_not_redistributable"
                   ]
                 },
-                "source_identity_verified": {
+                "selected_product_identity_verified": {
                   "const": true
                 }
               }
@@ -656,7 +660,8 @@
             },
             "then": {
               "required": [
-                "redistribution_allowed"
+                "redistribution_allowed",
+                "selected_product_identity_verified"
               ],
               "properties": {
                 "redistribution_allowed": {
@@ -667,6 +672,9 @@
                     "license_reviewed",
                     "reviewed_not_redistributable"
                   ]
+                },
+                "selected_product_identity_verified": {
+                  "const": true
                 }
               }
             }
@@ -715,6 +723,9 @@
               "properties": {
                 "artifact_sha256": {
                   "type": "null"
+                },
+                "selected_product_identity_verified": {
+                  "const": false
                 }
               }
             }
@@ -844,6 +855,9 @@
               "properties": {
                 "artifacts": {
                   "maxItems": 0
+                },
+                "selected_product_identity_verified": {
+                  "const": false
                 }
               }
             }
