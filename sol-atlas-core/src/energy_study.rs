@@ -285,42 +285,7 @@ impl EnergyStudyManifestV1 {
         Ok(to_lower_hex(&hasher.finalize()))
     }
 
-    /// Compute a stable digest over the frozen case inputs, excluding model and
-    /// policy identity so baseline and candidate policies share one case ID.
-    ///
-    /// The case digest binds the case metadata, time axis, dataset declarations,
-    /// asset registry and hard constraints. It does not prove those bytes came
-    /// from authentic sources or that a declared simulation actually ran.
-    /// Encoding must remain byte-compatible with the TypeScript SDK.
-    pub fn case_digest_sha256(&self) -> Result<String, EnergyStudyValidationError> {
-        self.validate()?;
 
-        let mut hasher = Sha256::new();
-        hasher.update(CASE_DIGEST_DOMAIN);
-        hasher.update(self.schema_version.to_be_bytes());
-        hash_text(&mut hasher, &self.study_id);
-        hash_text(&mut hasher, &self.case_id);
-        hash_text(&mut hasher, &self.region_id);
-        hasher.update(self.start_unix_seconds.to_be_bytes());
-        hasher.update(self.interval_seconds.to_be_bytes());
-        hasher.update(self.interval_count.to_be_bytes());
-
-        let mut datasets: Vec<&EnergyDatasetRefV1> = self.datasets.iter().collect();
-        datasets.sort_by(|left, right| left.dataset_id.cmp(&right.dataset_id));
-        hasher.update((datasets.len() as u32).to_be_bytes());
-        for dataset in datasets {
-            hash_text(&mut hasher, &dataset.dataset_id);
-            hash_text(&mut hasher, &dataset.source_id);
-            hash_text(&mut hasher, &dataset.content_sha256);
-            hash_text(&mut hasher, &dataset.unit);
-            hasher.update([dataset.evidence_class.tag()]);
-        }
-
-        hash_text(&mut hasher, &self.asset_registry_sha256);
-        hash_text(&mut hasher, &self.constraints_sha256);
-
-        Ok(to_lower_hex(&hasher.finalize()))
-    }
 }
 
 impl EnergyEvidenceClass {
