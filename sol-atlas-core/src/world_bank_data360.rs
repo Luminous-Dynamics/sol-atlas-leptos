@@ -771,6 +771,7 @@ pub enum Data360AcquisitionError {
     MissingContentType,
     UnsupportedContentType(String),
     ResponseBodyLengthMismatch,
+    ContentLengthHeaderMismatch,
     InvalidSha256Format,
     ResponseBodyDigestMismatch,
     PageSnapshotIdentityMismatch,
@@ -939,6 +940,18 @@ pub fn validate_data360_acquisition_evidence(
             return Err(Data360AcquisitionError::InvalidResponseHeaders(
                 "content-length".to_string(),
             ));
+        }
+        let encoding = evidence
+            .response_headers
+            .get("content-encoding")
+            .map(|value| value.trim().to_ascii_lowercase())
+            .unwrap_or_else(|| "identity".to_string());
+        // A compressed HTTP Content-Length may describe the encoded payload,
+        // while response_body is the exact decoded byte slice handed to parser.
+        if (encoding.is_empty() || encoding == "identity")
+            && length.parse::<u64>().ok() != Some(response_body.len() as u64)
+        {
+            return Err(Data360AcquisitionError::ContentLengthHeaderMismatch);
         }
     }
 
@@ -1240,6 +1253,21 @@ mod tests {
             validate_data360_acquisition_evidence(body, &evidence, &context),
             Err(Data360AcquisitionError::InvalidResponseHeaders(_))
         ));
+    }
+
+    #[test]
+    fn acquisition_rejects_inconsistent_identity_content_length_header() {
+        let body = include_str!("../tests/fixtures/synthetic_world_bank_data360_page_v1.json").as_bytes();
+        let mut context = context(0, 2, "unused");
+        let mut evidence = acquisition_evidence(body, &mut context);
+        evidence.response_headers.insert(
+            "content-length".to_string(),
+            (body.len() + 1).to_string(),
+        );
+        assert_eq!(
+            validate_data360_acquisition_evidence(body, &evidence, &context),
+            Err(Data360AcquisitionError::ContentLengthHeaderMismatch)
+        );
     }
 
     #[test]
