@@ -50,6 +50,22 @@ pub enum CaseVisibility {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum PublicAreaGranularity {
+    CityRegion,
+    Ward,
+    Precinct,
+}
+
+/// Explicitly reviewed area code for individual public-case publication.
+/// It should be a civic-area identifier, never a coordinate or street address.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PublicAreaReference {
+    pub code: String,
+    pub granularity: PublicAreaGranularity,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum CaseActorKind {
     Reporter,
     ServiceOperator,
@@ -181,8 +197,10 @@ pub struct CivicServiceCase {
     pub case_id: String,
     pub domain: CivicServiceDomain,
     pub category_code: String,
-    /// Coarse area/asset reference selected according to visibility and policy.
-    pub area_ref: String,
+    /// Internal area/asset reference. Never copied directly into a public projection.
+    pub internal_area_ref: String,
+    /// Explicitly reviewed coarse area reference required for public case publication.
+    pub public_area: Option<PublicAreaReference>,
     pub severity: CaseSeverity,
     pub visibility: CaseVisibility,
     pub opened_at_unix_ms: u64,
@@ -193,12 +211,51 @@ pub struct CivicServiceCase {
     pub events: Vec<CaseEvent>,
 }
 
+/// Reduced public types deliberately omit raw ticket identifiers, actor references,
+/// and evidence artifact pointers.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PublicEvidenceSummary {
+    pub evidence_id: String,
+    pub source_kind: EvidenceSourceKind,
+    pub captured_at_unix_ms: u64,
+    pub sha256: Option<String>,
+    pub review: EvidenceReview,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PublicCaseEvent {
+    pub kind: CaseEventKind,
+    pub recorded_at_unix_ms: u64,
+    pub occurred_at_unix_ms: Option<u64>,
+    pub actor_kind: CaseActorKind,
+    /// Public/redacted evidence IDs only; private evidence links are omitted.
+    pub evidence_ids: Vec<String>,
+    pub reason_code: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PublicCivicCase {
+    pub schema_version: u16,
+    pub case_id: String,
+    pub domain: CivicServiceDomain,
+    pub category_code: String,
+    pub area: PublicAreaReference,
+    pub severity: CaseSeverity,
+    pub current_status: Option<CaseStatus>,
+    pub opened_at_unix_ms: u64,
+    pub updated_at_unix_ms: u64,
+    pub evidence: Vec<PublicEvidenceSummary>,
+    pub events: Vec<PublicCaseEvent>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CivicCaseValidationError {
     UnsupportedSchemaVersion,
     EmptyCaseId,
     EmptyCategoryCode,
     EmptyAreaReference,
+    MissingPublicAreaReference,
+    InvalidPublicAreaReference,
     InvalidCaseTimeRange,
     DuplicateOfficialReference,
     EmptyEvidenceId,
@@ -225,9 +282,10 @@ impl CivicServiceCase {
     /// restricted, and sensitive cases must go through a separate aggregation layer.
     /// Official ticket identifiers, actor references, and artifact pointers are omitted.
     pub fn public_projection(&self) -> Option<PublicCivicCase> {
-        if self.visibility != CaseVisibility::PublicCase {
+        if self.visibility != CaseVisibility::PublicCase || self.validate().is_err() {
             return None;
         }
+        let public_area = self.public_area.as_ref()?.clone();
 
         let public_evidence_ids: BTreeSet<&str> = self
             .evidence
@@ -277,7 +335,7 @@ impl CivicServiceCase {
             case_id: self.case_id.clone(),
             domain: self.domain,
             category_code: self.category_code.clone(),
-            area_ref: self.area_ref.clone(),
+            area: public_area,
             severity: self.severity,
             current_status: self.current_status(),
             opened_at_unix_ms: self.opened_at_unix_ms,
@@ -310,8 +368,23 @@ impl CivicServiceCase {
         if self.category_code.trim().is_empty() {
             errors.push(E::EmptyCategoryCode);
         }
-        if self.area_ref.trim().is_empty() {
+        if self.internal_area_ref.trim().is_empty() {
             errors.push(E::EmptyAreaReference);
+        }
+        if self.visibility == CaseVisibility::PublicCase {
+            match self.public_area.as_ref() {
+                None => errors.push(E::MissingPublicAreaReference),
+                Some(area) => {
+                    let valid_code = !area.code.trim().is_empty()
+                        && area.code.len() <= 80
+                        && area.code.bytes().all(|byte| {
+                            byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.')
+                        });
+                    if !valid_code {
+                        errors.push(E::InvalidPublicAreaReference);
+                    }
+                }
+            }
         }
         if self.updated_at_unix_ms < self.opened_at_unix_ms {
             errors.push(E::InvalidCaseTimeRange);
@@ -484,7 +557,8 @@ mod tests {
             case_id: "case-001".into(),
             domain: CivicServiceDomain::Roads,
             category_code: "pothole".into(),
-            area_ref: "public-grid-cell-001".into(),
+            internal_area_ref: "restricted-area-reference-001".into(),
+            public_area: None,
             severity: CaseSeverity::High,
             visibility: CaseVisibility::PublicAggregateOnly,
             opened_at_unix_ms: 950,
@@ -540,6 +614,10 @@ mod tests {
         assert!(case.public_projection().is_none());
 
         case.visibility = CaseVisibility::PublicCase;
+        case.public_area = Some(PublicAreaReference {
+            code: "ward-59".into(),
+            granularity: PublicAreaGranularity::Ward,
+        });
         case.evidence = vec![
             EvidenceReference {
                 evidence_id: "public-evidence-1".into(),
@@ -583,6 +661,28 @@ mod tests {
         assert!(!serialized.contains("private-artifact-url"));
         assert!(!serialized.contains("REF-EXAMPLE-001"));
         assert!(!serialized.contains("official_references"));
+        assert!(!serialized.contains("restricted-area-reference-001"));
+        assert!(serialized.contains("ward-59"));
+    }
+
+    #[test]
+    fn public_case_requires_a_coarse_public_area_reference() {
+        let mut case = valid_case();
+        case.visibility = CaseVisibility::PublicCase;
+        assert!(case
+            .validate()
+            .unwrap_err()
+            .contains(&CivicCaseValidationError::MissingPublicAreaReference));
+        assert!(case.public_projection().is_none());
+
+        case.public_area = Some(PublicAreaReference {
+            code: "-26.2_28.1".into(),
+            granularity: PublicAreaGranularity::Ward,
+        });
+        assert!(case
+            .validate()
+            .unwrap_err()
+            .contains(&CivicCaseValidationError::InvalidPublicAreaReference));
     }
 
     #[test]
