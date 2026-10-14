@@ -54,6 +54,20 @@ Shared capabilities should include:
 - fixed baselines, out-of-sample evaluation and separate maturity gates;
 - reusable reports that preserve separate objectives rather than hiding water use, marketable yield, cost and access inside one score.
 
+## A locally grounded crop cohort—not an automatic recommendation
+
+A 2020 City of Johannesburg programme statement records tomatoes, spinach, green pepper and cucumber among crops handled by small-scale-farmer cooperatives. I have encoded these four as a **candidate cohort only** so the first crop-selection discussion starts from a documented local production lead instead of an arbitrary global top-crop list.
+
+References:
+- https://joburg.org.za/media_/Pages/Media/Media%20Statements/2020%20Media%20Statements/December/Mayor-Makhubo-launches-a-R34-million-commercialization-and-mechanization-programme-for-small-scale-farmers.aspx
+- The 2024 City Food Resilience Policy also emphasizes diverse foods, training, technology and localized food-system support: https://joburg.org.za/documents_/Documents/FOOD-RESILIENCE-FINAL-APPROVED-POLICY-2024.pdf
+
+This is a dated signal about one programme, not evidence of the dominant 2026 crop mix or current consumer demand. Before selecting a crop for model evaluation, the pilot needs current growers/extension input, crop-specific temperature and frost sensitivity, seasonal calendar, model support, soil and water requirements, actual prices/demand and post-harvest fit. If AquaCrop does not support or cannot be calibrated for a candidate crop, it must not be forced into that role; choose an appropriate reference model or keep that crop outside the initial yield benchmark.
+
+The City's current food-resilience pages also describe agri-resource centres, market intelligence, hubs, packing/grading/distribution and food-storage compliance needs. These are potential partners/data leads rather than confirmed live feeds:
+- https://joburg.org.za/media_/Pages/Media/Marang%20Newsletter/Quarter%201/City-of-Johannesburg-food-resilience-projects.aspx
+- Joburg Market's 10 June 2026 cold-room commissioning notice: https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Joburg-Market-unveils-new-cold-rooms-to-boost-food-security.aspx
+
 ## Candidate data and models
 
 These source families are candidates, not acquired evidence. Every row in the machine-readable profile remains not acquired until the exact product/artifact is selected, access and reuse terms are reviewed, and bytes are hashed.
