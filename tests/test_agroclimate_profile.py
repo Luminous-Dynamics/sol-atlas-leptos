@@ -57,6 +57,50 @@ class AgroclimateProfileTests(unittest.TestCase):
         self.assertTrue(all(source["acquisition_state"] == "not_acquired" for source in self.profile["sources"]))
         self.assertTrue(all(source["artifact_sha256"] is None for source in self.profile["sources"]))
 
+    def test_five_site_constraints_are_explicit_and_not_assessed_at_design_stage(self):
+        required = {
+            "irrigation_water_quantity_and_quality",
+            "soil_condition_and_contamination",
+            "land_access_and_permission",
+            "postharvest_storage_energy_and_transport",
+            "market_nutrition_and_affordability",
+        }
+        self.assertEqual(set(self.profile["site_constraints"]), required)
+        self.assertTrue(all(
+            item["state"] == "not_assessed"
+            for item in self.profile["site_constraints"].values()
+        ))
+        self.assertTrue(all(
+            len(item["required_evidence"]) >= 2 and len(item["claim_limit"]) >= 30
+            for item in self.profile["site_constraints"].values()
+        ))
+
+    def test_design_only_cannot_claim_a_site_constraint_was_assessed(self):
+        doc = copy.deepcopy(self.profile)
+        doc["site_constraints"]["soil_condition_and_contamination"]["state"] = "assessed"
+        self.assertTrue(any("requires every site constraint to remain not_assessed" in error for error in self.errors(doc)))
+
+    def test_decision_support_requires_every_site_constraint_assessed(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "decision_support_candidate"
+        doc["evidence_state"] = {
+            "source_artifacts_acquired": True,
+            "baseline_computed": True,
+            "independent_validation_complete": True,
+            "expert_review_complete": True,
+            "decision_support_authorized": True,
+        }
+        doc["geography"]["boundary_state"] = "verified_and_frozen"
+        for gate in ("D0", "D1", "D2", "D3", "D4", "D5"):
+            doc["validation"]["gates"][gate] = "passed"
+        self.assertTrue(any("requires assessment of every site constraint" in error for error in self.errors(doc)))
+
+    def test_shared_schema_rejects_unrecognized_site_constraint_state(self):
+        doc = copy.deepcopy(self.profile)
+        doc["site_constraints"]["irrigation_water_quantity_and_quality"]["state"] = "probably_safe"
+        schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
+        self.assertTrue(schema_errors)
+
     def test_unacquired_source_cannot_claim_digest(self):
         doc = copy.deepcopy(self.profile)
         doc["sources"][0]["artifact_sha256"] = "a" * 64
