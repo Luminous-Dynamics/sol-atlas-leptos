@@ -273,7 +273,9 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "format": "uri",
+            "pattern": "^https://"
           },
           "product_family": {
             "type": "string",
