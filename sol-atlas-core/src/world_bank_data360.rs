@@ -23,7 +23,7 @@ pub const DATA360_MAX_PAGE_SIZE: usize = 1_000;
 pub const DATA360_SCHEMA_VERSION: u16 = 1;
 
 const ENVELOPE_KEYS: [&str; 2] = ["count", "value"];
-const FILTER_KEYS: [&str; 13] = [
+const FILTER_KEYS: [&str; 12] = [
     "REF_AREA",
     "SEX",
     "AGE",
@@ -361,7 +361,7 @@ fn normalize_record(
         .get("UNIT_MULT")
         .and_then(Value::as_i64)
         .ok_or_else(|| Data360RowRejection::InvalidFieldType("UNIT_MULT".to_string()))?;
-    let latest_data = object
+    let _latest_data = object
         .get("LATEST_DATA")
         .and_then(Value::as_bool)
         .ok_or_else(|| Data360RowRejection::InvalidFieldType("LATEST_DATA".to_string()))?;
