@@ -30,7 +30,7 @@ EXPECTED_SOURCES = {
 }
 GATES = ("D0", "D1", "D2", "D3", "D4", "D5")
 EVIDENCE_FLAGS = (
-    "source_artifacts_acquired",
+    "required_required_source_artifacts_acquired",
     "baseline_computed",
     "independent_validation_complete",
     "expert_review_complete",
@@ -381,10 +381,32 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
             errors.append("D0=passed gate evidence must reference the exact boundary artifact and its matching SHA-256")
 
     if gates.get("D1") == "passed":
-        if len(sources) != len(EXPECTED_SOURCES) or any(
-            _as_dict(source).get("acquisition_state") != "acquired" for source in sources
-        ):
-            errors.append("D1=passed requires acquisition and review of every admitted source artifact")
+        required_sources = [
+            _as_dict(source) for source in sources
+            if _as_dict(source).get("required_for_baseline") is True
+        ]
+        if not required_sources:
+            errors.append("D1=passed requires at least one source marked required_for_baseline")
+        if any(source.get("acquisition_state") != "acquired" for source in required_sources):
+            errors.append("D1=passed requires every source marked required_for_baseline to be acquired")
+        if evidence.get("required_source_artifacts_acquired") is not True:
+            errors.append("D1=passed requires required_source_artifacts_acquired=true")
+        d1_refs = _as_dict(gate_evidence.get("D1")).get("evidence_refs", [])
+        for source in required_sources:
+            source_digest = source.get("artifact_sha256")
+            primary = next(
+                (artifact for artifact in source.get("artifacts", [])
+                 if _as_dict(artifact).get("role") == "primary"),
+                None,
+            )
+            if primary is None:
+                errors.append(f"D1=passed requires a primary artifact for {source.get('source_id')}")
+                continue
+            primary_uri = _as_dict(primary).get("asset_uri")
+            if primary_uri not in d1_refs or f"sha256:{source_digest}" not in d1_refs:
+                errors.append(
+                    f"D1=passed evidence must reference the primary asset URI and matching digest for {source.get('source_id')}"
+                )
         for index, raw in enumerate(sources):
             source = _as_dict(raw)
             if source.get("acquisition_state") != "acquired":
@@ -397,7 +419,7 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
             if source.get("selected_product_identity_verified") is not True:
                 errors.append(f"D1=passed requires exact selected-product identity verification for sources[{index}]")
             if source.get("source_id") != "LOCAL-OBSERVATIONS" and source.get("source_catalog_verified") is not True:
-                errors.append(f"D1=passed requires official source catalogue review for sources[{index}]")
+                errors.append(f"D1=passed requires official source catalogue review for acquired external sources[{index}]")
             if source.get("source_id") == "LOCAL-OBSERVATIONS":
                 if source.get("rights_state") != "permission_granted" or source.get("redistribution_allowed") is not None:
                     errors.append(f"D1=passed requires recorded processing permission and private-by-default rights for sources[{index}]")
@@ -456,8 +478,8 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
     if evidence.get("baseline_computed") is True:
         if any(gates.get(gate) != "passed" for gate in ("D0", "D1", "D2")):
             errors.append("baseline_computed=true requires D0-D2=passed")
-        if evidence.get("source_artifacts_acquired") is not True:
-            errors.append("baseline_computed=true requires source_artifacts_acquired=true")
+        if evidence.get("required_required_source_artifacts_acquired") is not True:
+            errors.append("baseline_computed=true requires required_source_artifacts_acquired=true")
     if evidence.get("independent_validation_complete") is True:
         if evidence.get("baseline_computed") is not True or gates.get("D3") != "passed":
             errors.append("independent_validation_complete=true requires baseline and D3=passed")
