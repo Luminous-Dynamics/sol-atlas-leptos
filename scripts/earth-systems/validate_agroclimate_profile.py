@@ -149,8 +149,14 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
         acquisition = source.get("acquisition_state")
         digest = source.get("artifact_sha256")
         selected = source.get("selected_product")
+        artifacts = source.get("artifacts")
+        if not isinstance(artifacts, list):
+            errors.append(f"{where}.artifacts must be an asset manifest array")
+            artifacts = []
         if acquisition in {"not_acquired", "rejected"} and digest is not None:
             errors.append(f"{where}: unacquired/rejected source cannot claim an artifact SHA-256")
+        if acquisition in {"not_acquired", "rejected"} and artifacts:
+            errors.append(f"{where}: unacquired/rejected source cannot claim acquired artifact records")
         if acquisition == "acquired":
             if not isinstance(digest, str) or not SHA256_RE.fullmatch(digest):
                 errors.append(f"{where}: acquired source requires a lowercase 64-character SHA-256")
@@ -162,6 +168,68 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
                 errors.append(f"{where}: acquisition cannot be promoted before required rights/permission review")
             if source_id != "LOCAL-OBSERVATIONS" and not isinstance(source.get("redistribution_allowed"), bool):
                 errors.append(f"{where}: acquired external artifact requires an explicit redistribution decision")
+
+            artifact_ids: set[str] = set()
+            primary_artifacts = []
+            for artifact_index, raw_artifact in enumerate(artifacts):
+                artifact = _as_dict(raw_artifact)
+                artifact_id = artifact.get("artifact_id")
+                artifact_where = f"{where}.artifacts[{artifact_index}]"
+                if not isinstance(artifact_id, str) or not artifact_id.strip():
+                    errors.append(f"{artifact_where}.artifact_id must be non-empty")
+                elif artifact_id in artifact_ids:
+                    errors.append(f"{where}: duplicate artifact_id {artifact_id}")
+                else:
+                    artifact_ids.add(artifact_id)
+                if artifact.get("role") == "primary":
+                    primary_artifacts.append(artifact)
+                asset_uri = artifact.get("asset_uri")
+                if isinstance(asset_uri, str) and asset_uri.startswith("https://"):
+                    try:
+                        asset_url = urlsplit(asset_uri)
+                    except ValueError:
+                        asset_url = None
+                    if not asset_url or not asset_url.netloc:
+                        errors.append(f"{artifact_where}.asset_uri must be a valid stable HTTPS URI")
+                    else:
+                        query = asset_url.query.lower()
+                        if any(secret in query for secret in ("access_token", "api_key", "signature=", "x-amz-credential", "token=")):
+                            errors.append(f"{artifact_where}.asset_uri must not contain a bearer or signed URL credential")
+                lineage_refs = artifact.get("lineage_refs")
+                if not isinstance(lineage_refs, list) or not lineage_refs:
+                    errors.append(f"{artifact_where} requires at least one lineage reference")
+                transforms = artifact.get("transformations")
+                if not isinstance(transforms, list):
+                    errors.append(f"{artifact_where}.transformations must be an array")
+                    transforms = []
+                transform_ids: set[str] = set()
+                previous_output: str | None = None
+                for transform_index, raw_transform in enumerate(transforms):
+                    transform = _as_dict(raw_transform)
+                    transform_id = transform.get("transform_id")
+                    transform_where = f"{artifact_where}.transformations[{transform_index}]"
+                    if not isinstance(transform_id, str) or not transform_id.strip():
+                        errors.append(f"{transform_where}.transform_id must be non-empty")
+                    elif transform_id in transform_ids:
+                        errors.append(f"{artifact_where}: duplicate transform_id {transform_id}")
+                    else:
+                        transform_ids.add(transform_id)
+                    output_hash = transform.get("output_sha256")
+                    inputs = transform.get("input_artifact_refs")
+                    if previous_output is not None and (
+                        not isinstance(inputs, list) or f"sha256:{previous_output}" not in inputs
+                    ):
+                        errors.append(f"{transform_where} must link the preceding transform output digest")
+                    if isinstance(output_hash, str) and SHA256_RE.fullmatch(output_hash):
+                        previous_output = output_hash
+                artifact_hash = artifact.get("sha256")
+                if transforms and previous_output != artifact_hash:
+                    errors.append(f"{artifact_where}: final transformation output SHA-256 must equal the artifact SHA-256")
+
+            if len(primary_artifacts) != 1:
+                errors.append(f"{where}: an acquired source must have exactly one primary artifact")
+            elif primary_artifacts[0].get("sha256") != digest:
+                errors.append(f"{where}: artifact_sha256 must match the primary artifact manifest SHA-256")
 
         if source_id == "LOCAL-OBSERVATIONS":
             if acquisition in {"not_acquired", "rejected"} and source.get("rights_state") != "permission_required":
