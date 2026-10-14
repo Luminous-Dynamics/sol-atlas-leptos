@@ -588,7 +588,28 @@
                     }
                   }
                 }
-              }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "role": {
+                        "const": "derived_output"
+                      }
+                    },
+                    "required": [
+                      "role"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "transformations": {
+                        "minItems": 1
+                      }
+                    }
+                  }
+                }
+              ]
             }
           },
           "source_catalog_verified": {
