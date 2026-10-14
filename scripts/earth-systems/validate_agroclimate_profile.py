@@ -341,8 +341,12 @@ def validate_profile(doc: Any, schema: dict) -> list[str]:
             errors.append("D2=passed requires baseline_computed=true")
         if not selected_cohorts:
             errors.append("D2=passed requires at least one crop cohort selected for baseline evaluation")
+        if model_arch.get("model_selection_state") not in {"selected_for_baseline", "selected_and_calibrated"}:
+            errors.append("D2=passed requires model_selection_state to freeze a baseline model choice")
     if gates.get("D3") == "passed" and evidence.get("independent_validation_complete") is not True:
         errors.append("D3=passed requires independent_validation_complete=true")
+    if gates.get("D3") == "passed" and model_arch.get("model_selection_state") != "selected_and_calibrated":
+        errors.append("D3=passed requires model_selection_state=selected_and_calibrated")
     if gates.get("D4") == "passed":
         if any(gates.get(gate) != "passed" for gate in ("D0", "D1", "D2", "D3")):
             errors.append("D4=passed requires D0-D3=passed")
