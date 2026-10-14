@@ -201,6 +201,13 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["validation"]["gates"]["D1"] = "passed"
         self.assertTrue(any("D1=passed requires acquisition" in error for error in self.errors(doc)))
 
+    def test_D1_cannot_skip_the_frozen_study_boundary(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["validation"]["gates"]["D1"] = "passed"
+        errors = self.errors(doc)
+        self.assertTrue(any("D1=passed requires D0=passed" in error for error in errors))
+
     def test_D2_cannot_pass_before_a_baseline_exists(self):
         doc = copy.deepcopy(self.profile)
         doc["status"] = "data_readiness"
@@ -218,6 +225,14 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["status"] = "data_readiness"
         doc["validation"]["gates"]["D4"] = "passed"
         self.assertTrue(any("D4=passed requires expert_review_complete=true" in error for error in self.errors(doc)))
+
+    def test_D4_cannot_skip_prior_validation_gates_even_after_review(self):
+        doc = copy.deepcopy(self.profile)
+        doc["status"] = "data_readiness"
+        doc["validation"]["gates"]["D4"] = "passed"
+        doc["evidence_state"]["expert_review_complete"] = True
+        errors = self.errors(doc)
+        self.assertTrue(any("D4=passed requires D0-D3=passed" in error for error in errors))
 
     def test_D5_cannot_pass_without_prior_gates_and_authority(self):
         doc = copy.deepcopy(self.profile)
