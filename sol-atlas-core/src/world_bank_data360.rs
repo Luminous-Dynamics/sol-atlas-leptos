@@ -281,9 +281,9 @@ fn validate_context(context: &Data360PageContext) -> Result<(), Data360PageError
             )));
         }
     }
-    if q.period_start == 0 || q.period_end < q.period_start {
+    if q.period_start == 0 || q.period_end < q.period_start || q.period_end > 9999 {
         return Err(Data360PageError::InvalidContext(
-            "period range must be ordered and use positive years".to_string(),
+            "annual period range must be ordered and fit a four-digit year".to_string(),
         ));
     }
     for (key, value) in &q.filters {
@@ -1082,6 +1082,16 @@ mod tests {
             .query
             .filters
             .insert("COUNTRY_NAME".to_string(), "South Africa".to_string());
+        assert!(matches!(
+            parse_data360_page(&response(vec![], 0), &query),
+            Err(Data360PageError::InvalidContext(_))
+        ));
+    }
+
+    #[test]
+    fn annual_query_period_cannot_exceed_four_digits() {
+        let mut query = context(0, 10, "five-digit-period");
+        query.query.period_end = 10000;
         assert!(matches!(
             parse_data360_page(&response(vec![], 0), &query),
             Err(Data360PageError::InvalidContext(_))
