@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import json
 import sys
 import unittest
@@ -40,8 +41,27 @@ class AgroclimateProfileTests(unittest.TestCase):
         for index, source in enumerate(doc["sources"]):
             source["acquisition_state"] = "acquired"
             source["selected_product"] = f"urn:fixture:source:{source['source_id']}:v1"
-            source["artifact_sha256"] = format(index + 1, "064x")
+            payload = f"synthetic-fixture-bytes:{source['source_id']}:{index}".encode("utf-8")
+            digest = hashlib.sha256(payload).hexdigest()
+            source["artifact_sha256"] = digest
             source["source_identity_verified"] = True
+            source["artifacts"] = [{
+                "artifact_id": f"fixture.asset:{source['source_id']}:v1",
+                "role": "primary",
+                "asset_uri": f"urn:fixture:asset:{source['source_id']}:v1",
+                "media_type": "application/octet-stream",
+                "byte_size": len(payload),
+                "sha256": digest,
+                "acquired_at": "2026-10-14T12:00:00Z",
+                "spatial_support": source["native_spatial_support"],
+                "temporal_support": source["native_temporal_support"],
+                "units": None,
+                "nodata_semantics": "Not applicable for synthetic fixture bytes.",
+                "lineage_refs": [
+                    source["url"] or f"urn:fixture:lineage:{source['source_id']}:v1"
+                ],
+                "transformations": [],
+            }]
             if source["source_id"] == "LOCAL-OBSERVATIONS":
                 source["rights_state"] = "permission_granted"
                 source["redistribution_allowed"] = None
@@ -281,6 +301,87 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc = copy.deepcopy(self.profile)
         doc["sources"][0]["artifact_sha256"] = "a" * 64
         self.assertTrue(any("cannot claim an artifact SHA-256" in error for error in self.errors(doc)))
+
+    def test_unacquired_source_cannot_claim_asset_manifest(self):
+        doc = copy.deepcopy(self.profile)
+        doc["sources"][0]["artifacts"] = [{
+            "artifact_id": "fixture.asset:premature:v1",
+            "role": "primary",
+            "asset_uri": "urn:fixture:asset:premature:v1",
+            "media_type": "application/octet-stream",
+            "byte_size": 1,
+            "sha256": "a" * 64,
+            "acquired_at": "2026-10-14T12:00:00Z",
+            "spatial_support": None,
+            "temporal_support": None,
+            "units": None,
+            "nodata_semantics": "Not applicable to fixture.",
+            "lineage_refs": ["urn:fixture:lineage:premature:v1"],
+            "transformations": [],
+        }]
+        self.assertTrue(any("cannot claim acquired artifact records" in error for error in self.errors(doc)))
+
+    def test_primary_asset_digest_must_match_source_digest(self):
+        doc = self.synthetic_complete_profile()
+        source = doc["sources"][0]
+        source["artifact_sha256"] = "f" * 64
+        self.assertTrue(any("must match the primary artifact manifest SHA-256" in error for error in self.errors(doc)))
+
+    def test_acquired_source_requires_exactly_one_primary_asset(self):
+        doc = self.synthetic_complete_profile()
+        source = doc["sources"][0]
+        duplicate = copy.deepcopy(source["artifacts"][0])
+        duplicate["artifact_id"] = "fixture.asset:second-primary:v1"
+        source["artifacts"].append(duplicate)
+        self.assertTrue(any("must have exactly one primary artifact" in error for error in self.errors(doc)))
+
+    def test_signed_asset_url_credentials_are_rejected(self):
+        doc = self.synthetic_complete_profile()
+        doc["sources"][0]["artifacts"][0]["asset_uri"] = "https://example.invalid/data?access_token=secret"
+        self.assertTrue(any("must not contain a bearer or signed URL credential" in error for error in self.errors(doc)))
+
+    def test_transformation_chain_must_end_at_manifest_artifact_digest(self):
+        doc = self.synthetic_complete_profile()
+        artifact = doc["sources"][0]["artifacts"][0]
+        artifact["transformations"] = [{
+            "transform_id": "fixture.transform:resample-v1",
+            "method": "Example deterministic resampling implementation",
+            "implementation_version": "fixture-1",
+            "configuration_sha256": "a" * 64,
+            "input_artifact_refs": ["urn:fixture:input:raster-v1"],
+            "output_sha256": "b" * 64,
+            "lossy": True,
+            "notes": "Synthetic test transform only.",
+        }]
+        self.assertTrue(any("final transformation output SHA-256 must equal" in error for error in self.errors(doc)))
+
+    def test_transformation_chain_must_reference_preceding_output_digest(self):
+        doc = self.synthetic_complete_profile()
+        artifact = doc["sources"][0]["artifacts"][0]
+        digest = artifact["sha256"]
+        artifact["transformations"] = [
+            {
+                "transform_id": "fixture.transform:step-1",
+                "method": "Example transform step one",
+                "implementation_version": "fixture-1",
+                "configuration_sha256": "a" * 64,
+                "input_artifact_refs": ["urn:fixture:input:original-v1"],
+                "output_sha256": "b" * 64,
+                "lossy": False,
+                "notes": "Synthetic intermediate step.",
+            },
+            {
+                "transform_id": "fixture.transform:step-2",
+                "method": "Example transform step two",
+                "implementation_version": "fixture-1",
+                "configuration_sha256": "c" * 64,
+                "input_artifact_refs": ["urn:fixture:wrong-parent-v1"],
+                "output_sha256": digest,
+                "lossy": False,
+                "notes": "Synthetic final step.",
+            }
+        ]
+        self.assertTrue(any("must link the preceding transform output digest" in error for error in self.errors(doc)))
 
     def test_acquired_source_requires_exact_product_digest_and_catalog_verification(self):
         doc = copy.deepcopy(self.profile)
