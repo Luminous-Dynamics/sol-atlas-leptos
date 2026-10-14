@@ -609,7 +609,7 @@
               "required": [
                 "selected_product",
                 "artifact_sha256",
-                "source_catalog_verified"
+                "source_identity_verified"
               ],
               "properties": {
                 "selected_product": {
@@ -620,15 +620,15 @@
                   "type": "string",
                   "pattern": "^[a-f0-9]{64}$"
                 },
-                "source_catalog_verified": {
-                  "const": true
-                },
                 "rights_state": {
                   "enum": [
                     "license_reviewed",
                     "permission_granted",
                     "reviewed_not_redistributable"
                   ]
+                },
+                "source_identity_verified": {
+                  "const": true
                 }
               }
             }
