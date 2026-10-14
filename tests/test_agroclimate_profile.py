@@ -138,6 +138,13 @@ class AgroclimateProfileTests(unittest.TestCase):
         doc["model_architecture"]["climate_archetypes_are_labels_only"] = False
         self.assertTrue(self.errors(doc))
 
+    def test_cross_region_transfer_penalty_and_calibration_benefit_are_evaluated(self):
+        requirements = " ".join(self.profile["evaluation"]["validation_design"]).lower()
+        self.assertIn("unadapted shared model", requirements)
+        self.assertIn("local calibration", requirements)
+        self.assertIn("transfer penalty", requirements)
+        self.assertIn("calibration benefit", requirements)
+
     def test_current_season_signal_is_not_a_verified_johannesburg_forecast(self):
         saws = next(item for item in self.profile["sources"] if item["source_id"] == "SAWS-SEASONAL")
         self.assertEqual(saws["acquisition_state"], "not_acquired")
