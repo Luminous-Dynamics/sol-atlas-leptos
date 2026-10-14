@@ -35,6 +35,21 @@ class AgroclimateProfileTests(unittest.TestCase):
         self.assertEqual(len(ids), 6)
         self.assertEqual(len(set(ids)), 6)
 
+    def test_shared_schema_accepts_other_regions_and_source_families(self):
+        doc = copy.deepcopy(self.profile)
+        doc["profile_id"] = "agroclimate-mediterranean-v1"
+        doc["geography"]["name"] = "Mediterranean candidate study region"
+        doc["geography"]["country"] = "Spain"
+        for index, source in enumerate(doc["sources"], start=1):
+            source["source_id"] = f"GLOBAL-CLIMATE-SOURCE-{index}"
+            source["rights_state"] = "license_not_reviewed"
+        schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
+        self.assertEqual(
+            schema_errors,
+            [],
+            "the reusable schema should permit another regional profile; the Johannesburg validator pins the pilot's exact source set",
+        )
+
     def test_profile_does_not_claim_source_artifacts_are_acquired(self):
         self.assertFalse(self.profile["evidence_state"]["source_artifacts_acquired"])
         self.assertTrue(all(source["acquisition_state"] == "not_acquired" for source in self.profile["sources"]))
