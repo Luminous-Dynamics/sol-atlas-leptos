@@ -50,6 +50,20 @@ All validators here check metadata and state-machine invariants only. They do no
 
 The wider architecture, cross-domain boundaries, priorities and D0–D5 gates are described in [the Earth Systems Intelligence RFC](../../docs/EARTH_SYSTEMS_INTELLIGENCE_RFC.md). The highest-priority work remains the mineral benchmark in parallel with this independently scoped water–food pilot.
 
+## Capture the CHIRPS source index before selecting a study period
+
+The period-free snapshot mode captures the current official HTML index and hashes its exact bytes without choosing any analysis months:
+```sh
+python3 scripts/earth-systems/plan_chirps_monthly.py \
+  --snapshot-only \
+  --snapshot-index /tmp/chirps-index.html \
+  --output /tmp/chirps-index-manifest.json
+```
+
+The manifest marks `requested_period: null` and states that no analysis period was selected; no GeoTIFF is downloaded. Use this first when studying source availability before the WaPOR layer and temporal overlap are known. The snapshot and manifest paths must be new.
+
+For one-click source capture on GitHub, open **Actions → Earth systems source snapshot (manual) → Run workflow**. The workflow independently attempts to preserve a CHIRPS index snapshot and a WaPOR mapset-catalog snapshot as 14-day artifacts. The WaPOR capture contains API metadata and raw JSON responses only—not raster files. A failed WaPOR capture is a failed/blocked inventory, not evidence that the catalog is empty or the product is unavailable. Review both artifact manifests and their SHA-256 digests before proceeding.
+
 ## Inventory CHIRPS monthly Africa files before downloading
 
 From the repository root, run:
