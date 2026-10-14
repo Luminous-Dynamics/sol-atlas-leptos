@@ -21,7 +21,8 @@
     "evaluation",
     "validation",
     "claim_ceiling",
-    "evidence_state"
+    "evidence_state",
+    "site_constraints"
   ],
   "properties": {
     "profile_id": {
@@ -753,6 +754,179 @@
         },
         "decision_support_authorized": {
           "type": "boolean"
+        }
+      }
+    },
+    "site_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "irrigation_water_quantity_and_quality",
+        "soil_condition_and_contamination",
+        "land_access_and_permission",
+        "postharvest_storage_energy_and_transport",
+        "market_nutrition_and_affordability"
+      ],
+      "properties": {
+        "irrigation_water_quantity_and_quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "required_evidence",
+            "claim_limit"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "not_assessed",
+                "assessment_required",
+                "assessed",
+                "blocked"
+              ]
+            },
+            "required_evidence": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "string",
+                "minLength": 12
+              },
+              "uniqueItems": true
+            },
+            "claim_limit": {
+              "type": "string",
+              "minLength": 30
+            }
+          }
+        },
+        "soil_condition_and_contamination": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "required_evidence",
+            "claim_limit"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "not_assessed",
+                "assessment_required",
+                "assessed",
+                "blocked"
+              ]
+            },
+            "required_evidence": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "string",
+                "minLength": 12
+              },
+              "uniqueItems": true
+            },
+            "claim_limit": {
+              "type": "string",
+              "minLength": 30
+            }
+          }
+        },
+        "land_access_and_permission": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "required_evidence",
+            "claim_limit"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "not_assessed",
+                "assessment_required",
+                "assessed",
+                "blocked"
+              ]
+            },
+            "required_evidence": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "string",
+                "minLength": 12
+              },
+              "uniqueItems": true
+            },
+            "claim_limit": {
+              "type": "string",
+              "minLength": 30
+            }
+          }
+        },
+        "postharvest_storage_energy_and_transport": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "required_evidence",
+            "claim_limit"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "not_assessed",
+                "assessment_required",
+                "assessed",
+                "blocked"
+              ]
+            },
+            "required_evidence": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "string",
+                "minLength": 12
+              },
+              "uniqueItems": true
+            },
+            "claim_limit": {
+              "type": "string",
+              "minLength": 30
+            }
+          }
+        },
+        "market_nutrition_and_affordability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "required_evidence",
+            "claim_limit"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "not_assessed",
+                "assessment_required",
+                "assessed",
+                "blocked"
+              ]
+            },
+            "required_evidence": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "string",
+                "minLength": 12
+              },
+              "uniqueItems": true
+            },
+            "claim_limit": {
+              "type": "string",
+              "minLength": 30
+            }
+          }
         }
       }
     }
