@@ -44,7 +44,8 @@ class AgroclimateProfileTests(unittest.TestCase):
             payload = f"synthetic-fixture-bytes:{source['source_id']}:{index}".encode("utf-8")
             digest = hashlib.sha256(payload).hexdigest()
             source["artifact_sha256"] = digest
-            source["source_identity_verified"] = True
+            source["selected_product_identity_verified"] = True
+            source["source_catalog_verified"] = source["source_id"] != "LOCAL-OBSERVATIONS"
             source["artifacts"] = [{
                 "artifact_id": f"fixture.asset:{source['source_id']}:v1",
                 "role": "primary",
@@ -117,6 +118,8 @@ class AgroclimateProfileTests(unittest.TestCase):
         for index, source in enumerate(doc["sources"], start=1):
             source["source_id"] = f"GLOBAL-CLIMATE-SOURCE-{index}"
             source["rights_state"] = "license_not_reviewed"
+            source["source_catalog_verified"] = False
+            source["selected_product_identity_verified"] = False
             if source["url"] is None:
                 source["url"] = f"https://example.invalid/local-evidence-{index}"
         doc["candidate_crop_cohorts"] = [{
@@ -462,7 +465,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         source["acquisition_state"] = "acquired"
         source["selected_product"] = "urn:mycelix:measurement-protocol:highveld-site-v1"
         source["artifact_sha256"] = "a" * 64
-        source["source_identity_verified"] = True
+        source["selected_product_identity_verified"] = True
         source["rights_state"] = "permission_granted"
         source["redistribution_allowed"] = None
         self.assertEqual(self.errors(doc), [])
@@ -474,7 +477,7 @@ class AgroclimateProfileTests(unittest.TestCase):
         source["acquisition_state"] = "acquired"
         source["selected_product"] = "urn:mycelix:measurement-protocol:highveld-site-v1"
         source["artifact_sha256"] = "a" * 64
-        source["source_identity_verified"] = True
+        source["selected_product_identity_verified"] = True
         source["rights_state"] = "permission_granted"
         source["redistribution_allowed"] = False
         self.assertTrue(any("redistribution_allowed=null" in error for error in self.errors(doc)))
