@@ -16,6 +16,28 @@ The South African Government published an agricultural weather notice on 2 Septe
 
 Reference: https://www.gov.za/news/media-statements/agriculture-el-nino-weather-climate-02-sep-2026
 
+## Local constraints that a climate model cannot solve by itself
+
+City policy and projects give several local priorities more concrete shape. The City's 2024 Food Resilience Policy discusses urban agriculture and food-system interventions. Its 2025 urban-agriculture project report describes site infrastructure including water tanks, agricultural tunnels and cold rooms. These are useful design references, not an inventory of current available capacity at every garden.
+
+The City also reported in 2026 that an eco-filter and water-quality monitoring project in the Upper Jukskei catchment addresses microbial contamination, excess nutrients, organic waste and heavy metals, with monitoring linked to irrigation at Victoria Yards. This is a specific catchment/project signal—not proof that every Johannesburg irrigation source is contaminated. It nevertheless argues for profiling each intended water source rather than assuming that visible water, a remote-sensing layer or a generic “available water” quantity is adequate.
+
+Reference leads:
+- City of Johannesburg Food Resilience Policy 2024: https://joburg.org.za/documents_/Documents/FOOD-RESILIENCE-FINAL-APPROVED-POLICY-2024.pdf
+- City urban-agriculture infrastructure project: https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg%E2%80%99s-new-urban-agriculture-project-to-boost-community-farming.aspx
+- Upper Jukskei eco-filter and water-quality monitoring: https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Joburg-launches-innovative-eco-filter-system-to-address-pollution-in-Jukskei-River.aspx
+- National Department of Health food-control regulation index: https://www.health.gov.za/food-control-regulations/
+
+Accordingly, the profile separates five site-level assessments from climate suitability:
+
+1. **Water quantity and quality:** source, lawful access, seasonal reliability, storage and interruptions; appropriate microbiological/chemical assessment for intended crops and irrigation contact; salinity/sodicity where relevant. Reused wastewater/greywater requires specific permissions and risk review.
+2. **Soil condition and contaminants:** representative site sampling; soil fertility and physical parameters; history- and pathway-informed contaminant screening before edible production where warranted. SoilGrids is not contaminant clearance.
+3. **Land access and permission:** authorized cultivation, duration, restrictions, accountable operator and relevant approvals.
+4. **Postharvest, energy and transport:** actual storage conditions, power interruptions, capacity, handling, packing, delivery and measured loss. A cold-room marker is not a qualified cold chain.
+5. **Market, nutrition and affordability:** aggregated demand/prices, local nutrition priorities, labour/input/water/energy/storage/distribution costs, spoilage and access. High yield per hectare alone is not the objective.
+
+Each assessment begins as `not_assessed`. Moving to `assessed` requires an auditable evidence reference and reviewer identity/role. The decision-support gate must fail closed until all five assessments have passed their own review. Model output cannot declare water safe, soil uncontaminated, land available or food compliant.
+
 ## Do not build one black-box model per climate zone
 
 The proposed architecture is a shared global evidence/model contract plus regional configurations and crop-/production-system-specific science packs. Climate archetypes are useful for sampling, evaluation and navigation, but they are labels—not the scientific model itself. Use continuous site and climate variables underneath them.
@@ -40,7 +62,7 @@ The common rights field is a review state; exact licence details belong in a sep
 
 ### FAO GAEZ v5 — global screening, not farm truth
 
-GAEZ v5 combines agroclimatic potential with soil/terrain constraints. Its documented products include suitability and attainable-yield information for more than 70 crops and land-use types, rainfed/irrigated conditions, input-management levels, historical reference periods and CMIP6-based future periods. Key outputs are approximately 30 arc-seconds (about 1 km). First inspect the crop/product catalogue, units, masks and exact model configuration; do not assume the desired crop/variety is included or infer a plot-specific yield from a regional suitability cell.
+GAEZ v5 combines agroclimatic potential with soil/terrain constraints. Its documented products include suitability and attainable-yield information across crop/land-utilization types, rainfed/irrigated conditions, management levels, historical reference periods and CMIP6-based future periods. Resolution is product-specific: the master catalogue describes many layers at 5 arc-minutes (about 10 km at the equator), with selected suitability and attainable-yield maps at 30 arc-seconds (about 1 km). Do not describe the entire product family as 1 km. Freeze the exact map code, units, mask, model configuration and spatial support; never infer plot-specific yield from a regional screening cell.
 
 References:
 - https://www.fao.org/gaez/en
