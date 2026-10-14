@@ -728,7 +728,10 @@ mod fossil_deposit_admission_tests {
 
         assert_eq!(evidence.stage, EroiStage::Primary);
         assert!(evidence.is_qualified());
-        assert_eq!(evidence.source_citation, "Example Study, DOI:10.0000/example");
+        assert_eq!(
+            evidence.source_citation,
+            "Example Study, DOI:10.0000/example"
+        );
     }
 
     #[test]
