@@ -88,7 +88,6 @@ pub fn compute_eroi(deposit: &FossilDeposit) -> Option<f64> {
     deposit.eroi.filter(|eroi| eroi.is_finite() && *eroi > 0.0)
 }
 
-
 /// Return a numeric EROI only when its source and system-boundary metadata
 /// are complete enough for like-boundary comparison. The raw reported value
 /// remains available through compute_eroi but must not receive a tier by default.
