@@ -150,6 +150,9 @@ pub fn validate_decision_packet(packet: &Value) -> DecisionValidationReport {
         }
 
         let this_case_id = text_at(case, id_field).unwrap_or("<missing>").to_owned();
+        let run_state = case
+            .get("run_reference")
+            .and_then(|run| text_at(run, "run_state"));
         match text_at(case, "scenario_id") {
             Some(id) if !id.trim().is_empty() => {
                 if !scenario_ids.insert(id.to_owned()) {
@@ -185,6 +188,7 @@ pub fn validate_decision_packet(packet: &Value) -> DecisionValidationReport {
                 metric,
                 &metric_path,
                 &this_case_id,
+                run_state,
                 &mut metric_ids,
                 &mut report,
             );
@@ -279,6 +283,7 @@ fn validate_metric(
     metric: &Value,
     path: &str,
     case_id: &str,
+    run_state: Option<&str>,
     metric_ids: &mut HashSet<String>,
     report: &mut DecisionValidationReport,
 ) -> Option<MetricDescriptor> {
@@ -373,6 +378,14 @@ fn validate_metric(
             format!("{path}.availability_state"),
             "availability_state must be available, unavailable, or not_comparable",
         ),
+    }
+
+    if availability == Some("available") && run_state != Some("Completed") {
+        report.push(
+            "METRIC_WITHOUT_COMPLETED_RUN",
+            format!("{path}.availability_state"),
+            "numeric/available metrics require a Completed run; NotRun, Failed, and Blocked cases cannot supply accepted metric values",
+        );
     }
 
     let comparability = text_at(metric, "comparability_state");
@@ -766,6 +779,25 @@ fn validate_decision_state(
             "a recorded planning decision requires reproduced synthetic or empirically validated run evidence",
         );
     }
+    let baseline_run = baseline.get("run_reference").unwrap_or(&Value::Null);
+    if text_at(baseline_run, "run_state") != Some("Completed") {
+        report.push(
+            "BASELINE_NOT_RUN",
+            "$.baseline.run_reference.run_state",
+            "a recorded intervention decision requires a Completed baseline run",
+        );
+    }
+    if !matches!(
+        text_at(baseline_run, "evidence_ceiling"),
+        Some("synthetic_reproduced" | "empirically_validated")
+    ) {
+        report.push(
+            "BASELINE_EVIDENCE_INSUFFICIENT",
+            "$.baseline.run_reference.evidence_ceiling",
+            "a recorded intervention decision requires reproduced synthetic or empirically validated baseline evidence",
+        );
+    }
+
     if !candidate_constraints_pass(candidate) {
         report.push(
             "SELECTED_ALTERNATIVE_CONSTRAINTS_NOT_PASSED",
@@ -892,6 +924,44 @@ mod tests {
             .issues
             .iter()
             .any(|issue| issue.code == "NOT_RUN_EVIDENCE_PROMOTION"));
+    }
+
+    #[test]
+    fn not_run_case_cannot_claim_available_metric() {
+        let mut packet = fixture();
+        let metric = &mut packet["baseline"]["metrics"][0];
+        metric["availability_state"] = json!("available");
+        metric["value"] = json!(0.0);
+        metric["evidence_class"] = json!("simulated");
+        metric["comparability_state"] = json!("comparable");
+        metric["reason"] = Value::Null;
+        metric["source_references"] = json!(["unverified-run-reference"]);
+
+        let report = validate_decision_packet(&packet);
+        assert!(report
+            .issues
+            .iter()
+            .any(|issue| issue.code == "METRIC_WITHOUT_COMPLETED_RUN"));
+    }
+
+    #[test]
+    fn recorded_decision_requires_a_completed_baseline() {
+        let mut packet = fixture();
+        qualify_case(&mut packet["alternatives"][0]);
+        packet["decision_state"]["state"] = json!("recorded");
+        let selected = packet["alternatives"][0]["alternative_id"].clone();
+        packet["decision_state"]["selected_alternative_id"] = selected;
+        packet["uncertainty_review"]["state"] = json!("assessed");
+        packet["uncertainty_review"]["sensitivity_state"] = json!("ran");
+        packet["equity_review"]["state"] = json!("assessed");
+        packet["decision_state"]["authorization_state"] = json!("planning_only");
+        packet["decision_state"]["independent_engineer_review"] = json!("completed");
+
+        let report = validate_decision_packet(&packet);
+        assert!(report
+            .issues
+            .iter()
+            .any(|issue| issue.code == "BASELINE_NOT_RUN"));
     }
 
     #[test]
