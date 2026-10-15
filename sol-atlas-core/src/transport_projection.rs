@@ -1084,6 +1084,55 @@ mod tests {
     }
 
     #[test]
+    fn numeric_capacity_requires_separate_explicit_evidence() {
+        let mut projection = synthetic_freight_corridor_v1();
+        let road = projection
+            .physical_segments
+            .iter_mut()
+            .find(|segment| segment.id == "road-feeder")
+            .expect("road segment");
+        road.capacity_evidence_ids.clear();
+        assert_eq!(
+            validate_transport_projection(&projection),
+            Err(TransportProjectionError::MissingEvidenceReference)
+        );
+    }
+
+    #[test]
+    fn conflicting_capacity_claims_cannot_back_a_numeric_capacity() {
+        let mut projection = synthetic_freight_corridor_v1();
+        let rail = projection
+            .physical_segments
+            .iter_mut()
+            .find(|segment| segment.id == "rail-haul")
+            .expect("rail segment");
+        rail.capacity = Some(CapacityValueV1 {
+            amount: 8,
+            unit: CapacityUnitV1::Shipments,
+            basis: CapacityBasisV1::Unspecified,
+        });
+        assert_eq!(
+            validate_transport_projection(&projection),
+            Err(TransportProjectionError::CapacityEvidenceUnqualified)
+        );
+    }
+
+    #[test]
+    fn scenario_only_capacity_cannot_be_promoted_to_reported_open_state() {
+        let mut projection = synthetic_freight_corridor_v1();
+        let road = projection
+            .physical_segments
+            .iter_mut()
+            .find(|segment| segment.id == "road-feeder")
+            .expect("road segment");
+        road.state = NetworkSegmentStateV1::ReportedOpen;
+        assert_eq!(
+            validate_transport_projection(&projection),
+            Err(TransportProjectionError::CapacityEvidenceUnqualified)
+        );
+    }
+
+    #[test]
     fn contact_windows_must_be_nonempty_and_use_projection_time_profile() {
         let mut projection = synthetic_freight_corridor_v1();
         projection.communication_contacts[0].end_epoch_seconds =
