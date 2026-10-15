@@ -103,9 +103,9 @@ class EarthSystemsCatalogTests(unittest.TestCase):
 
     def test_black_sea_case_forbids_zero_imputation_and_causal_overclaim(self):
         forbidden = " ".join(self.case_profile["prohibited_claims"]).lower()
-        self.assertIn("not observed values of zero", forbidden)
+        self.assertIn("zero ukrainian grain exports", forbidden)
         self.assertIn("causally", forbidden)
-        self.assertIn("partial month", forbidden)
+        self.assertIn("complete monthly period", forbidden)
         self.assertIn("exact source bytes", forbidden)
 
     def test_every_domain_has_independent_validation(self):
