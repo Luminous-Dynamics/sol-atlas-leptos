@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 import time
@@ -251,18 +252,30 @@ def create_snapshot_dir(path: Path) -> Path:
 
 
 def write_bytes_create_only(path: Path, raw: bytes) -> None:
+    """Create an immutable snapshot and verify durable, exact-byte read-back."""
     created = False
     try:
         with path.open("xb") as stream:
             created = True
-            stream.write(raw)
+            written = stream.write(raw)
+            if written != len(raw):
+                raise OSError(f"short snapshot write: expected {len(raw)} bytes, wrote {written}")
             stream.flush()
-    except OSError:
+            os.fsync(stream.fileno())
+        read_back = path.read_bytes()
+        if read_back != raw:
+            raise OSError(
+                f"snapshot read-back integrity check failed: expected {len(raw)} bytes, "
+                f"read {len(read_back)} bytes"
+            )
+    except OSError as exc:
         if created:
             try:
                 path.unlink(missing_ok=True)
-            except OSError:
-                pass
+            except OSError as cleanup_exc:
+                raise OSError(
+                    f"{exc}; incomplete snapshot cleanup also failed: {cleanup_exc}"
+                ) from exc
         raise
 
 

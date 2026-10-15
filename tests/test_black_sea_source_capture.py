@@ -115,6 +115,32 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
             self.assertEqual(second["capture_state"], "storage_failed")
             self.assertEqual((snapshot / "test.csv").read_bytes(), raw)
 
+    def test_snapshot_write_fsyncs_and_verifies_exact_readback(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "source.bin"
+            raw = b"immutable-source-bytes\\x00\\x01"
+            with patch.object(capture.os, "fsync", wraps=capture.os.fsync) as fsync:
+                capture.write_bytes_create_only(target, raw)
+            self.assertEqual(target.read_bytes(), raw)
+            fsync.assert_called_once()
+
+    def test_snapshot_readback_mismatch_removes_file_and_fails_closed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "source.bin"
+            raw = b"expected-source-bytes"
+            real_read_bytes = Path.read_bytes
+
+            def corrupted_readback(path):
+                result = real_read_bytes(path)
+                if path == target:
+                    return result + b"corruption"
+                return result
+
+            with patch.object(Path, "read_bytes", new=corrupted_readback):
+                with self.assertRaisesRegex(OSError, "read-back integrity check failed"):
+                    capture.write_bytes_create_only(target, raw)
+            self.assertFalse(target.exists())
+
     def test_snapshot_directory_must_be_new(self):
         with tempfile.TemporaryDirectory() as temp:
             existing = Path(temp) / "snapshot"
