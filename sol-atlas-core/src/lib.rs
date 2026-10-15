@@ -27,5 +27,6 @@ pub mod timeline;
 pub mod types;
 pub mod visual_validation;
 pub mod water_engineering;
+pub mod water_observations;
 
 pub use types::*;
