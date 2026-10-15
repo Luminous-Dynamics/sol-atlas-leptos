@@ -128,8 +128,11 @@ impl EnergyBalance {
             .energy_in_j
             .abs()
             .max(self.energy_out_j.abs())
-            .max(self.stored_energy_change_j.abs())
-            .max(1.0);
+            .max(self.stored_energy_change_j.abs());
+        // Do not floor the scale at 1 joule: that would allow a residual that
+        // dwarfs a microjoule-scale (or smaller) model to count as arithmetic
+        // consistency. The zero-energy case has a zero residual and zero
+        // tolerance; subnormal cases fail closed if roundoff cannot be bounded.
         (self.residual_j - computed).abs() <= 1.0e-12 * scale
     }
 
@@ -537,6 +540,23 @@ mod tests {
         let mut bad_ledger = fixture();
         bad_ledger.energy_balance.as_mut().unwrap().residual_j = 10.0;
         assert_eq!(bad_ledger.validate(), Err(ManifestError::InvalidEnergyBalance));
+    }
+
+    #[test]
+    fn tiny_scale_energy_residual_mismatch_is_not_hidden_by_one_joule_floor() {
+        let mut run = fixture();
+        run.energy_balance = Some(EnergyBalance {
+            energy_in_j: 1.0e-15,
+            energy_out_j: 0.0,
+            stored_energy_change_j: 0.0,
+            residual_j: 0.0,
+            tolerance_j: 1.0e-16,
+        });
+
+        // At this scale, the claimed residual of zero is not consistent with
+        // the declared 1 femtojoule input; absolute joule-scale slack would hide it.
+        assert_eq!(run.validate(), Err(ManifestError::InvalidEnergyBalance));
+        assert_eq!(run.readiness(), EvidenceReadiness::Exploratory);
     }
 
     #[test]
