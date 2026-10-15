@@ -65,6 +65,8 @@ pub enum GraphValidationError {
     EmptyObjectEntity,
     SelfRelation,
     DuplicateRelationId,
+    DuplicateEvidenceRecordId,
+    InvalidEvidenceRecord,
     MissingSupportingEvidence,
     EmptySupportingEvidenceId,
     DuplicateSupportingEvidenceId,
@@ -78,6 +80,66 @@ pub enum GraphValidationError {
 pub enum DependencyQueryError {
     InvalidAsOfTimestamp,
     InvalidRelationValidity,
+}
+
+
+/// Evidence-gate outcome for one relationship. These are query-readiness labels,
+/// not truth scores and not a substitute for source independence review.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EvidenceReadiness {
+    AssertedOnly,
+    IncludesCorroboratedEvidence,
+    Blocked,
+}
+
+/// Why an evidence reference cannot currently make a relationship traversable.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EvidenceBlockReason {
+    ProposedEvidence,
+    DisputedEvidence,
+    SupersededEvidence,
+    WithdrawnEvidence,
+    OutsideEvidenceValidity,
+    InvalidEvidenceValidity,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidenceBlocker {
+    pub evidence_id: String,
+    pub reason: EvidenceBlockReason,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RelationEvidenceAssessment {
+    pub relation_id: String,
+    pub readiness: EvidenceReadiness,
+    pub evidence_states: Vec<EvidenceState>,
+    pub blockers: Vec<EvidenceBlocker>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AssessedDependencyImpact {
+    pub impact: DependencyImpact,
+    /// Readiness for each relation in impact.relation_path_ids, in the same order.
+    pub evidence_readiness_by_relation: Vec<EvidenceReadiness>,
+    /// Evidence states aligned with relation_path_ids, and then each edge's support IDs.
+    pub evidence_states_by_relation: Vec<Vec<EvidenceState>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AssessedDependencyReport {
+    pub impacts: Vec<AssessedDependencyImpact>,
+    /// All dependency relationships active at the requested instant, including blocked ones.
+    pub relation_assessments: Vec<RelationEvidenceAssessment>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DependencyAssessmentError {
+    InvalidAsOfTimestamp,
+    InvalidRelationValidity,
+    InvalidGraph(Vec<GraphValidationError>),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -114,10 +176,17 @@ impl DependencyGraph {
         &self,
         evidence_records: &[EvidenceRecord],
     ) -> Result<(), Vec<GraphValidationError>> {
-        let evidence_ids: BTreeSet<&str> =
-            evidence_records.iter().map(|record| record.id.as_str()).collect();
-        let mut relation_ids = BTreeSet::new();
+        let mut evidence_ids = BTreeSet::new();
         let mut errors = Vec::new();
+        for evidence in evidence_records {
+            if !evidence_ids.insert(evidence.id.as_str()) {
+                errors.push(GraphValidationError::DuplicateEvidenceRecordId);
+            }
+            if evidence.validate().is_err() {
+                errors.push(GraphValidationError::InvalidEvidenceRecord);
+            }
+        }
+        let mut relation_ids = BTreeSet::new();
 
         for relation in &self.relations {
             if relation.id.trim().is_empty() {
@@ -184,8 +253,189 @@ impl DependencyGraph {
         }
     }
 
-    /// Find transitive dependents of an entity as of a canonical UTC timestamp.
+    /// Low-level traversal over graph structure without inspecting evidence state.
+    /// Evidence-aware query for current dependency paths.
     ///
+    /// Fails closed if the graph has duplicate/invalid evidence records or unknown
+    /// evidence references. A relationship is traversable only when every listed
+    /// supporting record is Asserted or Corroborated and is valid at `at`.
+    /// Proposed, disputed, superseded, withdrawn, invalidly-timed and out-of-window
+    /// support blocks that relationship; every blocker is returned for inspection.
+    ///
+    /// This is an eligibility filter, not a truth oracle. An asserted-only path is
+    /// explicitly distinguished from one containing a record labelled corroborated.
+    pub fn assess_dependents_at(
+        &self,
+        prerequisite_entity_id: &str,
+        at: &str,
+        evidence_records: &[EvidenceRecord],
+    ) -> Result<AssessedDependencyReport, DependencyAssessmentError> {
+        if !is_canonical_utc_timestamp(at) {
+            return Err(DependencyAssessmentError::InvalidAsOfTimestamp);
+        }
+
+        self.validate(evidence_records)
+            .map_err(DependencyAssessmentError::InvalidGraph)?;
+
+        let evidence_by_id: BTreeMap<&str, &EvidenceRecord> = evidence_records
+            .iter()
+            .map(|record| (record.id.as_str(), record))
+            .collect();
+
+        let mut traversable_relations = Vec::new();
+        let mut relation_assessments = Vec::new();
+
+        for relation in &self.relations {
+            if let Some(start) = relation.valid_from.as_deref() {
+                if !is_canonical_utc_timestamp(start) {
+                    return Err(DependencyAssessmentError::InvalidRelationValidity);
+                }
+            }
+            if let Some(end) = relation.valid_until.as_deref() {
+                if !is_canonical_utc_timestamp(end) {
+                    return Err(DependencyAssessmentError::InvalidRelationValidity);
+                }
+            }
+            if let (Some(start), Some(end)) = (
+                relation.valid_from.as_deref(),
+                relation.valid_until.as_deref(),
+            ) {
+                if start >= end {
+                    return Err(DependencyAssessmentError::InvalidRelationValidity);
+                }
+            }
+
+            if !relation.kind.is_dependency_edge() || !relation.is_valid_at(at) {
+                continue;
+            }
+
+            let mut states = Vec::new();
+            let mut blockers = Vec::new();
+            let mut includes_corroborated = false;
+
+            for evidence_id in &relation.supporting_evidence_ids {
+                let record = evidence_by_id[evidence_id.as_str()];
+                states.push(record.state);
+                match record.state {
+                    EvidenceState::Asserted => {}
+                    EvidenceState::Corroborated => includes_corroborated = true,
+                    EvidenceState::Proposed => blockers.push(EvidenceBlocker {
+                        evidence_id: evidence_id.clone(),
+                        reason: EvidenceBlockReason::ProposedEvidence,
+                    }),
+                    EvidenceState::Disputed => blockers.push(EvidenceBlocker {
+                        evidence_id: evidence_id.clone(),
+                        reason: EvidenceBlockReason::DisputedEvidence,
+                    }),
+                    EvidenceState::Superseded => blockers.push(EvidenceBlocker {
+                        evidence_id: evidence_id.clone(),
+                        reason: EvidenceBlockReason::SupersededEvidence,
+                    }),
+                    EvidenceState::Withdrawn => blockers.push(EvidenceBlocker {
+                        evidence_id: evidence_id.clone(),
+                        reason: EvidenceBlockReason::WithdrawnEvidence,
+                    }),
+                }
+
+                let start = record.time.valid_from.as_deref();
+                let end = record.time.valid_until.as_deref();
+                let invalid_window = start.is_some_and(|value| !is_canonical_utc_timestamp(value))
+                    || end.is_some_and(|value| !is_canonical_utc_timestamp(value))
+                    || matches!((start, end), (Some(first), Some(last)) if {
+                        is_canonical_utc_timestamp(first)
+                            && is_canonical_utc_timestamp(last)
+                            && first >= last
+                    });
+
+                if invalid_window {
+                    blockers.push(EvidenceBlocker {
+                        evidence_id: evidence_id.clone(),
+                        reason: EvidenceBlockReason::InvalidEvidenceValidity,
+                    });
+                } else if start.is_some_and(|value| value > at)
+                    || end.is_some_and(|value| at >= value)
+                {
+                    blockers.push(EvidenceBlocker {
+                        evidence_id: evidence_id.clone(),
+                        reason: EvidenceBlockReason::OutsideEvidenceValidity,
+                    });
+                }
+            }
+
+            let readiness = if !blockers.is_empty() {
+                EvidenceReadiness::Blocked
+            } else if includes_corroborated {
+                EvidenceReadiness::IncludesCorroboratedEvidence
+            } else {
+                EvidenceReadiness::AssertedOnly
+            };
+
+            if readiness != EvidenceReadiness::Blocked {
+                traversable_relations.push(relation.clone());
+            }
+
+            relation_assessments.push(RelationEvidenceAssessment {
+                relation_id: relation.id.clone(),
+                readiness,
+                evidence_states: states,
+                blockers,
+            });
+        }
+
+        let traversable = DependencyGraph {
+            relations: traversable_relations,
+        };
+        let impacts = traversable
+            .affected_dependents_at(prerequisite_entity_id, at)
+            .map_err(|error| match error {
+                DependencyQueryError::InvalidAsOfTimestamp => {
+                    DependencyAssessmentError::InvalidAsOfTimestamp
+                }
+                DependencyQueryError::InvalidRelationValidity => {
+                    DependencyAssessmentError::InvalidRelationValidity
+                }
+            })?;
+
+        let assessment_by_relation: BTreeMap<&str, &RelationEvidenceAssessment> =
+            relation_assessments
+                .iter()
+                .map(|assessment| (assessment.relation_id.as_str(), assessment))
+                .collect();
+
+        let assessed_impacts = impacts
+            .into_iter()
+            .map(|impact| {
+                let evidence_readiness_by_relation = impact
+                    .relation_path_ids
+                    .iter()
+                    .map(|id| assessment_by_relation[id.as_str()].readiness)
+                    .collect();
+                let evidence_states_by_relation = impact
+                    .relation_path_ids
+                    .iter()
+                    .map(|id| assessment_by_relation[id.as_str()].evidence_states.clone())
+                    .collect();
+                AssessedDependencyImpact {
+                    impact,
+                    evidence_readiness_by_relation,
+                    evidence_states_by_relation,
+                }
+            })
+            .collect();
+
+        Ok(AssessedDependencyReport {
+            impacts: assessed_impacts,
+            relation_assessments,
+        })
+    }
+
+
+    ///
+    /// Prefer `assess_dependents_at` for decision-support or operational use.
+    /// This method does not validate supporting evidence IDs, source state,
+    /// evidence validity periods, independence or truth.
+    ///
+    /// It finds transitive dependents of an entity as of a canonical UTC timestamp.
     /// An edge `A supplied_by B` means A depends on B, so a query rooted at B
     /// finds A. Only dependency kinds are traversed; semantic relations like
     /// `located_at` or `owned_by` are not treated as failure propagation.
@@ -193,7 +443,7 @@ impl DependencyGraph {
     /// The result uses breadth-first traversal, stable relation-ID ordering,
     /// cycle protection, shortest explanatory paths, and per-edge evidence IDs.
     /// It does not estimate probability, severity, physical distance or causal
-    /// impact. Validate the graph against evidence records before using it.
+    /// impact.
     pub fn affected_dependents_at(
         &self,
         prerequisite_entity_id: &str,
@@ -650,6 +900,184 @@ mod tests {
             .iter()
             .flatten()
             .any(|id| id == "synthetic-evidence-pump-power"));
+    }
+
+    #[test]
+    fn evidence_aware_query_propagates_only_admissible_edges_and_explains_path_state() {
+        let graph = DependencyGraph {
+            relations: vec![
+                relation("pump-feeder", "pump", RelationKind::SuppliedBy, "feeder", "ev-pump"),
+                relation("field-pump", "field", RelationKind::DependsOn, "pump", "ev-field"),
+                relation("warehouse-feeder", "warehouse", RelationKind::DependsOn, "feeder", "ev-proposed"),
+            ],
+        };
+        let mut pump_evidence = evidence("ev-pump");
+        pump_evidence.state = EvidenceState::Corroborated;
+        let field_evidence = evidence("ev-field");
+        let mut proposed_evidence = evidence("ev-proposed");
+        proposed_evidence.state = EvidenceState::Proposed;
+
+        let report = graph
+            .assess_dependents_at(
+                "feeder",
+                "2026-10-15T10:00:00Z",
+                &[pump_evidence, field_evidence, proposed_evidence],
+            )
+            .unwrap();
+
+        assert_eq!(
+            report.impacts.iter().map(|impact| impact.impact.entity_id.as_str()).collect::<Vec<_>>(),
+            vec!["pump", "field"]
+        );
+        assert_eq!(
+            report.impacts[0].evidence_readiness_by_relation,
+            vec![EvidenceReadiness::IncludesCorroboratedEvidence]
+        );
+        assert_eq!(
+            report.impacts[1].evidence_readiness_by_relation,
+            vec![
+                EvidenceReadiness::IncludesCorroboratedEvidence,
+                EvidenceReadiness::AssertedOnly
+            ]
+        );
+        let warehouse = report
+            .relation_assessments
+            .iter()
+            .find(|assessment| assessment.relation_id == "warehouse-feeder")
+            .unwrap();
+        assert_eq!(warehouse.readiness, EvidenceReadiness::Blocked);
+        assert_eq!(warehouse.blockers[0].reason, EvidenceBlockReason::ProposedEvidence);
+    }
+
+    #[test]
+    fn evidence_aware_query_blocks_disputed_support_even_when_another_record_is_corroborated() {
+        let graph = DependencyGraph {
+            relations: vec![SpatialRelation {
+                id: "pump-feeder".into(),
+                subject_entity_id: "pump".into(),
+                kind: RelationKind::SuppliedBy,
+                object_entity_id: "feeder".into(),
+                valid_from: None,
+                valid_until: None,
+                supporting_evidence_ids: vec!["ev-corroborated".into(), "ev-disputed".into()],
+            }],
+        };
+        let mut corroborated = evidence("ev-corroborated");
+        corroborated.state = EvidenceState::Corroborated;
+        let mut disputed = evidence("ev-disputed");
+        disputed.state = EvidenceState::Disputed;
+
+        let report = graph
+            .assess_dependents_at(
+                "feeder",
+                "2026-10-15T10:00:00Z",
+                &[corroborated, disputed],
+            )
+            .unwrap();
+        assert!(report.impacts.is_empty());
+        assert_eq!(report.relation_assessments[0].readiness, EvidenceReadiness::Blocked);
+        assert!(report.relation_assessments[0]
+            .blockers
+            .iter()
+            .any(|blocker| blocker.reason == EvidenceBlockReason::DisputedEvidence));
+    }
+
+    #[test]
+    fn evidence_validity_window_blocks_stale_support_for_as_of_query() {
+        let graph = DependencyGraph {
+            relations: vec![relation(
+                "pump-feeder",
+                "pump",
+                RelationKind::SuppliedBy,
+                "feeder",
+                "ev-expired",
+            )],
+        };
+        let mut expired = evidence("ev-expired");
+        expired.time.valid_from = Some("2026-10-01T00:00:00Z".into());
+        expired.time.valid_until = Some("2026-10-10T00:00:00Z".into());
+
+        let report = graph
+            .assess_dependents_at(
+                "feeder",
+                "2026-10-15T10:00:00Z",
+                &[expired],
+            )
+            .unwrap();
+        assert!(report.impacts.is_empty());
+        assert_eq!(
+            report.relation_assessments[0].blockers[0].reason,
+            EvidenceBlockReason::OutsideEvidenceValidity
+        );
+    }
+
+    #[test]
+    fn evidence_aware_query_fails_closed_on_unknown_and_duplicate_evidence_ids() {
+        let graph = DependencyGraph {
+            relations: vec![relation(
+                "pump-feeder",
+                "pump",
+                RelationKind::SuppliedBy,
+                "feeder",
+                "ev-pump",
+            )],
+        };
+        let unknown = graph
+            .assess_dependents_at(
+                "feeder",
+                "2026-10-15T10:00:00Z",
+                &[evidence("some-other-evidence")],
+            )
+            .unwrap_err();
+        assert!(matches!(
+            unknown,
+            DependencyAssessmentError::InvalidGraph(errors)
+                if errors.contains(&GraphValidationError::UnknownEvidenceReference)
+        ));
+
+        let duplicate = graph
+            .assess_dependents_at(
+                "feeder",
+                "2026-10-15T10:00:00Z",
+                &[evidence("ev-pump"), evidence("ev-pump")],
+            )
+            .unwrap_err();
+        assert!(matches!(
+            duplicate,
+            DependencyAssessmentError::InvalidGraph(errors)
+                if errors.contains(&GraphValidationError::DuplicateEvidenceRecordId)
+        ));
+    }
+
+    #[test]
+    fn evidence_aware_query_blocks_malformed_validity_and_rejects_bad_query_time() {
+        let graph = DependencyGraph {
+            relations: vec![relation(
+                "pump-feeder",
+                "pump",
+                RelationKind::SuppliedBy,
+                "feeder",
+                "ev-pump",
+            )],
+        };
+        let mut evidence_record = evidence("ev-pump");
+        evidence_record.time.valid_from = Some("not-a-timestamp".into());
+        let report = graph
+            .assess_dependents_at(
+                "feeder",
+                "2026-10-15T10:00:00Z",
+                &[evidence_record],
+            )
+            .unwrap();
+        assert!(report.impacts.is_empty());
+        assert_eq!(
+            report.relation_assessments[0].blockers[0].reason,
+            EvidenceBlockReason::InvalidEvidenceValidity
+        );
+        assert_eq!(
+            graph.assess_dependents_at("feeder", "yesterday", &[evidence("ev-pump")]),
+            Err(DependencyAssessmentError::InvalidAsOfTimestamp)
+        );
     }
 
 }
