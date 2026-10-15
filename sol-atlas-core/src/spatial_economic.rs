@@ -401,4 +401,53 @@ mod tests {
         let decoded: EvidenceRecord = serde_json::from_str(&encoded).unwrap();
         assert_eq!(decoded, record);
     }
+    #[test]
+    fn schema_enums_match_rust_contract() {
+        let schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/spatial-economic-evidence-v0.1.schema.json"
+        ))
+        .unwrap();
+
+        let kinds = schema["properties"]["kind"]["enum"].as_array().unwrap();
+        let expected_kinds = [
+            ("observation", EvidenceKind::Observation),
+            ("forecast", EvidenceKind::Forecast),
+            ("scenario", EvidenceKind::Scenario),
+            ("commitment", EvidenceKind::Commitment),
+            ("delivery", EvidenceKind::Delivery),
+            ("acceptance", EvidenceKind::Acceptance),
+            ("invoice", EvidenceKind::Invoice),
+            ("settlement", EvidenceKind::Settlement),
+            ("impact_measurement", EvidenceKind::ImpactMeasurement),
+        ];
+        for (name, kind) in expected_kinds {
+            assert!(kinds.contains(&serde_json::json!(name)));
+            assert_eq!(serde_json::to_value(kind).unwrap(), serde_json::json!(name));
+        }
+
+        let states = schema["properties"]["state"]["enum"].as_array().unwrap();
+        let expected_states = [
+            ("proposed", EvidenceState::Proposed),
+            ("asserted", EvidenceState::Asserted),
+            ("corroborated", EvidenceState::Corroborated),
+            ("disputed", EvidenceState::Disputed),
+            ("superseded", EvidenceState::Superseded),
+            ("withdrawn", EvidenceState::Withdrawn),
+        ];
+        for (name, state) in expected_states {
+            assert!(states.contains(&serde_json::json!(name)));
+            assert_eq!(serde_json::to_value(state).unwrap(), serde_json::json!(name));
+        }
+
+        assert_eq!(
+            schema["properties"]["schema_version"],
+            serde_json::json!({"const": EVIDENCE_SCHEMA_VERSION})
+        );
+        let money_pattern = schema["properties"]["money"]["properties"]["amount_decimal"]
+            ["pattern"]
+            .as_str()
+            .unwrap();
+        assert!(money_pattern.contains(r"(?:\.[0-9]+)?"));
+    }
+
 }
