@@ -503,6 +503,17 @@ mod tests {
     }
 
     #[test]
+    fn identifiers_match_the_lowercase_contract_even_without_schema_validation() {
+        let mut model = toy_model();
+        model.actions[0].action_id = "Leak_A".to_owned();
+        assert!(
+            evaluate_measurement_model(&model)
+                .unwrap_err()
+                .contains("invalid action_id")
+        );
+    }
+
+    #[test]
     fn mismatched_same_unit_declaration_is_rejected() {
         let mut model = toy_model();
         model.cost_unit = "currency_units".to_owned();
