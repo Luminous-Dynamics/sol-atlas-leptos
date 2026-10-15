@@ -1,0 +1,237 @@
+{
+  "schema_version": "water-measurement-experiment/v0.1",
+  "experiment_id": "w0-decision-directed-measurement-plan",
+  "classification": "synthetic_public",
+  "research_question": "Can decision-directed measurement strategies improve leak-localisation evidence per unit of sensor and inspection effort on a reproducible synthetic EPANET scenario corpus?",
+  "model_reference": {
+    "model_id": "w0_network_synthetic_v1",
+    "solver_family": "EPANET",
+    "state": "NotRun",
+    "input_sha256": null,
+    "evidence_ceiling": "contract_only",
+    "notes": [
+      "The existing W0 input is a small synthetic contract fixture, not a calibrated network.",
+      "No hydraulic simulation output is attached."
+    ]
+  },
+  "scenario_corpus": {
+    "state": "NotGenerated",
+    "scenario_count": 0,
+    "manifest_sha256": null,
+    "planned_axes": [
+      "synthetic leak location and magnitude across declared discrete ranges",
+      "nodal demand perturbation and timing profile",
+      "pipe roughness and sensor-noise perturbations",
+      "held-out parameter combinations for robustness checks"
+    ],
+    "random_seed_policy": "Freeze and hash one seed manifest before execution; use matched scenario seeds across strategies and a separate held-out seed set.",
+    "negative_controls": [
+      "zero-leak/no-fault must not count as a correctly localised leak",
+      "missing or corrupted sensor channels are failed/unavailable, never zero readings",
+      "input or scenario digest drift invalidates attached results",
+      "duplicated sensor information must not be credited as independent information gain"
+    ]
+  },
+  "candidate_actions": [
+    {
+      "action_id": "pressure-log-window",
+      "kind": "pressure_logging",
+      "question": "Which bounded pressure measurements distinguish candidate synthetic leak hypotheses?",
+      "decision_target": "Reduce ambiguity between baseline and declared synthetic leak cases without revealing real asset locations.",
+      "expected_evidence_type": "Timestamped synthetic node-pressure series with labelled scenarios and stated measurement noise.",
+      "action_state": "proposed",
+      "acquisition_cost": {
+        "state": "not_estimated",
+        "value": null,
+        "unit": "cost units not defined",
+        "basis_reference": null,
+        "assumptions": [
+          "No sensor prices, installation costs, telemetry costs, sampling intervals or labour rates have been established."
+        ]
+      },
+      "information_model": {
+        "state": "not_estimated",
+        "expected_information_gain_bits": null,
+        "expected_decision_value": null,
+        "decision_value_unit": "not defined",
+        "model_reference": null,
+        "assumptions": [
+          "Information gain cannot be inferred from intuition alone.",
+          "Estimate it only after labelled scenarios, noise assumptions and a declared hypothesis prior exist."
+        ]
+      },
+      "permission_state": "not_applicable_synthetic_only",
+      "location_specificity": "none",
+      "privacy_risk": "not_assessed",
+      "fieldwork_authorization": "not_authorized",
+      "blocking_unknowns": [
+        "No scenario corpus or sensor-noise model has been executed.",
+        "No field data collection or deployment is authorised."
+      ]
+    },
+    {
+      "action_id": "flow-meter-quality-check",
+      "kind": "flow_meter_validation",
+      "question": "Does an independent meter-quality check change which synthetic flow observations are trusted?",
+      "decision_target": "Distinguish instrumentation error from a simulated physical-loss hypothesis.",
+      "expected_evidence_type": "Synthetic calibrated and perturbed meter readings with ground-truth bias and uncertainty labels.",
+      "action_state": "proposed",
+      "acquisition_cost": {
+        "state": "not_estimated",
+        "value": null,
+        "unit": "cost units not defined",
+        "basis_reference": null,
+        "assumptions": [
+          "No meter calibration or staff-time cost model is available."
+        ]
+      },
+      "information_model": {
+        "state": "not_estimated",
+        "expected_information_gain_bits": null,
+        "expected_decision_value": null,
+        "decision_value_unit": "not defined",
+        "model_reference": null,
+        "assumptions": [
+          "No likelihood model for calibration outcomes has been specified.",
+          "Information gain and decision value must remain separate quantities."
+        ]
+      },
+      "permission_state": "not_applicable_synthetic_only",
+      "location_specificity": "none",
+      "privacy_risk": "not_assessed",
+      "fieldwork_authorization": "not_authorized",
+      "blocking_unknowns": [
+        "No ground-truth meter-error distribution is specified.",
+        "No real meter telemetry is attached."
+      ]
+    },
+    {
+      "action_id": "reported-table-verification",
+      "kind": "report_table_verification",
+      "question": "Can a primary-document table check resolve an aggregate discrepancy before intervention planning?",
+      "decision_target": "Prevent unresolved annual-report KPIs from entering a model as settled facts.",
+      "expected_evidence_type": "Reviewed source page/table locator, transcription, reviewer identity and correction history.",
+      "action_state": "proposed",
+      "acquisition_cost": {
+        "state": "not_estimated",
+        "value": null,
+        "unit": "cost units not defined",
+        "basis_reference": null,
+        "assumptions": [
+          "No task-duration or cost estimate has been measured."
+        ]
+      },
+      "information_model": {
+        "state": "not_estimated",
+        "expected_information_gain_bits": null,
+        "expected_decision_value": null,
+        "decision_value_unit": "not defined",
+        "model_reference": null,
+        "assumptions": [
+          "This is a provenance-resolving desk task, not a hydraulic observation.",
+          "Do not attribute expected service improvement to resolving a documentation discrepancy."
+        ]
+      },
+      "permission_state": "not_applicable_synthetic_only",
+      "location_specificity": "none",
+      "privacy_risk": "low",
+      "fieldwork_authorization": "not_authorized",
+      "blocking_unknowns": [
+        "A reviewer must inspect the primary table before a provisional value is promoted.",
+        "Document review alone cannot provide pipe-level hydraulic calibration."
+      ]
+    }
+  ],
+  "baseline_strategies": [
+    "information_directed",
+    "random_seeded",
+    "spatial_coverage_greedy",
+    "fixed_heuristic"
+  ],
+  "metric_definitions": [
+    {
+      "metric_id": "localization.top_k_accuracy",
+      "definition": "Fraction of labelled leak scenarios where the true leak class appears within predeclared top-k candidates.",
+      "unit": "proportion",
+      "direction": "higher_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "top_k",
+      "prohibited_interpretation": "Not a field leak detection rate or a performance guarantee."
+    },
+    {
+      "metric_id": "localization.detection_delay",
+      "definition": "Simulated elapsed time from scenario onset to a detection meeting frozen criteria.",
+      "unit": "second",
+      "direction": "lower_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "p95",
+      "prohibited_interpretation": "Not operational response time or a guarantee of reduced outages."
+    },
+    {
+      "metric_id": "sensor.count",
+      "definition": "Sensor channels required by the declared budget convention.",
+      "unit": "sensor",
+      "direction": "lower_is_better",
+      "evidence_requirement": "independent_review",
+      "aggregation": "per_scenario",
+      "prohibited_interpretation": "Not a full lifecycle-cost estimate."
+    },
+    {
+      "metric_id": "information.redundancy",
+      "definition": "Declared information redundancy across selected channels, with the exact method recorded.",
+      "unit": "bit",
+      "direction": "lower_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "per_scenario",
+      "prohibited_interpretation": "Information/entropy reduction is not automatically service or monetary benefit."
+    },
+    {
+      "metric_id": "robustness.worst_case_localization",
+      "definition": "Worst-case top-k localisation outcome on held-out scenarios, preserving denominator and failed cases.",
+      "unit": "proportion",
+      "direction": "higher_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "worst_case",
+      "prohibited_interpretation": "Not a guarantee outside the tested scenario domain."
+    }
+  ],
+  "acceptance_criteria": {
+    "state": "not_frozen",
+    "criteria": [],
+    "freeze_before_evaluation": true,
+    "notes": [
+      "Numerical thresholds have not been chosen and must be justified before any strategy result is examined.",
+      "All strategies must use identical scenario manifests and matched seeds.",
+      "Report per-scenario failures and uncertainty; do not select a winner from an aggregate scalar score."
+    ]
+  },
+  "comparison_policy": {
+    "strategies_must_share_corpus": true,
+    "same_seed_policy": "Matched scenario seeds across strategies; freeze and hash training and held-out manifests separately.",
+    "report_all_scenarios": true,
+    "scalar_score_allowed": false,
+    "missing_outcome_behavior": "explicit_failure_not_zero",
+    "selection_basis": "factor_level_and_pareto_no_hidden_weights"
+  },
+  "evaluation": {
+    "state": "NotRun",
+    "evaluation_manifest_sha256": null,
+    "strategy_results": [],
+    "failure_log": [],
+    "claim_ceiling": "protocol_only"
+  },
+  "safety_and_privacy": {
+    "operating_mode": "offline_read_only",
+    "fieldwork_authorization": "not_authorized",
+    "public_location_policy": "no_sensitive_coordinates_or_asset_ids",
+    "owner_permission_required": true,
+    "security_review_state": "required"
+  },
+  "nonclaims": [
+    "This is an experiment protocol, not an executed EPANET study.",
+    "No expected information gain, financial value, sensor cost or localisation performance has been estimated.",
+    "No real network, telemetry, sensor location or fieldwork authorisation is represented.",
+    "This protocol does not establish that information-directed strategies outperform any baseline.",
+    "Do not claim reproduced results until inputs, solver identity, scenario manifest, outputs and failures are independently reviewed."
+  ]
+}
