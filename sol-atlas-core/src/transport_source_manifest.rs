@@ -330,7 +330,8 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                 qualification_review_ref: None,
                 missingness_and_limitations: vec![
                     "Public consultation page is a research lead, not a data feed.".to_owned(),
-                    "Draft consultation only; verify adoption before treating it as policy.".to_owned(),
+                    "Draft consultation only; verify adoption before treating it as policy."
+                        .to_owned(),
                 ],
             },
             TransportSourceRecordV1 {
@@ -355,8 +356,10 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                 parser_profile_id: None,
                 qualification_review_ref: None,
                 missingness_and_limitations: vec![
-                    "Sites are proposed; confirmation and land assessments remain unverified.".to_owned(),
-                    "The 10.4 Mt figure is modelled, not guaranteed modal shift or verified capacity.".to_owned(),
+                    "Sites are proposed; confirmation and land assessments remain unverified."
+                        .to_owned(),
+                    "The 10.4 Mt figure is modelled, not guaranteed modal shift or verified capacity."
+                        .to_owned(),
                 ],
             },
         ],
