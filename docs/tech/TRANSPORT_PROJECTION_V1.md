@@ -71,6 +71,21 @@ Treat published sources as acquisition leads until exact downloads, access condi
 
 For every prospective input, record the exact publisher, source URI or acquisition record, access/licence decision, source version, geographic and temporal coverage, source time profile, retrieval time, byte count, SHA-256 of exact bytes, parsing/transformation version, missingness and CRS. States such as not acquired, access review required, acquired-unreviewed, qualified for scenario and rejected must remain distinct. Aggregate national throughput must never be presented as route-level usable capacity.
 
+## Cross-project adapter boundary
+
+This projection is deliberately a **view contract**, not a replacement for the other projects' canonical semantics:
+
+| Producer / authority | What Sol Atlas may consume | What Sol Atlas must not infer |
+|---|---|---|
+| Symtropy multimodal planner ([PR #1602](https://github.com/Luminous-Dynamics/symtropy/pull/1602), [schedule-aware capacity PR #1621](https://github.com/Luminous-Dynamics/symtropy/pull/1621)) | Versioned scenario/route outputs, explicitly qualified capacity evidence, objective vectors and rejection reasons | A route in a model is physically feasible; a plan is a reservation; a capacity budget is live availability |
+| Mycelix offline logistics twin ([PR #4902](https://github.com/Luminous-Dynamics/mycelix/pull/4902)) | Deterministic replay summaries and independent-verifier findings with frozen manifest lineage | A valid simulation receipt proves a real delivery or authorizes inventory mutation |
+| Mycelix logistics standards registry ([PR #5005](https://github.com/Luminous-Dynamics/mycelix/pull/5005)) | Named, versioned source/profile mappings and explicit lossy-mapping notes | Different standards' events can be flattened into one interchangeable event type |
+| Geospatial source adapters | Read-only feature snapshots with source schema/profile and coordinate reference commitments | Public landing-page visibility implies an available API, free redistribution or operational freshness |
+
+The adapter should map sources such as GS1 EPCIS while preserving event time separately from repository `recordTime`: GS1 specifies that `recordTime` is repository bookkeeping, not the real-world event time. <https://ref.gs1.org/standards/epcis/2.0.0/> For geographic feature services, prefer a reviewed OGC API – Features profile when the publisher exposes one; the standard is modular, and an endpoint is conformant only if its implemented parts and data contract are established. <https://www.ogc.org/standards/ogcapi-features/>
+
+Every adapter mapping should identify the source standard/release, source schema, internal target field, normalization or lossy transform, unit conversion, time/CRS transform and claim ceiling. Unknown source fields should remain inspectable in the adapter's provenance output; they must not be silently dropped when they could affect routing, capacity, time or custody.
+
 ## Source acquisition gate
 
 The companion module `sol-atlas-core/src/transport_source_manifest.rs` provides a typed `TransportSourceManifestV1`. A source record keeps `NotAcquired`, `AccessReviewRequired`, `AcquiredUnreviewed`, `QualifiedForScenario` and `Rejected` states distinct from rights decisions. A source can move to `QualifiedForScenario` only when the manifest has an exact acquired-byte receipt (retrieval timestamp, byte count and SHA-256 shape), a permitted rights state and decision reference, schema and geographic/time profiles as appropriate, coverage interval for non-document data, parser profile, a qualification-review reference and explicit missingness/limitations.
