@@ -66,7 +66,7 @@ Measure outcomes in terms relevant to the use case—reliability of water delive
 
 ## Contract boundary (v0.1)
 
-The machine-readable contract is [the v0.1 JSON Schema](../../schemas/spatial-economic-evidence-v0.1.schema.json); Rust primitives are in [spatial_economic.rs](../../sol-atlas-core/src/spatial_economic.rs).
+The machine-readable contracts are the [EvidenceRecord JSON Schema](../../schemas/spatial-economic-evidence-v0.1.schema.json) and the [SpatialRelation JSON Schema](../../schemas/spatial-economic-relation-v0.1.schema.json). Rust primitives are in [spatial_economic.rs](../../sol-atlas-core/src/spatial_economic.rs) and [spatial_graph.rs](../../sol-atlas-core/src/spatial_graph.rs).
 
 Each EvidenceRecord has:
 - **Identity:** immutable statement ID, schema version, issuer and subject IDs.
@@ -86,7 +86,7 @@ A correction appends a new statement that references the old one; it does not re
 
 1. **Spatial substrate:** stable entity IDs, geometry/CRS metadata, spatial-temporal queries, and support for offline snapshots. Prefer interoperable standards and adapters over a bespoke geospatial wire protocol.
 2. **Evidence layer:** immutable/correctable claims, source manifests, issuer identity, explicit states and provenance.
-3. **Dependency graph:** typed links among places, assets, facilities, goods, counterparties, services, contracts and resources.
+3. **Dependency graph:** typed, time-bounded links among places, assets, facilities, goods, counterparties, services, contracts and resources. `spatial_graph.rs` makes dependency direction explicit, checks supporting evidence references, and provides deterministic as-of reachability with cycle protection. Reachability is not a causal model or a probability of loss.
 4. **Economic execution:** adapters for double-entry accounting, procurement, inventory, work orders, dispatch, invoices and payment systems. External systems remain authoritative for their own transactions.
 5. **Scenario/evaluation engine:** explicit constraints, versioned assumptions, reproducible runs and baseline/negative-control reports.
 6. **Human interface:** map, dependency explorer, claim timeline, commitment board, scenario compare view and evidence inspector. Every consequential recommendation should show its inputs and limitations.
@@ -126,7 +126,7 @@ Never treat “no data” as zero, “not captured” as unavailable, “queued�
 - **P0 — Contract:** ship the Rust contract primitives, JSON Schema and unit tests (this initial increment).
 - **P1 — Adversarial fixtures:** add schema-validation tests and fixtures for missing CRS, invalid digest, conflicting claims, supersession, uncertain measurements, bad units and attempted state confusion.
 - **P2 — Evidence adapters:** wrap current CHIRPS/WaPOR and supply-chain capture manifests without downloading or asserting data that has not been qualified.
-- **P3 — Query proof:** prototype “what evidence supports this dependency?” with a small deterministic fixture and exact expected results.
+- **P3 — Query proof:** start with typed, evidence-backed dependency edges and deterministic as-of traversal. Extend with minimal fixtures for “what evidence supports this dependency?”, impact-path explanations, cycle protection, temporal boundaries, and negative controls before spatial overlay or risk scoring.
 - **P4 — Economic lifecycle:** simulate one end-to-end obligation with partial delivery, acceptance rejection, invoice, settlement and reversal; test physical and financial reconciliation separately.
 - **P5 — Evaluated pilot:** only after source qualification and human review, compare a bounded intervention to baseline.
 
