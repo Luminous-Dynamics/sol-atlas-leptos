@@ -23,6 +23,7 @@ pub enum SourceProductKindV1 {
     AssetInventory,
     TrafficObservations,
     OperatorCapacityFeed,
+    OperationalRailPlanningDataset,
     PolicyOrProposalDocument,
 }
 
@@ -359,6 +360,88 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                         .to_owned(),
                 ],
             },
+            TransportSourceRecordV1 {
+                id: "za-transnet-network-register-2026-06".to_owned(),
+                publisher: "Transnet Rail Infrastructure Manager".to_owned(),
+                title: "Annexure 33 — Network Register (June 2026_v0.3)".to_owned(),
+                canonical_source_uri: "https://www.transnet.net/getFile.ashx?id=21073".to_owned(),
+                product_kind: OperationalRailPlanningDataset,
+                acquisition_state: AccessReviewRequired,
+                rights_status: ReviewRequired,
+                rights_decision_ref: None,
+                source_schema_profile_id: None,
+                geographic_reference_profile_id: None,
+                time_profile_id: None,
+                coverage_start_epoch_seconds: None,
+                coverage_end_epoch_seconds: None,
+                acquisition: None,
+                parser_profile_id: None,
+                qualification_review_ref: None,
+                missingness_and_limitations: vec![
+                    "Linked from the current Network Statement v4 page; the register is dated 26 June 2026 and states that it is a guide for 2026/27 capacity applications."
+                        .to_owned(),
+                    "Exact bytes and SHA-256 have not been frozen by this project; reuse and redistribution rights remain unreviewed."
+                        .to_owned(),
+                    "The displayed route list repeats the Musina–Pyramid South/Hoedspruit label for items 9 and 10; verify source workbook details before asserting ten distinct routes."
+                        .to_owned(),
+                    "The register distinguishes theoretical, practical, lost, operationally available, allocated and spare capacity; these values must not be collapsed or treated as live availability."
+                        .to_owned(),
+                ],
+            },
+            TransportSourceRecordV1 {
+                id: "za-transnet-point-to-point-running-times".to_owned(),
+                publisher: "Transnet Rail Infrastructure Manager".to_owned(),
+                title: "Annexure 33a — Point to Point Running Times".to_owned(),
+                canonical_source_uri: "https://www.transnet.net/getFile.ashx?id=22633".to_owned(),
+                product_kind: OperationalRailPlanningDataset,
+                acquisition_state: AccessReviewRequired,
+                rights_status: ReviewRequired,
+                rights_decision_ref: None,
+                source_schema_profile_id: None,
+                geographic_reference_profile_id: None,
+                time_profile_id: None,
+                coverage_start_epoch_seconds: None,
+                coverage_end_epoch_seconds: None,
+                acquisition: None,
+                parser_profile_id: None,
+                qualification_review_ref: None,
+                missingness_and_limitations: vec![
+                    "Linked as an XLSX workbook from the current Network Statement v4 page; exact workbook bytes and schema have not been inspected or frozen."
+                        .to_owned(),
+                    "The publisher describes station-to-station running times, distances and scheduled running frequencies; running times are conditional, not service guarantees."
+                        .to_owned(),
+                    "Access and redistribution terms have not been reviewed."
+                        .to_owned(),
+                ],
+            },
+            TransportSourceRecordV1 {
+                id: "za-transnet-capacity-statement-2026-27".to_owned(),
+                publisher: "Transnet Rail Infrastructure Manager".to_owned(),
+                title: "Annexure 33b — Capacity Statement".to_owned(),
+                canonical_source_uri: "https://www.transnet.net/getFile.ashx?id=21146".to_owned(),
+                product_kind: OperationalRailPlanningDataset,
+                acquisition_state: AccessReviewRequired,
+                rights_status: ReviewRequired,
+                rights_decision_ref: None,
+                source_schema_profile_id: None,
+                geographic_reference_profile_id: None,
+                time_profile_id: None,
+                coverage_start_epoch_seconds: None,
+                coverage_end_epoch_seconds: None,
+                acquisition: None,
+                parser_profile_id: None,
+                qualification_review_ref: None,
+                missingness_and_limitations: vec![
+                    "Linked as an XLSM workbook from the current Network Statement v4 page; exact workbook bytes and schema have not been inspected or frozen."
+                        .to_owned(),
+                    "The linked Network Register describes section-level capacity on a daily and weekly basis across named routes; field meanings and units must be verified from the workbook."
+                        .to_owned(),
+                    "This published statement is not a live train-path reservation or current spare-capacity guarantee."
+                        .to_owned(),
+                    "Access and redistribution terms have not been reviewed."
+                        .to_owned(),
+                ],
+            },
         ],
     };
     // Static fixture was hand-authored, so sort during construction as an
@@ -382,11 +465,38 @@ mod tests {
     fn south_african_source_register_is_valid_and_does_not_claim_acquisition() {
         let manifest = south_african_freight_source_readiness_v1();
         assert_eq!(manifest.validate(), Ok(()));
-        assert_eq!(manifest.records.len(), 3);
+        assert_eq!(manifest.records.len(), 6);
         assert!(manifest.records.iter().all(|record| {
             record.acquisition.is_none()
                 && record.acquisition_state != SourceAcquisitionStateV1::QualifiedForScenario
         }));
+    }
+
+    #[test]
+    fn transnet_sources_are_discovered_but_not_misrepresented_as_acquired() {
+        let manifest = south_african_freight_source_readiness_v1();
+        let transnet = manifest
+            .records
+            .iter()
+            .filter(|record| record.id.starts_with("za-transnet-"))
+            .collect::<Vec<_>>();
+        assert_eq!(transnet.len(), 3);
+        assert!(transnet.iter().all(|record| {
+            record.acquisition_state == SourceAcquisitionStateV1::AccessReviewRequired
+                && record.rights_status == SourceRightsStatusV1::ReviewRequired
+                && record.acquisition.is_none()
+                && record.rights_decision_ref.is_none()
+                && record.source_schema_profile_id.is_none()
+        }));
+        assert!(transnet
+            .iter()
+            .any(|record| record.id == "za-transnet-network-register-2026-06"));
+        assert!(transnet
+            .iter()
+            .any(|record| record.id == "za-transnet-point-to-point-running-times"));
+        assert!(transnet
+            .iter()
+            .any(|record| record.id == "za-transnet-capacity-statement-2026-27"));
     }
 
     #[test]
