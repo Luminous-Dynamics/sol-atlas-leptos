@@ -249,7 +249,8 @@
           "enum": [
             "reported_not_independently_reproduced",
             "not_applicable",
-            "not_assessed"
+            "not_assessed",
+            "provisional_needs_primary_document_check"
           ]
         },
         "notes": {
