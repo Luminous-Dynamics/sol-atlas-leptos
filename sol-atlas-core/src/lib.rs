@@ -26,5 +26,6 @@ pub mod solar_system;
 pub mod timeline;
 pub mod types;
 pub mod visual_validation;
+pub mod water_engineering;
 
 pub use types::*;
