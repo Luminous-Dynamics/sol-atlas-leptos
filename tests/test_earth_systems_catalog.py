@@ -20,10 +20,44 @@ class EarthSystemsCatalogTests(unittest.TestCase):
     def test_catalog_passes_structural_validation(self):
         self.assertEqual(validate_catalog(self.catalog), [])
 
-    def test_has_nine_distinct_domains(self):
+    def test_has_ten_distinct_domains(self):
         ids = [domain["id"] for domain in self.catalog["domains"]]
-        self.assertEqual(len(ids), 9)
+        self.assertEqual(len(ids), 10)
         self.assertEqual(len(ids), len(set(ids)))
+
+    def test_conflict_supply_chain_domain_is_registered_as_candidate_research(self):
+        domain = next(
+            d for d in self.catalog["domains"]
+            if d["id"] == "global-conflict-and-supply-chain-resilience"
+        )
+        self.assertEqual(domain["readiness"], "candidate")
+        self.assertEqual(domain["priority"], "P1")
+        source_ids = {source["source_id"] for source in domain["data_sources"]}
+        self.assertTrue({
+            "UCDP-GED", "ACLED-API", "GDELT-2", "IMF-PORTWATCH",
+            "UN-COMTRADE", "HDX-HAPI", "OPEN-SUPPLY-HUB", "GS1-EPCIS-2",
+        }.issubset(source_ids))
+        self.assertIs(domain["validation"]["baseline_required"], True)
+        self.assertIs(domain["validation"]["independent_review_required"], True)
+
+    def test_conflict_supply_chain_sources_do_not_overclaim_rights_or_causality(self):
+        domain = next(
+            d for d in self.catalog["domains"]
+            if d["id"] == "global-conflict-and-supply-chain-resilience"
+        )
+        sources = {source["source_id"]: source for source in domain["data_sources"]}
+        self.assertEqual(sources["UCDP-GED"]["rights_state"], "cc_by_4_0_with_attribution")
+        self.assertIs(sources["UCDP-GED"]["redistribution_allowed"], True)
+        for source_id in ("ACLED-API", "IMF-PORTWATCH", "UN-COMTRADE", "HDX-HAPI", "OPEN-SUPPLY-HUB", "GS1-EPCIS-2"):
+            with self.subTest(source=source_id):
+                self.assertIsNone(sources[source_id]["redistribution_allowed"])
+        limitations = " ".join(
+            limit for source in domain["data_sources"] for limit in source["key_limitations"]
+        ).lower()
+        self.assertIn("not an independently verified fact", limitations)
+        self.assertIn("not bills of lading", limitations)
+        self.assertIn("does not establish", limitations)
+        self.assertIn("not a public global shipment database", limitations)
 
     def test_every_domain_has_independent_validation(self):
         for domain in self.catalog["domains"]:
