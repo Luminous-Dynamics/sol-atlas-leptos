@@ -145,5 +145,6 @@ Stop or roll back any integration that silently drops provenance, changes units/
 - W3C PROV-O: https://www.w3.org/TR/prov-o/
 - OGC SensorThings API: https://www.ogc.org/standards/sensorthings/
 - ETSI NGSI-LD context information management: https://cim.etsi.org/NGSI-LD/official/clause-4.html
+- W3C OWL-Time (Candidate Recommendation Draft): https://www.w3.org/TR/owl-time/
 - Open Contracting Data Standard: https://standard.open-contracting.org/latest/en/
 - IETF RFC 9943, *An Architecture for Trustworthy and Transparent Digital Supply Chains*: https://datatracker.ietf.org/doc/rfc9943/

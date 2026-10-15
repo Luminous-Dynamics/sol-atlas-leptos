@@ -253,7 +253,6 @@ impl DependencyGraph {
         }
     }
 
-    /// Low-level traversal over graph structure without inspecting evidence state.
     /// Evidence-aware query for current dependency paths.
     ///
     /// Fails closed if the graph has duplicate/invalid evidence records or unknown
@@ -430,6 +429,7 @@ impl DependencyGraph {
     }
 
 
+    /// Low-level traversal over graph structure without inspecting evidence state.
     ///
     /// Prefer `assess_dependents_at` for decision-support or operational use.
     /// This method does not validate supporting evidence IDs, source state,
@@ -908,7 +908,13 @@ mod tests {
             relations: vec![
                 relation("pump-feeder", "pump", RelationKind::SuppliedBy, "feeder", "ev-pump"),
                 relation("field-pump", "field", RelationKind::DependsOn, "pump", "ev-field"),
-                relation("warehouse-feeder", "warehouse", RelationKind::DependsOn, "feeder", "ev-proposed"),
+                relation(
+                    "warehouse-feeder",
+                    "warehouse",
+                    RelationKind::DependsOn,
+                    "feeder",
+                    "ev-proposed",
+                ),
             ],
         };
         let mut pump_evidence = evidence("ev-pump");
@@ -926,7 +932,11 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            report.impacts.iter().map(|impact| impact.impact.entity_id.as_str()).collect::<Vec<_>>(),
+            report
+                .impacts
+                .iter()
+                .map(|impact| impact.impact.entity_id.as_str())
+                .collect::<Vec<_>>(),
             vec!["pump", "field"]
         );
         assert_eq!(
