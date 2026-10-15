@@ -1,8 +1,12 @@
 import hashlib
+import json
 import sys
+import tempfile
 import unittest
 from urllib.request import Request
 from pathlib import Path
+from io import StringIO
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "earth-systems"))
@@ -19,12 +23,110 @@ from inspect_wapor_level3_index import (
 )
 
 
+class PartialWriteFailure:
+    """Write a prefix to the target before simulating a short-write failure."""
+
+    def __init__(self, handle):
+        self.handle = handle
+
+    def __enter__(self):
+        self.handle.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        return self.handle.__exit__(exc_type, exc, traceback)
+
+    def write(self, value):
+        self.handle.write(value[:8])
+        raise OSError("simulated partial write")
+
+
 def listing(*hrefs):
     links = "".join(f'<a href="{href}">{href}</a>\n' for href in hrefs)
     return f"<html><body>{links}</body></html>".encode("utf-8")
 
 
 class WaporLevel3IndexTests(unittest.TestCase):
+    def test_cli_captures_exact_index_and_hash_manifest_without_raster_download(self):
+        from inspect_wapor_level3_index import main
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "source.html"
+            snapshot = root / "captured.html"
+            output = root / "inventory.json"
+            raw = listing(
+                "WAPOR-3.L3-AETI-M.MBL.2024-01.tif",
+                "WAPOR-3.L3-AETI-M.MBL.2024-01.json",
+            )
+            source.write_bytes(raw)
+            code = main([
+                "--index-file", str(source),
+                "--snapshot-index", str(snapshot),
+                "--output", str(output),
+            ])
+            self.assertEqual(code, 0)
+            self.assertEqual(snapshot.read_bytes(), raw)
+            manifest = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["index_sha256"], hashlib.sha256(raw).hexdigest())
+            self.assertEqual(manifest["index_bytes"], len(raw))
+            self.assertEqual(manifest["requested_area_raster_count"], 1)
+            self.assertEqual(manifest["raster_files_downloaded"], 0)
+            self.assertEqual(manifest["sidecar_json_files_downloaded"], 0)
+
+    def test_partial_snapshot_write_removes_incomplete_snapshot(self):
+        from inspect_wapor_level3_index import main
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "source.html"
+            snapshot = root / "captured.html"
+            source.write_bytes(listing("WAPOR-3.L3-AETI-M.MBL.2024-01.tif"))
+            real_open = Path.open
+
+            def fail_snapshot_open(path_obj, mode="r", *args, **kwargs):
+                handle = real_open(path_obj, mode, *args, **kwargs)
+                if path_obj == snapshot and mode == "xb":
+                    return PartialWriteFailure(handle)
+                return handle
+
+            with patch.object(Path, "open", new=fail_snapshot_open):
+                with patch.object(sys, "stderr", StringIO()):
+                    code = main([
+                        "--index-file", str(source),
+                        "--snapshot-index", str(snapshot),
+                    ])
+            self.assertEqual(code, 2)
+            self.assertFalse(snapshot.exists())
+
+    def test_partial_manifest_write_removes_manifest_and_new_snapshot(self):
+        from inspect_wapor_level3_index import main
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "source.html"
+            snapshot = root / "captured.html"
+            output = root / "inventory.json"
+            source.write_bytes(listing("WAPOR-3.L3-AETI-M.MBL.2024-01.tif"))
+            real_open = Path.open
+
+            def fail_manifest_open(path_obj, mode="r", *args, **kwargs):
+                handle = real_open(path_obj, mode, *args, **kwargs)
+                if path_obj == output and mode == "x":
+                    return PartialWriteFailure(handle)
+                return handle
+
+            with patch.object(Path, "open", new=fail_manifest_open):
+                with patch.object(sys, "stderr", StringIO()):
+                    code = main([
+                        "--index-file", str(source),
+                        "--snapshot-index", str(snapshot),
+                        "--output", str(output),
+                    ])
+            self.assertEqual(code, 2)
+            self.assertFalse(output.exists())
+            self.assertFalse(snapshot.exists())
+
     def test_prefix_is_derived_only_from_valid_level3_mapset_code(self):
         self.assertEqual(prefix_for("L3-AETI-M"), "DATA/WAPOR-3/MOSAICSET/L3-AETI-M")
         for value in ("L2-AETI-M", "../L3-AETI-M", "L3-AETI-M/MBL", "L3-AETI-MM"):
