@@ -535,9 +535,10 @@ pub fn validate_transport_projection(
                 let source = evidence_by_id
                     .get(evidence_id.as_str())
                     .ok_or(TransportProjectionError::UnknownEvidenceReference)?;
-                let qualifies = source.qualification == EvidenceQualificationV1::AcceptedForProjection
-                    || (scenario_allowed
-                        && source.qualification == EvidenceQualificationV1::ScenarioOnly);
+                let qualifies =
+                    source.qualification == EvidenceQualificationV1::AcceptedForProjection
+                        || (scenario_allowed
+                            && source.qualification == EvidenceQualificationV1::ScenarioOnly);
                 if !qualifies {
                     return Err(TransportProjectionError::CapacityEvidenceUnqualified);
                 }
