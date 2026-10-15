@@ -25,7 +25,7 @@ GET https://comtradeapi.un.org/public/v1/preview/C/M/HS
     &period=202201
 ```
 
-Use the exact request parameters in the JSON plan; do not treat the formatted line breaks as a literal URL. The plan contains 168 period/product pairs (January 2017–December 2023 for HS 1001 and HS 1005). The capture helper issues these requests sequentially with a minimum one-second start interval. A response that reports more rows than it returns, reaches the 500-row preview ceiling, or omits needed dimensions is incomplete/ambiguous and must not advance. Preserve each raw response **before** parsing, plus exact request URL/parameters, retrieval timestamp, HTTP metadata available, byte length, SHA-256, response count, parser/tool version and source terms. Never save a subscription key.
+Use the exact request parameters in the JSON plan; do not treat the formatted line breaks as a literal URL. The plan contains 168 period/product pairs (January 2017–December 2023 for HS 1001 and HS 1005). The preview request uses lowercase `reportercode` as in the maintained [UN Comtrade Python client](https://github.com/uncomtrade/comtradeapicall/blob/main/src/comtradeapicall/PreviewGet.py); returned rows are still checked against their `reporterCode` field. The capture helper issues these requests sequentially with a minimum one-second start interval. A response that reports more rows than it returns, reaches the 500-row preview ceiling, or omits needed dimensions is incomplete/ambiguous and must not advance. Preserve each raw response **before** parsing, plus exact request URL/parameters, retrieval timestamp, HTTP metadata available, byte length, SHA-256, response count, parser/tool version and source terms. Never save a subscription key.
 
 ## Measurement and completeness rules
 

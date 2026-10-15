@@ -1569,7 +1569,10 @@
     "default_capture_scope": "companion_artifacts_only",
     "comtrade_calls_require_explicit_flag": "--include-comtrade",
     "stop_after_first_http_429": true,
-    "preserve_retry_after_header": true
+    "preserve_retry_after_header": true,
+    "preview_reporter_query_parameter": "reportercode",
+    "response_reporter_field": "reporterCode",
+    "casing_note": "The maintained UN Comtrade Python client's public-preview request builder uses lowercase reportercode; the captured response row field used for dimension validation is reporterCode."
   },
   "fields_policy": {
     "preserve_all_returned_fields": true,

@@ -183,6 +183,7 @@ def build_request_tasks(plan: dict) -> list[dict]:
             "filename": safe_filename(item["filename"]), "max_bytes": int(item["max_bytes"]),
             "expected_content_types": [x.lower() for x in item["expected_content_types"]],
             "response_kind": item["response_kind"], "request_parameters": None,
+            "expected_response_dimensions": None,
             "record_limit": int(plan["request_policy"]["public_preview_record_limit"]),
         })
     source, query = plan["source"], plan["query_dimensions"]
@@ -199,10 +200,20 @@ def build_request_tasks(plan: dict) -> list[dict]:
             raise CaptureError(f"{chunk_id}: commodity is not an admitted planned product")
         if any(not isinstance(p, str) or not re.fullmatch(r"\d{6}", p) for p in periods):
             raise CaptureError(f"{chunk_id}: periods must use YYYYMM")
+        # UN Comtrade's maintained public-preview client uses lowercase
+        # "reportercode" on the preview endpoint. Response records use
+        # "reporterCode"; keep the wire parameter and response schema distinct.
         params = {
-            "reporterCode": query["reporter_code"], "partnerCode": query["partner_code"],
+            "reportercode": query["reporter_code"], "partnerCode": query["partner_code"],
             "cmdCode": commodity_code, "flowCode": query["flow_code"],
             "period": ",".join(periods),
+        }
+        expected_dimensions = {
+            "reporterCode": query["reporter_code"],
+            "partnerCode": query["partner_code"],
+            "cmdCode": commodity_code,
+            "flowCode": query["flow_code"],
+            "period": periods[0],
         }
         url = source["endpoint_root"].rstrip("/") + route + "?" + urlencode(params, safe=",")
         validate_source_url(url)
@@ -211,6 +222,7 @@ def build_request_tasks(plan: dict) -> list[dict]:
             "filename": safe_filename(f"comtrade-ukraine-world-grain-exports-{periods[0]}-hs{commodity_code}.json"),
             "max_bytes": 16 * 1024 * 1024, "expected_content_types": ["application/json"],
             "response_kind": "comtrade_json", "request_parameters": params,
+            "expected_response_dimensions": expected_dimensions,
             "record_limit": record_limit,
         })
     names = [task["filename"] for task in tasks]
@@ -288,7 +300,7 @@ def capture_one(task: dict, snapshot_dir: Path, timeout_seconds: float, fetcher=
         assessment = assess_comtrade_response(
             raw,
             int(task["record_limit"]),
-            expected_parameters=task["request_parameters"],
+            expected_parameters=task.get("expected_response_dimensions"),
         )
         record["response_validation"] = assessment
         if assessment["state"] == "response_shape_ok_pending_coverage_review":
@@ -314,6 +326,7 @@ def _not_attempted_record(task: dict, reason: str) -> dict:
         "artifact_id": task["artifact_id"],
         "request_url": task["url"],
         "request_parameters": task["request_parameters"],
+        "expected_response_dimensions": task.get("expected_response_dimensions"),
         "retrieved_at_utc": None,
         "capture_state": "not_attempted_after_rate_limit",
         "status_code": None,
