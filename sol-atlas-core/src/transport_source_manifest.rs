@@ -362,6 +362,14 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
 mod tests {
     use super::*;
 
+    fn national_freight_databank_record() -> TransportSourceRecordV1 {
+        south_african_freight_source_readiness_v1()
+            .records
+            .into_iter()
+            .find(|record| record.id == "za-national-freight-databank")
+            .expect("National Freight Databank discovery record")
+    }
+
     #[test]
     fn south_african_source_register_is_valid_and_does_not_claim_acquisition() {
         let manifest = south_african_freight_source_readiness_v1();
@@ -382,7 +390,7 @@ mod tests {
 
     #[test]
     fn qualified_dataset_requires_acquisition_and_rights_evidence() {
-        let mut record = south_african_freight_source_readiness_v1().records.remove(0);
+        let mut record = national_freight_databank_record();
         record.acquisition_state = SourceAcquisitionStateV1::QualifiedForScenario;
         record.rights_status = SourceRightsStatusV1::PermittedInternalUse;
         assert_eq!(
@@ -393,7 +401,7 @@ mod tests {
 
     #[test]
     fn malformed_acquisition_hash_is_rejected() {
-        let mut record = south_african_freight_source_readiness_v1().records.remove(0);
+        let mut record = national_freight_databank_record();
         record.acquisition_state = SourceAcquisitionStateV1::AcquiredUnreviewed;
         record.acquisition = Some(SourceAcquisitionReceiptV1 {
             retrieved_at_epoch_seconds: 100,
@@ -410,7 +418,7 @@ mod tests {
 
     #[test]
     fn qualified_dataset_needs_geography_time_coverage_and_review() {
-        let mut record = south_african_freight_source_readiness_v1().records.remove(0);
+        let mut record = national_freight_databank_record();
         record.acquisition_state = SourceAcquisitionStateV1::QualifiedForScenario;
         record.rights_status = SourceRightsStatusV1::PermittedInternalUse;
         record.rights_decision_ref = Some("review://rights/approved".to_owned());
