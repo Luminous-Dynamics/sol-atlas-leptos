@@ -157,6 +157,19 @@ def validate_pilot(doc: Any) -> list[str]:
                     f"{where}: CHIRPS checks must bound Legates-Willmott grids as "
                     "auxiliary factors, not independent observations or automatic corrections"
                 )
+        elif source_id == "FAO-WAPOR":
+            check_text = " ".join(checks).lower()
+            if (
+                "mosaicset" not in check_text
+                or "l3-aeti-m" not in check_text
+                or "mbl" not in check_text
+                or "not an exhaustive level iii area inventory" not in check_text
+            ):
+                errors.append(
+                    f"{where}: WaPOR pilot must inventory the area-specific Level III "
+                    "MOSAICSET index for L3-AETI-M / MBL and must not infer Level III "
+                    "absence from the /mapsets endpoint"
+                )
 
     if seen != EXPECTED_SOURCES:
         errors.append(f"source set must be exactly {sorted(EXPECTED_SOURCES)}")
