@@ -145,3 +145,53 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  wapor-l3-mbl:
+    name: Capture WaPOR L3-AETI-M index for Baixo Limpopo
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Capture Level III area-specific index (index bytes only)
+        run: |
+          set -euo pipefail
+          mkdir -p source-evidence/wapor-l3-mbl
+          python scripts/earth-systems/inspect_wapor_level3_index.py \
+            --mapset-code L3-AETI-M \
+            --area-code MBL \
+            --snapshot-index source-evidence/wapor-l3-mbl/index.html \
+            --output source-evidence/wapor-l3-mbl/inventory.json
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("source-evidence/wapor-l3-mbl")
+          manifest = json.loads((root / "inventory.json").read_text(encoding="utf-8"))
+          raw = (root / "index.html").read_bytes()
+          assert manifest["status"] == "level3_mosaicset_index_inventory_only"
+          assert manifest["mapset_code"] == "L3-AETI-M"
+          assert manifest["requested_area_code"] == "MBL"
+          assert manifest["index_snapshot_saved"] is True
+          assert manifest["index_bytes"] == len(raw)
+          assert manifest["index_sha256"] == hashlib.sha256(raw).hexdigest()
+          assert manifest["raster_files_downloaded"] == 0
+          assert manifest["sidecar_json_files_downloaded"] == 0
+          assert manifest["requested_area_raster_count"] == sum(
+              item["kind"] == "raster" for item in manifest["requested_area_files"]
+          )
+          PY
+      - name: Upload Level III index evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wapor-l3-mbl-aeti-index-${{ github.run_id }}-${{ github.run_attempt }}
+          path: source-evidence/wapor-l3-mbl/
+          if-no-files-found: warn
+          retention-days: 14
+
