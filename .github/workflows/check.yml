@@ -151,7 +151,109 @@ jobs:
             END { die "expected exactly one P2 diameter mutation\n" unless $changed == 1; }
           ' "$input" > "$out/w0-p2-diameter-50mm.inp"
 
-          grep -Eq '^P2[[:space:]]+J1[[:space:]]+J2[[:space:]]+800[[:space:]]+50[[:space:]]+100[[:space:]]+0[[:space:]]+OPEN "$out/w0-p2-diameter-50mm.inp"
+          grep -Eq '^P2[[:space:]]+J1[[:space:]]+J2[[:space:]]+800[[:space:]]+50[[:space:]]+100[[:space:]]+0[[:space:]]+OPEN[[:space:]]*
+
+          "$solver" "$out/w0-baseline.inp" "$out/w0-baseline.rpt" "$out/w0-baseline.bin" > "$out/w0-baseline.stdout" 2>&1
+          "$solver" "$out/w0-p2-diameter-50mm.inp" "$out/w0-p2-diameter-50mm.rpt" "$out/w0-p2-diameter-50mm.bin" > "$out/w0-p2-diameter-50mm.stdout" 2>&1
+
+          grep -q 'EPANET ran successfully' "$out/w0-baseline.stdout"
+          grep -q 'EPANET ran successfully' "$out/w0-p2-diameter-50mm.stdout"
+          test -s "$out/w0-baseline.rpt"
+          test -s "$out/w0-baseline.bin"
+          test -s "$out/w0-p2-diameter-50mm.rpt"
+          test -s "$out/w0-p2-diameter-50mm.bin"
+          grep -q 'P2' "$out/w0-baseline.rpt"
+          grep -q 'P2' "$out/w0-p2-diameter-50mm.rpt"
+
+          if cmp -s "$out/w0-baseline.rpt" "$out/w0-p2-diameter-50mm.rpt"; then
+            echo "FAIL: diameter-restriction scenario did not change the EPANET report"
+            exit 1
+          fi
+          if cmp -s "$out/w0-baseline.bin" "$out/w0-p2-diameter-50mm.bin"; then
+            echo "FAIL: diameter-restriction scenario did not change the EPANET binary output"
+            exit 1
+          fi
+
+          finished_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          solver_sha="$(sha256sum "$solver" | awk '{print $1}')"
+          baseline_input_sha="$(sha256sum "$out/w0-baseline.inp" | awk '{print $1}')"
+          candidate_input_sha="$(sha256sum "$out/w0-p2-diameter-50mm.inp" | awk '{print $1}')"
+          baseline_report_sha="$(sha256sum "$out/w0-baseline.rpt" | awk '{print $1}')"
+          candidate_report_sha="$(sha256sum "$out/w0-p2-diameter-50mm.rpt" | awk '{print $1}')"
+          baseline_binary_sha="$(sha256sum "$out/w0-baseline.bin" | awk '{print $1}')"
+          candidate_binary_sha="$(sha256sum "$out/w0-p2-diameter-50mm.bin" | awk '{print $1}')"
+          source_input_sha="$(sha256sum "$input" | awk '{print $1}')"
+          cmake_version="$(cmake --version | head -n 1)"
+          compiler_version="$(cc --version | head -n 1)"
+
+          jq -n \
+            --arg schema_version "epanet-synthetic-smoke/v0.1" \
+            --arg state "Completed" \
+            --arg source_commit "4d8d82ddc260fce216af9321fc3d9a4646ac6827" \
+            --arg engine_version "EPANET 2.2 source revision" \
+            --arg solver_sha256 "$solver_sha" \
+            --arg source_input_sha256 "$source_input_sha" \
+            --arg baseline_input_sha256 "$baseline_input_sha" \
+            --arg candidate_input_sha256 "$candidate_input_sha" \
+            --arg baseline_report_sha256 "$baseline_report_sha" \
+            --arg candidate_report_sha256 "$candidate_report_sha" \
+            --arg baseline_binary_sha256 "$baseline_binary_sha" \
+            --arg candidate_binary_sha256 "$candidate_binary_sha" \
+            --arg cmake_version "$cmake_version" \
+            --arg compiler_version "$compiler_version" \
+            --arg started_at "$started_at" \
+            --arg finished_at "$finished_at" \
+            '{
+              schema_version: $schema_version,
+              run_state: $state,
+              synthetic_only: true,
+              solver: {
+                engine: "EPANET",
+                version: $engine_version,
+                source_commit: $source_commit,
+                executable_sha256: $solver_sha256,
+                cmake: $cmake_version,
+                compiler: $compiler_version
+              },
+              source_fixture: {
+                path: "sol-atlas-core/fixtures/water-engineering/w0_network.inp",
+                sha256: $source_input_sha256
+              },
+              baseline: {
+                change: "none",
+                input_sha256: $baseline_input_sha256,
+                report_sha256: $baseline_report_sha256,
+                binary_output_sha256: $baseline_binary_sha256
+              },
+              candidate: {
+                change: "pipe P2 diameter 150 mm -> 50 mm",
+                input_sha256: $candidate_input_sha256,
+                report_sha256: $candidate_report_sha256,
+                binary_output_sha256: $candidate_binary_sha256
+              },
+              execution: {
+                started_at: $started_at,
+                finished_at: $finished_at,
+                command: "runepanet <input.inp> <report.rpt> <output.bin>"
+              },
+              nonclaims: [
+                "This is a synthetic solver smoke test only.",
+                "A changed report confirms a scenario affects this model run; it does not qualify a municipal model or design.",
+                "No empirical calibration, uncertainty quantification, engineering review, or real-network validation is implied."
+              ]
+            }' > "$out/epanet-synthetic-smoke-evidence.json"
+
+          sha256sum "$out"/* | tee "$out/artifact-sha256.txt"
+          echo "EPANET_SYNTHETIC_SMOKE_PASS: pinned solver ran baseline and restricted-pipe cases; reports and outputs differ."
+      - name: Upload synthetic solver evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: epanet-w0-smoke-${{ github.sha }}
+          path: artifacts/epanet-w0/
+          if-no-files-found: warn
+          retention-days: 14
+ "$out/w0-p2-diameter-50mm.inp"
 
           "$solver" "$out/w0-baseline.inp" "$out/w0-baseline.rpt" "$out/w0-baseline.bin" > "$out/w0-baseline.stdout" 2>&1
           "$solver" "$out/w0-p2-diameter-50mm.inp" "$out/w0-p2-diameter-50mm.rpt" "$out/w0-p2-diameter-50mm.bin" > "$out/w0-p2-diameter-50mm.stdout" 2>&1
