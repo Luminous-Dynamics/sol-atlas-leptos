@@ -49,7 +49,11 @@ pub fn validate_bundle(bundle: &Value, repository_root: &Path) -> ValidationRepo
     let root = match repository_root.canonicalize() {
         Ok(root) if root.is_dir() => root,
         Ok(_) => {
-            report.push("ROOT_NOT_DIRECTORY", "$", "repository root is not a directory");
+            report.push(
+                "ROOT_NOT_DIRECTORY",
+                "$",
+                "repository root is not a directory",
+            );
             return report;
         }
         Err(error) => {
@@ -67,8 +71,7 @@ pub fn validate_bundle(bundle: &Value, repository_root: &Path) -> ValidationRepo
         return report;
     };
 
-    if object.get("schema_version").and_then(Value::as_str)
-        != Some("water-engineering-bundle/v0.1")
+    if object.get("schema_version").and_then(Value::as_str) != Some("water-engineering-bundle/v0.1")
     {
         report.push(
             "SCHEMA_VERSION_UNSUPPORTED",
@@ -78,7 +81,11 @@ pub fn validate_bundle(bundle: &Value, repository_root: &Path) -> ValidationRepo
     }
 
     let Some(model) = bundle.get("model_package") else {
-        report.push("MODEL_MISSING", "$.model_package", "model_package is required");
+        report.push(
+            "MODEL_MISSING",
+            "$.model_package",
+            "model_package is required",
+        );
         return report;
     };
     let Some(scenario) = bundle.get("scenario") else {
@@ -142,9 +149,7 @@ pub fn validate_bundle(bundle: &Value, repository_root: &Path) -> ValidationRepo
         let input_id = input.get("artifact_id").and_then(Value::as_str);
         let matching: Vec<&Value> = artifacts
             .iter()
-            .filter(|artifact| {
-                artifact.get("artifact_id").and_then(Value::as_str) == input_id
-            })
+            .filter(|artifact| artifact.get("artifact_id").and_then(Value::as_str) == input_id)
             .collect();
         if input_id.is_none() || matching.len() != 1 {
             report.push(
@@ -369,7 +374,10 @@ fn validate_artifact_bytes(
         report.push(
             "ARTIFACT_DIGEST_MISMATCH",
             format!("{manifest_path}.sha256"),
-            format!("declared SHA-256 does not match bytes at {}", relative.display()),
+            format!(
+                "declared SHA-256 does not match bytes at {}",
+                relative.display()
+            ),
         );
     }
 }
@@ -381,11 +389,7 @@ fn is_canonical_sha256(digest: &str) -> bool {
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
-fn validate_run_claims(
-    run: &Value,
-    validation: Option<&Value>,
-    report: &mut ValidationReport,
-) {
+fn validate_run_claims(run: &Value, validation: Option<&Value>, report: &mut ValidationReport) {
     let state = run.get("state").and_then(Value::as_str);
     let metrics = run.get("metrics").and_then(Value::as_array);
     let result_artifacts = run.get("result_artifacts").and_then(Value::as_array);
@@ -498,8 +502,12 @@ fn validate_run_claims(
         for key in ["version", "binary_sha256", "settings_sha256"] {
             let value = run.get("solver").and_then(|v| v.get(key));
             let present = match key {
-                "version" => value.and_then(Value::as_str).is_some_and(|s| !s.trim().is_empty()),
-                _ => value.and_then(Value::as_str).is_some_and(is_canonical_sha256),
+                "version" => value
+                    .and_then(Value::as_str)
+                    .is_some_and(|s| !s.trim().is_empty()),
+                _ => value
+                    .and_then(Value::as_str)
+                    .is_some_and(is_canonical_sha256),
             };
             if !present {
                 report.push(
@@ -567,7 +575,12 @@ mod tests {
         let mut bundle = fixture();
         bundle["scenario"]["base_model_id"] = json!("different-model");
         let report = validate_bundle(&bundle, &repo_root());
-        assert!(report.issues.iter().any(|issue| issue.code == "SCENARIO_MODEL_MISMATCH"));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "SCENARIO_MODEL_MISMATCH")
+        );
     }
 
     #[test]
@@ -588,7 +601,12 @@ mod tests {
         let mut bundle = fixture();
         bundle["run_result"]["metrics"] = json!([{"metric_id":"pressure","value":0,"unit":"m"}]);
         let report = validate_bundle(&bundle, &repo_root());
-        assert!(report.issues.iter().any(|issue| issue.code == "NOTRUN_HAS_METRICS"));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "NOTRUN_HAS_METRICS")
+        );
     }
 
     #[test]
@@ -596,7 +614,12 @@ mod tests {
         let mut bundle = fixture();
         bundle["scenario"]["changes"][0]["asset_id"] = json!("P999");
         let report = validate_bundle(&bundle, &repo_root());
-        assert!(report.issues.iter().any(|issue| issue.code == "SCENARIO_ASSET_UNKNOWN"));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "SCENARIO_ASSET_UNKNOWN")
+        );
     }
 
     #[test]
@@ -606,7 +629,12 @@ mod tests {
         bundle["model_package"]["source_artifacts"][0]["sha256"] = json!("0".repeat(64));
         bundle["scenario"]["base_input_snapshot_sha256"] = json!("0".repeat(64));
         let report = validate_bundle(&bundle, &repo_root());
-        assert!(report.issues.iter().any(|issue| issue.code == "ARTIFACT_DIGEST_MISMATCH"));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "ARTIFACT_DIGEST_MISMATCH")
+        );
     }
 
     #[test]
@@ -615,7 +643,12 @@ mod tests {
         bundle["model_package"]["input_snapshot"]["path"] = json!("../../etc/passwd");
         bundle["model_package"]["source_artifacts"][0]["path"] = json!("../../etc/passwd");
         let report = validate_bundle(&bundle, &repo_root());
-        assert!(report.issues.iter().any(|issue| issue.code == "ARTIFACT_PATH_UNSAFE"));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "ARTIFACT_PATH_UNSAFE")
+        );
     }
 
     #[test]
@@ -627,6 +660,11 @@ mod tests {
             .expect("asset_index is an array")
             .push(duplicate);
         let report = validate_bundle(&bundle, &repo_root());
-        assert!(report.issues.iter().any(|issue| issue.code == "DUPLICATE_ASSET_ID"));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "DUPLICATE_ASSET_ID")
+        );
     }
 }
