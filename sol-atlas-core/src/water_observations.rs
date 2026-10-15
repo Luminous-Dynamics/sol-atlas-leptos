@@ -508,6 +508,7 @@ mod tests {
         assert_eq!(comparator_sewer["value"].as_f64(), Some(92.66));
         assert_ne!(direct_sewer["source_id"], comparator_sewer["source_id"]);
     }
+
     #[test]
     fn active_leak_detection_page_claims_remain_source_attributed_and_unverified() {
         let bundle = fixture();
@@ -536,6 +537,7 @@ mod tests {
                 .contains("independently measured")
         }));
     }
+
     #[test]
     fn rejects_a_comparison_referencing_an_unknown_observation() {
         let mut bundle = fixture();
@@ -561,6 +563,4 @@ mod tests {
                 .any(|issue| issue.code == "COMPARISON_ARITHMETIC_MISMATCH")
         );
     }
-
-
 }
