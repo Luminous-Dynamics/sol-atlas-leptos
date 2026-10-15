@@ -71,7 +71,7 @@ pub struct MeasurementModelEvaluation {
 }
 
 fn valid_identifier(value: &str) -> bool {
-    !value.trim().is_empty()
+    value.len() >= 2
         && value.len() <= 128
         && value
             .bytes()
@@ -514,6 +514,14 @@ mod tests {
             evaluate_measurement_model(&model)
                 .unwrap_err()
                 .contains("invalid action_id")
+        );
+
+        let mut model = toy_model();
+        model.model_id = "a".to_owned();
+        assert!(
+            evaluate_measurement_model(&model)
+                .unwrap_err()
+                .contains("model_id is missing or invalid")
         );
     }
 
