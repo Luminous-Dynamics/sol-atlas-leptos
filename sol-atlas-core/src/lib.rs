@@ -31,3 +31,5 @@ pub mod water_observations;
 pub mod water_decision;
 
 pub use types::*;
+
+pub mod water_measurement;
