@@ -1057,6 +1057,21 @@ mod tests {
             DependencyAssessmentError::InvalidGraph(errors)
                 if errors.contains(&GraphValidationError::DuplicateEvidenceRecordId)
         ));
+
+        let mut invalid_record = evidence("ev-pump");
+        invalid_record.issuer_id.clear();
+        let invalid = graph
+            .assess_dependents_at(
+                "feeder",
+                "2026-10-15T10:00:00Z",
+                &[invalid_record],
+            )
+            .unwrap_err();
+        assert!(matches!(
+            invalid,
+            DependencyAssessmentError::InvalidGraph(errors)
+                if errors.contains(&GraphValidationError::InvalidEvidenceRecord)
+        ));
     }
 
     #[test]

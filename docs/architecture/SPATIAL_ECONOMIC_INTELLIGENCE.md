@@ -80,13 +80,15 @@ Each EvidenceRecord has:
 
 This contract validates structure only. It cannot verify issuer authority, signature validity, whether a source is independent, whether a physical event occurred, whether a currency code is current, or whether an intervention caused an impact. Those are separate, policy-aware verifiers and domain checks.
 
+For decisions, use `DependencyGraph::assess_dependents_at`: it validates graph/evidence references, checks each supporting record's epistemic state and validity window, reports blocked edges with reasons, and returns the evidence readiness along each traversed path. Proposed, disputed, superseded, withdrawn, invalidly-timed, and out-of-window evidence cannot silently drive propagation. An asserted-only path is distinguished from a path containing a record marked corroborated. Neither label is a truth score or substitute for independent-source review. The lower-level `affected_dependents_at` is explicitly structural and should only be used where its evidence limitations are handled by the caller.
+
 A correction appends a new statement that references the old one; it does not rewrite history. The core type deliberately does not encode a global reputation score or declare any source universally trustworthy.
 
 ## Reference architecture
 
 1. **Spatial substrate:** stable entity IDs, geometry/CRS metadata, spatial-temporal queries, and support for offline snapshots. Prefer interoperable standards and adapters over a bespoke geospatial wire protocol.
 2. **Evidence layer:** immutable/correctable claims, source manifests, issuer identity, explicit states and provenance.
-3. **Dependency graph:** typed, time-bounded links among places, assets, facilities, goods, counterparties, services, contracts and resources. `spatial_graph.rs` makes dependency direction explicit, checks supporting evidence references, and provides deterministic as-of reachability with cycle protection. Reachability is not a causal model or a probability of loss.
+3. **Dependency graph:** typed, time-bounded links among places, assets, facilities, goods, counterparties, services, contracts and resources. `spatial_graph.rs` makes dependency direction explicit, checks supporting evidence references, and provides deterministic as-of reachability with cycle protection. The evidence-gated query blocks disputed/stale/unreviewed support and exposes readiness labels and blockers. Reachability is not a causal model or a probability of loss. Before operational outage reasoning, model explicit redundancy/AND-OR dependency groups; a path alone cannot establish that a service will fail.
 4. **Economic execution:** adapters for double-entry accounting, procurement, inventory, work orders, dispatch, invoices and payment systems. External systems remain authoritative for their own transactions.
 5. **Scenario/evaluation engine:** explicit constraints, versioned assumptions, reproducible runs and baseline/negative-control reports.
 6. **Human interface:** map, dependency explorer, claim timeline, commitment board, scenario compare view and evidence inspector. Every consequential recommendation should show its inputs and limitations.
@@ -128,7 +130,7 @@ Never treat “no data” as zero, “not captured” as unavailable, “queued�
 - **P0 — Contract:** ship the Rust contract primitives, JSON Schema and unit tests (this initial increment).
 - **P1 — Adversarial fixtures:** add schema-validation tests and fixtures for missing CRS, invalid digest, conflicting claims, supersession, uncertain measurements, bad units and attempted state confusion.
 - **P2 — Evidence adapters:** wrap current CHIRPS/WaPOR and supply-chain capture manifests without downloading or asserting data that has not been qualified.
-- **P3 — Query proof:** start with typed, evidence-backed dependency edges and deterministic as-of traversal. Extend with minimal fixtures for “what evidence supports this dependency?”, impact-path explanations, cycle protection, temporal boundaries, and negative controls before spatial overlay or risk scoring.
+- **P3 — Query proof:** evidence-gated as-of traversal and a labelled synthetic water-system fixture now exist. Next, test dependency group semantics for required versus redundant resources (AND/OR/threshold), alternate routes and common-mode failure; then add negative controls before spatial overlay or risk scoring.
 - **P4 — Economic lifecycle:** simulate one end-to-end obligation with partial delivery, acceptance rejection, invoice, settlement and reversal; test physical and financial reconciliation separately.
 - **P5 — Evaluated pilot:** only after source qualification and human review, compare a bounded intervention to baseline.
 
