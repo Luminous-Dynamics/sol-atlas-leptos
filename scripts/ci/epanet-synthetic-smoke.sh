@@ -499,5 +499,65 @@ jq -n \
     ]
   }' > "$out/epanet-synthetic-smoke-evidence.json"
 
+# Validate the emitted evidence envelope before it can be uploaded. This is a
+# second gate after jq generation: required identities, digests, numeric
+# observations, and declared check outcomes must all be internally consistent.
+jq -e '
+  .schema_version == "epanet-synthetic-smoke/v0.1" and
+  .run_state == "Completed" and
+  .synthetic_only == true and
+  (.solver.source_commit | type == "string" and test("^[0-9a-f]{40}$")) and
+  (.execution_identity.github_sha | type == "string" and test("^[0-9a-f]{40}$")) and
+  (.execution_identity.github_ref | type == "string" and length > 0) and
+  (.execution_identity.workflow_run_id | type == "string" and test("^[0-9]+$")) and
+  (.execution_identity.workflow_run_attempt | type == "string" and test("^[0-9]+$")) and
+  (.source_fixture.sha256 == .source_fixture.declared_sha256) and
+  (.scenario_bundle.bundle_id | type == "string" and length > 0) and
+  (.scenario_bundle.scenario_id | type == "string" and length > 0) and
+  (.scenario_bundle.target_asset_id | type == "string" and length > 0) and
+  (.scenario_bundle.baseline_value_mm | type == "number") and
+  (.scenario_bundle.candidate_value_mm | type == "number" and . > 0) and
+  (.scenario_bundle.candidate_value_mm < .scenario_bundle.baseline_value_mm) and
+  ([.solver.executable_sha256,
+    .execution_identity.runner_script_sha256,
+    .execution_identity.workflow_file_sha256,
+    .source_fixture.sha256,
+    .source_fixture.declared_sha256,
+    .scenario_bundle.sha256,
+    .baseline.input_sha256,
+    .baseline.report_sha256,
+    .baseline.binary_output_sha256,
+    .candidate.input_sha256,
+    .candidate.report_sha256,
+    .candidate.binary_output_sha256] |
+    all(.[]; type == "string" and test("^[0-9a-f]{64}$"))) and
+  (.hydraulic_observations.continuity.declared_total_junction_demand_lps | type == "number") and
+  (.hydraulic_observations.continuity.declared_downstream_demand_lps | type == "number") and
+  ([.hydraulic_observations.continuity.source_flow_lps.baseline,
+    .hydraulic_observations.continuity.source_flow_lps.candidate,
+    .hydraulic_observations.target_pipe.baseline.flow_lps,
+    .hydraulic_observations.target_pipe.candidate.flow_lps,
+    .hydraulic_observations.target_pipe.baseline.velocity_m_per_s,
+    .hydraulic_observations.target_pipe.candidate.velocity_m_per_s,
+    .hydraulic_observations.target_pipe.baseline.headloss_m_per_1000_m,
+    .hydraulic_observations.target_pipe.candidate.headloss_m_per_1000_m,
+    .hydraulic_observations.downstream_node_pressure_m.baseline,
+    .hydraulic_observations.downstream_node_pressure_m.candidate] |
+    all(.[]; type == "number")) and
+  (.hydraulic_observations.continuity.target_pipe_flow_matches_downstream_demand_within_0_02_lps == true) and
+  (.hydraulic_observations.continuity.source_flow_matches_total_demand_within_0_02_lps == true) and
+  (.hydraulic_observations.continuity.terminal_node_has_single_pipe_connection == true) and
+  (.hydraulic_observations.checks | all(.[]; . == true)) and
+  (.execution.baseline_exit_code == 0) and
+  (.execution.candidate_exit_code == 0) and
+  (.execution.analysis_mode == "DemandDriven") and
+  (.execution.headloss_model == "Hazen-Williams")
+' "$out/epanet-synthetic-smoke-evidence.json" >/dev/null || {
+  echo "EPANET_EVIDENCE_SELF_VALIDATION_FAILED: emitted manifest did not satisfy integrity predicates"
+  cat "$out/epanet-synthetic-smoke-evidence.json"
+  exit 1
+}
+echo "EPANET_EVIDENCE_SELF_VALIDATION_PASS: execution identity, digests, observations and check claims are internally consistent."
+
 sha256sum "$out"/* | tee "$out/artifact-sha256.txt"
 echo "EPANET_SYNTHETIC_SMOKE_PASS: pinned solver ran scenario-bundle-derived restriction case; declared digests, simple-network continuity and directional hydraulics were verified."
