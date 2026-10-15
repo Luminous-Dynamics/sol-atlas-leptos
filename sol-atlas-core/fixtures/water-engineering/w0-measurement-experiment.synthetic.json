@@ -193,16 +193,62 @@
       "evidence_requirement": "synthetic_labelled_truth",
       "aggregation": "worst_case",
       "prohibited_interpretation": "Not a guarantee outside the tested scenario domain."
+    },
+    {
+      "metric_id": "localization.false_positive_rate",
+      "definition": "Fraction of declared no-fault scenarios incorrectly flagged as a leak under a frozen detection threshold.",
+      "unit": "proportion",
+      "direction": "lower_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "mean",
+      "prohibited_interpretation": "A synthetic rate is not a field false-alarm rate."
+    },
+    {
+      "metric_id": "probability.brier_score",
+      "definition": "Mean squared error between a predicted hypothesis probability vector and the one-hot synthetic ground-truth class.",
+      "unit": "unitless",
+      "direction": "lower_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "mean",
+      "prohibited_interpretation": "A score is meaningful only when probability outputs and ground truth are defined consistently."
+    },
+    {
+      "metric_id": "decision.regret",
+      "definition": "Per-scenario loss of the evidence-selected decision minus the best decision under synthetic ground truth using the same frozen loss matrix.",
+      "unit": "declared_loss_units",
+      "direction": "lower_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "p95",
+      "prohibited_interpretation": "Toy or synthetic loss units do not establish monetary or public-service value."
+    },
+    {
+      "metric_id": "solver.scenario_failure_rate",
+      "definition": "Fraction of scenario runs that fail convergence, validation, parsing, or required artifact checks.",
+      "unit": "proportion",
+      "direction": "lower_is_better",
+      "evidence_requirement": "reproduced_solver_artifact",
+      "aggregation": "mean",
+      "prohibited_interpretation": "Failed runs must remain in the denominator and cannot be counted as successful detection."
     }
   ],
   "acceptance_criteria": {
-    "state": "not_frozen",
-    "criteria": [],
+    "state": "frozen",
+    "criteria": [
+      "Minimum benchmark corpus: at least 1,000 labelled scenario cases across at least three distinct network topologies; if fewer than three are available, report a pilot only and make no cross-topology generalization claim.",
+      "Freeze and hash scenario/seed manifests before scoring. Hold out at least 20% of parameter/noise regimes by grouped split, and use leave-one-topology-out evaluation where feasible; never randomly split near-duplicate runs across train and test.",
+      "Compare all four strategies on the same candidate measurement sites and matched scenario seeds at common feasible sensor budgets. Primary target: information-directed top-3 localization accuracy improves by at least 5 absolute percentage points over the strongest baseline on held-out cases, with a paired per-scenario bootstrap 95% confidence interval for the difference strictly above zero.",
+      "Robustness guardrail: on every reported held-out topology/model-form stratum, top-3 localization accuracy must not trail the strongest baseline by more than 5 percentage points; where detection delay is defined, p95 delay must not regress by more than 5% versus the strongest baseline.",
+      "No-fault negative controls: false-positive rate target is at most 5% point estimate and its Wilson 95% upper confidence bound at most 10%, with the denominator reported. Missing/corrupt measurements are explicit unavailable or failed observations, never zero-valued readings.",
+      "Completeness and provenance: 100% of scheduled scenario-strategy pairs produce a result or explicit failure record; zero failed solver runs count as successful localizations; every result binds solver/source/binary identity, network/scenario/seed, configuration, channels, and output digest.",
+      "Report Brier score, p95 decision regret, worst-case localization, sensor count, information redundancy, and solver-failure rate alongside information gain. High information gain alone is not a win; no cost-adjusted ranking without a defensible common cost/loss basis.",
+      "Reproduction target: a second run uses the frozen manifest and pinned solver, independently recomputes the primary metrics, and either reproduces the result within preregistered numeric tolerances or is reported as non-reproduced."
+    ],
     "freeze_before_evaluation": true,
     "notes": [
-      "Numerical thresholds have not been chosen and must be justified before any strategy result is examined.",
-      "All strategies must use identical scenario manifests and matched seeds.",
-      "Report per-scenario failures and uncertainty; do not select a winner from an aggregate scalar score."
+      "These are proposed project acceptance targets, not published industry standards or observed results. They are frozen before any strategy-result inspection and may only change via a versioned amendment before evaluation.",
+      "The tiny W0 network is a solver-contract smoke test, not sufficient by itself for topology-generalization or sensor-placement efficacy claims.",
+      "Failed, unavailable and out-of-domain cases remain visible; no hidden scalar score or post-hoc acceptance threshold is allowed.",
+      "This benchmark is synthetic and offline. It does not authorize fieldwork, operational changes, or autonomous actuation."
     ]
   },
   "comparison_policy": {
