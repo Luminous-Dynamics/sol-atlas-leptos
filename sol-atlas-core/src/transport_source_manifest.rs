@@ -330,7 +330,7 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                 qualification_review_ref: None,
                 missingness_and_limitations: vec![
                     "Public consultation page is a research lead, not a data feed.".to_owned(),
-                    "The consultation page identifies a draft; check final status before treating it as adopted policy.".to_owned(),
+                    "Draft consultation only; verify adoption before treating it as policy.".to_owned(),
                 ],
             },
             TransportSourceRecordV1 {
@@ -355,8 +355,8 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                 parser_profile_id: None,
                 qualification_review_ref: None,
                 missingness_and_limitations: vec![
-                    "The published page describes proposed terminal locations, not confirmed sites or completed land assessments.".to_owned(),
-                    "The reported 10.4 million tonnes is a modelled opportunity, not guaranteed modal shift or current capacity.".to_owned(),
+                    "Sites are proposed; confirmation and land assessments remain unverified.".to_owned(),
+                    "The 10.4 Mt figure is modelled, not guaranteed modal shift or verified capacity.".to_owned(),
                 ],
             },
         ],
