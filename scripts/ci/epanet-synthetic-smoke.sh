@@ -547,6 +547,22 @@ jq -e '
   (.hydraulic_observations.continuity.target_pipe_flow_matches_downstream_demand_within_0_02_lps == true) and
   (.hydraulic_observations.continuity.source_flow_matches_total_demand_within_0_02_lps == true) and
   (.hydraulic_observations.continuity.terminal_node_has_single_pipe_connection == true) and
+  ((.hydraulic_observations.continuity.source_flow_lps.baseline -
+      .hydraulic_observations.continuity.declared_total_junction_demand_lps) | abs <= 0.02) and
+  ((.hydraulic_observations.continuity.source_flow_lps.candidate -
+      .hydraulic_observations.continuity.declared_total_junction_demand_lps) | abs <= 0.02) and
+  ((.hydraulic_observations.target_pipe.baseline.flow_lps -
+      .hydraulic_observations.continuity.declared_downstream_demand_lps) | abs <= 0.02) and
+  ((.hydraulic_observations.target_pipe.candidate.flow_lps -
+      .hydraulic_observations.continuity.declared_downstream_demand_lps) | abs <= 0.02) and
+  ((.hydraulic_observations.target_pipe.candidate.flow_lps -
+      .hydraulic_observations.target_pipe.baseline.flow_lps) | abs <= 0.02) and
+  (.hydraulic_observations.target_pipe.candidate.velocity_m_per_s >
+      .hydraulic_observations.target_pipe.baseline.velocity_m_per_s) and
+  (.hydraulic_observations.target_pipe.candidate.headloss_m_per_1000_m >
+      .hydraulic_observations.target_pipe.baseline.headloss_m_per_1000_m) and
+  (.hydraulic_observations.downstream_node_pressure_m.candidate <
+      .hydraulic_observations.downstream_node_pressure_m.baseline) and
   (.hydraulic_observations.checks | all(.[]; . == true)) and
   (.execution.baseline_exit_code == 0) and
   (.execution.candidate_exit_code == 0) and
