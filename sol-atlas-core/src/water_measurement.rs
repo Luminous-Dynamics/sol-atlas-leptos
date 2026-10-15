@@ -531,4 +531,84 @@ mod tests {
         model.cost_unit = "currency_units".to_owned();
         assert!(evaluate_measurement_model(&model).unwrap_err().contains("must be identical"));
     }
+    #[test]
+    fn highly_informative_sensor_can_have_zero_decision_value() {
+        let mut model = toy_model();
+        // Monitoring is optimal under every hypothesis. Learning the hypothesis
+        // perfectly cannot improve the decision, even though it removes entropy.
+        model.decision_loss_matrix = vec![vec![0.0, 1.0], vec![4.0, 10.0]];
+
+        let evaluation = evaluate_measurement_model(&model).expect("valid toy model");
+        let perfect = evaluation
+            .actions
+            .iter()
+            .find(|result| result.action_id == "perfect_sensor")
+            .expect("perfect sensor result");
+
+        assert!((perfect.expected_information_gain_bits - 1.0).abs() < NUMERIC_TOLERANCE);
+        assert!(perfect.expected_value_of_sample_information.abs() < NUMERIC_TOLERANCE);
+        assert!((perfect.net_value_in_loss_units.unwrap() + 1.0).abs() < NUMERIC_TOLERANCE);
+        assert_eq!(evaluation.selected_measurement_action, None);
+        assert_eq!(evaluation.selection_state, "no_positive_net_value_candidate");
+    }
+
+    #[test]
+    fn permuting_hypothesis_and_outcome_order_preserves_metrics() {
+        let original = toy_model();
+        let original_evaluation =
+            evaluate_measurement_model(&original).expect("original toy model");
+
+        let mut permuted = original.clone();
+        permuted.hypothesis_ids.reverse();
+        permuted.prior.reverse();
+        for loss_row in &mut permuted.decision_loss_matrix {
+            loss_row.reverse();
+        }
+        for action in &mut permuted.actions {
+            action.likelihoods.reverse();
+            for likelihood_row in &mut action.likelihoods {
+                likelihood_row.reverse();
+            }
+            action.outcome_ids.reverse();
+        }
+
+        let permuted_evaluation =
+            evaluate_measurement_model(&permuted).expect("permuted toy model");
+        assert_eq!(
+            permuted_evaluation.selected_measurement_action,
+            original_evaluation.selected_measurement_action
+        );
+        for expected in &original_evaluation.actions {
+            let actual = permuted_evaluation
+                .actions
+                .iter()
+                .find(|result| result.action_id == expected.action_id)
+                .expect("same action after permutation");
+            assert!(
+                (actual.expected_information_gain_bits - expected.expected_information_gain_bits)
+                    .abs()
+                    < NUMERIC_TOLERANCE
+            );
+            assert!(
+                (actual.expected_value_of_sample_information
+                    - expected.expected_value_of_sample_information)
+                    .abs()
+                    < NUMERIC_TOLERANCE
+            );
+            assert!(
+                (actual.expected_loss_after_observation - expected.expected_loss_after_observation)
+                    .abs()
+                    < NUMERIC_TOLERANCE
+            );
+            assert_eq!(actual.outcome_probabilities.len(), expected.outcome_probabilities.len());
+            for (actual_probability, expected_probability) in actual
+                .outcome_probabilities
+                .iter()
+                .zip(expected.outcome_probabilities.iter().rev())
+            {
+                assert!((actual_probability - expected_probability).abs() < NUMERIC_TOLERANCE);
+            }
+        }
+    }
+
 }
