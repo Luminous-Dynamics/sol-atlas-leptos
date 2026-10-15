@@ -48,7 +48,9 @@ The first command is a catalogue search, not a guarantee that the search result 
 
 All validators here check metadata and state-machine invariants only. They do not fetch external sources, prove a license, validate a scientific model, establish source independence, or show that any domain is operational. The pilot profile is intentionally `design_only`: no WaPOR or CHIRPS artifacts have been acquired or processed. The current product IDs, temporal coverage, boundary, processing vintages, exact rights snapshots and independent reference records must be checked before the profile may advance.
 
-The wider architecture, cross-domain boundaries, priorities and D0–D5 gates are described in [the Earth Systems Intelligence RFC](../../docs/EARTH_SYSTEMS_INTELLIGENCE_RFC.md). The highest-priority work remains the mineral benchmark in parallel with this independently scoped water–food pilot.
+The catalog now includes a candidate global conflict / supply-chain resilience domain in addition to Earth-observation domains. Its source entries are metadata-only; no conflict, trade, port or humanitarian feed is connected by this catalog change. UCDP's listed CC BY 4.0 status is scoped to the documented dataset terms, while ACLED, GDELT, PortWatch, Comtrade, HAPI, Open Supply Hub and EPCIS remain product/access review-gated as applicable.
+
+The wider architecture, cross-domain boundaries, priorities and D0–D5 gates are described in [the Earth Systems Intelligence RFC](../../docs/EARTH_SYSTEMS_INTELLIGENCE_RFC.md). The mineral and water–food work remains active; the conflict/supply-chain track is research-only until frozen source snapshots, outcome records and independent backtests exist. The highest-priority work remains the mineral benchmark in parallel with this independently scoped water–food pilot.
 
 ## Inventory WaPOR Level III data by area code
 
