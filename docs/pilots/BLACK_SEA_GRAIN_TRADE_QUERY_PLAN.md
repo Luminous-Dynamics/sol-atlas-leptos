@@ -18,7 +18,7 @@ An example request shape is:
 
 ```text
 GET https://comtradeapi.un.org/public/v1/preview/C/M/HS
-    ?reporterCode=804
+    ?reportercode=804
     &partnerCode=0
     &cmdCode=1001
     &flowCode=X

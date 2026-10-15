@@ -232,6 +232,47 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
         self.assertEqual(result["state"], "captured_but_unrecognized_schema")
         self.assertIn("reporterCode", result["missing_query_dimension_fields"])
 
+    def test_availability_flag_selects_metadata_only_and_not_trade_queries(self):
+        with tempfile.TemporaryDirectory() as temp:
+            snapshot = Path(temp) / "snapshot"
+            calls = []
+
+            def fake_fetcher(url, max_bytes, timeout_seconds):
+                calls.append(url)
+                if "/public/v1/getDa/" in url:
+                    params = parse_qs(urlsplit(url).query)
+                    period = params["period"][0]
+                    raw = json.dumps({
+                        "count": 1,
+                        "data": [{"reporterCode": 804, "period": period}],
+                    }).encode()
+                    mime = "application/json"
+                else:
+                    is_csv = "food_price_indices_data.csv" in url
+                    raw = b"month,value\n" if is_csv else b"<html></html>"
+                    mime = "text/csv" if is_csv else "text/html"
+                return {
+                    "status_code": 200, "final_url": url, "content_type": mime,
+                    "headers": {}, "raw": raw, "error": None,
+                }
+
+            with patch.object(capture.time, "sleep", return_value=None):
+                with contextlib.redirect_stdout(io.StringIO()):
+                    exit_code = capture.main(
+                        ["--snapshot-dir", str(snapshot), "--include-availability"],
+                        fetcher=fake_fetcher,
+                    )
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(len(calls), 86)
+            self.assertEqual(sum("/public/v1/getDa/" in url for url in calls), 84)
+            self.assertFalse(any("/public/v1/preview/" in url for url in calls))
+            manifest = json.loads((snapshot / "capture-manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["selected_request_count"], 86)
+            self.assertTrue(manifest["availability_calls_requested"])
+            self.assertFalse(manifest["comtrade_calls_requested"])
+            self.assertFalse(manifest["full_plan_captured_and_shape_checked"])
+            self.assertFalse(manifest["case_qualified_for_analysis"])
+
     def test_default_capture_does_not_run_comtrade_queries(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
