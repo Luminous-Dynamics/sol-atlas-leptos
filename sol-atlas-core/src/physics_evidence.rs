@@ -544,8 +544,19 @@ mod tests {
 
     #[test]
     fn tiny_scale_energy_residual_mismatch_is_not_hidden_by_one_joule_floor() {
-        let mut run = fixture();
-        run.energy_balance = Some(EnergyBalance {
+        let mut balanced = fixture();
+        balanced.energy_balance = Some(EnergyBalance {
+            energy_in_j: 1.0e-15,
+            energy_out_j: 0.0,
+            stored_energy_change_j: 1.0e-15,
+            residual_j: 0.0,
+            tolerance_j: 1.0e-27,
+        });
+        assert_eq!(balanced.validate(), Ok(()));
+        assert!(balanced.energy_balance.unwrap().passes_declared_tolerance());
+
+        let mut unbalanced = fixture();
+        unbalanced.energy_balance = Some(EnergyBalance {
             energy_in_j: 1.0e-15,
             energy_out_j: 0.0,
             stored_energy_change_j: 0.0,
@@ -553,10 +564,10 @@ mod tests {
             tolerance_j: 1.0e-16,
         });
 
-        // At this scale, the claimed residual of zero is not consistent with
+        // At this scale, a claimed residual of zero is not consistent with
         // the declared 1 femtojoule input; absolute joule-scale slack would hide it.
-        assert_eq!(run.validate(), Err(ManifestError::InvalidEnergyBalance));
-        assert_eq!(run.readiness(), EvidenceReadiness::Exploratory);
+        assert_eq!(unbalanced.validate(), Err(ManifestError::InvalidEnergyBalance));
+        assert_eq!(unbalanced.readiness(), EvidenceReadiness::Exploratory);
     }
 
     #[test]
