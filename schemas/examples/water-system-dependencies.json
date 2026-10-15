@@ -12,6 +12,15 @@
       ]
     },
     {
+      "id": "synthetic-edge-pump-backup-power",
+      "subject_entity_id": "synthetic-pump-east",
+      "kind": "supplied_by",
+      "object_entity_id": "synthetic-feeder-west",
+      "supporting_evidence_ids": [
+        "synthetic-evidence-pump-backup-power"
+      ]
+    },
+    {
       "id": "synthetic-edge-field-pump",
       "subject_entity_id": "synthetic-field-north",
       "kind": "depends_on",

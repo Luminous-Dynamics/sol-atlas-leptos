@@ -130,7 +130,7 @@ Never treat “no data” as zero, “not captured” as unavailable, “queued�
 - **P0 — Contract:** ship the Rust contract primitives, JSON Schema and unit tests (this initial increment).
 - **P1 — Adversarial fixtures:** add schema-validation tests and fixtures for missing CRS, invalid digest, conflicting claims, supersession, uncertain measurements, bad units and attempted state confusion.
 - **P2 — Evidence adapters:** wrap current CHIRPS/WaPOR and supply-chain capture manifests without downloading or asserting data that has not been qualified.
-- **P3 — Query proof:** evidence-gated as-of traversal and a labelled synthetic water-system fixture now exist. Next, test dependency group semantics for required versus redundant resources (AND/OR/threshold), alternate routes and common-mode failure; then add negative controls before spatial overlay or risk scoring.
+- **P3 — Query proof:** evidence-gated as-of traversal and a labelled synthetic water-system fixture exist. The qualitative evaluator now supports all-required, any-one and at-least-k dependency groups with satisfied/disrupted/indeterminate outcomes. Next, add an explicit shared-cause/common-mode model and alternate-route semantics; keep quantitative reliability probabilities disabled until dependence assumptions and calibrated component data exist.
 - **P4 — Economic lifecycle:** simulate one end-to-end obligation with partial delivery, acceptance rejection, invoice, settlement and reversal; test physical and financial reconciliation separately.
 - **P5 — Evaluated pilot:** only after source qualification and human review, compare a bounded intervention to baseline.
 
@@ -148,5 +148,9 @@ Stop or roll back any integration that silently drops provenance, changes units/
 - OGC SensorThings API: https://www.ogc.org/standards/sensorthings/
 - ETSI NGSI-LD context information management: https://cim.etsi.org/NGSI-LD/official/clause-4.html
 - W3C OWL-Time (Candidate Recommendation Draft): https://www.w3.org/TR/owl-time/
+- IEC 61025 fault tree analysis: https://webstore.iec.ch/en/publication/4311
+- IEC 61078 reliability block diagrams: https://tc56.iec.ch/dependability-standards/
+- NIST/SEMATECH reliability handbook, parallel/redundant model: https://www.itl.nist.gov/div898/handbook/apr/section1/apr183.htm
+
 - Open Contracting Data Standard: https://standard.open-contracting.org/latest/en/
 - IETF RFC 9943, *An Architecture for Trustworthy and Transparent Digital Supply Chains*: https://datatracker.ietf.org/doc/rfc9943/

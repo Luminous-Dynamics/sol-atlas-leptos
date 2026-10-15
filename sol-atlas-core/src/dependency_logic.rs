@@ -9,7 +9,7 @@
 //! state. Scenario conditions must be labelled as assumptions or evidence-backed
 //! observations; missing information remains Unknown.
 
-use crate::spatial_economic::{EvidenceRecord, EvidenceState};
+use crate::spatial_economic::{EvidenceKind, EvidenceRecord, EvidenceState};
 use crate::spatial_graph::{
     is_canonical_utc_timestamp, AssessedDependencyReport, DependencyAssessmentError,
     DependencyGraph, EvidenceBlocker, EvidenceReadiness, GraphValidationError,
@@ -95,6 +95,8 @@ pub enum ScenarioValidationError {
     DuplicateSupportingEvidence,
     UnknownSupportingEvidence,
     InadmissibleSupportingEvidence,
+    EvidenceNotObservation,
+    EvidenceSubjectMismatch,
     InvalidSupportingEvidenceValidity,
     OutsideSupportingEvidenceValidity,
 }
@@ -425,6 +427,17 @@ fn validate_scenario(
                 )
             {
                 errors.push(ScenarioValidationError::InadmissibleSupportingEvidence);
+            }
+
+            if condition.basis == ScenarioBasis::Observed {
+                if record.kind != EvidenceKind::Observation {
+                    errors.push(ScenarioValidationError::EvidenceNotObservation);
+                }
+                if record.subject_id.as_str() != entity_id.as_str()
+                    && record.spatial.entity_id.as_str() != entity_id.as_str()
+                {
+                    errors.push(ScenarioValidationError::EvidenceSubjectMismatch);
+                }
             }
 
             let start = record.time.valid_from.as_deref();

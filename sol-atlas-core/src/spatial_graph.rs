@@ -879,6 +879,7 @@ mod tests {
         .unwrap();
         let evidence_records = [
             evidence("synthetic-evidence-pump-power"),
+            evidence("synthetic-evidence-pump-backup-power"),
             evidence("synthetic-evidence-field-pump"),
             evidence("synthetic-evidence-warehouse-location"),
         ];
