@@ -46,7 +46,8 @@ A route leg is not declared feasible merely because it is present in a projectio
 The Rust validator checks:
 
 - schema version and non-empty projection/source identities;
-- duplicate or blank IDs per collection;
+- duplicate or blank IDs within collections and ambiguous IDs across projected-object collections;
+- every populated evidence `claim_about_id` resolves to an existing projected object;
 - optional SHA-256 field shape;
 - evidence validity-interval coherence and time-profile compatibility;
 - geographic coordinate bounds;
