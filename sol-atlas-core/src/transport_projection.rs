@@ -340,6 +340,7 @@ pub enum TransportProjectionError {
     UnknownCommunicationEndpoint,
     UnknownInfrastructureAsset,
     InvalidCapacity,
+    CapacityBasisUnspecified,
     CapacityEvidenceUnqualified,
     InvalidContactWindow,
     InvalidTimeProfile,
@@ -582,11 +583,20 @@ pub fn validate_transport_projection(
         {
             return Err(TransportProjectionError::UnknownPhysicalNode);
         }
+        let scenario_allowed = matches!(
+            segment.state,
+            NetworkSegmentStateV1::Proposed | NetworkSegmentStateV1::AssumedForScenario
+        );
         if segment
             .capacity
             .is_some_and(|capacity| capacity.amount == 0)
         {
             return Err(TransportProjectionError::InvalidCapacity);
+        }
+        if !scenario_allowed
+            && segment.capacity.is_some_and(|capacity| capacity.basis == CapacityBasisV1::Unspecified)
+        {
+            return Err(TransportProjectionError::CapacityBasisUnspecified);
         }
         validate_evidence_refs(&segment.evidence_ids, &evidence_ids)?;
         if !segment.capacity_evidence_ids.is_empty() {
@@ -597,10 +607,6 @@ pub fn validate_transport_projection(
             // Scenario/proposed segments may use scenario-only data; all other
             // segment states require the evidence to be qualified for projection.
             validate_evidence_refs(&segment.capacity_evidence_ids, &evidence_ids)?;
-            let scenario_allowed = matches!(
-                segment.state,
-                NetworkSegmentStateV1::Proposed | NetworkSegmentStateV1::AssumedForScenario
-            );
             for evidence_id in &segment.capacity_evidence_ids {
                 let source = evidence_by_id
                     .get(evidence_id.as_str())
@@ -1230,9 +1236,29 @@ mod tests {
             .find(|segment| segment.id == "road-feeder")
             .expect("road segment");
         road.state = NetworkSegmentStateV1::ReportedOpen;
+        road.capacity.as_mut().expect("scenario capacity").basis = CapacityBasisV1::Concurrent;
         assert_eq!(
             validate_transport_projection(&projection),
             Err(TransportProjectionError::CapacityEvidenceUnqualified)
+        );
+    }
+
+    #[test]
+    fn reported_capacity_must_declare_a_capacity_basis() {
+        let mut projection = synthetic_freight_corridor_v1();
+        let road = projection
+            .physical_segments
+            .iter_mut()
+            .find(|segment| segment.id == "road-feeder")
+            .expect("road segment");
+        road.state = NetworkSegmentStateV1::ReportedOpen;
+        assert_eq!(
+            road.capacity.expect("numeric capacity").basis,
+            CapacityBasisV1::Unspecified
+        );
+        assert_eq!(
+            validate_transport_projection(&projection),
+            Err(TransportProjectionError::CapacityBasisUnspecified)
         );
     }
 
