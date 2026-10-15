@@ -55,6 +55,23 @@ The expectation is over possible measurement outcomes, not over a made-up single
 
 A future synthetic test should compare an information-directed strategy with explicit baselines such as random placement, coverage-only placement and a fixed heuristic. Report detection/localisation performance, redundant information, sensor count/cost, sensitivity to misspecified leak/demand/roughness scenarios, and failures—not merely the best-case score. Freeze the scenario corpus before comparing strategies, keep negative controls, and report results across all evaluated cases.
 
+### Executable research protocol and fair baselines
+
+The machine-readable companion is `sol-atlas-core/schemas/water-measurement-experiment-v0.1.schema.json`, with the deliberately **not-run** plan at `sol-atlas-core/fixtures/water-engineering/w0-measurement-experiment.synthetic.json`.
+
+The experiment requires four comparison strategies to share one frozen scenario corpus and matched seed policy:
+
+- **Information-directed:** choose the next synthetic sensor/measurement to maximise a declared information objective; do not call it decision value unless a defensible loss and cost model supports that estimate.
+- **Seeded random:** a reproducible chance baseline, not an arbitrary unseeded straw man.
+- **Spatial-coverage greedy:** a transparent coverage-first baseline.
+- **Fixed heuristic:** a declared, operationally interpretable rule, defined and frozen before results are examined.
+
+Measure top-k leak localisation on synthetic labelled truth, detection delay, sensor count, information redundancy and held-out worst-case localisation. Preserve every scenario failure and unavailable metric. Do not turn information entropy into an implied financial benefit, blend dimensions into a hidden score, tune to held-out cases, or select acceptance thresholds after seeing results. The schema now blocks an evaluation marked `Completed` unless (a) model state is `Completed`, (b) the scenario corpus is generated and hashed, (c) acceptance criteria are frozen, and (d) all four baseline strategies have result records.
+
+This is still only a **protocol**. Costs and expected information/decision value are intentionally unestimated; the corpus contains zero generated scenarios; evaluation state is `NotRun`; fieldwork is explicitly unauthorised. The next implementation should generate synthetic leak/demand/roughness/noise cases from a pinned solver, freeze training vs held-out manifests, and implement the four strategies before reporting comparative performance.
+
+Research precedents: [information-theoretic pressure sensor placement for leak localisation (2022)](https://pmc.ncbi.nlm.nih.gov/articles/PMC8779686/) demonstrated its method using EPANET-generated pressure-change scenarios on the Hanoi network; [optimal sensor placement using Value of Information and transinformation entropy](https://www.sciencedirect.com/science/article/abs/pii/S0043135418305001) compares an information-theoretic approach to other sensor-placement recommendations. These papers motivate the benchmark, not a claim that the proposed Sol-Atlas strategy is better. The first independent question is whether it outperforms seeded random and transparent coverage/heuristic baselines on held-out synthetic cases under matched assumptions.
+
 ### How this changes the Sol-Atlas / Symthaea / Mycelix division
 
 - **Sol-Atlas:** owns the spatial evidence packet, permissible measurement-action catalogue, comparison surface and reproducible test corpus.
