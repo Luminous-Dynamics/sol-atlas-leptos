@@ -199,7 +199,9 @@ pub fn validate_bundle(bundle: &Value, repository_root: &Path) -> ValidationRepo
                 Some(id) => report.push(
                     "SCENARIO_ASSET_UNKNOWN",
                     change_path,
-                    format!("scenario target asset {id:?} is absent from model_package.asset_index"),
+                    format!(
+                        "scenario target asset {id:?} is absent from model_package.asset_index"
+                    ),
                 ),
                 None => report.push(
                     "SCENARIO_ASSET_ID_MISSING",
