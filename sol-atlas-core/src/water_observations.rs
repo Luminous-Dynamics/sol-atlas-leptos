@@ -342,11 +342,12 @@ mod tests {
         assert_eq!(plan_rows, 13);
         let saving = rows
             .iter()
-            .find(|row| {
-                row["observation_id"] == "jw.ld.fy2023-24.estimated-demand-reduction"
-            })
+            .find(|row| row["observation_id"] == "jw.ld.fy2023-24.estimated-demand-reduction")
             .expect("reported active leak-detection saving row");
-        assert_eq!(saving["observation_kind"].as_str(), Some("reported_reference"));
+        assert_eq!(
+            saving["observation_kind"].as_str(),
+            Some("reported_reference")
+        );
         assert!(
             saving["notes"]
                 .as_array()
