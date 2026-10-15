@@ -54,3 +54,11 @@ Source: https://www.fao.org/in-action/remote-sensing-for-water-productivity/news
 - Pilot status remains `design_only`; all evidence gates remain unchanged.
 
 A SHA-256 digest establishes byte identity, not truth. A catalog record establishes a catalog observation, not valid layer coverage or reuse rights.
+
+## Follow-up interpretation correction — 2026-10-15
+
+The 2026-10-14 `/mapsets` snapshot remains an accurate record of that endpoint response, but it must not be read as an exhaustive Level III inventory. Reviewing the [pinned FAO WaPOR v3 API tutorial](https://github.com/un-fao/FAO-Water-Applications/blob/10a70cda0e0023258bc9152e43a73b6e8e20b669/WaPOR/WaPORv3_API.ipynb) shows that the `/mapsets` request is presented as a listing of mapset families (the tutorial's output contains Level I and Level II codes). The area-specific Level III file index is a different public listing under `MOSAICSET`.
+
+FAO's [official data-access/correction page](https://www.fao.org/in-action/remote-sensing-for-water-productivity/wapor-data-access/en) identifies Baixo Limpopo's Level III area code as `MBL`. The correct next inventory is therefore the area-specific `L3-AETI-M` MOSAICSET index for `MBL`, not another search of the 42-record `/mapsets` response. The national `L2-AETI-M` probe remains a separate fallback research path only.
+
+The PR now includes `scripts/earth-systems/inspect_wapor_level3_index.py`, a bounded raw-index snapshot/inventory tool, regression tests, and non-gating capture jobs in the catalog and manual snapshot workflows. A successful directory capture can establish whether that specific index lists MBL files at capture time; it still cannot prove raster bytes are retrievable, final, scientifically valid, or legally reusable. The latest Level III capture job must complete and its artifact/hash manifest be reviewed before any product-selection claim is made.
