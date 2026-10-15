@@ -3,7 +3,7 @@
 **Status:** Proposed design; not operationally validated  
 **Version:** 0.1.0  
 **Scope:** Sol-Atlas spatial reasoning and its interfaces to Mycelix coordination and economic execution  
-**Implementation status:** initial Rust contract primitives and JSON Schema; no live economic or spatial integration
+**Implementation status:** initial Rust evidence contract, time-bounded dependency graph, qualitative dependency-group evaluator and JSON Schemas; no live economic or spatial integration
 
 ## Executive thesis
 
@@ -66,7 +66,7 @@ Measure outcomes in terms relevant to the use case—reliability of water delive
 
 ## Contract boundary (v0.1)
 
-The machine-readable contracts are the [EvidenceRecord JSON Schema](../../schemas/spatial-economic-evidence-v0.1.schema.json), [SpatialRelation JSON Schema](../../schemas/spatial-economic-relation-v0.1.schema.json), [DependencyGraph JSON Schema](../../schemas/spatial-economic-dependency-graph-v0.1.schema.json), [DependencyGroup JSON Schema](../../schemas/spatial-economic-dependency-groups-v0.1.schema.json), and [AvailabilityScenario JSON Schema](../../schemas/spatial-economic-availability-scenario-v0.1.schema.json). The synthetic network and redundancy groups are in [water-system-dependencies.json](../../schemas/examples/water-system-dependencies.json) and [water-system-dependency-groups.json](../../schemas/examples/water-system-dependency-groups.json). Rust primitives are in [spatial_economic.rs](../../sol-atlas-core/src/spatial_economic.rs), [spatial_graph.rs](../../sol-atlas-core/src/spatial_graph.rs) and [dependency_logic.rs](../../sol-atlas-core/src/dependency_logic.rs).
+The machine-readable contracts are the [EvidenceRecord JSON Schema](../../schemas/spatial-economic-evidence-v0.1.schema.json), [SpatialRelation JSON Schema](../../schemas/spatial-economic-relation-v0.1.schema.json), [DependencyGraph JSON Schema](../../schemas/spatial-economic-dependency-graph-v0.1.schema.json), [DependencyGroup JSON Schema](../../schemas/spatial-economic-dependency-groups-v0.1.schema.json), and [AvailabilityScenario JSON Schema](../../schemas/spatial-economic-availability-scenario-v0.1.schema.json). The synthetic network, redundancy groups and scenario inputs are in [water-system-dependencies.json](../../schemas/examples/water-system-dependencies.json), [water-system-dependency-groups.json](../../schemas/examples/water-system-dependency-groups.json) and [water-system-availability-scenario.json](../../schemas/examples/water-system-availability-scenario.json). Rust primitives are in [spatial_economic.rs](../../sol-atlas-core/src/spatial_economic.rs), [spatial_graph.rs](../../sol-atlas-core/src/spatial_graph.rs) and [dependency_logic.rs](../../sol-atlas-core/src/dependency_logic.rs).
 
 Each EvidenceRecord has:
 - **Identity:** immutable statement ID, schema version, issuer and subject IDs.

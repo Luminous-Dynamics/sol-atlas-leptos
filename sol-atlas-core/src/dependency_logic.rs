@@ -831,8 +831,13 @@ mod tests {
         ))
         .unwrap();
         assert_eq!(scenario_schema["properties"]["as_of"]["type"], "string");
-        assert!(scenario_schema["properties"]["entity_conditions"]["additionalProperties"]
-            ["properties"]["basis"]["enum"].as_array().unwrap().contains(&serde_json::json!("assumed")));
+        assert!(
+            scenario_schema["properties"]["entity_conditions"]["additionalProperties"]
+                ["properties"]["basis"]["enum"]
+                .as_array()
+                .unwrap()
+                .contains(&serde_json::json!("assumed"))
+        );
 
         let choices = schema["$defs"]["logic"]["oneOf"].as_array().unwrap();
         assert!(choices.iter().any(|item| item["properties"]["mode"]["const"] == "all_required"));
