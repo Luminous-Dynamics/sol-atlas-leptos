@@ -235,19 +235,39 @@ Passing G0 or G1 is not G3, engineering certification, a successful municipal pi
 - `sol-atlas-core/fixtures/water-engineering/w0-p2-diameter-restriction.synthetic.json` binds a proposed pipe-parameter change to the exact input-file digest. Its run state is `NotRun`, contains no metrics or result artifacts, and explicitly says that no solver was invoked.
 - The schema makes the `NotRun` state incompatible with reported run metrics, result artifacts, solver exit code, convergence, or execution timestamps.
 
-The initial schema and fixture shape were checked against JSON Schema Draft 2020-12 in a local validation step. This is a contract/fixture check only: EPANET was not executed, no hydraulic result was produced, and the cross-record equality of model/scenario digests still requires a semantic validator beyond JSON Schema.
+The schema and fixture shape were checked against JSON Schema Draft 2020-12 in an earlier local validation step. A Rust semantic validator and CLI have now been added to this draft branch to check cross-record identity, referenced file bytes, SHA-256 and length consistency, asset references, and run-state claim ceilings. The new Rust tests and CLI have been authored but have not yet been executed in this environment or confirmed by an exact-head CI run. EPANET has not been executed and no hydraulic result has been produced.
 
 ## Suggested implementation sequence
 
 1. Keep the engineering model/run contract separate from the utility-observation and civic-case contracts to avoid duplicate type ownership.
 2. Use the starter schema and synthetic `NotRun` bundle as a contract seed; bind utility observations only after the related interface is reviewed and stabilised.
-3. Add strict semantic validation for cross-record identity, digests, units, unique asset IDs, and run-state consistency. JSON Schema alone cannot prove the referenced bytes hash to the declared digest or compare every field across objects.
+3. Run and review the Rust semantic validator now added in this draft branch. It checks cross-record model/scenario/input identity, source-inventory consistency, referenced artifact bytes and digests, unique asset IDs, scenario target references, solver-engine identity, and impossible NotRun/Completed claims. Add unit/semantic checks for unit-policy and completed-run manifest completeness before relying on it.
 4. Add an offline, deterministic harness invoking explicitly versioned external solvers; do not embed an unreviewed engine fork.
 5. Capture actual solver logs/results, verify the exact input/run manifests and conservation/closure diagnostics, then obtain independent technical review.
 6. Connect only qualified metrics to Sol-Atlas layers and civic cases; never expose raw critical-infrastructure data through public views.
 7. Feed candidate results to Symthaea for constrained, multi-objective comparison. Preserve the full metric vector, assumptions, and uncertainty.
 8. Record a human-reviewed decision and explicit authorisation through the Mycelix workflow, then compare post-intervention observations against the frozen baseline.
 9. Add a building-plumbing profile only after its local technical and regulatory requirements are separately mapped.
+
+## Semantic validator implementation (draft-branch increment)
+
+The draft branch now adds:
+
+- `sol-atlas-core/src/water_engineering.rs`: `validate_bundle`, a fail-closed semantic validator separate from JSON Schema.
+- `sol-atlas-core/src/bin/water_bundle_validate.rs`: a command-line entry point which returns non-zero when semantic checks fail.
+- Unit tests for the clean NotRun fixture, model/scenario mismatch, input digest mismatch, metrics on a NotRun run, unknown scenario asset, well-formed but incorrect SHA-256, path traversal, and duplicate asset IDs.
+
+Run from the repository root:
+
+```sh
+cargo test -p sol-atlas-core water_engineering::tests -- --nocapture
+cargo run -p sol-atlas-core --bin water-bundle-validate -- \
+  sol-atlas-core/fixtures/water-engineering/w0-p2-diameter-restriction.synthetic.json \
+  "$PWD"
+```
+
+The command prints `SEMANTIC_VALIDATION_PASS` only for the semantic checks it implements; it explicitly does not run a hydraulic solver. The fixture must also pass the separate Draft 2020-12 schema gate. These commands are instructions, not reported test results: local execution was unavailable in this work session and no exact-head CI result is claimed. There is no EPANET/SWMM executable installed in the available shell, so no hydraulic run is claimed either.
+
 
 ## Research references
 
