@@ -235,7 +235,7 @@ Passing G0 or G1 is not G3, engineering certification, a successful municipal pi
 - `sol-atlas-core/fixtures/water-engineering/w0-p2-diameter-restriction.synthetic.json` binds a proposed pipe-parameter change to the exact input-file digest. Its run state is `NotRun`, contains no metrics or result artifacts, and explicitly says that no solver was invoked.
 - The schema makes the `NotRun` state incompatible with reported run metrics, result artifacts, solver exit code, convergence, or execution timestamps.
 
-The schema and fixture shape were checked against JSON Schema Draft 2020-12 in an earlier local validation step. A Rust semantic validator and CLI have now been added to this draft branch to check cross-record identity, referenced file bytes, SHA-256 and length consistency, asset references, and run-state claim ceilings. The new Rust tests and CLI have been authored but have not yet been executed in this environment or confirmed by an exact-head CI run. EPANET has not been executed and no hydraulic result has been produced.
+The schema and fixture shape were checked against JSON Schema Draft 2020-12 in an earlier local validation step. A Rust semantic validator and CLI have now been added to this draft branch to check cross-record identity, referenced file bytes, SHA-256 and length consistency, asset references, and run-state claim ceilings. The new Rust tests and CLI have been authored but have not yet been executed in this environment. The PR branch also adds an explicit `cargo test -p sol-atlas-core` CI step; its result must be checked against the exact current head before any pass is claimed. EPANET has not been executed and no hydraulic result has been produced.
 
 ## Suggested implementation sequence
 
@@ -266,7 +266,7 @@ cargo run -p sol-atlas-core --bin water-bundle-validate -- \
   "$PWD"
 ```
 
-The command prints `SEMANTIC_VALIDATION_PASS` only for the semantic checks it implements; it explicitly does not run a hydraulic solver. The fixture must also pass the separate Draft 2020-12 schema gate. These commands are instructions, not reported test results: local execution was unavailable in this work session and no exact-head CI result is claimed. There is no EPANET/SWMM executable installed in the available shell, so no hydraulic run is claimed either.
+The command prints `SEMANTIC_VALIDATION_PASS` only for the semantic checks it implements; it explicitly does not run a hydraulic solver. The fixture must also pass the separate Draft 2020-12 schema gate. These commands are instructions, not reported test results: local execution was unavailable in this work session and no exact-head CI result is claimed. The added native-core CI step is intended to execute the tests after a runner starts. There is no EPANET/SWMM executable installed in the available shell, so no hydraulic run is claimed either.
 
 
 ## Research references
