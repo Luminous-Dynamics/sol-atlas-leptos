@@ -70,7 +70,6 @@ pub struct SiteDimensionAssessmentV1 {
     pub reviewer_ref: Option<String>,
     /// UTC review timestamp in YYYY-MM-DDTHH:MM:SSZ form.
     pub reviewed_at_utc: Option<String>,
-    pub note: Option<String>,
 }
 
 /// Screening input. Exact/private coordinates and health data are deliberately absent.
@@ -352,7 +351,6 @@ mod tests {
             evidence_ref: Some(format!("evidence-{:?}", dimension)),
             reviewer_ref: Some("reviewer-001".to_owned()),
             reviewed_at_utc: Some("2026-10-15T07:00:00Z".to_owned()),
-            note: None,
         }
     }
 
@@ -503,6 +501,14 @@ mod tests {
         assert!(valid_utc_timestamp(Some("2000-02-29T12:00:00Z")));
         assert!(!valid_utc_timestamp(Some("1900-02-29T12:00:00Z")));
         assert!(!valid_utc_timestamp(Some("2026-02-29T12:00:00Z")));
+    }
+
+    #[test]
+    fn screening_serialization_does_not_add_free_text_note_field() {
+        let serialized = serde_json::to_string(&valid_input()).expect("fixture serializes");
+        assert!(!serialized.contains("\\"note\\":"));
+        assert!(!serialized.contains("\\"latitude\\":"));
+        assert!(!serialized.contains("\\"longitude\\":"));
     }
 
     #[test]
