@@ -355,6 +355,10 @@ mod tests {
             currency: "MZN".into(),
         });
         assert_eq!(record.validate(), Ok(()));
+        record.money.as_mut().unwrap().amount_decimal = "01.25".into();
+        let leading_zero_errors = record.validate().unwrap_err();
+        assert!(leading_zero_errors.contains(&ContractError::InvalidMoneyDecimal));
+
         record.money.as_mut().unwrap().amount_decimal = "1e2".into();
         record.money.as_mut().unwrap().currency = "usd".into();
         let errors = record.validate().unwrap_err();
