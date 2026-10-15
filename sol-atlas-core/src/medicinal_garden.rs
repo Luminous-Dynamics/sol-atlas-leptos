@@ -238,7 +238,7 @@ pub fn evaluate_site_screening(input: &GardenSiteScreeningV1) -> ScreeningDecisi
                 "reviewed state requires an accountable reviewer reference",
             ));
         }
-        if !valid_utc_timestamp_shape(assessment.reviewed_at_utc.as_deref()) {
+        if !valid_utc_timestamp(assessment.reviewed_at_utc.as_deref()) {
             blockers.push(blocker(
                 Some(dimension),
                 ScreeningBlockerCode::ReviewTimestampRequired,
@@ -278,21 +278,64 @@ fn non_empty(value: Option<&str>) -> bool {
 }
 
 /// Shape check only; this does not establish that the timestamp is a real calendar instant.
-fn valid_utc_timestamp_shape(value: Option<&str>) -> bool {
+fn valid_utc_timestamp(value: Option<&str>) -> bool {
     let Some(value) = value else {
         return false;
     };
     let bytes = value.as_bytes();
-    bytes.len() == 20
-        && bytes[4] == b'-'
-        && bytes[7] == b'-'
-        && bytes[10] == b'T'
-        && bytes[13] == b':'
-        && bytes[16] == b':'
-        && bytes[19] == b'Z'
-        && bytes.iter().enumerate().all(|(index, byte)| {
+    if bytes.len() != 20
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+        || !bytes.iter().enumerate().all(|(index, byte)| {
             matches!(index, 4 | 7 | 10 | 13 | 16 | 19) || byte.is_ascii_digit()
         })
+    {
+        return false;
+    }
+
+    let Some(year) = parse_ascii_u32(bytes, 0, 4) else {
+        return false;
+    };
+    let Some(month) = parse_ascii_u32(bytes, 5, 7) else {
+        return false;
+    };
+    let Some(day) = parse_ascii_u32(bytes, 8, 10) else {
+        return false;
+    };
+    let Some(hour) = parse_ascii_u32(bytes, 11, 13) else {
+        return false;
+    };
+    let Some(minute) = parse_ascii_u32(bytes, 14, 16) else {
+        return false;
+    };
+    let Some(second) = parse_ascii_u32(bytes, 17, 19) else {
+        return false;
+    };
+
+    if year == 0 || !(1..=12).contains(&month) || hour > 23 || minute > 59 || second > 59 {
+        return false;
+    }
+
+    let days_in_month = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if is_leap_year(year) => 29,
+        2 => 28,
+        _ => return false,
+    };
+    (1..=days_in_month).contains(&day)
+}
+
+fn parse_ascii_u32(bytes: &[u8], start: usize, end: usize) -> Option<u32> {
+    std::str::from_utf8(bytes.get(start..end)?).ok()?.parse().ok()
+}
+
+const fn is_leap_year(year: u32) -> bool {
+    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
 }
 
 #[cfg(test)]
@@ -429,7 +472,7 @@ mod tests {
     }
 
     #[test]
-    fn timestamp_shape_is_checked_without_claiming_calendar_validity() {
+    fn malformed_timestamp_is_blocked() {
         let mut input = valid_input();
         input.assessments[0].reviewed_at_utc = Some("not-a-timestamp".to_owned());
         let decision = evaluate_site_screening(&input);
@@ -439,6 +482,27 @@ mod tests {
                 .iter()
                 .any(|item| { item.code == ScreeningBlockerCode::ReviewTimestampRequired })
         );
+    }
+
+    #[test]
+    fn impossible_calendar_and_clock_values_are_blocked() {
+        for value in [
+            "2026-02-30T10:00:00Z",
+            "2026-13-01T10:00:00Z",
+            "2026-10-15T25:00:00Z",
+            "2026-10-15T10:60:00Z",
+            "2026-10-15T10:00:60Z",
+        ] {
+            assert!(!valid_utc_timestamp(Some(value)), "accepted invalid timestamp: {value}");
+        }
+    }
+
+    #[test]
+    fn leap_days_follow_gregorian_calendar_rules() {
+        assert!(valid_utc_timestamp(Some("2024-02-29T12:00:00Z")));
+        assert!(valid_utc_timestamp(Some("2000-02-29T12:00:00Z")));
+        assert!(!valid_utc_timestamp(Some("1900-02-29T12:00:00Z")));
+        assert!(!valid_utc_timestamp(Some("2026-02-29T12:00:00Z")));
     }
 
     #[test]
