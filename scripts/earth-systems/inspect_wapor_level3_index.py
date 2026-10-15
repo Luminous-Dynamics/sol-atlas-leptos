@@ -92,15 +92,18 @@ class MosaicsetIndexParser(html.parser.HTMLParser):
                 self.errors.append(f"malformed matching file link: {href!r}")
             return
 
-        filename = unquote(parts.path)
-        if "/" in filename:
-            filename = filename.rsplit("/", 1)[-1]
+        decoded_path = unquote(parts.path)
+        filename = decoded_path.rsplit("/", 1)[-1]
+        expected_dir = prefix_for(self.mapset_code)
+        allowed_paths = {filename, f"{expected_dir}/{filename}", f"/{expected_dir}/{filename}"}
+        unsafe_segments = any(segment in {".", ".."} for segment in decoded_path.split("/"))
         product_prefix = f"WAPOR-3.{self.mapset_code}."
         if not filename.startswith(product_prefix):
             return
         if (
             parts.scheme or parts.netloc or parts.query or parts.fragment
-            or parts.path != filename
+            or decoded_path not in allowed_paths
+            or unsafe_segments
             or not SAFE_FILENAME_RE.fullmatch(filename)
             or filename in {".", ".."}
         ):
