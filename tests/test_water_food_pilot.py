@@ -44,6 +44,25 @@ class WaterFoodPilotTests(unittest.TestCase):
         doc["sources"][0]["source_catalog_verified"] = True
         self.assertTrue(any("requires a 64-character SHA-256" in e for e in validate_pilot(doc)))
 
+    def test_wapor_pilot_requires_area_specific_mosaicset_inventory(self):
+        source = next(s for s in self.pilot["sources"] if s["source_id"] == "FAO-WAPOR")
+        checks = " ".join(source["required_checks"]).lower()
+        self.assertIn("mosaicset", checks)
+        self.assertIn("l3-aeti-m", checks)
+        self.assertIn("mbl", checks)
+        self.assertIn("not an exhaustive level iii area inventory", checks)
+
+    def test_validator_rejects_missing_level3_mosaicset_gate(self):
+        doc = copy.deepcopy(self.pilot)
+        source = next(s for s in doc["sources"] if s["source_id"] == "FAO-WAPOR")
+        source["required_checks"] = [
+            check for check in source["required_checks"] if "MOSAICSET" not in check
+        ]
+        self.assertTrue(any(
+            "WaPOR pilot must inventory the area-specific Level III MOSAICSET index" in error
+            for error in validate_pilot(doc)
+        ))
+
     def test_wapor_level_three_correction_history_must_be_checked(self):
         source = next(s for s in self.pilot["sources"] if s["source_id"] == "FAO-WAPOR")
         checks = " ".join(source["required_checks"]).lower()
