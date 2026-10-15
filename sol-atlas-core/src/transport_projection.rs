@@ -334,6 +334,7 @@ pub enum TransportProjectionError {
     DuplicateOrBlankIdentifier,
     MissingEvidenceReference,
     UnknownEvidenceReference,
+    UnknownEvidenceClaimTarget,
     UnknownPhysicalNode,
     UnknownPhysicalSegment,
     UnknownCommunicationEndpoint,
@@ -505,6 +506,65 @@ pub fn validate_transport_projection(
         .iter()
         .map(|item| item.id.as_str())
         .collect();
+
+    // These IDs are referenced through untagged string IDs in claim_about_id,
+    // milestone leg IDs, topology endpoints and dependency edges. Enforce one
+    // global object-ID namespace so no reference can resolve ambiguously.
+    let projected_object_ids: BTreeSet<&str> = projection
+        .physical_nodes
+        .iter()
+        .map(|item| item.id.as_str())
+        .chain(projection.physical_segments.iter().map(|item| item.id.as_str()))
+        .chain(
+            projection
+                .shipment_milestones
+                .iter()
+                .map(|item| item.id.as_str()),
+        )
+        .chain(
+            projection
+                .communication_endpoints
+                .iter()
+                .map(|item| item.id.as_str()),
+        )
+        .chain(
+            projection
+                .communication_contacts
+                .iter()
+                .map(|item| item.id.as_str()),
+        )
+        .chain(
+            projection
+                .infrastructure_assets
+                .iter()
+                .map(|item| item.id.as_str()),
+        )
+        .chain(
+            projection
+                .infrastructure_dependencies
+                .iter()
+                .map(|item| item.id.as_str()),
+        )
+        .collect();
+    let projected_object_count = projection.physical_nodes.len()
+        + projection.physical_segments.len()
+        + projection.shipment_milestones.len()
+        + projection.communication_endpoints.len()
+        + projection.communication_contacts.len()
+        + projection.infrastructure_assets.len()
+        + projection.infrastructure_dependencies.len();
+    if projected_object_ids.len() != projected_object_count {
+        return Err(TransportProjectionError::DuplicateOrBlankIdentifier);
+    }
+    for record in &projection.evidence_records {
+        if record
+            .claim_about_id
+            .as_deref()
+            .is_some_and(|id| !projected_object_ids.contains(id))
+        {
+            return Err(TransportProjectionError::UnknownEvidenceClaimTarget);
+        }
+    }
 
     for node in &projection.physical_nodes {
         if !nonempty(&node.label) {
@@ -1048,6 +1108,31 @@ mod tests {
     fn duplicate_node_identifiers_are_rejected() {
         let mut projection = synthetic_freight_corridor_v1();
         projection.physical_nodes[1].id = projection.physical_nodes[0].id.clone();
+        assert_eq!(
+            validate_transport_projection(&projection),
+            Err(TransportProjectionError::DuplicateOrBlankIdentifier)
+        );
+    }
+
+    #[test]
+    fn evidence_claims_must_target_an_existing_projected_object() {
+        let mut projection = synthetic_freight_corridor_v1();
+        let evidence = projection
+            .evidence_records
+            .iter_mut()
+            .find(|record| record.id == "capacity-claim-a")
+            .expect("capacity evidence");
+        evidence.claim_about_id = Some("unregistered-rail-segment".to_owned());
+        assert_eq!(
+            validate_transport_projection(&projection),
+            Err(TransportProjectionError::UnknownEvidenceClaimTarget)
+        );
+    }
+
+    #[test]
+    fn projected_object_identifiers_are_globally_unambiguous() {
+        let mut projection = synthetic_freight_corridor_v1();
+        projection.physical_nodes[0].id = projection.physical_segments[0].id.clone();
         assert_eq!(
             validate_transport_projection(&projection),
             Err(TransportProjectionError::DuplicateOrBlankIdentifier)
