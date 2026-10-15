@@ -88,7 +88,17 @@ A correction appends a new statement that references the old one; it does not re
 
 1. **Spatial substrate:** stable entity IDs, geometry/CRS metadata, spatial-temporal queries, and support for offline snapshots. Prefer interoperable standards and adapters over a bespoke geospatial wire protocol.
 2. **Evidence layer:** immutable/correctable claims, source manifests, issuer identity, explicit states and provenance.
-3. **Dependency graph and logic:** typed, time-bounded links among places, assets, facilities, goods, counterparties, services, contracts and resources. `spatial_graph.rs` supplies deterministic evidence-gated reachability; `dependency_logic.rs` evaluates explicit `all_required`, `any_one` and `at_least(k)` groups against scenario conditions. Results are `satisfied`, `disrupted` or `indeterminate`; missing states and evidence-blocked edges remain unknown, not failures. These qualitative rules do not imply reliability probabilities or establish causal outcomes.
+3. **Dependency graph and logic:** typed, time-bounded links among places, assets, facilities, goods, counterparties, services, contracts and resources. `spatial_graph.rs` supplies deterministic evidence-gated reachability; `dependency_logic.rs` evaluates explicit `all_required`, `any_one` and `at_least(k)` groups against scenario conditions. Results are `satisfied`, `disrupted` or `indeterminate`; missing states and evidence-blocked edges remain unknown, not failures.
+
+The qualitative outcome rule is:
+
+| Logic | Satisfied | Disrupted | Indeterminate |
+|---|---|---|---|
+| `all_required` | All currently active members are available | At least one active member is known unavailable | No active members, or unknown members prevent a conclusion |
+| `any_one` | At least one active member is available | Every active member is known unavailable | No active members, or no available member and at least one unknown |
+| `at_least(k)` | At least `k` active members are available | Even treating unknown members as available cannot reach `k` | Unknown members could change whether `k` is reached |
+
+A missing scenario condition defaults to Unknown. Scenario inputs labelled `assumed` are explicit what-if inputs, not observations. Inputs labelled `observed` must cite structurally valid observation records whose state is asserted/corroborated, whose subject or spatial entity matches the component, and whose validity covers the query instant. These qualitative rules do not imply reliability probabilities or establish causal outcomes.
 4. **Economic execution:** adapters for double-entry accounting, procurement, inventory, work orders, dispatch, invoices and payment systems. External systems remain authoritative for their own transactions.
 5. **Scenario/evaluation engine:** explicit constraints, versioned assumptions, reproducible runs and baseline/negative-control reports.
 6. **Human interface:** map, dependency explorer, claim timeline, commitment board, scenario compare view and evidence inspector. Every consequential recommendation should show its inputs and limitations.

@@ -761,6 +761,53 @@ mod tests {
     }
 
     #[test]
+    fn observed_condition_rejects_forecasts_and_expired_observations() {
+        let graph = DependencyGraph {
+            relations: vec![relation("pump-source", "pump", "feeder", "ev-link")],
+        };
+        let mut state_record = evidence("ev-state");
+        state_record.subject_id = "feeder".into();
+        state_record.spatial.entity_id = "feeder".into();
+        let condition = ScenarioEntityCondition {
+            state: EntityOperationalState::Available,
+            basis: ScenarioBasis::Observed,
+            rationale: "Synthetic observed condition".into(),
+            supporting_evidence_ids: vec!["ev-state".into()],
+        };
+        let states = scenario("observed-condition", [("feeder".into(), condition)]);
+        let dep_group = group(DependencyLogic::AnyOne, &["pump-source"]);
+
+        state_record.kind = EvidenceKind::Forecast;
+        let wrong_kind = graph
+            .evaluate_dependency_group_at(
+                &dep_group,
+                &states,
+                &[evidence("ev-link"), state_record.clone()],
+            )
+            .unwrap_err();
+        assert!(matches!(
+            wrong_kind,
+            ScenarioEvaluationError::InvalidScenario(errors)
+                if errors.contains(&ScenarioValidationError::EvidenceNotObservation)
+        ));
+
+        state_record.kind = EvidenceKind::Observation;
+        state_record.time.valid_until = Some("2026-10-10T00:00:00Z".into());
+        let expired = graph
+            .evaluate_dependency_group_at(
+                &dep_group,
+                &states,
+                &[evidence("ev-link"), state_record],
+            )
+            .unwrap_err();
+        assert!(matches!(
+            expired,
+            ScenarioEvaluationError::InvalidScenario(errors)
+                if errors.contains(&ScenarioValidationError::OutsideSupportingEvidenceValidity)
+        ));
+    }
+
+    #[test]
     fn dependency_group_validation_rejects_bad_members_and_thresholds() {
         let graph = DependencyGraph {
             relations: vec![
