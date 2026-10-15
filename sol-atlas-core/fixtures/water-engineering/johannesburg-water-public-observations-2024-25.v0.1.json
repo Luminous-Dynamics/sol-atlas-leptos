@@ -1,0 +1,496 @@
+{
+  "schema_version": "water-public-observation-bundle/v0.1",
+  "bundle_id": "johannesburg-water-public-observations-2024-25-v0.1",
+  "retrieved_on": "2026-10-15",
+  "scope": {
+    "geography": "Greater Johannesburg Water Supply System / Johannesburg Water portfolio",
+    "purpose": "Establish a source-attributed public aggregate baseline and define data acquisition gates for research; do not use directly for hydraulic calibration.",
+    "classification": "public_aggregate_research"
+  },
+  "source_records": [
+    {
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "publisher": "Johannesburg Water SOC Ltd",
+      "publication_title": "2024/2025 Water Quality Report for Greater Johannesburg Water Supply System",
+      "publication_url": "https://www.news24.com/notices/notice/c58d8709-1721-451c-9b80-a7d966206c21",
+      "official_source_url": "https://www.johannesburgwater.co.za/resource-centre/water-quality-reports/",
+      "published_on": "2026-03-23",
+      "source_kind": "published_notice",
+      "access_state": "public_page_observed",
+      "granularity": "System-wide 12-month sample summary and average values of selected constituents; no asset-level or sampling-site time series in this notice",
+      "reuse_terms": [
+        "Attribute Johannesburg Water SOC Ltd as publisher and retain the source URL.",
+        "No open-data licence for this transcribed summary was confirmed in the notice; confirm permissions before commercial redistribution or bulk republication.",
+        "The original report and monthly reports remain at the linked publishers' sites; this bundle contains only limited transcribed aggregate values."
+      ],
+      "known_limitations": [
+        "Published aggregate data cannot be used to calibrate pipe-level hydraulic pressure, demand, flow, or network topology.",
+        "The notice's E. coli-free percentage and average constituent table are distinct summaries and should not be conflated.",
+        "Reported units and thresholds are preserved as presented; the source excerpt labels colour in Hz.",
+        "The recorded period is 2024-07-01 through 2025-06-30; these data are not current telemetry."
+      ]
+    },
+    {
+      "source_id": "jhb-water-five-year-pipeline-renewal-programme",
+      "publisher": "Johannesburg Water SOC Ltd",
+      "publication_title": "Pipe Replacement Programme",
+      "publication_url": "https://www.johannesburgwater.co.za/about-us/campaigns/pipe-replacement-programme/",
+      "official_source_url": "https://www.johannesburgwater.co.za/about-us/campaigns/pipe-replacement-programme/",
+      "published_on": null,
+      "source_kind": "planned_program",
+      "access_state": "public_page_observed",
+      "granularity": "City-wide forward-looking five-year programme targets; no per-asset schedule or as-built completion records on the page",
+      "reuse_terms": [
+        "Attribute Johannesburg Water SOC Ltd and link to the published programme.",
+        "No separate open-data licence was confirmed for this page; the cited target is transcribed as a public aggregate, not a re-hosted source dataset."
+      ],
+      "known_limitations": [
+        "The page describes plans, not completed work or a committed year-by-year phasing schedule.",
+        "The programme does not identify individual pipes, asset condition, diameter, material, pressure, or failure history.",
+        "Targets are portfolio context only and cannot serve as hydraulic inputs."
+      ]
+    }
+  ],
+  "observations": [
+    {
+      "observation_id": "jwq.samples-analysed.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Samples analysed",
+      "value": 5890,
+      "unit": "sample",
+      "observation_kind": "published_aggregate",
+      "statistic": "count",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Greater Johannesburg Water Supply System",
+      "reference_text": null,
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Reported in the public notice published 2026-03-23."
+      ]
+    },
+    {
+      "observation_id": "jwq.tests-undertaken.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Tests undertaken",
+      "value": 79025,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "count",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Greater Johannesburg Water Supply System",
+      "reference_text": null,
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Reported in the public notice; tests are not the same denominator as samples."
+      ]
+    },
+    {
+      "observation_id": "jwq.ecoli-free-samples-percent.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Samples reported free of E. coli",
+      "value": 99.4,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "percentage_of_samples",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Samples analysed in the Greater Johannesburg Water Supply System",
+      "reference_text": "Notice states SANS 241 requires 99% of tests to be free of E. coli; notice describes reported result as percentage of samples.",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Preserve the source's distinction between tests and samples; do not substitute one denominator for the other."
+      ]
+    },
+    {
+      "observation_id": "jwq.turbidity-under-1ntu-samples-percent.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Samples with turbidity below 1 NTU",
+      "value": 97.4,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "percentage_of_samples",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Samples analysed in the Greater Johannesburg Water Supply System",
+      "reference_text": "Notice states 95% of samples must be below 1 NTU.",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "The aggregate percentage is not a substitute for location-specific or time-specific laboratory records."
+      ]
+    },
+    {
+      "observation_id": "jwq.ecoli-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "E. coli",
+      "value": 0.11,
+      "unit": "MPN per 100 mL",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 0",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.total-coliforms-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Total coliforms",
+      "value": 2.15,
+      "unit": "MPN per 100 mL",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 10",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.heterotrophic-plate-count-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Heterotrophic plate count",
+      "value": 46.69,
+      "unit": "CFU per mL",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 1000",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.colour-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Colour",
+      "value": 6.62,
+      "unit": "Hz (unit as reported)",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 15",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.conductivity-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Conductivity",
+      "value": 21.66,
+      "unit": "mS/m",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 170",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.turbidity-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Turbidity",
+      "value": 0.44,
+      "unit": "NTU",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 1.0",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.ph-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "pH",
+      "value": 8.19,
+      "unit": "pH units",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≥ 5.0 and ≤ 9.7",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.nitrate-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Nitrate",
+      "value": 0.65,
+      "unit": "mg/L as N",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 11",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.sulphate-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Sulphate",
+      "value": 15.21,
+      "unit": "mg/L as SO4",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 500",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.fluoride-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Fluoride",
+      "value": 0.86,
+      "unit": "mg/L as F",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 1.5",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.chloride-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Chloride",
+      "value": 13.68,
+      "unit": "mg/L as Cl",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 300",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.sodium-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Sodium",
+      "value": 11.93,
+      "unit": "mg/L as Na",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 200",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.iron-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Iron",
+      "value": 8.1,
+      "unit": "µg/L as Fe",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 300",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.lead-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Lead",
+      "value": 0.98,
+      "unit": "µg/L as Pb",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 10",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.manganese-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Manganese",
+      "value": 1.94,
+      "unit": "µg/L as Mn",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 100",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.aluminium-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Aluminium",
+      "value": 13.17,
+      "unit": "µg/L as Al",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 300",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.thm-ratio-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "THM ratio",
+      "value": 0.65,
+      "unit": "ratio",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 1",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jwq.phenols-mean.fy2024-25",
+      "source_id": "jhb-water-quality-2024-25-notice",
+      "name": "Phenols",
+      "value": 5,
+      "unit": "µg/L",
+      "observation_kind": "published_aggregate",
+      "statistic": "average_value_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Selected constituent averages in the Greater Johannesburg Water Supply System",
+      "reference_text": "≤ 10",
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Transcribed from the published table of average values and maximum allowable values; source-specific units and limits are not independently assessed here."
+      ]
+    },
+    {
+      "observation_id": "jw-renewal.water-pipelines.five-year-target",
+      "source_id": "jhb-water-five-year-pipeline-renewal-programme",
+      "name": "Water pipeline replacement target",
+      "value": 428,
+      "unit": "km",
+      "observation_kind": "planned_target",
+      "statistic": "five_year_programme_total",
+      "period_start": null,
+      "period_end": null,
+      "period_label": "Forward-looking five-year programme; exact delivery window not stated on the referenced page",
+      "population_or_scope": "Johannesburg Water water-pipeline network",
+      "reference_text": null,
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "This is a plan, not completed renewal or asset-level work order data."
+      ]
+    },
+    {
+      "observation_id": "jw-renewal.sewer-pipelines.five-year-target",
+      "source_id": "jhb-water-five-year-pipeline-renewal-programme",
+      "name": "Sewer pipeline replacement target",
+      "value": 286,
+      "unit": "km",
+      "observation_kind": "planned_target",
+      "statistic": "five_year_programme_total",
+      "period_start": null,
+      "period_end": null,
+      "period_label": "Forward-looking five-year programme; exact delivery window not stated on the referenced page",
+      "population_or_scope": "Johannesburg Water sewer-pipeline network",
+      "reference_text": null,
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "This is a plan, not completed renewal or asset-level work order data."
+      ]
+    }
+  ],
+  "nonclaims": [
+    "These observations do not contain individual sampling locations, raw laboratory result rows, time-series pressure, demand, flow, pipe topology, pipe condition, or sewer levels.",
+    "They do not calibrate EPANET or SWMM and do not prove local network hydraulic behaviour.",
+    "Reported aggregate values have not been independently reproduced from raw samples.",
+    "Water quality summaries and hydraulic service reliability are different evidence domains.",
+    "Published planned replacement kilometres are targets, not actual completed works.",
+    "No claim is made that the observations are a complete or current picture of Johannesburg's water system."
+  ]
+}
