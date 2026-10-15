@@ -60,6 +60,8 @@ An inferred edge should carry parent evidence IDs, transformation/model identity
 - **Symtropy:** support deterministic route/resource-allocation experiments only after the network model, units, capacities and constraints are appropriate and independently checked. Do not treat rigid-body physics as a trade-flow or economic model.
 - **Data services:** keep ingestion, storage, model execution and map rendering separate. The browser/WASM client consumes bounded, versioned projections rather than downloading large source rasters or unrestricted live feeds.
 
+The first candidate for a concrete source-readiness pass is the [Black Sea Grain Initiative 2022–2023](BLACK_SEA_GRAIN_INITIATIVE_READINESS.md). It is intentionally selected for data-source inspection only; its case state remains `design_only` until exact source bytes, rights review, a qualified trade baseline and independent controls are available.
+
 ## 6. Validation protocol
 
 1. Preregister the event window, commodity family, outcome indicators, expected direction(s), baseline, controls and exclusion rules before calculating results.

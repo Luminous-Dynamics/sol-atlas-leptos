@@ -16,6 +16,8 @@ class EarthSystemsCatalogTests(unittest.TestCase):
         cls.schema_path = ROOT / "docs" / "schemas" / "earth-systems-domain-catalog.schema.json"
         cls.catalog = json.loads(cls.catalog_path.read_text(encoding="utf-8"))
         cls.schema = json.loads(cls.schema_path.read_text(encoding="utf-8"))
+        cls.case_path = ROOT / "docs" / "pilots" / "black-sea-grain-initiative-readiness.json"
+        cls.case_profile = json.loads(cls.case_path.read_text(encoding="utf-8"))
 
     def test_catalog_passes_structural_validation(self):
         self.assertEqual(validate_catalog(self.catalog), [])
@@ -58,6 +60,53 @@ class EarthSystemsCatalogTests(unittest.TestCase):
         self.assertIn("not bills of lading", limitations)
         self.assertIn("does not establish", limitations)
         self.assertIn("not a public global shipment database", limitations)
+
+    def test_black_sea_candidate_is_source_readiness_only(self):
+        profile = self.case_profile
+        self.assertEqual(profile["schema_version"], "luminous.sol-atlas.conflict-case-readiness.v1")
+        self.assertEqual(profile["case_id"], "black-sea-grain-initiative-2022-2023")
+        self.assertEqual(profile["status"], "design_only")
+        self.assertEqual(profile["readiness_stage"], "C0_source_readiness")
+        self.assertEqual(profile["case_selection"]["disposition"], "selected_for_source_readiness_review_only")
+        self.assertFalse(profile["case_selection"]["analysis_window_frozen"])
+        self.assertFalse(profile["published_source_findings"]["exact_source_bytes_acquired"])
+        self.assertIsNone(profile["published_source_findings"]["exact_source_sha256"])
+        self.assertTrue(all(value is False for value in profile["validation_gates"].values()))
+
+    def test_transcribed_black_sea_months_reconcile_without_claiming_source_capture(self):
+        findings = self.case_profile["published_source_findings"]
+        monthly = findings["monthly_exports"]
+        self.assertEqual(len(monthly), 12)
+        self.assertEqual(sum(row["metric_tonnes"] for row in monthly), findings["reported_total_metric_tonnes_through_2023_07_14"])
+        self.assertEqual(findings["reported_total_metric_tonnes_through_2023_07_14"], 32817650)
+        self.assertEqual(findings["reported_voyages_through_2023_07_14"], 1003)
+        self.assertTrue(monthly[-1]["partial_period"])
+        self.assertEqual(monthly[-1]["period_end_date"], "2023-07-14")
+        self.assertEqual(monthly[-1]["month"], "2023-07")
+        self.assertTrue(all(not row["partial_period"] for row in monthly[:-1]))
+        self.assertFalse(findings["exact_source_bytes_acquired"])
+        self.assertIsNone(findings["exact_source_sha256"])
+
+    def test_black_sea_case_sources_are_registered_with_unresolved_rights(self):
+        domain = next(
+            d for d in self.catalog["domains"]
+            if d["id"] == "global-conflict-and-supply-chain-resilience"
+        )
+        sources = {source["source_id"]: source for source in domain["data_sources"]}
+        profile_sources = {source["source_id"]: source for source in self.case_profile["candidate_sources"]}
+        for source_id in ("UN-BSGI-JCC", "FAO-FFPI"):
+            with self.subTest(source=source_id):
+                self.assertIn(source_id, sources)
+                self.assertIn(source_id, profile_sources)
+                self.assertIsNone(sources[source_id]["redistribution_allowed"])
+                self.assertFalse(profile_sources[source_id]["artifact_state"].endswith("captured"))
+
+    def test_black_sea_case_forbids_zero_imputation_and_causal_overclaim(self):
+        forbidden = " ".join(self.case_profile["prohibited_claims"]).lower()
+        self.assertIn("not observed values of zero", forbidden)
+        self.assertIn("causally", forbidden)
+        self.assertIn("partial month", forbidden)
+        self.assertIn("exact source bytes", forbidden)
 
     def test_every_domain_has_independent_validation(self):
         for domain in self.catalog["domains"]:

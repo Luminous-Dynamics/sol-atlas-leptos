@@ -1,0 +1,180 @@
+{
+  "schema_version": "luminous.sol-atlas.conflict-case-readiness.v1",
+  "case_id": "black-sea-grain-initiative-2022-2023",
+  "title": "Black Sea Grain Initiative: corridor exports and global food-price context",
+  "status": "design_only",
+  "readiness_stage": "C0_source_readiness",
+  "case_selection": {
+    "disposition": "selected_for_source_readiness_review_only",
+    "analysis_window_frozen": false,
+    "rationale": [
+      "The United Nations published a monthly series of grain and foodstuff exports under the Initiative, including a clear partial-period marker for July 2023.",
+      "FAO provides a monthly global food-price dataset and commodity-group indices that can be aligned as contextual outcomes after the exact CSV is captured.",
+      "The case provides a concrete test of event, physical-flow and outcome evidence without requiring us to invent a supplier graph."
+    ],
+    "selection_limit": "This is not yet a qualified analytical case. Source bytes, exact query snapshots, a trade-flow baseline, controls and independent review remain outstanding."
+  },
+  "time_windows": {
+    "conflict_disruption_context_start_month": "2022-02",
+    "agreement_signed_date": "2022-07-22",
+    "initiative_monthly_exports_start": "2022-08",
+    "last_monthly_record_end_date": "2023-07-14",
+    "non_renewal_context_date": "2023-07-18",
+    "trade_baseline_candidate_start_month": "2017-01",
+    "trade_baseline_candidate_end_month": "2021-12",
+    "window_status": "candidate_not_frozen",
+    "caveat": "The proposed 2017-2021 trade baseline spans the COVID-19 period and is not a sufficient control on its own. Seasonality, the pandemic, other exporters, policy changes and other simultaneous shocks must be considered before defining controls."
+  },
+  "published_source_findings": {
+    "source_id": "UN-BSGI-JCC",
+    "source_url": "https://www.un.org/en/node/207702",
+    "retrieval_date": "2026-10-15",
+    "capture_mode": "official_publication_discovery_and_table_transcription",
+    "exact_source_bytes_acquired": false,
+    "exact_source_sha256": null,
+    "independent_reparse_completed": false,
+    "reported_total_metric_tonnes_through_2023_07_14": 32817650,
+    "reported_voyages_through_2023_07_14": 1003,
+    "monthly_exports": [
+      {
+        "month": "2022-08",
+        "metric_tonnes": 1573290,
+        "period_end_date": null,
+        "partial_period": false
+      },
+      {
+        "month": "2022-09",
+        "metric_tonnes": 3913484,
+        "period_end_date": null,
+        "partial_period": false
+      },
+      {
+        "month": "2022-10",
+        "metric_tonnes": 4241809,
+        "period_end_date": null,
+        "partial_period": false
+      },
+      {
+        "month": "2022-11",
+        "metric_tonnes": 2611506,
+        "period_end_date": null,
+        "partial_period": false
+      },
+      {
+        "month": "2022-12",
+        "metric_tonnes": 3740616,
+        "period_end_date": null,
+        "partial_period": false
+      },
+      {
+        "month": "2023-01",
+        "metric_tonnes": 3023926,
+        "period_end_date": null,
+        "partial_period": false
+      },
+      {
+        "month": "2023-02",
+        "metric_tonnes": 3393366,
+        "period_end_date": null,
+        "partial_period": false
+      },
+      {
+        "month": "2023-03",
+        "metric_tonnes": 3933607,
+        "period_end_date": null,
+        "partial_period": false
+      },
+      {
+        "month": "2023-04",
+        "metric_tonnes": 2785455,
+        "period_end_date": null,
+        "partial_period": false
+      },
+      {
+        "month": "2023-05",
+        "metric_tonnes": 1327342,
+        "period_end_date": null,
+        "partial_period": false
+      },
+      {
+        "month": "2023-06",
+        "metric_tonnes": 2020344,
+        "period_end_date": null,
+        "partial_period": false
+      },
+      {
+        "month": "2023-07",
+        "metric_tonnes": 252905,
+        "period_end_date": "2023-07-14",
+        "partial_period": true
+      }
+    ],
+    "interpretation_ceiling": "Publication-reported Initiative flows only; not a complete measure of Ukrainian exports by all routes and not an independently captured dataset."
+  },
+  "candidate_sources": [
+    {
+      "source_id": "UN-BSGI-JCC",
+      "role": "Direct corridor mechanism observation: monthly Initiative exports and voyages.",
+      "discovery_state": "publication_found",
+      "artifact_state": "bytes_not_acquired",
+      "rights_state": "review_per_artifact",
+      "required_next_step": "Acquire/capture the official source response or downloadable table under permitted terms; record exact bytes, SHA-256, access time, parser version and reconcile all monthly values to the reported total."
+    },
+    {
+      "source_id": "FAO-FFPI",
+      "role": "Monthly global food-price context; separately inspect cereal and vegetable-oil group indices.",
+      "discovery_state": "official_page_and_csv_link_found",
+      "artifact_state": "csv_bytes_not_acquired",
+      "rights_state": "review_dataset_version",
+      "required_next_step": "Acquire exact monthly CSV, record its bytes/hash/version and attribution/terms; identify series definitions, revision policy, date semantics and missing values."
+    },
+    {
+      "source_id": "UCDP-GED",
+      "role": "Conflict context only, using a pinned version and codebook; never as proof that a port or route was closed.",
+      "discovery_state": "official_v26_1_download_and_codebook_found",
+      "artifact_state": "archive_bytes_not_acquired",
+      "rights_state": "cc_by_4_0_with_attribution",
+      "required_next_step": "Capture GED version 26.1 and its codebook if the chosen event question requires it; record exact hashes, citations and version. The browser reader did not ingest the ZIP archive, so no raw file is claimed."
+    },
+    {
+      "source_id": "UN-COMTRADE",
+      "role": "Potential country/partner/product/monthly trade baseline for HS 1001 wheat and HS 1005 maize; dimensions are not exact shipments.",
+      "discovery_state": "api_documentation_found",
+      "artifact_state": "query_not_run",
+      "rights_state": "review_dataset_version",
+      "required_next_step": "Freeze the intended reporter/partner/flow/product/classification/month dimensions and check API entitlement, coverage, page/preview limits, valuation and source terms before requesting data."
+    },
+    {
+      "source_id": "IMF-PORTWATCH",
+      "role": "Optional maritime-activity corroboration and alternative-route context, not commodity-specific shipment truth.",
+      "discovery_state": "catalogue_found",
+      "artifact_state": "query_not_run",
+      "rights_state": "review_product_terms",
+      "required_next_step": "Add only if an exact collection offers relevant coverage and the data definition, source vintage, geography and terms can be reviewed."
+    }
+  ],
+  "preregistered_questions": [
+    "Can the reported monthly Initiative exports be captured and independently reconciled to the publisher's reported cumulative total?",
+    "How do the Initiative's corridor-specific observed flows evolve over its own operating period, including the explicitly partial final month?",
+    "How do those observations line up in time with captured FAO cereal and vegetable-oil indices, without claiming the flow series caused global price movements?",
+    "Can a separately captured monthly trade baseline help distinguish Initiative shipments from Ukraine's all-route exports, and can usable control series be found without incompatible classifications or source coverage?"
+  ],
+  "validation_gates": {
+    "source_bytes_and_hashes": false,
+    "source_terms_and_attribution_review": false,
+    "schema_and_temporal_semantics_review": false,
+    "monthly_total_reconciled_from_captured_bytes": false,
+    "trade_baseline_acquired_and_qualified": false,
+    "controls_preregistered_after_data_readiness": false,
+    "held_out_or_matched_control_analysis_completed": false,
+    "independent_review_completed": false
+  },
+  "prohibited_claims": [
+    "Do not infer zero Ukrainian grain exports before the Initiative's monthly series begins.",
+    "Do not treat Initiative shipments as all Ukrainian exports or as inventory available to a destination market.",
+    "Do not treat July 2023 as a complete monthly period; the source table ends on 14 July.",
+    "Do not attribute global food-price changes causally to the Initiative based on time-series alignment.",
+    "Do not interpret UCDP conflict events, PortWatch activity, or proximity to ports as direct closure evidence.",
+    "Do not advance the case to a qualified analysis while exact source bytes, rights review and independent controls remain incomplete."
+  ]
+}

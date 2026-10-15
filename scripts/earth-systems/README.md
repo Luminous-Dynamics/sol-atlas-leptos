@@ -44,6 +44,12 @@ The inventory reads the official public FAO WaPOR v3 `/mapsets` and raster API m
 
 The first command is a catalogue search, not a guarantee that the search result is the correct mapset. The second command must use a reviewed exact code; the profile must remain `design_only` until product selection, access/rights review, boundary and source artifacts have been frozen.
 
+## Conflict-to-supply-chain first-case readiness
+
+The first source-readiness candidate is the [Black Sea Grain Initiative (2022–2023)](../../docs/pilots/BLACK_SEA_GRAIN_INITIATIVE_READINESS.md). Its machine-readable record is [black-sea-grain-initiative-readiness.json](../../docs/pilots/black-sea-grain-initiative-readiness.json). The current published-data transcription is explicitly discovery-only: the official UN page bytes and monthly FAO CSV bytes have **not** been acquired or hashed, the UCDP ZIP has not been acquired, and the Comtrade query has not run. The JSON holds the publisher-reported monthly Initiative values for an arithmetic transcription check; it is not a frozen evidence artifact and does not satisfy source qualification.
+
+The profile keeps July 2023 partial through 14 July and prevents pre-August values in the Initiative-specific series being imputed as zero. The FAO index is downstream context, not proof of causality. Validate the source bytes, reparse the table/CSV, freeze query parameters, establish controls and then conduct independent review before promoting the case beyond C0.
+
 ## Interpretation limit
 
 All validators here check metadata and state-machine invariants only. They do not fetch external sources, prove a license, validate a scientific model, establish source independence, or show that any domain is operational. The pilot profile is intentionally `design_only`: no WaPOR or CHIRPS artifacts have been acquired or processed. The current product IDs, temporal coverage, boundary, processing vintages, exact rights snapshots and independent reference records must be checked before the profile may advance.

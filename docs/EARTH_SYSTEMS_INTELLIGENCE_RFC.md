@@ -98,6 +98,8 @@ This pilot asks where source-supported indicators change and whether their seaso
 
 Use fire detections, rainfall and available flood/drought products to create a latency-aware observations layer. Distinguish event time, sensing time and product-publication time. A detected hotspot is not a fire perimeter; a map of observed rainfall is not a flood forecast. Emergency response authority stays with the relevant public/emergency-service organizations.
 
+The first case selected for **source-readiness review only** is the [Black Sea Grain Initiative, 2022–2023](pilots/BLACK_SEA_GRAIN_INITIATIVE_READINESS.md), with a machine-readable state at [`black-sea-grain-initiative-readiness.json`](pilots/black-sea-grain-initiative-readiness.json). The UN Joint Coordination Centre reported 32,817,650 metric tonnes moved under the Initiative by 14 July 2023 across 1,003 voyages, with monthly totals from August 2022 and a final partial July period. FAO exposes a monthly Food Price Index CSV and separate cereal and vegetable-oil indices. These are promising *separate observation series*, not proof that the Initiative caused food-price changes. The exact UN source-page bytes, FAO CSV bytes, UCDP archive and any Comtrade query have **not** been acquired and hashed in this increment.
+
 ### P1 — Conflict-to-supply-chain impact propagation
 
 The candidate profile is recorded in [the machine-readable domain catalog](earth-systems-domain-catalog.json). The first tranche should be a historical replay selected only after exact source and outcome-data readiness is established; do not pick a showcase event merely because it gives a striking map.
