@@ -294,10 +294,12 @@ A companion source-attributed observation bundle has been added at
 `sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json`,
 with its independent Draft 2020-12 schema at
 `sol-atlas-core/schemas/water-public-observation-bundle-v0.1.schema.json`.
-It records 24 aggregate observations across the Greater Johannesburg Water Supply System's
-2024/25 water-quality summary and the published five-year pipe-renewal targets. The bundle
-preserves source IDs, reporting dates, units, source limitations, and the distinction between
-observed aggregate values and forward-looking plans. See
+It records 68 observations across four source records: the system-wide 2024/25 water-quality
+summary, the published five-year pipe-renewal targets, and provisional 2023/24–2024/25 annual-
+report performance/compliance indicators. Annual-report values remain explicitly provisional
+pending page-level review of the PDFs. The bundle preserves source IDs, reporting dates, units,
+source limitations, and distinctions between published aggregates, planned targets, and values
+requiring primary-document verification. See
 [`water-data-readiness-johannesburg-v0.1.md`](water-data-readiness-johannesburg-v0.1.md)
 for the data-source register and the next acquisition gates.
 
@@ -312,7 +314,8 @@ cargo run -p sol-atlas-core --bin water-observation-validate -- \
 ```
 
 The real-data fixture is **not** pressure telemetry, site-level chemistry, a pipe inventory,
-a calibrated EPANET model, or SWMM forcing. DWS data must be used under its stated restrictions;
+a calibrated EPANET model, or SWMM forcing. Annual-report excerpts are not treated as verified
+until a human checks their source tables. DWS data must be used under its stated restrictions;
 where public dashboards do not expose the raw export in this access path, the data is listed
 as a candidate request/export rather than invented or silently scraped.
 
