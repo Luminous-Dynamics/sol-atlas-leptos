@@ -357,7 +357,7 @@ jobs:
           finished_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           solver_sha="$(sha256sum "$solver" | awk '{print $1}')"
           baseline_input_sha="$(sha256sum "$out/w0-baseline.inp" | awk '{print $1}')"
-          candidate_input_sha="$(sha256sum "$out/w0-p2-diameter-50mm.inp" | awk '{print $1}')"
+          candidate_input_sha="$(sha256sum "$candidate_input" | awk '{print $1}')"
           baseline_report_sha="$(sha256sum "$out/w0-baseline.rpt" | awk '{print $1}')"
           candidate_report_sha="$(sha256sum "$candidate_report" | awk '{print $1}')"
           baseline_binary_sha="$(sha256sum "$out/w0-baseline.bin" | awk '{print $1}')"
