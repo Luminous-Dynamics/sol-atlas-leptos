@@ -1,6 +1,6 @@
 {
-  "catalog_version": "1.1.0",
-  "last_reviewed": "2026-10-13",
+  "catalog_version": "1.2.0",
+  "last_reviewed": "2026-10-15",
   "title": "Earth and Planetary Systems Intelligence — Research Domain Catalog",
   "policy": {
     "purpose": "Register separate research domains that share evidence-ingestion, provenance, uncertainty and review infrastructure without forcing their scientific targets into one model or score.",
@@ -619,6 +619,178 @@
           "coverage completeness",
           "equity distribution by aggregate geography",
           "sensitivity to missing roads/facilities"
+        ],
+        "baseline_required": true,
+        "independent_review_required": true
+      }
+    },
+    {
+      "id": "global-conflict-and-supply-chain-resilience",
+      "title": "Global conflict, trade disruption and supply-chain resilience",
+      "priority": "P1",
+      "readiness": "candidate",
+      "question": "Which observed or reported disruptions have evidence-supported pathways into selected commodity flows, transport chokepoints, market exposure and humanitarian outcomes, and which links remain hypotheses?",
+      "scope": "Trace bounded disruption pathways across conflict/event reports, physical transport networks, aggregate trade dependencies, known production facilities and humanitarian outcome indicators. Use domain-native sources and models; do not infer a closed route, exact supplier, shortage or causal effect from spatial proximity or correlated time series alone.",
+      "target_geography": [
+        "Global, bounded by the documented coverage of each source",
+        "Southern Africa as an initial downstream impact lens",
+        "Historical case windows selected only after source and outcome-data readiness review"
+      ],
+      "output_types": [
+        "Time-stamped conflict and disruption observations",
+        "Aggregate commodity and country trade-exposure summaries",
+        "Evidence-linked candidate impact paths with unknown and conflicted links visible",
+        "Transport bottleneck and alternative-route candidates",
+        "Reproducible baseline-versus-scenario comparisons",
+        "Source coverage, rights, lineage and uncertainty reports"
+      ],
+      "data_sources": [
+        {
+          "source_id": "UCDP-GED",
+          "name": "Georeferenced Event Dataset and related UCDP conflict datasets",
+          "provider": "Uppsala Conflict Data Program",
+          "url": "https://ucdp.uu.se/downloads/",
+          "role": "Versioned historical observations of defined organized-violence events; provides a reproducible conflict baseline, not a real-time route-closure feed.",
+          "access_status": "public_catalog",
+          "rights_state": "cc_by_4_0_with_attribution",
+          "redistribution_allowed": true,
+          "key_limitations": [
+            "Preserve the exact dataset release, codebook, event definition and required publication citation; dataset definitions are not interchangeable with other conflict event systems.",
+            "Coverage, event disaggregation and geolocation reflect source and collection limits; apparent absence of events is not proof that no violence or disruption occurred.",
+            "Historical events alone do not establish a physical transport interruption, a named supplier relationship or a causal supply-chain effect."
+          ]
+        },
+        {
+          "source_id": "ACLED-API",
+          "name": "ACLED event data and API",
+          "provider": "Armed Conflict Location and Event Data",
+          "url": "https://acleddata.com/acled-api-documentation",
+          "role": "A separately coded source for political violence, demonstrations and related events; supports comparison of source-specific event definitions and collection coverage.",
+          "access_status": "account_or_api_key",
+          "rights_state": "review_dataset_version",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "API entitlement, rate limits, permitted uses and redistribution conditions must be reviewed for the exact account and dataset/version before acquisition.",
+            "Event coding and geolocation are methodology-dependent; ACLED and UCDP records must not be merged as if they used identical definitions or represented independent ground truth.",
+            "An event report is not direct evidence of a port closure, shipment delay, commodity shortage or causal economic impact."
+          ]
+        },
+        {
+          "source_id": "GDELT-2",
+          "name": "GDELT event and media-monitoring datasets",
+          "provider": "GDELT Project",
+          "url": "https://www.gdeltproject.org/",
+          "role": "High-cadence discovery and lead generation for reports that may require corroboration against domain-specific records.",
+          "access_status": "public_catalog",
+          "rights_state": "review_dataset_version",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Media-derived records can duplicate the same underlying report, inherit source bias and change with extraction or schema versions.",
+            "A GDELT record is a discovery lead, not an independently verified fact, an adjudicated conflict event or proof of causation.",
+            "Coverage varies by language, media availability and time; missing records must not be interpreted as absence of events."
+          ]
+        },
+        {
+          "source_id": "IMF-PORTWATCH",
+          "name": "PortWatch maritime activity and catalog APIs",
+          "provider": "International Monetary Fund",
+          "url": "https://portwatch.imf.org/api/search/definition/",
+          "role": "Port- and maritime-activity context for identifying candidate shipping disruptions and testing whether route-level hypotheses merit further inspection.",
+          "access_status": "public_catalog",
+          "rights_state": "review_product_terms",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Port activity and AIS-derived indicators are proxies; they are not bills of lading, verified cargo manifests, commodity-specific flow volumes or complete shipment histories.",
+            "A traffic change does not identify its cause; weather, seasonality, routing choices, port operations and measurement coverage are competing explanations.",
+            "Review the exact collection metadata, temporal support, query semantics, reuse terms and source vintage before treating any item as suitable for redistribution."
+          ]
+        },
+        {
+          "source_id": "UN-COMTRADE",
+          "name": "UN Comtrade international merchandise trade statistics and API",
+          "provider": "United Nations Statistics Division",
+          "url": "https://comtradeapi.un.org/",
+          "role": "Country/partner/commodity-period aggregates for exposure analysis and trade-mirror comparisons, with classification, valuation, reporting state and coverage retained.",
+          "access_status": "api_and_product_terms",
+          "rights_state": "review_dataset_version",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "Bilateral trade aggregates do not identify the exact manufacturer, intermediate supplier, physical route, shipment or current inventory.",
+            "Preserve product classification, reporter and partner, flow, period, aggregation, reported/estimated state, currency, units and valuation basis; mirror differences are not automatically evidence of fraud or causation.",
+            "API tier, pagination, preview limits, source completeness and reuse requirements depend on the exact access path and must be checked rather than assumed."
+          ]
+        },
+        {
+          "source_id": "HDX-HAPI",
+          "name": "Humanitarian Data Exchange HAPI",
+          "provider": "Humanitarian Data Exchange",
+          "url": "https://hdx-hapi.readthedocs.io/",
+          "role": "Standardized humanitarian indicators for context on affected populations and needs, conditional on per-indicator source coverage and licensing review.",
+          "access_status": "public_with_terms",
+          "rights_state": "review_per_artifact",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "API/version maturity and source coverage vary; inspect exact indicator metadata, upstream provider, geographic resolution, period, missingness and reuse terms.",
+            "Country or administrative-area indicators do not establish an individual household's needs, service access or precise impact location.",
+            "A temporal association between a conflict and a humanitarian indicator does not alone establish a causal effect."
+          ]
+        },
+        {
+          "source_id": "OPEN-SUPPLY-HUB",
+          "name": "Open Supply Hub production-facility registry and API",
+          "provider": "Open Supply Hub",
+          "url": "https://info.opensupplyhub.org/resources/api-documentation",
+          "role": "Facility discovery and matching for participating sectors when the project has a valid API entitlement and applicable terms permit the intended use.",
+          "access_status": "account_or_api_key",
+          "rights_state": "review_product_terms",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "API use requires an eligible account/token or subscription package; exact package terms and permitted display, derivative and redistribution uses must be reviewed.",
+            "A production facility's presence does not prove a relationship to a named buyer, a particular product's bill of materials, current capacity or active production.",
+            "Facility identifiers and matching results reduce ambiguity but do not independently verify ownership, operational status or shipment-level provenance."
+          ]
+        },
+        {
+          "source_id": "GS1-EPCIS-2",
+          "name": "EPCIS and Core Business Vocabulary 2.0 supply-chain visibility standard",
+          "provider": "GS1",
+          "url": "https://www.gs1.org/standards/epcis",
+          "role": "Interoperability profile for authorized partner event feeds recording what, when, where, why and how a supply-chain event occurred.",
+          "access_status": "published_reference",
+          "rights_state": "review_per_artifact",
+          "redistribution_allowed": null,
+          "key_limitations": [
+            "EPCIS is a data-sharing standard, not a public global shipment database; actual events require authorized participating systems and feeds.",
+            "Adapters must record profile/version and any lossy field mapping; a syntactically valid message does not authenticate its issuer or prove physical delivery.",
+            "Private commercial, worker, household and sensitive facility fields require purpose-limited access and a privacy-reviewed public projection."
+          ]
+        }
+      ],
+      "required_checks": [
+        "Keep occurrence time, reporting time, observation time, publication time and retrieval time distinct.",
+        "Require evidence for any mapping from a conflict event to a specific physical asset or route; otherwise preserve the connection as an explicit hypothesis or scenario.",
+        "Record exact dataset/API version, query dimensions, source snapshot, license/access state, attribution and redistribution gate for every imported artifact.",
+        "Keep national or bilateral trade aggregates separate from shipment-level events, facility identities, capacity, inventory and supplier contracts.",
+        "Audit source dependence, duplicate reporting, geographic coverage, missingness and reporting bias before calling multiple feeds corroboration.",
+        "Compare a frozen historical baseline with held-out outcomes and matched unaffected controls; keep model output separate from causal attribution.",
+        "Use only deterministic, synthetic fixtures before live integrations; any future API connector must be bounded, rate-limited, read-only and resilient to partial failure."
+      ],
+      "prohibited_inferences": [
+        "A conflict event near a route proves that the route, port or facility was closed or disrupted.",
+        "Country-level trade records establish a specific factory, tier-two supplier, shipment, inventory balance or physical route.",
+        "A fall in port activity proves which commodity stopped flowing or identifies the cause of a change.",
+        "A modelled path establishes causal attribution, an imminent shortage, a price forecast or a humanitarian outcome without separately validated evidence.",
+        "Lack of reported events establishes absence of violence, infrastructure disruption or supply-chain exposure.",
+        "A source licence, API token, cryptographic digest, model confidence or consensus signal by itself proves truth, grants redistribution rights or authorizes operational action."
+      ],
+      "validation": {
+        "split_strategy": "Freeze source releases and query windows, then evaluate historical event windows out of time and across held-out cases/commodity groups. Compare against an explicit baseline and matched unaffected ports, routes or commodities; prevent temporal leakage and do not select cases by looking at outcome performance first.",
+        "metrics": [
+          "Precision and recall for route/facility disruption only on adjudicated outcome records",
+          "Calibration and coverage of exposure intervals against later observed aggregate outcomes",
+          "False-positive rate on matched unaffected routes and commodity groups",
+          "Fraction of proposed impact-path edges with qualified supporting evidence and current source metadata",
+          "Stability under source omission, duplicate reports, revised event records and changed trade classifications"
         ],
         "baseline_required": true,
         "independent_review_required": true
