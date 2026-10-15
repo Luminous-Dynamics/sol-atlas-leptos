@@ -551,7 +551,7 @@
     },
     {
       "observation_id": "jw.annual23-24.ecoli.tests",
-      "source_id": "jhb-water-annual-report-2024-25",
+      "source_id": "jhb-water-annual-report-2023-24",
       "name": "E. coli — tests reported",
       "value": 6099,
       "unit": "test",
@@ -570,7 +570,7 @@
     },
     {
       "observation_id": "jw.annual23-24.ecoli.compliance",
-      "source_id": "jhb-water-annual-report-2024-25",
+      "source_id": "jhb-water-annual-report-2023-24",
       "name": "E. coli — achieved SANS 241 compliance",
       "value": 99.2,
       "unit": "%",
@@ -589,7 +589,7 @@
     },
     {
       "observation_id": "jw.annual23-24.total-coliforms.tests",
-      "source_id": "jhb-water-annual-report-2024-25",
+      "source_id": "jhb-water-annual-report-2023-24",
       "name": "Total coliforms — tests reported",
       "value": 6099,
       "unit": "test",
@@ -608,7 +608,7 @@
     },
     {
       "observation_id": "jw.annual23-24.total-coliforms.compliance",
-      "source_id": "jhb-water-annual-report-2024-25",
+      "source_id": "jhb-water-annual-report-2023-24",
       "name": "Total coliforms — achieved SANS 241 compliance",
       "value": 97.8,
       "unit": "%",
@@ -627,7 +627,7 @@
     },
     {
       "observation_id": "jw.annual23-24.heterotrophic-plate-count.tests",
-      "source_id": "jhb-water-annual-report-2024-25",
+      "source_id": "jhb-water-annual-report-2023-24",
       "name": "Heterotrophic plate count — tests reported",
       "value": 6067,
       "unit": "test",
@@ -646,7 +646,7 @@
     },
     {
       "observation_id": "jw.annual23-24.heterotrophic-plate-count.compliance",
-      "source_id": "jhb-water-annual-report-2024-25",
+      "source_id": "jhb-water-annual-report-2023-24",
       "name": "Heterotrophic plate count — achieved SANS 241 compliance",
       "value": 98.7,
       "unit": "%",
@@ -665,7 +665,7 @@
     },
     {
       "observation_id": "jw.annual23-24.turbidity.tests",
-      "source_id": "jhb-water-annual-report-2024-25",
+      "source_id": "jhb-water-annual-report-2023-24",
       "name": "Turbidity — tests reported",
       "value": 7374,
       "unit": "test",
@@ -684,7 +684,7 @@
     },
     {
       "observation_id": "jw.annual23-24.turbidity.compliance",
-      "source_id": "jhb-water-annual-report-2024-25",
+      "source_id": "jhb-water-annual-report-2023-24",
       "name": "Turbidity — achieved SANS 241 compliance",
       "value": 98.9,
       "unit": "%",
@@ -703,7 +703,7 @@
     },
     {
       "observation_id": "jw.annual23-24.ph.tests",
-      "source_id": "jhb-water-annual-report-2024-25",
+      "source_id": "jhb-water-annual-report-2023-24",
       "name": "pH — tests reported",
       "value": 6099,
       "unit": "test",
@@ -722,7 +722,7 @@
     },
     {
       "observation_id": "jw.annual23-24.ph.compliance",
-      "source_id": "jhb-water-annual-report-2024-25",
+      "source_id": "jhb-water-annual-report-2023-24",
       "name": "pH — achieved SANS 241 compliance",
       "value": 100,
       "unit": "%",
