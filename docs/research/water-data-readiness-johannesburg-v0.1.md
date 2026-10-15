@@ -65,3 +65,15 @@ We should not publish exact critical-asset topology, detailed weaknesses, creden
 - Keep all real network modelling read-only until an authorised owner and qualified professional approve the scope.
 
 The current bundle is an initial real aggregate-data ingestion, not a hydraulic model calibration and not evidence of a projected savings amount.
+
+## Executable validation commands
+
+The semantic consistency checks are implemented in the Rust core. Run the focused tests and the observation CLI from the repository root:
+
+```sh
+cargo test -p sol-atlas-core water_observations::tests -- --nocapture
+cargo run -p sol-atlas-core --bin water-observation-validate -- \
+  sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json
+```
+
+The GitHub Actions workflow also validates both water-related JSON Schemas using Draft 2020-12 and a pinned `jsonschema==4.26.0` test dependency. That gate checks document/schema conformance; the Rust tests check cross-record source identity and period semantics. Neither independently verifies the publisher's original measurements.
