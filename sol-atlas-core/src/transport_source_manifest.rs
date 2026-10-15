@@ -386,6 +386,8 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                         .to_owned(),
                     "The register distinguishes theoretical, practical, lost, operationally available, allocated and spare capacity; these values must not be collapsed or treated as live availability."
                         .to_owned(),
+                    "The register states that TRIM-only infrastructure is in scope and excludes PRASA and other infrastructure managers/concessionaires; any corridor replay must explicitly model this network-coverage gap instead of treating the register as a complete national rail graph."
+                        .to_owned(),
                 ],
             },
             TransportSourceRecordV1 {
