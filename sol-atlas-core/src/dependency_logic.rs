@@ -520,7 +520,12 @@ mod tests {
         }
     }
 
-    fn relation(id: &str, dependent: &str, prerequisite: &str, evidence_id: &str) -> SpatialRelation {
+    fn relation(
+        id: &str,
+        dependent: &str,
+        prerequisite: &str,
+        evidence_id: &str,
+    ) -> SpatialRelation {
         SpatialRelation {
             id: id.into(),
             subject_entity_id: dependent.into(),
@@ -778,22 +783,46 @@ mod tests {
             .unwrap_err().contains(&DependencyGroupValidationError::NonDependencyRelation));
         assert!(graph.validate_dependency_group(&group(DependencyLogic::AnyOne, &["field-pump"]))
             .unwrap_err().contains(&DependencyGroupValidationError::WrongDependentEntity));
-        assert!(graph.validate_dependency_group(&group(DependencyLogic::AnyOne, &["pump-source", "pump-source"]))
-            .unwrap_err().contains(&DependencyGroupValidationError::DuplicateRelationId));
-        assert!(graph.validate_dependency_group(&group(DependencyLogic::AtLeast { minimum: 0 }, &["pump-source"]))
-            .unwrap_err().contains(&DependencyGroupValidationError::InvalidMinimum));
+        assert!(
+            graph
+                .validate_dependency_group(&group(
+                    DependencyLogic::AnyOne,
+                    &["pump-source", "pump-source"],
+                ))
+                .unwrap_err()
+                .contains(&DependencyGroupValidationError::DuplicateRelationId)
+        );
+        assert!(
+            graph
+                .validate_dependency_group(&group(
+                    DependencyLogic::AtLeast { minimum: 0 },
+                    &["pump-source"],
+                ))
+                .unwrap_err()
+                .contains(&DependencyGroupValidationError::InvalidMinimum)
+        );
     }
 
     #[test]
-    fn schema_and_fixture_match_dependency_logic_contract() {
-        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+    fn synthetic_redundancy_fixture_evaluates_against_graph_and_schema() {
+        #[derive(Deserialize)]
+        struct Fixture {
+            groups: Vec<DependencyGroup>,
+        }
+
+        let graph: DependencyGraph = serde_json::from_str(include_str!(
+            "../../schemas/examples/water-system-dependencies.json"
+        ))
+        .unwrap();
+        let fixture: Fixture = serde_json::from_str(include_str!(
             "../../schemas/examples/water-system-dependency-groups.json"
-        )).unwrap();
-        assert!(!fixture["groups"].as_array().unwrap().is_empty());
-        assert_eq!(fixture["groups"][0]["logic"]["mode"], "any_one");
+        ))
+        .unwrap();
         let schema: serde_json::Value = serde_json::from_str(include_str!(
             "../../schemas/spatial-economic-dependency-groups-v0.1.schema.json"
-        )).unwrap();
+        ))
+        .unwrap();
+
         let choices = schema["$defs"]["logic"]["oneOf"].as_array().unwrap();
         assert!(choices.iter().any(|item| item["properties"]["mode"]["const"] == "all_required"));
         assert!(choices.iter().any(|item| item["properties"]["mode"]["const"] == "any_one"));
@@ -802,5 +831,55 @@ mod tests {
             serde_json::to_value(DependencyLogic::AtLeast { minimum: 2 }).unwrap(),
             serde_json::json!({"mode":"at_least","minimum":2})
         );
+
+        let evidence_records = [
+            evidence("synthetic-evidence-pump-power"),
+            evidence("synthetic-evidence-pump-backup-power"),
+            evidence("synthetic-evidence-field-pump"),
+            evidence("synthetic-evidence-warehouse-location"),
+        ];
+        graph.validate(&evidence_records).unwrap();
+        let scenario = scenario("synthetic-redundancy-scenario", [
+            (
+                "synthetic-feeder-east".into(),
+                assumed(EntityOperationalState::Unavailable),
+            ),
+            (
+                "synthetic-feeder-west".into(),
+                assumed(EntityOperationalState::Available),
+            ),
+        ]);
+        let assessment = graph
+            .evaluate_dependency_group_at(&fixture.groups[0], &scenario, &evidence_records)
+            .unwrap();
+        assert_eq!(assessment.state, DependencyGroupState::Satisfied);
+        assert_eq!(assessment.available_count, 1);
+        assert_eq!(assessment.unavailable_count, 1);
+    }
+
+    #[test]
+    fn observed_condition_accepts_matching_asserted_observation() {
+        let graph = DependencyGraph {
+            relations: vec![relation("pump-source", "pump", "feeder", "ev-link")],
+        };
+        let mut state_record = evidence("ev-state");
+        state_record.subject_id = "feeder".into();
+        state_record.spatial.entity_id = "feeder".into();
+        let condition = ScenarioEntityCondition {
+            state: EntityOperationalState::Available,
+            basis: ScenarioBasis::Observed,
+            rationale: "Synthetic observation fixture".into(),
+            supporting_evidence_ids: vec!["ev-state".into()],
+        };
+        let states = scenario("observed-state", [("feeder".into(), condition)]);
+        let result = graph
+            .evaluate_dependency_group_at(
+                &group(DependencyLogic::AnyOne, &["pump-source"]),
+                &states,
+                &[evidence("ev-link"), state_record],
+            )
+            .unwrap();
+        assert_eq!(result.state, DependencyGroupState::Satisfied);
+        assert_eq!(result.members[0].state, DependencyMemberState::Available);
     }
 }
