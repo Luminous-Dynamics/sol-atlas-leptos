@@ -255,7 +255,7 @@ pub fn validate_public_observation_bundle(bundle: &Value) -> ObservationValidati
         if left_id.is_some() && left_id == right_id {
             report.push(
                 "COMPARISON_SAME_OBSERVATION",
-                &path,
+                path.clone(),
                 "left and right observations must be distinct",
             );
         }
