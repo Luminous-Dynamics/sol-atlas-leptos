@@ -1846,5 +1846,83 @@
     "Published planned replacement kilometres are targets, not actual completed works.",
     "No claim is made that the observations are a complete or current picture of Johannesburg's water system.",
     "Some FY2023/24 Business Plan tables have regional values that do not reconcile to printed totals; those regional values are intentionally not ingested as trusted observations."
+  ],
+  "comparisons": [
+    {
+      "comparison_id": "jw.active-leak-savings-estimate-scope",
+      "left_observation_id": "jw.ld.fy2023-24.estimated-demand-reduction",
+      "right_observation_id": "jw.active-leak-detection.estimated-water-savings",
+      "comparison_kind": "estimate_scope_mismatch",
+      "comparison_state": "not_comparable",
+      "arithmetic": {
+        "unit": "ML/year",
+        "operation": "left_minus_right",
+        "left_factor": 0.001,
+        "right_factor": 1,
+        "left_normalized_value": 14355.757,
+        "right_normalized_value": 8100,
+        "difference": 6255.757
+      },
+      "interpretation": "Nominal arithmetic only: the Business Plan estimate converts to 14,355.757 ML/year and the programme page says approximately 8,100 ML/year. Definitions, periods, scope and saving calculation methods are not established as equivalent; the difference is not an audited performance gap.",
+      "resolution_requirements": [
+        "Obtain the calculation methodology and reference period for each published estimate.",
+        "Define what constitutes saved water and whether values are potential, estimated, or measured after repair.",
+        "Establish the covered geographic/network scope and any overlap between programme activity and reported savings."
+      ],
+      "notes": [
+        "The right-hand value is explicitly approximate; the derived difference should not be interpreted at false precision.",
+        "Retain both original source records and observation IDs; do not choose a winning value or combine them as one time series."
+      ]
+    },
+    {
+      "comparison_id": "jw.fy2023-24.sewer-response-source-conflict",
+      "left_observation_id": "jw.annual23-24.direct-table26.sewer-blockage-response",
+      "right_observation_id": "jw.annual23-24.sewer-blockage-response",
+      "comparison_kind": "same_period_source_disagreement",
+      "comparison_state": "unreconciled",
+      "arithmetic": {
+        "unit": "percentage_point",
+        "operation": "left_minus_right",
+        "left_factor": 1,
+        "right_factor": 1,
+        "left_normalized_value": 92.67,
+        "right_normalized_value": 92.66,
+        "difference": 0.01
+      },
+      "interpretation": "Direct FY2023/24 report Table 26 and FY2024/25 report's FY2023/24 comparative column disagree by 0.01 percentage point. Cause is not established.",
+      "resolution_requirements": [
+        "Review both primary PDF tables and their notes side by side.",
+        "Confirm whether the values reflect rounding, a correction, a denominator change or an indicator-definition change."
+      ],
+      "notes": [
+        "Both values remain source-attributed and provisional pending direct page review.",
+        "The arithmetic difference is not evidence of service deterioration or improvement."
+      ]
+    },
+    {
+      "comparison_id": "jw.fy2023-24.water-burst-response-source-conflict",
+      "left_observation_id": "jw.annual23-24.direct-table26.water-burst-response",
+      "right_observation_id": "jw.annual23-24.water-burst-response",
+      "comparison_kind": "same_period_source_disagreement",
+      "comparison_state": "unreconciled",
+      "arithmetic": {
+        "unit": "percentage_point",
+        "operation": "left_minus_right",
+        "left_factor": 1,
+        "right_factor": 1,
+        "left_normalized_value": 67.46,
+        "right_normalized_value": 67.42,
+        "difference": 0.04
+      },
+      "interpretation": "Direct FY2023/24 report Table 26 and FY2024/25 report's FY2023/24 comparative column disagree by 0.04 percentage point. Cause is not established.",
+      "resolution_requirements": [
+        "Review both primary PDF tables and their notes side by side.",
+        "Confirm whether the values reflect rounding, a correction, a denominator change or an indicator-definition change."
+      ],
+      "notes": [
+        "Both values remain source-attributed and provisional pending direct page review.",
+        "The arithmetic difference is not evidence of service deterioration or improvement."
+      ]
+    }
   ]
 }

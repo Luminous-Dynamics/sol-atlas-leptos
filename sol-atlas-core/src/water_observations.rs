@@ -185,6 +185,132 @@ pub fn validate_public_observation_bundle(bundle: &Value) -> ObservationValidati
         }
     }
 
+    let Some(comparisons) = bundle.get("comparisons").and_then(Value::as_array) else {
+        report.push(
+            "COMPARISONS_MISSING",
+            "$.comparisons",
+            "comparisons must be an array of source-linked unresolved comparisons",
+        );
+        return report;
+    };
+
+    let mut comparison_ids = HashSet::new();
+    for (index, comparison) in comparisons.iter().enumerate() {
+        let path = format!("$.comparisons[{index}]");
+        match comparison.get("comparison_id").and_then(Value::as_str) {
+            Some(id) if !id.trim().is_empty() => {
+                if !comparison_ids.insert(id.to_owned()) {
+                    report.push(
+                        "DUPLICATE_COMPARISON_ID",
+                        format!("{path}.comparison_id"),
+                        format!("comparison id {id:?} occurs more than once"),
+                    );
+                }
+            }
+            _ => report.push(
+                "COMPARISON_ID_MISSING",
+                format!("{path}.comparison_id"),
+                "comparison needs a non-empty comparison_id",
+            ),
+        }
+
+        let left_id = comparison.get("left_observation_id").and_then(Value::as_str);
+        let right_id = comparison.get("right_observation_id").and_then(Value::as_str);
+        let left = left_id.and_then(|id| {
+            observations
+                .iter()
+                .find(|row| row["observation_id"].as_str() == Some(id))
+        });
+        let right = right_id.and_then(|id| {
+            observations
+                .iter()
+                .find(|row| row["observation_id"].as_str() == Some(id))
+        });
+        match left_id {
+            None => report.push(
+                "COMPARISON_LEFT_OBSERVATION_MISSING",
+                format!("{path}.left_observation_id"),
+                "comparison requires left_observation_id",
+            ),
+            Some(id) if left.is_none() => report.push(
+                "COMPARISON_OBSERVATION_UNKNOWN",
+                format!("{path}.left_observation_id"),
+                format!("left observation id {id:?} does not exist in observations"),
+            ),
+            _ => {}
+        }
+        match right_id {
+            None => report.push(
+                "COMPARISON_RIGHT_OBSERVATION_MISSING",
+                format!("{path}.right_observation_id"),
+                "comparison requires right_observation_id",
+            ),
+            Some(id) if right.is_none() => report.push(
+                "COMPARISON_OBSERVATION_UNKNOWN",
+                format!("{path}.right_observation_id"),
+                format!("right observation id {id:?} does not exist in observations"),
+            ),
+            _ => {}
+        }
+        if left_id.is_some() && left_id == right_id {
+            report.push(
+                "COMPARISON_SAME_OBSERVATION",
+                &path,
+                "left and right observations must be distinct",
+            );
+        }
+
+        let arithmetic = comparison.get("arithmetic");
+        let left_factor = arithmetic.and_then(|v| v.get("left_factor")).and_then(Value::as_f64);
+        let right_factor = arithmetic.and_then(|v| v.get("right_factor")).and_then(Value::as_f64);
+        let left_normalized = arithmetic
+            .and_then(|v| v.get("left_normalized_value"))
+            .and_then(Value::as_f64);
+        let right_normalized = arithmetic
+            .and_then(|v| v.get("right_normalized_value"))
+            .and_then(Value::as_f64);
+        let difference = arithmetic
+            .and_then(|v| v.get("difference"))
+            .and_then(Value::as_f64);
+        let source_left_value = left.and_then(|v| v.get("value")).and_then(Value::as_f64);
+        let source_right_value = right.and_then(|v| v.get("value")).and_then(Value::as_f64);
+        match (
+            left_factor,
+            right_factor,
+            left_normalized,
+            right_normalized,
+            difference,
+            source_left_value,
+            source_right_value,
+        ) {
+            (Some(lf), Some(rf), Some(ln), Some(rn), Some(delta), Some(lv), Some(rv))
+                if lf > 0.0 && rf > 0.0 =>
+            {
+                let expected_left = lv * lf;
+                let expected_right = rv * rf;
+                let expected_delta = expected_left - expected_right;
+                let close = |a: f64, b: f64| {
+                    (a - b).abs() <= 1e-6 * a.abs().max(b.abs()).max(1.0)
+                };
+                if !close(ln, expected_left)
+                    || !close(rn, expected_right)
+                    || !close(delta, expected_delta)
+                {
+                    report.push(
+                        "COMPARISON_ARITHMETIC_MISMATCH",
+                        format!("{path}.arithmetic"),
+                        "normalized values and left-minus-right difference must match the referenced numeric observations and positive conversion factors",
+                    );
+                }
+            }
+            _ => report.push(
+                "COMPARISON_ARITHMETIC_INCOMPLETE",
+                format!("{path}.arithmetic"),
+                "comparisons require numeric source values, normalized values, positive conversion factors, and a numeric difference",
+            ),
+        }
+    }
+
     report
 }
 
@@ -210,6 +336,7 @@ mod tests {
             report.issues
         );
         assert_eq!(bundle["observations"].as_array().map(Vec::len), Some(91));
+        assert_eq!(bundle["comparisons"].as_array().map(Vec::len), Some(3));
 
         let fy23_quality = bundle["observations"]
             .as_array()
@@ -409,4 +536,31 @@ mod tests {
                 .contains("independently measured")
         }));
     }
+    #[test]
+    fn rejects_a_comparison_referencing_an_unknown_observation() {
+        let mut bundle = fixture();
+        bundle["comparisons"][0]["left_observation_id"] = json!("missing-observation");
+        let report = validate_public_observation_bundle(&bundle);
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "COMPARISON_OBSERVATION_UNKNOWN")
+        );
+    }
+
+    #[test]
+    fn rejects_a_comparison_whose_arithmetic_does_not_match_its_source_observations() {
+        let mut bundle = fixture();
+        bundle["comparisons"][0]["arithmetic"]["difference"] = json!(0.0);
+        let report = validate_public_observation_bundle(&bundle);
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "COMPARISON_ARITHMETIC_MISMATCH")
+        );
+    }
+
+
 }

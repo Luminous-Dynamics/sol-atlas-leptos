@@ -66,6 +66,8 @@ These are programme-level public claims without event-level rows, fixed average 
 
 A comparison audit is now explicit: the Business Plan's FY2023/24 active leak-detection estimate is 14,355,757 kL/year (14,355.757 ML/year), whereas the programme page says approximately 8,100 ML/year. Those numbers differ nominally, but the source does not define equivalent periods or calculation scope; do not report the difference as realised performance or choose one as truth. The Business Plan's regional counts also do not reconcile to several printed totals in its indexed table. Obtain data dictionaries and verified event/outcome data before reconciliation.
 
+The bundle now also carries a strict `comparisons` register: a nominal savings-estimate difference tagged `not_comparable`, plus the two FY2023/24 response KPI differences tagged `unreconciled`. The Rust semantic validator checks that each comparison points to existing observation IDs and recomputes normalized values and the declared left-minus-right difference from the source observations. The register records conflicts; it does not resolve them.
+
 ## Data acquisition register
 
 | Source | Real data it can contribute | Access and limits | What we should do |
