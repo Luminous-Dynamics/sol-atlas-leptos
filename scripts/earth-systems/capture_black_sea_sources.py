@@ -28,6 +28,7 @@ ALLOWED_PATHS = {
     "/en/node/207702",
     "/media/docs/worldfoodsituationlibraries/wfs-library/food_price_indices_data.csv",
     "/public/v1/preview/C/M/HS",
+    "/public/v1/getDa/C/M/HS",
 }
 FORBIDDEN_QUERY_KEYS = {
     "key", "apikey", "api_key", "token", "access_token", "subscription-key",
@@ -169,6 +170,82 @@ def assess_comtrade_response(
     }
 
 
+
+def assess_comtrade_availability(
+    raw: bytes,
+    expected_parameters: dict,
+    record_limit: int = MAX_PREVIEW_RECORDS,
+) -> dict:
+    """Validate reporter/month metadata without inferring commodity-level coverage."""
+    try:
+        obj = json.loads(raw.decode("utf-8-sig"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return {"state": "captured_but_unparseable", "count": None, "returned_rows": None}
+    if not isinstance(obj, dict):
+        return {"state": "captured_but_unrecognized_schema", "count": None, "returned_rows": None}
+
+    data, count = obj.get("data"), obj.get("count")
+    valid_count = isinstance(count, int) and not isinstance(count, bool)
+    if not isinstance(data, list) or not valid_count or any(not isinstance(row, dict) for row in data):
+        return {
+            "state": "captured_but_unrecognized_schema",
+            "count": count if valid_count else None,
+            "returned_rows": len(data) if isinstance(data, list) else None,
+        }
+    if count != len(data) or len(data) >= record_limit:
+        return {"state": "captured_but_incomplete", "count": count, "returned_rows": len(data)}
+
+    if not data:
+        return {
+            "state": "availability_record_absent_unresolved",
+            "count": count,
+            "returned_rows": 0,
+            "rows_present": False,
+            "reporter_period_dimensions_verified": False,
+            "commodity_partner_flow_availability_verified": False,
+        }
+
+    required = ("reporterCode", "period")
+    missing = sorted(field for field in required if any(field not in row for row in data))
+    if missing:
+        return {
+            "state": "availability_dimensions_unverified",
+            "count": count,
+            "returned_rows": len(data),
+            "missing_dimension_fields": missing,
+            "commodity_partner_flow_availability_verified": False,
+        }
+
+    mismatches = {}
+    for field in required:
+        expected = str(expected_parameters[field])
+        observed = sorted({str(row[field]) for row in data})
+        if observed != [expected]:
+            mismatches[field] = {"expected": expected, "observed": observed[:10]}
+    if mismatches:
+        return {
+            "state": "availability_dimension_mismatch",
+            "count": count,
+            "returned_rows": len(data),
+            "dimension_mismatches": mismatches,
+            "commodity_partner_flow_availability_verified": False,
+        }
+
+    return {
+        "state": "availability_record_found_reporter_period_only",
+        "count": count,
+        "returned_rows": len(data),
+        "rows_present": True,
+        "reporter_period_dimensions_verified": True,
+        "commodity_partner_flow_availability_verified": False,
+        "interpretation_limit": (
+            "This endpoint indicates reporter/month availability only; it does not verify "
+            "the requested commodity, partner, or flow."
+        ),
+    }
+
+
+
 def load_plan(path: Path) -> dict:
     try:
         obj = json.loads(path.read_text(encoding="utf-8"))
@@ -199,6 +276,25 @@ def build_request_tasks(plan: dict) -> list[dict]:
         })
     source, query = plan["source"], plan["query_dimensions"]
     route = source["endpoint_template"].format(typeCode=query["type_code"], freqCode=query["frequency_code"], classificationCode=query["classification_code"])
+    availability_route = source["availability_endpoint_template"].format(
+        typeCode=query["type_code"], freqCode=query["frequency_code"], classificationCode=query["classification_code"]
+    )
+    record_limit = int(plan["request_policy"]["public_preview_record_limit"])
+    availability_periods = sorted({chunk["period"] for chunk in plan.get("request_chunks", [])})
+    for period in availability_periods:
+        if not isinstance(period, str) or not re.fullmatch(r"\d{6}", period):
+            raise CaptureError("availability periods must use YYYYMM")
+        params = {"reportercode": query["reporter_code"], "period": period}
+        expected_dimensions = {"reporterCode": query["reporter_code"], "period": period}
+        url = source["endpoint_root"].rstrip("/") + availability_route + "?" + urlencode(params, safe=",")
+        validate_source_url(url)
+        tasks.append({
+            "source_id": source["source_id"], "artifact_id": f"availability_{period}", "url": url,
+            "filename": safe_filename(f"comtrade-ukraine-monthly-availability-{period}.json"),
+            "max_bytes": 16 * 1024 * 1024, "expected_content_types": ["application/json"],
+            "response_kind": "comtrade_availability_json", "request_parameters": params,
+            "expected_response_dimensions": expected_dimensions, "record_limit": record_limit,
+        })
     record_limit = int(plan["request_policy"]["public_preview_record_limit"])
     for chunk in plan.get("request_chunks", []):
         chunk_id, periods = chunk.get("chunk_id", ""), chunk.get("periods")
@@ -283,6 +379,7 @@ def capture_one(task: dict, snapshot_dir: Path, timeout_seconds: float, fetcher=
     record = {
         "source_id": task["source_id"], "artifact_id": task["artifact_id"],
         "request_url": task["url"], "request_parameters": task["request_parameters"],
+        "expected_response_dimensions": task.get("expected_response_dimensions"),
         "retrieved_at_utc": utc_now(), "capture_state": "request_failed", "status_code": None,
         "final_url": None, "content_type": None, "response_headers": {}, "response_bytes": None,
         "response_sha256": None, "filename": None, "response_validation": None, "error": None,
@@ -339,6 +436,24 @@ def capture_one(task: dict, snapshot_dir: Path, timeout_seconds: float, fetcher=
                 record["error"] = "Empty response is not proof of zero trade; check source data availability and query dimensions"
             else:
                 record["error"] = "Comtrade response envelope or required dimensions could not be validated"
+    elif task["response_kind"] == "comtrade_availability_json":
+        assessment = assess_comtrade_availability(
+            raw,
+            expected_parameters=task["expected_response_dimensions"],
+            record_limit=int(task["record_limit"]),
+        )
+        record["response_validation"] = assessment
+        if assessment["state"] == "availability_record_found_reporter_period_only":
+            record["capture_state"] = "captured_pending_metadata_review"
+        elif assessment["state"] == "availability_record_absent_unresolved":
+            record["capture_state"] = "availability_record_absent_unresolved"
+            record["error"] = (
+                "No reporter/month availability record found; this does not establish "
+                "commodity-level absence or zero trade"
+            )
+        else:
+            record["capture_state"] = assessment["state"]
+            record["error"] = "Comtrade availability response dimensions or schema could not be validated"
     else:
         record["capture_state"] = "captured_pending_metadata_review"
     return record
@@ -373,7 +488,12 @@ def main(argv: list[str] | None = None, fetcher=fetch_response) -> int:
     parser.add_argument(
         "--include-comtrade",
         action="store_true",
-        help="explicitly make all 168 public-preview query calls; default captures only the UN page and FAO CSV",
+        help="explicitly make all 168 public-preview commodity queries",
+    )
+    parser.add_argument(
+        "--include-availability",
+        action="store_true",
+        help="explicitly make 84 monthly reporter-availability queries; these do not verify commodity, partner, or flow",
     )
     args = parser.parse_args(argv)
     if not 1 <= args.timeout_seconds <= 120:
@@ -382,10 +502,16 @@ def main(argv: list[str] | None = None, fetcher=fetch_response) -> int:
         plan_bytes = args.plan.read_bytes()
         plan = load_plan(args.plan)
         all_plan_tasks = build_request_tasks(plan)
+        selected_api_kinds = set()
         if args.include_comtrade:
-            tasks = all_plan_tasks
-        else:
-            tasks = [task for task in all_plan_tasks if task["response_kind"] != "comtrade_json"]
+            selected_api_kinds.add("comtrade_json")
+        if args.include_availability:
+            selected_api_kinds.add("comtrade_availability_json")
+        tasks = [
+            task for task in all_plan_tasks
+            if task["response_kind"] not in {"comtrade_json", "comtrade_availability_json"}
+            or task["response_kind"] in selected_api_kinds
+        ]
         snapshot_dir = create_snapshot_dir(args.snapshot_dir)
     except (CaptureError, OSError, KeyError, TypeError, ValueError) as exc:
         print(f"capture setup failed: {exc}", file=sys.stderr)
@@ -398,7 +524,7 @@ def main(argv: list[str] | None = None, fetcher=fetch_response) -> int:
     stop_reason = None
 
     for index, task in enumerate(tasks):
-        if task["response_kind"] == "comtrade_json":
+        if task["response_kind"] in {"comtrade_json", "comtrade_availability_json"}:
             if last_comtrade_start is not None:
                 elapsed = time.monotonic() - last_comtrade_start
                 if elapsed < minimum_interval:
@@ -422,7 +548,7 @@ def main(argv: list[str] | None = None, fetcher=fetch_response) -> int:
         and len(artifacts) == len(tasks)
         and all(item["capture_state"] in ok_states for item in artifacts)
     )
-    full_plan_selected = bool(args.include_comtrade)
+    full_plan_selected = bool(args.include_comtrade and args.include_availability)
     if rate_limit_hit:
         state = "stopped_after_rate_limit"
     elif not full_plan_selected and selected_complete:
@@ -443,9 +569,12 @@ def main(argv: list[str] | None = None, fetcher=fetch_response) -> int:
         "selected_request_count": len(tasks),
         "attempted_request_count": attempted_count,
         "not_attempted_request_count": not_attempted_count,
-        "comtrade_calls_requested": full_plan_selected,
+        "comtrade_calls_requested": bool(args.include_comtrade),
         "comtrade_call_count_in_plan": sum(t["response_kind"] == "comtrade_json" for t in all_plan_tasks),
-        "comtrade_calls_not_selected_by_default": 0 if full_plan_selected else sum(t["response_kind"] == "comtrade_json" for t in all_plan_tasks),
+        "comtrade_calls_not_selected_by_default": 0 if args.include_comtrade else sum(t["response_kind"] == "comtrade_json" for t in all_plan_tasks),
+        "availability_calls_requested": bool(args.include_availability),
+        "availability_call_count_in_plan": sum(t["response_kind"] == "comtrade_availability_json" for t in all_plan_tasks),
+        "availability_calls_not_selected_by_default": 0 if args.include_availability else sum(t["response_kind"] == "comtrade_availability_json" for t in all_plan_tasks),
         "rate_limit_hit": rate_limit_hit,
         "stop_reason": stop_reason,
         "selected_requests_all_captured_and_shape_checked": selected_complete,
@@ -456,10 +585,11 @@ def main(argv: list[str] | None = None, fetcher=fetch_response) -> int:
         "limitations": [
             "A response SHA-256 establishes byte identity only, not accuracy, source independence, license or scientific validity.",
             "Comtrade count/row and requested-dimension agreement are transport/schema checks, not proof of complete reporting or comparable measurement.",
-            "Empty monthly responses remain unknown until data-availability/coverage is reviewed; they are not interpreted as zero trade.",
+            "Empty monthly trade responses remain unknown until data-availability/coverage is reviewed; they are not interpreted as zero trade.",
+            "The Comtrade data-availability endpoint is reporter/month metadata only and does not verify the product, partner, or trade flow.",
             "Unexpected content types, HTTP errors, oversized bodies, row truncation, dimension mismatches and malformed responses are not qualified acquisitions.",
             "At the first upstream rate-limit response, no later request is sent in that run; Retry-After, when supplied, is preserved as response metadata.",
-            "By default this command captures only the UN page and FAO CSV. Comtrade preview calls are opt-in to avoid unexpected request volume.",
+            "By default this command captures only the UN page and FAO CSV. Commodity preview calls (168) and reporter/month availability calls (84) are separately opt-in to avoid unexpected request volume.",
             "Files remain in the caller-selected local directory; this helper never commits or uploads source data.",
         ],
     }
@@ -475,8 +605,9 @@ def main(argv: list[str] | None = None, fetcher=fetch_response) -> int:
         "selected_request_count": len(tasks),
         "attempted_request_count": attempted_count,
         "not_attempted_request_count": not_attempted_count,
-        "comtrade_calls_requested": full_plan_selected,
-        "successful_responses_pending_review": sum(item["capture_state"] in ok_states for item in artifacts),
+        "comtrade_calls_requested": bool(args.include_comtrade),
+        "availability_calls_requested": bool(args.include_availability),
+        "successful_responses_pending_review": sum(item["capture_state"] in (ok_states | {"availability_record_absent_unresolved"}) for item in artifacts),
         "manifest": str(manifest_path),
     }, indent=2))
     return 0 if selected_complete else 2
