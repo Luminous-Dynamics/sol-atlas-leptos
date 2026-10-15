@@ -37,6 +37,36 @@ Local service outcomes matter. South Africa's 2023 No Drop reporting described n
 
 The schema is a shape gate, not a semantic verifier. The Rust semantic validator now enforces packet-local identifier uniqueness, unavailable-value/null consistency, uncertainty-bound consistency, run-state/digest consistency, hard-constraint evidence semantics, cross-case unit/scope/period consistency when a metric is marked comparable, and preconditions for recording a planning-only decision. It does not resolve or authenticate referenced run bundles, so it is not a cryptographic provenance verifier. Pareto calculation, uncertainty statistics, statistical robustness, causal attribution, and artifact-resolved run-bundle verification remain follow-up work. Do not display a ranked recommendation as qualified until those remaining checks, actual pinned-solver evidence, and independent engineering review exist.
 
+## Next paradigm shift: optimise the next measurement
+
+Once the baseline and candidate can be reproduced, the highest-value next action may be *not* to change a pipe. It may be to obtain the one observation that distinguishes between competing explanations and changes which intervention is worth considering.
+
+This is a research-backed direction, not a new claim of capability. Peer-reviewed water-network studies have used **Value of Information (VOI)** and information-theoretic measures to select pressure-sensor locations for leak detection/contamination warning and to reduce redundant information across sensors. See [Khorshidi et al., *Water Research* (2018)](https://doi.org/10.1016/j.watres.2018.06.050), [*Pressure Sensor Placement for Leak Localization* (2022)](https://pmc.ncbi.nlm.nih.gov/articles/PMC8779686/), and [Comboul & Ghanem, *Value of Information in the Design of Resilient Water Distribution Sensor Networks*](https://ascelibrary.org/doi/10.1061/%28ASCE%29WR.1943-5452.0000259). These are methodological precedents, not proof that a Sol-Atlas implementation will outperform existing approaches.
+
+### Decision-directed evidence acquisition
+
+Represent possible information-gathering actions as explicit, reviewable records: a short pressure-logging campaign, meter validation, a targeted leak survey, a water-quality sample, an asset-record/site inspection, or verification of an annual-report table cell. Each action should state its question, cost and latency assumptions, access permission, affected area, required safety controls, expected evidence type, and the uncertainty it might reduce.
+
+Where a defensible loss function and parameter model exist, the conceptual decision criterion is expected reduction in decision loss minus information-acquisition cost:
+
+`net VOI(a) = current minimum expected loss - expected post-measurement minimum loss - acquisition cost(a)`
+
+The expectation is over possible measurement outcomes, not over a made-up single forecast. This number should not be emitted until the outcome likelihoods, loss/cost basis and relevant uncertainty have been declared and reviewed. Entropy reduction can be a useful diagnostic for information gain, but **information gain is not automatically service benefit or monetary value**. When the model cannot support a defensible VOI estimate, show the candidate actions and their unresolved assumptions without numeric ranking.
+
+A future synthetic test should compare an information-directed strategy with explicit baselines such as random placement, coverage-only placement and a fixed heuristic. Report detection/localisation performance, redundant information, sensor count/cost, sensitivity to misspecified leak/demand/roughness scenarios, and failures—not merely the best-case score. Freeze the scenario corpus before comparing strategies, keep negative controls, and report results across all evaluated cases.
+
+### How this changes the Sol-Atlas / Symthaea / Mycelix division
+
+- **Sol-Atlas:** owns the spatial evidence packet, permissible measurement-action catalogue, comparison surface and reproducible test corpus.
+- **EPANET / SWMM:** generate domain-appropriate synthetic hypotheses/results within their validated capabilities; neither substitutes for field observations.
+- **Symthaea:** may propose competing explanations, identify which assumptions discriminate between them, and suggest an evidence-gathering plan. It must return structured hypotheses tied to specific model inputs and testable outcomes, not free-form certainty.
+- **Symtropy:** may contribute catchment/terrain/flow context where its own conservation and model-fidelity contracts support it; it must not invent municipal pipe topology.
+- **Mycelix:** can preserve who proposed, authorised, collected, reviewed and resolved each evidence action, including access restrictions and correction history. Provenance is not itself proof that a measurement is accurate.
+
+Do not publish sensitive pipe/sensor locations or operational weaknesses by default. Public outputs should disclose only reviewed aggregates; exact topology, telemetry and proposed inspection locations require data-owner permission and an explicit threat/privacy review.
+
+**Proposed next executable gate:** implement the measurement-action and test-corpus contracts on synthetic-only data; exercise the decision gate with fail-closed fixtures; then compare VOI/information-theoretic placement with simple baselines under reproducible EPANET scenarios. Real sensor deployment remains out of scope until the synthetic comparison is independently reproduced and qualified reviewers approve the operational/data-handling plan.
+
 ## Qualification ladder
 
 - **Contract-only:** schema/fixture validation passes; no model result is implied.
