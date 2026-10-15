@@ -621,4 +621,35 @@ mod tests {
             assert_eq!(serde_json::to_value(kind).unwrap(), serde_json::json!(name));
         }
     }
+    #[test]
+    fn synthetic_water_system_graph_fixture_is_valid_and_queryable() {
+        let graph: DependencyGraph = serde_json::from_str(include_str!(
+            "../../schemas/examples/water-system-dependencies.json"
+        ))
+        .unwrap();
+        let evidence_records = [
+            evidence("synthetic-evidence-pump-power"),
+            evidence("synthetic-evidence-field-pump"),
+            evidence("synthetic-evidence-warehouse-location"),
+        ];
+        graph.validate(&evidence_records).unwrap();
+
+        let impacts = graph
+            .affected_dependents_at("synthetic-feeder-east", "2026-10-15T12:00:00Z")
+            .unwrap();
+        assert_eq!(
+            impacts
+                .iter()
+                .map(|impact| impact.entity_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["synthetic-pump-east", "synthetic-field-north"]
+        );
+        assert!(!impacts.iter().any(|impact| impact.entity_id == "synthetic-warehouse"));
+        assert!(impacts[0]
+            .supporting_evidence_by_relation
+            .iter()
+            .flatten()
+            .any(|id| id == "synthetic-evidence-pump-power"));
+    }
+
 }

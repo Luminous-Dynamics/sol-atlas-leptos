@@ -66,7 +66,7 @@ Measure outcomes in terms relevant to the use case—reliability of water delive
 
 ## Contract boundary (v0.1)
 
-The machine-readable contracts are the [EvidenceRecord JSON Schema](../../schemas/spatial-economic-evidence-v0.1.schema.json) and the [SpatialRelation JSON Schema](../../schemas/spatial-economic-relation-v0.1.schema.json). Rust primitives are in [spatial_economic.rs](../../sol-atlas-core/src/spatial_economic.rs) and [spatial_graph.rs](../../sol-atlas-core/src/spatial_graph.rs).
+The machine-readable contracts are the [EvidenceRecord JSON Schema](../../schemas/spatial-economic-evidence-v0.1.schema.json), [SpatialRelation JSON Schema](../../schemas/spatial-economic-relation-v0.1.schema.json), and [DependencyGraph JSON Schema](../../schemas/spatial-economic-dependency-graph-v0.1.schema.json). The labelled-synthetic network is in [water-system-dependencies.json](../../schemas/examples/water-system-dependencies.json). Rust primitives are in [spatial_economic.rs](../../sol-atlas-core/src/spatial_economic.rs) and [spatial_graph.rs](../../sol-atlas-core/src/spatial_graph.rs).
 
 Each EvidenceRecord has:
 - **Identity:** immutable statement ID, schema version, issuer and subject IDs.
@@ -96,6 +96,8 @@ A correction appends a new statement that references the old one; it does not re
 
 - **OGC API – Features:** discover and query interoperable spatial feature collections. Do not fork basic geospatial serving semantics.
 - **OGC API – Moving Features:** consider for trajectories and moving entities when the use case requires it.
+- **OGC SensorThings API:** consider for sensor/device/datastream/observation exchange; it does not replace the evidence contract or economic lifecycle model.
+- **ETSI NGSI-LD:** consider for context-entity exchange and temporal relationship/property adapters; retain explicit local semantics and validation when mapping external records.
 - **W3C PROV-O:** map provenance and derivation concepts where useful rather than inventing isolated names for all provenance relationships.
 - **Open Contracting Data Standard (OCDS):** adapt procurement/contract publication where appropriate; it is not an all-purpose physical-delivery or settlement model.
 - **IETF RFC 9943 (SCITT):** consider for signed statement transparency and receipts in supply-chain paths. Transparency is accountability machinery, not an oracle for truth.
@@ -141,5 +143,7 @@ Stop or roll back any integration that silently drops provenance, changes units/
 - OGC API – Features: https://www.ogc.org/standards/ogcapi-features/
 - OGC API – Moving Features: https://www.ogc.org/standards/ogc-api-moving-features/
 - W3C PROV-O: https://www.w3.org/TR/prov-o/
+- OGC SensorThings API: https://www.ogc.org/standards/sensorthings/
+- ETSI NGSI-LD context information management: https://cim.etsi.org/NGSI-LD/official/clause-4.html
 - Open Contracting Data Standard: https://standard.open-contracting.org/latest/en/
 - IETF RFC 9943, *An Architecture for Trustworthy and Transparent Digital Supply Chains*: https://datatracker.ietf.org/doc/rfc9943/
