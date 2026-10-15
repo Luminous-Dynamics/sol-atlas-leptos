@@ -1,0 +1,126 @@
+{
+  "schema_version": "water-engineering-bundle/v0.1",
+  "bundle_id": "w0-p2-diameter-restriction-planned-v0.1",
+  "classification": "synthetic_public",
+  "model_package": {
+    "model_id": "w0-synthetic-network",
+    "domain": "pressurized_water_distribution",
+    "input_snapshot": {
+      "artifact_id": "w0-epanet-input",
+      "role": "exact_synthetic_epanet_input",
+      "path": "sol-atlas-core/fixtures/water-engineering/w0_network.inp",
+      "sha256": "7ec0d4214a19d97f4b2b9c147ee55c8576f4135dd8cce99786abdb72a843da1b",
+      "byte_length": 514,
+      "synthetic": true
+    },
+    "source_artifacts": [
+      {
+        "artifact_id": "w0-epanet-input",
+        "role": "exact_synthetic_epanet_input",
+        "path": "sol-atlas-core/fixtures/water-engineering/w0_network.inp",
+        "sha256": "7ec0d4214a19d97f4b2b9c147ee55c8576f4135dd8cce99786abdb72a843da1b",
+        "byte_length": 514,
+        "synthetic": true
+      }
+    ],
+    "unit_system": "EPANET LPS (length m, diameter mm, flow L/s, head m)",
+    "coordinate_reference_system": null,
+    "asset_index": [
+      {
+        "asset_id": "R1",
+        "asset_type": "reservoir"
+      },
+      {
+        "asset_id": "J1",
+        "asset_type": "junction"
+      },
+      {
+        "asset_id": "J2",
+        "asset_type": "junction"
+      },
+      {
+        "asset_id": "P1",
+        "asset_type": "pipe"
+      },
+      {
+        "asset_id": "P2",
+        "asset_type": "pipe"
+      }
+    ],
+    "solver_profile": {
+      "engine": "EPANET",
+      "engine_version": null,
+      "engine_binary_sha256": null,
+      "execution_state": "NotRun",
+      "analysis_mode": "DemandDriven",
+      "headloss_model": "HazenWilliams"
+    },
+    "calibration": {
+      "state": "SyntheticUncalibrated",
+      "evidence_artifact_ids": [],
+      "notes": [
+        "Synthetic topology only; no observed network data or calibration."
+      ]
+    },
+    "assumptions": [
+      "Synthetic reservoir and junction values are illustrative only.",
+      "This fixture is not an actual Johannesburg asset inventory.",
+      "No local solver has been invoked for this fixture."
+    ]
+  },
+  "scenario": {
+    "scenario_id": "w0-p2-diameter-restriction",
+    "base_model_id": "w0-synthetic-network",
+    "base_input_snapshot_sha256": "7ec0d4214a19d97f4b2b9c147ee55c8576f4135dd8cce99786abdb72a843da1b",
+    "scenario_type": "intervention",
+    "changes": [
+      {
+        "asset_id": "P2",
+        "parameter": "diameter_mm",
+        "baseline_value": 150,
+        "candidate_value": 50,
+        "unit": "mm",
+        "rationale": "Deliberately extreme synthetic restriction for a future solver-pipeline test; not a recommended design."
+      }
+    ],
+    "forcing_refs": [],
+    "rationale": "Planned synthetic test of model/scenario/result identity binding. No solver run or hydraulic conclusion is claimed."
+  },
+  "run_result": {
+    "run_id": "w0-p2-diameter-restriction-not-run",
+    "state": "NotRun",
+    "solver": {
+      "engine": "EPANET",
+      "version": null,
+      "binary_sha256": null,
+      "settings_sha256": null
+    },
+    "execution": {
+      "started_at": null,
+      "finished_at": null,
+      "environment_ref": null
+    },
+    "diagnostics": {
+      "convergence_state": "NotRun",
+      "continuity_check_state": "NotRun",
+      "solver_exit_code": null,
+      "warnings": []
+    },
+    "metrics": [],
+    "result_artifacts": [],
+    "notes": [
+      "This is an intake/identity fixture only. No EPANET process was executed and no hydraulic output exists."
+    ]
+  },
+  "validation": {
+    "empirical_state": "SyntheticOnly",
+    "independent_review_state": "NotReviewed",
+    "accepted_for_engineering_use": false,
+    "claim_ceiling": "Schema/fixture illustration only; not solver-executed, calibrated, empirically validated, or engineering-approved."
+  },
+  "nonclaims": [
+    "This fixture does not establish solver behavior or design suitability.",
+    "No real municipal topology, demand, pressure, water quality, or incident data is included.",
+    "The candidate diameter is intentionally pathological and is not a design recommendation."
+  ]
+}
