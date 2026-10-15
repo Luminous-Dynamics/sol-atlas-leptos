@@ -138,6 +138,7 @@
           "redistribution_allowed": null,
           "key_limitations": [
             "Coverage and variable resolution differ by WaPOR level and product.",
+            "The /mapsets API is not an exhaustive Level III area inventory; area-specific Level III files are exposed through MOSAICSET indexes and require an explicit area code (Baixo Limpopo: MBL).",
             "Water productivity is not a direct measure of household access, water quality or groundwater reserves.",
             "WaPOR Level III has a 2024 methodology re-release, and NPP/AGBP for Baixo Limpopo received a separate correction announced in March 2025; historical artifacts require correction-vintage review."
           ]
@@ -216,6 +217,7 @@
           "redistribution_allowed": null,
           "key_limitations": [
             "Coverage and spatial resolution vary by level.",
+            "The /mapsets API is not an exhaustive Level III area inventory; area-specific Level III files are exposed through MOSAICSET indexes and require an explicit area code (Baixo Limpopo: MBL).",
             "A derived productivity layer does not uniquely identify agronomic cause.",
             "WaPOR Level III has a 2024 methodology re-release, and NPP/AGBP for Baixo Limpopo received a separate correction announced in March 2025; historical artifacts require correction-vintage review."
           ]
