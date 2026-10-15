@@ -13,7 +13,7 @@ Sol-Atlas can become a spatial/temporal evidence platform for Earth systems and,
 
 The goal is not a universal AI that predicts anything from a globe. It is a **shared evidence and provenance substrate with separate domain-specific scientific models**, explicit observability limits, and independently testable outputs.
 
-The initial registry names nine research domains:
+The initial registry now names ten research domains:
 
 1. Mineral systems and geological resources.
 2. Water security, drought and water-storage change.
@@ -24,6 +24,7 @@ The initial registry names nine research domains:
 7. Infrastructure resilience and essential-service access.
 8. Circular materials, secondary resources and industrial waste.
 9. Planetary surfaces and comparative geology.
+10. Global conflict, trade disruption and supply-chain resilience.
 
 The registry is intentionally heterogeneous. These domains need different kinds of truth data, units, scales, scientific models, review processes and decision authorities. They must not be merged into a single "planetary score."
 
@@ -37,6 +38,12 @@ The availability of public source systems means a useful prototype does not requ
 - ESA WorldCover supplies land-cover products and annual composites; its 2020 v100 and 2021 v200 map products use different algorithm versions, so simple pixelwise differencing is not clean evidence of land-cover change: https://esa-worldcover.org/en/data-access
 - NASA FIRMS provides active-fire detections through APIs and map services. Sensor, version, latency and product lifecycle need to be versioned; its API page currently announces a Suomi NPP product transition effective 1 November 2026: https://firms.modaps.eosdis.nasa.gov/web-services/
 - Copernicus Emergency Management Service distributes drought, flood and emergency mapping products with geographic and event-specific coverage: https://emergency.copernicus.eu/data/
+- UCDP publishes versioned conflict datasets with downloadable codebooks and CC BY 4.0 attribution terms; ACLED provides a separate event system whose API entitlement and reuse conditions need their own review: https://ucdp.uu.se/downloads/ and https://acleddata.com/acled-api-documentation
+- GDELT can support high-cadence media/event discovery, but its records are leads rather than independently verified facts: https://www.gdeltproject.org/
+- IMF PortWatch exposes maritime-activity layers and a searchable catalog API; activity is a proxy and must not be presented as commodity-specific shipment truth: https://portwatch.imf.org/api/search/definition/
+- UN Comtrade supplies reported merchandise-trade aggregates with product/partner/time/valuation dimensions; trade totals alone do not identify named factories or physical routes: https://comtradeapi.un.org/
+- HDX HAPI can standardize selected humanitarian indicators, subject to each underlying indicator's coverage and rights; Open Supply Hub facility API use requires the appropriate token/package and terms review: https://hdx-hapi.readthedocs.io/ and https://info.opensupplyhub.org/resources/api-documentation
+- GS1 EPCIS 2.0 provides an interoperability model for authorized, partner-supplied visibility events; it is not itself a public worldwide shipment database: https://www.gs1.org/standards/epcis
 - NASA's Planetary Data System preserves planetary mission, ground-based and laboratory data; USGS Astrogeology supplies planetary mapping/GIS and analysis-ready data resources: https://pds.nasa.gov/ and https://www.usgs.gov/special-topics/planetary-geologic-mapping
 
 These are candidate source families, not proof that every product, layer or downstream artifact is currently available under unrestricted redistribution terms. Every imported artifact requires a versioned inventory, exact source/product ID, access method, terms review, checksum, coordinate/measurement metadata, temporal support and source lineage.
@@ -90,6 +97,18 @@ This pilot asks where source-supported indicators change and whether their seaso
 ### P1 — Hazard observation and impact review
 
 Use fire detections, rainfall and available flood/drought products to create a latency-aware observations layer. Distinguish event time, sensing time and product-publication time. A detected hotspot is not a fire perimeter; a map of observed rainfall is not a flood forecast. Emergency response authority stays with the relevant public/emergency-service organizations.
+
+### P1 — Conflict-to-supply-chain impact propagation
+
+The candidate profile is recorded in [the machine-readable domain catalog](earth-systems-domain-catalog.json). The first tranche should be a historical replay selected only after exact source and outcome-data readiness is established; do not pick a showcase event merely because it gives a striking map.
+
+Start with a bounded chain: a source-coded conflict/disruption event; direct evidence of a port, route or facility change (or an explicitly hypothetical link if no direct evidence exists); trade exposure for a selected commodity and reporter/partner/time window; port-activity context where applicable; and a humanitarian or market outcome series with adequate temporal/geographic support. A chain with missing links must remain incomplete rather than receiving guessed edge weights. Use one Southern African impact lens after a global-source coverage inventory, not as a claim that the region's exposure has already been quantified.
+
+UCDP, ACLED and GDELT have distinct definitions, collection pipelines and source biases. Preserve their separate event identities and report overlaps as source dependence rather than treating multiple feeds as independent votes. UN Comtrade's aggregate flows, IMF PortWatch activity proxies, production-facility registries and authorized EPCIS event feeds also represent different evidence types. The pilot is read-only and historical; it does not dispatch cargo, forecast imminent shortages, calculate automatic prices, identify tactical targets, or authorize operational response.
+
+Before any real-data run, freeze exact source versions/query filters, inspect product-specific terms and redistribution rights, capture reproducible source bytes and validate geography/time/unit semantics. Validate against a preregistered baseline, matched unaffected routes/commodities, held-out historical windows and independent outcome records. A temporal correlation or plausible graph path is an impact hypothesis, not causal attribution.
+
+The current implementation should compose Sol Atlas #90/#91/#106/#111 and Mycelix's existing supply-chain, provenance and evidence-frontier work. Sol Atlas renders qualified projections; Mycelix owns canonical evidence/authorization semantics; Symthaea compares evidence-bounded hypotheses and alternatives; Symtropy is used only where a validated network/logistics scenario model fits. Do not create a second canonical event database, generic trust score or single global resilience score.
 
 ### P2 — Ecosystem and restoration monitoring
 
