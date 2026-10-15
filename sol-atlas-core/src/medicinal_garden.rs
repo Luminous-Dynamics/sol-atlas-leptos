@@ -506,11 +506,10 @@ mod tests {
     #[test]
     fn screening_serialization_does_not_add_free_text_note_field() {
         let serialized = serde_json::to_string(&valid_input()).expect("fixture serializes");
-        assert!(!serialized.contains("\\"note\\":"));
-        assert!(!serialized.contains("\\"latitude\\":"));
-        assert!(!serialized.contains("\\"longitude\\":"));
+        assert!(!serialized.contains("\"note\":"));
+        assert!(!serialized.contains("\"latitude\":"));
+        assert!(!serialized.contains("\"longitude\":"));
     }
-
     #[test]
     fn no_medicine_safe_state_exists_in_the_wire_contract() {
         let serialized = serde_json::to_string(&valid_input()).expect("fixture serializes");
