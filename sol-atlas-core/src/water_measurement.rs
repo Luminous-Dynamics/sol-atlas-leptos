@@ -109,7 +109,7 @@ fn validate_distribution(probabilities: &[f64], label: &str) -> Result<(), Strin
                 "{label} probability {probability:?} is not finite and in [0, 1]"
             ));
         }
-        total += probability;
+        total += *probability;
     }
     if (total - 1.0).abs() > PROBABILITY_TOLERANCE {
         return Err(format!(
@@ -234,7 +234,7 @@ fn expected_loss(prior: &[f64], loss_matrix: &[Vec<f64>]) -> f64 {
             prior
                 .iter()
                 .zip(decision_losses)
-                .map(|(probability, loss)| probability * loss)
+                .map(|(probability, loss)| *probability * *loss)
                 .sum::<f64>()
         })
         .fold(f64::INFINITY, f64::min)
@@ -249,7 +249,7 @@ fn expected_information_gain(
     let mut outcome_probabilities = vec![0.0; outcome_count];
     for (hypothesis_index, prior_probability) in prior.iter().enumerate() {
         for (outcome_index, likelihood) in likelihoods[hypothesis_index].iter().enumerate() {
-            outcome_probabilities[outcome_index] += prior_probability * likelihood;
+            outcome_probabilities[outcome_index] += *prior_probability * *likelihood;
         }
     }
     let mut expected_posterior_entropy = 0.0;
@@ -261,15 +261,15 @@ fn expected_information_gain(
             .iter()
             .enumerate()
             .map(|(hypothesis_index, prior_probability)| {
-                prior_probability * likelihoods[hypothesis_index][outcome_index]
+                *prior_probability * likelihoods[hypothesis_index][outcome_index]
             })
             .collect();
         let posterior: Vec<f64> = unnormalised
             .iter()
-            .map(|joint_probability| joint_probability / outcome_probability)
+            .map(|joint_probability| *joint_probability / *outcome_probability)
             .collect();
         let posterior_entropy = entropy_bits(&posterior)?;
-        expected_posterior_entropy += outcome_probability * posterior_entropy;
+        expected_posterior_entropy += *outcome_probability * posterior_entropy;
     }
     let mut gain = prior_entropy - expected_posterior_entropy;
     if gain < 0.0 && gain.abs() <= NUMERIC_TOLERANCE {
@@ -296,12 +296,12 @@ fn expected_loss_after_observation(
             .iter()
             .enumerate()
             .map(|(hypothesis_index, prior_probability)| {
-                prior_probability * likelihoods[hypothesis_index][outcome_index]
-                    / outcome_probability
+                *prior_probability * likelihoods[hypothesis_index][outcome_index]
+                    / *outcome_probability
             })
             .collect();
         let minimum_posterior_loss = expected_loss(&posterior, loss_matrix);
-        total += outcome_probability * minimum_posterior_loss;
+        total += *outcome_probability * minimum_posterior_loss;
     }
     if !total.is_finite() {
         return Err("expected loss after observation is not finite".to_owned());
