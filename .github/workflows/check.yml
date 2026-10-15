@@ -293,10 +293,57 @@ jobs:
           case "$downstream_node" in
             ""|*[!A-Za-z0-9_-]*) echo "SCENARIO_DOWNSTREAM_NODE_REJECTED: $downstream_node"; exit 1 ;;
           esac
+          downstream_degree="$(awk -v node="$downstream_node" '
+            /^\[PIPES\]/ { in_pipes = 1; next }
+            /^\[/ { in_pipes = 0 }
+            in_pipes && $1 !~ /^;/ && ($2 == node || $3 == node) { degree++ }
+            END { print degree + 0 }
+          ' "$input")"
+          test "$downstream_degree" = "1" || {
+            echo "SCENARIO_TERMINAL_NODE_TOPOLOGY_UNSUPPORTED: node=$downstream_node degree=$downstream_degree"
+            exit 1
+          }
+          downstream_demand_lps="$(awk -v node="$downstream_node" '
+            /^\[JUNCTIONS\]/ { in_junctions = 1; next }
+            /^\[/ { in_junctions = 0 }
+            in_junctions && $1 !~ /^;/ && $1 == node { print $3; found++ }
+            END { if (found != 1) exit 1 }
+          ' "$input")" || {
+            echo "SCENARIO_DOWNSTREAM_JUNCTION_DEMAND_MISSING: $downstream_node"
+            exit 1
+          }
+          total_junction_demand_lps="$(awk '
+            /^\[JUNCTIONS\]/ { in_junctions = 1; next }
+            /^\[/ { in_junctions = 0 }
+            in_junctions && $1 !~ /^;/ { total += $3; count++ }
+            END { if (count < 1) exit 1; printf "%.6f\n", total }
+          ' "$input")" || {
+            echo "SCENARIO_TOTAL_JUNCTION_DEMAND_MISSING"
+            exit 1
+          }
+          reservoir_id="$(awk '
+            /^\[RESERVOIRS\]/ { in_reservoirs = 1; next }
+            /^\[/ { in_reservoirs = 0 }
+            in_reservoirs && $1 !~ /^;/ { print $1; found++ }
+            END { if (found != 1) exit 1 }
+          ' "$input")" || {
+            echo "SCENARIO_RESERVOIR_TOPOLOGY_UNSUPPORTED"
+            exit 1
+          }
+          source_pipe_id="$(awk -v reservoir="$reservoir_id" '
+            /^\[PIPES\]/ { in_pipes = 1; next }
+            /^\[/ { in_pipes = 0 }
+            in_pipes && $1 !~ /^;/ && ($2 == reservoir || $3 == reservoir) { print $1; found++ }
+            END { if (found != 1) exit 1 }
+          ' "$input")" || {
+            echo "SCENARIO_SOURCE_PIPE_TOPOLOGY_UNSUPPORTED: reservoir=$reservoir_id"
+            exit 1
+          }
 
-          extract_target_pipe_results() {
+          extract_link_results() {
             local report="$1"
-            awk -v asset="$asset_id" '
+            local requested_asset="$2"
+            awk -v asset="$requested_asset" '
               /Link Results at / { in_links = 1; next }
               /Node Results at / { in_links = 0 }
               in_links && $1 == asset { print $2, $3, $4; found = 1; exit }
@@ -313,18 +360,31 @@ jobs:
             ' "$report"
           }
 
-          baseline_pipe_results="$(extract_target_pipe_results "$out/w0-baseline.rpt")" || {
+          baseline_pipe_results="$(extract_link_results "$out/w0-baseline.rpt" "$asset_id")" || {
             echo "BASELINE_TARGET_PIPE_HYDRAULIC_ROW_MISSING: $asset_id"
             cat "$out/w0-baseline.rpt"
             exit 1
           }
-          candidate_pipe_results="$(extract_target_pipe_results "$candidate_report")" || {
+          candidate_pipe_results="$(extract_link_results "$candidate_report" "$asset_id")" || {
             echo "CANDIDATE_TARGET_PIPE_HYDRAULIC_ROW_MISSING: $asset_id"
             cat "$candidate_report"
             exit 1
           }
           read -r baseline_pipe_flow baseline_pipe_velocity baseline_pipe_headloss <<< "$baseline_pipe_results"
           read -r candidate_pipe_flow candidate_pipe_velocity candidate_pipe_headloss <<< "$candidate_pipe_results"
+
+          baseline_source_results="$(extract_link_results "$out/w0-baseline.rpt" "$source_pipe_id")" || {
+            echo "BASELINE_SOURCE_PIPE_HYDRAULIC_ROW_MISSING: $source_pipe_id"
+            cat "$out/w0-baseline.rpt"
+            exit 1
+          }
+          candidate_source_results="$(extract_link_results "$candidate_report" "$source_pipe_id")" || {
+            echo "CANDIDATE_SOURCE_PIPE_HYDRAULIC_ROW_MISSING: $source_pipe_id"
+            cat "$candidate_report"
+            exit 1
+          }
+          read -r baseline_source_flow _ _ <<< "$baseline_source_results"
+          read -r candidate_source_flow _ _ <<< "$candidate_source_results"
 
           baseline_downstream_pressure="$(extract_node_pressure "$out/w0-baseline.rpt")" || {
             echo "BASELINE_DOWNSTREAM_PRESSURE_ROW_MISSING: $downstream_node"
@@ -346,6 +406,17 @@ jobs:
             echo "FAIL: demand-driven flow in $asset_id should remain invariant within report precision"
             exit 1
           }
+          for pair in \
+            "baseline source $baseline_source_flow $total_junction_demand_lps" \
+            "candidate source $candidate_source_flow $total_junction_demand_lps" \
+            "baseline target $baseline_pipe_flow $downstream_demand_lps" \
+            "candidate target $candidate_pipe_flow $downstream_demand_lps"; do
+            read -r label phase observed expected <<< "$pair"
+            awk -v observed="$observed" -v expected="$expected" 'BEGIN { delta = observed - expected; if (delta < -0.02 || delta > 0.02) exit 1 }' || {
+              echo "FAIL: synthetic continuity check $phase/$label observed=$observed expected=$expected tolerance=0.02 L/s"
+              exit 1
+            }
+          done
           awk -v b="$baseline_pipe_velocity" -v c="$candidate_pipe_velocity" 'BEGIN { exit !(c > b) }' || {
             echo "FAIL: reducing $asset_id diameter did not increase reported velocity"
             exit 1
@@ -403,6 +474,11 @@ jobs:
             --arg candidate_report_sha256 "$candidate_report_sha" \
             --arg baseline_binary_sha256 "$baseline_binary_sha" \
             --arg candidate_binary_sha256 "$candidate_binary_sha" \
+            --arg source_pipe_id "$source_pipe_id" \
+            --arg total_junction_demand_lps "$total_junction_demand_lps" \
+            --arg downstream_demand_lps "$downstream_demand_lps" \
+            --arg baseline_source_flow "$baseline_source_flow" \
+            --arg candidate_source_flow "$candidate_source_flow" \
             --arg baseline_pipe_flow "$baseline_pipe_flow" \
             --arg candidate_pipe_flow "$candidate_pipe_flow" \
             --arg baseline_pipe_velocity "$baseline_pipe_velocity" \
@@ -457,6 +533,19 @@ jobs:
               },
               hydraulic_observations: {
                 scope: "first reported hydraulic period; report-rounded values",
+                continuity: {
+                  declared_total_junction_demand_lps: ($total_junction_demand_lps | tonumber),
+                  downstream_junction_id: $downstream_node,
+                  declared_downstream_demand_lps: ($downstream_demand_lps | tonumber),
+                  source_pipe_id: $source_pipe_id,
+                  source_flow_lps: {
+                    baseline: ($baseline_source_flow | tonumber),
+                    candidate: ($candidate_source_flow | tonumber)
+                  },
+                  target_pipe_flow_matches_downstream_demand_within_0_02_lps: true,
+                  source_flow_matches_total_demand_within_0_02_lps: true,
+                  terminal_node_has_single_pipe_connection: true
+                },
                 units: {
                   flow: "L/s",
                   velocity: "m/s",
@@ -504,7 +593,7 @@ jobs:
             }' > "$out/epanet-synthetic-smoke-evidence.json"
 
           sha256sum "$out"/* | tee "$out/artifact-sha256.txt"
-          echo "EPANET_SYNTHETIC_SMOKE_PASS: pinned solver ran baseline and scenario-bundle-derived restriction case; declared input digest and directional hydraulics were verified."
+          echo "EPANET_SYNTHETIC_SMOKE_PASS: pinned solver ran scenario-bundle-derived restriction case; declared digests, simple-network continuity and directional hydraulics were verified."
       - name: Upload synthetic solver evidence
         if: always()
         uses: actions/upload-artifact@v4
