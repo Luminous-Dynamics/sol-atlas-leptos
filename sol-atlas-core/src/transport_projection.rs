@@ -112,7 +112,9 @@ pub enum TransportModeV1 {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PhysicalOperationV1 {
-    Movement { mode: TransportModeV1 },
+    Movement {
+        mode: TransportModeV1,
+    },
     Transfer {
         from_mode: TransportModeV1,
         to_mode: TransportModeV1,
@@ -354,8 +356,7 @@ fn is_sha256_shape(value: &str) -> bool {
 
 fn unique_nonempty_ids<'a>(ids: impl IntoIterator<Item = &'a str>) -> bool {
     let mut seen = BTreeSet::new();
-    ids.into_iter()
-        .all(|id| nonempty(id) && seen.insert(id))
+    ids.into_iter().all(|id| nonempty(id) && seen.insert(id))
 }
 
 fn validate_evidence_refs(
@@ -394,46 +395,52 @@ pub fn validate_transport_projection(
         return Err(TransportProjectionError::InvalidSha256Shape);
     }
 
-    if !unique_nonempty_ids(projection.evidence_records.iter().map(|item| item.id.as_str()))
-        || !unique_nonempty_ids(projection.physical_nodes.iter().map(|item| item.id.as_str()))
-        || !unique_nonempty_ids(projection.physical_segments.iter().map(|item| item.id.as_str()))
-        || !unique_nonempty_ids(
-            projection
-                .shipment_milestones
-                .iter()
-                .map(|item| item.id.as_str()),
-        )
-        || !unique_nonempty_ids(
-            projection
-                .communication_endpoints
-                .iter()
-                .map(|item| item.id.as_str()),
-        )
-        || !unique_nonempty_ids(
-            projection
-                .communication_contacts
-                .iter()
-                .map(|item| item.id.as_str()),
-        )
-        || !unique_nonempty_ids(
-            projection
-                .evidence_relations
-                .iter()
-                .map(|item| item.id.as_str()),
-        )
-        || !unique_nonempty_ids(
-            projection
-                .infrastructure_assets
-                .iter()
-                .map(|item| item.id.as_str()),
-        )
-        || !unique_nonempty_ids(
-            projection
-                .infrastructure_dependencies
-                .iter()
-                .map(|item| item.id.as_str()),
-        )
-    {
+    if !unique_nonempty_ids(
+        projection
+            .evidence_records
+            .iter()
+            .map(|item| item.id.as_str()),
+    ) || !unique_nonempty_ids(
+        projection
+            .physical_nodes
+            .iter()
+            .map(|item| item.id.as_str()),
+    ) || !unique_nonempty_ids(
+        projection
+            .physical_segments
+            .iter()
+            .map(|item| item.id.as_str()),
+    ) || !unique_nonempty_ids(
+        projection
+            .shipment_milestones
+            .iter()
+            .map(|item| item.id.as_str()),
+    ) || !unique_nonempty_ids(
+        projection
+            .communication_endpoints
+            .iter()
+            .map(|item| item.id.as_str()),
+    ) || !unique_nonempty_ids(
+        projection
+            .communication_contacts
+            .iter()
+            .map(|item| item.id.as_str()),
+    ) || !unique_nonempty_ids(
+        projection
+            .evidence_relations
+            .iter()
+            .map(|item| item.id.as_str()),
+    ) || !unique_nonempty_ids(
+        projection
+            .infrastructure_assets
+            .iter()
+            .map(|item| item.id.as_str()),
+    ) || !unique_nonempty_ids(
+        projection
+            .infrastructure_dependencies
+            .iter()
+            .map(|item| item.id.as_str()),
+    ) {
         return Err(TransportProjectionError::DuplicateOrBlankIdentifier);
     }
 
@@ -515,7 +522,10 @@ pub fn validate_transport_projection(
         {
             return Err(TransportProjectionError::UnknownPhysicalNode);
         }
-        if segment.capacity.is_some_and(|capacity| capacity.amount == 0) {
+        if segment
+            .capacity
+            .is_some_and(|capacity| capacity.amount == 0)
+        {
             return Err(TransportProjectionError::InvalidCapacity);
         }
         validate_evidence_refs(&segment.evidence_ids, &evidence_ids)?;
@@ -535,10 +545,10 @@ pub fn validate_transport_projection(
                 let source = evidence_by_id
                     .get(evidence_id.as_str())
                     .ok_or(TransportProjectionError::UnknownEvidenceReference)?;
-                let qualifies =
-                    source.qualification == EvidenceQualificationV1::AcceptedForProjection
-                        || (scenario_allowed
-                            && source.qualification == EvidenceQualificationV1::ScenarioOnly);
+                let qualifies = source.qualification
+                    == EvidenceQualificationV1::AcceptedForProjection
+                    || (scenario_allowed
+                        && source.qualification == EvidenceQualificationV1::ScenarioOnly);
                 if !qualifies {
                     return Err(TransportProjectionError::CapacityEvidenceUnqualified);
                 }
@@ -649,7 +659,9 @@ pub fn normalized_transport_projection(
     projection
         .communication_contacts
         .sort_by(|a, b| a.id.cmp(&b.id));
-    projection.evidence_relations.sort_by(|a, b| a.id.cmp(&b.id));
+    projection
+        .evidence_relations
+        .sort_by(|a, b| a.id.cmp(&b.id));
     projection
         .infrastructure_assets
         .sort_by(|a, b| a.id.cmp(&b.id));
@@ -838,10 +850,7 @@ pub fn synthetic_freight_corridor_v1() -> TransportProjectionV1 {
                     "capacity-claim-a".to_owned(),
                     "capacity-claim-b".to_owned(),
                 ],
-                evidence_ids: vec![
-                    "capacity-claim-a".to_owned(),
-                    "capacity-claim-b".to_owned(),
-                ],
+                evidence_ids: vec!["capacity-claim-a".to_owned(), "capacity-claim-b".to_owned()],
             },
             PhysicalSegmentV1 {
                 id: "rail-maritime-transfer".to_owned(),
@@ -997,11 +1006,17 @@ mod tests {
             projection.time_profile_id,
             SYNTHETIC_RELATIVE_TIME_PROFILE_V1
         );
-        assert!(projection.physical_nodes.iter().all(|node| node.geography.is_none()));
-        assert!(projection
-            .evidence_records
-            .iter()
-            .all(|record| record.qualification != EvidenceQualificationV1::AcceptedForProjection));
+        assert!(
+            projection
+                .physical_nodes
+                .iter()
+                .all(|node| node.geography.is_none())
+        );
+        assert!(
+            projection.evidence_records.iter().all(
+                |record| record.qualification != EvidenceQualificationV1::AcceptedForProjection
+            )
+        );
         assert_eq!(validate_transport_projection(&projection), Ok(()));
     }
 
@@ -1080,7 +1095,10 @@ mod tests {
                 .count(),
             2
         );
-        assert_eq!(projection.evidence_relations[0].relation, EvidenceRelationKindV1::Conflicts);
+        assert_eq!(
+            projection.evidence_relations[0].relation,
+            EvidenceRelationKindV1::Conflicts
+        );
         assert_eq!(validate_transport_projection(&projection), Ok(()));
     }
 
