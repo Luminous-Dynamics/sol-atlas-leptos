@@ -11,6 +11,7 @@ import hashlib
 import json
 import re
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError
@@ -140,22 +141,25 @@ def build_request_tasks(plan: dict) -> list[dict]:
     record_limit = int(plan["request_policy"]["public_preview_record_limit"])
     for chunk in plan.get("request_chunks", []):
         chunk_id, periods = chunk.get("chunk_id", ""), chunk.get("periods")
+        commodity_code = chunk.get("commodity_code")
         if not SAFE_CHUNK_RE.fullmatch(chunk_id):
             raise CaptureError("unsafe request chunk identifier")
-        if not isinstance(periods, list) or not periods or len(periods) > int(plan["request_policy"]["periods_per_request_target"]):
-            raise CaptureError(f"{chunk_id}: invalid monthly request chunk size")
+        if not isinstance(periods, list) or len(periods) != 1 or len(periods) > int(plan["request_policy"]["periods_per_request_target"]):
+            raise CaptureError(f"{chunk_id}: public preview requires exactly one month per request")
+        if commodity_code not in query["commodity_codes"]:
+            raise CaptureError(f"{chunk_id}: commodity is not an admitted planned product")
         if any(not isinstance(p, str) or not re.fullmatch(r"\d{6}", p) for p in periods):
             raise CaptureError(f"{chunk_id}: periods must use YYYYMM")
         params = {
             "reporterCode": query["reporter_code"], "partnerCode": query["partner_code"],
-            "cmdCode": ",".join(query["commodity_codes"]), "flowCode": query["flow_code"],
+            "cmdCode": commodity_code, "flowCode": query["flow_code"],
             "period": ",".join(periods),
         }
         url = source["endpoint_root"].rstrip("/") + route + "?" + urlencode(params, safe=",")
         validate_source_url(url)
         tasks.append({
             "source_id": source["source_id"], "artifact_id": chunk_id, "url": url,
-            "filename": safe_filename(f"comtrade-ukraine-world-grain-exports-{chunk_id}.json"),
+            "filename": safe_filename(f"comtrade-ukraine-world-grain-exports-{periods[0]}-hs{commodity_code}.json"),
             "max_bytes": 16 * 1024 * 1024, "expected_content_types": ["application/json"],
             "response_kind": "comtrade_json", "request_parameters": params,
             "record_limit": record_limit,
@@ -263,7 +267,17 @@ def main(argv: list[str] | None = None, fetcher=fetch_response) -> int:
     except (CaptureError, OSError, KeyError, TypeError, ValueError) as exc:
         print(f"capture setup failed: {exc}", file=sys.stderr)
         return 2
-    artifacts = [capture_one(task, snapshot_dir, args.timeout_seconds, fetcher=fetcher) for task in tasks]
+    artifacts = []
+    minimum_interval = float(plan["request_policy"]["minimum_seconds_between_comtrade_requests"])
+    last_comtrade_start = None
+    for task in tasks:
+        if task["response_kind"] == "comtrade_json":
+            if last_comtrade_start is not None:
+                elapsed = time.monotonic() - last_comtrade_start
+                if elapsed < minimum_interval:
+                    time.sleep(minimum_interval - elapsed)
+            last_comtrade_start = time.monotonic()
+        artifacts.append(capture_one(task, snapshot_dir, args.timeout_seconds, fetcher=fetcher))
     ok_states = {"captured_pending_metadata_review"}
     complete = all(item["capture_state"] in ok_states for item in artifacts)
     manifest = {

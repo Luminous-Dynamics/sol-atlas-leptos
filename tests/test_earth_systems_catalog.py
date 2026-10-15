@@ -124,16 +124,20 @@ class EarthSystemsCatalogTests(unittest.TestCase):
     def test_comtrade_chunks_cover_each_month_once_without_oversized_requests(self):
         plan = self.trade_plan
         chunks = plan["request_chunks"]
-        periods = [period for chunk in chunks for period in chunk["periods"]]
-        expected = [f"{year}{month:02d}" for year in range(2017, 2024) for month in range(1, 13)]
-        self.assertEqual(len(chunks), 7)
-        self.assertTrue(all(len(chunk["periods"]) == 12 for chunk in chunks))
-        self.assertEqual(periods, expected)
-        self.assertEqual(len(periods), len(set(periods)))
-        self.assertTrue(all(
-            all(period.startswith(str(year)) for period in chunk["periods"])
-            for year, chunk in zip(range(2017, 2024), chunks)
-        ))
+        pairs = [(chunk["periods"][0], chunk["commodity_code"]) for chunk in chunks]
+        expected = [
+            (f"{year}{month:02d}", code)
+            for year in range(2017, 2024)
+            for month in range(1, 13)
+            for code in self.trade_plan["query_dimensions"]["commodity_codes"]
+        ]
+        self.assertEqual(len(chunks), 168)
+        self.assertTrue(all(len(chunk["periods"]) == 1 for chunk in chunks))
+        self.assertEqual(pairs, expected)
+        self.assertEqual(len(pairs), len(set(pairs)))
+        self.assertTrue(all(chunk["commodity_code"] in {"1001", "1005"} for chunk in chunks))
+        self.assertEqual(self.trade_plan["request_policy"]["minimum_seconds_between_comtrade_requests"], 1.0)
+        self.assertIs(self.trade_plan["request_policy"]["no_parallel_comtrade_requests"], True)
 
     def test_comtrade_query_dimensions_are_explicit_and_fail_closed_on_classification(self):
         query = self.trade_plan["query_dimensions"]

@@ -42,142 +42,1530 @@
   },
   "request_chunks": [
     {
-      "chunk_id": "2017_full_year",
+      "chunk_id": "201701_hs1001",
       "window_id": "baseline_candidate",
+      "period": "201701",
       "periods": [
-        "201701",
-        "201702",
-        "201703",
-        "201704",
-        "201705",
-        "201706",
-        "201707",
-        "201708",
-        "201709",
-        "201710",
-        "201711",
+        "201701"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201701_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201701",
+      "periods": [
+        "201701"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201702_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201702",
+      "periods": [
+        "201702"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201702_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201702",
+      "periods": [
+        "201702"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201703_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201703",
+      "periods": [
+        "201703"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201703_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201703",
+      "periods": [
+        "201703"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201704_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201704",
+      "periods": [
+        "201704"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201704_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201704",
+      "periods": [
+        "201704"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201705_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201705",
+      "periods": [
+        "201705"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201705_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201705",
+      "periods": [
+        "201705"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201706_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201706",
+      "periods": [
+        "201706"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201706_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201706",
+      "periods": [
+        "201706"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201707_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201707",
+      "periods": [
+        "201707"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201707_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201707",
+      "periods": [
+        "201707"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201708_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201708",
+      "periods": [
+        "201708"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201708_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201708",
+      "periods": [
+        "201708"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201709_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201709",
+      "periods": [
+        "201709"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201709_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201709",
+      "periods": [
+        "201709"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201710_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201710",
+      "periods": [
+        "201710"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201710_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201710",
+      "periods": [
+        "201710"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201711_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201711",
+      "periods": [
+        "201711"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201711_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201711",
+      "periods": [
+        "201711"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201712_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201712",
+      "periods": [
         "201712"
-      ]
+      ],
+      "commodity_code": "1001"
     },
     {
-      "chunk_id": "2018_full_year",
+      "chunk_id": "201712_hs1005",
       "window_id": "baseline_candidate",
+      "period": "201712",
       "periods": [
-        "201801",
-        "201802",
-        "201803",
-        "201804",
-        "201805",
-        "201806",
-        "201807",
-        "201808",
-        "201809",
-        "201810",
-        "201811",
+        "201712"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201801_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201801",
+      "periods": [
+        "201801"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201801_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201801",
+      "periods": [
+        "201801"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201802_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201802",
+      "periods": [
+        "201802"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201802_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201802",
+      "periods": [
+        "201802"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201803_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201803",
+      "periods": [
+        "201803"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201803_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201803",
+      "periods": [
+        "201803"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201804_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201804",
+      "periods": [
+        "201804"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201804_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201804",
+      "periods": [
+        "201804"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201805_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201805",
+      "periods": [
+        "201805"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201805_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201805",
+      "periods": [
+        "201805"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201806_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201806",
+      "periods": [
+        "201806"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201806_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201806",
+      "periods": [
+        "201806"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201807_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201807",
+      "periods": [
+        "201807"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201807_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201807",
+      "periods": [
+        "201807"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201808_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201808",
+      "periods": [
+        "201808"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201808_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201808",
+      "periods": [
+        "201808"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201809_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201809",
+      "periods": [
+        "201809"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201809_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201809",
+      "periods": [
+        "201809"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201810_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201810",
+      "periods": [
+        "201810"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201810_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201810",
+      "periods": [
+        "201810"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201811_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201811",
+      "periods": [
+        "201811"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201811_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201811",
+      "periods": [
+        "201811"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201812_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201812",
+      "periods": [
         "201812"
-      ]
+      ],
+      "commodity_code": "1001"
     },
     {
-      "chunk_id": "2019_full_year",
+      "chunk_id": "201812_hs1005",
       "window_id": "baseline_candidate",
+      "period": "201812",
       "periods": [
-        "201901",
-        "201902",
-        "201903",
-        "201904",
-        "201905",
-        "201906",
-        "201907",
-        "201908",
-        "201909",
-        "201910",
-        "201911",
+        "201812"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201901_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201901",
+      "periods": [
+        "201901"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201901_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201901",
+      "periods": [
+        "201901"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201902_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201902",
+      "periods": [
+        "201902"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201902_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201902",
+      "periods": [
+        "201902"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201903_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201903",
+      "periods": [
+        "201903"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201903_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201903",
+      "periods": [
+        "201903"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201904_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201904",
+      "periods": [
+        "201904"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201904_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201904",
+      "periods": [
+        "201904"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201905_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201905",
+      "periods": [
+        "201905"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201905_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201905",
+      "periods": [
+        "201905"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201906_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201906",
+      "periods": [
+        "201906"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201906_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201906",
+      "periods": [
+        "201906"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201907_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201907",
+      "periods": [
+        "201907"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201907_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201907",
+      "periods": [
+        "201907"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201908_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201908",
+      "periods": [
+        "201908"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201908_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201908",
+      "periods": [
+        "201908"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201909_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201909",
+      "periods": [
+        "201909"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201909_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201909",
+      "periods": [
+        "201909"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201910_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201910",
+      "periods": [
+        "201910"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201910_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201910",
+      "periods": [
+        "201910"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201911_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201911",
+      "periods": [
+        "201911"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201911_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201911",
+      "periods": [
+        "201911"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201912_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201912",
+      "periods": [
         "201912"
-      ]
+      ],
+      "commodity_code": "1001"
     },
     {
-      "chunk_id": "2020_full_year",
+      "chunk_id": "201912_hs1005",
       "window_id": "baseline_candidate",
+      "period": "201912",
       "periods": [
-        "202001",
-        "202002",
-        "202003",
-        "202004",
-        "202005",
-        "202006",
-        "202007",
-        "202008",
-        "202009",
-        "202010",
-        "202011",
+        "201912"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202001_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202001",
+      "periods": [
+        "202001"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202001_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202001",
+      "periods": [
+        "202001"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202002_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202002",
+      "periods": [
+        "202002"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202002_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202002",
+      "periods": [
+        "202002"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202003_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202003",
+      "periods": [
+        "202003"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202003_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202003",
+      "periods": [
+        "202003"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202004_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202004",
+      "periods": [
+        "202004"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202004_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202004",
+      "periods": [
+        "202004"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202005_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202005",
+      "periods": [
+        "202005"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202005_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202005",
+      "periods": [
+        "202005"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202006_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202006",
+      "periods": [
+        "202006"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202006_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202006",
+      "periods": [
+        "202006"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202007_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202007",
+      "periods": [
+        "202007"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202007_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202007",
+      "periods": [
+        "202007"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202008_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202008",
+      "periods": [
+        "202008"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202008_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202008",
+      "periods": [
+        "202008"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202009_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202009",
+      "periods": [
+        "202009"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202009_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202009",
+      "periods": [
+        "202009"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202010_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202010",
+      "periods": [
+        "202010"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202010_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202010",
+      "periods": [
+        "202010"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202011_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202011",
+      "periods": [
+        "202011"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202011_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202011",
+      "periods": [
+        "202011"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202012_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202012",
+      "periods": [
         "202012"
-      ]
+      ],
+      "commodity_code": "1001"
     },
     {
-      "chunk_id": "2021_full_year",
+      "chunk_id": "202012_hs1005",
       "window_id": "baseline_candidate",
+      "period": "202012",
       "periods": [
-        "202101",
-        "202102",
-        "202103",
-        "202104",
-        "202105",
-        "202106",
-        "202107",
-        "202108",
-        "202109",
-        "202110",
-        "202111",
+        "202012"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202101_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202101",
+      "periods": [
+        "202101"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202101_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202101",
+      "periods": [
+        "202101"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202102_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202102",
+      "periods": [
+        "202102"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202102_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202102",
+      "periods": [
+        "202102"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202103_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202103",
+      "periods": [
+        "202103"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202103_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202103",
+      "periods": [
+        "202103"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202104_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202104",
+      "periods": [
+        "202104"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202104_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202104",
+      "periods": [
+        "202104"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202105_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202105",
+      "periods": [
+        "202105"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202105_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202105",
+      "periods": [
+        "202105"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202106_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202106",
+      "periods": [
+        "202106"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202106_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202106",
+      "periods": [
+        "202106"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202107_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202107",
+      "periods": [
+        "202107"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202107_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202107",
+      "periods": [
+        "202107"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202108_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202108",
+      "periods": [
+        "202108"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202108_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202108",
+      "periods": [
+        "202108"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202109_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202109",
+      "periods": [
+        "202109"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202109_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202109",
+      "periods": [
+        "202109"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202110_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202110",
+      "periods": [
+        "202110"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202110_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202110",
+      "periods": [
+        "202110"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202111_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202111",
+      "periods": [
+        "202111"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202111_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202111",
+      "periods": [
+        "202111"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202112_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202112",
+      "periods": [
         "202112"
-      ]
+      ],
+      "commodity_code": "1001"
     },
     {
-      "chunk_id": "2022_full_year",
-      "window_id": "conflict_follow_up",
+      "chunk_id": "202112_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202112",
       "periods": [
-        "202201",
-        "202202",
-        "202203",
-        "202204",
-        "202205",
-        "202206",
-        "202207",
-        "202208",
-        "202209",
-        "202210",
-        "202211",
+        "202112"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202201_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202201",
+      "periods": [
+        "202201"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202201_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202201",
+      "periods": [
+        "202201"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202202_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202202",
+      "periods": [
+        "202202"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202202_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202202",
+      "periods": [
+        "202202"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202203_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202203",
+      "periods": [
+        "202203"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202203_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202203",
+      "periods": [
+        "202203"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202204_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202204",
+      "periods": [
+        "202204"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202204_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202204",
+      "periods": [
+        "202204"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202205_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202205",
+      "periods": [
+        "202205"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202205_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202205",
+      "periods": [
+        "202205"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202206_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202206",
+      "periods": [
+        "202206"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202206_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202206",
+      "periods": [
+        "202206"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202207_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202207",
+      "periods": [
+        "202207"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202207_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202207",
+      "periods": [
+        "202207"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202208_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202208",
+      "periods": [
+        "202208"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202208_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202208",
+      "periods": [
+        "202208"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202209_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202209",
+      "periods": [
+        "202209"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202209_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202209",
+      "periods": [
+        "202209"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202210_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202210",
+      "periods": [
+        "202210"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202210_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202210",
+      "periods": [
+        "202210"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202211_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202211",
+      "periods": [
+        "202211"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202211_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202211",
+      "periods": [
+        "202211"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202212_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202212",
+      "periods": [
         "202212"
-      ]
+      ],
+      "commodity_code": "1001"
     },
     {
-      "chunk_id": "2023_full_year",
+      "chunk_id": "202212_hs1005",
       "window_id": "conflict_follow_up",
+      "period": "202212",
       "periods": [
-        "202301",
-        "202302",
-        "202303",
-        "202304",
-        "202305",
-        "202306",
-        "202307",
-        "202308",
-        "202309",
-        "202310",
-        "202311",
+        "202212"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202301_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202301",
+      "periods": [
+        "202301"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202301_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202301",
+      "periods": [
+        "202301"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202302_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202302",
+      "periods": [
+        "202302"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202302_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202302",
+      "periods": [
+        "202302"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202303_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202303",
+      "periods": [
+        "202303"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202303_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202303",
+      "periods": [
+        "202303"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202304_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202304",
+      "periods": [
+        "202304"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202304_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202304",
+      "periods": [
+        "202304"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202305_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202305",
+      "periods": [
+        "202305"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202305_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202305",
+      "periods": [
+        "202305"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202306_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202306",
+      "periods": [
+        "202306"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202306_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202306",
+      "periods": [
+        "202306"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202307_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202307",
+      "periods": [
+        "202307"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202307_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202307",
+      "periods": [
+        "202307"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202308_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202308",
+      "periods": [
+        "202308"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202308_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202308",
+      "periods": [
+        "202308"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202309_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202309",
+      "periods": [
+        "202309"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202309_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202309",
+      "periods": [
+        "202309"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202310_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202310",
+      "periods": [
+        "202310"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202310_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202310",
+      "periods": [
+        "202310"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202311_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202311",
+      "periods": [
+        "202311"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202311_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202311",
+      "periods": [
+        "202311"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202312_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202312",
+      "periods": [
         "202312"
-      ]
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202312_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202312",
+      "periods": [
+        "202312"
+      ],
+      "commodity_code": "1005"
     }
   ],
   "request_policy": {
-    "periods_per_request_target": 12,
-    "rationale": "Bound requests to one calendar year for reviewable retries and simple completeness accounting; this is a client-side batching policy, not a claim that the API has a hard 12-period maximum.",
+    "periods_per_request_target": 1,
+    "rationale": "The unauthenticated public preview endpoint is intentionally queried at its narrowest documented product/period scope: one commodity and one month per request. Seven years × 12 months × 2 commodities = 168 requests. Do not assume the broader authenticated API's multi-period capabilities apply to preview.",
     "public_preview_record_limit": 500,
     "fail_closed_if_count_exceeds_returned_rows": true,
     "fail_closed_if_returned_rows_reach_preview_limit": true,
     "preserve_exact_request_url_and_parameters": true,
     "preserve_raw_response_bytes_before_parsing": true,
     "store_raw_sha256_and_retrieval_timestamp": true,
-    "never_store_subscription_keys": true
+    "never_store_subscription_keys": true,
+    "minimum_seconds_between_comtrade_requests": 1,
+    "no_parallel_comtrade_requests": true
   },
   "fields_policy": {
     "preserve_all_returned_fields": true,

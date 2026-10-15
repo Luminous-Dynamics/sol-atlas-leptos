@@ -56,7 +56,7 @@ The [Black Sea trade query plan](../../docs/pilots/BLACK_SEA_GRAIN_TRADE_QUERY_P
 
 ## Capture Black Sea source bytes locally
 
-The [Black Sea trade query plan](../../docs/pilots/BLACK_SEA_GRAIN_TRADE_QUERY_PLAN.md) is paired with a bounded capture helper. On a network-enabled machine, run from the repository root using a new snapshot directory:
+The [Black Sea trade query plan](../../docs/pilots/BLACK_SEA_GRAIN_TRADE_QUERY_PLAN.md) is paired with a bounded capture helper. Because the unauthenticated preview API is limited to one product and one period per request, it generates 168 monthly commodity queries and spaces those requests by at least one second. On a network-enabled machine, run from the repository root using a new snapshot directory:
 
 ```sh
 python3 scripts/earth-systems/capture_black_sea_sources.py \
@@ -64,7 +64,7 @@ python3 scripts/earth-systems/capture_black_sea_sources.py \
 python3 -m unittest discover -s tests -p "test_black_sea_source_capture.py" -v
 ```
 
-The helper fetches the JCC page, the official FAO CSV asset linked from the FFPI page, and the seven planned public-preview Comtrade chunks. It stores exact successful response bytes and a digest-bearing capture manifest only under the caller's local directory, rejects redirects outside its HTTPS host/path allowlist, caps response sizes, and refuses pre-existing output names. An incomplete run leaves per-source failure state and exits non-zero; inspect the manifest rather than assuming every source was captured. The command does not upload data or set any license/analysis gate to true. Review terms and source coverage before sharing captured files.
+The helper fetches the JCC page, the official FAO CSV asset linked from the FFPI page, and the 168 planned public-preview Comtrade period/product queries. It stores exact successful response bytes and a digest-bearing capture manifest only under the caller's local directory, rejects redirects outside its HTTPS host/path allowlist, caps response sizes, and refuses pre-existing output names. An incomplete run leaves per-source failure state and exits non-zero; inspect the manifest rather than assuming every source was captured. The command does not upload data or set any license/analysis gate to true. Review terms and source coverage before sharing captured files.
 
 ## Interpretation limit
 

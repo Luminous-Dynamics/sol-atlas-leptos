@@ -17,24 +17,33 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
         cls.plan_path = ROOT / "docs" / "pilots" / "black-sea-grain-trade-query-plan.json"
         cls.plan = json.loads(cls.plan_path.read_text(encoding="utf-8"))
 
-    def test_plan_builds_two_companion_assets_and_seven_bounded_comtrade_requests(self):
+    def test_plan_builds_two_companion_assets_and_168_single_product_month_requests(self):
         tasks = capture.build_request_tasks(self.plan)
-        self.assertEqual(len(tasks), 9)
-        self.assertEqual(sum(t["response_kind"] == "comtrade_json" for t in tasks), 7)
+        self.assertEqual(len(tasks), 170)
+        self.assertEqual(sum(t["response_kind"] == "comtrade_json" for t in tasks), 168)
         self.assertEqual(len({t["filename"] for t in tasks}), len(tasks))
         comtrade = [t for t in tasks if t["response_kind"] == "comtrade_json"]
-        for task, year in zip(comtrade, (str(y) for y in range(2017, 2024))):
+        expected = [
+            (f"{year}{month:02d}", code)
+            for year in range(2017, 2024)
+            for month in range(1, 13)
+            for code in ("1001", "1005")
+        ]
+        observed = []
+        for task, (period, code) in zip(comtrade, expected):
             parsed, params = urlsplit(task["url"]), parse_qs(urlsplit(task["url"]).query)
             self.assertEqual(parsed.scheme, "https")
             self.assertEqual(parsed.hostname, "comtradeapi.un.org")
             self.assertEqual(params["reporterCode"], ["804"])
             self.assertEqual(params["partnerCode"], ["0"])
             self.assertEqual(params["flowCode"], ["X"])
-            self.assertEqual(params["cmdCode"], ["1001,1005"])
-            periods = params["period"][0].split(",")
-            self.assertEqual(len(periods), 12)
-            self.assertTrue(all(p.startswith(year) for p in periods))
+            self.assertEqual(params["cmdCode"], [code])
+            self.assertEqual(params["period"], [period])
             self.assertNotIn("subscription-key", parsed.query.lower())
+            observed.append((params["period"][0], params["cmdCode"][0]))
+        self.assertEqual(observed, expected)
+        self.assertEqual(self.plan["request_policy"]["minimum_seconds_between_comtrade_requests"], 1.0)
+        self.assertIs(self.plan["request_policy"]["no_parallel_comtrade_requests"], True)
 
     def test_url_validation_accepts_reviewed_sources_and_rejects_redirect_escape(self):
         allowed = (
