@@ -149,19 +149,27 @@ pub fn validate_public_observation_bundle(bundle: &Value) -> ObservationValidati
             (Some(start), Some(end)) if start.is_null() && end.is_null() => {}
             _ => report.push(
                 "OBSERVATION_PERIOD_INCOMPLETE",
-                path,
+                path.clone(),
                 "period_start and period_end must both be dates or both be null",
             ),
         }
 
-        if observation.get("name").and_then(Value::as_str).is_none_or(str::is_empty) {
+        if observation
+            .get("name")
+            .and_then(Value::as_str)
+            .is_none_or(str::is_empty)
+        {
             report.push(
                 "OBSERVATION_NAME_MISSING",
                 format!("{path}.name"),
                 "observation name must be a non-empty string",
             );
         }
-        if observation.get("unit").and_then(Value::as_str).is_none_or(str::is_empty) {
+        if observation
+            .get("unit")
+            .and_then(Value::as_str)
+            .is_none_or(str::is_empty)
+        {
             report.push(
                 "OBSERVATION_UNIT_MISSING",
                 format!("{path}.unit"),
@@ -209,7 +217,12 @@ mod tests {
         let mut bundle = fixture();
         bundle["observations"][0]["source_id"] = json!("missing-source");
         let report = validate_public_observation_bundle(&bundle);
-        assert!(report.issues.iter().any(|issue| issue.code == "OBSERVATION_SOURCE_UNKNOWN"));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "OBSERVATION_SOURCE_UNKNOWN")
+        );
     }
 
     #[test]
@@ -218,7 +231,12 @@ mod tests {
         bundle["observations"][0]["period_start"] = json!("2025-07-01");
         bundle["observations"][0]["period_end"] = json!("2024-07-01");
         let report = validate_public_observation_bundle(&bundle);
-        assert!(report.issues.iter().any(|issue| issue.code == "OBSERVATION_PERIOD_REVERSED"));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "OBSERVATION_PERIOD_REVERSED")
+        );
     }
 
     #[test]
@@ -227,7 +245,12 @@ mod tests {
         let duplicate_id = bundle["observations"][0]["observation_id"].clone();
         bundle["observations"][1]["observation_id"] = duplicate_id;
         let report = validate_public_observation_bundle(&bundle);
-        assert!(report.issues.iter().any(|issue| issue.code == "DUPLICATE_OBSERVATION_ID"));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "DUPLICATE_OBSERVATION_ID")
+        );
     }
 
     #[test]
@@ -236,7 +259,12 @@ mod tests {
         let duplicate_id = bundle["source_records"][0]["source_id"].clone();
         bundle["source_records"][1]["source_id"] = duplicate_id;
         let report = validate_public_observation_bundle(&bundle);
-        assert!(report.issues.iter().any(|issue| issue.code == "DUPLICATE_SOURCE_ID"));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "DUPLICATE_SOURCE_ID")
+        );
     }
 
     #[test]
