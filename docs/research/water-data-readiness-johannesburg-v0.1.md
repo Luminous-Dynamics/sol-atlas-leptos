@@ -6,7 +6,7 @@
 
 ## What has been captured
 
-The companion machine-readable bundle `sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json` now contains **68 observations across four source records**: directly observed public-notice aggregates, the official renewal-programme targets, and provisional tabular/portfolio figures transcribed from the indexed text of the 2023/24 and 2024/25 Johannesburg Water annual reports. The annual-report rows are deliberately marked `provisional_needs_primary_document_check` because the PDFs could not be page-reviewed during this capture. They must not be promoted to verified data until a reviewer checks the exact table cells and their definitions. The original published **2024/2025 Water Quality Report for the Greater Johannesburg Water Supply System** contributes:
+The companion machine-readable bundle `sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json` now contains **83 observations across five source records**: directly observed public-notice aggregates, the official renewal-programme targets, and provisional tabular/portfolio figures transcribed from the indexed text of the 2023/24 and 2024/25 Johannesburg Water annual reports. The annual-report rows are deliberately marked `provisional_needs_primary_document_check` because the PDFs could not be page-reviewed during this capture. They must not be promoted to verified data until a reviewer checks the exact table cells and their definitions. The original published **2024/2025 Water Quality Report for the Greater Johannesburg Water Supply System** contributes:
 
 - Reporting window: 1 July 2024–30 June 2025.
 - 5,890 samples analysed and 79,025 tests undertaken.
@@ -38,6 +38,25 @@ The annual report's indexed text snippets suggest several useful outcome dimensi
 Sources are the official [Johannesburg Water 2023/24 Annual Report](https://www.johannesburgwater.co.za/wp-content/uploads/2025/04/JOHANNESBURG-WATER-2023_24-ANNUAL-REPORT.pdf) and [2024/25 Annual Report](https://www.johannesburgwater.co.za/wp-content/uploads/2026/05/Annual-Report-2425.pdf). The annual-report PDFs could not be directly page-reviewed in this capture; these rows carry a provisional status and must be independently checked before they are used as a baseline, cited as authoritative trends, or feed a decision model. Differences above are elementary arithmetic on the transcribed aggregates; they do not establish causation, statistical significance, or that the indicators use unchanged definitions.
 
 The immediate systems-design implication is to retain separate service-outcome axes. Replacement kilometres alone cannot explain the figures; neither can a single aggregate NRW figure tell us which pipe to renew. Once verified, a pilot should compare asset-level condition/exposure, hydraulic constraints, repair history, customer impact, environmental consequences, and cost without letting one metric silently compensate for a hard constraint.
+
+## Additional real operational evidence: leak detection and pressure management
+
+Johannesburg Water's [2025/26 Business Plan](https://johannesburgwater.co.za/wp-content/uploads/2025/07/JHB-Water_Business-Plan-2025_For-Upload_FINAL_070725.pdf), pages 49–50, reports:
+
+| Measure | Publisher-reported value | Evidence qualification |
+|---|---:|---|
+| Active leak-detection table — burst-pipe activity total | 2,620 | Provisional; not a city-wide burst incident register |
+| Leaking-meter activity total | 7,212 | Provisional; extracted regional component counts do not reconcile to printed total |
+| Leaking-valve activity total | 476 | Provisional; extracted regional component counts do not reconcile to printed total |
+| Leaking-hydrant activity total | 283 | Provisional; extracted regional component counts do not reconcile to printed total |
+| Water mains surveyed | 10,663.9 km | Provisional; regional length entries in the indexed table also do not reconcile to printed total |
+| Estimated annual reduction from active leak detection | 14,355,757 kL/year | Publisher-reported estimate, not independent measurement |
+| Potential annual saving from advanced pressure management | 5,918,000 kL/year | Stated potential, not verified realised savings |
+| Advanced leak-detection devices in multi-year schedule | 223 | Schedule says 80, 100 and 43 by fiscal year; plan is not as-built evidence |
+
+These have been added as source-attributed but provisional observations. The non-reconciling totals are an important reason to retain report/table provenance and avoid turning raw extraction into unquestioned truth. The current public bundle does not ingest regional components as trusted values.
+
+The annual reports also disagree slightly on two FY2023/24 response KPIs: the direct 2023/24 report's Table 26 lists 92.67% for sewer-blockage response and 67.46% for water-burst response, while the 2024/25 report's comparative column lists 92.66% and 67.42%, respectively. Both source-reported pairs are kept in the bundle with their actual source IDs until a table-level review determines whether these differences reflect rounding, corrections, or definitions.
 
 ## Data acquisition register
 
