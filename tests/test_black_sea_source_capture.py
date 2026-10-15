@@ -1,8 +1,11 @@
+import contextlib
 import hashlib
+import io
 import json
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
@@ -16,6 +19,8 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
     def setUpClass(cls):
         cls.plan_path = ROOT / "docs" / "pilots" / "black-sea-grain-trade-query-plan.json"
         cls.plan = json.loads(cls.plan_path.read_text(encoding="utf-8"))
+        cls.current_context_path = ROOT / "docs" / "pilots" / "black-sea-current-context-2026-09.json"
+        cls.current_context = json.loads(cls.current_context_path.read_text(encoding="utf-8"))
 
     def test_plan_builds_two_companion_assets_and_168_single_product_month_requests(self):
         tasks = capture.build_request_tasks(self.plan)
@@ -117,6 +122,131 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
         self.assertIsNone(self.plan["source"]["source_sha256"])
         self.assertEqual(self.plan["control_design"]["selected_controls"], [])
         self.assertEqual(len(self.plan["companion_artifacts"]), 2)
+
+
+    def test_comtrade_response_must_match_requested_dimensions(self):
+        row = {
+            "reporterCode": 804, "partnerCode": 0, "flowCode": "X",
+            "cmdCode": "1001", "period": "202201",
+        }
+        expected = {
+            "reporterCode": 804, "partnerCode": 0, "flowCode": "X",
+            "cmdCode": "1001", "period": "202201",
+        }
+        good = json.dumps({"count": 1, "data": [row]}).encode()
+        result = capture.assess_comtrade_response(good, expected_parameters=expected)
+        self.assertEqual(result["state"], "response_shape_ok_pending_coverage_review")
+        self.assertTrue(result["query_dimensions_verified"])
+
+        wrong = dict(row, cmdCode="1005")
+        mismatch = json.dumps({"count": 1, "data": [wrong]}).encode()
+        result = capture.assess_comtrade_response(mismatch, expected_parameters=expected)
+        self.assertEqual(result["state"], "captured_query_dimension_mismatch")
+        self.assertIn("cmdCode", result["dimension_mismatches"])
+
+        missing = json.dumps({"count": 1, "data": [{"period": "202201"}]}).encode()
+        result = capture.assess_comtrade_response(missing, expected_parameters=expected)
+        self.assertEqual(result["state"], "captured_but_unrecognized_schema")
+        self.assertIn("reporterCode", result["missing_query_dimension_fields"])
+
+    def test_default_capture_does_not_run_comtrade_queries(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            snapshot = root / "snapshot"
+            calls = []
+
+            def fake_fetcher(url, max_bytes, timeout_seconds):
+                calls.append(url)
+                is_csv = "food_price_indices_data.csv" in url
+                return {
+                    "status_code": 200,
+                    "final_url": url,
+                    "content_type": "text/csv" if is_csv else "text/html",
+                    "headers": {},
+                    "raw": b"month,value\\n" if is_csv else b"<html></html>",
+                    "error": None,
+                }
+
+            with contextlib.redirect_stdout(io.StringIO()):
+                exit_code = capture.main(["--snapshot-dir", str(snapshot)], fetcher=fake_fetcher)
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(len(calls), 2)
+            self.assertTrue(all("comtradeapi.un.org" not in url for url in calls))
+            manifest = json.loads((snapshot / "capture-manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["capture_state"], "companion_sources_captured_pending_review")
+            self.assertEqual(manifest["plan_request_count"], 170)
+            self.assertEqual(manifest["selected_request_count"], 2)
+            self.assertEqual(manifest["comtrade_calls_not_selected_by_default"], 168)
+            self.assertFalse(manifest["full_plan_captured_and_shape_checked"])
+            self.assertFalse(manifest["rights_review_complete"])
+            self.assertFalse(manifest["case_qualified_for_analysis"])
+
+    def test_collector_stops_at_first_429_and_marks_remaining_requests_unattempted(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            snapshot = root / "snapshot"
+            calls = []
+
+            def fake_fetcher(url, max_bytes, timeout_seconds):
+                calls.append(url)
+                if "comtradeapi.un.org" in url:
+                    return {
+                        "status_code": 429,
+                        "final_url": url,
+                        "content_type": "application/json",
+                        "headers": {"Retry-After": "3"},
+                        "raw": None,
+                        "error": "HTTP 429",
+                    }
+                is_csv = "food_price_indices_data.csv" in url
+                return {
+                    "status_code": 200,
+                    "final_url": url,
+                    "content_type": "text/csv" if is_csv else "text/html",
+                    "headers": {},
+                    "raw": b"month,value\\n" if is_csv else b"<html></html>",
+                    "error": None,
+                }
+
+            with patch.object(capture.time, "sleep", return_value=None):
+                with contextlib.redirect_stdout(io.StringIO()):
+                    exit_code = capture.main(
+                        ["--snapshot-dir", str(snapshot), "--include-comtrade"],
+                        fetcher=fake_fetcher,
+                    )
+            self.assertEqual(exit_code, 2)
+            self.assertEqual(len(calls), 3)
+            manifest = json.loads((snapshot / "capture-manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["capture_state"], "stopped_after_rate_limit")
+            self.assertTrue(manifest["rate_limit_hit"])
+            self.assertEqual(manifest["stop_reason"], "upstream_rate_limit")
+            self.assertEqual(manifest["attempted_request_count"], 3)
+            self.assertEqual(manifest["not_attempted_request_count"], 167)
+            self.assertFalse(manifest["full_plan_captured_and_shape_checked"])
+            api_record = next(item for item in manifest["artifacts"] if item["source_id"] == "UN-COMTRADE")
+            self.assertEqual(api_record["status_code"], 429)
+            self.assertEqual(api_record["response_headers"]["Retry-After"], "3")
+            self.assertTrue(all(
+                item["capture_state"] == "not_attempted_after_rate_limit"
+                for item in manifest["artifacts"][3:]
+            ))
+
+    def test_current_fao_context_is_separate_and_not_source_qualified(self):
+        context = self.current_context
+        self.assertEqual(context["observation_id"], "black-sea-global-food-market-context-2026-09")
+        self.assertEqual(context["status"], "publisher_narrative_discovery_only")
+        self.assertEqual(context["source"]["release_date"], "2026-10-02")
+        self.assertEqual(context["reference_period"], "2026-09")
+        self.assertFalse(context["source"]["exact_source_bytes_acquired"])
+        self.assertIsNone(context["source"]["source_sha256"])
+        self.assertTrue(context["case_relationship"]["do_not_append_to_historical_corridor_series"])
+        self.assertTrue(all(value is False for value in context["validation_gates"].values()))
+        metrics = context["publisher_reported_metrics"]
+        self.assertEqual(metrics["fao_food_price_index"]["value"], 136.0)
+        self.assertEqual(metrics["fao_cereal_price_index"]["change_from_previous_month_percent"], 5.1)
+        self.assertEqual(metrics["international_maize_prices"]["change_from_previous_month_percent"], 5.6)
+        self.assertIn("Strait of Hormuz", context["publisher_narrative"]["simultaneous_factors_reported"]["summary"])
+
 
 
 if __name__ == "__main__":

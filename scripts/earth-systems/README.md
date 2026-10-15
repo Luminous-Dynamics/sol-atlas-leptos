@@ -56,7 +56,7 @@ The [Black Sea trade query plan](../../docs/pilots/BLACK_SEA_GRAIN_TRADE_QUERY_P
 
 ## Capture Black Sea source bytes locally
 
-The [Black Sea trade query plan](../../docs/pilots/BLACK_SEA_GRAIN_TRADE_QUERY_PLAN.md) is paired with a bounded capture helper. Because the unauthenticated preview API is limited to one product and one period per request, it generates 168 monthly commodity queries and spaces those requests by at least one second. On a network-enabled machine, run from the repository root using a new snapshot directory:
+The [Black Sea trade query plan](../../docs/pilots/BLACK_SEA_GRAIN_TRADE_QUERY_PLAN.md) is paired with a bounded capture helper. Because the unauthenticated preview API is limited to one product and one period per request, the optional Comtrade phase generates 168 monthly commodity queries and spaces those requests by at least one second. By default only the official UN page and FAO CSV are captured; pass `--include-comtrade` explicitly to request the trade queries. On a network-enabled machine, run from the repository root using a new snapshot directory:
 
 ```sh
 python3 scripts/earth-systems/capture_black_sea_sources.py \
@@ -64,7 +64,11 @@ python3 scripts/earth-systems/capture_black_sea_sources.py \
 python3 -m unittest discover -s tests -p "test_black_sea_source_capture.py" -v
 ```
 
-The helper fetches the JCC page, the official FAO CSV asset linked from the FFPI page, and the 168 planned public-preview Comtrade period/product queries. It stores exact successful response bytes and a digest-bearing capture manifest only under the caller's local directory, rejects redirects outside its HTTPS host/path allowlist, caps response sizes, and refuses pre-existing output names. An incomplete run leaves per-source failure state and exits non-zero; inspect the manifest rather than assuming every source was captured. The command does not upload data or set any license/analysis gate to true. Review terms and source coverage before sharing captured files.
+The helper fetches the JCC page and the official FAO CSV asset linked from the FFPI page by default. The 168 planned public-preview Comtrade period/product queries are opt-in with `--include-comtrade`. It stores exact successful response bytes and a digest-bearing capture manifest only under the caller's local directory, rejects redirects outside its HTTPS host/path allowlist, caps response sizes, refuses pre-existing output names, verifies returned trade dimensions, and stops at the first HTTP 429 while marking subsequent queries unattempted. An incomplete run leaves per-source failure state and exits non-zero; inspect the manifest rather than assuming every source was captured. The command does not upload data or set any license/analysis gate to true. Review terms and source coverage before sharing captured files.
+
+## Separate current Black Sea market-context observation
+
+The [September 2026 FAO context record](../../docs/pilots/BLACK_SEA_CURRENT_CONTEXT_2026-09.md) keeps new publisher commentary separate from the 2022–2023 corridor history. It records only the official page's dated narrative and reported index values; source bytes, CSV rows, revision lineage, independent corroboration and causal analysis remain unverified.
 
 ## Interpretation limit
 

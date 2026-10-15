@@ -48,6 +48,10 @@ The study window, query filters, controls and outcome definitions remain unfroze
 
 A bounded, machine-readable [UN Comtrade query plan](BLACK_SEA_GRAIN_TRADE_QUERY_PLAN.md) now specifies the intended reporter/partner/flow/product/month dimensions and seven calendar-year request chunks for 2017–2023. It is intentionally marked `query_plan_only` and `not_run`: no API response, source byte hash, comparable baseline or control group is claimed. The plan preserves returned classification and measurement metadata and fails closed on likely preview truncation. Trade aggregates cannot be substituted for corridor-specific Initiative cargo or individual shipment/route evidence. See the [UN Comtrade API guide](https://uncomtrade.org/docs/un-comtrade-api/).
 
+## Current market context — separate observation, not part of the historical corridor series
+
+FAO's release dated 2 October 2026 provides a separate September 2026 context observation: FFPI 136.0 (+1.5% month over month), cereal index 122.8 (+5.1%), maize prices +5.6% and vegetable-oil index 198.6 (+0.9%). The page attributes some availability/price pressure to Black Sea logistics while also noting weather, US yield, Brazil export and Strait of Hormuz/freight factors. See [current-context review](BLACK_SEA_CURRENT_CONTEXT_2026-09.md) and [machine-readable observation](black-sea-current-context-2026-09.json). This later observation must not be appended to the 2022–2023 Initiative corridor series. Exact FAO source bytes and CSV rows remain uncaptured here; all source-qualification gates stay false. Source: [FAO Food Price Index](https://www.fao.org/worldfoodsituation/FoodPricesIndex/en/).
+
 ## Required tests before C0 can close
 
 - Reparse exact captured UN source bytes and independently verify every monthly value and the published cumulative total.

@@ -86,13 +86,31 @@ def fetch_response(url: str, max_bytes: int, timeout_seconds: float) -> dict:
                 return {"status_code": response.status, "final_url": final_url, "content_type": headers.get_content_type().lower(), "headers": meta, "raw": None, "error": f"response body exceeds {max_bytes} bytes"}
             return {"status_code": response.status, "final_url": final_url, "content_type": headers.get_content_type().lower(), "headers": meta, "raw": raw, "error": None}
     except HTTPError as exc:
-        return {"status_code": exc.code, "final_url": exc.geturl(), "content_type": exc.headers.get_content_type().lower() if exc.headers else None, "headers": {}, "raw": None, "error": f"HTTP {exc.code}"}
+        error_headers = {}
+        if exc.headers:
+            error_headers = {
+                key: exc.headers.get(key)
+                for key in ("Date", "Retry-After", "Content-Type")
+                if exc.headers.get(key) is not None
+            }
+        return {
+            "status_code": exc.code,
+            "final_url": exc.geturl(),
+            "content_type": exc.headers.get_content_type().lower() if exc.headers else None,
+            "headers": error_headers,
+            "raw": None,
+            "error": f"HTTP {exc.code}",
+        }
     except Exception as exc:
         return {"status_code": None, "final_url": None, "content_type": None, "headers": {}, "raw": None, "error": f"{type(exc).__name__}: {str(exc)[:240]}"}
 
 
-def assess_comtrade_response(raw: bytes, record_limit: int = MAX_PREVIEW_RECORDS) -> dict:
-    """Assess the API envelope only, without interpreting quantities or trade values."""
+def assess_comtrade_response(
+    raw: bytes,
+    record_limit: int = MAX_PREVIEW_RECORDS,
+    expected_parameters: dict | None = None,
+) -> dict:
+    """Assess response envelope and requested dimensions, not measurement meaning."""
     try:
         obj = json.loads(raw.decode("utf-8-sig"))
     except (UnicodeDecodeError, json.JSONDecodeError):
@@ -103,10 +121,41 @@ def assess_comtrade_response(raw: bytes, record_limit: int = MAX_PREVIEW_RECORDS
     valid_count = isinstance(count, int) and not isinstance(count, bool)
     if not isinstance(data, list) or not valid_count or any(not isinstance(row, dict) for row in data):
         return {"state": "captured_but_unrecognized_schema", "count": count if valid_count else None, "returned_rows": len(data) if isinstance(data, list) else None}
-    state = "response_shape_ok_pending_coverage_review"
     if count != len(data) or len(data) >= record_limit:
-        state = "captured_but_incomplete"
-    return {"state": state, "count": count, "returned_rows": len(data)}
+        return {"state": "captured_but_incomplete", "count": count, "returned_rows": len(data)}
+
+    # An empty response is not proof of zero trade; row-level dimensions can
+    # only be checked when the API returned rows.
+    if expected_parameters and data:
+        required = ("reporterCode", "partnerCode", "flowCode", "cmdCode", "period")
+        missing = sorted(field for field in required if any(field not in row for row in data))
+        if missing:
+            return {
+                "state": "captured_but_unrecognized_schema",
+                "count": count,
+                "returned_rows": len(data),
+                "missing_query_dimension_fields": missing,
+            }
+        mismatches = {}
+        for field in required:
+            expected = str(expected_parameters[field])
+            observed = sorted({str(row[field]) for row in data})
+            if observed != [expected]:
+                mismatches[field] = {"expected": expected, "observed": observed[:10]}
+        if mismatches:
+            return {
+                "state": "captured_query_dimension_mismatch",
+                "count": count,
+                "returned_rows": len(data),
+                "dimension_mismatches": mismatches,
+            }
+    return {
+        "state": "response_shape_ok_pending_coverage_review",
+        "count": count,
+        "returned_rows": len(data),
+        "rows_present": bool(data),
+        "query_dimensions_verified": bool(expected_parameters and data),
+    }
 
 
 def load_plan(path: Path) -> dict:
@@ -236,7 +285,11 @@ def capture_one(task: dict, snapshot_dir: Path, timeout_seconds: float, fetcher=
         record["error"] = "unexpected response content type"
         return record
     if task["response_kind"] == "comtrade_json":
-        assessment = assess_comtrade_response(raw, int(task["record_limit"]))
+        assessment = assess_comtrade_response(
+            raw,
+            int(task["record_limit"]),
+            expected_parameters=task["request_parameters"],
+        )
         record["response_validation"] = assessment
         if assessment["state"] == "response_shape_ok_pending_coverage_review":
             record["capture_state"] = "captured_pending_metadata_review"
@@ -245,10 +298,34 @@ def capture_one(task: dict, snapshot_dir: Path, timeout_seconds: float, fetcher=
             record["error"] = "count/row mismatch or public-preview ceiling reached"
         else:
             record["capture_state"] = assessment["state"]
-            record["error"] = "Comtrade response envelope could not be validated"
+            record["error"] = (
+                "Comtrade response dimensions did not match the requested query"
+                if assessment["state"] == "captured_query_dimension_mismatch"
+                else "Comtrade response envelope or required dimensions could not be validated"
+            )
     else:
         record["capture_state"] = "captured_pending_metadata_review"
     return record
+
+
+def _not_attempted_record(task: dict, reason: str) -> dict:
+    return {
+        "source_id": task["source_id"],
+        "artifact_id": task["artifact_id"],
+        "request_url": task["url"],
+        "request_parameters": task["request_parameters"],
+        "retrieved_at_utc": None,
+        "capture_state": "not_attempted_after_rate_limit",
+        "status_code": None,
+        "final_url": None,
+        "content_type": None,
+        "response_headers": {},
+        "response_bytes": None,
+        "response_sha256": None,
+        "filename": None,
+        "response_validation": None,
+        "error": reason,
+    }
 
 
 def main(argv: list[str] | None = None, fetcher=fetch_response) -> int:
@@ -256,45 +333,96 @@ def main(argv: list[str] | None = None, fetcher=fetch_response) -> int:
     parser.add_argument("--plan", type=Path, default=DEFAULT_PLAN, help="read-only query-plan JSON")
     parser.add_argument("--snapshot-dir", required=True, type=Path, help="new local directory; existing paths are refused")
     parser.add_argument("--timeout-seconds", type=float, default=20.0)
+    parser.add_argument(
+        "--include-comtrade",
+        action="store_true",
+        help="explicitly make all 168 public-preview query calls; default captures only the UN page and FAO CSV",
+    )
     args = parser.parse_args(argv)
     if not 1 <= args.timeout_seconds <= 120:
         parser.error("--timeout-seconds must be in 1..120")
     try:
         plan_bytes = args.plan.read_bytes()
         plan = load_plan(args.plan)
-        tasks = build_request_tasks(plan)
+        all_plan_tasks = build_request_tasks(plan)
+        if args.include_comtrade:
+            tasks = all_plan_tasks
+        else:
+            tasks = [task for task in all_plan_tasks if task["response_kind"] != "comtrade_json"]
         snapshot_dir = create_snapshot_dir(args.snapshot_dir)
     except (CaptureError, OSError, KeyError, TypeError, ValueError) as exc:
         print(f"capture setup failed: {exc}", file=sys.stderr)
         return 2
+
     artifacts = []
     minimum_interval = float(plan["request_policy"]["minimum_seconds_between_comtrade_requests"])
     last_comtrade_start = None
-    for task in tasks:
+    rate_limit_hit = False
+    stop_reason = None
+
+    for index, task in enumerate(tasks):
         if task["response_kind"] == "comtrade_json":
             if last_comtrade_start is not None:
                 elapsed = time.monotonic() - last_comtrade_start
                 if elapsed < minimum_interval:
                     time.sleep(minimum_interval - elapsed)
             last_comtrade_start = time.monotonic()
-        artifacts.append(capture_one(task, snapshot_dir, args.timeout_seconds, fetcher=fetcher))
+        record = capture_one(task, snapshot_dir, args.timeout_seconds, fetcher=fetcher)
+        artifacts.append(record)
+        error_text = (record.get("error") or "").lower()
+        if record.get("status_code") == 429 or "rate limit is exceeded" in error_text:
+            rate_limit_hit = True
+            stop_reason = "upstream_rate_limit"
+            reason = "not attempted: stopped at the first upstream rate-limit response"
+            artifacts.extend(_not_attempted_record(remaining, reason) for remaining in tasks[index + 1:])
+            break
+
     ok_states = {"captured_pending_metadata_review"}
-    complete = all(item["capture_state"] in ok_states for item in artifacts)
+    not_attempted_count = sum(item["capture_state"] == "not_attempted_after_rate_limit" for item in artifacts)
+    attempted_count = len(artifacts) - not_attempted_count
+    selected_complete = (
+        not rate_limit_hit
+        and len(artifacts) == len(tasks)
+        and all(item["capture_state"] in ok_states for item in artifacts)
+    )
+    full_plan_selected = bool(args.include_comtrade)
+    if rate_limit_hit:
+        state = "stopped_after_rate_limit"
+    elif not full_plan_selected and selected_complete:
+        state = "companion_sources_captured_pending_review"
+    elif selected_complete:
+        state = "all_selected_sources_captured_pending_review"
+    else:
+        state = "partial_or_incomplete_capture"
+
     manifest = {
         "schema_version": "luminous.sol-atlas.source-capture-manifest.v1",
         "plan_id": plan["plan_id"],
-        "capture_state": "responses_captured_pending_review" if complete else "partial_or_incomplete_capture",
-        "captured_at_utc": utc_now(), "snapshot_directory": snapshot_dir.name,
+        "capture_state": state,
+        "captured_at_utc": utc_now(),
+        "snapshot_directory": snapshot_dir.name,
         "query_plan_sha256": hashlib.sha256(plan_bytes).hexdigest(),
-        "request_count": len(tasks),
-        "successful_responses_pending_review": sum(item["capture_state"] in ok_states for item in artifacts),
-        "all_requests_captured_and_shape_checked": complete,
-        "rights_review_complete": False, "case_qualified_for_analysis": False,
+        "plan_request_count": len(all_plan_tasks),
+        "selected_request_count": len(tasks),
+        "attempted_request_count": attempted_count,
+        "not_attempted_request_count": not_attempted_count,
+        "comtrade_calls_requested": full_plan_selected,
+        "comtrade_call_count_in_plan": sum(t["response_kind"] == "comtrade_json" for t in all_plan_tasks),
+        "comtrade_calls_not_selected_by_default": 0 if full_plan_selected else sum(t["response_kind"] == "comtrade_json" for t in all_plan_tasks),
+        "rate_limit_hit": rate_limit_hit,
+        "stop_reason": stop_reason,
+        "selected_requests_all_captured_and_shape_checked": selected_complete,
+        "full_plan_captured_and_shape_checked": full_plan_selected and selected_complete,
+        "rights_review_complete": False,
+        "case_qualified_for_analysis": False,
         "artifacts": artifacts,
         "limitations": [
             "A response SHA-256 establishes byte identity only, not accuracy, source independence, license or scientific validity.",
-            "Comtrade count/row agreement is a transport check, not proof of complete reporting or comparable measurement.",
-            "Unexpected content types, HTTP errors, oversized bodies, row truncation and malformed responses are not qualified acquisitions.",
+            "Comtrade count/row and requested-dimension agreement are transport/schema checks, not proof of complete reporting or comparable measurement.",
+            "Empty monthly responses remain unknown until data-availability/coverage is reviewed; they are not interpreted as zero trade.",
+            "Unexpected content types, HTTP errors, oversized bodies, row truncation, dimension mismatches and malformed responses are not qualified acquisitions.",
+            "At the first upstream rate-limit response, no later request is sent in that run; Retry-After, when supplied, is preserved as response metadata.",
+            "By default this command captures only the UN page and FAO CSV. Comtrade preview calls are opt-in to avoid unexpected request volume.",
             "Files remain in the caller-selected local directory; this helper never commits or uploads source data.",
         ],
     }
@@ -305,11 +433,16 @@ def main(argv: list[str] | None = None, fetcher=fetch_response) -> int:
         print(f"failed to write manifest: {exc}; any captured files remain for manual recovery", file=sys.stderr)
         return 2
     print(json.dumps({
-        "capture_state": manifest["capture_state"], "snapshot_directory": str(snapshot_dir),
-        "request_count": len(tasks), "successful_responses_pending_review": manifest["successful_responses_pending_review"],
+        "capture_state": manifest["capture_state"],
+        "snapshot_directory": str(snapshot_dir),
+        "selected_request_count": len(tasks),
+        "attempted_request_count": attempted_count,
+        "not_attempted_request_count": not_attempted_count,
+        "comtrade_calls_requested": full_plan_selected,
+        "successful_responses_pending_review": sum(item["capture_state"] in ok_states for item in artifacts),
         "manifest": str(manifest_path),
     }, indent=2))
-    return 0 if complete else 2
+    return 0 if selected_complete else 2
 
 
 if __name__ == "__main__":
