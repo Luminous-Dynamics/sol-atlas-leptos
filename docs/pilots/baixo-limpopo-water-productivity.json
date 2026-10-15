@@ -38,6 +38,7 @@
       "upstream_overlap": "Derived remote-sensing products may share satellite or meteorological inputs with other sources; inspect the selected layer methodology before claiming independent corroboration.",
       "required_checks": [
         "exact Level III product/area and layer identifier",
+        "inspect the current WaPOR v3 MOSAICSET index for mapset L3-AETI-M and authoritative Baixo Limpopo area code MBL; the /mapsets API is not an exhaustive Level III area inventory and the exact index bytes must be preserved",
         "current temporal coverage and finality/publication state",
         "units, source CRS, effective spatial resolution and quality mask",
         "no-data semantics and valid-cell coverage",
