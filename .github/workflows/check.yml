@@ -296,7 +296,7 @@ jobs:
           downstream_degree="$(awk -v node="$downstream_node" '
             /^\[PIPES\]/ { in_pipes = 1; next }
             /^\[/ { in_pipes = 0 }
-            in_pipes && $1 !~ /^;/ && ($2 == node || $3 == node) { degree++ }
+            in_pipes && NF > 0 && $1 !~ /^;/ && ($2 == node || $3 == node) { degree++ }
             END { print degree + 0 }
           ' "$input")"
           test "$downstream_degree" = "1" || {
@@ -306,7 +306,7 @@ jobs:
           downstream_demand_lps="$(awk -v node="$downstream_node" '
             /^\[JUNCTIONS\]/ { in_junctions = 1; next }
             /^\[/ { in_junctions = 0 }
-            in_junctions && $1 !~ /^;/ && $1 == node { print $3; found++ }
+            in_junctions && NF > 0 && $1 !~ /^;/ && $1 == node { print $3; found++ }
             END { if (found != 1) exit 1 }
           ' "$input")" || {
             echo "SCENARIO_DOWNSTREAM_JUNCTION_DEMAND_MISSING: $downstream_node"
@@ -315,7 +315,7 @@ jobs:
           total_junction_demand_lps="$(awk '
             /^\[JUNCTIONS\]/ { in_junctions = 1; next }
             /^\[/ { in_junctions = 0 }
-            in_junctions && $1 !~ /^;/ { total += $3; count++ }
+            in_junctions && NF > 0 && $1 !~ /^;/ { total += $3; count++ }
             END { if (count < 1) exit 1; printf "%.6f\n", total }
           ' "$input")" || {
             echo "SCENARIO_TOTAL_JUNCTION_DEMAND_MISSING"
@@ -324,7 +324,7 @@ jobs:
           reservoir_id="$(awk '
             /^\[RESERVOIRS\]/ { in_reservoirs = 1; next }
             /^\[/ { in_reservoirs = 0 }
-            in_reservoirs && $1 !~ /^;/ { print $1; found++ }
+            in_reservoirs && NF > 0 && $1 !~ /^;/ { print $1; found++ }
             END { if (found != 1) exit 1 }
           ' "$input")" || {
             echo "SCENARIO_RESERVOIR_TOPOLOGY_UNSUPPORTED"
@@ -333,7 +333,7 @@ jobs:
           source_pipe_id="$(awk -v reservoir="$reservoir_id" '
             /^\[PIPES\]/ { in_pipes = 1; next }
             /^\[/ { in_pipes = 0 }
-            in_pipes && $1 !~ /^;/ && ($2 == reservoir || $3 == reservoir) { print $1; found++ }
+            in_pipes && NF > 0 && $1 !~ /^;/ && ($2 == reservoir || $3 == reservoir) { print $1; found++ }
             END { if (found != 1) exit 1 }
           ' "$input")" || {
             echo "SCENARIO_SOURCE_PIPE_TOPOLOGY_UNSUPPORTED: reservoir=$reservoir_id"
