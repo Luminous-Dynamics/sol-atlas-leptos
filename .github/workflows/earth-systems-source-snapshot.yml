@@ -91,3 +91,57 @@ jobs:
           path: source-evidence/wapor/
           if-no-files-found: warn
           retention-days: 14
+
+  source-probe-national-aeti:
+    name: Probe L2-AETI-M metadata (national fallback only)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Capture exact national monthly AETI mapset metadata
+        run: |
+          set -euo pipefail
+          mkdir -p source-evidence/wapor-national-fallback
+          python scripts/earth-systems/inspect_wapor_catalog.py \
+            --mapset-code L2-AETI-M \
+            --snapshot-dir source-evidence/wapor-national-fallback/raw             --output source-evidence/wapor-national-fallback/inventory.json
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("source-evidence/wapor-national-fallback")
+          manifest = json.loads((root / "inventory.json").read_text(encoding="utf-8"))
+          assert manifest["status"] == "catalogue_inventory_only"
+          assert manifest["requested_mapset_code"] == "L2-AETI-M"
+          assert manifest["raster_count"] == len(manifest["rasters"])
+          assert manifest["raster_pages"]
+          page_records = manifest["mapset_pages"] + manifest["raster_pages"]
+          expected = {page["response_sha256"]: page["response_bytes"] for page in page_records}
+          snapshots = manifest["raw_response_snapshots"]
+          assert len(snapshots) == len(page_records)
+          for item in snapshots:
+              raw = (root / "raw" / item["filename"]).read_bytes()
+              assert item["bytes"] == len(raw)
+              assert item["sha256"] == hashlib.sha256(raw).hexdigest()
+              assert expected.get(item["sha256"]) == len(raw)
+          selected = [x for x in manifest["mapsets"] if x.get("code") == "L2-AETI-M"]
+          assert len(selected) == 1
+          # This is a metadata-only national-resolution fallback probe. It cannot
+          # satisfy a missing Baixo Limpopo Level III layer or certify reuse rights.
+          PY
+      - name: Upload national fallback metadata evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wapor-national-aeti-metadata-${{ github.run_id }}-${{ github.run_attempt }}
+          path: source-evidence/wapor-national-fallback/
+          if-no-files-found: warn
+          retention-days: 14
+
