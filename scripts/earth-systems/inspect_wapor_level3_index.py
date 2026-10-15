@@ -126,7 +126,7 @@ class MosaicsetIndexParser(html.parser.HTMLParser):
             "area_code": area_code,
             "period_token": ".".join(fields[3:-1]),
             "kind": "raster" if extension == "tif" else "sidecar_metadata",
-            "url": INDEX_URL.rsplit("/", 1)[0] + "/" + filename,
+            "url": "https://gismgr.fao.org/" + prefix_for(self.mapset_code) + "/" + filename,
         }
 
 
