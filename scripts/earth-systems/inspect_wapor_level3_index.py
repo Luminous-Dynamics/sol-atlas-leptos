@@ -100,8 +100,17 @@ class MosaicsetIndexParser(html.parser.HTMLParser):
         product_prefix = f"WAPOR-3.{self.mapset_code}."
         if not filename.startswith(product_prefix):
             return
+        relative_link = not parts.scheme and not parts.netloc
+        absolute_same_origin = (
+            parts.scheme == "https"
+            and parts.netloc == INDEX_HOST
+            and parts.username is None
+            and parts.password is None
+        )
         if (
-            parts.scheme or parts.netloc or parts.query or parts.fragment
+            not (relative_link or absolute_same_origin)
+            or parts.query or parts.fragment
+            or parts.path != decoded_path
             or decoded_path not in allowed_paths
             or unsafe_segments
             or not SAFE_FILENAME_RE.fullmatch(filename)
