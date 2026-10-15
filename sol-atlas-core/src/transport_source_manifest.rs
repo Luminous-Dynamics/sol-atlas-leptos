@@ -442,6 +442,66 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                         .to_owned(),
                 ],
             },
+            TransportSourceRecordV1 {
+                id: "za-western-cape-provincial-road-network".to_owned(),
+                publisher: "Western Cape Government — road and transport GIS units".to_owned(),
+                title: "WC Road Network — proclaimed Provincial Road Network".to_owned(),
+                canonical_source_uri: "https://gis.westerncape.gov.za/server2/rest/services/SpatialDataWarehouse/Transportation/MapServer/1".to_owned(),
+                product_kind: GeospatialNetwork,
+                acquisition_state: AccessReviewRequired,
+                rights_status: ReviewRequired,
+                rights_decision_ref: None,
+                source_schema_profile_id: None,
+                geographic_reference_profile_id: None,
+                time_profile_id: None,
+                coverage_start_epoch_seconds: None,
+                coverage_end_epoch_seconds: None,
+                acquisition: None,
+                parser_profile_id: None,
+                qualification_review_ref: None,
+                missingness_and_limitations: vec![
+                    "Service metadata describes a maintained line-geometry representation of the current proclaimed provincial road network, with road type, district municipality and road number attributes."
+                        .to_owned(),
+                    "The service reports projected spatial reference WKID 32734 (WGS 84 / UTM zone 34S); an adapter must record an explicit CRS transformation and must not treat these metre coordinates as latitude/longitude."
+                        .to_owned(),
+                    "Service metadata names a managing GIS unit but has no populated licenseInfo; use and redistribution rights are not established by the endpoint being queryable."
+                        .to_owned(),
+                    "Regional geometry only: it does not provide route capacity, current closures, speed, axle limits, condition, tolls or live traffic."
+                        .to_owned(),
+                    "The project has not acquired/frozen a feature response, recorded a byte count or hash, or validated schema stability."
+                        .to_owned(),
+                ],
+            },
+            TransportSourceRecordV1 {
+                id: "za-western-cape-ngi-railway-lines".to_owned(),
+                publisher: "National Geo-spatial Information (NGI); hosted via Western Cape Government GIS".to_owned(),
+                title: "Railway lines (NGI) — Spatial Data Warehouse transport layer".to_owned(),
+                canonical_source_uri: "https://gis.westerncape.gov.za/server2/rest/services/SpatialDataWarehouse/Transportation/MapServer/0".to_owned(),
+                product_kind: GeospatialNetwork,
+                acquisition_state: AccessReviewRequired,
+                rights_status: ReviewRequired,
+                rights_decision_ref: None,
+                source_schema_profile_id: None,
+                geographic_reference_profile_id: None,
+                time_profile_id: None,
+                coverage_start_epoch_seconds: None,
+                coverage_end_epoch_seconds: None,
+                acquisition: None,
+                parser_profile_id: None,
+                qualification_review_ref: None,
+                missingness_and_limitations: vec![
+                    "Service exposes polyline geometry and NGI capture/source/vintage metadata; the service reports projected WKID 32734 (WGS 84 / UTM zone 34S)."
+                        .to_owned(),
+                    "Layer description refers to railway lines in the Western Cape while also describing the NGI dataset coverage as national; its actual record extent and national completeness must be verified before using it for a national corridor graph."
+                        .to_owned(),
+                    "Copyright credits NGI and the Department of Rural Development and Land Reform, while licenseInfo is blank; the hosting endpoint does not establish reuse or redistribution rights."
+                        .to_owned(),
+                    "Geometry does not establish operational status, freight eligibility, gauge, capacity, train timetable, current connection continuity or dispatch feasibility."
+                        .to_owned(),
+                    "The project has not acquired/frozen a feature response, recorded a byte count or hash, or validated schema stability."
+                        .to_owned(),
+                ],
+            },
         ],
     };
     // Static fixture was hand-authored, so sort during construction as an
@@ -473,7 +533,7 @@ mod tests {
     fn south_african_source_register_is_valid_and_does_not_claim_acquisition() {
         let manifest = south_african_freight_source_readiness_v1();
         assert_eq!(manifest.validate(), Ok(()));
-        assert_eq!(manifest.records.len(), 6);
+        assert_eq!(manifest.records.len(), 8);
         assert!(manifest.records.iter().all(|record| {
             record.acquisition.is_none()
                 && record.acquisition_state != SourceAcquisitionStateV1::QualifiedForScenario
@@ -505,6 +565,38 @@ mod tests {
         assert!(transnet
             .iter()
             .any(|record| record.id == "za-transnet-capacity-statement-2026-27"));
+    }
+
+    #[test]
+    fn geospatial_sources_preserve_crs_and_do_not_claim_operational_capacity() {
+        let manifest = south_african_freight_source_readiness_v1();
+        let road = manifest
+            .records
+            .iter()
+            .find(|record| record.id == "za-western-cape-provincial-road-network")
+            .expect("provincial road-network source");
+        let rail = manifest
+            .records
+            .iter()
+            .find(|record| record.id == "za-western-cape-ngi-railway-lines")
+            .expect("NGI railway line source");
+        for record in [road, rail] {
+            assert_eq!(record.product_kind, SourceProductKindV1::GeospatialNetwork);
+            assert_eq!(record.acquisition_state, SourceAcquisitionStateV1::AccessReviewRequired);
+            assert_eq!(record.rights_status, SourceRightsStatusV1::ReviewRequired);
+            assert!(record.acquisition.is_none());
+            assert!(record.geographic_reference_profile_id.is_none());
+            assert!(record.missingness_and_limitations.iter().any(|limitation| {
+                limitation.contains("WKID 32734")
+                    || limitation.contains("projected WKID 32734")
+            }));
+            assert!(record.missingness_and_limitations.iter().any(|limitation| {
+                limitation.contains("capacity")
+            }));
+        }
+        assert!(rail.missingness_and_limitations.iter().any(|limitation| {
+            limitation.contains("national completeness")
+        }));
     }
 
     #[test]
