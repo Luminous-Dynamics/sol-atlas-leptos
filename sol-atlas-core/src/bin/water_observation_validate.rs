@@ -47,6 +47,9 @@ fn main() -> ExitCode {
     for issue in &report.issues {
         eprintln!("{} {}: {}", issue.code, issue.path, issue.message);
     }
-    eprintln!("OBSERVATION_SEMANTIC_FAIL: {} issue(s).", report.issues.len());
+    eprintln!(
+        "OBSERVATION_SEMANTIC_FAIL: {} issue(s).",
+        report.issues.len()
+    );
     ExitCode::from(2)
 }
