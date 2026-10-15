@@ -800,6 +800,7 @@ pub fn synthetic_freight_corridor_v1() -> TransportProjectionV1 {
                     unit: CapacityUnitV1::Shipments,
                     basis: CapacityBasisV1::Unspecified,
                 }),
+                capacity_evidence_ids: baseline_ref.clone(),
                 evidence_ids: baseline_ref.clone(),
             },
             PhysicalSegmentV1 {
@@ -818,6 +819,7 @@ pub fn synthetic_freight_corridor_v1() -> TransportProjectionV1 {
                     unit: CapacityUnitV1::Shipments,
                     basis: CapacityBasisV1::Unspecified,
                 }),
+                capacity_evidence_ids: baseline_ref.clone(),
                 evidence_ids: baseline_ref.clone(),
             },
             PhysicalSegmentV1 {
@@ -831,6 +833,10 @@ pub fn synthetic_freight_corridor_v1() -> TransportProjectionV1 {
                 distance_meters: Some(600_000),
                 expected_duration_seconds: Some(28_800),
                 capacity: None,
+                capacity_evidence_ids: vec![
+                    "capacity-claim-a".to_owned(),
+                    "capacity-claim-b".to_owned(),
+                ],
                 evidence_ids: vec![
                     "capacity-claim-a".to_owned(),
                     "capacity-claim-b".to_owned(),
@@ -852,6 +858,7 @@ pub fn synthetic_freight_corridor_v1() -> TransportProjectionV1 {
                     unit: CapacityUnitV1::Shipments,
                     basis: CapacityBasisV1::Unspecified,
                 }),
+                capacity_evidence_ids: baseline_ref.clone(),
                 evidence_ids: baseline_ref.clone(),
             },
             PhysicalSegmentV1 {
@@ -869,6 +876,7 @@ pub fn synthetic_freight_corridor_v1() -> TransportProjectionV1 {
                     unit: CapacityUnitV1::Shipments,
                     basis: CapacityBasisV1::Unspecified,
                 }),
+                capacity_evidence_ids: baseline_ref.clone(),
                 evidence_ids: baseline_ref.clone(),
             },
         ],
