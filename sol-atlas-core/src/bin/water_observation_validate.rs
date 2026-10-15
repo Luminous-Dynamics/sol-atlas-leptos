@@ -39,7 +39,9 @@ fn main() -> ExitCode {
 
     let report = validate_public_observation_bundle(&bundle);
     if report.is_valid() {
-        println!("OBSERVATION_SEMANTIC_PASS: all IDs and source references are consistent; source values are not independently verified.");
+        println!(
+            "OBSERVATION_SEMANTIC_PASS: all IDs and source references are consistent; source values are not independently verified."
+        );
         return ExitCode::SUCCESS;
     }
     for issue in &report.issues {
