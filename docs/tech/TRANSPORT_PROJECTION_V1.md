@@ -37,7 +37,7 @@ Coordinates use integer microdegrees and are range-checked. Missing coordinates 
 
 Every timestamp in a projection uses an explicit projection time profile. Event time, observation time, forecast time, and repository recording time are not interchangeable. If a source uses another timezone or clock profile, an adapter must perform and document the conversion before producing this projection; the core validator does not silently convert time.
 
-Capacity is represented by a quantity unit and a separate basis: concurrent use, per hour, per shift, per day, total or unspecified. An amount without a meaningful basis remains visibly unspecified and must not be normalized as if it were a throughput rate or an operational reservation. A rated capacity is not the live availability of a road, track, terminal, lock, crane or vessel slot.
+Capacity is represented by a quantity unit and a separate basis: concurrent use, per hour, per shift, per day, total or unspecified. Each segment has a dedicated `capacity_evidence_ids` list distinct from general topology/evidence references. A numeric capacity requires at least one explicit capacity-evidence record. Evidence marked conflicted, stale, unknown, unavailable or unqualified cannot support a numeric capacity; scenario-only evidence may support only a proposed/assumed-for-scenario segment. Thus contradictory claims can remain attached to a segment whose selected capacity is null, but cannot silently justify a number. An amount without a meaningful basis remains visibly unspecified and must not be normalized as if it were a throughput rate or an operational reservation. A rated capacity is not the live availability of a road, track, terminal, lock, crane or vessel slot.
 
 A route leg is not declared feasible merely because it is present in a projection. Infrastructure gauge, clearance, axle loads, track possessions, operating rules, waterway draft, cargo compatibility, legal limits, energy, timetable and transfer windows belong in the qualified planner and source evidence. An optimizer result must retain its exact scenario/evidence identity when shown in Sol Atlas.
 
@@ -52,6 +52,7 @@ The Rust validator checks:
 - geographic coordinate bounds;
 - all evidence references and physical graph endpoints;
 - capacity quantities and distinct capacity-basis semantics;
+- an explicit evidence list for every numeric capacity and rejection of conflicted/stale/unqualified capacity promotion;
 - shipment milestone references and milestone/time-meaning consistency;
 - communication endpoints, non-empty contact windows and time-profile compatibility;
 - evidence-relation endpoints, without resolving conflicts;
