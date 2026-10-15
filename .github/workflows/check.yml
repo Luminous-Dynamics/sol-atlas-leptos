@@ -158,6 +158,13 @@ jobs:
             (.classification == "synthetic_public") and
             (.model_package.input_snapshot.synthetic == true) and
             (.model_package.solver_profile.execution_state == "NotRun") and
+            (.model_package.solver_profile.analysis_mode == "DemandDriven") and
+            (.model_package.solver_profile.headloss_model == "HazenWilliams") and
+            (.model_package.unit_system == "EPANET LPS (length m, diameter mm, flow L/s, head m)") and
+            (.scenario.base_model_id == .model_package.model_id) and
+            (.model_package.source_artifacts | length == 1) and
+            (.model_package.input_snapshot.artifact_id == .model_package.source_artifacts[0].artifact_id) and
+            (.model_package.source_artifacts[0].synthetic == true) and
             (.run_result.state == "NotRun") and
             (.scenario.changes | length == 1) and
             (.scenario.changes[0].parameter == "diameter_mm") and
@@ -188,6 +195,14 @@ jobs:
           test "$parameter" = "diameter_mm"
           test "$change_count" = "1"
           test "$declared_input_sha" = "$base_scenario_sha"
+          grep -Eq '^[[:space:]]*UNITS[[:space:]]+LPS([[:space:]]|$)' "$input" || {
+            echo "SCENARIO_INPUT_UNIT_SYSTEM_MISMATCH: expected LPS"
+            exit 1
+          }
+          grep -Eq '^[[:space:]]*HEADLOSS[[:space:]]+H-W([[:space:]]|$)' "$input" || {
+            echo "SCENARIO_INPUT_HEADLOSS_MODEL_MISMATCH: expected Hazen-Williams"
+            exit 1
+          }
           actual_input_sha="$(sha256sum "$input" | awk '{print $1}')"
           actual_input_bytes="$(wc -c < "$input" | tr -d '[:space:]')"
           test "$actual_input_sha" = "$declared_input_sha" || {
@@ -474,6 +489,11 @@ jobs:
               execution: {
                 started_at: $started_at,
                 finished_at: $finished_at,
+                baseline_exit_code: 0,
+                candidate_exit_code: 0,
+                analysis_mode: "DemandDriven",
+                headloss_model: "Hazen-Williams",
+                unit_system: "EPANET LPS (length m, diameter mm, flow L/s, head m)",
                 command: "runepanet <input.inp> <report.rpt> <output.bin>"
               },
               nonclaims: [
