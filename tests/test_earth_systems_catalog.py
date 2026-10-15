@@ -98,6 +98,9 @@ class EarthSystemsCatalogTests(unittest.TestCase):
                 limitations = " ".join(source["key_limitations"]).lower()
                 self.assertIn("march 2025", limitations)
                 self.assertIn("correction-vintage review", limitations)
+                self.assertIn("not an exhaustive level iii area inventory", limitations)
+                self.assertIn("mosaicset indexes", limitations)
+                self.assertIn("baixo limpopo: mbl", limitations)
 
     def test_malformed_enum_and_url_values_fail_closed_without_crashing(self):
         doc = copy.deepcopy(self.catalog)
