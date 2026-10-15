@@ -67,6 +67,8 @@ jobs:
       - run: cargo test --bin sol-atlas-leptos
       - name: Test shared Rust core (including water bundle semantic checks)
         run: cargo test -p sol-atlas-core
+      - name: Validate synthetic intervention decision packet semantics
+        run: cargo run -p sol-atlas-core --bin water-decision-validate -- sol-atlas-core/fixtures/water-engineering/w0-intervention-decision.synthetic.json
 
   validate-water-data:
     runs-on: ubuntu-latest
