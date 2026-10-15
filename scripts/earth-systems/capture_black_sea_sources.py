@@ -551,7 +551,7 @@ def main(argv: list[str] | None = None, fetcher=fetch_response) -> int:
     full_plan_selected = bool(args.include_comtrade and args.include_availability)
     if rate_limit_hit:
         state = "stopped_after_rate_limit"
-    elif not full_plan_selected and selected_complete:
+    elif not args.include_comtrade and not args.include_availability and selected_complete:
         state = "companion_sources_captured_pending_review"
     elif selected_complete:
         state = "all_selected_sources_captured_pending_review"

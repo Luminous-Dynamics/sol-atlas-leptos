@@ -22,11 +22,17 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
         cls.current_context_path = ROOT / "docs" / "pilots" / "black-sea-current-context-2026-09.json"
         cls.current_context = json.loads(cls.current_context_path.read_text(encoding="utf-8"))
 
-    def test_plan_builds_two_companion_assets_and_168_single_product_month_requests(self):
+    def test_plan_builds_companion_assets_availability_and_168_trade_requests(self):
         tasks = capture.build_request_tasks(self.plan)
-        self.assertEqual(len(tasks), 170)
+        self.assertEqual(len(tasks), 254)
         self.assertEqual(sum(t["response_kind"] == "comtrade_json" for t in tasks), 168)
+        availability = [t for t in tasks if t["response_kind"] == "comtrade_availability_json"]
+        self.assertEqual(len(availability), 84)
         self.assertEqual(len({t["filename"] for t in tasks}), len(tasks))
+        self.assertEqual(availability[0]["request_parameters"], {"reportercode": 804, "period": "201701"})
+        self.assertEqual(availability[0]["expected_response_dimensions"], {"reporterCode": 804, "period": "201701"})
+        self.assertEqual(urlsplit(availability[0]["url"]).path, "/public/v1/getDa/C/M/HS")
+        self.assertFalse(availability[0]["expected_response_dimensions"].get("cmdCode"))
         comtrade = [t for t in tasks if t["response_kind"] == "comtrade_json"]
         expected = [
             (f"{year}{month:02d}", code)
@@ -57,11 +63,13 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
             "https://www.un.org/en/node/207702",
             "https://www.fao.org/media/docs/worldfoodsituationlibraries/wfs-library/food_price_indices_data.csv?download=true&sfvrsn=523ebd2a_84",
             "https://comtradeapi.un.org/public/v1/preview/C/M/HS?reporterCode=804&period=202201",
+            "https://comtradeapi.un.org/public/v1/getDa/C/M/HS?reportercode=804&period=202201",
         )
         denied = (
             "http://www.un.org/en/node/207702",
             "https://evil.example/en/node/207702",
             "https://comtradeapi.un.org/public/v1/get/C/M/HS",
+            "https://comtradeapi.un.org/public/v1/getDa/C/A/HS?reportercode=804&period=2021",
             "https://comtradeapi.un.org/public/v1/preview/C/M/HS?subscription-key=secret",
             "https://www.fao.org/media/../private.csv",
         )
@@ -90,6 +98,47 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
         self.assertEqual(empty_result["state"], "empty_response_needs_availability_review")
         self.assertFalse(empty_result["rows_present"])
         self.assertFalse(empty_result["query_dimensions_verified"])
+
+
+    def test_availability_response_checks_reporter_month_but_not_commodity(self):
+        raw = json.dumps({
+            "count": 1,
+            "data": [{"reporterCode": 804, "period": "202201", "typeCode": "C", "freqCode": "M", "clCode": "HS"}],
+        }).encode()
+        result = capture.assess_comtrade_availability(
+            raw, expected_parameters={"reporterCode": 804, "period": "202201"}
+        )
+        self.assertEqual(result["state"], "availability_record_found_reporter_period_only")
+        self.assertTrue(result["reporter_period_dimensions_verified"])
+        self.assertFalse(result["commodity_partner_flow_availability_verified"])
+        self.assertIn("does not verify", result["interpretation_limit"])
+
+    def test_empty_availability_response_remains_unresolved_not_zero_trade(self):
+        raw = b'{"count":0,"data":[]}'
+        result = capture.assess_comtrade_availability(
+            raw, expected_parameters={"reporterCode": 804, "period": "202201"}
+        )
+        self.assertEqual(result["state"], "availability_record_absent_unresolved")
+        self.assertFalse(result["commodity_partner_flow_availability_verified"])
+
+    def test_availability_mismatch_and_unknown_schema_fail_closed(self):
+        wrong = json.dumps({"count": 1, "data": [{"reporterCode": 36, "period": "202201"}]}).encode()
+        result = capture.assess_comtrade_availability(
+            wrong, expected_parameters={"reporterCode": 804, "period": "202201"}
+        )
+        self.assertEqual(result["state"], "availability_dimension_mismatch")
+        missing = json.dumps({"count": 1, "data": [{"reporterCode": 804}]}).encode()
+        result = capture.assess_comtrade_availability(
+            missing, expected_parameters={"reporterCode": 804, "period": "202201"}
+        )
+        self.assertEqual(result["state"], "availability_dimensions_unverified")
+        mismatch = b'{"count":2,"data":[{"reporterCode":804,"period":"202201"}]}'
+        self.assertEqual(
+            capture.assess_comtrade_availability(
+                mismatch, expected_parameters={"reporterCode": 804, "period": "202201"}
+            )["state"],
+            "captured_but_incomplete",
+        )
 
     def test_exact_response_bytes_are_hashed_and_never_overwritten(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -208,9 +257,10 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
             self.assertTrue(all("comtradeapi.un.org" not in url for url in calls))
             manifest = json.loads((snapshot / "capture-manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["capture_state"], "companion_sources_captured_pending_review")
-            self.assertEqual(manifest["plan_request_count"], 170)
+            self.assertEqual(manifest["plan_request_count"], 254)
             self.assertEqual(manifest["selected_request_count"], 2)
             self.assertEqual(manifest["comtrade_calls_not_selected_by_default"], 168)
+            self.assertEqual(manifest["availability_calls_not_selected_by_default"], 84)
             self.assertFalse(manifest["full_plan_captured_and_shape_checked"])
             self.assertFalse(manifest["rights_review_complete"])
             self.assertFalse(manifest["case_qualified_for_analysis"])
@@ -256,6 +306,8 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
             self.assertEqual(manifest["stop_reason"], "upstream_rate_limit")
             self.assertEqual(manifest["attempted_request_count"], 3)
             self.assertEqual(manifest["not_attempted_request_count"], 167)
+            self.assertFalse(manifest["availability_calls_requested"])
+            self.assertEqual(manifest["availability_call_count_in_plan"], 84)
             self.assertFalse(manifest["full_plan_captured_and_shape_checked"])
             api_record = next(item for item in manifest["artifacts"] if item["source_id"] == "UN-COMTRADE")
             self.assertEqual(api_record["status_code"], 429)
@@ -282,6 +334,33 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
         self.assertIn("Strait of Hormuz", context["publisher_narrative"]["simultaneous_factors_reported"]["summary"])
 
 
+
+
+    def test_availability_absence_is_snapshotted_but_not_interpreted_as_zero_trade(self):
+        with tempfile.TemporaryDirectory() as temp:
+            snapshot = Path(temp) / "snapshot"
+            snapshot.mkdir()
+            raw = b'{"count":0,"data":[]}'
+            task = {
+                "source_id": "UN-COMTRADE", "artifact_id": "availability_202201",
+                "url": "https://comtradeapi.un.org/public/v1/getDa/C/M/HS?reportercode=804&period=202201",
+                "filename": "availability.json", "max_bytes": 1000,
+                "expected_content_types": ["application/json"],
+                "response_kind": "comtrade_availability_json",
+                "request_parameters": {"reportercode": 804, "period": "202201"},
+                "expected_response_dimensions": {"reporterCode": 804, "period": "202201"},
+                "record_limit": 500,
+            }
+
+            def fake_fetcher(url, max_bytes, timeout_seconds):
+                return {"status_code": 200, "final_url": url, "content_type": "application/json",
+                        "headers": {}, "raw": raw, "error": None}
+
+            record = capture.capture_one(task, snapshot, 1, fetcher=fake_fetcher)
+            self.assertEqual(record["capture_state"], "availability_record_absent_unresolved")
+            self.assertIn("does not establish", record["error"])
+            self.assertEqual((snapshot / "availability.json").read_bytes(), raw)
+            self.assertEqual(record["response_sha256"], hashlib.sha256(raw).hexdigest())
 
     def test_empty_comtrade_response_is_saved_but_not_counted_as_qualified_capture(self):
         with tempfile.TemporaryDirectory() as temp:
