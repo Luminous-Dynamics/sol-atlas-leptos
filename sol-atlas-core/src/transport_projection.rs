@@ -515,7 +515,12 @@ pub fn validate_transport_projection(
         .physical_nodes
         .iter()
         .map(|item| item.id.as_str())
-        .chain(projection.physical_segments.iter().map(|item| item.id.as_str()))
+        .chain(
+            projection
+                .physical_segments
+                .iter()
+                .map(|item| item.id.as_str()),
+        )
         .chain(
             projection
                 .shipment_milestones
@@ -594,7 +599,9 @@ pub fn validate_transport_projection(
             return Err(TransportProjectionError::InvalidCapacity);
         }
         if !scenario_allowed
-            && segment.capacity.is_some_and(|capacity| capacity.basis == CapacityBasisV1::Unspecified)
+            && segment
+                .capacity
+                .is_some_and(|capacity| capacity.basis == CapacityBasisV1::Unspecified)
         {
             return Err(TransportProjectionError::CapacityBasisUnspecified);
         }
