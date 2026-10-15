@@ -227,8 +227,8 @@ mod tests {
     #[test]
     fn rejects_duplicate_observation_ids() {
         let mut bundle = fixture();
-        bundle["observations"][1]["observation_id"] =
-            bundle["observations"][0]["observation_id"].clone();
+        let duplicate_id = bundle["observations"][0]["observation_id"].clone();
+        bundle["observations"][1]["observation_id"] = duplicate_id;
         let report = validate_public_observation_bundle(&bundle);
         assert!(report.issues.iter().any(|issue| issue.code == "DUPLICATE_OBSERVATION_ID"));
     }
@@ -236,8 +236,8 @@ mod tests {
     #[test]
     fn rejects_duplicate_source_ids() {
         let mut bundle = fixture();
-        bundle["source_records"][1]["source_id"] =
-            bundle["source_records"][0]["source_id"].clone();
+        let duplicate_id = bundle["source_records"][0]["source_id"].clone();
+        bundle["source_records"][1]["source_id"] = duplicate_id;
         let report = validate_public_observation_bundle(&bundle);
         assert!(report.issues.iter().any(|issue| issue.code == "DUPLICATE_SOURCE_ID"));
     }
