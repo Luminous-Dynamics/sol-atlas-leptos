@@ -138,28 +138,5 @@
       }
     }
   },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "cost_comparability": {
-            "const": "same_declared_unit"
-          }
-        },
-        "required": [
-          "cost_comparability"
-        ]
-      },
-      "then": {
-        "properties": {
-          "cost_unit": {
-            "const": "toy_loss_units"
-          },
-          "loss_unit": {
-            "const": "toy_loss_units"
-          }
-        }
-      }
-    }
-  ]
+  "allOf": []
 }
