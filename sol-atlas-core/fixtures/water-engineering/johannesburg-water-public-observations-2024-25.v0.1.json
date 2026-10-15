@@ -49,6 +49,49 @@
         "The programme does not identify individual pipes, asset condition, diameter, material, pressure, or failure history.",
         "Targets are portfolio context only and cannot serve as hydraulic inputs."
       ]
+    },
+    {
+      "source_id": "jhb-water-annual-report-2024-25",
+      "publisher": "Johannesburg Water SOC Ltd",
+      "publication_title": "Johannesburg Water Annual Report 2024/25 — distribution water-quality compliance and strategic performance",
+      "publication_url": "https://www.johannesburgwater.co.za/wp-content/uploads/2026/05/Annual-Report-2425.pdf",
+      "official_source_url": "https://www.johannesburgwater.co.za/wp-content/uploads/2026/05/Annual-Report-2425.pdf",
+      "published_on": null,
+      "source_kind": "published_report",
+      "access_state": "public_summary_observed",
+      "granularity": "Indexed text excerpts from Table 23 (distribution water-quality compliance), Table 26 (strategic goals and achievements), and the NRW summary; precise PDF table/page verification still required",
+      "reuse_terms": [
+        "Attribute Johannesburg Water SOC Ltd and link to the original annual report.",
+        "No separate open-data licence for re-hosting the report was confirmed; only a small set of tabulated aggregate figures is transcribed here.",
+        "The original PDF remains at the publisher's site."
+      ],
+      "known_limitations": [
+        "The full PDF was not directly page-reviewed during this capture; values are provisional until a reviewer checks the exact table cells and context in the primary document.",
+        "The published figures are city/system aggregates and do not include pipe-level or sampling-location time series.",
+        "Annual indicators may use distinct definitions and denominators; similar labels must not be merged without a data dictionary.",
+        "Table 23 counts are labelled No. of Tests; do not substitute the differently worded sample aggregates in the separate public notice."
+      ]
+    },
+    {
+      "source_id": "jhb-water-annual-report-2023-24",
+      "publisher": "Johannesburg Water SOC Ltd",
+      "publication_title": "Johannesburg Water Annual Report 2023/24 — distribution water-quality compliance and comparative performance",
+      "publication_url": "https://www.johannesburgwater.co.za/wp-content/uploads/2025/04/JOHANNESBURG-WATER-2023_24-ANNUAL-REPORT.pdf",
+      "official_source_url": "https://www.johannesburgwater.co.za/wp-content/uploads/2025/04/JOHANNESBURG-WATER-2023_24-ANNUAL-REPORT.pdf",
+      "published_on": null,
+      "source_kind": "published_report",
+      "access_state": "public_summary_observed",
+      "granularity": "Indexed text excerpt from Table 21 (distribution water-quality report) and comparative annual performance; precise PDF table/page verification still required",
+      "reuse_terms": [
+        "Attribute Johannesburg Water SOC Ltd and link to the original annual report.",
+        "No separate open-data licence for re-hosting the report was confirmed; only a small set of tabulated aggregate figures is transcribed here.",
+        "The original PDF remains at the publisher's site."
+      ],
+      "known_limitations": [
+        "The full PDF was not directly page-reviewed during this capture; values are provisional until a reviewer checks the exact table cells and context in the primary document.",
+        "The reporting period is financial year 2023/24; do not compare to other years without preserving metric definitions and denominator changes.",
+        "The published figures are city/system aggregates and do not include pipe-level or sampling-location time series."
+      ]
     }
   ],
   "observations": [
@@ -482,6 +525,842 @@
       "interpretation_state": "reported_not_independently_reproduced",
       "notes": [
         "This is a plan, not completed renewal or asset-level work order data."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.ecoli.tests",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "E. coli — tests reported",
+      "value": 6099,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 21 in the annual report's indexed text excerpt labels this field 'No. of tests'."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.ecoli.compliance",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "E. coli — achieved SANS 241 compliance",
+      "value": 99.2,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 99.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.total-coliforms.tests",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Total coliforms — tests reported",
+      "value": 6099,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 21 in the annual report's indexed text excerpt labels this field 'No. of tests'."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.total-coliforms.compliance",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Total coliforms — achieved SANS 241 compliance",
+      "value": 97.8,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 95.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.heterotrophic-plate-count.tests",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Heterotrophic plate count — tests reported",
+      "value": 6067,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 21 in the annual report's indexed text excerpt labels this field 'No. of tests'."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.heterotrophic-plate-count.compliance",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Heterotrophic plate count — achieved SANS 241 compliance",
+      "value": 98.7,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 95.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.turbidity.tests",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Turbidity — tests reported",
+      "value": 7374,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 21 in the annual report's indexed text excerpt labels this field 'No. of tests'."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.turbidity.compliance",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Turbidity — achieved SANS 241 compliance",
+      "value": 98.9,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 95.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.ph.tests",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "pH — tests reported",
+      "value": 6099,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 21 in the annual report's indexed text excerpt labels this field 'No. of tests'."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.ph.compliance",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "pH — achieved SANS 241 compliance",
+      "value": 100,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 95.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.ecoli.tests",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "E. coli — tests reported",
+      "value": 5890,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.ecoli.compliance",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "E. coli — achieved SANS 241 compliance",
+      "value": 99.4,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 99.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.total-coliforms.tests",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Total coliforms — tests reported",
+      "value": 6890,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.total-coliforms.compliance",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Total coliforms — achieved SANS 241 compliance",
+      "value": 97.7,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 95.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.heterotrophic-plate-count.tests",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Heterotrophic plate count — tests reported",
+      "value": 4984,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.heterotrophic-plate-count.compliance",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Heterotrophic plate count — achieved SANS 241 compliance",
+      "value": 99.3,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 95.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.colour.tests",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Colour — tests reported",
+      "value": 7055,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.colour.compliance",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Colour — achieved SANS 241 compliance",
+      "value": 99.4,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 95.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.conductivity.tests",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Conductivity — tests reported",
+      "value": 617,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.conductivity.compliance",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Conductivity — achieved SANS 241 compliance",
+      "value": 100,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 95.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.taste.tests",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Taste — tests reported",
+      "value": 496,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.taste.compliance",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Taste — achieved SANS 241 compliance",
+      "value": 100,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 95.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.odour.tests",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Odour — tests reported",
+      "value": 497,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.odour.compliance",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Odour — achieved SANS 241 compliance",
+      "value": 99.8,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 95.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.turbidity.tests",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Turbidity — tests reported",
+      "value": 7063,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.turbidity.compliance",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Turbidity — achieved SANS 241 compliance",
+      "value": 97.4,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 95.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.ph.tests",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "pH — tests reported",
+      "value": 7088,
+      "unit": "test",
+      "observation_kind": "published_aggregate",
+      "statistic": "number_of_tests_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.ph.compliance",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "pH — achieved SANS 241 compliance",
+      "value": 99.9,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "achieved_compliance_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": "Required compliance 95.0%",
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Keep determinant-specific required and achieved compliance values separate; values remain provisional pending direct page review."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.overall-water-quality-compliance",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Overall water quality compliance",
+      "value": 99.2,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "annual_quality_compliance_percent_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.overall-water-quality-compliance",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Overall water quality compliance",
+      "value": 99.4,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "annual_quality_compliance_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 / annual performance summary in the 2024/25 Annual Report's indexed text excerpt; confirm the exact table cell and indicator definition against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.non-revenue-water",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Overall non-revenue water",
+      "value": 46.18,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "overall_non_revenue_water_percent_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.non-revenue-water",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Overall non-revenue water",
+      "value": 44.79,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "overall_non_revenue_water_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 / annual performance summary in the 2024/25 Annual Report's indexed text excerpt; confirm the exact table cell and indicator definition against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.sewer-blockages-per-100km",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Sewer pipe blockages per 100 km network length",
+      "value": 464.66,
+      "unit": "blockage per 100 km",
+      "observation_kind": "published_aggregate",
+      "statistic": "network_normalized_annual_rate_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.sewer-blockages-per-100km",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Sewer pipe blockages per 100 km network length",
+      "value": 464.21,
+      "unit": "blockage per 100 km",
+      "observation_kind": "published_aggregate",
+      "statistic": "network_normalized_annual_rate_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 / annual performance summary in the 2024/25 Annual Report's indexed text excerpt; confirm the exact table cell and indicator definition against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.water-bursts-per-100km",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Water pipe bursts per 100 km network length",
+      "value": 402.36,
+      "unit": "burst per 100 km",
+      "observation_kind": "published_aggregate",
+      "statistic": "network_normalized_annual_rate_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.water-bursts-per-100km",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Water pipe bursts per 100 km network length",
+      "value": 328,
+      "unit": "burst per 100 km",
+      "observation_kind": "published_aggregate",
+      "statistic": "network_normalized_annual_rate_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 / annual performance summary in the 2024/25 Annual Report's indexed text excerpt; confirm the exact table cell and indicator definition against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.effluent-compliance",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Effluent compliance",
+      "value": 76.1,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "annual_effluent_compliance_percent_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.effluent-compliance",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Effluent compliance",
+      "value": 70.9,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "annual_effluent_compliance_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 / annual performance summary in the 2024/25 Annual Report's indexed text excerpt; confirm the exact table cell and indicator definition against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.sewer-blockage-response",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Response time to sewer blockages",
+      "value": 92.66,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "annual_response_time_kpi_percent_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.sewer-blockage-response",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Response time to sewer blockages",
+      "value": 90.89,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "annual_response_time_kpi_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 / annual performance summary in the 2024/25 Annual Report's indexed text excerpt; confirm the exact table cell and indicator definition against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.water-burst-response",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Response time to water bursts",
+      "value": 67.42,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "annual_response_time_kpi_percent_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.water-burst-response",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Response time to water bursts",
+      "value": 70.35,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "annual_response_time_kpi_percent_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 / annual performance summary in the 2024/25 Annual Report's indexed text excerpt; confirm the exact table cell and indicator definition against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.water-consumption-per-capita",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Water consumption per capita",
+      "value": 261.73,
+      "unit": "L/person/day",
+      "observation_kind": "published_aggregate",
+      "statistic": "annual_per_capita_consumption_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+      ]
+    },
+    {
+      "observation_id": "jw.annual24-25.water-consumption-per-capita",
+      "source_id": "jhb-water-annual-report-2024-25",
+      "name": "Water consumption per capita",
+      "value": 244.69,
+      "unit": "L/person/day",
+      "observation_kind": "published_aggregate",
+      "statistic": "annual_per_capita_consumption_as_reported",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "Johannesburg Water financial year 2024/25",
+      "population_or_scope": "Johannesburg Water distribution network / system-level annual report",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
+        "Figure reproduced from Table 26 / annual performance summary in the 2024/25 Annual Report's indexed text excerpt; confirm the exact table cell and indicator definition against the primary document."
       ]
     }
   ],
