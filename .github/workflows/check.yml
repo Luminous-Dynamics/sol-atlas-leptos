@@ -69,8 +69,31 @@ jobs:
         run: cargo test -p sol-atlas-core
       - name: Validate synthetic intervention decision packet semantics
         run: cargo run -p sol-atlas-core --bin water-decision-validate -- sol-atlas-core/fixtures/water-engineering/w0-intervention-decision.synthetic.json
-      - name: Calculate illustrative measurement information value
-        run: cargo run -p sol-atlas-core --bin water-measurement-evaluate -- sol-atlas-core/fixtures/water-engineering/w0-measurement-model.toy.synthetic.json
+      - name: Calculate and independently check illustrative measurement information value
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="sol-atlas-core/fixtures/water-engineering/w0-measurement-model.toy.synthetic.json"
+          expected_sha="$(sha256sum "$fixture" | awk '{print $1}')"
+          output_file="$(mktemp)"
+          trap 'rm -f "$output_file"' EXIT
+          cargo run -p sol-atlas-core --bin water-measurement-evaluate -- "$fixture" > "$output_file"
+          jq -e --arg expected_sha "$expected_sha" '
+            . as $root |
+            ($root.evaluation.actions[] | select(.action_id == "perfect_sensor")) as $perfect |
+            ($root.evaluation.actions[] | select(.action_id == "uninformative_sensor")) as $uninformative |
+            ($root.schema_version == "water-measurement-run-envelope/v0.1") and
+            ($root.source_input_sha256 == $expected_sha) and
+            ($root.evaluation.claim_ceiling == "illustrative_calculation_only") and
+            ($root.evaluation.selection_state == "positive_net_value_candidate") and
+            ($root.evaluation.selected_measurement_action == "perfect_sensor") and
+            (((($perfect.expected_information_gain_bits - 1.0) | abs) < 1e-9)) and
+            (((($perfect.expected_value_of_sample_information - 2.0) | abs) < 1e-9)) and
+            (((($perfect.net_value_in_loss_units - 1.0) | abs) < 1e-9)) and
+            (((($uninformative.expected_information_gain_bits) | abs) < 1e-9)) and
+            (((($uninformative.expected_value_of_sample_information) | abs) < 1e-9)) and
+            (((($uninformative.net_value_in_loss_units) | abs) < 1e-9))
+          ' "$output_file"
 
   validate-water-data:
     runs-on: ubuntu-latest
