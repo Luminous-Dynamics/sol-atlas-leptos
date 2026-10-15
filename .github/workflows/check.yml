@@ -67,3 +67,49 @@ jobs:
       - run: cargo test --bin sol-atlas-leptos
       - name: Test shared Rust core (including water bundle semantic checks)
         run: cargo test -p sol-atlas-core
+
+  validate-water-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python for JSON Schema checks
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned JSON Schema validator
+        run: python -m pip install --disable-pip-version-check --no-input jsonschema==4.26.0
+      - name: Validate engineering and public-observation schemas against fixtures
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          pairs = [
+              (
+                  Path("sol-atlas-core/schemas/water-engineering-bundle-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/w0-p2-diameter-restriction.synthetic.json"),
+              ),
+              (
+                  Path("sol-atlas-core/schemas/water-public-observation-bundle-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json"),
+              ),
+          ]
+
+          format_checker = FormatChecker()
+          for schema_path, fixture_path in pairs:
+              schema = json.loads(schema_path.read_text(encoding="utf-8"))
+              instance = json.loads(fixture_path.read_text(encoding="utf-8"))
+              Draft202012Validator.check_schema(schema)
+              validator = Draft202012Validator(schema, format_checker=format_checker)
+              errors = sorted(
+                  validator.iter_errors(instance),
+                  key=lambda error: (list(map(str, error.absolute_path)), error.message),
+              )
+              if errors:
+                  for error in errors:
+                      pointer = "/" + "/".join(map(str, error.absolute_path))
+                      print(f"{fixture_path}: {pointer}: {error.message}")
+                  raise SystemExit(1)
+              print(f"SCHEMA_FIXTURE_PASS: {schema_path} -> {fixture_path}")
+          PY
