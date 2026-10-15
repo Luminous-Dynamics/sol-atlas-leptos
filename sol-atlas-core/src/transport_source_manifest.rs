@@ -266,10 +266,9 @@ impl TransportSourceManifestV1 {
     }
 }
 
-/// Current source-discovery register. These three entries explicitly have no
-/// acquired data payload: the National Freight Databank's portal, the draft
-/// National Rail Master Plan consultation, and the Western Cape proposal are
-/// leads for access review and scenario definition, not route-capacity snapshots.
+/// Current source-discovery register. No record is qualified for scenario use:
+/// portals, policy documents, regional GIS services and the continent-wide AfTS-Db
+/// are access/schema discovery leads, not current route-capacity snapshots.
 pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 {
     use SourceAcquisitionStateV1::*;
     use SourceProductKindV1::*;
@@ -504,6 +503,38 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                         .to_owned(),
                 ],
             },
+            TransportSourceRecordV1 {
+                id: "africa-transport-systems-database-v3".to_owned(),
+                publisher: "Zenodo; Colombo et al. (dataset authors)".to_owned(),
+                title: "African Transport Systems Database (AfTS-Db), version 3".to_owned(),
+                canonical_source_uri: "https://zenodo.org/records/17861120".to_owned(),
+                product_kind: GeospatialNetwork,
+                acquisition_state: AccessReviewRequired,
+                rights_status: ReviewRequired,
+                rights_decision_ref: None,
+                source_schema_profile_id: None,
+                geographic_reference_profile_id: None,
+                time_profile_id: None,
+                coverage_start_epoch_seconds: None,
+                coverage_end_epoch_seconds: None,
+                acquisition: None,
+                parser_profile_id: None,
+                qualification_review_ref: None,
+                missingness_and_limitations: vec![
+                    "The version 3 record describes pan-African road, rail, maritime, inland-waterway, aviation and intermodal connectivity; the exact local files have not been acquired, hashed or schema-inspected."
+                        .to_owned(),
+                    "The Zenodo record's License field is blank. The repository's MIT license covers the code and does not itself settle rights for the distributed dataset files; obtain an explicit data-use decision before bundling or redistribution."
+                        .to_owned(),
+                    "The research publication describes a harmonized snapshot with known, inferred, planned, proposed and other rail-status classifications. It is not a live operator register, timetable, train-path availability source or dispatch authority."
+                        .to_owned(),
+                    "Published corridor and rail-cost tables estimate infrastructure capital and operation-and-maintenance costs; they are not tariffs, shipment-specific costs, current operating expenses or verified capacity."
+                        .to_owned(),
+                    "The publication notes that not every major intermodal location is necessarily represented. Crosswalk candidate nodes and edges to authoritative operator data and preserve status and completeness uncertainty."
+                        .to_owned(),
+                    "No source schema, CRS profile, exact byte count or SHA-256 commitment has been recorded; the source remains unqualified."
+                        .to_owned(),
+                ],
+            },
         ],
     };
     // Static fixture was hand-authored, so sort during construction as an
@@ -535,11 +566,38 @@ mod tests {
     fn south_african_source_register_is_valid_and_does_not_claim_acquisition() {
         let manifest = south_african_freight_source_readiness_v1();
         assert_eq!(manifest.validate(), Ok(()));
-        assert_eq!(manifest.records.len(), 8);
+        assert_eq!(manifest.records.len(), 9);
         assert!(manifest.records.iter().all(|record| {
             record.acquisition.is_none()
                 && record.acquisition_state != SourceAcquisitionStateV1::QualifiedForScenario
         }));
+    }
+
+    #[test]
+    fn africa_transport_database_is_topology_context_not_operational_capacity() {
+        let manifest = south_african_freight_source_readiness_v1();
+        assert_eq!(manifest.validate(), Ok(()));
+        let record = manifest
+            .records
+            .iter()
+            .find(|record| record.id == "africa-transport-systems-database-v3")
+            .expect("AfTS-Db discovery record");
+        assert_eq!(record.product_kind, SourceProductKindV1::GeospatialNetwork);
+        assert_eq!(
+            record.acquisition_state,
+            SourceAcquisitionStateV1::AccessReviewRequired
+        );
+        assert_eq!(record.rights_status, SourceRightsStatusV1::ReviewRequired);
+        assert!(record.acquisition.is_none());
+        assert!(record.rights_decision_ref.is_none());
+        assert!(record.source_schema_profile_id.is_none());
+        assert!(record.geographic_reference_profile_id.is_none());
+        assert!(
+            record
+                .missingness_and_limitations
+                .iter()
+                .any(|limitation| { limitation.contains("License field is blank") })
+        );
     }
 
     #[test]
