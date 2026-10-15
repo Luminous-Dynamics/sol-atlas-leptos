@@ -75,7 +75,7 @@ fn valid_identifier(value: &str) -> bool {
         && value.len() <= 128
         && value
             .bytes()
-            .all(|byte| byte.is_ascii_alphanumeric() || b"._-".contains(&byte))
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || b"._-".contains(&byte))
         && value
             .bytes()
             .next()
@@ -125,7 +125,7 @@ pub fn entropy_bits(probabilities: &[f64]) -> Result<f64, String> {
     Ok(probabilities
         .iter()
         .filter(|probability| **probability > 0.0)
-        .map(|probability| -probability * probability.log2())
+        .map(|probability| -(*probability) * probability.log2())
         .sum())
 }
 
@@ -433,7 +433,10 @@ mod tests {
                     "acquisition_cost":0.0
                 }
             ],
-            "assumptions":["Hypothesis priors and likelihoods are hand-authored solely to check arithmetic.","Loss and cost share a toy unit only within this illustrative example."]
+            "assumptions":[
+                "Hypothesis priors and likelihoods are hand-authored solely to check arithmetic.",
+                "Loss and cost share a toy unit only within this illustrative example."
+            ]
         })).expect("toy input deserializes")
     }
 
@@ -451,7 +454,11 @@ mod tests {
     #[test]
     fn uninformative_sensor_has_zero_information_and_zero_decision_value() {
         let evaluation = evaluate_measurement_model(&toy_model()).expect("valid toy model");
-        let uninformative = evaluation.actions.iter().find(|r| r.action_id == "uninformative_sensor").unwrap();
+        let uninformative = evaluation
+            .actions
+            .iter()
+            .find(|r| r.action_id == "uninformative_sensor")
+            .unwrap();
         assert!(uninformative.expected_information_gain_bits.abs() < NUMERIC_TOLERANCE);
         assert!(uninformative.expected_value_of_sample_information.abs() < NUMERIC_TOLERANCE);
         assert!(uninformative.net_value_in_loss_units.unwrap() <= 0.0);
@@ -462,7 +469,8 @@ mod tests {
         let mut model = toy_model();
         model.cost_comparability = "not_comparable".to_owned();
         model.cost_unit = "hours".to_owned();
-        let evaluation = evaluate_measurement_model(&model).expect("information metrics remain computable");
+        let evaluation =
+            evaluate_measurement_model(&model).expect("information metrics remain computable");
         assert_eq!(evaluation.selection_state, "not_rankable_cost_units_incomparable");
         assert_eq!(evaluation.selected_measurement_action, None);
         assert!(evaluation.actions.iter().all(|a| a.net_value_in_loss_units.is_none()));
@@ -487,7 +495,8 @@ mod tests {
         let mut model = toy_model();
         model.prior = vec![1.0, 0.0];
         model.actions[0].likelihoods = vec![vec![1.0, 0.0], vec![0.0, 1.0]];
-        let evaluation = evaluate_measurement_model(&model).expect("zero-probability branch is valid");
+        let evaluation =
+            evaluate_measurement_model(&model).expect("zero-probability branch is valid");
         let perfect = evaluation.actions.iter().find(|r| r.action_id == "perfect_sensor").unwrap();
         assert!(perfect.expected_information_gain_bits.abs() < NUMERIC_TOLERANCE);
         assert!(perfect.expected_value_of_sample_information.abs() < NUMERIC_TOLERANCE);
