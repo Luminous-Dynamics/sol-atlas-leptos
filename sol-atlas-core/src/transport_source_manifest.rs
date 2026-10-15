@@ -303,7 +303,7 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                     "No dataset bytes acquired by this manifest.".to_owned(),
                     "Portal discovery does not prove a supported API or bulk-download permission."
                         .to_owned(),
-                    "Freight-flow and national-throughput aggregates must not be treated as usable route capacity."
+                    "Freight-flow and national-throughput aggregates are not usable route capacity."
                         .to_owned(),
                 ],
             },
@@ -311,7 +311,11 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                 id: "za-draft-national-rail-master-plan".to_owned(),
                 publisher: "South African Department of Transport".to_owned(),
                 title: "Draft National Rail Master Plan consultation".to_owned(),
-                canonical_source_uri: "https://www.gov.za/documents/notices/department-transport-public-consultation-draft-national-rail-master-plan-comments".to_owned(),
+                canonical_source_uri: concat!(
+                    "https://www.gov.za/documents/notices/department-transport-",
+                    "public-consultation-draft-national-rail-master-plan-comments"
+                )
+                .to_owned(),
                 product_kind: PolicyOrProposalDocument,
                 acquisition_state: NotAcquired,
                 rights_status: ReviewRequired,
@@ -326,14 +330,18 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                 qualification_review_ref: None,
                 missingness_and_limitations: vec![
                     "Public consultation page is a research lead, not a data feed.".to_owned(),
-                    "The consultation page identifies the plan as a draft; final status must be checked before treating it as adopted policy.".to_owned(),
+                    "The consultation page identifies a draft; check final status before treating it as adopted policy.".to_owned(),
                 ],
             },
             TransportSourceRecordV1 {
                 id: "za-western-cape-intermodal-proposal".to_owned(),
                 publisher: "Western Cape Government".to_owned(),
                 title: "Proposed intermodal freight terminal network".to_owned(),
-                canonical_source_uri: "https://www.westerncape.gov.za/mobility/intermodalism-building-more-connected-freight-network".to_owned(),
+                canonical_source_uri: concat!(
+                    "https://www.westerncape.gov.za/mobility/",
+                    "intermodalism-building-more-connected-freight-network"
+                )
+                .to_owned(),
                 product_kind: PolicyOrProposalDocument,
                 acquisition_state: NotAcquired,
                 rights_status: ReviewRequired,
@@ -347,8 +355,8 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                 parser_profile_id: None,
                 qualification_review_ref: None,
                 missingness_and_limitations: vec![
-                    "The published page describes candidate/proposed terminal locations; it does not confirm sites or completed land assessments.".to_owned(),
-                    "The reported 10.4 million tonnes is a modelled opportunity, not guaranteed modal shift or current usable terminal capacity.".to_owned(),
+                    "The published page describes proposed terminal locations, not confirmed sites or completed land assessments.".to_owned(),
+                    "The reported 10.4 million tonnes is a modelled opportunity, not guaranteed modal shift or current capacity.".to_owned(),
                 ],
             },
         ],
