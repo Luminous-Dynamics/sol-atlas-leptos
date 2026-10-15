@@ -6,7 +6,7 @@
 
 ## What has been captured
 
-The companion machine-readable bundle `sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json` transcribes selected aggregate figures from Johannesburg Water's published **2024/2025 Water Quality Report for the Greater Johannesburg Water Supply System**:
+The companion machine-readable bundle `sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json` now contains **68 observations across four source records**: directly observed public-notice aggregates, the official renewal-programme targets, and provisional tabular/portfolio figures transcribed from the indexed text of the 2023/24 and 2024/25 Johannesburg Water annual reports. The annual-report rows are deliberately marked `provisional_needs_primary_document_check` because the PDFs could not be page-reviewed during this capture. They must not be promoted to verified data until a reviewer checks the exact table cells and their definitions. The original published **2024/2025 Water Quality Report for the Greater Johannesburg Water Supply System** contributes:
 
 - Reporting window: 1 July 2024–30 June 2025.
 - 5,890 samples analysed and 79,025 tests undertaken.
@@ -19,6 +19,25 @@ Source notice published 23 March 2026: [Johannesburg Water — 2024/2025 Water Q
 This is genuinely observed/published real-world data, but its granularity is **system-wide aggregate only**. It does not contain sampling-site coordinates or raw samples. Keep the mean E. coli constituent value separate from the reported percentage of samples free of E. coli: they are different summaries with different interpretation needs. The source reports colour in `Hz`; we preserve that unit label rather than silently correcting it.
 
 The bundle also records the official [Pipe Replacement Programme](https://www.johannesburgwater.co.za/about-us/campaigns/pipe-replacement-programme/) targets of 428 km of water pipelines and 286 km of sewer pipelines over five years. These are plans, not completed works, and the public page does not provide pipe-level schedules or asset identifiers.
+
+## Provisional year-over-year signals to verify
+
+The annual report's indexed text snippets suggest several useful outcome dimensions for the future optimisation workflow. These are *screening hypotheses*, not verified conclusions, until the exact primary report tables are checked:
+
+| Indicator | 2023/24 reported | 2024/25 reported | Arithmetic difference | Why keep it |
+|---|---:|---:|---:|---|
+| Overall non-revenue water | 46.18% | 44.79% | −1.39 percentage points | Water-loss outcome, separate from burst counts and pipe renewal kilometres |
+| Sewer blockages per 100 km | 464.66 | 464.21 | −0.45 per 100 km | Network-normalised sewer reliability |
+| Water bursts per 100 km | 402.36 | 328.00 | −74.36 per 100 km | Network-normalised water reliability |
+| Effluent compliance | 76.1% | 70.9% | −5.2 percentage points | Wastewater/environmental outcome, not just asset renewal |
+| Sewer blockage response time KPI | 92.66% | 90.89% | −1.77 percentage points | Service performance / operational response |
+| Water burst response time KPI | 67.42% | 70.35% | +2.93 percentage points | Service performance / operational response |
+| Water consumption per capita | 261.73 | 244.69 L/person/day | −17.04 L/person/day | Demand context; not directly attributable to leak reduction |
+| Overall water-quality compliance | 99.20% | 99.4% | +0.20 percentage points | Aggregate drinking-water quality indicator; don't substitute for determinant-specific values |
+
+Sources are the official [Johannesburg Water 2023/24 Annual Report](https://www.johannesburgwater.co.za/wp-content/uploads/2025/04/JOHANNESBURG-WATER-2023_24-ANNUAL-REPORT.pdf) and [2024/25 Annual Report](https://www.johannesburgwater.co.za/wp-content/uploads/2026/05/Annual-Report-2425.pdf). The annual-report PDFs could not be directly page-reviewed in this capture; these rows carry a provisional status and must be independently checked before they are used as a baseline, cited as authoritative trends, or feed a decision model. Differences above are elementary arithmetic on the transcribed aggregates; they do not establish causation, statistical significance, or that the indicators use unchanged definitions.
+
+The immediate systems-design implication is to retain separate service-outcome axes. Replacement kilometres alone cannot explain the figures; neither can a single aggregate NRW figure tell us which pipe to renew. Once verified, a pilot should compare asset-level condition/exposure, hydraulic constraints, repair history, customer impact, environmental consequences, and cost without letting one metric silently compensate for a hard constraint.
 
 ## Data acquisition register
 
