@@ -16,6 +16,7 @@ pub mod economics;
 pub mod energy_trading;
 pub mod geo;
 pub mod lod;
+pub mod medicinal_garden;
 pub mod mycelix_flows;
 // pub mod relativity_viz;
 pub mod geometry;
