@@ -450,4 +450,16 @@ mod tests {
         assert!(money_pattern.contains(r"(?:\.[0-9]+)?"));
     }
 
+    #[test]
+    fn synthetic_example_fixture_deserializes_and_validates() {
+        let record: EvidenceRecord = serde_json::from_str(include_str!(
+            "../../schemas/examples/water-observation.json"
+        ))
+        .unwrap();
+        assert_eq!(record.kind, EvidenceKind::Observation);
+        assert_eq!(record.provenance.method, "synthetic_fixture");
+        assert!(record.statement.starts_with("SYNTHETIC EXAMPLE ONLY"));
+        assert_eq!(record.validate(), Ok(()));
+    }
+
 }
