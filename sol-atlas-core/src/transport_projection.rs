@@ -10,7 +10,7 @@
 //! so a consumer cannot accidentally interpret one graph's edge as another's.
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub const TRANSPORT_PROJECTION_SCHEMA_V1: &str = "luminous.sol-atlas.transport-projection.v1";
 pub const SYNTHETIC_RELATIVE_TIME_PROFILE_V1: &str = "SYNTHETIC_RELATIVE_SECONDS_V1";
@@ -169,6 +169,10 @@ pub struct PhysicalSegmentV1 {
     pub expected_duration_seconds: Option<u64>,
     /// A sourced or scenario capacity claim, not a live availability/reservation.
     pub capacity: Option<CapacityValueV1>,
+    /// Evidence that specifically supports the capacity value; separate from
+    /// evidence about topology or asset identity. Conflicting claims may remain
+    /// here when capacity is None, but must never justify a numeric capacity.
+    pub capacity_evidence_ids: Vec<String>,
     pub evidence_ids: Vec<String>,
 }
 
@@ -333,6 +337,7 @@ pub enum TransportProjectionError {
     UnknownCommunicationEndpoint,
     UnknownInfrastructureAsset,
     InvalidCapacity,
+    CapacityEvidenceUnqualified,
     InvalidContactWindow,
     InvalidTimeProfile,
     InvalidMilestoneTimeMeaning,
@@ -468,6 +473,11 @@ pub fn validate_transport_projection(
         .iter()
         .map(|item| item.id.as_str())
         .collect();
+    let evidence_by_id: BTreeMap<&str, &TransportEvidenceV1> = projection
+        .evidence_records
+        .iter()
+        .map(|item| (item.id.as_str(), item))
+        .collect();
     let physical_node_ids: BTreeSet<&str> = projection
         .physical_nodes
         .iter()
@@ -509,6 +519,30 @@ pub fn validate_transport_projection(
             return Err(TransportProjectionError::InvalidCapacity);
         }
         validate_evidence_refs(&segment.evidence_ids, &evidence_ids)?;
+        if !segment.capacity_evidence_ids.is_empty() {
+            validate_evidence_refs(&segment.capacity_evidence_ids, &evidence_ids)?;
+        }
+        if segment.capacity.is_some() {
+            // The numeric capacity has its own explicit evidence references.
+            // Scenario/proposed segments may use scenario-only data; all other
+            // segment states require the evidence to be qualified for projection.
+            validate_evidence_refs(&segment.capacity_evidence_ids, &evidence_ids)?;
+            let scenario_allowed = matches!(
+                segment.state,
+                NetworkSegmentStateV1::Proposed | NetworkSegmentStateV1::AssumedForScenario
+            );
+            for evidence_id in &segment.capacity_evidence_ids {
+                let source = evidence_by_id
+                    .get(evidence_id.as_str())
+                    .ok_or(TransportProjectionError::UnknownEvidenceReference)?;
+                let qualifies = source.qualification == EvidenceQualificationV1::AcceptedForProjection
+                    || (scenario_allowed
+                        && source.qualification == EvidenceQualificationV1::ScenarioOnly);
+                if !qualifies {
+                    return Err(TransportProjectionError::CapacityEvidenceUnqualified);
+                }
+            }
+        }
     }
 
     for milestone in &projection.shipment_milestones {
@@ -626,6 +660,7 @@ pub fn normalized_transport_projection(
         node.evidence_ids.sort();
     }
     for segment in &mut projection.physical_segments {
+        segment.capacity_evidence_ids.sort();
         segment.evidence_ids.sort();
     }
     for milestone in &mut projection.shipment_milestones {
