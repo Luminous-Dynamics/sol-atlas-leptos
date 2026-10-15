@@ -71,6 +71,17 @@ Treat published sources as acquisition leads until exact downloads, access condi
 
 For every prospective input, record the exact publisher, source URI or acquisition record, access/licence decision, source version, geographic and temporal coverage, source time profile, retrieval time, byte count, SHA-256 of exact bytes, parsing/transformation version, missingness and CRS. States such as not acquired, access review required, acquired-unreviewed, qualified for scenario and rejected must remain distinct. Aggregate national throughput must never be presented as route-level usable capacity.
 
+## Source acquisition gate
+
+The companion module `sol-atlas-core/src/transport_source_manifest.rs` provides a typed `TransportSourceManifestV1`. A source record keeps `NotAcquired`, `AccessReviewRequired`, `AcquiredUnreviewed`, `QualifiedForScenario` and `Rejected` states distinct from rights decisions. A source can move to `QualifiedForScenario` only when the manifest has an exact acquired-byte receipt (retrieval timestamp, byte count and SHA-256 shape), a permitted rights state and decision reference, schema and geographic/time profiles as appropriate, coverage interval for non-document data, parser profile, a qualification-review reference and explicit missingness/limitations.
+
+The initial South African register contains three discovery records:
+- National Freight Databank landing page — `AccessReviewRequired`; no dataset bytes, API contract or bulk-download permission are asserted.
+- Draft National Rail Master Plan consultation — `NotAcquired` for this manifest; the public document page is not treated as a live freight-data feed.
+- Western Cape proposed intermodal terminal network — `NotAcquired`; candidate sites and the reported modelled opportunity are not treated as verified current capacity.
+
+These are data-readiness records, not claims that the web pages themselves were never read. The distinction is between researching a source page and acquiring, rights-reviewing, freezing and qualifying the underlying dataset used in a reproducible scenario. The validator checks declared metadata shape; it cannot establish that a legal review is correct or that a dataset is scientifically valid.
+
 ## Staging
 
 - **H0 — contract:** maintain the renderer-neutral schema, validator, synthetic fixture and deterministic-order tests.
