@@ -204,6 +204,15 @@ class WaporLevel3IndexTests(unittest.TestCase):
             "https://gismgr.fao.org/DATA/WAPOR-3/MOSAICSET/L3-AETI-M/WAPOR-3.L3-AETI-M.MBL.2024-01.tif",
         )
 
+    def test_same_origin_absolute_file_link_is_admitted(self):
+        raw = listing("https://gismgr.fao.org/DATA/WAPOR-3/MOSAICSET/L3-AETI-M/WAPOR-3.L3-AETI-M.MBL.2024-01.tif")
+        result = build_inventory(raw, "L3-AETI-M", "MBL", None, "local_html_snapshot")
+        self.assertEqual(result["requested_area_raster_count"], 1)
+        self.assertEqual(
+            result["requested_area_files"][0]["url"],
+            "https://gismgr.fao.org/DATA/WAPOR-3/MOSAICSET/L3-AETI-M/WAPOR-3.L3-AETI-M.MBL.2024-01.tif",
+        )
+
     def test_relative_traversal_file_link_fails_closed(self):
         raw = listing("../L3-AETI-M/WAPOR-3.L3-AETI-M.MBL.2024-01.tif")
         with self.assertRaisesRegex(IndexError, "unsafe matching Level III file link"):
