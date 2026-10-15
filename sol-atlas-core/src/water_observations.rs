@@ -209,7 +209,7 @@ mod tests {
             "unexpected semantic issues: {:#?}",
             report.issues
         );
-        assert_eq!(bundle["observations"].as_array().map(Vec::len), Some(68));
+        assert_eq!(bundle["observations"].as_array().map(Vec::len), Some(83));
     }
 
     #[test]
@@ -288,6 +288,58 @@ mod tests {
                 );
             }
         }
-        assert_eq!(annual_report_rows, 44);
+        assert_eq!(annual_report_rows, 46);
     }
+    #[test]
+    fn business_plan_totals_remain_provisional_and_do_not_masquerade_as_verified_savings() {
+        let bundle = fixture();
+        let rows = bundle["observations"]
+            .as_array()
+            .expect("observations must be an array");
+        let mut plan_rows = 0usize;
+        for row in rows {
+            if row["source_id"].as_str() == Some("jhb-water-business-plan-2025-26") {
+                plan_rows += 1;
+                assert_eq!(
+                    row["interpretation_state"].as_str(),
+                    Some("provisional_needs_primary_document_check"),
+                    "business plan row must remain provisional: {}",
+                    row["observation_id"]
+                );
+            }
+        }
+        assert_eq!(plan_rows, 13);
+        let saving = rows
+            .iter()
+            .find(|row| row["observation_id"] == "jw.ld.fy2023-24.estimated-demand-reduction")
+            .expect("reported active leak-detection saving row");
+        assert_eq!(saving["observation_kind"].as_str(), Some("reported_reference"));
+        assert!(
+            saving["notes"]
+                .as_array()
+                .expect("notes are array")
+                .iter()
+                .any(|note| note.as_str().unwrap_or_default().contains("not independent measurement"))
+        );
+    }
+
+    #[test]
+    fn preserves_conflicting_response_kpi_values_by_source_instead_of_silently_reconciling() {
+        let bundle = fixture();
+        let rows = bundle["observations"]
+            .as_array()
+            .expect("observations must be an array");
+        let direct_sewer = rows
+            .iter()
+            .find(|row| row["observation_id"] == "jw.annual23-24.direct-table26.sewer-blockage-response")
+            .expect("direct 2023/24 table value");
+        let comparator_sewer = rows
+            .iter()
+            .find(|row| row["observation_id"] == "jw.annual23-24.sewer-blockage-response")
+            .expect("2024/25 report's comparative value");
+        assert_eq!(direct_sewer["value"].as_f64(), Some(92.67));
+        assert_eq!(comparator_sewer["value"].as_f64(), Some(92.66));
+        assert_ne!(direct_sewer["source_id"], comparator_sewer["source_id"]);
+    }
+
 }
