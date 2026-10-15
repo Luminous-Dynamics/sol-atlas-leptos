@@ -31,9 +31,10 @@ For this non-negative decision-loss formulation EVSI should not be negative (up 
 ## Executable implementation
 
 - `sol-atlas-core/src/water_measurement.rs` implements validation, entropy, posterior updating, expected loss, EVSI and conditional net value.
-- `sol-atlas-core/src/bin/water_measurement_evaluate.rs` provides a Rust CLI that reads a declared model and emits a structured result.
+- `sol-atlas-core/src/bin/water_measurement_evaluate.rs` provides a Rust CLI that reads a declared model and emits a structured result envelope. The envelope includes the SHA-256 of the exact input bytes, so the displayed calculation can be bound to the source model rather than only its identifier.
 - `sol-atlas-core/fixtures/water-engineering/w0-measurement-model.toy.synthetic.json` includes a perfect-information and an uninformative-sensor control. It is designed to prove calculation behaviour, not water-network behaviour.
 - `sol-atlas-core/schemas/water-measurement-model-v0.1.schema.json` and the existing CI schema gate protect the input shape. Rust performs stricter row/column normalization and cross-field semantic checks.
+- CI now independently checks the toy result against its source file SHA-256 and expected values: the perfect sensor must produce 1 bit of information gain, EVSI 2 toy loss units, and net value 1; the uninformative sensor must produce zero information gain and zero EVSI.
 
 Negative and boundary tests cover invalid priors, malformed likelihood dimensions, duplicate identifiers, mismatched unit claims, incomparable costs and zero-probability outcomes. A perfect sensor should yield 1 bit in the two-hypothesis toy case; an uninformative sensor should yield zero information gain and zero EVSI.
 
