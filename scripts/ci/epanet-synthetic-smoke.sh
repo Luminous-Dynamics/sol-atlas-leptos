@@ -2,6 +2,12 @@
 set -euo pipefail
 out="$PWD/artifacts/epanet-w0"
 solver="$PWD/.epanet-build/bin/runepanet"
+runner_script="$PWD/scripts/ci/epanet-synthetic-smoke.sh"
+workflow_file="$PWD/.github/workflows/check.yml"
+github_sha="${GITHUB_SHA:-local-unset}""
+github_ref="${GITHUB_REF:-local-unset}""
+workflow_run_id="${GITHUB_RUN_ID:-local-unset}""
+workflow_run_attempt="${GITHUB_RUN_ATTEMPT:-local-unset}""
 scenario_file="$PWD/sol-atlas-core/fixtures/water-engineering/w0-p2-diameter-restriction.synthetic.json"
 scenario_file_sha="$(sha256sum "$scenario_file" | awk '{print $1}')"
 input_rel="$(jq -er '.model_package.input_snapshot.path | strings' "$scenario_file")"
@@ -334,6 +340,8 @@ candidate_binary_sha="$(sha256sum "$candidate_binary" | awk '{print $1}')"
 source_input_sha="$(sha256sum "$input" | awk '{print $1}')"
 cmake_version="$(cmake --version | head -n 1)"
 compiler_version="$(cc --version | head -n 1)"
+runner_script_sha="$(sha256sum "$runner_script" | awk '{print $1}')"
+workflow_sha="$(sha256sum "$workflow_file" | awk '{print $1}')"
 
 jq -n \
   --arg schema_version "epanet-synthetic-smoke/v0.1" \
@@ -372,6 +380,12 @@ jq -n \
   --arg candidate_downstream_pressure "$candidate_downstream_pressure" \
   --arg cmake_version "$cmake_version" \
   --arg compiler_version "$compiler_version" \
+  --arg github_sha "$github_sha" \
+  --arg github_ref "$github_ref" \
+  --arg workflow_run_id "$workflow_run_id" \
+  --arg workflow_run_attempt "$workflow_run_attempt" \
+  --arg runner_script_sha256 "$runner_script_sha" \
+  --arg workflow_file_sha256 "$workflow_sha" \
   --arg started_at "$started_at" \
   --arg finished_at "$finished_at" \
   '{
@@ -385,6 +399,16 @@ jq -n \
       executable_sha256: $solver_sha256,
       cmake: $cmake_version,
       compiler: $compiler_version
+    },
+    execution_identity: {
+      github_sha: $github_sha,
+      github_ref: $github_ref,
+      workflow_run_id: $workflow_run_id,
+      workflow_run_attempt: $workflow_run_attempt,
+      runner_script_path: "scripts/ci/epanet-synthetic-smoke.sh",
+      runner_script_sha256: $runner_script_sha256,
+      workflow_file_path: ".github/workflows/check.yml",
+      workflow_file_sha256: $workflow_file_sha256
     },
     source_fixture: {
       path: $input_rel,
