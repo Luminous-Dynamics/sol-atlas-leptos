@@ -143,8 +143,7 @@ impl TransportSourceRecordV1 {
             }
         }
 
-        if self.coverage_start_epoch_seconds.is_some()
-            != self.coverage_end_epoch_seconds.is_some()
+        if self.coverage_start_epoch_seconds.is_some() != self.coverage_end_epoch_seconds.is_some()
             || self
                 .coverage_start_epoch_seconds
                 .zip(self.coverage_end_epoch_seconds)
@@ -160,8 +159,7 @@ impl TransportSourceRecordV1 {
                 }
             }
             SourceAcquisitionStateV1::AccessReviewRequired => {
-                if self.acquisition.is_some()
-                    && self.rights_status == SourceRightsStatusV1::Denied
+                if self.acquisition.is_some() && self.rights_status == SourceRightsStatusV1::Denied
                 {
                     return Err(SourceManifestError::AcquisitionStateMismatch);
                 }
@@ -182,11 +180,7 @@ impl TransportSourceRecordV1 {
                 ) {
                     return Err(SourceManifestError::RightsNotQualified);
                 }
-                if !self
-                    .rights_decision_ref
-                    .as_deref()
-                    .is_some_and(nonempty)
-                {
+                if !self.rights_decision_ref.as_deref().is_some_and(nonempty) {
                     return Err(SourceManifestError::MissingRightsDecision);
                 }
                 if !self
@@ -225,7 +219,10 @@ impl TransportSourceRecordV1 {
                     return Err(SourceManifestError::MissingQualificationReview);
                 }
                 if self.missingness_and_limitations.is_empty()
-                    || self.missingness_and_limitations.iter().any(|s| !nonempty(s))
+                    || self
+                        .missingness_and_limitations
+                        .iter()
+                        .any(|s| !nonempty(s))
                 {
                     return Err(SourceManifestError::MissingLimitations);
                 }
@@ -396,7 +393,10 @@ mod tests {
     fn source_register_is_deterministically_sorted() {
         let mut manifest = south_african_freight_source_readiness_v1();
         manifest.records.reverse();
-        assert_eq!(manifest.normalized(), south_african_freight_source_readiness_v1());
+        assert_eq!(
+            manifest.normalized(),
+            south_african_freight_source_readiness_v1()
+        );
     }
 
     #[test]
