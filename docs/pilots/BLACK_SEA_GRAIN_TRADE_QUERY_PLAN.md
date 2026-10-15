@@ -30,7 +30,7 @@ Use the exact request parameters in the JSON plan; do not treat the formatted li
 ## Measurement and completeness rules
 
 - Preserve all raw fields. Inspect the actual source schema and reference metadata before interpreting `primaryValue`, `netWgt`, `qty`, quantity units, estimated/aggregate flags or report status.
-- Do not convert a missing quantity to zero; do not silently mix trade value, net weight and reported quantity; do not deduplicate without a documented row key.
+- Do not convert a missing quantity to zero; do not silently mix trade value, net weight and reported quantity; do not deduplicate without a documented row key. An empty API response is recorded as `empty_response_needs_availability_review`, not accepted as evidence of zero trade; verify data availability and filters first.
 - Inspect reporting coverage, estimated records, revisions, classification vintage, partner semantics, currency/value basis and quantity units by month. If the data cannot support a comparable monthly series, narrow the claim or abandon that comparison.
 - Keep Comtrade monthly aggregates separate from the JCC Initiative-only monthly observations and from FAO price indices. Alignment is descriptive, not causal evidence.
 

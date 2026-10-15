@@ -124,8 +124,18 @@ def assess_comtrade_response(
     if count != len(data) or len(data) >= record_limit:
         return {"state": "captured_but_incomplete", "count": count, "returned_rows": len(data)}
 
-    # An empty response is not proof of zero trade; row-level dimensions can
-    # only be checked when the API returned rows.
+    # Empty data is a distinct review state, not successful query qualification.
+    # It may mean no report, no coverage, a dimension mismatch, or a genuine
+    # absence. A separate availability/metadata check must adjudicate it.
+    if not data:
+        return {
+            "state": "empty_response_needs_availability_review",
+            "count": count,
+            "returned_rows": 0,
+            "rows_present": False,
+            "query_dimensions_verified": False,
+        }
+
     if expected_parameters and data:
         required = ("reporterCode", "partnerCode", "flowCode", "cmdCode", "period")
         missing = sorted(field for field in required if any(field not in row for row in data))
@@ -310,11 +320,12 @@ def capture_one(task: dict, snapshot_dir: Path, timeout_seconds: float, fetcher=
             record["error"] = "count/row mismatch or public-preview ceiling reached"
         else:
             record["capture_state"] = assessment["state"]
-            record["error"] = (
-                "Comtrade response dimensions did not match the requested query"
-                if assessment["state"] == "captured_query_dimension_mismatch"
-                else "Comtrade response envelope or required dimensions could not be validated"
-            )
+            if assessment["state"] == "captured_query_dimension_mismatch":
+                record["error"] = "Comtrade response dimensions did not match the requested query"
+            elif assessment["state"] == "empty_response_needs_availability_review":
+                record["error"] = "Empty response is not proof of zero trade; check source data availability and query dimensions"
+            else:
+                record["error"] = "Comtrade response envelope or required dimensions could not be validated"
     else:
         record["capture_state"] = "captured_pending_metadata_review"
     return record

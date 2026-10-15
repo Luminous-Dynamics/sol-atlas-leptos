@@ -85,6 +85,12 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
         malformed = b'{"count":2,"data":"not-an-array"}'
         self.assertEqual(capture.assess_comtrade_response(malformed)["state"], "captured_but_unrecognized_schema")
 
+        empty = json.dumps({"count": 0, "data": []}).encode()
+        empty_result = capture.assess_comtrade_response(empty)
+        self.assertEqual(empty_result["state"], "empty_response_needs_availability_review")
+        self.assertFalse(empty_result["rows_present"])
+        self.assertFalse(empty_result["query_dimensions_verified"])
+
     def test_exact_response_bytes_are_hashed_and_never_overwritten(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -248,6 +254,34 @@ class BlackSeaSourceCaptureTests(unittest.TestCase):
         self.assertEqual(metrics["fao_cereal_price_index"]["change_from_previous_month_percent"], 5.1)
         self.assertEqual(metrics["international_maize_prices"]["change_from_previous_month_percent"], 5.6)
         self.assertIn("Strait of Hormuz", context["publisher_narrative"]["simultaneous_factors_reported"]["summary"])
+
+
+
+    def test_empty_comtrade_response_is_saved_but_not_counted_as_qualified_capture(self):
+        with tempfile.TemporaryDirectory() as temp:
+            snapshot = Path(temp) / "snapshot"
+            snapshot.mkdir()
+            raw = b'{"count":0,"data":[]}'
+            task = {
+                "source_id": "UN-COMTRADE", "artifact_id": "202201_hs1001",
+                "url": "https://comtradeapi.un.org/public/v1/preview/C/M/HS?reportercode=804&period=202201",
+                "filename": "empty-response.json", "max_bytes": 1000,
+                "expected_content_types": ["application/json"],
+                "response_kind": "comtrade_json",
+                "request_parameters": {"reportercode": 804, "partnerCode": 0, "flowCode": "X", "cmdCode": "1001", "period": "202201"},
+                "expected_response_dimensions": {"reporterCode": 804, "partnerCode": 0, "flowCode": "X", "cmdCode": "1001", "period": "202201"},
+                "record_limit": 500,
+            }
+
+            def fake_fetcher(url, max_bytes, timeout_seconds):
+                return {"status_code": 200, "final_url": url, "content_type": "application/json",
+                        "headers": {}, "raw": raw, "error": None}
+
+            record = capture.capture_one(task, snapshot, 1, fetcher=fake_fetcher)
+            self.assertEqual(record["capture_state"], "empty_response_needs_availability_review")
+            self.assertIn("not proof of zero trade", record["error"])
+            self.assertEqual((snapshot / "empty-response.json").read_bytes(), raw)
+            self.assertEqual(record["response_sha256"], hashlib.sha256(raw).hexdigest())
 
 
 
