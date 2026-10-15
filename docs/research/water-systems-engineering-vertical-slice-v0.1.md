@@ -288,6 +288,34 @@ The command prints `SEMANTIC_VALIDATION_PASS` only for the semantic checks it im
 - South African Government, [National Water Action Plan, 23 July 2026](https://www.gov.za/news/media-statements/president-cyril-ramaphosa-releases-national-water-action-plan-23-jul-2026).
 - South African Government, [National norms and standards for domestic water and sanitation services](https://www.gov.za/documents/notices/national-water-act-national-norms-and-standards-domestic-water-and-sanitation) and [Compulsory National Water and Sanitation Services Standards](https://www.gov.za/documents/notices/water-services-act-compulsory-national-water-and-sanitation-services-standards). These are reference entry points, not a substitute for checking current applicability and detailed requirements.
 
+## Real public data intake (aggregate-only first step)
+
+A companion source-attributed observation bundle has been added at
+`sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json`,
+with its independent Draft 2020-12 schema at
+`sol-atlas-core/schemas/water-public-observation-bundle-v0.1.schema.json`.
+It records 24 aggregate observations across the Greater Johannesburg Water Supply System's
+2024/25 water-quality summary and the published five-year pipe-renewal targets. The bundle
+preserves source IDs, reporting dates, units, source limitations, and the distinction between
+observed aggregate values and forward-looking plans. See
+[`water-data-readiness-johannesburg-v0.1.md`](water-data-readiness-johannesburg-v0.1.md)
+for the data-source register and the next acquisition gates.
+
+The source-reference semantic validator and CLI are in
+`sol-atlas-core/src/water_observations.rs` and
+`sol-atlas-core/src/bin/water_observation_validate.rs`. The CLI command is:
+
+```sh
+cargo test -p sol-atlas-core water_observations::tests -- --nocapture
+cargo run -p sol-atlas-core --bin water-observation-validate -- \
+  sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json
+```
+
+The real-data fixture is **not** pressure telemetry, site-level chemistry, a pipe inventory,
+a calibrated EPANET model, or SWMM forcing. DWS data must be used under its stated restrictions;
+where public dashboards do not expose the raw export in this access path, the data is listed
+as a candidate request/export rather than invented or silently scraped.
+
 ## Nonclaims
 
 This proposal does not establish that an installed implementation exists, any test has run, a hydraulic model is accurate, any particular Johannesburg network is available, any municipal partner has approved access, any intervention will save a specified amount of water or money, or a candidate design complies with applicable law. Those are separate proof obligations.
