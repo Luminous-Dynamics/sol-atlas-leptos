@@ -229,3 +229,8 @@ The global success criterion is not the number of climate profiles. It is repeat
 ## Current maturity and limits
 
 The profile is design-only. The candidate study boundary is unverified. No source raster or local field observations have been acquired or hashed by this profile; no local baseline, forecast, crop-suitability result, yield estimate or operational recommendation has been produced. A passing schema/contract test would show that the research plan is structurally consistent, not that the agricultural model is scientifically accurate.
+
+
+## Qualification corrections (15 October 2026)
+
+The last exact-head catalogue run exposed six failures in the agroclimate profile test suite. This patch corrects three assertion/fixture defects without relaxing the underlying safeguards: schema assertions now check error paths rather than unstable generic validator messages; the private local-observation example includes the required primary artifact manifest while keeping redistribution unknown; and profile text restores the explicit regional-supply and municipal-boundary limitations used by the tests. Exact-head CI must confirm the repaired suite before this profile is treated as structurally qualified. No food-production data or field validation has been added.

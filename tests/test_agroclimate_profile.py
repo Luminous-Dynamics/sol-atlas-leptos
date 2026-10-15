@@ -195,7 +195,11 @@ class AgroclimateProfileTests(unittest.TestCase):
         constraint = doc["site_constraints"]["soil_condition_and_contamination"]
         constraint["state"] = "assessed"
         schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
-        self.assertTrue(any("evidence_refs" in error.message or "reviewed_by" in error.message for error in schema_errors))
+        self.assertTrue(any(
+            list(error.path)[:2] == ["site_constraints", "soil_condition_and_contamination"]
+            and list(error.path)[-1:] in [["evidence_refs"], ["reviewed_by"]]
+            for error in schema_errors
+        ))
 
     def test_assessed_site_constraint_accepts_auditable_reference_shape(self):
         doc = copy.deepcopy(self.profile)
@@ -547,7 +551,12 @@ class AgroclimateProfileTests(unittest.TestCase):
         derived["role"] = "derived_output"
         source["artifacts"].append(derived)
         schema_errors = list(Draft202012Validator(self.schema).iter_errors(doc))
-        self.assertTrue(any("transformations" in error.message for error in schema_errors))
+        self.assertTrue(any(
+            list(error.path)[-1:] == ["transformations"]
+            and "sources" in list(map(str, error.path))
+            and "artifacts" in list(map(str, error.path))
+            for error in schema_errors
+        ))
 
     def test_derived_output_with_traceable_transformation_is_valid(self):
         doc = self.synthetic_complete_profile()
@@ -659,6 +668,21 @@ class AgroclimateProfileTests(unittest.TestCase):
         source["selected_product_identity_verified"] = True
         source["rights_state"] = "permission_granted"
         source["redistribution_allowed"] = None
+        source["artifacts"] = [{
+            "artifact_id": "local-observation-primary-v1",
+            "role": "primary",
+            "asset_uri": "urn:fixture:local-observation:private-capture-v1",
+            "media_type": "application/octet-stream",
+            "byte_size": 1,
+            "sha256": "a" * 64,
+            "acquired_at": "2026-10-15T08:00:00Z",
+            "spatial_support": "Private site-level location; access restricted",
+            "temporal_support": "Captured sample window: 2026-10-15",
+            "units": "Defined by the versioned local measurement protocol",
+            "nodata_semantics": "Not applicable to this one-byte synthetic manifest fixture.",
+            "lineage_refs": ["urn:mycelix:measurement-protocol:highveld-site-v1"],
+            "transformations": [],
+        }]
         self.assertEqual(self.errors(doc), [])
 
     def test_acquired_local_observations_cannot_claim_public_redistribution(self):

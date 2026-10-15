@@ -2,7 +2,7 @@
   "profile_id": "agroclimate-johannesburg-highveld-v1",
   "profile_version": "1.0.0",
   "status": "design_only",
-  "review_date": "2026-10-14",
+  "review_date": "2026-10-15",
   "title": "Johannesburg and Highveld food-resilience model",
   "decision_question": "Which locally feasible food-production strategies remain comparatively resilient to seasonal water stress and heat under explicitly described weather, soil, water-access, crop, and management assumptions, and what additional observations are needed before a recommendation can be trusted?",
   "geography": {
@@ -64,7 +64,7 @@
       "Local soil sampling and targeted contaminant screening where site history/exposure warrants it",
       "Postharvest storage, power reliability, transport and observed loss records",
       "Site-use permission, aggregated demand, affordability and local nutrition priorities",
-      "Regional supplier, market/hub, transport, seasonal availability and disruption-contingency records"
+      "Regional supply network records covering suppliers, market/hub connectivity, seasonal availability, transport and disruption contingencies"
     ]
   },
   "candidate_reference_periods": [
@@ -90,7 +90,7 @@
       "end_year": 2040,
       "role": "scenario_projection_period",
       "state": "candidate_not_frozen",
-      "scenario_note": "A GAEZ v5 CMIP6-derived scenario projection period. This source-defined interval is partly elapsed at the 2026-10-14 profile review date; do not present the full interval as a forward operational forecast. Select the exact pathway and climate-model members only after catalogue review."
+      "scenario_note": "A GAEZ v5 CMIP6-derived scenario projection period. This source-defined interval is partly elapsed at the 2026-10-15 profile review date; do not present the full interval as a forward operational forecast. Select the exact pathway and climate-model members only after catalogue review."
     },
     {
       "period_id": "scenario-2041-2060",
@@ -636,7 +636,7 @@
       "reference_type": "official_bulletin",
       "role": "Official follow-up record that the DEM7008 proposal affecting Stretford Ext 1 and Johannesburg/Emfuleni/Sedibeng was withdrawn under Section 21(5), after the January 2024 notice had listed it for objections.",
       "limitations": [
-        "This withdrawal record means the January 2024 proposal must not be treated as an effective boundary change. It does not by itself provide the frozen geometry bytes for Johannesburg's current municipal boundary.",
+        "DEM7008 was withdrawn under Section 21(5) of the Municipal Demarcation Act; the January 2024 proposal must not be treated as an effective boundary change. The withdrawal record does not by itself provide frozen geometry bytes for Johannesburg's current municipal boundary.",
         "Use the official source history to resolve what boundary version is legally effective, then archive and hash the exact municipal polygon used by the study."
       ]
     },
@@ -670,7 +670,7 @@
       "role": "Recent MDB status note states that, following further investigation, the Board had resolved not to redetermine the municipal boundaries at that time for the deferred cases covered by Circulars 3 of 2025, while ward delimitation continued for the 2026 local-government elections.",
       "limitations": [
         "The statement applies to the deferred cases described in that update; do not infer that every municipal boundary proposal or previously withdrawn case has the same procedural status.",
-        "This process update is not an authoritative geometry export or a substitute for the exact current Johannesburg boundary artifact and legal effective date."
+        "This process update is not a substitute for the exact current Johannesburg boundary artifact and legal effective date; it is not an authoritative geometry export."
       ]
     }
   ],
