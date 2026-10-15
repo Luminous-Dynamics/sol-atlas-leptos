@@ -294,7 +294,7 @@ A companion source-attributed observation bundle has been added at
 `sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json`,
 with its independent Draft 2020-12 schema at
 `sol-atlas-core/schemas/water-public-observation-bundle-v0.1.schema.json`.
-It records 68 observations across four source records: the system-wide 2024/25 water-quality
+It records 83 observations across five source records: the system-wide 2024/25 water-quality
 summary, the published five-year pipe-renewal targets, and provisional 2023/24–2024/25 annual-
 report performance/compliance indicators. Annual-report values remain explicitly provisional
 pending page-level review of the PDFs. The bundle preserves source IDs, reporting dates, units,
@@ -312,6 +312,10 @@ cargo test -p sol-atlas-core water_observations::tests -- --nocapture
 cargo run -p sol-atlas-core --bin water-observation-validate -- \
   sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json
 ```
+
+The FY2025/26 Business Plan adds useful operational context from its page 49 active leak-detection table and page 50 pressure-management discussion: it reports totals of 2,620 burst-pipe activities, 7,212 leaking-meter activities, 476 leaking-valve activities, 283 leaking-hydrant activities, and 10,663.9 km of mains surveyed for FY2023/24. It also reports an estimated 14,355,757 kL/year demand reduction from active leak detection and potential pressure-management savings of 5,918,000 kL/year, and lists a multi-year schedule for 223 advanced leak-detection devices. Source: [Johannesburg Water Business Plan 2025/26, pp. 49–50](https://johannesburgwater.co.za/wp-content/uploads/2025/07/JHB-Water_Business-Plan-2025_For-Upload_FINAL_070725.pdf).
+
+These figures are now in the bundle as 13 source-attributed provisional records. The report's regional activity components do not reconcile arithmetically to several printed totals in the indexed text, so no regional breakdowns are ingested as trusted values. The savings are publisher-reported estimates or potential—not independently verified realised savings. We also preserved two annual-report Table 26 differences (92.67% vs 92.66% sewer response; 67.46% vs 67.42% water-burst response) with the publishing source attached to each value rather than silently choosing one.
 
 The real-data fixture is **not** pressure telemetry, site-level chemistry, a pipe inventory,
 a calibrated EPANET model, or SWMM forcing. Annual-report excerpts are not treated as verified
