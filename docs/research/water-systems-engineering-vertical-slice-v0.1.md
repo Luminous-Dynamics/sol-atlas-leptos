@@ -294,7 +294,7 @@ A companion source-attributed observation bundle has been added at
 `sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json`,
 with its independent Draft 2020-12 schema at
 `sol-atlas-core/schemas/water-public-observation-bundle-v0.1.schema.json`.
-It records 83 observations across five source records: the system-wide 2024/25 water-quality
+It records 91 observations across six source records: the system-wide 2024/25 water-quality
 summary, the published five-year pipe-renewal targets, and provisional 2023/24–2024/25 annual-
 report performance/compliance indicators. Annual-report values remain explicitly provisional
 pending page-level review of the PDFs. The bundle preserves source IDs, reporting dates, units,
@@ -312,6 +312,8 @@ cargo test -p sol-atlas-core water_observations::tests -- --nocapture
 cargo run -p sol-atlas-core --bin water-observation-validate -- \
   sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json
 ```
+
+The bundle now also captures eight figures from Johannesburg Water's [official Active Leak Detection Programme page](https://www.johannesburgwater.co.za/about-us/campaigns/active-leak-detection-programme/): 15 daily teams; in excess of 10,500 km inspected per year (reported as 85% of water infrastructure length); average annual detections of 1,456 bursts, 5,227 leaking meters, 341 valves and 217 hydrants; and approximately 8,100 ML saved annually. These webpage figures are labelled as publisher-reported and not independently reproduced, not verified events or model inputs. The separate Business Plan estimate of 14,355,757 kL/year is retained separately: definitions/time windows are not reconciled, so do not claim one figure confirms or disproves the other.
 
 The FY2025/26 Business Plan adds useful operational context from its page 49 active leak-detection table and page 50 pressure-management discussion: it reports totals of 2,620 burst-pipe activities, 7,212 leaking-meter activities, 476 leaking-valve activities, 283 leaking-hydrant activities, and 10,663.9 km of mains surveyed for FY2023/24. It also reports an estimated 14,355,757 kL/year demand reduction from active leak detection and potential pressure-management savings of 5,918,000 kL/year, and lists a multi-year schedule for 223 advanced leak-detection devices. Source: [Johannesburg Water Business Plan 2025/26, pp. 49–50](https://johannesburgwater.co.za/wp-content/uploads/2025/07/JHB-Water_Business-Plan-2025_For-Upload_FINAL_070725.pdf).
 

@@ -114,6 +114,28 @@
         "The 14,355,757 kL/year and 5,918,000 kL/year figures are reported estimates/potential savings, not independently verified realised outcomes.",
         "The device deployment schedule is a business-plan target, not a record that all deployments actually occurred."
       ]
+    },
+    {
+      "source_id": "jhb-water-active-leak-detection-programme",
+      "publisher": "Johannesburg Water SOC Ltd",
+      "publication_title": "Active Leak Detection Programme",
+      "publication_url": "https://www.johannesburgwater.co.za/about-us/campaigns/active-leak-detection-programme/",
+      "official_source_url": "https://www.johannesburgwater.co.za/about-us/campaigns/active-leak-detection-programme/",
+      "published_on": null,
+      "source_kind": "programme_page",
+      "access_state": "public_page_observed",
+      "granularity": "Official programme webpage with programme staffing, average annual inspection/detection totals and an approximate annual water-saving statement; no raw event-level rows or measurement method",
+      "reuse_terms": [
+        "Attribute Johannesburg Water SOC Ltd and retain the official source URL.",
+        "No separate open-data licence for bulk republication was confirmed; this bundle transcribes a small set of public aggregate claims.",
+        "The original programme page remains the source of record."
+      ],
+      "known_limitations": [
+        "The page does not give a fixed reporting start/end date for these averages.",
+        "No raw detected-leak records, repair timestamps, pressure traces, meter readings, or water-saving calculation method are published on the page.",
+        "Programme averages must not be treated as a complete event register or hydraulic model calibration data.",
+        "Do not directly reconcile these figures with the FY2023/24 Business Plan Table 25 totals without establishing their definitions, scope, and reporting periods."
+      ]
     }
   ],
   "observations": [
@@ -1668,6 +1690,151 @@
       "notes": [
         "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
         "Plan target as described in the Business Plan; installed/live status requires a separate verified source."
+      ]
+    },
+    {
+      "observation_id": "jw.active-leak-detection.teams",
+      "source_id": "jhb-water-active-leak-detection-programme",
+      "name": "Technical teams undertaking active leak detection",
+      "value": 15,
+      "unit": "team",
+      "observation_kind": "reported_reference",
+      "statistic": "programme_team_count_as_reported",
+      "period_start": null,
+      "period_end": null,
+      "period_label": "Official programme page states current averages; no fixed reporting window stated; accessed 2026-10-15",
+      "population_or_scope": "Johannesburg Water's active leak-detection programme",
+      "reference_text": null,
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "The official page states 15 technical teams undertake active leak detection daily; deployment rosters and time history are not supplied."
+      ]
+    },
+    {
+      "observation_id": "jw.active-leak-detection.mains-inspected",
+      "source_id": "jhb-water-active-leak-detection-programme",
+      "name": "Water infrastructure inspected by active leak-detection teams",
+      "value": "in excess of 10,500",
+      "unit": "km/year",
+      "observation_kind": "reported_reference",
+      "statistic": "publisher_reported_average_annual_inspection_length",
+      "period_start": null,
+      "period_end": null,
+      "period_label": "Official programme page states current averages; no fixed reporting window stated; accessed 2026-10-15",
+      "population_or_scope": "Johannesburg Water's active leak-detection programme",
+      "reference_text": null,
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "The webpage wording is 'in excess of 10,500km ... per annum'; this is preserved as a string lower-bound phrase, not normalised to an exact 10,500 km."
+      ]
+    },
+    {
+      "observation_id": "jw.active-leak-detection.share-of-infrastructure",
+      "source_id": "jhb-water-active-leak-detection-programme",
+      "name": "Share of total water infrastructure length reportedly inspected per year",
+      "value": 85,
+      "unit": "%",
+      "observation_kind": "reported_reference",
+      "statistic": "publisher_reported_annual_coverage_share",
+      "period_start": null,
+      "period_end": null,
+      "period_label": "Official programme page states current averages; no fixed reporting window stated; accessed 2026-10-15",
+      "population_or_scope": "Johannesburg Water's active leak-detection programme",
+      "reference_text": null,
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "The denominator and calculation method are not supplied on the page."
+      ]
+    },
+    {
+      "observation_id": "jw.active-leak-detection.average-bursts",
+      "source_id": "jhb-water-active-leak-detection-programme",
+      "name": "Average burst pipes detected by active leak-detection teams",
+      "value": 1456,
+      "unit": "burst pipe/year",
+      "observation_kind": "reported_reference",
+      "statistic": "publisher_reported_average_annual_detections",
+      "period_start": null,
+      "period_end": null,
+      "period_label": "Official programme page states current averages; no fixed reporting window stated; accessed 2026-10-15",
+      "population_or_scope": "Johannesburg Water's active leak-detection programme",
+      "reference_text": null,
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Official programme page says average per annum; do not equate directly with Business Plan table totals without reconciling scope and period."
+      ]
+    },
+    {
+      "observation_id": "jw.active-leak-detection.average-meters",
+      "source_id": "jhb-water-active-leak-detection-programme",
+      "name": "Average leaking meters detected by active leak-detection teams",
+      "value": 5227,
+      "unit": "leaking meter/year",
+      "observation_kind": "reported_reference",
+      "statistic": "publisher_reported_average_annual_detections",
+      "period_start": null,
+      "period_end": null,
+      "period_label": "Official programme page states current averages; no fixed reporting window stated; accessed 2026-10-15",
+      "population_or_scope": "Johannesburg Water's active leak-detection programme",
+      "reference_text": null,
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Official programme page says average per annum; no dated individual event records are attached."
+      ]
+    },
+    {
+      "observation_id": "jw.active-leak-detection.average-valves",
+      "source_id": "jhb-water-active-leak-detection-programme",
+      "name": "Average leaking valves detected by active leak-detection teams",
+      "value": 341,
+      "unit": "leaking valve/year",
+      "observation_kind": "reported_reference",
+      "statistic": "publisher_reported_average_annual_detections",
+      "period_start": null,
+      "period_end": null,
+      "period_label": "Official programme page states current averages; no fixed reporting window stated; accessed 2026-10-15",
+      "population_or_scope": "Johannesburg Water's active leak-detection programme",
+      "reference_text": null,
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Official programme page says average per annum; no dated individual event records are attached."
+      ]
+    },
+    {
+      "observation_id": "jw.active-leak-detection.average-hydrants",
+      "source_id": "jhb-water-active-leak-detection-programme",
+      "name": "Average leaking hydrants detected by active leak-detection teams",
+      "value": 217,
+      "unit": "leaking hydrant/year",
+      "observation_kind": "reported_reference",
+      "statistic": "publisher_reported_average_annual_detections",
+      "period_start": null,
+      "period_end": null,
+      "period_label": "Official programme page states current averages; no fixed reporting window stated; accessed 2026-10-15",
+      "population_or_scope": "Johannesburg Water's active leak-detection programme",
+      "reference_text": null,
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "Official programme page says average per annum; no dated individual event records are attached."
+      ]
+    },
+    {
+      "observation_id": "jw.active-leak-detection.estimated-water-savings",
+      "source_id": "jhb-water-active-leak-detection-programme",
+      "name": "Approximate average water saved by the active leak-detection programme",
+      "value": 8100,
+      "unit": "ML/year (approximate)",
+      "observation_kind": "reported_reference",
+      "statistic": "publisher_reported_average_annual_water_saving",
+      "period_start": null,
+      "period_end": null,
+      "period_label": "Official programme page states current averages; no fixed reporting window stated; accessed 2026-10-15",
+      "population_or_scope": "Johannesburg Water's active leak-detection programme",
+      "reference_text": null,
+      "interpretation_state": "reported_not_independently_reproduced",
+      "notes": [
+        "The official webpage states 'On average approximately 8,100 Ml of water is saved' due to the ongoing programme; the calculation method is not published.",
+        "Not independently measured or reproduced by this project. Do not treat as a verified realised saving or directly reconcile it with the Business Plan's separate 14,355,757 kL/year estimate without matching definitions and time windows."
       ]
     }
   ],

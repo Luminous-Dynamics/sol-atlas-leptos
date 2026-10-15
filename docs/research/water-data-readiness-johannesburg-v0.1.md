@@ -6,7 +6,7 @@
 
 ## What has been captured
 
-The companion machine-readable bundle `sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json` now contains **83 observations across five source records**: directly observed public-notice aggregates, the official renewal-programme targets, and provisional tabular/portfolio figures transcribed from the indexed text of the 2023/24 and 2024/25 Johannesburg Water annual reports. The annual-report rows are deliberately marked `provisional_needs_primary_document_check` because the PDFs could not be page-reviewed during this capture. They must not be promoted to verified data until a reviewer checks the exact table cells and their definitions. The original published **2024/2025 Water Quality Report for the Greater Johannesburg Water Supply System** contributes:
+The companion machine-readable bundle `sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json` now contains **91 observations across six source records**: directly observed public-notice aggregates, the official renewal-programme targets, and provisional tabular/portfolio figures transcribed from the indexed text of the 2023/24 and 2024/25 Johannesburg Water annual reports. The annual-report rows are deliberately marked `provisional_needs_primary_document_check` because the PDFs could not be page-reviewed during this capture. They must not be promoted to verified data until a reviewer checks the exact table cells and their definitions. The original published **2024/2025 Water Quality Report for the Greater Johannesburg Water Supply System** contributes:
 
 - Reporting window: 1 July 2024–30 June 2025.
 - 5,890 samples analysed and 79,025 tests undertaken.
@@ -57,6 +57,14 @@ Johannesburg Water's [2025/26 Business Plan](https://johannesburgwater.co.za/wp-
 These have been added as source-attributed but provisional observations. The non-reconciling totals are an important reason to retain report/table provenance and avoid turning raw extraction into unquestioned truth. The current public bundle does not ingest regional components as trusted values.
 
 The annual reports also disagree slightly on two FY2023/24 response KPIs: the direct 2023/24 report's Table 26 lists 92.67% for sewer-blockage response and 67.46% for water-burst response, while the 2024/25 report's comparative column lists 92.66% and 67.42%, respectively. Both source-reported pairs are kept in the bundle with their actual source IDs until a table-level review determines whether these differences reflect rounding, corrections, or definitions.
+
+## Official active leak-detection programme page
+
+Johannesburg Water's [Active Leak Detection Programme](https://www.johannesburgwater.co.za/about-us/campaigns/active-leak-detection-programme/) states that 15 technical teams work daily, inspecting in excess of 10,500 km/year (described as 85% of total water infrastructure length). The same page reports averages of 1,456 burst pipes, 5,227 leaking meters, 341 leaking valves, and 217 leaking hydrants detected per annum, and says approximately 8,100 ML of water is saved through the ongoing programme. Eight source-attributed records have been added to the machine-readable bundle.
+
+These are programme-level public claims without event-level rows, fixed average period, or a published water-saving calculation method. They must not be treated as verified leak-repair outcomes or EPANET calibration data.
+
+A comparison audit is now explicit: the Business Plan's FY2023/24 active leak-detection estimate is 14,355,757 kL/year (14,355.757 ML/year), whereas the programme page says approximately 8,100 ML/year. Those numbers differ nominally, but the source does not define equivalent periods or calculation scope; do not report the difference as realised performance or choose one as truth. The Business Plan's regional counts also do not reconcile to several printed totals in its indexed table. Obtain data dictionaries and verified event/outcome data before reconciliation.
 
 ## Data acquisition register
 

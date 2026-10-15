@@ -209,7 +209,7 @@ mod tests {
             "unexpected semantic issues: {:#?}",
             report.issues
         );
-        assert_eq!(bundle["observations"].as_array().map(Vec::len), Some(83));
+        assert_eq!(bundle["observations"].as_array().map(Vec::len), Some(91));
 
         let fy23_quality = bundle["observations"]
             .as_array()
@@ -381,4 +381,34 @@ mod tests {
         assert_eq!(comparator_sewer["value"].as_f64(), Some(92.66));
         assert_ne!(direct_sewer["source_id"], comparator_sewer["source_id"]);
     }
+    #[test]
+    fn active_leak_detection_page_claims_remain_source_attributed_and_unverified() {
+        let bundle = fixture();
+        let rows = bundle["observations"]
+            .as_array()
+            .expect("observations must be an array");
+        let programme_rows: Vec<&Value> = rows
+            .iter()
+            .filter(|row| {
+                row["source_id"].as_str() == Some("jhb-water-active-leak-detection-programme")
+            })
+            .collect();
+        assert_eq!(programme_rows.len(), 8);
+        assert!(programme_rows.iter().all(|row| {
+            row["interpretation_state"].as_str()
+                == Some("reported_not_independently_reproduced")
+        }));
+        let savings = programme_rows
+            .iter()
+            .find(|row| row["observation_id"] == "jw.active-leak-detection.estimated-water-savings")
+            .expect("programme savings claim");
+        assert_eq!(savings["value"].as_i64(), Some(8100));
+        assert!(
+            savings["notes"].as_array().expect("notes array").iter().any(|note| {
+                note.as_str().unwrap_or_default().contains("not independently measured")
+            })
+        );
+    }
+
+
 }

@@ -130,7 +130,8 @@
             "planned_program",
             "interactive_dashboard",
             "monitoring_dataset",
-            "service_notice"
+            "service_notice",
+            "programme_page"
           ]
         },
         "access_state": {
