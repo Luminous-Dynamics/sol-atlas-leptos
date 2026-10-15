@@ -75,7 +75,11 @@ fn valid_identifier(value: &str) -> bool {
         && value.len() <= 128
         && value
             .bytes()
-            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || b"._-".contains(&byte))
+            .all(|byte| {
+                byte.is_ascii_lowercase()
+                    || byte.is_ascii_digit()
+                    || b"._-".contains(&byte)
+            })
         && value
             .bytes()
             .next()
