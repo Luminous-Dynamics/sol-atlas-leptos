@@ -461,6 +461,14 @@ mod tests {
             .expect("National Freight Databank discovery record")
     }
 
+    fn transnet_capacity_statement_record() -> TransportSourceRecordV1 {
+        south_african_freight_source_readiness_v1()
+            .records
+            .into_iter()
+            .find(|record| record.id == "za-transnet-capacity-statement-2026-27")
+            .expect("Transnet capacity-statement discovery record")
+    }
+
     #[test]
     fn south_african_source_register_is_valid_and_does_not_claim_acquisition() {
         let manifest = south_african_freight_source_readiness_v1();
@@ -539,7 +547,11 @@ mod tests {
 
     #[test]
     fn qualified_dataset_needs_geography_time_coverage_and_review() {
-        let mut record = national_freight_databank_record();
+        let mut record = transnet_capacity_statement_record();
+        assert_eq!(
+            record.product_kind,
+            SourceProductKindV1::OperationalRailPlanningDataset
+        );
         record.acquisition_state = SourceAcquisitionStateV1::QualifiedForScenario;
         record.rights_status = SourceRightsStatusV1::PermittedInternalUse;
         record.rights_decision_ref = Some("review://rights/approved".to_owned());
@@ -575,6 +587,8 @@ mod tests {
             record.validate(),
             Err(SourceManifestError::InvalidCoverageInterval)
         );
+        record.coverage_end_epoch_seconds = Some(20);
+        assert_eq!(record.validate(), Ok(()));
     }
 
     #[test]
