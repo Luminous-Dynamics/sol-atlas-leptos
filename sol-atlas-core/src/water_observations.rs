@@ -201,10 +201,7 @@ mod tests {
             "unexpected semantic issues: {:#?}",
             report.issues
         );
-        assert_eq!(
-            bundle["observations"].as_array().map(Vec::len),
-            Some(68)
-        );
+        assert_eq!(bundle["observations"].as_array().map(Vec::len), Some(68));
     }
 
     #[test]
@@ -240,7 +237,8 @@ mod tests {
         bundle["source_records"][1]["source_id"] = duplicate_id;
         let report = validate_public_observation_bundle(&bundle);
         assert!(report.issues.iter().any(|issue| issue.code == "DUPLICATE_SOURCE_ID"));
-    } 
+    }
+
     #[test]
     fn annual_report_rows_remain_provisional_until_primary_page_review() {
         let bundle = fixture();
@@ -264,5 +262,4 @@ mod tests {
         }
         assert_eq!(annual_report_rows, 44);
     }
-
 }
