@@ -203,7 +203,7 @@ mod tests {
         );
         assert_eq!(
             bundle["observations"].as_array().map(Vec::len),
-            Some(24)
+            Some(68)
         );
     }
 
@@ -240,5 +240,29 @@ mod tests {
         bundle["source_records"][1]["source_id"] = duplicate_id;
         let report = validate_public_observation_bundle(&bundle);
         assert!(report.issues.iter().any(|issue| issue.code == "DUPLICATE_SOURCE_ID"));
+    } 
+    #[test]
+    fn annual_report_rows_remain_provisional_until_primary_page_review() {
+        let bundle = fixture();
+        let observations = bundle["observations"]
+            .as_array()
+            .expect("observations must be an array");
+        let mut annual_report_rows = 0usize;
+        for observation in observations {
+            let source_id = observation["source_id"].as_str().unwrap_or_default();
+            if source_id == "jhb-water-annual-report-2023-24"
+                || source_id == "jhb-water-annual-report-2024-25"
+            {
+                annual_report_rows += 1;
+                assert_eq!(
+                    observation["interpretation_state"].as_str(),
+                    Some("provisional_needs_primary_document_check"),
+                    "annual report row must not be promoted before page-level review: {}",
+                    observation["observation_id"]
+                );
+            }
+        }
+        assert_eq!(annual_report_rows, 44);
     }
+
 }
