@@ -1,0 +1,243 @@
+{
+  "schema_version": "luminous.sol-atlas.un-comtrade-query-plan.v1",
+  "plan_id": "black-sea-grain-ukraine-monthly-trade-baseline",
+  "case_id": "black-sea-grain-initiative-2022-2023",
+  "status": "query_plan_only",
+  "execution_state": "not_run",
+  "analysis_window_frozen": false,
+  "source": {
+    "source_id": "UN-COMTRADE",
+    "provider": "United Nations Statistics Division",
+    "api_documentation_url": "https://uncomtrade.org/docs/un-comtrade-api/",
+    "endpoint_root": "https://comtradeapi.un.org",
+    "endpoint_template": "/public/v1/preview/{typeCode}/{freqCode}/{classificationCode}",
+    "access_mode": "public_preview_no_subscription_key",
+    "raw_response_bytes_acquired": false,
+    "source_sha256": null,
+    "response_schema_inspected": false,
+    "rights_review": "review_dataset_version"
+  },
+  "query_dimensions": {
+    "type_code": "C",
+    "frequency_code": "M",
+    "classification_code": "HS",
+    "reporter_code": 804,
+    "reporter_label": "Ukraine",
+    "partner_code": 0,
+    "partner_label": "World aggregate",
+    "flow_code": "X",
+    "flow_label": "Exports",
+    "commodity_codes": [
+      "1001",
+      "1005"
+    ],
+    "commodity_labels": [
+      "Wheat and meslin",
+      "Maize (corn)"
+    ],
+    "periods_start": "201701",
+    "periods_end": "202312",
+    "period_semantics": "YYYYMM",
+    "classification_policy": "Discovery only: preserve every returned classification/version field. Do not stitch results from different classification vintages or claim comparability until the classification, commodity definitions, quantity units and valuation fields are inspected. Split incompatible series instead of silently crosswalking them."
+  },
+  "request_chunks": [
+    {
+      "chunk_id": "2017_full_year",
+      "window_id": "baseline_candidate",
+      "periods": [
+        "201701",
+        "201702",
+        "201703",
+        "201704",
+        "201705",
+        "201706",
+        "201707",
+        "201708",
+        "201709",
+        "201710",
+        "201711",
+        "201712"
+      ]
+    },
+    {
+      "chunk_id": "2018_full_year",
+      "window_id": "baseline_candidate",
+      "periods": [
+        "201801",
+        "201802",
+        "201803",
+        "201804",
+        "201805",
+        "201806",
+        "201807",
+        "201808",
+        "201809",
+        "201810",
+        "201811",
+        "201812"
+      ]
+    },
+    {
+      "chunk_id": "2019_full_year",
+      "window_id": "baseline_candidate",
+      "periods": [
+        "201901",
+        "201902",
+        "201903",
+        "201904",
+        "201905",
+        "201906",
+        "201907",
+        "201908",
+        "201909",
+        "201910",
+        "201911",
+        "201912"
+      ]
+    },
+    {
+      "chunk_id": "2020_full_year",
+      "window_id": "baseline_candidate",
+      "periods": [
+        "202001",
+        "202002",
+        "202003",
+        "202004",
+        "202005",
+        "202006",
+        "202007",
+        "202008",
+        "202009",
+        "202010",
+        "202011",
+        "202012"
+      ]
+    },
+    {
+      "chunk_id": "2021_full_year",
+      "window_id": "baseline_candidate",
+      "periods": [
+        "202101",
+        "202102",
+        "202103",
+        "202104",
+        "202105",
+        "202106",
+        "202107",
+        "202108",
+        "202109",
+        "202110",
+        "202111",
+        "202112"
+      ]
+    },
+    {
+      "chunk_id": "2022_full_year",
+      "window_id": "conflict_follow_up",
+      "periods": [
+        "202201",
+        "202202",
+        "202203",
+        "202204",
+        "202205",
+        "202206",
+        "202207",
+        "202208",
+        "202209",
+        "202210",
+        "202211",
+        "202212"
+      ]
+    },
+    {
+      "chunk_id": "2023_full_year",
+      "window_id": "conflict_follow_up",
+      "periods": [
+        "202301",
+        "202302",
+        "202303",
+        "202304",
+        "202305",
+        "202306",
+        "202307",
+        "202308",
+        "202309",
+        "202310",
+        "202311",
+        "202312"
+      ]
+    }
+  ],
+  "request_policy": {
+    "periods_per_request_target": 12,
+    "rationale": "Bound requests to one calendar year for reviewable retries and simple completeness accounting; this is a client-side batching policy, not a claim that the API has a hard 12-period maximum.",
+    "public_preview_record_limit": 500,
+    "fail_closed_if_count_exceeds_returned_rows": true,
+    "fail_closed_if_returned_rows_reach_preview_limit": true,
+    "preserve_exact_request_url_and_parameters": true,
+    "preserve_raw_response_bytes_before_parsing": true,
+    "store_raw_sha256_and_retrieval_timestamp": true,
+    "never_store_subscription_keys": true
+  },
+  "fields_policy": {
+    "preserve_all_returned_fields": true,
+    "retain_dimensions": [
+      "period",
+      "reporterCode",
+      "partnerCode",
+      "flowCode",
+      "cmdCode",
+      "classificationCode",
+      "classificationSearchCode",
+      "isReported",
+      "isAggregate",
+      "isEstimated",
+      "primaryValue",
+      "netWgt",
+      "qty",
+      "qtyUnitCode",
+      "qtyUnitAbbr",
+      "motCode",
+      "customsCode"
+    ],
+    "interpret_only_after_metadata_review": [
+      "primaryValue",
+      "netWgt",
+      "qty",
+      "qtyUnitCode",
+      "qtyUnitAbbr",
+      "isEstimated",
+      "isAggregate",
+      "isReported"
+    ],
+    "no_implicit_unit_conversion": true,
+    "no_missing_value_to_zero_conversion": true,
+    "no_row_deduplication_without_documented_key": true
+  },
+  "interpretation_ceiling": {
+    "allowed": "Reported monthly aggregate exports for Ukraine, world partner aggregate, and selected HS product codes, conditional on response coverage and returned metadata.",
+    "not_established": [
+      "Individual shipments, bills of lading, named suppliers, warehouse inventory or physical route.",
+      "Which Ukrainian exports moved under the Black Sea Grain Initiative.",
+      "Port-level throughput or route availability.",
+      "Causal effect of the Initiative or conflict on world prices, food security or destination shortages."
+    ]
+  },
+  "control_design": {
+    "state": "not_preregistered",
+    "selected_controls": [],
+    "policy": "After metadata and coverage inspection but before looking at outcome patterns, write a dated control-design record. Justify comparator exporters/commodities, seasonality, COVID-period treatment, missingness, concurrent shocks and sensitivity analyses. Do not choose, drop or swap controls based on which gives a preferred result.",
+    "baseline_caveat": "2017-2021 is a candidate descriptive baseline and includes COVID-era shocks; it is not a sufficient causal control by itself."
+  },
+  "validation_gates": {
+    "query_executed": false,
+    "all_chunks_captured": false,
+    "raw_response_hashes_verified": false,
+    "api_schema_and_coverage_reviewed": false,
+    "classification_compatibility_reviewed": false,
+    "units_and_valuation_semantics_reviewed": false,
+    "incomplete_or_estimated_rows_reviewed": false,
+    "control_plan_preregistered": false,
+    "independent_review_completed": false
+  }
+}

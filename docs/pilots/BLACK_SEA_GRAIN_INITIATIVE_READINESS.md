@@ -44,6 +44,10 @@ The study window, query filters, controls and outcome definitions remain unfroze
 5. **Controls and sensitivity:** after data readiness, preregister suitable comparison origins, commodities, time windows, seasonality treatment and exclusion rules. Inspect pandemic-period effects, other exporters, freight/energy costs, weather, policy and concurrent conflict activity. Do not choose controls after seeing which combination produces a preferred result.
 6. **Optional maritime context:** add a specific IMF PortWatch series only if its temporal/geographic definition, version and terms match the question. Port activity is not commodity-specific cargo volume or a bill of lading.
 
+## UN Comtrade baseline: query planning only
+
+A bounded, machine-readable [UN Comtrade query plan](BLACK_SEA_GRAIN_TRADE_QUERY_PLAN.md) now specifies the intended reporter/partner/flow/product/month dimensions and seven calendar-year request chunks for 2017–2023. It is intentionally marked `query_plan_only` and `not_run`: no API response, source byte hash, comparable baseline or control group is claimed. The plan preserves returned classification and measurement metadata and fails closed on likely preview truncation. Trade aggregates cannot be substituted for corridor-specific Initiative cargo or individual shipment/route evidence. See the [UN Comtrade API guide](https://uncomtrade.org/docs/un-comtrade-api/).
+
 ## Required tests before C0 can close
 
 - Reparse exact captured UN source bytes and independently verify every monthly value and the published cumulative total.

@@ -18,6 +18,8 @@ class EarthSystemsCatalogTests(unittest.TestCase):
         cls.schema = json.loads(cls.schema_path.read_text(encoding="utf-8"))
         cls.case_path = ROOT / "docs" / "pilots" / "black-sea-grain-initiative-readiness.json"
         cls.case_profile = json.loads(cls.case_path.read_text(encoding="utf-8"))
+        cls.trade_plan_path = ROOT / "docs" / "pilots" / "black-sea-grain-trade-query-plan.json"
+        cls.trade_plan = json.loads(cls.trade_plan_path.read_text(encoding="utf-8"))
 
     def test_catalog_passes_structural_validation(self):
         self.assertEqual(validate_catalog(self.catalog), [])
@@ -107,6 +109,56 @@ class EarthSystemsCatalogTests(unittest.TestCase):
         self.assertIn("causally", forbidden)
         self.assertIn("complete monthly period", forbidden)
         self.assertIn("exact source bytes", forbidden)
+
+
+    def test_comtrade_query_plan_is_not_misrepresented_as_executed(self):
+        plan = self.trade_plan
+        self.assertEqual(plan["schema_version"], "luminous.sol-atlas.un-comtrade-query-plan.v1")
+        self.assertEqual(plan["status"], "query_plan_only")
+        self.assertEqual(plan["execution_state"], "not_run")
+        self.assertFalse(plan["analysis_window_frozen"])
+        self.assertFalse(plan["source"]["raw_response_bytes_acquired"])
+        self.assertIsNone(plan["source"]["source_sha256"])
+        self.assertTrue(all(value is False for value in plan["validation_gates"].values()))
+
+    def test_comtrade_chunks_cover_each_month_once_without_oversized_requests(self):
+        plan = self.trade_plan
+        chunks = plan["request_chunks"]
+        periods = [period for chunk in chunks for period in chunk["periods"]]
+        expected = [f"{year}{month:02d}" for year in range(2017, 2024) for month in range(1, 13)]
+        self.assertEqual(len(chunks), 7)
+        self.assertTrue(all(len(chunk["periods"]) == 12 for chunk in chunks))
+        self.assertEqual(periods, expected)
+        self.assertEqual(len(periods), len(set(periods)))
+        self.assertTrue(all(
+            all(period.startswith(str(year)) for period in chunk["periods"])
+            for year, chunk in zip(range(2017, 2024), chunks)
+        ))
+
+    def test_comtrade_query_dimensions_are_explicit_and_fail_closed_on_classification(self):
+        query = self.trade_plan["query_dimensions"]
+        self.assertEqual(query["type_code"], "C")
+        self.assertEqual(query["frequency_code"], "M")
+        self.assertEqual(query["reporter_code"], 804)
+        self.assertEqual(query["partner_code"], 0)
+        self.assertEqual(query["flow_code"], "X")
+        self.assertEqual(query["commodity_codes"], ["1001", "1005"])
+        self.assertIn("do not stitch", query["classification_policy"].lower())
+        self.assertTrue(self.trade_plan["fields_policy"]["preserve_all_returned_fields"])
+        self.assertTrue(self.trade_plan["fields_policy"]["no_implicit_unit_conversion"])
+
+    def test_comtrade_preview_truncation_and_source_bytes_are_explicit_gates(self):
+        policy = self.trade_plan["request_policy"]
+        self.assertEqual(policy["public_preview_record_limit"], 500)
+        self.assertTrue(policy["fail_closed_if_count_exceeds_returned_rows"])
+        self.assertTrue(policy["fail_closed_if_returned_rows_reach_preview_limit"])
+        self.assertTrue(policy["preserve_raw_response_bytes_before_parsing"])
+        self.assertTrue(policy["store_raw_sha256_and_retrieval_timestamp"])
+        ceiling = " ".join(self.trade_plan["interpretation_ceiling"]["not_established"]).lower()
+        self.assertIn("individual shipments", ceiling)
+        self.assertIn("physical routes", ceiling)
+        self.assertEqual(self.trade_plan["control_design"]["state"], "not_preregistered")
+        self.assertEqual(self.trade_plan["control_design"]["selected_controls"], [])
 
     def test_every_domain_has_independent_validation(self):
         for domain in self.catalog["domains"]:

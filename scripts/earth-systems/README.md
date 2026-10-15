@@ -50,6 +50,10 @@ The first source-readiness candidate is the [Black Sea Grain Initiative (2022–
 
 The profile keeps July 2023 partial through 14 July and prevents pre-August values in the Initiative-specific series being imputed as zero. The FAO index is downstream context, not proof of causality. Validate the source bytes, reparse the table/CSV, freeze query parameters, establish controls and then conduct independent review before promoting the case beyond C0.
 
+## Freeze the UN Comtrade query shape before collection
+
+The [Black Sea trade query plan](../../docs/pilots/BLACK_SEA_GRAIN_TRADE_QUERY_PLAN.md) and [machine-readable request manifest](../../docs/pilots/black-sea-grain-trade-query-plan.json) define seven bounded monthly request chunks for Ukraine exports of HS 1001 wheat and HS 1005 maize, 2017–2023. The manifest is deliberately `query_plan_only`: it contains no live response data, hashes, or selected controls. When collecting, use the public preview endpoint documented in the [UN Comtrade API guide](https://uncomtrade.org/docs/un-comtrade-api/), snapshot exact raw bytes before parsing, and review actual classification, coverage, estimated-state, quantity and valuation metadata. Do not reinterpret trade aggregates as Initiative shipments or route-level observations.
+
 ## Interpretation limit
 
 All validators here check metadata and state-machine invariants only. They do not fetch external sources, prove a license, validate a scientific model, establish source independence, or show that any domain is operational. The pilot profile is intentionally `design_only`: no WaPOR or CHIRPS artifacts have been acquired or processed. The current product IDs, temporal coverage, boundary, processing vintages, exact rights snapshots and independent reference records must be checked before the profile may advance.
