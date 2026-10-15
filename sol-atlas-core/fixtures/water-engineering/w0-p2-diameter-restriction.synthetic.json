@@ -9,8 +9,8 @@
       "artifact_id": "w0-epanet-input",
       "role": "exact_synthetic_epanet_input",
       "path": "sol-atlas-core/fixtures/water-engineering/w0_network.inp",
-      "sha256": "7ec0d4214a19d97f4b2b9c147ee55c8576f4135dd8cce99786abdb72a843da1b",
-      "byte_length": 514,
+      "sha256": "0524e9f92940fae0ded3f9fb2e3f7471865f453df7a06e54a6de15c3cc0ba559",
+      "byte_length": 523,
       "synthetic": true
     },
     "source_artifacts": [
@@ -18,8 +18,8 @@
         "artifact_id": "w0-epanet-input",
         "role": "exact_synthetic_epanet_input",
         "path": "sol-atlas-core/fixtures/water-engineering/w0_network.inp",
-        "sha256": "7ec0d4214a19d97f4b2b9c147ee55c8576f4135dd8cce99786abdb72a843da1b",
-        "byte_length": 514,
+        "sha256": "0524e9f92940fae0ded3f9fb2e3f7471865f453df7a06e54a6de15c3cc0ba559",
+        "byte_length": 523,
         "synthetic": true
       }
     ],
@@ -71,7 +71,7 @@
   "scenario": {
     "scenario_id": "w0-p2-diameter-restriction",
     "base_model_id": "w0-synthetic-network",
-    "base_input_snapshot_sha256": "7ec0d4214a19d97f4b2b9c147ee55c8576f4135dd8cce99786abdb72a843da1b",
+    "base_input_snapshot_sha256": "0524e9f92940fae0ded3f9fb2e3f7471865f453df7a06e54a6de15c3cc0ba559",
     "scenario_type": "intervention",
     "changes": [
       {

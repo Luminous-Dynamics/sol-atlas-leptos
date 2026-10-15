@@ -155,14 +155,36 @@ jobs:
           "$solver" "$out/w0-baseline.inp" "$out/w0-baseline.rpt" "$out/w0-baseline.bin" > "$out/w0-baseline.stdout" 2>&1
           "$solver" "$out/w0-p2-diameter-50mm.inp" "$out/w0-p2-diameter-50mm.rpt" "$out/w0-p2-diameter-50mm.bin" > "$out/w0-p2-diameter-50mm.stdout" 2>&1
 
-          grep -q "EPANET ran successfully" "$out/w0-baseline.stdout"
-          grep -q "EPANET ran successfully" "$out/w0-p2-diameter-50mm.stdout"
+          grep -q "EPANET ran successfully" "$out/w0-baseline.stdout" || {
+            echo "BASELINE_EPANET_FAILED: solver stdout and report follow"
+            cat "$out/w0-baseline.stdout"
+            cat "$out/w0-baseline.rpt" 2>/dev/null || true
+            exit 1
+          }
+          grep -q "EPANET ran successfully" "$out/w0-p2-diameter-50mm.stdout" || {
+            echo "CANDIDATE_EPANET_FAILED: solver stdout and report follow"
+            cat "$out/w0-p2-diameter-50mm.stdout"
+            cat "$out/w0-p2-diameter-50mm.rpt" 2>/dev/null || true
+            exit 1
+          }
           test -s "$out/w0-baseline.rpt"
           test -s "$out/w0-baseline.bin"
           test -s "$out/w0-p2-diameter-50mm.rpt"
           test -s "$out/w0-p2-diameter-50mm.bin"
-          grep -q "P2" "$out/w0-baseline.rpt"
-          grep -q "P2" "$out/w0-p2-diameter-50mm.rpt"
+          grep -q "P2" "$out/w0-baseline.rpt" || {
+            echo "BASELINE_REPORT_MISSING_P2: report follows"
+            cat "$out/w0-baseline.rpt"
+            exit 1
+          }
+          grep -q "P2" "$out/w0-p2-diameter-50mm.rpt" || {
+            echo "CANDIDATE_REPORT_MISSING_P2: report follows"
+            cat "$out/w0-p2-diameter-50mm.rpt"
+            exit 1
+          }
+          echo "BASELINE P2 result:"
+          grep -A 2 -B 2 "P2" "$out/w0-baseline.rpt"
+          echo "CANDIDATE P2 result:"
+          grep -A 2 -B 2 "P2" "$out/w0-p2-diameter-50mm.rpt"
 
           if cmp -s "$out/w0-baseline.rpt" "$out/w0-p2-diameter-50mm.rpt"; then
             echo "FAIL: diameter-restriction scenario did not change the EPANET report"

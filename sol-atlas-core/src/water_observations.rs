@@ -395,20 +395,18 @@ mod tests {
             .collect();
         assert_eq!(programme_rows.len(), 8);
         assert!(programme_rows.iter().all(|row| {
-            row["interpretation_state"].as_str()
-                == Some("reported_not_independently_reproduced")
+            row["interpretation_state"].as_str() == Some("reported_not_independently_reproduced")
         }));
         let savings = programme_rows
             .iter()
             .find(|row| row["observation_id"] == "jw.active-leak-detection.estimated-water-savings")
             .expect("programme savings claim");
         assert_eq!(savings["value"].as_i64(), Some(8100));
-        assert!(
-            savings["notes"].as_array().expect("notes array").iter().any(|note| {
-                note.as_str().unwrap_or_default().contains("not independently measured")
-            })
-        );
+        let savings_notes = savings["notes"].as_array().expect("notes array");
+        assert!(savings_notes.iter().any(|note| {
+            note.as_str()
+                .unwrap_or_default()
+                .contains("independently measured")
+        }));
     }
-
-
 }

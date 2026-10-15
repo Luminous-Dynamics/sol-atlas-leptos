@@ -1,6 +1,6 @@
 [TITLE]
 W0 synthetic two-junction pressurised water network
-; SYNTHETIC ONLY: not a municipal network; not yet solver-executed.
+; SYNTHETIC ONLY: not a municipal network; uncalibrated.
 
 [JUNCTIONS]
 ;ID  Elevation  Demand
@@ -23,5 +23,7 @@ HEADLOSS H-W
 [REPORT]
 STATUS YES
 SUMMARY YES
+NODES ALL
+LINKS ALL
 
 [END]
