@@ -181,10 +181,73 @@ jobs:
             cat "$out/w0-p2-diameter-50mm.rpt"
             exit 1
           }
-          echo "BASELINE P2 result:"
-          grep -A 2 -B 2 "P2" "$out/w0-baseline.rpt"
-          echo "CANDIDATE P2 result:"
-          grep -A 2 -B 2 "P2" "$out/w0-p2-diameter-50mm.rpt"
+          # Parse hydraulic rows only inside EPANET's result sections; an asset
+          # appearing in the input summary is not proof of a computed result.
+          extract_p2_results() {
+            local report="$1"
+            awk '
+              /Link Results at / { in_links = 1; next }
+              /Node Results at / { in_links = 0 }
+              in_links && $1 == "P2" { print $2, $3, $4; found = 1; exit }
+              END { if (!found) exit 1 }
+            ' "$report"
+          }
+          extract_j2_pressure() {
+            local report="$1"
+            awk '
+              /Node Results at / { in_nodes = 1; next }
+              /Link Results at / { in_nodes = 0 }
+              in_nodes && $1 == "J2" { print $4; found = 1; exit }
+              END { if (!found) exit 1 }
+            ' "$report"
+          }
+
+          baseline_p2="$(extract_p2_results "$out/w0-baseline.rpt")" || {
+            echo "BASELINE_P2_HYDRAULIC_ROW_MISSING"
+            cat "$out/w0-baseline.rpt"
+            exit 1
+          }
+          candidate_p2="$(extract_p2_results "$out/w0-p2-diameter-50mm.rpt")" || {
+            echo "CANDIDATE_P2_HYDRAULIC_ROW_MISSING"
+            cat "$out/w0-p2-diameter-50mm.rpt"
+            exit 1
+          }
+          read -r baseline_p2_flow baseline_p2_velocity baseline_p2_headloss <<< "$baseline_p2"
+          read -r candidate_p2_flow candidate_p2_velocity candidate_p2_headloss <<< "$candidate_p2"
+
+          baseline_j2_pressure="$(extract_j2_pressure "$out/w0-baseline.rpt")" || {
+            echo "BASELINE_J2_PRESSURE_ROW_MISSING"
+            cat "$out/w0-baseline.rpt"
+            exit 1
+          }
+          candidate_j2_pressure="$(extract_j2_pressure "$out/w0-p2-diameter-50mm.rpt")" || {
+            echo "CANDIDATE_J2_PRESSURE_ROW_MISSING"
+            cat "$out/w0-p2-diameter-50mm.rpt"
+            exit 1
+          }
+
+          printf 'P2 flow [L/s]: baseline=%s candidate=%s\n' "$baseline_p2_flow" "$candidate_p2_flow"
+          printf 'P2 velocity [m/s]: baseline=%s candidate=%s\n' "$baseline_p2_velocity" "$candidate_p2_velocity"
+          printf 'P2 headloss [m per 1000 m]: baseline=%s candidate=%s\n' "$baseline_p2_headloss" "$candidate_p2_headloss"
+          printf 'J2 pressure [m]: baseline=%s candidate=%s\n' "$baseline_j2_pressure" "$candidate_j2_pressure"
+
+          awk -v b="$baseline_p2_flow" -v c="$candidate_p2_flow" 'BEGIN { d = c - b; if (d < -0.02 || d > 0.02) exit 1 }' || {
+            echo "FAIL: demand-driven P2 flow should remain invariant within report precision"
+            exit 1
+          }
+          awk -v b="$baseline_p2_velocity" -v c="$candidate_p2_velocity" 'BEGIN { exit !(c > b) }' || {
+            echo "FAIL: reducing P2 diameter did not increase reported velocity"
+            exit 1
+          }
+          awk -v b="$baseline_p2_headloss" -v c="$candidate_p2_headloss" 'BEGIN { exit !(c > b) }' || {
+            echo "FAIL: reducing P2 diameter did not increase reported headloss"
+            exit 1
+          }
+          awk -v b="$baseline_j2_pressure" -v c="$candidate_j2_pressure" 'BEGIN { exit !(c < b) }' || {
+            echo "FAIL: restricting P2 did not reduce downstream J2 pressure"
+            exit 1
+          }
+          echo "EPANET_DIRECTIONAL_HYDRAULICS_PASS: flow invariant; velocity/headloss increase; downstream pressure decreases."
 
           if cmp -s "$out/w0-baseline.rpt" "$out/w0-p2-diameter-50mm.rpt"; then
             echo "FAIL: diameter-restriction scenario did not change the EPANET report"
@@ -220,6 +283,14 @@ jobs:
             --arg candidate_report_sha256 "$candidate_report_sha" \
             --arg baseline_binary_sha256 "$baseline_binary_sha" \
             --arg candidate_binary_sha256 "$candidate_binary_sha" \
+            --arg baseline_p2_flow "$baseline_p2_flow" \
+            --arg candidate_p2_flow "$candidate_p2_flow" \
+            --arg baseline_p2_velocity "$baseline_p2_velocity" \
+            --arg candidate_p2_velocity "$candidate_p2_velocity" \
+            --arg baseline_p2_headloss "$baseline_p2_headloss" \
+            --arg candidate_p2_headloss "$candidate_p2_headloss" \
+            --arg baseline_j2_pressure "$baseline_j2_pressure" \
+            --arg candidate_j2_pressure "$candidate_j2_pressure" \
             --arg cmake_version "$cmake_version" \
             --arg compiler_version "$compiler_version" \
             --arg started_at "$started_at" \
@@ -251,6 +322,37 @@ jobs:
                 input_sha256: $candidate_input_sha256,
                 report_sha256: $candidate_report_sha256,
                 binary_output_sha256: $candidate_binary_sha256
+              },
+              hydraulic_observations: {
+                scope: "first reported hydraulic period; report-rounded values",
+                units: {
+                  flow: "L/s",
+                  velocity: "m/s",
+                  headloss: "m per 1000 m",
+                  pressure: "m"
+                },
+                p2: {
+                  baseline: {
+                    flow_lps: ($baseline_p2_flow | tonumber),
+                    velocity_m_per_s: ($baseline_p2_velocity | tonumber),
+                    headloss_m_per_1000_m: ($baseline_p2_headloss | tonumber)
+                  },
+                  candidate: {
+                    flow_lps: ($candidate_p2_flow | tonumber),
+                    velocity_m_per_s: ($candidate_p2_velocity | tonumber),
+                    headloss_m_per_1000_m: ($candidate_p2_headloss | tonumber)
+                  }
+                },
+                j2_pressure_m: {
+                  baseline: ($baseline_j2_pressure | tonumber),
+                  candidate: ($candidate_j2_pressure | tonumber)
+                },
+                checks: {
+                  p2_flow_invariant_within_0_02_lps: true,
+                  p2_velocity_increased: true,
+                  p2_headloss_increased: true,
+                  downstream_j2_pressure_decreased: true
+                }
               },
               execution: {
                 started_at: $started_at,
