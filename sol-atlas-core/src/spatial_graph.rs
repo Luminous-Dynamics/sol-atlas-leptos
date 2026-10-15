@@ -316,7 +316,7 @@ pub fn is_canonical_utc_timestamp(value: &str) -> bool {
 fn decimal_component(bytes: &[u8]) -> u32 {
     bytes
         .iter()
-        .fold(0, |value, byte| value * 10 + u32::from(byte - b'0'))
+        .fold(0, |value, byte| value * 10 + u32::from(*byte - b'0'))
 }
 
 #[cfg(test)]
@@ -386,34 +386,85 @@ mod tests {
     fn finds_direct_and_transitive_dependents_with_edge_evidence() {
         let graph = DependencyGraph {
             relations: vec![
-                relation("edge-field-pump", "field", RelationKind::DependsOn, "pump", "ev-field-pump"),
-                relation("edge-pump-feeder", "pump", RelationKind::SuppliedBy, "feeder", "ev-pump-feeder"),
+                relation(
+                    "edge-field-pump",
+                    "field",
+                    RelationKind::DependsOn,
+                    "pump",
+                    "ev-field-pump",
+                ),
+                relation(
+                    "edge-pump-feeder",
+                    "pump",
+                    RelationKind::SuppliedBy,
+                    "feeder",
+                    "ev-pump-feeder",
+                ),
             ],
         };
-        let results = graph.affected_dependents_at("feeder", "2026-10-15T10:00:00Z").unwrap();
+        let results = graph
+            .affected_dependents_at("feeder", "2026-10-15T10:00:00Z")
+            .unwrap();
         assert_eq!(results.len(), 2);
         assert_eq!(results[0].entity_id, "pump");
         assert_eq!(results[0].distance, 1);
         assert_eq!(results[0].relation_path_ids, vec!["edge-pump-feeder"]);
-        assert_eq!(results[0].supporting_evidence_by_relation, vec![vec!["ev-pump-feeder"]]);
+        assert_eq!(
+            results[0].supporting_evidence_by_relation,
+            vec![vec![String::from("ev-pump-feeder")]]
+        );
         assert_eq!(results[1].entity_id, "field");
         assert_eq!(results[1].distance, 2);
-        assert_eq!(results[1].relation_path_ids, vec!["edge-pump-feeder", "edge-field-pump"]);
+        assert_eq!(
+            results[1].relation_path_ids,
+            vec![
+                String::from("edge-pump-feeder"),
+                String::from("edge-field-pump")
+            ]
+        );
     }
 
     #[test]
     fn ignores_non_dependency_relationships_and_is_deterministic() {
         let graph = DependencyGraph {
             relations: vec![
-                relation("z-field-pump", "field", RelationKind::DependsOn, "pump", "ev-field-pump"),
-                relation("located-warehouse", "warehouse", RelationKind::LocatedAt, "feeder", "ev-located"),
-                relation("a-pump-feeder", "pump", RelationKind::SuppliedBy, "feeder", "ev-pump-feeder"),
+                relation(
+                    "z-field-pump",
+                    "field",
+                    RelationKind::DependsOn,
+                    "pump",
+                    "ev-field-pump",
+                ),
+                relation(
+                    "located-warehouse",
+                    "warehouse",
+                    RelationKind::LocatedAt,
+                    "feeder",
+                    "ev-located",
+                ),
+                relation(
+                    "a-pump-feeder",
+                    "pump",
+                    RelationKind::SuppliedBy,
+                    "feeder",
+                    "ev-pump-feeder",
+                ),
             ],
         };
-        let first = graph.affected_dependents_at("feeder", "2026-10-15T10:00:00Z").unwrap();
-        let second = graph.affected_dependents_at("feeder", "2026-10-15T10:00:00Z").unwrap();
+        let first = graph
+            .affected_dependents_at("feeder", "2026-10-15T10:00:00Z")
+            .unwrap();
+        let second = graph
+            .affected_dependents_at("feeder", "2026-10-15T10:00:00Z")
+            .unwrap();
         assert_eq!(first, second);
-        assert_eq!(first.iter().map(|impact| impact.entity_id.as_str()).collect::<Vec<_>>(), vec!["pump", "field"]);
+        assert_eq!(
+            first
+                .iter()
+                .map(|impact| impact.entity_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["pump", "field"]
+        );
         assert!(!first.iter().any(|impact| impact.entity_id == "warehouse"));
     }
 
@@ -421,24 +472,62 @@ mod tests {
     fn traversal_is_cycle_safe_and_never_returns_the_root() {
         let graph = DependencyGraph {
             relations: vec![
-                relation("pump-feeder", "pump", RelationKind::SuppliedBy, "feeder", "ev-a"),
-                relation("feeder-pump", "feeder", RelationKind::DependsOn, "pump", "ev-b"),
+                relation(
+                    "pump-feeder",
+                    "pump",
+                    RelationKind::SuppliedBy,
+                    "feeder",
+                    "ev-a",
+                ),
+                relation(
+                    "feeder-pump",
+                    "feeder",
+                    RelationKind::DependsOn,
+                    "pump",
+                    "ev-b",
+                ),
             ],
         };
-        let results = graph.affected_dependents_at("feeder", "2026-10-15T10:00:00Z").unwrap();
-        assert_eq!(results.iter().map(|item| item.entity_id.as_str()).collect::<Vec<_>>(), vec!["pump"]);
+        let results = graph
+            .affected_dependents_at("feeder", "2026-10-15T10:00:00Z")
+            .unwrap();
+        assert_eq!(
+            results
+                .iter()
+                .map(|item| item.entity_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["pump"]
+        );
     }
 
     #[test]
     fn half_open_validity_windows_are_respected() {
-        let mut edge = relation("edge", "pump", RelationKind::SuppliedBy, "feeder", "ev");
+        let mut edge = relation(
+            "edge",
+            "pump",
+            RelationKind::SuppliedBy,
+            "feeder",
+            "ev",
+        );
         edge.valid_from = Some("2026-10-15T10:00:00Z".into());
         edge.valid_until = Some("2026-10-15T11:00:00Z".into());
         let graph = DependencyGraph { relations: vec![edge] };
-        assert_eq!(graph.affected_dependents_at("feeder", "2026-10-15T09:59:59Z").unwrap().len(), 0);
-        assert_eq!(graph.affected_dependents_at("feeder", "2026-10-15T10:00:00Z").unwrap().len(), 1);
-        assert_eq!(graph.affected_dependents_at("feeder", "2026-10-15T10:59:59Z").unwrap().len(), 1);
-        assert_eq!(graph.affected_dependents_at("feeder", "2026-10-15T11:00:00Z").unwrap().len(), 0);
+        assert_eq!(
+            graph.affected_dependents_at("feeder", "2026-10-15T09:59:59Z").unwrap().len(),
+            0
+        );
+        assert_eq!(
+            graph.affected_dependents_at("feeder", "2026-10-15T10:00:00Z").unwrap().len(),
+            1
+        );
+        assert_eq!(
+            graph.affected_dependents_at("feeder", "2026-10-15T10:59:59Z").unwrap().len(),
+            1
+        );
+        assert_eq!(
+            graph.affected_dependents_at("feeder", "2026-10-15T11:00:00Z").unwrap().len(),
+            0
+        );
     }
 
     #[test]
@@ -453,7 +542,13 @@ mod tests {
 
     #[test]
     fn reports_unknown_evidence_and_invalid_intervals() {
-        let mut edge = relation("edge", "pump", RelationKind::SuppliedBy, "feeder", "missing-evidence");
+        let mut edge = relation(
+            "edge",
+            "pump",
+            RelationKind::SuppliedBy,
+            "feeder",
+            "missing-evidence",
+        );
         edge.valid_from = Some("2026-10-15T11:00:00Z".into());
         edge.valid_until = Some("2026-10-15T10:00:00Z".into());
         let graph = DependencyGraph { relations: vec![edge] };
@@ -474,18 +569,32 @@ mod tests {
                 relation("edge", "pump", RelationKind::SuppliedBy, "feeder", "ev-valid"),
                 relation("edge", "pump", RelationKind::SuppliedBy, "feeder", "ev-valid"),
                 relation("", "", RelationKind::DependsOn, "", ""),
+                relation(
+                    "missing-support",
+                    "asset",
+                    RelationKind::DependsOn,
+                    "other",
+                    "ev-valid",
+                ),
             ],
         };
+        graph.relations[3].supporting_evidence_ids.clear();
         let errors = graph.validate(&[valid_ev]).unwrap_err();
         assert!(errors.contains(&GraphValidationError::DuplicateRelationId));
         assert!(errors.contains(&GraphValidationError::EmptyRelationId));
         assert!(errors.contains(&GraphValidationError::EmptySubjectEntity));
         assert!(errors.contains(&GraphValidationError::EmptyObjectEntity));
         assert!(errors.contains(&GraphValidationError::MissingSupportingEvidence));
+        assert!(errors.contains(&GraphValidationError::EmptySupportingEvidenceId));
         assert!(errors.contains(&GraphValidationError::UnknownEvidenceReference));
         graph.relations[0].subject_entity_id = "same".into();
         graph.relations[0].object_entity_id = "same".into();
-        assert!(graph.validate(&[evidence("ev-valid")]).unwrap_err().contains(&GraphValidationError::SelfRelation));
+        assert!(
+            graph
+                .validate(&[evidence("ev-valid")])
+                .unwrap_err()
+                .contains(&GraphValidationError::SelfRelation)
+        );
     }
 
     #[test]
