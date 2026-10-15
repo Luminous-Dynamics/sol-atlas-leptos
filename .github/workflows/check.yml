@@ -80,7 +80,7 @@ jobs:
           python-version: "3.12"
       - name: Install pinned JSON Schema validator
         run: python -m pip install --disable-pip-version-check --no-input jsonschema==4.26.0
-      - name: Validate engineering, public-observation and decision schemas against fixtures
+      - name: Validate engineering, observation, decision and measurement-experiment schemas against fixtures
         run: |
           python - <<'PY'
           import json
@@ -99,6 +99,10 @@ jobs:
               (
                   Path("sol-atlas-core/schemas/water-intervention-decision-v0.1.schema.json"),
                   Path("sol-atlas-core/fixtures/water-engineering/w0-intervention-decision.synthetic.json"),
+              ),
+              (
+                  Path("sol-atlas-core/schemas/water-measurement-experiment-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/w0-measurement-experiment.synthetic.json"),
               ),
           ]
 
