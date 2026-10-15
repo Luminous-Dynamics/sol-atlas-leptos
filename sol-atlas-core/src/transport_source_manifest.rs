@@ -452,7 +452,7 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                 rights_status: ReviewRequired,
                 rights_decision_ref: None,
                 source_schema_profile_id: None,
-                geographic_reference_profile_id: None,
+                geographic_reference_profile_id: Some("EPSG:32734".to_owned()),
                 time_profile_id: None,
                 coverage_start_epoch_seconds: None,
                 coverage_end_epoch_seconds: None,
@@ -482,7 +482,7 @@ pub fn south_african_freight_source_readiness_v1() -> TransportSourceManifestV1 
                 rights_status: ReviewRequired,
                 rights_decision_ref: None,
                 source_schema_profile_id: None,
-                geographic_reference_profile_id: None,
+                geographic_reference_profile_id: Some("EPSG:32734".to_owned()),
                 time_profile_id: None,
                 coverage_start_epoch_seconds: None,
                 coverage_end_epoch_seconds: None,
@@ -585,7 +585,10 @@ mod tests {
             assert_eq!(record.acquisition_state, SourceAcquisitionStateV1::AccessReviewRequired);
             assert_eq!(record.rights_status, SourceRightsStatusV1::ReviewRequired);
             assert!(record.acquisition.is_none());
-            assert!(record.geographic_reference_profile_id.is_none());
+            assert_eq!(
+                record.geographic_reference_profile_id.as_deref(),
+                Some("EPSG:32734")
+            );
             assert!(record.missingness_and_limitations.iter().any(|limitation| {
                 limitation.contains("WKID 32734")
                     || limitation.contains("projected WKID 32734")
