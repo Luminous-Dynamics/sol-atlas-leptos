@@ -814,6 +814,10 @@ mod tests {
             "../../schemas/examples/water-system-dependencies.json"
         ))
         .unwrap();
+        let scenario: AvailabilityScenario = serde_json::from_str(include_str!(
+            "../../schemas/examples/water-system-availability-scenario.json"
+        ))
+        .unwrap();
         let fixture: Fixture = serde_json::from_str(include_str!(
             "../../schemas/examples/water-system-dependency-groups.json"
         ))
@@ -822,6 +826,13 @@ mod tests {
             "../../schemas/spatial-economic-dependency-groups-v0.1.schema.json"
         ))
         .unwrap();
+        let scenario_schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/spatial-economic-availability-scenario-v0.1.schema.json"
+        ))
+        .unwrap();
+        assert_eq!(scenario_schema["properties"]["as_of"]["type"], "string");
+        assert!(scenario_schema["properties"]["entity_conditions"]["additionalProperties"]
+            ["properties"]["basis"]["enum"].as_array().unwrap().contains(&serde_json::json!("assumed")));
 
         let choices = schema["$defs"]["logic"]["oneOf"].as_array().unwrap();
         assert!(choices.iter().any(|item| item["properties"]["mode"]["const"] == "all_required"));
@@ -839,16 +850,6 @@ mod tests {
             evidence("synthetic-evidence-warehouse-location"),
         ];
         graph.validate(&evidence_records).unwrap();
-        let scenario = scenario("synthetic-redundancy-scenario", [
-            (
-                "synthetic-feeder-east".into(),
-                assumed(EntityOperationalState::Unavailable),
-            ),
-            (
-                "synthetic-feeder-west".into(),
-                assumed(EntityOperationalState::Available),
-            ),
-        ]);
         let assessment = graph
             .evaluate_dependency_group_at(&fixture.groups[0], &scenario, &evidence_records)
             .unwrap();
