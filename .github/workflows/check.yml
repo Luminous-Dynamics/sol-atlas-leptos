@@ -137,20 +137,96 @@ jobs:
           set -euo pipefail
           out="$PWD/artifacts/epanet-w0"
           solver="$PWD/.epanet-build/bin/runepanet"
-          input="$PWD/sol-atlas-core/fixtures/water-engineering/w0_network.inp"
+          scenario_file="$PWD/sol-atlas-core/fixtures/water-engineering/w0-p2-diameter-restriction.synthetic.json"
+          scenario_file_sha="$(sha256sum "$scenario_file" | awk '{print $1}')"
+          input_rel="$(jq -er '.model_package.input_snapshot.path | strings' "$scenario_file")"
+          input="$PWD/$input_rel"
+          declared_input_sha="$(jq -er '.model_package.input_snapshot.sha256 | strings' "$scenario_file")"
+          declared_input_bytes="$(jq -er '.model_package.input_snapshot.byte_length | numbers' "$scenario_file")"
+          base_scenario_sha="$(jq -er '.scenario.base_input_snapshot_sha256 | strings' "$scenario_file")"
+          scenario_bundle_id="$(jq -er '.bundle_id | strings' "$scenario_file")"
+          scenario_id="$(jq -er '.scenario.scenario_id | strings' "$scenario_file")"
+          asset_id="$(jq -er '.scenario.changes[0].asset_id | strings' "$scenario_file")"
+          parameter="$(jq -er '.scenario.changes[0].parameter | strings' "$scenario_file")"
+          baseline_diameter="$(jq -er '.scenario.changes[0].baseline_value | numbers' "$scenario_file")"
+          candidate_diameter="$(jq -er '.scenario.changes[0].candidate_value | numbers' "$scenario_file")"
+          change_count="$(jq -er '.scenario.changes | length' "$scenario_file")"
+
+          # This runner intentionally accepts one simple synthetic restriction case,
+          # not arbitrary user-supplied paths, parameters, or a municipal model.
+          jq -e '
+            (.classification == "synthetic_public") and
+            (.model_package.input_snapshot.synthetic == true) and
+            (.model_package.solver_profile.execution_state == "NotRun") and
+            (.run_result.state == "NotRun") and
+            (.scenario.changes | length == 1) and
+            (.scenario.changes[0].parameter == "diameter_mm") and
+            (.scenario.changes[0].unit == "mm") and
+            (.scenario.changes[0].baseline_value | type == "number") and
+            (.scenario.changes[0].candidate_value | type == "number") and
+            (.scenario.changes[0].candidate_value > 0) and
+            (.scenario.changes[0].candidate_value < .scenario.changes[0].baseline_value) and
+            (.scenario.base_input_snapshot_sha256 == .model_package.input_snapshot.sha256) and
+            (.model_package.input_snapshot.path == .model_package.source_artifacts[0].path) and
+            (.model_package.input_snapshot.sha256 == .model_package.source_artifacts[0].sha256) and
+            (.model_package.input_snapshot.byte_length == .model_package.source_artifacts[0].byte_length) and
+            (.scenario.changes[0].asset_id as $asset | any(.model_package.asset_index[]; .asset_id == $asset and .asset_type == "pipe"))
+          ' "$scenario_file" >/dev/null || {
+            echo "SCENARIO_BUNDLE_CONTRACT_FAILED: runner requires a single internally consistent synthetic pipe-diameter restriction"
+            exit 1
+          }
+          case "$input_rel" in
+            sol-atlas-core/fixtures/water-engineering/*.inp) ;;
+            *) echo "SCENARIO_INPUT_PATH_REJECTED: $input_rel"; exit 1 ;;
+          esac
+          case "$input_rel" in
+            *".."*) echo "SCENARIO_INPUT_PATH_TRAVERSAL_REJECTED: $input_rel"; exit 1 ;;
+          esac
+          case "$asset_id" in
+            ""|*[!A-Za-z0-9_-]*) echo "SCENARIO_ASSET_ID_REJECTED: $asset_id"; exit 1 ;;
+          esac
+          test "$parameter" = "diameter_mm"
+          test "$change_count" = "1"
+          test "$declared_input_sha" = "$base_scenario_sha"
+          actual_input_sha="$(sha256sum "$input" | awk '{print $1}')"
+          actual_input_bytes="$(wc -c < "$input" | tr -d '[:space:]')"
+          test "$actual_input_sha" = "$declared_input_sha" || {
+            echo "SCENARIO_INPUT_SHA256_MISMATCH: expected=$declared_input_sha actual=$actual_input_sha"
+            exit 1
+          }
+          test "$actual_input_bytes" = "$declared_input_bytes" || {
+            echo "SCENARIO_INPUT_BYTE_LENGTH_MISMATCH: expected=$declared_input_bytes actual=$actual_input_bytes"
+            exit 1
+          }
           started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           cp "$input" "$out/w0-baseline.inp"
 
-          # Apply exactly one synthetic scenario change: pipe P2, 150 mm -> 50 mm.
-          perl -pe '
-            if (/^P2\s+J1\s+J2\s+800\s+150\s+100\s+0\s+OPEN\s*$/) {
-              s/(^P2\s+J1\s+J2\s+800\s+)150(?=\s+100\s+0\s+OPEN\s*$)/$1 . "50"/e;
-              $changed++;
+          # Mutate only the declared asset's diameter field and require an exact
+          # single match with the scenario's declared baseline value.
+          awk -v asset="$asset_id" -v baseline="$baseline_diameter" -v candidate="$candidate_diameter" '
+            $1 == asset && $1 !~ /^;/ {
+              if (($5 + 0) != (baseline + 0)) {
+                printf "declared baseline mismatch for %s: input=%s scenario=%s\n", asset, $5, baseline > "/dev/stderr"
+                exit 2
+              }
+              $5 = candidate
+              changed++
             }
-            END { die "expected exactly one P2 diameter mutation\n" unless $changed == 1; }
-          ' "$input" > "$out/w0-p2-diameter-50mm.inp"
+            { print }
+            END {
+              if (changed != 1) {
+                printf "expected exactly one target-pipe diameter mutation; changed=%d\n", changed > "/dev/stderr"
+                exit 1
+              }
+            }
+          ' "$input" > "$out/w0-candidate.inp" || exit 1
 
-          awk '$1 == "P2" && $5 == "50" { found++ } END { exit !(found == 1) }' "$out/w0-p2-diameter-50mm.inp"
+          awk -v asset="$asset_id" -v expected="$candidate_diameter" '$1 == asset && $1 !~ /^;/ && ($5 + 0) == (expected + 0) { found++ } END { exit !(found == 1) }' "$out/w0-candidate.inp" || {
+            echo "SCENARIO_CANDIDATE_MUTATION_VERIFICATION_FAILED"
+            exit 1
+          }
+          cp "$out/w0-candidate.inp" "$out/w0-p2-diameter-50mm.inp"
+
 
           "$solver" "$out/w0-baseline.inp" "$out/w0-baseline.rpt" "$out/w0-baseline.bin" > "$out/w0-baseline.stdout" 2>&1
           "$solver" "$out/w0-p2-diameter-50mm.inp" "$out/w0-p2-diameter-50mm.rpt" "$out/w0-p2-diameter-50mm.bin" > "$out/w0-p2-diameter-50mm.stdout" 2>&1
@@ -277,6 +353,12 @@ jobs:
             --arg engine_version "EPANET 2.2 source revision" \
             --arg solver_sha256 "$solver_sha" \
             --arg source_input_sha256 "$source_input_sha" \
+            --arg scenario_bundle_sha256 "$scenario_file_sha" \
+            --arg scenario_bundle_id "$scenario_bundle_id" \
+            --arg scenario_id "$scenario_id" \
+            --arg scenario_asset_id "$asset_id" \
+            --arg scenario_baseline_diameter "$baseline_diameter" \
+            --arg scenario_candidate_diameter "$candidate_diameter" \
             --arg baseline_input_sha256 "$baseline_input_sha" \
             --arg candidate_input_sha256 "$candidate_input_sha" \
             --arg baseline_report_sha256 "$baseline_report_sha" \
@@ -308,8 +390,19 @@ jobs:
                 compiler: $compiler_version
               },
               source_fixture: {
-                path: "sol-atlas-core/fixtures/water-engineering/w0_network.inp",
-                sha256: $source_input_sha256
+                path: $input_rel,
+                sha256: $source_input_sha256,
+                declared_sha256: $declared_input_sha
+              },
+              scenario_bundle: {
+                path: "sol-atlas-core/fixtures/water-engineering/w0-p2-diameter-restriction.synthetic.json",
+                sha256: $scenario_bundle_sha256,
+                bundle_id: $scenario_bundle_id,
+                scenario_id: $scenario_id,
+                target_asset_id: $scenario_asset_id,
+                parameter: "diameter_mm",
+                baseline_value_mm: ($scenario_baseline_diameter | tonumber),
+                candidate_value_mm: ($scenario_candidate_diameter | tonumber)
               },
               baseline: {
                 change: "none",
@@ -318,7 +411,7 @@ jobs:
                 binary_output_sha256: $baseline_binary_sha256
               },
               candidate: {
-                change: "pipe P2 diameter 150 mm -> 50 mm",
+                change: ("pipe " + $scenario_asset_id + " diameter " + $scenario_baseline_diameter + " mm -> " + $scenario_candidate_diameter + " mm"),
                 input_sha256: $candidate_input_sha256,
                 report_sha256: $candidate_report_sha256,
                 binary_output_sha256: $candidate_binary_sha256
@@ -367,7 +460,7 @@ jobs:
             }' > "$out/epanet-synthetic-smoke-evidence.json"
 
           sha256sum "$out"/* | tee "$out/artifact-sha256.txt"
-          echo "EPANET_SYNTHETIC_SMOKE_PASS: pinned solver ran baseline and restricted-pipe cases; reports and outputs differ."
+          echo "EPANET_SYNTHETIC_SMOKE_PASS: pinned solver ran baseline and scenario-bundle-derived restriction case; declared input digest and directional hydraulics were verified."
       - name: Upload synthetic solver evidence
         if: always()
         uses: actions/upload-artifact@v4
