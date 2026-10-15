@@ -54,6 +54,18 @@ The profile keeps July 2023 partial through 14 July and prevents pre-August valu
 
 The [Black Sea trade query plan](../../docs/pilots/BLACK_SEA_GRAIN_TRADE_QUERY_PLAN.md) and [machine-readable request manifest](../../docs/pilots/black-sea-grain-trade-query-plan.json) define seven bounded monthly request chunks for Ukraine exports of HS 1001 wheat and HS 1005 maize, 2017–2023. The manifest is deliberately `query_plan_only`: it contains no live response data, hashes, or selected controls. When collecting, use the public preview endpoint documented in the [UN Comtrade API guide](https://uncomtrade.org/docs/un-comtrade-api/), snapshot exact raw bytes before parsing, and review actual classification, coverage, estimated-state, quantity and valuation metadata. Do not reinterpret trade aggregates as Initiative shipments or route-level observations.
 
+## Capture Black Sea source bytes locally
+
+The [Black Sea trade query plan](../../docs/pilots/BLACK_SEA_GRAIN_TRADE_QUERY_PLAN.md) is paired with a bounded capture helper. On a network-enabled machine, run from the repository root using a new snapshot directory:
+
+```sh
+python3 scripts/earth-systems/capture_black_sea_sources.py \
+  --snapshot-dir /tmp/black-sea-sources-2026-10-15
+python3 -m unittest discover -s tests -p "test_black_sea_source_capture.py" -v
+```
+
+The helper fetches the JCC page, the official FAO CSV asset linked from the FFPI page, and the seven planned public-preview Comtrade chunks. It stores exact successful response bytes and a digest-bearing capture manifest only under the caller's local directory, rejects redirects outside its HTTPS host/path allowlist, caps response sizes, and refuses pre-existing output names. An incomplete run leaves per-source failure state and exits non-zero; inspect the manifest rather than assuming every source was captured. The command does not upload data or set any license/analysis gate to true. Review terms and source coverage before sharing captured files.
+
 ## Interpretation limit
 
 All validators here check metadata and state-machine invariants only. They do not fetch external sources, prove a license, validate a scientific model, establish source independence, or show that any domain is operational. The pilot profile is intentionally `design_only`: no WaPOR or CHIRPS artifacts have been acquired or processed. The current product IDs, temporal coverage, boundary, processing vintages, exact rights snapshots and independent reference records must be checked before the profile may advance.

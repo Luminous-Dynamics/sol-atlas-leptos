@@ -38,6 +38,19 @@ Use the exact request parameters in the JSON plan; do not treat the formatted li
 
 No control group is selected by this query plan. After inspecting metadata and missingness—but before examining the resulting outcome patterns—write a dated preregistration that justifies comparison exporters/commodities, seasonality, treatment of the COVID period, concurrent shocks, exclusions and sensitivity checks. Do not pick or swap controls to obtain a preferred result. The proposed 2017–2021 baseline includes pandemic-era disruption and is not, by itself, a causal counterfactual.
 
+## Local exact-byte capture helper
+
+For a network-enabled workstation, run the bounded, read-only acquisition helper from the repository root using a **new output directory**:
+
+```sh
+python3 scripts/earth-systems/capture_black_sea_sources.py \
+  --snapshot-dir /tmp/black-sea-sources-2026-10-15
+```
+
+The command reads this plan, fetches the official JCC page, the linked FAO monthly CSV, and each of the seven Comtrade chunks, then records exact response byte counts, SHA-256 digests, timestamps, request URLs/parameters, selected response headers and per-source status in `capture-manifest.json`. Payloads remain only in the chosen local snapshot directory; the command does not commit or upload them. It uses no credentials. Each response is bounded, redirects must remain on the allowlisted HTTPS source paths, and existing snapshot paths/files are never overwritten. Preview-limit, malformed-response, HTTP, content-type and storage failures remain explicit and make the command exit non-zero; successful individual artifacts are retained with their manifest state for diagnosis.
+
+This helper does **not** mean sources have been captured in this current review. No hash is filled into the research plan, and no terms, coverage, measurements, classification, independent review or causal claim is pre-approved. Before storing snapshots anywhere shared, review the source terms and retention policy. A response hash is a byte-integrity claim only.
+
 ## Advancement gates
 
 The plan's validation flags stay false until the real chunks are acquired and hashed, completeness and schema are independently checked, units/classification are reviewed, a control design is preregistered, and independent review is documented. Until then, no trade-data result, causal estimate, operational warning or supply-chain prediction is claimed.

@@ -239,5 +239,35 @@
     "incomplete_or_estimated_rows_reviewed": false,
     "control_plan_preregistered": false,
     "independent_review_completed": false
-  }
+  },
+  "companion_artifacts": [
+    {
+      "source_id": "UN-BSGI-JCC",
+      "artifact_id": "official-jcc-page",
+      "url": "https://www.un.org/en/node/207702",
+      "filename": "un-bsgi-jcc-initiative-update.html",
+      "response_kind": "html",
+      "expected_content_types": [
+        "text/html",
+        "application/xhtml+xml"
+      ],
+      "max_bytes": 16777216,
+      "rights_review_state": "review_per_artifact",
+      "role_limit": "Captures the public HTML response for audit and later reparse; a successful page response does not by itself prove the monthly table was independently extracted or that a separately downloadable data artifact exists."
+    },
+    {
+      "source_id": "FAO-FFPI",
+      "artifact_id": "monthly-nominal-index-csv",
+      "url": "https://www.fao.org/media/docs/worldfoodsituationlibraries/wfs-library/food_price_indices_data.csv?download=true&sfvrsn=523ebd2a_84",
+      "filename": "fao-food-price-indices-monthly.csv",
+      "response_kind": "csv",
+      "expected_content_types": [
+        "text/csv",
+        "application/csv"
+      ],
+      "max_bytes": 33554432,
+      "rights_review_state": "review_dataset_version",
+      "role_limit": "Captures the linked monthly nominal-index CSV response; inspect columns, index labels, missingness, revision vintage, attribution and terms before use."
+    }
+  ]
 }

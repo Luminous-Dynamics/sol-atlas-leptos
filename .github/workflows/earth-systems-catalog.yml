@@ -9,6 +9,7 @@ on:
       - "docs/schemas/water-food-pilot.schema.json"
       - "scripts/earth-systems/**"
       - "tests/test_earth_systems_catalog.py"
+      - "tests/test_black_sea_source_capture.py"
       - "tests/test_water_food_pilot.py"
       - "tests/test_chirps_monthly_plan.py"
       - "tests/test_wapor_catalog_inventory.py"
@@ -24,6 +25,7 @@ on:
       - "docs/schemas/water-food-pilot.schema.json"
       - "scripts/earth-systems/**"
       - "tests/test_earth_systems_catalog.py"
+      - "tests/test_black_sea_source_capture.py"
       - "tests/test_water_food_pilot.py"
       - "tests/test_chirps_monthly_plan.py"
       - "tests/test_wapor_catalog_inventory.py"
@@ -54,6 +56,8 @@ jobs:
         run: python scripts/earth-systems/validate_catalog.py
       - name: Run catalog tests
         run: python -m unittest discover -s tests -p "test_earth_systems_catalog.py" -v
+      - name: Run Black Sea source-capture tests
+        run: python -m unittest discover -s tests -p "test_black_sea_source_capture.py" -v
       - name: Validate Baixo Limpopo pilot profile
         run: python scripts/earth-systems/validate_pilot.py
       - name: Run pilot tests
