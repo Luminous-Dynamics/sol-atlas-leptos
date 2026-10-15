@@ -249,6 +249,15 @@ The schema and fixture shape were checked against JSON Schema Draft 2020-12 in a
 8. Record a human-reviewed decision and explicit authorisation through the Mycelix workflow, then compare post-intervention observations against the frozen baseline.
 9. Add a building-plumbing profile only after its local technical and regulatory requirements are separately mapped.
 
+## Solver pinning research for the next executable gate
+
+The next run should be reproducible from immutable source identities, not an unqualified "latest" install:
+
+- **EPANET candidate:** OpenWaterAnalytics EPANET release tag `v2.2` resolves to source commit `4d8d82ddc260fce216af9321fc3d9a4646ac6827`. Its build documentation describes a CMake-built `runepanet` CLI on Linux/macOS. Source: [release ref](https://github.com/OpenWaterAnalytics/EPANET/releases/tag/v2.2), [BUILDING.md](https://github.com/OpenWaterAnalytics/EPANET/blob/4d8d82ddc260fce216af9321fc3d9a4646ac6827/BUILDING.md). The separate EPA archive tag `USEPA/EPANET2.2:2.2.0` resolves to `6d7f5f9c08048ce6b25bb64340547446362ec389`; select one source lineage explicitly rather than mixing them.
+- **SWMM candidate for the later fixture:** official EPA repository release `v5.2.4` resolves to `7952ca837988b1c32f791812eccc9fd64547e093`. The EPA repository documents building the `runswmm` command-line executable with CMake. Sources: [release](https://github.com/USEPA/Stormwater-Management-Model/releases/tag/v5.2.4), [EPA SWMM project page](https://www.epa.gov/water-research/storm-water-management-model-swmm).
+
+These are reproducible starting candidates, not a claim that either engine was built or executed here. Before labelling a run reproducible, record the full source commit, build-tool/compiler versions and flags, resulting executable SHA-256, platform, input digest, command arguments, exit status, complete logs/reports, binary output artifact, and the independent checks applied to its diagnostics. Pinning source does not by itself prove the build is reproducible, and a successful solver exit does not prove empirical accuracy.
+
 ## Semantic validator implementation (draft-branch increment)
 
 The draft branch now adds:
