@@ -285,6 +285,9 @@ impl PhysicsRunManifest {
 
     /// Return true only for a recorded pass tied to this exact source commit.
     pub fn exact_head_gate_passed(&self, kind: VerificationGateKind) -> bool {
+        if self.validate().is_err() {
+            return false;
+        }
         self.gates.iter().any(|gate| {
             gate.gate == kind
                 && gate.outcome == GateOutcome::Passed
@@ -579,6 +582,18 @@ mod tests {
         let mut bad_step = fixture();
         bad_step.discretization.as_mut().unwrap().time_step_s = Some(f64::NAN);
         assert_eq!(bad_step.validate(), Err(ManifestError::InvalidDiscretization));
+    }
+
+    #[test]
+    fn invalid_manifest_never_reports_an_exact_head_gate_pass() {
+        let commit = full_sha('a');
+        let mut run = fixture();
+        run.gates.push(passed_gate(VerificationGateKind::InputValidation, &commit));
+        run.schema_version = PHYSICS_RUN_SCHEMA_VERSION + 1;
+
+        assert_eq!(run.validate(), Err(ManifestError::UnsupportedSchemaVersion));
+        assert!(!run.exact_head_gate_passed(VerificationGateKind::InputValidation));
+        assert_eq!(run.readiness(), EvidenceReadiness::Exploratory);
     }
 
     #[test]
