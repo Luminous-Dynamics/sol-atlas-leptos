@@ -901,6 +901,78 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "Completed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "strategy_results": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "properties": {
+                        "strategy_id": {
+                          "const": "information_directed"
+                        }
+                      },
+                      "required": [
+                        "strategy_id"
+                      ]
+                    },
+                    "minContains": 1
+                  },
+                  {
+                    "contains": {
+                      "properties": {
+                        "strategy_id": {
+                          "const": "random_seeded"
+                        }
+                      },
+                      "required": [
+                        "strategy_id"
+                      ]
+                    },
+                    "minContains": 1
+                  },
+                  {
+                    "contains": {
+                      "properties": {
+                        "strategy_id": {
+                          "const": "spatial_coverage_greedy"
+                        }
+                      },
+                      "required": [
+                        "strategy_id"
+                      ]
+                    },
+                    "minContains": 1
+                  },
+                  {
+                    "contains": {
+                      "properties": {
+                        "strategy_id": {
+                          "const": "fixed_heuristic"
+                        }
+                      },
+                      "required": [
+                        "strategy_id"
+                      ]
+                    },
+                    "minContains": 1
+                  }
+                ]
+              }
+            }
+          }
         }
       ]
     },
@@ -1649,5 +1721,63 @@
         }
       ]
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "evaluation": {
+            "properties": {
+              "state": {
+                "const": "Completed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          }
+        },
+        "required": [
+          "evaluation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "model_reference": {
+            "properties": {
+              "state": {
+                "const": "Completed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "scenario_corpus": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "Generated",
+                  "IndependentlyReviewed"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "acceptance_criteria": {
+            "properties": {
+              "state": {
+                "const": "frozen"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          }
+        }
+      }
+    }
+  ]
 }
