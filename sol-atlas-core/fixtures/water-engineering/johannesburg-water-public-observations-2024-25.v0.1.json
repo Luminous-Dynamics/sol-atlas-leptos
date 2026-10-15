@@ -92,6 +92,28 @@
         "The reporting period is financial year 2023/24; do not compare to other years without preserving metric definitions and denominator changes.",
         "The published figures are city/system aggregates and do not include pipe-level or sampling-location time series."
       ]
+    },
+    {
+      "source_id": "jhb-water-business-plan-2025-26",
+      "publisher": "Johannesburg Water SOC Ltd",
+      "publication_title": "Johannesburg Water Unabridged Business Plan 2025/26",
+      "publication_url": "https://johannesburgwater.co.za/wp-content/uploads/2025/07/JHB-Water_Business-Plan-2025_For-Upload_FINAL_070725.pdf",
+      "official_source_url": "https://johannesburgwater.co.za/wp-content/uploads/2025/07/JHB-Water_Business-Plan-2025_For-Upload_FINAL_070725.pdf",
+      "published_on": null,
+      "source_kind": "published_report",
+      "access_state": "public_summary_observed",
+      "granularity": "Page 49 active leak detection / minimum-night-flow activity table and planned device roll-out; page 50 pressure-management potential-saving figures",
+      "reuse_terms": [
+        "Attribute Johannesburg Water SOC Ltd and link to the original business plan.",
+        "No separate open-data licence to republish the document wholesale was confirmed; this bundle transcribes a limited set of aggregate figures.",
+        "Keep all estimates identified as publisher-reported estimates, not independently demonstrated savings."
+      ],
+      "known_limitations": [
+        "Counts are reported activity totals, not a comprehensive network-wide incident register and not necessarily the total counts from all maintenance channels.",
+        "The extracted regional component values visible in the table do not arithmetically reconcile to some published total values; region-level rows are therefore not ingested as trusted values and the totals remain provisional pending table review.",
+        "The 14,355,757 kL/year and 5,918,000 kL/year figures are reported estimates/potential savings, not independently verified realised outcomes.",
+        "The device deployment schedule is a business-plan target, not a record that all deployments actually occurred."
+      ]
     }
   ],
   "observations": [
@@ -529,7 +551,7 @@
     },
     {
       "observation_id": "jw.annual23-24.ecoli.tests",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "E. coli — tests reported",
       "value": 6099,
       "unit": "test",
@@ -548,7 +570,7 @@
     },
     {
       "observation_id": "jw.annual23-24.ecoli.compliance",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "E. coli — achieved SANS 241 compliance",
       "value": 99.2,
       "unit": "%",
@@ -567,7 +589,7 @@
     },
     {
       "observation_id": "jw.annual23-24.total-coliforms.tests",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Total coliforms — tests reported",
       "value": 6099,
       "unit": "test",
@@ -586,7 +608,7 @@
     },
     {
       "observation_id": "jw.annual23-24.total-coliforms.compliance",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Total coliforms — achieved SANS 241 compliance",
       "value": 97.8,
       "unit": "%",
@@ -605,7 +627,7 @@
     },
     {
       "observation_id": "jw.annual23-24.heterotrophic-plate-count.tests",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Heterotrophic plate count — tests reported",
       "value": 6067,
       "unit": "test",
@@ -624,7 +646,7 @@
     },
     {
       "observation_id": "jw.annual23-24.heterotrophic-plate-count.compliance",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Heterotrophic plate count — achieved SANS 241 compliance",
       "value": 98.7,
       "unit": "%",
@@ -643,7 +665,7 @@
     },
     {
       "observation_id": "jw.annual23-24.turbidity.tests",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Turbidity — tests reported",
       "value": 7374,
       "unit": "test",
@@ -662,7 +684,7 @@
     },
     {
       "observation_id": "jw.annual23-24.turbidity.compliance",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Turbidity — achieved SANS 241 compliance",
       "value": 98.9,
       "unit": "%",
@@ -681,7 +703,7 @@
     },
     {
       "observation_id": "jw.annual23-24.ph.tests",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "pH — tests reported",
       "value": 6099,
       "unit": "test",
@@ -700,7 +722,7 @@
     },
     {
       "observation_id": "jw.annual23-24.ph.compliance",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "pH — achieved SANS 241 compliance",
       "value": 100,
       "unit": "%",
@@ -718,13 +740,13 @@
       ]
     },
     {
-      "observation_id": "jw.annual24-25.ecoli.tests",
+      "observation_id": "jw.annual24-25.ecoli.samples",
       "source_id": "jhb-water-annual-report-2024-25",
-      "name": "E. coli — tests reported",
+      "name": "E. coli — samples reported",
       "value": 5890,
-      "unit": "test",
+      "unit": "sample",
       "observation_kind": "published_aggregate",
-      "statistic": "number_of_tests_as_reported",
+      "statistic": "number_of_samples_as_reported",
       "period_start": "2024-07-01",
       "period_end": "2025-06-30",
       "period_label": "Johannesburg Water financial year 2024/25",
@@ -733,7 +755,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+        "Table 23 reports 'Actual No. of Samples'; this denominator is distinct from the 79,025 total tests reported in the public notice."
       ]
     },
     {
@@ -756,13 +778,13 @@
       ]
     },
     {
-      "observation_id": "jw.annual24-25.total-coliforms.tests",
+      "observation_id": "jw.annual24-25.total-coliforms.samples",
       "source_id": "jhb-water-annual-report-2024-25",
-      "name": "Total coliforms — tests reported",
+      "name": "Total coliforms — samples reported",
       "value": 6890,
-      "unit": "test",
+      "unit": "sample",
       "observation_kind": "published_aggregate",
-      "statistic": "number_of_tests_as_reported",
+      "statistic": "number_of_samples_as_reported",
       "period_start": "2024-07-01",
       "period_end": "2025-06-30",
       "period_label": "Johannesburg Water financial year 2024/25",
@@ -771,7 +793,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+        "Table 23 reports 'Actual No. of Samples'; this denominator is distinct from the 79,025 total tests reported in the public notice."
       ]
     },
     {
@@ -794,13 +816,13 @@
       ]
     },
     {
-      "observation_id": "jw.annual24-25.heterotrophic-plate-count.tests",
+      "observation_id": "jw.annual24-25.heterotrophic-plate-count.samples",
       "source_id": "jhb-water-annual-report-2024-25",
-      "name": "Heterotrophic plate count — tests reported",
+      "name": "Heterotrophic plate count — samples reported",
       "value": 4984,
-      "unit": "test",
+      "unit": "sample",
       "observation_kind": "published_aggregate",
-      "statistic": "number_of_tests_as_reported",
+      "statistic": "number_of_samples_as_reported",
       "period_start": "2024-07-01",
       "period_end": "2025-06-30",
       "period_label": "Johannesburg Water financial year 2024/25",
@@ -809,7 +831,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+        "Table 23 reports 'Actual No. of Samples'; this denominator is distinct from the 79,025 total tests reported in the public notice."
       ]
     },
     {
@@ -832,13 +854,13 @@
       ]
     },
     {
-      "observation_id": "jw.annual24-25.colour.tests",
+      "observation_id": "jw.annual24-25.colour.samples",
       "source_id": "jhb-water-annual-report-2024-25",
-      "name": "Colour — tests reported",
+      "name": "Colour — samples reported",
       "value": 7055,
-      "unit": "test",
+      "unit": "sample",
       "observation_kind": "published_aggregate",
-      "statistic": "number_of_tests_as_reported",
+      "statistic": "number_of_samples_as_reported",
       "period_start": "2024-07-01",
       "period_end": "2025-06-30",
       "period_label": "Johannesburg Water financial year 2024/25",
@@ -847,7 +869,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+        "Table 23 reports 'Actual No. of Samples'; this denominator is distinct from the 79,025 total tests reported in the public notice."
       ]
     },
     {
@@ -870,13 +892,13 @@
       ]
     },
     {
-      "observation_id": "jw.annual24-25.conductivity.tests",
+      "observation_id": "jw.annual24-25.conductivity.samples",
       "source_id": "jhb-water-annual-report-2024-25",
-      "name": "Conductivity — tests reported",
+      "name": "Conductivity — samples reported",
       "value": 617,
-      "unit": "test",
+      "unit": "sample",
       "observation_kind": "published_aggregate",
-      "statistic": "number_of_tests_as_reported",
+      "statistic": "number_of_samples_as_reported",
       "period_start": "2024-07-01",
       "period_end": "2025-06-30",
       "period_label": "Johannesburg Water financial year 2024/25",
@@ -885,7 +907,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+        "Table 23 reports 'Actual No. of Samples'; this denominator is distinct from the 79,025 total tests reported in the public notice."
       ]
     },
     {
@@ -908,13 +930,13 @@
       ]
     },
     {
-      "observation_id": "jw.annual24-25.taste.tests",
+      "observation_id": "jw.annual24-25.taste.samples",
       "source_id": "jhb-water-annual-report-2024-25",
-      "name": "Taste — tests reported",
+      "name": "Taste — samples reported",
       "value": 496,
-      "unit": "test",
+      "unit": "sample",
       "observation_kind": "published_aggregate",
-      "statistic": "number_of_tests_as_reported",
+      "statistic": "number_of_samples_as_reported",
       "period_start": "2024-07-01",
       "period_end": "2025-06-30",
       "period_label": "Johannesburg Water financial year 2024/25",
@@ -923,7 +945,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+        "Table 23 reports 'Actual No. of Samples'; this denominator is distinct from the 79,025 total tests reported in the public notice."
       ]
     },
     {
@@ -946,13 +968,13 @@
       ]
     },
     {
-      "observation_id": "jw.annual24-25.odour.tests",
+      "observation_id": "jw.annual24-25.odour.samples",
       "source_id": "jhb-water-annual-report-2024-25",
-      "name": "Odour — tests reported",
+      "name": "Odour — samples reported",
       "value": 497,
-      "unit": "test",
+      "unit": "sample",
       "observation_kind": "published_aggregate",
-      "statistic": "number_of_tests_as_reported",
+      "statistic": "number_of_samples_as_reported",
       "period_start": "2024-07-01",
       "period_end": "2025-06-30",
       "period_label": "Johannesburg Water financial year 2024/25",
@@ -961,7 +983,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+        "Table 23 reports 'Actual No. of Samples'; this denominator is distinct from the 79,025 total tests reported in the public notice."
       ]
     },
     {
@@ -984,13 +1006,13 @@
       ]
     },
     {
-      "observation_id": "jw.annual24-25.turbidity.tests",
+      "observation_id": "jw.annual24-25.turbidity.samples",
       "source_id": "jhb-water-annual-report-2024-25",
-      "name": "Turbidity — tests reported",
+      "name": "Turbidity — samples reported",
       "value": 7063,
-      "unit": "test",
+      "unit": "sample",
       "observation_kind": "published_aggregate",
-      "statistic": "number_of_tests_as_reported",
+      "statistic": "number_of_samples_as_reported",
       "period_start": "2024-07-01",
       "period_end": "2025-06-30",
       "period_label": "Johannesburg Water financial year 2024/25",
@@ -999,7 +1021,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+        "Table 23 reports 'Actual No. of Samples'; this denominator is distinct from the 79,025 total tests reported in the public notice."
       ]
     },
     {
@@ -1022,13 +1044,13 @@
       ]
     },
     {
-      "observation_id": "jw.annual24-25.ph.tests",
+      "observation_id": "jw.annual24-25.ph.samples",
       "source_id": "jhb-water-annual-report-2024-25",
-      "name": "pH — tests reported",
+      "name": "pH — samples reported",
       "value": 7088,
-      "unit": "test",
+      "unit": "sample",
       "observation_kind": "published_aggregate",
-      "statistic": "number_of_tests_as_reported",
+      "statistic": "number_of_samples_as_reported",
       "period_start": "2024-07-01",
       "period_end": "2025-06-30",
       "period_label": "Johannesburg Water financial year 2024/25",
@@ -1037,7 +1059,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Table 23 in the annual report's indexed text excerpt labels this field 'No. of tests'; confirm its exact scope in the PDF."
+        "Table 23 reports 'Actual No. of Samples'; this denominator is distinct from the 79,025 total tests reported in the public notice."
       ]
     },
     {
@@ -1061,7 +1083,7 @@
     },
     {
       "observation_id": "jw.annual23-24.overall-water-quality-compliance",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Overall water quality compliance",
       "value": 99.2,
       "unit": "%",
@@ -1075,7 +1097,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+        "Reported in the 2023/24 comparative column of Table 26 in the 2024/25 Annual Report; PDF table-level review still required."
       ]
     },
     {
@@ -1112,8 +1134,8 @@
       "reference_text": null,
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
-        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+        "The 2023/24 Annual Report financial discussion reports NRW of 46.18% for the year ended June 2024.",
+        "The 2024/25 figure is separately reported as 44.79%; these are portfolio aggregates, not pipe-level condition or independently measured leak volume."
       ]
     },
     {
@@ -1131,13 +1153,13 @@
       "reference_text": null,
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
-        "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Figure reproduced from Table 26 / annual performance summary in the 2024/25 Annual Report's indexed text excerpt; confirm the exact table cell and indicator definition against the primary document."
+        "Reported 2024/25 non-revenue water figure; retain the audited/reporting qualifier and verify the exact table/paragraph location before use.",
+        "This aggregate does not identify individual assets or causally attribute any reduction to a particular programme."
       ]
     },
     {
       "observation_id": "jw.annual23-24.sewer-blockages-per-100km",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Sewer pipe blockages per 100 km network length",
       "value": 464.66,
       "unit": "blockage per 100 km",
@@ -1151,7 +1173,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+        "Reported in the 2023/24 comparative column of Table 26 in the 2024/25 Annual Report; PDF table-level review still required."
       ]
     },
     {
@@ -1175,7 +1197,7 @@
     },
     {
       "observation_id": "jw.annual23-24.water-bursts-per-100km",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Water pipe bursts per 100 km network length",
       "value": 402.36,
       "unit": "burst per 100 km",
@@ -1189,7 +1211,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+        "Reported in the 2023/24 comparative column of Table 26 in the 2024/25 Annual Report; PDF table-level review still required."
       ]
     },
     {
@@ -1213,7 +1235,7 @@
     },
     {
       "observation_id": "jw.annual23-24.effluent-compliance",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Effluent compliance",
       "value": 76.1,
       "unit": "%",
@@ -1227,7 +1249,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+        "Reported in the 2023/24 comparative column of Table 26 in the 2024/25 Annual Report; PDF table-level review still required."
       ]
     },
     {
@@ -1251,7 +1273,7 @@
     },
     {
       "observation_id": "jw.annual23-24.sewer-blockage-response",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Response time to sewer blockages",
       "value": 92.66,
       "unit": "%",
@@ -1265,7 +1287,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+        "Reported in the 2023/24 comparative column of Table 26 in the 2024/25 Annual Report; PDF table-level review still required."
       ]
     },
     {
@@ -1289,7 +1311,7 @@
     },
     {
       "observation_id": "jw.annual23-24.water-burst-response",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Response time to water bursts",
       "value": 67.42,
       "unit": "%",
@@ -1303,7 +1325,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+        "Reported in the 2023/24 comparative column of Table 26 in the 2024/25 Annual Report; PDF table-level review still required."
       ]
     },
     {
@@ -1327,7 +1349,7 @@
     },
     {
       "observation_id": "jw.annual23-24.water-consumption-per-capita",
-      "source_id": "jhb-water-annual-report-2023-24",
+      "source_id": "jhb-water-annual-report-2024-25",
       "name": "Water consumption per capita",
       "value": 261.73,
       "unit": "L/person/day",
@@ -1341,7 +1363,7 @@
       "interpretation_state": "provisional_needs_primary_document_check",
       "notes": [
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
-        "Figure reproduced from Table 26 comparative achievements in the 2024/25 Annual Report's indexed text excerpt; confirm the reported prior-year column against the primary document."
+        "Reported in the 2023/24 comparative column of Table 26 in the 2024/25 Annual Report; PDF table-level review still required."
       ]
     },
     {
@@ -1362,6 +1384,291 @@
         "PROVISIONAL: transcribed from an indexed text excerpt of the publisher's PDF; confirm the exact table cell and context against the primary document before formal use.",
         "Figure reproduced from Table 26 / annual performance summary in the 2024/25 Annual Report's indexed text excerpt; confirm the exact table cell and indicator definition against the primary document."
       ]
+    },
+    {
+      "observation_id": "jw.annual23-24.direct-table26.sewer-blockage-response",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Response time to sewer blockages — direct 2023/24 report Table 26",
+      "value": 92.67,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "annual_response_time_kpi_percent_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water system-level annual performance",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "The indexed text for the 2023/24 Annual Report's Table 26 states 92.67%.",
+        "The 2024/25 Annual Report's 2023/24 comparative column states 92.66%; preserve this source discrepancy until a primary-table review resolves whether it is rounding, correction, or a definition difference."
+      ]
+    },
+    {
+      "observation_id": "jw.annual23-24.direct-table26.water-burst-response",
+      "source_id": "jhb-water-annual-report-2023-24",
+      "name": "Response time to water bursts — direct 2023/24 report Table 26",
+      "value": 67.46,
+      "unit": "%",
+      "observation_kind": "published_aggregate",
+      "statistic": "annual_response_time_kpi_percent_as_reported",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "Johannesburg Water financial year 2023/24",
+      "population_or_scope": "Johannesburg Water system-level annual performance",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "The indexed text for the 2023/24 Annual Report's Table 26 states 67.46%.",
+        "The 2024/25 Annual Report's 2023/24 comparative column states 67.42%; preserve this source discrepancy until a primary-table review resolves whether it is rounding, correction, or a definition difference."
+      ]
+    },
+    {
+      "observation_id": "jw.ld.fy2023-24.burst-pipe-activity-total",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Active leak-detection activity — burst pipe",
+      "value": 2620,
+      "unit": "activity count",
+      "observation_kind": "published_aggregate",
+      "statistic": "reported_activity_total",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "FY2023/24 Johannesburg Water Business Plan activity",
+      "population_or_scope": "Johannesburg Water active leak-detection / minimum-night-flow programme",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "Table 25 category 'Burst pipe'. This is not claimed to be the total city-wide burst count."
+      ]
+    },
+    {
+      "observation_id": "jw.ld.fy2023-24.leaking-meter-activity-total",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Active leak-detection activity — leaking meter",
+      "value": 7212,
+      "unit": "activity count",
+      "observation_kind": "published_aggregate",
+      "statistic": "reported_activity_total",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "FY2023/24 Johannesburg Water Business Plan activity",
+      "population_or_scope": "Johannesburg Water active leak-detection / minimum-night-flow programme",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "Table 25 category 'Leaking Meter'. Regional values as extracted do not reconcile to this total."
+      ]
+    },
+    {
+      "observation_id": "jw.ld.fy2023-24.leaking-valve-activity-total",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Active leak-detection activity — leaking valve",
+      "value": 476,
+      "unit": "activity count",
+      "observation_kind": "published_aggregate",
+      "statistic": "reported_activity_total",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "FY2023/24 Johannesburg Water Business Plan activity",
+      "population_or_scope": "Johannesburg Water active leak-detection / minimum-night-flow programme",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "Table 25 category 'Leaking Valve'. Regional values as extracted do not reconcile to this total."
+      ]
+    },
+    {
+      "observation_id": "jw.ld.fy2023-24.leaking-hydrant-activity-total",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Active leak-detection activity — leaking hydrant",
+      "value": 283,
+      "unit": "activity count",
+      "observation_kind": "published_aggregate",
+      "statistic": "reported_activity_total",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "FY2023/24 Johannesburg Water Business Plan activity",
+      "population_or_scope": "Johannesburg Water active leak-detection / minimum-night-flow programme",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "Table 25 category 'Leaking Hydrant'. Regional values as extracted do not reconcile to this total."
+      ]
+    },
+    {
+      "observation_id": "jw.ld.fy2023-24.mains-surveyed-total",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Water mains surveyed through active leak detection",
+      "value": 10663.9,
+      "unit": "km",
+      "observation_kind": "published_aggregate",
+      "statistic": "reported_total_length",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "FY2023/24 Johannesburg Water Business Plan activity",
+      "population_or_scope": "Johannesburg Water active leak-detection / minimum-night-flow programme",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "The regional component lengths visible in the indexed table do not reconcile to the printed total; retain the publisher's total as provisional and do not use the regional breakdown."
+      ]
+    },
+    {
+      "observation_id": "jw.ld.fy2023-24.estimated-demand-reduction",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Estimated annual water-demand reduction from active leak detection",
+      "value": 14355757,
+      "unit": "kL/year",
+      "observation_kind": "reported_reference",
+      "statistic": "publisher_estimated_annual_reduction",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "FY2023/24 Johannesburg Water Business Plan activity",
+      "population_or_scope": "Johannesburg Water active leak-detection / minimum-night-flow programme",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "The business plan says this intervention provided an estimated reduction of 14,355,757 kL per annum. This is a published estimate, not independent measurement or a guaranteed future saving."
+      ]
+    },
+    {
+      "observation_id": "jw.dma.device-deployment.2023-24",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Advanced leak-detection devices — planned deployment",
+      "value": 80,
+      "unit": "device",
+      "observation_kind": "planned_target",
+      "statistic": "planned_installation_count",
+      "period_start": "2023-07-01",
+      "period_end": "2024-06-30",
+      "period_label": "FY2023/24 deployment schedule",
+      "population_or_scope": "Johannesburg Water active leak-detection / minimum-night-flow programme",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "Part of the schedule totalling 223 devices; planned values do not prove as-built installation."
+      ]
+    },
+    {
+      "observation_id": "jw.dma.device-deployment.2024-25",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Advanced leak-detection devices — planned deployment",
+      "value": 100,
+      "unit": "device",
+      "observation_kind": "planned_target",
+      "statistic": "planned_installation_count",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-30",
+      "period_label": "FY2024/25 deployment schedule",
+      "population_or_scope": "Johannesburg Water active leak-detection / minimum-night-flow programme",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "Part of the schedule totalling 223 devices; planned values do not prove as-built installation."
+      ]
+    },
+    {
+      "observation_id": "jw.dma.device-deployment.2025-26",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Advanced leak-detection devices — planned deployment",
+      "value": 43,
+      "unit": "device",
+      "observation_kind": "planned_target",
+      "statistic": "planned_installation_count",
+      "period_start": "2025-07-01",
+      "period_end": "2026-06-30",
+      "period_label": "FY2025/26 deployment schedule",
+      "population_or_scope": "Johannesburg Water active leak-detection / minimum-night-flow programme",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "Part of the schedule totalling 223 devices; this schedule is not actual installed-device telemetry."
+      ]
+    },
+    {
+      "observation_id": "jw.dma.device-deployment.schedule-total",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Advanced leak-detection devices — schedule total",
+      "value": 223,
+      "unit": "device",
+      "observation_kind": "planned_target",
+      "statistic": "planned_installation_count_total",
+      "period_start": null,
+      "period_end": null,
+      "period_label": "Multi-year deployment schedule as printed",
+      "population_or_scope": "Johannesburg Water active leak-detection / minimum-night-flow programme",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "The annual schedule values 80 + 100 + 43 sum to 223. This is a plan total, not verified delivered installations."
+      ]
+    },
+    {
+      "observation_id": "jw.pressure-management.potential-savings",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Advanced pressure management — potential annual water saving",
+      "value": 5918000,
+      "unit": "kL/year",
+      "observation_kind": "reported_reference",
+      "statistic": "publisher_estimated_potential_annual_saving",
+      "period_start": null,
+      "period_end": null,
+      "period_label": "Potential saving stated in Business Plan 2025/26",
+      "population_or_scope": "High-minimum-night-flow supply zones targeted for advanced pressure management",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "The business plan states potential savings of 5,918,000 kL/year (also expressed as 5,918 ML/year). This is a potential estimate, not a measured realised saving."
+      ]
+    },
+    {
+      "observation_id": "jw.pressure-management.prv-refurbishment-plan",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Smart-controlled pressure-reducing valves planned for refurbishment",
+      "value": 22,
+      "unit": "valve",
+      "observation_kind": "planned_target",
+      "statistic": "planned_refurbishment_count",
+      "period_start": "2025-07-01",
+      "period_end": "2026-06-30",
+      "period_label": "FY2025/26 pressure-management plan",
+      "population_or_scope": "Johannesburg Water active leak-detection / minimum-night-flow programme",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "Plan target; do not interpret as verified completed refurbishment."
+      ]
+    },
+    {
+      "observation_id": "jw.pressure-management.online-loggers-plan",
+      "source_id": "jhb-water-business-plan-2025-26",
+      "name": "Online platform loggers associated with pressure-management plan",
+      "value": 40,
+      "unit": "logger",
+      "observation_kind": "planned_target",
+      "statistic": "planned_associated_installation_count",
+      "period_start": "2025-07-01",
+      "period_end": "2026-06-30",
+      "period_label": "FY2025/26 pressure-management plan",
+      "population_or_scope": "Johannesburg Water active leak-detection / minimum-night-flow programme",
+      "reference_text": null,
+      "interpretation_state": "provisional_needs_primary_document_check",
+      "notes": [
+        "PROVISIONAL: transcribed from the browser's indexed text for Johannesburg Water's 2025/26 Business Plan, page 49 or 50; the screenshot endpoint returned an access error, so independently check the page/table before promoting.",
+        "Plan target as described in the Business Plan; installed/live status requires a separate verified source."
+      ]
     }
   ],
   "nonclaims": [
@@ -1370,6 +1677,7 @@
     "Reported aggregate values have not been independently reproduced from raw samples.",
     "Water quality summaries and hydraulic service reliability are different evidence domains.",
     "Published planned replacement kilometres are targets, not actual completed works.",
-    "No claim is made that the observations are a complete or current picture of Johannesburg's water system."
+    "No claim is made that the observations are a complete or current picture of Johannesburg's water system.",
+    "Some FY2023/24 Business Plan tables have regional values that do not reconcile to printed totals; those regional values are intentionally not ingested as trusted observations."
   ]
 }
