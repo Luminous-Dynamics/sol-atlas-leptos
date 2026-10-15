@@ -35,7 +35,7 @@ Local service outcomes matter. South Africa's 2023 No Drop reporting described n
 - `w0-intervention-decision.synthetic.json`: a deliberately **not-run** fixture. It uses unavailable metrics with null values and explicit reasons; no invented hydraulic results or ranking.
 - A CI schema/fixture pair so the contract shape is checked alongside the existing water-engineering and public-observation bundles.
 
-The schema is a shape gate, not a semantic verifier. Cross-record ID uniqueness, constraint/result consistency, unit compatibility, Pareto calculation, uncertainty statistics and decision-state transitions remain follow-up implementation work. Do not display a ranked recommendation as qualified until those checks, actual pinned-solver evidence, and independent engineering review exist.
+The schema is a shape gate, not a semantic verifier. The Rust semantic validator now enforces packet-local identifier uniqueness, unavailable-value/null consistency, uncertainty-bound consistency, run-state/digest consistency, hard-constraint evidence semantics, cross-case unit/scope/period consistency when a metric is marked comparable, and preconditions for recording a planning-only decision. It does not resolve or authenticate referenced run bundles, so it is not a cryptographic provenance verifier. Pareto calculation, uncertainty statistics, statistical robustness, causal attribution, and artifact-resolved run-bundle verification remain follow-up work. Do not display a ranked recommendation as qualified until those remaining checks, actual pinned-solver evidence, and independent engineering review exist.
 
 ## Qualification ladder
 
