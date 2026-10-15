@@ -255,12 +255,12 @@ jobs:
           test -s "$candidate_report"
           test -s "$candidate_binary"
           grep -q "$asset_id" "$out/w0-baseline.rpt" || {
-            echo "BASELINE_REPORT_MISSING_P2: report follows"
+            echo "BASELINE_REPORT_MISSING_TARGET_ASSET: $asset_id"
             cat "$out/w0-baseline.rpt"
             exit 1
           }
           grep -q "$asset_id" "$candidate_report" || {
-            echo "CANDIDATE_REPORT_MISSING_P2: report follows"
+            echo "CANDIDATE_REPORT_MISSING_TARGET_ASSET: $asset_id"
             cat "$candidate_report"
             exit 1
           }
@@ -328,19 +328,19 @@ jobs:
           printf '%s downstream pressure [m]: baseline=%s candidate=%s\n' "$downstream_node" "$baseline_downstream_pressure" "$candidate_downstream_pressure"
 
           awk -v b="$baseline_pipe_flow" -v c="$candidate_pipe_flow" 'BEGIN { d = c - b; if (d < -0.02 || d > 0.02) exit 1 }' || {
-            echo "FAIL: demand-driven P2 flow should remain invariant within report precision"
+            echo "FAIL: demand-driven flow in $asset_id should remain invariant within report precision"
             exit 1
           }
           awk -v b="$baseline_pipe_velocity" -v c="$candidate_pipe_velocity" 'BEGIN { exit !(c > b) }' || {
-            echo "FAIL: reducing P2 diameter did not increase reported velocity"
+            echo "FAIL: reducing $asset_id diameter did not increase reported velocity"
             exit 1
           }
           awk -v b="$baseline_pipe_headloss" -v c="$candidate_pipe_headloss" 'BEGIN { exit !(c > b) }' || {
-            echo "FAIL: reducing P2 diameter did not increase reported headloss"
+            echo "FAIL: reducing $asset_id diameter did not increase reported headloss"
             exit 1
           }
           awk -v b="$baseline_downstream_pressure" -v c="$candidate_downstream_pressure" 'BEGIN { exit !(c < b) }' || {
-            echo "FAIL: restricting P2 did not reduce downstream J2 pressure"
+            echo "FAIL: restricting $asset_id did not reduce downstream $downstream_node pressure"
             exit 1
           }
           echo "EPANET_DIRECTIONAL_HYDRAULICS_PASS: flow invariant; velocity/headloss increase; downstream pressure decreases."
@@ -420,6 +420,7 @@ jobs:
               scenario_bundle: {
                 path: "sol-atlas-core/fixtures/water-engineering/w0-p2-diameter-restriction.synthetic.json",
                 sha256: $scenario_bundle_sha256,
+                downstream_node_id: $downstream_node,
                 bundle_id: $scenario_bundle_id,
                 scenario_id: $scenario_id,
                 target_asset_id: $scenario_asset_id,
