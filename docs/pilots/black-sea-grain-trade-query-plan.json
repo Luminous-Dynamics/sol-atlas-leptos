@@ -15,7 +15,11 @@
     "raw_response_bytes_acquired": false,
     "source_sha256": null,
     "response_schema_inspected": false,
-    "rights_review": "review_dataset_version"
+    "rights_review": "review_dataset_version",
+    "availability_endpoint_template": "/public/v1/getDa/{typeCode}/{freqCode}/{classificationCode}",
+    "availability_access_mode": "public_preview_no_subscription_key",
+    "availability_response_schema_inspected": false,
+    "availability_scope_limit": "Reporter/month availability only; the endpoint does not verify commodity, partner or flow."
   },
   "query_dimensions": {
     "type_code": "C",
@@ -1556,7 +1560,7 @@
   ],
   "request_policy": {
     "periods_per_request_target": 1,
-    "rationale": "The unauthenticated public preview endpoint is intentionally queried at its narrowest documented product/period scope: one commodity and one month per request. Seven years × 12 months × 2 commodities = 168 requests. Do not assume the broader authenticated API's multi-period capabilities apply to preview.",
+    "rationale": "The unauthenticated public preview endpoint is intentionally queried at its narrowest documented product/period scope: one commodity and one month per request. Seven years × 12 months × 2 commodities = 168 requests. Do not assume the broader authenticated API's multi-period capabilities apply to preview. A separate opt-in 84-request reporter/month availability pass uses the public getDa route to provide context for empty preview results; it cannot qualify product/partner/flow availability.",
     "public_preview_record_limit": 500,
     "fail_closed_if_count_exceeds_returned_rows": true,
     "fail_closed_if_returned_rows_reach_preview_limit": true,
@@ -1572,7 +1576,11 @@
     "preserve_retry_after_header": true,
     "preview_reporter_query_parameter": "reportercode",
     "response_reporter_field": "reporterCode",
-    "casing_note": "The maintained UN Comtrade Python client's public-preview request builder uses lowercase reportercode; the captured response row field used for dimension validation is reporterCode."
+    "casing_note": "The maintained UN Comtrade Python client's public-preview request builder uses lowercase reportercode; the captured response row field used for dimension validation is reporterCode. The availability route follows the maintained client's public getDa path and lowercase reportercode parameter.",
+    "availability_query_count_target": 84,
+    "availability_calls_require_explicit_flag": "--include-availability",
+    "availability_period_semantics": "One request per unique YYYYMM period and reporter; preserve all returned fields. This query does not filter or qualify commodity, partner, or flow.",
+    "minimum_seconds_between_comtrade_api_requests": 1
   },
   "fields_policy": {
     "preserve_all_returned_fields": true,
@@ -1607,7 +1615,8 @@
     ],
     "no_implicit_unit_conversion": true,
     "no_missing_value_to_zero_conversion": true,
-    "no_row_deduplication_without_documented_key": true
+    "no_row_deduplication_without_documented_key": true,
+    "availability_dimension_limit": "Availability responses can confirm only reporter/month records; do not infer HS commodity, world-partner aggregate or export-flow availability from this endpoint."
   },
   "interpretation_ceiling": {
     "allowed": "Reported monthly aggregate exports for Ukraine, world partner aggregate, and selected HS product codes, conditional on response coverage and returned metadata.",
