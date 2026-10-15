@@ -69,6 +69,8 @@ jobs:
         run: cargo test -p sol-atlas-core
       - name: Validate synthetic intervention decision packet semantics
         run: cargo run -p sol-atlas-core --bin water-decision-validate -- sol-atlas-core/fixtures/water-engineering/w0-intervention-decision.synthetic.json
+      - name: Calculate illustrative measurement information value
+        run: cargo run -p sol-atlas-core --bin water-measurement-evaluate -- sol-atlas-core/fixtures/water-engineering/w0-measurement-model.toy.synthetic.json
 
   validate-water-data:
     runs-on: ubuntu-latest
@@ -103,6 +105,10 @@ jobs:
               (
                   Path("sol-atlas-core/schemas/water-measurement-experiment-v0.1.schema.json"),
                   Path("sol-atlas-core/fixtures/water-engineering/w0-measurement-experiment.synthetic.json"),
+              ),
+              (
+                  Path("sol-atlas-core/schemas/water-measurement-model-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/w0-measurement-model.toy.synthetic.json"),
               ),
           ]
 
