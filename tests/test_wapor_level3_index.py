@@ -81,6 +81,10 @@ class WaporLevel3IndexTests(unittest.TestCase):
             [x["period_token"] for x in result["requested_area_files"] if x["kind"] == "raster"],
             ["2024-01", "2024-02"],
         )
+        self.assertEqual(
+            result["requested_area_files"][0]["url"],
+            "https://gismgr.fao.org/DATA/WAPOR-3/MOSAICSET/L3-AETI-M/WAPOR-3.L3-AETI-M.MBL.2024-01.json",
+        )
 
     def test_inventory_does_not_claim_area_data_when_no_files_match(self):
         raw = listing("WAPOR-3.L3-AETI-M.AWA.2024-01.tif")
