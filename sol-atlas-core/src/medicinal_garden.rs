@@ -141,7 +141,11 @@ pub fn evaluate_site_screening(input: &GardenSiteScreeningV1) -> ScreeningDecisi
         ));
     }
     if input.site_id.trim().is_empty() {
-        blockers.push(blocker(None, ScreeningBlockerCode::EmptySiteId, "site ID is empty"));
+        blockers.push(blocker(
+            None,
+            ScreeningBlockerCode::EmptySiteId,
+            "site ID is empty",
+        ));
     }
     if input.site_generation.trim().is_empty() {
         blockers.push(blocker(
@@ -286,10 +290,9 @@ fn valid_utc_timestamp_shape(value: Option<&str>) -> bool {
         && bytes[13] == b':'
         && bytes[16] == b':'
         && bytes[19] == b'Z'
-        && bytes
-            .iter()
-            .enumerate()
-            .all(|(index, byte)| matches!(index, 4 | 7 | 10 | 13 | 16 | 19) || byte.is_ascii_digit())
+        && bytes.iter().enumerate().all(|(index, byte)| {
+            matches!(index, 4 | 7 | 10 | 13 | 16 | 19) || byte.is_ascii_digit()
+        })
 }
 
 #[cfg(test)]
@@ -341,9 +344,12 @@ mod tests {
         input.assessments.pop();
         let decision = evaluate_site_screening(&input);
         assert_eq!(decision.disposition, ScreeningDisposition::Blocked);
-        assert!(decision.blockers.iter().any(|item| {
-            item.code == ScreeningBlockerCode::MissingDimensionAssessment
-        }));
+        assert!(
+            decision
+                .blockers
+                .iter()
+                .any(|item| { item.code == ScreeningBlockerCode::MissingDimensionAssessment })
+        );
     }
 
     #[test]
@@ -351,9 +357,12 @@ mod tests {
         let mut input = valid_input();
         input.assessments.push(input.assessments[0].clone());
         let decision = evaluate_site_screening(&input);
-        assert!(decision.blockers.iter().any(|item| {
-            item.code == ScreeningBlockerCode::DuplicateDimensionAssessment
-        }));
+        assert!(
+            decision
+                .blockers
+                .iter()
+                .any(|item| { item.code == ScreeningBlockerCode::DuplicateDimensionAssessment })
+        );
     }
 
     #[test]
@@ -362,9 +371,7 @@ mod tests {
         let soil = input
             .assessments
             .iter_mut()
-            .find(|assessment| {
-                assessment.dimension == ScreeningDimension::SoilAndContamination
-            })
+            .find(|assessment| assessment.dimension == ScreeningDimension::SoilAndContamination)
             .expect("soil dimension exists");
         soil.state = ScreeningEvidenceState::Stale;
         let decision = evaluate_site_screening(&input);
@@ -380,9 +387,12 @@ mod tests {
         let mut input = valid_input();
         input.assessments[0].site_generation = "GEN-0".to_owned();
         let decision = evaluate_site_screening(&input);
-        assert!(decision.blockers.iter().any(|item| {
-            item.code == ScreeningBlockerCode::AssessmentGenerationMismatch
-        }));
+        assert!(
+            decision
+                .blockers
+                .iter()
+                .any(|item| { item.code == ScreeningBlockerCode::AssessmentGenerationMismatch })
+        );
     }
 
     #[test]
@@ -390,9 +400,12 @@ mod tests {
         let mut input = valid_input();
         input.assessments[0].purpose = HorticulturalPurpose::ConservationNursery;
         let decision = evaluate_site_screening(&input);
-        assert!(decision.blockers.iter().any(|item| {
-            item.code == ScreeningBlockerCode::AssessmentPurposeMismatch
-        }));
+        assert!(
+            decision
+                .blockers
+                .iter()
+                .any(|item| { item.code == ScreeningBlockerCode::AssessmentPurposeMismatch })
+        );
     }
 
     #[test]
@@ -401,12 +414,18 @@ mod tests {
         input.assessments[0].reviewer_ref = None;
         input.assessments[1].evidence_ref = Some(" ".to_owned());
         let decision = evaluate_site_screening(&input);
-        assert!(decision.blockers.iter().any(|item| {
-            item.code == ScreeningBlockerCode::ReviewerReferenceRequired
-        }));
-        assert!(decision.blockers.iter().any(|item| {
-            item.code == ScreeningBlockerCode::EvidenceReferenceRequired
-        }));
+        assert!(
+            decision
+                .blockers
+                .iter()
+                .any(|item| { item.code == ScreeningBlockerCode::ReviewerReferenceRequired })
+        );
+        assert!(
+            decision
+                .blockers
+                .iter()
+                .any(|item| { item.code == ScreeningBlockerCode::EvidenceReferenceRequired })
+        );
     }
 
     #[test]
@@ -414,9 +433,12 @@ mod tests {
         let mut input = valid_input();
         input.assessments[0].reviewed_at_utc = Some("not-a-timestamp".to_owned());
         let decision = evaluate_site_screening(&input);
-        assert!(decision.blockers.iter().any(|item| {
-            item.code == ScreeningBlockerCode::ReviewTimestampRequired
-        }));
+        assert!(
+            decision
+                .blockers
+                .iter()
+                .any(|item| { item.code == ScreeningBlockerCode::ReviewTimestampRequired })
+        );
     }
 
     #[test]
