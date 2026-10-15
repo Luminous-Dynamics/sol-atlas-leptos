@@ -556,15 +556,21 @@ mod tests {
                 && record.rights_decision_ref.is_none()
                 && record.source_schema_profile_id.is_none()
         }));
-        assert!(transnet
-            .iter()
-            .any(|record| record.id == "za-transnet-network-register-2026-06"));
-        assert!(transnet
-            .iter()
-            .any(|record| record.id == "za-transnet-point-to-point-running-times"));
-        assert!(transnet
-            .iter()
-            .any(|record| record.id == "za-transnet-capacity-statement-2026-27"));
+        assert!(
+            transnet
+                .iter()
+                .any(|record| record.id == "za-transnet-network-register-2026-06")
+        );
+        assert!(
+            transnet
+                .iter()
+                .any(|record| record.id == "za-transnet-point-to-point-running-times")
+        );
+        assert!(
+            transnet
+                .iter()
+                .any(|record| record.id == "za-transnet-capacity-statement-2026-27")
+        );
     }
 
     #[test]
@@ -582,7 +588,10 @@ mod tests {
             .expect("NGI railway line source");
         for record in [road, rail] {
             assert_eq!(record.product_kind, SourceProductKindV1::GeospatialNetwork);
-            assert_eq!(record.acquisition_state, SourceAcquisitionStateV1::AccessReviewRequired);
+            assert_eq!(
+                record.acquisition_state,
+                SourceAcquisitionStateV1::AccessReviewRequired
+            );
             assert_eq!(record.rights_status, SourceRightsStatusV1::ReviewRequired);
             assert!(record.acquisition.is_none());
             assert_eq!(
@@ -590,16 +599,20 @@ mod tests {
                 Some("EPSG:32734")
             );
             assert!(record.missingness_and_limitations.iter().any(|limitation| {
-                limitation.contains("WKID 32734")
-                    || limitation.contains("projected WKID 32734")
+                limitation.contains("WKID 32734") || limitation.contains("projected WKID 32734")
             }));
-            assert!(record.missingness_and_limitations.iter().any(|limitation| {
-                limitation.contains("capacity")
-            }));
+            assert!(
+                record
+                    .missingness_and_limitations
+                    .iter()
+                    .any(|limitation| { limitation.contains("capacity") })
+            );
         }
-        assert!(rail.missingness_and_limitations.iter().any(|limitation| {
-            limitation.contains("national completeness")
-        }));
+        assert!(
+            rail.missingness_and_limitations
+                .iter()
+                .any(|limitation| { limitation.contains("national completeness") })
+        );
     }
 
     #[test]
