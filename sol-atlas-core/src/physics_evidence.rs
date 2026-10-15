@@ -517,7 +517,7 @@ mod tests {
         ));
 
         let json = serde_json::to_string(&run).unwrap();
-        assert!(json.contains("\\"single_physics_reference\\""));
+        assert!(json.contains("single_physics_reference"));
         let decoded: PhysicsRunManifest = serde_json::from_str(&json).unwrap();
         assert_eq!(decoded, run);
         assert_eq!(decoded.validate(), Ok(()));
