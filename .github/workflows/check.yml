@@ -144,7 +144,7 @@ jobs:
           # Apply exactly one synthetic scenario change: pipe P2, 150 mm -> 50 mm.
           perl -pe '
             if (/^P2\s+J1\s+J2\s+800\s+150\s+100\s+0\s+OPEN\s*$/) {
-              s/(^P2\s+J1\s+J2\s+800\s+)150(?=\s+100\s+0\s+OPEN\s*$)/150/;
+              s/(^P2\s+J1\s+J2\s+800\s+)150(?=\s+100\s+0\s+OPEN\s*$)/$1 . "50"/e;
               $changed++;
             }
             END { die "expected exactly one P2 diameter mutation\n" unless $changed == 1; }
@@ -248,7 +248,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: epanet-w0-smoke-\${{ github.sha }}
+          name: epanet-w0-smoke
           path: artifacts/epanet-w0/
           if-no-files-found: warn
           retention-days: 14
