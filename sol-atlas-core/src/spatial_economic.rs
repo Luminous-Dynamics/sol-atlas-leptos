@@ -212,7 +212,9 @@ impl EvidenceRecord {
         if self.provenance.method.trim().is_empty() {
             errors.push(ContractError::EmptyProvenanceMethod);
         }
-        if self.spatial.geometry_uri.is_some() && self.spatial.crs.as_deref().unwrap_or("").trim().is_empty() {
+        if self.spatial.geometry_uri.is_some()
+            && self.spatial.crs.as_deref().unwrap_or("").trim().is_empty()
+        {
             errors.push(ContractError::GeometryMissingCrs);
         }
 
@@ -268,6 +270,9 @@ fn is_decimal(value: &str) -> bool {
     let value = value.strip_prefix('-').unwrap_or(value);
     let mut parts = value.split('.');
     let whole = parts.next().unwrap_or_default();
+    if whole.len() > 1 && whole.starts_with('0') {
+        return false;
+    }
     let fraction = parts.next();
     if parts.next().is_some() || whole.is_empty() || !whole.bytes().all(|b| b.is_ascii_digit()) {
         return false;
