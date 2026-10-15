@@ -408,17 +408,17 @@ jobs:
             baseline_pipe_headloss candidate_pipe_headloss \
             baseline_downstream_pressure candidate_downstream_pressure \
             total_junction_demand_lps downstream_demand_lps; do
-            field_value="\${!field_name}"
+            field_value="${!field_name}"
             if [[ ! "$field_value" =~ $number_re ]]; then
               echo "REPORT_NUMERIC_FIELD_INVALID: field=$field_name value=[$field_value]"
               exit 1
             fi
           done
 
-          printf '%s flow [L/s]: baseline=%s candidate=%s\\n' "$asset_id" "$baseline_pipe_flow" "$candidate_pipe_flow"
-          printf '%s velocity [m/s]: baseline=%s candidate=%s\\n' "$asset_id" "$baseline_pipe_velocity" "$candidate_pipe_velocity"
-          printf '%s headloss [m per 1000 m]: baseline=%s candidate=%s\\n' "$asset_id" "$baseline_pipe_headloss" "$candidate_pipe_headloss"
-          printf '%s downstream pressure [m]: baseline=%s candidate=%s\\n' "$downstream_node" "$baseline_downstream_pressure" "$candidate_downstream_pressure"
+          printf '%s flow [L/s]: baseline=%s candidate=%s\n' "$asset_id" "$baseline_pipe_flow" "$candidate_pipe_flow"
+          printf '%s velocity [m/s]: baseline=%s candidate=%s\n' "$asset_id" "$baseline_pipe_velocity" "$candidate_pipe_velocity"
+          printf '%s headloss [m per 1000 m]: baseline=%s candidate=%s\n' "$asset_id" "$baseline_pipe_headloss" "$candidate_pipe_headloss"
+          printf '%s downstream pressure [m]: baseline=%s candidate=%s\n' "$downstream_node" "$baseline_downstream_pressure" "$candidate_downstream_pressure"
 
           awk -v b="$baseline_pipe_flow" -v c="$candidate_pipe_flow" 'BEGIN { d = c - b; if (d < -0.02 || d > 0.02) exit 1 }' || {
             echo "FAIL: demand-driven flow in $asset_id should remain invariant within report precision"
