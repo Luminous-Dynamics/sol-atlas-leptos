@@ -64,6 +64,6 @@ jobs:
       # sol-atlas-core is a separate library package: tests in a dependency
       # are not run by cargo test --bin, so exercise that package directly.
       - name: Test sol-atlas-core library and transport projection contract
-        run: cargo test -p sol-atlas-core
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
       - name: Test Leptos binary-local logic
         run: cargo test --bin sol-atlas-leptos
