@@ -21,3 +21,7 @@ path = "src/bin/water_bundle_validate.rs"
 [[bin]]
 name = "water-observation-validate"
 path = "src/bin/water_observation_validate.rs"
+
+[[bin]]
+name = "water-decision-validate"
+path = "src/bin/water_decision_validate.rs"
