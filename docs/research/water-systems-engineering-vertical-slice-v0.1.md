@@ -228,16 +228,26 @@ Check water continuity/closure within a declared tolerance, output units/time in
 
 Passing G0 or G1 is not G3, engineering certification, a successful municipal pilot, or evidence of improved service delivery. Queue state is not a pass.
 
+## Starter artifacts in this PR
+
+- `sol-atlas-core/schemas/water-engineering-bundle-v0.1.schema.json` defines a strict Draft 2020-12 envelope for the model package, scenario changes, run state, diagnostics, metrics, result artifacts, and validation claim ceiling.
+- `sol-atlas-core/fixtures/water-engineering/w0_network.inp` is a small synthetic EPANET-format input with explicit SI/LPS conventions. It does not represent a real utility network.
+- `sol-atlas-core/fixtures/water-engineering/w0-p2-diameter-restriction.synthetic.json` binds a proposed pipe-parameter change to the exact input-file digest. Its run state is `NotRun`, contains no metrics or result artifacts, and explicitly says that no solver was invoked.
+- The schema makes the `NotRun` state incompatible with reported run metrics, result artifacts, solver exit code, convergence, or execution timestamps.
+
+The initial schema and fixture shape were checked against JSON Schema Draft 2020-12 in a local validation step. This is a contract/fixture check only: EPANET was not executed, no hydraulic result was produced, and the cross-record equality of model/scenario digests still requires a semantic validator beyond JSON Schema.
+
 ## Suggested implementation sequence
 
-1. Keep this contract separate from the open utility-telemetry and civic-case work to avoid duplicate types.
-2. Add a small schema and synthetic example manifests after the related utility-observation interface stabilises.
-3. Add an offline, deterministic test harness that invokes externally installed solvers; pin/record solver versions rather than embedding an unreviewed fork.
-4. Produce an immutable result bundle and an independent validation report.
-5. Connect only qualified metrics to Sol-Atlas layers and civic cases; never expose raw critical-infrastructure data through public views.
-6. Feed candidate results to Symthaea for constrained, multi-objective comparison. Preserve the full set of metrics and assumptions.
-7. Record a human-reviewed decision and explicit authorisation through the Mycelix workflow, then compare post-intervention observations against the frozen baseline.
-8. Add a building-plumbing profile only after its local technical and regulatory requirements are separately mapped.
+1. Keep the engineering model/run contract separate from the utility-observation and civic-case contracts to avoid duplicate type ownership.
+2. Use the starter schema and synthetic `NotRun` bundle as a contract seed; bind utility observations only after the related interface is reviewed and stabilised.
+3. Add strict semantic validation for cross-record identity, digests, units, unique asset IDs, and run-state consistency. JSON Schema alone cannot prove the referenced bytes hash to the declared digest or compare every field across objects.
+4. Add an offline, deterministic harness invoking explicitly versioned external solvers; do not embed an unreviewed engine fork.
+5. Capture actual solver logs/results, verify the exact input/run manifests and conservation/closure diagnostics, then obtain independent technical review.
+6. Connect only qualified metrics to Sol-Atlas layers and civic cases; never expose raw critical-infrastructure data through public views.
+7. Feed candidate results to Symthaea for constrained, multi-objective comparison. Preserve the full metric vector, assumptions, and uncertainty.
+8. Record a human-reviewed decision and explicit authorisation through the Mycelix workflow, then compare post-intervention observations against the frozen baseline.
+9. Add a building-plumbing profile only after its local technical and regulatory requirements are separately mapped.
 
 ## Research references
 
