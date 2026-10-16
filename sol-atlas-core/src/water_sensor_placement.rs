@@ -22,6 +22,8 @@ const RANDOM_SEED: u64 = 0x534F_4C41_544C_4153;
 #[derive(Debug, Clone, Deserialize)]
 struct RunManifest {
     schema_version: String,
+    plan_id: String,
+    plan_sha256: String,
     base_input_sha256: String,
     unit_system: String,
     flow_unit: String,
@@ -32,6 +34,30 @@ struct RunManifest {
     failed_count: usize,
     run_state: String,
     scenarios: Vec<Scenario>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct FrozenPlan {
+    schema_version: String,
+    plan_id: String,
+    unit_system: String,
+    base_input: PlanInput,
+    observation_node_ids: Vec<String>,
+    scenarios: Vec<PlannedScenario>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct PlanInput {
+    sha256: String,
+    byte_length: u64,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct PlannedScenario {
+    scenario_id: String,
+    ground_truth_class: String,
+    target_junction_id: Option<String>,
+    additional_demand: f64,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -95,6 +121,7 @@ struct CaseFeature {
 pub struct SensorPlacementEnvelope {
     pub schema_version: String,
     pub source_manifest_sha256: String,
+    pub source_plan_sha256: String,
     pub source_topology_sha256: String,
     pub evaluation: SensorPlacementEvaluation,
 }
@@ -102,6 +129,7 @@ pub struct SensorPlacementEnvelope {
 #[derive(Debug, Clone, Serialize)]
 pub struct SensorPlacementEvaluation {
     pub schema_version: String,
+    pub plan_id: String,
     pub run_state: String,
     pub unit_system: String,
     pub flow_unit: String,
@@ -632,6 +660,7 @@ pub fn evaluate_sensor_placement(
     corpus_root: &Path,
     manifest_bytes: &[u8],
     source_inp: &[u8],
+    plan_bytes: &[u8],
 ) -> Result<SensorPlacementEnvelope, String> {
     let manifest: RunManifest = serde_json::from_slice(manifest_bytes)
         .map_err(|e| format!("invalid scenario run manifest JSON: {e}"))?;
@@ -642,6 +671,44 @@ pub fn evaluate_sensor_placement(
         || manifest.scenarios.len() != manifest.scenario_count
     {
         return Err("scenario manifest must be fully Completed with no failed runs".to_owned());
+    }
+    let plan: FrozenPlan = serde_json::from_slice(plan_bytes)
+        .map_err(|e| format!("invalid frozen scenario plan JSON: {e}"))?;
+    if plan.schema_version != "water-scenario-corpus-plan/v0.1"
+        || plan.plan_id != manifest.plan_id
+        || manifest.plan_sha256 != sha256(plan_bytes)
+    {
+        return Err("run manifest plan identity or SHA-256 does not match frozen plan".to_owned());
+    }
+    if plan.unit_system != manifest.unit_system
+        || plan.base_input.sha256 != manifest.base_input_sha256
+        || plan.base_input.byte_length != source_inp.len() as u64
+        || plan.observation_node_ids != manifest.observation_node_ids
+        || plan.scenarios.len() != manifest.scenario_count
+    {
+        return Err("frozen plan does not match run manifest or source input".to_owned());
+    }
+    let mut planned = BTreeMap::<String, &PlannedScenario>::new();
+    for scenario in &plan.scenarios {
+        if planned.insert(scenario.scenario_id.clone(), scenario).is_some() {
+            return Err(format!("frozen plan has duplicate scenario ID {:?}", scenario.scenario_id));
+        }
+    }
+    if planned.len() != manifest.scenarios.len() {
+        return Err("frozen plan and run manifest scenario counts differ".to_owned());
+    }
+    for scenario in &manifest.scenarios {
+        let expected = planned.get(&scenario.scenario_id)
+            .ok_or_else(|| format!("run manifest has undeclared scenario {:?}", scenario.scenario_id))?;
+        if scenario.ground_truth_class != expected.ground_truth_class
+            || scenario.target_junction_id != expected.target_junction_id
+            || scenario.additional_demand != expected.additional_demand
+        {
+            return Err(format!(
+                "scenario {} labels/perturbation differ from frozen plan",
+                scenario.scenario_id
+            ));
+        }
     }
     if sha256(source_inp) != manifest.base_input_sha256 {
         return Err("source INP SHA-256 differs from run manifest base_input_sha256".to_owned());
@@ -864,9 +931,11 @@ pub fn evaluate_sensor_placement(
     Ok(SensorPlacementEnvelope {
         schema_version: "water-sensor-placement-evaluation-envelope/v0.1".to_owned(),
         source_manifest_sha256: sha256(manifest_bytes),
+        source_plan_sha256: sha256(plan_bytes),
         source_topology_sha256: sha256(source_inp),
         evaluation: SensorPlacementEvaluation {
             schema_version: OUTPUT_SCHEMA.to_owned(),
+            plan_id: manifest.plan_id,
             run_state: "Completed".to_owned(),
             unit_system: manifest.unit_system,
             flow_unit: manifest.flow_unit,
@@ -1085,8 +1154,32 @@ mod tests {
         add_scenario(&root, &mut scenarios, "j2-large", "synthetic_withdrawal", Some("J2"), 2.0, [50.3, 48.0, 50.2]);
         add_scenario(&root, &mut scenarios, "j3-small", "synthetic_withdrawal", Some("J3"), 1.0, [50.1, 50.2, 49.0]);
         add_scenario(&root, &mut scenarios, "j3-large", "synthetic_withdrawal", Some("J3"), 2.0, [50.2, 50.3, 48.0]);
+        let planned_scenarios = scenarios.clone();
+        let plan = json!({
+            "schema_version": "water-scenario-corpus-plan/v0.1",
+            "classification": "synthetic_public",
+            "plan_id": "test-plan",
+            "unit_system": "LPS",
+            "base_input": {
+                "path": "synthetic.inp",
+                "sha256": sha256(source_inp),
+                "byte_length": source_inp.len()
+            },
+            "observation_node_ids": ["J1", "J2"],
+            "scenarios": planned_scenarios.iter().map(|row| json!({
+                "scenario_id": row["scenario_id"],
+                "ground_truth_class": row["ground_truth_class"],
+                "target_junction_id": row["target_junction_id"],
+                "additional_demand": row["additional_demand"]
+            })).collect::<Vec<_>>(),
+            "assumptions": [],
+            "nonclaims": []
+        });
+        let plan_bytes = serde_json::to_vec(&plan).unwrap();
         let manifest = json!({
             "schema_version": RUN_SCHEMA,
+            "plan_id": "test-plan",
+            "plan_sha256": sha256(&plan_bytes),
             "base_input_sha256": sha256(source_inp),
             "unit_system": "LPS",
             "flow_unit": "L/s",
@@ -1099,7 +1192,7 @@ mod tests {
             "scenarios": scenarios
         });
         let manifest_bytes = serde_json::to_vec(&manifest).unwrap();
-        let result = evaluate_sensor_placement(&root, &manifest_bytes, source_inp).unwrap();
+        let result = evaluate_sensor_placement(&root, &manifest_bytes, source_inp, &plan_bytes).unwrap();
         assert_eq!(result.evaluation.scenario_count, 7);
         assert_eq!(result.evaluation.fault_scenario_count, 6);
         assert_eq!(result.evaluation.candidate_target_count, 3);
@@ -1115,7 +1208,7 @@ mod tests {
         let mut tampered: Value = serde_json::from_slice(&manifest_bytes).unwrap();
         tampered["scenarios"][1]["report"]["sha256"] = json!("0".repeat(64));
         let tampered_bytes = serde_json::to_vec(&tampered).unwrap();
-        assert!(evaluate_sensor_placement(&root, &tampered_bytes, source_inp)
+        assert!(evaluate_sensor_placement(&root, &tampered_bytes, source_inp, &plan_bytes)
             .unwrap_err()
             .contains("SHA-256 mismatch"));
         fs::remove_dir_all(root).unwrap();
