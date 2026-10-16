@@ -203,6 +203,7 @@
       "additionalProperties": false,
       "required": [
         "relation_id",
+        "supporting_evidence_ids",
         "prerequisite_entity_id",
         "state",
         "evidence_blockers"
@@ -243,6 +244,14 @@
             "missing_scenario_condition",
             "explicitly_unknown"
           ]
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
         }
       }
     },

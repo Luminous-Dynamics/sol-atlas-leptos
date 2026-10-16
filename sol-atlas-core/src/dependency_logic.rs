@@ -129,6 +129,8 @@ pub enum UnknownMemberReason {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DependencyGroupMemberAssessment {
     pub relation_id: String,
+    #[serde(default)]
+    pub supporting_evidence_ids: Vec<String>,
     pub prerequisite_entity_id: String,
     pub state: DependencyMemberState,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -320,7 +322,9 @@ impl DependencyGraph {
                 if !relation_is_active(relation, &scenario.as_of) {
                     members.push(DependencyGroupMemberAssessment {
                         relation_id,
-                        prerequisite_entity_id: relation.object_entity_id.clone(),
+                        supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
+                        supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
+                    prerequisite_entity_id: relation.object_entity_id.clone(),
                         state: DependencyMemberState::Inactive,
                         evidence_readiness: None,
                         evidence_blockers: Vec::new(),
@@ -338,7 +342,9 @@ impl DependencyGraph {
                     unknown_count += 1;
                     DependencyGroupMemberAssessment {
                         relation_id,
-                        prerequisite_entity_id: relation.object_entity_id.clone(),
+                        supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
+                        supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
+                    prerequisite_entity_id: relation.object_entity_id.clone(),
                         state: DependencyMemberState::Unknown,
                         evidence_readiness: Some(evidence_assessment.readiness),
                         evidence_blockers: evidence_assessment.blockers.clone(),
@@ -371,7 +377,9 @@ impl DependencyGraph {
                     };
                     DependencyGroupMemberAssessment {
                         relation_id,
-                        prerequisite_entity_id: relation.object_entity_id.clone(),
+                        supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
+                        supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
+                    prerequisite_entity_id: relation.object_entity_id.clone(),
                         state,
                         evidence_readiness: Some(evidence_assessment.readiness),
                         evidence_blockers: Vec::new(),
@@ -466,6 +474,7 @@ impl DependencyGraph {
             if !relation_is_active(relation, &scenario.as_of) {
                 members.push(DependencyGroupMemberAssessment {
                     relation_id,
+                    supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
                     prerequisite_entity_id: relation.object_entity_id.clone(),
                     state: DependencyMemberState::Inactive,
                     evidence_readiness: None,
@@ -484,6 +493,7 @@ impl DependencyGraph {
                 unknown_count += 1;
                 DependencyGroupMemberAssessment {
                     relation_id,
+                    supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
                     prerequisite_entity_id: relation.object_entity_id.clone(),
                     state: DependencyMemberState::Unknown,
                     evidence_readiness: Some(evidence_assessment.readiness),
@@ -517,6 +527,7 @@ impl DependencyGraph {
                 };
                 DependencyGroupMemberAssessment {
                     relation_id,
+                    supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
                     prerequisite_entity_id: relation.object_entity_id.clone(),
                     state,
                     evidence_readiness: Some(evidence_assessment.readiness),

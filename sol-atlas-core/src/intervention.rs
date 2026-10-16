@@ -93,6 +93,7 @@ pub enum InterventionComparisonError {
     OverrideCannotClaimObservedEvidence,
     BaselineEvaluation(ScenarioEvaluationError),
     InterventionEvaluation(ScenarioEvaluationError),
+    ComparisonResultCountMismatch,
 }
 
 fn classify_change(
@@ -170,9 +171,7 @@ pub fn compare_intervention(
 
     if baseline_assessments.len() != intervention_assessments.len() {
         // Defensive fail-closed guard; the batch evaluator should preserve length.
-        return Err(InterventionComparisonError::InterventionEvaluation(
-            ScenarioEvaluationError::EmptyGroupSet,
-        ));
+        return Err(InterventionComparisonError::ComparisonResultCountMismatch);
     }
 
     let mut summary = InterventionSummary {
@@ -562,6 +561,16 @@ mod tests {
             DependencyGroupState::Satisfied
         );
         assert_eq!(pump.change, OutcomeChange::Recovered);
+        let backup_member = pump
+            .with_intervention
+            .members
+            .iter()
+            .find(|member| member.relation_id == "synthetic-edge-pump-backup-power")
+            .unwrap();
+        assert_eq!(
+            backup_member.supporting_evidence_ids,
+            vec![String::from("synthetic-evidence-pump-backup-power")]
+        );
     }
 
     #[test]
