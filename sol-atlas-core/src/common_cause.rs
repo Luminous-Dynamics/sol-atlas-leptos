@@ -663,6 +663,11 @@ mod tests {
         records: Vec<EvidenceRecord>,
     }
 
+    #[derive(Debug, Deserialize, PartialEq, Eq)]
+    struct OverlapFixture {
+        overlaps: Vec<CommonCauseGroupOverlap>,
+    }
+
     const AT: &str = "2026-10-15T10:00:00Z";
 
     fn evidence(id: &str, subject_id: &str, spatial_entity_id: &str) -> EvidenceRecord {
@@ -886,6 +891,10 @@ mod tests {
             "../../schemas/examples/shared-feeder-evidence.json"
         ))
         .unwrap();
+        let expected: OverlapFixture = serde_json::from_str(include_str!(
+            "../../schemas/examples/shared-feeder-overlap.json"
+        ))
+        .unwrap();
 
         let assessments =
             assess_common_cause_domains(&domains.domains, &scenario, &evidence.records).unwrap();
@@ -929,6 +938,7 @@ mod tests {
         };
         let overlaps =
             correlate_common_cause_with_dependency_groups(&assessments, &[group]).unwrap();
+        assert_eq!(overlaps, expected.overlaps);
         assert_eq!(overlaps.len(), 1);
         assert!(overlaps[0].independent_redundancy_warning);
         assert_eq!(overlaps[0].currently_exposed_relation_ids.len(), 2);
