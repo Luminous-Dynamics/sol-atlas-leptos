@@ -138,6 +138,26 @@ The scale gap is important: a 2026 study reports more than 47,000 Net3 scenarios
 
 **Execution status:** the runner, plans, schemas and CI wiring have been read back from the public branch. Exact-head Actions queries for the previous head were empty; checks for the new current head remain to be queried after the branch update. Neither corpus has been observed executing yet, so no hydraulic pilot result is claimed. Rust compilation, formatting and JSON Schema runtime validation are not claimed as passed.
 
+## Leakage-resistant pressure-signature localization baseline (2026-10-16)
+
+The two-topology pilot now has a separate evaluation path that turns completed run manifests into reproducible *within-topology* localization baseline metrics:
+
+- [Rust evaluator](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/sol-atlas-core/src/water_localization_benchmark.rs)
+- [CLI](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/sol-atlas-core/src/bin/water_localization_benchmark_evaluate.rs)
+- [Evaluation output schema](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/sol-atlas-core/schemas/water-localization-evaluation-v0.1.schema.json)
+
+The evaluator requires a fully completed, unit-consistent, SHA-bound run manifest; exactly one no-fault baseline; at least two withdrawal magnitudes; consistent observations; and every declared candidate node represented at each magnitude. It builds a pressure-change signature by subtracting the baseline pressure at each declared observation node. It then performs leave-one-magnitude-out folds and compares deterministic Euclidean-nearest-example and cosine-nearest-example baselines. The frozen candidate space comes from the manifest's declared observation nodes, not from held-out target labels. The predictor receives only held-out pressure features and labelled training signatures; target labels are consulted after rankings are produced, for metric calculation.
+
+The output reports per-case ranked candidates, top-1 accuracy, top-k accuracy (k=min(3, candidate count)), mean reciprocal rank (MRR), and fold-level metrics, along with the exact input-manifest SHA-256 and units. The CI workflow is wired to produce and validate a separate evaluation artifact for W0 and Net3. Its checks enforce metric/schema integrity and exact fold/sample counts, **not** a minimum accuracy. That distinction lets the first run expose bad assumptions instead of tuning the acceptance gate to desired results.
+
+Six evaluator unit tests are authored: two-magnitude fold outcomes, no-fault exclusion from candidates, incomplete-run rejection, missing/undeclared sensor rejection, unit inconsistency rejection, and refusing a one-magnitude dataset. They have not yet been observed executing.
+
+**What this baseline does not establish:** the candidate classes are restricted to the declared observation nodes (two in W0, four in Net3), and the held-out dimension is only demand magnitude within each topology. The evaluator does not yet calculate average topological distance (ATD), false-alarm rate, detection delay, sensor-placement value, confidence calibration, sensor-noise robustness, held-out topology performance, or real-leak localization. This is an initial leakage-resistant scoreboard, not a substitute for a fully specified 1,000-case, three-topology benchmark.
+
+The May 2026 Net3 study reports more than 47,000 simulated scenarios, over 95% binary detection accuracy across its evaluated models, and around 75–77% top-1 localization for ensemble methods under its protocol ([Ranganathan et al., *Journal of Water Process Engineering*](https://doi.org/10.1016/j.jwpe.2026.110114)). Those figures are context, **not directly comparable targets** until topology, target candidate set, split protocol, noise and label semantics are matched. Prior information-theoretic placement research jointly considered sensor relevance and redundancy and evaluated both accuracy and average topological distance ([2022 study](https://pmc.ncbi.nlm.nih.gov/articles/PMC8779686/)); adding graph-distance metrics and a real candidate-site set is a planned extension.
+
+**Exact-head status:** the evaluator module, CLI, schema and two per-topology workflow steps have been read back from the public branch. The latest Rust/CI run is not yet known to have started or completed; no evaluator, solver, unit-test, formatter or schema-validation pass is claimed.
+
 ## Sources
 
 - [US EPA — EPANET software, capabilities and manuals](https://www.epa.gov/water-research/epanet). The official manual documents DDA/PDA and warns that DDA can impose full demand even when calculated pressures become negative.
