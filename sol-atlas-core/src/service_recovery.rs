@@ -370,6 +370,17 @@ mod tests {
     use crate::dependency_logic::ScenarioBasis;
     use crate::service_function::{FunctionMeasurement, SERVICE_FUNCTION_SCHEMA_VERSION};
     use crate::spatial_economic::Quantity;
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    struct TrajectoryFixture {
+        trajectory: ServiceRecoveryTrajectory,
+    }
+
+    #[derive(Deserialize)]
+    struct AssessmentFixture {
+        assessment: ServiceRecoveryTrajectoryAssessment,
+    }
 
     const START: &str = "2026-10-16T10:00:00Z";
 
@@ -403,6 +414,20 @@ mod tests {
             max_sample_gap_seconds: 10,
             snapshots,
         }
+    }
+
+    #[test]
+    fn json_recovery_trajectory_matches_golden_assessment() {
+        let trajectory: TrajectoryFixture = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-recovery-trajectory.json"
+        ))
+        .unwrap();
+        let expected: AssessmentFixture = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-recovery-trajectory-assessment.json"
+        ))
+        .unwrap();
+        let actual = assess_service_recovery_trajectory(&trajectory.trajectory, &[]).unwrap();
+        assert_eq!(actual, expected.assessment);
     }
 
     #[test]
