@@ -16,31 +16,31 @@
       "scenario_id": "w0-no-fault",
       "ground_truth_class": "no_fault",
       "target_junction_id": null,
-      "additional_demand_lps": 0
+      "additional_demand": 0
     },
     {
       "scenario_id": "w0-withdrawal-j1-small",
       "ground_truth_class": "synthetic_withdrawal",
       "target_junction_id": "J1",
-      "additional_demand_lps": 2
+      "additional_demand": 2
     },
     {
       "scenario_id": "w0-withdrawal-j1-large",
       "ground_truth_class": "synthetic_withdrawal",
       "target_junction_id": "J1",
-      "additional_demand_lps": 5
+      "additional_demand": 5
     },
     {
       "scenario_id": "w0-withdrawal-j2-small",
       "ground_truth_class": "synthetic_withdrawal",
       "target_junction_id": "J2",
-      "additional_demand_lps": 2
+      "additional_demand": 2
     },
     {
       "scenario_id": "w0-withdrawal-j2-large",
       "ground_truth_class": "synthetic_withdrawal",
       "target_junction_id": "J2",
-      "additional_demand_lps": 5
+      "additional_demand": 5
     }
   ],
   "assumptions": [
@@ -56,5 +56,6 @@
     "These five runs are a plumbing pilot only; they are not the 1000-scenario, three-topology localization benchmark.",
     "A simulated withdrawal is not evidence of a real leak or the cause of a pressure change.",
     "No fieldwork, intervention, operational control, or automated actuation is authorized."
-  ]
+  ],
+  "unit_system": "LPS"
 }
