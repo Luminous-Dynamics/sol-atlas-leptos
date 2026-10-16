@@ -243,7 +243,7 @@ fn rank_candidates(
                 .iter()
                 .filter(|example| example.target == *target)
                 .map(|example| distance(features, &example.features, metric))
-                .min_by(f64::total_cmp)
+                .min_by(|left, right| left.total_cmp(right))
                 .unwrap_or(f64::INFINITY);
             RankedCandidate {
                 target_junction_id: target.clone(),
@@ -403,10 +403,13 @@ fn validate_and_build_features(
     let mut candidates = manifest.observation_node_ids.clone();
     candidates.sort();
     let mut magnitudes: Vec<f64> = features.iter().map(|feature| feature.magnitude).collect();
-    magnitudes.sort_by(f64::total_cmp);
-    magnitudes.dedup_by(|left, right| left.total_cmp(right).is_eq());
+    magnitudes.sort_by(|left, right| left.total_cmp(right));
+    magnitudes.dedup_by(|left, right| *left == *right);
     if magnitudes.len() < 2 {
-        return Err("leave-one-magnitude-out evaluation requires at least two withdrawal magnitudes".to_owned());
+        return Err(
+            "leave-one-magnitude-out evaluation requires at least two withdrawal magnitudes"
+                .to_owned(),
+        );
     }
 
     for magnitude in &magnitudes {
@@ -543,8 +546,8 @@ pub fn evaluate_localization_manifest(
     let (manifest, baseline_id, features, candidates, version) =
         validate_and_build_features(input)?;
     let mut magnitudes: Vec<f64> = features.iter().map(|feature| feature.magnitude).collect();
-    magnitudes.sort_by(f64::total_cmp);
-    magnitudes.dedup_by(|left, right| left.total_cmp(right).is_eq());
+    magnitudes.sort_by(|left, right| left.total_cmp(right));
+    magnitudes.dedup_by(|left, right| *left == *right);
     let top_k = candidates.len().min(3);
 
     let models = vec![
