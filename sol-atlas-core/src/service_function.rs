@@ -90,6 +90,8 @@ pub struct ServiceFunctionAssessment {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ServiceFunctionValidationError {
     UnsupportedSchemaVersion,
+    EmptyScenarioSet,
+    DuplicateScenarioId,
     EmptyScenarioId,
     InvalidAsOfTimestamp,
     EmptyServiceEntityId,
@@ -133,6 +135,67 @@ pub fn assess_service_function(
     scenario: &ServiceFunctionScenario,
     evidence_records: &[EvidenceRecord],
 ) -> Result<ServiceFunctionAssessment, ServiceFunctionAssessmentError> {
+    let evidence_by_id = build_evidence_index(evidence_records)?;
+    assess_service_function_indexed(scenario, &evidence_by_id)
+}
+
+/// Batch API for a corpus of service-capacity assessments.
+///
+/// Evidence is validated and indexed once for the entire batch. Inputs and outputs
+/// are sorted by stable scenario ID; duplicate IDs fail closed. This keeps large
+/// evidence-backed assessments from revalidating the full corpus once per service.
+pub fn assess_service_functions(
+    scenarios: &[ServiceFunctionScenario],
+    evidence_records: &[EvidenceRecord],
+) -> Result<Vec<ServiceFunctionAssessment>, ServiceFunctionAssessmentError> {
+    if scenarios.is_empty() {
+        return Err(ServiceFunctionAssessmentError::InvalidInput(vec![
+            ServiceFunctionValidationError::EmptyScenarioSet,
+        ]));
+    }
+
+    let evidence_by_id = build_evidence_index(evidence_records)?;
+    let mut scenario_ids = BTreeSet::new();
+    for scenario in scenarios {
+        if !scenario_ids.insert(scenario.id.as_str()) {
+            return Err(ServiceFunctionAssessmentError::InvalidInput(vec![
+                ServiceFunctionValidationError::DuplicateScenarioId,
+            ]));
+        }
+    }
+
+    let mut ordered: Vec<&ServiceFunctionScenario> = scenarios.iter().collect();
+    ordered.sort_by(|left, right| left.id.cmp(&right.id));
+    ordered
+        .into_iter()
+        .map(|scenario| assess_service_function_indexed(scenario, &evidence_by_id))
+        .collect()
+}
+
+fn build_evidence_index<'a>(
+    evidence_records: &'a [EvidenceRecord],
+) -> Result<BTreeMap<&'a str, &'a EvidenceRecord>, ServiceFunctionAssessmentError> {
+    let mut errors = Vec::new();
+    let mut evidence_by_id = BTreeMap::new();
+    for record in evidence_records {
+        if evidence_by_id.insert(record.id.as_str(), record).is_some() {
+            errors.push(ServiceFunctionValidationError::DuplicateEvidenceRecordId);
+        }
+        if record.validate().is_err() {
+            errors.push(ServiceFunctionValidationError::InvalidEvidenceRecord);
+        }
+    }
+    if errors.is_empty() {
+        Ok(evidence_by_id)
+    } else {
+        Err(ServiceFunctionAssessmentError::InvalidInput(errors))
+    }
+}
+
+fn assess_service_function_indexed(
+    scenario: &ServiceFunctionScenario,
+    evidence_by_id: &BTreeMap<&str, &EvidenceRecord>,
+) -> Result<ServiceFunctionAssessment, ServiceFunctionAssessmentError> {
     let mut errors = Vec::new();
     if scenario.schema_version != SERVICE_FUNCTION_SCHEMA_VERSION {
         errors.push(ServiceFunctionValidationError::UnsupportedSchemaVersion);
@@ -147,26 +210,16 @@ pub fn assess_service_function(
         errors.push(ServiceFunctionValidationError::EmptyServiceEntityId);
     }
 
-    let mut evidence_by_id = BTreeMap::new();
-    for record in evidence_records {
-        if evidence_by_id.insert(record.id.as_str(), record).is_some() {
-            errors.push(ServiceFunctionValidationError::DuplicateEvidenceRecordId);
-        }
-        if record.validate().is_err() {
-            errors.push(ServiceFunctionValidationError::InvalidEvidenceRecord);
-        }
-    }
-
     validate_measurement(
         &scenario.available_capacity,
         &scenario.as_of,
-        &evidence_by_id,
+        evidence_by_id,
         &mut errors,
     );
     validate_measurement(
         &scenario.required_capacity,
         &scenario.as_of,
-        &evidence_by_id,
+        evidence_by_id,
         &mut errors,
     );
 
@@ -200,10 +253,10 @@ pub fn assess_service_function(
         ServiceFunctionState::Indeterminate
     };
 
-    let coverage_ratio = (requirement.value > 0.0)
-        .then(|| capacity.value / requirement.value);
-    let coverage_lower_bound = (requirement_upper > 0.0)
-        .then(|| capacity_lower / requirement_upper);
+    let coverage_ratio =
+        (requirement.value > 0.0).then(|| capacity.value / requirement.value);
+    let coverage_lower_bound =
+        (requirement_upper > 0.0).then(|| capacity_lower / requirement_upper);
     let coverage_upper_bound =
         (requirement_lower > 0.0).then(|| capacity_upper / requirement_lower);
 
@@ -581,6 +634,51 @@ mod tests {
         assert_eq!(result.state, ServiceFunctionState::Adequate);
         assert_eq!(result.coverage_ratio, None);
         assert_eq!(result.coverage_upper_bound, None);
+    }
+
+    #[test]
+    fn batch_assessment_indexes_evidence_once_and_sorts_by_scenario_id() {
+        let mut first = scenario(
+            measurement("asset:pump-a", 7.0, "m3/h", None),
+            measurement("service:a", 10.0, "m3/h", None),
+        );
+        first.id = "scenario:b".into();
+        first.service_entity_id = "service:a".into();
+        let mut second = scenario(
+            measurement("asset:pump-b", 12.0, "m3/h", None),
+            measurement("service:b", 10.0, "m3/h", None),
+        );
+        second.id = "scenario:a".into();
+        second.service_entity_id = "service:b".into();
+
+        let batch = assess_service_functions(&[first.clone(), second.clone()], &[]).unwrap();
+        assert_eq!(batch.iter().map(|item| item.scenario_id.as_str()).collect::<Vec<_>>(),
+            vec!["scenario:a", "scenario:b"]);
+        assert_eq!(batch[0].state, ServiceFunctionState::Adequate);
+        assert_eq!(batch[1].state, ServiceFunctionState::Degraded);
+
+        let singleton_a = assess_service_function(&second, &[]).unwrap();
+        let singleton_b = assess_service_function(&first, &[]).unwrap();
+        assert_eq!(batch, vec![singleton_a, singleton_b]);
+    }
+
+    #[test]
+    fn batch_assessment_rejects_empty_and_duplicate_scenario_sets() {
+        assert!(matches!(
+            assess_service_functions(&[], &[]),
+            Err(ServiceFunctionAssessmentError::InvalidInput(errors))
+                if errors.contains(&ServiceFunctionValidationError::EmptyScenarioSet)
+        ));
+
+        let one = scenario(
+            measurement("asset:pump", 7.0, "m3/h", None),
+            measurement("service:irrigation", 10.0, "m3/h", None),
+        );
+        assert!(matches!(
+            assess_service_functions(&[one.clone(), one], &[]),
+            Err(ServiceFunctionAssessmentError::InvalidInput(errors))
+                if errors.contains(&ServiceFunctionValidationError::DuplicateScenarioId)
+        ));
     }
 
     #[test]
