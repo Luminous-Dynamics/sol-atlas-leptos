@@ -29,7 +29,6 @@ pub mod intervention;
 pub mod common_cause;
 pub mod service_function;
 pub mod service_network;
-pub mod network_intervention;
 pub mod service_network_intervention;
 pub mod timeline;
 pub mod types;
