@@ -539,6 +539,11 @@ fn main() {
                 && comparison.with_intervention.conservative_available_capacity == 8.0
                 && comparison.conservative_capacity_delta == 3.0
                 && comparison.optimistic_capacity_delta == 3.0
+                && !comparison
+                    .with_intervention
+                    .capacity_evidence_ids
+                    .iter()
+                    .any(|id| id.ends_with("-supply"))
         }));
         let reference_network_intervention_bytes = serde_json::to_vec(&reference_network_interventions)
             .expect("network intervention comparisons serialize");
@@ -621,6 +626,11 @@ fn main() {
                 comparison.effect == NetworkInterventionEffect::BoundsImproved
                     && comparison.conservative_capacity_delta == 3.0
                     && comparison.optimistic_capacity_delta == 3.0
+                    && !comparison
+                        .with_intervention
+                        .capacity_evidence_ids
+                        .iter()
+                        .any(|id| id.ends_with("-supply"))
             }));
             assert_eq!(
                 serde_json::to_vec(&comparisons).expect("network intervention comparisons serialize"),
