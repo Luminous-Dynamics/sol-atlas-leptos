@@ -462,6 +462,117 @@ mod tests {
     }
 
     #[test]
+    fn effect_classifier_covers_unchanged_degraded_possible_and_mixed_bounds() {
+        let supply_only = plan(
+            "raise-nonlimiting-supply",
+            [(
+                "supply".into(),
+                NetworkLinkInterventionOverride {
+                    availability: None,
+                    capacity_value: Some(15.0),
+                    capacity_uncertainty_abs: None,
+                    rationale: "Synthetic non-limiting supply upgrade".into(),
+                },
+            )]
+            .into(),
+        );
+        let unchanged = compare_service_network_intervention(&scenario(), &[], &supply_only).unwrap();
+        assert_eq!(unchanged.conservative_capacity_delta, 0.0);
+        assert_eq!(unchanged.optimistic_capacity_delta, 0.0);
+        assert_eq!(unchanged.effect, NetworkInterventionEffect::BoundsUnchanged);
+
+        let deactivate = plan(
+            "close-only-route",
+            [(
+                "route-a".into(),
+                NetworkLinkInterventionOverride {
+                    availability: Some(NetworkLinkAvailability::Inactive),
+                    capacity_value: None,
+                    capacity_uncertainty_abs: None,
+                    rationale: "Synthetic route closure".into(),
+                },
+            )]
+            .into(),
+        );
+        let degraded = compare_service_network_intervention(&scenario(), &[], &deactivate).unwrap();
+        assert_eq!(degraded.conservative_capacity_delta, -4.0);
+        assert_eq!(degraded.optimistic_capacity_delta, -4.0);
+        assert_eq!(degraded.effect, NetworkInterventionEffect::BoundsDegraded);
+
+        let mut unknown_route = scenario();
+        unknown_route.links[1].availability = NetworkLinkAvailability::Unknown;
+        let improve_possible = plan(
+            "increase-unknown-route-capacity",
+            [(
+                "route-a".into(),
+                NetworkLinkInterventionOverride {
+                    availability: None,
+                    capacity_value: Some(8.0),
+                    capacity_uncertainty_abs: None,
+                    rationale: "Synthetic capacity assumption on a route of unknown state".into(),
+                },
+            )]
+            .into(),
+        );
+        let possible_improvement =
+            compare_service_network_intervention(&unknown_route, &[], &improve_possible).unwrap();
+        assert_eq!(possible_improvement.conservative_capacity_delta, 0.0);
+        assert_eq!(possible_improvement.optimistic_capacity_delta, 4.0);
+        assert_eq!(possible_improvement.effect, NetworkInterventionEffect::PossibleImprovementOnly);
+
+        let reduce_possible = plan(
+            "reduce-unknown-route-capacity",
+            [(
+                "route-a".into(),
+                NetworkLinkInterventionOverride {
+                    availability: None,
+                    capacity_value: Some(2.0),
+                    capacity_uncertainty_abs: None,
+                    rationale: "Synthetic capacity downgrade on a route of unknown state".into(),
+                },
+            )]
+            .into(),
+        );
+        let possible_degradation =
+            compare_service_network_intervention(&unknown_route, &[], &reduce_possible).unwrap();
+        assert_eq!(possible_degradation.conservative_capacity_delta, 0.0);
+        assert_eq!(possible_degradation.optimistic_capacity_delta, -2.0);
+        assert_eq!(possible_degradation.effect, NetworkInterventionEffect::PossibleDegradationOnly);
+
+        let mut mixed_input = scenario();
+        mixed_input.links[2].availability = NetworkLinkAvailability::Unknown;
+        let mixed_plan = plan(
+            "uncertain-redundancy-shift",
+            [
+                (
+                    "route-a".into(),
+                    NetworkLinkInterventionOverride {
+                        availability: Some(NetworkLinkAvailability::Inactive),
+                        capacity_value: None,
+                        capacity_uncertainty_abs: None,
+                        rationale: "Synthetic scenario removes the known route".into(),
+                    },
+                ),
+                (
+                    "route-b".into(),
+                    NetworkLinkInterventionOverride {
+                        availability: None,
+                        capacity_value: Some(10.0),
+                        capacity_uncertainty_abs: None,
+                        rationale: "Synthetic scenario increases the unknown alternate's capacity".into(),
+                    },
+                ),
+            ]
+            .into(),
+        );
+        let mixed =
+            compare_service_network_intervention(&mixed_input, &[], &mixed_plan).unwrap();
+        assert_eq!(mixed.conservative_capacity_delta, -4.0);
+        assert_eq!(mixed.optimistic_capacity_delta, 2.0);
+        assert_eq!(mixed.effect, NetworkInterventionEffect::MixedBoundMovement);
+    }
+
+    #[test]
     fn degradation_of_only_the_conservative_bound_is_not_mislabeled_unchanged() {
         let mut input = scenario();
         input.links[2].availability = NetworkLinkAvailability::Unknown;
