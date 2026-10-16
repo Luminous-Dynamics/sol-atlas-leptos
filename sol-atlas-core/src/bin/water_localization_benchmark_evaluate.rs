@@ -10,11 +10,15 @@ use std::process::ExitCode;
 fn main() -> ExitCode {
     let mut args = env::args().skip(1);
     let Some(path) = args.next() else {
-        eprintln!("usage: water-localization-benchmark-evaluate <scenario-corpus-run.json>");
+        eprintln!("usage: water-localization-benchmark-evaluate <scenario-corpus-run.json> <source-network.inp>");
+        return ExitCode::from(64);
+    };
+    let Some(source_path) = args.next() else {
+        eprintln!("usage: water-localization-benchmark-evaluate <scenario-corpus-run.json> <source-network.inp>");
         return ExitCode::from(64);
     };
     if args.next().is_some() {
-        eprintln!("usage: water-localization-benchmark-evaluate <scenario-corpus-run.json>");
+        eprintln!("usage: water-localization-benchmark-evaluate <scenario-corpus-run.json> <source-network.inp>");
         return ExitCode::from(64);
     }
 
@@ -25,7 +29,14 @@ fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    match evaluate_localization_manifest(&input) {
+    let source_inp = match fs::read(&source_path) {
+        Ok(bytes) => bytes,
+        Err(error) => {
+            eprintln!("WATER_LOCALIZATION_TOPOLOGY_INPUT_ERROR: {source_path}: {error}");
+            return ExitCode::from(2);
+        }
+    };
+    match evaluate_localization_manifest(&input, &source_inp) {
         Ok(result) => {
             match serde_json::to_string_pretty(&result) {
                 Ok(json) => println!("{json}"),
