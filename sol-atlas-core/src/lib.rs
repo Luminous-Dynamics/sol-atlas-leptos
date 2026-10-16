@@ -19,6 +19,7 @@ pub mod lod;
 pub mod mycelix_flows;
 // pub mod relativity_viz;
 pub mod geometry;
+pub mod geophysics;
 pub mod math;
 pub mod picking;
 pub mod simulation;
