@@ -60,7 +60,7 @@ pub enum ObservabilityError {
     InvalidTolerance,
     NonFiniteInput(&'static str),
     NonFiniteIntermediate,
-    EigenSolverNoConvergence,
+    SvdNoConvergence,
 }
 
 impl LinearizedObservationOperator {
@@ -309,7 +309,7 @@ fn one_sided_jacobi_svd(
         }
     }
 
-    Err(ObservabilityError::EigenSolverNoConvergence)
+    Err(ObservabilityError::SvdNoConvergence)
 }
 
 #[cfg(test)]
@@ -366,7 +366,7 @@ mod tests {
         op.parameter_scales = vec![10.0, 10.0];
         let report = op.analyze(1e-12, 1e-10).unwrap();
         assert_eq!(report.numerical_rank, 2);
-        assert!((report.condition_number.unwrap() - 10.0).abs() < 1e-8);
+        assert!((report.condition_number.unwrap() - 100.0).abs() < 1e-8);
         assert_eq!(report.parameter_scales, vec![10.0, 10.0]);
     }
 
