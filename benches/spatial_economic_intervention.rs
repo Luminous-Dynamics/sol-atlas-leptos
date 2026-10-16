@@ -9,6 +9,11 @@
 //! This harness reports observations; it does not assert that targets have passed.
 
 use serde::{Deserialize, Serialize};
+use sol_atlas_core::common_cause::{
+    assess_common_cause_domains, correlate_common_cause_with_dependency_groups,
+    CommonCauseBasis, CommonCauseCondition, CommonCauseDomain, CommonCauseScenario,
+    CommonCauseState, FailureMechanism,
+};
 use sol_atlas_core::dependency_logic::{
     AvailabilityScenario, DependencyGroup, DependencyGroupState, DependencyLogic,
     EntityOperationalState, ScenarioBasis, ScenarioEntityCondition,
@@ -35,6 +40,10 @@ struct SampleSummary {
     max_micros: u128,
     recovered_groups_per_run: usize,
     result_bytes: usize,
+    common_cause_overlap_pairs: usize,
+    common_cause_p50_micros: u128,
+    common_cause_p95_micros: u128,
+    common_cause_max_micros: u128,
 }
 
 fn evidence(id: String, feeder_id: &str) -> EvidenceRecord {
@@ -201,6 +210,57 @@ fn main() {
         assert_eq!(reference.summary.recovered, groups_count);
         let reference_bytes = serde_json::to_vec(&reference)
             .expect("deterministic comparison serializes");
+        let common_cause_domain = CommonCauseDomain {
+            id: "domain:shared-feeder".into(),
+            cause_entity_id: "grid:shared-feeder".into(),
+            mechanism: FailureMechanism::SharedPower,
+            member_entity_ids: vec!["feeder-primary".into(), "feeder-backup".into()],
+            supporting_evidence_ids: vec!["evidence-common-cause-domain".into()],
+            valid_from: None,
+            valid_until: None,
+        };
+        let common_cause_scenario = CommonCauseScenario {
+            id: "benchmark-common-cause".into(),
+            as_of: baseline.as_of.clone(),
+            conditions: [(
+                "domain:shared-feeder".into(),
+                CommonCauseCondition {
+                    state: CommonCauseState::Active,
+                    basis: CommonCauseBasis::Assumed,
+                    rationale: "Synthetic benchmark: a shared power failure mode is active".into(),
+                    supporting_evidence_ids: Vec::new(),
+                },
+            )]
+            .into_iter()
+            .collect(),
+        };
+        let common_cause_evidence = [evidence(
+            "evidence-common-cause-domain".into(),
+            "domain:shared-feeder",
+        )];
+        let reference_common_cause = assess_common_cause_domains(
+            std::slice::from_ref(&common_cause_domain),
+            &common_cause_scenario,
+            &common_cause_evidence,
+        )
+        .expect("synthetic common-cause fixture must evaluate");
+        let intervention_groups = reference
+            .group_deltas
+            .iter()
+            .map(|delta| delta.with_intervention.clone())
+            .collect::<Vec<_>>();
+        let reference_overlaps = correlate_common_cause_with_dependency_groups(
+            &reference_common_cause,
+            &intervention_groups,
+        )
+        .expect("same-time synthetic assessments must correlate");
+        assert_eq!(reference_overlaps.len(), groups_count);
+        assert!(reference_overlaps.iter().all(|overlap| {
+            overlap.independent_redundancy_warning
+                && overlap.currently_exposed_relation_ids.len() == 2
+        }));
+        let reference_overlap_bytes =
+            serde_json::to_vec(&reference_overlaps).expect("overlaps serialize");
 
         for _ in 0..warmup_iterations {
             let result = compare_intervention(
@@ -220,9 +280,26 @@ fn main() {
                 serde_json::to_vec(&result).expect("comparison serializes"),
                 reference_bytes
             );
+            let common = assess_common_cause_domains(
+                std::slice::from_ref(&common_cause_domain),
+                &common_cause_scenario,
+                &common_cause_evidence,
+            )
+            .expect("synthetic common-cause fixture must evaluate");
+            let overlaps = correlate_common_cause_with_dependency_groups(
+                &common,
+                &intervention_groups,
+            )
+            .expect("same-time synthetic assessments must correlate");
+            assert_eq!(overlaps.len(), groups_count);
+            assert_eq!(
+                serde_json::to_vec(&overlaps).expect("overlaps serialize"),
+                reference_overlap_bytes
+            );
         }
 
         let mut samples = Vec::with_capacity(measured_iterations);
+        let mut common_cause_samples = Vec::with_capacity(measured_iterations);
         let mut recovered = 0;
         for _ in 0..measured_iterations {
             let start = Instant::now();
@@ -241,8 +318,28 @@ fn main() {
                 serde_json::to_vec(&result).expect("comparison serializes"),
                 reference_bytes
             );
+
+            let common_start = Instant::now();
+            let common = assess_common_cause_domains(
+                std::slice::from_ref(&common_cause_domain),
+                &common_cause_scenario,
+                &common_cause_evidence,
+            )
+            .expect("synthetic common-cause fixture must evaluate");
+            let overlaps = correlate_common_cause_with_dependency_groups(
+                &common,
+                &intervention_groups,
+            )
+            .expect("same-time synthetic assessments must correlate");
+            common_cause_samples.push(common_start.elapsed());
+            assert_eq!(overlaps.len(), groups_count);
+            assert_eq!(
+                serde_json::to_vec(&overlaps).expect("overlaps serialize"),
+                reference_overlap_bytes
+            );
         }
         samples.sort_unstable();
+        common_cause_samples.sort_unstable();
 
         let summary = SampleSummary {
             groups: groups_count,
@@ -255,6 +352,14 @@ fn main() {
             max_micros: samples.last().copied().unwrap_or_default().as_micros(),
             recovered_groups_per_run: recovered,
             result_bytes: reference_bytes.len(),
+            common_cause_overlap_pairs: reference_overlaps.len(),
+            common_cause_p50_micros: percentile(&common_cause_samples, 50).as_micros(),
+            common_cause_p95_micros: percentile(&common_cause_samples, 95).as_micros(),
+            common_cause_max_micros: common_cause_samples
+                .last()
+                .copied()
+                .unwrap_or_default()
+                .as_micros(),
         };
         println!(
             "{}",
