@@ -195,7 +195,7 @@ pub struct CommonCauseGroupOverlap {
     pub as_of: String,
     pub domain_state: CommonCauseState,
     pub logic: DependencyLogic,
-    pub domain_evidence_qualified: bool,
+    pub domain_evidence_admissible: bool,
     pub shared_relation_ids: Vec<String>,
     pub shared_prerequisite_entity_ids: Vec<String>,
     pub currently_exposed_relation_ids: Vec<String>,
@@ -249,7 +249,7 @@ pub fn correlate_common_cause_with_dependency_groups(
             .iter()
             .map(|value| (value.entity_id.as_str(), value.exposure))
             .collect();
-        let domain_evidence_qualified = domain.domain_evidence_blockers.is_empty()
+        let domain_evidence_admissible = domain.domain_evidence_blockers.is_empty()
             && !domain.entity_exposures.is_empty()
             && domain
                 .entity_exposures
@@ -290,8 +290,8 @@ pub fn correlate_common_cause_with_dependency_groups(
                 as_of: group.as_of.clone(),
                 domain_state: domain.state,
                 logic: group.logic,
-                domain_evidence_qualified,
-                independent_redundancy_warning: domain_evidence_qualified
+                domain_evidence_admissible,
+                independent_redundancy_warning: domain_evidence_admissible
                     && shared_relation_ids.len() >= 2,
                 shared_relation_ids,
                 shared_prerequisite_entity_ids,
