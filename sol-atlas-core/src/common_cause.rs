@@ -178,8 +178,11 @@ pub enum CommonCauseAssessmentError {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CommonCauseCorrelationError {
+    InvalidAsOfTimestamp,
     DuplicateDomainAssessmentId,
     DuplicateDependencyGroupId,
+    DuplicateEntityExposure,
+    DuplicateDependencyMemberRelationId,
     MismatchedAsOfTimestamp,
 }
 
@@ -215,10 +218,37 @@ pub fn correlate_common_cause_with_dependency_groups(
         .map(|value| value.as_of.as_str())
         .or_else(|| groups.first().map(|value| value.as_of.as_str()));
     if let Some(as_of) = expected_as_of {
+        if !is_canonical_utc_timestamp(as_of)
+            || domains.iter().any(|value| !is_canonical_utc_timestamp(&value.as_of))
+            || groups.iter().any(|value| !is_canonical_utc_timestamp(&value.as_of))
+        {
+            return Err(CommonCauseCorrelationError::InvalidAsOfTimestamp);
+        }
         if domains.iter().any(|value| value.as_of != as_of)
             || groups.iter().any(|value| value.as_of != as_of)
         {
             return Err(CommonCauseCorrelationError::MismatchedAsOfTimestamp);
+        }
+    }
+
+    for domain in domains {
+        let mut entity_ids = BTreeSet::new();
+        if domain
+            .entity_exposures
+            .iter()
+            .any(|value| !entity_ids.insert(value.entity_id.as_str()))
+        {
+            return Err(CommonCauseCorrelationError::DuplicateEntityExposure);
+        }
+    }
+    for group in groups {
+        let mut relation_ids = BTreeSet::new();
+        if group
+            .members
+            .iter()
+            .any(|value| !relation_ids.insert(value.relation_id.as_str()))
+        {
+            return Err(CommonCauseCorrelationError::DuplicateDependencyMemberRelationId);
         }
     }
 
@@ -754,6 +784,53 @@ mod tests {
         assert!(overlaps[0].independent_redundancy_warning);
         // The existing qualitative group remains unchanged. Exposure is not failure.
         assert_eq!(group.state, DependencyGroupState::Satisfied);
+    }
+
+    #[test]
+    fn common_cause_correlation_rejects_duplicate_exposure_entities() {
+        let domain = CommonCauseAssessment {
+            domain_id: "domain:one".into(),
+            cause_entity_id: "cause:one".into(),
+            mechanism: FailureMechanism::Other,
+            as_of: AT.into(),
+            state: CommonCauseState::Active,
+            basis: Some(CommonCauseBasis::Assumed),
+            domain_evidence_blockers: Vec::new(),
+            condition_evidence_ids: Vec::new(),
+            entity_exposures: vec![
+                CommonCauseEntityExposure {
+                    entity_id: "asset:one".into(),
+                    exposure: CommonCauseExposure::Exposed,
+                },
+                CommonCauseEntityExposure {
+                    entity_id: "asset:one".into(),
+                    exposure: CommonCauseExposure::Indeterminate,
+                },
+            ],
+        };
+        assert_eq!(
+            correlate_common_cause_with_dependency_groups(&[domain], &[]),
+            Err(CommonCauseCorrelationError::DuplicateEntityExposure)
+        );
+    }
+
+    #[test]
+    fn common_cause_correlation_rejects_malformed_timestamp() {
+        let domain = CommonCauseAssessment {
+            domain_id: "domain:one".into(),
+            cause_entity_id: "cause:one".into(),
+            mechanism: FailureMechanism::Other,
+            as_of: "2026-99-99T10:00:00Z".into(),
+            state: CommonCauseState::Unknown,
+            basis: None,
+            domain_evidence_blockers: Vec::new(),
+            condition_evidence_ids: Vec::new(),
+            entity_exposures: Vec::new(),
+        };
+        assert_eq!(
+            correlate_common_cause_with_dependency_groups(&[domain], &[]),
+            Err(CommonCauseCorrelationError::InvalidAsOfTimestamp)
+        );
     }
 
     #[test]
