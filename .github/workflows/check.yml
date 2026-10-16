@@ -173,6 +173,10 @@ jobs:
                   Path("sol-atlas-core/schemas/water-scenario-corpus-plan-v0.1.schema.json"),
                   Path("sol-atlas-core/fixtures/water-engineering/net3-scenario-corpus-plan.synthetic.json"),
               ),
+              (
+                  Path("sol-atlas-core/schemas/water-scenario-corpus-plan-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/net3-all-junction-localization-plan.synthetic.json"),
+              ),
           ]
 
           format_checker = FormatChecker()
@@ -477,6 +481,129 @@ jobs:
               all(.predictions[]; .actual_rank >= 1 and (.ranked_candidates | length == 4))
             )
           ' "$output"
+      - name: Execute exhaustive Net3 junction-target corpus
+        id: net3_exhaustive_corpus
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo run -p sol-atlas-core --bin water-scenario-corpus-run -- \
+            .epanet-source/example-networks/Net3.inp \
+            sol-atlas-core/fixtures/water-engineering/net3-all-junction-localization-plan.synthetic.json \
+            .epanet-build/bin/runepanet \
+            artifacts/net3-exhaustive-scenario-corpus \
+            4d8d82ddc260fce216af9321fc3d9a4646ac6827
+      - name: Validate exhaustive Net3 run manifest
+        id: net3_exhaustive_manifest
+        if: steps.net3_exhaustive_corpus.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="sol-atlas-core/fixtures/water-engineering/net3-all-junction-localization-plan.synthetic.json"
+          output="artifacts/net3-exhaustive-scenario-corpus/scenario-corpus-run.v0.1.json"
+          digest_file="artifacts/net3-exhaustive-scenario-corpus/scenario-corpus-run.v0.1.sha256"
+          expected_plan_sha="$(sha256sum "$fixture" | awk '{print $1}')"
+          expected_manifest_sha="$(sha256sum "$output" | awk '{print $1}')"
+          test "$(awk '{print $1}' "$digest_file")" = "$expected_manifest_sha"
+          jq -e --arg plan_sha "$expected_plan_sha" '
+            (.schema_version == "water-scenario-corpus-run/v0.1") and
+            (.plan_sha256 == $plan_sha) and
+            (.base_input_sha256 == "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53") and
+            (.unit_system == "GPM") and
+            (.flow_unit == "GPM") and
+            (.pressure_unit == "psi") and
+            (.solver.source_commit == "4d8d82ddc260fce216af9321fc3d9a4646ac6827") and
+            (.scenario_count == 185) and
+            (.completed_count == 185) and
+            (.failed_count == 0) and
+            (.run_state == "Completed") and
+            ([.scenarios[] | select(.ground_truth_class == "no_fault")] | length == 1) and
+            ([.scenarios[] | select(.ground_truth_class == "synthetic_withdrawal")] | length == 184) and
+            ([.scenarios[] | select(.target_junction_id != null) | .target_junction_id] | unique | length == 92) and
+            ([.scenarios[].scenario_id] | unique | length == 185) and
+            all(.scenarios[];
+              .run_state == "Completed" and
+              (.generated_input.sha256 | test("^[a-f0-9]{64}$")) and
+              (.report.sha256 | test("^[a-f0-9]{64}$")) and
+              (.binary_output.sha256 | test("^[a-f0-9]{64}$")) and
+              (.pressure_readings | length == 4) and
+              all(.pressure_readings[]; .state == "measured" and (.pressure_value | type == "number") and .reason == null)
+            )
+          ' "$output"
+      - name: Evaluate exhaustive Net3 candidate-localization score
+        id: net3_exhaustive_localization
+        if: steps.net3_exhaustive_manifest.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="artifacts/net3-exhaustive-scenario-corpus/scenario-corpus-run.v0.1.json"
+          output="artifacts/net3-exhaustive-scenario-corpus/water-localization-evaluation.v0.1.json"
+          cargo run -p sol-atlas-core --bin water-localization-benchmark-evaluate -- "$manifest" .epanet-source/example-networks/Net3.inp > "$output"
+      - name: Validate exhaustive Net3 candidate-localization score
+        id: net3_exhaustive_localization_validate
+        if: steps.net3_exhaustive_localization.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="artifacts/net3-exhaustive-scenario-corpus/scenario-corpus-run.v0.1.json"
+          output="artifacts/net3-exhaustive-scenario-corpus/water-localization-evaluation.v0.1.json"
+          expected_manifest_sha="$(sha256sum "$manifest" | awk '{print $1}')"
+          jq -e --arg source_sha "$expected_manifest_sha" '
+            (.schema_version == "water-localization-evaluation-envelope/v0.1") and
+            (.source_manifest_sha256 == $source_sha) and
+            (.source_topology_sha256 == "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53") and
+            (.evaluation.schema_version == "water-localization-evaluation/v0.1") and
+            (.evaluation.run_state == "Completed") and
+            (.evaluation.unit_system == "GPM") and
+            (.evaluation.flow_unit == "GPM") and
+            (.evaluation.pressure_unit == "psi") and
+            (.evaluation.distance_semantics == "unweighted_undirected_link_hops") and
+            (.evaluation.topology_node_count >= 1) and
+            (.evaluation.topology_link_count >= 1) and
+            (.evaluation.claim_ceiling == "synthetic_withdrawal_localization_baseline_only") and
+            (.evaluation.negative_control_count == 1) and
+            (.evaluation.fault_scenario_count == 184) and
+            (.evaluation.candidate_target_count == 92) and
+            (.evaluation.top_k == 3) and
+            (.evaluation.held_out_magnitudes == [10,25]) and
+            ([.evaluation.models[].model_id] | sort == ["cosine-nearest-example","euclidean-nearest-example"]) and
+            all(.evaluation.models[];
+              .test_count == 184 and
+              (.predictions | length == 184) and
+              (.folds | length == 2) and
+              (.top1_accuracy >= 0 and .top1_accuracy <= 1) and
+              (.top_k_accuracy >= 0 and .top_k_accuracy <= 1) and
+              (.mean_reciprocal_rank >= 0 and .mean_reciprocal_rank <= 1) and
+              has("mean_topological_error_hops") and has("p95_topological_error_hops") and has("worst_topological_error_hops") and has("disconnected_prediction_count") and
+              (.disconnected_prediction_count == ([.predictions[] | select(.topological_error_hops == null)] | length)) and
+              all(.folds[]; .test_count == 92 and (.top1_accuracy >= 0 and .top1_accuracy <= 1)) and
+              all(.predictions[]; .actual_rank >= 1 and (.ranked_candidates | length == 92) and has("topological_error_hops"))
+            )
+          ' "$output"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+          schema = json.loads(Path("sol-atlas-core/schemas/water-localization-evaluation-v0.1.schema.json").read_text())
+          result = json.loads(Path("artifacts/net3-exhaustive-scenario-corpus/water-localization-evaluation.v0.1.json").read_text())
+          errors = list(Draft202012Validator(schema).iter_errors(result))
+          if errors:
+              for error in errors:
+                  print(f"/{'/'.join(map(str, error.absolute_path))}: {error.message}")
+              raise SystemExit(1)
+          print("EXHAUSTIVE_LOCALIZATION_JSON_SCHEMA_PASS")
+          PY
+      - name: Upload exhaustive Net3 corpus and evaluation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: net3-exhaustive-localization-evidence
+          path: artifacts/net3-exhaustive-scenario-corpus/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Upload localization evaluation evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -501,9 +628,13 @@ jobs:
           W0_LOCALIZATION_VALIDATION_OUTCOME: ${{ steps.w0_localization_validate.outcome }}
           NET3_LOCALIZATION_OUTCOME: ${{ steps.net3_localization.outcome }}
           NET3_LOCALIZATION_VALIDATION_OUTCOME: ${{ steps.net3_localization_validate.outcome }}
+          NET3_EXHAUSTIVE_CORPUS_OUTCOME: ${{ steps.net3_exhaustive_corpus.outcome }}
+          NET3_EXHAUSTIVE_MANIFEST_OUTCOME: ${{ steps.net3_exhaustive_manifest.outcome }}
+          NET3_EXHAUSTIVE_EVAL_OUTCOME: ${{ steps.net3_exhaustive_localization.outcome }}
+          NET3_EXHAUSTIVE_EVAL_VALIDATION_OUTCOME: ${{ steps.net3_exhaustive_localization_validate.outcome }}
         run: |
-          if [[ "$SCENARIO_CORPUS_OUTCOME" != "success" || "$SCENARIO_MANIFEST_OUTCOME" != "success" || "$NET3_CORPUS_OUTCOME" != "success" || "$NET3_MANIFEST_OUTCOME" != "success" || "$W0_LOCALIZATION_OUTCOME" != "success" || "$W0_LOCALIZATION_VALIDATION_OUTCOME" != "success" || "$NET3_LOCALIZATION_OUTCOME" != "success" || "$NET3_LOCALIZATION_VALIDATION_OUTCOME" != "success" ]]; then
-            echo "WATER_BENCHMARK_NOT_VALIDATED: w0_run=$SCENARIO_CORPUS_OUTCOME w0_manifest=$SCENARIO_MANIFEST_OUTCOME w0_eval=$W0_LOCALIZATION_OUTCOME w0_eval_validation=$W0_LOCALIZATION_VALIDATION_OUTCOME net3_run=$NET3_CORPUS_OUTCOME net3_manifest=$NET3_MANIFEST_OUTCOME net3_eval=$NET3_LOCALIZATION_OUTCOME net3_eval_validation=$NET3_LOCALIZATION_VALIDATION_OUTCOME"
+          if [[ "$SCENARIO_CORPUS_OUTCOME" != "success" || "$SCENARIO_MANIFEST_OUTCOME" != "success" || "$NET3_CORPUS_OUTCOME" != "success" || "$NET3_MANIFEST_OUTCOME" != "success" || "$W0_LOCALIZATION_OUTCOME" != "success" || "$W0_LOCALIZATION_VALIDATION_OUTCOME" != "success" || "$NET3_LOCALIZATION_OUTCOME" != "success" || "$NET3_LOCALIZATION_VALIDATION_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_CORPUS_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_MANIFEST_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_EVAL_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_EVAL_VALIDATION_OUTCOME" != "success" ]]; then
+            echo "WATER_BENCHMARK_NOT_VALIDATED: w0_run=$SCENARIO_CORPUS_OUTCOME w0_manifest=$SCENARIO_MANIFEST_OUTCOME w0_eval=$W0_LOCALIZATION_OUTCOME w0_eval_validation=$W0_LOCALIZATION_VALIDATION_OUTCOME net3_run=$NET3_CORPUS_OUTCOME net3_manifest=$NET3_MANIFEST_OUTCOME net3_eval=$NET3_LOCALIZATION_OUTCOME net3_eval_validation=$NET3_LOCALIZATION_VALIDATION_OUTCOME net3_exhaustive_run=$NET3_EXHAUSTIVE_CORPUS_OUTCOME net3_exhaustive_manifest=$NET3_EXHAUSTIVE_MANIFEST_OUTCOME net3_exhaustive_eval=$NET3_EXHAUSTIVE_EVAL_OUTCOME net3_exhaustive_eval_validation=$NET3_EXHAUSTIVE_EVAL_VALIDATION_OUTCOME"
             exit 1
           fi
       - name: Upload synthetic solver evidence
