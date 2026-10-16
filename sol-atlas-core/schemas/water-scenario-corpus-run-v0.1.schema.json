@@ -10,6 +10,10 @@
     "plan_id",
     "plan_sha256",
     "base_input_sha256",
+    "unit_system",
+    "flow_unit",
+    "pressure_unit",
+    "report_policy",
     "solver",
     "observation_node_ids",
     "scenario_count",
@@ -95,6 +99,27 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "unit_system": {
+      "enum": [
+        "LPS",
+        "GPM"
+      ]
+    },
+    "flow_unit": {
+      "enum": [
+        "L/s",
+        "GPM"
+      ]
+    },
+    "pressure_unit": {
+      "enum": [
+        "m",
+        "psi"
+      ]
+    },
+    "report_policy": {
+      "const": "NODES ALL; LINKS ALL"
     }
   },
   "$defs": {
@@ -130,7 +155,7 @@
       "required": [
         "node_id",
         "state",
-        "pressure_m",
+        "pressure_value",
         "reason"
       ],
       "properties": {
@@ -144,15 +169,15 @@
             "unavailable"
           ]
         },
-        "pressure_m": {
-          "type": [
-            "number",
-            "null"
-          ]
-        },
         "reason": {
           "type": [
             "string",
+            "null"
+          ]
+        },
+        "pressure_value": {
+          "type": [
+            "number",
             "null"
           ]
         }
@@ -171,11 +196,11 @@
           },
           "then": {
             "properties": {
-              "pressure_m": {
-                "type": "number"
-              },
               "reason": {
                 "type": "null"
+              },
+              "pressure_value": {
+                "type": "number"
               }
             }
           }
@@ -193,12 +218,12 @@
           },
           "then": {
             "properties": {
-              "pressure_m": {
-                "type": "null"
-              },
               "reason": {
                 "type": "string",
                 "minLength": 1
+              },
+              "pressure_value": {
+                "type": "null"
               }
             }
           }
@@ -212,7 +237,7 @@
         "scenario_id",
         "ground_truth_class",
         "target_junction_id",
-        "additional_demand_lps",
+        "additional_demand",
         "generated_input",
         "run_state",
         "solver_exit_code",
@@ -239,11 +264,6 @@
             "null"
           ],
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,30}$"
-        },
-        "additional_demand_lps": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 20
         },
         "generated_input": {
           "$ref": "#/$defs/artifact"
@@ -302,6 +322,11 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "additional_demand": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
         }
       },
       "allOf": [
@@ -456,6 +481,50 @@
           },
           "completed_count": {
             "minimum": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "unit_system": {
+            "const": "LPS"
+          }
+        },
+        "required": [
+          "unit_system"
+        ]
+      },
+      "then": {
+        "properties": {
+          "flow_unit": {
+            "const": "L/s"
+          },
+          "pressure_unit": {
+            "const": "m"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "unit_system": {
+            "const": "GPM"
+          }
+        },
+        "required": [
+          "unit_system"
+        ]
+      },
+      "then": {
+        "properties": {
+          "flow_unit": {
+            "const": "GPM"
+          },
+          "pressure_unit": {
+            "const": "psi"
           }
         }
       }
