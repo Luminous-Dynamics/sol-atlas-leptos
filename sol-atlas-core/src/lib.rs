@@ -28,6 +28,7 @@ pub mod dependency_logic;
 pub mod intervention;
 pub mod common_cause;
 pub mod service_function;
+pub mod service_network;
 pub mod timeline;
 pub mod types;
 pub mod visual_validation;
