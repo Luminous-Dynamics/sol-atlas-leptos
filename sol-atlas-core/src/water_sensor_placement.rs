@@ -781,12 +781,14 @@ pub fn evaluate_sensor_placement(
         return Err("frozen plan and run manifest scenario counts differ".to_owned());
     }
     for scenario in &manifest.scenarios {
-        let expected = planned.get(&scenario.scenario_id).ok_or_else(|| {
-            format!(
-                "run manifest has undeclared scenario {:?}",
-                scenario.scenario_id
-            )
-        })?;
+        let expected = planned
+            .get(&scenario.scenario_id)
+            .ok_or_else(|| {
+                format!(
+                    "run manifest has undeclared scenario {:?}",
+                    scenario.scenario_id
+                )
+            })?;
         if scenario.ground_truth_class != expected.ground_truth_class
             || scenario.target_junction_id != expected.target_junction_id
             || scenario.additional_demand != expected.additional_demand
@@ -1317,8 +1319,13 @@ mod tests {
             "scenarios": scenarios
         });
         let manifest_bytes = serde_json::to_vec(&manifest).unwrap();
-        let result =
-            evaluate_sensor_placement(&root, &manifest_bytes, source_inp, &plan_bytes).unwrap();
+        let result = evaluate_sensor_placement(
+            &root,
+            &manifest_bytes,
+            source_inp,
+            &plan_bytes,
+        )
+        .unwrap();
         assert_eq!(result.evaluation.scenario_count, 7);
         assert_eq!(result.evaluation.fault_scenario_count, 6);
         assert_eq!(result.evaluation.candidate_target_count, 3);
