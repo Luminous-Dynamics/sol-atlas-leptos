@@ -51,14 +51,16 @@ pub struct ServiceNetworkInterventionRequest {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum NetworkInterventionEffect {
-    /// Both lower and upper flow bounds move up or stay fixed, with lower bound up.
+    /// Conservative flow bound rises and the optimistic bound does not fall.
     BoundsImproved,
-    /// Both bounds move down or stay fixed, with upper bound down.
+    /// Optimistic flow bound falls and the conservative bound does not rise.
     BoundsDegraded,
     /// Only the optimistic bound increases; the conservative bound is unchanged.
     PossibleImprovementOnly,
     /// Only the optimistic bound decreases; the conservative bound is unchanged.
     PossibleDegradationOnly,
+    /// Conservative bound falls while the optimistic bound remains unchanged.
+    ConservativeBoundRegressed,
     /// Conservative and optimistic bounds move in conflicting directions.
     MixedBoundMovement,
     /// Neither modeled flow bound changes.
@@ -303,9 +305,9 @@ fn classify_effect(
         NetworkInterventionEffect::PossibleImprovementOnly
     } else if conservative_delta == 0.0 && optimistic_delta < 0.0 {
         NetworkInterventionEffect::PossibleDegradationOnly
-    } else if conservative_delta >= 0.0 && optimistic_delta >= 0.0 {
-        NetworkInterventionEffect::BoundsImproved
-    } else if conservative_delta <= 0.0 && optimistic_delta <= 0.0 {
+    } else if conservative_delta < 0.0 && optimistic_delta == 0.0 {
+        NetworkInterventionEffect::ConservativeBoundRegressed
+    } else if conservative_delta <= 0.0 && optimistic_delta < 0.0 {
         NetworkInterventionEffect::BoundsDegraded
     } else {
         NetworkInterventionEffect::MixedBoundMovement
@@ -457,6 +459,33 @@ mod tests {
         assert_eq!(base.baseline.conservative_available_capacity, 4.0);
         assert_eq!(base.baseline.optimistic_available_capacity, 8.0);
         assert_eq!(base.effect, NetworkInterventionEffect::BoundsImproved);
+    }
+
+    #[test]
+    fn degradation_of_only_the_conservative_bound_is_not_mislabeled_unchanged() {
+        let mut input = scenario();
+        input.links[2].availability = NetworkLinkAvailability::Unknown;
+        let plan = plan(
+            "make-known-route-uncertain",
+            [(
+                "route-a".into(),
+                NetworkLinkInterventionOverride {
+                    availability: Some(NetworkLinkAvailability::Unknown),
+                    capacity_value: None,
+                    capacity_uncertainty_abs: None,
+                    rationale: "Synthetic scenario assumption: route confidence reduced.".into(),
+                },
+            )]
+            .into(),
+        );
+        let comparison = compare_service_network_intervention(&input, &[], &plan).unwrap();
+        assert_eq!(comparison.baseline.conservative_capacity_delta, 0.0);
+        assert_eq!(comparison.baseline.optimistic_capacity_delta, 0.0);
+        assert_eq!(comparison.with_intervention.conservative_available_capacity, 0.0);
+        assert_eq!(comparison.with_intervention.optimistic_available_capacity, 8.0);
+        assert_eq!(comparison.conservative_capacity_delta, -4.0);
+        assert_eq!(comparison.optimistic_capacity_delta, 0.0);
+        assert_eq!(comparison.effect, NetworkInterventionEffect::ConservativeBoundRegressed);
     }
 
     #[test]
