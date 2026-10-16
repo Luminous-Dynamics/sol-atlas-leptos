@@ -305,9 +305,9 @@ fn parse_network_topology(
     let mut unique_edges = BTreeSet::new();
     for (_, from, to) in &link_records {
         let (left, right) = if from <= to {
-            (from.clone(), to.clone())
+            (from.to_owned(), to.to_owned())
         } else {
-            (to.clone(), from.clone())
+            (to.to_owned(), from.to_owned())
         };
         if !unique_edges.insert((left.clone(), right.clone())) {
             continue;
@@ -948,7 +948,7 @@ mod tests {
             serde_json::from_slice(&synthetic_manifest()).unwrap();
         value["failed_count"] = json!(1);
         value["run_state"] = json!("CompletedWithFailures");
-        assert!(evaluate_localization_manifest(value.to_string().as_bytes()).is_err());
+        assert!(evaluate_localization_manifest(value.to_string().as_bytes(), SYNTHETIC_INP).is_err());
     }
 
     #[test]
@@ -956,7 +956,7 @@ mod tests {
         let mut value: serde_json::Value =
             serde_json::from_slice(&synthetic_manifest()).unwrap();
         value["scenarios"][1]["pressure_readings"][0]["node_id"] = json!("UNDECLARED");
-        assert!(evaluate_localization_manifest(value.to_string().as_bytes()).is_err());
+        assert!(evaluate_localization_manifest(value.to_string().as_bytes(), SYNTHETIC_INP).is_err());
     }
 
     #[test]
@@ -964,7 +964,7 @@ mod tests {
         let mut value: serde_json::Value =
             serde_json::from_slice(&synthetic_manifest()).unwrap();
         value["pressure_unit"] = json!("psi");
-        assert!(evaluate_localization_manifest(value.to_string().as_bytes()).is_err());
+        assert!(evaluate_localization_manifest(value.to_string().as_bytes(), SYNTHETIC_INP).is_err());
     }
 
     #[test]
@@ -1014,7 +1014,7 @@ mod tests {
         value["scenarios"][3]["additional_demand"] = json!(1.0);
         value["scenarios"][4]["additional_demand"] = json!(1.0);
         assert!(
-            evaluate_localization_manifest(value.to_string().as_bytes())
+            evaluate_localization_manifest(value.to_string().as_bytes(), SYNTHETIC_INP)
                 .unwrap_err()
                 .contains("at least two withdrawal magnitudes")
         );
