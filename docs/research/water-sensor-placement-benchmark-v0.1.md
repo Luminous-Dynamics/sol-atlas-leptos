@@ -60,3 +60,12 @@ Before claims of research efficacy, add varied demand patterns/operating states 
 - Steffelbauer and Fuchs-Hanusch, *Water Resources Management* (2016), [sensor placement under demand uncertainty](https://doi.org/10.1007/s11269-016-1504-6), motivates testing uncertainty in addition to nominal hydraulic responses.
 
 These references motivate the experiment design; none validates this implementation or implies that Sol Atlas has outperformed prior methods.
+
+## Provenance hardening amendment (2026-10-16)
+
+The evaluator also verifies that the manifest's declared observation pressure readings exactly match those same nodes in the hash-verified raw EPANET report. It rejects missing/duplicate sensor IDs, unavailable or null values, non-finite values, a declared sensor set that differs from the frozen plan, and any mismatch between the manifest reading and the report value. The output is bound to all three original identities: run-manifest SHA-256, frozen scenario-plan SHA-256, and source-EPANET-INP SHA-256. Scenario labels and withdrawal magnitudes must match the frozen plan byte-for-byte via its digest and semantically via each scenario record.
+
+The response-separation layout is selected from the **clean normalized training fold**, then held fixed across paired noise replicates. That prevents a noise draw from silently changing the layout being evaluated and helps isolate the sensitivity of a fixed layout to the declared synthetic measurement-noise stress. The end-to-end test includes a deliberately inconsistent declared pressure field and expects a fail-closed rejection.
+
+These are authored protections and tests. Their execution is not established until a run of the workflow for the exact current pull-request head reports success.
+
