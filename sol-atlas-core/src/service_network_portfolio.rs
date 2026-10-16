@@ -403,6 +403,20 @@ mod tests {
     }
 
     #[test]
+    fn json_portfolio_fixture_ranks_the_robust_combination_first() {
+        let request: ServiceNetworkPortfolioRequest = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-network-portfolio-request.json"
+        )).unwrap();
+        let result = compare_service_network_portfolio(&request, &[]).unwrap();
+        assert_eq!(result.scenario_count, 2);
+        assert_eq!(result.plan_count, 3);
+        assert_eq!(result.plans[0].plan_id, "robust-combined");
+        assert_eq!(result.plans[0].worst_case_conservative_capacity_gain, 4.0);
+        assert_eq!(result.plans[0].scenarios_improved, 2);
+        assert_eq!(result.plans[0].scenarios_worsened, 0);
+    }
+
+    #[test]
     fn ranking_prefers_the_plan_with_a_positive_worst_case_gain() {
         let request = ServiceNetworkPortfolioRequest {
             comparison_id: "portfolio:irrigation".into(),
