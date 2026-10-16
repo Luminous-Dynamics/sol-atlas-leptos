@@ -205,6 +205,11 @@ jobs:
           localization_schema = json.loads(localization_schema_path.read_text(encoding="utf-8"))
           Draft202012Validator.check_schema(localization_schema)
           print(f"SCHEMA_DEFINITION_PASS: {localization_schema_path}")
+
+          sensor_placement_schema_path = Path("sol-atlas-core/schemas/water-sensor-placement-evaluation-v0.1.schema.json")
+          sensor_placement_schema = json.loads(sensor_placement_schema_path.read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(sensor_placement_schema)
+          print(f"SCHEMA_DEFINITION_PASS: {sensor_placement_schema_path}")
           PY
 
   epanet-synthetic-smoke:
@@ -596,6 +601,73 @@ jobs:
               raise SystemExit(1)
           print("EXHAUSTIVE_LOCALIZATION_JSON_SCHEMA_PASS")
           PY
+      - name: Evaluate matched sensor-placement strategies from verified all-node reports
+        id: net3_sensor_placement
+        if: steps.net3_exhaustive_manifest.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="artifacts/net3-exhaustive-scenario-corpus"
+          manifest="$root/scenario-corpus-run.v0.1.json"
+          output="$root/water-sensor-placement-evaluation.v0.1.json"
+          cargo run -p sol-atlas-core --bin water-sensor-placement-evaluate -- \
+            "$root" "$manifest" .epanet-source/example-networks/Net3.inp > "$output"
+      - name: Validate matched sensor-placement evaluation
+        id: net3_sensor_placement_validate
+        if: steps.net3_sensor_placement.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="artifacts/net3-exhaustive-scenario-corpus"
+          manifest="$root/scenario-corpus-run.v0.1.json"
+          output="$root/water-sensor-placement-evaluation.v0.1.json"
+          expected_manifest_sha="$(sha256sum "$manifest" | awk '{print $1}')"
+          jq -e --arg source_sha "$expected_manifest_sha" '
+            (.schema_version == "water-sensor-placement-evaluation-envelope/v0.1") and
+            (.source_manifest_sha256 == $source_sha) and
+            (.source_topology_sha256 == "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53") and
+            (.evaluation.schema_version == "water-sensor-placement-evaluation/v0.1") and
+            (.evaluation.run_state == "Completed") and
+            (.evaluation.unit_system == "GPM") and
+            (.evaluation.flow_unit == "GPM") and
+            (.evaluation.pressure_unit == "psi") and
+            (.evaluation.scenario_count == 185) and
+            (.evaluation.fault_scenario_count == 184) and
+            (.evaluation.candidate_target_count == 92) and
+            (.evaluation.sensor_budgets == [2,4,8]) and
+            (.evaluation.noise_sigma_fractions == [0,0.05,0.1]) and
+            (.evaluation.replicate_count == 5) and
+            (.evaluation.held_out_magnitudes == [10,25]) and
+            ([.evaluation.strategy_ids[]] | sort == ["fixed-predeclared","graph-coverage-greedy","response-separation-greedy","seeded-random"]) and
+            (.evaluation.results | length == 360) and
+            all(.evaluation.results[];
+              .test_count == 92 and
+              (.selected_sensor_node_ids | length == .sensor_budget) and
+              ((.selected_sensor_node_ids | unique | length) == .sensor_budget) and
+              (.top1_accuracy >= 0 and .top1_accuracy <= 1) and
+              (.top3_accuracy >= 0 and .top3_accuracy <= 1) and
+              (.mean_reciprocal_rank >= 0 and .mean_reciprocal_rank <= 1) and
+              has("mean_topological_error_hops") and
+              has("p95_topological_error_hops") and
+              has("worst_topological_error_hops") and
+              has("disconnected_prediction_count")
+            )
+          ' "$output"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+          schema = json.loads(Path("sol-atlas-core/schemas/water-sensor-placement-evaluation-v0.1.schema.json").read_text())
+          result = json.loads(Path("artifacts/net3-exhaustive-scenario-corpus/water-sensor-placement-evaluation.v0.1.json").read_text())
+          errors = list(Draft202012Validator(schema).iter_errors(result))
+          if errors:
+              for error in errors:
+                  print(f"/{'/'.join(map(str, error.absolute_path))}: {error.message}")
+              raise SystemExit(1)
+          print("SENSOR_PLACEMENT_JSON_SCHEMA_PASS")
+          PY
       - name: Upload exhaustive Net3 corpus and evaluation evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -632,9 +704,11 @@ jobs:
           NET3_EXHAUSTIVE_MANIFEST_OUTCOME: ${{ steps.net3_exhaustive_manifest.outcome }}
           NET3_EXHAUSTIVE_EVAL_OUTCOME: ${{ steps.net3_exhaustive_localization.outcome }}
           NET3_EXHAUSTIVE_EVAL_VALIDATION_OUTCOME: ${{ steps.net3_exhaustive_localization_validate.outcome }}
+          NET3_SENSOR_PLACEMENT_OUTCOME: ${{ steps.net3_sensor_placement.outcome }}
+          NET3_SENSOR_PLACEMENT_VALIDATE_OUTCOME: ${{ steps.net3_sensor_placement_validate.outcome }}
         run: |
-          if [[ "$SCENARIO_CORPUS_OUTCOME" != "success" || "$SCENARIO_MANIFEST_OUTCOME" != "success" || "$NET3_CORPUS_OUTCOME" != "success" || "$NET3_MANIFEST_OUTCOME" != "success" || "$W0_LOCALIZATION_OUTCOME" != "success" || "$W0_LOCALIZATION_VALIDATION_OUTCOME" != "success" || "$NET3_LOCALIZATION_OUTCOME" != "success" || "$NET3_LOCALIZATION_VALIDATION_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_CORPUS_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_MANIFEST_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_EVAL_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_EVAL_VALIDATION_OUTCOME" != "success" ]]; then
-            echo "WATER_BENCHMARK_NOT_VALIDATED: w0_run=$SCENARIO_CORPUS_OUTCOME w0_manifest=$SCENARIO_MANIFEST_OUTCOME w0_eval=$W0_LOCALIZATION_OUTCOME w0_eval_validation=$W0_LOCALIZATION_VALIDATION_OUTCOME net3_run=$NET3_CORPUS_OUTCOME net3_manifest=$NET3_MANIFEST_OUTCOME net3_eval=$NET3_LOCALIZATION_OUTCOME net3_eval_validation=$NET3_LOCALIZATION_VALIDATION_OUTCOME net3_exhaustive_run=$NET3_EXHAUSTIVE_CORPUS_OUTCOME net3_exhaustive_manifest=$NET3_EXHAUSTIVE_MANIFEST_OUTCOME net3_exhaustive_eval=$NET3_EXHAUSTIVE_EVAL_OUTCOME net3_exhaustive_eval_validation=$NET3_EXHAUSTIVE_EVAL_VALIDATION_OUTCOME"
+          if [[ "$SCENARIO_CORPUS_OUTCOME" != "success" || "$SCENARIO_MANIFEST_OUTCOME" != "success" || "$NET3_CORPUS_OUTCOME" != "success" || "$NET3_MANIFEST_OUTCOME" != "success" || "$W0_LOCALIZATION_OUTCOME" != "success" || "$W0_LOCALIZATION_VALIDATION_OUTCOME" != "success" || "$NET3_LOCALIZATION_OUTCOME" != "success" || "$NET3_LOCALIZATION_VALIDATION_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_CORPUS_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_MANIFEST_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_EVAL_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_EVAL_VALIDATION_OUTCOME" != "success" || "$NET3_SENSOR_PLACEMENT_OUTCOME" != "success" || "$NET3_SENSOR_PLACEMENT_VALIDATE_OUTCOME" != "success" ]]; then
+            echo "WATER_BENCHMARK_NOT_VALIDATED: w0_run=$SCENARIO_CORPUS_OUTCOME w0_manifest=$SCENARIO_MANIFEST_OUTCOME w0_eval=$W0_LOCALIZATION_OUTCOME w0_eval_validation=$W0_LOCALIZATION_VALIDATION_OUTCOME net3_run=$NET3_CORPUS_OUTCOME net3_manifest=$NET3_MANIFEST_OUTCOME net3_eval=$NET3_LOCALIZATION_OUTCOME net3_eval_validation=$NET3_LOCALIZATION_VALIDATION_OUTCOME net3_exhaustive_run=$NET3_EXHAUSTIVE_CORPUS_OUTCOME net3_exhaustive_manifest=$NET3_EXHAUSTIVE_MANIFEST_OUTCOME net3_exhaustive_eval=$NET3_EXHAUSTIVE_EVAL_OUTCOME net3_exhaustive_eval_validation=$NET3_EXHAUSTIVE_EVAL_VALIDATION_OUTCOME net3_sensor_placement=$NET3_SENSOR_PLACEMENT_OUTCOME net3_sensor_placement_validation=$NET3_SENSOR_PLACEMENT_VALIDATE_OUTCOME"
             exit 1
           fi
       - name: Upload synthetic solver evidence
