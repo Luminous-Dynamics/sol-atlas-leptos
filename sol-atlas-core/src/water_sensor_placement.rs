@@ -175,6 +175,19 @@ pub struct SensorPlacementResult {
     pub p95_topological_error_hops: Option<usize>,
     pub worst_topological_error_hops: Option<usize>,
     pub disconnected_prediction_count: usize,
+    pub predictions: Vec<SensorCasePrediction>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SensorCasePrediction {
+    pub scenario_id: String,
+    pub actual_target: String,
+    pub predicted_top1: String,
+    pub actual_rank: usize,
+    pub top1_hit: bool,
+    pub top3_hit: bool,
+    pub reciprocal_rank: f64,
+    pub topological_error_hops: Option<usize>,
 }
 
 fn sha256(bytes: &[u8]) -> String {
@@ -684,6 +697,7 @@ fn summarize_predictions(
     let mut reciprocal_rank = 0.0;
     let mut errors = Vec::<usize>::new();
     let mut disconnected = 0usize;
+    let mut predictions = Vec::with_capacity(testing.len());
 
     for test in testing {
         let ranked = ranked_targets(test, training, candidates, &site_indices);
@@ -700,11 +714,23 @@ fn summarize_predictions(
         }
         reciprocal_rank += 1.0 / actual_rank as f64;
         let predicted = ranked.first().map(|row| row.0.as_str()).unwrap_or("");
-        match topology.hops(&test.target, predicted) {
+        let topological_error_hops = topology.hops(&test.target, predicted);
+        match topological_error_hops {
             Some(distance) => errors.push(distance),
             None => disconnected += 1,
         }
+        predictions.push(SensorCasePrediction {
+            scenario_id: test.scenario_id.clone(),
+            actual_target: test.target.clone(),
+            predicted_top1: predicted.to_owned(),
+            actual_rank,
+            top1_hit: actual_rank == 1,
+            top3_hit: actual_rank <= 3,
+            reciprocal_rank: 1.0 / actual_rank as f64,
+            topological_error_hops,
+        });
     }
+    predictions.sort_by(|left, right| left.scenario_id.cmp(&right.scenario_id));
     errors.sort_unstable();
     let count = testing.len();
     let mean_error = if errors.is_empty() {
@@ -733,6 +759,7 @@ fn summarize_predictions(
         p95_topological_error_hops: p95,
         worst_topological_error_hops: errors.last().copied(),
         disconnected_prediction_count: disconnected,
+        predictions,
     }
 }
 
