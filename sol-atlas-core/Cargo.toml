@@ -29,3 +29,7 @@ path = "src/bin/water_decision_validate.rs"
 [[bin]]
 name = "water-measurement-evaluate"
 path = "src/bin/water_measurement_evaluate.rs"
+
+[[bin]]
+name = "water-measurement-robust-evaluate"
+path = "src/bin/water_measurement_robust_evaluate.rs"
