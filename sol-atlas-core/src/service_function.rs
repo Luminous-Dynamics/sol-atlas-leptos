@@ -622,6 +622,46 @@ mod tests {
     }
 
     #[test]
+    fn forecast_evidence_cannot_substitute_for_an_observed_capacity() {
+        let mut capacity = measurement("asset:pump", 7.0, "m3/h", None);
+        capacity.basis = ScenarioBasis::Observed;
+        capacity.supporting_evidence_ids = vec!["ev:pump-capacity".into()];
+        let mut forecast = evidence(
+            "ev:pump-capacity",
+            "asset:pump",
+            Quantity { value: 7.0, unit: "m3/h".into(), uncertainty_abs: None },
+            EvidenceState::Asserted,
+        );
+        forecast.kind = EvidenceKind::Forecast;
+        let result = assess_service_function(
+            &scenario(capacity, measurement("service:irrigation", 10.0, "m3/h", None)),
+            &[forecast],
+        );
+        assert!(matches!(
+            result,
+            Err(ServiceFunctionAssessmentError::InvalidInput(errors))
+                if errors.contains(&ServiceFunctionValidationError::SupportingEvidenceWrongKind)
+        ));
+    }
+
+    #[test]
+    fn required_capacity_must_belong_to_the_target_service() {
+        let invalid = ServiceFunctionScenario {
+            schema_version: SERVICE_FUNCTION_SCHEMA_VERSION.into(),
+            id: "synthetic:wrong-demand-entity".into(),
+            as_of: AT.into(),
+            service_entity_id: "service:irrigation".into(),
+            available_capacity: measurement("asset:pump", 7.0, "m3/h", None),
+            required_capacity: measurement("service:another", 10.0, "m3/h", None),
+        };
+        assert!(matches!(
+            assess_service_function(&invalid, &[]),
+            Err(ServiceFunctionAssessmentError::InvalidInput(errors))
+                if errors.contains(&ServiceFunctionValidationError::RequirementEntityMismatch)
+        ));
+    }
+
+    #[test]
     fn wrong_quantity_or_subject_evidence_is_rejected() {
         let mut capacity = measurement("asset:pump", 7.0, "m3/h", None);
         capacity.basis = ScenarioBasis::Observed;
