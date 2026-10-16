@@ -23,7 +23,12 @@ use sol_atlas_core::spatial_economic::{
     EvidenceKind, EvidenceRecord, EvidenceState, Provenance, SpatialContext, TimeContext,
     EVIDENCE_SCHEMA_VERSION,
 };
-use sol_atlas_core::service_function::{\n    assess_service_functions, FunctionMeasurement, ServiceFunctionScenario, ServiceFunctionState,\n    SERVICE_FUNCTION_SCHEMA_VERSION,\n};\nuse sol_atlas_core::spatial_economic::Quantity;\nuse sol_atlas_core::spatial_graph::{DependencyGraph, RelationKind, SpatialRelation};
+use sol_atlas_core::service_function::{
+    assess_service_functions, FunctionMeasurement, ServiceFunctionScenario, ServiceFunctionState,
+    SERVICE_FUNCTION_SCHEMA_VERSION,
+};
+use sol_atlas_core::spatial_economic::Quantity;
+use sol_atlas_core::spatial_graph::{DependencyGraph, RelationKind, SpatialRelation};
 use std::collections::BTreeMap;
 use std::env;
 use std::time::{Duration, Instant};
