@@ -1,0 +1,156 @@
+{
+  "schema_version": "water-measurement-ensemble/v0.1",
+  "classification": "synthetic_illustrative",
+  "ensemble_id": "toy-uncertainty-ensemble",
+  "models": [
+    {
+      "schema_version": "water-measurement-model/v0.1",
+      "classification": "synthetic_illustrative",
+      "model_id": "toy-leak-hypotheses",
+      "hypothesis_ids": [
+        "no_leak",
+        "leak_a"
+      ],
+      "prior": [
+        0.5,
+        0.5
+      ],
+      "decision_ids": [
+        "monitor",
+        "inspect_a"
+      ],
+      "decision_loss_matrix": [
+        [
+          0,
+          10
+        ],
+        [
+          4,
+          0
+        ]
+      ],
+      "loss_unit": "toy_loss_units",
+      "cost_unit": "toy_loss_units",
+      "cost_comparability": "same_declared_unit",
+      "actions": [
+        {
+          "action_id": "perfect_sensor",
+          "outcome_ids": [
+            "normal",
+            "alarm"
+          ],
+          "likelihoods": [
+            [
+              1,
+              0
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "acquisition_cost": 1
+        },
+        {
+          "action_id": "uninformative_sensor",
+          "outcome_ids": [
+            "normal",
+            "alarm"
+          ],
+          "likelihoods": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "acquisition_cost": 0
+        }
+      ],
+      "assumptions": [
+        "Prior, likelihoods, losses and costs are hand-authored solely to test arithmetic.",
+        "The shared unit is invented and has no monetary or engineering interpretation."
+      ]
+    },
+    {
+      "schema_version": "water-measurement-model/v0.1",
+      "classification": "synthetic_illustrative",
+      "model_id": "toy-shifted-model",
+      "hypothesis_ids": [
+        "no_leak",
+        "leak_a"
+      ],
+      "prior": [
+        0.5,
+        0.5
+      ],
+      "decision_ids": [
+        "monitor",
+        "inspect_a"
+      ],
+      "decision_loss_matrix": [
+        [
+          0,
+          10
+        ],
+        [
+          4,
+          0
+        ]
+      ],
+      "loss_unit": "toy_loss_units",
+      "cost_unit": "toy_loss_units",
+      "cost_comparability": "same_declared_unit",
+      "actions": [
+        {
+          "action_id": "perfect_sensor",
+          "outcome_ids": [
+            "normal",
+            "alarm"
+          ],
+          "likelihoods": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "acquisition_cost": 1
+        },
+        {
+          "action_id": "uninformative_sensor",
+          "outcome_ids": [
+            "normal",
+            "alarm"
+          ],
+          "likelihoods": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "acquisition_cost": 0
+        }
+      ],
+      "assumptions": [
+        "Prior, likelihoods, losses and costs are hand-authored solely to test arithmetic.",
+        "The shared unit is invented and has no monetary or engineering interpretation."
+      ]
+    }
+  ],
+  "assumptions": [
+    "Two deliberately contrasting hand-authored models test sensitivity to the declared likelihood table.",
+    "In the shifted model, the action called perfect_sensor is actually uninformative; names are identifiers, not trusted claims.",
+    "This ensemble is not generated from hydraulic simulations and represents no real network or instrument."
+  ]
+}
