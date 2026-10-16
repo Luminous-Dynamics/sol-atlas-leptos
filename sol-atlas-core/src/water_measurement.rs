@@ -406,6 +406,222 @@ pub fn evaluate_measurement_model(
     })
 }
 
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RobustMeasurementEnsembleInput {
+    pub schema_version: String,
+    pub classification: String,
+    pub ensemble_id: String,
+    pub models: Vec<MeasurementModelInput>,
+    pub assumptions: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct RobustMeasurementActionResult {
+    pub action_id: String,
+    pub minimum_expected_information_gain_bits: f64,
+    pub maximum_expected_information_gain_bits: f64,
+    pub minimum_expected_value_of_sample_information: f64,
+    pub maximum_expected_value_of_sample_information: f64,
+    pub acquisition_cost: f64,
+    pub minimum_net_value_in_loss_units: Option<f64>,
+    pub maximum_net_value_in_loss_units: Option<f64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct RobustMeasurementEnsembleEvaluation {
+    pub schema_version: String,
+    pub ensemble_id: String,
+    pub classification: String,
+    pub model_count: usize,
+    pub selection_state: String,
+    pub selected_measurement_action: Option<String>,
+    pub actions: Vec<RobustMeasurementActionResult>,
+    pub model_evaluations: Vec<MeasurementModelEvaluation>,
+    pub claim_ceiling: String,
+    pub nonclaims: Vec<String>,
+}
+
+/// Conservatively compare candidate measurements across an explicit set of
+/// plausible toy probability models. Minima/maxima describe only the supplied
+/// ensemble; they are not guarantees against models absent from that ensemble.
+pub fn evaluate_robust_measurement_ensemble(
+    input: &RobustMeasurementEnsembleInput,
+) -> Result<RobustMeasurementEnsembleEvaluation, String> {
+    if input.schema_version != "water-measurement-ensemble/v0.1" {
+        return Err("schema_version must be water-measurement-ensemble/v0.1".to_owned());
+    }
+    if input.classification != "synthetic_illustrative" {
+        return Err("v0.1 ensemble only accepts classification=synthetic_illustrative".to_owned());
+    }
+    if !valid_identifier(&input.ensemble_id) {
+        return Err("ensemble_id is missing or invalid".to_owned());
+    }
+    if input.models.len() < 2 {
+        return Err("at least two probability models are required for robustness evaluation".to_owned());
+    }
+    if input.assumptions.is_empty() || input.assumptions.iter().any(|s| s.trim().is_empty()) {
+        return Err("at least one non-empty ensemble assumption is required".to_owned());
+    }
+
+    let mut model_ids = HashSet::new();
+    let mut model_evaluations = Vec::with_capacity(input.models.len());
+    for model in &input.models {
+        if !model_ids.insert(&model.model_id) {
+            return Err(format!("ensemble contains duplicate model_id {:?}", model.model_id));
+        }
+        model_evaluations.push(evaluate_measurement_model(model)?);
+    }
+
+    let reference = &input.models[0];
+    let mut reference_actions: Vec<&MeasurementActionInput> = reference.actions.iter().collect();
+    reference_actions.sort_by(|left, right| left.action_id.cmp(&right.action_id));
+    for (index, model) in input.models.iter().enumerate().skip(1) {
+        if model.hypothesis_ids != reference.hypothesis_ids
+            || model.decision_ids != reference.decision_ids
+            || model.decision_loss_matrix != reference.decision_loss_matrix
+            || model.loss_unit != reference.loss_unit
+            || model.cost_unit != reference.cost_unit
+            || model.cost_comparability != reference.cost_comparability
+        {
+            return Err(format!(
+                "model {} changes the shared hypothesis/decision/loss/cost basis",
+                model.model_id
+            ));
+        }
+        if model.actions.len() != reference_actions.len() {
+            return Err(format!(
+                "model {} has a different measurement action count",
+                model.model_id
+            ));
+        }
+        for expected_action in &reference_actions {
+            let actual = model
+                .actions
+                .iter()
+                .find(|action| action.action_id == expected_action.action_id)
+                .ok_or_else(|| {
+                    format!(
+                        "model {} is missing action {}",
+                        model.model_id, expected_action.action_id
+                    )
+                })?;
+            if actual.outcome_ids != expected_action.outcome_ids {
+                return Err(format!(
+                    "model {} action {} changes outcome IDs/order",
+                    model.model_id, expected_action.action_id
+                ));
+            }
+            if actual.acquisition_cost != expected_action.acquisition_cost {
+                return Err(format!(
+                    "model {} action {} changes acquisition cost",
+                    model.model_id, expected_action.action_id
+                ));
+            }
+        }
+        if index == 0 {
+            return Err("unreachable model index".to_owned());
+        }
+    }
+
+    let mut actions = Vec::with_capacity(reference_actions.len());
+    for reference_action in reference_actions {
+        let mut gains = Vec::with_capacity(model_evaluations.len());
+        let mut values = Vec::with_capacity(model_evaluations.len());
+        for (model, evaluation) in input.models.iter().zip(&model_evaluations) {
+            let result = evaluation
+                .actions
+                .iter()
+                .find(|result| result.action_id == reference_action.action_id)
+                .ok_or_else(|| {
+                    format!(
+                        "evaluation for model {} is missing action {}",
+                        model.model_id, reference_action.action_id
+                    )
+                })?;
+            gains.push(result.expected_information_gain_bits);
+            values.push(result.expected_value_of_sample_information);
+        }
+
+        let minimum_gain = gains.iter().copied().fold(f64::INFINITY, f64::min);
+        let maximum_gain = gains.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        let minimum_value = values.iter().copied().fold(f64::INFINITY, f64::min);
+        let maximum_value = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        if !minimum_gain.is_finite()
+            || !maximum_gain.is_finite()
+            || !minimum_value.is_finite()
+            || !maximum_value.is_finite()
+        {
+            return Err(format!(
+                "non-finite robust aggregate for action {}",
+                reference_action.action_id
+            ));
+        }
+        let (minimum_net_value, maximum_net_value) =
+            if reference.cost_comparability == "same_declared_unit" {
+                let minimum_net = minimum_value - reference_action.acquisition_cost;
+                let maximum_net = maximum_value - reference_action.acquisition_cost;
+                if !minimum_net.is_finite() || !maximum_net.is_finite() {
+                    return Err(format!(
+                        "non-finite net value for action {}",
+                        reference_action.action_id
+                    ));
+                }
+                (Some(minimum_net), Some(maximum_net))
+            } else {
+                (None, None)
+            };
+
+        actions.push(RobustMeasurementActionResult {
+            action_id: reference_action.action_id.clone(),
+            minimum_expected_information_gain_bits: minimum_gain,
+            maximum_expected_information_gain_bits: maximum_gain,
+            minimum_expected_value_of_sample_information: minimum_value,
+            maximum_expected_value_of_sample_information: maximum_value,
+            acquisition_cost: reference_action.acquisition_cost,
+            minimum_net_value_in_loss_units: minimum_net_value,
+            maximum_net_value_in_loss_units: maximum_net_value,
+        });
+    }
+
+    let (selection_state, selected_measurement_action) =
+        if reference.cost_comparability != "same_declared_unit" {
+            ("not_rankable_cost_units_incomparable", None)
+        } else {
+            let best = actions.iter().max_by(|left, right| {
+                left.minimum_net_value_in_loss_units
+                    .unwrap_or(f64::NEG_INFINITY)
+                    .total_cmp(&right.minimum_net_value_in_loss_units.unwrap_or(f64::NEG_INFINITY))
+                    .then_with(|| right.action_id.cmp(&left.action_id))
+            });
+            match best {
+                Some(best) if best.minimum_net_value_in_loss_units.unwrap_or(f64::NEG_INFINITY) > 0.0 =>
+                    ("positive_worst_case_net_value_candidate", Some(best.action_id.clone())),
+                Some(_) => ("no_positive_worst_case_net_value_candidate", None),
+                None => ("no_actions", None),
+            }
+        };
+
+    Ok(RobustMeasurementEnsembleEvaluation {
+        schema_version: "water-measurement-ensemble-evaluation/v0.1".to_owned(),
+        ensemble_id: input.ensemble_id.clone(),
+        classification: input.classification.clone(),
+        model_count: input.models.len(),
+        selection_state: selection_state.to_owned(),
+        selected_measurement_action,
+        actions,
+        model_evaluations,
+        claim_ceiling: "illustrative_ensemble_sensitivity_only".to_owned(),
+        nonclaims: vec![
+            "Worst/best values are extrema across the supplied model ensemble, not guarantees outside it.".to_owned(),
+            "The ensemble uses declared toy probabilities; it is not derived from EPANET/SWMM or field observations.".to_owned(),
+            "Net-value ranking is suppressed unless every model shares the same explicitly declared cost/loss unit basis.".to_owned(),
+            "No sensor deployment, operational intervention, or autonomous control is authorized.".to_owned(),
+        ],
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -442,6 +658,86 @@ mod tests {
                 "Loss and cost share a toy unit only within this illustrative example."
             ]
         })).expect("toy input deserializes")
+    }
+
+    fn robust_ensemble() -> RobustMeasurementEnsembleInput {
+        let optimistic = toy_model();
+        let mut shifted = toy_model();
+        shifted.model_id = "toy-shifted-model".to_owned();
+        // Under the shifted model, the action marketed as "perfect" is
+        // actually uninformative: the observed outcome no longer distinguishes hypotheses.
+        shifted.actions[0].likelihoods = vec![vec![0.5, 0.5], vec![0.5, 0.5]];
+        RobustMeasurementEnsembleInput {
+            schema_version: "water-measurement-ensemble/v0.1".to_owned(),
+            classification: "synthetic_illustrative".to_owned(),
+            ensemble_id: "toy-uncertainty-ensemble".to_owned(),
+            models: vec![optimistic, shifted],
+            assumptions: vec![
+                "The two models are intentionally hand-authored to test sensitivity.".to_owned(),
+                "The shifted model represents a failure of the optimistic likelihood assumption, not a calibrated physical model.".to_owned(),
+            ],
+        }
+    }
+
+    #[test]
+    fn robust_ensemble_rejects_measurement_that_only_works_in_optimistic_model() {
+        let evaluation =
+            evaluate_robust_measurement_ensemble(&robust_ensemble()).expect("valid ensemble");
+        let perfect = evaluation
+            .actions
+            .iter()
+            .find(|result| result.action_id == "perfect_sensor")
+            .expect("perfect action result");
+        assert!((perfect.maximum_expected_information_gain_bits - 1.0).abs() < NUMERIC_TOLERANCE);
+        assert!(perfect.minimum_expected_information_gain_bits.abs() < NUMERIC_TOLERANCE);
+        assert!((perfect.maximum_expected_value_of_sample_information - 2.0).abs() < NUMERIC_TOLERANCE);
+        assert!(perfect.minimum_expected_value_of_sample_information.abs() < NUMERIC_TOLERANCE);
+        assert!((perfect.minimum_net_value_in_loss_units.unwrap() + 1.0).abs() < NUMERIC_TOLERANCE);
+        assert_eq!(evaluation.selected_measurement_action, None);
+        assert_eq!(
+            evaluation.selection_state,
+            "no_positive_worst_case_net_value_candidate"
+        );
+        assert_eq!(evaluation.model_count, 2);
+    }
+
+    #[test]
+    fn robust_ensemble_rejects_different_decision_loss_basis() {
+        let mut input = robust_ensemble();
+        input.models[1].decision_loss_matrix[0][1] = 11.0;
+        assert!(
+            evaluate_robust_measurement_ensemble(&input)
+                .unwrap_err()
+                .contains("shared hypothesis/decision/loss/cost basis")
+        );
+    }
+
+    #[test]
+    fn robust_ensemble_rejects_action_cost_changes() {
+        let mut input = robust_ensemble();
+        input.models[1].actions[0].acquisition_cost = 0.5;
+        assert!(
+            evaluate_robust_measurement_ensemble(&input)
+                .unwrap_err()
+                .contains("changes acquisition cost")
+        );
+    }
+
+    #[test]
+    fn robust_ensemble_disables_ranking_when_cost_units_are_incomparable() {
+        let mut input = robust_ensemble();
+        for model in &mut input.models {
+            model.cost_comparability = "not_comparable".to_owned();
+            model.cost_unit = "hours".to_owned();
+        }
+        let evaluation =
+            evaluate_robust_measurement_ensemble(&input).expect("information remains computable");
+        assert_eq!(evaluation.selection_state, "not_rankable_cost_units_incomparable");
+        assert_eq!(evaluation.selected_measurement_action, None);
+        assert!(evaluation.actions.iter().all(|action| {
+            action.minimum_net_value_in_loss_units.is_none()
+                && action.maximum_net_value_in_loss_units.is_none()
+        }));
     }
 
     #[test]
