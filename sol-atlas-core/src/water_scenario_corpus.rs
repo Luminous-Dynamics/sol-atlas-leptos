@@ -110,7 +110,11 @@ fn valid_identifier(value: &str) -> bool {
         && value.len() <= 128
         && value
             .bytes()
-            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || b"._-".contains(&byte))
+            .all(|byte| {
+                byte.is_ascii_lowercase()
+                    || byte.is_ascii_digit()
+                    || b"._-".contains(&byte)
+            })
         && value
             .bytes()
             .next()
@@ -118,11 +122,17 @@ fn valid_identifier(value: &str) -> bool {
 }
 
 fn valid_sha256(value: &str) -> bool {
-    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
 }
 
 fn valid_commit(value: &str) -> bool {
-    value.len() == 40 && value.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    value.len() == 40
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
 }
 
 fn token_spans(line: &str) -> Vec<(usize, usize)> {
@@ -204,23 +214,36 @@ fn validate_base_input(input: &str) -> Result<HashSet<String>, String> {
         return Err("v0.1 runner accepts ASCII EPANET INP inputs only".to_owned());
     }
     let upper = input.to_ascii_uppercase();
-    for required in ["[JUNCTIONS]", "[PIPES]", "[RESERVOIRS]", "[OPTIONS]", "[REPORT]", "[END]"] {
+    for required in [
+        "[JUNCTIONS]",
+        "[PIPES]",
+        "[RESERVOIRS]",
+        "[OPTIONS]",
+        "[REPORT]",
+        "[END]",
+    ] {
         if !upper.contains(required) {
             return Err(format!("base input is missing required section {required}"));
         }
     }
     if !upper.lines().any(|line| {
         let fields: Vec<_> = line.split_whitespace().collect();
-        fields.len() >= 2 && fields[0].eq_ignore_ascii_case("UNITS") && fields[1].eq_ignore_ascii_case("LPS")
+        fields.len() >= 2
+            && fields[0].eq_ignore_ascii_case("UNITS")
+            && fields[1].eq_ignore_ascii_case("LPS")
     }) {
         return Err("base input must declare UNITS LPS".to_owned());
     }
     if !upper.lines().any(|line| {
         let fields: Vec<_> = line.split_whitespace().collect();
-        fields.len() >= 2 && fields[0].eq_ignore_ascii_case("NODES") && fields[1].eq_ignore_ascii_case("ALL")
+        fields.len() >= 2
+            && fields[0].eq_ignore_ascii_case("NODES")
+            && fields[1].eq_ignore_ascii_case("ALL")
     }) || !upper.lines().any(|line| {
         let fields: Vec<_> = line.split_whitespace().collect();
-        fields.len() >= 2 && fields[0].eq_ignore_ascii_case("LINKS") && fields[1].eq_ignore_ascii_case("ALL")
+        fields.len() >= 2
+            && fields[0].eq_ignore_ascii_case("LINKS")
+            && fields[1].eq_ignore_ascii_case("ALL")
     }) {
         return Err("base input must request REPORT NODES ALL and LINKS ALL".to_owned());
     }
@@ -423,7 +446,9 @@ fn validate_plan(
     let mut has_no_fault = false;
     let mut perturbed_targets = HashSet::new();
     for scenario in &plan.scenarios {
-        if !valid_identifier(&scenario.scenario_id) || !scenario_ids.insert(&scenario.scenario_id) {
+        if !valid_identifier(&scenario.scenario_id)
+            || !scenario_ids.insert(&scenario.scenario_id)
+        {
             return Err(format!("invalid or duplicate scenario ID {:?}", scenario.scenario_id));
         }
         if !scenario.additional_demand_lps.is_finite()
@@ -499,13 +524,19 @@ pub fn run_scenario_corpus(
     let solver_bytes = fs::read(&solver_path)
         .map_err(|error| format!("cannot hash solver {}: {error}", solver_path.display()))?;
     let solver_sha256 = sha256(&solver_bytes);
-    let current_dir = std::env::current_dir().map_err(|error| format!("cannot determine working directory: {error}"))?;
+    let current_dir = std::env::current_dir()
+        .map_err(|error| format!("cannot determine working directory: {error}"))?;
     let output_root = {
         let path = PathBuf::from(output_dir_arg);
         if path.is_absolute() { path } else { current_dir.join(path) }
     };
     fs::create_dir_all(&output_root)
-        .map_err(|error| format!("cannot create output directory {}: {error}", output_root.display()))?;
+        .map_err(|error| {
+            format!(
+                "cannot create output directory {}: {error}",
+                output_root.display()
+            )
+        })?;
     let base_sha = sha256(&input_bytes);
     let plan_sha = sha256(&plan_bytes);
     let mut records = Vec::with_capacity(plan.scenarios.len());
@@ -602,7 +633,8 @@ pub fn run_scenario_corpus(
                     Ok(bytes) if !bytes.is_empty() => {
                         binary_artifact = Some(artifact(&binary_path, &bytes, &output_root)?);
                     }
-                    _ => failure_reasons.push("solver binary output is missing or empty".to_owned()),
+                    _ => failure_reasons
+                        .push("solver binary output is missing or empty".to_owned()),
                 }
             }
         }
@@ -647,7 +679,12 @@ pub fn run_scenario_corpus(
         scenario_count: records.len(),
         completed_count,
         failed_count,
-        run_state: if failed_count == 0 { "Completed" } else { "CompletedWithFailures" }.to_owned(),
+        run_state: if failed_count == 0 {
+            "Completed"
+        } else {
+            "CompletedWithFailures"
+        }
+        .to_owned(),
         scenarios: records,
         claim_ceiling: "synthetic_single_topology_hydraulic_pilot".to_owned(),
         nonclaims: plan.nonclaims,
@@ -669,7 +706,14 @@ pub fn run_scenario_corpus(
 mod tests {
     use super::*;
 
-    const MINI_INP: &str = "[TITLE]\nMini synthetic network\n\n[JUNCTIONS]\nJ1 50 15\nJ2 45 10\n\n[RESERVOIRS]\nR1 100\n\n[PIPES]\nP1 R1 J1 1000 200 100 0 OPEN\nP2 J1 J2 800 150 100 0 OPEN\n\n[OPTIONS]\nUNITS LPS\nHEADLOSS H-W\n\n[REPORT]\nNODES ALL\nLINKS ALL\n\n[END]\n";
+    const MINI_INP: &str = concat!(
+        "[TITLE]\nMini synthetic network\n\n",
+        "[JUNCTIONS]\nJ1 50 15\nJ2 45 10\n\n",
+        "[RESERVOIRS]\nR1 100\n\n",
+        "[PIPES]\nP1 R1 J1 1000 200 100 0 OPEN\nP2 J1 J2 800 150 100 0 OPEN\n\n",
+        "[OPTIONS]\nUNITS LPS\nHEADLOSS H-W\n\n",
+        "[REPORT]\nNODES ALL\nLINKS ALL\n\n[END]\n",
+    );
 
     #[test]
     fn base_input_parser_accepts_short_epanet_node_ids() {
@@ -701,9 +745,17 @@ mod tests {
 
     #[test]
     fn withdrawal_rejects_missing_or_ambiguous_targets() {
-        assert!(mutate_junction_demand(MINI_INP, Some("J3"), 2.0).unwrap_err().contains("found 0"));
+        assert!(
+            mutate_junction_demand(MINI_INP, Some("J3"), 2.0)
+                .unwrap_err()
+                .contains("found 0")
+        );
         let duplicate = MINI_INP.replace("J2 45 10", "J1 45 10");
-        assert!(mutate_junction_demand(&duplicate, Some("J1"), 2.0).unwrap_err().contains("found 2"));
+        assert!(
+            mutate_junction_demand(&duplicate, Some("J1"), 2.0)
+                .unwrap_err()
+                .contains("found 2")
+        );
     }
 
     #[test]
@@ -715,7 +767,13 @@ mod tests {
 
     #[test]
     fn parser_reads_pressure_only_from_node_result_section() {
-        let report = "Node Results at 0:00:00\nNode Demand Head Pressure\nJ1 15.00 90.00 40.00\nLink Results at 0:00:00\nP1 25.00 1.25 2.50\n";
+        let report = concat!(
+            "Node Results at 0:00:00\n",
+            "Node Demand Head Pressure\n",
+            "J1 15.00 90.00 40.00\n",
+            "Link Results at 0:00:00\n",
+            "P1 25.00 1.25 2.50\n",
+        );
         assert!((parse_first_node_pressure(report, "J1").unwrap() - 40.0).abs() < 1e-9);
         assert!(parse_first_node_pressure(report, "J2").is_err());
     }
