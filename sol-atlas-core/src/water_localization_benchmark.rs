@@ -362,6 +362,12 @@ fn validate_and_build_features(
                 scenario.scenario_id
             ));
         }
+        if !sensor_set.contains(target.as_str()) {
+            return Err(format!(
+                "scenario {} target {} is outside the v0.1 declared candidate set",
+                scenario.scenario_id, target
+            ));
+        }
         labels.insert(target.clone());
         let pressures = pressure_vector(scenario, &manifest.observation_node_ids)?;
         let feature_vector: Vec<f64> = pressures
@@ -386,7 +392,16 @@ fn validate_and_build_features(
     if labels.len() < 2 {
         return Err("localization benchmark requires at least two target junctions".to_owned());
     }
-    let candidates: Vec<String> = labels.into_iter().collect();
+    if labels.len() != manifest.observation_node_ids.len() {
+        return Err(
+            "every declared candidate node must have at least one labelled withdrawal scenario"
+                .to_owned(),
+        );
+    }
+    // Candidate classes come from the frozen manifest contract, not from held-out
+    // test labels. v0.1 intentionally restricts the class space to declared nodes.
+    let mut candidates = manifest.observation_node_ids.clone();
+    candidates.sort();
     let mut magnitudes: Vec<f64> = features.iter().map(|feature| feature.magnitude).collect();
     magnitudes.sort_by(f64::total_cmp);
     magnitudes.dedup_by(|left, right| left.total_cmp(right).is_eq());
@@ -627,10 +642,10 @@ mod tests {
             "run_state": "Completed",
             "scenarios": [
                 scenario("base", "no_fault", None, 0.0, 100.0, 100.0),
-                scenario("a-small", "synthetic_withdrawal", Some("A"), 1.0, 98.0, 99.0),
-                scenario("b-small", "synthetic_withdrawal", Some("B"), 1.0, 100.0, 97.0),
-                scenario("a-large", "synthetic_withdrawal", Some("A"), 2.0, 96.0, 98.0),
-                scenario("b-large", "synthetic_withdrawal", Some("B"), 2.0, 100.0, 94.0)
+                scenario("a-small", "synthetic_withdrawal", Some("S1"), 1.0, 98.0, 99.0),
+                scenario("b-small", "synthetic_withdrawal", Some("S2"), 1.0, 100.0, 97.0),
+                scenario("a-large", "synthetic_withdrawal", Some("S1"), 2.0, 96.0, 98.0),
+                scenario("b-large", "synthetic_withdrawal", Some("S2"), 2.0, 100.0, 94.0)
             ]
         }).to_string().into_bytes()
     }
