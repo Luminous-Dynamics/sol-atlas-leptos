@@ -320,35 +320,41 @@ fn average_target_deltas(clusters: &BTreeMap<String, Vec<Delta>>) -> Vec<Delta> 
     }).collect()
 }
 
-fn metric_value(row: Delta, metric: usize) -> f64 {
-    match metric {
-        0 => row.top1,
-        1 => row.top3,
-        _ => row.mrr,
-    }
-}
-
-fn paired_cluster_bootstrap(
+fn paired_target_cluster_bootstrap(
     cluster_means: &[Delta],
     seed: u64,
-    metric: usize,
-) -> (f64, f64, f64) {
+) -> [(f64, f64, f64); 3] {
     let n = cluster_means.len();
-    let observed = cluster_means.iter().map(|row| metric_value(*row, metric)).sum::<f64>() / n as f64;
+    let observed = [
+        cluster_means.iter().map(|row| row.top1).sum::<f64>() / n as f64,
+        cluster_means.iter().map(|row| row.top3).sum::<f64>() / n as f64,
+        cluster_means.iter().map(|row| row.mrr).sum::<f64>() / n as f64,
+    ];
+    let mut estimates: [Vec<f64>; 3] =
+        std::array::from_fn(|_| Vec::with_capacity(BOOTSTRAP_REPLICATES));
     let mut rng = seed;
-    let mut estimates = Vec::with_capacity(BOOTSTRAP_REPLICATES);
+
+    // Reuse identical sampled target clusters across all three paired metrics.
     for _ in 0..BOOTSTRAP_REPLICATES {
-        let mut total = 0.0;
+        let mut sum = Delta::default();
         for _ in 0..n {
             let index = (splitmix64(&mut rng) % n as u64) as usize;
-            total += metric_value(cluster_means[index], metric);
+            let row = cluster_means[index];
+            sum.top1 += row.top1;
+            sum.top3 += row.top3;
+            sum.mrr += row.mrr;
         }
-        estimates.push(total / n as f64);
+        estimates[0].push(sum.top1 / n as f64);
+        estimates[1].push(sum.top3 / n as f64);
+        estimates[2].push(sum.mrr / n as f64);
     }
-    estimates.sort_by(f64::total_cmp);
+
     let low = ((BOOTSTRAP_REPLICATES - 1) as f64 * 0.025).floor() as usize;
     let high = ((BOOTSTRAP_REPLICATES - 1) as f64 * 0.975).ceil() as usize;
-    (observed, estimates[low], estimates[high])
+    std::array::from_fn(|metric| {
+        estimates[metric].sort_by(f64::total_cmp);
+        (observed[metric], estimates[metric][low], estimates[metric][high])
+    })
 }
 
 /// Compare each declared candidate against the predeclared fixed layout with paired
@@ -410,9 +416,10 @@ pub fn compare_sensor_placement(input_bytes: &[u8]) -> Result<ComparisonEnvelope
                 ^ (stratum.replicate as u64).rotate_left(23)
                 ^ stratum.magnitude_bits.rotate_left(31)
                 ^ candidate_id.bytes().fold(0u64, |acc, byte| acc.rotate_left(5) ^ byte as u64);
-            let (mean_top1, low_top1, high_top1) = paired_cluster_bootstrap(&cluster_means, seed_base ^ 0x11, 0);
-            let (mean_top3, low_top3, high_top3) = paired_cluster_bootstrap(&cluster_means, seed_base ^ 0x33, 1);
-            let (mean_mrr, low_mrr, high_mrr) = paired_cluster_bootstrap(&cluster_means, seed_base ^ 0x55, 2);
+            let intervals = paired_target_cluster_bootstrap(&cluster_means, seed_base);
+            let (mean_top1, low_top1, high_top1) = intervals[0];
+            let (mean_top3, low_top3, high_top3) = intervals[1];
+            let (mean_mrr, low_mrr, high_mrr) = intervals[2];
             results.push(PairedComparisonRow {
                 candidate_strategy: candidate_id.clone(),
                 reference_strategy: REFERENCE_STRATEGY.to_owned(),
