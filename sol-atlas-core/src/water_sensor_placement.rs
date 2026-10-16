@@ -67,7 +67,16 @@ struct Scenario {
     target_junction_id: Option<String>,
     additional_demand: f64,
     run_state: String,
+    pressure_readings: Vec<PressureReading>,
     report: Option<Artifact>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct PressureReading {
+    node_id: String,
+    state: String,
+    pressure_value: Option<f64>,
+    reason: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -336,6 +345,80 @@ fn parse_first_period_pressures(
         return Err(format!("report is missing junction pressure rows: {missing:?}"));
     }
     Ok(output)
+}
+
+fn validate_declared_pressures(
+    scenario: &Scenario,
+    expected_node_ids: &[String],
+    report_pressures: &BTreeMap<String, f64>,
+) -> Result<(), String> {
+    if scenario.pressure_readings.len() != expected_node_ids.len() {
+        return Err(format!(
+            "scenario {} manifest has {} pressure readings; expected {}",
+            scenario.scenario_id,
+            scenario.pressure_readings.len(),
+            expected_node_ids.len()
+        ));
+    }
+
+    let mut by_id = BTreeMap::<String, f64>::new();
+    for reading in &scenario.pressure_readings {
+        if reading.state != "measured" || reading.reason.is_some() {
+            return Err(format!(
+                "scenario {} manifest pressure for {} is not a clean measurement",
+                scenario.scenario_id, reading.node_id
+            ));
+        }
+        let value = reading.pressure_value.ok_or_else(|| {
+            format!(
+                "scenario {} manifest pressure for {} is null",
+                scenario.scenario_id, reading.node_id
+            )
+        })?;
+        if !value.is_finite() {
+            return Err(format!(
+                "scenario {} manifest pressure for {} is non-finite",
+                scenario.scenario_id, reading.node_id
+            ));
+        }
+        if by_id.insert(reading.node_id.clone(), value).is_some() {
+            return Err(format!(
+                "scenario {} manifest has duplicate pressure for {}",
+                scenario.scenario_id, reading.node_id
+            ));
+        }
+    }
+
+    let expected: BTreeSet<&str> = expected_node_ids.iter().map(String::as_str).collect();
+    let actual: BTreeSet<&str> = by_id.keys().map(String::as_str).collect();
+    if expected != actual {
+        return Err(format!(
+            "scenario {} manifest pressure sensor IDs differ from the frozen observation set",
+            scenario.scenario_id
+        ));
+    }
+
+    for node_id in expected_node_ids {
+        let declared = by_id.get(node_id).ok_or_else(|| {
+            format!(
+                "scenario {} manifest is missing pressure for {}",
+                scenario.scenario_id, node_id
+            )
+        })?;
+        let reported = report_pressures.get(node_id).ok_or_else(|| {
+            format!(
+                "scenario {} verified report is missing pressure for {}",
+                scenario.scenario_id, node_id
+            )
+        })?;
+        if declared.to_bits() != reported.to_bits() {
+            return Err(format!(
+                "scenario {} declared pressure for {} does not match the hash-verified report",
+                scenario.scenario_id, node_id
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn read_verified_report(root: &Path, artifact: &Artifact) -> Result<Vec<u8>, String> {
@@ -721,6 +804,11 @@ pub fn evaluate_sensor_placement(
     if manifest.observation_node_ids.is_empty() {
         return Err("manifest observation_node_ids must not be empty".to_owned());
     }
+    let unique_observation_ids: BTreeSet<&str> =
+        manifest.observation_node_ids.iter().map(String::as_str).collect();
+    if unique_observation_ids.len() != manifest.observation_node_ids.len() {
+        return Err("manifest observation_node_ids contains duplicates".to_owned());
+    }
     for node in &manifest.observation_node_ids {
         if !topology.junctions.contains(node) {
             return Err(format!("declared observation node {node:?} is not a junction"));
@@ -756,6 +844,7 @@ pub fn evaluate_sensor_placement(
             .map_err(|_| format!("scenario {} report is not UTF-8", scenario.scenario_id))?;
         let pressures = parse_first_period_pressures(text, &topology.junctions)
             .map_err(|e| format!("scenario {}: {e}", scenario.scenario_id))?;
+        validate_declared_pressures(scenario, &manifest.observation_node_ids, &pressures)?;
         raw_pressures.insert(scenario.scenario_id.clone(), pressures);
     }
     if baseline_ids.len() != 1 {
@@ -1124,6 +1213,10 @@ mod tests {
                 "target_junction_id": target,
                 "additional_demand": magnitude,
                 "run_state": "Completed",
+                "pressure_readings": [
+                    {"node_id": "J1", "state": "measured", "pressure_value": pressures[0], "reason": null},
+                    {"node_id": "J2", "state": "measured", "pressure_value": pressures[1], "reason": null}
+                ],
                 "report": {
                     "path": relative,
                     "sha256": sha256(report.as_bytes()),
@@ -1211,6 +1304,13 @@ mod tests {
         assert!(evaluate_sensor_placement(&root, &tampered_bytes, source_inp, &plan_bytes)
             .unwrap_err()
             .contains("SHA-256 mismatch"));
+
+        let mut inconsistent: Value = serde_json::from_slice(&manifest_bytes).unwrap();
+        inconsistent["scenarios"][1]["pressure_readings"][0]["pressure_value"] = json!(123.0);
+        let inconsistent_bytes = serde_json::to_vec(&inconsistent).unwrap();
+        assert!(evaluate_sensor_placement(&root, &inconsistent_bytes, source_inp, &plan_bytes)
+            .unwrap_err()
+            .contains("does not match the hash-verified report"));
         fs::remove_dir_all(root).unwrap();
     }
 
