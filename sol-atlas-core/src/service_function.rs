@@ -102,6 +102,7 @@ pub enum ServiceFunctionValidationError {
     NegativeValue,
     NonFiniteUncertainty,
     NegativeUncertainty,
+    NonFiniteDerivedValue,
     UnitMismatch,
     RequirementEntityMismatch,
     DuplicateEvidenceRecordId,
@@ -259,6 +260,19 @@ fn assess_service_function_indexed(
         (requirement_upper > 0.0).then(|| capacity_lower / requirement_upper);
     let coverage_upper_bound =
         (requirement_lower > 0.0).then(|| capacity_upper / requirement_lower);
+
+    if !capacity_lower.is_finite()
+        || !capacity_upper.is_finite()
+        || !requirement_lower.is_finite()
+        || !requirement_upper.is_finite()
+        || coverage_ratio.is_some_and(|value| !value.is_finite())
+        || coverage_lower_bound.is_some_and(|value| !value.is_finite())
+        || coverage_upper_bound.is_some_and(|value| !value.is_finite())
+    {
+        return Err(ServiceFunctionAssessmentError::InvalidInput(vec![
+            ServiceFunctionValidationError::NonFiniteDerivedValue,
+        ]));
+    }
 
     Ok(ServiceFunctionAssessment {
         schema_version: SERVICE_FUNCTION_SCHEMA_VERSION.into(),
@@ -545,6 +559,22 @@ mod tests {
         assert_eq!(result.state, ServiceFunctionState::Adequate);
         assert_eq!(result.available_capacity_lower_bound, 11.0);
         assert_eq!(result.required_capacity_upper_bound, 11.0);
+    }
+
+    #[test]
+    fn derived_bounds_that_overflow_are_rejected() {
+        let result = assess_service_function(
+            &scenario(
+                measurement("asset:pump", f64::MAX, "m3/h", Some(f64::MAX)),
+                measurement("service:irrigation", 1.0, "m3/h", None),
+            ),
+            &[],
+        );
+        assert!(matches!(
+            result,
+            Err(ServiceFunctionAssessmentError::InvalidInput(errors))
+                if errors.contains(&ServiceFunctionValidationError::NonFiniteDerivedValue)
+        ));
     }
 
     #[test]
