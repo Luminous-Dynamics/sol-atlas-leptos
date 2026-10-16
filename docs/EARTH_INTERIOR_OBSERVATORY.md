@@ -70,9 +70,9 @@ This contract is an initial internal seam, not yet a stable external interchange
 
 ## Local observability diagnostic added
 
-`sol-atlas-core::observability` adds a small, dependency-free local inverse-problem diagnostic for modest parameter counts. It accepts a Jacobian, stable observation/parameter IDs, parameter scales and observation/error scales. It analyzes the dimensionless Jacobian formed by scaling parameter increments and observation residuals, then reports singular values, numerical rank, condition number only when full column rank is found, and approximate unobservable directions.
+`sol-atlas-core::observability` adds a small, dependency-free local inverse-problem diagnostic for modest parameter counts. It requires an explicit `ObservabilityContext` naming the analysis, model/version, linearization, and immutable input manifest. It also accepts stable observation/parameter IDs, parameter scales and observation/error scales. It analyzes the dimensionless Jacobian formed by scaling parameter increments and observation residuals, then reports singular values, numerical rank, condition number only when full column rank is found, approximate unobservable directions, and the absolute/relative rank tolerances used. The report preserves the context so the diagnostic cannot be separated accidentally from its declared experiment identity.
 
-The implementation uses a one-sided Jacobi SVD rather than forming the normal-equation matrix (J^T J), avoiding the unnecessary loss of numerical precision caused by squaring the condition number. Unit tests cover full rank, dependent observations with an unobservable direction, explicit scale effects, malformed matrix shape, non-finite inputs, invalid scales/tolerances, and deterministic repeatability.
+The implementation uses a one-sided Jacobi SVD rather than forming the normal-equation matrix (J^T J), avoiding the unnecessary loss of numerical precision caused by squaring the condition number. Unit tests cover full rank, dependent observations with an unobservable direction, explicit scale effects, malformed matrix shape, non-finite inputs, invalid scales/tolerances, preservation of experiment context, and deterministic repeatability.
 
 **Claim ceiling:** this identifies local sensitivity/identifiability for the supplied linearization. It does not establish global identifiability, validate the physical model, distinguish a bad prior from missing information, or prove that a real Earth parameter is observable. Scale selection and tolerance must be predeclared and included in the experiment manifest. Large or highly ill-conditioned inverse problems should use a reviewed numerical linear algebra backend.
 
@@ -84,6 +84,7 @@ The implementation uses a one-sided Jacobi SVD rather than forming the normal-eq
 - Invalid time windows, out-of-range coordinates, NaN/Infinity, negative uncertainty, malformed digests, duplicate observation IDs and missing evidence fail closed.
 - Reordering a set of independent input records does not change a normalized manifest digest.
 - Every published estimate resolves its model/configuration identity, evidence references and assumptions. A digest is not mislabelled as publisher authentication.
+- Local observability fixtures cover a known full-rank matrix, exact dependent columns and their expected null direction, scale normalization, and explicit rank tolerance. The result records the analysis/model/linearization and input-manifest IDs so the matrix and chosen scale/tolerance can be reconstructed.
 
 ### B1 — geomagnetic reconstruction
 
