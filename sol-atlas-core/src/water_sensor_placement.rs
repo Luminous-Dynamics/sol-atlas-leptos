@@ -1014,4 +1014,113 @@ mod tests {
         ).as_bytes();
         assert!(parse_topology(broken, "LPS").is_err());
     }
+
+    
+    #[test]
+    fn end_to_end_reuses_verified_all_node_reports_for_every_layout() {
+        use serde_json::{json, Value};
+        use std::time::{SystemTime, UNIX_EPOCH};
+
+        fn add_scenario(
+            root: &Path,
+            scenarios: &mut Vec<Value>,
+            id: &str,
+            class: &str,
+            target: Option<&str>,
+            magnitude: f64,
+            pressures: [f64; 3],
+        ) {
+            let relative = format!("{id}/scenario.rpt");
+            let report_path = root.join(&relative);
+            fs::create_dir_all(report_path.parent().unwrap()).unwrap();
+            let report = format!(
+                concat!(
+                    "Node Results at 0:00:00\n",
+                    "Node Demand Head Pressure\n",
+                    "J1 0 100 {}\n",
+                    "J2 0 100 {}\n",
+                    "J3 0 100 {}\n",
+                    "Link Results at 0:00:00\n"
+                ),
+                pressures[0], pressures[1], pressures[2]
+            );
+            fs::write(&report_path, report.as_bytes()).unwrap();
+            scenarios.push(json!({
+                "scenario_id": id,
+                "ground_truth_class": class,
+                "target_junction_id": target,
+                "additional_demand": magnitude,
+                "run_state": "Completed",
+                "report": {
+                    "path": relative,
+                    "sha256": sha256(report.as_bytes()),
+                    "byte_length": report.len()
+                }
+            }));
+        }
+
+        let suffix = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+        let root = std::env::temp_dir().join(format!(
+            "sol-atlas-sensor-placement-{}-{suffix}",
+            std::process::id()
+        ));
+        fs::create_dir_all(&root).unwrap();
+        let source_inp = concat!(
+            "[JUNCTIONS]\nJ1 0 1\nJ2 0 1\nJ3 0 1\n",
+            "[RESERVOIRS]\nR1 100\n",
+            "[PIPES]\nP1 R1 J1 100 100 100 0 OPEN\n",
+            "P2 J1 J2 100 100 100 0 OPEN\n",
+            "P3 J2 J3 100 100 100 0 OPEN\n",
+            "[OPTIONS]\nUNITS LPS\n[END]\n"
+        ).as_bytes();
+        let mut scenarios = Vec::new();
+        add_scenario(&root, &mut scenarios, "base", "no_fault", None, 0.0, [50.0, 50.0, 50.0]);
+        add_scenario(&root, &mut scenarios, "j1-small", "synthetic_withdrawal", Some("J1"), 1.0, [49.0, 50.2, 50.1]);
+        add_scenario(&root, &mut scenarios, "j1-large", "synthetic_withdrawal", Some("J1"), 2.0, [48.0, 50.3, 50.2]);
+        add_scenario(&root, &mut scenarios, "j2-small", "synthetic_withdrawal", Some("J2"), 1.0, [50.2, 49.0, 50.1]);
+        add_scenario(&root, &mut scenarios, "j2-large", "synthetic_withdrawal", Some("J2"), 2.0, [50.3, 48.0, 50.2]);
+        add_scenario(&root, &mut scenarios, "j3-small", "synthetic_withdrawal", Some("J3"), 1.0, [50.1, 50.2, 49.0]);
+        add_scenario(&root, &mut scenarios, "j3-large", "synthetic_withdrawal", Some("J3"), 2.0, [50.2, 50.3, 48.0]);
+        let manifest = json!({
+            "schema_version": RUN_SCHEMA,
+            "base_input_sha256": sha256(source_inp),
+            "unit_system": "LPS",
+            "flow_unit": "L/s",
+            "pressure_unit": "m",
+            "observation_node_ids": ["J1", "J2"],
+            "scenario_count": scenarios.len(),
+            "completed_count": scenarios.len(),
+            "failed_count": 0,
+            "run_state": "Completed",
+            "scenarios": scenarios
+        });
+        let manifest_bytes = serde_json::to_vec(&manifest).unwrap();
+        let result = evaluate_sensor_placement(&root, &manifest_bytes, source_inp).unwrap();
+        assert_eq!(result.evaluation.scenario_count, 7);
+        assert_eq!(result.evaluation.fault_scenario_count, 6);
+        assert_eq!(result.evaluation.candidate_target_count, 3);
+        assert_eq!(result.evaluation.sensor_budgets, vec![2, 3]);
+        assert_eq!(result.evaluation.results.len(), 240);
+        assert!(result.evaluation.results.iter().all(|row| row.test_count == 3));
+        assert!(result.evaluation.results.iter().all(|row| {
+            row.top1_accuracy.is_finite()
+                && (0.0..=1.0).contains(&row.top1_accuracy)
+                && row.selected_sensor_node_ids.len() == row.sensor_budget
+        }));
+
+        let mut tampered: Value = serde_json::from_slice(&manifest_bytes).unwrap();
+        tampered["scenarios"][1]["report"]["sha256"] = json!("0".repeat(64));
+        let tampered_bytes = serde_json::to_vec(&tampered).unwrap();
+        assert!(evaluate_sensor_placement(&root, &tampered_bytes, source_inp)
+            .unwrap_err()
+            .contains("SHA-256 mismatch"));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn unsafe_report_paths_are_rejected() {
+        assert!(safe_relative_artifact("../report.rpt").is_err());
+        assert!(safe_relative_artifact("/tmp/report.rpt").is_err());
+        assert!(safe_relative_artifact("scenario\\report.rpt").is_err());
+    }
 }
