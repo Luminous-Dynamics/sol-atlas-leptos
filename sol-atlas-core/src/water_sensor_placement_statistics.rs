@@ -392,8 +392,10 @@ pub fn compare_sensor_placement(input_bytes: &[u8]) -> Result<ComparisonEnvelope
                     return Err(format!("paired ground truth differs for scenario {scenario_id}"));
                 }
                 clusters.entry(reference_prediction.actual_target.clone()).or_default().push(Delta {
-                    top1: f64::from(candidate_prediction.top1_hit) - f64::from(reference_prediction.top1_hit),
-                    top3: f64::from(candidate_prediction.top3_hit) - f64::from(reference_prediction.top3_hit),
+                    top1: (if candidate_prediction.top1_hit { 1.0 } else { 0.0 })
+                        - (if reference_prediction.top1_hit { 1.0 } else { 0.0 }),
+                    top3: (if candidate_prediction.top3_hit { 1.0 } else { 0.0 })
+                        - (if reference_prediction.top3_hit { 1.0 } else { 0.0 }),
                     mrr: candidate_prediction.reciprocal_rank - reference_prediction.reciprocal_rank,
                 });
             }
