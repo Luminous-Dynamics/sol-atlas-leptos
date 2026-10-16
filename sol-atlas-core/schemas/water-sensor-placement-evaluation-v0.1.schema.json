@@ -7,6 +7,7 @@
   "required": [
     "schema_version",
     "source_manifest_sha256",
+    "source_plan_sha256",
     "source_topology_sha256",
     "evaluation"
   ],
@@ -27,6 +28,7 @@
       "additionalProperties": false,
       "required": [
         "schema_version",
+        "plan_id",
         "run_state",
         "unit_system",
         "flow_unit",
@@ -252,8 +254,16 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "plan_id": {
+          "type": "string",
+          "minLength": 1
         }
       }
+    },
+    "source_plan_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     }
   }
 }
