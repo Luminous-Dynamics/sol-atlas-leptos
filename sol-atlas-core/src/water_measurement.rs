@@ -477,7 +477,7 @@ pub fn evaluate_robust_measurement_ensemble(
     let reference = &input.models[0];
     let mut reference_actions: Vec<&MeasurementActionInput> = reference.actions.iter().collect();
     reference_actions.sort_by(|left, right| left.action_id.cmp(&right.action_id));
-    for (index, model) in input.models.iter().enumerate().skip(1) {
+    for model in input.models.iter().skip(1) {
         if model.hypothesis_ids != reference.hypothesis_ids
             || model.decision_ids != reference.decision_ids
             || model.decision_loss_matrix != reference.decision_loss_matrix
@@ -519,9 +519,6 @@ pub fn evaluate_robust_measurement_ensemble(
                     model.model_id, expected_action.action_id
                 ));
             }
-        }
-        if index == 0 {
-            return Err("unreachable model index".to_owned());
         }
     }
 
