@@ -33,3 +33,7 @@ path = "src/bin/water_measurement_evaluate.rs"
 [[bin]]
 name = "water-measurement-robust-evaluate"
 path = "src/bin/water_measurement_robust_evaluate.rs"
+
+[[bin]]
+name = "water-scenario-corpus-run"
+path = "src/bin/water_scenario_corpus_run.rs"
