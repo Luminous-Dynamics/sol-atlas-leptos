@@ -621,6 +621,17 @@ mod tests {
     use crate::spatial_economic::{
         Provenance, SpatialContext, TimeContext, EVIDENCE_SCHEMA_VERSION,
     };
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    struct DomainFixture {
+        domains: Vec<CommonCauseDomain>,
+    }
+
+    #[derive(Deserialize)]
+    struct EvidenceFixture {
+        records: Vec<EvidenceRecord>,
+    }
 
     const AT: &str = "2026-10-15T10:00:00Z";
 
@@ -778,6 +789,72 @@ mod tests {
             correlate_common_cause_with_dependency_groups(&[common], &[group]),
             Err(CommonCauseCorrelationError::MismatchedAsOfTimestamp)
         );
+    }
+
+    #[test]
+    fn shared_feeder_json_fixtures_parse_and_correlate_with_dependency_alternatives() {
+        use crate::dependency_logic::{
+            DependencyGroupMemberAssessment, DependencyGroupState,
+        };
+
+        let domains: DomainFixture = serde_json::from_str(include_str!(
+            "../../schemas/examples/shared-feeder-domain.json"
+        ))
+        .unwrap();
+        let scenario: CommonCauseScenario = serde_json::from_str(include_str!(
+            "../../schemas/examples/shared-feeder-scenario.json"
+        ))
+        .unwrap();
+        let evidence: EvidenceFixture = serde_json::from_str(include_str!(
+            "../../schemas/examples/shared-feeder-evidence.json"
+        ))
+        .unwrap();
+
+        let assessments =
+            assess_common_cause_domains(&domains.domains, &scenario, &evidence.records).unwrap();
+        assert_eq!(assessments.len(), 1);
+        assert!(assessments[0]
+            .entity_exposures
+            .iter()
+            .all(|member| member.exposure == CommonCauseExposure::Exposed));
+
+        let group = DependencyGroupAssessment {
+            group_id: "synthetic:pump-alternatives".into(),
+            dependent_entity_id: "pump:service".into(),
+            logic: DependencyLogic::AnyOne,
+            as_of: scenario.as_of.clone(),
+            state: DependencyGroupState::Satisfied,
+            required_count: 1,
+            active_count: 2,
+            available_count: 2,
+            unavailable_count: 0,
+            unknown_count: 0,
+            members: vec![
+                DependencyGroupMemberAssessment {
+                    relation_id: "synthetic:pump-a".into(),
+                    supporting_evidence_ids: vec!["ev:a".into()],
+                    prerequisite_entity_id: "pump:a".into(),
+                    state: DependencyMemberState::Available,
+                    evidence_readiness: None,
+                    evidence_blockers: Vec::new(),
+                    unknown_reason: None,
+                },
+                DependencyGroupMemberAssessment {
+                    relation_id: "synthetic:pump-b".into(),
+                    supporting_evidence_ids: vec!["ev:b".into()],
+                    prerequisite_entity_id: "pump:b".into(),
+                    state: DependencyMemberState::Available,
+                    evidence_readiness: None,
+                    evidence_blockers: Vec::new(),
+                    unknown_reason: None,
+                },
+            ],
+        };
+        let overlaps =
+            correlate_common_cause_with_dependency_groups(&assessments, &[group]).unwrap();
+        assert_eq!(overlaps.len(), 1);
+        assert!(overlaps[0].independent_redundancy_warning);
+        assert_eq!(overlaps[0].currently_exposed_relation_ids.len(), 2);
     }
 
     #[test]
