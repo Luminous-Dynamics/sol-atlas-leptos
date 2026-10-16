@@ -23,7 +23,7 @@ use sol_atlas_core::spatial_economic::{
     EvidenceKind, EvidenceRecord, EvidenceState, Provenance, SpatialContext, TimeContext,
     EVIDENCE_SCHEMA_VERSION,
 };
-use sol_atlas_core::spatial_graph::{DependencyGraph, RelationKind, SpatialRelation};
+use sol_atlas_core::service_function::{\n    assess_service_functions, FunctionMeasurement, ServiceFunctionScenario, ServiceFunctionState,\n    SERVICE_FUNCTION_SCHEMA_VERSION,\n};\nuse sol_atlas_core::spatial_economic::Quantity;\nuse sol_atlas_core::spatial_graph::{DependencyGraph, RelationKind, SpatialRelation};
 use std::collections::BTreeMap;
 use std::env;
 use std::time::{Duration, Instant};
@@ -45,6 +45,12 @@ struct SampleSummary {
     common_cause_p50_micros: u128,
     common_cause_p95_micros: u128,
     common_cause_max_micros: u128,
+    functional_assessments_per_run: usize,
+    functional_evidence_records: usize,
+    functional_result_bytes: usize,
+    functional_p50_micros: u128,
+    functional_p95_micros: u128,
+    functional_max_micros: u128,
 }
 
 fn evidence(id: String, feeder_id: &str) -> EvidenceRecord {
@@ -77,6 +83,80 @@ fn evidence(id: String, feeder_id: &str) -> EvidenceRecord {
         supersedes: None,
         access_policy: "policy:synthetic-benchmark".into(),
     }
+}
+
+fn quantity_evidence(
+    id: String,
+    entity_id: &str,
+    value: f64,
+    unit: &str,
+    uncertainty_abs: f64,
+) -> EvidenceRecord {
+    let mut record = evidence(id, entity_id);
+    record.quantity = Some(Quantity {
+        value,
+        unit: unit.into(),
+        uncertainty_abs: Some(uncertainty_abs),
+    });
+    record
+}
+
+fn functional_fixture(
+    count: usize,
+) -> (Vec<ServiceFunctionScenario>, Vec<EvidenceRecord>) {
+    let mut scenarios = Vec::with_capacity(count);
+    let mut records = Vec::with_capacity(count.saturating_mul(2));
+    for index in 0..count {
+        let service_id = format!("service-capacity-{index:06}");
+        let capacity_entity = format!("pump-capacity-{index:06}");
+        let capacity_evidence_id = format!("capacity-evidence-{index:06}");
+        let requirement_evidence_id = format!("requirement-evidence-{index:06}");
+        let capacity_quantity = Quantity {
+            value: 70.0,
+            unit: "m3/h".into(),
+            uncertainty_abs: Some(5.0),
+        };
+        let requirement_quantity = Quantity {
+            value: 100.0,
+            unit: "m3/h".into(),
+            uncertainty_abs: Some(10.0),
+        };
+        records.push(quantity_evidence(
+            capacity_evidence_id.clone(),
+            &capacity_entity,
+            capacity_quantity.value,
+            &capacity_quantity.unit,
+            capacity_quantity.uncertainty_abs.unwrap_or_default(),
+        ));
+        records.push(quantity_evidence(
+            requirement_evidence_id.clone(),
+            &service_id,
+            requirement_quantity.value,
+            &requirement_quantity.unit,
+            requirement_quantity.uncertainty_abs.unwrap_or_default(),
+        ));
+        scenarios.push(ServiceFunctionScenario {
+            schema_version: SERVICE_FUNCTION_SCHEMA_VERSION.into(),
+            id: format!("functional-scenario-{index:06}"),
+            as_of: "2026-10-15T12:00:00Z".into(),
+            service_entity_id: service_id.clone(),
+            available_capacity: FunctionMeasurement {
+                entity_id: capacity_entity,
+                quantity: capacity_quantity,
+                basis: ScenarioBasis::Observed,
+                rationale: "Synthetic observed capacity fixture".into(),
+                supporting_evidence_ids: vec![capacity_evidence_id],
+            },
+            required_capacity: FunctionMeasurement {
+                entity_id: service_id,
+                quantity: requirement_quantity,
+                basis: ScenarioBasis::Observed,
+                rationale: "Synthetic observed demand fixture".into(),
+                supporting_evidence_ids: vec![requirement_evidence_id],
+            },
+        });
+    }
+    (scenarios, records)
 }
 
 fn assumed(state: EntityOperationalState, rationale: &str) -> ScenarioEntityCondition {
@@ -263,6 +343,19 @@ fn main() {
         let reference_overlap_bytes =
             serde_json::to_vec(&reference_overlaps).expect("overlaps serialize");
 
+        let (functional_scenarios, functional_evidence) = functional_fixture(groups_count);
+        let reference_functional = assess_service_functions(
+            &functional_scenarios,
+            &functional_evidence,
+        )
+        .expect("synthetic functional-adequacy fixtures must evaluate");
+        assert_eq!(reference_functional.len(), groups_count);
+        assert!(reference_functional
+            .iter()
+            .all(|assessment| assessment.state == ServiceFunctionState::Degraded));
+        let reference_functional_bytes = serde_json::to_vec(&reference_functional)
+            .expect("functional assessments serialize");
+
         for _ in 0..warmup_iterations {
             let result = compare_intervention(
                 &graph,
@@ -297,10 +390,25 @@ fn main() {
                 serde_json::to_vec(&overlaps).expect("overlaps serialize"),
                 reference_overlap_bytes
             );
+
+            let functional = assess_service_functions(
+                &functional_scenarios,
+                &functional_evidence,
+            )
+            .expect("synthetic functional-adequacy fixtures must evaluate");
+            assert_eq!(functional.len(), groups_count);
+            assert!(functional
+                .iter()
+                .all(|assessment| assessment.state == ServiceFunctionState::Degraded));
+            assert_eq!(
+                serde_json::to_vec(&functional).expect("functional assessments serialize"),
+                reference_functional_bytes
+            );
         }
 
         let mut samples = Vec::with_capacity(measured_iterations);
         let mut common_cause_samples = Vec::with_capacity(measured_iterations);
+        let mut functional_samples = Vec::with_capacity(measured_iterations);
         let mut recovered = 0;
         for _ in 0..measured_iterations {
             let start = Instant::now();
@@ -338,9 +446,26 @@ fn main() {
                 serde_json::to_vec(&overlaps).expect("overlaps serialize"),
                 reference_overlap_bytes
             );
+
+            let functional_start = Instant::now();
+            let functional = assess_service_functions(
+                &functional_scenarios,
+                &functional_evidence,
+            )
+            .expect("synthetic functional-adequacy fixtures must evaluate");
+            functional_samples.push(functional_start.elapsed());
+            assert_eq!(functional.len(), groups_count);
+            assert!(functional
+                .iter()
+                .all(|assessment| assessment.state == ServiceFunctionState::Degraded));
+            assert_eq!(
+                serde_json::to_vec(&functional).expect("functional assessments serialize"),
+                reference_functional_bytes
+            );
         }
         samples.sort_unstable();
         common_cause_samples.sort_unstable();
+        functional_samples.sort_unstable();
 
         let summary = SampleSummary {
             groups: groups_count,
@@ -358,6 +483,16 @@ fn main() {
             common_cause_p50_micros: percentile(&common_cause_samples, 50).as_micros(),
             common_cause_p95_micros: percentile(&common_cause_samples, 95).as_micros(),
             common_cause_max_micros: common_cause_samples
+                .last()
+                .copied()
+                .unwrap_or_default()
+                .as_micros(),
+            functional_assessments_per_run: reference_functional.len(),
+            functional_evidence_records: functional_evidence.len(),
+            functional_result_bytes: reference_functional_bytes.len(),
+            functional_p50_micros: percentile(&functional_samples, 50).as_micros(),
+            functional_p95_micros: percentile(&functional_samples, 95).as_micros(),
+            functional_max_micros: functional_samples
                 .last()
                 .copied()
                 .unwrap_or_default()
