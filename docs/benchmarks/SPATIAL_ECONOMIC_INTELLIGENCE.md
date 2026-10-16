@@ -37,7 +37,7 @@ From the repository root:
 ```sh
 SEI_BENCH_WARMUP=5 \
 SEI_BENCH_SAMPLES=100 \
-cargo bench --manifest-path sol-atlas-core/Cargo.toml --bench spatial_economic_intervention
+cargo bench --bench spatial_economic_intervention
 ```
 
 The harness emits one JSON line for each workload size (100, 1,000 and 10,000 groups). Each line includes group/edge/evidence counts, warm-up/sample counts, p50/p95/max latency in microseconds, recovered-group count and serialized result size. It compares each run's serialized result bytes with an untimed reference result and asserts the synthetic correctness oracle, but it does not claim that timing targets passed. Use an external process monitor (for example `/usr/bin/time -v`) to measure peak RSS, and archive the stdout with the commit SHA and environment manifest.
