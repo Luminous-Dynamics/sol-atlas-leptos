@@ -11,8 +11,9 @@
 
 use crate::dependency_logic::ScenarioBasis;
 use crate::service_network::{
-    assess_service_capacity_network, NetworkLinkAvailability, NetworkTopologyCompleteness,
-    ServiceCapacityNetworkAssessment, ServiceCapacityNetworkError, ServiceCapacityNetworkScenario,
+    assess_service_capacity_network_indexed, build_evidence_index, NetworkLinkAvailability,
+    NetworkTopologyCompleteness, ServiceCapacityNetworkAssessment, ServiceCapacityNetworkError,
+    ServiceCapacityNetworkScenario,
 };
 use crate::spatial_economic::EvidenceRecord;
 use serde::{Deserialize, Serialize};
@@ -163,7 +164,12 @@ pub fn compare_service_network_intervention(
         return Err(ServiceNetworkInterventionError::InvalidPlan(errors));
     }
 
-    let baseline = assess_service_capacity_network(scenario, evidence_records)
+    let evidence_by_id = build_evidence_index(evidence_records).map_err(|errors| {
+        ServiceNetworkInterventionError::BaselineAssessment(
+            ServiceCapacityNetworkError::InvalidInput(errors),
+        )
+    })?;
+    let baseline = assess_service_capacity_network_indexed(scenario, &evidence_by_id)
         .map_err(ServiceNetworkInterventionError::BaselineAssessment)?;
     let mut candidate = scenario.clone();
     for link in &mut candidate.links {
@@ -185,7 +191,7 @@ pub fn compare_service_network_intervention(
         }
     }
     candidate.id = format!("{}:intervention:{}", scenario.id, plan.id);
-    let with_intervention = assess_service_capacity_network(&candidate, evidence_records)
+    let with_intervention = assess_service_capacity_network_indexed(&candidate, &evidence_by_id)
         .map_err(ServiceNetworkInterventionError::InterventionAssessment)?;
     let conservative_capacity_delta = with_intervention.conservative_available_capacity
         - baseline.conservative_available_capacity;
