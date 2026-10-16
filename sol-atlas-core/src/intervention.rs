@@ -475,6 +475,61 @@ mod tests {
     }
 
     #[test]
+    fn synthetic_fixture_compares_outage_baseline_with_intervention_plan() {
+        #[derive(Deserialize)]
+        struct GroupFixture {
+            groups: Vec<DependencyGroup>,
+        }
+
+        let graph: DependencyGraph = serde_json::from_str(include_str!(
+            "../../schemas/examples/water-system-dependencies.json"
+        ))
+        .unwrap();
+        let groups: GroupFixture = serde_json::from_str(include_str!(
+            "../../schemas/examples/water-system-dependency-groups.json"
+        ))
+        .unwrap();
+        let baseline: AvailabilityScenario = serde_json::from_str(include_str!(
+            "../../schemas/examples/water-system-outage-baseline.json"
+        ))
+        .unwrap();
+        let plan: InterventionPlan = serde_json::from_str(include_str!(
+            "../../schemas/examples/water-system-intervention-plan.json"
+        ))
+        .unwrap();
+        let evidence_records = [
+            evidence("synthetic-evidence-pump-power"),
+            evidence("synthetic-evidence-pump-backup-power"),
+            evidence("synthetic-evidence-field-pump"),
+            evidence("synthetic-evidence-warehouse-location"),
+        ];
+
+        let comparison = compare_intervention(
+            &graph,
+            &groups.groups,
+            &baseline,
+            &plan,
+            &evidence_records,
+        )
+        .unwrap();
+
+        assert_eq!(comparison.summary.groups_compared, 2);
+        assert_eq!(comparison.summary.recovered, 1);
+        assert_eq!(comparison.summary.unchanged, 1);
+        let pump = comparison
+            .group_deltas
+            .iter()
+            .find(|delta| delta.group_id == "synthetic-pump-power-resilience")
+            .unwrap();
+        assert_eq!(pump.baseline.state, DependencyGroupState::Disrupted);
+        assert_eq!(
+            pump.with_intervention.state,
+            DependencyGroupState::Satisfied
+        );
+        assert_eq!(pump.change, OutcomeChange::Recovered);
+    }
+
+    #[test]
     fn all_nine_qualitative_state_transitions_are_classified_explicitly() {
         use DependencyGroupState::{Disrupted, Indeterminate, Satisfied};
         let cases = [
