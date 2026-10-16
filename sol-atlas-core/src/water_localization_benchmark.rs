@@ -422,9 +422,10 @@ fn validate_and_build_features(
         }
     }
 
+    let baseline_scenario_id = baseline.scenario_id.clone();
     Ok((
         manifest,
-        baseline.scenario_id.clone(),
+        baseline_scenario_id,
         features,
         candidates,
         EVALUATION_VERSION.to_owned(),
