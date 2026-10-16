@@ -160,6 +160,8 @@ pub enum ScenarioEvaluationError {
     InvalidGraph(Vec<GraphValidationError>),
     InvalidGroup(Vec<DependencyGroupValidationError>),
     InvalidScenario(Vec<ScenarioValidationError>),
+    EmptyGroupSet,
+    DuplicateGroupId,
     EvidenceAssessmentFailed(DependencyAssessmentError),
     MissingAssessmentForActiveRelation,
 }
@@ -216,6 +218,200 @@ impl DependencyGraph {
         } else {
             Err(errors)
         }
+    }
+
+
+    /// Evaluate multiple groups against the same scenario while validating and
+    /// constructing evidence/graph indexes once. Results are sorted by group ID.
+    ///
+    /// This is the preferred batch API for baseline/intervention comparisons.
+    /// It remains qualitative and does not recursively compose groups.
+    pub fn evaluate_dependency_groups_at(
+        &self,
+        groups: &[DependencyGroup],
+        scenario: &AvailabilityScenario,
+        evidence_records: &[EvidenceRecord],
+    ) -> Result<Vec<DependencyGroupAssessment>, ScenarioEvaluationError> {
+        if groups.is_empty() {
+            return Err(ScenarioEvaluationError::EmptyGroupSet);
+        }
+        if !is_canonical_utc_timestamp(&scenario.as_of) {
+            return Err(ScenarioEvaluationError::InvalidAsOfTimestamp);
+        }
+        self.validate(evidence_records)
+            .map_err(ScenarioEvaluationError::InvalidGraph)?;
+        validate_scenario(scenario, evidence_records)
+            .map_err(ScenarioEvaluationError::InvalidScenario)?;
+
+        let relations: BTreeMap<&str, _> = self
+            .relations
+            .iter()
+            .map(|relation| (relation.id.as_str(), relation))
+            .collect();
+        let mut group_ids = BTreeSet::new();
+        let mut ordered_groups: Vec<&DependencyGroup> = groups.iter().collect();
+        ordered_groups.sort_by(|left, right| left.id.cmp(&right.id));
+
+        for group in &ordered_groups {
+            if !group_ids.insert(group.id.as_str()) {
+                return Err(ScenarioEvaluationError::DuplicateGroupId);
+            }
+            let mut errors = Vec::new();
+            if group.id.trim().is_empty() {
+                errors.push(DependencyGroupValidationError::EmptyGroupId);
+            }
+            if group.dependent_entity_id.trim().is_empty() {
+                errors.push(DependencyGroupValidationError::EmptyDependentEntity);
+            }
+            if group.relation_ids.is_empty() {
+                errors.push(DependencyGroupValidationError::EmptyRelations);
+            }
+            if let DependencyLogic::AtLeast { minimum } = group.logic {
+                if minimum == 0 || minimum > group.relation_ids.len() {
+                    errors.push(DependencyGroupValidationError::InvalidMinimum);
+                }
+            }
+
+            let mut seen = BTreeSet::new();
+            for relation_id in &group.relation_ids {
+                if !seen.insert(relation_id.as_str()) {
+                    errors.push(DependencyGroupValidationError::DuplicateRelationId);
+                }
+                match relations.get(relation_id.as_str()) {
+                    None => errors.push(DependencyGroupValidationError::UnknownRelationId),
+                    Some(relation) => {
+                        if !relation.kind.is_dependency_edge() {
+                            errors.push(DependencyGroupValidationError::NonDependencyRelation);
+                        }
+                        if relation.subject_entity_id != group.dependent_entity_id {
+                            errors.push(DependencyGroupValidationError::WrongDependentEntity);
+                        }
+                    }
+                }
+            }
+            if !errors.is_empty() {
+                return Err(ScenarioEvaluationError::InvalidGroup(errors));
+            }
+        }
+
+        // The graph API attaches readiness/blockers for every active dependency edge
+        // to this report. The root only selects reachability impacts, not that edge list.
+        let report = self
+            .assess_dependents_at(
+                &ordered_groups[0].dependent_entity_id,
+                &scenario.as_of,
+                evidence_records,
+            )
+            .map_err(ScenarioEvaluationError::EvidenceAssessmentFailed)?;
+        let assessments = relation_assessment_index(&report);
+        let mut output = Vec::with_capacity(ordered_groups.len());
+
+        for group in ordered_groups {
+            let mut relation_ids = group.relation_ids.clone();
+            relation_ids.sort();
+            let mut members = Vec::with_capacity(relation_ids.len());
+            let mut active_count = 0;
+            let mut available_count = 0;
+            let mut unavailable_count = 0;
+            let mut unknown_count = 0;
+
+            for relation_id in relation_ids {
+                let relation = relations[relation_id.as_str()];
+                if !relation_is_active(relation, &scenario.as_of) {
+                    members.push(DependencyGroupMemberAssessment {
+                        relation_id,
+                        prerequisite_entity_id: relation.object_entity_id.clone(),
+                        state: DependencyMemberState::Inactive,
+                        evidence_readiness: None,
+                        evidence_blockers: Vec::new(),
+                        unknown_reason: None,
+                    });
+                    continue;
+                }
+
+                active_count += 1;
+                let evidence_assessment = assessments
+                    .get(relation_id.as_str())
+                    .ok_or(ScenarioEvaluationError::MissingAssessmentForActiveRelation)?;
+
+                let member = if evidence_assessment.readiness == EvidenceReadiness::Blocked {
+                    unknown_count += 1;
+                    DependencyGroupMemberAssessment {
+                        relation_id,
+                        prerequisite_entity_id: relation.object_entity_id.clone(),
+                        state: DependencyMemberState::Unknown,
+                        evidence_readiness: Some(evidence_assessment.readiness),
+                        evidence_blockers: evidence_assessment.blockers.clone(),
+                        unknown_reason: Some(UnknownMemberReason::EvidenceBlocked),
+                    }
+                } else {
+                    let condition = scenario.entity_conditions.get(&relation.object_entity_id);
+                    let state = match condition.map(|value| value.state) {
+                        Some(EntityOperationalState::Available) => {
+                            available_count += 1;
+                            DependencyMemberState::Available
+                        }
+                        Some(EntityOperationalState::Unavailable) => {
+                            unavailable_count += 1;
+                            DependencyMemberState::Unavailable
+                        }
+                        Some(EntityOperationalState::Unknown) | None => {
+                            unknown_count += 1;
+                            DependencyMemberState::Unknown
+                        }
+                    };
+                    let reason = match (state, condition) {
+                        (DependencyMemberState::Unknown, None) => {
+                            Some(UnknownMemberReason::MissingScenarioCondition)
+                        }
+                        (DependencyMemberState::Unknown, Some(_)) => {
+                            Some(UnknownMemberReason::ExplicitlyUnknown)
+                        }
+                        _ => None,
+                    };
+                    DependencyGroupMemberAssessment {
+                        relation_id,
+                        prerequisite_entity_id: relation.object_entity_id.clone(),
+                        state,
+                        evidence_readiness: Some(evidence_assessment.readiness),
+                        evidence_blockers: Vec::new(),
+                        unknown_reason: reason,
+                    }
+                };
+                members.push(member);
+            }
+
+            let required_count = match group.logic {
+                DependencyLogic::AllRequired => active_count,
+                DependencyLogic::AnyOne => 1,
+                DependencyLogic::AtLeast { minimum } => minimum,
+            };
+            let state = if active_count == 0 {
+                DependencyGroupState::Indeterminate
+            } else if available_count >= required_count {
+                DependencyGroupState::Satisfied
+            } else if available_count + unknown_count < required_count {
+                DependencyGroupState::Disrupted
+            } else {
+                DependencyGroupState::Indeterminate
+            };
+
+            output.push(DependencyGroupAssessment {
+                group_id: group.id.clone(),
+                dependent_entity_id: group.dependent_entity_id.clone(),
+                logic: group.logic,
+                as_of: scenario.as_of.clone(),
+                state,
+                required_count,
+                active_count,
+                available_count,
+                unavailable_count,
+                unknown_count,
+                members,
+            });
+        }
+
+        Ok(output)
     }
 
     /// Evaluate one required/redundant dependency group for a scenario at an
