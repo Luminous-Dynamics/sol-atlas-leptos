@@ -174,11 +174,21 @@ fn validate_input(input: &EvaluationEnvelope) -> Result<(), String> {
         return Err("evaluation design fields are incomplete".to_owned());
     }
     let strategy_set: BTreeSet<&str> = eval.strategy_ids.iter().map(String::as_str).collect();
+    let allowed_strategies = [
+        "fixed-predeclared",
+        "seeded-random",
+        "graph-coverage-greedy",
+        "response-separation-greedy",
+    ];
     if strategy_set.len() != eval.strategy_ids.len()
         || !strategy_set.contains(REFERENCE_STRATEGY)
         || strategy_set.len() < 2
+        || strategy_set.iter().any(|id| !allowed_strategies.contains(id))
     {
-        return Err("strategy_ids must be unique and include fixed-predeclared plus a comparator".to_owned());
+        return Err(
+            "strategy_ids must be unique supported strategies and include fixed-predeclared plus a comparator"
+                .to_owned(),
+        );
     }
     for (name, values) in [
         ("sensor budgets", eval.sensor_budgets.iter().map(|v| *v as f64).collect::<Vec<_>>()),
@@ -198,14 +208,6 @@ fn validate_input(input: &EvaluationEnvelope) -> Result<(), String> {
     {
         return Err("budgets/noise/magnitudes are outside the supported range".to_owned());
     }
-    for values in [
-        eval.noise_sigma_fractions.iter().map(|v| v.to_bits()).collect::<Vec<_>>(),
-        eval.held_out_magnitudes.iter().map(|v| v.to_bits()).collect::<Vec<_>>(),
-    ] {
-        if values.is_empty() {
-            return Err("empty evaluation dimension".to_owned());
-        }
-    }
     let expected_count = eval.strategy_ids.len()
         .checked_mul(eval.sensor_budgets.len())
         .and_then(|n| n.checked_mul(eval.noise_sigma_fractions.len()))
@@ -220,9 +222,17 @@ fn validate_input(input: &EvaluationEnvelope) -> Result<(), String> {
     }
 
     let budget_set: BTreeSet<usize> = eval.sensor_budgets.iter().copied().collect();
-    let noise_set: BTreeSet<u64> = eval.noise_sigma_fractions.iter().map(|v| v.to_bits()).collect();
-    let magnitude_set: BTreeSet<u64> = eval.held_out_magnitudes.iter().map(|v| v.to_bits()).collect();
-    let mut strata = BTreeMap::<StratumKey, BTreeMap<&str, &StrategyResultInput>>::new();
+    let noise_set: BTreeSet<u64> = eval
+        .noise_sigma_fractions
+        .iter()
+        .map(|value| value.to_bits())
+        .collect();
+    let magnitude_set: BTreeSet<u64> = eval
+        .held_out_magnitudes
+        .iter()
+        .map(|value| value.to_bits())
+        .collect();
+    let mut strata = BTreeMap::<StratumKey, BTreeMap<String, &StrategyResultInput>>::new();
 
     for row in &eval.results {
         if !strategy_set.contains(row.strategy_id.as_str())
@@ -274,24 +284,46 @@ fn validate_input(input: &EvaluationEnvelope) -> Result<(), String> {
         }
 
         let key = key_for(row);
-        if strata.entry(key).or_default().insert(&row.strategy_id, row).is_some() {
+        if strata
+            .entry(key)
+            .or_default()
+            .insert(row.strategy_id.clone(), row)
+            .is_some()
+        {
             return Err("duplicate strategy result for the same evaluation stratum".to_owned());
         }
     }
     for (key, rows) in &strata {
         if rows.len() != strategy_set.len()
-            || strategy_set.iter().any(|strategy| !rows.contains_key(strategy))
+            || strategy_set.iter().any(|strategy| !rows.contains_key(*strategy))
         {
             return Err(format!("incomplete paired strategy group for {key:?}"));
         }
-        let reference = rows[REFERENCE_STRATEGY].predictions.iter()
-            .map(|prediction| (prediction.scenario_id.as_str(), prediction.actual_target.as_str()))
+        let reference = rows
+            .get(REFERENCE_STRATEGY)
+            .ok_or_else(|| "paired stratum lacks fixed-predeclared reference".to_owned())?;
+        let reference_targets = reference
+            .predictions
+            .iter()
+            .map(|prediction| {
+                (
+                    prediction.scenario_id.as_str(),
+                    prediction.actual_target.as_str(),
+                )
+            })
             .collect::<BTreeMap<_, _>>();
         for (strategy, row) in rows {
-            let targets = row.predictions.iter()
-                .map(|prediction| (prediction.scenario_id.as_str(), prediction.actual_target.as_str()))
+            let targets = row
+                .predictions
+                .iter()
+                .map(|prediction| {
+                    (
+                        prediction.scenario_id.as_str(),
+                        prediction.actual_target.as_str(),
+                    )
+                })
                 .collect::<BTreeMap<_, _>>();
-            if targets != reference {
+            if targets != reference_targets {
                 return Err(format!(
                     "scenario identity/target mismatch between fixed-predeclared and {strategy}"
                 ));
@@ -364,9 +396,12 @@ pub fn compare_sensor_placement(input_bytes: &[u8]) -> Result<ComparisonEnvelope
         .map_err(|error| format!("invalid sensor-placement evaluation JSON: {error}"))?;
     validate_input(&input)?;
 
-    let mut strata = BTreeMap::<StratumKey, BTreeMap<&str, &StrategyResultInput>>::new();
+    let mut strata = BTreeMap::<StratumKey, BTreeMap<String, &StrategyResultInput>>::new();
     for row in &input.evaluation.results {
-        strata.entry(key_for(row)).or_default().insert(&row.strategy_id, row);
+        strata
+            .entry(key_for(row))
+            .or_default()
+            .insert(row.strategy_id.clone(), row);
     }
     let digest = sha256(input_bytes);
     let digest_seed = u64::from_str_radix(&digest[..16], 16)
@@ -374,16 +409,24 @@ pub fn compare_sensor_placement(input_bytes: &[u8]) -> Result<ComparisonEnvelope
     let mut results = Vec::new();
 
     for (stratum, rows) in strata {
-        let reference = rows.get(REFERENCE_STRATEGY)
+        let reference = rows
+            .get(REFERENCE_STRATEGY)
             .ok_or_else(|| "paired stratum lacks fixed-predeclared reference".to_owned())?;
         for candidate_id in &input.evaluation.strategy_ids {
-            if candidate_id == REFERENCE_STRATEGY { continue; }
-            let candidate = rows.get(candidate_id.as_str())
+            if candidate_id == REFERENCE_STRATEGY {
+                continue;
+            }
+            let candidate = rows
+                .get(candidate_id)
                 .ok_or_else(|| format!("paired stratum lacks strategy {candidate_id}"))?;
-            let reference_by_id = reference.predictions.iter()
+            let reference_by_id = reference
+                .predictions
+                .iter()
                 .map(|row| (row.scenario_id.as_str(), row))
                 .collect::<BTreeMap<_, _>>();
-            let candidate_by_id = candidate.predictions.iter()
+            let candidate_by_id = candidate
+                .predictions
+                .iter()
                 .map(|row| (row.scenario_id.as_str(), row))
                 .collect::<BTreeMap<_, _>>();
             if reference_by_id.len() != candidate_by_id.len()
@@ -415,7 +458,9 @@ pub fn compare_sensor_placement(input_bytes: &[u8]) -> Result<ComparisonEnvelope
                 ^ stratum.noise_bits.rotate_left(13)
                 ^ (stratum.replicate as u64).rotate_left(23)
                 ^ stratum.magnitude_bits.rotate_left(31)
-                ^ candidate_id.bytes().fold(0u64, |acc, byte| acc.rotate_left(5) ^ byte as u64);
+                ^ candidate_id
+                    .bytes()
+                    .fold(0u64, |acc, byte| acc.rotate_left(5) ^ byte as u64);
             let intervals = paired_target_cluster_bootstrap(&cluster_means, seed_base);
             let (mean_top1, low_top1, high_top1) = intervals[0];
             let (mean_top3, low_top3, high_top3) = intervals[1];
