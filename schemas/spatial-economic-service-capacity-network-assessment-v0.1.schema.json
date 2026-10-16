@@ -136,5 +136,43 @@
         "minLength": 1
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "topology_completeness": {
+            "enum": [
+              "partial",
+              "unknown"
+            ]
+          }
+        },
+        "required": [
+          "topology_completeness"
+        ]
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "const": "indeterminate"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "coverage_lower_bound"
+              ]
+            },
+            {
+              "required": [
+                "coverage_upper_bound"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
 }
