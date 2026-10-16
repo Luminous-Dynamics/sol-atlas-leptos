@@ -1,0 +1,12 @@
+{
+  "id": "synthetic-restore-backup-feeder",
+  "rationale": "Synthetic what-if only: assume the alternate feeder is restored and available.",
+  "condition_overrides": {
+    "synthetic-feeder-west": {
+      "state": "available",
+      "basis": "assumed",
+      "rationale": "Synthetic intervention assumption, not a measured field result.",
+      "supporting_evidence_ids": []
+    }
+  }
+}

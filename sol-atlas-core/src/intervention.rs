@@ -94,7 +94,9 @@ fn classify_change(
     use DependencyGroupState::{Disrupted, Indeterminate, Satisfied};
 
     match (baseline, after) {
-        (left, right) if left == right => OutcomeChange::Unchanged,
+        (Satisfied, Satisfied)
+        | (Disrupted, Disrupted)
+        | (Indeterminate, Indeterminate) => OutcomeChange::Unchanged,
         (Disrupted, Satisfied) => OutcomeChange::Recovered,
         (Satisfied, Disrupted) => OutcomeChange::Degraded,
         (Indeterminate, Satisfied) => OutcomeChange::ResolvedToSatisfied,
@@ -297,7 +299,9 @@ mod tests {
         (graph, group, vec![evidence("ev-primary"), evidence("ev-backup")])
     }
 
-    fn plan(overrides: impl IntoIterator<Item = (String, ScenarioEntityCondition)>) -> InterventionPlan {
+    fn plan(
+        overrides: impl IntoIterator<Item = (String, ScenarioEntityCondition)>,
+    ) -> InterventionPlan {
         InterventionPlan {
             id: "restore-backup-feeder".into(),
             rationale: "Synthetic plan for exercising comparison semantics".into(),
@@ -461,7 +465,11 @@ mod tests {
         .unwrap();
         assert_eq!(first, second);
         assert_eq!(
-            first.group_deltas.iter().map(|item| item.group_id.as_str()).collect::<Vec<_>>(),
+            first
+                .group_deltas
+                .iter()
+                .map(|item| item.group_id.as_str())
+                .collect::<Vec<_>>(),
             vec!["a-earlier", "z-later"]
         );
     }
