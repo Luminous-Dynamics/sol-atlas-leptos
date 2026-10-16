@@ -2,7 +2,7 @@
 
 **Status:** benchmark protocol and proposed targets; no performance result has yet been measured or claimed.  
 **Contract version:** v0.1  
-**Scope:** evidence validation, qualitative dependency groups, intervention comparison, common-cause overlap, uncertainty-bounded service-function adequacy, and network max-flow/min-cut composition in `sol-atlas-core`. The timing harness measures four computational surfaces; its targets remain unmeasured until executed on a named runner.
+**Scope:** evidence validation, qualitative dependency groups, intervention comparison, common-cause overlap, uncertainty-bounded service-function adequacy, and network max-flow/min-cut composition in `sol-atlas-core`. The timing harness measures five computational surfaces; its targets remain unmeasured until executed on a named runner.
 
 ## Principles
 
@@ -39,6 +39,10 @@ Targets apply to a named reference runner, release profile, warmed process, one 
 | Network flow, small | 100 networks / 300 directed links / 400 observed capacity-and-demand records: p95 <= 10 ms | Every flow and minimum cut matches its synthetic oracle |
 | Network flow, medium | 1,000 networks / 3,000 links / 4,000 observed records: p95 <= 100 ms | Batch evidence index built once; deterministic result ordering |
 | Network flow, large | 10,000 networks / 30,000 links / 40,000 observed records: p95 <= 1,000 ms | No missing scenarios; topology-incomplete networks remain indeterminate; all results match the expected bottleneck oracle |
+| Network-intervention correctness | 100% of golden interventions match baseline/candidate flow, min-cut, delta and effect oracles | A model delta does not claim physical work or causal impact; incomplete topology never yields a service-wide effect |
+| Network intervention, small | 100 plans / 100 networks / 300 links: p95 <= 25 ms | Each plan changes explicit assumptions only; exact baseline/candidate result bytes match the golden batch oracle |
+| Network intervention, medium | 1,000 plans / 1,000 networks / 3,000 links: p95 <= 200 ms | Evidence corpus indexed once per batch; stable ordering by (scenario ID, plan ID) |
+| Network intervention, large | 10,000 plans / 10,000 networks / 30,000 links: p95 <= 2,000 ms | No dropped plans; candidate overrides remove superseded capacity/availability evidence IDs; exact synthetic flow deltas match oracle |
 | Peak resident memory | <= 512 MiB for the large fixture | Measure with an OS process monitor; the Rust harness does not measure RSS itself |
 | Reconciliation safety | Every economic prototype keeps physical quantities, obligations and financial settlement separately reconcilable | No single synthetic “value” or reputation score may replace ledger-level checks |
 | Spatial interoperability | 100% of applicable mandatory tests in the selected official OGC conformance suite before making a conformance claim | Only applies when the corresponding spatial API adapter is implemented |
@@ -55,7 +59,7 @@ SEI_BENCH_SAMPLES=100 \
 cargo bench --bench spatial_economic_intervention
 ```
 
-The harness emits one JSON line for each workload size (100, 1,000 and 10,000 groups/services/networks). Each line includes group/edge/evidence counts; p50/p95/max latency for intervention comparison, common-cause assessment/overlap, batch functional adequacy and batch network flow/min-cut; expected outcome counts; and serialized result sizes. Each measured run is checked against an untimed serialized reference and synthetic correctness oracle. The functional-adequacy and network-flow timings validate a batch of observed capacity/demand records and index the shared corpus once. The network fixture is a series bottleneck feeding two parallel routes; it asserts the expected max flow, min cut and degraded state for every network. Unit tests also compare 64 small deterministic directed networks against an independent exhaustive min-cut oracle and exercise a 10,000-link chain to guard against recursive call-stack limits. Output serialization is checked outside timing. The harness does not claim that timing targets passed. Use an external process monitor (for example `/usr/bin/time -v`) to measure peak RSS, and archive the stdout with the commit SHA and environment manifest.
+The harness emits one JSON line for each workload size (100, 1,000 and 10,000 groups/services/networks). Each line includes group/edge/evidence counts; p50/p95/max latency for intervention comparison, common-cause assessment/overlap, batch functional adequacy, batch network flow/min-cut, and batch network-intervention comparisons; expected outcome counts; and serialized result sizes. Each measured run is checked against an untimed serialized reference and synthetic correctness oracle. The functional-adequacy and network-flow timings validate a batch of observed capacity/demand records and index the shared corpus once. Network-intervention timing compares each baseline/candidate pair while reusing the same shared evidence index for the whole request batch. The network fixture is a series bottleneck feeding two parallel routes; it asserts the expected max flow, min cut and degraded state for every network. Unit tests also compare 64 small deterministic directed networks against an independent exhaustive min-cut oracle and exercise a 10,000-link chain to guard against recursive call-stack limits. Output serialization is checked outside timing. The harness does not claim that timing targets passed. Use an external process monitor (for example `/usr/bin/time -v`) to measure peak RSS, and archive the stdout with the commit SHA and environment manifest.
 
 ## Pilot impact gates (separate from synthetic performance)
 
