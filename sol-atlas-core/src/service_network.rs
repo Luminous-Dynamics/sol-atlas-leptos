@@ -261,6 +261,8 @@ fn assess_service_capacity_network_indexed(
         &mut errors,
     );
 
+    let mut ordered_sources = scenario.source_entity_ids.clone();
+    ordered_sources.sort();
     let mut source_ids = BTreeSet::new();
     for source in &scenario.source_entity_ids {
         if source.trim().is_empty() {
@@ -313,7 +315,7 @@ fn assess_service_capacity_network_indexed(
     all_links.sort_by(|left, right| left.id.cmp(&right.id));
     let mut node_set = BTreeSet::new();
     node_set.insert(scenario.service_entity_id.clone());
-    node_set.extend(scenario.source_entity_ids.iter().cloned());
+    node_set.extend(ordered_sources.iter().cloned());
     for link in &all_links {
         node_set.insert(link.from_entity_id.clone());
         node_set.insert(link.to_entity_id.clone());
@@ -387,7 +389,7 @@ fn assess_service_capacity_network_indexed(
             ServiceCapacityNetworkValidationError::NonFiniteDerivedValue,
         ]));
     }
-    for source in &scenario.source_entity_ids {
+    for source in &ordered_sources {
         let source_index = node_index[source.as_str()];
         lower_edges.push(FlowInputEdge {
             from: super_source,
@@ -1070,6 +1072,21 @@ mod tests {
             best = best.min(cut_capacity);
         }
         best
+    }
+
+    #[test]
+    fn source_and_link_input_order_does_not_change_the_assessment() {
+        let mut input = scenario(vec![
+            link("z-route", "source:other-reservoir", "service:irrigation", 3.0, None, NetworkLinkAvailability::Active),
+            link("a-route", "source:reservoir", "service:irrigation", 4.0, None, NetworkLinkAvailability::Active),
+        ], 10.0, None);
+        input.source_entity_ids.push("source:other-reservoir".into());
+        let baseline = assess_service_capacity_network(&input, &[]).unwrap();
+
+        input.source_entity_ids.reverse();
+        input.links.reverse();
+        let reordered = assess_service_capacity_network(&input, &[]).unwrap();
+        assert_eq!(baseline, reordered);
     }
 
     #[test]
