@@ -29,6 +29,19 @@ pub enum QualityState {
     Rejected,
 }
 
+/// Distinguishes empirical records from modeled values and synthetic observations.
+/// This is an epistemic classification, not a quality score or truth judgment.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ObservationOrigin {
+    InstrumentMeasurement,
+    CalibratedInstrumentProduct,
+    ProcessedObservationalObservable,
+    PaleomagneticProxy,
+    PublishedReferenceModelOutput,
+    SyntheticForwardModelObservation,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SeismicPhase {
@@ -391,6 +404,7 @@ impl ObservationValue {
 pub struct ObservationRecord {
     pub schema_version: u16,
     pub id: String,
+    pub origin: ObservationOrigin,
     /// Time support of the physical phenomenon represented by this observation,
     /// which can differ from when a sample was measured or a record was published.
     pub time: TimeWindow,
@@ -414,6 +428,22 @@ impl ObservationRecord {
         require_non_empty(&self.id, "id")?;
         require_non_empty(&self.platform_or_station_id, "platform_or_station_id")?;
         self.time.validate()?;
+        match self.origin {
+            ObservationOrigin::InstrumentMeasurement
+            | ObservationOrigin::CalibratedInstrumentProduct
+            | ObservationOrigin::ProcessedObservationalObservable => {
+                if !matches!(self.time, TimeWindow::AbsoluteUnix { .. }) {
+                    return Err(ValidationError::OriginTimeMismatch);
+                }
+            }
+            ObservationOrigin::PaleomagneticProxy => {
+                if !matches!(self.time, TimeWindow::AgeBeforePresent { .. }) {
+                    return Err(ValidationError::OriginTimeMismatch);
+                }
+            }
+            ObservationOrigin::PublishedReferenceModelOutput
+            | ObservationOrigin::SyntheticForwardModelObservation => {}
+        }
         if let Some(position) = &self.position {
             position.validate()?;
         }
@@ -598,6 +628,7 @@ pub enum ValidationError {
     InvalidModelTime,
     InvalidAgeSupport,
     InvalidAgeDistribution,
+    OriginTimeMismatch,
     InvalidLatitude,
     InvalidLongitude,
     InvalidAltitude,
@@ -662,6 +693,7 @@ mod tests {
         ObservationRecord {
             schema_version: EARTH_INTERIOR_SCHEMA_VERSION,
             id: "obs-0001".into(),
+            origin: ObservationOrigin::CalibratedInstrumentProduct,
             time: TimeWindow::AbsoluteUnix {
                 start_unix_ns: 1_700_000_000_000_000_000,
                 end_unix_ns: 1_700_000_000_000_000_000,
@@ -721,6 +753,32 @@ mod tests {
             end_unix_ns: 9,
         };
         assert_eq!(time.validate(), Err(ValidationError::InvalidTimeWindow));
+    }
+
+    #[test]
+    fn observation_origin_must_match_its_time_basis() {
+        let mut observation = magnetic_observation();
+        observation.origin = ObservationOrigin::PublishedReferenceModelOutput;
+        observation.time = TimeWindow::ModelRelative {
+            start_seconds: 0.0,
+            end_seconds: 1_000.0,
+            model_epoch_id: "published-model-epoch".into(),
+        };
+        assert_eq!(observation.validate(), Ok(()));
+
+        observation.origin = ObservationOrigin::PaleomagneticProxy;
+        assert_eq!(
+            observation.validate(),
+            Err(ValidationError::OriginTimeMismatch)
+        );
+        observation.time = TimeWindow::AgeBeforePresent {
+            youngest_years_before_present: 300.0,
+            oldest_years_before_present: 400.0,
+            reference_epoch: "BP1950".into(),
+            age_model_id: None,
+            age_distribution: None,
+        };
+        assert_eq!(observation.validate(), Ok(()));
     }
 
     #[test]
