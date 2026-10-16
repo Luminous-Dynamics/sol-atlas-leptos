@@ -432,12 +432,12 @@ impl ObservationRecord {
             ObservationOrigin::InstrumentMeasurement
             | ObservationOrigin::CalibratedInstrumentProduct
             | ObservationOrigin::ProcessedObservationalObservable => {
-                if !matches!(self.time, TimeWindow::AbsoluteUnix { .. }) {
+                if !matches!(&self.time, TimeWindow::AbsoluteUnix { .. }) {
                     return Err(ValidationError::OriginTimeMismatch);
                 }
             }
             ObservationOrigin::PaleomagneticProxy => {
-                if !matches!(self.time, TimeWindow::AgeBeforePresent { .. }) {
+                if !matches!(&self.time, TimeWindow::AgeBeforePresent { .. }) {
                     return Err(ValidationError::OriginTimeMismatch);
                 }
             }
