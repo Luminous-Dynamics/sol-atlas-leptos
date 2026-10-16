@@ -188,7 +188,7 @@ pub fn compare_service_network_portfolio(
         .iter()
         .flat_map(|scenario| request.plans.iter().map(move |plan| {
             ServiceNetworkInterventionRequest {
-                scenario: (*scenario).clone(),
+                scenario: (**scenario).clone(),
                 plan: plan.clone(),
             }
         }))
