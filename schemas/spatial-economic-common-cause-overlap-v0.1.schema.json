@@ -47,7 +47,7 @@
         "as_of",
         "domain_state",
         "logic",
-        "domain_evidence_qualified",
+        "domain_evidence_admissible",
         "shared_relation_ids",
         "shared_prerequisite_entity_ids",
         "currently_exposed_relation_ids",
@@ -62,7 +62,7 @@
         },
         "domain_state": { "enum": ["active", "inactive", "unknown"] },
         "logic": { "$ref": "#/$defs/logic" },
-        "domain_evidence_qualified": { "type": "boolean" },
+        "domain_evidence_admissible": { "type": "boolean" },
         "shared_relation_ids": {
           "type": "array",
           "uniqueItems": true,
