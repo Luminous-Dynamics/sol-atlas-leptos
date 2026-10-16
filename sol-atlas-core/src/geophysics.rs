@@ -443,6 +443,7 @@ impl ObservationRecord {
                 }
             }
             ObservationOrigin::PublishedReferenceModelOutput
+            | ObservationOrigin::SimulationStateOutput
             | ObservationOrigin::SyntheticForwardModelObservation => {}
         }
         if let Some(position) = &self.position {
@@ -759,12 +760,15 @@ mod tests {
     #[test]
     fn observation_origin_must_match_its_time_basis() {
         let mut observation = magnetic_observation();
-        observation.origin = ObservationOrigin::PublishedReferenceModelOutput;
+        observation.origin = ObservationOrigin::SimulationStateOutput;
         observation.time = TimeWindow::ModelRelative {
             start_seconds: 0.0,
             end_seconds: 1_000.0,
-            model_epoch_id: "published-model-epoch".into(),
+            model_epoch_id: "aubert-case-C-t0".into(),
         };
+        assert_eq!(observation.validate(), Ok(()));
+
+        observation.origin = ObservationOrigin::PublishedReferenceModelOutput;
         assert_eq!(observation.validate(), Ok(()));
 
         observation.origin = ObservationOrigin::PaleomagneticProxy;
