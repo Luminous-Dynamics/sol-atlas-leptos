@@ -2,7 +2,7 @@
 
 **Status:** benchmark protocol and proposed targets; no performance result has yet been measured or claimed.  
 **Contract version:** v0.1  
-**Scope:** evidence validation, qualitative dependency-group evaluation, baseline-versus-intervention comparisons, and common-cause exposure correctness in `sol-atlas-core`. The existing timing harness measures intervention comparisons only; common-cause throughput is not yet measured.
+**Scope:** evidence validation, qualitative dependency groups, intervention comparison, common-cause overlap, and uncertainty-bounded service-function adequacy in `sol-atlas-core`. The timing harness measures all three computational surfaces; its targets remain unmeasured until executed on a named runner.
 
 ## Principles
 
@@ -19,11 +19,20 @@ Targets apply to a named reference runner, release profile, warmed process, one 
 | Gate | Proposed target | Fail-closed / interpretation |
 |---|---:|---|
 | Outcome classification | 100% of the nine qualitative baseline/after state pairs match the documented transition table | No ambiguous pair is silently mapped to recovery or degradation |
-| Evidence negative controls | 0 unsafe positive conclusions across proposed, disputed, superseded, withdrawn, malformed-time, expired, unknown-ID, duplicate-ID, wrong-kind and subject-mismatch fixtures | Any false available/satisfied conclusion blocks release |\n| Common-cause exposure safety | 100% of active/inactive/unknown, in-window/out-of-window and blocked-evidence cases match the contract; 0 blocked domains reported as exposed or not-triggered | Exposure is not an asset failure; out-of-scope is not safe; common-cause analysis must not mutate operational states |
+| Evidence negative controls | 0 unsafe positive conclusions across proposed, disputed, superseded, withdrawn, malformed-time, expired, unknown-ID, duplicate-ID, wrong-kind and subject-mismatch fixtures | Any false available/satisfied conclusion blocks release |
+| Common-cause exposure safety | 100% of active/inactive/unknown, in-window/out-of-window and blocked-evidence cases match the contract; 0 blocked domains reported as exposed or not-triggered | Exposure is not an asset failure; out-of-scope is not safe; common-cause analysis must not mutate operational states |
+| Functional-adequacy correctness | 100% of golden scenarios produce the expected adequate/degraded/unavailable/indeterminate class and capacity/coverage bounds | Unknown remains indeterminate; observed values must exactly match cited evidence; mismatched units are rejected |
+| Functional-adequacy negative controls | 0 accepted cases with duplicate evidence IDs, wrong entity, quantity/unit/uncertainty mismatch, expired evidence or unsupported observed basis | Reject conflicting evidence instead of averaging or silently preferring one source |
 | Determinism | 100/100 repeated runs produce byte-identical canonicalized result data for the same inputs | Runtime measurements may vary; output data must not |
 | Small comparison | 100 groups / 200 dependency edges / 200 evidence records: p95 <= 50 ms | Initial target; no target is claimed until measured |
 | Medium comparison | 1,000 groups / 2,000 edges / 2,000 evidence records: p95 <= 250 ms | Same runner and binary as small comparison |
-| Large comparison | 10,000 groups / 20,000 edges / 20,000 intervention evidence records: p95 <= 2,000 ms | No dropped groups; recovered count must match fixture oracle |\n| Common-cause overlap, small | 100 groups with two alternatives each: p95 <= 5 ms for domain assessment + overlap correlation | Exactly 100 overlap pairs; every pair matches the fixture's shared-feeder oracle |\n| Common-cause overlap, medium | 1,000 groups with two alternatives each: p95 <= 50 ms | Exactly 1,000 overlap pairs; output bytes stable against reference |\n| Common-cause overlap, large | 10,000 groups with two alternatives each: p95 <= 500 ms | Exactly 10,000 overlap pairs; no dropped group, wrong-time join or false warning |
+| Large comparison | 10,000 groups / 20,000 edges / 20,000 intervention evidence records: p95 <= 2,000 ms | No dropped groups; recovered count must match fixture oracle |
+| Common-cause overlap, small | 100 groups with two alternatives each: p95 <= 5 ms for domain assessment + overlap correlation | Exactly 100 overlap pairs; every pair matches the fixture's shared-feeder oracle |
+| Common-cause overlap, medium | 1,000 groups with two alternatives each: p95 <= 50 ms | Exactly 1,000 overlap pairs; output bytes stable against reference |
+| Common-cause overlap, large | 10,000 groups with two alternatives each: p95 <= 500 ms | Exactly 10,000 overlap pairs; no dropped group, wrong-time join or false warning |
+| Functional adequacy, small | 100 services / 200 observed capacity-and-demand records: p95 <= 5 ms | All 100 results match the golden degraded-capacity oracle |
+| Functional adequacy, medium | 1,000 services / 2,000 observed records: p95 <= 25 ms | Evidence corpus validated once; output order stable by scenario ID |
+| Functional adequacy, large | 10,000 services / 20,000 observed records: p95 <= 250 ms | No missing assessments; every capacity/demand measurement preserves unit, uncertainty and evidence trace |
 | Peak resident memory | <= 512 MiB for the large fixture | Measure with an OS process monitor; the Rust harness does not measure RSS itself |
 | Reconciliation safety | Every economic prototype keeps physical quantities, obligations and financial settlement separately reconcilable | No single synthetic “value” or reputation score may replace ledger-level checks |
 | Spatial interoperability | 100% of applicable mandatory tests in the selected official OGC conformance suite before making a conformance claim | Only applies when the corresponding spatial API adapter is implemented |
@@ -40,7 +49,7 @@ SEI_BENCH_SAMPLES=100 \
 cargo bench --bench spatial_economic_intervention
 ```
 
-The harness emits one JSON line for each workload size (100, 1,000 and 10,000 groups). Each line includes group/edge/evidence counts, warm-up/sample counts, intervention-comparison p50/p95/max latency, recovered-group count and serialized result size, plus common-cause assessment/overlap p50/p95/max latency and overlap-pair count. It compares each run's serialized intervention and overlap output bytes with untimed reference output and asserts both correctness oracles. The common-cause timing includes validation of its separately reported common-cause evidence record and correlation against precomputed intervention group assessments; result serialization is checked outside the timed region. The harness does not claim that timing targets passed. Use an external process monitor (for example `/usr/bin/time -v`) to measure peak RSS, and archive the stdout with the commit SHA and environment manifest.
+The harness emits one JSON line for each workload size (100, 1,000 and 10,000 groups/services). Each line includes group/edge/evidence counts; p50/p95/max latency for intervention comparison, common-cause assessment/overlap, and batch functional adequacy; expected outcome counts; and serialized result sizes. Each measured run is checked against an untimed serialized reference and synthetic correctness oracle. The common-cause timing includes validation of its separately reported evidence record and correlation against precomputed intervention group assessments. The functional-adequacy timing validates a batch of observed capacity and demand records, indexes the shared corpus once, then returns deterministic scenario-ID ordering. Output serialization is checked outside timing. The harness does not claim that timing targets passed. Use an external process monitor (for example `/usr/bin/time -v`) to measure peak RSS, and archive the stdout with the commit SHA and environment manifest.
 
 ## Pilot impact gates (separate from synthetic performance)
 
