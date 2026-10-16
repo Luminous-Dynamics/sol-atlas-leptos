@@ -122,7 +122,7 @@ fn utc_epoch_seconds(timestamp: &str) -> Option<i64> {
     let second = number(17..19);
 
     // Gregorian civil date to days since 1970-01-01 (integer arithmetic only).
-    let year = year_raw - i64::from(month <= 2);
+    let year = year_raw - if month <= 2 { 1 } else { 0 };
     let era = if year >= 0 { year } else { year - 399 } / 400;
     let year_of_era = year - era * 400;
     let shifted_month = month + if month > 2 { -3 } else { 9 };
@@ -483,20 +483,33 @@ mod tests {
 
     #[test]
     fn initial_adequate_or_indeterminate_state_does_not_claim_recovery() {
-        for capacity in [8.0, 0.0] {
-            let result = assess_service_recovery_trajectory(
-                &trajectory(vec![
-                    sample("sample-0", START, capacity, 8.0),
-                    sample("sample-1", "2026-10-16T10:00:10Z", 8.0, 8.0),
-                ]),
-                &[],
-            );
-            assert!(matches!(
-                result,
-                Err(ServiceRecoveryTrajectoryError::InvalidInput(errors))
-                    if errors.contains(&ServiceRecoveryTrajectoryValidationError::InitialDisruptionNotEstablished)
-            ));
-        }
+        let adequate = assess_service_recovery_trajectory(
+            &trajectory(vec![
+                sample("sample-0", START, 8.0, 8.0),
+                sample("sample-1", "2026-10-16T10:00:10Z", 8.0, 8.0),
+            ]),
+            &[],
+        );
+        assert!(matches!(
+            adequate,
+            Err(ServiceRecoveryTrajectoryError::InvalidInput(errors))
+                if errors.contains(&ServiceRecoveryTrajectoryValidationError::InitialDisruptionNotEstablished)
+        ));
+
+        let mut indeterminate_sample = sample("sample-0", START, 7.0, 8.0);
+        indeterminate_sample.available_capacity.quantity.uncertainty_abs = Some(2.0);
+        let indeterminate = assess_service_recovery_trajectory(
+            &trajectory(vec![
+                indeterminate_sample,
+                sample("sample-1", "2026-10-16T10:00:10Z", 8.0, 8.0),
+            ]),
+            &[],
+        );
+        assert!(matches!(
+            indeterminate,
+            Err(ServiceRecoveryTrajectoryError::InvalidInput(errors))
+                if errors.contains(&ServiceRecoveryTrajectoryValidationError::InitialDisruptionNotEstablished)
+        ));
     }
 
     #[test]
