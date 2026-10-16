@@ -9,6 +9,18 @@
 
 use serde::{Deserialize, Serialize};
 
+/// Stable scientific identity for one local-linearization analysis. The manifest
+/// must resolve these references to immutable, versioned inputs; this module does
+/// not authenticate external identifiers or content digests.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ObservabilityContext {
+    pub analysis_id: String,
+    pub model_id: String,
+    pub model_version: String,
+    pub linearization_id: String,
+    pub input_manifest_id: String,
+}
+
 /// A linearized map from dimensioned parameters to predicted observations.
 ///
 /// jacobian[i][j] = d(predicted observation i) / d(parameter j).
@@ -18,6 +30,7 @@ use serde::{Deserialize, Serialize};
 /// can mislead and therefore remain part of the report.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LinearizedObservationOperator {
+    pub context: ObservabilityContext,
     pub observation_ids: Vec<String>,
     pub parameter_ids: Vec<String>,
     pub jacobian: Vec<Vec<f64>>,
@@ -32,6 +45,9 @@ pub struct LinearizedObservationOperator {
 /// result applies only to the supplied local Jacobian and declared scaling.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ObservabilityReport {
+    pub context: ObservabilityContext,
+    pub absolute_tolerance: f64,
+    pub relative_tolerance: f64,
     pub observation_count: usize,
     pub parameter_ids: Vec<String>,
     pub parameter_scales: Vec<f64>,
@@ -132,6 +148,9 @@ impl LinearizedObservationOperator {
         };
 
         Ok(ObservabilityReport {
+            context: self.context.clone(),
+            absolute_tolerance,
+            relative_tolerance,
             observation_count,
             parameter_ids: self.parameter_ids.clone(),
             parameter_scales: self.parameter_scales.clone(),
@@ -173,6 +192,7 @@ impl LinearizedObservationOperator {
             return Err(ObservabilityError::InvalidTolerance);
         }
 
+        validate_context(&self.context)?;
         validate_identifiers(&self.observation_ids, "observation_ids")?;
         validate_identifiers(&self.parameter_ids, "parameter_ids")?;
 
@@ -196,6 +216,21 @@ impl LinearizedObservationOperator {
         }
         Ok(())
     }
+}
+
+fn validate_context(context: &ObservabilityContext) -> Result<(), ObservabilityError> {
+    for (field, value) in [
+        ("context.analysis_id", &context.analysis_id),
+        ("context.model_id", &context.model_id),
+        ("context.model_version", &context.model_version),
+        ("context.linearization_id", &context.linearization_id),
+        ("context.input_manifest_id", &context.input_manifest_id),
+    ] {
+        if value.trim().is_empty() {
+            return Err(ObservabilityError::EmptyIdentifier(field));
+        }
+    }
+    Ok(())
 }
 
 fn validate_identifiers(
@@ -325,6 +360,13 @@ mod tests {
             .map(|index| format!("parameter-{index}"))
             .collect();
         LinearizedObservationOperator {
+            context: ObservabilityContext {
+                analysis_id: "analysis-test-001".into(),
+                model_id: "synthetic-linear-model".into(),
+                model_version: "1.0.0".into(),
+                linearization_id: "jacobian-fixture-001".into(),
+                input_manifest_id: "fixture-manifest-001".into(),
+            },
             observation_scales: vec![1.0; observation_ids.len()],
             parameter_scales: vec![1.0; parameter_count],
             observation_ids,
@@ -404,6 +446,27 @@ mod tests {
         assert_eq!(
             op.analyze(0.0, 1e-10),
             Err(ObservabilityError::InvalidTolerance)
+        );
+    }
+
+    #[test]
+    fn report_preserves_context_and_tolerances() {
+        let mut op = operator(vec![vec![1.0]]);
+        op.context.analysis_id = "survey-window-a".into();
+        op.context.input_manifest_id = "manifest-sha256-abc123".into();
+        let report = op.analyze(1e-9, 1e-7).unwrap();
+        assert_eq!(report.context, op.context);
+        assert_eq!(report.absolute_tolerance, 1e-9);
+        assert_eq!(report.relative_tolerance, 1e-7);
+    }
+
+    #[test]
+    fn rejects_missing_experiment_identity() {
+        let mut op = operator(vec![vec![1.0]]);
+        op.context.linearization_id = "  ".into();
+        assert_eq!(
+            op.analyze(1e-12, 1e-10),
+            Err(ObservabilityError::EmptyIdentifier("context.linearization_id"))
         );
     }
 
