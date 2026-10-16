@@ -4,8 +4,7 @@
 
 //! Reproducible, dependency-free microbenchmark for spatial-economic intervention
 //! comparison. Run with:
-//! SEI_BENCH_SAMPLES=100 cargo bench --manifest-path sol-atlas-core/Cargo.toml \
-//!   --bench spatial_economic_intervention
+//! SEI_BENCH_SAMPLES=100 cargo bench --bench spatial_economic_intervention
 //!
 //! This harness reports observations; it does not assert that targets have passed.
 

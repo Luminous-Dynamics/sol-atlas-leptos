@@ -61,3 +61,8 @@ opt-level = "z"
 lto = true
 codegen-units = 1
 strip = true
+
+
+[[bench]]
+name = "spatial_economic_intervention"
+harness = false
