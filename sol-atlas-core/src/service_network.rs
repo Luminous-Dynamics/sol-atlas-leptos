@@ -97,9 +97,11 @@ pub struct ServiceCapacityNetworkAssessment {
     /// Max flow in the declared graph with active plus unknown links and upper capacities.
     /// These are service-wide bounds only when topology_completeness is Complete.
     pub optimistic_available_capacity: f64,
-    /// Absent when topology completeness is not established or demand has a zero bound.
+    /// Omitted if topology completeness is not established or demand has a zero upper bound.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub coverage_lower_bound: Option<f64>,
-    /// Absent when topology completeness is not established or demand lower bound is zero.
+    /// Omitted if topology completeness is not established or demand lower bound is zero.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub coverage_upper_bound: Option<f64>,
     /// Min-cut link IDs for the declared conservative graph, not necessarily service-wide
     /// when topology completeness is Partial or Unknown; sorted deterministically.
