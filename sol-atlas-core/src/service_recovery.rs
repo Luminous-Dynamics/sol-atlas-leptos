@@ -481,6 +481,40 @@ mod tests {
     }
 
     #[test]
+    fn elapsed_seconds_are_correct_across_calendar_boundaries() {
+        let trajectory = ServiceRecoveryTrajectory {
+            schema_version: SERVICE_RECOVERY_TRAJECTORY_SCHEMA_VERSION.into(),
+            id: "trajectory:year-boundary".into(),
+            service_entity_id: "service:water".into(),
+            disruption_started_at: "2026-12-31T23:59:59Z".into(),
+            max_sample_gap_seconds: 1,
+            snapshots: vec![
+                ServiceFunctionScenario {
+                    schema_version: SERVICE_FUNCTION_SCHEMA_VERSION.into(),
+                    id: "before-year-boundary".into(),
+                    as_of: "2026-12-31T23:59:59Z".into(),
+                    service_entity_id: "service:water".into(),
+                    available_capacity: measurement("meter:water-output", 4.0, "m3/h"),
+                    required_capacity: measurement("service:water", 8.0, "m3/h"),
+                },
+                ServiceFunctionScenario {
+                    schema_version: SERVICE_FUNCTION_SCHEMA_VERSION.into(),
+                    id: "after-year-boundary".into(),
+                    as_of: "2027-01-01T00:00:00Z".into(),
+                    service_entity_id: "service:water".into(),
+                    available_capacity: measurement("meter:water-output", 8.0, "m3/h"),
+                    required_capacity: measurement("service:water", 8.0, "m3/h"),
+                },
+            ],
+        };
+        let result = assess_service_recovery_trajectory(&trajectory, &[]).unwrap();
+        assert_eq!(result.maximum_observed_sample_gap_seconds, 1);
+        assert_eq!(result.first_adequate_sample_elapsed_seconds, Some(1));
+        assert_eq!(result.normalized_deficit_seconds_lower_bound, 0.25);
+        assert_eq!(result.normalized_deficit_seconds_upper_bound, 0.25);
+    }
+
+    #[test]
     fn excessive_sampling_gap_fails_closed() {
         let result = assess_service_recovery_trajectory(
             &trajectory(vec![
