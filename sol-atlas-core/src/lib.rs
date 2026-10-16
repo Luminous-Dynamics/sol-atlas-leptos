@@ -36,3 +36,4 @@ pub mod water_measurement;
 pub mod water_scenario_corpus;
 pub mod water_localization_benchmark;
 pub mod water_sensor_placement;
+pub mod water_sensor_placement_statistics;
