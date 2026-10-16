@@ -453,13 +453,17 @@ pub fn evaluate_robust_measurement_ensemble(
         return Err("schema_version must be water-measurement-ensemble/v0.1".to_owned());
     }
     if input.classification != "synthetic_illustrative" {
-        return Err("v0.1 ensemble only accepts classification=synthetic_illustrative".to_owned());
+        return Err(
+            "v0.1 ensemble only accepts classification=synthetic_illustrative".to_owned(),
+        );
     }
     if !valid_identifier(&input.ensemble_id) {
         return Err("ensemble_id is missing or invalid".to_owned());
     }
     if input.models.len() < 2 {
-        return Err("at least two probability models are required for robustness evaluation".to_owned());
+        return Err(
+            "at least two probability models are required for robustness evaluation".to_owned(),
+        );
     }
     if input.assumptions.is_empty() || input.assumptions.iter().any(|s| s.trim().is_empty()) {
         return Err("at least one non-empty ensemble assumption is required".to_owned());
@@ -469,7 +473,10 @@ pub fn evaluate_robust_measurement_ensemble(
     let mut model_evaluations = Vec::with_capacity(input.models.len());
     for model in &input.models {
         if !model_ids.insert(&model.model_id) {
-            return Err(format!("ensemble contains duplicate model_id {:?}", model.model_id));
+            return Err(format!(
+                "ensemble contains duplicate model_id {:?}",
+                model.model_id
+            ));
         }
         model_evaluations.push(evaluate_measurement_model(model)?);
     }
@@ -477,6 +484,7 @@ pub fn evaluate_robust_measurement_ensemble(
     let reference = &input.models[0];
     let mut reference_actions: Vec<&MeasurementActionInput> = reference.actions.iter().collect();
     reference_actions.sort_by(|left, right| left.action_id.cmp(&right.action_id));
+
     for model in input.models.iter().skip(1) {
         if model.hypothesis_ids != reference.hypothesis_ids
             || model.decision_ids != reference.decision_ids
@@ -496,6 +504,7 @@ pub fn evaluate_robust_measurement_ensemble(
                 model.model_id
             ));
         }
+
         for expected_action in &reference_actions {
             let actual = model
                 .actions
@@ -507,6 +516,7 @@ pub fn evaluate_robust_measurement_ensemble(
                         model.model_id, expected_action.action_id
                     )
                 })?;
+
             if actual.outcome_ids != expected_action.outcome_ids {
                 return Err(format!(
                     "model {} action {} changes outcome IDs/order",
@@ -526,6 +536,7 @@ pub fn evaluate_robust_measurement_ensemble(
     for reference_action in reference_actions {
         let mut gains = Vec::with_capacity(model_evaluations.len());
         let mut values = Vec::with_capacity(model_evaluations.len());
+
         for (model, evaluation) in input.models.iter().zip(&model_evaluations) {
             let result = evaluation
                 .actions
@@ -555,6 +566,7 @@ pub fn evaluate_robust_measurement_ensemble(
                 reference_action.action_id
             ));
         }
+
         let (minimum_net_value, maximum_net_value) =
             if reference.cost_comparability == "same_declared_unit" {
                 let minimum_net = minimum_value - reference_action.acquisition_cost;
@@ -589,12 +601,26 @@ pub fn evaluate_robust_measurement_ensemble(
             let best = actions.iter().max_by(|left, right| {
                 left.minimum_net_value_in_loss_units
                     .unwrap_or(f64::NEG_INFINITY)
-                    .total_cmp(&right.minimum_net_value_in_loss_units.unwrap_or(f64::NEG_INFINITY))
+                    .total_cmp(
+                        &right
+                            .minimum_net_value_in_loss_units
+                            .unwrap_or(f64::NEG_INFINITY),
+                    )
                     .then_with(|| right.action_id.cmp(&left.action_id))
             });
+
             match best {
-                Some(best) if best.minimum_net_value_in_loss_units.unwrap_or(f64::NEG_INFINITY) > 0.0 =>
-                    ("positive_worst_case_net_value_candidate", Some(best.action_id.clone())),
+                Some(best)
+                    if best
+                        .minimum_net_value_in_loss_units
+                        .unwrap_or(f64::NEG_INFINITY)
+                        > 0.0 =>
+                {
+                    (
+                        "positive_worst_case_net_value_candidate",
+                        Some(best.action_id.clone()),
+                    )
+                }
                 Some(_) => ("no_positive_worst_case_net_value_candidate", None),
                 None => ("no_actions", None),
             }
@@ -661,9 +687,11 @@ mod tests {
         let optimistic = toy_model();
         let mut shifted = toy_model();
         shifted.model_id = "toy-shifted-model".to_owned();
+
         // Under the shifted model, the action marketed as "perfect" is
-        // actually uninformative: the observed outcome no longer distinguishes hypotheses.
+        // actually uninformative: the outcome no longer distinguishes hypotheses.
         shifted.actions[0].likelihoods = vec![vec![0.5, 0.5], vec![0.5, 0.5]];
+
         RobustMeasurementEnsembleInput {
             schema_version: "water-measurement-ensemble/v0.1".to_owned(),
             classification: "synthetic_illustrative".to_owned(),
@@ -685,11 +713,21 @@ mod tests {
             .iter()
             .find(|result| result.action_id == "perfect_sensor")
             .expect("perfect action result");
-        assert!((perfect.maximum_expected_information_gain_bits - 1.0).abs() < NUMERIC_TOLERANCE);
+
+        assert!(
+            (perfect.maximum_expected_information_gain_bits - 1.0).abs()
+                < NUMERIC_TOLERANCE
+        );
         assert!(perfect.minimum_expected_information_gain_bits.abs() < NUMERIC_TOLERANCE);
-        assert!((perfect.maximum_expected_value_of_sample_information - 2.0).abs() < NUMERIC_TOLERANCE);
+        assert!(
+            (perfect.maximum_expected_value_of_sample_information - 2.0).abs()
+                < NUMERIC_TOLERANCE
+        );
         assert!(perfect.minimum_expected_value_of_sample_information.abs() < NUMERIC_TOLERANCE);
-        assert!((perfect.minimum_net_value_in_loss_units.unwrap() + 1.0).abs() < NUMERIC_TOLERANCE);
+        assert!(
+            (perfect.minimum_net_value_in_loss_units.unwrap() + 1.0).abs()
+                < NUMERIC_TOLERANCE
+        );
         assert_eq!(evaluation.selected_measurement_action, None);
         assert_eq!(
             evaluation.selection_state,
@@ -727,9 +765,13 @@ mod tests {
             model.cost_comparability = "not_comparable".to_owned();
             model.cost_unit = "hours".to_owned();
         }
+
         let evaluation =
             evaluate_robust_measurement_ensemble(&input).expect("information remains computable");
-        assert_eq!(evaluation.selection_state, "not_rankable_cost_units_incomparable");
+        assert_eq!(
+            evaluation.selection_state,
+            "not_rankable_cost_units_incomparable"
+        );
         assert_eq!(evaluation.selected_measurement_action, None);
         assert!(evaluation.actions.iter().all(|action| {
             action.minimum_net_value_in_loss_units.is_none()
