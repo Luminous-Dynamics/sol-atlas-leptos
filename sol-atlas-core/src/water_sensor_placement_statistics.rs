@@ -558,7 +558,13 @@ mod tests {
         for strategy in strategies {
             for magnitude in [10.0, 25.0] {
                 let predictions: Vec<Value> = (0..4).map(|i| {
-                    let rank = if strategy == "seeded-random" { 1 } else if i == 0 { 1 } else { 4 };
+                    let rank = if strategy == "seeded-random" {
+                        1
+                    } else if i == 0 {
+                        1
+                    } else {
+                        4
+                    };
                     json!({
                         "scenario_id": format!("target-{i}-magnitude-{magnitude}"),
                         "actual_target": format!("target-{i}"),
