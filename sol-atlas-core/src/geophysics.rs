@@ -141,7 +141,7 @@ impl GeodeticPosition {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum EstimateSupport {
-    SurfacePoint { position: GeodeticPosition },
+    GeodeticPoint { position: GeodeticPosition },
     CoreMantleBoundaryPoint {
         latitude_deg: f64,
         longitude_deg: f64,
@@ -153,7 +153,7 @@ pub enum EstimateSupport {
 impl EstimateSupport {
     pub fn validate(&self) -> Result<(), ValidationError> {
         match self {
-            Self::SurfacePoint { position } => position.validate(),
+            Self::GeodeticPoint { position } => position.validate(),
             Self::CoreMantleBoundaryPoint {
                 latitude_deg,
                 longitude_deg,
@@ -434,7 +434,7 @@ impl StateEstimate {
         match (&self.value, &self.spatial_support) {
             (
                 EstimateValue::RadialMagneticFieldNt { .. },
-                EstimateSupport::SurfacePoint { .. }
+                EstimateSupport::GeodeticPoint { .. }
                     | EstimateSupport::CoreMantleBoundaryPoint { .. },
             )
             | (
@@ -711,6 +711,14 @@ mod tests {
             "Distinct toroidal flow components can fit the same secular variation.".into(),
         ];
         assert_eq!(estimate.validate(), Ok(()));
+
+        // A core-boundary flow must never masquerade as a global scalar or
+        // a surface measurement in a renderer or downstream analysis.
+        estimate.spatial_support = EstimateSupport::GlobalScalar;
+        assert_eq!(
+            estimate.validate(),
+            Err(ValidationError::InvalidSpatialSupport)
+        );
     }
 
     #[test]
