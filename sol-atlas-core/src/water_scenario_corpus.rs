@@ -410,7 +410,7 @@ fn validate_plan(
     }
     let mut observation_ids = HashSet::new();
     for node_id in &plan.observation_node_ids {
-        if !valid_identifier(node_id) || !observation_ids.insert(node_id) {
+        if !valid_epanet_identifier(node_id) || !observation_ids.insert(node_id) {
             return Err(format!("invalid or duplicate observation node ID {node_id:?}"));
         }
         if !junction_ids.contains(node_id) {
