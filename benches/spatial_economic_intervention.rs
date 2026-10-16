@@ -32,6 +32,11 @@ use sol_atlas_core::service_network::{
     NetworkLinkAvailability, NetworkTopologyCompleteness, ServiceCapacityNetworkScenario,
     SERVICE_NETWORK_SCHEMA_VERSION,
 };
+use sol_atlas_core::service_network_intervention::{
+    compare_service_network_interventions, NetworkInterventionEffect,
+    NetworkLinkInterventionOverride, ServiceNetworkInterventionPlan,
+    ServiceNetworkInterventionRequest, SERVICE_NETWORK_INTERVENTION_SCHEMA_VERSION,
+};
 use sol_atlas_core::spatial_economic::Quantity;
 use sol_atlas_core::spatial_graph::{DependencyGraph, RelationKind, SpatialRelation};
 use std::collections::BTreeMap;
@@ -68,6 +73,11 @@ struct SampleSummary {
     network_p50_micros: u128,
     network_p95_micros: u128,
     network_max_micros: u128,
+    network_interventions_per_run: usize,
+    network_intervention_result_bytes: usize,
+    network_intervention_p50_micros: u128,
+    network_intervention_p95_micros: u128,
+    network_intervention_max_micros: u128,
 }
 
 fn evidence(id: String, feeder_id: &str) -> EvidenceRecord {
@@ -257,6 +267,41 @@ fn network_fixture(
         });
     }
     (scenarios, records)
+}
+
+fn network_intervention_requests(
+    scenarios: &[ServiceCapacityNetworkScenario],
+) -> Vec<ServiceNetworkInterventionRequest> {
+    scenarios
+        .iter()
+        .map(|scenario| {
+            let suffix = scenario
+                .id
+                .strip_prefix("network-scenario-")
+                .unwrap_or(&scenario.id);
+            let supply_link_id = format!("network-link-{suffix}-supply");
+            let plan = ServiceNetworkInterventionPlan {
+                schema_version: SERVICE_NETWORK_INTERVENTION_SCHEMA_VERSION.into(),
+                id: format!("upgrade-supply-{suffix}"),
+                rationale: "Synthetic counterfactual: raise supply trunk capacity".into(),
+                link_overrides: [(
+                    supply_link_id,
+                    NetworkLinkInterventionOverride {
+                        availability: None,
+                        capacity_value: Some(10.0),
+                        capacity_uncertainty_abs: None,
+                        rationale: "Synthetic assumed supply-capacity upgrade".into(),
+                    },
+                )]
+                .into_iter()
+                .collect(),
+            };
+            ServiceNetworkInterventionRequest {
+                scenario: scenario.clone(),
+                plan,
+            }
+        })
+        .collect()
 }
 
 fn assumed(state: EntityOperationalState, rationale: &str) -> ScenarioEntityCondition {
@@ -481,6 +526,23 @@ fn main() {
         let reference_network_bytes =
             serde_json::to_vec(&reference_network).expect("network assessments serialize");
 
+        let network_intervention_requests = network_intervention_requests(&network_scenarios);
+        let reference_network_interventions = compare_service_network_interventions(
+            &network_intervention_requests,
+            &network_evidence,
+        )
+        .expect("synthetic network interventions must evaluate");
+        assert_eq!(reference_network_interventions.len(), groups_count);
+        assert!(reference_network_interventions.iter().all(|comparison| {
+            comparison.effect == NetworkInterventionEffect::BoundsImproved
+                && comparison.baseline.conservative_available_capacity == 5.0
+                && comparison.with_intervention.conservative_available_capacity == 8.0
+                && comparison.conservative_capacity_delta == 3.0
+                && comparison.optimistic_capacity_delta == 3.0
+        }));
+        let reference_network_intervention_bytes = serde_json::to_vec(&reference_network_interventions)
+            .expect("network intervention comparisons serialize");
+
         for _ in 0..warmup_iterations {
             let result = compare_intervention(
                 &graph,
@@ -548,12 +610,29 @@ fn main() {
                 serde_json::to_vec(&networks).expect("network assessments serialize"),
                 reference_network_bytes
             );
+
+            let comparisons = compare_service_network_interventions(
+                &network_intervention_requests,
+                &network_evidence,
+            )
+            .expect("synthetic network interventions must evaluate");
+            assert_eq!(comparisons.len(), groups_count);
+            assert!(comparisons.iter().all(|comparison| {
+                comparison.effect == NetworkInterventionEffect::BoundsImproved
+                    && comparison.conservative_capacity_delta == 3.0
+                    && comparison.optimistic_capacity_delta == 3.0
+            }));
+            assert_eq!(
+                serde_json::to_vec(&comparisons).expect("network intervention comparisons serialize"),
+                reference_network_intervention_bytes
+            );
         }
 
         let mut samples = Vec::with_capacity(measured_iterations);
         let mut common_cause_samples = Vec::with_capacity(measured_iterations);
         let mut functional_samples = Vec::with_capacity(measured_iterations);
         let mut network_samples = Vec::with_capacity(measured_iterations);
+        let mut network_intervention_samples = Vec::with_capacity(measured_iterations);
         let mut recovered = 0;
         for _ in 0..measured_iterations {
             let start = Instant::now();
@@ -625,11 +704,30 @@ fn main() {
                 serde_json::to_vec(&networks).expect("network assessments serialize"),
                 reference_network_bytes
             );
+
+            let intervention_start = Instant::now();
+            let comparisons = compare_service_network_interventions(
+                &network_intervention_requests,
+                &network_evidence,
+            )
+            .expect("synthetic network interventions must evaluate");
+            network_intervention_samples.push(intervention_start.elapsed());
+            assert_eq!(comparisons.len(), groups_count);
+            assert!(comparisons.iter().all(|comparison| {
+                comparison.effect == NetworkInterventionEffect::BoundsImproved
+                    && comparison.conservative_capacity_delta == 3.0
+                    && comparison.optimistic_capacity_delta == 3.0
+            }));
+            assert_eq!(
+                serde_json::to_vec(&comparisons).expect("network intervention comparisons serialize"),
+                reference_network_intervention_bytes
+            );
         }
         samples.sort_unstable();
         common_cause_samples.sort_unstable();
         functional_samples.sort_unstable();
         network_samples.sort_unstable();
+        network_intervention_samples.sort_unstable();
 
         let summary = SampleSummary {
             groups: groups_count,
@@ -668,6 +766,15 @@ fn main() {
             network_p50_micros: percentile(&network_samples, 50).as_micros(),
             network_p95_micros: percentile(&network_samples, 95).as_micros(),
             network_max_micros: network_samples.last().copied().unwrap_or_default().as_micros(),
+            network_interventions_per_run: reference_network_interventions.len(),
+            network_intervention_result_bytes: reference_network_intervention_bytes.len(),
+            network_intervention_p50_micros: percentile(&network_intervention_samples, 50).as_micros(),
+            network_intervention_p95_micros: percentile(&network_intervention_samples, 95).as_micros(),
+            network_intervention_max_micros: network_intervention_samples
+                .last()
+                .copied()
+                .unwrap_or_default()
+                .as_micros(),
         };
         println!(
             "{}",
