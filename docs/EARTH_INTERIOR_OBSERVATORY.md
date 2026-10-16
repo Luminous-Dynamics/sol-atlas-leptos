@@ -52,7 +52,8 @@ Keep adapters and model APIs at explicit boundaries. Start with frozen public da
 geophysics.rs begins the schema boundary without implementing a live downloader or an estimator.
 
 - ObservationRecord distinguishes geomagnetic vector observations in local North-East-Down coordinates from seismic differential travel-time observations.
-- Every observation carries its time window, optional WGS84 position, source/product/record identity, quality state and optional SHA-256 of the captured source artifact.
+- Time support distinguishes absolute Unix time, named model-relative seconds, and ages-before-present with explicit reference epoch and optional validated discrete chronology distribution. Acquisition time is kept separate from the time of the phenomenon represented by the observation.
+- Every observation carries its time support, optional WGS84 position, source/product/record identity, quality state and optional SHA-256 of the captured source artifact.
 - StateEstimate represents radial magnetic-field estimates, core-surface flow estimates and inner-core differential-rotation estimates with explicit units, method/model identity, input references, assumptions, uncertainty interpretation and an identifiability declaration.
 - Spatial support is typed independently from value: a geodetic point, a core-mantle-boundary point, or a global scalar. Validation rejects incompatible combinations, such as a core-boundary flow represented as a global scalar. Radial-field sign convention and the reference frame for inner-core rotation are explicit.
 - Validation rejects unsupported schema versions, invalid coordinates/time windows, non-finite values, negative standard uncertainties, malformed SHA-256 digests, empty evidence for non-simulation estimates and identifiability claims that omit their named ambiguity.
@@ -67,6 +68,37 @@ This contract is an initial internal seam, not yet a stable external interchange
 - Symthaea inference/validation work: https://github.com/Luminous-Dynamics/symthaea/issues/7688. It composes existing state-estimation/calibration work (#3759), model credibility/VVUQ (#6122), and benchmark portfolio selection (#6270).
 - Symtropy known-truth simulation/identifiability work: https://github.com/Luminous-Dynamics/symtropy/issues/1728. It composes the existing exact-head qualification harness (#1264) and the Earth-fluid applicability boundary (#515).
 - Mycelix should compose, rather than duplicate, scientific artifact typing and derived-claim authority: https://github.com/Luminous-Dynamics/mycelix/issues/2410 and https://github.com/Luminous-Dynamics/mycelix/issues/2408. These remain the provenance/evidence handoff; this repository does not create a second canonical evidence ledger.
+
+## Multi-timescale reference benchmark discovered (2026-10-16)
+
+A strong known-truth candidate is Julien Aubert's 2026 geodynamo simulation integrated for roughly 1,700 years of physical model time. The paper reports simulation fields and dynamics compared against historical geomagnetic/geodetic observations. Its public IPGP replication dataset (version 2.0; Licence Ouverte / Open Licence 2.0) contains core-surface magnetic field, velocity field and magnetic-diffusion outputs from documented simulation cases. See:
+
+- Paper: https://jsedi.episciences.org/articles/17790
+- Replication dataset/version: https://dataverse.ipgp.fr/dataset.xhtml?persistentId=doi%3A10.18715%2FIPGP.2026.mm0sx2m0
+- Dataset DOI: https://doi.org/10.18715/IPGP.2026.MM0SX2M0
+
+Use this as an openly documented simulation truth source, not as the Earth's actual observed trajectory. The first adapter should select a small, well-documented case after reading the dataset README, inspect array shapes and units, and freeze the exact data-file IDs, version, declared licence, source metadata, local SHA-256 digests and parsing transform. Do not commit the 302.5 MB archive or derived bulk arrays to Git; keep a lightweight manifest and deterministic retrieval/verification instructions. If the files cannot be retrieved or verified, keep the benchmark blocked rather than fabricating fixtures.
+
+### Why the time axis needed a contract change
+
+A UTC-only timestamp is not valid for physical model seconds, and a present-day acquisition timestamp is not the age of an archaeological or palaeomagnetic sample. The `TimeWindow` contract therefore distinguishes:
+
+- `absolute_unix` — the timestamp window on the declared Unix/POSIX basis;
+- `model_relative` — elapsed seconds tied to an explicit simulation/model epoch;
+- `age_before_present` — a named age-reference convention, a youngest/oldest age interval, and optionally a discrete age-probability support tied to a named chronology model.
+
+`ObservationRecord.acquired_at_unix_ns` is distinct from the phenomenon's `time`. An age distribution must be non-empty, strictly ordered, fall within the declared interval, identify its chronology model, and have probabilities summing to one within a stated validation tolerance. This preserves the kind of chronological uncertainty that recent Bayesian geomagnetic reconstructions marginalize rather than silently replacing it with a point date. See: https://jsedi.episciences.org/articles/17320
+
+### Proposed simulation benchmark protocol
+
+1. Freeze one documented Aubert simulation case as a known-truth trajectory; keep the true core state and any hidden test portion unavailable to an estimator under evaluation.
+2. Define a separately versioned observation operator for synthetic satellite/ground geometry, source separation, sample cadence, noise and missingness. Preserve the truth arrays, synthetic observations, transforms and estimator outputs as separate artifact roles.
+3. Hold out contiguous time intervals and, where scientifically defensible, an entire documented simulation case. Randomly splitting adjacent time samples alone is not adequate because temporal dependence can leak between train and test.
+4. Run a model-recovery baseline before Symthaea. Compute a local Jacobian from the simulator or an explicitly documented finite-difference perturbation; run the observability diagnostic on that exact linearization, with predeclared physical parameter scales and measurement-error scales.
+5. Score state recovery, local identifiability, posterior/interval calibration, prior sensitivity, out-of-case generalization and compute cost. Repeat across simulation cases and noise/coverage conditions; never award a pass from one seed.
+6. After synthetic qualification, evaluate on frozen satellite/observatory measurements using model cutoffs that exclude the held-out observations. Simulation success is necessary for a credible inversion pipeline, but not sufficient to establish performance on the real Earth.
+
+The 2026 CHAOS-8 model itself uses satellite and observatory data and an improved temporal regularization informed by geodynamo simulations; it also documents source separation and small-scale, rapidly varying features. Use it as an important reference and leakage-control challenge, not independent ground truth where its input data overlap with the test fold: https://link.springer.com/article/10.1186/s40623-025-02352-0
 
 ## Local observability diagnostic added
 
