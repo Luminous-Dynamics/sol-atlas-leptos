@@ -26,6 +26,7 @@ pub mod spatial_economic;
 pub mod spatial_graph;
 pub mod dependency_logic;
 pub mod intervention;
+pub mod common_cause;
 pub mod timeline;
 pub mod types;
 pub mod visual_validation;
