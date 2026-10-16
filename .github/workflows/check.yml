@@ -94,6 +94,34 @@ jobs:
             (((($uninformative.expected_value_of_sample_information) | abs) < 1e-9)) and
             (((($uninformative.net_value_in_loss_units) | abs) < 1e-9))
           ' "$output_file"
+      - name: Calculate robust measurement value across model uncertainty
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="sol-atlas-core/fixtures/water-engineering/w0-measurement-ensemble.toy.synthetic.json"
+          expected_sha="$(sha256sum "$fixture" | awk '{print $1}')"
+          output_file="$(mktemp)"
+          trap 'rm -f "$output_file"' EXIT
+          cargo run -p sol-atlas-core --bin water-measurement-robust-evaluate -- "$fixture" > "$output_file"
+          jq -e --arg expected_sha "$expected_sha" '
+            . as $root |
+            ($root.evaluation.actions[] | select(.action_id == "perfect_sensor")) as $perfect |
+            ($root.evaluation.actions[] | select(.action_id == "uninformative_sensor")) as $uninformative |
+            ($root.schema_version == "water-measurement-robust-run-envelope/v0.1") and
+            ($root.source_input_sha256 == $expected_sha) and
+            ($root.evaluation.claim_ceiling == "illustrative_ensemble_sensitivity_only") and
+            ($root.evaluation.model_count == 2) and
+            ($root.evaluation.selection_state == "no_positive_worst_case_net_value_candidate") and
+            ($root.evaluation.selected_measurement_action == null) and
+            (((($perfect.minimum_expected_information_gain_bits) | abs) < 1e-9)) and
+            (((($perfect.maximum_expected_information_gain_bits - 1.0) | abs) < 1e-9)) and
+            (((($perfect.minimum_expected_value_of_sample_information) | abs) < 1e-9)) and
+            (((($perfect.maximum_expected_value_of_sample_information - 2.0) | abs) < 1e-9)) and
+            (((($perfect.minimum_net_value_in_loss_units + 1.0) | abs) < 1e-9)) and
+            (((($perfect.maximum_net_value_in_loss_units - 1.0) | abs) < 1e-9)) and
+            (((($uninformative.minimum_expected_value_of_sample_information) | abs) < 1e-9)) and
+            (((($uninformative.maximum_expected_value_of_sample_information) | abs) < 1e-9))
+          ' "$output_file"
 
   validate-water-data:
     runs-on: ubuntu-latest
@@ -132,6 +160,10 @@ jobs:
               (
                   Path("sol-atlas-core/schemas/water-measurement-model-v0.1.schema.json"),
                   Path("sol-atlas-core/fixtures/water-engineering/w0-measurement-model.toy.synthetic.json"),
+              ),
+              (
+                  Path("sol-atlas-core/schemas/water-measurement-ensemble-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/w0-measurement-ensemble.toy.synthetic.json"),
               ),
           ]
 
