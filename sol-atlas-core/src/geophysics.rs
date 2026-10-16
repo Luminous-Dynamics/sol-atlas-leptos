@@ -372,7 +372,7 @@ pub enum EstimateValue {
 impl EstimateValue {
     fn validate(&self) -> Result<(), ValidationError> {
         match self {
-            Self::RadialMagneticFieldNt { value_nt, interval } => {
+            Self::RadialMagneticFieldNt { value_nt, interval, .. } => {
                 require_finite(*value_nt, "value_nt")?;
                 validate_optional_interval(interval)?;
             }
@@ -390,6 +390,7 @@ impl EstimateValue {
             Self::InnerCoreDifferentialRotationDegreesPerYear {
                 value_degrees_per_year,
                 interval,
+                ..
             } => {
                 require_finite(*value_degrees_per_year, "value_degrees_per_year")?;
                 validate_optional_interval(interval)?;
