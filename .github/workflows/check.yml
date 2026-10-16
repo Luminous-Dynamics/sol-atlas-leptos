@@ -647,9 +647,10 @@ jobs:
             (.evaluation.held_out_magnitudes == [10,25]) and
             ([.evaluation.strategy_ids[]] | sort == ["fixed-predeclared","graph-coverage-greedy","response-separation-greedy","seeded-random"]) and
             (.evaluation.results | length == 360) and
+            ([.evaluation.results[] | [.strategy_id, .sensor_budget, .noise_sigma_fraction, .replicate, .held_out_magnitude] | @json] | unique | length == 360) and
             all(.evaluation.results[];
               .test_count == 92 and
-              (.selected_sensor_node_ids | length == .sensor_budget) and
+              ((.selected_sensor_node_ids | length) == .sensor_budget) and
               ((.selected_sensor_node_ids | unique | length) == .sensor_budget) and
               (.top1_accuracy >= 0 and .top1_accuracy <= 1) and
               (.top3_accuracy >= 0 and .top3_accuracy <= 1) and
