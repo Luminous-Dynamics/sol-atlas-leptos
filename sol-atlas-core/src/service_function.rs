@@ -117,6 +117,7 @@ pub enum ServiceFunctionValidationError {
     SupportingEvidenceSubjectMismatch,
     SupportingEvidenceMissingQuantity,
     SupportingEvidenceQuantityMismatch,
+    InvalidSupportingEvidenceTimestamp,
     InvalidSupportingEvidenceValidity,
     OutsideSupportingEvidenceValidity,
 }
@@ -396,6 +397,19 @@ fn validate_evidence_validity(
     as_of: &str,
     errors: &mut Vec<ServiceFunctionValidationError>,
 ) {
+    // This evaluator intentionally uses the graph's canonical UTC-second profile
+    // so as-of comparisons are unambiguous and do not depend on local timezone.
+    if !is_canonical_utc_timestamp(&record.time.occurred_at)
+        || !is_canonical_utc_timestamp(&record.time.recorded_at)
+    {
+        errors.push(ServiceFunctionValidationError::InvalidSupportingEvidenceTimestamp);
+        return;
+    }
+    if record.time.occurred_at.as_str() > as_of || record.time.recorded_at.as_str() > as_of {
+        errors.push(ServiceFunctionValidationError::OutsideSupportingEvidenceValidity);
+        return;
+    }
+
     let start = record.time.valid_from.as_deref();
     let end = record.time.valid_until.as_deref();
     let invalid = start.is_some_and(|value| !is_canonical_utc_timestamp(value))
@@ -649,6 +663,52 @@ mod tests {
             result,
             Err(ServiceFunctionAssessmentError::InvalidInput(errors))
                 if errors.contains(&ServiceFunctionValidationError::OutsideSupportingEvidenceValidity)
+        ));
+    }
+
+    #[test]
+    fn observed_evidence_recorded_after_as_of_is_rejected() {
+        let mut record = evidence(
+            "ev:pump-capacity",
+            "asset:pump",
+            Quantity { value: 7.0, unit: "m3/h".into(), uncertainty_abs: None },
+            EvidenceState::Asserted,
+        );
+        record.time.recorded_at = "2026-10-16T10:00:00Z".into();
+        let mut capacity = measurement("asset:pump", 7.0, "m3/h", None);
+        capacity.basis = ScenarioBasis::Observed;
+        capacity.supporting_evidence_ids = vec!["ev:pump-capacity".into()];
+        let result = assess_service_function(
+            &scenario(capacity, measurement("service:irrigation", 10.0, "m3/h", None)),
+            &[record],
+        );
+        assert!(matches!(
+            result,
+            Err(ServiceFunctionAssessmentError::InvalidInput(errors))
+                if errors.contains(&ServiceFunctionValidationError::OutsideSupportingEvidenceValidity)
+        ));
+    }
+
+    #[test]
+    fn noncanonical_observation_time_is_rejected_for_as_of_assessment() {
+        let mut record = evidence(
+            "ev:pump-capacity",
+            "asset:pump",
+            Quantity { value: 7.0, unit: "m3/h".into(), uncertainty_abs: None },
+            EvidenceState::Asserted,
+        );
+        record.time.occurred_at = "2026-10-16T09:00:00+00:00".into();
+        let mut capacity = measurement("asset:pump", 7.0, "m3/h", None);
+        capacity.basis = ScenarioBasis::Observed;
+        capacity.supporting_evidence_ids = vec!["ev:pump-capacity".into()];
+        let result = assess_service_function(
+            &scenario(capacity, measurement("service:irrigation", 10.0, "m3/h", None)),
+            &[record],
+        );
+        assert!(matches!(
+            result,
+            Err(ServiceFunctionAssessmentError::InvalidInput(errors))
+                if errors.contains(&ServiceFunctionValidationError::InvalidSupportingEvidenceTimestamp)
         ));
     }
 
