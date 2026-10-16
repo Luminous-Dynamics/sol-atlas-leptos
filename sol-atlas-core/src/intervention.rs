@@ -209,9 +209,7 @@ pub fn compare_intervention(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dependency_logic::{
-        DependencyLogic, DependencyMemberState, EntityOperationalState,
-    };
+    use crate::dependency_logic::{DependencyLogic, EntityOperationalState};
     use crate::spatial_economic::{
         EvidenceKind, EvidenceRecord, EvidenceState, Provenance, SpatialContext, TimeContext,
         EVIDENCE_SCHEMA_VERSION,
@@ -497,6 +495,19 @@ mod tests {
             "../../schemas/examples/water-system-intervention-plan.json"
         ))
         .unwrap();
+        let plan_schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/spatial-economic-intervention-plan-v0.1.schema.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            plan_schema["properties"]["condition_overrides"]["minProperties"],
+            serde_json::json!(1)
+        );
+        assert_eq!(
+            plan_schema["properties"]["condition_overrides"]["additionalProperties"]
+                ["properties"]["basis"]["const"],
+            serde_json::json!("assumed")
+        );
         let evidence_records = [
             evidence("synthetic-evidence-pump-power"),
             evidence("synthetic-evidence-pump-backup-power"),

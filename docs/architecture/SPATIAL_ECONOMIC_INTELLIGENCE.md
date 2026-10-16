@@ -3,7 +3,7 @@
 **Status:** Proposed design; not operationally validated  
 **Version:** 0.1.0  
 **Scope:** Sol-Atlas spatial reasoning and its interfaces to Mycelix coordination and economic execution  
-**Implementation status:** initial Rust evidence contract, time-bounded dependency graph, qualitative dependency-group evaluator and JSON Schemas; no live economic or spatial integration
+**Implementation status:** initial Rust evidence contract, time-bounded dependency graph, qualitative dependency-group evaluator, baseline-versus-intervention comparator and JSON Schemas; no live economic or spatial integration
 
 ## Executive thesis
 

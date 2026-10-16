@@ -35,6 +35,7 @@ struct SampleSummary {
     p95_micros: u128,
     max_micros: u128,
     recovered_groups_per_run: usize,
+    result_bytes: usize,
 }
 
 fn evidence(id: String, feeder_id: &str) -> EvidenceRecord {
@@ -190,6 +191,18 @@ fn main() {
 
     for groups_count in [100usize, 1_000, 10_000] {
         let (graph, groups, baseline, intervention, evidence_records) = fixture(groups_count);
+        let reference = compare_intervention(
+            &graph,
+            &groups,
+            &baseline,
+            &intervention,
+            &evidence_records,
+        )
+        .expect("synthetic fixture must evaluate");
+        assert_eq!(reference.summary.recovered, groups_count);
+        let reference_bytes = serde_json::to_vec(&reference)
+            .expect("deterministic comparison serializes");
+
         for _ in 0..warmup_iterations {
             let result = compare_intervention(
                 &graph,
@@ -204,6 +217,10 @@ fn main() {
                 .group_deltas
                 .iter()
                 .all(|delta| delta.with_intervention.state == DependencyGroupState::Satisfied));
+            assert_eq!(
+                serde_json::to_vec(&result).expect("comparison serializes"),
+                reference_bytes
+            );
         }
 
         let mut samples = Vec::with_capacity(measured_iterations);
@@ -221,6 +238,10 @@ fn main() {
             samples.push(start.elapsed());
             recovered = result.summary.recovered;
             assert_eq!(recovered, groups_count);
+            assert_eq!(
+                serde_json::to_vec(&result).expect("comparison serializes"),
+                reference_bytes
+            );
         }
         samples.sort_unstable();
 
@@ -234,6 +255,7 @@ fn main() {
             p95_micros: percentile(&samples, 95).as_micros(),
             max_micros: samples.last().copied().unwrap_or_default().as_micros(),
             recovered_groups_per_run: recovered,
+            result_bytes: reference_bytes.len(),
         };
         println!(
             "{}",
