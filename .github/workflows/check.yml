@@ -165,6 +165,10 @@ jobs:
                   Path("sol-atlas-core/schemas/water-measurement-ensemble-v0.1.schema.json"),
                   Path("sol-atlas-core/fixtures/water-engineering/w0-measurement-ensemble.toy.synthetic.json"),
               ),
+              (
+                  Path("sol-atlas-core/schemas/water-scenario-corpus-plan-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/w0-scenario-corpus-plan.synthetic.json"),
+              ),
           ]
 
           format_checker = FormatChecker()
@@ -189,6 +193,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install Rust for deterministic scenario corpus execution
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Rust dependencies for scenario corpus runner
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-epanet-corpus-${{ hashFiles('**/Cargo.lock') }}
       - name: Validate synthetic EPANET runner shell syntax
         run: bash -n scripts/ci/epanet-synthetic-smoke.sh
       - name: Checkout pinned OpenWaterAnalytics EPANET source
@@ -204,9 +219,38 @@ jobs:
           cmake -S .epanet-source -B .epanet-build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
           cmake --build .epanet-build --config Release --parallel 2
           test -x .epanet-build/bin/runepanet
+      - name: Generate and execute deterministic synthetic scenario corpus
+        id: scenario_corpus
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo run -p sol-atlas-core --bin water-scenario-corpus-run -- \
+            sol-atlas-core/fixtures/water-engineering/w0_network.inp \
+            sol-atlas-core/fixtures/water-engineering/w0-scenario-corpus-plan.synthetic.json \
+            .epanet-build/bin/runepanet \
+            artifacts/water-scenario-corpus \
+            4d8d82ddc260fce216af9321fc3d9a4646ac6827
+      - name: Upload scenario corpus inputs, results and failure manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: water-scenario-corpus-pilot
+          path: artifacts/water-scenario-corpus/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Run synthetic baseline and restricted-pipe scenario
         shell: bash
         run: bash scripts/ci/epanet-synthetic-smoke.sh
+      - name: Require all corpus scenarios to complete
+        if: always()
+        env:
+          SCENARIO_CORPUS_OUTCOME: ${{ steps.scenario_corpus.outcome }}
+        run: |
+          if [[ "$SCENARIO_CORPUS_OUTCOME" != "success" ]]; then
+            echo "WATER_SCENARIO_CORPUS_NOT_COMPLETED: outcome=$SCENARIO_CORPUS_OUTCOME"
+            exit 1
+          fi
       - name: Upload synthetic solver evidence
         if: always()
         uses: actions/upload-artifact@v4
