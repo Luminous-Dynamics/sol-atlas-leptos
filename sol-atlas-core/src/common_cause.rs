@@ -1,0 +1,750 @@
+// Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
+
+//! Evidence-gated common-cause failure domains for spatial-economic scenarios.
+//!
+//! Redundant paths are not necessarily independent: multiple assets may share a
+//! feeder, control plane, site, supplier, workforce or hazard exposure. This
+//! module records and surfaces that overlap. It deliberately does not mark an
+//! exposed asset unavailable, infer a failure probability, or prove causation.
+
+use crate::spatial_economic::{EvidenceKind, EvidenceRecord, EvidenceState};
+use crate::spatial_graph::is_canonical_utc_timestamp;
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet};
+
+pub const COMMON_CAUSE_SCHEMA_VERSION: &str = "0.1.0";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FailureMechanism {
+    SharedPower,
+    SharedControl,
+    SharedNetwork,
+    SharedSite,
+    Flood,
+    Heat,
+    Fire,
+    SharedSupplier,
+    SharedWorkforce,
+    Cyber,
+    Other,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CommonCauseState {
+    Active,
+    Inactive,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CommonCauseBasis {
+    Assumed,
+    Observed,
+}
+
+/// A declared set of entities exposed to one shared failure mechanism.
+///
+/// Supporting evidence must refer to the domain ID and be asserted/corroborated
+/// and temporally valid before the domain can qualify an exposure assessment.
+/// The member list is a model boundary; it is not itself proof that the mechanism
+/// will cause those entities to fail.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CommonCauseDomain {
+    pub id: String,
+    pub cause_entity_id: String,
+    pub mechanism: FailureMechanism,
+    pub member_entity_ids: Vec<String>,
+    pub supporting_evidence_ids: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub valid_from: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub valid_until: Option<String>,
+}
+
+/// An explicit condition for a common-cause mechanism, keyed by domain ID.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CommonCauseCondition {
+    pub state: CommonCauseState,
+    pub basis: CommonCauseBasis,
+    pub rationale: String,
+    #[serde(default)]
+    pub supporting_evidence_ids: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CommonCauseScenario {
+    pub id: String,
+    /// Canonical UTC timestamp: YYYY-MM-DDTHH:MM:SSZ.
+    pub as_of: String,
+    #[serde(default)]
+    pub conditions: BTreeMap<String, CommonCauseCondition>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CommonCauseValidationError {
+    EmptyScenarioId,
+    InvalidAsOfTimestamp,
+    DuplicateEvidenceRecordId,
+    InvalidEvidenceRecord,
+    EmptyDomainId,
+    DuplicateDomainId,
+    EmptyCauseEntityId,
+    EmptyMemberSet,
+    EmptyMemberEntityId,
+    DuplicateMemberEntityId,
+    MissingDomainEvidence,
+    DuplicateDomainEvidenceId,
+    UnknownEvidenceReference,
+    InvalidDomainValidFrom,
+    InvalidDomainValidUntil,
+    InvalidDomainValidityWindow,
+    UnknownScenarioDomain,
+    EmptyRationale,
+    EvidenceRequiredForObservedCondition,
+    EvidenceForbiddenForAssumedCondition,
+    DuplicateConditionEvidenceId,
+    InadmissibleConditionEvidence,
+    ConditionEvidenceWrongKind,
+    ConditionEvidenceSubjectMismatch,
+    InvalidConditionEvidenceValidity,
+    OutsideConditionEvidenceValidity,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DomainEvidenceBlockReason {
+    ProposedEvidence,
+    DisputedEvidence,
+    SupersededEvidence,
+    WithdrawnEvidence,
+    WrongKind,
+    WrongSubject,
+    InvalidEvidenceValidity,
+    OutsideEvidenceValidity,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DomainEvidenceBlocker {
+    pub evidence_id: String,
+    pub reason: DomainEvidenceBlockReason,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CommonCauseExposure {
+    /// The mechanism is active and the entity is in the declared shared domain.
+    /// This is exposure, not a finding that the entity has failed.
+    Exposed,
+    /// The mechanism is explicitly inactive in this scenario.
+    NotTriggered,
+    /// The mechanism's state is missing or explicitly unknown.
+    Indeterminate,
+    /// The domain's evidence is inadmissible or out of scope.
+    EvidenceBlocked,
+    /// The domain does not apply at the scenario's as-of instant.
+    OutsideDomainValidity,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CommonCauseEntityExposure {
+    pub entity_id: String,
+    pub exposure: CommonCauseExposure,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CommonCauseAssessment {
+    pub domain_id: String,
+    pub cause_entity_id: String,
+    pub mechanism: FailureMechanism,
+    pub as_of: String,
+    pub state: CommonCauseState,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub basis: Option<CommonCauseBasis>,
+    pub domain_evidence_blockers: Vec<DomainEvidenceBlocker>,
+    pub condition_evidence_ids: Vec<String>,
+    pub entity_exposures: Vec<CommonCauseEntityExposure>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CommonCauseAssessmentError {
+    InvalidInput(Vec<CommonCauseValidationError>),
+}
+
+impl CommonCauseDomain {
+    fn is_valid_at(&self, at: &str) -> bool {
+        self.valid_from.as_deref().is_none_or(|start| start <= at)
+            && self.valid_until.as_deref().is_none_or(|end| at < end)
+    }
+}
+
+/// Assess shared-cause exposure without mutating the operational state of assets.
+///
+/// This fail-closed API validates all referenced records and scenario assumptions,
+/// returns domains in stable ID order and member exposures in stable entity-ID
+/// order. Missing cause conditions remain indeterminate. A domain with blocked
+/// supporting evidence cannot label its members as exposed or safe.
+pub fn assess_common_cause_domains(
+    domains: &[CommonCauseDomain],
+    scenario: &CommonCauseScenario,
+    evidence_records: &[EvidenceRecord],
+) -> Result<Vec<CommonCauseAssessment>, CommonCauseAssessmentError> {
+    let mut errors = Vec::new();
+
+    if scenario.id.trim().is_empty() {
+        errors.push(CommonCauseValidationError::EmptyScenarioId);
+    }
+    if !is_canonical_utc_timestamp(&scenario.as_of) {
+        errors.push(CommonCauseValidationError::InvalidAsOfTimestamp);
+    }
+
+    let mut evidence_by_id = BTreeMap::new();
+    for record in evidence_records {
+        if evidence_by_id.insert(record.id.as_str(), record).is_some() {
+            errors.push(CommonCauseValidationError::DuplicateEvidenceRecordId);
+        }
+        if record.validate().is_err() {
+            errors.push(CommonCauseValidationError::InvalidEvidenceRecord);
+        }
+    }
+
+    let mut domain_by_id = BTreeMap::new();
+    for domain in domains {
+        if domain.id.trim().is_empty() {
+            errors.push(CommonCauseValidationError::EmptyDomainId);
+        }
+        if domain_by_id.insert(domain.id.as_str(), domain).is_some() {
+            errors.push(CommonCauseValidationError::DuplicateDomainId);
+        }
+        if domain.cause_entity_id.trim().is_empty() {
+            errors.push(CommonCauseValidationError::EmptyCauseEntityId);
+        }
+        if domain.member_entity_ids.is_empty() {
+            errors.push(CommonCauseValidationError::EmptyMemberSet);
+        }
+        let mut members = BTreeSet::new();
+        for member_id in &domain.member_entity_ids {
+            if member_id.trim().is_empty() {
+                errors.push(CommonCauseValidationError::EmptyMemberEntityId);
+            }
+            if !members.insert(member_id.as_str()) {
+                errors.push(CommonCauseValidationError::DuplicateMemberEntityId);
+            }
+        }
+        if domain.supporting_evidence_ids.is_empty() {
+            errors.push(CommonCauseValidationError::MissingDomainEvidence);
+        }
+        let mut support_ids = BTreeSet::new();
+        for evidence_id in &domain.supporting_evidence_ids {
+            if evidence_id.trim().is_empty() || !support_ids.insert(evidence_id.as_str()) {
+                errors.push(CommonCauseValidationError::DuplicateDomainEvidenceId);
+            }
+            if !evidence_by_id.contains_key(evidence_id.as_str()) {
+                errors.push(CommonCauseValidationError::UnknownEvidenceReference);
+            }
+        }
+        if let Some(start) = domain.valid_from.as_deref() {
+            if !is_canonical_utc_timestamp(start) {
+                errors.push(CommonCauseValidationError::InvalidDomainValidFrom);
+            }
+        }
+        if let Some(end) = domain.valid_until.as_deref() {
+            if !is_canonical_utc_timestamp(end) {
+                errors.push(CommonCauseValidationError::InvalidDomainValidUntil);
+            }
+        }
+        if let (Some(start), Some(end)) = (
+            domain.valid_from.as_deref(),
+            domain.valid_until.as_deref(),
+        ) {
+            if is_canonical_utc_timestamp(start)
+                && is_canonical_utc_timestamp(end)
+                && start >= end
+            {
+                errors.push(CommonCauseValidationError::InvalidDomainValidityWindow);
+            }
+        }
+    }
+
+    for (domain_id, condition) in &scenario.conditions {
+        let Some(domain) = domain_by_id.get(domain_id.as_str()) else {
+            errors.push(CommonCauseValidationError::UnknownScenarioDomain);
+            continue;
+        };
+        if condition.rationale.trim().is_empty() {
+            errors.push(CommonCauseValidationError::EmptyRationale);
+        }
+        let mut seen = BTreeSet::new();
+        for evidence_id in &condition.supporting_evidence_ids {
+            if !seen.insert(evidence_id.as_str()) {
+                errors.push(CommonCauseValidationError::DuplicateConditionEvidenceId);
+            }
+            if !evidence_by_id.contains_key(evidence_id.as_str()) {
+                errors.push(CommonCauseValidationError::UnknownEvidenceReference);
+            }
+        }
+        match condition.basis {
+            CommonCauseBasis::Assumed => {
+                if !condition.supporting_evidence_ids.is_empty() {
+                    errors.push(CommonCauseValidationError::EvidenceForbiddenForAssumedCondition);
+                }
+            }
+            CommonCauseBasis::Observed => {
+                if condition.supporting_evidence_ids.is_empty() {
+                    errors.push(CommonCauseValidationError::EvidenceRequiredForObservedCondition);
+                }
+                for evidence_id in &condition.supporting_evidence_ids {
+                    let Some(record) = evidence_by_id.get(evidence_id.as_str()) else {
+                        continue;
+                    };
+                    if record.kind != EvidenceKind::Observation {
+                        errors.push(CommonCauseValidationError::ConditionEvidenceWrongKind);
+                    }
+                    if record.subject_id != domain.cause_entity_id
+                        || record.spatial.entity_id != domain.cause_entity_id
+                    {
+                        errors.push(CommonCauseValidationError::ConditionEvidenceSubjectMismatch);
+                    }
+                    if !evidence_is_admissible_at(record, &scenario.as_of) {
+                        errors.push(CommonCauseValidationError::InadmissibleConditionEvidence);
+                    }
+                    let start = record.time.valid_from.as_deref();
+                    let end = record.time.valid_until.as_deref();
+                    if start.is_some_and(|value| !is_canonical_utc_timestamp(value))
+                        || end.is_some_and(|value| !is_canonical_utc_timestamp(value))
+                        || matches!((start, end), (Some(first), Some(last)) if {
+                            is_canonical_utc_timestamp(first)
+                                && is_canonical_utc_timestamp(last)
+                                && first >= last
+                        })
+                    {
+                        errors.push(CommonCauseValidationError::InvalidConditionEvidenceValidity);
+                    } else if start.is_some_and(|value| value > scenario.as_of.as_str())
+                        || end.is_some_and(|value| scenario.as_of.as_str() >= value)
+                    {
+                        errors.push(CommonCauseValidationError::OutsideConditionEvidenceValidity);
+                    }
+                }
+            }
+        }
+    }
+
+    if !errors.is_empty() {
+        return Err(CommonCauseAssessmentError::InvalidInput(errors));
+    }
+
+    let mut ordered_domains: Vec<&CommonCauseDomain> = domains.iter().collect();
+    ordered_domains.sort_by(|left, right| left.id.cmp(&right.id));
+    let mut assessments = Vec::with_capacity(ordered_domains.len());
+
+    for domain in ordered_domains {
+        let mut domain_evidence_blockers = Vec::new();
+        for evidence_id in &domain.supporting_evidence_ids {
+            let record = evidence_by_id[evidence_id.as_str()];
+            domain_evidence_blockers.extend(domain_evidence_blockers_for(
+                evidence_id,
+                record,
+                &domain.id,
+                &scenario.as_of,
+            ));
+        }
+        domain_evidence_blockers.sort_by(|left, right| {
+            left.evidence_id
+                .cmp(&right.evidence_id)
+                .then_with(|| (left.reason as u8).cmp(&(right.reason as u8)))
+        });
+
+        let condition = scenario.conditions.get(&domain.id);
+        let condition_evidence_ids = condition
+            .map(|value| value.supporting_evidence_ids.clone())
+            .unwrap_or_default();
+        let state = condition
+            .map(|value| value.state)
+            .unwrap_or(CommonCauseState::Unknown);
+        let basis = condition.map(|value| value.basis);
+        let domain_in_scope = domain.is_valid_at(&scenario.as_of);
+        let blocked = !domain_evidence_blockers.is_empty();
+
+        let mut members: Vec<&str> = domain.member_entity_ids.iter().map(String::as_str).collect();
+        members.sort_unstable();
+        let entity_exposures = members
+            .into_iter()
+            .map(|entity_id| {
+                let exposure = if !domain_in_scope {
+                    CommonCauseExposure::OutsideDomainValidity
+                } else if blocked {
+                    CommonCauseExposure::EvidenceBlocked
+                } else {
+                    match state {
+                        CommonCauseState::Active => CommonCauseExposure::Exposed,
+                        CommonCauseState::Inactive => CommonCauseExposure::NotTriggered,
+                        CommonCauseState::Unknown => CommonCauseExposure::Indeterminate,
+                    }
+                };
+                CommonCauseEntityExposure {
+                    entity_id: entity_id.to_owned(),
+                    exposure,
+                }
+            })
+            .collect();
+
+        assessments.push(CommonCauseAssessment {
+            domain_id: domain.id.clone(),
+            cause_entity_id: domain.cause_entity_id.clone(),
+            mechanism: domain.mechanism,
+            as_of: scenario.as_of.clone(),
+            state,
+            basis,
+            domain_evidence_blockers,
+            condition_evidence_ids,
+            entity_exposures,
+        });
+    }
+
+    Ok(assessments)
+}
+
+fn evidence_is_admissible_at(record: &EvidenceRecord, at: &str) -> bool {
+    matches!(record.state, EvidenceState::Asserted | EvidenceState::Corroborated)
+        && {
+            let start = record.time.valid_from.as_deref();
+            let end = record.time.valid_until.as_deref();
+            !start.is_some_and(|value| !is_canonical_utc_timestamp(value))
+                && !end.is_some_and(|value| !is_canonical_utc_timestamp(value))
+                && !matches!((start, end), (Some(first), Some(last)) if {
+                    is_canonical_utc_timestamp(first)
+                        && is_canonical_utc_timestamp(last)
+                        && first >= last
+                })
+                && !start.is_some_and(|value| value > at)
+                && !end.is_some_and(|value| at >= value)
+        }
+}
+
+fn domain_evidence_blockers_for(
+    evidence_id: &str,
+    record: &EvidenceRecord,
+    domain_id: &str,
+    at: &str,
+) -> Vec<DomainEvidenceBlocker> {
+    let mut blockers = Vec::new();
+    match record.state {
+        EvidenceState::Asserted | EvidenceState::Corroborated => {}
+        EvidenceState::Proposed => blockers.push(DomainEvidenceBlocker {
+            evidence_id: evidence_id.into(),
+            reason: DomainEvidenceBlockReason::ProposedEvidence,
+        }),
+        EvidenceState::Disputed => blockers.push(DomainEvidenceBlocker {
+            evidence_id: evidence_id.into(),
+            reason: DomainEvidenceBlockReason::DisputedEvidence,
+        }),
+        EvidenceState::Superseded => blockers.push(DomainEvidenceBlocker {
+            evidence_id: evidence_id.into(),
+            reason: DomainEvidenceBlockReason::SupersededEvidence,
+        }),
+        EvidenceState::Withdrawn => blockers.push(DomainEvidenceBlocker {
+            evidence_id: evidence_id.into(),
+            reason: DomainEvidenceBlockReason::WithdrawnEvidence,
+        }),
+    }
+
+    if !matches!(record.kind, EvidenceKind::Observation | EvidenceKind::Scenario) {
+        blockers.push(DomainEvidenceBlocker {
+            evidence_id: evidence_id.into(),
+            reason: DomainEvidenceBlockReason::WrongKind,
+        });
+    }
+    if record.subject_id != domain_id {
+        blockers.push(DomainEvidenceBlocker {
+            evidence_id: evidence_id.into(),
+            reason: DomainEvidenceBlockReason::WrongSubject,
+        });
+    }
+    let start = record.time.valid_from.as_deref();
+    let end = record.time.valid_until.as_deref();
+    if start.is_some_and(|value| !is_canonical_utc_timestamp(value))
+        || end.is_some_and(|value| !is_canonical_utc_timestamp(value))
+        || matches!((start, end), (Some(first), Some(last)) if {
+            is_canonical_utc_timestamp(first)
+                && is_canonical_utc_timestamp(last)
+                && first >= last
+        })
+    {
+        blockers.push(DomainEvidenceBlocker {
+            evidence_id: evidence_id.into(),
+            reason: DomainEvidenceBlockReason::InvalidEvidenceValidity,
+        });
+    } else if start.is_some_and(|value| value > at) || end.is_some_and(|value| at >= value) {
+        blockers.push(DomainEvidenceBlocker {
+            evidence_id: evidence_id.into(),
+            reason: DomainEvidenceBlockReason::OutsideEvidenceValidity,
+        });
+    }
+    blockers
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::spatial_economic::{
+        Provenance, SpatialContext, TimeContext, EVIDENCE_SCHEMA_VERSION,
+    };
+
+    const AT: &str = "2026-10-15T10:00:00Z";
+
+    fn evidence(id: &str, subject_id: &str, spatial_entity_id: &str) -> EvidenceRecord {
+        EvidenceRecord {
+            id: id.into(),
+            schema_version: EVIDENCE_SCHEMA_VERSION.into(),
+            kind: EvidenceKind::Observation,
+            state: EvidenceState::Asserted,
+            issuer_id: "did:example:common-cause-tests".into(),
+            subject_id: subject_id.into(),
+            spatial: SpatialContext {
+                entity_id: spatial_entity_id.into(),
+                geometry_uri: None,
+                crs: None,
+            },
+            time: TimeContext {
+                occurred_at: AT.into(),
+                recorded_at: AT.into(),
+                valid_from: None,
+                valid_until: None,
+            },
+            statement: "Synthetic common-cause test evidence".into(),
+            quantity: None,
+            money: None,
+            provenance: Provenance {
+                method: "synthetic_test".into(),
+                source_artifacts: Vec::new(),
+                derivation_id: None,
+            },
+            supersedes: None,
+            access_policy: "policy:synthetic-test".into(),
+        }
+    }
+
+    fn domain() -> CommonCauseDomain {
+        CommonCauseDomain {
+            id: "domain:shared-feeder".into(),
+            cause_entity_id: "feeder:grid-1".into(),
+            mechanism: FailureMechanism::SharedPower,
+            member_entity_ids: vec!["pump:a".into(), "pump:b".into()],
+            supporting_evidence_ids: vec!["ev:domain".into()],
+            valid_from: None,
+            valid_until: None,
+        }
+    }
+
+    fn condition(state: CommonCauseState) -> CommonCauseCondition {
+        CommonCauseCondition {
+            state,
+            basis: CommonCauseBasis::Assumed,
+            rationale: "Synthetic explicit scenario condition".into(),
+            supporting_evidence_ids: Vec::new(),
+        }
+    }
+
+    fn scenario(condition: Option<CommonCauseCondition>) -> CommonCauseScenario {
+        CommonCauseScenario {
+            id: "scenario:test".into(),
+            as_of: AT.into(),
+            conditions: condition
+                .map(|value| [("domain:shared-feeder".into(), value)].into())
+                .unwrap_or_default(),
+        }
+    }
+
+    #[test]
+    fn active_shared_cause_exposes_all_declared_members_without_marking_them_failed() {
+        let evidence = [evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")];
+        let result = assess_common_cause_domains(
+            &[domain()],
+            &scenario(Some(condition(CommonCauseState::Active))),
+            &evidence,
+        )
+        .unwrap();
+
+        assert_eq!(result[0].entity_exposures.len(), 2);
+        assert_eq!(result[0].entity_exposures[0].entity_id, "pump:a");
+        assert_eq!(result[0].entity_exposures[0].exposure, CommonCauseExposure::Exposed);
+        assert_eq!(result[0].entity_exposures[1].exposure, CommonCauseExposure::Exposed);
+        // There is no operational-state field to mutate: exposure is not failure.
+    }
+
+    #[test]
+    fn missing_condition_remains_indeterminate() {
+        let evidence = [evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")];
+        let result =
+            assess_common_cause_domains(&[domain()], &scenario(None), &evidence).unwrap();
+        assert_eq!(result[0].state, CommonCauseState::Unknown);
+        assert!(result[0]
+            .entity_exposures
+            .iter()
+            .all(|member| member.exposure == CommonCauseExposure::Indeterminate));
+    }
+
+    #[test]
+    fn disputed_domain_evidence_blocks_exposure_conclusions() {
+        let mut support = evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1");
+        support.state = EvidenceState::Disputed;
+        let result = assess_common_cause_domains(
+            &[domain()],
+            &scenario(Some(condition(CommonCauseState::Active))),
+            &[support],
+        )
+        .unwrap();
+        assert_eq!(result[0].domain_evidence_blockers.len(), 1);
+        assert_eq!(
+            result[0].domain_evidence_blockers[0].reason,
+            DomainEvidenceBlockReason::DisputedEvidence
+        );
+        assert!(result[0]
+            .entity_exposures
+            .iter()
+            .all(|member| member.exposure == CommonCauseExposure::EvidenceBlocked));
+    }
+
+    #[test]
+    fn inactive_common_cause_is_not_triggered_not_a_claim_of_independence() {
+        let evidence = [evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")];
+        let result = assess_common_cause_domains(
+            &[domain()],
+            &scenario(Some(condition(CommonCauseState::Inactive))),
+            &evidence,
+        )
+        .unwrap();
+        assert!(result[0]
+            .entity_exposures
+            .iter()
+            .all(|member| member.exposure == CommonCauseExposure::NotTriggered));
+    }
+
+    #[test]
+    fn observed_condition_requires_valid_matching_observation() {
+        let mut observed = condition(CommonCauseState::Active);
+        observed.basis = CommonCauseBasis::Observed;
+        observed.supporting_evidence_ids = vec!["ev:cause".into()];
+        let records = [
+            evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1"),
+            evidence("ev:cause", "feeder:grid-1", "feeder:grid-1"),
+        ];
+        let result = assess_common_cause_domains(
+            &[domain()],
+            &scenario(Some(observed)),
+            &records,
+        )
+        .unwrap();
+        assert_eq!(result[0].entity_exposures[0].exposure, CommonCauseExposure::Exposed);
+        assert_eq!(result[0].condition_evidence_ids, vec!["ev:cause"]);
+    }
+
+    #[test]
+    fn observed_condition_with_wrong_subject_is_rejected() {
+        let mut observed = condition(CommonCauseState::Active);
+        observed.basis = CommonCauseBasis::Observed;
+        observed.supporting_evidence_ids = vec!["ev:cause".into()];
+        let records = [
+            evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1"),
+            evidence("ev:cause", "some-other-entity", "feeder:grid-1"),
+        ];
+        assert!(matches!(
+            assess_common_cause_domains(&[domain()], &scenario(Some(observed)), &records),
+            Err(CommonCauseAssessmentError::InvalidInput(errors))
+                if errors.contains(&CommonCauseValidationError::ConditionEvidenceSubjectMismatch)
+        ));
+    }
+
+    #[test]
+    fn duplicate_members_and_unknown_domains_fail_closed() {
+        let mut bad_domain = domain();
+        bad_domain.member_entity_ids.push("pump:a".into());
+        assert!(matches!(
+            assess_common_cause_domains(
+                &[bad_domain],
+                &scenario(Some(condition(CommonCauseState::Active))),
+                &[evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")],
+            ),
+            Err(CommonCauseAssessmentError::InvalidInput(errors))
+                if errors.contains(&CommonCauseValidationError::DuplicateMemberEntityId)
+        ));
+
+        let mut bad_scenario = scenario(None);
+        bad_scenario.conditions.insert(
+            "domain:unknown".into(),
+            condition(CommonCauseState::Active),
+        );
+        assert!(matches!(
+            assess_common_cause_domains(
+                &[domain()],
+                &bad_scenario,
+                &[evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")],
+            ),
+            Err(CommonCauseAssessmentError::InvalidInput(errors))
+                if errors.contains(&CommonCauseValidationError::UnknownScenarioDomain)
+        ));
+    }
+
+    #[test]
+    fn expired_domain_support_blocks_exposure() {
+        let mut support = evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1");
+        support.time.valid_until = Some("2026-10-15T09:00:00Z".into());
+        let result = assess_common_cause_domains(
+            &[domain()],
+            &scenario(Some(condition(CommonCauseState::Active))),
+            &[support],
+        )
+        .unwrap();
+        assert!(result[0].domain_evidence_blockers.iter().any(|blocker| {
+            blocker.reason == DomainEvidenceBlockReason::OutsideEvidenceValidity
+        }));
+        assert!(result[0]
+            .entity_exposures
+            .iter()
+            .all(|member| member.exposure == CommonCauseExposure::EvidenceBlocked));
+    }
+
+    #[test]
+    fn expired_domain_is_outside_scope_without_relabeling_it_safe() {
+        let mut expired = domain();
+        expired.valid_until = Some("2026-10-15T09:00:00Z".into());
+        let result = assess_common_cause_domains(
+            &[expired],
+            &scenario(Some(condition(CommonCauseState::Active))),
+            &[evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")],
+        )
+        .unwrap();
+        assert!(result[0]
+            .entity_exposures
+            .iter()
+            .all(|member| member.exposure == CommonCauseExposure::OutsideDomainValidity));
+    }
+
+    #[test]
+    fn results_and_member_exposures_are_sorted_deterministically() {
+        let mut first = domain();
+        first.member_entity_ids = vec!["pump:z".into(), "pump:a".into()];
+        let mut second = domain();
+        second.id = "domain:alternate".into();
+        second.supporting_evidence_ids = vec!["ev:alternate".into()];
+        let evidence = [
+            evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1"),
+            evidence("ev:alternate", "domain:alternate", "feeder:grid-2"),
+        ];
+        let result = assess_common_cause_domains(
+            &[first, second],
+            &scenario(Some(condition(CommonCauseState::Active))),
+            &evidence,
+        )
+        .unwrap();
+        assert_eq!(result[0].domain_id, "domain:alternate");
+        assert_eq!(result[1].domain_id, "domain:shared-feeder");
+        assert_eq!(result[1].entity_exposures[0].entity_id, "pump:a");
+        assert_eq!(result[1].entity_exposures[1].entity_id, "pump:z");
+        assert_eq!(result[0].state, CommonCauseState::Unknown);
+    }
+}
