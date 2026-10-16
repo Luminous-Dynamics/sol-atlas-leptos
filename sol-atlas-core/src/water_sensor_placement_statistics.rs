@@ -30,6 +30,7 @@ struct EvaluationInput {
     schema_version: String,
     plan_id: String,
     run_state: String,
+    candidate_target_count: usize,
     sensor_budgets: Vec<usize>,
     noise_sigma_fractions: Vec<f64>,
     replicate_count: usize,
@@ -168,6 +169,7 @@ fn validate_input(input: &EvaluationEnvelope) -> Result<(), String> {
     }
     let eval = &input.evaluation;
     if eval.plan_id.is_empty()
+        || eval.candidate_target_count < 2
         || eval.sensor_budgets.is_empty()
         || eval.noise_sigma_fractions.is_empty()
         || eval.held_out_magnitudes.len() < 2
@@ -267,6 +269,7 @@ fn validate_input(input: &EvaluationEnvelope) -> Result<(), String> {
             if prediction.scenario_id.is_empty()
                 || prediction.actual_target.is_empty()
                 || prediction.actual_rank == 0
+                || prediction.actual_rank > eval.candidate_target_count
                 || !scenario_ids.insert(prediction.scenario_id.as_str())
             {
                 return Err(format!(
@@ -636,6 +639,7 @@ mod tests {
                 "schema_version": INPUT_SCHEMA,
                 "plan_id": "test-plan",
                 "run_state": "Completed",
+                "candidate_target_count": 4,
                 "sensor_budgets": [2],
                 "noise_sigma_fractions": [0.0],
                 "replicate_count": 1,
