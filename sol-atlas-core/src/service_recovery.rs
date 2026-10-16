@@ -299,7 +299,7 @@ pub fn assess_service_recovery_trajectory(
                 Some(adequate.as_of.clone()),
                 Some(u64::try_from(adequate_epoch - start_epoch).unwrap_or(0)),
                 all_later_adequate,
-                Some(u64::try_from(duration).unwrap_or(0)),
+                all_later_adequate.then_some(u64::try_from(duration).unwrap_or(0)),
             )
         }
         None => (None, None, None, None, false, None),
@@ -451,6 +451,7 @@ mod tests {
         let result = assess_service_recovery_trajectory(&trajectory(samples), &[]).unwrap();
         assert_eq!(result.first_adequate_sample_elapsed_seconds, Some(10));
         assert_eq!(result.observed_adequacy_maintained_through_end, false);
+        assert_eq!(result.observed_adequacy_duration_seconds, None);
     }
 
     #[test]
