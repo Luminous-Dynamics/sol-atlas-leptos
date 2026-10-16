@@ -675,6 +675,15 @@ mod tests {
     }
 
     #[test]
+    fn rank_beyond_candidate_universe_is_rejected() {
+        let mut input: Value = serde_json::from_slice(&fixture()).unwrap();
+        input["evaluation"]["results"][0]["predictions"][0]["actual_rank"] = json!(5);
+        assert!(compare_sensor_placement(input.to_string().as_bytes())
+            .unwrap_err()
+            .contains("invalid or duplicate scenario prediction"));
+    }
+
+    #[test]
     fn target_or_scenario_mismatch_is_rejected_before_bootstrap() {
         let mut input: Value = serde_json::from_slice(&fixture()).unwrap();
         input["evaluation"]["results"][1]["predictions"][0]["actual_target"] = json!("other");
