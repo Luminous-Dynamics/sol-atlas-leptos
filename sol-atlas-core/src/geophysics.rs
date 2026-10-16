@@ -73,6 +73,21 @@ pub enum UncertaintyInterpretation {
     Unspecified,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RadialSignConvention {
+    PositiveOutward,
+    PositiveInward,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RotationReferenceFrame {
+    RelativeToMantle,
+    RelativeToCrust,
+    Other,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TimeWindow {
     /// POSIX/Unix nanoseconds from the Unix epoch, using the source adapter's
@@ -118,6 +133,52 @@ impl GeodeticPosition {
             return Err(ValidationError::InvalidAltitude);
         }
         Ok(())
+    }
+}
+
+/// Spatial support is explicit: surface observations, core-boundary estimates,
+/// and global scalar parameters are not interchangeable locations.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum EstimateSupport {
+    SurfacePoint { position: GeodeticPosition },
+    CoreMantleBoundaryPoint {
+        latitude_deg: f64,
+        longitude_deg: f64,
+        radius_m: f64,
+    },
+    GlobalScalar,
+}
+
+impl EstimateSupport {
+    pub fn validate(&self) -> Result<(), ValidationError> {
+        match self {
+            Self::SurfacePoint { position } => position.validate(),
+            Self::CoreMantleBoundaryPoint {
+                latitude_deg,
+                longitude_deg,
+                radius_m,
+            } => {
+                if !latitude_deg.is_finite() {
+                    return Err(ValidationError::NonFiniteValue("latitude_deg"));
+                }
+                if !(-90.0..=90.0).contains(latitude_deg) {
+                    return Err(ValidationError::InvalidLatitude);
+                }
+                if !longitude_deg.is_finite() {
+                    return Err(ValidationError::NonFiniteValue("longitude_deg"));
+                }
+                if !(-180.0..=180.0).contains(longitude_deg) {
+                    return Err(ValidationError::InvalidLongitude);
+                }
+                require_finite(*radius_m, "radius_m")?;
+                if *radius_m <= 0.0 {
+                    return Err(ValidationError::InvalidSpatialSupport);
+                }
+                Ok(())
+            }
+            Self::GlobalScalar => Ok(()),
+        }
     }
 }
 
@@ -290,6 +351,7 @@ impl UncertaintyInterval {
 pub enum EstimateValue {
     RadialMagneticFieldNt {
         value_nt: f64,
+        positive_direction: RadialSignConvention,
         interval: Option<UncertaintyInterval>,
     },
     /// Local tangential flow at the core-mantle boundary, in metres/year.
@@ -302,6 +364,7 @@ pub enum EstimateValue {
     /// A model-derived relative rotation estimate; it is not a directly observed rate.
     InnerCoreDifferentialRotationDegreesPerYear {
         value_degrees_per_year: f64,
+        reference_frame: RotationReferenceFrame,
         interval: Option<UncertaintyInterval>,
     },
 }
@@ -341,6 +404,7 @@ pub struct StateEstimate {
     pub schema_version: u16,
     pub id: String,
     pub valid_time: TimeWindow,
+    pub spatial_support: EstimateSupport,
     pub method: EstimateMethod,
     pub model_id: String,
     pub model_version: String,
@@ -366,6 +430,23 @@ impl StateEstimate {
         require_non_empty(&self.model_id, "model_id")?;
         require_non_empty(&self.model_version, "model_version")?;
         self.valid_time.validate()?;
+        self.spatial_support.validate()?;
+        match (&self.value, &self.spatial_support) {
+            (
+                EstimateValue::RadialMagneticFieldNt { .. },
+                EstimateSupport::SurfacePoint { .. }
+                    | EstimateSupport::CoreMantleBoundaryPoint { .. },
+            )
+            | (
+                EstimateValue::CoreSurfaceFlowMetersPerYear { .. },
+                EstimateSupport::CoreMantleBoundaryPoint { .. },
+            )
+            | (
+                EstimateValue::InnerCoreDifferentialRotationDegreesPerYear { .. },
+                EstimateSupport::GlobalScalar,
+            ) => {}
+            _ => return Err(ValidationError::InvalidSpatialSupport),
+        }
         if let Some(digest) = &self.model_config_sha256 {
             validate_sha256(digest)?;
         }
@@ -419,6 +500,7 @@ pub enum ValidationError {
     MissingEvidence,
     DuplicateObservationId,
     MissingIdentifiabilityCaveat,
+    InvalidSpatialSupport,
 }
 
 fn require_non_empty(value: &str, field: &'static str) -> Result<(), ValidationError> {
@@ -567,6 +649,11 @@ mod tests {
                 start_unix_ns: 1,
                 end_unix_ns: 1,
             },
+            spatial_support: EstimateSupport::CoreMantleBoundaryPoint {
+                latitude_deg: 0.0,
+                longitude_deg: 180.0,
+                radius_m: 3_480_000.0,
+            },
             method: EstimateMethod::CoreSurfaceFlowInversion,
             model_id: "flow-inversion".into(),
             model_version: "0.1.0".into(),
@@ -594,6 +681,11 @@ mod tests {
             valid_time: TimeWindow {
                 start_unix_ns: 1,
                 end_unix_ns: 1,
+            },
+            spatial_support: EstimateSupport::CoreMantleBoundaryPoint {
+                latitude_deg: 0.0,
+                longitude_deg: 180.0,
+                radius_m: 3_480_000.0,
             },
             method: EstimateMethod::CoreSurfaceFlowInversion,
             model_id: "flow-inversion".into(),
