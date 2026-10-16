@@ -188,6 +188,7 @@ impl LinearizedObservationOperator {
             || !relative_tolerance.is_finite()
             || absolute_tolerance <= 0.0
             || relative_tolerance <= 0.0
+            || relative_tolerance >= 1.0
         {
             return Err(ObservabilityError::InvalidTolerance);
         }
@@ -445,6 +446,10 @@ mod tests {
         let op = operator(vec![vec![1.0]]);
         assert_eq!(
             op.analyze(0.0, 1e-10),
+            Err(ObservabilityError::InvalidTolerance)
+        );
+        assert_eq!(
+            op.analyze(1e-12, 1.0),
             Err(ObservabilityError::InvalidTolerance)
         );
     }
