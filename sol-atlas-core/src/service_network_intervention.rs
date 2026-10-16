@@ -494,6 +494,57 @@ mod tests {
     }
 
     #[test]
+    fn batch_intervention_comparison_sorts_scenario_plan_pairs() {
+        let mut scenario_b = scenario();
+        scenario_b.id = "scenario:b".into();
+        let mut scenario_a = scenario();
+        scenario_a.id = "scenario:a".into();
+        let restore = plan(
+            "restore-route",
+            [("route-b".into(), activate_link("route-b"))].into(),
+        );
+        let requests = vec![
+            ServiceNetworkInterventionRequest {
+                scenario: scenario_b,
+                plan: restore.clone(),
+            },
+            ServiceNetworkInterventionRequest {
+                scenario: scenario_a,
+                plan: restore,
+            },
+        ];
+        let results = compare_service_network_interventions(&requests, &[]).unwrap();
+        assert_eq!(
+            results.iter().map(|item| item.baseline_scenario_id.as_str()).collect::<Vec<_>>(),
+            vec!["scenario:a", "scenario:b"]
+        );
+        assert!(results.iter().all(|item| {
+            item.effect == NetworkInterventionEffect::BoundsImproved
+                && item.baseline.conservative_available_capacity == 4.0
+                && item.with_intervention.conservative_available_capacity == 8.0
+        }));
+    }
+
+    #[test]
+    fn batch_intervention_rejects_empty_and_duplicate_comparison_keys() {
+        assert_eq!(
+            compare_service_network_interventions(&[], &[]),
+            Err(ServiceNetworkInterventionError::EmptyRequestSet)
+        );
+        let request = ServiceNetworkInterventionRequest {
+            scenario: scenario(),
+            plan: plan(
+                "restore-route",
+                [("route-b".into(), activate_link("route-b"))].into(),
+            ),
+        };
+        assert_eq!(
+            compare_service_network_interventions(&[request.clone(), request], &[]),
+            Err(ServiceNetworkInterventionError::DuplicateComparisonKey)
+        );
+    }
+
+    #[test]
     fn network_intervention_fixture_matches_golden_comparison() {
         let input: ServiceCapacityNetworkScenario = serde_json::from_str(include_str!(
             "../../schemas/examples/service-capacity-network-scenario.json"
