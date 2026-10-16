@@ -167,7 +167,7 @@ pub enum ServiceCapacityNetworkError {
     InvalidInput(Vec<ServiceCapacityNetworkValidationError>),
 }
 
-fn build_evidence_index<'a>(
+pub(crate) fn build_evidence_index<'a>(
     records: &'a [EvidenceRecord],
 ) -> Result<BTreeMap<&'a str, &'a EvidenceRecord>, Vec<ServiceCapacityNetworkValidationError>> {
     let mut index = BTreeMap::new();
@@ -233,7 +233,7 @@ pub fn assess_service_capacity_networks(
         .collect()
 }
 
-fn assess_service_capacity_network_indexed(
+pub(crate) fn assess_service_capacity_network_indexed(
     scenario: &ServiceCapacityNetworkScenario,
     evidence_by_id: &BTreeMap<&str, &EvidenceRecord>,
 ) -> Result<ServiceCapacityNetworkAssessment, ServiceCapacityNetworkError> {
