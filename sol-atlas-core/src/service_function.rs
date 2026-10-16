@@ -584,6 +584,24 @@ mod tests {
     }
 
     #[test]
+    fn service_function_fixtures_match_golden_capacity_assessment() {
+        let scenario: ServiceFunctionScenario = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-function-scenario.json"
+        ))
+        .unwrap();
+        let expected: ServiceFunctionAssessment = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-function-assessment.json"
+        ))
+        .unwrap();
+
+        let actual = assess_service_function(&scenario, &[]).unwrap();
+        assert_eq!(actual, expected);
+        assert_eq!(actual.state, ServiceFunctionState::Degraded);
+        assert!(actual.coverage_lower_bound.unwrap() < 1.0);
+        assert!(actual.coverage_upper_bound.unwrap() < 1.0);
+    }
+
+    #[test]
     fn same_input_returns_identical_serialized_assessment() {
         let input = scenario(
             measurement("asset:pump", 7.0, "m3/h", Some(0.25)),
