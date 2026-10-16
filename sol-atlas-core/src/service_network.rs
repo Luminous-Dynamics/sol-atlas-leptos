@@ -91,13 +91,18 @@ pub struct ServiceCapacityNetworkAssessment {
     pub required_capacity_value: f64,
     pub required_capacity_lower_bound: f64,
     pub required_capacity_upper_bound: f64,
-    /// Max flow with active links and each capacity's conservative lower bound.
+    /// Max flow in the declared graph with active links and conservative capacities.
+    /// These are service-wide bounds only when topology_completeness is Complete.
     pub conservative_available_capacity: f64,
-    /// Max flow with active plus unknown links and each capacity's upper bound.
+    /// Max flow in the declared graph with active plus unknown links and upper capacities.
+    /// These are service-wide bounds only when topology_completeness is Complete.
     pub optimistic_available_capacity: f64,
+    /// Absent when topology completeness is not established or demand has a zero bound.
     pub coverage_lower_bound: Option<f64>,
+    /// Absent when topology completeness is not established or demand lower bound is zero.
     pub coverage_upper_bound: Option<f64>,
-    /// Minimum-cut link IDs for the conservative network, sorted deterministically.
+    /// Min-cut link IDs for the declared conservative graph, not necessarily service-wide
+    /// when topology completeness is Partial or Unknown; sorted deterministically.
     pub conservative_min_cut_link_ids: Vec<String>,
     pub active_link_ids: Vec<String>,
     pub inactive_link_ids: Vec<String>,
@@ -432,10 +437,15 @@ fn assess_service_capacity_network_indexed(
     } else {
         NetworkAssessmentState::Indeterminate
     };
-    let coverage_lower_bound = (demand_upper > 0.0)
-        .then(|| lower_flow.flow / demand_upper);
-    let coverage_upper_bound =
-        (demand_lower > 0.0).then(|| upper_flow.flow / demand_lower);
+    let (coverage_lower_bound, coverage_upper_bound) =
+        if scenario.topology_completeness == NetworkTopologyCompleteness::Complete {
+            (
+                (demand_upper > 0.0).then(|| lower_flow.flow / demand_upper),
+                (demand_lower > 0.0).then(|| upper_flow.flow / demand_lower),
+            )
+        } else {
+            (None, None)
+        };
     if coverage_lower_bound.is_some_and(|value| !value.is_finite())
         || coverage_upper_bound.is_some_and(|value| !value.is_finite())
     {
@@ -921,6 +931,8 @@ mod tests {
         let partial_result = assess_service_capacity_network(&partial, &[]).unwrap();
         assert_eq!(partial_result.state, NetworkAssessmentState::Indeterminate);
         assert_eq!(partial_result.conservative_available_capacity, 0.0);
+        assert_eq!(partial_result.coverage_lower_bound, None);
+        assert_eq!(partial_result.coverage_upper_bound, None);
 
         let mut unknown = scenario(vec![], 1.0, None);
         unknown.topology_completeness = NetworkTopologyCompleteness::Unknown;
