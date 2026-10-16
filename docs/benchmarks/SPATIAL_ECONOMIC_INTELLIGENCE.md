@@ -2,7 +2,7 @@
 
 **Status:** benchmark protocol and proposed targets; no performance result has yet been measured or claimed.  
 **Contract version:** v0.1  
-**Scope:** evidence validation, qualitative dependency groups, intervention comparison, common-cause overlap, and uncertainty-bounded service-function adequacy in `sol-atlas-core`. The timing harness measures all three computational surfaces; its targets remain unmeasured until executed on a named runner.
+**Scope:** evidence validation, qualitative dependency groups, intervention comparison, common-cause overlap, uncertainty-bounded service-function adequacy, and network max-flow/min-cut composition in `sol-atlas-core`. The timing harness measures four computational surfaces; its targets remain unmeasured until executed on a named runner.
 
 ## Principles
 
@@ -23,6 +23,9 @@ Targets apply to a named reference runner, release profile, warmed process, one 
 | Common-cause exposure safety | 100% of active/inactive/unknown, in-window/out-of-window and blocked-evidence cases match the contract; 0 blocked domains reported as exposed or not-triggered | Exposure is not an asset failure; out-of-scope is not safe; common-cause analysis must not mutate operational states |
 | Functional-adequacy correctness | 100% of golden scenarios produce the expected adequate/degraded/unavailable/indeterminate class and capacity/coverage bounds | Unknown remains indeterminate; observed values must exactly match cited evidence; mismatched units are rejected |
 | Functional-adequacy negative controls | 0 accepted cases with duplicate evidence IDs, wrong entity, quantity/unit/uncertainty mismatch, expired evidence or unsupported observed basis | Reject conflicting evidence instead of averaging or silently preferring one source |
+| Network flow oracle correctness | 100% of series bottleneck, parallel-route, unknown-link, inactive-link, uncertainty-bound and min-cut fixtures match hand-calculated expected values | No summing capacities across a shared bottleneck; min-cut IDs must match the actual declared lower-bound graph |
+| Topology completeness safety | 0 adequate/unavailable decisions when topology is partial or unknown | Partial network data must return indeterminate, even if computed subgraph flow is zero or exceeds demand |
+| Flow conservation | Relative max-flow/min-cut value difference <= 1e-9 on deterministic synthetic networks, subject to the declared numeric scale | Any unexplained discrepancy blocks use of the result as a min-cut explanation |
 | Determinism | 100/100 repeated runs produce byte-identical canonicalized result data for the same inputs | Runtime measurements may vary; output data must not |
 | Small comparison | 100 groups / 200 dependency edges / 200 evidence records: p95 <= 50 ms | Initial target; no target is claimed until measured |
 | Medium comparison | 1,000 groups / 2,000 edges / 2,000 evidence records: p95 <= 250 ms | Same runner and binary as small comparison |
@@ -33,6 +36,9 @@ Targets apply to a named reference runner, release profile, warmed process, one 
 | Functional adequacy, small | 100 services / 200 observed capacity-and-demand records: p95 <= 5 ms | All 100 results match the golden degraded-capacity oracle |
 | Functional adequacy, medium | 1,000 services / 2,000 observed records: p95 <= 25 ms | Evidence corpus validated once; output order stable by scenario ID |
 | Functional adequacy, large | 10,000 services / 20,000 observed records: p95 <= 250 ms | No missing assessments; every capacity/demand measurement preserves unit, uncertainty and evidence trace |
+| Network flow, small | 100 networks / 300 directed links / 400 observed capacity-and-demand records: p95 <= 10 ms | Every flow and minimum cut matches its synthetic oracle |
+| Network flow, medium | 1,000 networks / 3,000 links / 4,000 observed records: p95 <= 100 ms | Batch evidence index built once; deterministic result ordering |
+| Network flow, large | 10,000 networks / 30,000 links / 40,000 observed records: p95 <= 1,000 ms | No missing scenarios; topology-incomplete networks remain indeterminate; all results match the expected bottleneck oracle |
 | Peak resident memory | <= 512 MiB for the large fixture | Measure with an OS process monitor; the Rust harness does not measure RSS itself |
 | Reconciliation safety | Every economic prototype keeps physical quantities, obligations and financial settlement separately reconcilable | No single synthetic “value” or reputation score may replace ledger-level checks |
 | Spatial interoperability | 100% of applicable mandatory tests in the selected official OGC conformance suite before making a conformance claim | Only applies when the corresponding spatial API adapter is implemented |
@@ -49,7 +55,7 @@ SEI_BENCH_SAMPLES=100 \
 cargo bench --bench spatial_economic_intervention
 ```
 
-The harness emits one JSON line for each workload size (100, 1,000 and 10,000 groups/services). Each line includes group/edge/evidence counts; p50/p95/max latency for intervention comparison, common-cause assessment/overlap, and batch functional adequacy; expected outcome counts; and serialized result sizes. Each measured run is checked against an untimed serialized reference and synthetic correctness oracle. The common-cause timing includes validation of its separately reported evidence record and correlation against precomputed intervention group assessments. The functional-adequacy timing validates a batch of observed capacity and demand records, indexes the shared corpus once, then returns deterministic scenario-ID ordering. Output serialization is checked outside timing. The harness does not claim that timing targets passed. Use an external process monitor (for example `/usr/bin/time -v`) to measure peak RSS, and archive the stdout with the commit SHA and environment manifest.
+The harness emits one JSON line for each workload size (100, 1,000 and 10,000 groups/services/networks). Each line includes group/edge/evidence counts; p50/p95/max latency for intervention comparison, common-cause assessment/overlap, batch functional adequacy and batch network flow/min-cut; expected outcome counts; and serialized result sizes. Each measured run is checked against an untimed serialized reference and synthetic correctness oracle. The functional-adequacy and network-flow timings validate a batch of observed capacity/demand records and index the shared corpus once. The network fixture is a series bottleneck feeding two parallel routes; it asserts the expected max flow, min cut, and degraded state for every network. Output serialization is checked outside timing. The harness does not claim that timing targets passed. Use an external process monitor (for example `/usr/bin/time -v`) to measure peak RSS, and archive the stdout with the commit SHA and environment manifest.
 
 ## Pilot impact gates (separate from synthetic performance)
 
