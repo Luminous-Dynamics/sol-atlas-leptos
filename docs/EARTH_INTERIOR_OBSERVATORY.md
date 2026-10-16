@@ -52,7 +52,7 @@ Keep adapters and model APIs at explicit boundaries. Start with frozen public da
 geophysics.rs begins the schema boundary without implementing a live downloader or an estimator.
 
 - ObservationRecord distinguishes geomagnetic vector observations in local North-East-Down coordinates from seismic differential travel-time observations.
-- Time support distinguishes absolute Unix time, named model-relative seconds, and ages-before-present with explicit reference epoch and optional validated discrete chronology distribution. Acquisition time is kept separate from the time of the phenomenon represented by the observation.
+- Time support distinguishes absolute Unix time, named model-relative seconds, and ages-before-present with explicit reference epoch and optional validated discrete chronology distribution. The tests check reversed model-time windows, a valid age distribution, and rejection of a distribution whose probabilities do not sum to one. Acquisition time is kept separate from the time of the phenomenon represented by the observation.
 - Every observation carries its time support, optional WGS84 position, source/product/record identity, quality state and optional SHA-256 of the captured source artifact.
 - StateEstimate represents radial magnetic-field estimates, core-surface flow estimates and inner-core differential-rotation estimates with explicit units, method/model identity, input references, assumptions, uncertainty interpretation and an identifiability declaration.
 - Spatial support is typed independently from value: a geodetic point, a core-mantle-boundary point, or a global scalar. Validation rejects incompatible combinations, such as a core-boundary flow represented as a global scalar. Radial-field sign convention and the reference frame for inner-core rotation are explicit.
@@ -76,6 +76,9 @@ A strong known-truth candidate is Julien Aubert's 2026 geodynamo simulation inte
 - Paper: https://jsedi.episciences.org/articles/17790
 - Replication dataset/version: https://dataverse.ipgp.fr/dataset.xhtml?persistentId=doi%3A10.18715%2FIPGP.2026.mm0sx2m0
 - Dataset DOI: https://doi.org/10.18715/IPGP.2026.MM0SX2M0
+- Candidate file manifest: [Aubert 2026 case-C surface magnetic field](earth-interior/manifest-aubert-2026-bsurf-c.json)
+
+The candidate manifest pins DataVerse file ID 20149, filename `Bsurf_C.mat`, dataset version 2.0, provider-reported MD5, source metadata URL, and intended benchmark use. It intentionally leaves local SHA-256 null and marks the payload as not downloaded or verified. This is a useful manifest-before-bytes pattern rather than a false claim that we already hold the source artifact.
 
 Use this as an openly documented simulation truth source, not as the Earth's actual observed trajectory. The first adapter should select a small, well-documented case after reading the dataset README, inspect array shapes and units, and freeze the exact data-file IDs, version, declared licence, source metadata, local SHA-256 digests and parsing transform. Do not commit the 302.5 MB archive or derived bulk arrays to Git; keep a lightweight manifest and deterministic retrieval/verification instructions. If the files cannot be retrieved or verified, keep the benchmark blocked rather than fabricating fixtures.
 
