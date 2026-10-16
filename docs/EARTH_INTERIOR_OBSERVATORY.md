@@ -60,6 +60,13 @@ geophysics.rs begins the schema boundary without implementing a live downloader 
 
 This contract is an initial internal seam, not yet a stable external interchange format. Before wider use, review it with geophysics/seismology domain experts and compare its units/time metadata with the exact data products selected for the first adapter.
 
+## Current cross-repository work items
+
+- Sol Atlas contract and project benchmark plan: https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/118
+- Symthaea inference/validation work: https://github.com/Luminous-Dynamics/symthaea/issues/7688. It composes existing state-estimation/calibration work (#3759), model credibility/VVUQ (#6122), and benchmark portfolio selection (#6270).
+- Symtropy known-truth simulation/identifiability work: https://github.com/Luminous-Dynamics/symtropy/issues/1728. It composes the existing exact-head qualification harness (#1264) and the Earth-fluid applicability boundary (#515).
+- Mycelix should compose, rather than duplicate, scientific artifact typing and derived-claim authority: https://github.com/Luminous-Dynamics/mycelix/issues/2410 and https://github.com/Luminous-Dynamics/mycelix/issues/2408. These remain the provenance/evidence handoff; this repository does not create a second canonical evidence ledger.
+
 ## Benchmark ladder
 
 ### B0 — schema and evidence integrity
