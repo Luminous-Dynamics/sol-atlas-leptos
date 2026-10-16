@@ -94,7 +94,7 @@ An explanation of the current bottleneck is useful, but resilience planning need
 
 The intervention output is a counterfactual comparison, not an execution receipt. A positive delta proves only that the stated assumptions improved flow in the declared model. If topology is incomplete, the result is `topology_incomplete`; it must not claim a service-wide improvement. The next planning layer should evaluate portfolios under explicit budgets, crews, repair times, access constraints and distributional safeguards. Do not rank actions by flow gain alone: essential-service equity, repair feasibility, affordability and risks must remain inspectable dimensions, not hidden weights in a single score.
 
-### 12. From point-in-time status to sampled service recovery
+### 11. From point-in-time status to sampled service recovery
 
 Resilience is not just the number of components that survived. It also concerns how long essential functions remain degraded and how much service is lost before restoration. NIST's community-resilience work calls for metrics that connect infrastructure performance to the social and economic functions served, including time to recovery and the effects of interdependencies. This aligns SEI with service-centred measurement rather than an asset-only score.
 
