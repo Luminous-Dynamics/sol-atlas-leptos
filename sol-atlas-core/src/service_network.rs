@@ -109,6 +109,8 @@ pub struct ServiceCapacityNetworkAssessment {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ServiceCapacityNetworkValidationError {
     UnsupportedSchemaVersion,
+    EmptyScenarioSet,
+    DuplicateScenarioId,
     EmptyScenarioId,
     InvalidAsOfTimestamp,
     EmptyServiceEntityId,
@@ -197,6 +199,37 @@ pub fn assess_service_capacity_network(
     let evidence_by_id =
         build_evidence_index(evidence_records).map_err(ServiceCapacityNetworkError::InvalidInput)?;
     assess_service_capacity_network_indexed(scenario, &evidence_by_id)
+}
+
+/// Batch API for evaluating many service networks against one evidence corpus.
+///
+/// The evidence index is constructed once for the batch, scenarios are processed
+/// in stable ID order, and duplicate scenario IDs are rejected. This makes the
+/// scaling behavior explicit rather than requiring callers to rebuild indexes.
+pub fn assess_service_capacity_networks(
+    scenarios: &[ServiceCapacityNetworkScenario],
+    evidence_records: &[EvidenceRecord],
+) -> Result<Vec<ServiceCapacityNetworkAssessment>, ServiceCapacityNetworkError> {
+    if scenarios.is_empty() {
+        return Err(ServiceCapacityNetworkError::InvalidInput(vec![
+            ServiceCapacityNetworkValidationError::EmptyScenarioSet,
+        ]));
+    }
+    let evidence_by_id =
+        build_evidence_index(evidence_records).map_err(ServiceCapacityNetworkError::InvalidInput)?;
+    let mut ids = BTreeSet::new();
+    for scenario in scenarios {
+        if !ids.insert(scenario.id.as_str()) {
+            return Err(ServiceCapacityNetworkError::InvalidInput(vec![
+                ServiceCapacityNetworkValidationError::DuplicateScenarioId,
+            ]));
+        }
+    }
+    let mut ordered: Vec<&ServiceCapacityNetworkScenario> = scenarios.iter().collect();
+    ordered.sort_by(|left, right| left.id.cmp(&right.id));
+    ordered.into_iter()
+        .map(|scenario| assess_service_capacity_network_indexed(scenario, &evidence_by_id))
+        .collect()
 }
 
 fn assess_service_capacity_network_indexed(
@@ -941,6 +974,56 @@ mod tests {
             Err(ServiceCapacityNetworkError::InvalidInput(errors))
                 if errors.contains(&ServiceCapacityNetworkValidationError::SupportingEvidenceQuantityMismatch)
         ));
+    }
+
+    #[test]
+    fn batch_network_assessment_sorts_scenario_ids() {
+        let mut first = scenario(
+            vec![link("first-edge", "source:reservoir", "service:irrigation", 4.0, None, NetworkLinkAvailability::Active)],
+            10.0,
+            None,
+        );
+        first.id = "scenario:b".into();
+        let mut second = scenario(
+            vec![link("second-edge", "source:reservoir", "service:irrigation", 12.0, None, NetworkLinkAvailability::Active)],
+            10.0,
+            None,
+        );
+        second.id = "scenario:a".into();
+        let result = assess_service_capacity_networks(&[first, second], &[]).unwrap();
+        assert_eq!(result.iter().map(|item| item.scenario_id.as_str()).collect::<Vec<_>>(), vec!["scenario:a", "scenario:b"]);
+        assert_eq!(result[0].state, NetworkAssessmentState::Adequate);
+        assert_eq!(result[1].state, NetworkAssessmentState::Degraded);
+    }
+
+    #[test]
+    fn batch_network_assessment_rejects_empty_or_duplicate_scenario_ids() {
+        assert!(matches!(
+            assess_service_capacity_networks(&[], &[]),
+            Err(ServiceCapacityNetworkError::InvalidInput(errors))
+                if errors.contains(&ServiceCapacityNetworkValidationError::EmptyScenarioSet)
+        ));
+        let one = scenario(vec![], 1.0, None);
+        assert!(matches!(
+            assess_service_capacity_networks(&[one.clone(), one], &[]),
+            Err(ServiceCapacityNetworkError::InvalidInput(errors))
+                if errors.contains(&ServiceCapacityNetworkValidationError::DuplicateScenarioId)
+        ));
+    }
+
+    #[test]
+    fn complete_network_fixture_matches_golden_max_flow_and_cut() {
+        let input: ServiceCapacityNetworkScenario = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-capacity-network-scenario.json"
+        )).unwrap();
+        let expected: ServiceCapacityNetworkAssessment = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-capacity-network-assessment.json"
+        )).unwrap();
+        let actual = assess_service_capacity_network(&input, &[]).unwrap();
+        assert_eq!(actual, expected);
+        assert_eq!(actual.conservative_min_cut_link_ids, vec!["supply"]);
+        assert_eq!(actual.conservative_available_capacity, 5.0);
+        assert_eq!(actual.optimistic_available_capacity, 5.0);
     }
 
     #[test]
