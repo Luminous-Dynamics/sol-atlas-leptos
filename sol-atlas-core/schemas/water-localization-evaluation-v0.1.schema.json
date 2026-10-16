@@ -2,13 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/sol-atlas-core/schemas/water-localization-evaluation-v0.1.schema.json",
   "title": "Synthetic Water Localization Baseline Evaluation v0.1",
-  "description": "Evaluation of leave-one-withdrawal-magnitude-out nearest-example baselines over completed hash-bound scenario corpus runs. It is not real-leak validation.",
+  "description": "Evaluation of leave-one-withdrawal-magnitude-out nearest-example baselines over completed hash-bound scenario corpus runs. It is not real-leak validation. The source topology is loaded from the exact INP whose SHA-256 is bound into the run manifest; localization error is also reported in unweighted undirected link hops.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
     "source_manifest_sha256",
-    "evaluation"
+    "evaluation",
+    "source_topology_sha256"
   ],
   "properties": {
     "schema_version": {
@@ -20,6 +21,10 @@
     },
     "evaluation": {
       "$ref": "#/$defs/evaluation"
+    },
+    "source_topology_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     }
   },
   "$defs": {
@@ -46,7 +51,10 @@
         "top_k",
         "models",
         "claim_ceiling",
-        "nonclaims"
+        "nonclaims",
+        "topology_node_count",
+        "topology_link_count",
+        "distance_semantics"
       ],
       "properties": {
         "schema_version": {
@@ -129,6 +137,17 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "topology_node_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "topology_link_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "distance_semantics": {
+          "const": "unweighted_undirected_link_hops"
         }
       },
       "allOf": [
@@ -189,7 +208,11 @@
         "top_k_accuracy",
         "mean_reciprocal_rank",
         "predictions",
-        "folds"
+        "folds",
+        "mean_topological_error_hops",
+        "p95_topological_error_hops",
+        "worst_topological_error_hops",
+        "disconnected_prediction_count"
       ],
       "properties": {
         "model_id": {
@@ -230,6 +253,43 @@
           "items": {
             "$ref": "#/$defs/fold"
           }
+        },
+        "mean_topological_error_hops": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "p95_topological_error_hops": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "worst_topological_error_hops": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "disconnected_prediction_count": {
+          "type": "integer",
+          "minimum": 0
         }
       },
       "allOf": [
@@ -313,7 +373,8 @@
         "predicted_top1",
         "actual_rank",
         "top_k_hit",
-        "ranked_candidates"
+        "ranked_candidates",
+        "topological_error_hops"
       ],
       "properties": {
         "fold_magnitude": {
@@ -345,6 +406,17 @@
           "items": {
             "$ref": "#/$defs/ranked_candidate"
           }
+        },
+        "topological_error_hops": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
