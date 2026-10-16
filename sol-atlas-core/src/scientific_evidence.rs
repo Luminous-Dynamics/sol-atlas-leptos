@@ -173,11 +173,21 @@ pub struct ScientificDatasetRecordRefV1 {
 }
 
 impl ScientificDatasetRecordRefV1 {
-    pub fn schema_version(&self) -> u16 { self.schema_version }
-    pub fn record_ref_id(&self) -> &str { &self.record_ref_id }
-    pub fn source_snapshot_id(&self) -> &str { &self.source_snapshot_id }
-    pub fn provider_record_id(&self) -> &str { &self.provider_record_id }
-    pub fn record_locator_url(&self) -> Option<&str> { self.record_locator_url.as_deref() }
+    pub fn schema_version(&self) -> u16 {
+        self.schema_version
+    }
+    pub fn record_ref_id(&self) -> &str {
+        &self.record_ref_id
+    }
+    pub fn source_snapshot_id(&self) -> &str {
+        &self.source_snapshot_id
+    }
+    pub fn provider_record_id(&self) -> &str {
+        &self.provider_record_id
+    }
+    pub fn record_locator_url(&self) -> Option<&str> {
+        self.record_locator_url.as_deref()
+    }
     pub fn mycelix_artifact_snapshot_ref(&self) -> Option<&str> {
         self.mycelix_artifact_snapshot_ref.as_deref()
     }
@@ -289,7 +299,11 @@ fn validate_record_ref_raw(
     if !is_identifier(&raw.provider_record_id) {
         issues.push(ScientificRecordRefValidationIssueV1::InvalidProviderRecordId);
     }
-    if raw.record_locator_url.as_deref().is_some_and(|url| !is_https_url(url)) {
+    if raw
+        .record_locator_url
+        .as_deref()
+        .is_some_and(|url| !is_https_url(url))
+    {
         issues.push(ScientificRecordRefValidationIssueV1::InvalidRecordLocatorUrl);
     }
 
@@ -300,9 +314,8 @@ fn validate_record_ref_raw(
         (None, None) => {}
         (Some(snapshot_ref), Some(selector_ref)) => {
             if !is_bounded_nonblank(snapshot_ref) {
-                issues.push(
-                    ScientificRecordRefValidationIssueV1::InvalidMycelixArtifactSnapshotRef,
-                );
+                issues
+                    .push(ScientificRecordRefValidationIssueV1::InvalidMycelixArtifactSnapshotRef);
             }
             if !is_bounded_nonblank(selector_ref) {
                 issues.push(ScientificRecordRefValidationIssueV1::InvalidMycelixSelectorRef);
@@ -311,7 +324,11 @@ fn validate_record_ref_raw(
         _ => issues.push(ScientificRecordRefValidationIssueV1::MycelixArtifactSelectorPairMismatch),
     }
 
-    if raw.symthaea_analysis_ref.as_deref().is_some_and(|value| !is_bounded_nonblank(value)) {
+    if raw
+        .symthaea_analysis_ref
+        .as_deref()
+        .is_some_and(|value| !is_bounded_nonblank(value))
+    {
         issues.push(ScientificRecordRefValidationIssueV1::InvalidSymthaeaAnalysisRef);
     }
 
@@ -376,9 +393,7 @@ struct RawScientificDatasetSnapshotV1 {
 
 /// Deserialize and validate snapshot JSON in a single operation. Untrusted JSON
 /// cannot create a public validated snapshot simply by declaring a status flag.
-pub fn parse_snapshot_v1(
-    json: &str,
-) -> Result<ScientificDatasetSnapshotV1, SnapshotParseError> {
+pub fn parse_snapshot_v1(json: &str) -> Result<ScientificDatasetSnapshotV1, SnapshotParseError> {
     let raw: RawScientificDatasetSnapshotV1 = serde_json::from_str(json)
         .map_err(|error| SnapshotParseError::InvalidPayload(error.to_string()))?;
     validate_raw(raw)
@@ -496,7 +511,10 @@ fn is_https_url(value: &str) -> bool {
     };
     !rest.is_empty()
         && !rest.chars().any(char::is_whitespace)
-        && rest.split('/').next().is_some_and(|host| host.contains('.'))
+        && rest
+            .split('/')
+            .next()
+            .is_some_and(|host| host.contains('.'))
         && value.len() <= MAX_FIELD_LEN
 }
 
@@ -505,17 +523,12 @@ fn valid_license(license: &LicenseEvidence) -> bool {
         .identifier
         .as_deref()
         .is_some_and(is_bounded_nonblank);
-    let terms_url_is_valid = license
-        .terms_url
-        .as_deref()
-        .is_none_or(is_https_url);
+    let terms_url_is_valid = license.terms_url.as_deref().is_none_or(is_https_url);
 
     terms_url_is_valid
         && match license.status {
             LicenseStatus::Known => identifier_is_valid,
-            LicenseStatus::Unknown | LicenseStatus::ReviewRequired => {
-                license.identifier.is_none()
-            }
+            LicenseStatus::Unknown | LicenseStatus::ReviewRequired => license.identifier.is_none(),
         }
 }
 
@@ -584,12 +597,18 @@ mod tests {
     #[test]
     fn fixture_parses_as_metadata_only_without_fabricated_artifact_digest() {
         let snapshot = parse_snapshot_v1(FIXTURE).expect("fixture should validate");
-        assert_eq!(snapshot.schema_version(), SCIENTIFIC_SNAPSHOT_SCHEMA_VERSION);
+        assert_eq!(
+            snapshot.schema_version(),
+            SCIENTIFIC_SNAPSHOT_SCHEMA_VERSION
+        );
         assert_eq!(snapshot.dataset_release(), "26.09");
         assert_eq!(snapshot.artifact_capture(), ArtifactCapture::MetadataOnly);
         assert_eq!(snapshot.artifact_sha256(), None);
         assert_eq!(snapshot.dataset_license().status, LicenseStatus::Known);
-        assert_eq!(snapshot.dataset_license().identifier.as_deref(), Some("CC0-1.0"));
+        assert_eq!(
+            snapshot.dataset_license().identifier.as_deref(),
+            Some("CC0-1.0")
+        );
         assert_eq!(
             snapshot.source_record_license().status,
             LicenseStatus::ReviewRequired
@@ -616,7 +635,10 @@ mod tests {
         let snapshot = parse_snapshot_v1(FIXTURE).expect("fixture should validate");
         let raw = record_ref_fixture(snapshot.snapshot_id()).to_string();
         let record_ref = parse_record_ref_v1(&raw, &snapshot).expect("record ref should validate");
-        assert_eq!(record_ref.binding_state(), ScientificRecordBindingStateV1::LocatorOnly);
+        assert_eq!(
+            record_ref.binding_state(),
+            ScientificRecordBindingStateV1::LocatorOnly
+        );
         assert_eq!(record_ref.authority_scope(), "sol_atlas_projection_only");
         assert_eq!(record_ref.mycelix_artifact_snapshot_ref(), None);
     }
@@ -735,7 +757,10 @@ mod tests {
             serde_json::from_str(FIXTURE).expect("fixture JSON is valid");
         value["source_record_license"]["status"] = serde_json::json!("unknown");
         let snapshot = parse_snapshot_v1(&value.to_string()).expect("unknown licence is valid");
-        assert_eq!(snapshot.source_record_license().status, LicenseStatus::Unknown);
+        assert_eq!(
+            snapshot.source_record_license().status,
+            LicenseStatus::Unknown
+        );
         assert_eq!(snapshot.source_record_license().identifier, None);
     }
 
@@ -828,8 +853,8 @@ mod tests {
         value["artifact_capture"] = serde_json::json!("digest_recorded");
         value["artifact_sha256"] =
             serde_json::json!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-        let snapshot = parse_snapshot_v1(&value.to_string())
-            .expect("syntactic digest should validate");
+        let snapshot =
+            parse_snapshot_v1(&value.to_string()).expect("syntactic digest should validate");
         assert_eq!(snapshot.artifact_capture(), ArtifactCapture::DigestRecorded);
         assert_eq!(
             snapshot.artifact_sha256(),
@@ -854,8 +879,7 @@ mod tests {
     fn non_https_urls_are_rejected() {
         let mut value: serde_json::Value =
             serde_json::from_str(FIXTURE).expect("fixture JSON is valid");
-        value["source_record_url"] =
-            serde_json::json!("http://example.org/release");
+        value["source_record_url"] = serde_json::json!("http://example.org/release");
         let result = parse_snapshot_v1(&value.to_string());
         assert!(matches!(
             result,
