@@ -543,6 +543,15 @@ pub fn run_scenario_corpus(
         let report_path = scenario_dir.join("scenario.rpt");
         let binary_path = scenario_dir.join("scenario.bin");
         let stdout_path = scenario_dir.join("solver-output.txt");
+        // Never let a previous attempt's report or binary masquerade as output
+        // from the current solver invocation.
+        for stale_output in [&report_path, &binary_path, &stdout_path] {
+            if stale_output.exists() {
+                fs::remove_file(stale_output).map_err(|error| {
+                    format!("cannot remove stale output {}: {error}", stale_output.display())
+                })?;
+            }
+        }
         let output = Command::new(&solver_path)
             .arg(&input_path)
             .arg(&report_path)
