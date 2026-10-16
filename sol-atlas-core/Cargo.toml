@@ -45,3 +45,7 @@ path = "src/bin/water_localization_benchmark_evaluate.rs"
 [[bin]]
 name = "water-sensor-placement-evaluate"
 path = "src/bin/water_sensor_placement_evaluate.rs"
+
+[[bin]]
+name = "water-sensor-placement-compare"
+path = "src/bin/water_sensor_placement_compare.rs"
