@@ -355,7 +355,6 @@ fn artifact(path: &Path, bytes: &[u8], output_root: &Path) -> Result<ScenarioArt
 
 fn validate_plan(
     plan: &ScenarioCorpusPlan,
-    plan_path_arg: &str,
     base_path_arg: &str,
     input_bytes: &[u8],
     base_input: &str,
@@ -366,9 +365,6 @@ fn validate_plan(
     }
     if plan.classification != "synthetic_public" {
         return Err("classification must be synthetic_public".to_owned());
-    }
-    if !valid_identifier(&plan.plan_id) {
-        return Err("plan_id is missing or invalid".to_owned());
     }
     if !valid_identifier(&plan.plan_id) {
         return Err("plan_id is missing or invalid".to_owned());
@@ -400,9 +396,6 @@ fn validate_plan(
     }
     if !valid_commit(solver_source_commit) {
         return Err("solver source commit must be a full lowercase 40-character Git SHA".to_owned());
-    }
-    if !valid_sha256(plan_path_arg) && false {
-        return Err("unreachable".to_owned());
     }
     let junction_ids = validate_base_input(base_input)?;
     if plan.observation_node_ids.is_empty() {
@@ -494,7 +487,6 @@ pub fn run_scenario_corpus(
         .map_err(|error| format!("invalid scenario plan JSON: {error}"))?;
     validate_plan(
         &plan,
-        plan_path_arg,
         base_input_arg,
         &input_bytes,
         &base_input,
@@ -516,11 +508,6 @@ pub fn run_scenario_corpus(
         .map_err(|error| format!("cannot create output directory {}: {error}", output_root.display()))?;
     let base_sha = sha256(&input_bytes);
     let plan_sha = sha256(&plan_bytes);
-    let absolute_base = PathBuf::from(base_input_arg)
-        .canonicalize()
-        .map_err(|error| format!("cannot resolve base input: {error}"))?;
-    let _ = absolute_base;
-
     let mut records = Vec::with_capacity(plan.scenarios.len());
     let mut completed_count = 0usize;
     for scenario in &plan.scenarios {
