@@ -74,6 +74,14 @@ struct SampleSummary {
     network_p95_micros: u128,
     network_max_micros: u128,
     network_interventions_per_run: usize,
+    network_intervention_bounds_improved: usize,
+    network_intervention_bounds_degraded: usize,
+    network_intervention_possible_improvement_only: usize,
+    network_intervention_possible_degradation_only: usize,
+    network_intervention_conservative_bound_regressed: usize,
+    network_intervention_mixed_bound_movement: usize,
+    network_intervention_bounds_unchanged: usize,
+    network_intervention_topology_incomplete: usize,
     network_intervention_result_bytes: usize,
     network_intervention_p50_micros: u128,
     network_intervention_p95_micros: u128,
@@ -547,6 +555,38 @@ fn main() {
         }));
         let reference_network_intervention_bytes = serde_json::to_vec(&reference_network_interventions)
             .expect("network intervention comparisons serialize");
+        let network_intervention_bounds_improved = reference_network_interventions.iter()
+            .filter(|item| item.effect == NetworkInterventionEffect::BoundsImproved)
+            .count();
+        let network_intervention_bounds_degraded = reference_network_interventions.iter()
+            .filter(|item| item.effect == NetworkInterventionEffect::BoundsDegraded)
+            .count();
+        let network_intervention_possible_improvement_only = reference_network_interventions.iter()
+            .filter(|item| item.effect == NetworkInterventionEffect::PossibleImprovementOnly)
+            .count();
+        let network_intervention_possible_degradation_only = reference_network_interventions.iter()
+            .filter(|item| item.effect == NetworkInterventionEffect::PossibleDegradationOnly)
+            .count();
+        let network_intervention_conservative_bound_regressed = reference_network_interventions.iter()
+            .filter(|item| item.effect == NetworkInterventionEffect::ConservativeBoundRegressed)
+            .count();
+        let network_intervention_mixed_bound_movement = reference_network_interventions.iter()
+            .filter(|item| item.effect == NetworkInterventionEffect::MixedBoundMovement)
+            .count();
+        let network_intervention_bounds_unchanged = reference_network_interventions.iter()
+            .filter(|item| item.effect == NetworkInterventionEffect::BoundsUnchanged)
+            .count();
+        let network_intervention_topology_incomplete = reference_network_interventions.iter()
+            .filter(|item| item.effect == NetworkInterventionEffect::TopologyIncomplete)
+            .count();
+        assert_eq!(network_intervention_bounds_improved, groups_count);
+        assert_eq!(network_intervention_bounds_degraded, 0);
+        assert_eq!(network_intervention_possible_improvement_only, 0);
+        assert_eq!(network_intervention_possible_degradation_only, 0);
+        assert_eq!(network_intervention_conservative_bound_regressed, 0);
+        assert_eq!(network_intervention_mixed_bound_movement, 0);
+        assert_eq!(network_intervention_bounds_unchanged, 0);
+        assert_eq!(network_intervention_topology_incomplete, 0);
 
         for _ in 0..warmup_iterations {
             let result = compare_intervention(
@@ -777,6 +817,14 @@ fn main() {
             network_p95_micros: percentile(&network_samples, 95).as_micros(),
             network_max_micros: network_samples.last().copied().unwrap_or_default().as_micros(),
             network_interventions_per_run: reference_network_interventions.len(),
+            network_intervention_bounds_improved,
+            network_intervention_bounds_degraded,
+            network_intervention_possible_improvement_only,
+            network_intervention_possible_degradation_only,
+            network_intervention_conservative_bound_regressed,
+            network_intervention_mixed_bound_movement,
+            network_intervention_bounds_unchanged,
+            network_intervention_topology_incomplete,
             network_intervention_result_bytes: reference_network_intervention_bytes.len(),
             network_intervention_p50_micros: percentile(&network_intervention_samples, 50).as_micros(),
             network_intervention_p95_micros: percentile(&network_intervention_samples, 95).as_micros(),
