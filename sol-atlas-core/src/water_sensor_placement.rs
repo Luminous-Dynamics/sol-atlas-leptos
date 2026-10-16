@@ -475,72 +475,70 @@ fn coverage_site_order(
     selected
 }
 
-fn response_separation_score(
-    training: &[CaseFeature],
-    candidates: &[String],
-    sites: &[usize],
-) -> f64 {
-    let mut centroids = Vec::<Vec<f64>>::new();
-    for target in candidates {
-        let rows: Vec<&CaseFeature> = training.iter().filter(|row| row.target == *target).collect();
-        if rows.is_empty() {
-            return 0.0;
-        }
-        let centroid = sites
-            .iter()
-            .map(|&site| rows.iter().map(|row| row.values[site]).sum::<f64>() / rows.len() as f64)
-            .collect::<Vec<_>>();
-        centroids.push(centroid);
-    }
-    let mut minimum = f64::INFINITY;
-    for left in 0..centroids.len() {
-        for right in (left + 1)..centroids.len() {
-            minimum = minimum.min(
-                centroids[left]
-                    .iter()
-                    .zip(&centroids[right])
-                    .map(|(a, b)| (a - b).powi(2))
-                    .sum::<f64>()
-                    .sqrt(),
-            );
-        }
-    }
-    if minimum.is_finite() {
-        minimum
-    } else {
-        0.0
-    }
-}
-
 fn response_separation_site_order(
     training: &[CaseFeature],
     candidates: &[String],
     site_ids: &[String],
 ) -> Vec<String> {
-    let mut selected = Vec::<String>::new();
-    while selected.len() < site_ids.len() {
-        let mut best: Option<(String, f64)> = None;
-        for (index, site) in site_ids.iter().enumerate() {
-            if selected.contains(site) {
-                continue;
-            }
-            let mut trial = selected
-                .iter()
-                .filter_map(|chosen| site_ids.iter().position(|id| id == chosen))
-                .collect::<Vec<_>>();
-            trial.push(index);
-            let score = response_separation_score(training, candidates, &trial);
-            let replace = best.as_ref().is_none_or(|(best_id, best_score)| {
-                score > *best_score || (score == *best_score && site < best_id)
-            });
-            if replace {
-                best = Some((site.clone(), score));
+    let mut centroids = Vec::<Vec<f64>>::new();
+    for target in candidates {
+        let rows: Vec<&CaseFeature> =
+            training.iter().filter(|row| row.target == *target).collect();
+        if rows.is_empty() {
+            return site_ids.to_vec();
+        }
+        let mut centroid = vec![0.0; site_ids.len()];
+        for row in &rows {
+            for (site, value) in row.values.iter().enumerate() {
+                centroid[site] += value / rows.len() as f64;
             }
         }
-        let Some((site, _)) = best else { break };
-        selected.push(site);
+        centroids.push(centroid);
     }
-    selected
+
+    // Cache the accumulated squared distance for each target pair. Each candidate
+    // site adds one squared-difference term, avoiding recomputing every selected
+    // dimension for every candidate at every greedy step.
+    let target_count = candidates.len();
+    let site_count = site_ids.len();
+    let mut accumulated = vec![vec![0.0; target_count]; target_count];
+    let mut selected = vec![false; site_count];
+    let mut order = Vec::with_capacity(site_count);
+
+    while order.len() < site_count {
+        let mut best: Option<(usize, f64)> = None;
+        for site in 0..site_count {
+            if selected[site] {
+                continue;
+            }
+            let mut minimum_squared = f64::INFINITY;
+            for left in 0..target_count {
+                for right in (left + 1)..target_count {
+                    let delta = centroids[left][site] - centroids[right][site];
+                    minimum_squared =
+                        minimum_squared.min(accumulated[left][right] + delta * delta);
+                }
+            }
+            let replace = best.as_ref().is_none_or(|(best_site, best_score)| {
+                minimum_squared > *best_score
+                    || (minimum_squared == *best_score
+                        && site_ids[site] < site_ids[*best_site])
+            });
+            if replace {
+                best = Some((site, minimum_squared));
+            }
+        }
+        let Some((chosen, _)) = best else { break };
+        selected[chosen] = true;
+        order.push(site_ids[chosen].clone());
+        for left in 0..target_count {
+            for right in (left + 1)..target_count {
+                let delta = centroids[left][chosen] - centroids[right][chosen];
+                accumulated[left][right] += delta * delta;
+            }
+        }
+    }
+    order
 }
 
 fn deterministic_random_order(candidates: &[String], seed: u64) -> Vec<String> {
@@ -794,6 +792,14 @@ pub fn evaluate_sensor_placement(
             return Err(format!("empty train or test fold at magnitude {held_out}"));
         }
         let scales = unit_normalization_scales(&clean_training, site_ids.len());
+        let clean_normalized = standardized_noisy_features(&features, &scales, 0.0, RANDOM_SEED);
+        let clean_training = clean_normalized
+            .iter()
+            .filter(|row| row.magnitude != *held_out)
+            .cloned()
+            .collect::<Vec<_>>();
+        let response_order =
+            response_separation_site_order(&clean_training, &candidates, &site_ids);
         for (noise_index, noise_fraction) in NOISE_LEVELS.iter().copied().enumerate() {
             for replicate in 0..REPLICATES {
                 let seed = RANDOM_SEED
@@ -811,8 +817,6 @@ pub fn evaluate_sensor_placement(
                     .filter(|row| row.magnitude == *held_out)
                     .cloned()
                     .collect::<Vec<_>>();
-                let response_order =
-                    response_separation_site_order(&training, &candidates, &site_ids);
                 let random_order = deterministic_random_order(
                     &site_ids,
                     RANDOM_SEED ^ held_out.to_bits() ^ (replicate as u64).wrapping_mul(0x9E37_79B9),
