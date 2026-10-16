@@ -37,3 +37,7 @@ path = "src/bin/water_measurement_robust_evaluate.rs"
 [[bin]]
 name = "water-scenario-corpus-run"
 path = "src/bin/water_scenario_corpus_run.rs"
+
+[[bin]]
+name = "water-localization-benchmark-evaluate"
+path = "src/bin/water_localization_benchmark_evaluate.rs"
