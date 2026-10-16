@@ -42,6 +42,12 @@ pub struct ServiceNetworkInterventionPlan {
     pub link_overrides: BTreeMap<String, NetworkLinkInterventionOverride>,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ServiceNetworkInterventionRequest {
+    pub scenario: ServiceCapacityNetworkScenario,
+    pub plan: ServiceNetworkInterventionPlan,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum NetworkInterventionEffect {
@@ -99,6 +105,8 @@ pub enum ServiceNetworkInterventionValidationError {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ServiceNetworkInterventionError {
+    EmptyRequestSet,
+    DuplicateComparisonKey,
     InvalidPlan(Vec<ServiceNetworkInterventionValidationError>),
     BaselineAssessment(ServiceCapacityNetworkError),
     InterventionAssessment(ServiceCapacityNetworkError),
@@ -115,6 +123,58 @@ pub fn compare_service_network_intervention(
     evidence_records: &[EvidenceRecord],
     plan: &ServiceNetworkInterventionPlan,
 ) -> Result<ServiceNetworkInterventionComparison, ServiceNetworkInterventionError> {
+    validate_plan(scenario, plan)?;
+    let evidence_by_id = build_evidence_index(evidence_records).map_err(|errors| {
+        ServiceNetworkInterventionError::BaselineAssessment(
+            ServiceCapacityNetworkError::InvalidInput(errors),
+        )
+    })?;
+    compare_network_intervention_indexed(scenario, &evidence_by_id, plan)
+}
+
+/// Batch API for multiple network counterfactuals over a shared evidence corpus.
+///
+/// The corpus is structurally validated and indexed once; requests are returned in
+/// stable (scenario ID, plan ID) order. Repeated comparison keys are rejected.
+pub fn compare_service_network_interventions(
+    requests: &[ServiceNetworkInterventionRequest],
+    evidence_records: &[EvidenceRecord],
+) -> Result<Vec<ServiceNetworkInterventionComparison>, ServiceNetworkInterventionError> {
+    if requests.is_empty() {
+        return Err(ServiceNetworkInterventionError::EmptyRequestSet);
+    }
+    let mut comparison_keys = std::collections::BTreeSet::new();
+    for request in requests {
+        validate_plan(&request.scenario, &request.plan)?;
+        if !comparison_keys.insert((request.scenario.id.as_str(), request.plan.id.as_str())) {
+            return Err(ServiceNetworkInterventionError::DuplicateComparisonKey);
+        }
+    }
+    let evidence_by_id = build_evidence_index(evidence_records).map_err(|errors| {
+        ServiceNetworkInterventionError::BaselineAssessment(
+            ServiceCapacityNetworkError::InvalidInput(errors),
+        )
+    })?;
+    let mut ordered: Vec<&ServiceNetworkInterventionRequest> = requests.iter().collect();
+    ordered.sort_by(|left, right| {
+        left.scenario.id.cmp(&right.scenario.id)
+            .then_with(|| left.plan.id.cmp(&right.plan.id))
+    });
+    ordered.into_iter()
+        .map(|request| {
+            compare_network_intervention_indexed(
+                &request.scenario,
+                &evidence_by_id,
+                &request.plan,
+            )
+        })
+        .collect()
+}
+
+fn validate_plan(
+    scenario: &ServiceCapacityNetworkScenario,
+    plan: &ServiceNetworkInterventionPlan,
+) -> Result<(), ServiceNetworkInterventionError> {
     let mut errors = Vec::new();
     if plan.schema_version != SERVICE_NETWORK_INTERVENTION_SCHEMA_VERSION {
         errors.push(ServiceNetworkInterventionValidationError::UnsupportedSchemaVersion);
@@ -161,15 +221,18 @@ pub fn compare_service_network_intervention(
         }
     }
     if !errors.is_empty() {
-        return Err(ServiceNetworkInterventionError::InvalidPlan(errors));
+        Err(ServiceNetworkInterventionError::InvalidPlan(errors))
+    } else {
+        Ok(())
     }
+}
 
-    let evidence_by_id = build_evidence_index(evidence_records).map_err(|errors| {
-        ServiceNetworkInterventionError::BaselineAssessment(
-            ServiceCapacityNetworkError::InvalidInput(errors),
-        )
-    })?;
-    let baseline = assess_service_capacity_network_indexed(scenario, &evidence_by_id)
+fn compare_network_intervention_indexed(
+    scenario: &ServiceCapacityNetworkScenario,
+    evidence_by_id: &BTreeMap<&str, &EvidenceRecord>,
+    plan: &ServiceNetworkInterventionPlan,
+) -> Result<ServiceNetworkInterventionComparison, ServiceNetworkInterventionError> {
+    let baseline = assess_service_capacity_network_indexed(scenario, evidence_by_id)
         .map_err(ServiceNetworkInterventionError::BaselineAssessment)?;
     let mut candidate = scenario.clone();
     for link in &mut candidate.links {
@@ -191,7 +254,7 @@ pub fn compare_service_network_intervention(
         }
     }
     candidate.id = format!("{}:intervention:{}", scenario.id, plan.id);
-    let with_intervention = assess_service_capacity_network_indexed(&candidate, &evidence_by_id)
+    let with_intervention = assess_service_capacity_network_indexed(&candidate, evidence_by_id)
         .map_err(ServiceNetworkInterventionError::InterventionAssessment)?;
     let conservative_capacity_delta = with_intervention.conservative_available_capacity
         - baseline.conservative_available_capacity;
