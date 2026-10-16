@@ -27,6 +27,11 @@ use sol_atlas_core::service_function::{
     assess_service_functions, FunctionMeasurement, ServiceFunctionScenario, ServiceFunctionState,
     SERVICE_FUNCTION_SCHEMA_VERSION,
 };
+use sol_atlas_core::service_network::{
+    assess_service_capacity_networks, NetworkAssessmentState, NetworkLink,
+    NetworkLinkAvailability, NetworkTopologyCompleteness, ServiceCapacityNetworkScenario,
+    SERVICE_NETWORK_SCHEMA_VERSION,
+};
 use sol_atlas_core::spatial_economic::Quantity;
 use sol_atlas_core::spatial_graph::{DependencyGraph, RelationKind, SpatialRelation};
 use std::collections::BTreeMap;
@@ -56,6 +61,13 @@ struct SampleSummary {
     functional_p50_micros: u128,
     functional_p95_micros: u128,
     functional_max_micros: u128,
+    network_scenarios_per_run: usize,
+    network_links_per_run: usize,
+    network_evidence_records: usize,
+    network_result_bytes: usize,
+    network_p50_micros: u128,
+    network_p95_micros: u128,
+    network_max_micros: u128,
 }
 
 fn evidence(id: String, feeder_id: &str) -> EvidenceRecord {
@@ -159,6 +171,89 @@ fn functional_fixture(
                 rationale: "Synthetic observed demand fixture".into(),
                 supporting_evidence_ids: vec![requirement_evidence_id],
             },
+        });
+    }
+    (scenarios, records)
+}
+
+fn network_measurement(
+    entity_id: &str,
+    evidence_id: &str,
+    value: f64,
+    unit: &str,
+) -> FunctionMeasurement {
+    FunctionMeasurement {
+        entity_id: entity_id.into(),
+        quantity: Quantity {
+            value,
+            unit: unit.into(),
+            uncertainty_abs: Some(0.0),
+        },
+        basis: ScenarioBasis::Observed,
+        rationale: "Synthetic observed service-network measurement".into(),
+        supporting_evidence_ids: vec![evidence_id.into()],
+    }
+}
+
+fn network_fixture(
+    count: usize,
+) -> (Vec<ServiceCapacityNetworkScenario>, Vec<EvidenceRecord>) {
+    let mut scenarios = Vec::with_capacity(count);
+    let mut records = Vec::with_capacity(count.saturating_mul(4));
+    for index in 0..count {
+        let suffix = format!("{index:06}");
+        let source_id = format!("network-source-{suffix}");
+        let hub_id = format!("network-junction-{suffix}");
+        let service_id = format!("network-service-{suffix}");
+        let definitions = [
+            ("supply", source_id.as_str(), hub_id.as_str(), 5.0),
+            ("route-a", hub_id.as_str(), service_id.as_str(), 4.0),
+            ("route-b", hub_id.as_str(), service_id.as_str(), 4.0),
+        ];
+        let mut links = Vec::with_capacity(3);
+        for (link_name, from, to, capacity) in definitions {
+            let link_id = format!("network-link-{suffix}-{link_name}");
+            let evidence_id = format!("network-evidence-{suffix}-{link_name}");
+            records.push(quantity_evidence(
+                evidence_id.clone(),
+                &link_id,
+                capacity,
+                "m3/h",
+                0.0,
+            ));
+            links.push(NetworkLink {
+                id: link_id.clone(),
+                from_entity_id: from.into(),
+                to_entity_id: to.into(),
+                capacity: network_measurement(&link_id, &evidence_id, capacity, "m3/h"),
+                availability: NetworkLinkAvailability::Active,
+                availability_basis: ScenarioBasis::Assumed,
+                availability_rationale: "Synthetic active network link".into(),
+                availability_supporting_evidence_ids: Vec::new(),
+            });
+        }
+        let demand_evidence_id = format!("network-demand-evidence-{suffix}");
+        records.push(quantity_evidence(
+            demand_evidence_id.clone(),
+            &service_id,
+            8.0,
+            "m3/h",
+            0.0,
+        ));
+        scenarios.push(ServiceCapacityNetworkScenario {
+            schema_version: SERVICE_NETWORK_SCHEMA_VERSION.into(),
+            id: format!("network-scenario-{suffix}"),
+            as_of: "2026-10-15T12:00:00Z".into(),
+            service_entity_id: service_id.clone(),
+            topology_completeness: NetworkTopologyCompleteness::Complete,
+            source_entity_ids: vec![source_id],
+            required_capacity: network_measurement(
+                &service_id,
+                &demand_evidence_id,
+                8.0,
+                "m3/h",
+            ),
+            links,
         });
     }
     (scenarios, records)
@@ -369,6 +464,23 @@ fn main() {
         let reference_functional_bytes = serde_json::to_vec(&reference_functional)
             .expect("functional assessments serialize");
 
+        let (network_scenarios, network_evidence) = network_fixture(groups_count);
+        let reference_network = assess_service_capacity_networks(
+            &network_scenarios,
+            &network_evidence,
+        )
+        .expect("synthetic capacity network fixtures must evaluate");
+        assert_eq!(reference_network.len(), groups_count);
+        assert!(reference_network.iter().all(|assessment| {
+            assessment.state == NetworkAssessmentState::Degraded
+                && assessment.conservative_available_capacity == 5.0
+                && assessment.optimistic_available_capacity == 5.0
+                && assessment.conservative_min_cut_link_ids.len() == 1
+                && assessment.conservative_min_cut_link_ids[0].ends_with("-supply")
+        }));
+        let reference_network_bytes =
+            serde_json::to_vec(&reference_network).expect("network assessments serialize");
+
         for _ in 0..warmup_iterations {
             let result = compare_intervention(
                 &graph,
@@ -420,11 +532,28 @@ fn main() {
                 serde_json::to_vec(&functional).expect("functional assessments serialize"),
                 reference_functional_bytes
             );
+
+            let networks = assess_service_capacity_networks(
+                &network_scenarios,
+                &network_evidence,
+            )
+            .expect("synthetic capacity network fixtures must evaluate");
+            assert_eq!(networks.len(), groups_count);
+            assert!(networks.iter().all(|assessment| {
+                assessment.state == NetworkAssessmentState::Degraded
+                    && assessment.conservative_available_capacity == 5.0
+                    && assessment.optimistic_available_capacity == 5.0
+            }));
+            assert_eq!(
+                serde_json::to_vec(&networks).expect("network assessments serialize"),
+                reference_network_bytes
+            );
         }
 
         let mut samples = Vec::with_capacity(measured_iterations);
         let mut common_cause_samples = Vec::with_capacity(measured_iterations);
         let mut functional_samples = Vec::with_capacity(measured_iterations);
+        let mut network_samples = Vec::with_capacity(measured_iterations);
         let mut recovered = 0;
         for _ in 0..measured_iterations {
             let start = Instant::now();
@@ -478,10 +607,29 @@ fn main() {
                 serde_json::to_vec(&functional).expect("functional assessments serialize"),
                 reference_functional_bytes
             );
+
+            let network_start = Instant::now();
+            let networks = assess_service_capacity_networks(
+                &network_scenarios,
+                &network_evidence,
+            )
+            .expect("synthetic capacity network fixtures must evaluate");
+            network_samples.push(network_start.elapsed());
+            assert_eq!(networks.len(), groups_count);
+            assert!(networks.iter().all(|assessment| {
+                assessment.state == NetworkAssessmentState::Degraded
+                    && assessment.conservative_available_capacity == 5.0
+                    && assessment.optimistic_available_capacity == 5.0
+            }));
+            assert_eq!(
+                serde_json::to_vec(&networks).expect("network assessments serialize"),
+                reference_network_bytes
+            );
         }
         samples.sort_unstable();
         common_cause_samples.sort_unstable();
         functional_samples.sort_unstable();
+        network_samples.sort_unstable();
 
         let summary = SampleSummary {
             groups: groups_count,
@@ -513,6 +661,13 @@ fn main() {
                 .copied()
                 .unwrap_or_default()
                 .as_micros(),
+            network_scenarios_per_run: reference_network.len(),
+            network_links_per_run: network_scenarios.iter().map(|item| item.links.len()).sum(),
+            network_evidence_records: network_evidence.len(),
+            network_result_bytes: reference_network_bytes.len(),
+            network_p50_micros: percentile(&network_samples, 50).as_micros(),
+            network_p95_micros: percentile(&network_samples, 95).as_micros(),
+            network_max_micros: network_samples.last().copied().unwrap_or_default().as_micros(),
         };
         println!(
             "{}",
