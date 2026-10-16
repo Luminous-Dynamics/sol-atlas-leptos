@@ -11,9 +11,9 @@ use sol_atlas_core::water_sensor_placement::evaluate_sensor_placement;
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
-    if args.len() != 4 {
+    if args.len() != 5 {
         eprintln!(
-            "usage: water-sensor-placement-evaluate <corpus-root> <run-manifest.json> <source-network.inp>"
+            "usage: water-sensor-placement-evaluate <corpus-root> <run-manifest.json> <source-network.inp> <frozen-plan.json>"
         );
         return ExitCode::from(2);
     }
@@ -32,7 +32,14 @@ fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    match evaluate_sensor_placement(corpus_root, &manifest, &topology) {
+    let plan = match fs::read(&args[4]) {
+        Ok(bytes) => bytes,
+        Err(error) => {
+            eprintln!("WATER_SENSOR_PLACEMENT_PLAN_ERROR: cannot read {}: {error}", args[4]);
+            return ExitCode::from(2);
+        }
+    };
+    match evaluate_sensor_placement(corpus_root, &manifest, &topology, &plan) {
         Ok(envelope) => {
             match serde_json::to_string_pretty(&envelope) {
                 Ok(json) => println!("{json}"),
