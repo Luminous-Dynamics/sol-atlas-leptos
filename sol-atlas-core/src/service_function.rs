@@ -101,6 +101,7 @@ pub enum ServiceFunctionValidationError {
     NonFiniteUncertainty,
     NegativeUncertainty,
     UnitMismatch,
+    RequirementEntityMismatch,
     DuplicateEvidenceRecordId,
     InvalidEvidenceRecord,
     EmptySupportingEvidenceId,
@@ -172,6 +173,9 @@ pub fn assess_service_function(
     if scenario.available_capacity.quantity.unit != scenario.required_capacity.quantity.unit {
         errors.push(ServiceFunctionValidationError::UnitMismatch);
     }
+    if scenario.required_capacity.entity_id != scenario.service_entity_id {
+        errors.push(ServiceFunctionValidationError::RequirementEntityMismatch);
+    }
 
     if !errors.is_empty() {
         return Err(ServiceFunctionAssessmentError::InvalidInput(errors));
@@ -197,11 +201,11 @@ pub fn assess_service_function(
     };
 
     let coverage_ratio = (requirement.value > 0.0)
-        .then_some(capacity.value / requirement.value);
+        .then(|| capacity.value / requirement.value);
     let coverage_lower_bound = (requirement_upper > 0.0)
-        .then_some(capacity_lower / requirement_upper);
+        .then(|| capacity_lower / requirement_upper);
     let coverage_upper_bound =
-        (requirement_lower > 0.0).then_some(capacity_upper / requirement_lower);
+        (requirement_lower > 0.0).then(|| capacity_upper / requirement_lower);
 
     Ok(ServiceFunctionAssessment {
         schema_version: SERVICE_FUNCTION_SCHEMA_VERSION.into(),
