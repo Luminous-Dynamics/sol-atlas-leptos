@@ -42,6 +42,22 @@ cargo bench --manifest-path sol-atlas-core/Cargo.toml --bench spatial_economic_i
 
 The harness emits one JSON line for each workload size (100, 1,000 and 10,000 groups). Each line includes group/edge/evidence counts, warm-up/sample counts, p50/p95/max latency in microseconds, recovered-group count and serialized result size. It compares each run's serialized result bytes with an untimed reference result and asserts the synthetic correctness oracle, but it does not claim that timing targets passed. Use an external process monitor (for example `/usr/bin/time -v`) to measure peak RSS, and archive the stdout with the commit SHA and environment manifest.
 
+## Pilot impact gates (separate from synthetic performance)
+
+These are candidate project goals to ratify with the pilot's affected communities and operators before field use. They are not industry standards and must not be declared achieved from synthetic tests.
+
+| Gate | Candidate target | Evidence required |
+|---|---:|---|
+| Reviewable-response cycle time | >= 20% lower median time from qualified disruption evidence to a human-reviewed response plan versus the documented manual baseline | Paired, representative exercises; report p50/p95 and all excluded cases |
+| Decision traceability | 100% of recommended actions expose the baseline, assumptions, relevant evidence IDs, temporal scope, uncertainty/blockers and expected trade-offs | Deterministic audit over every recommendation in the evaluation set |
+| Economic event integrity | 0 duplicate effects or unbalanced postings in adversarial tests for retries, partial delivery, rejection, refund/reversal and settlement reconciliation | Explicit event/idempotency keys and independent physical/obligation/financial reconciliation |
+| Field outcome efficacy | Candidate target: >= 10% relative improvement in one pre-registered primary outcome (for example water-delivery reliability or food-loss reduction), with an evaluation interval that rules out no improvement | Qualified observations and a pre-registered counterfactual/study design; report uncertainty and limitations |
+| Distributional safety | No critical guardrail regression for a pre-agreed region or affected group, even if the aggregate result improves | Stratified outcome and harm metrics, review by affected stakeholders, appeal path |
+
+A 10% field-efficacy target is a proposed decision threshold, not a claim that the system can currently deliver it. If the evaluation is underpowered, confounded, missing key populations, or has no credible counterfactual, report **inconclusive**, not success. Do not choose or change the primary outcome after seeing results. Improvement in cycle time alone does not establish improved water service, food security or social benefit.
+
+The pilot should use a vector of physical, economic and distributional outcomes rather than a single composite “prosperity” score. A faster recommendation is not beneficial if it increases losses, excludes a community or moves cost into an untracked ledger.
+
 ## Required benchmark families
 
 ### 1. Semantic and adversarial correctness
