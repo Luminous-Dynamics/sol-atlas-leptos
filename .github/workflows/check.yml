@@ -394,7 +394,9 @@ jobs:
           manifest="artifacts/water-scenario-corpus/scenario-corpus-run.v0.1.json"
           output="artifacts/water-scenario-corpus/water-localization-evaluation.v0.1.json"
           expected_manifest_sha="$(sha256sum "$manifest" | awk '{print $1}')"
-          jq -e --arg source_sha "$expected_manifest_sha" '
+          plan_fixture="sol-atlas-core/fixtures/water-engineering/net3-all-junction-localization-plan.synthetic.json"
+          expected_plan_sha="$(sha256sum "$plan_fixture" | awk '{print $1}')"
+          jq -e --arg source_sha "$expected_manifest_sha" --arg plan_sha "$expected_plan_sha" '
             (.schema_version == "water-localization-evaluation-envelope/v0.1") and
             (.source_manifest_sha256 == $source_sha) and
             (.evaluation.schema_version == "water-localization-evaluation/v0.1") and
@@ -612,7 +614,8 @@ jobs:
           manifest="$root/scenario-corpus-run.v0.1.json"
           output="$root/water-sensor-placement-evaluation.v0.1.json"
           cargo run -p sol-atlas-core --bin water-sensor-placement-evaluate -- \
-            "$root" "$manifest" .epanet-source/example-networks/Net3.inp > "$output"
+            "$root" "$manifest" .epanet-source/example-networks/Net3.inp \
+            sol-atlas-core/fixtures/water-engineering/net3-all-junction-localization-plan.synthetic.json > "$output"
       - name: Validate matched sensor-placement evaluation
         id: net3_sensor_placement_validate
         if: steps.net3_sensor_placement.outcome == 'success'
@@ -627,7 +630,9 @@ jobs:
           jq -e --arg source_sha "$expected_manifest_sha" '
             (.schema_version == "water-sensor-placement-evaluation-envelope/v0.1") and
             (.source_manifest_sha256 == $source_sha) and
+            (.source_plan_sha256 == $plan_sha) and
             (.source_topology_sha256 == "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53") and
+            (.evaluation.plan_id == "net3-all-junction-localization") and
             (.evaluation.schema_version == "water-sensor-placement-evaluation/v0.1") and
             (.evaluation.run_state == "Completed") and
             (.evaluation.unit_system == "GPM") and
