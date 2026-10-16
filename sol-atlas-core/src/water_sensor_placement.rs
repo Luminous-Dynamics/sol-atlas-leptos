@@ -73,7 +73,7 @@ impl Topology {
                 if !visited.insert(next.clone()) {
                     continue;
                 }
-                if next == target {
+                if next.as_str() == target {
                     return Some(depth + 1);
                 }
                 queue.push_back((next.clone(), depth + 1));
@@ -441,7 +441,11 @@ fn fixed_site_order(candidates: &[String], declared_sites: &[String]) -> Vec<Str
     order
 }
 
-fn coverage_site_order(candidates: &[String], fixed_order: &[String], topology: &Topology) -> Vec<String> {
+fn coverage_site_order(
+    candidates: &[String],
+    fixed_order: &[String],
+    topology: &Topology,
+) -> Vec<String> {
     let mut selected = Vec::<String>::new();
     if let Some(first) = fixed_order.first() {
         selected.push(first.clone());
@@ -471,7 +475,11 @@ fn coverage_site_order(candidates: &[String], fixed_order: &[String], topology: 
     selected
 }
 
-fn response_separation_score(training: &[CaseFeature], candidates: &[String], sites: &[usize]) -> f64 {
+fn response_separation_score(
+    training: &[CaseFeature],
+    candidates: &[String],
+    sites: &[usize],
+) -> f64 {
     let mut centroids = Vec::<Vec<f64>>::new();
     for target in candidates {
         let rows: Vec<&CaseFeature> = training.iter().filter(|row| row.target == *target).collect();
@@ -497,7 +505,11 @@ fn response_separation_score(training: &[CaseFeature], candidates: &[String], si
             );
         }
     }
-    if minimum.is_finite() { minimum } else { 0.0 }
+    if minimum.is_finite() {
+        minimum
+    } else {
+        0.0
+    }
 }
 
 fn response_separation_site_order(
@@ -571,8 +583,12 @@ fn summarize_predictions(
             .position(|(target, _)| target == &test.target)
             .map(|index| index + 1)
             .unwrap_or(candidates.len() + 1);
-        if actual_rank == 1 { top1 += 1; }
-        if actual_rank <= 3 { top3 += 1; }
+        if actual_rank == 1 {
+            top1 += 1;
+        }
+        if actual_rank <= 3 {
+            top3 += 1;
+        }
         reciprocal_rank += 1.0 / actual_rank as f64;
         let predicted = ranked.first().map(|row| row.0.as_str()).unwrap_or("");
         match topology.hops(&test.target, predicted) {
@@ -653,8 +669,14 @@ pub fn evaluate_sensor_placement(
         if scenario.scenario_id.is_empty() || !scenario_ids.insert(scenario.scenario_id.clone()) {
             return Err(format!("empty or duplicate scenario ID {:?}", scenario.scenario_id));
         }
-        if scenario.run_state != "Completed" || !scenario.additional_demand.is_finite() || scenario.additional_demand < 0.0 {
-            return Err(format!("scenario {} is incomplete or has invalid perturbation", scenario.scenario_id));
+        if scenario.run_state != "Completed"
+            || !scenario.additional_demand.is_finite()
+            || scenario.additional_demand < 0.0
+        {
+            return Err(format!(
+                "scenario {} is incomplete or has invalid perturbation",
+                scenario.scenario_id
+            ));
         }
         if scenario.ground_truth_class == "no_fault"
             && scenario.target_junction_id.is_none()
@@ -684,13 +706,21 @@ pub fn evaluate_sensor_placement(
         if scenario.scenario_id == *baseline_id {
             continue;
         }
-        if scenario.ground_truth_class != "synthetic_withdrawal" || scenario.additional_demand <= 0.0 {
-            return Err(format!("unsupported non-baseline scenario {}", scenario.scenario_id));
+        if scenario.ground_truth_class != "synthetic_withdrawal"
+            || scenario.additional_demand <= 0.0
+        {
+            return Err(format!(
+                "unsupported non-baseline scenario {}",
+                scenario.scenario_id
+            ));
         }
         let target = scenario.target_junction_id.as_ref()
             .ok_or_else(|| format!("scenario {} has no target junction", scenario.scenario_id))?;
         if !topology.junctions.contains(target) {
-            return Err(format!("scenario {} target {target:?} is not a junction", scenario.scenario_id));
+            return Err(format!(
+                "scenario {} target {target:?} is not a junction",
+                scenario.scenario_id
+            ));
         }
         let pressures = raw_pressures.get(&scenario.scenario_id)
             .ok_or_else(|| format!("scenario {} pressures unavailable", scenario.scenario_id))?;
@@ -698,7 +728,10 @@ pub fn evaluate_sensor_placement(
             .map(|junction| pressures[junction] - baseline[junction])
             .collect::<Vec<_>>();
         if values.iter().any(|value| !value.is_finite()) {
-            return Err(format!("scenario {} has non-finite pressure-change signature", scenario.scenario_id));
+            return Err(format!(
+                "scenario {} has non-finite pressure-change signature",
+                scenario.scenario_id
+            ));
         }
         label_set.insert(target.clone());
         features.push(CaseFeature {
@@ -717,7 +750,9 @@ pub fn evaluate_sensor_placement(
     magnitudes.sort_by(f64::total_cmp);
     magnitudes.dedup_by(|a, b| *a == *b);
     if magnitudes.len() < 2 {
-        return Err("sensor-placement evaluation needs at least two perturbation magnitudes".to_owned());
+        return Err(
+            "sensor-placement evaluation needs at least two perturbation magnitudes".to_owned(),
+        );
     }
     for magnitude in &magnitudes {
         for target in &candidates {
@@ -745,8 +780,16 @@ pub fn evaluate_sensor_placement(
     ];
     let mut results = Vec::new();
     for held_out in &magnitudes {
-        let clean_training = features.iter().filter(|row| row.magnitude != *held_out).cloned().collect::<Vec<_>>();
-        let clean_testing = features.iter().filter(|row| row.magnitude == *held_out).cloned().collect::<Vec<_>>();
+        let clean_training = features
+            .iter()
+            .filter(|row| row.magnitude != *held_out)
+            .cloned()
+            .collect::<Vec<_>>();
+        let clean_testing = features
+            .iter()
+            .filter(|row| row.magnitude == *held_out)
+            .cloned()
+            .collect::<Vec<_>>();
         if clean_training.is_empty() || clean_testing.is_empty() {
             return Err(format!("empty train or test fold at magnitude {held_out}"));
         }
@@ -758,9 +801,18 @@ pub fn evaluate_sensor_placement(
                     ^ ((noise_index as u64) << 32)
                     ^ (replicate as u64).wrapping_mul(0xD6E8_FEB8_6659_FD93);
                 let noisy = standardized_noisy_features(&features, &scales, noise_fraction, seed);
-                let training = noisy.iter().filter(|row| row.magnitude != *held_out).cloned().collect::<Vec<_>>();
-                let testing = noisy.iter().filter(|row| row.magnitude == *held_out).cloned().collect::<Vec<_>>();
-                let response_order = response_separation_site_order(&training, &candidates, &site_ids);
+                let training = noisy
+                    .iter()
+                    .filter(|row| row.magnitude != *held_out)
+                    .cloned()
+                    .collect::<Vec<_>>();
+                let testing = noisy
+                    .iter()
+                    .filter(|row| row.magnitude == *held_out)
+                    .cloned()
+                    .collect::<Vec<_>>();
+                let response_order =
+                    response_separation_site_order(&training, &candidates, &site_ids);
                 let random_order = deterministic_random_order(
                     &site_ids,
                     RANDOM_SEED ^ held_out.to_bits() ^ (replicate as u64).wrapping_mul(0x9E37_79B9),
@@ -776,7 +828,9 @@ pub fn evaluate_sensor_placement(
                         let selected = order.iter().take(*budget).cloned().collect::<Vec<_>>();
                         let ids = selected.iter().map(String::as_str).collect::<BTreeSet<_>>();
                         if selected.len() != *budget || ids.len() != *budget {
-                            return Err(format!("strategy {strategy} failed to produce {budget} unique sites"));
+                            return Err(format!(
+                                "strategy {strategy} failed to produce {budget} unique sites"
+                            ));
                         }
                         results.push(summarize_predictions(
                             strategy,
@@ -827,13 +881,39 @@ pub fn evaluate_sensor_placement(
             results,
             claim_ceiling: "synthetic_sensor_layout_comparison_only".to_owned(),
             nonclaims: vec![
-                "The corpus labels are synthetic junction-demand perturbations, not physical leaks.".to_owned(),
-                "Noise levels are dimensionless synthetic stress fractions; they are not calibrated pressure-transducer specifications.".to_owned(),
-                "All strategies reuse the same hydraulic reports; no extra hydraulic solver run is performed per layout.".to_owned(),
-                "The held-out axis is perturbation magnitude within one topology; no cross-topology, operating-regime, or real-network generalization is established.".to_owned(),
-                "The fixed layout extends the declared observation-node list in junction-ID order when a budget exceeds that list; it is a comparison baseline, not an asserted optimal design.".to_owned(),
-                "Graph-hop error is an unweighted diagnostic, not pipe-length, hydraulic influence, travel time, or repair cost.".to_owned(),
-                "No field sensor economics, false-alarm rate, detection delay, engineering approval, or operational readiness is established.".to_owned(),
+                "The corpus labels are synthetic junction-demand perturbations, not physical leaks."
+                    .to_owned(),
+                concat!(
+                    "Noise levels are dimensionless synthetic stress fractions; they are not ",
+                    "calibrated pressure-transducer specifications."
+                )
+                .to_owned(),
+                concat!(
+                    "All strategies reuse the same hydraulic reports; no extra hydraulic solver ",
+                    "run is performed per layout."
+                )
+                .to_owned(),
+                concat!(
+                    "The held-out axis is perturbation magnitude within one topology; no cross-topology, ",
+                    "operating-regime, or real-network generalization is established."
+                )
+                .to_owned(),
+                concat!(
+                    "The fixed layout extends the declared observation-node list in junction-ID order ",
+                    "when a budget exceeds that list; it is a comparison baseline, not an asserted ",
+                    "optimal design."
+                )
+                .to_owned(),
+                concat!(
+                    "Graph-hop error is an unweighted diagnostic, not pipe-length, hydraulic ",
+                    "influence, travel time, or repair cost."
+                )
+                .to_owned(),
+                concat!(
+                    "No field sensor economics, false-alarm rate, detection delay, engineering approval, ",
+                    "or operational readiness is established."
+                )
+                .to_owned(),
             ],
         },
     })
@@ -864,9 +944,17 @@ mod tests {
         let ids = vec!["J1".to_owned(), "J2".to_owned()];
         let missing = "Node Results at 0:00:00\nJ1 0 10 2\nLink Results at 0:00:00\n";
         assert!(parse_first_period_pressures(missing, &ids).unwrap_err().contains("missing"));
-        let nonfinite = "Node Results at 0:00:00\nJ1 0 10 NaN\nJ2 0 10 2\nLink Results at 0:00:00\n";
+        let nonfinite = concat!(
+            "Node Results at 0:00:00\n",
+            "J1 0 10 NaN\nJ2 0 10 2\n",
+            "Link Results at 0:00:00\n"
+        );
         assert!(parse_first_period_pressures(nonfinite, &ids).is_err());
-        let duplicate = "Node Results at 0:00:00\nJ1 0 10 2\nJ1 0 10 3\nJ2 0 10 2\nLink Results at 0:00:00\n";
+        let duplicate = concat!(
+            "Node Results at 0:00:00\n",
+            "J1 0 10 2\nJ1 0 10 3\nJ2 0 10 2\n",
+            "Link Results at 0:00:00\n"
+        );
         assert!(parse_first_period_pressures(duplicate, &ids).unwrap_err().contains("duplicate"));
     }
 
@@ -892,7 +980,12 @@ mod tests {
     #[test]
     fn layouts_are_unique_and_coverage_is_deterministic() {
         let nodes = vec!["J1".to_owned(), "J2".to_owned(), "J3".to_owned()];
-        let inp = b"[JUNCTIONS]\nJ1 0 1\nJ2 0 1\nJ3 0 1\n[RESERVOIRS]\nR1 100\n[PIPES]\nP1 R1 J1 1 1 1 0 OPEN\nP2 J1 J2 1 1 1 0 OPEN\nP3 J2 J3 1 1 1 0 OPEN\n[OPTIONS]\nUNITS LPS\n[END]\n";
+        let inp = concat!(
+            "[JUNCTIONS]\nJ1 0 1\nJ2 0 1\nJ3 0 1\n",
+            "[RESERVOIRS]\nR1 100\n",
+            "[PIPES]\nP1 R1 J1 1 1 1 0 OPEN\nP2 J1 J2 1 1 1 0 OPEN\nP3 J2 J3 1 1 1 0 OPEN\n",
+            "[OPTIONS]\nUNITS LPS\n[END]\n"
+        ).as_bytes();
         let topology = parse_topology(inp, "LPS").unwrap();
         let fixed = fixed_site_order(&nodes, &["J2".to_owned()]);
         let a = coverage_site_order(&nodes, &fixed, &topology);
@@ -907,10 +1000,18 @@ mod tests {
 
     #[test]
     fn source_topology_rejects_unit_mismatch_and_missing_link_endpoints() {
-        let good = b"[JUNCTIONS]\nJ1 0 1\n[RESERVOIRS]\nR1 100\n[PIPES]\nP1 R1 J1 1 1 1 0 OPEN\n[OPTIONS]\nUNITS LPS\n[END]\n";
+        let good = concat!(
+            "[JUNCTIONS]\nJ1 0 1\n[RESERVOIRS]\nR1 100\n",
+            "[PIPES]\nP1 R1 J1 1 1 1 0 OPEN\n",
+            "[OPTIONS]\nUNITS LPS\n[END]\n"
+        ).as_bytes();
         assert!(parse_topology(good, "LPS").is_ok());
         assert!(parse_topology(good, "GPM").is_err());
-        let broken = b"[JUNCTIONS]\nJ1 0 1\n[RESERVOIRS]\nR1 100\n[PIPES]\nP1 R1 J2 1 1 1 0 OPEN\n[OPTIONS]\nUNITS LPS\n[END]\n";
+        let broken = concat!(
+            "[JUNCTIONS]\nJ1 0 1\n[RESERVOIRS]\nR1 100\n",
+            "[PIPES]\nP1 R1 J2 1 1 1 0 OPEN\n",
+            "[OPTIONS]\nUNITS LPS\n[END]\n"
+        ).as_bytes();
         assert!(parse_topology(broken, "LPS").is_err());
     }
 }
