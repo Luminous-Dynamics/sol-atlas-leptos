@@ -302,6 +302,17 @@ mod tests {
         EvidenceKind, EvidenceState, Provenance, Quantity, SpatialContext, TimeContext,
         EVIDENCE_SCHEMA_VERSION,
     };
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    struct PlansFixture {
+        plans: Vec<NetworkInterventionPlan>,
+    }
+
+    #[derive(Deserialize)]
+    struct ComparisonsFixture {
+        comparisons: Vec<NetworkInterventionComparison>,
+    }
 
     const AT: &str = "2026-10-16T10:00:00Z";
 
@@ -384,6 +395,29 @@ mod tests {
             supersedes: None,
             access_policy: "policy:synthetic-test".into(),
         }
+    }
+
+    #[test]
+    fn network_intervention_fixture_matches_golden_ranked_results() {
+        let baseline: ServiceCapacityNetworkScenario = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-capacity-network-intervention-baseline.json"
+        ))
+        .unwrap();
+        let plans: PlansFixture = serde_json::from_str(include_str!(
+            "../../schemas/examples/network-intervention-plans.json"
+        ))
+        .unwrap();
+        let expected: ComparisonsFixture = serde_json::from_str(include_str!(
+            "../../schemas/examples/network-intervention-comparisons.json"
+        ))
+        .unwrap();
+
+        let actual = compare_network_interventions(&baseline, &plans.plans, &[]).unwrap();
+        assert_eq!(actual, expected.comparisons);
+        assert_eq!(actual[0].intervention_id, "activate-backup");
+        assert_eq!(actual[0].conservative_capacity_gain, 5.0);
+        assert_eq!(actual[1].intervention_id, "capacity-upgrade");
+        assert_eq!(actual[1].conservative_capacity_gain, 3.0);
     }
 
     #[test]
