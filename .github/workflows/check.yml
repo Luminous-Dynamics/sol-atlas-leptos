@@ -187,6 +187,11 @@ jobs:
                       print(f"{fixture_path}: {pointer}: {error.message}")
                   raise SystemExit(1)
               print(f"SCHEMA_FIXTURE_PASS: {schema_path} -> {fixture_path}")
+
+          generated_output_schema = Path("sol-atlas-core/schemas/water-scenario-corpus-run-v0.1.schema.json")
+          generated_schema = json.loads(generated_output_schema.read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(generated_schema)
+          print(f"SCHEMA_DEFINITION_PASS: {generated_output_schema}")
           PY
 
   epanet-synthetic-smoke:
@@ -231,6 +236,44 @@ jobs:
             .epanet-build/bin/runepanet \
             artifacts/water-scenario-corpus \
             4d8d82ddc260fce216af9321fc3d9a4646ac6827
+      - name: Validate generated scenario corpus manifest
+        id: scenario_manifest
+        if: steps.scenario_corpus.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="sol-atlas-core/fixtures/water-engineering/w0-scenario-corpus-plan.synthetic.json"
+          output="artifacts/water-scenario-corpus/scenario-corpus-run.v0.1.json"
+          digest_file="artifacts/water-scenario-corpus/scenario-corpus-run.v0.1.sha256"
+          expected_plan_sha="$(sha256sum "$fixture" | awk '{print $1}')"
+          expected_manifest_sha="$(sha256sum "$output" | awk '{print $1}')"
+          test "$(awk '{print $1}' "$digest_file")" = "$expected_manifest_sha"
+          jq -e --arg plan_sha "$expected_plan_sha" '
+            (.schema_version == "water-scenario-corpus-run/v0.1") and
+            (.plan_sha256 == $plan_sha) and
+            (.base_input_sha256 == "0524e9f92940fae0ded3f9fb2e3f7471865f453df7a06e54a6de15c3cc0ba559") and
+            (.solver.source_commit == "4d8d82ddc260fce216af9321fc3d9a4646ac6827") and
+            (.claim_ceiling == "synthetic_single_topology_hydraulic_pilot") and
+            (.scenario_count == 5) and
+            (.completed_count == 5) and
+            (.failed_count == 0) and
+            (.run_state == "Completed") and
+            ([.scenarios[].scenario_id] == [
+              "w0-no-fault",
+              "w0-withdrawal-j1-small",
+              "w0-withdrawal-j1-large",
+              "w0-withdrawal-j2-small",
+              "w0-withdrawal-j2-large"
+            ]) and
+            all(.scenarios[];
+              .run_state == "Completed" and
+              (.generated_input.sha256 | test("^[a-f0-9]{64}$")) and
+              (.report.sha256 | test("^[a-f0-9]{64}$")) and
+              (.binary_output.sha256 | test("^[a-f0-9]{64}$")) and
+              (.pressure_readings | length == 2) and
+              all(.pressure_readings[]; .state == "measured" and (.pressure_m | type == "number") and .reason == null)
+            )
+          ' "$output"
       - name: Upload scenario corpus inputs, results and failure manifest
         if: always()
         uses: actions/upload-artifact@v4
@@ -242,13 +285,14 @@ jobs:
       - name: Run synthetic baseline and restricted-pipe scenario
         shell: bash
         run: bash scripts/ci/epanet-synthetic-smoke.sh
-      - name: Require all corpus scenarios to complete
+      - name: Require corpus execution and manifest validation
         if: always()
         env:
           SCENARIO_CORPUS_OUTCOME: ${{ steps.scenario_corpus.outcome }}
+          SCENARIO_MANIFEST_OUTCOME: ${{ steps.scenario_manifest.outcome }}
         run: |
-          if [[ "$SCENARIO_CORPUS_OUTCOME" != "success" ]]; then
-            echo "WATER_SCENARIO_CORPUS_NOT_COMPLETED: outcome=$SCENARIO_CORPUS_OUTCOME"
+          if [[ "$SCENARIO_CORPUS_OUTCOME" != "success" || "$SCENARIO_MANIFEST_OUTCOME" != "success" ]]; then
+            echo "WATER_SCENARIO_CORPUS_NOT_VALIDATED: run=$SCENARIO_CORPUS_OUTCOME manifest=$SCENARIO_MANIFEST_OUTCOME"
             exit 1
           fi
       - name: Upload synthetic solver evidence
