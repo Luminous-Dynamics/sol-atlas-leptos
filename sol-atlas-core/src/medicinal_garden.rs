@@ -330,7 +330,10 @@ fn valid_utc_timestamp(value: Option<&str>) -> bool {
 }
 
 fn parse_ascii_u32(bytes: &[u8], start: usize, end: usize) -> Option<u32> {
-    std::str::from_utf8(bytes.get(start..end)?).ok()?.parse().ok()
+    std::str::from_utf8(bytes.get(start..end)?)
+        .ok()?
+        .parse()
+        .ok()
 }
 
 const fn is_leap_year(year: u32) -> bool {
@@ -491,7 +494,10 @@ mod tests {
             "2026-10-15T10:60:00Z",
             "2026-10-15T10:00:60Z",
         ] {
-            assert!(!valid_utc_timestamp(Some(value)), "accepted invalid timestamp: {value}");
+            assert!(
+                !valid_utc_timestamp(Some(value)),
+                "accepted invalid timestamp: {value}"
+            );
         }
     }
 
