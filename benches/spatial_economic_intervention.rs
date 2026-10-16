@@ -342,7 +342,10 @@ fn main() {
         .expect("same-time synthetic assessments must correlate");
         assert_eq!(reference_overlaps.len(), groups_count);
         assert!(reference_overlaps.iter().all(|overlap| {
-            overlap.independent_redundancy_warning
+            overlap.domain_evidence_admissible
+                && overlap.independent_redundancy_warning
+                && overlap.shared_prerequisite_entity_ids
+                    == vec!["feeder-backup", "feeder-primary"]
                 && overlap.currently_exposed_relation_ids.len() == 2
         }));
         let reference_overlap_bytes =
@@ -355,9 +358,14 @@ fn main() {
         )
         .expect("synthetic functional-adequacy fixtures must evaluate");
         assert_eq!(reference_functional.len(), groups_count);
-        assert!(reference_functional
-            .iter()
-            .all(|assessment| assessment.state == ServiceFunctionState::Degraded));
+        assert!(reference_functional.iter().all(|assessment| {
+            assessment.state == ServiceFunctionState::Degraded
+                && assessment.coverage_ratio == Some(0.7)
+                && assessment.coverage_lower_bound == Some(65.0 / 110.0)
+                && assessment.coverage_upper_bound == Some(75.0 / 90.0)
+                && !assessment.available_capacity_evidence_ids.is_empty()
+                && !assessment.required_capacity_evidence_ids.is_empty()
+        }));
         let reference_functional_bytes = serde_json::to_vec(&reference_functional)
             .expect("functional assessments serialize");
 
@@ -402,9 +410,12 @@ fn main() {
             )
             .expect("synthetic functional-adequacy fixtures must evaluate");
             assert_eq!(functional.len(), groups_count);
-            assert!(functional
-                .iter()
-                .all(|assessment| assessment.state == ServiceFunctionState::Degraded));
+            assert!(functional.iter().all(|assessment| {
+                assessment.state == ServiceFunctionState::Degraded
+                    && assessment.coverage_ratio == Some(0.7)
+                    && assessment.coverage_lower_bound == Some(65.0 / 110.0)
+                    && assessment.coverage_upper_bound == Some(75.0 / 90.0)
+            }));
             assert_eq!(
                 serde_json::to_vec(&functional).expect("functional assessments serialize"),
                 reference_functional_bytes
