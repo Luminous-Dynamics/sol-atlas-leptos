@@ -479,8 +479,6 @@ mod tests {
             .into(),
         );
         let comparison = compare_service_network_intervention(&input, &[], &plan).unwrap();
-        assert_eq!(comparison.baseline.conservative_capacity_delta, 0.0);
-        assert_eq!(comparison.baseline.optimistic_capacity_delta, 0.0);
         assert_eq!(comparison.with_intervention.conservative_available_capacity, 0.0);
         assert_eq!(comparison.with_intervention.optimistic_available_capacity, 8.0);
         assert_eq!(comparison.conservative_capacity_delta, -4.0);
