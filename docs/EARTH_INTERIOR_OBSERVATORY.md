@@ -68,6 +68,14 @@ This contract is an initial internal seam, not yet a stable external interchange
 - Symtropy known-truth simulation/identifiability work: https://github.com/Luminous-Dynamics/symtropy/issues/1728. It composes the existing exact-head qualification harness (#1264) and the Earth-fluid applicability boundary (#515).
 - Mycelix should compose, rather than duplicate, scientific artifact typing and derived-claim authority: https://github.com/Luminous-Dynamics/mycelix/issues/2410 and https://github.com/Luminous-Dynamics/mycelix/issues/2408. These remain the provenance/evidence handoff; this repository does not create a second canonical evidence ledger.
 
+## Local observability diagnostic added
+
+`sol-atlas-core::observability` adds a small, dependency-free local inverse-problem diagnostic for modest parameter counts. It accepts a Jacobian, stable observation/parameter IDs, parameter scales and observation/error scales. It analyzes the dimensionless Jacobian formed by scaling parameter increments and observation residuals, then reports singular values, numerical rank, condition number only when full column rank is found, and approximate unobservable directions.
+
+The implementation uses a one-sided Jacobi SVD rather than forming the normal-equation matrix (J^T J), avoiding the unnecessary loss of numerical precision caused by squaring the condition number. Unit tests cover full rank, dependent observations with an unobservable direction, explicit scale effects, malformed matrix shape, non-finite inputs, invalid scales/tolerances, and deterministic repeatability.
+
+**Claim ceiling:** this identifies local sensitivity/identifiability for the supplied linearization. It does not establish global identifiability, validate the physical model, distinguish a bad prior from missing information, or prove that a real Earth parameter is observable. Scale selection and tolerance must be predeclared and included in the experiment manifest. Large or highly ill-conditioned inverse problems should use a reviewed numerical linear algebra backend.
+
 ## Benchmark ladder
 
 ### B0 — schema and evidence integrity
