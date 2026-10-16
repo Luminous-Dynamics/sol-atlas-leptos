@@ -68,6 +68,7 @@
         "bounds_degraded",
         "possible_improvement_only",
         "possible_degradation_only",
+        "conservative_bound_regressed",
         "mixed_bound_movement",
         "bounds_unchanged",
         "topology_incomplete"
