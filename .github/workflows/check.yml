@@ -374,7 +374,7 @@ jobs:
           set -euo pipefail
           manifest="artifacts/water-scenario-corpus/scenario-corpus-run.v0.1.json"
           output="artifacts/water-scenario-corpus/water-localization-evaluation.v0.1.json"
-          cargo run -p sol-atlas-core --bin water-localization-benchmark-evaluate -- "$manifest" > "$output"
+          cargo run -p sol-atlas-core --bin water-localization-benchmark-evaluate -- "$manifest" sol-atlas-core/fixtures/water-engineering/w0_network.inp > "$output"
       - name: Validate W0 localization evaluation contract
         id: w0_localization_validate
         if: steps.w0_localization.outcome == 'success'
@@ -393,6 +393,10 @@ jobs:
             (.evaluation.unit_system == "LPS") and
             (.evaluation.flow_unit == "L/s") and
             (.evaluation.pressure_unit == "m") and
+            (.source_topology_sha256 == "0524e9f92940fae0ded3f9fb2e3f7471865f453df7a06e54a6de15c3cc0ba559") and
+            (.evaluation.distance_semantics == "unweighted_undirected_link_hops") and
+            (.evaluation.topology_node_count >= 3) and
+            (.evaluation.topology_link_count >= 1) and
             (.evaluation.claim_ceiling == "synthetic_withdrawal_localization_baseline_only") and
             (.evaluation.negative_control_count == 1) and
             (.evaluation.fault_scenario_count == 4) and
@@ -407,6 +411,12 @@ jobs:
               (.top1_accuracy >= 0 and .top1_accuracy <= 1) and
               (.top_k_accuracy >= 0 and .top_k_accuracy <= 1) and
               (.mean_reciprocal_rank >= 0 and .mean_reciprocal_rank <= 1) and
+              has("mean_topological_error_hops") and has("p95_topological_error_hops") and has("worst_topological_error_hops") and has("disconnected_prediction_count") and
+              ((.mean_topological_error_hops == null) or (.mean_topological_error_hops >= 0)) and
+              ((.p95_topological_error_hops == null) or (.p95_topological_error_hops >= 0)) and
+              ((.worst_topological_error_hops == null) or (.worst_topological_error_hops >= 0)) and
+              (.disconnected_prediction_count == ([.predictions[] | select(.topological_error_hops == null)] | length)) and
+              all(.predictions[]; has("topological_error_hops")) and
               all(.folds[]; .test_count == 2 and (.top1_accuracy >= 0 and .top1_accuracy <= 1)) and
               all(.predictions[]; .actual_rank >= 1 and (.ranked_candidates | length == 2))
             )
@@ -420,7 +430,7 @@ jobs:
           set -euo pipefail
           manifest="artifacts/net3-scenario-corpus/scenario-corpus-run.v0.1.json"
           output="artifacts/net3-scenario-corpus/water-localization-evaluation.v0.1.json"
-          cargo run -p sol-atlas-core --bin water-localization-benchmark-evaluate -- "$manifest" > "$output"
+          cargo run -p sol-atlas-core --bin water-localization-benchmark-evaluate -- "$manifest" .epanet-source/example-networks/Net3.inp > "$output"
       - name: Validate Net3 localization evaluation contract
         id: net3_localization_validate
         if: steps.net3_localization.outcome == 'success'
@@ -439,6 +449,10 @@ jobs:
             (.evaluation.unit_system == "GPM") and
             (.evaluation.flow_unit == "GPM") and
             (.evaluation.pressure_unit == "psi") and
+            (.source_topology_sha256 == "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53") and
+            (.evaluation.distance_semantics == "unweighted_undirected_link_hops") and
+            (.evaluation.topology_node_count >= 1) and
+            (.evaluation.topology_link_count >= 1) and
             (.evaluation.claim_ceiling == "synthetic_withdrawal_localization_baseline_only") and
             (.evaluation.negative_control_count == 1) and
             (.evaluation.fault_scenario_count == 8) and
@@ -453,6 +467,12 @@ jobs:
               (.top1_accuracy >= 0 and .top1_accuracy <= 1) and
               (.top_k_accuracy >= 0 and .top_k_accuracy <= 1) and
               (.mean_reciprocal_rank >= 0 and .mean_reciprocal_rank <= 1) and
+              has("mean_topological_error_hops") and has("p95_topological_error_hops") and has("worst_topological_error_hops") and has("disconnected_prediction_count") and
+              ((.mean_topological_error_hops == null) or (.mean_topological_error_hops >= 0)) and
+              ((.p95_topological_error_hops == null) or (.p95_topological_error_hops >= 0)) and
+              ((.worst_topological_error_hops == null) or (.worst_topological_error_hops >= 0)) and
+              (.disconnected_prediction_count == ([.predictions[] | select(.topological_error_hops == null)] | length)) and
+              all(.predictions[]; has("topological_error_hops")) and
               all(.folds[]; .test_count == 4 and (.top1_accuracy >= 0 and .top1_accuracy <= 1)) and
               all(.predictions[]; .actual_rank >= 1 and (.ranked_candidates | length == 4))
             )
