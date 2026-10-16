@@ -9,6 +9,7 @@
 //! module records and surfaces that overlap. It deliberately does not mark an
 //! exposed asset unavailable, infer a failure probability, or prove causation.
 
+use crate::dependency_logic::{DependencyGroupAssessment, DependencyLogic, DependencyMemberState};
 use crate::spatial_economic::{EvidenceKind, EvidenceRecord, EvidenceState};
 use crate::spatial_graph::is_canonical_utc_timestamp;
 use serde::{Deserialize, Serialize};
@@ -173,6 +174,133 @@ pub struct CommonCauseAssessment {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CommonCauseAssessmentError {
     InvalidInput(Vec<CommonCauseValidationError>),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CommonCauseCorrelationError {
+    DuplicateDomainAssessmentId,
+    DuplicateDependencyGroupId,
+    MismatchedAsOfTimestamp,
+}
+
+/// Structural overlap between a declared common-cause domain and one dependency group.
+///
+/// The warning means at least two alternatives in this group share one qualified
+/// failure domain. It does not say those alternatives will fail, nor quantify how
+/// likely that is. Active exposure is reported separately from structural overlap.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CommonCauseGroupOverlap {
+    pub domain_id: String,
+    pub group_id: String,
+    pub as_of: String,
+    pub domain_state: CommonCauseState,
+    pub logic: DependencyLogic,
+    pub domain_evidence_qualified: bool,
+    pub shared_relation_ids: Vec<String>,
+    pub shared_prerequisite_entity_ids: Vec<String>,
+    pub currently_exposed_relation_ids: Vec<String>,
+    pub independent_redundancy_warning: bool,
+}
+
+/// Join current common-cause exposure assessments to qualitative dependency groups.
+///
+/// Only overlapping pairs are returned, sorted by (domain ID, group ID). Inputs
+/// must refer to one as-of instant; combining different snapshots is rejected.
+pub fn correlate_common_cause_with_dependency_groups(
+    domains: &[CommonCauseAssessment],
+    groups: &[DependencyGroupAssessment],
+) -> Result<Vec<CommonCauseGroupOverlap>, CommonCauseCorrelationError> {
+    let expected_as_of = domains
+        .first()
+        .map(|value| value.as_of.as_str())
+        .or_else(|| groups.first().map(|value| value.as_of.as_str()));
+    if let Some(as_of) = expected_as_of {
+        if domains.iter().any(|value| value.as_of != as_of)
+            || groups.iter().any(|value| value.as_of != as_of)
+        {
+            return Err(CommonCauseCorrelationError::MismatchedAsOfTimestamp);
+        }
+    }
+
+    let mut domain_ids = BTreeSet::new();
+    if domains
+        .iter()
+        .any(|value| !domain_ids.insert(value.domain_id.as_str()))
+    {
+        return Err(CommonCauseCorrelationError::DuplicateDomainAssessmentId);
+    }
+    let mut group_ids = BTreeSet::new();
+    if groups
+        .iter()
+        .any(|value| !group_ids.insert(value.group_id.as_str()))
+    {
+        return Err(CommonCauseCorrelationError::DuplicateDependencyGroupId);
+    }
+
+    let mut ordered_domains: Vec<&CommonCauseAssessment> = domains.iter().collect();
+    ordered_domains.sort_by(|left, right| left.domain_id.cmp(&right.domain_id));
+    let mut ordered_groups: Vec<&DependencyGroupAssessment> = groups.iter().collect();
+    ordered_groups.sort_by(|left, right| left.group_id.cmp(&right.group_id));
+    let mut overlaps = Vec::new();
+
+    for domain in ordered_domains {
+        let exposure_by_entity: BTreeMap<&str, CommonCauseExposure> = domain
+            .entity_exposures
+            .iter()
+            .map(|value| (value.entity_id.as_str(), value.exposure))
+            .collect();
+        let domain_evidence_qualified = domain.domain_evidence_blockers.is_empty()
+            && !domain.entity_exposures.is_empty()
+            && domain
+                .entity_exposures
+                .iter()
+                .all(|value| value.exposure != CommonCauseExposure::OutsideDomainValidity);
+
+        for group in &ordered_groups {
+            let mut shared_relation_ids = Vec::new();
+            let mut shared_entities = BTreeSet::new();
+            let mut currently_exposed_relation_ids = Vec::new();
+
+            for member in &group.members {
+                if member.state == DependencyMemberState::Inactive
+                    || !exposure_by_entity.contains_key(member.prerequisite_entity_id.as_str())
+                {
+                    continue;
+                }
+                shared_relation_ids.push(member.relation_id.clone());
+                shared_entities.insert(member.prerequisite_entity_id.clone());
+                if exposure_by_entity.get(member.prerequisite_entity_id.as_str())
+                    == Some(&CommonCauseExposure::Exposed)
+                {
+                    currently_exposed_relation_ids.push(member.relation_id.clone());
+                }
+            }
+
+            if shared_relation_ids.is_empty() {
+                continue;
+            }
+            shared_relation_ids.sort();
+            currently_exposed_relation_ids.sort();
+            let shared_prerequisite_entity_ids: Vec<String> =
+                shared_entities.into_iter().collect();
+
+            overlaps.push(CommonCauseGroupOverlap {
+                domain_id: domain.domain_id.clone(),
+                group_id: group.group_id.clone(),
+                as_of: group.as_of.clone(),
+                domain_state: domain.state,
+                logic: group.logic,
+                domain_evidence_qualified,
+                independent_redundancy_warning: domain_evidence_qualified
+                    && shared_relation_ids.len() >= 2,
+                shared_relation_ids,
+                shared_prerequisite_entity_ids,
+                currently_exposed_relation_ids,
+            });
+        }
+    }
+
+    Ok(overlaps)
 }
 
 impl CommonCauseDomain {
