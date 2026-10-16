@@ -723,13 +723,33 @@ mod tests {
     }
 
     #[test]
-    fn base_input_requires_reported_nodes_and_links() {
-        assert!(validate_base_input(MINI_INP).is_ok());
-        let missing_links = MINI_INP.replace("LINKS ALL\n", "LINKS NONE\n");
+    fn report_output_normalizer_inserts_missing_directives() {
+        let without_report_rows = MINI_INP
+            .replace("NODES ALL\n", "")
+            .replace("LINKS ALL\n", "");
+        let prepared = ensure_report_outputs(&without_report_rows).expect("normalizable report");
+        assert_eq!(prepared.matches("NODES ALL").count(), 1);
+        assert_eq!(prepared.matches("LINKS ALL").count(), 1);
+        assert!(validate_base_input(&prepared, "LPS").is_ok());
+    }
+
+    #[test]
+    fn base_input_rejects_plan_unit_mismatch() {
+        assert!(validate_base_input(MINI_INP, "LPS").is_ok());
         assert!(
-            validate_base_input(&missing_links)
+            validate_base_input(MINI_INP, "GPM")
                 .unwrap_err()
-                .contains("NODES ALL and LINKS ALL")
+                .contains("unit system mismatch")
+        );
+    }
+
+    #[test]
+    fn report_output_normalizer_rejects_duplicate_directives() {
+        let duplicated = MINI_INP.replace("NODES ALL\n", "NODES ALL\nNODES ALL\n");
+        assert!(
+            ensure_report_outputs(&duplicated)
+                .unwrap_err()
+                .contains("duplicate NODES or LINKS")
         );
     }
 
