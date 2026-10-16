@@ -323,8 +323,7 @@ impl DependencyGraph {
                     members.push(DependencyGroupMemberAssessment {
                         relation_id,
                         supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
-                        supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
-                    prerequisite_entity_id: relation.object_entity_id.clone(),
+                        prerequisite_entity_id: relation.object_entity_id.clone(),
                         state: DependencyMemberState::Inactive,
                         evidence_readiness: None,
                         evidence_blockers: Vec::new(),
@@ -343,8 +342,7 @@ impl DependencyGraph {
                     DependencyGroupMemberAssessment {
                         relation_id,
                         supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
-                        supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
-                    prerequisite_entity_id: relation.object_entity_id.clone(),
+                        prerequisite_entity_id: relation.object_entity_id.clone(),
                         state: DependencyMemberState::Unknown,
                         evidence_readiness: Some(evidence_assessment.readiness),
                         evidence_blockers: evidence_assessment.blockers.clone(),
@@ -378,8 +376,7 @@ impl DependencyGraph {
                     DependencyGroupMemberAssessment {
                         relation_id,
                         supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
-                        supporting_evidence_ids: relation.supporting_evidence_ids.clone(),
-                    prerequisite_entity_id: relation.object_entity_id.clone(),
+                        prerequisite_entity_id: relation.object_entity_id.clone(),
                         state,
                         evidence_readiness: Some(evidence_assessment.readiness),
                         evidence_blockers: Vec::new(),
