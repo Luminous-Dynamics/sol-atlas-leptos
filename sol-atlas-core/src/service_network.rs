@@ -720,7 +720,7 @@ fn max_flow_and_min_cut(
 
         let mut next_edge = vec![0_usize; node_count];
         loop {
-            let pushed = send_flow(source, sink, f64::MAX, &level, &mut next_edge, &mut graph);
+            let pushed = send_blocking_flow(source, sink, &level, &mut next_edge, &mut graph);
             if pushed <= 0.0 {
                 break;
             }
@@ -757,36 +757,66 @@ fn max_flow_and_min_cut(
     FlowResult { flow: total_flow, min_cut_link_ids: cut.into_iter().collect() }
 }
 
-fn send_flow(
-    node: usize,
+/// Iterative level-graph DFS avoids a call-stack limit on long infrastructure chains.
+fn send_blocking_flow(
+    source: usize,
     sink: usize,
-    available: f64,
     level: &[i32],
     next_edge: &mut [usize],
     graph: &mut [Vec<ResidualEdge>],
 ) -> f64 {
-    if node == sink {
-        return available;
-    }
-    while next_edge[node] < graph[node].len() {
-        let edge_index = next_edge[node];
-        let to = graph[node][edge_index].to;
-        let residual = graph[node][edge_index].residual_capacity;
-        if residual > 0.0 && level[to] == level[node] + 1 {
-            let pushed = send_flow(to, sink, available.min(residual), level, next_edge, graph);
-            if pushed > 0.0 {
-                let reverse_index = graph[node][edge_index].reverse_index;
-                graph[node][edge_index].residual_capacity -= pushed;
-                if graph[node][edge_index].residual_capacity < 0.0 {
-                    graph[node][edge_index].residual_capacity = 0.0;
+    let mut nodes = vec![source];
+    let mut path: Vec<(usize, usize)> = Vec::new();
+
+    loop {
+        let Some(&node) = nodes.last() else {
+            return 0.0;
+        };
+        if node == sink {
+            let pushed = path
+                .iter()
+                .map(|(from, edge_index)| graph[*from][*edge_index].residual_capacity)
+                .fold(f64::MAX, f64::min);
+            if pushed <= 0.0 {
+                return 0.0;
+            }
+            for (from, edge_index) in &path {
+                let (to, reverse_index) = {
+                    let edge = &graph[*from][*edge_index];
+                    (edge.to, edge.reverse_index)
+                };
+                graph[*from][*edge_index].residual_capacity -= pushed;
+                if graph[*from][*edge_index].residual_capacity < 0.0 {
+                    graph[*from][*edge_index].residual_capacity = 0.0;
                 }
                 graph[to][reverse_index].residual_capacity += pushed;
-                return pushed;
             }
+            return pushed;
         }
-        next_edge[node] += 1;
+
+        while next_edge[node] < graph[node].len() {
+            let edge_index = next_edge[node];
+            let edge = &graph[node][edge_index];
+            if edge.residual_capacity > 0.0 && level[edge.to] == level[node] + 1 {
+                break;
+            }
+            next_edge[node] += 1;
+        }
+
+        if next_edge[node] >= graph[node].len() {
+            nodes.pop();
+            if let Some((parent, _edge_index)) = path.pop() {
+                next_edge[parent] += 1;
+            } else {
+                return 0.0;
+            }
+        } else {
+            let edge_index = next_edge[node];
+            let next_node = graph[node][edge_index].to;
+            path.push((node, edge_index));
+            nodes.push(next_node);
+        }
     }
-    0.0
 }
 
 #[cfg(test)]
@@ -1084,6 +1114,37 @@ mod tests {
             best = best.min(cut_capacity);
         }
         best
+    }
+
+    #[test]
+    fn long_chain_does_not_require_recursive_call_stack() {
+        let edge_count = 10_000;
+        let mut links = Vec::with_capacity(edge_count);
+        for index in 0..edge_count {
+            let from = if index == 0 {
+                "source:reservoir".to_owned()
+            } else {
+                format!("chain-node-{:05}", index - 1)
+            };
+            let to = if index + 1 == edge_count {
+                "service:irrigation".to_owned()
+            } else {
+                format!("chain-node-{index:05}")
+            };
+            let id = format!("chain-link-{index:05}");
+            links.push(link(
+                &id,
+                &from,
+                &to,
+                2.0,
+                None,
+                NetworkLinkAvailability::Active,
+            ));
+        }
+        let result = assess_service_capacity_network(&scenario(links, 1.0, None), &[]).unwrap();
+        assert_eq!(result.conservative_available_capacity, 2.0);
+        assert_eq!(result.optimistic_available_capacity, 2.0);
+        assert_eq!(result.state, NetworkAssessmentState::Adequate);
     }
 
     #[test]
