@@ -229,6 +229,24 @@
       "evidence_requirement": "reproduced_solver_artifact",
       "aggregation": "mean",
       "prohibited_interpretation": "Failed runs must remain in the denominator and cannot be counted as successful detection."
+    },
+    {
+      "metric_id": "robustness.minimum_evsi",
+      "definition": "Minimum expected value of sample information across the predeclared plausible prior/likelihood-model ensemble for a measurement action.",
+      "unit": "declared_loss_units",
+      "direction": "higher_is_better",
+      "evidence_requirement": "reproduced_solver_artifact",
+      "aggregation": "worst_case",
+      "prohibited_interpretation": "This extrema estimate covers only the declared ensemble and is not a guarantee against unrepresented model error."
+    },
+    {
+      "metric_id": "robustness.evsi_spread",
+      "definition": "Maximum minus minimum expected value of sample information across the predeclared plausible model ensemble.",
+      "unit": "declared_loss_units",
+      "direction": "diagnostic_only",
+      "evidence_requirement": "reproduced_solver_artifact",
+      "aggregation": "per_scenario",
+      "prohibited_interpretation": "A wide range diagnoses sensitivity; it does not identify which probability model is true."
     }
   ],
   "acceptance_criteria": {
@@ -241,14 +259,16 @@
       "No-fault negative controls: false-positive rate target is at most 5% point estimate and its Wilson 95% upper confidence bound at most 10%, with the denominator reported. Missing/corrupt measurements are explicit unavailable or failed observations, never zero-valued readings.",
       "Completeness and provenance: 100% of scheduled scenario-strategy pairs produce a result or explicit failure record; zero failed solver runs count as successful localizations; every result binds solver/source/binary identity, network/scenario/seed, configuration, channels, and output digest.",
       "Report Brier score, p95 decision regret, worst-case localization, sensor count, information redundancy, and solver-failure rate alongside information gain. High information gain alone is not a win; no cost-adjusted ranking without a defensible common cost/loss basis.",
-      "Reproduction target: a second run uses the frozen manifest and pinned solver, independently recomputes the primary metrics, and either reproduces the result within preregistered numeric tolerances or is reported as non-reproduced."
+      "Reproduction target: a second run uses the frozen manifest and pinned solver, independently recomputes the primary metrics, and either reproduces the result within preregistered numeric tolerances or is reported as non-reproduced.",
+      "Model-uncertainty amendment v0.1.1 (2026-10-16): report minimum and maximum EIG/EVSI across a predeclared plausible prior/likelihood-model ensemble; call a measurement action robustly positive only when its minimum EVSI exceeds its acquisition cost in the same justified unit for all declared models, and suppress net ranking otherwise."
     ],
     "freeze_before_evaluation": true,
     "notes": [
       "These are proposed project acceptance targets, not published industry standards or observed results. They are frozen before any strategy-result inspection and may only change via a versioned amendment before evaluation.",
       "The tiny W0 network is a solver-contract smoke test, not sufficient by itself for topology-generalization or sensor-placement efficacy claims.",
       "Failed, unavailable and out-of-domain cases remain visible; no hidden scalar score or post-hoc acceptance threshold is allowed.",
-      "This benchmark is synthetic and offline. It does not authorize fieldwork, operational changes, or autonomous actuation."
+      "This benchmark is synthetic and offline. It does not authorize fieldwork, operational changes, or autonomous actuation.",
+      "Versioned amendment v0.1.1 dated 2026-10-16 adds model-ensemble sensitivity reporting before any scenario generation or strategy scoring; no benchmark results were inspected and the original numerical thresholds are unchanged."
     ]
   },
   "comparison_policy": {
