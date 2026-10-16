@@ -25,7 +25,7 @@ The evaluator compares four layout strategies:
 
 Proposed sensor budgets are 2, 4 and 8 sensors (clamped to the available junction count for small test networks). The split is leave-one-withdrawal-magnitude-out. Normalization scales, response-driven placement, and model comparisons are computed from the training fold; held-out target labels are read only after candidates are ranked.
 
-The synthetic noise sweep uses sigma fractions 0, 0.05 and 0.10 of each site's training-fold standard deviation in normalized pressure-change space, with five deterministic replicates. These fractions are stress-test knobs, **not measured transducer error specifications**. The same seeded noise realization is reused across strategies for a given fold/replicate so comparisons are paired. At zero noise, deterministic layouts intentionally repeat the same clean score across replicate IDs; these rows preserve a rectangular paired-results contract and must **not** be treated as five independent observations for significance testing. Seeded-random layouts can still differ by replicate. Layout result rows report top-1, top-3, mean reciprocal rank, mean/p95/worst topological localization error, and disconnected predictions.
+The synthetic noise sweep uses sigma fractions 0, 0.05 and 0.10 of each site's training-fold standard deviation in normalized pressure-change space, with five deterministic replicates. These fractions are stress-test knobs, **not measured transducer error specifications**. The same seeded noise realization is reused across strategies for a given fold/replicate so comparisons are paired. At zero noise, deterministic layouts intentionally repeat the same clean score across replicate IDs; these rows preserve a rectangular paired-results contract and must **not** be treated as five independent observations for significance testing. Seeded-random layouts can still differ by replicate. Layout result rows retain per-scenario target label, predicted top-1, actual rank, top-1/top-3 hit flags, reciprocal rank, and graph-hop error, alongside aggregated top-1, top-3, MRR, mean/p95/worst topological localization error, and disconnected predictions. The retained per-scenario outcomes enable paired comparisons instead of trying to reconstruct uncertainty from aggregate rates.
 
 ## Acceptance and reporting rules
 
@@ -34,6 +34,10 @@ A generated result is eligible for inspection only when the runner reports a ful
 \`4 strategies × 3 budgets × 3 noise levels × 5 replicates × 2 held-out magnitudes = 360 rows.\`
 
 These rows are a reproducibility contract, not a success metric. CI must not enforce desired accuracy or silently drop failed scenarios. Publish per-fold/per-noise/per-budget strata; do not collapse them into one hidden scalar score. Any comparison that changes a scenario denominator or uses a different corpus must be labelled non-comparable.
+
+The paired-comparison CLI `water-sensor-placement-compare` compares each strategy to the **predeclared** `fixed-predeclared` reference, using matched scenario IDs and actual target labels. It rejects aggregate/per-case metric contradictions, missing or duplicated strategy strata, and any reference/candidate scenario mismatch. It reports paired deltas for top-1, top-3 and MRR with a deterministic 2,000-resample target-cluster percentile bootstrap. If more than one scenario belongs to a target in a stratum, outcomes are first averaged within that target, so bootstrap resampling treats the target as the cluster.
+
+These intervals are conditional on the one supplied topology and scenario family. They are not network-level confidence intervals. All grid comparisons are exploratory and unadjusted for multiple comparisons; a positive interval in a selected row is not a confirmatory efficacy result. Confirmatory work must preregister one primary sensor budget/noise/metric/strategy contrast, or apply a declared multiplicity correction, and must hold out operating regimes and multiple topologies. Repeated clean deterministic rows are not independent evidence.
 
 ## Proposed research targets
 
@@ -68,4 +72,10 @@ The evaluator also verifies that the manifest's declared observation pressure re
 The response-separation layout is selected from the **clean normalized training fold**, then held fixed across paired noise replicates. That prevents a noise draw from silently changing the layout being evaluated and helps isolate the sensitivity of a fixed layout to the declared synthetic measurement-noise stress. The end-to-end test includes a deliberately inconsistent declared pressure field and expects a fail-closed rejection.
 
 These are authored protections and tests. Their execution is not established until a run of the workflow for the exact current pull-request head reports success.
+
+## Paired comparison / uncertainty increment (2026-10-16)
+
+The localization result contract now retains per-case ranks and hit metrics, allowing downstream checks to reconstruct every aggregate rather than accepting a mean in isolation. A separate Rust comparator produces 270 paired strata for the Net3 design (three non-reference strategies × three budgets × three noise levels × five replicate IDs × two held-out magnitudes). Each stratum reports deltas against the predeclared fixed layout and percentile intervals from 2,000 target-cluster resamples, using the same bootstrap draws across top-1, top-3 and MRR.
+
+The comparator refuses a comparison if two strategies do not share the same scenario IDs and ground-truth targets, if aggregate metrics contradict the per-case records, or if a result stratum is missing. This is analysis infrastructure; the result itself remains unrun until exact-head CI produces the hydraulic and evaluation artifacts. Per-stratum bootstrap intervals are not corrected for the large comparison grid and are explicitly exploratory.
 
