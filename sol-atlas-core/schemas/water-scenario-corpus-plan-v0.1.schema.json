@@ -13,7 +13,8 @@
     "observation_node_ids",
     "scenarios",
     "assumptions",
-    "nonclaims"
+    "nonclaims",
+    "unit_system"
   ],
   "properties": {
     "schema_version": {
@@ -36,13 +37,17 @@
       ],
       "properties": {
         "path": {
-          "const": "sol-atlas-core/fixtures/water-engineering/w0_network.inp"
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
         },
         "sha256": {
-          "const": "0524e9f92940fae0ded3f9fb2e3f7471865f453df7a06e54a6de15c3cc0ba559"
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
         },
         "byte_length": {
-          "const": 523
+          "type": "integer",
+          "minimum": 1
         }
       }
     },
@@ -68,7 +73,7 @@
               "scenario_id",
               "ground_truth_class",
               "target_junction_id",
-              "additional_demand_lps"
+              "additional_demand"
             ],
             "properties": {
               "scenario_id": {
@@ -81,7 +86,7 @@
               "target_junction_id": {
                 "type": "null"
               },
-              "additional_demand_lps": {
+              "additional_demand": {
                 "const": 0
               }
             }
@@ -93,7 +98,7 @@
               "scenario_id",
               "ground_truth_class",
               "target_junction_id",
-              "additional_demand_lps"
+              "additional_demand"
             ],
             "properties": {
               "scenario_id": {
@@ -107,10 +112,10 @@
                 "type": "string",
                 "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,30}$"
               },
-              "additional_demand_lps": {
+              "additional_demand": {
                 "type": "number",
                 "exclusiveMinimum": 0,
-                "maximum": 20
+                "maximum": 100
               }
             }
           }
@@ -132,6 +137,12 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "unit_system": {
+      "enum": [
+        "LPS",
+        "GPM"
+      ]
     }
   }
 }
