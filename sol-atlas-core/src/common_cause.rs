@@ -322,7 +322,7 @@ pub fn correlate_common_cause_with_dependency_groups(
                 logic: group.logic,
                 domain_evidence_admissible,
                 independent_redundancy_warning: domain_evidence_admissible
-                    && shared_relation_ids.len() >= 2,
+                    && shared_prerequisite_entity_ids.len() >= 2,
                 shared_relation_ids,
                 shared_prerequisite_entity_ids,
                 currently_exposed_relation_ids,
@@ -932,6 +932,56 @@ mod tests {
         assert_eq!(overlaps.len(), 1);
         assert!(overlaps[0].independent_redundancy_warning);
         assert_eq!(overlaps[0].currently_exposed_relation_ids.len(), 2);
+    }
+
+    #[test]
+    fn repeated_relations_to_one_entity_do_not_count_as_redundancy() {
+        use crate::dependency_logic::{DependencyGroupMemberAssessment, DependencyGroupState};
+
+        let common = assess_common_cause_domains(
+            &[domain()],
+            &scenario(Some(condition(CommonCauseState::Active))),
+            &[evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")],
+        )
+        .unwrap();
+        let group = DependencyGroupAssessment {
+            group_id: "group:duplicate-route".into(),
+            dependent_entity_id: "pump:main".into(),
+            logic: DependencyLogic::AnyOne,
+            as_of: AT.into(),
+            state: DependencyGroupState::Satisfied,
+            required_count: 1,
+            active_count: 2,
+            available_count: 2,
+            unavailable_count: 0,
+            unknown_count: 0,
+            members: vec![
+                DependencyGroupMemberAssessment {
+                    relation_id: "route:primary".into(),
+                    supporting_evidence_ids: Vec::new(),
+                    prerequisite_entity_id: "pump:a".into(),
+                    state: DependencyMemberState::Available,
+                    evidence_readiness: None,
+                    evidence_blockers: Vec::new(),
+                    unknown_reason: None,
+                },
+                DependencyGroupMemberAssessment {
+                    relation_id: "route:alias".into(),
+                    supporting_evidence_ids: Vec::new(),
+                    prerequisite_entity_id: "pump:a".into(),
+                    state: DependencyMemberState::Available,
+                    evidence_readiness: None,
+                    evidence_blockers: Vec::new(),
+                    unknown_reason: None,
+                },
+            ],
+        };
+        let overlaps =
+            correlate_common_cause_with_dependency_groups(&common, &[group]).unwrap();
+        assert_eq!(overlaps.len(), 1);
+        assert_eq!(overlaps[0].shared_relation_ids.len(), 2);
+        assert_eq!(overlaps[0].shared_prerequisite_entity_ids, vec!["pump:a"]);
+        assert!(!overlaps[0].independent_redundancy_warning);
     }
 
     #[test]
