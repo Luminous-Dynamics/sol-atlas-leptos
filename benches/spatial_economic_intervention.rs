@@ -37,6 +37,10 @@ use sol_atlas_core::service_network_intervention::{
     NetworkLinkInterventionOverride, ServiceNetworkInterventionPlan,
     ServiceNetworkInterventionRequest, SERVICE_NETWORK_INTERVENTION_SCHEMA_VERSION,
 };
+use sol_atlas_core::service_recovery::{
+    assess_service_recovery_trajectory, ServiceRecoveryTrajectory,
+    SERVICE_RECOVERY_TRAJECTORY_SCHEMA_VERSION,
+};
 use sol_atlas_core::spatial_economic::Quantity;
 use sol_atlas_core::spatial_graph::{DependencyGraph, RelationKind, SpatialRelation};
 use std::collections::BTreeMap;
@@ -86,6 +90,14 @@ struct SampleSummary {
     network_intervention_p50_micros: u128,
     network_intervention_p95_micros: u128,
     network_intervention_max_micros: u128,
+    recovery_samples_per_run: usize,
+    recovery_evidence_records: usize,
+    recovery_result_bytes: usize,
+    recovery_first_adequate_elapsed_seconds: Option<u64>,
+    recovery_normalized_deficit_seconds: f64,
+    recovery_p50_micros: u128,
+    recovery_p95_micros: u128,
+    recovery_max_micros: u128,
 }
 
 fn evidence(id: String, feeder_id: &str) -> EvidenceRecord {
@@ -134,6 +146,103 @@ fn quantity_evidence(
         uncertainty_abs: Some(uncertainty_abs),
     });
     record
+}
+
+fn quantity_evidence_at(
+    id: String,
+    entity_id: &str,
+    value: f64,
+    unit: &str,
+    uncertainty_abs: f64,
+    timestamp: &str,
+) -> EvidenceRecord {
+    let mut record = quantity_evidence(id, entity_id, value, unit, uncertainty_abs);
+    record.time.occurred_at = timestamp.into();
+    record.time.recorded_at = timestamp.into();
+    record
+}
+
+fn recovery_timestamp(index: usize) -> String {
+    // Bench sizes are capped at 10,000 samples (< 3 hours), so a fixed UTC date
+    // and hour/minute/second formatter is sufficient for this synthetic fixture.
+    let hour = index / 3_600;
+    let minute = (index % 3_600) / 60;
+    let second = index % 60;
+    format!("2026-10-16T{hour:02}:{minute:02}:{second:02}Z")
+}
+
+fn recovery_fixture(count: usize) -> (ServiceRecoveryTrajectory, Vec<EvidenceRecord>) {
+    let start = recovery_timestamp(0);
+    let mut snapshots = Vec::with_capacity(count);
+    let mut records = Vec::with_capacity(count.saturating_mul(2));
+    for index in 0..count {
+        let timestamp = recovery_timestamp(index);
+        let snapshot_id = format!("recovery-sample-{index:06}");
+        let capacity_value = if index + 2 < count {
+            4.0
+        } else if index + 1 < count {
+            6.0
+        } else {
+            8.0
+        };
+        let capacity_evidence_id = format!("recovery-capacity-evidence-{index:06}");
+        let demand_evidence_id = format!("recovery-demand-evidence-{index:06}");
+        records.push(quantity_evidence_at(
+            capacity_evidence_id.clone(),
+            "meter:recovery-output",
+            capacity_value,
+            "m3/h",
+            0.0,
+            &timestamp,
+        ));
+        records.push(quantity_evidence_at(
+            demand_evidence_id.clone(),
+            "service:recovery-water",
+            8.0,
+            "m3/h",
+            0.0,
+            &timestamp,
+        ));
+        snapshots.push(ServiceFunctionScenario {
+            schema_version: SERVICE_FUNCTION_SCHEMA_VERSION.into(),
+            id: snapshot_id,
+            as_of: timestamp.clone(),
+            service_entity_id: "service:recovery-water".into(),
+            available_capacity: FunctionMeasurement {
+                entity_id: "meter:recovery-output".into(),
+                quantity: Quantity {
+                    value: capacity_value,
+                    unit: "m3/h".into(),
+                    uncertainty_abs: Some(0.0),
+                },
+                basis: ScenarioBasis::Observed,
+                rationale: "Synthetic recovery capacity sample".into(),
+                supporting_evidence_ids: vec![capacity_evidence_id],
+            },
+            required_capacity: FunctionMeasurement {
+                entity_id: "service:recovery-water".into(),
+                quantity: Quantity {
+                    value: 8.0,
+                    unit: "m3/h".into(),
+                    uncertainty_abs: Some(0.0),
+                },
+                basis: ScenarioBasis::Observed,
+                rationale: "Synthetic service demand sample".into(),
+                supporting_evidence_ids: vec![demand_evidence_id],
+            },
+        });
+    }
+    (
+        ServiceRecoveryTrajectory {
+            schema_version: SERVICE_RECOVERY_TRAJECTORY_SCHEMA_VERSION.into(),
+            id: format!("recovery-trajectory-{count:06}"),
+            service_entity_id: "service:recovery-water".into(),
+            disruption_started_at: start,
+            max_sample_gap_seconds: 1,
+            snapshots,
+        },
+        records,
+    )
 }
 
 fn functional_fixture(
@@ -588,6 +697,30 @@ fn main() {
         assert_eq!(network_intervention_bounds_unchanged, 0);
         assert_eq!(network_intervention_topology_incomplete, 0);
 
+        let (recovery_trajectory, recovery_evidence) = recovery_fixture(groups_count);
+        let reference_recovery = assess_service_recovery_trajectory(
+            &recovery_trajectory,
+            &recovery_evidence,
+        )
+        .expect("synthetic recovery trajectory must evaluate");
+        assert_eq!(reference_recovery.sample_count, groups_count);
+        assert_eq!(
+            reference_recovery.first_adequate_sample_elapsed_seconds,
+            Some((groups_count - 1) as u64)
+        );
+        assert!(reference_recovery.observed_adequacy_maintained_through_end);
+        let expected_deficit_seconds = groups_count as f64 * 0.5 - 1.0;
+        assert_eq!(
+            reference_recovery.normalized_deficit_seconds_lower_bound,
+            expected_deficit_seconds
+        );
+        assert_eq!(
+            reference_recovery.normalized_deficit_seconds_upper_bound,
+            expected_deficit_seconds
+        );
+        let reference_recovery_bytes =
+            serde_json::to_vec(&reference_recovery).expect("recovery trajectory serializes");
+
         for _ in 0..warmup_iterations {
             let result = compare_intervention(
                 &graph,
@@ -676,6 +809,16 @@ fn main() {
                 serde_json::to_vec(&comparisons).expect("network intervention comparisons serialize"),
                 reference_network_intervention_bytes
             );
+
+            let recovery = assess_service_recovery_trajectory(
+                &recovery_trajectory,
+                &recovery_evidence,
+            )
+            .expect("synthetic recovery trajectory must evaluate");
+            assert_eq!(
+                serde_json::to_vec(&recovery).expect("recovery trajectory serializes"),
+                reference_recovery_bytes
+            );
         }
 
         let mut samples = Vec::with_capacity(measured_iterations);
@@ -683,6 +826,7 @@ fn main() {
         let mut functional_samples = Vec::with_capacity(measured_iterations);
         let mut network_samples = Vec::with_capacity(measured_iterations);
         let mut network_intervention_samples = Vec::with_capacity(measured_iterations);
+        let mut recovery_samples = Vec::with_capacity(measured_iterations);
         let mut recovered = 0;
         for _ in 0..measured_iterations {
             let start = Instant::now();
@@ -772,12 +916,30 @@ fn main() {
                 serde_json::to_vec(&comparisons).expect("network intervention comparisons serialize"),
                 reference_network_intervention_bytes
             );
+
+            let recovery_start = Instant::now();
+            let recovery = assess_service_recovery_trajectory(
+                &recovery_trajectory,
+                &recovery_evidence,
+            )
+            .expect("synthetic recovery trajectory must evaluate");
+            recovery_samples.push(recovery_start.elapsed());
+            assert_eq!(recovery.sample_count, groups_count);
+            assert_eq!(
+                recovery.normalized_deficit_seconds_lower_bound,
+                expected_deficit_seconds
+            );
+            assert_eq!(
+                serde_json::to_vec(&recovery).expect("recovery trajectory serializes"),
+                reference_recovery_bytes
+            );
         }
         samples.sort_unstable();
         common_cause_samples.sort_unstable();
         functional_samples.sort_unstable();
         network_samples.sort_unstable();
         network_intervention_samples.sort_unstable();
+        recovery_samples.sort_unstable();
 
         let summary = SampleSummary {
             groups: groups_count,
@@ -833,6 +995,14 @@ fn main() {
                 .copied()
                 .unwrap_or_default()
                 .as_micros(),
+            recovery_samples_per_run: reference_recovery.sample_count,
+            recovery_evidence_records: recovery_evidence.len(),
+            recovery_result_bytes: reference_recovery_bytes.len(),
+            recovery_first_adequate_elapsed_seconds: reference_recovery.first_adequate_sample_elapsed_seconds,
+            recovery_normalized_deficit_seconds: reference_recovery.normalized_deficit_seconds_lower_bound,
+            recovery_p50_micros: percentile(&recovery_samples, 50).as_micros(),
+            recovery_p95_micros: percentile(&recovery_samples, 95).as_micros(),
+            recovery_max_micros: recovery_samples.last().copied().unwrap_or_default().as_micros(),
         };
         println!(
             "{}",
