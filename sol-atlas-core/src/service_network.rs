@@ -388,8 +388,9 @@ fn assess_service_capacity_network_indexed(
 
     // Virtual-source arcs are larger than all physical link capacities combined,
     // preventing them from being mistaken for a physical minimum cut.
-    let virtual_source_capacity = total_upper_capacity + 1.0;
-    if !virtual_source_capacity.is_finite() {
+    let virtual_source_capacity = (total_upper_capacity + 1.0)
+        .max(total_upper_capacity * (1.0 + 4.0 * f64::EPSILON));
+    if !virtual_source_capacity.is_finite() || virtual_source_capacity <= total_upper_capacity {
         return Err(ServiceCapacityNetworkError::InvalidInput(vec![
             ServiceCapacityNetworkValidationError::NonFiniteDerivedValue,
         ]));
