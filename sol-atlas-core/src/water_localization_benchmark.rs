@@ -558,12 +558,6 @@ fn validate_and_build_features(
                 scenario.scenario_id
             ));
         }
-        if !sensor_set.contains(target.as_str()) {
-            return Err(format!(
-                "scenario {} target {} is outside the v0.1 declared candidate set",
-                scenario.scenario_id, target
-            ));
-        }
         labels.insert(target.clone());
         let pressures = pressure_vector(scenario, &manifest.observation_node_ids)?;
         let feature_vector: Vec<f64> = pressures
@@ -588,16 +582,12 @@ fn validate_and_build_features(
     if labels.len() < 2 {
         return Err("localization benchmark requires at least two target junctions".to_owned());
     }
-    if labels.len() != manifest.observation_node_ids.len() {
-        return Err(
-            "every declared candidate node must have at least one labelled withdrawal scenario"
-                .to_owned(),
-        );
-    }
-    // Candidate classes come from the frozen manifest contract, not from held-out
-    // test labels. v0.1 intentionally restricts the class space to declared nodes.
-    let mut candidates = manifest.observation_node_ids.clone();
-    candidates.sort();
+    // Candidate classes are the declared target junctions represented in the
+    // frozen scenario corpus. They are distinct from the observation/sensor set:
+    // four fixed sensors may be used to discriminate among dozens of targets.
+    // Every target must have training representation at every held-out magnitude
+    // below, so a class cannot be silently absent from a fold.
+    let candidates: Vec<String> = labels.into_iter().collect();
     let mut magnitudes: Vec<f64> = features.iter().map(|feature| feature.magnitude).collect();
     magnitudes.sort_by(|left, right| left.total_cmp(right));
     magnitudes.dedup_by(|left, right| *left == *right);
@@ -840,7 +830,7 @@ pub fn evaluate_localization_manifest(
         claim_ceiling: "synthetic_withdrawal_localization_baseline_only".to_owned(),
         nonclaims: vec![
             "These labels identify synthetic junction-demand perturbations, not physical leaks.".to_owned(),
-            "All reported metrics are limited to the target junction classes and sensors declared in this run manifest.".to_owned(),
+            "Candidate classes come from labelled target junctions in the frozen scenario corpus; pressure features come only from the observation nodes declared in the run manifest.".to_owned(),
             "Held-out folds separate declared withdrawal magnitudes; they do not hold out topology, demand patterns, model parameters, sensors, or real operating conditions.".to_owned(),
             "No leak-detection sensitivity, false-alarm rate, field accuracy, sensor-placement optimality, or operational readiness is established.".to_owned(),
             "This small nearest-example baseline is a reproducibility check, not a comparison with state-of-the-art ML, GNN, or Transformer methods.".to_owned(),
@@ -965,6 +955,42 @@ mod tests {
             serde_json::from_slice(&synthetic_manifest()).unwrap();
         value["pressure_unit"] = json!("psi");
         assert!(evaluate_localization_manifest(value.to_string().as_bytes(), SYNTHETIC_INP).is_err());
+    }
+
+    #[test]
+    fn target_classes_can_exceed_the_sensor_set() {
+        let mut value: serde_json::Value =
+            serde_json::from_slice(&synthetic_manifest()).unwrap();
+        value["scenario_count"] = json!(7);
+        value["completed_count"] = json!(7);
+        value["scenarios"].as_array_mut().unwrap().push(scenario(
+            "c-small",
+            "synthetic_withdrawal",
+            Some("S3"),
+            1.0,
+            97.0,
+            96.0,
+        ));
+        value["scenarios"].as_array_mut().unwrap().push(scenario(
+            "c-large",
+            "synthetic_withdrawal",
+            Some("S3"),
+            2.0,
+            94.0,
+            92.0,
+        ));
+        let result =
+            evaluate_localization_manifest(value.to_string().as_bytes(), SYNTHETIC_INP).unwrap();
+        assert_eq!(result.evaluation.observation_node_ids, vec!["S1", "S2"]);
+        assert_eq!(result.evaluation.candidate_target_count, 3);
+        for model in &result.evaluation.models {
+            assert!(model.predictions.iter().all(|prediction| {
+                prediction.ranked_candidates.len() == 3
+                    && prediction.ranked_candidates.iter().any(|candidate| {
+                        candidate.target_junction_id == "S3"
+                    })
+            }));
+        }
     }
 
     #[test]
