@@ -33,3 +33,4 @@ pub mod water_decision;
 pub use types::*;
 
 pub mod water_measurement;
+pub mod water_scenario_corpus;
