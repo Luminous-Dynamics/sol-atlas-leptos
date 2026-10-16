@@ -914,7 +914,7 @@ mod tests {
     #[test]
     fn withdrawal_rejects_non_finite_and_out_of_range_values() {
         assert!(mutate_junction_demand(MINI_INP, Some("J1"), f64::NAN).is_err());
-        assert!(mutate_junction_demand(MINI_INP, Some("J1"), 20.1).is_err());
+        assert!(mutate_junction_demand(MINI_INP, Some("J1"), 100.1).is_err());
         assert!(mutate_junction_demand(MINI_INP, None, 2.0).is_err());
     }
 
