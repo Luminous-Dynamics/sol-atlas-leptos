@@ -176,8 +176,8 @@ fn parse_junction_ids(input: &str) -> Result<HashSet<String>, String> {
             return Err(format!("malformed JUNCTIONS row: {line:?}"));
         }
         let id = &line[spans[0].0..spans[0].1];
-        if !valid_identifier(id) {
-            return Err(format!("invalid junction identifier {id:?}"));
+        if !valid_epanet_identifier(id) {
+            return Err(format!("invalid EPANET junction identifier {id:?}"));
         }
         let elevation = line[spans[1].0..spans[1].1]
             .parse::<f64>()
@@ -670,6 +670,20 @@ mod tests {
     use super::*;
 
     const MINI_INP: &str = "[TITLE]\nMini synthetic network\n\n[JUNCTIONS]\nJ1 50 15\nJ2 45 10\n\n[RESERVOIRS]\nR1 100\n\n[PIPES]\nP1 R1 J1 1000 200 100 0 OPEN\nP2 J1 J2 800 150 100 0 OPEN\n\n[OPTIONS]\nUNITS LPS\nHEADLOSS H-W\n\n[REPORT]\nNODES ALL\nLINKS ALL\n\n[END]\n";
+
+    #[test]
+    fn base_input_parser_accepts_short_epanet_node_ids() {
+        let ids = parse_junction_ids(MINI_INP).expect("valid synthetic junction table");
+        assert!(ids.contains("J1"));
+        assert!(ids.contains("J2"));
+    }
+
+    #[test]
+    fn base_input_requires_reported_nodes_and_links() {
+        assert!(validate_base_input(MINI_INP).is_ok());
+        let missing_links = MINI_INP.replace("LINKS ALL\\n", "LINKS NONE\\n");
+        assert!(validate_base_input(&missing_links).unwrap_err().contains("NODES ALL and LINKS ALL"));
+    }
 
     #[test]
     fn no_fault_scenario_preserves_exact_base_bytes() {
