@@ -39,6 +39,7 @@ pub enum ObservationOrigin {
     ProcessedObservationalObservable,
     PaleomagneticProxy,
     PublishedReferenceModelOutput,
+    SimulationStateOutput,
     SyntheticForwardModelObservation,
 }
 
