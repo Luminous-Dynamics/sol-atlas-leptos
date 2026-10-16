@@ -115,6 +115,26 @@ This extrema-based calculation is a finite-ensemble stress test, not a formal gu
 
 **Validation status:** four new robust-ensemble unit tests and a CI check are authored, but have not been observed executing on the exact current head. JSON Schema validation and formatting are likewise not claimed as passed. The experiment protocol and hydraulic corpus remain `NotRun`.
 
+## Deterministic hydraulic scenario-corpus pilot (2026-10-16)
+
+The next stage now has an implementation path separate from the single restricted-pipe smoke test:
+
+- [Scenario plan schema](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/sol-atlas-core/schemas/water-scenario-corpus-plan-v0.1.schema.json)
+- [Five-case frozen pilot plan](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/sol-atlas-core/fixtures/water-engineering/w0-scenario-corpus-plan.synthetic.json)
+- [Rust scenario mutation, execution and evidence module](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/sol-atlas-core/src/water_scenario_corpus.rs)
+- [CLI](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/sol-atlas-core/src/bin/water_scenario_corpus_run.rs)
+- [Run-manifest schema](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/sol-atlas-core/schemas/water-scenario-corpus-run-v0.1.schema.json)
+
+The plan pins the exact base INP SHA-256 and byte length, named sensor/observation nodes, and five cases: one no-fault baseline, plus 2 and 5 L/s additional-demand perturbations at J1 and J2. The Rust runner rejects base-input drift, unsafe paths/IDs, duplicate scenario/node IDs, missing target junctions, non-finite or out-of-range perturbations, unsupported INP/report contracts, and malformed pressure rows. It changes only the third field of the declared junction row. It runs each case through the pinned EPANET executable, records first-period pressure readings at both observation nodes, hashes generated INPs/report/binary/stdout/solver, and retains per-case failures rather than silently dropping them. Stale report/binary outputs are removed before every invocation so a previous successful run cannot masquerade as a current result.
+
+The CI job is wired to compile/run this CLI after building pinned EPANET, archive the generated inputs and failure/results manifest even after failure, verify the plan SHA and manifest digest, and require all five named cases to complete with pressure readings before the pilot gate passes. An output-manifest schema is checked at the JSON Schema definition level, and the generated artifact is checked against frozen count/hash/value invariants.
+
+This is deliberately **only a single-topology pressure-response plumbing pilot**. An additional junction demand is a deterministic synthetic withdrawal proxy, **not a physical leak model**. There are only two observation nodes; no sensor-placement strategy is scored; there is no sensor-noise/calibration model, pressure-dependent demand analysis, multi-topology held-out corpus, or field evidence. A successful run can establish that the input-to-solver-to-hashed-pressure-manifest pipeline works on this tiny fixture, nothing stronger. The plan is frozen at the stated case values; any change should be a versioned plan amendment, not a silent edit after looking at outputs.
+
+This milestone is meant to make the next paradigm-shift measurable: train/evaluate methods against labelled, hash-bound physical solver responses before introducing noise, uncertainty ensembles and strategy comparison. Current research gives reason to be ambitious but also shows the scale gap: a 2026 study describes more than 47,000 Net3 scenarios in a unified leak localization benchmark ([*Benchmarking Diverse Learning Architectures for Leak Detection and Localization in Water Distribution Systems*](https://doi.org/10.1016/j.jwpe.2026.110114)). Our five cases are a pipeline pilot, not a competitive benchmark. The 2014 study of sensor placement under demand uncertainty supports testing multiple plausible hydraulic conditions ([DOI: 10.1016/j.proeng.2014.11.242](https://doi.org/10.1016/j.proeng.2014.11.242)); the official [EPANET 2.2 manual](https://usepa.github.io/EPANET2.2/) documents pressure-dependent demand as an analysis capability that a later low-pressure realism gate should consider.
+
+**Execution status:** the runner, plan, schema, and CI wiring have been read back from the public branch, but this revision's exact-head Actions run/status queries are empty. The scenario runner has not been observed executing, so there is no five-case hydraulic result yet. Rust compilation, formatting and schema validation are not claimed as passed.
+
 ## Sources
 
 - [US EPA — EPANET software, capabilities and manuals](https://www.epa.gov/water-research/epanet). The official manual documents DDA/PDA and warns that DDA can impose full demand even when calculated pressures become negative.
