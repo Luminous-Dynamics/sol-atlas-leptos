@@ -64,7 +64,7 @@ pub enum ObservabilityError {
 }
 
 impl LinearizedObservationOperator {
-    /// Analyze local identifiability with deterministic Jacobi diagonalization of JᵀJ.
+    /// Analyze local identifiability with a one-sided Jacobi SVD.
     ///
     /// Singular values are sorted descending. Directions below max(abs_tol,
     /// rel_tol * largest_singular_value) are classed as unobservable. Tolerances,
@@ -92,28 +92,18 @@ impl LinearizedObservationOperator {
             }
         }
 
-        let mut gram = vec![vec![0.0_f64; parameter_dimension]; parameter_dimension];
-        for i in 0..parameter_dimension {
-            for j in i..parameter_dimension {
-                let mut sum = 0.0_f64;
-                for row in &normalized {
-                    sum += row[i] * row[j];
-                    if !sum.is_finite() {
-                        return Err(ObservabilityError::NonFiniteIntermediate);
-                    }
-                }
-                gram[i][j] = sum;
-                gram[j][i] = sum;
-            }
-        }
-
-        let (eigenvalues, eigenvectors) = symmetric_eigen_jacobi(gram)?;
+        // One-sided Jacobi works on the scaled Jacobian directly instead of
+        // forming JᵀJ, avoiding unnecessary loss of precision from squaring
+        // the condition number in this low-dimensional diagnostic.
+        let (singular_values_unsorted, right_vectors) = one_sided_jacobi_svd(normalized)?;
         let mut order: Vec<usize> = (0..parameter_dimension).collect();
-        order.sort_by(|&left, &right| eigenvalues[right].total_cmp(&eigenvalues[left]));
+        order.sort_by(|&left, &right| {
+            singular_values_unsorted[right].total_cmp(&singular_values_unsorted[left])
+        });
 
         let singular_values: Vec<f64> = order
             .iter()
-            .map(|&index| eigenvalues[index].max(0.0).sqrt())
+            .map(|&index| singular_values_unsorted[index])
             .collect();
         let largest = singular_values.first().copied().unwrap_or(0.0);
         let rank_tolerance = absolute_tolerance.max(relative_tolerance * largest);
@@ -127,9 +117,9 @@ impl LinearizedObservationOperator {
             .iter()
             .enumerate()
             .filter(|(ordered_index, _)| singular_values[*ordered_index] <= rank_tolerance)
-            .map(|(_, &eigen_index)| {
+            .map(|(_, &right_vector_index)| {
                 (0..parameter_dimension)
-                    .map(|parameter_index| eigenvectors[parameter_index][eigen_index])
+                    .map(|parameter_index| right_vectors[parameter_index][right_vector_index])
                     .collect::<Vec<f64>>()
             })
             .collect::<Vec<_>>();
@@ -223,83 +213,99 @@ fn validate_identifiers(
     Ok(())
 }
 
-/// Jacobi eigensolver for a small real symmetric matrix. Eigenvectors are columns.
-/// This O(n³) routine is intended for modest parameter counts, not production
-/// geodynamo inversions; large inversions should use a validated SVD backend.
-fn symmetric_eigen_jacobi(
+/// One-sided Jacobi SVD for small rectangular matrices.
+/// The input matrix is rotated by columns until they are mutually orthogonal;
+/// the resulting column norms are singular values and the accumulated rotation
+/// matrix contains the right singular vectors. This avoids explicitly forming
+/// JᵀJ, which squares the condition number. Large inversions still need a
+/// domain-reviewed numerical linear algebra backend.
+fn one_sided_jacobi_svd(
     mut matrix: Vec<Vec<f64>>,
 ) -> Result<(Vec<f64>, Vec<Vec<f64>>), ObservabilityError> {
-    let dimension = matrix.len();
-    let mut eigenvectors = vec![vec![0.0_f64; dimension]; dimension];
-    for i in 0..dimension {
-        eigenvectors[i][i] = 1.0;
+    let row_count = matrix.len();
+    let column_count = matrix.first().map_or(0, Vec::len);
+    if row_count == 0 || column_count == 0 {
+        return Err(ObservabilityError::EmptyParameters);
+    }
+    let mut right_vectors = vec![vec![0.0_f64; column_count]; column_count];
+    for i in 0..column_count {
+        right_vectors[i][i] = 1.0;
     }
 
-    if dimension == 1 {
-        return Ok((vec![matrix[0][0]], eigenvectors));
-    }
+    let max_sweeps = column_count.saturating_mul(100).max(1);
+    for _ in 0..max_sweeps {
+        let mut rotated_in_sweep = false;
 
-    let max_iterations = dimension
-        .saturating_mul(dimension)
-        .saturating_mul(100)
-        .max(1);
-
-    for _ in 0..max_iterations {
-        let mut p = 0;
-        let mut q = 1;
-        let mut largest_off_diagonal = 0.0_f64;
-        let mut diagonal_scale = 0.0_f64;
-        for i in 0..dimension {
-            diagonal_scale = diagonal_scale.max(matrix[i][i].abs());
-            for j in (i + 1)..dimension {
-                if matrix[i][j].abs() > largest_off_diagonal {
-                    largest_off_diagonal = matrix[i][j].abs();
-                    p = i;
-                    q = j;
+        for p in 0..column_count {
+            for q in (p + 1)..column_count {
+                let mut alpha = 0.0_f64;
+                let mut beta = 0.0_f64;
+                let mut gamma = 0.0_f64;
+                for row in &matrix {
+                    alpha += row[p] * row[p];
+                    beta += row[q] * row[q];
+                    gamma += row[p] * row[q];
                 }
+                if !alpha.is_finite() || !beta.is_finite() || !gamma.is_finite() {
+                    return Err(ObservabilityError::NonFiniteIntermediate);
+                }
+                if alpha == 0.0 || beta == 0.0 {
+                    continue;
+                }
+                let correlation_bound = f64::EPSILON * 16.0 * alpha.sqrt() * beta.sqrt();
+                if !correlation_bound.is_finite() {
+                    return Err(ObservabilityError::NonFiniteIntermediate);
+                }
+                if gamma.abs() <= correlation_bound {
+                    continue;
+                }
+
+                // Stable form of the Jacobi tangent; avoids tau*tau overflow.
+                let delta = (beta - alpha) * 0.5;
+                let tangent = if delta == 0.0 {
+                    1.0
+                } else {
+                    let denominator = delta.abs() + delta.hypot(gamma);
+                    if !denominator.is_finite() || denominator == 0.0 {
+                        return Err(ObservabilityError::NonFiniteIntermediate);
+                    }
+                    delta.signum() * gamma.signum() * (gamma.abs() / denominator)
+                };
+                let cosine = 1.0 / (1.0 + tangent * tangent).sqrt();
+                let sine = tangent * cosine;
+
+                for row in &mut matrix {
+                    let old_p = row[p];
+                    let old_q = row[q];
+                    row[p] = cosine * old_p - sine * old_q;
+                    row[q] = sine * old_p + cosine * old_q;
+                    if !row[p].is_finite() || !row[q].is_finite() {
+                        return Err(ObservabilityError::NonFiniteIntermediate);
+                    }
+                }
+                for row in &mut right_vectors {
+                    let old_p = row[p];
+                    let old_q = row[q];
+                    row[p] = cosine * old_p - sine * old_q;
+                    row[q] = sine * old_p + cosine * old_q;
+                }
+                rotated_in_sweep = true;
             }
         }
 
-        if largest_off_diagonal <= f64::EPSILON * 16.0 * diagonal_scale {
-            return Ok(((0..dimension).map(|i| matrix[i][i]).collect(), eigenvectors));
-        }
-        if matrix[p][q] == 0.0 {
-            continue;
-        }
-
-        let app = matrix[p][p];
-        let aqq = matrix[q][q];
-        let apq = matrix[p][q];
-        let tau = (aqq - app) / (2.0 * apq);
-        let t = if tau >= 0.0 {
-            1.0 / (tau + (1.0 + tau * tau).sqrt())
-        } else {
-            -1.0 / (-tau + (1.0 + tau * tau).sqrt())
-        };
-        let cosine = 1.0 / (1.0 + t * t).sqrt();
-        let sine = t * cosine;
-
-        matrix[p][p] = app - t * apq;
-        matrix[q][q] = aqq + t * apq;
-        matrix[p][q] = 0.0;
-        matrix[q][p] = 0.0;
-
-        for k in 0..dimension {
-            if k != p && k != q {
-                let akp = matrix[k][p];
-                let akq = matrix[k][q];
-                let new_kp = cosine * akp - sine * akq;
-                let new_kq = sine * akp + cosine * akq;
-                matrix[k][p] = new_kp;
-                matrix[p][k] = new_kp;
-                matrix[k][q] = new_kq;
-                matrix[q][k] = new_kq;
+        if !rotated_in_sweep {
+            let mut singular_values = Vec::with_capacity(column_count);
+            for column in 0..column_count {
+                let mut squared_norm = 0.0_f64;
+                for row in &matrix {
+                    squared_norm += row[column] * row[column];
+                }
+                if !squared_norm.is_finite() {
+                    return Err(ObservabilityError::NonFiniteIntermediate);
+                }
+                singular_values.push(squared_norm.sqrt());
             }
-
-            let vkp = eigenvectors[k][p];
-            let vkq = eigenvectors[k][q];
-            eigenvectors[k][p] = cosine * vkp - sine * vkq;
-            eigenvectors[k][q] = sine * vkp + cosine * vkq;
+            return Ok((singular_values, right_vectors));
         }
     }
 
