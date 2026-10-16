@@ -781,8 +781,12 @@ pub fn evaluate_sensor_placement(
         return Err("frozen plan and run manifest scenario counts differ".to_owned());
     }
     for scenario in &manifest.scenarios {
-        let expected = planned.get(&scenario.scenario_id)
-            .ok_or_else(|| format!("run manifest has undeclared scenario {:?}", scenario.scenario_id))?;
+        let expected = planned.get(&scenario.scenario_id).ok_or_else(|| {
+            format!(
+                "run manifest has undeclared scenario {:?}",
+                scenario.scenario_id
+            )
+        })?;
         if scenario.ground_truth_class != expected.ground_truth_class
             || scenario.target_junction_id != expected.target_junction_id
             || scenario.additional_demand != expected.additional_demand
@@ -1214,8 +1218,18 @@ mod tests {
                 "additional_demand": magnitude,
                 "run_state": "Completed",
                 "pressure_readings": [
-                    {"node_id": "J1", "state": "measured", "pressure_value": pressures[0], "reason": null},
-                    {"node_id": "J2", "state": "measured", "pressure_value": pressures[1], "reason": null}
+                    {
+                        "node_id": "J1",
+                        "state": "measured",
+                        "pressure_value": pressures[0],
+                        "reason": null
+                    },
+                    {
+                        "node_id": "J2",
+                        "state": "measured",
+                        "pressure_value": pressures[1],
+                        "reason": null
+                    }
                 ],
                 "report": {
                     "path": relative,
@@ -1241,12 +1255,30 @@ mod tests {
         ).as_bytes();
         let mut scenarios = Vec::new();
         add_scenario(&root, &mut scenarios, "base", "no_fault", None, 0.0, [50.0, 50.0, 50.0]);
-        add_scenario(&root, &mut scenarios, "j1-small", "synthetic_withdrawal", Some("J1"), 1.0, [49.0, 50.2, 50.1]);
-        add_scenario(&root, &mut scenarios, "j1-large", "synthetic_withdrawal", Some("J1"), 2.0, [48.0, 50.3, 50.2]);
-        add_scenario(&root, &mut scenarios, "j2-small", "synthetic_withdrawal", Some("J2"), 1.0, [50.2, 49.0, 50.1]);
-        add_scenario(&root, &mut scenarios, "j2-large", "synthetic_withdrawal", Some("J2"), 2.0, [50.3, 48.0, 50.2]);
-        add_scenario(&root, &mut scenarios, "j3-small", "synthetic_withdrawal", Some("J3"), 1.0, [50.1, 50.2, 49.0]);
-        add_scenario(&root, &mut scenarios, "j3-large", "synthetic_withdrawal", Some("J3"), 2.0, [50.2, 50.3, 48.0]);
+        add_scenario(
+            &root, &mut scenarios, "j1-small", "synthetic_withdrawal", Some("J1"),
+            1.0, [49.0, 50.2, 50.1],
+        );
+        add_scenario(
+            &root, &mut scenarios, "j1-large", "synthetic_withdrawal", Some("J1"),
+            2.0, [48.0, 50.3, 50.2],
+        );
+        add_scenario(
+            &root, &mut scenarios, "j2-small", "synthetic_withdrawal", Some("J2"),
+            1.0, [50.2, 49.0, 50.1],
+        );
+        add_scenario(
+            &root, &mut scenarios, "j2-large", "synthetic_withdrawal", Some("J2"),
+            2.0, [50.3, 48.0, 50.2],
+        );
+        add_scenario(
+            &root, &mut scenarios, "j3-small", "synthetic_withdrawal", Some("J3"),
+            1.0, [50.1, 50.2, 49.0],
+        );
+        add_scenario(
+            &root, &mut scenarios, "j3-large", "synthetic_withdrawal", Some("J3"),
+            2.0, [50.2, 50.3, 48.0],
+        );
         let planned_scenarios = scenarios.clone();
         let plan = json!({
             "schema_version": "water-scenario-corpus-plan/v0.1",
@@ -1285,7 +1317,8 @@ mod tests {
             "scenarios": scenarios
         });
         let manifest_bytes = serde_json::to_vec(&manifest).unwrap();
-        let result = evaluate_sensor_placement(&root, &manifest_bytes, source_inp, &plan_bytes).unwrap();
+        let result =
+            evaluate_sensor_placement(&root, &manifest_bytes, source_inp, &plan_bytes).unwrap();
         assert_eq!(result.evaluation.scenario_count, 7);
         assert_eq!(result.evaluation.fault_scenario_count, 6);
         assert_eq!(result.evaluation.candidate_target_count, 3);
