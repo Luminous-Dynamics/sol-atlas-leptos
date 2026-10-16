@@ -1067,8 +1067,9 @@ mod tests {
         assert_eq!(actual.optimistic_available_capacity, 5.0);
     }
 
-    fn brute_force_lower_min_cut_capacity(
+    fn brute_force_min_cut_capacity(
         scenario: &ServiceCapacityNetworkScenario,
+        optimistic: bool,
     ) -> f64 {
         let mut node_set = BTreeSet::new();
         node_set.insert(scenario.service_entity_id.clone());
@@ -1105,11 +1106,18 @@ mod tests {
                 }
             }
             for edge in &scenario.links {
-                if edge.availability != NetworkLinkAvailability::Active {
+                let included = edge.availability == NetworkLinkAvailability::Active
+                    || (optimistic && edge.availability == NetworkLinkAvailability::Unknown);
+                if !included {
                     continue;
                 }
-                let capacity = (edge.capacity.quantity.value
-                    - edge.capacity.quantity.uncertainty_abs.unwrap_or(0.0)).max(0.0);
+                let value = edge.capacity.quantity.value;
+                let uncertainty = edge.capacity.quantity.uncertainty_abs.unwrap_or(0.0);
+                let capacity = if optimistic {
+                    value + uncertainty
+                } else {
+                    (value - uncertainty).max(0.0)
+                };
                 if on_source_side(&edge.from_entity_id) && !on_source_side(&edge.to_entity_id) {
                     cut_capacity += capacity;
                 }
@@ -1197,11 +1205,20 @@ mod tests {
                 ));
             }
             let input = scenario(links, 10.0, None);
-            let expected = brute_force_lower_min_cut_capacity(&input);
+            let expected_lower = brute_force_min_cut_capacity(&input, false);
+            let expected_upper = brute_force_min_cut_capacity(&input, true);
             let actual = assess_service_capacity_network(&input, &[]).unwrap();
             assert!(
-                (actual.conservative_available_capacity - expected).abs() < 1.0e-9,
-                "max flow differs from exhaustive min cut on seed {seed}"
+                (actual.conservative_available_capacity - expected_lower).abs() < 1.0e-9,
+                "conservative max flow differs from exhaustive min cut on seed {seed}"
+            );
+            assert!(
+                (actual.optimistic_available_capacity - expected_upper).abs() < 1.0e-9,
+                "optimistic max flow differs from exhaustive min cut on seed {seed}"
+            );
+            assert!(
+                actual.optimistic_available_capacity >= actual.conservative_available_capacity,
+                "optimistic capacity must not fall below conservative capacity on seed {seed}"
             );
 
             let link_by_id: BTreeMap<&str, &NetworkLink> = input.links.iter()
