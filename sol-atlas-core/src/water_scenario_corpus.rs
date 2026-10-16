@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 const MAX_SCENARIOS: usize = 1_000;
-const MAX_ADDED_DEMAND_LPS: f64 = 20.0;
+const MAX_ADDED_DEMAND: f64 = 100.0;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -23,6 +23,7 @@ pub struct ScenarioCorpusPlan {
     pub schema_version: String,
     pub classification: String,
     pub plan_id: String,
+    pub unit_system: String,
     pub base_input: ScenarioBaseInput,
     pub observation_node_ids: Vec<String>,
     pub scenarios: Vec<ScenarioDefinition>,
@@ -44,7 +45,7 @@ pub struct ScenarioDefinition {
     pub scenario_id: String,
     pub ground_truth_class: String,
     pub target_junction_id: Option<String>,
-    pub additional_demand_lps: f64,
+    pub additional_demand: f64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -58,7 +59,7 @@ pub struct ScenarioArtifact {
 pub struct PressureReading {
     pub node_id: String,
     pub state: String,
-    pub pressure_m: Option<f64>,
+    pub pressure_value: Option<f64>,
     pub reason: Option<String>,
 }
 
@@ -67,7 +68,7 @@ pub struct ScenarioRunRecord {
     pub scenario_id: String,
     pub ground_truth_class: String,
     pub target_junction_id: Option<String>,
-    pub additional_demand_lps: f64,
+    pub additional_demand: f64,
     pub generated_input: ScenarioArtifact,
     pub run_state: String,
     pub solver_exit_code: Option<i32>,
@@ -84,6 +85,10 @@ pub struct ScenarioCorpusRunManifest {
     pub plan_id: String,
     pub plan_sha256: String,
     pub base_input_sha256: String,
+    pub unit_system: String,
+    pub flow_unit: String,
+    pub pressure_unit: String,
+    pub report_policy: String,
     pub solver: ScenarioSolverIdentity,
     pub observation_node_ids: Vec<String>,
     pub scenario_count: usize,
@@ -119,6 +124,22 @@ fn valid_identifier(value: &str) -> bool {
             .bytes()
             .next()
             .is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+}
+
+fn valid_epanet_identifier(value: &str) -> bool {
+    !value.is_empty()
+        && value.len() <= 31
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || b"._-".contains(&byte))
+}
+
+fn flow_and_pressure_units(unit_system: &str) -> Result<(&'static str, &'static str), String> {
+    match unit_system {
+        "LPS" => Ok(("L/s", "m")),
+        "GPM" => Ok(("GPM", "psi")),
+        _ => Err(format!("unsupported EPANET unit system {unit_system:?}; expected LPS or GPM")),
+    }
 }
 
 fn valid_sha256(value: &str) -> bool {
@@ -209,7 +230,10 @@ fn parse_junction_ids(input: &str) -> Result<HashSet<String>, String> {
     Ok(ids)
 }
 
-fn validate_base_input(input: &str) -> Result<HashSet<String>, String> {
+fn validate_base_input(
+    input: &str,
+    expected_unit_system: &str,
+) -> Result<HashSet<String>, String> {
     if !input.is_ascii() {
         return Err("v0.1 runner accepts ASCII EPANET INP inputs only".to_owned());
     }
@@ -226,28 +250,127 @@ fn validate_base_input(input: &str) -> Result<HashSet<String>, String> {
             return Err(format!("base input is missing required section {required}"));
         }
     }
-    if !upper.lines().any(|line| {
-        let fields: Vec<_> = line.split_whitespace().collect();
-        fields.len() >= 2
-            && fields[0].eq_ignore_ascii_case("UNITS")
-            && fields[1].eq_ignore_ascii_case("LPS")
-    }) {
-        return Err("base input must declare UNITS LPS".to_owned());
+    flow_and_pressure_units(expected_unit_system)?;
+    let mut section = String::new();
+    let mut units = Vec::new();
+    for line in input.lines() {
+        if let Some(name) = section_name(line) {
+            section = name;
+            continue;
+        }
+        if section != "OPTIONS" {
+            continue;
+        }
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with(';') {
+            continue;
+        }
+        let fields: Vec<_> = trimmed.split_whitespace().collect();
+        if fields.first().is_some_and(|field| field.eq_ignore_ascii_case("UNITS")) {
+            if fields.len() != 2 {
+                return Err(format!("malformed OPTIONS UNITS directive: {line:?}"));
+            }
+            units.push(fields[1].to_ascii_uppercase());
+        }
     }
-    if !upper.lines().any(|line| {
-        let fields: Vec<_> = line.split_whitespace().collect();
-        fields.len() >= 2
-            && fields[0].eq_ignore_ascii_case("NODES")
-            && fields[1].eq_ignore_ascii_case("ALL")
-    }) || !upper.lines().any(|line| {
-        let fields: Vec<_> = line.split_whitespace().collect();
-        fields.len() >= 2
-            && fields[0].eq_ignore_ascii_case("LINKS")
-            && fields[1].eq_ignore_ascii_case("ALL")
-    }) {
-        return Err("base input must request REPORT NODES ALL and LINKS ALL".to_owned());
+    if units.len() != 1 {
+        return Err(format!(
+            "expected exactly one OPTIONS UNITS directive, found {}",
+            units.len()
+        ));
+    }
+    if units[0] != expected_unit_system {
+        return Err(format!(
+            "unit system mismatch: plan declares {expected_unit_system}, input declares {}",
+            units[0]
+        ));
     }
     parse_junction_ids(input)
+}
+
+fn finish_report_section(
+    section: &str,
+    nodes_count: usize,
+    links_count: usize,
+    output: &mut String,
+) -> Result<(), String> {
+    if section != "REPORT" {
+        return Ok(());
+    }
+    if nodes_count > 1 || links_count > 1 {
+        return Err("REPORT must not contain duplicate NODES or LINKS directives".to_owned());
+    }
+    if nodes_count == 0 {
+        if !output.is_empty() && !output.ends_with('\n') {
+            output.push('\n');
+        }
+        output.push_str(" NODES ALL\n");
+    }
+    if links_count == 0 {
+        if !output.is_empty() && !output.ends_with('\n') {
+            output.push('\n');
+        }
+        output.push_str(" LINKS ALL\n");
+    }
+    Ok(())
+}
+
+/// Ensure generated solver input requests node and link result tables, without
+/// modifying the exact upstream source bytes bound by the plan.
+fn ensure_report_outputs(input: &str) -> Result<String, String> {
+    let mut section = String::new();
+    let mut nodes_count = 0usize;
+    let mut links_count = 0usize;
+    let mut output = String::with_capacity(input.len() + 32);
+
+    for segment in input.split_inclusive('\n') {
+        let line = segment.strip_suffix('\n').unwrap_or(segment);
+        if let Some(name) = section_name(line) {
+            finish_report_section(&section, nodes_count, links_count, &mut output)?;
+            section = name;
+            nodes_count = 0;
+            links_count = 0;
+            output.push_str(segment);
+            continue;
+        }
+        if section == "REPORT" {
+            let trimmed = line.trim();
+            if !trimmed.is_empty() && !trimmed.starts_with(';') {
+                let fields: Vec<_> = trimmed.split_whitespace().collect();
+                if let Some(first) = fields.first() {
+                    if first.eq_ignore_ascii_case("NODES") {
+                        nodes_count += 1;
+                        if fields.len() != 2 {
+                            return Err(format!("malformed REPORT NODES directive: {line:?}"));
+                        }
+                        let indent = &line[..line.len() - line.trim_start().len()];
+                        output.push_str(indent);
+                        output.push_str("NODES ALL");
+                        if segment.ends_with('\n') {
+                            output.push('\n');
+                        }
+                        continue;
+                    }
+                    if first.eq_ignore_ascii_case("LINKS") {
+                        links_count += 1;
+                        if fields.len() != 2 {
+                            return Err(format!("malformed REPORT LINKS directive: {line:?}"));
+                        }
+                        let indent = &line[..line.len() - line.trim_start().len()];
+                        output.push_str(indent);
+                        output.push_str("LINKS ALL");
+                        if segment.ends_with('\n') {
+                            output.push('\n');
+                        }
+                        continue;
+                    }
+                }
+            }
+        }
+        output.push_str(segment);
+    }
+    finish_report_section(&section, nodes_count, links_count, &mut output)?;
+    Ok(output)
 }
 
 fn format_number(value: f64) -> String {
@@ -264,23 +387,23 @@ fn format_number(value: f64) -> String {
 fn mutate_junction_demand(
     input: &str,
     target: Option<&str>,
-    additional_demand_lps: f64,
+    additional_demand: f64,
 ) -> Result<String, String> {
-    if !additional_demand_lps.is_finite()
-        || !(0.0..=MAX_ADDED_DEMAND_LPS).contains(&additional_demand_lps)
+    if !additional_demand.is_finite()
+        || !(0.0..=MAX_ADDED_DEMAND).contains(&additional_demand)
     {
         return Err(format!(
-            "additional_demand_lps must be finite and within [0, {MAX_ADDED_DEMAND_LPS}]"
+            "additional_demand must be finite and within [0, {MAX_ADDED_DEMAND}]"
         ));
     }
-    if target.is_none() && additional_demand_lps != 0.0 {
+    if target.is_none() && additional_demand != 0.0 {
         return Err("a positive withdrawal requires target_junction_id".to_owned());
     }
-    if additional_demand_lps == 0.0 {
+    if additional_demand == 0.0 {
         return Ok(input.to_owned());
     }
     let target = target.ok_or_else(|| "missing target junction ID".to_owned())?;
-    if !valid_identifier(target) {
+    if !valid_epanet_identifier(target) {
         return Err(format!("invalid target_junction_id {target:?}"));
     }
 
@@ -311,7 +434,7 @@ fn mutate_junction_demand(
                     let baseline = demand_text
                         .parse::<f64>()
                         .map_err(|_| format!("invalid demand for target {target:?}"))?;
-                    let candidate = baseline + additional_demand_lps;
+                    let candidate = baseline + additional_demand;
                     if !candidate.is_finite() {
                         return Err(format!("non-finite candidate demand for {target:?}"));
                     }
@@ -420,7 +543,7 @@ fn validate_plan(
     if !valid_commit(solver_source_commit) {
         return Err("solver source commit must be a full lowercase 40-character Git SHA".to_owned());
     }
-    let junction_ids = validate_base_input(base_input)?;
+    let junction_ids = validate_base_input(base_input, &plan.unit_system)?;
     if plan.observation_node_ids.is_empty() {
         return Err("observation_node_ids must not be empty".to_owned());
     }
@@ -451,14 +574,14 @@ fn validate_plan(
         {
             return Err(format!("invalid or duplicate scenario ID {:?}", scenario.scenario_id));
         }
-        if !scenario.additional_demand_lps.is_finite()
-            || !(0.0..=MAX_ADDED_DEMAND_LPS).contains(&scenario.additional_demand_lps)
+        if !scenario.additional_demand.is_finite()
+            || !(0.0..=MAX_ADDED_DEMAND).contains(&scenario.additional_demand)
         {
             return Err(format!("scenario {} has invalid additional demand", scenario.scenario_id));
         }
         match (scenario.ground_truth_class.as_str(), scenario.target_junction_id.as_deref()) {
-            ("no_fault", None) if scenario.additional_demand_lps == 0.0 => has_no_fault = true,
-            ("synthetic_withdrawal", Some(target)) if scenario.additional_demand_lps > 0.0 => {
+            ("no_fault", None) if scenario.additional_demand == 0.0 => has_no_fault = true,
+            ("synthetic_withdrawal", Some(target)) if scenario.additional_demand > 0.0 => {
                 if !junction_ids.contains(target) {
                     return Err(format!(
                         "scenario {} target {:?} is not a base junction",
@@ -539,6 +662,8 @@ pub fn run_scenario_corpus(
         })?;
     let base_sha = sha256(&input_bytes);
     let plan_sha = sha256(&plan_bytes);
+    let (flow_unit, pressure_unit) = flow_and_pressure_units(&plan.unit_system)?;
+    let prepared_base_input = ensure_report_outputs(&base_input)?;
     let mut records = Vec::with_capacity(plan.scenarios.len());
     let mut completed_count = 0usize;
     for scenario in &plan.scenarios {
@@ -546,9 +671,9 @@ pub fn run_scenario_corpus(
             return Err(format!("unsafe scenario output ID {:?}", scenario.scenario_id));
         }
         let generated = mutate_junction_demand(
-            &base_input,
+            &prepared_base_input,
             scenario.target_junction_id.as_deref(),
-            scenario.additional_demand_lps,
+            scenario.additional_demand,
         )?;
         let scenario_dir = output_root.join(&scenario.scenario_id);
         fs::create_dir_all(&scenario_dir)
@@ -609,7 +734,7 @@ pub fn run_scenario_corpus(
                                         Ok(pressure) => pressure_readings.push(PressureReading {
                                             node_id: node_id.clone(),
                                             state: "measured".to_owned(),
-                                            pressure_m: Some(pressure),
+                                            pressure_value: Some(pressure),
                                             reason: None,
                                         }),
                                         Err(error) => {
@@ -617,7 +742,7 @@ pub fn run_scenario_corpus(
                                             pressure_readings.push(PressureReading {
                                                 node_id: node_id.clone(),
                                                 state: "unavailable".to_owned(),
-                                                pressure_m: None,
+                                                pressure_value: None,
                                                 reason: Some(error),
                                             });
                                         }
@@ -653,7 +778,7 @@ pub fn run_scenario_corpus(
             scenario_id: scenario.scenario_id.clone(),
             ground_truth_class: scenario.ground_truth_class.clone(),
             target_junction_id: scenario.target_junction_id.clone(),
-            additional_demand_lps: scenario.additional_demand_lps,
+            additional_demand: scenario.additional_demand,
             generated_input,
             run_state: run_state.to_owned(),
             solver_exit_code,
@@ -671,6 +796,10 @@ pub fn run_scenario_corpus(
         plan_id: plan.plan_id,
         plan_sha256: plan_sha,
         base_input_sha256: base_sha,
+        unit_system: plan.unit_system.clone(),
+        flow_unit: flow_unit.to_owned(),
+        pressure_unit: pressure_unit.to_owned(),
+        report_policy: "NODES ALL; LINKS ALL".to_owned(),
         solver: ScenarioSolverIdentity {
             executable_sha256: solver_sha256,
             source_commit: solver_source_commit.to_owned(),
