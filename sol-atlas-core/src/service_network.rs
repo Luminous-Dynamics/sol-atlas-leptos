@@ -160,12 +160,6 @@ pub enum ServiceCapacityNetworkError {
     InvalidInput(Vec<ServiceCapacityNetworkValidationError>),
 }
 
-#[derive(Debug, Clone, Copy)]
-enum EvidenceUse {
-    Capacity,
-    Availability,
-}
-
 fn build_evidence_index<'a>(
     records: &'a [EvidenceRecord],
 ) -> Result<BTreeMap<&'a str, &'a EvidenceRecord>, Vec<ServiceCapacityNetworkValidationError>> {
@@ -1019,6 +1013,23 @@ mod tests {
         let expected: ServiceCapacityNetworkAssessment = serde_json::from_str(include_str!(
             "../../schemas/examples/service-capacity-network-assessment.json"
         )).unwrap();
+        let actual = assess_service_capacity_network(&input, &[]).unwrap();
+        assert_eq!(actual, expected);
+        assert_eq!(actual.conservative_min_cut_link_ids, vec!["supply"]);
+        assert_eq!(actual.conservative_available_capacity, 5.0);
+        assert_eq!(actual.optimistic_available_capacity, 5.0);
+    }
+
+    #[test]
+    fn service_network_json_fixture_matches_golden_max_flow_and_cut() {
+        let input: ServiceCapacityNetworkScenario = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-capacity-network-scenario.json"
+        ))
+        .unwrap();
+        let expected: ServiceCapacityNetworkAssessment = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-capacity-network-assessment.json"
+        ))
+        .unwrap();
         let actual = assess_service_capacity_network(&input, &[]).unwrap();
         assert_eq!(actual, expected);
         assert_eq!(actual.conservative_min_cut_link_ids, vec!["supply"]);
