@@ -64,12 +64,20 @@ pub struct InterventionSummary {
     pub unchanged: usize,
 }
 
+pub const INTERVENTION_COMPARISON_SCHEMA_VERSION: &str = "0.1.0";
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct InterventionComparison {
+    pub schema_version: String,
     pub intervention_id: String,
+    pub intervention_rationale: String,
     pub baseline_scenario_id: String,
     pub intervention_scenario_id: String,
     pub as_of: String,
+    /// Exact qualitative baseline assumptions/observations used by the comparison.
+    pub baseline_conditions: BTreeMap<String, ScenarioEntityCondition>,
+    /// Hypothetical overrides; they are not claims that work occurred.
+    pub intervention_overrides: BTreeMap<String, ScenarioEntityCondition>,
     pub group_deltas: Vec<GroupInterventionDelta>,
     pub summary: InterventionSummary,
 }
@@ -197,10 +205,14 @@ pub fn compare_intervention(
     }
 
     Ok(InterventionComparison {
+        schema_version: INTERVENTION_COMPARISON_SCHEMA_VERSION.into(),
         intervention_id: intervention.id.clone(),
+        intervention_rationale: intervention.rationale.clone(),
         baseline_scenario_id: baseline.id.clone(),
         intervention_scenario_id: with_intervention.id,
         as_of: baseline.as_of.clone(),
+        baseline_conditions: baseline.entity_conditions.clone(),
+        intervention_overrides: intervention.condition_overrides.clone(),
         group_deltas,
         summary,
     })
@@ -499,6 +511,18 @@ mod tests {
             "../../schemas/spatial-economic-intervention-plan-v0.1.schema.json"
         ))
         .unwrap();
+        let comparison_schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/spatial-economic-intervention-comparison-v0.1.schema.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            comparison_schema["properties"]["schema_version"]["const"],
+            serde_json::json!(INTERVENTION_COMPARISON_SCHEMA_VERSION)
+        );
+        assert!(comparison_schema["$defs"]["delta"]["properties"]["change"]["enum"]
+            .as_array()
+            .unwrap()
+            .contains(&serde_json::json!("recovered")));
         assert_eq!(
             plan_schema["properties"]["condition_overrides"]["minProperties"],
             serde_json::json!(1)
