@@ -23,6 +23,17 @@ pub const SERVICE_NETWORK_SCHEMA_VERSION: &str = "0.1.0";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum NetworkTopologyCompleteness {
+    /// The supplied edges represent the complete modeled route topology.
+    Complete,
+    /// Relevant edges or constraints are known to be omitted.
+    Partial,
+    /// Completeness has not been established.
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum NetworkLinkAvailability {
     Active,
     Inactive,
@@ -51,6 +62,9 @@ pub struct ServiceCapacityNetworkScenario {
     /// Canonical UTC timestamp: YYYY-MM-DDTHH:MM:SSZ.
     pub as_of: String,
     pub service_entity_id: String,
+    /// Completeness must be explicit; incomplete topology cannot justify an outage
+    /// or adequacy conclusion, even when its modeled subgraph has zero or high flow.
+    pub topology_completeness: NetworkTopologyCompleteness,
     pub source_entity_ids: Vec<String>,
     pub required_capacity: FunctionMeasurement,
     pub links: Vec<NetworkLink>,
@@ -71,6 +85,7 @@ pub struct ServiceCapacityNetworkAssessment {
     pub scenario_id: String,
     pub service_entity_id: String,
     pub as_of: String,
+    pub topology_completeness: NetworkTopologyCompleteness,
     pub state: NetworkAssessmentState,
     pub unit: String,
     pub required_capacity_value: f64,
@@ -374,7 +389,12 @@ fn assess_service_capacity_network_indexed(
         ]));
     }
 
-    let state = if lower_flow.flow >= demand_upper {
+    let state = if scenario.topology_completeness != NetworkTopologyCompleteness::Complete {
+        // A partial/unknown topology can omit a shared bottleneck or an alternate
+        // route. Its max-flow result is only for the declared subgraph, not a
+        // defensible bound on the actual service.
+        NetworkAssessmentState::Indeterminate
+    } else if lower_flow.flow >= demand_upper {
         NetworkAssessmentState::Adequate
     } else if upper_flow.flow == 0.0 && demand_lower > 0.0 {
         NetworkAssessmentState::Unavailable
@@ -408,6 +428,7 @@ fn assess_service_capacity_network_indexed(
         scenario_id: scenario.id.clone(),
         service_entity_id: scenario.service_entity_id.clone(),
         as_of: scenario.as_of.clone(),
+        topology_completeness: scenario.topology_completeness,
         state,
         unit: required.unit.clone(),
         required_capacity_value: required.value,
@@ -771,6 +792,7 @@ mod tests {
             id: "scenario:network-test".into(),
             as_of: AT.into(),
             service_entity_id: "service:irrigation".into(),
+            topology_completeness: NetworkTopologyCompleteness::Complete,
             source_entity_ids: vec!["source:reservoir".into()],
             required_capacity: measurement("service:irrigation", required, uncertainty, "m3/h"),
             links,
@@ -861,6 +883,20 @@ mod tests {
             Err(ServiceCapacityNetworkError::InvalidInput(errors))
                 if errors.contains(&ServiceCapacityNetworkValidationError::DuplicateLinkId)
         ));
+    }
+
+    #[test]
+    fn incomplete_topology_never_becomes_adequate_or_unavailable() {
+        let mut partial = scenario(vec![], 1.0, None);
+        partial.topology_completeness = NetworkTopologyCompleteness::Partial;
+        let partial_result = assess_service_capacity_network(&partial, &[]).unwrap();
+        assert_eq!(partial_result.state, NetworkAssessmentState::Indeterminate);
+        assert_eq!(partial_result.conservative_available_capacity, 0.0);
+
+        let mut unknown = scenario(vec![], 1.0, None);
+        unknown.topology_completeness = NetworkTopologyCompleteness::Unknown;
+        let unknown_result = assess_service_capacity_network(&unknown, &[]).unwrap();
+        assert_eq!(unknown_result.state, NetworkAssessmentState::Indeterminate);
     }
 
     #[test]
