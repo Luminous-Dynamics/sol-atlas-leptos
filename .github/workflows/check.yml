@@ -169,6 +169,10 @@ jobs:
                   Path("sol-atlas-core/schemas/water-scenario-corpus-plan-v0.1.schema.json"),
                   Path("sol-atlas-core/fixtures/water-engineering/w0-scenario-corpus-plan.synthetic.json"),
               ),
+              (
+                  Path("sol-atlas-core/schemas/water-scenario-corpus-plan-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/net3-scenario-corpus-plan.synthetic.json"),
+              ),
           ]
 
           format_checker = FormatChecker()
@@ -252,6 +256,10 @@ jobs:
             (.schema_version == "water-scenario-corpus-run/v0.1") and
             (.plan_sha256 == $plan_sha) and
             (.base_input_sha256 == "0524e9f92940fae0ded3f9fb2e3f7471865f453df7a06e54a6de15c3cc0ba559") and
+            (.unit_system == "LPS") and
+            (.flow_unit == "L/s") and
+            (.pressure_unit == "m") and
+            (.report_policy == "NODES ALL; LINKS ALL") and
             (.solver.source_commit == "4d8d82ddc260fce216af9321fc3d9a4646ac6827") and
             (.claim_ceiling == "synthetic_single_topology_hydraulic_pilot") and
             (.scenario_count == 5) and
@@ -271,7 +279,7 @@ jobs:
               (.report.sha256 | test("^[a-f0-9]{64}$")) and
               (.binary_output.sha256 | test("^[a-f0-9]{64}$")) and
               (.pressure_readings | length == 2) and
-              all(.pressure_readings[]; .state == "measured" and (.pressure_m | type == "number") and .reason == null)
+              all(.pressure_readings[]; .state == "measured" and (.pressure_value | type == "number") and .reason == null)
             )
           ' "$output"
       - name: Upload scenario corpus inputs, results and failure manifest
@@ -282,6 +290,76 @@ jobs:
           path: artifacts/water-scenario-corpus/
           if-no-files-found: warn
           retention-days: 14
+      - name: Generate and execute pinned Net3 synthetic scenario corpus
+        id: net3_corpus
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo run -p sol-atlas-core --bin water-scenario-corpus-run -- \
+            .epanet-source/example-networks/Net3.inp \
+            sol-atlas-core/fixtures/water-engineering/net3-scenario-corpus-plan.synthetic.json \
+            .epanet-build/bin/runepanet \
+            artifacts/net3-scenario-corpus \
+            4d8d82ddc260fce216af9321fc3d9a4646ac6827
+      - name: Validate generated Net3 corpus manifest
+        id: net3_manifest
+        if: steps.net3_corpus.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="sol-atlas-core/fixtures/water-engineering/net3-scenario-corpus-plan.synthetic.json"
+          output="artifacts/net3-scenario-corpus/scenario-corpus-run.v0.1.json"
+          digest_file="artifacts/net3-scenario-corpus/scenario-corpus-run.v0.1.sha256"
+          expected_plan_sha="$(sha256sum "$fixture" | awk '{print $1}')"
+          expected_manifest_sha="$(sha256sum "$output" | awk '{print $1}')"
+          test "$(awk '{print $1}' "$digest_file")" = "$expected_manifest_sha"
+          jq -e --arg plan_sha "$expected_plan_sha" '
+            (.schema_version == "water-scenario-corpus-run/v0.1") and
+            (.plan_sha256 == $plan_sha) and
+            (.base_input_sha256 == "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53") and
+            (.unit_system == "GPM") and
+            (.flow_unit == "GPM") and
+            (.pressure_unit == "psi") and
+            (.report_policy == "NODES ALL; LINKS ALL") and
+            (.solver.source_commit == "4d8d82ddc260fce216af9321fc3d9a4646ac6827") and
+            (.claim_ceiling == "synthetic_single_topology_hydraulic_pilot") and
+            (.scenario_count == 9) and
+            (.completed_count == 9) and
+            (.failed_count == 0) and
+            (.run_state == "Completed") and
+            ([.scenarios[].scenario_id] == [
+              "net3-no-fault",
+              "net3-withdrawal-101-small",
+              "net3-withdrawal-101-large",
+              "net3-withdrawal-103-small",
+              "net3-withdrawal-103-large",
+              "net3-withdrawal-105-small",
+              "net3-withdrawal-105-large",
+              "net3-withdrawal-109-small",
+              "net3-withdrawal-109-large"
+            ]) and
+            all(.scenarios[];
+              .run_state == "Completed" and
+              (.generated_input.sha256 | test("^[a-f0-9]{64}$")) and
+              (.report.sha256 | test("^[a-f0-9]{64}$")) and
+              (.binary_output.sha256 | test("^[a-f0-9]{64}$")) and
+              (.pressure_readings | length == 4) and
+              all(.pressure_readings[];
+                .state == "measured" and
+                (.pressure_value | type == "number") and
+                .reason == null
+              )
+            )
+          ' "$output"
+      - name: Upload Net3 scenario corpus inputs, results and failure manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: net3-scenario-corpus-pilot
+          path: artifacts/net3-scenario-corpus/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Run synthetic baseline and restricted-pipe scenario
         shell: bash
         run: bash scripts/ci/epanet-synthetic-smoke.sh
@@ -290,9 +368,11 @@ jobs:
         env:
           SCENARIO_CORPUS_OUTCOME: ${{ steps.scenario_corpus.outcome }}
           SCENARIO_MANIFEST_OUTCOME: ${{ steps.scenario_manifest.outcome }}
+          NET3_CORPUS_OUTCOME: ${{ steps.net3_corpus.outcome }}
+          NET3_MANIFEST_OUTCOME: ${{ steps.net3_manifest.outcome }}
         run: |
-          if [[ "$SCENARIO_CORPUS_OUTCOME" != "success" || "$SCENARIO_MANIFEST_OUTCOME" != "success" ]]; then
-            echo "WATER_SCENARIO_CORPUS_NOT_VALIDATED: run=$SCENARIO_CORPUS_OUTCOME manifest=$SCENARIO_MANIFEST_OUTCOME"
+          if [[ "$SCENARIO_CORPUS_OUTCOME" != "success" || "$SCENARIO_MANIFEST_OUTCOME" != "success" || "$NET3_CORPUS_OUTCOME" != "success" || "$NET3_MANIFEST_OUTCOME" != "success" ]]; then
+            echo "WATER_SCENARIO_CORPUS_NOT_VALIDATED: w0_run=$SCENARIO_CORPUS_OUTCOME w0_manifest=$SCENARIO_MANIFEST_OUTCOME net3_run=$NET3_CORPUS_OUTCOME net3_manifest=$NET3_MANIFEST_OUTCOME"
             exit 1
           fi
       - name: Upload synthetic solver evidence
