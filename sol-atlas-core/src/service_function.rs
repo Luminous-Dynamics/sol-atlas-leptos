@@ -118,6 +118,8 @@ pub enum ServiceFunctionValidationError {
     SupportingEvidenceMissingQuantity,
     SupportingEvidenceQuantityMismatch,
     InvalidSupportingEvidenceTimestamp,
+    ObservationAfterAsOf,
+    EvidenceRecordedAfterAsOf,
     InvalidSupportingEvidenceValidity,
     OutsideSupportingEvidenceValidity,
 }
@@ -405,8 +407,12 @@ fn validate_evidence_validity(
         errors.push(ServiceFunctionValidationError::InvalidSupportingEvidenceTimestamp);
         return;
     }
-    if record.time.occurred_at.as_str() > as_of || record.time.recorded_at.as_str() > as_of {
-        errors.push(ServiceFunctionValidationError::OutsideSupportingEvidenceValidity);
+    if record.time.occurred_at.as_str() > as_of {
+        errors.push(ServiceFunctionValidationError::ObservationAfterAsOf);
+        return;
+    }
+    if record.time.recorded_at.as_str() > as_of {
+        errors.push(ServiceFunctionValidationError::EvidenceRecordedAfterAsOf);
         return;
     }
 
@@ -725,7 +731,7 @@ mod tests {
         assert!(matches!(
             result,
             Err(ServiceFunctionAssessmentError::InvalidInput(errors))
-                if errors.contains(&ServiceFunctionValidationError::OutsideSupportingEvidenceValidity)
+                if errors.contains(&ServiceFunctionValidationError::EvidenceRecordedAfterAsOf)
         ));
     }
 
