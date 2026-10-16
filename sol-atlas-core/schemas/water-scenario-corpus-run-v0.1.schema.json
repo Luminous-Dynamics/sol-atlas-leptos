@@ -406,7 +406,7 @@
               "target_junction_id": {
                 "type": "null"
               },
-              "additional_demand_lps": {
+              "additional_demand": {
                 "const": 0
               }
             }
@@ -428,7 +428,7 @@
               "target_junction_id": {
                 "type": "string"
               },
-              "additional_demand_lps": {
+              "additional_demand": {
                 "exclusiveMinimum": 0
               }
             }
