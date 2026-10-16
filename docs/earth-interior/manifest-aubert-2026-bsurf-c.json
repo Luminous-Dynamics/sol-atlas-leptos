@@ -10,7 +10,7 @@
     "version": "2.0",
     "dataset_publication_date": "2026-05-07",
     "license_name": "Licence Ouverte / Open Licence 2.0",
-    "license_url": "https://www.etalab.gouv.fr/licence-ouverte-open-licence/",
+    "license_url": "https://www.etalab.gouv.fr/wp-content/uploads/2018/11/open-licence.pdf",
     "source_url": "https://dataverse.ipgp.fr/dataset.xhtml?persistentId=doi%3A10.18715%2FIPGP.2026.mm0sx2m0",
     "description": "Published simulation outputs include core-surface magnetic field, velocity field and magnetic diffusion from documented cases U, G, N, C, GC and GL. They are simulated known-truth data, not the Earth's observed trajectory."
   },
