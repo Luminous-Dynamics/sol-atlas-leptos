@@ -2,7 +2,7 @@
 
 **Status:** benchmark protocol and proposed targets; no performance result has yet been measured or claimed.  
 **Contract version:** v0.1  
-**Scope:** evidence validation, qualitative dependency-group evaluation and baseline-versus-intervention comparisons in `sol-atlas-core`.
+**Scope:** evidence validation, qualitative dependency-group evaluation, baseline-versus-intervention comparisons, and common-cause exposure correctness in `sol-atlas-core`. The existing timing harness measures intervention comparisons only; common-cause throughput is not yet measured.
 
 ## Principles
 
@@ -19,7 +19,7 @@ Targets apply to a named reference runner, release profile, warmed process, one 
 | Gate | Proposed target | Fail-closed / interpretation |
 |---|---:|---|
 | Outcome classification | 100% of the nine qualitative baseline/after state pairs match the documented transition table | No ambiguous pair is silently mapped to recovery or degradation |
-| Evidence negative controls | 0 unsafe positive conclusions across proposed, disputed, superseded, withdrawn, malformed-time, expired, unknown-ID, duplicate-ID, wrong-kind and subject-mismatch fixtures | Any false available/satisfied conclusion blocks release |
+| Evidence negative controls | 0 unsafe positive conclusions across proposed, disputed, superseded, withdrawn, malformed-time, expired, unknown-ID, duplicate-ID, wrong-kind and subject-mismatch fixtures | Any false available/satisfied conclusion blocks release |\n| Common-cause exposure safety | 100% of active/inactive/unknown, in-window/out-of-window and blocked-evidence cases match the contract; 0 blocked domains reported as exposed or not-triggered | Exposure is not an asset failure; out-of-scope is not safe; common-cause analysis must not mutate operational states |
 | Determinism | 100/100 repeated runs produce byte-identical canonicalized result data for the same inputs | Runtime measurements may vary; output data must not |
 | Small comparison | 100 groups / 200 dependency edges / 200 evidence records: p95 <= 50 ms | Initial target; no target is claimed until measured |
 | Medium comparison | 1,000 groups / 2,000 edges / 2,000 evidence records: p95 <= 250 ms | Same runner and binary as small comparison |
