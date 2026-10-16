@@ -166,3 +166,16 @@ The May 2026 Net3 study reports more than 47,000 simulated scenarios, over 95% b
 - [Bayesian sensor placement and simultaneous drainage-model calibration (2025)](https://doi.org/10.1080/19942060.2025.2473992), motivation for considering sensor placement alongside calibration/model uncertainty.
 
 The cited work motivates the design; it does not validate Sol-Atlas's implementation or the numerical acceptance targets above.
+
+
+## Topology-aware localization error (2026-10-16)
+
+The localization evaluator now takes two explicit inputs: the executed scenario manifest and the *original* EPANET INP source. It verifies that the INP byte digest matches \`base_input_sha256\` from the manifest, parses junction/reservoir/tank nodes plus pipe/pump/valve endpoints, checks that the manifest's observation and target junctions exist in the source topology, and confirms the source's declared \`OPTIONS UNITS\` agrees with the manifest.
+
+For every held-out test, the evaluator still ranks candidates using pressure-change signatures only. After ranking is complete, it compares the actual target with the predicted top-1 node on an undirected graph and records shortest-path link hops. Each model reports mean topological error, nearest-rank p95 error, worst observed error, and disconnected-prediction count. The output also records the input topology SHA, node/link counts, and fixed metric semantics. Disconnected candidates are \`null\`, not a fabricated large number, and are counted separately. These values are diagnostic only; graph hops are not pipe-length distance, hydraulic influence, travel time, or repair cost.
+
+This closes an important metric gap but not the candidate-universe gap: the current corpus still generates targets only at the two W0 or four Net3 declared observation junctions. It does **not** rank all 92 Net3 junctions or pipe segments, and it does not measure physical leaks. The next experimental milestone is a frozen target universe across all valid junctions plus pipe-segment candidates, followed by grouped held-out topology/operating-regime evaluation and explicit sensor-budget comparisons.
+
+Research context: a 2023 *Water Research* paper combines graph signal processing and redundancy-aware sensor placement (https://doi.org/10.1016/j.watres.2023.120313), while a 2026 study describes joint treatment of network structure, hydraulic states, and risk propagation (https://doi.org/10.1016/j.ress.2026.112709). A May 2026 Net3 benchmark reports 47,000+ scenarios and identifies localization as a harder task than binary detection (https://doi.org/10.1016/j.jwpe.2026.110114). These papers motivate the metrics; none validates this implementation.
+
+**Validation status:** source inspection confirms the evaluator has topology parsing, a source-digest gate, unit-system matching and graph-hop summary fields; tests and CI assertions are authored. Rust compilation, formatter execution, graph-metric tests and actual EPANET output remain unverified until exact-head workflows execute.
