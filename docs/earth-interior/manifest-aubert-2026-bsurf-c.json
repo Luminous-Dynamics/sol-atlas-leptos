@@ -1,0 +1,59 @@
+{
+  "manifest_schema_version": 1,
+  "manifest_status": "source_metadata_observed_payload_not_download_verified",
+  "purpose": "Candidate first known-truth fixture for Earth Interior Observatory local-observability and inversion benchmarks.",
+  "dataset": {
+    "title": "Replication Data for: Geodynamo simulations spanning millennia in the physical conditions of Earth's core",
+    "creator": "Aubert, Julien",
+    "repository": "IPGP Research Collection / Dataverse",
+    "persistent_doi": "10.18715/IPGP.2026.MM0SX2M0",
+    "version": "2.0",
+    "dataset_publication_date": "2026-05-07",
+    "license_name": "Licence Ouverte / Open Licence 2.0",
+    "license_url": "https://www.etalab.gouv.fr/licence-ouverte-open-licence/",
+    "source_url": "https://dataverse.ipgp.fr/dataset.xhtml?persistentId=doi%3A10.18715%2FIPGP.2026.mm0sx2m0",
+    "description": "Published simulation outputs include core-surface magnetic field, velocity field and magnetic diffusion from documented cases U, G, N, C, GC and GL. They are simulated known-truth data, not the Earth's observed trajectory."
+  },
+  "related_publication": {
+    "title": "Geodynamo simulations spanning millennia in the physical conditions of Earth's core",
+    "doi": "10.46298/jsedi.17790",
+    "url": "https://jsedi.episciences.org/articles/17790",
+    "reported_physical_simulation_duration_years_approximate": 1700
+  },
+  "candidate_file": {
+    "dataverse_file_id": 20149,
+    "dataset_version": "2.0",
+    "filename": "Bsurf_C.mat",
+    "format": "MATLAB MAT",
+    "provider_reported_size_mb_approximate": 9.2,
+    "provider_reported_description": "Magnetic field data for case C",
+    "provider_reported_md5": "a1e195880e0bab262530c0a4021684d1",
+    "file_metadata_url": "https://dataverse.ipgp.fr/file.xhtml?fileId=20149&version=2.0",
+    "local_sha256": null,
+    "payload_downloaded": false,
+    "payload_digest_verified": false
+  },
+  "benchmark_role": {
+    "evidence_class": "simulation_output",
+    "permitted_initial_use": [
+      "Inspect variable names, array shapes, units and temporal coordinate conventions.",
+      "Build a frozen small fixture with known simulation truth after parsing is independently reviewed.",
+      "Construct a separately versioned observation operator to sample simulated field values as synthetic satellite/ground observations.",
+      "Compare local observability estimates with recovery errors on known-truth parameter perturbations."
+    ],
+    "prohibited_claims": [
+      "Do not call this dataset direct observation of the real Earth.",
+      "Do not claim the provider MD5 authenticates the publisher; it only assists transfer-integrity checking.",
+      "Do not report local_sha256 or payload verification as complete until the bytes are downloaded and independently hashed.",
+      "Do not commit bulk source arrays to this repository; preserve provenance and deterministic retrieval instructions."
+    ]
+  },
+  "verification_plan": [
+    "Inspect dataset README and data-file metadata before parsing.",
+    "Acquire the exact dataset version and file ID using an approved retrieval path.",
+    "Verify downloaded bytes against the provider-reported MD5 and independently compute SHA-256.",
+    "Record parser version, MAT format/version, variables, shapes, units, model time basis, and any conversions.",
+    "Freeze contiguous temporal train/validation/test intervals; test at least one held-out documented case if scientifically defensible.",
+    "Keep truth arrays, synthetic observations, transforms, and inference outputs as separate artifacts."
+  ]
+}
