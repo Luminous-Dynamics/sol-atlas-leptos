@@ -88,19 +88,119 @@ pub enum RotationReferenceFrame {
     Other,
 }
 
+/// Discrete age-probability support supplied by an upstream chronology model.
+/// The weights must already sum to one; this layer never invents an age prior.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct TimeWindow {
-    /// POSIX/Unix nanoseconds from the Unix epoch, using the source adapter's
-    /// documented leap-second convention. This is not a substitute for the
-    /// original source timestamp and time-scale metadata.
-    pub start_unix_ns: i128,
-    pub end_unix_ns: i128,
+pub struct AgeProbability {
+    pub age_years_before_present: f64,
+    pub probability: f64,
+}
+
+/// Time support for the physical phenomenon or model state represented by a record.
+/// Clock domains are explicit: simulation seconds must never be silently relabelled
+/// as UTC, and "years BP" must always name its reference epoch and age model.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "basis", rename_all = "snake_case")]
+pub enum TimeWindow {
+    /// POSIX/Unix nanoseconds. The adapter must preserve the original timestamp
+    /// and source time-scale convention in its provenance/manifest.
+    AbsoluteUnix {
+        start_unix_ns: i128,
+        end_unix_ns: i128,
+    },
+    /// Time elapsed in a named simulation/model clock, not civil time.
+    ModelRelative {
+        start_seconds: f64,
+        end_seconds: f64,
+        model_epoch_id: String,
+    },
+    /// Geological/archaeological age support. "Present" is not implicit:
+    /// reference_epoch must identify the convention (for example, BP1950).
+    /// An optional discrete distribution must come from the named age model.
+    AgeBeforePresent {
+        youngest_years_before_present: f64,
+        oldest_years_before_present: f64,
+        reference_epoch: String,
+        age_model_id: Option<String>,
+        age_distribution: Option<Vec<AgeProbability>>,
+    },
 }
 
 impl TimeWindow {
     pub fn validate(&self) -> Result<(), ValidationError> {
-        if self.end_unix_ns < self.start_unix_ns {
-            return Err(ValidationError::InvalidTimeWindow);
+        match self {
+            Self::AbsoluteUnix {
+                start_unix_ns,
+                end_unix_ns,
+            } => {
+                if end_unix_ns < start_unix_ns {
+                    return Err(ValidationError::InvalidTimeWindow);
+                }
+            }
+            Self::ModelRelative {
+                start_seconds,
+                end_seconds,
+                model_epoch_id,
+            } => {
+                require_finite(*start_seconds, "start_seconds")?;
+                require_finite(*end_seconds, "end_seconds")?;
+                if end_seconds < start_seconds {
+                    return Err(ValidationError::InvalidModelTime);
+                }
+                require_non_empty(model_epoch_id, "model_epoch_id")?;
+            }
+            Self::AgeBeforePresent {
+                youngest_years_before_present,
+                oldest_years_before_present,
+                reference_epoch,
+                age_model_id,
+                age_distribution,
+            } => {
+                require_finite(
+                    *youngest_years_before_present,
+                    "youngest_years_before_present",
+                )?;
+                require_finite(
+                    *oldest_years_before_present,
+                    "oldest_years_before_present",
+                )?;
+                if *youngest_years_before_present < 0.0
+                    || oldest_years_before_present < youngest_years_before_present
+                {
+                    return Err(ValidationError::InvalidAgeSupport);
+                }
+                require_non_empty(reference_epoch, "reference_epoch")?;
+                if let Some(model_id) = age_model_id {
+                    require_non_empty(model_id, "age_model_id")?;
+                }
+                if let Some(distribution) = age_distribution {
+                    if distribution.is_empty() || age_model_id.is_none() {
+                        return Err(ValidationError::InvalidAgeDistribution);
+                    }
+                    let mut probability_sum = 0.0_f64;
+                    let mut previous_age = None;
+                    for point in distribution {
+                        require_finite(point.age_years_before_present, "age_probability.age")?;
+                        require_finite(point.probability, "age_probability.probability")?;
+                        if point.probability < 0.0 || point.probability > 1.0 {
+                            return Err(ValidationError::InvalidAgeDistribution);
+                        }
+                        if point.age_years_before_present < *youngest_years_before_present
+                            || point.age_years_before_present > *oldest_years_before_present
+                            || previous_age.is_some_and(|previous| {
+                                point.age_years_before_present <= previous
+                            })
+                        {
+                            return Err(ValidationError::InvalidAgeDistribution);
+                        }
+                        previous_age = Some(point.age_years_before_present);
+                        probability_sum += point.probability;
+                    }
+                    if !probability_sum.is_finite() || (probability_sum - 1.0).abs() > 1e-6 {
+                        return Err(ValidationError::InvalidAgeDistribution);
+                    }
+                }
+            }
         }
         Ok(())
     }
@@ -291,7 +391,12 @@ impl ObservationValue {
 pub struct ObservationRecord {
     pub schema_version: u16,
     pub id: String,
+    /// Time support of the physical phenomenon represented by this observation,
+    /// which can differ from when a sample was measured or a record was published.
     pub time: TimeWindow,
+    /// Optional POSIX/Unix nanoseconds at which the instrument/sample was acquired.
+    /// Kept separate from the phenomenon's time support and retrieval time.
+    pub acquired_at_unix_ns: Option<i128>,
     /// Station, satellite, instrument, or network-local observation identifier.
     pub platform_or_station_id: String,
     /// Optional means unknown/unavailable; it must not be replaced with a guessed location.
@@ -490,6 +595,9 @@ pub enum ValidationError {
     UnsupportedSchemaVersion,
     EmptyField(&'static str),
     InvalidTimeWindow,
+    InvalidModelTime,
+    InvalidAgeSupport,
+    InvalidAgeDistribution,
     InvalidLatitude,
     InvalidLongitude,
     InvalidAltitude,
@@ -554,10 +662,11 @@ mod tests {
         ObservationRecord {
             schema_version: EARTH_INTERIOR_SCHEMA_VERSION,
             id: "obs-0001".into(),
-            time: TimeWindow {
+            time: TimeWindow::AbsoluteUnix {
                 start_unix_ns: 1_700_000_000_000_000_000,
                 end_unix_ns: 1_700_000_000_000_000_000,
             },
+            acquired_at_unix_ns: Some(1_700_000_000_000_000_000),
             platform_or_station_id: "station-1".into(),
             position: Some(GeodeticPosition {
                 latitude_deg: -26.2,
@@ -607,11 +716,69 @@ mod tests {
 
     #[test]
     fn invalid_time_window_fails_closed() {
-        let time = TimeWindow {
+        let time = TimeWindow::AbsoluteUnix {
             start_unix_ns: 10,
             end_unix_ns: 9,
         };
         assert_eq!(time.validate(), Err(ValidationError::InvalidTimeWindow));
+    }
+
+    #[test]
+    fn model_relative_time_is_not_encoded_as_utc() {
+        let time = TimeWindow::ModelRelative {
+            start_seconds: 0.0,
+            end_seconds: 1_700.0 * 365.25 * 24.0 * 3600.0,
+            model_epoch_id: "aubert-case-C-t0".into(),
+        };
+        assert_eq!(time.validate(), Ok(()));
+        let invalid = TimeWindow::ModelRelative {
+            start_seconds: 10.0,
+            end_seconds: 9.0,
+            model_epoch_id: "case-t0".into(),
+        };
+        assert_eq!(invalid.validate(), Err(ValidationError::InvalidModelTime));
+    }
+
+    #[test]
+    fn age_support_preserves_named_chronology_distribution() {
+        let time = TimeWindow::AgeBeforePresent {
+            youngest_years_before_present: 300.0,
+            oldest_years_before_present: 500.0,
+            reference_epoch: "BP1950".into(),
+            age_model_id: Some("chronology-v1".into()),
+            age_distribution: Some(vec![
+                AgeProbability {
+                    age_years_before_present: 320.0,
+                    probability: 0.25,
+                },
+                AgeProbability {
+                    age_years_before_present: 450.0,
+                    probability: 0.75,
+                },
+            ]),
+        };
+        assert_eq!(time.validate(), Ok(()));
+    }
+
+    #[test]
+    fn invalid_age_distribution_fails_closed() {
+        let time = TimeWindow::AgeBeforePresent {
+            youngest_years_before_present: 300.0,
+            oldest_years_before_present: 500.0,
+            reference_epoch: "BP1950".into(),
+            age_model_id: Some("chronology-v1".into()),
+            age_distribution: Some(vec![
+                AgeProbability {
+                    age_years_before_present: 320.0,
+                    probability: 0.25,
+                },
+                AgeProbability {
+                    age_years_before_present: 450.0,
+                    probability: 0.5,
+                },
+            ]),
+        };
+        assert_eq!(time.validate(), Err(ValidationError::InvalidAgeDistribution));
     }
 
     #[test]
@@ -646,7 +813,7 @@ mod tests {
         let estimate = StateEstimate {
             schema_version: EARTH_INTERIOR_SCHEMA_VERSION,
             id: "estimate-1".into(),
-            valid_time: TimeWindow {
+            valid_time: TimeWindow::AbsoluteUnix {
                 start_unix_ns: 1,
                 end_unix_ns: 1,
             },
@@ -679,7 +846,7 @@ mod tests {
         let mut estimate = StateEstimate {
             schema_version: EARTH_INTERIOR_SCHEMA_VERSION,
             id: "estimate-2".into(),
-            valid_time: TimeWindow {
+            valid_time: TimeWindow::AbsoluteUnix {
                 start_unix_ns: 1,
                 end_unix_ns: 1,
             },
