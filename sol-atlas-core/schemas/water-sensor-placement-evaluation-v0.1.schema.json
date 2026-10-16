@@ -161,7 +161,8 @@
               "mean_topological_error_hops",
               "p95_topological_error_hops",
               "worst_topological_error_hops",
-              "disconnected_prediction_count"
+              "disconnected_prediction_count",
+              "predictions"
             ],
             "properties": {
               "strategy_id": {
@@ -240,6 +241,60 @@
               "disconnected_prediction_count": {
                 "type": "integer",
                 "minimum": 0
+              },
+              "predictions": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scenario_id",
+                    "actual_target",
+                    "predicted_top1",
+                    "actual_rank",
+                    "top1_hit",
+                    "top3_hit",
+                    "reciprocal_rank",
+                    "topological_error_hops"
+                  ],
+                  "properties": {
+                    "scenario_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "actual_target": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "predicted_top1": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "actual_rank": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "top1_hit": {
+                      "type": "boolean"
+                    },
+                    "top3_hit": {
+                      "type": "boolean"
+                    },
+                    "reciprocal_rank": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 1
+                    },
+                    "topological_error_hops": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    }
+                  }
+                }
               }
             }
           }
