@@ -688,6 +688,99 @@ mod tests {
     }
 
     #[test]
+    fn shared_cause_overlap_flags_redundancy_assumption_without_rewriting_group_state() {
+        use crate::dependency_logic::{
+            DependencyGroupMemberAssessment, DependencyGroupState,
+        };
+
+        let mut shared = domain();
+        shared.member_entity_ids = vec!["feeder:a".into(), "feeder:b".into()];
+        let common = assess_common_cause_domains(
+            &[shared],
+            &scenario(Some(condition(CommonCauseState::Active))),
+            &[evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")],
+        )
+        .unwrap();
+        let group = DependencyGroupAssessment {
+            group_id: "pump:alternate-feeds".into(),
+            dependent_entity_id: "pump:main".into(),
+            logic: DependencyLogic::AnyOne,
+            as_of: AT.into(),
+            state: DependencyGroupState::Satisfied,
+            required_count: 1,
+            active_count: 2,
+            available_count: 2,
+            unavailable_count: 0,
+            unknown_count: 0,
+            members: vec![
+                DependencyGroupMemberAssessment {
+                    relation_id: "pump-from-a".into(),
+                    supporting_evidence_ids: vec!["ev:a".into()],
+                    prerequisite_entity_id: "feeder:a".into(),
+                    state: DependencyMemberState::Available,
+                    evidence_readiness: None,
+                    evidence_blockers: Vec::new(),
+                    unknown_reason: None,
+                },
+                DependencyGroupMemberAssessment {
+                    relation_id: "pump-from-b".into(),
+                    supporting_evidence_ids: vec!["ev:b".into()],
+                    prerequisite_entity_id: "feeder:b".into(),
+                    state: DependencyMemberState::Available,
+                    evidence_readiness: None,
+                    evidence_blockers: Vec::new(),
+                    unknown_reason: None,
+                },
+            ],
+        };
+
+        let overlaps = correlate_common_cause_with_dependency_groups(&common, &[group.clone()])
+            .unwrap();
+        assert_eq!(overlaps.len(), 1);
+        assert_eq!(overlaps[0].shared_relation_ids, vec!["pump-from-a", "pump-from-b"]);
+        assert_eq!(overlaps[0].shared_prerequisite_entity_ids, vec!["feeder:a", "feeder:b"]);
+        assert_eq!(overlaps[0].currently_exposed_relation_ids.len(), 2);
+        assert!(overlaps[0].independent_redundancy_warning);
+        // The existing qualitative group remains unchanged. Exposure is not failure.
+        assert_eq!(group.state, DependencyGroupState::Satisfied);
+    }
+
+    #[test]
+    fn common_cause_correlation_rejects_mixed_time_snapshots() {
+        let common = CommonCauseAssessment {
+            domain_id: "domain:one".into(),
+            cause_entity_id: "cause:one".into(),
+            mechanism: FailureMechanism::Other,
+            as_of: AT.into(),
+            state: CommonCauseState::Unknown,
+            basis: None,
+            domain_evidence_blockers: Vec::new(),
+            condition_evidence_ids: Vec::new(),
+            entity_exposures: vec![CommonCauseEntityExposure {
+                entity_id: "asset:one".into(),
+                exposure: CommonCauseExposure::Indeterminate,
+            }],
+        };
+        let group = DependencyGroupAssessment {
+            group_id: "group:one".into(),
+            dependent_entity_id: "service:one".into(),
+            logic: DependencyLogic::AnyOne,
+            as_of: "2026-10-16T10:00:00Z".into(),
+            state: crate::dependency_logic::DependencyGroupState::Indeterminate,
+            required_count: 1,
+            active_count: 1,
+            available_count: 0,
+            unavailable_count: 0,
+            unknown_count: 1,
+            members: Vec::new(),
+        };
+        assert_eq!(
+            correlate_common_cause_with_dependency_groups(&[common], &[group]),
+            Err(CommonCauseCorrelationError::MismatchedAsOfTimestamp)
+        );
+    }
+
+    #[test]
     fn active_shared_cause_exposes_all_declared_members_without_marking_them_failed() {
         let evidence = [evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")];
         let result = assess_common_cause_domains(
