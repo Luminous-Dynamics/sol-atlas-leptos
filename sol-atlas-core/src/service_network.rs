@@ -1020,6 +1020,112 @@ mod tests {
         assert_eq!(actual.optimistic_available_capacity, 5.0);
     }
 
+    fn brute_force_lower_min_cut_capacity(
+        scenario: &ServiceCapacityNetworkScenario,
+    ) -> f64 {
+        let mut node_set = BTreeSet::new();
+        node_set.insert(scenario.service_entity_id.clone());
+        node_set.extend(scenario.source_entity_ids.iter().cloned());
+        for edge in &scenario.links {
+            node_set.insert(edge.from_entity_id.clone());
+            node_set.insert(edge.to_entity_id.clone());
+        }
+        let node_ids: Vec<String> = node_set.into_iter().collect();
+        assert!(node_ids.len() < usize::BITS as usize - 1);
+        let node_index: BTreeMap<&str, usize> = node_ids
+            .iter()
+            .enumerate()
+            .map(|(index, id)| (id.as_str(), index))
+            .collect();
+        let sink_index = node_index[scenario.service_entity_id.as_str()];
+        let total_upper: f64 = scenario.links.iter().map(|edge| {
+            edge.capacity.quantity.value + edge.capacity.quantity.uncertainty_abs.unwrap_or(0.0)
+        }).sum();
+        let virtual_capacity = total_upper + 1.0;
+        let mut best = f64::INFINITY;
+
+        for mask in 0_usize..(1_usize << node_ids.len()) {
+            if mask & (1_usize << sink_index) != 0 {
+                continue;
+            }
+            let on_source_side = |id: &str| {
+                mask & (1_usize << node_index[id]) != 0
+            };
+            let mut cut_capacity = 0.0;
+            for source in &scenario.source_entity_ids {
+                if !on_source_side(source) {
+                    cut_capacity += virtual_capacity;
+                }
+            }
+            for edge in &scenario.links {
+                if edge.availability != NetworkLinkAvailability::Active {
+                    continue;
+                }
+                let capacity = (edge.capacity.quantity.value
+                    - edge.capacity.quantity.uncertainty_abs.unwrap_or(0.0)).max(0.0);
+                if on_source_side(&edge.from_entity_id) && !on_source_side(&edge.to_entity_id) {
+                    cut_capacity += capacity;
+                }
+            }
+            best = best.min(cut_capacity);
+        }
+        best
+    }
+
+    #[test]
+    fn max_flow_matches_independent_exhaustive_min_cut_oracle_on_small_networks() {
+        let nodes = [
+            "source:reservoir",
+            "node:a",
+            "node:b",
+            "node:c",
+            "service:irrigation",
+        ];
+        let arcs = [
+            (0, 1), (0, 2), (1, 2), (2, 1), (1, 3), (2, 3),
+            (3, 4), (1, 4), (2, 4), (3, 1), (0, 3), (2, 4),
+        ];
+        for seed in 0..64_usize {
+            let mut links = Vec::new();
+            for (index, (from, to)) in arcs.iter().copied().enumerate() {
+                let value = ((seed + index * 3) % 7 + 1) as f64;
+                let availability = match (seed + index) % 3 {
+                    0 => NetworkLinkAvailability::Active,
+                    1 => NetworkLinkAvailability::Inactive,
+                    _ => NetworkLinkAvailability::Unknown,
+                };
+                links.push(link(
+                    &format!("edge-{index:02}"),
+                    nodes[from],
+                    nodes[to],
+                    value,
+                    Some(0.5),
+                    availability,
+                ));
+            }
+            let input = scenario(links, 10.0, None);
+            let expected = brute_force_lower_min_cut_capacity(&input);
+            let actual = assess_service_capacity_network(&input, &[]).unwrap();
+            assert!(
+                (actual.conservative_available_capacity - expected).abs() < 1.0e-9,
+                "max flow differs from exhaustive min cut on seed {seed}"
+            );
+
+            let link_by_id: BTreeMap<&str, &NetworkLink> = input.links.iter()
+                .map(|edge| (edge.id.as_str(), edge))
+                .collect();
+            let cut_capacity: f64 = actual.conservative_min_cut_link_ids.iter().map(|id| {
+                let edge = link_by_id[id.as_str()];
+                (edge.capacity.quantity.value
+                    - edge.capacity.quantity.uncertainty_abs.unwrap_or(0.0)).max(0.0)
+            }).sum();
+            assert!(
+                (cut_capacity - actual.conservative_available_capacity).abs() < 1.0e-9,
+                "reported minimum cut does not certify flow on seed {seed}"
+            );
+        }
+    }
+
     #[test]
     fn service_network_json_fixture_matches_golden_max_flow_and_cut() {
         let input: ServiceCapacityNetworkScenario = serde_json::from_str(include_str!(
