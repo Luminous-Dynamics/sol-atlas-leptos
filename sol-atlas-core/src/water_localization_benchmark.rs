@@ -981,7 +981,10 @@ mod tests {
         ));
         let result =
             evaluate_localization_manifest(value.to_string().as_bytes(), SYNTHETIC_INP).unwrap();
-        assert_eq!(result.evaluation.observation_node_ids, vec!["S1", "S2"]);
+        assert_eq!(
+            result.evaluation.observation_node_ids,
+            vec!["S1".to_owned(), "S2".to_owned()]
+        );
         assert_eq!(result.evaluation.candidate_target_count, 3);
         for model in &result.evaluation.models {
             assert!(model.predictions.iter().all(|prediction| {
