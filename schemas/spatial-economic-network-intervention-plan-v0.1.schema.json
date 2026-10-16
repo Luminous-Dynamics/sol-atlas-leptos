@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-network-intervention-plan-v0.1.schema.json",
+  "title": "Spatial-Economic Network Intervention Plans",
+  "description": "Explicit what-if actions for a complete service-capacity topology. Capacity and availability changes are assumptions, not evidence that work occurred or caused an outcome.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "plans"
+  ],
+  "properties": {
+    "plans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/plan"
+      }
+    }
+  },
+  "$defs": {
+    "action": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "link_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "assume_link_active"
+            },
+            "link_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "link_id",
+            "target_capacity_value",
+            "target_uncertainty_abs",
+            "unit"
+          ],
+          "properties": {
+            "kind": {
+              "const": "increase_link_capacity"
+            },
+            "link_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target_capacity_value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "target_uncertainty_abs": {
+              "type": "number",
+              "minimum": 0
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "rationale",
+        "action"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "$ref": "#/$defs/action"
+        }
+      }
+    }
+  }
+}
