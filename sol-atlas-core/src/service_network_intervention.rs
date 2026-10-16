@@ -230,12 +230,14 @@ fn classify_effect(
         NetworkInterventionEffect::BoundsUnchanged
     } else if conservative_delta > 0.0 && optimistic_delta >= 0.0 {
         NetworkInterventionEffect::BoundsImproved
-    } else if conservative_delta <= 0.0 && optimistic_delta < 0.0 {
-        NetworkInterventionEffect::BoundsDegraded
     } else if conservative_delta == 0.0 && optimistic_delta > 0.0 {
         NetworkInterventionEffect::PossibleImprovementOnly
     } else if conservative_delta == 0.0 && optimistic_delta < 0.0 {
         NetworkInterventionEffect::PossibleDegradationOnly
+    } else if conservative_delta >= 0.0 && optimistic_delta >= 0.0 {
+        NetworkInterventionEffect::BoundsImproved
+    } else if conservative_delta <= 0.0 && optimistic_delta <= 0.0 {
+        NetworkInterventionEffect::BoundsDegraded
     } else {
         NetworkInterventionEffect::MixedBoundMovement
     }
@@ -327,7 +329,7 @@ mod tests {
         }
     }
 
-    fn activate_link(link_id: &str) -> NetworkLinkInterventionOverride {
+    fn activate_link(_link_id: &str) -> NetworkLinkInterventionOverride {
         NetworkLinkInterventionOverride {
             availability: Some(NetworkLinkAvailability::Active),
             capacity_value: None,
@@ -355,6 +357,7 @@ mod tests {
     fn capacity_upgrade_changes_the_limiting_cut() {
         let mut input = scenario();
         input.links[0].capacity.quantity.value = 5.0;
+        input.links[2].availability = NetworkLinkAvailability::Active;
         input.required_capacity.quantity.value = 8.0;
         let plan = plan("upgrade-supply", [(
             "supply".into(),
@@ -367,9 +370,10 @@ mod tests {
         )].into());
         let comparison = compare_service_network_intervention(&input, &[], &plan).unwrap();
         assert_eq!(comparison.baseline.conservative_min_cut_link_ids, vec!["supply"]);
-        assert_eq!(comparison.with_intervention.conservative_min_cut_link_ids, vec!["route-a"]);
-        assert_eq!(comparison.with_intervention.conservative_available_capacity, 4.0);
-        assert_eq!(comparison.effect, NetworkInterventionEffect::BoundsUnchanged);
+        assert_eq!(comparison.with_intervention.conservative_min_cut_link_ids, vec!["route-a", "route-b"]);
+        assert_eq!(comparison.baseline.conservative_available_capacity, 5.0);
+        assert_eq!(comparison.with_intervention.conservative_available_capacity, 8.0);
+        assert_eq!(comparison.effect, NetworkInterventionEffect::BoundsImproved);
     }
 
     #[test]
