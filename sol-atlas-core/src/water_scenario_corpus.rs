@@ -681,7 +681,7 @@ mod tests {
     #[test]
     fn base_input_requires_reported_nodes_and_links() {
         assert!(validate_base_input(MINI_INP).is_ok());
-        let missing_links = MINI_INP.replace("LINKS ALL\\n", "LINKS NONE\\n");
+        let missing_links = MINI_INP.replace("LINKS ALL\n", "LINKS NONE\n");
         assert!(validate_base_input(&missing_links).unwrap_err().contains("NODES ALL and LINKS ALL"));
     }
 
