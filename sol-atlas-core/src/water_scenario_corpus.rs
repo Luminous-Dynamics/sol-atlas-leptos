@@ -863,6 +863,15 @@ mod tests {
     }
 
     #[test]
+    fn declared_gpm_input_uses_gpm_and_psi_units() {
+        let gpm_input = MINI_INP.replace("UNITS LPS", "UNITS GPM");
+        assert!(validate_base_input(&gpm_input, "GPM").is_ok());
+        assert_eq!(flow_and_pressure_units("GPM").unwrap(), ("GPM", "psi"));
+        assert_eq!(flow_and_pressure_units("LPS").unwrap(), ("L/s", "m"));
+        assert!(flow_and_pressure_units("CMH").is_err());
+    }
+
+    #[test]
     fn base_input_rejects_plan_unit_mismatch() {
         assert!(validate_base_input(MINI_INP, "LPS").is_ok());
         assert!(
