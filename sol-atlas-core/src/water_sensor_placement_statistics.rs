@@ -156,7 +156,9 @@ fn validate_input(input: &EvaluationEnvelope) -> Result<(), String> {
         || input.evaluation.schema_version != INPUT_SCHEMA
         || input.evaluation.run_state != "Completed"
     {
-        return Err("input must be a completed water-sensor-placement evaluation envelope".to_owned());
+        return Err(
+            "input must be a completed water-sensor-placement evaluation envelope".to_owned(),
+        );
     }
     if !is_sha256(&input.source_manifest_sha256)
         || !is_sha256(&input.source_plan_sha256)
@@ -186,8 +188,11 @@ fn validate_input(input: &EvaluationEnvelope) -> Result<(), String> {
         || strategy_set.iter().any(|id| !allowed_strategies.contains(id))
     {
         return Err(
-            "strategy_ids must be unique supported strategies and include fixed-predeclared plus a comparator"
-                .to_owned(),
+            concat!(
+                "strategy_ids must be unique supported strategies and include ",
+                "fixed-predeclared plus a comparator"
+            )
+            .to_owned(),
         );
     }
     for (name, values) in [
@@ -264,23 +269,36 @@ fn validate_input(input: &EvaluationEnvelope) -> Result<(), String> {
                 || prediction.actual_rank == 0
                 || !scenario_ids.insert(prediction.scenario_id.as_str())
             {
-                return Err(format!("{} contains an invalid or duplicate scenario prediction", row.strategy_id));
+                return Err(format!(
+                    "{} contains an invalid or duplicate scenario prediction",
+                    row.strategy_id
+                ));
             }
             if prediction.top1_hit != (prediction.actual_rank == 1)
                 || prediction.top3_hit != (prediction.actual_rank <= 3)
                 || !near(prediction.reciprocal_rank, 1.0 / prediction.actual_rank as f64)
             {
-                return Err(format!("{} has inconsistent per-scenario rank metrics", row.strategy_id));
+                return Err(format!(
+                    "{} has inconsistent per-scenario rank metrics",
+                    row.strategy_id
+                ));
             }
-            if prediction.top1_hit { correct_top1 += 1; }
-            if prediction.top3_hit { correct_top3 += 1; }
+            if prediction.top1_hit {
+                correct_top1 += 1;
+            }
+            if prediction.top3_hit {
+                correct_top3 += 1;
+            }
             mrr += prediction.reciprocal_rank;
         }
         if !near(row.top1_accuracy, correct_top1 as f64 / row.test_count as f64)
             || !near(row.top3_accuracy, correct_top3 as f64 / row.test_count as f64)
             || !near(row.mean_reciprocal_rank, mrr / row.test_count as f64)
         {
-            return Err(format!("{} aggregate metrics contradict per-scenario predictions", row.strategy_id));
+            return Err(format!(
+                "{} aggregate metrics contradict per-scenario predictions",
+                row.strategy_id
+            ));
         }
 
         let key = key_for(row);
@@ -404,8 +422,9 @@ pub fn compare_sensor_placement(input_bytes: &[u8]) -> Result<ComparisonEnvelope
             .insert(row.strategy_id.clone(), row);
     }
     let digest = sha256(input_bytes);
-    let digest_seed = u64::from_str_radix(&digest[..16], 16)
-        .map_err(|_| "could not derive deterministic bootstrap seed from evaluation hash".to_owned())?;
+    let digest_seed = u64::from_str_radix(&digest[..16], 16).map_err(|_| {
+        "could not derive deterministic bootstrap seed from evaluation hash".to_owned()
+    })?;
     let mut results = Vec::new();
 
     for (stratum, rows) in strata {
@@ -445,12 +464,15 @@ pub fn compare_sensor_placement(input_bytes: &[u8]) -> Result<ComparisonEnvelope
                         - (if reference_prediction.top1_hit { 1.0 } else { 0.0 }),
                     top3: (if candidate_prediction.top3_hit { 1.0 } else { 0.0 })
                         - (if reference_prediction.top3_hit { 1.0 } else { 0.0 }),
-                    mrr: candidate_prediction.reciprocal_rank - reference_prediction.reciprocal_rank,
+                    mrr: candidate_prediction.reciprocal_rank
+                        - reference_prediction.reciprocal_rank,
                 });
             }
             let target_cluster_count = clusters.len();
             if target_cluster_count < 2 {
-                return Err("paired bootstrap requires at least two distinct target clusters".to_owned());
+                return Err(
+                    "paired bootstrap requires at least two distinct target clusters".to_owned(),
+                );
             }
             let cluster_means = average_target_deltas(&clusters);
             let seed_base = digest_seed
@@ -548,9 +570,21 @@ mod tests {
                         "topological_error_hops": 0
                     })
                 }).collect();
-                let top1 = predictions.iter().filter(|p| p["top1_hit"] == true).count() as f64 / 4.0;
-                let top3 = predictions.iter().filter(|p| p["top3_hit"] == true).count() as f64 / 4.0;
-                let mrr = predictions.iter().map(|p| p["reciprocal_rank"].as_f64().unwrap()).sum::<f64>() / 4.0;
+                let top1 = predictions
+                    .iter()
+                    .filter(|prediction| prediction["top1_hit"] == true)
+                    .count() as f64
+                    / 4.0;
+                let top3 = predictions
+                    .iter()
+                    .filter(|prediction| prediction["top3_hit"] == true)
+                    .count() as f64
+                    / 4.0;
+                let mrr = predictions
+                    .iter()
+                    .map(|prediction| prediction["reciprocal_rank"].as_f64().unwrap())
+                    .sum::<f64>()
+                    / 4.0;
                 results.push(json!({
                     "strategy_id": strategy,
                     "sensor_budget": 2,
