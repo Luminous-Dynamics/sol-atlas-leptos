@@ -37,5 +37,6 @@
     "reduction in loneliness"
   ],
   "all_entities_synthetic": true,
-  "contains_real_personal_data": false
+  "contains_real_personal_data": false,
+  "policy_as_of_date": "2026-10-17"
 }
