@@ -1621,7 +1621,7 @@
   "interpretation_ceiling": {
     "allowed": "Reported monthly aggregate exports for Ukraine, world partner aggregate, and selected HS product codes, conditional on response coverage and returned metadata.",
     "not_established": [
-      "Individual shipments, bills of lading, named suppliers, warehouse inventory or physical route.",
+      "Individual shipments, bills of lading, named suppliers, warehouse inventory or physical routes.",
       "Which Ukrainian exports moved under the Black Sea Grain Initiative.",
       "Port-level throughput or route availability.",
       "Causal effect of the Initiative or conflict on world prices, food security or destination shortages."

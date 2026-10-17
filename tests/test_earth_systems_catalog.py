@@ -60,7 +60,7 @@ class EarthSystemsCatalogTests(unittest.TestCase):
         ).lower()
         self.assertIn("not an independently verified fact", limitations)
         self.assertIn("not bills of lading", limitations)
-        self.assertIn("does not establish", limitations)
+        self.assertIn("do not establish", limitations)
         self.assertIn("not a public global shipment database", limitations)
 
     def test_black_sea_candidate_is_source_readiness_only(self):
