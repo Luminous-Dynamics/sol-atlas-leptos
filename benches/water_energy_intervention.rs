@@ -25,10 +25,20 @@ use sol_atlas_core::service_water_trajectory::{
 };
 use sol_atlas_core::spatial_economic::Quantity;
 use std::env;
+use std::fs;
+use std::process::Command;
 use std::time::{Duration, Instant};
 
 #[derive(Serialize)]
 struct Report {
+    source_revision: Option<String>,
+    rustc_version: Option<String>,
+    ci_runner: Option<String>,
+    runner_os: Option<String>,
+    runner_arch: Option<String>,
+    host_os: String,
+    host_arch: String,
+    peak_rss_bytes_at_report: Option<u64>,
     workload: &'static str,
     paired_intervals_per_side: usize,
     total_paired_intervals: usize,
@@ -144,6 +154,27 @@ fn comparison(intervals: usize) -> WaterEnergyInterventionComparisonRequest {
     }
 }
 
+fn source_revision() -> Option<String> {
+    env::var("GITHUB_SHA").or_else(|_| env::var("GIT_COMMIT")).ok()
+}
+
+fn compiler_version() -> Option<String> {
+    let output = Command::new("rustc").arg("--version").output().ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    String::from_utf8(output.stdout)
+        .ok()
+        .map(|version| version.trim().to_owned())
+}
+
+fn peak_rss_bytes() -> Option<u64> {
+    let status = fs::read_to_string("/proc/self/status").ok()?;
+    let line = status.lines().find(|line| line.starts_with("VmHWM:"))?;
+    let kibibytes = line.split_whitespace().nth(1)?.parse::<u64>().ok()?;
+    kibibytes.checked_mul(1024)
+}
+
 fn percentile(samples: &[Duration], percentile: usize) -> Duration {
     let mut sorted = samples.to_vec();
     sorted.sort_unstable();
@@ -188,6 +219,14 @@ fn run(intervals: usize, samples: usize, warmup: usize, target_ms: u128) -> Repo
         .len();
     let target_micros = target_ms * 1_000;
     Report {
+        source_revision: source_revision(),
+        rustc_version: compiler_version(),
+        ci_runner: env::var("RUNNER_NAME").or_else(|_| env::var("CI_RUNNER_NAME")).ok(),
+        runner_os: env::var("RUNNER_OS").ok(),
+        runner_arch: env::var("RUNNER_ARCH").ok(),
+        host_os: std::env::consts::OS.to_owned(),
+        host_arch: std::env::consts::ARCH.to_owned(),
+        peak_rss_bytes_at_report: peak_rss_bytes(),
         workload: "paired coupled water-energy counterfactual comparison",
         paired_intervals_per_side: intervals,
         total_paired_intervals: intervals * 2,
