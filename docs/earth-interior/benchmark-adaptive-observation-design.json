@@ -234,7 +234,17 @@
       "qualified_synthetic": "All preregistered synthetic gates passed on the recorded exact code/configuration.",
       "source_adapter_qualified": "Exact simulation payload and parsing transform independently verified.",
       "real_observation_evaluated": "A separately defined evaluation used qualified real observations with leakage controls."
-    }
+    },
+    "schema_path": "./benchmark-run-receipt.schema.json",
+    "execution_record_rule": "Emit a receipt for every attempted run, including failed, cancelled, or interrupted runs. The specification_not_executed status belongs to the benchmark contract; it is not a run receipt. Queued, skipped, cancelled, missing, or stale-head CI checks are never passes.",
+    "qualification_guardrails": [
+      "Qualified statuses require a clean exact-commit worktree and a matching immutable code/configuration identity.",
+      "Every preregistered gate and negative control must pass; missing or unexecuted checks are not passes.",
+      "Truth artifacts remain withheld from the selector until scoring.",
+      "An independent verifier result must be recorded and its digest linked.",
+      "Source adapter qualification requires verified local payload bytes and passed unit, time-axis, and variable-shape audits.",
+      "Real-observation evaluation additionally requires passed leakage and reference-overlap audits."
+    ]
   },
   "stop_rules": [
     "Do not report an optimizer's selected design as superior if its confidence interval overlaps the benchmark's predeclared non-inferiority region.",
@@ -372,5 +382,6 @@
       ],
       "expected_values_are_analytic_references_not_measured_results": true
     }
-  ]
+  ],
+  "run_receipt_schema": "./benchmark-run-receipt.schema.json"
 }
