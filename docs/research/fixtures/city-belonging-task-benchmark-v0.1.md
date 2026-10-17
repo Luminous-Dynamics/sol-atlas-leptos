@@ -14,7 +14,7 @@ A candidate cannot satisfy a requirement through missing data. A soft preference
 
 The synthetic benchmark contains 14 scenarios covering cost, accessibility, language, expired events, service currentness, contactability, virtual/service-area discovery, explicitly selected worldview framing, no-fit handling, soft preferences, conflicting claims, live capacity, verified travel time, and privacy/opt-out.
 
-- JSONL SHA-256: `ffb4ddb89658e2cbb8bbd6bc4bd9b26c2c360f72354c9441eaf0108a4e6352f2`
+- JSONL SHA-256: `90795bba044c4137e1a30c543b325a90d91be3be5e6692a07c82ff57a1982749`
 - Case schema SHA-256: `0a72a5eaceddc3fb8f8fe92da726cad3a1ad6a7931c72cd796e38231037d12a7`
 - The schema is pinned; a JSON Schema validator has not yet been executed against these 14 records.
 - All candidates use synthetic IDs; no live listings, real contact details, coordinates, or participant data are included.
@@ -60,4 +60,4 @@ The task fixture is currently a proposed benchmark. It must receive independent 
 
 ## Reference evaluator
 
-The standalone Rust policy slice is [tools/city-belonging-task-matcher](../../../tools/city-belonging-task-matcher/README.md). It emits per-constraint states and separate eligible/preferred sets. A separate JavaScript policy mirror matched the current 14 cases' expected eligible sets, preferred sets, and exclusion-reason coverage. This is independent logic over the fixture, **not** execution of the Rust evaluator, and does not validate the JSON Schema with a schema engine. The Rust crate has 16 authored tests but remains uncompiled/unexecuted.
+The standalone Rust policy slice is [tools/city-belonging-task-matcher](../../../tools/city-belonging-task-matcher/README.md). It emits per-constraint states and separate eligible/preferred sets. A separate JavaScript policy mirror matched the current 14 cases' expected eligible sets, preferred sets, and exclusion-reason coverage. This is independent logic over the fixture, **not** execution of the Rust evaluator, and does not validate the JSON Schema with a schema engine. The Rust crate has 18 authored tests but remains uncompiled/unexecuted.
