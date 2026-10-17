@@ -24,6 +24,12 @@ use std::collections::{BTreeMap, BTreeSet};
 pub const SERVICE_NETWORK_PORTFOLIO_SCHEMA_VERSION: &str = "0.1.0";
 pub const NETWORK_PORTFOLIO_RANKING_METHOD: &str =
     "worst_case_conservative_capacity_gain_desc_then_scenarios_improved_desc_then_scenarios_worsened_asc_then_plan_id_asc";
+pub const NETWORK_PORTFOLIO_PARETO_OBJECTIVES: [&str; 4] = [
+    "worst_case_conservative_capacity_gain:maximize",
+    "minimum_post_intervention_conservative_capacity:maximize",
+    "scenarios_improved:maximize",
+    "scenarios_worsened:minimize",
+];
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ServiceNetworkPortfolioRequest {
@@ -42,7 +48,12 @@ pub struct NetworkLinkScenarioFrequency {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ServiceNetworkPlanRobustness {
+    /// Deterministic display rank from ranking_method; not a universal utility score.
     pub rank: usize,
+    /// Non-dominated layer: 1 is the Pareto frontier, 2 is dominated only by front 1, etc.
+    pub pareto_front: usize,
+    /// All candidate plans that Pareto-dominate this plan, sorted by plan ID.
+    pub pareto_dominated_by_plan_ids: Vec<String>,
     pub plan_id: String,
     pub rationale: String,
     pub scenario_count: usize,
@@ -76,6 +87,8 @@ pub struct ServiceNetworkPortfolioComparison {
     /// Scenario IDs in stable sorted order. No implied probabilities or weights.
     pub scenario_ids: Vec<String>,
     pub ranking_method: String,
+    /// Explicit objective directions used for Pareto diagnostics; scenarios remain unweighted.
+    pub pareto_objectives: Vec<String>,
     pub plans: Vec<ServiceNetworkPlanRobustness>,
 }
 
@@ -290,6 +303,8 @@ pub fn compare_service_network_portfolio(
 
         plan_results.push(ServiceNetworkPlanRobustness {
             rank: 0,
+            pareto_front: 0,
+            pareto_dominated_by_plan_ids: Vec::new(),
             plan_id: plan.id.clone(),
             rationale: plan.rationale.clone(),
             scenario_count: scenario_comparisons.len(),
@@ -305,6 +320,8 @@ pub fn compare_service_network_portfolio(
             scenario_comparisons,
         });
     }
+
+    assign_pareto_fronts(&mut plan_results);
 
     plan_results.sort_by(|left, right| {
         right.worst_case_conservative_capacity_gain
@@ -326,8 +343,73 @@ pub fn compare_service_network_portfolio(
         plan_count: request.plans.len(),
         scenario_ids,
         ranking_method: NETWORK_PORTFOLIO_RANKING_METHOD.into(),
+        pareto_objectives: NETWORK_PORTFOLIO_PARETO_OBJECTIVES
+            .iter()
+            .map(|objective| (*objective).to_owned())
+            .collect(),
         plans: plan_results,
     })
+}
+
+fn pareto_dominates(
+    left: &ServiceNetworkPlanRobustness,
+    right: &ServiceNetworkPlanRobustness,
+) -> bool {
+    let no_worse = left.worst_case_conservative_capacity_gain
+        >= right.worst_case_conservative_capacity_gain
+        && left.minimum_post_intervention_conservative_capacity
+            >= right.minimum_post_intervention_conservative_capacity
+        && left.scenarios_improved >= right.scenarios_improved
+        && left.scenarios_worsened <= right.scenarios_worsened;
+    let strictly_better = left.worst_case_conservative_capacity_gain
+        > right.worst_case_conservative_capacity_gain
+        || left.minimum_post_intervention_conservative_capacity
+            > right.minimum_post_intervention_conservative_capacity
+        || left.scenarios_improved > right.scenarios_improved
+        || left.scenarios_worsened < right.scenarios_worsened;
+    no_worse && strictly_better
+}
+
+/// Annotate the non-dominated layers without replacing the existing deterministic
+/// display order. Every dimension is explicit; there is no hidden weighted score.
+fn assign_pareto_fronts(plans: &mut [ServiceNetworkPlanRobustness]) {
+    for index in 0..plans.len() {
+        let mut dominators: Vec<String> = (0..plans.len())
+            .filter(|other| *other != index && pareto_dominates(&plans[*other], &plans[index]))
+            .map(|other| plans[other].plan_id.clone())
+            .collect();
+        dominators.sort();
+        plans[index].pareto_dominated_by_plan_ids = dominators;
+        plans[index].pareto_front = 0;
+    }
+
+    let mut remaining: BTreeSet<usize> = (0..plans.len()).collect();
+    let mut front = 1_usize;
+    while !remaining.is_empty() {
+        let current_front: Vec<usize> = remaining
+            .iter()
+            .copied()
+            .filter(|index| {
+                !remaining.iter().any(|other| {
+                    other != index && pareto_dominates(&plans[*other], &plans[*index])
+                })
+            })
+            .collect();
+
+        // Strict dominance is acyclic for finite values. Fail safely if that
+        // invariant is ever broken rather than loop or emit unranked records.
+        if current_front.is_empty() {
+            for index in remaining.iter().copied() {
+                plans[index].pareto_front = front;
+            }
+            break;
+        }
+        for index in current_front {
+            plans[index].pareto_front = front;
+            remaining.remove(&index);
+        }
+        front += 1;
+    }
 }
 
 #[cfg(test)]
@@ -400,6 +482,93 @@ mod tests {
                 })
             }).collect::<BTreeMap<_, _>>(),
         }
+    }
+
+    fn synthetic_robustness(
+        plan_id: &str,
+        worst_case_gain: f64,
+        minimum_post_capacity: f64,
+        improved: usize,
+        worsened: usize,
+    ) -> ServiceNetworkPlanRobustness {
+        ServiceNetworkPlanRobustness {
+            rank: 0,
+            pareto_front: 0,
+            pareto_dominated_by_plan_ids: Vec::new(),
+            plan_id: plan_id.into(),
+            rationale: "Synthetic Pareto unit test".into(),
+            scenario_count: 3,
+            worst_case_conservative_capacity_gain: worst_case_gain,
+            worst_case_optimistic_capacity_gain: worst_case_gain,
+            best_case_conservative_capacity_gain: worst_case_gain,
+            scenarios_improved: improved,
+            scenarios_unchanged: 3 - improved - worsened,
+            scenarios_worsened: worsened,
+            minimum_post_intervention_conservative_capacity: minimum_post_capacity,
+            recurring_baseline_cut_links: Vec::new(),
+            recurring_post_intervention_cut_links: Vec::new(),
+            scenario_comparisons: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn pareto_front_exposes_real_tradeoffs_without_collapsing_to_one_score() {
+        let mut plans = vec![
+            synthetic_robustness("high-gain", 5.0, 6.0, 3, 0),
+            synthetic_robustness("high-floor", 4.0, 7.0, 2, 0),
+            synthetic_robustness("dominated", 3.0, 6.0, 2, 1),
+            synthetic_robustness("weakest", 0.0, 2.0, 0, 2),
+        ];
+        assign_pareto_fronts(&mut plans);
+        let by_id: BTreeMap<&str, &ServiceNetworkPlanRobustness> = plans
+            .iter()
+            .map(|plan| (plan.plan_id.as_str(), plan))
+            .collect();
+
+        assert_eq!(by_id["high-gain"].pareto_front, 1);
+        assert_eq!(by_id["high-floor"].pareto_front, 1);
+        assert_eq!(by_id["dominated"].pareto_front, 2);
+        assert_eq!(by_id["weakest"].pareto_front, 3);
+        assert_eq!(
+            by_id["dominated"].pareto_dominated_by_plan_ids,
+            vec!["high-floor", "high-gain"]
+        );
+        assert!(by_id["high-gain"].pareto_dominated_by_plan_ids.is_empty());
+        assert!(by_id["high-floor"].pareto_dominated_by_plan_ids.is_empty());
+    }
+
+    #[test]
+    fn pareto_fronts_are_invariant_to_candidate_input_order() {
+        let candidates = vec![
+            synthetic_robustness("a", 5.0, 6.0, 3, 0),
+            synthetic_robustness("b", 4.0, 7.0, 2, 0),
+            synthetic_robustness("c", 3.0, 6.0, 2, 1),
+        ];
+        let mut first = candidates.clone();
+        assign_pareto_fronts(&mut first);
+        let mut second = candidates;
+        second.reverse();
+        assign_pareto_fronts(&mut second);
+
+        let summarize = |items: &[ServiceNetworkPlanRobustness]| {
+            items.iter().map(|item| (
+                item.plan_id.clone(),
+                item.pareto_front,
+                item.pareto_dominated_by_plan_ids.clone(),
+            )).collect::<BTreeMap<_, _>>()
+        };
+        assert_eq!(summarize(&first), summarize(&second));
+    }
+
+    #[test]
+    fn identical_objectives_do_not_dominate_each_other() {
+        let mut plans = vec![
+            synthetic_robustness("tie-a", 3.0, 7.0, 2, 0),
+            synthetic_robustness("tie-b", 3.0, 7.0, 2, 0),
+        ];
+        assign_pareto_fronts(&mut plans);
+        assert!(plans.iter().all(|plan| plan.pareto_front == 1));
+        assert!(plans.iter().all(|plan| plan.pareto_dominated_by_plan_ids.is_empty()));
     }
 
     #[test]
