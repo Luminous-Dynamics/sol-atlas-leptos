@@ -1,0 +1,60 @@
+{
+  "manifest_version": "city-belonging-task-benchmark-manifest/0.1",
+  "benchmark_id": "city-belonging-task-benchmark-v0.1",
+  "fixture_path": "docs/research/fixtures/city-belonging-task-benchmark-v0.1.jsonl",
+  "hash_algorithm": "SHA-256",
+  "fixture_sha256": "90795bba044c4137e1a30c543b325a90d91be3be5e6692a07c82ff57a1982749",
+  "record_format": "JSON Lines; UTF-8; newline-terminated",
+  "record_count": 14,
+  "families": {
+    "hard_cost_constraint": 1,
+    "accessibility_constraint": 1,
+    "language_constraint": 1,
+    "event_currentness": 1,
+    "current_service_status": 1,
+    "verified_next_action": 1,
+    "virtual_service_area_without_fake_pin": 1,
+    "explicit_worldview_preference": 1,
+    "no_verified_fit": 1,
+    "soft_preference_without_hard_filtering": 1,
+    "conflicted_service_claim": 1,
+    "live_capacity_constraint": 1,
+    "travel_time_constraint": 1,
+    "privacy_and_opt_out": 1
+  },
+  "status": "synthetic task contract; proposed benchmark; not a usability study",
+  "claim_ceiling": "checks whether a selector preserves user-stated constraints, unknowns, opt-outs and explanation obligations. It does not establish actual search performance, service coverage, safety, connection outcomes, or loneliness reduction.",
+  "dataset_boundaries": [
+    "all candidates are synthetic labels",
+    "no real service listings or contact details",
+    "no personal or vulnerable-user data",
+    "no real coordinates or travel estimates"
+  ],
+  "scoring_contract": {
+    "hard_constraint_violation_tolerance": 0,
+    "unknown_promoted_to_verified_tolerance": 0,
+    "silent_hard_constraint_relaxation_tolerance": 0,
+    "explanation_coverage_target": 1,
+    "soft_preference_must_not_filter_target": 1,
+    "explicit_user_opt_out_honored_target": 1,
+    "task_level_accuracy_reported_per_case": true,
+    "aggregate_single_match_score_prohibited": true
+  },
+  "use": "constraint-aware service discovery; false-match and uncertainty-retention regression",
+  "related": [
+    "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/123",
+    "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/125"
+  ],
+  "case_schema_path": "docs/research/fixtures/city-belonging-task-benchmark-v0.1.schema.json",
+  "case_schema_sha256": "0a72a5eaceddc3fb8f8fe92da726cad3a1ad6a7931c72cd796e38231037d12a7",
+  "schema_status": "STRICT_CASE_SHAPE_PINNED; NOT_YET_EXECUTED_BY_A_JSON_SCHEMA_VALIDATOR",
+  "validation_note": "A separate JavaScript policy mirror matched all 14 frozen task cases. Seven metamorphic invariance tests are authored in Rust. Neither the Rust crate nor a JSON Schema validator has been executed.",
+  "policy_version": "city-belonging-constraint-policy/0.1",
+  "validation_status": "PINNED_FIXTURE_AND_SCHEMA; TASK MIRROR EXECUTED; RUST TESTS NOT EXECUTED",
+  "task_mirror_note": "A separate JavaScript policy mirror was executed against all 14 cases after correcting field references. This is not the Rust implementation or a JSON Schema validator; the Rust crate remains uncompiled/unexecuted.",
+  "rust_authored_test_count": 25,
+  "rust_test_execution_status": "NOT_EXECUTED",
+  "metamorphic_contract_path": "docs/research/fixtures/city-belonging-metamorphic-contract-v0.1.json",
+  "metamorphic_contract_sha256": "d0898984e09eb59c0f3f352d7c5fdc8502a778be88e85ab6a8e04bb3c1954a8a",
+  "metamorphic_properties_authored": 7
+}
