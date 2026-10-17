@@ -2,7 +2,7 @@
 
 **Status:** benchmark protocol and proposed targets; no performance result has yet been measured or claimed.  
 **Contract version:** v0.1  
-**Scope:** evidence validation, qualitative dependency groups, intervention comparison, common-cause overlap, uncertainty-bounded service-function adequacy, network max-flow/min-cut, network intervention comparisons, service-recovery trajectories, and exhaustive bounded N-k failure sweeps in `sol-atlas-core`. The timing harness measures seven computational surfaces; its targets remain unmeasured until executed on a named runner.
+**Scope:** evidence validation, qualitative dependency groups, intervention comparison, common-cause overlap, uncertainty-bounded service-function adequacy, network max-flow/min-cut, network intervention comparisons, Pareto-based network portfolio comparisons, service-recovery trajectories, and exhaustive bounded N-k failure sweeps in `sol-atlas-core`. The timing harness measures eight computational surfaces; its targets remain unmeasured until executed on a named runner.
 
 ## Principles
 
@@ -50,9 +50,13 @@ Targets apply to a named reference runner, release profile, warmed process, one 
 | Exhaustive N-2 stress, medium | 20 active links / 211 cases (210 enumerated combinations + 1 declared common-cause bundle): p95 <= 50 ms | All cases evaluated; input order does not change the result manifest |
 | Exhaustive N-2 stress, large | 40 active links / 821 cases (820 enumerated combinations + 1 declared common-cause bundle): p95 <= 250 ms | Every case evaluated; all worst-case pair sets are returned; no sampling or truncation |
 | Network-intervention correctness | 100% of golden interventions match baseline/candidate flow, min-cut, delta and effect oracles | A model delta does not claim physical work or causal impact; conservative-bound regression and mixed bound movement are distinct; incomplete topology never yields a service-wide effect |
+| Pareto portfolio correctness | 100% of candidate plans receive the expected non-dominated layer and sorted dominating-plan IDs on hand-constructed trade-off sets | Equal objective vectors do not dominate; input permutation preserves fronts; no hidden weighted score replaces the objectives |
 | Network intervention, small | 100 plans / 100 networks / 300 links: p95 <= 25 ms | Each plan changes explicit assumptions only; exact baseline/candidate result bytes match the golden batch oracle |
 | Network intervention, medium | 1,000 plans / 1,000 networks / 3,000 links: p95 <= 200 ms | Evidence corpus indexed once per batch; stable ordering by (scenario ID, plan ID) |
 | Network intervention, large | 10,000 plans / 10,000 networks / 30,000 links: p95 <= 2,000 ms | No dropped plans; candidate overrides remove superseded capacity/availability evidence IDs; exact synthetic flow deltas match oracle |
+| Pareto portfolio, small | 10 plans x 10 scenarios / 100 candidate comparisons: p95 <= 25 ms | Exact output bytes match the reference; front-1 count and dominated-plan count are stable |
+| Pareto portfolio, medium | 50 plans x 10 scenarios / 500 candidate comparisons: p95 <= 125 ms | Pairwise dominance and front-layer assignment included; scenario cases remain unweighted |
+| Pareto portfolio, large | 100 plans x 10 scenarios / 1,000 candidate comparisons: p95 <= 250 ms | Stable plan ordering, no missing plan/scenario pair, every dominator list sorted and deterministic |
 | Recovery trajectory, small | 100 samples / 200 observed capacity-and-demand records: p95 <= 5 ms | First adequate sample, preceding-sample bracket, deficit area and evidence trace match the golden oracle |
 | Recovery trajectory, medium | 1,000 samples / 2,000 observed records: p95 <= 40 ms | Evidence indexed once, maximum sample gap enforced, output is deterministic |
 | Recovery trajectory, large | 10,000 samples / 20,000 observed records: p95 <= 500 ms | No missing snapshot; exact sample count and recovery bracket; lower/upper integrated deficit bounds match oracle |
