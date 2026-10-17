@@ -1041,7 +1041,27 @@ pub fn assess_water_energy_stress_sweep(
         validate_sweep_request(request).map_err(WaterEnergyStressSweepError::InvalidInput)?;
     let evidence_by_id = build_evidence_index(evidence_records)
         .map_err(WaterEnergyStressSweepError::EvidenceValidation)?;
+    assess_water_energy_stress_sweep_validated(
+        request,
+        total_step_assessments,
+        &evidence_by_id,
+    )
+}
 
+pub(crate) fn assess_water_energy_stress_sweep_indexed(
+    request: &WaterEnergyStressSweepRequest,
+    evidence_by_id: &BTreeMap<&str, &EvidenceRecord>,
+) -> Result<WaterEnergyStressSweepAssessment, WaterEnergyStressSweepError> {
+    let total_step_assessments =
+        validate_sweep_request(request).map_err(WaterEnergyStressSweepError::InvalidInput)?;
+    assess_water_energy_stress_sweep_validated(request, total_step_assessments, evidence_by_id)
+}
+
+fn assess_water_energy_stress_sweep_validated(
+    request: &WaterEnergyStressSweepRequest,
+    total_step_assessments: usize,
+    evidence_by_id: &BTreeMap<&str, &EvidenceRecord>,
+) -> Result<WaterEnergyStressSweepAssessment, WaterEnergyStressSweepError> {
     let floors_by_request_id = request
         .protected_service_floors
         .iter()
@@ -1054,7 +1074,7 @@ pub fn assess_water_energy_stress_sweep(
         Vec::new(),
         &request.baseline_services,
         &floors_by_request_id,
-        &evidence_by_id,
+        evidence_by_id,
     )?;
 
     let mut ordered_scenarios: Vec<&WaterEnergyDeclaredFailureScenario> =
@@ -1076,7 +1096,7 @@ pub fn assess_water_energy_stress_sweep(
             scenario.overrides.clone(),
             &altered_services,
             &floors_by_request_id,
-            &evidence_by_id,
+            evidence_by_id,
         )?);
     }
 
