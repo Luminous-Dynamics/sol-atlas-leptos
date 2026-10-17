@@ -3,7 +3,7 @@
   "benchmark_id": "city-belonging-task-benchmark-v0.1",
   "fixture_path": "docs/research/fixtures/city-belonging-task-benchmark-v0.1.jsonl",
   "hash_algorithm": "SHA-256",
-  "fixture_sha256": "2c20cf7bdddf5dcc2ea0f7959b6e66dbe55e9910b7e8c2e105ea8891c9f94f50",
+  "fixture_sha256": "ffb4ddb89658e2cbb8bbd6bc4bd9b26c2c360f72354c9441eaf0108a4e6352f2",
   "record_format": "JSON Lines; UTF-8; newline-terminated",
   "record_count": 14,
   "families": {
@@ -50,5 +50,6 @@
   "schema_status": "STRICT_CASE_SHAPE_PINNED; NOT_YET_EXECUTED_BY_A_JSON_SCHEMA_VALIDATOR",
   "validation_note": "The fixture bytes and schema digest are recorded; manual inspection and JSON parsing are not a schema-validation pass. A future executable verifier must bind to this exact schema digest.",
   "policy_version": "city-belonging-constraint-policy/0.1",
-  "validation_status": "PINNED_FIXTURE_AND_SCHEMA; RUST_MATCHER_TESTS_NOT_EXECUTED"
+  "validation_status": "PINNED_FIXTURE_AND_SCHEMA; TASK MIRROR EXECUTED; RUST TESTS NOT EXECUTED",
+  "task_mirror_note": "A separate JavaScript policy mirror was executed against all 14 cases. This is not the Rust implementation or a JSON Schema validator; the Rust crate remains uncompiled/unexecuted."
 }
