@@ -54,14 +54,22 @@ struct Report {
 fn measurement(entity: &str, value: f64, unit: &str) -> FunctionMeasurement {
     FunctionMeasurement {
         entity_id: entity.to_owned(),
-        quantity: Quantity { value, unit: unit.to_owned(), uncertainty_abs: None },
+        quantity: Quantity {
+            value,
+            unit: unit.to_owned(),
+            uncertainty_abs: None,
+        },
         basis: ScenarioBasis::Assumed,
         rationale: "Synthetic benchmark assumption; not physical evidence.".to_owned(),
         supporting_evidence_ids: Vec::new(),
     }
 }
 
-fn build_request(service_count: usize, resource_count: usize, usages_per_service: usize) -> SharedResourceAllocationRequest {
+fn build_request(
+    service_count: usize,
+    resource_count: usize,
+    usages_per_service: usize,
+) -> SharedResourceAllocationRequest {
     let services = (0..service_count)
         .map(|index| {
             let id = format!("service-{index:04}");
@@ -95,11 +103,7 @@ fn build_request(service_count: usize, resource_count: usize, usages_per_service
                     id: id.clone(),
                     resource_id: format!("resource-{resource_index:03}"),
                     service_id: format!("service-{service_index:04}"),
-                    resource_use_per_delivery_rate: measurement(
-                        &id,
-                        1.0,
-                        "m3/h per (m3/h)",
-                    ),
+                    resource_use_per_delivery_rate: measurement(&id, 1.0, "m3/h per (m3/h)"),
                 }
             })
         })
@@ -130,11 +134,16 @@ fn source_revision() -> Option<String> {
     if let Ok(value) = env::var("GITHUB_SHA").or_else(|_| env::var("GIT_COMMIT")) {
         return Some(value);
     }
-    let output = Command::new("git").args(["rev-parse", "HEAD"]).output().ok()?;
+    let output = Command::new("git")
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .ok()?;
     if !output.status.success() {
         return None;
     }
-    String::from_utf8(output.stdout).ok().map(|value| value.trim().to_owned())
+    String::from_utf8(output.stdout)
+        .ok()
+        .map(|value| value.trim().to_owned())
 }
 
 fn compiler_version() -> Option<String> {
@@ -142,13 +151,19 @@ fn compiler_version() -> Option<String> {
     if !output.status.success() {
         return None;
     }
-    String::from_utf8(output.stdout).ok().map(|value| value.trim().to_owned())
+    String::from_utf8(output.stdout)
+        .ok()
+        .map(|value| value.trim().to_owned())
 }
 
 fn peak_rss_bytes() -> Option<u64> {
     let status = fs::read_to_string("/proc/self/status").ok()?;
     let line = status.lines().find(|line| line.starts_with("VmHWM:"))?;
-    line.split_whitespace().nth(1)?.parse::<u64>().ok()?.checked_mul(1024)
+    line.split_whitespace()
+        .nth(1)?
+        .parse::<u64>()
+        .ok()?
+        .checked_mul(1024)
 }
 
 fn run(
@@ -166,23 +181,27 @@ fn run(
     let reference_bytes = serde_json::to_vec(&reference).expect("reference output must serialize");
     assert_eq!(reference.service_count, service_count);
     assert_eq!(reference.resource_count, resource_count);
-    assert_eq!(reference.usage_constraint_count, service_count * usages_per_service);
+    assert_eq!(
+        reference.usage_constraint_count,
+        service_count * usages_per_service
+    );
     assert!((reference.floor_compliance_lower_bound - 1.0).abs() < 1e-9);
     assert!(reference.services.iter().all(|service| {
         (service.coverage_lower_bound - expected_coverage).abs() < 1e-9
             && (service.coverage_upper_bound - expected_coverage).abs() < 1e-9
     }));
     assert!(reference.resources.iter().all(|resource| {
-        resource.conservative_allocated_capacity
-            <= resource.capacity_lower_bound + 1e-9
-            && resource.optimistic_allocated_capacity
-                <= resource.capacity_upper_bound + 1e-9
+        resource.conservative_allocated_capacity <= resource.capacity_lower_bound + 1e-9
+            && resource.optimistic_allocated_capacity <= resource.capacity_upper_bound + 1e-9
     }));
 
     for _ in 0..warmup {
         let output = assess_shared_resource_allocation(&request, &[])
             .expect("benchmark warmup must be valid");
-        assert_eq!(serde_json::to_vec(&output).expect("warmup serialization"), reference_bytes);
+        assert_eq!(
+            serde_json::to_vec(&output).expect("warmup serialization"),
+            reference_bytes
+        );
     }
 
     let mut times = Vec::with_capacity(samples);
@@ -202,13 +221,14 @@ fn run(
             observed_lower_max = observed_lower_max.max(service.coverage_lower_bound);
         }
         assert!(output.resources.iter().all(|resource| {
-            resource.conservative_allocated_capacity
-                <= resource.capacity_lower_bound + 1e-9
-                && resource.optimistic_allocated_capacity
-                    <= resource.capacity_upper_bound + 1e-9
+            resource.conservative_allocated_capacity <= resource.capacity_lower_bound + 1e-9
+                && resource.optimistic_allocated_capacity <= resource.capacity_upper_bound + 1e-9
         }));
         last_bytes = serde_json::to_vec(&output).expect("output must serialize");
-        assert_eq!(last_bytes, reference_bytes, "identical inputs must serialize identically");
+        assert_eq!(
+            last_bytes, reference_bytes,
+            "identical inputs must serialize identically"
+        );
     }
 
     let p50 = percentile(&times, 50);
@@ -217,7 +237,9 @@ fn run(
     Report {
         source_revision: source_revision(),
         rustc_version: compiler_version(),
-        ci_runner: env::var("RUNNER_NAME").or_else(|_| env::var("CI_RUNNER_NAME")).ok(),
+        ci_runner: env::var("RUNNER_NAME")
+            .or_else(|_| env::var("CI_RUNNER_NAME"))
+            .ok(),
         runner_os: env::var("RUNNER_OS").ok(),
         runner_arch: env::var("RUNNER_ARCH").ok(),
         host_os: std::env::consts::OS.to_owned(),
@@ -270,12 +292,18 @@ fn run_staggered(samples: usize, warmup: usize, target_ms: u128) -> Report {
         resource.conservative_allocated_capacity <= resource.capacity_lower_bound + 1e-9
     }));
     for usage in &request.usages {
-        let capacity = request.resources.iter()
+        let capacity = request
+            .resources
+            .iter()
             .find(|resource| resource.id == usage.resource_id)
             .expect("usage resource exists")
-            .capacity.quantity.value;
+            .capacity
+            .quantity
+            .value;
         let expected_coverage = capacity / 1_000.0;
-        let service = reference.services.iter()
+        let service = reference
+            .services
+            .iter()
             .find(|service| service.service_id == usage.service_id)
             .expect("usage service exists");
         assert!((service.coverage_lower_bound - expected_coverage).abs() < 1e-9);
@@ -284,7 +312,10 @@ fn run_staggered(samples: usize, warmup: usize, target_ms: u128) -> Report {
     for _ in 0..warmup {
         let result = assess_shared_resource_allocation(&request, &[])
             .expect("staggered warmup must succeed");
-        assert_eq!(serde_json::to_vec(&result).expect("warmup bytes"), reference_bytes);
+        assert_eq!(
+            serde_json::to_vec(&result).expect("warmup bytes"),
+            reference_bytes
+        );
     }
     let mut times = Vec::with_capacity(samples);
     let mut last_bytes = Vec::new();
@@ -303,7 +334,10 @@ fn run_staggered(samples: usize, warmup: usize, target_ms: u128) -> Report {
             coverage_max = coverage_max.max(service.coverage_lower_bound);
         }
         last_bytes = serde_json::to_vec(&output).expect("staggered result must serialize");
-        assert_eq!(last_bytes, reference_bytes, "staggered output must be deterministic");
+        assert_eq!(
+            last_bytes, reference_bytes,
+            "staggered output must be deterministic"
+        );
     }
     let p50 = percentile(&times, 50);
     let p95 = percentile(&times, 95);
@@ -311,7 +345,9 @@ fn run_staggered(samples: usize, warmup: usize, target_ms: u128) -> Report {
     Report {
         source_revision: source_revision(),
         rustc_version: compiler_version(),
-        ci_runner: env::var("RUNNER_NAME").or_else(|_| env::var("CI_RUNNER_NAME")).ok(),
+        ci_runner: env::var("RUNNER_NAME")
+            .or_else(|_| env::var("CI_RUNNER_NAME"))
+            .ok(),
         runner_os: env::var("RUNNER_OS").ok(),
         runner_arch: env::var("RUNNER_ARCH").ok(),
         host_os: std::env::consts::OS.to_owned(),
@@ -344,14 +380,22 @@ fn run_staggered(samples: usize, warmup: usize, target_ms: u128) -> Report {
 
 fn main() {
     let samples = env::var("SHARED_RESOURCE_ALLOCATION_BENCH_SAMPLES")
-        .ok().and_then(|value| value.parse::<usize>().ok()).unwrap_or(10).max(1);
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(10)
+        .max(1);
     let warmup = env::var("SHARED_RESOURCE_ALLOCATION_BENCH_WARMUP")
-        .ok().and_then(|value| value.parse::<usize>().ok()).unwrap_or(2);
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(2);
     let reports = [
         run(100, 10, 10, samples, warmup, 50, 1.0),
         run(500, 25, 10, samples, warmup, 500, 0.5),
         run(1_000, 50, 10, samples, warmup, 2_000, 0.5),
         run_staggered(samples, warmup, 50),
     ];
-    println!("{}", serde_json::to_string_pretty(&reports).expect("reports must serialize"));
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&reports).expect("reports must serialize")
+    );
 }

@@ -277,7 +277,11 @@ fn run_progressive_fill(
         let mut resource_used = vec![0.0_f64; resource_count];
         let mut active_slope = vec![0.0_f64; resource_count];
         for usage in usages {
-            let coefficient = if conservative { usage.coefficient.upper } else { usage.coefficient.lower };
+            let coefficient = if conservative {
+                usage.coefficient.upper
+            } else {
+                usage.coefficient.lower
+            };
             let service = usage.service_index;
             let used = coefficient * coverage[service] * demand_rates[service];
             if !used.is_finite() {
@@ -288,7 +292,11 @@ fn run_progressive_fill(
                 active_slope[usage.resource_index] += coefficient * demand_rates[service];
             }
         }
-        if resource_used.iter().chain(active_slope.iter()).any(|value| !value.is_finite()) {
+        if resource_used
+            .iter()
+            .chain(active_slope.iter())
+            .any(|value| !value.is_finite())
+        {
             return Err(SharedResourceAllocationValidationError::NonFiniteAllocationResult);
         }
 
@@ -326,7 +334,11 @@ fn run_progressive_fill(
 
         let mut new_used = vec![0.0_f64; resource_count];
         for usage in usages {
-            let coefficient = if conservative { usage.coefficient.upper } else { usage.coefficient.lower };
+            let coefficient = if conservative {
+                usage.coefficient.upper
+            } else {
+                usage.coefficient.lower
+            };
             new_used[usage.resource_index] +=
                 coefficient * demand_rates[usage.service_index] * coverage[usage.service_index];
         }
@@ -336,9 +348,7 @@ fn run_progressive_fill(
 
         let mut froze_service = false;
         for index in 0..service_count {
-            if active[index]
-                && coverage[index] >= 1.0 - numeric_tolerance(coverage[index], 1.0)
-            {
+            if active[index] && coverage[index] >= 1.0 - numeric_tolerance(coverage[index], 1.0) {
                 coverage[index] = 1.0;
                 active[index] = false;
                 froze_service = true;
@@ -353,7 +363,11 @@ fn run_progressive_fill(
             }
             if remaining <= numeric_tolerance(capacity, new_used[resource_index]) {
                 for usage in &usages_by_resource[resource_index] {
-                    let coefficient = if conservative { usage.coefficient.upper } else { usage.coefficient.lower };
+                    let coefficient = if conservative {
+                        usage.coefficient.upper
+                    } else {
+                        usage.coefficient.lower
+                    };
                     if active[usage.service_index]
                         && coefficient * demand_rates[usage.service_index] > 0.0
                     {
@@ -376,21 +390,35 @@ fn run_progressive_fill(
         .collect::<Vec<_>>();
     let mut resource_used = vec![0.0_f64; resource_count];
     for usage in usages {
-        let coefficient = if conservative { usage.coefficient.upper } else { usage.coefficient.lower };
+        let coefficient = if conservative {
+            usage.coefficient.upper
+        } else {
+            usage.coefficient.lower
+        };
         resource_used[usage.resource_index] += coefficient * delivery_rate[usage.service_index];
     }
-    if delivery_rate.iter().chain(resource_used.iter()).any(|value| !value.is_finite()) {
+    if delivery_rate
+        .iter()
+        .chain(resource_used.iter())
+        .any(|value| !value.is_finite())
+    {
         return Err(SharedResourceAllocationValidationError::NonFiniteAllocationResult);
     }
     for index in 0..resource_count {
         if resource_used[index]
-            > resource_capacities[index] + numeric_tolerance(resource_used[index], resource_capacities[index])
+            > resource_capacities[index]
+                + numeric_tolerance(resource_used[index], resource_capacities[index])
         {
             return Err(SharedResourceAllocationValidationError::CapacityConstraintViolated);
         }
     }
 
-    Ok(AllocationSide { coverage, delivery_rate, resource_used, iterations })
+    Ok(AllocationSide {
+        coverage,
+        delivery_rate,
+        resource_used,
+        iterations,
+    })
 }
 
 fn classify_floor(lower: f64, upper: f64, floor: f64) -> ServiceFloorStatus {
@@ -462,9 +490,11 @@ pub fn assess_shared_resource_allocation(
         .checked_add(1)
         .and_then(|iterations| iterations.checked_mul(request.usages.len()))
         .and_then(|passes| passes.checked_mul(5))
-        .ok_or_else(|| SharedResourceAllocationError::InvalidInput(vec![
-            SharedResourceAllocationValidationError::WorkEstimateOverflow,
-        ]))?;
+        .ok_or_else(|| {
+            SharedResourceAllocationError::InvalidInput(vec![
+                SharedResourceAllocationValidationError::WorkEstimateOverflow,
+            ])
+        })?;
     if estimated_work_units > request.max_work_units
         || estimated_work_units > MAX_SHARED_RESOURCE_WORK_UNITS
     {
@@ -510,7 +540,10 @@ pub fn assess_shared_resource_allocation(
     for resource in &request.resources {
         if resource.id.trim().is_empty() {
             errors.push(SharedResourceAllocationValidationError::EmptyResourceId);
-        } else if resource_by_id.insert(resource.id.as_str(), resource).is_some() {
+        } else if resource_by_id
+            .insert(resource.id.as_str(), resource)
+            .is_some()
+        {
             errors.push(SharedResourceAllocationValidationError::DuplicateResourceId);
         }
         if resource.capacity.entity_id != resource.id {
@@ -537,8 +570,12 @@ pub fn assess_shared_resource_allocation(
         if !service_resource_pairs.insert((usage.service_id.as_str(), usage.resource_id.as_str())) {
             errors.push(SharedResourceAllocationValidationError::DuplicateServiceResourceUsage);
         }
-        *service_usage_counts.entry(usage.service_id.as_str()).or_default() += 1;
-        *resource_usage_counts.entry(usage.resource_id.as_str()).or_default() += 1;
+        *service_usage_counts
+            .entry(usage.service_id.as_str())
+            .or_default() += 1;
+        *resource_usage_counts
+            .entry(usage.resource_id.as_str())
+            .or_default() += 1;
         if usage.resource_use_per_delivery_rate.entity_id != usage.id {
             errors.push(SharedResourceAllocationValidationError::UsageCoefficientEntityMismatch);
         }
@@ -548,8 +585,7 @@ pub fn assess_shared_resource_allocation(
         ) {
             let expected = format!(
                 "{} per ({})",
-                resource.capacity.quantity.unit,
-                service.delivery_rate_unit
+                resource.capacity.quantity.unit, service.delivery_rate_unit
             );
             if usage.resource_use_per_delivery_rate.quantity.unit != expected {
                 errors.push(SharedResourceAllocationValidationError::UsageCoefficientUnitMismatch);
@@ -557,16 +593,28 @@ pub fn assess_shared_resource_allocation(
         }
     }
     for service in &request.services {
-        if service_usage_counts.get(service.id.as_str()).copied().unwrap_or(0) == 0 {
+        if service_usage_counts
+            .get(service.id.as_str())
+            .copied()
+            .unwrap_or(0)
+            == 0
+        {
             errors.push(SharedResourceAllocationValidationError::ServiceWithoutResourceConstraint);
         }
     }
     for resource in &request.resources {
-        if resource_usage_counts.get(resource.id.as_str()).copied().unwrap_or(0) == 0 {
+        if resource_usage_counts
+            .get(resource.id.as_str())
+            .copied()
+            .unwrap_or(0)
+            == 0
+        {
             errors.push(SharedResourceAllocationValidationError::ResourceWithoutServiceConstraint);
         }
     }
-    let delivery_units = request.services.iter()
+    let delivery_units = request
+        .services
+        .iter()
         .map(|service| service.delivery_rate_unit.as_str())
         .collect::<BTreeSet<_>>();
     if delivery_units.len() > 1 {
@@ -582,10 +630,20 @@ pub fn assess_shared_resource_allocation(
         .map_err(SharedResourceAllocationError::EvidenceValidation)?;
     let mut measurement_errors = Vec::new();
     for service in &request.services {
-        validate_measurement(&service.demand_rate, &request.as_of, &evidence_by_id, &mut measurement_errors);
+        validate_measurement(
+            &service.demand_rate,
+            &request.as_of,
+            &evidence_by_id,
+            &mut measurement_errors,
+        );
     }
     for resource in &request.resources {
-        validate_measurement(&resource.capacity, &request.as_of, &evidence_by_id, &mut measurement_errors);
+        validate_measurement(
+            &resource.capacity,
+            &request.as_of,
+            &evidence_by_id,
+            &mut measurement_errors,
+        );
     }
     for usage in &request.usages {
         validate_measurement(
@@ -598,17 +656,23 @@ pub fn assess_shared_resource_allocation(
     if !measurement_errors.is_empty() {
         measurement_errors.sort_by_key(|error| format!("{error:?}"));
         measurement_errors.dedup();
-        return Err(SharedResourceAllocationError::MeasurementValidation(measurement_errors));
+        return Err(SharedResourceAllocationError::MeasurementValidation(
+            measurement_errors,
+        ));
     }
 
     let mut services: Vec<&SharedResourceServiceDemand> = request.services.iter().collect();
     services.sort_by(|a, b| a.id.cmp(&b.id));
     let mut resources: Vec<&SharedResourceCapacity> = request.resources.iter().collect();
     resources.sort_by(|a, b| a.id.cmp(&b.id));
-    let service_indices = services.iter().enumerate()
+    let service_indices = services
+        .iter()
+        .enumerate()
         .map(|(index, service)| (service.id.as_str(), index))
         .collect::<BTreeMap<_, _>>();
-    let resource_indices = resources.iter().enumerate()
+    let resource_indices = resources
+        .iter()
+        .enumerate()
         .map(|(index, resource)| (resource.id.as_str(), index))
         .collect::<BTreeMap<_, _>>();
 
@@ -625,7 +689,9 @@ pub fn assess_shared_resource_allocation(
             ]));
         }
         demand_intervals.push(range);
-        service_evidence.entry(service.id.clone()).or_default()
+        service_evidence
+            .entry(service.id.clone())
+            .or_default()
             .extend(service.demand_rate.supporting_evidence_ids.iter().cloned());
         all_evidence.extend(service.demand_rate.supporting_evidence_ids.iter().cloned());
     }
@@ -635,13 +701,17 @@ pub fn assess_shared_resource_allocation(
         let range = interval(&resource.capacity)
             .map_err(|error| SharedResourceAllocationError::InvalidInput(vec![error]))?;
         resource_intervals.push(range);
-        resource_evidence.entry(resource.id.clone()).or_default()
+        resource_evidence
+            .entry(resource.id.clone())
+            .or_default()
             .extend(resource.capacity.supporting_evidence_ids.iter().cloned());
         all_evidence.extend(resource.capacity.supporting_evidence_ids.iter().cloned());
     }
 
     let mut ordered_usages: Vec<&SharedResourceUsage> = request.usages.iter().collect();
-    ordered_usages.sort_by(|a, b| (&a.resource_id, &a.service_id, &a.id).cmp(&(&b.resource_id, &b.service_id, &b.id)));
+    ordered_usages.sort_by(|a, b| {
+        (&a.resource_id, &a.service_id, &a.id).cmp(&(&b.resource_id, &b.service_id, &b.id))
+    });
     let mut indexed_usages = Vec::with_capacity(ordered_usages.len());
     for usage in ordered_usages {
         let coefficient = interval(&usage.resource_use_per_delivery_rate)
@@ -651,31 +721,78 @@ pub fn assess_shared_resource_allocation(
                 SharedResourceAllocationValidationError::NonPositiveResourceUseCoefficient,
             ]));
         }
-        let resource_index = *resource_indices.get(usage.resource_id.as_str()).expect("validated resource reference");
-        let service_index = *service_indices.get(usage.service_id.as_str()).expect("validated service reference");
-        indexed_usages.push(IndexedUsage { resource_index, service_index, coefficient });
-        let refs = usage.resource_use_per_delivery_rate.supporting_evidence_ids.iter().cloned().collect::<Vec<_>>();
-        service_evidence.entry(usage.service_id.clone()).or_default().extend(refs.iter().cloned());
-        resource_evidence.entry(usage.resource_id.clone()).or_default().extend(refs.iter().cloned());
+        let resource_index = *resource_indices
+            .get(usage.resource_id.as_str())
+            .expect("validated resource reference");
+        let service_index = *service_indices
+            .get(usage.service_id.as_str())
+            .expect("validated service reference");
+        indexed_usages.push(IndexedUsage {
+            resource_index,
+            service_index,
+            coefficient,
+        });
+        let refs = usage
+            .resource_use_per_delivery_rate
+            .supporting_evidence_ids
+            .iter()
+            .cloned()
+            .collect::<Vec<_>>();
         service_evidence
             .entry(usage.service_id.clone())
             .or_default()
-            .extend(resources[resource_index].capacity.supporting_evidence_ids.iter().cloned());
+            .extend(refs.iter().cloned());
+        resource_evidence
+            .entry(usage.resource_id.clone())
+            .or_default()
+            .extend(refs.iter().cloned());
+        service_evidence
+            .entry(usage.service_id.clone())
+            .or_default()
+            .extend(
+                resources[resource_index]
+                    .capacity
+                    .supporting_evidence_ids
+                    .iter()
+                    .cloned(),
+            );
         all_evidence.extend(refs);
     }
 
-    let conservative_demands = demand_intervals.iter().map(|range| range.upper).collect::<Vec<_>>();
-    let optimistic_demands = demand_intervals.iter().map(|range| range.lower).collect::<Vec<_>>();
-    let conservative_capacities = resource_intervals.iter().map(|range| range.lower).collect::<Vec<_>>();
-    let optimistic_capacities = resource_intervals.iter().map(|range| range.upper).collect::<Vec<_>>();
+    let conservative_demands = demand_intervals
+        .iter()
+        .map(|range| range.upper)
+        .collect::<Vec<_>>();
+    let optimistic_demands = demand_intervals
+        .iter()
+        .map(|range| range.lower)
+        .collect::<Vec<_>>();
+    let conservative_capacities = resource_intervals
+        .iter()
+        .map(|range| range.lower)
+        .collect::<Vec<_>>();
+    let optimistic_capacities = resource_intervals
+        .iter()
+        .map(|range| range.upper)
+        .collect::<Vec<_>>();
     let conservative = run_progressive_fill(
-        &conservative_demands, &conservative_capacities, &indexed_usages,
-        services.len(), resources.len(), true,
-    ).map_err(|error| SharedResourceAllocationError::InvalidInput(vec![error]))?;
+        &conservative_demands,
+        &conservative_capacities,
+        &indexed_usages,
+        services.len(),
+        resources.len(),
+        true,
+    )
+    .map_err(|error| SharedResourceAllocationError::InvalidInput(vec![error]))?;
     let optimistic = run_progressive_fill(
-        &optimistic_demands, &optimistic_capacities, &indexed_usages,
-        services.len(), resources.len(), false,
-    ).map_err(|error| SharedResourceAllocationError::InvalidInput(vec![error]))?;
+        &optimistic_demands,
+        &optimistic_capacities,
+        &indexed_usages,
+        services.len(),
+        resources.len(),
+        false,
+    )
+    .map_err(|error| SharedResourceAllocationError::InvalidInput(vec![error]))?;
 
     let mut service_assessments = Vec::with_capacity(services.len());
     let mut total_weight = 0_u64;
@@ -692,38 +809,76 @@ pub fn assess_shared_resource_allocation(
             ]));
         }
         let status = classify_floor(lower, upper, service.essential_coverage_floor);
-        total_weight = total_weight.checked_add(service.beneficiary_weight).ok_or_else(|| {
-            SharedResourceAllocationError::InvalidInput(vec![SharedResourceAllocationValidationError::BeneficiaryWeightOverflow])
-        })?;
-        let community = community_acc.entry(service.community_id.clone()).or_default();
+        total_weight = total_weight
+            .checked_add(service.beneficiary_weight)
+            .ok_or_else(|| {
+                SharedResourceAllocationError::InvalidInput(vec![
+                    SharedResourceAllocationValidationError::BeneficiaryWeightOverflow,
+                ])
+            })?;
+        let community = community_acc
+            .entry(service.community_id.clone())
+            .or_default();
         community.service_count += 1;
-        community.total_weight = community.total_weight.checked_add(service.beneficiary_weight).ok_or_else(|| {
-            SharedResourceAllocationError::InvalidInput(vec![SharedResourceAllocationValidationError::BeneficiaryWeightOverflow])
-        })?;
+        community.total_weight = community
+            .total_weight
+            .checked_add(service.beneficiary_weight)
+            .ok_or_else(|| {
+                SharedResourceAllocationError::InvalidInput(vec![
+                    SharedResourceAllocationValidationError::BeneficiaryWeightOverflow,
+                ])
+            })?;
         match status {
             ServiceFloorStatus::MeetsFloor => {
-                meets_weight = meets_weight.checked_add(service.beneficiary_weight).ok_or_else(|| {
-                    SharedResourceAllocationError::InvalidInput(vec![SharedResourceAllocationValidationError::BeneficiaryWeightOverflow])
-                })?;
-                community.meets_weight = community.meets_weight.checked_add(service.beneficiary_weight).ok_or_else(|| {
-                    SharedResourceAllocationError::InvalidInput(vec![SharedResourceAllocationValidationError::BeneficiaryWeightOverflow])
-                })?;
+                meets_weight = meets_weight
+                    .checked_add(service.beneficiary_weight)
+                    .ok_or_else(|| {
+                        SharedResourceAllocationError::InvalidInput(vec![
+                            SharedResourceAllocationValidationError::BeneficiaryWeightOverflow,
+                        ])
+                    })?;
+                community.meets_weight = community
+                    .meets_weight
+                    .checked_add(service.beneficiary_weight)
+                    .ok_or_else(|| {
+                        SharedResourceAllocationError::InvalidInput(vec![
+                            SharedResourceAllocationValidationError::BeneficiaryWeightOverflow,
+                        ])
+                    })?;
             }
             ServiceFloorStatus::BelowFloor => {
-                below_weight = below_weight.checked_add(service.beneficiary_weight).ok_or_else(|| {
-                    SharedResourceAllocationError::InvalidInput(vec![SharedResourceAllocationValidationError::BeneficiaryWeightOverflow])
-                })?;
-                community.below_weight = community.below_weight.checked_add(service.beneficiary_weight).ok_or_else(|| {
-                    SharedResourceAllocationError::InvalidInput(vec![SharedResourceAllocationValidationError::BeneficiaryWeightOverflow])
-                })?;
+                below_weight = below_weight
+                    .checked_add(service.beneficiary_weight)
+                    .ok_or_else(|| {
+                        SharedResourceAllocationError::InvalidInput(vec![
+                            SharedResourceAllocationValidationError::BeneficiaryWeightOverflow,
+                        ])
+                    })?;
+                community.below_weight = community
+                    .below_weight
+                    .checked_add(service.beneficiary_weight)
+                    .ok_or_else(|| {
+                        SharedResourceAllocationError::InvalidInput(vec![
+                            SharedResourceAllocationValidationError::BeneficiaryWeightOverflow,
+                        ])
+                    })?;
             }
             ServiceFloorStatus::Indeterminate => {
-                indeterminate_weight = indeterminate_weight.checked_add(service.beneficiary_weight).ok_or_else(|| {
-                    SharedResourceAllocationError::InvalidInput(vec![SharedResourceAllocationValidationError::BeneficiaryWeightOverflow])
-                })?;
-                community.indeterminate_weight = community.indeterminate_weight.checked_add(service.beneficiary_weight).ok_or_else(|| {
-                    SharedResourceAllocationError::InvalidInput(vec![SharedResourceAllocationValidationError::BeneficiaryWeightOverflow])
-                })?;
+                indeterminate_weight = indeterminate_weight
+                    .checked_add(service.beneficiary_weight)
+                    .ok_or_else(|| {
+                        SharedResourceAllocationError::InvalidInput(vec![
+                            SharedResourceAllocationValidationError::BeneficiaryWeightOverflow,
+                        ])
+                    })?;
+                community.indeterminate_weight = community
+                    .indeterminate_weight
+                    .checked_add(service.beneficiary_weight)
+                    .ok_or_else(|| {
+                        SharedResourceAllocationError::InvalidInput(vec![
+                            SharedResourceAllocationValidationError::BeneficiaryWeightOverflow,
+                        ])
+                    })?;
             }
         }
         service_assessments.push(SharedResourceServiceAssessment {
@@ -740,7 +895,12 @@ pub fn assess_shared_resource_allocation(
             coverage_upper_bound: upper,
             essential_coverage_floor: service.essential_coverage_floor,
             floor_status: status,
-            supporting_evidence_ids: service_evidence.get(service.id.as_str()).cloned().unwrap_or_default().into_iter().collect(),
+            supporting_evidence_ids: service_evidence
+                .get(service.id.as_str())
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .collect(),
         });
     }
     if total_weight == 0 || meets_weight + below_weight + indeterminate_weight != total_weight {
@@ -771,18 +931,28 @@ pub fn assess_shared_resource_allocation(
             capacity_upper_bound: upper,
             conservative_allocated_capacity: conservative_used,
             conservative_residual_capacity: conservative_residual.max(0.0),
-            conservative_constraint_binding: conservative_residual <= numeric_tolerance(lower, conservative_used) && conservative_used > 0.0,
+            conservative_constraint_binding: conservative_residual
+                <= numeric_tolerance(lower, conservative_used)
+                && conservative_used > 0.0,
             optimistic_allocated_capacity: optimistic_used,
             optimistic_residual_capacity: optimistic_residual.max(0.0),
-            optimistic_constraint_binding: optimistic_residual <= numeric_tolerance(upper, optimistic_used) && optimistic_used > 0.0,
-            supporting_evidence_ids: resource_evidence.get(resource.id.as_str()).cloned().unwrap_or_default().into_iter().collect(),
+            optimistic_constraint_binding: optimistic_residual
+                <= numeric_tolerance(upper, optimistic_used)
+                && optimistic_used > 0.0,
+            supporting_evidence_ids: resource_evidence
+                .get(resource.id.as_str())
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .collect(),
         });
     }
 
     let mut community_assessments = Vec::with_capacity(community_acc.len());
     for (community_id, aggregate) in community_acc {
         if aggregate.total_weight == 0
-            || aggregate.meets_weight + aggregate.below_weight + aggregate.indeterminate_weight != aggregate.total_weight
+            || aggregate.meets_weight + aggregate.below_weight + aggregate.indeterminate_weight
+                != aggregate.total_weight
         {
             return Err(SharedResourceAllocationError::InvalidInput(vec![
                 SharedResourceAllocationValidationError::BeneficiaryWeightOverflow,
@@ -792,8 +962,11 @@ pub fn assess_shared_resource_allocation(
             community_id,
             service_count: aggregate.service_count,
             beneficiary_weight: aggregate.total_weight,
-            floor_compliance_lower_bound: aggregate.meets_weight as f64 / aggregate.total_weight as f64,
-            floor_compliance_upper_bound: (aggregate.meets_weight + aggregate.indeterminate_weight) as f64 / aggregate.total_weight as f64,
+            floor_compliance_lower_bound: aggregate.meets_weight as f64
+                / aggregate.total_weight as f64,
+            floor_compliance_upper_bound: (aggregate.meets_weight + aggregate.indeterminate_weight)
+                as f64
+                / aggregate.total_weight as f64,
             meets_floor_weight: aggregate.meets_weight,
             below_floor_weight: aggregate.below_weight,
             indeterminate_floor_weight: aggregate.indeterminate_weight,
@@ -830,17 +1003,26 @@ pub fn assess_shared_resource_allocation(
 mod tests {
     use super::*;
     use crate::spatial_economic::{
-        EvidenceKind, EvidenceRecord, EvidenceState, Provenance, SpatialContext, TimeContext,
-        EVIDENCE_SCHEMA_VERSION,
+        EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceRecord, EvidenceState, Provenance,
+        SpatialContext, TimeContext,
     };
 
     const AS_OF: &str = "2026-10-16T00:00:00Z";
     const RATE_UNIT: &str = "m3/h";
 
-    fn measurement(entity: &str, value: f64, uncertainty: Option<f64>, unit: &str) -> FunctionMeasurement {
+    fn measurement(
+        entity: &str,
+        value: f64,
+        uncertainty: Option<f64>,
+        unit: &str,
+    ) -> FunctionMeasurement {
         FunctionMeasurement {
             entity_id: entity.to_owned(),
-            quantity: Quantity { value, unit: unit.to_owned(), uncertainty_abs: uncertainty },
+            quantity: Quantity {
+                value,
+                unit: unit.to_owned(),
+                uncertainty_abs: uncertainty,
+            },
             basis: ScenarioBasis::Assumed,
             rationale: "Synthetic allocation assumption; not physical evidence.".to_owned(),
             supporting_evidence_ids: Vec::new(),
@@ -849,18 +1031,37 @@ mod tests {
     fn service(id: &str, community: &str, weight: u64, floor: f64) -> SharedResourceServiceDemand {
         let entity = format!("service-entity-{id}");
         SharedResourceServiceDemand {
-            id: id.to_owned(), service_entity_id: entity.clone(), community_id: community.to_owned(),
-            beneficiary_weight: weight, delivery_rate_unit: RATE_UNIT.to_owned(),
+            id: id.to_owned(),
+            service_entity_id: entity.clone(),
+            community_id: community.to_owned(),
+            beneficiary_weight: weight,
+            delivery_rate_unit: RATE_UNIT.to_owned(),
             demand_rate: measurement(&entity, 100.0, None, RATE_UNIT),
             essential_coverage_floor: floor,
         }
     }
-    fn resource(id: &str, value: f64, uncertainty: Option<f64>, unit: &str) -> SharedResourceCapacity {
-        SharedResourceCapacity { id: id.to_owned(), capacity: measurement(id, value, uncertainty, unit) }
+    fn resource(
+        id: &str,
+        value: f64,
+        uncertainty: Option<f64>,
+        unit: &str,
+    ) -> SharedResourceCapacity {
+        SharedResourceCapacity {
+            id: id.to_owned(),
+            capacity: measurement(id, value, uncertainty, unit),
+        }
     }
-    fn usage(id: &str, resource_id: &str, service_id: &str, value: f64, unit: &str) -> SharedResourceUsage {
+    fn usage(
+        id: &str,
+        resource_id: &str,
+        service_id: &str,
+        value: f64,
+        unit: &str,
+    ) -> SharedResourceUsage {
         SharedResourceUsage {
-            id: id.to_owned(), resource_id: resource_id.to_owned(), service_id: service_id.to_owned(),
+            id: id.to_owned(),
+            resource_id: resource_id.to_owned(),
+            service_id: service_id.to_owned(),
             resource_use_per_delivery_rate: measurement(id, value, None, unit),
         }
     }
@@ -899,15 +1100,46 @@ mod tests {
     fn request() -> SharedResourceAllocationRequest {
         SharedResourceAllocationRequest {
             schema_version: SHARED_RESOURCE_ALLOCATION_SCHEMA_VERSION.to_owned(),
-            id: "shared-water-power-allocation".to_owned(), as_of: AS_OF.to_owned(),
+            id: "shared-water-power-allocation".to_owned(),
+            as_of: AS_OF.to_owned(),
             policy: SharedResourceAllocationPolicy::EqualCoverageProgressiveFill,
-            services: vec![service("service-a", "community-a", 60, 0.3), service("service-b", "community-b", 40, 0.8)],
-            resources: vec![resource("shared-water", 100.0, None, "m3/h"), resource("shared-pump-power", 40.0, None, "kW")],
+            services: vec![
+                service("service-a", "community-a", 60, 0.3),
+                service("service-b", "community-b", 40, 0.8),
+            ],
+            resources: vec![
+                resource("shared-water", 100.0, None, "m3/h"),
+                resource("shared-pump-power", 40.0, None, "kW"),
+            ],
             usages: vec![
-                usage("water-a", "shared-water", "service-a", 1.0, "m3/h per (m3/h)"),
-                usage("water-b", "shared-water", "service-b", 1.0, "m3/h per (m3/h)"),
-                usage("power-a", "shared-pump-power", "service-a", 0.5, "kW per (m3/h)"),
-                usage("power-b", "shared-pump-power", "service-b", 0.5, "kW per (m3/h)"),
+                usage(
+                    "water-a",
+                    "shared-water",
+                    "service-a",
+                    1.0,
+                    "m3/h per (m3/h)",
+                ),
+                usage(
+                    "water-b",
+                    "shared-water",
+                    "service-b",
+                    1.0,
+                    "m3/h per (m3/h)",
+                ),
+                usage(
+                    "power-a",
+                    "shared-pump-power",
+                    "service-a",
+                    0.5,
+                    "kW per (m3/h)",
+                ),
+                usage(
+                    "power-b",
+                    "shared-pump-power",
+                    "service-b",
+                    0.5,
+                    "kW per (m3/h)",
+                ),
             ],
             max_work_units: MAX_SHARED_RESOURCE_WORK_UNITS,
         }
@@ -915,29 +1147,45 @@ mod tests {
 
     #[test]
     fn shared_resource_is_allocated_once_across_service_cells() {
-        let output = assess_shared_resource_allocation(&request(), &[]).expect("valid shared allocation");
+        let output =
+            assess_shared_resource_allocation(&request(), &[]).expect("valid shared allocation");
         assert_eq!(output.service_count, 2);
         assert_eq!(output.resource_count, 2);
         assert_eq!(output.usage_constraint_count, 4);
         assert!((output.services[0].coverage_lower_bound - 0.4).abs() < 1e-9);
         assert!((output.services[1].coverage_lower_bound - 0.4).abs() < 1e-9);
-        let water = output.resources.iter().find(|r| r.resource_id == "shared-water").unwrap();
+        let water = output
+            .resources
+            .iter()
+            .find(|r| r.resource_id == "shared-water")
+            .unwrap();
         assert!((water.conservative_allocated_capacity - 80.0).abs() < 1e-9);
         assert!((water.conservative_residual_capacity - 20.0).abs() < 1e-9);
-        let power = output.resources.iter().find(|r| r.resource_id == "shared-pump-power").unwrap();
+        let power = output
+            .resources
+            .iter()
+            .find(|r| r.resource_id == "shared-pump-power")
+            .unwrap();
         assert!((power.conservative_allocated_capacity - 40.0).abs() < 1e-9);
         assert!(power.conservative_constraint_binding);
     }
 
     #[test]
     fn protected_floor_outcomes_are_distributionally_reconciled() {
-        let output = assess_shared_resource_allocation(&request(), &[]).expect("valid shared allocation");
+        let output =
+            assess_shared_resource_allocation(&request(), &[]).expect("valid shared allocation");
         assert_eq!(output.meets_floor_weight, 60);
         assert_eq!(output.below_floor_weight, 40);
         assert_eq!(output.indeterminate_floor_weight, 0);
         assert!((output.floor_compliance_lower_bound - 0.6).abs() < 1e-9);
-        assert_eq!(output.services[0].floor_status, ServiceFloorStatus::MeetsFloor);
-        assert_eq!(output.services[1].floor_status, ServiceFloorStatus::BelowFloor);
+        assert_eq!(
+            output.services[0].floor_status,
+            ServiceFloorStatus::MeetsFloor
+        );
+        assert_eq!(
+            output.services[1].floor_status,
+            ServiceFloorStatus::BelowFloor
+        );
     }
 
     #[test]
@@ -946,7 +1194,8 @@ mod tests {
         input.resources[1].capacity.quantity.uncertainty_abs = Some(10.0);
         input.services[0].essential_coverage_floor = 0.4;
         input.services[1].essential_coverage_floor = 0.4;
-        let output = assess_shared_resource_allocation(&input, &[]).expect("valid uncertain allocation");
+        let output =
+            assess_shared_resource_allocation(&input, &[]).expect("valid uncertain allocation");
         for service in output.services {
             assert!((service.coverage_lower_bound - 0.3).abs() < 1e-9);
             assert!((service.coverage_upper_bound - 0.5).abs() < 1e-9);
@@ -958,13 +1207,22 @@ mod tests {
     #[test]
     fn independent_resources_allow_full_coverage() {
         let mut input = request();
-        input.resources = vec![resource("water-a", 100.0, None, "m3/h"), resource("water-b", 100.0, None, "m3/h")];
+        input.resources = vec![
+            resource("water-a", 100.0, None, "m3/h"),
+            resource("water-b", 100.0, None, "m3/h"),
+        ];
         input.usages = vec![
             usage("use-a", "water-a", "service-a", 1.0, "m3/h per (m3/h)"),
             usage("use-b", "water-b", "service-b", 1.0, "m3/h per (m3/h)"),
         ];
-        let output = assess_shared_resource_allocation(&input, &[]).expect("valid independent resources");
-        assert!(output.services.iter().all(|service| (service.coverage_lower_bound - 1.0).abs() < 1e-9));
+        let output =
+            assess_shared_resource_allocation(&input, &[]).expect("valid independent resources");
+        assert!(
+            output
+                .services
+                .iter()
+                .all(|service| (service.coverage_lower_bound - 1.0).abs() < 1e-9)
+        );
     }
 
     #[test]
@@ -1002,9 +1260,13 @@ mod tests {
         permuted.resources.reverse();
         permuted.usages.reverse();
         let left = assess_shared_resource_allocation(&input, &[]).expect("valid input");
-        let right = assess_shared_resource_allocation(&permuted, &[]).expect("valid permuted input");
+        let right =
+            assess_shared_resource_allocation(&permuted, &[]).expect("valid permuted input");
         assert_eq!(left, right);
-        assert_eq!(serde_json::to_vec(&left).expect("serialize left"), serde_json::to_vec(&right).expect("serialize right"));
+        assert_eq!(
+            serde_json::to_vec(&left).expect("serialize left"),
+            serde_json::to_vec(&right).expect("serialize right")
+        );
     }
 
     #[test]
@@ -1029,18 +1291,40 @@ mod tests {
             resource("independent", 100.0, None, "m3/h"),
         ];
         input.usages = vec![
-            usage("limited-a", "shared-limited", "service-a", 1.0, "m3/h per (m3/h)"),
-            usage("limited-b", "shared-limited", "service-b", 1.0, "m3/h per (m3/h)"),
-            usage("independent-c", "independent", "service-c", 1.0, "m3/h per (m3/h)"),
+            usage(
+                "limited-a",
+                "shared-limited",
+                "service-a",
+                1.0,
+                "m3/h per (m3/h)",
+            ),
+            usage(
+                "limited-b",
+                "shared-limited",
+                "service-b",
+                1.0,
+                "m3/h per (m3/h)",
+            ),
+            usage(
+                "independent-c",
+                "independent",
+                "service-c",
+                1.0,
+                "m3/h per (m3/h)",
+            ),
         ];
-        let output = assess_shared_resource_allocation(&input, &[]).expect("valid mixed constraints");
-        let coverage = output.services.iter().map(|service| (service.service_id.as_str(), service.coverage_lower_bound)).collect::<BTreeMap<_, _>>();
+        let output =
+            assess_shared_resource_allocation(&input, &[]).expect("valid mixed constraints");
+        let coverage = output
+            .services
+            .iter()
+            .map(|service| (service.service_id.as_str(), service.coverage_lower_bound))
+            .collect::<BTreeMap<_, _>>();
         assert!((coverage["service-a"] - 0.5).abs() < 1e-9);
         assert!((coverage["service-b"] - 0.5).abs() < 1e-9);
         assert!((coverage["service-c"] - 1.0).abs() < 1e-9);
         assert!(output.conservative_allocation_iterations >= 2);
     }
-
 
     #[test]
     fn progressive_fill_matches_small_discrete_lexicographic_fairness_oracle() {
@@ -1055,12 +1339,34 @@ mod tests {
             resource("independent", 100.0, None, "m3/h"),
         ];
         input.usages = vec![
-            usage("limited-a", "shared-limited", "service-a", 1.0, "m3/h per (m3/h)"),
-            usage("limited-b", "shared-limited", "service-b", 1.0, "m3/h per (m3/h)"),
-            usage("independent-c", "independent", "service-c", 1.0, "m3/h per (m3/h)"),
+            usage(
+                "limited-a",
+                "shared-limited",
+                "service-a",
+                1.0,
+                "m3/h per (m3/h)",
+            ),
+            usage(
+                "limited-b",
+                "shared-limited",
+                "service-b",
+                1.0,
+                "m3/h per (m3/h)",
+            ),
+            usage(
+                "independent-c",
+                "independent",
+                "service-c",
+                1.0,
+                "m3/h per (m3/h)",
+            ),
         ];
         let output = assess_shared_resource_allocation(&input, &[]).expect("valid oracle fixture");
-        let observed = output.services.iter().map(|service| service.coverage_lower_bound).collect::<Vec<_>>();
+        let observed = output
+            .services
+            .iter()
+            .map(|service| service.coverage_lower_bound)
+            .collect::<Vec<_>>();
         assert!((observed[0] - 0.5).abs() < 1e-9);
         assert!((observed[1] - 0.5).abs() < 1e-9);
         assert!((observed[2] - 1.0).abs() < 1e-9);
@@ -1081,7 +1387,9 @@ mod tests {
                     candidate.sort_by(f64::total_cmp);
                     if candidate[0] > best[0]
                         || (candidate[0] == best[0] && candidate[1] > best[1])
-                        || (candidate[0] == best[0] && candidate[1] == best[1] && candidate[2] > best[2])
+                        || (candidate[0] == best[0]
+                            && candidate[1] == best[1]
+                            && candidate[2] > best[2])
                     {
                         best = candidate;
                     }
@@ -1095,7 +1403,6 @@ mod tests {
         assert!((observed_sorted[2] - best[2]).abs() < 1e-9);
         assert_eq!(best, [0.5, 0.5, 1.0]);
     }
-
 
     #[test]
     fn each_service_provenance_includes_evidence_for_its_shared_resource_capacity() {
@@ -1115,13 +1422,23 @@ mod tests {
         let output = assess_shared_resource_allocation(&input, &[evidence])
             .expect("observed shared capacity must be admissible");
         assert!(output.services.iter().all(|service| {
-            service.supporting_evidence_ids.iter().any(|id| id == "evidence:shared-water")
+            service
+                .supporting_evidence_ids
+                .iter()
+                .any(|id| id == "evidence:shared-water")
         }));
         assert!(output.resources.iter().any(|resource| {
             resource.resource_id == "shared-water"
-                && resource.supporting_evidence_ids.iter().any(|id| id == "evidence:shared-water")
+                && resource
+                    .supporting_evidence_ids
+                    .iter()
+                    .any(|id| id == "evidence:shared-water")
         }));
-        assert!(output.supporting_evidence_ids.iter().any(|id| id == "evidence:shared-water"));
+        assert!(
+            output
+                .supporting_evidence_ids
+                .iter()
+                .any(|id| id == "evidence:shared-water")
+        );
     }
-
 }
