@@ -299,7 +299,7 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
     );
 
     let mut qualification_reasons = Vec::new();
-    let ci_passed = ci_checks_all_pass(&receipt);
+    let ci_passed = ci_checks_all_pass(&receipt, &artifact_checks, &artifact_root);
     push_check(
         &mut checks,
         "exact_head_ci",
@@ -692,19 +692,76 @@ fn metrics_present(receipt: &Value) -> bool {
     )
 }
 
-fn ci_checks_all_pass(receipt: &Value) -> bool {
+fn ci_checks_all_pass(
+    receipt: &Value,
+    artifacts: &[ArtifactCheck],
+    artifact_root: &Path,
+) -> bool {
     let Some(checks) = receipt.get("ci_checks").and_then(Value::as_array) else {
         return false;
     };
     let Some(code_commit) = string_field(receipt, &["code", "commit_sha"]) else {
         return false;
     };
-    !checks.is_empty()
-        && checks.iter().all(|check| {
-            string_field(check, &["commit_sha"]) == Some(code_commit)
-                && string_field(check, &["status"]) == Some("completed")
-                && string_field(check, &["conclusion"]) == Some("success")
-        })
+    if checks.is_empty() {
+        return false;
+    }
+
+    checks.iter().all(|check| {
+        if string_field(check, &["commit_sha"]) != Some(code_commit)
+            || string_field(check, &["status"]) != Some("completed")
+            || string_field(check, &["conclusion"]) != Some("success")
+        {
+            return false;
+        }
+        let Some(evidence_id) = string_field(check, &["evidence_artifact_id"]) else {
+            return false;
+        };
+        let evidence_is_hashed = artifacts.iter().any(|artifact| {
+            artifact.artifact_id == evidence_id
+                && artifact.role == "ci_check_evidence"
+                && artifact.passed
+        });
+        if !evidence_is_hashed {
+            return false;
+        }
+        let Some(record) = receipt
+            .get("artifacts")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .find(|record| string_field(record, &["artifact_id"]) == Some(evidence_id))
+        else {
+            return false;
+        };
+        let Some(locator) = string_field(record, &["locator"]) else {
+            return false;
+        };
+        let Ok(path) = safe_join(artifact_root, locator) else {
+            return false;
+        };
+        let Ok(bytes) = fs::read(path) else {
+            return false;
+        };
+        let Ok(payload) = serde_json::from_slice::<Value>(&bytes) else {
+            return false;
+        };
+        ci_check_evidence_matches(check, &payload, code_commit)
+    })
+}
+
+fn ci_check_evidence_matches(check: &Value, evidence: &Value, expected_commit: &str) -> bool {
+    let check_id = string_field(check, &["check_id"]);
+    let evidence_id = evidence
+        .get("id")
+        .and_then(|value| value.as_str().map(str::to_owned).or_else(|| value.as_u64().map(|id| id.to_string())));
+    check_id.is_some_and(|id| evidence_id.as_deref() == Some(id))
+        && string_field(check, &["name"]) == string_field(evidence, &["name"])
+        && string_field(check, &["commit_sha"]) == Some(expected_commit)
+        && string_field(evidence, &["head_sha"]) == Some(expected_commit)
+        && string_field(check, &["status"]) == string_field(evidence, &["status"])
+        && string_field(check, &["conclusion"]) == string_field(evidence, &["conclusion"])
+        && string_field(check, &["url"]) == string_field(evidence, &["html_url"])
 }
 
 fn configuration_digest_is_bound(receipt: &Value, artifacts: &[ArtifactCheck]) -> bool {
