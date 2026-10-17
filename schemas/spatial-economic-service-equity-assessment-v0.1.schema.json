@@ -183,11 +183,11 @@
             ]
           },
           "coverage_lower_bound": {
-            "type": "number",
+            "type": ["number", "null"],
             "minimum": 0
           },
           "coverage_upper_bound": {
-            "type": "number",
+            "type": ["number", "null"],
             "minimum": 0
           },
           "floor_status": {
