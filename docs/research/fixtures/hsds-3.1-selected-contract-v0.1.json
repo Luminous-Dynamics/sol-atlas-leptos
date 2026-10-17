@@ -543,6 +543,42 @@
         "updated": "date-time"
       },
       "field_enums": {}
+    },
+    {
+      "resource": "unit",
+      "source_url": "https://github.com/openreferral/specification/blob/3.1/schema/unit.json",
+      "vendored_path": "docs/research/fixtures/upstream/hsds-3.1/schema/unit.json",
+      "git_blob_sha1": "bbae59f7cac33157c64fd368ac0a350cd33a8854",
+      "sha256_utf8": "107c201430274af1584921bd20469cc4e664930cd757261698900cc88948da57",
+      "utf8_byte_length": 2631,
+      "required_fields": [
+        "id",
+        "name"
+      ],
+      "tabular_required_fields": [],
+      "allowed_fields": [
+        "attributes",
+        "id",
+        "identifier",
+        "metadata",
+        "name",
+        "scheme",
+        "uri"
+      ],
+      "field_types": {
+        "id": "string",
+        "name": "string",
+        "scheme": "string",
+        "identifier": "string",
+        "uri": "string",
+        "attributes": "array",
+        "metadata": "array"
+      },
+      "field_formats": {
+        "id": "uuid",
+        "uri": "uri"
+      },
+      "field_enums": {}
     }
   ]
 }
