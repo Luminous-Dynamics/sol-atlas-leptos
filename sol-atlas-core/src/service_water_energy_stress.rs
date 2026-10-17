@@ -1169,7 +1169,7 @@ fn assess_water_energy_stress_sweep_validated(
             .map(|case| case.overrides_applied.len())
             .sum(),
         exhaustive_over_declared_scenarios: cases.len() == request.failure_scenarios.len(),
-        total_service_step_assessments,
+        total_service_step_assessments: total_step_assessments,
         baseline,
         cases,
         worst_case_unmet_demand_lower_bound_m3: worst_case_unmet_lower,
