@@ -69,8 +69,9 @@ pub enum ConstructionEvidenceState {
 #[serde(rename_all = "snake_case")]
 pub enum ConstructionMetric {
     UpfrontCarbonA0A5,
-    WholeLifeCarbonAtoC,
-    WholeLifeCostAtoC,
+    EmbodiedCarbonAtoC,
+    OperationalCarbonB6B7,
+    WholeLifeCostStudyPeriod,
     OnSiteDurationDays,
     OnSiteLaborHoursPerSquareMeter,
     MaintenanceRepairHoursPerSquareMeter,
@@ -724,12 +725,12 @@ mod tests {
                 .collect(),
             objectives: vec![
                 ConstructionMetricObjective {
-                    metric: ConstructionMetric::WholeLifeCarbonAtoC,
+                    metric: ConstructionMetric::EmbodiedCarbonAtoC,
                     direction: ObjectiveDirection::Minimize,
                     unit: "kgCO2e/m2/60y".into(),
                 },
                 ConstructionMetricObjective {
-                    metric: ConstructionMetric::WholeLifeCostAtoC,
+                    metric: ConstructionMetric::WholeLifeCostStudyPeriod,
                     direction: ObjectiveDirection::Minimize,
                     unit: "cost-unit/m2/60y".into(),
                 },
@@ -771,13 +772,13 @@ mod tests {
             }],
             metric_receipts: vec![
                 metric_receipt(
-                    ConstructionMetric::WholeLifeCarbonAtoC,
+                    ConstructionMetric::EmbodiedCarbonAtoC,
                     carbon,
                     "kgCO2e/m2/60y",
                     method_id,
                 ),
                 metric_receipt(
-                    ConstructionMetric::WholeLifeCostAtoC,
+                    ConstructionMetric::WholeLifeCostStudyPeriod,
                     cost,
                     "cost-unit/m2/60y",
                     method_id,
@@ -819,7 +820,7 @@ mod tests {
     fn one_gate_policy() -> ConstructionMethodPolicy {
         let mut p = policy();
         p.objectives = vec![ConstructionMetricObjective {
-            metric: ConstructionMetric::WholeLifeCarbonAtoC,
+            metric: ConstructionMetric::EmbodiedCarbonAtoC,
             direction: ObjectiveDirection::Minimize,
             unit: "kgCO2e/m2/60y".into(),
         }];
@@ -834,7 +835,7 @@ mod tests {
     ) -> ConstructionMethodCandidate {
         let p = one_gate_policy();
         let mut candidate = candidate(method_id, (10.0, 20.0), (100.0, 120.0), (0.2, 0.3));
-        candidate.metric_receipts.retain(|m| m.metric == ConstructionMetric::WholeLifeCarbonAtoC);
+        candidate.metric_receipts.retain(|m| m.metric == ConstructionMetric::EmbodiedCarbonAtoC);
         candidate.gate_receipts[0].outcome = outcome;
         candidate.gate_receipts[0].evidence_state = state;
         candidate.gate_receipts[0].assessed_at_unix_seconds =
