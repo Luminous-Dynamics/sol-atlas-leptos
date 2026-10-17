@@ -405,7 +405,8 @@
           "name",
           "commit_sha",
           "status",
-          "conclusion"
+          "conclusion",
+          "evidence_artifact_id"
         ],
         "properties": {
           "check_id": {
@@ -452,6 +453,11 @@
               "null"
             ],
             "format": "uri"
+          },
+          "evidence_artifact_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "artifact_id for the locally retained workflow-run JSON payload used to corroborate this check"
           }
         }
       }
@@ -714,7 +720,8 @@
             "parser_output",
             "qualification_output",
             "other",
-            "holdout_manifest"
+            "holdout_manifest",
+            "ci_check_evidence"
           ]
         },
         "locator": {
