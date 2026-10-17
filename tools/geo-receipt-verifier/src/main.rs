@@ -1381,4 +1381,97 @@ mod tests {
         assert!(!benchmark_specification_commit_matches(&missing));
     }
 
+    #[test]
+    fn source_adapter_requires_verified_payload_and_all_audits() {
+        let digest = "a".repeat(64);
+        let receipt = json!({
+            "source_adapter": {
+                "local_sha256": digest,
+                "units_audit": "passed",
+                "time_axis_audit": "passed",
+                "variable_shape_audit": "passed"
+            }
+        });
+        let payload = vec![ArtifactCheck {
+            artifact_id: "payload".to_string(),
+            role: "source_payload".to_string(),
+            locator: "payload.mat".to_string(),
+            expected_sha256: Some(digest.clone()),
+            actual_sha256: Some(digest.clone()),
+            expected_byte_length: Some(10),
+            actual_byte_length: Some(10),
+            passed: true,
+            detail: "verified".to_string()
+        }];
+        assert!(source_adapter_valid(&receipt, &payload));
+
+        let invalid_audit = json!({
+            "source_adapter": {
+                "local_sha256": digest,
+                "units_audit": "passed",
+                "time_axis_audit": "not_run",
+                "variable_shape_audit": "passed"
+            }
+        });
+        assert!(!source_adapter_valid(&invalid_audit, &payload));
+        assert!(!source_adapter_valid(&receipt, &[]));
+    }
+
+    #[test]
+    fn real_observation_claim_requires_real_data_and_frozen_holdout() {
+        let real_digest = "a".repeat(64);
+        let holdout_digest = "b".repeat(64);
+        let payload_digest = "c".repeat(64);
+        let receipt = json!({
+            "source_adapter": {
+                "local_sha256": payload_digest,
+                "units_audit": "passed",
+                "time_axis_audit": "passed",
+                "variable_shape_audit": "passed"
+            },
+            "real_observation_evaluation": {
+                "leakage_audit": "passed",
+                "reference_overlap_audit": "passed",
+                "holdout_manifest_sha256": holdout_digest
+            }
+        });
+        let artifacts = vec![
+            ArtifactCheck {
+                artifact_id:"payload".to_string(), role:"source_payload".to_string(),
+                locator:"payload.bin".to_string(), expected_sha256:Some(payload_digest.clone()),
+                actual_sha256:Some(payload_digest.clone()), expected_byte_length:Some(1),
+                actual_byte_length:Some(1), passed:true, detail:"verified".to_string()
+            },
+            ArtifactCheck {
+                artifact_id:"real-data".to_string(), role:"real_observations".to_string(),
+                locator:"obs.bin".to_string(), expected_sha256:Some(real_digest.clone()),
+                actual_sha256:Some(real_digest.clone()), expected_byte_length:Some(2),
+                actual_byte_length:Some(2), passed:true, detail:"verified".to_string()
+            },
+            ArtifactCheck {
+                artifact_id:"holdout".to_string(), role:"holdout_manifest".to_string(),
+                locator:"holdout.json".to_string(), expected_sha256:Some(holdout_digest.clone()),
+                actual_sha256:Some(holdout_digest.clone()), expected_byte_length:Some(3),
+                actual_byte_length:Some(3), passed:true, detail:"verified".to_string()
+            }
+        ];
+        assert!(source_adapter_valid(&receipt, &artifacts));
+        assert!(real_observation_valid(&receipt, &artifacts));
+
+        let missing_holdout = json!({
+            "source_adapter": {
+                "local_sha256": payload_digest,
+                "units_audit": "passed",
+                "time_axis_audit": "passed",
+                "variable_shape_audit": "passed"
+            },
+            "real_observation_evaluation": {
+                "leakage_audit": "passed",
+                "reference_overlap_audit": "passed",
+                "holdout_manifest_sha256": holdout_digest
+            }
+        });
+        assert!(!real_observation_valid(&missing_holdout, &artifacts[..2]));
+    }
+
 }
