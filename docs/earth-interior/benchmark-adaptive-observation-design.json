@@ -383,5 +383,9 @@
       "expected_values_are_analytic_references_not_measured_results": true
     }
   ],
-  "run_receipt_schema": "./benchmark-run-receipt.schema.json"
+  "run_receipt_schema": "./benchmark-run-receipt.schema.json",
+  "required_ci_checks": [
+    "Check",
+    "Earth Interior receipt verifier"
+  ]
 }
