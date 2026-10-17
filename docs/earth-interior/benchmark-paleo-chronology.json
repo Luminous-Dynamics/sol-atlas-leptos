@@ -1,0 +1,88 @@
+{
+  "manifest_schema_version": 1,
+  "benchmark_id": "geo-chron-discrete-age-marginalization-001",
+  "status": "benchmark_specification_not_executed",
+  "purpose": "Evaluate whether explicitly marginalizing over paleomagnetic chronology uncertainty improves inference versus fixed-age plug-in baselines on synthetic known-truth trajectories.",
+  "research_reference": {
+    "title": "Joint Bayesian inference of Earth's magnetic field and core surface flow on millennial timescales",
+    "authors": [
+      "Andreas Nilsson",
+      "Neil Suttie",
+      "Marie Troyano",
+      "Nicolas Gillet",
+      "Julien Aubert",
+      "Anders Irbäck"
+    ],
+    "doi": "10.46298/jsedi.17320",
+    "url": "https://jsedi.episciences.org/articles/17320",
+    "published": "2026-03-30",
+    "reported_scope": "Joint geomagnetic-field and core-surface-flow reconstruction over up to 9000 years with synthetic Earth-like geodynamo validation and discrete marginalization of chronological uncertainty.",
+    "license": "CC BY-NC-ND 4.0",
+    "reuse_boundary": "Use bibliographic metadata and independently authored benchmark definitions. Do not copy figures/text or publish derivative versions of the article under this benchmark manifest."
+  },
+  "model_contract": {
+    "age_support": "ordered discrete ages before a named reference epoch",
+    "weights": "finite, non-negative probabilities summing to one within a documented tolerance",
+    "likelihood": "p(y|theta) = sum_j w_j * p(y|f(theta, age_j), observation_uncertainty)",
+    "log_likelihood": "logsumexp(log(w_j) + log_likelihood_at_age_j), skipping zero-weight candidates without evaluating log(0)",
+    "forbidden_substitution": "Do not replace the age-marginalized likelihood with evaluating the physical trajectory only at the mean or MAP age; treat those as explicit baseline methods.",
+    "separate_processes": [
+      "chronology prior/distribution",
+      "measurement likelihood and measurement uncertainty",
+      "physical field/core-flow prior and temporal covariance",
+      "sediment lock-in/depositional lag where applicable",
+      "age posterior inferred from observations",
+      "derived field and flow state estimates"
+    ],
+    "clock_rule": "Age-before-present support is not Unix time. The reference epoch and chronology model are mandatory provenance."
+  },
+  "synthetic_scenario_families": [
+    "unimodal narrow age support",
+    "unimodal broad age support",
+    "skewed chronology support",
+    "multimodal chronology support",
+    "small outlier probability mass",
+    "nonlinear field evolution where mean-age plug-in is biased",
+    "sediment lock-in lag separated from chronology uncertainty",
+    "spatially uneven observations and missing intervals",
+    "model mismatch and observation-noise sweeps"
+  ],
+  "baselines": [
+    "fixed mean age",
+    "fixed MAP age",
+    "single sampled age with declared random seed",
+    "discrete age marginalization"
+  ],
+  "metrics": [
+    "held-out log predictive density or marginal log score",
+    "CRPS or another justified proper scoring rule",
+    "field-coefficient and core-flow bias/RMSE against known truth",
+    "90% and 95% empirical interval coverage with sample counts and uncertainty bounds",
+    "calibration stratified by chronology width and multimodality",
+    "false-positive rate on shuffled-age and invalid-support negative controls",
+    "runtime and memory scaling with number of candidate ages"
+  ],
+  "test_protocol": [
+    "Freeze simulation truth, sample-level age distributions, sensor/measurement noise, model configuration and contiguous temporal folds in a manifest.",
+    "Run exact tiny finite-support cases against a direct high-precision sum and a stable log-sum-exp result.",
+    "Include a nonlinear trajectory fixture where mean-age and MAP-age evaluation are measurably different from marginalized likelihood.",
+    "Use multiple simulation seeds and temporal holdouts; do not randomly split adjacent correlated time samples and label them independent.",
+    "Keep truth state, chronology metadata, synthetic observations, inference output and posterior chronology as distinct artifacts.",
+    "Retain every negative-control result and pin outputs to exact model/configuration/input manifest IDs."
+  ],
+  "initial_acceptance_gates": [
+    "Invalid, unnormalized, negative or non-finite chronology weights fail closed.",
+    "Marginal log likelihood matches reference tiny-case calculations within a declared floating-point tolerance.",
+    "On the preregistered synthetic corpus, discrete marginalization improves held-out proper scores over at least the mean-age and MAP-age baselines without worsening declared interval-calibration tolerances.",
+    "Nominal 90% and 95% interval coverage is reported with uncertainty bounds; threshold bands must be declared before scoring, not selected after results are seen.",
+    "Shuffled chronology associations and invalid clock/reference epochs are rejected or perform no better than the predeclared null baseline.",
+    "No synthetic success is described as proof of real-Earth accuracy."
+  ],
+  "related_work": {
+    "sol_atlas_contract_pr": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/118",
+    "symthaea_inference_issue": "https://github.com/Luminous-Dynamics/symthaea/issues/7688",
+    "symthaea_chronology_issue": "https://github.com/Luminous-Dynamics/symthaea/issues/7725",
+    "symtropy_simulation_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1728",
+    "data_fixture_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/121"
+  }
+}
