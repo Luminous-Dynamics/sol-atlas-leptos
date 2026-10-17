@@ -218,7 +218,9 @@ pub fn evaluate_record(record: &Value, as_of: &str, max_age_days: u64) -> Result
     };
 
     let surface_as_current = disposition == Disposition::ProviderConfirmed;
-    let has_verified_coordinates = record.pointer("/hsds_fragment/location/latitude").and_then(Value::as_f64).is_some()
+    let location_type = record.pointer("/hsds_fragment/location/location_type").and_then(Value::as_str);
+    let has_verified_coordinates = location_type == Some("physical")
+        && record.pointer("/hsds_fragment/location/latitude").and_then(Value::as_f64).is_some()
         && record.pointer("/hsds_fragment/location/longitude").and_then(Value::as_f64).is_some()
         && field(fields, "coordinates") == Some("provider_confirmed");
     let show_map_pin = surface_as_current && has_verified_coordinates;
@@ -427,6 +429,16 @@ mod tests {
         let record: Value = serde_json::from_str(FIXTURE.lines().nth(9).unwrap()).unwrap();
         let decision = evaluate_record(&record, "2026-10-17", 30).unwrap();
         assert_eq!(decision.disposition, Disposition::ProviderConfirmed);
+        assert!(!decision.show_map_pin);
+    }
+
+    #[test]
+    fn service_area_never_becomes_a_street_pin_even_if_coordinates_exist() {
+        let mut record: Value = serde_json::from_str(FIXTURE.lines().nth(9).unwrap()).unwrap();
+        record["hsds_fragment"]["location"]["latitude"] = json!(-26.2);
+        record["hsds_fragment"]["location"]["longitude"] = json!(28.0);
+        record["admission_evidence"]["field_states"]["coordinates"] = json!("provider_confirmed");
+        let decision = evaluate_record(&record, "2026-10-17", 30).unwrap();
         assert!(!decision.show_map_pin);
     }
 
