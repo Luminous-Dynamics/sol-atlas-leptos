@@ -912,7 +912,6 @@ mod tests {
             ConstructionEvidenceState::Verified,
             100,
         );
-        failed.metric_receipts = candidate("verified-fail", (10.0, 20.0), (100.0, 120.0), (0.2, 0.3)).metric_receipts;
         let report = evaluate_construction_methods(&[failed], &one_gate_policy()).unwrap();
         assert_eq!(
             report.assessments["verified-fail"].screening_status,
