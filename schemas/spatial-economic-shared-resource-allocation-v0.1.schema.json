@@ -58,7 +58,7 @@
     "max_work_units": {
       "type": "integer",
       "minimum": 1,
-      "maximum": 20000000
+      "maximum": 60000000
     }
   },
   "$defs": {
