@@ -458,6 +458,7 @@ fn add(left: &[Vec<f64>], right: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, Resolutio
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde::Deserialize;
 
     fn context() -> ObservabilityContext {
         ObservabilityContext {
