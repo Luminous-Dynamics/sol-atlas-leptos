@@ -50,3 +50,12 @@ The report says `SYNTHETIC_POLICY_FIXTURE_MATCH` only when the synthetic fixture
 - 0 virtual/service-area entries given fabricated street pins.
 - Byte-identical receipt for identical fixture bytes and policy version.
 - Human task-success and actual-contact outcomes measured separately from search/click completion.
+
+## Pinned upstream sources
+
+- [Selected contract manifest](../../docs/research/fixtures/hsds-3.1-selected-contract-v0.1.json)
+- [Vendored HSDS 3.1 schema files](../../docs/research/fixtures/upstream/hsds-3.1/schema/)
+- [Open Referral HSDS license](../../docs/research/fixtures/upstream/hsds-3.1/LICENSE) — CC BY-SA 4.0
+- Canonical upstream source: https://github.com/openreferral/specification/tree/3.1/schema
+
+The vendored schema bytes are pinned and used for this branch's selected-resource field contract. Full HSDS/profile-tool validation, including nested references, remains a separate gate.
