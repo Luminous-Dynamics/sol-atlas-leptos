@@ -3,7 +3,7 @@
   "fixture_id": "city-belonging-admission-v0.1",
   "fixture_path": "docs/research/fixtures/city-belonging-admission-v0.1.jsonl",
   "hash_algorithm": "SHA-256",
-  "fixture_sha256": "3c84f1394a570787fb4076be45f28f877c08b6fc4853e2afce1425c1b58dd802",
+  "fixture_sha256": "d9cc72b5383be10c6550108eab00ebf1422d9b01600a0c322b5dde50815c7c8e",
   "record_format": "JSON Lines; UTF-8; newline-terminated",
   "record_count": 11,
   "disposition_counts": {
