@@ -577,6 +577,18 @@
                 "const": "passed"
               }
             }
+          },
+          "artifacts": {
+            "contains": {
+              "properties": {
+                "role": {
+                  "const": "real_observations"
+                }
+              },
+              "required": [
+                "role"
+              ]
+            }
           }
         }
       }
@@ -860,7 +872,10 @@
           "minLength": 1
         },
         "provider_md5": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "pattern": "^[a-fA-F0-9]{32}$"
         },
         "local_sha256": {
