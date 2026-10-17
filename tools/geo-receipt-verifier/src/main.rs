@@ -1679,4 +1679,50 @@ mod tests {
         });
         assert!(!real_observation_valid(&missing_holdout, &artifacts[..2]));
     }
+    #[test]
+    fn every_published_benchmark_spec_freezes_the_required_ci_set() {
+        const SPECS: &[(&str, &str)] = &[
+            (
+                "geo-active-observation-design-001",
+                include_str!("../../../docs/earth-interior/benchmark-adaptive-observation-design.json"),
+            ),
+            (
+                "geo-resolution-frontier-001",
+                include_str!("../../../docs/earth-interior/benchmark-resolution-frontier.json"),
+            ),
+            (
+                "geo-model-falsification-001",
+                include_str!("../../../docs/earth-interior/benchmark-model-falsification.json"),
+            ),
+            (
+                "geo-chron-discrete-age-marginalization-001",
+                include_str!("../../../docs/earth-interior/benchmark-paleo-chronology.json"),
+            ),
+        ];
+        let expected = vec![
+            "Check".to_string(),
+            "Earth Interior receipt verifier".to_string(),
+        ];
+        for (expected_id, raw) in SPECS {
+            let spec: Value = serde_json::from_str(raw).expect("benchmark spec JSON parses");
+            assert_eq!(string_field(&spec, &["benchmark_id"]), Some(*expected_id));
+            let names = spec
+                .get("required_ci_checks")
+                .and_then(Value::as_array)
+                .expect("required_ci_checks must exist");
+            let names: Vec<String> = names
+                .iter()
+                .map(|value| value.as_str().expect("CI check name is a string").to_string())
+                .collect();
+            assert_eq!(names, expected, "{expected_id} must freeze the full required CI set");
+            assert!(ci_check_names_match_policy(
+                &names
+                    .iter()
+                    .map(|name| json!({"name":name}))
+                    .collect::<Vec<_>>(),
+                &expected
+            ));
+        }
+    }
+
 }
