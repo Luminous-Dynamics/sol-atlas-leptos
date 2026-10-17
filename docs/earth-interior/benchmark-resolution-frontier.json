@@ -346,11 +346,19 @@
     "active_observation_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1760",
     "geomagnetic_inference_issue": "https://github.com/Luminous-Dynamics/symthaea/issues/7688",
     "source_qualification_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/121",
-    "evidence_lineage": "https://github.com/Luminous-Dynamics/mycelix/issues/2410"
+    "evidence_lineage": "https://github.com/Luminous-Dynamics/mycelix/issues/2410",
+    "symtropy_h0_implementation_pr": "https://github.com/Luminous-Dynamics/symtropy/pull/1804",
+    "symtropy_h0_public_fixture_manifest": "https://github.com/Luminous-Dynamics/symtropy/blob/feat/geophysics-known-truth-h0-20261017/crates/domains/symtropy-geophysics-benchmark/fixtures/h0-public-manifest.json"
   },
   "run_receipt_schema": "./benchmark-run-receipt.schema.json",
   "required_ci_checks": [
     "Check",
     "Earth Interior receipt verifier"
-  ]
+  ],
+  "cross_project_implementation_note": {
+    "status": "implementation_authored_not_ci_qualified",
+    "note": "Symtropy PR #1804 provides independent low-order analytic observation fixtures and a covariance-whitened observability oracle. Its dimensionless weak-mode fixture is a distinct reference from this document's H0 matrix diag(2.0, 0.1) with identity prior/noise; do not substitute one expected value set for the other.",
+    "rust_tests_executed_locally": false,
+    "exact_head_ci_qualified": false
+  }
 }
