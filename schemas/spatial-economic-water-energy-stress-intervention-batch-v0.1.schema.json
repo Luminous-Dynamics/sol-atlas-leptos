@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-stress-intervention-batch-v0.1.schema.json",
+  "title": "Spatial-Economic Joint-Failure Intervention Batch Request",
+  "description": "Evaluates multiple candidate interventions against one fixed nominal baseline and the same exhaustive declared water-energy failure suite. Candidates must preserve the paired comparison's service/time/floor/scenario alignment.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "baseline",
+    "candidates"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseline": {
+      "$ref": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-stress-sweep-v0.1.schema.json"
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate_id",
+          "experiment"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "experiment": {
+            "$ref": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-stress-sweep-v0.1.schema.json"
+          }
+        }
+      }
+    }
+  }
+}
