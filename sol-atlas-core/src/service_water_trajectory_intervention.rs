@@ -358,7 +358,10 @@ mod tests {
     use crate::service_water_trajectory::{
         WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectoryStep,
     };
-    use crate::spatial_economic::Quantity;
+    use crate::spatial_economic::{
+        EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceRecord, EvidenceState, Provenance,
+        Quantity, SpatialContext, TimeContext,
+    };
 
     fn measurement(entity: &str, value: f64, unit: &str, uncertainty: Option<f64>) -> FunctionMeasurement {
         FunctionMeasurement {
@@ -455,6 +458,72 @@ mod tests {
             Err(WaterServiceTrajectoryInterventionError::InvalidInput(errors))
                 if errors.contains(&WaterTrajectoryInterventionValidationError::TimeGridMismatch)
         ));
+    }
+
+    fn source_evidence(id: &str, value: f64, at: &str) -> EvidenceRecord {
+        EvidenceRecord {
+            id: id.to_owned(),
+            schema_version: EVIDENCE_SCHEMA_VERSION.to_owned(),
+            kind: EvidenceKind::Observation,
+            state: EvidenceState::Asserted,
+            issuer_id: "did:example:water-intervention-test".to_owned(),
+            subject_id: "source-a".to_owned(),
+            spatial: SpatialContext {
+                entity_id: "source-a".to_owned(),
+                geometry_uri: None,
+                crs: None,
+            },
+            time: TimeContext {
+                occurred_at: at.to_owned(),
+                recorded_at: at.to_owned(),
+                valid_from: None,
+                valid_until: None,
+            },
+            statement: "Synthetic source-flow observation for evidence-attribution test.".to_owned(),
+            quantity: Some(Quantity {
+                value,
+                unit: WATER_RATE_UNIT.to_owned(),
+                uncertainty_abs: None,
+            }),
+            money: None,
+            provenance: Provenance {
+                method: "synthetic_test".to_owned(),
+                source_artifacts: Vec::new(),
+                derivation_id: None,
+            },
+            supersedes: None,
+            access_policy: "policy:synthetic-test".to_owned(),
+        }
+    }
+
+    #[test]
+    fn paired_step_keeps_baseline_and_candidate_evidence_separate() {
+        let mut baseline = trajectory("baseline-evidence", 0.0, None);
+        let mut candidate = trajectory("candidate-evidence", 50.0, None);
+        baseline.steps[1].source_flow_rate.basis = ScenarioBasis::Observed;
+        baseline.steps[1].source_flow_rate.supporting_evidence_ids =
+            vec!["baseline-flow".to_owned()];
+        candidate.steps[1].source_flow_rate.basis = ScenarioBasis::Observed;
+        candidate.steps[1].source_flow_rate.supporting_evidence_ids =
+            vec!["candidate-flow".to_owned()];
+        let evidence = [
+            source_evidence("baseline-flow", 0.0, "2026-10-16T11:00:00Z"),
+            source_evidence("candidate-flow", 50.0, "2026-10-16T11:00:00Z"),
+        ];
+        let input = request("evidence-pair", baseline, candidate);
+        let result = compare_water_service_trajectory_interventions(&[input], &evidence).unwrap();
+        assert_eq!(
+            result[0].steps[1].baseline_supporting_evidence_ids,
+            vec!["baseline-flow".to_owned()]
+        );
+        assert_eq!(
+            result[0].steps[1].candidate_supporting_evidence_ids,
+            vec!["candidate-flow".to_owned()]
+        );
+        assert_eq!(
+            result[0].supporting_evidence_ids,
+            vec!["baseline-flow".to_owned(), "candidate-flow".to_owned()]
+        );
     }
 
     #[test]
