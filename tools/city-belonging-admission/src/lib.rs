@@ -302,9 +302,12 @@ mod tests {
     }
 
     #[test]
-    fn missing_final_newline_fails_closed() {
+    fn missing_final_newline_fails_closed_even_with_matching_digest() {
         let fixture = FIXTURE.trim_end().as_bytes();
-        assert!(verify_bytes(fixture, MANIFEST).unwrap_err().contains("SHA-256 mismatch"));
+        let mut manifest: Value = serde_json::from_str(MANIFEST).unwrap();
+        manifest["fixture_sha256"] = json!(sha256_hex(fixture));
+        let manifest = serde_json::to_string(&manifest).unwrap();
+        assert!(verify_bytes(fixture, &manifest).unwrap_err().contains("must end with a newline"));
     }
 
     #[test]
