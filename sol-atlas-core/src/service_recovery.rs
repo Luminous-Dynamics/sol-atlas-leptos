@@ -104,7 +104,7 @@ struct DeficitBounds {
     upper: f64,
 }
 
-fn utc_epoch_seconds(timestamp: &str) -> Option<i64> {
+pub(crate) fn utc_epoch_seconds(timestamp: &str) -> Option<i64> {
     if !is_canonical_utc_timestamp(timestamp) {
         return None;
     }

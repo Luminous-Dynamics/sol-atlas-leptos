@@ -140,3 +140,10 @@ The separate water_service_balance benchmark evaluates 100, 1,000 and 10,000 syn
 Run with WATER_BENCH_WARMUP=5 and WATER_BENCH_SAMPLES=100 using cargo bench --bench water_service_balance.
 
 The model's conservation gate is 1e-9 m3 per aggregate balance path. Initial proposed p95 targets are 5 ms / 25 ms / 250 ms for 100 / 1,000 / 10,000 services, respectively. These targets are local engineering hypotheses, separate from hydraulic correctness. The adapter boundary must be validated against EPA EPANET fixtures before making pressure, head-loss, water-quality, or real-network claims.
+
+
+## Water-service trajectory batch
+
+The time-dependent water benchmark evaluates contiguous synthetic trajectories with 10 intervals each at 100, 1,000 and 10,000 total intervals. Each trajectory has normal service, an explicit source outage, storage depletion, and a restoration interval. The benchmark asserts exact interval count, deterministic serialized outputs, conserved volume, bounded ending storage, cumulative deficit totals, and a sampled recovery classification. It does not claim measured field accuracy.
+
+Run with WATER_TRAJECTORY_BENCH_WARMUP=3 and WATER_TRAJECTORY_BENCH_SAMPLES=30 using cargo bench --bench water_service_trajectory. Proposed p95 budgets for 100 / 1,000 / 10,000 total intervals are 15 ms / 100 ms / 500 ms. These are engineering hypotheses, not industry standards or current results. The report should be attached to the exact commit and runner manifest.

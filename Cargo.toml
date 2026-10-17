@@ -70,3 +70,7 @@ harness = false
 [[bench]]
 name = "water_service_balance"
 harness = false
+
+[[bench]]
+name = "water_service_trajectory"
+harness = false

@@ -217,7 +217,7 @@ pub fn assess_water_services(
         .collect()
 }
 
-fn assess_water_service_indexed(
+pub(crate) fn assess_water_service_indexed(
     scenario: &WaterServiceScenario,
     evidence_by_id: &BTreeMap<&str, &EvidenceRecord>,
 ) -> Result<WaterServiceAssessment, WaterServiceError> {

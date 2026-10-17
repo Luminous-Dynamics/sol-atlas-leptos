@@ -270,3 +270,20 @@ Research boundary: EPA EPANET models pressure-driven pipe networks, pumps, valve
 - Determinism: input-order permutations preserve canonical serialized outputs; repeated reference runs match byte-for-byte.
 - Initial CPU targets, measured on a documented reference runner: 100 services p95 <= 5 ms; 1,000 p95 <= 25 ms; 10,000 p95 <= 250 ms. These are proposed targets, not measured results or external standards.
 - Record warm-up, sample count, CPU/OS, compiler version, commit SHA, p50/p95/max, output size, and peak RSS. Do not report a target as passed until a real run provides raw evidence.
+
+
+## Time-dependent water-service trajectories
+
+The trajectory evaluator carries a bounded modeled storage interval between contiguous time steps. It reports each step's service classification, delivered-volume bounds, ending-storage bounds and conservation residual, plus the time-series unmet-demand volume bounds, maximum normalized deficit and first robustly adequate sampled interval. The recovery output is a sampling bracket, not a claim about the exact instant of physical recovery. Assumed outage steps are scenarios, not outage probabilities. Component identities must remain stable through one trajectory, and irregular timestamp intervals are rejected rather than silently bridged.
+
+This remains an aggregate accounting model. Each step assumes its reported production can be made available within the interval; it does not simulate hydraulic convergence, tank-level controls, pressure-driven demand or water quality. For these behaviors, validate an adapter against EPANET extended-period simulation, which carries tank state and varies demands and operating conditions over successive intervals. The official EPANET docs note that time steps can shorten when events such as tank fill/drain thresholds or control changes occur, so a coarse fixed-grid trajectory cannot claim to resolve such events. References: https://www.epa.gov/water-research/epanet and https://github.com/USEPA/EPANET/blob/main/tutorial/tutorial.md.
+
+### Proposed trajectory acceptance gates
+
+- Storage carry-forward uses the prior modelled ending interval, explicitly labelled as derived rather than observed evidence.
+- Adjacent sample times must be contiguous and step durations must resolve to whole seconds; no silent extrapolation across missing intervals.
+- 100% of time-step state, volume, storage and recovery-bracket golden fixtures must match the hand oracle.
+- 0 positive adequate-service conclusions when evidence is inadmissible or the conservative delivery bound remains below demand.
+- Lower/upper cumulative unmet-demand volume bounds must be ordered and reconcile against the respective demand/delivery totals within numeric tolerance.
+- Identical inputs must produce byte-identical canonical output; duplicate trajectory and step identifiers fail closed.
+- Proposed batch p95 targets: 100 trajectories x 10 steps <= 15 ms; 100 x 100 steps <= 100 ms; 1,000 x 10 steps (10,000 intervals) <= 500 ms. Measure before making a performance claim.
