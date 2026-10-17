@@ -492,6 +492,7 @@ mod tests {
         let mut problem = basic_problem();
         problem.actions.push(InvestigationAction {
             action_id: "inspect-water".into(),
+            cost_unit: "regret-units".into(),
             cost: 1.0,
             outcome_by_scenario: BTreeMap::from([("dry".into(), "low".into())]),
         });
@@ -506,6 +507,7 @@ mod tests {
         let mut problem = basic_problem();
         problem.actions.push(InvestigationAction {
             action_id: "partial-test".into(),
+            cost_unit: "regret-units".into(),
             cost: 0.0,
             outcome_by_scenario: BTreeMap::from([
                 ("dry".into(), "not-dry".into()),
@@ -514,6 +516,7 @@ mod tests {
         });
         problem.actions.push(InvestigationAction {
             action_id: "perfect-test".into(),
+            cost_unit: "regret-units".into(),
             cost: 0.0,
             outcome_by_scenario: BTreeMap::from([
                 ("dry".into(), "dry".into()),
@@ -567,6 +570,7 @@ mod tests {
                 actions: vec![
                     InvestigationAction {
                         action_id: "uninformative".into(),
+                        cost_unit: "regret-units".into(),
                         cost: 0.0,
                         outcome_by_scenario: BTreeMap::from([
                             ("scenario-a".into(), "same".into()),
@@ -575,6 +579,7 @@ mod tests {
                     },
                     InvestigationAction {
                         action_id: "fully-discriminating".into(),
+                        cost_unit: "regret-units".into(),
                         cost: 0.0,
                         outcome_by_scenario: BTreeMap::from([
                             ("scenario-a".into(), "outcome-a".into()),
