@@ -24,6 +24,8 @@ pub mod picking;
 pub mod simulation;
 pub mod solar_system;
 pub mod timeline;
+pub mod transport_projection;
+pub mod transport_source_manifest;
 pub mod types;
 pub mod visual_validation;
 
