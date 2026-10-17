@@ -251,11 +251,25 @@ fn aligned_override_sets(
 fn validate_paired_requests(
     request: &WaterEnergyStressInterventionComparisonRequest,
 ) -> Result<(), Vec<WaterEnergyStressInterventionValidationError>> {
+    validate_paired_sweeps(
+        &request.schema_version,
+        &request.id,
+        &request.baseline,
+        &request.candidate,
+    )
+}
+
+fn validate_paired_sweeps(
+    schema_version: &str,
+    id: &str,
+    baseline: &WaterEnergyStressSweepRequest,
+    candidate: &WaterEnergyStressSweepRequest,
+) -> Result<(), Vec<WaterEnergyStressInterventionValidationError>> {
     let mut errors = Vec::new();
-    if request.schema_version != WATER_ENERGY_STRESS_INTERVENTION_SCHEMA_VERSION {
+    if schema_version != WATER_ENERGY_STRESS_INTERVENTION_SCHEMA_VERSION {
         errors.push(WaterEnergyStressInterventionValidationError::UnsupportedSchemaVersion);
     }
-    if request.id.trim().is_empty() {
+    if id.trim().is_empty() {
         errors.push(WaterEnergyStressInterventionValidationError::EmptyComparisonId);
     }
 
@@ -271,8 +285,8 @@ fn validate_paired_requests(
         .iter()
         .map(|service| (service.id.as_str(), service))
         .collect();
-    if baseline_services.len() != request.baseline.baseline_services.len()
-        || candidate_services.len() != request.candidate.baseline_services.len()
+    if baseline_services.len() != baseline.baseline_services.len()
+        || candidate_services.len() != candidate.baseline_services.len()
     {
         errors.push(WaterEnergyStressInterventionValidationError::ServiceRequestSetMismatch);
     }
@@ -344,8 +358,8 @@ fn validate_paired_requests(
         .iter()
         .map(|floor| (floor.service_request_id.as_str(), floor))
         .collect();
-    if baseline_floors.len() != request.baseline.protected_service_floors.len()
-        || candidate_floors.len() != request.candidate.protected_service_floors.len()
+    if baseline_floors.len() != baseline.protected_service_floors.len()
+        || candidate_floors.len() != candidate.protected_service_floors.len()
         || baseline_floors.len() != candidate_floors.len()
         || baseline_floors.keys().ne(candidate_floors.keys())
     {
@@ -378,8 +392,8 @@ fn validate_paired_requests(
         .iter()
         .map(|scenario| (scenario.id.as_str(), scenario))
         .collect();
-    if baseline_scenarios.len() != request.baseline.failure_scenarios.len()
-        || candidate_scenarios.len() != request.candidate.failure_scenarios.len()
+    if baseline_scenarios.len() != baseline.failure_scenarios.len()
+        || candidate_scenarios.len() != candidate.failure_scenarios.len()
         || baseline_scenarios.len() != candidate_scenarios.len()
         || baseline_scenarios.keys().ne(candidate_scenarios.keys())
     {
@@ -1502,14 +1516,14 @@ pub fn compare_water_energy_stress_intervention_batch(
         request.candidates.iter().collect();
     candidates.sort_by(|left, right| left.candidate_id.cmp(&right.candidate_id));
     for candidate in &candidates {
-        let paired_request = WaterEnergyStressInterventionComparisonRequest {
-            schema_version: WATER_ENERGY_STRESS_INTERVENTION_SCHEMA_VERSION.to_owned(),
-            id: format!("{}::{}", request.id, candidate.candidate_id),
-            baseline: request.baseline.clone(),
-            candidate: candidate.experiment.clone(),
-        };
-        validate_paired_requests(&paired_request)
-            .map_err(WaterEnergyStressInterventionBatchError::InvalidInput)?;
+        let comparison_id = format!("{}::{}", request.id, candidate.candidate_id);
+        validate_paired_sweeps(
+            WATER_ENERGY_STRESS_INTERVENTION_SCHEMA_VERSION,
+            &comparison_id,
+            &request.baseline,
+            &candidate.experiment,
+        )
+        .map_err(WaterEnergyStressInterventionBatchError::InvalidInput)?;
     }
 
     let evidence_by_id = build_evidence_index(evidence_records)
