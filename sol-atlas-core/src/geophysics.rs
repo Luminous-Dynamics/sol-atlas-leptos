@@ -174,10 +174,7 @@ impl TimeWindow {
                     *youngest_years_before_present,
                     "youngest_years_before_present",
                 )?;
-                require_finite(
-                    *oldest_years_before_present,
-                    "oldest_years_before_present",
-                )?;
+                require_finite(*oldest_years_before_present, "oldest_years_before_present")?;
                 if *youngest_years_before_present < 0.0
                     || oldest_years_before_present < youngest_years_before_present
                 {
@@ -201,9 +198,8 @@ impl TimeWindow {
                         }
                         if point.age_years_before_present < *youngest_years_before_present
                             || point.age_years_before_present > *oldest_years_before_present
-                            || previous_age.is_some_and(|previous| {
-                                point.age_years_before_present <= previous
-                            })
+                            || previous_age
+                                .is_some_and(|previous| point.age_years_before_present <= previous)
                         {
                             return Err(ValidationError::InvalidAgeDistribution);
                         }
@@ -255,7 +251,9 @@ impl GeodeticPosition {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum EstimateSupport {
-    GeodeticPoint { position: GeodeticPosition },
+    GeodeticPoint {
+        position: GeodeticPosition,
+    },
     CoreMantleBoundaryPoint {
         latitude_deg: f64,
         longitude_deg: f64,
@@ -367,9 +365,7 @@ impl ObservationValue {
                 if let Some(uncertainties) = standard_uncertainty_nt {
                     for value in uncertainties {
                         if !value.is_finite() {
-                            return Err(ValidationError::NonFiniteValue(
-                                "standard_uncertainty_nt",
-                            ));
+                            return Err(ValidationError::NonFiniteValue("standard_uncertainty_nt"));
                         }
                         if *value < 0.0 {
                             return Err(ValidationError::NegativeUncertainty(
@@ -509,7 +505,9 @@ pub enum EstimateValue {
 impl EstimateValue {
     fn validate(&self) -> Result<(), ValidationError> {
         match self {
-            Self::RadialMagneticFieldNt { value_nt, interval, .. } => {
+            Self::RadialMagneticFieldNt {
+                value_nt, interval, ..
+            } => {
                 require_finite(*value_nt, "value_nt")?;
                 validate_optional_interval(interval)?;
             }
@@ -573,7 +571,7 @@ impl StateEstimate {
             (
                 EstimateValue::RadialMagneticFieldNt { .. },
                 EstimateSupport::GeodeticPoint { .. }
-                    | EstimateSupport::CoreMantleBoundaryPoint { .. },
+                | EstimateSupport::CoreMantleBoundaryPoint { .. },
             )
             | (
                 EstimateValue::CoreSurfaceFlowMetersPerYear { .. },
@@ -841,7 +839,10 @@ mod tests {
                 },
             ]),
         };
-        assert_eq!(time.validate(), Err(ValidationError::InvalidAgeDistribution));
+        assert_eq!(
+            time.validate(),
+            Err(ValidationError::InvalidAgeDistribution)
+        );
     }
 
     #[test]
@@ -865,10 +866,7 @@ mod tests {
     fn captured_digest_must_be_a_sha256_hex_string() {
         let mut observation = magnetic_observation();
         observation.provenance.captured_sha256 = Some("not-a-digest".into());
-        assert_eq!(
-            observation.validate(),
-            Err(ValidationError::InvalidSha256)
-        );
+        assert_eq!(observation.validate(), Err(ValidationError::InvalidSha256));
     }
 
     #[test]
@@ -938,9 +936,8 @@ mod tests {
             estimate.validate(),
             Err(ValidationError::MissingIdentifiabilityCaveat)
         );
-        estimate.unresolved_ambiguities = vec![
-            "Distinct toroidal flow components can fit the same secular variation.".into(),
-        ];
+        estimate.unresolved_ambiguities =
+            vec!["Distinct toroidal flow components can fit the same secular variation.".into()];
         assert_eq!(estimate.validate(), Ok(()));
 
         // A core-boundary flow must never masquerade as a global scalar or
