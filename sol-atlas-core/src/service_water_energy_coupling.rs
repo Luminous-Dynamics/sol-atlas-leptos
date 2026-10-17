@@ -207,8 +207,8 @@ pub fn assess_water_energy_coupled_trajectory(
     request: &WaterEnergyCouplingRequest,
     evidence_records: &[EvidenceRecord],
 ) -> Result<WaterEnergyCoupledTrajectoryAssessment, WaterEnergyCouplingError> {
-    let evidence_by_id =
-        build_evidence_index(evidence_records).map_err(WaterEnergyCouplingError::EvidenceValidation)?;
+    let evidence_by_id = build_evidence_index(evidence_records)
+        .map_err(WaterEnergyCouplingError::EvidenceValidation)?;
     let mut errors = Vec::new();
 
     if request.schema_version != WATER_ENERGY_COUPLING_SCHEMA_VERSION {
@@ -418,7 +418,11 @@ pub fn assess_water_energy_coupled_trajectory(
                 uncertainty_abs: Some(uncertainty),
             },
             basis: ScenarioBasis::Assumed,
-            rationale: "Derived from pump-terminal power, declared operating-regime specific energy, and mechanical capacity; not a measured flow or hydraulic pump curve.".to_owned(),
+            rationale: concat!(
+                "Derived capacity from pump-terminal power and regime specific energy; ",
+                "not measured flow or a hydraulic pump curve.",
+            )
+            .to_owned(),
             supporting_evidence_ids: Vec::new(),
         };
     }
@@ -488,7 +492,12 @@ mod tests {
                     source_flow_rate: measurement("source", 100.0, WATER_RATE_UNIT, None),
                     pump_capacity: measurement("pump", 100.0, WATER_RATE_UNIT, None),
                     treatment_capacity: measurement("treatment", 100.0, WATER_RATE_UNIT, None),
-                    distribution_capacity: measurement("distribution", 120.0, WATER_RATE_UNIT, None),
+                    distribution_capacity: measurement(
+                        "distribution",
+                        120.0,
+                        WATER_RATE_UNIT,
+                        None,
+                    ),
                     demand_rate: measurement("community", 100.0, WATER_RATE_UNIT, None),
                     distribution_loss_fraction: measurement(
                         "distribution",
@@ -569,7 +578,9 @@ mod tests {
         assert!(matches!(
             result,
             Err(WaterEnergyCouplingError::InvalidInput(errors))
-                if errors.contains(&WaterEnergyCouplingValidationError::SpecificEnergyLowerBoundNotPositive)
+                if errors.contains(
+                    &WaterEnergyCouplingValidationError::SpecificEnergyLowerBoundNotPositive,
+                )
         ));
     }
 
