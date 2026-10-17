@@ -531,7 +531,7 @@ mod tests {
         assert_eq!(by_id["weakest"].pareto_front, 3);
         assert_eq!(
             by_id["dominated"].pareto_dominated_by_plan_ids,
-            vec!["high-floor", "high-gain"]
+            vec!["high-floor".to_owned(), "high-gain".to_owned()]
         );
         assert!(by_id["high-gain"].pareto_dominated_by_plan_ids.is_empty());
         assert!(by_id["high-floor"].pareto_dominated_by_plan_ids.is_empty());
@@ -579,6 +579,14 @@ mod tests {
         let result = compare_service_network_portfolio(&request, &[]).unwrap();
         assert_eq!(result.scenario_count, 2);
         assert_eq!(result.plan_count, 3);
+        assert_eq!(
+            result.pareto_objectives,
+            NETWORK_PORTFOLIO_PARETO_OBJECTIVES
+                .iter()
+                .map(|objective| (*objective).to_owned())
+                .collect::<Vec<_>>()
+        );
+        assert!(result.plans.iter().all(|plan| plan.pareto_front >= 1));
         assert_eq!(result.plans[0].plan_id, "robust-combined");
         assert_eq!(result.plans[0].worst_case_conservative_capacity_gain, 4.0);
         assert_eq!(result.plans[0].scenarios_improved, 2);
