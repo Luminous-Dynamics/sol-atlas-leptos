@@ -104,6 +104,14 @@ The trajectory requires the first snapshot to coincide with the declared disrupt
 
 This is a discrete trajectory primitive, not a stochastic restoration model or a domain-specific physical simulator. Future time-to-recovery estimates must be evaluated against independently recorded disruptions and restoration times, with sampling gaps and uncertain records retained in the report.
 
+### 10. From nominal resilience estimates to exhaustive bounded failure experiments
+
+A baseline max-flow value answers what the declared network can deliver under one scenario. It does not answer how fragile that service is when multiple links fail together. The new service_network_stress.rs enumerates all combinations of one, two or three currently active link failures, subject to an explicit maximum case budget. It reports the exact candidate/evaluated case counts, worst-case conservative and optimistic capacity, flow loss and all failure sets tied for the worst result.
+
+This is deterministic stress testing, not probabilistic risk estimation. The enumerated cases are not event likelihoods; an N-2 result does not imply that two failures are likely or independent. Only active links are candidates. Each forced failure is an explicit assumed override that clears availability evidence for the overridden state but preserves the capacity observations. The analysis requires complete declared topology; a partial network must not support a service-wide resilience claim.
+
+The budget is a safety boundary. If the exhaustive set exceeds the configured limit, the algorithm fails closed rather than silently truncating or sampling failure combinations. A successful response is exhaustive for the chosen order and declared graph. It still does not cover omitted hazards, shared-cause relationships that are not translated into the scenario, repair-time dependencies, or physical effects such as pressure and voltage. Those need separate, explicit models. This direction complements NIST's system-of-systems resilience methods, which emphasize service functionality, interdependencies, disruptive scenarios and recovery. The implementation intentionally keeps its narrower graph assumptions visible.
+
 ## Contract boundary (v0.1)
 
 The machine-readable contracts are grouped by purpose:
@@ -143,6 +151,7 @@ A correction appends a new statement that references the old one; it does not re
 3a. **Common-cause exposure:** `common_cause.rs` records shared failure domains independently of dependency edges, returns evidence-gated exposure for each declared member, and correlates those exposures with dependency-group alternatives. It flags when two or more alternatives share an evidence-admissible domain and lists currently exposed relations, without changing the group outcome. Admissibility is not truth, source independence, or causal proof. No independence or probability claim is valid merely because a group is labelled redundant.
 3b. **Functional adequacy:** `service_function.rs` compares one service's capacity and requirement using explicit units and uncertainty bounds, validates observations against cited evidence, and provides a batch API that indexes a shared evidence corpus once. It distinguishes adequate, degraded, unavailable and indeterminate outcomes. There is no implicit unit conversion, capacity aggregation, or reliability probability.
 3c. **Network flow:** `service_network.rs` composes directed link capacities with conservative/optimistic max-flow bounds and exposes a deterministic lower-bound minimum cut. Unknown link availability widens the bounds. Incomplete topology forces indeterminate, even if the declared subgraph has zero flow. The algorithm is not a domain-specific physical simulator.
+3d. **Exhaustive stress:** `service_network_stress.rs` evaluates every single-, double- or triple-active-link failure set within a caller-declared budget, returns worst-case flow-loss summaries and exact failed-link combinations, and refuses over-budget partial outputs. Scenario counts are not probabilities. This tests declared-link robustness; it does not prove robustness to unmodeled hazards or unknown topology.
 3d. **Service recovery trajectory:** `service_recovery.rs` evaluates chronologically ordered service-capacity snapshots, brackets the first observed robust-adequacy sample, integrates normalized deficit bounds under an explicit trapezoidal interpolation policy, and rejects large sampling gaps. These metrics remain sample-bounded and non-causal.
 
 The qualitative outcome rule is:
