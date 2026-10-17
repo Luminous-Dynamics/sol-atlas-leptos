@@ -117,6 +117,10 @@ fn main() {
                 && item.unmet_demand_reduction_upper_bound == 100.0
                 && item.recovery_comparison == WaterTrajectoryRecoveryComparison::BothSameSample
                 && item.paired_interval_count == 10
+                && item.steps.iter().all(|step| {
+                    step.baseline_supporting_evidence_ids.is_empty()
+                        && step.candidate_supporting_evidence_ids.is_empty()
+                })
         }));
         let reference_bytes = serde_json::to_vec(&reference).expect("reference serialization");
         for _ in 0..warmup {
