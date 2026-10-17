@@ -810,12 +810,51 @@ mod tests {
     #[test]
     fn unresolved_competitor_blocks_robust_unique_winner_claim() {
         let candidates = [
-            candidate("stable", GateDisposition::Eligible, Some(0.99), Some(0.99), Some(0.99)),
-            candidate("unmeasured", GateDisposition::Eligible, Some(0.80), None, Some(0.70)),
+            candidate(
+                "stable",
+                GateDisposition::Eligible,
+                Some(0.99),
+                Some(0.99),
+                Some(0.99),
+            ),
+            candidate(
+                "unmeasured",
+                GateDisposition::Eligible,
+                Some(0.80),
+                None,
+                Some(0.70),
+            ),
         ];
-        let scenarios = scenarios();
-        let result = analyze_sensitivity(&candidates, &scenarios, &policy()).unwrap();
-        assert!(result.scenario_rankings.iter().all(|scenario| scenario.winners == vec!["stable"]));
+        let options = [
+            WeightScenario {
+                scenario_id: "access-only".into(),
+                weights: [
+                    ("access".into(), 1.0),
+                    ("carbon".into(), 0.0),
+                    ("community".into(), 0.0),
+                ]
+                .into_iter()
+                .collect(),
+            },
+            WeightScenario {
+                scenario_id: "carbon-active".into(),
+                weights: [
+                    ("access".into(), 0.1),
+                    ("carbon".into(), 0.8),
+                    ("community".into(), 0.1),
+                ]
+                .into_iter()
+                .collect(),
+            },
+        ];
+        let result = analyze_sensitivity(&candidates, &options, &policy()).unwrap();
+        assert!(
+            result
+                .scenario_rankings
+                .iter()
+                .all(|scenario| scenario.winners == vec!["stable"])
+        );
+        assert_eq!(result.candidates["unmeasured"].ranked_scenarios, 1);
         assert_eq!(result.candidates["unmeasured"].needs_evidence_scenarios, 1);
         assert_eq!(result.robust_unique_winner, None);
     }
