@@ -1463,23 +1463,30 @@ pub fn compare_water_energy_stress_intervention_batch(
     }
 
     let mut total_override_count = 0usize;
-    for sweep in std::iter::once(&request.baseline)
-        .chain(request.candidates.iter().map(|candidate| &candidate.experiment))
-    {
+    for sweep in std::iter::once(&request.baseline).chain(
+        request
+            .candidates
+            .iter()
+            .map(|candidate| &candidate.experiment),
+    ) {
         let sweep_overrides = sweep
             .failure_scenarios
             .iter()
-            .try_fold(0usize, |sum, scenario| sum.checked_add(scenario.overrides.len()))
+            .try_fold(0usize, |sum, scenario| {
+                sum.checked_add(scenario.overrides.len())
+            })
             .ok_or_else(|| {
                 WaterEnergyStressInterventionBatchError::InvalidInput(vec![
                     WaterEnergyStressInterventionValidationError::ArithmeticOverflow,
                 ])
             })?;
-        total_override_count = total_override_count.checked_add(sweep_overrides).ok_or_else(|| {
-            WaterEnergyStressInterventionBatchError::InvalidInput(vec![
-                WaterEnergyStressInterventionValidationError::ArithmeticOverflow,
-            ])
-        })?;
+        total_override_count = total_override_count
+            .checked_add(sweep_overrides)
+            .ok_or_else(|| {
+                WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+                    WaterEnergyStressInterventionValidationError::ArithmeticOverflow,
+                ])
+            })?;
     }
     if total_override_count > request.max_total_declared_failure_overrides
         || total_override_count > MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_OVERRIDES
@@ -1676,8 +1683,10 @@ mod batch_tests {
             schema_version: WATER_ENERGY_STRESS_INTERVENTION_BATCH_SCHEMA_VERSION.to_owned(),
             id: "batch-storage-shortlist".to_owned(),
             baseline: tests::sweep_request("baseline", 0.0),
-            max_total_service_step_assessments: MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_SERVICE_STEP_ASSESSMENTS,
-            max_total_declared_failure_overrides: MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_OVERRIDES,
+            max_total_service_step_assessments:
+                MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_SERVICE_STEP_ASSESSMENTS,
+            max_total_declared_failure_overrides:
+                MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_OVERRIDES,
             candidates: vec![
                 WaterEnergyStressInterventionBatchCandidate {
                     candidate_id: "z-storage-200".to_owned(),
