@@ -10,6 +10,8 @@ From the repository root, with Rust and dependencies available:
       docs/research/fixtures/city-belonging-admission-v0.1.jsonl \
       docs/research/fixtures/city-belonging-admission-v0.1.manifest.json
 
+The manifest pins both `policy_as_of_date` and `provider_confirmation_max_age_days` (30 days for this synthetic fixture). The 30-day value is illustrative and must be revisited with local operators and field-specific risk; it is not a universal standard.
+
 Run its tests:
 
     cargo test --manifest-path tools/city-belonging-admission/Cargo.toml
@@ -19,8 +21,8 @@ Run its tests:
 1. Unresolved reuse rights block publication and yield `CandidateOnly`.
 2. Material source conflicts, failed contact checks, or an unverified correction yield `ReviewRequired`.
 3. A provider-confirmed closed service yields `ClosedOrWithdrawn`.
-4. Expired schedule, explicitly past event, or stale capacity yields `StaleOrDisputed`.
-5. Only a currently active service with provider-supplied source, non-empty provider-confirmed fields, a provider-verification timestamp, and explicitly confirmed operational status may yield `ProviderConfirmed`.
+4. Expired schedule, explicitly past event, stale capacity, or provider confirmation older than the manifest-pinned freshness window yields `StaleOrDisputed`.
+5. Only a currently active service with provider-supplied source, non-empty provider-confirmed fields, a provider-verification timestamp within the manifest-pinned age window, and explicitly confirmed operational status may yield `ProviderConfirmed`.
 6. Everything else remains `CandidateOnly`.
 
 The precedence is intentionally conservative and must be reviewed with local operators before any production use. The fixture's `approved_for_fixture_only` value is synthetic test-only permission, not a real data licence.
@@ -43,7 +45,7 @@ The report says `SYNTHETIC_POLICY_FIXTURE_MATCH` only when the fixture matches t
 
 - 100% policy agreement on the frozen synthetic fixture.
 - 0 entries with unresolved reuse permission surfaced.
-- 0 stale, disputed or closed cases labelled current.
+- 0 stale, disputed or closed cases labelled current, including a provider confirmation older than the pinned freshness window.
 - 0 unknown cost/accessibility claims upgraded to positive statements.
 - 0 virtual/service-area entries given fabricated street pins.
 - Byte-identical receipt for identical fixture bytes and policy version.
