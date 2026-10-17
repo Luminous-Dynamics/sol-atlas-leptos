@@ -4,6 +4,7 @@
 
 //! Static JSON data loading — delegates parsing to terra-atlas-core.
 
+use sol_atlas_core::data::LoadedDataReport;
 use sol_atlas_core::types::LoadedData;
 
 const SITES_JSON: &str = include_str!("../../assets/data/sites-clustered.json");
@@ -28,8 +29,8 @@ const CITIES_JSON: &str = include_str!("../../assets/data/major-cities-1m.json")
 const CHOKEPOINTS_JSON: &str = include_str!("../../assets/data/chokepoints.json");
 const CRITICAL_INFRA_JSON: &str = include_str!("../../assets/data/critical-infrastructure.json");
 
-pub fn load_all() -> LoadedData {
-    sol_atlas_core::data::load_all(
+pub fn load_all_with_health() -> LoadedDataReport {
+    sol_atlas_core::data::load_all_with_health(
         SITES_JSON,
         MAGLEV_JSON,
         VAULTS_JSON,
@@ -48,4 +49,9 @@ pub fn load_all() -> LoadedData {
         CHOKEPOINTS_JSON,
         CRITICAL_INFRA_JSON,
     )
+}
+
+/// Backwards-compatible data-only loader.
+pub fn load_all() -> LoadedData {
+    load_all_with_health().data
 }

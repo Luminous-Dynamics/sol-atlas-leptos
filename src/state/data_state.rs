@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
 use leptos::prelude::*;
+use sol_atlas_core::data::{DatasetLoadHealth, LoadedDataReport};
 
 use crate::data::types::*;
 
@@ -24,6 +25,8 @@ pub struct DataState {
     pub major_cities: RwSignal<Vec<MajorCity>>,
     pub chokepoints: RwSignal<Vec<Chokepoint>>,
     pub critical_infrastructure: RwSignal<Vec<CriticalInfrastructure>>,
+    /// Parse status for bundled/static assets only; live provider status is separate.
+    pub static_dataset_health: RwSignal<Vec<DatasetLoadHealth>>,
 }
 
 impl DataState {
@@ -46,7 +49,14 @@ impl DataState {
             major_cities: RwSignal::new(Vec::new()),
             chokepoints: RwSignal::new(Vec::new()),
             critical_infrastructure: RwSignal::new(Vec::new()),
+            static_dataset_health: RwSignal::new(Vec::new()),
         }
+    }
+
+    /// Replace static data and preserve machine-readable parse diagnostics.
+    pub fn set_all_with_health(&self, report: LoadedDataReport) {
+        self.static_dataset_health.set(report.health);
+        self.set_all(report.data);
     }
 
     pub fn set_all(&self, data: LoadedData) {

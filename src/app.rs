@@ -4,7 +4,9 @@
 use leptos::prelude::*;
 use leptos_router::components::{A, Route, Router, Routes};
 use leptos_router::path;
+use sol_atlas_core::data::DatasetLoadState;
 
+use crate::components::dataset_health_panel::DatasetHealthPanel;
 use crate::components::globe_canvas::GlobeCanvas;
 use crate::components::hud::Hud;
 use crate::components::info_panel::InfoPanel;
@@ -44,17 +46,40 @@ fn GlobeApp() -> impl IntoView {
     // Load static data immediately (always available as fallback)
     let data_for_effect = data_state.clone();
     Effect::new(move |_| {
-        let loaded = static_data::load_all();
+        let report = static_data::load_all_with_health();
+        let malformed = report
+            .health
+            .iter()
+            .filter(|item| item.state == DatasetLoadState::Malformed)
+            .count();
+        let valid_empty = report
+            .health
+            .iter()
+            .filter(|item| item.state == DatasetLoadState::ValidEmpty)
+            .count();
         log::info!(
-            "Static data: {} sites, {} geothermal, {} corridors, {} vaults, {} fossil deposits, {} nuclear",
-            loaded.sites.len(),
-            loaded.geothermal_nodes.len(),
-            loaded.maglev_corridors.len(),
-            loaded.resontia_vaults.len(),
-            loaded.fossil_deposits.len(),
-            loaded.nuclear_sites.len(),
+            "Static data: {} sites, {} geothermal, {} corridors, {} vaults, {} fossil deposits, {} nuclear; {} datasets valid-empty; {} malformed",
+            report.data.sites.len(),
+            report.data.geothermal_nodes.len(),
+            report.data.maglev_corridors.len(),
+            report.data.resontia_vaults.len(),
+            report.data.fossil_deposits.len(),
+            report.data.nuclear_sites.len(),
+            valid_empty,
+            malformed,
         );
-        data_for_effect.set_all(loaded);
+        for item in report
+            .health
+            .iter()
+            .filter(|item| item.state == DatasetLoadState::Malformed)
+        {
+            log::warn!(
+                "Static dataset '{}' is malformed: {}",
+                item.dataset,
+                item.diagnostic.as_deref().unwrap_or("no parser diagnostic")
+            );
+        }
+        data_for_effect.set_all_with_health(report);
     });
 
     // When holochain feature is enabled, try to fetch live data and merge
@@ -107,6 +132,7 @@ fn GlobeApp() -> impl IntoView {
         </div>
         <Hud />
         <LayerPanel />
+        <DatasetHealthPanel />
         <Timeline />
         <Whisper />
         <Tooltip />
