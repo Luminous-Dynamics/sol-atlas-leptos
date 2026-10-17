@@ -13,10 +13,9 @@ use crate::service_equity::ServiceFloorStatus;
 use crate::service_function::{ServiceFunctionAssessmentError, build_evidence_index};
 use crate::service_water::WaterServiceState;
 use crate::service_water_energy_stress::{
-    WaterEnergyCommunityFloorOutcome, WaterEnergyFailureScenarioKind,
-    WaterEnergyMeasurementOverride, WaterEnergyStressCaseAssessment,
-    WaterEnergyStressCaseKind, WaterEnergyStressSweepAssessment,
-    WaterEnergyStressSweepError, WaterEnergyStressSweepRequest,
+    WaterEnergyCommunityFloorOutcome, WaterEnergyMeasurementOverride,
+    WaterEnergyStressCaseAssessment, WaterEnergyStressCaseKind, WaterEnergyStressSweepError,
+    WaterEnergyStressSweepRequest,
     assess_water_energy_stress_sweep_indexed,
 };
 use crate::spatial_economic::EvidenceRecord;
@@ -50,7 +49,7 @@ pub enum WaterEnergyStressInterventionInterpretationBoundary {
     ModeledCounterfactualNotCausalEvidence,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum WaterEnergyStressInterventionValidationError {
     UnsupportedSchemaVersion,
     EmptyComparisonId,
@@ -782,44 +781,57 @@ fn compare_case(
     })
 }
 
-fn overall_effect(cases: &[WaterEnergyStressInterventionCaseComparison]) -> WaterEnergyStressInterventionEffect {
-    if cases.iter().any(|case| case.possible_protected_floor_regression) {
+fn scenario_tolerance(case: &WaterEnergyStressInterventionCaseComparison) -> f64 {
+    f64::EPSILON
+        * 256.0
+        * case
+            .unmet_demand_reduction_lower_bound_m3
+            .abs()
+            .max(case.unmet_demand_reduction_upper_bound_m3.abs())
+            .max(1.0)
+}
+
+fn overall_effect(
+    cases: &[WaterEnergyStressInterventionCaseComparison],
+) -> WaterEnergyStressInterventionEffect {
+    if cases
+        .iter()
+        .any(|case| case.possible_protected_floor_regression)
+    {
         return WaterEnergyStressInterventionEffect::ProtectedFloorRegression;
     }
     if cases.is_empty() {
         return WaterEnergyStressInterventionEffect::Indeterminate;
     }
-    let tolerance = f64::EPSILON * 256.0;
     let all_nonworsening = cases.iter().all(|case| {
-        case.unmet_demand_reduction_lower_bound_m3 >= -tolerance
+        case.unmet_demand_reduction_lower_bound_m3 >= -scenario_tolerance(case)
     });
     let any_robust_improvement = cases.iter().any(|case| {
-        case.unmet_demand_reduction_lower_bound_m3 > tolerance
+        case.unmet_demand_reduction_lower_bound_m3 > scenario_tolerance(case)
     });
     if all_nonworsening && any_robust_improvement {
         return WaterEnergyStressInterventionEffect::RobustImprovement;
     }
     let all_nonimproving = cases.iter().all(|case| {
-        case.unmet_demand_reduction_upper_bound_m3 <= tolerance
+        case.unmet_demand_reduction_upper_bound_m3 <= scenario_tolerance(case)
     });
     let any_robust_regression = cases.iter().any(|case| {
-        case.unmet_demand_reduction_upper_bound_m3 < -tolerance
+        case.unmet_demand_reduction_upper_bound_m3 < -scenario_tolerance(case)
     });
     if all_nonimproving && any_robust_regression {
         return WaterEnergyStressInterventionEffect::RobustRegression;
     }
     if cases.iter().all(|case| {
-        let tolerance = f64::EPSILON * 256.0;
-        case.unmet_demand_reduction_lower_bound_m3 >= -tolerance
-            && case.unmet_demand_reduction_upper_bound_m3 <= tolerance
+        case.unmet_demand_reduction_lower_bound_m3 >= -scenario_tolerance(case)
+            && case.unmet_demand_reduction_upper_bound_m3 <= scenario_tolerance(case)
     }) {
         return WaterEnergyStressInterventionEffect::NoMaterialChange;
     }
     let has_improvement = cases.iter().any(|case| {
-        case.unmet_demand_reduction_lower_bound_m3 > tolerance
+        case.unmet_demand_reduction_lower_bound_m3 > scenario_tolerance(case)
     });
     let has_regression = cases.iter().any(|case| {
-        case.unmet_demand_reduction_upper_bound_m3 < -tolerance
+        case.unmet_demand_reduction_upper_bound_m3 < -scenario_tolerance(case)
     });
     if has_improvement && has_regression {
         WaterEnergyStressInterventionEffect::MixedEffects
@@ -1144,14 +1156,13 @@ mod tests {
     #[test]
     fn overlapping_delta_bounds_are_indeterminate() {
         let mut input = request(0.0, 0.0);
-        for request in [&mut input.baseline, &mut input.candidate] {
-            for service in &mut request.baseline_services {
-                for step in &mut service.steps {
-                    step.available_power.quantity.uncertainty_abs = Some(10.0);
-                }
-            }
+        for step in &mut input.baseline.baseline_services[0].steps {
+            step.available_power.quantity.value = 20.0;
         }
-        input.candidate.baseline_services[0].steps[0].available_power.quantity.value = 45.0;
+        for step in &mut input.candidate.baseline_services[0].steps {
+            step.available_power.quantity.value = 20.0;
+            step.available_power.quantity.uncertainty_abs = Some(10.0);
+        }
         let output = compare_water_energy_stress_interventions(&input, &[])
             .expect("overlapping intervals are evaluable");
         assert_eq!(output.effect, WaterEnergyStressInterventionEffect::Indeterminate);
