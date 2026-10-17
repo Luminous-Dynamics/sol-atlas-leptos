@@ -242,3 +242,16 @@ Initial target (aspirational, not yet a gate): per-qualified-stratum nominal 90%
 ### Required-CI set completeness
 
 Each benchmark contract now declares `required_ci_checks` (currently `Check` and `Earth Interior receipt verifier`). The receipt verifier compares its listed check names against that policy exactly and rejects missing, duplicate or unexpected check records before inspecting each retained workflow-run JSON artifact. This closes the omission loophole where a syntactically valid receipt could show only one passing check while silently leaving another required check unreported. The policy is bound by the benchmark specification digest and exact code commit. Queued/pending/skipped/cancelled/stale-head evidence remains non-passing.
+
+### Cross-project H0 implementation: information gain and observability
+
+Symtropy's [known-truth H0 draft PR #1804](https://github.com/Luminous-Dynamics/symtropy/pull/1804) now contains four deterministic two-state observation fixtures, a frozen [public fixture manifest](https://github.com/Luminous-Dynamics/symtropy/blob/feat/geophysics-known-truth-h0-20261017/crates/domains/symtropy-geophysics-benchmark/fixtures/h0-public-manifest.json), and a covariance-whitened rank/singular-value oracle. Its exact Gaussian EIG function uses the full observation covariance (R) and prior covariance (S_a):
+
+`EIG = 0.5 * ln(det(I + S_a H^T R^-1 H))`
+
+Under the fixture's standard-normal prior and unit-cost two-channel assumption, complementary sensors have an analytic EIG of 1.6094379124341003 nats; the highly correlated duplicate pair has 0.8067249769620305 nats. Pretending the duplicate errors are independent inflates the score to 1.0986122886681098 nats. The exact references match the analytic fixture in `benchmark-adaptive-observation-design.json`; they are not empirical benchmark results, and no performance gate is yet qualified.
+
+The weak-mode fixture in Symtropy uses (H = mathrm{diag}(1,0.1)) with non-uniform observation covariance, so its singular values/condition number differ from the separate resolution-frontier H0 reference (H = mathrm{diag}(2,0.1)) with identity prior and observation covariance. Keep the matrices, scaling, covariance, and tolerances bound to each fixture ID rather than combining their numbers.
+
+**Status:** 15 Rust tests are authored in Symtropy PR #1804, but no local Rust toolchain is available in this environment and the exact-head workflows remain pending/queued. The manifest remains `benchmark_specification_not_executed`; this cross-project link does not promote it to an executed or qualified benchmark.
+
