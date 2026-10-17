@@ -90,3 +90,7 @@ harness = false
 [[bench]]
 name = "water_energy_stress_sweep"
 harness = false
+
+[[bench]]
+name = "water_energy_stress_intervention"
+harness = false
