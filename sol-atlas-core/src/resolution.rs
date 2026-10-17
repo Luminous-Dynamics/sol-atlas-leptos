@@ -132,10 +132,7 @@ impl LinearGaussianResolutionProblem {
         // constructing the inverse of the prior covariance and is better
         // scaled when the original parameters have different prior variances.
         let information_times_prior = multiply(&information, &prior_cholesky)?;
-        let whitened_information = multiply(
-            &transpose(&prior_cholesky),
-            &information_times_prior,
-        )?;
+        let whitened_information = multiply(&transpose(&prior_cholesky), &information_times_prior)?;
         let mut identity = vec![vec![0.0_f64; n]; n];
         for (i, row) in identity.iter_mut().enumerate() {
             row[i] = 1.0;
@@ -147,14 +144,10 @@ impl LinearGaussianResolutionProblem {
             symmetry_tolerance,
             relative_pivot_tolerance,
         )?;
-        let posterior_whitened_covariance =
-            inverse_from_cholesky(&posterior_whitened_cholesky)?;
+        let posterior_whitened_covariance = inverse_from_cholesky(&posterior_whitened_cholesky)?;
         let posterior_covariance = multiply(
             &prior_cholesky,
-            &multiply(
-                &posterior_whitened_covariance,
-                &transpose(&prior_cholesky),
-            )?,
+            &multiply(&posterior_whitened_covariance, &transpose(&prior_cholesky))?,
         )?;
 
         // A = Sp * Hᵀ * Se⁻¹ * H. Its off-diagonal elements measure leakage
@@ -187,7 +180,10 @@ impl LinearGaussianResolutionProblem {
         }
 
         if !degrees_of_freedom_for_signal.is_finite()
-            || posterior_covariance.iter().flatten().any(|x| !x.is_finite())
+            || posterior_covariance
+                .iter()
+                .flatten()
+                .any(|x| !x.is_finite())
             || resolution_matrix.iter().flatten().any(|x| !x.is_finite())
         {
             return Err(ResolutionError::NonFiniteIntermediate);
@@ -261,13 +257,28 @@ impl LinearGaussianResolutionProblem {
             return Err(ResolutionError::OperatorColumnCountMismatch);
         }
 
-        if self.observation_operator.iter().flatten().any(|x| !x.is_finite()) {
+        if self
+            .observation_operator
+            .iter()
+            .flatten()
+            .any(|x| !x.is_finite())
+        {
             return Err(ResolutionError::NonFiniteInput("observation_operator"));
         }
-        if self.prior_covariance.iter().flatten().any(|x| !x.is_finite()) {
+        if self
+            .prior_covariance
+            .iter()
+            .flatten()
+            .any(|x| !x.is_finite())
+        {
             return Err(ResolutionError::NonFiniteInput("prior_covariance"));
         }
-        if self.observation_covariance.iter().flatten().any(|x| !x.is_finite()) {
+        if self
+            .observation_covariance
+            .iter()
+            .flatten()
+            .any(|x| !x.is_finite())
+        {
             return Err(ResolutionError::NonFiniteInput("observation_covariance"));
         }
         Ok(())
@@ -349,10 +360,7 @@ fn cholesky(
 }
 
 /// Solve L Lᵀ X = B using forward and backward substitution.
-fn solve_cholesky(
-    lower: &[Vec<f64>],
-    rhs: &[Vec<f64>],
-) -> Result<Vec<Vec<f64>>, ResolutionError> {
+fn solve_cholesky(lower: &[Vec<f64>], rhs: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, ResolutionError> {
     let n = lower.len();
     if n == 0 || lower.iter().any(|row| row.len() != n) || rhs.len() != n {
         return Err(ResolutionError::SingularOrIllConditioned("linear_solve"));
@@ -521,7 +529,11 @@ mod tests {
         let problem = LinearGaussianResolutionProblem {
             context: context(),
             observation_ids: fixture.observation_ids,
-            parameter_ids: fixture.state_coordinates.into_iter().map(|x| x.id).collect(),
+            parameter_ids: fixture
+                .state_coordinates
+                .into_iter()
+                .map(|x| x.id)
+                .collect(),
             observation_operator: fixture.observation_matrix,
             prior_covariance: fixture.prior_covariance,
             observation_covariance: fixture.observation_noise_covariance,
@@ -529,7 +541,10 @@ mod tests {
         let report = problem.analyze(1e-12, 1e-14).unwrap();
         let expected = fixture.expected_analytic_results;
 
-        assert_eq!(report.posterior_covariance.len(), expected.posterior_covariance.len());
+        assert_eq!(
+            report.posterior_covariance.len(),
+            expected.posterior_covariance.len()
+        );
         for (actual_row, expected_row) in report
             .posterior_covariance
             .iter()
@@ -541,7 +556,10 @@ mod tests {
             }
         }
 
-        assert_eq!(report.resolution_matrix.len(), expected.resolution_matrix.len());
+        assert_eq!(
+            report.resolution_matrix.len(),
+            expected.resolution_matrix.len()
+        );
         for (actual_row, expected_row) in report
             .resolution_matrix
             .iter()
@@ -581,7 +599,12 @@ mod tests {
         let report = problem.analyze(1e-12, 1e-14).unwrap();
         assert!(report.resolution_matrix[0][1].abs() > 1e-4);
         assert!(report.resolution_matrix[1][0].abs() > 1e-4);
-        assert!(report.off_diagonal_cross_talk_norm.iter().all(|x| *x > 1e-4));
+        assert!(
+            report
+                .off_diagonal_cross_talk_norm
+                .iter()
+                .all(|x| *x > 1e-4)
+        );
     }
 
     #[test]
@@ -590,8 +613,20 @@ mod tests {
         problem.observation_operator = vec![vec![1.0, 0.0], vec![1.0, 1.0]];
         problem.observation_covariance = vec![vec![1.0, 0.8], vec![0.8, 1.0]];
         let report = problem.analyze(1e-12, 1e-14).unwrap();
-        assert!(report.posterior_covariance.iter().flatten().all(|x| x.is_finite()));
-        assert!(report.resolution_matrix.iter().flatten().all(|x| x.is_finite()));
+        assert!(
+            report
+                .posterior_covariance
+                .iter()
+                .flatten()
+                .all(|x| x.is_finite())
+        );
+        assert!(
+            report
+                .resolution_matrix
+                .iter()
+                .flatten()
+                .all(|x| x.is_finite())
+        );
 
         // The correlated covariance must change the answer relative to a false
         // independent-noise assumption; checking finiteness alone is insufficient.
@@ -632,12 +667,8 @@ mod tests {
 
         // The prior makes the high-mode posterior variance much smaller, but
         // lowers the data-resolution response for that mode.
-        assert!(
-            tight.posterior_covariance[1][1] < baseline.posterior_covariance[1][1] / 50.0
-        );
-        assert!(
-            tight.diagonal_resolution[1] < baseline.diagonal_resolution[1] / 50.0
-        );
+        assert!(tight.posterior_covariance[1][1] < baseline.posterior_covariance[1][1] / 50.0);
+        assert!(tight.diagonal_resolution[1] < baseline.diagonal_resolution[1] / 50.0);
     }
 
     #[test]
