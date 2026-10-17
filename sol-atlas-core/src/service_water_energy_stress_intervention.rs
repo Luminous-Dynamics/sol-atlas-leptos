@@ -1749,4 +1749,27 @@ mod batch_tests {
                 if errors.contains(&WaterEnergyStressInterventionValidationError::DuplicateCandidateId)
         ));
     }
+
+    #[test]
+    fn aggregate_service_step_budget_fails_closed_before_evaluation() {
+        let mut input = request();
+        input.max_total_service_step_assessments = 1;
+        assert!(matches!(
+            compare_water_energy_stress_intervention_batch(&input, &[]),
+            Err(WaterEnergyStressInterventionBatchError::InvalidInput(errors))
+                if errors.contains(&WaterEnergyStressInterventionValidationError::BatchAssessmentBudgetExceeded)
+        ));
+    }
+
+    #[test]
+    fn aggregate_override_budget_fails_closed_before_evaluation() {
+        let mut input = request();
+        input.max_total_declared_failure_overrides = 1;
+        assert!(matches!(
+            compare_water_energy_stress_intervention_batch(&input, &[]),
+            Err(WaterEnergyStressInterventionBatchError::InvalidInput(errors))
+                if errors.contains(&WaterEnergyStressInterventionValidationError::BatchOverrideBudgetExceeded)
+        ));
+    }
+
 }
