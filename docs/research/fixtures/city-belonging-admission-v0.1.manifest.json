@@ -3,7 +3,7 @@
   "fixture_id": "city-belonging-admission-v0.1",
   "fixture_path": "docs/research/fixtures/city-belonging-admission-v0.1.jsonl",
   "hash_algorithm": "SHA-256",
-  "fixture_sha256": "fa66bc059b780ce6e3ea5ba37689c48b4c14952c7a386e7fe1c8403806145b79",
+  "fixture_sha256": "111a51e614ac033a0eb3ae5918159fbe020cc4fa01cdbc753fe5e09dd169c7d0",
   "record_format": "JSON Lines; UTF-8; newline-terminated",
   "record_count": 11,
   "disposition_counts": {
@@ -81,8 +81,9 @@
   "local_profile": {
     "id": "city-belonging-admission-profile",
     "version": "0.1",
-    "sha256_utf8": null,
-    "validation_status": "ADMISSION_POLICY_IN_RUST_CHECKER_IMPLEMENTED_BUT_NOT_EXECUTED"
+    "path": "docs/research/fixtures/city-belonging-admission-profile-v0.1.json",
+    "sha256_utf8": "f7000d59cda23bf4ce55ceba12b4c353d6ef315a05f68f6001c613e88dee24ae",
+    "validation_status": "IMPLEMENTED_IN_RUST_CHECKER_NOT_EXECUTED"
   },
   "status": "SYNTHETIC_RESEARCH_FIXTURE",
   "claims_not_made": [
