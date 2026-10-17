@@ -240,7 +240,10 @@ fn run(intervals: usize, samples: usize, warmup: usize, target_ms: u128) -> Repo
         host_os: std::env::consts::OS.to_owned(),
         host_arch: std::env::consts::ARCH.to_owned(),
         process_peak_rss_bytes_at_report: peak_rss_bytes(),
-        rss_measurement_scope: "process VmHWM since process start; workloads share one benchmark process",
+        rss_measurement_scope: concat!(
+            "process VmHWM since process start; ",
+            "workloads share one benchmark process",
+        ),
         workload: "paired coupled water-energy counterfactual comparison",
         paired_intervals_per_side: intervals,
         total_paired_intervals: intervals * 2,
