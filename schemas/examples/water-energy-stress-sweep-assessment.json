@@ -181,5 +181,7 @@
   "worst_case_floor_compliance_lower_bound": 0,
   "worst_case_floor_compliance_upper_bound": 0,
   "worst_case_maximum_normalized_deficit_lower_bound": 1,
-  "worst_case_maximum_normalized_deficit_upper_bound": 1
+  "worst_case_maximum_normalized_deficit_upper_bound": 1,
+  "declared_failure_override_count": 2,
+  "evaluated_failure_override_count": 2
 }
