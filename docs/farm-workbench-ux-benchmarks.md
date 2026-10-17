@@ -76,6 +76,8 @@ These are pilot gates to validate, not claims of current performance or universa
 
 ### Usability and value
 - At least 8/10 first-time pilot users complete each critical task without coaching: record an observation, find current field/paddock status, inspect recommendation evidence, and export their data.
+- For any field check, users can distinguish **observed OK**, **problem observed**, and **unable to inspect / unknown**. Pilot target: at least 9/10 users classify each state correctly without prompting, with zero cases where “unable to inspect” is interpreted as a successful check.
+- An unknown/uninspected state must never silently become a green/healthy state; corrections remain explicit and reversible in the UI.
 - Median time to capture a simple observation: at most 30 seconds after onboarding.
 - Median daily brief preparation: at most 2 minutes, with an obvious way to inspect why a job appears.
 - At least 70% of participating operators voluntarily use the selected workflow weekly by week 4. Publish denominator, farm type, and reasons for non-use.
@@ -86,6 +88,7 @@ These are pilot gates to validate, not claims of current performance or universa
 - Every queued write has a visible status and stable identifier; retry and conflict tests are deterministic and auditable.
 - 100% of displayed values identify whether they are observed, estimated, stale, missing, or synthetic demo data.
 - Missing prerequisites result in “cannot assess yet,” not a confident recommendation.
+- Observation semantics preserve at least three states where relevant: acceptable observation, adverse observation, and unknown/unable-to-observe. Never encode lack of evidence as a normal finding.
 - Complete export/re-import preserves timestamps, units, source, correction history, and permissions metadata.
 - No externally consequential action can be triggered by demo or unvalidated model output.
 
