@@ -8,9 +8,10 @@
 //! at every shared interval. It evaluates modeled deltas; it does not establish
 //! intervention execution, field delivery, or causal impact.
 
+use crate::service_function::{ServiceFunctionAssessmentError, build_evidence_index};
 use crate::service_water_energy_coupling::{
-    WaterEnergyCoupledTrajectoryAssessment, WaterEnergyCouplingError,
-    WaterEnergyCouplingRequest, assess_water_energy_coupled_trajectory,
+    WaterEnergyCoupledTrajectoryAssessment, WaterEnergyCouplingError, WaterEnergyCouplingRequest,
+    assess_water_energy_coupled_trajectory_indexed,
 };
 use crate::service_water_trajectory::WaterServiceState;
 use crate::spatial_economic::EvidenceRecord;
@@ -58,6 +59,7 @@ pub enum WaterEnergyInterventionValidationError {
 #[derive(Debug, Clone, PartialEq)]
 pub enum WaterEnergyInterventionComparisonError {
     InvalidInput(Vec<WaterEnergyInterventionValidationError>),
+    EvidenceValidation(ServiceFunctionAssessmentError),
     BaselineAssessment(WaterEnergyCouplingError),
     CandidateAssessment(WaterEnergyCouplingError),
 }
@@ -174,10 +176,19 @@ pub fn compare_water_energy_trajectory_interventions(
     validate_aligned_trajectories(request)
         .map_err(WaterEnergyInterventionComparisonError::InvalidInput)?;
 
-    let baseline = assess_water_energy_coupled_trajectory(&request.baseline, evidence_records)
-        .map_err(WaterEnergyInterventionComparisonError::BaselineAssessment)?;
-    let candidate = assess_water_energy_coupled_trajectory(&request.candidate, evidence_records)
-        .map_err(WaterEnergyInterventionComparisonError::CandidateAssessment)?;
+    // Validate and index evidence once for both sides of the counterfactual.
+    let evidence_by_id = build_evidence_index(evidence_records)
+        .map_err(WaterEnergyInterventionComparisonError::EvidenceValidation)?;
+    let baseline = assess_water_energy_coupled_trajectory_indexed(
+        &request.baseline,
+        &evidence_by_id,
+    )
+    .map_err(WaterEnergyInterventionComparisonError::BaselineAssessment)?;
+    let candidate = assess_water_energy_coupled_trajectory_indexed(
+        &request.candidate,
+        &evidence_by_id,
+    )
+    .map_err(WaterEnergyInterventionComparisonError::CandidateAssessment)?;
 
     let mut steps = Vec::with_capacity(baseline.water_assessment.steps.len());
     let mut total_reduction_lower = 0.0;
