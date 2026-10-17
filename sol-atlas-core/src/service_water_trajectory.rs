@@ -125,6 +125,7 @@ pub enum WaterServiceTrajectoryValidationError {
     StorageEntityMismatch,
     NonFiniteDerivedValue,
     NonFiniteAggregate,
+    BoundsInconsistent,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -315,6 +316,18 @@ fn assess_trajectory_indexed(
                 WaterServiceTrajectoryValidationError::NonFiniteDerivedValue,
             ]));
         }
+        let step_tolerance = f64::EPSILON
+            * 128.0
+            * demand_upper.max(delivered_upper).max(1.0);
+        if demand_lower > demand_upper + step_tolerance
+            || delivered_lower > delivered_upper + step_tolerance
+            || assessment.conservative_path.ending_storage_volume
+                > assessment.optimistic_path.ending_storage_volume + step_tolerance
+        {
+            return Err(WaterServiceTrajectoryError::InvalidInput(vec![
+                WaterServiceTrajectoryValidationError::BoundsInconsistent,
+            ]));
+        }
 
         demand_lower_total += demand_lower;
         demand_upper_total += demand_upper;
@@ -366,6 +379,19 @@ fn assess_trajectory_indexed(
     // Recovery means adequate after an observed modeled deficit, not simply an
     // initially healthy first sample. This avoids labelling baseline adequacy
     // as recovery when an outage occurs later in the trajectory.
+    let aggregate_tolerance = f64::EPSILON
+        * 256.0
+        * demand_upper_total.max(delivery_upper_total).max(1.0);
+    if demand_lower_total > demand_upper_total + aggregate_tolerance
+        || delivery_lower_total > delivery_upper_total + aggregate_tolerance
+        || deficit_lower_total > deficit_upper_total + aggregate_tolerance
+        || maximum_deficit_lower > maximum_deficit_upper + f64::EPSILON * 256.0
+    {
+        return Err(WaterServiceTrajectoryError::InvalidInput(vec![
+            WaterServiceTrajectoryValidationError::BoundsInconsistent,
+        ]));
+    }
+
     let first_adequate_index = step_results.iter().enumerate().position(|(index, item)| {
         item.state == WaterServiceState::Adequate
             && step_results[..index]
@@ -579,6 +605,19 @@ mod tests {
             assess_water_service_trajectory(&input, &[]),
             Err(WaterServiceTrajectoryError::StepAssessment(_))
         ));
+    }
+
+    #[test]
+    fn storage_uncertainty_is_carried_forward_as_a_bounded_model_state() {
+        let mut input = trajectory("bounded-storage");
+        input.initial_storage.quantity.uncertainty_abs = Some(10.0);
+        let result = assess_water_service_trajectory(&input, &[]).unwrap();
+        assert_eq!(result.steps[0].ending_storage_lower_bound, 40.0);
+        assert_eq!(result.steps[0].ending_storage_upper_bound, 60.0);
+        assert_eq!(result.steps[1].customer_delivered_volume_lower_bound, 40.0);
+        assert_eq!(result.steps[1].customer_delivered_volume_upper_bound, 60.0);
+        assert!(result.unmet_demand_volume_lower_bound <= result.unmet_demand_volume_upper_bound);
+        assert!(result.customer_delivered_volume_lower_bound <= result.customer_delivered_volume_upper_bound);
     }
 
     #[test]

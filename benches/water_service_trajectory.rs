@@ -11,7 +11,7 @@ use sol_atlas_core::service_function::FunctionMeasurement;
 use sol_atlas_core::service_water::{DIMENSIONLESS_UNIT, WATER_RATE_UNIT, WATER_VOLUME_UNIT};
 use sol_atlas_core::service_water_trajectory::{
     WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectory,
-    WaterServiceTrajectoryStep, WaterServiceState, assess_water_service_trajectories,
+    WaterServiceTrajectoryStep, assess_water_service_trajectories,
 };
 use sol_atlas_core::spatial_economic::Quantity;
 use std::env;
