@@ -288,3 +288,19 @@ This remains an aggregate accounting model. Each step assumes its reported produ
 - Identical inputs must produce byte-identical canonical output; duplicate trajectory and step identifiers fail closed.
 - Proposed batch p95 targets, matching the benchmark workloads: 10 trajectories x 10 steps (100 intervals) <= 15 ms; 100 x 10 steps (1,000 intervals) <= 100 ms; 1,000 x 10 steps (10,000 intervals) <= 500 ms. Measure before making a performance claim.
 \n\nRecent NIST research published September 29, 2026, argues for consistent cross-sector lifeline guidance around service objectives, resilience design, and recovery prioritization, while noting the lack of system-level guidelines across sectors. This reinforces the need for Sol-Atlas to publish reproducible contracts and clearly marked project-specific targets rather than imply that our performance thresholds are external standards: https://www.nist.gov/publications/advancing-resilience-across-lifeline-infrastructure-systems-need-consistent-guidance.\n
+
+## Paired water-service trajectory interventions
+
+The trajectory-intervention comparator evaluates a baseline and candidate service trajectory on exactly aligned time points, using one validated shared evidence index. It reports per-interval and aggregate changes in bounded unmet-demand volume, delivery deltas, and whether the candidate's modeled return to adequate service is earlier, later, shared, or present in only one trajectory. A robust improvement is reported only when the lower bound on reduced unmet demand is strictly positive beyond floating-point tolerance; overlapping bounds are indeterminate. Results carry an explicit "modeled counterfactual, not causal evidence" interpretation boundary.
+
+The comparator does not infer that intervention work occurred or that a modeled delta will materialize in the field. Baseline and candidate must share a service entity, interval count, timestamps, and step durations. Component assumptions may differ because those differences describe the hypothetical intervention. Both trajectories must independently pass the water-trajectory evidence and invariant contract.
+
+### Proposed paired-counterfactual acceptance gates
+
+- 100% of hand-calculated improvement, regression, no-change, and overlapping-uncertainty fixtures match the expected classification and deficit-reduction bounds.
+- Zero robust-improvement labels when the reduction lower bound is zero or negative within tolerance.
+- Zero paired comparisons accepted when their observation grids differ.
+- Per-step reduction bounds reconcile with aggregate deficit-reduction bounds within numeric tolerance.
+- Candidate recovery timing is compared only on the same sample grid; a sampled recovery is not a continuous-time or causal claim.
+- Deterministic output under input permutation; duplicate comparison IDs fail closed.
+- Proposed p95 budgets for 100 / 1,000 / 10,000 paired 10-step trajectories: 50 ms / 500 ms / 5,000 ms. Measure against a documented runner before declaring targets met.

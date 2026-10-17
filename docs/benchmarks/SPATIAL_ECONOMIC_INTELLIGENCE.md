@@ -147,3 +147,10 @@ The model's conservation gate is 1e-9 m3 per aggregate balance path. Initial pro
 The time-dependent water benchmark evaluates contiguous synthetic trajectories with 10 intervals each at 100, 1,000 and 10,000 total intervals. Each trajectory has normal service, an explicit source outage, storage depletion, and a restoration interval. The benchmark asserts exact interval count, deterministic serialized outputs, conserved volume, bounded ending storage, cumulative deficit totals, and a sampled recovery classification. It does not claim measured field accuracy.
 
 Run with WATER_TRAJECTORY_BENCH_WARMUP=3 and WATER_TRAJECTORY_BENCH_SAMPLES=30 using cargo bench --bench water_service_trajectory. Proposed p95 budgets for 100 / 1,000 / 10,000 total intervals are 15 ms / 100 ms / 500 ms. These are engineering hypotheses, not industry standards or current results. The report should be attached to the exact commit and runner manifest.
+
+
+## Water-service trajectory intervention comparison
+
+The paired-counterfactual harness runs 100, 1,000 and 10,000 baseline/candidate pairs, each with 10 contiguous hourly intervals. The baseline has a two-interval source outage; the candidate supplies a synthetic 50 m3/h during those intervals. The golden result is a 100 m3 reduction in cumulative unmet demand per pair, with both trajectories first returning to robust adequacy at the same sample. Candidate outputs are explicitly marked as modeled counterfactuals rather than causal evidence.
+
+Run with WATER_INTERVENTION_BENCH_WARMUP=3 and WATER_INTERVENTION_BENCH_SAMPLES=30 using cargo bench --bench water_trajectory_intervention. Proposed p95 budgets for 100 / 1,000 / 10,000 comparison pairs are 50 ms / 500 ms / 5,000 ms. Each sample asserts paired time-grid validity, expected effect class, exact synthetic deficit delta, result counts, deterministic output bytes, and per-step bound ordering. These are proposed local engineering targets, not measured performance or external standards.
