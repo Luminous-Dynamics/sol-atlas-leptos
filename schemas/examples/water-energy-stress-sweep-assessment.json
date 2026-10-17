@@ -65,7 +65,9 @@
             "unmet_demand_volume_lower_bound_m3": 20,
             "unmet_demand_volume_upper_bound_m3": 20,
             "supporting_evidence_ids": [],
-            "step_hours": 1
+            "step_hours": 1,
+            "customer_delivered_volume_lower_bound_m3": 80,
+            "customer_delivered_volume_upper_bound_m3": 80
           },
           {
             "step_id": "hour-10",
@@ -78,7 +80,9 @@
             "unmet_demand_volume_lower_bound_m3": 20,
             "unmet_demand_volume_upper_bound_m3": 20,
             "supporting_evidence_ids": [],
-            "step_hours": 1
+            "step_hours": 1,
+            "customer_delivered_volume_lower_bound_m3": 80,
+            "customer_delivered_volume_upper_bound_m3": 80
           }
         ],
         "supporting_evidence_ids": []
@@ -158,7 +162,9 @@
               "unmet_demand_volume_lower_bound_m3": 100,
               "unmet_demand_volume_upper_bound_m3": 100,
               "supporting_evidence_ids": [],
-              "step_hours": 1
+              "step_hours": 1,
+              "customer_delivered_volume_lower_bound_m3": 0,
+              "customer_delivered_volume_upper_bound_m3": 0
             },
             {
               "step_id": "hour-10",
@@ -171,7 +177,9 @@
               "unmet_demand_volume_lower_bound_m3": 100,
               "unmet_demand_volume_upper_bound_m3": 100,
               "supporting_evidence_ids": [],
-              "step_hours": 1
+              "step_hours": 1,
+              "customer_delivered_volume_lower_bound_m3": 0,
+              "customer_delivered_volume_upper_bound_m3": 0
             }
           ],
           "supporting_evidence_ids": []
