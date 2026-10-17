@@ -41,7 +41,7 @@ No probabilities are inferred from scenario counts. Duplicating a scenario is th
 
 ## Synthetic reference cases
 
-The pinned JSONL fixture has five hand-authored cases. In addition, the Rust tests enumerate all 81 exact-loss matrices formed by two decisions, two scenarios and per-cell losses in {0, 1, 2}. For every matrix, the uninformative action must leave the regret bound unchanged and perfect scenario discrimination must reduce the exact-loss bound to zero. An independent reference calculation was run over the same 81-state space.
+The pinned JSONL fixture has five hand-authored cases. In addition, the Rust tests enumerate all 81 exact-loss matrices formed by two decisions, two scenarios and per-cell losses in {0, 1, 2}. For every matrix, the uninformative action must leave the regret bound unchanged and perfect scenario discrimination must reduce the exact-loss bound to zero. An independent reference calculation was run over the same 81-state space. A second exhaustive test spans all nine pairs of non-empty possible-outcome sets for each loss matrix (729 model/action combinations); it checks that added observations never increase the pre-cost bound and identical scenario outcome sets add no information.
 
 1. Perfectly discriminating observation: bound 80 → 0, cost 10, net reduction 70.
 2. Non-discriminating inspection: bound stays 80, cost 5, net reduction −5.
