@@ -383,12 +383,8 @@ fn calculate_one(
 
     // Only the all-known branch reports a deficit or surplus. Unknown inputs are
     // excluded from the partial subtotal above, never substituted with numeric zero.
-    let (deficit, surplus, status) = match (
-        demand_value,
-        soil_value,
-        mineral_value,
-        organic_value,
-    ) {
+    let (deficit, surplus, status) = match (demand_value, soil_value, mineral_value, organic_value)
+    {
         (Some(demand), Some(_), Some(_), Some(_)) => (
             Some((demand - partial_total).max(0.0)),
             Some((partial_total - demand).max(0.0)),
@@ -451,7 +447,10 @@ mod tests {
         assert_eq!(result.nitrogen.deficit_kg_per_ha, Some(10.0));
         assert_eq!(result.nitrogen.surplus_kg_per_ha, Some(0.0));
 
-        assert_eq!(result.phosphorus.known_supply_subtotal_kg_per_ha, Some(35.0));
+        assert_eq!(
+            result.phosphorus.known_supply_subtotal_kg_per_ha,
+            Some(35.0)
+        );
         assert_eq!(result.phosphorus.deficit_kg_per_ha, Some(0.0));
         assert_eq!(result.phosphorus.surplus_kg_per_ha, Some(5.0));
 
@@ -555,7 +554,12 @@ mod tests {
         let result = calculate_budget(&input).unwrap();
         assert_eq!(result.inputs, input);
         assert_eq!(
-            result.inputs.existing_soil_supply.nitrogen.source_id.as_deref(),
+            result
+                .inputs
+                .existing_soil_supply
+                .nitrogen
+                .source_id
+                .as_deref(),
             Some("lab-or-ledger-001")
         );
     }
@@ -568,6 +572,12 @@ mod tests {
         let encoded = serde_json::to_string(&input).unwrap();
         let decoded: NutrientBudgetInput = serde_json::from_str(&encoded).unwrap();
         assert_eq!(decoded, input);
-        assert!(calculate_budget(&decoded).unwrap().nitrogen.deficit_kg_per_ha.is_none());
+        assert!(
+            calculate_budget(&decoded)
+                .unwrap()
+                .nitrogen
+                .deficit_kg_per_ha
+                .is_none()
+        );
     }
 }
