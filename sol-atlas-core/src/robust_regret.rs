@@ -506,6 +506,7 @@ mod tests {
             );
         }
     }
+
     #[test]
     fn exhaustive_two_by_two_loss_grids_preserve_information_monotonicity() {
         let scenario_ids: BTreeSet<String> =
