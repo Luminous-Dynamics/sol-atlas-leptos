@@ -37,3 +37,8 @@ The implementation contains a selected task-shape validator and digest binding, 
 - Zero candidates removed solely due to a soft preference.
 - Byte-identical receipt for identical fixture, schema and policy versions.
 - Measure actual search success, constraint comprehension and wanted next actions separately in later human studies.
+
+
+## Metamorphic invariants
+
+See the [7-property machine-readable contract](../../docs/research/fixtures/city-belonging-metamorphic-contract-v0.1.json). The Rust test suite now exercises candidate-order invariance, constraint-order commutativity, preference noninterference, constraint monotonicity, irrelevant-fact noninterference and conjunctive hard requirements. These tests remain unexecuted until the scoped CI run completes.
