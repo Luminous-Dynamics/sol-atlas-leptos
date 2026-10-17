@@ -182,3 +182,5 @@ Run with `WATER_ENERGY_INTERVENTION_BENCH_WARMUP=3` and `WATER_ENERGY_INTERVENTI
 | 10,000 | 2,000 ms |
 
 These are unmeasured engineering targets. A performance target can be marked met only from a report tied to the exact commit, compiler, runner and host manifest. Correctness gates and latency numbers are separate, and even an exact synthetic-oracle match does not establish that a real hydraulic system follows the aggregate model.
+
+**Benchmark metadata interpretation:** The water-energy benchmark JSON attempts to record the source revision, Rust compiler, CI runner/host architecture, output size and `/proc/self/status` `VmHWM` when available. `VmHWM` is a process-wide high-water mark since process start; because the three workload sizes run in one process, it is **not** an isolated per-workload peak. For comparable RSS by workload size, run each size in a fresh process or measure each invocation with an external process monitor. Missing metadata remains null rather than being fabricated.
