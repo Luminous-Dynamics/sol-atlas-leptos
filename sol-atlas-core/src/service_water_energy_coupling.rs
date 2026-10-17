@@ -209,6 +209,13 @@ pub fn assess_water_energy_coupled_trajectory(
 ) -> Result<WaterEnergyCoupledTrajectoryAssessment, WaterEnergyCouplingError> {
     let evidence_by_id = build_evidence_index(evidence_records)
         .map_err(WaterEnergyCouplingError::EvidenceValidation)?;
+    assess_water_energy_coupled_trajectory_indexed(request, &evidence_by_id)
+}
+
+pub(crate) fn assess_water_energy_coupled_trajectory_indexed(
+    request: &WaterEnergyCouplingRequest,
+    evidence_by_id: &BTreeMap<&str, &EvidenceRecord>,
+) -> Result<WaterEnergyCoupledTrajectoryAssessment, WaterEnergyCouplingError> {
     let mut errors = Vec::new();
 
     if request.schema_version != WATER_ENERGY_COUPLING_SCHEMA_VERSION {
@@ -299,7 +306,7 @@ pub fn assess_water_energy_coupled_trajectory(
             WaterEnergyMeasurementRole::MechanicalPumpCapacity,
             &water_step.pump_capacity,
             &water_step.as_of,
-            &evidence_by_id,
+            evidence_by_id,
             &mut errors,
         );
         validate_one_measurement(
@@ -427,7 +434,7 @@ pub fn assess_water_energy_coupled_trajectory(
         };
     }
 
-    let water_assessment = assess_trajectory_indexed(&coupled_trajectory, &evidence_by_id)
+    let water_assessment = assess_trajectory_indexed(&coupled_trajectory, evidence_by_id)
         .map_err(WaterEnergyCouplingError::TrajectoryAssessment)?;
     all_evidence_ids.extend(water_assessment.supporting_evidence_ids.iter().cloned());
 
