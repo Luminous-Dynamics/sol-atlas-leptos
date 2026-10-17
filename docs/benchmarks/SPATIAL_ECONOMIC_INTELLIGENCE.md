@@ -251,3 +251,10 @@ The harness records revision/compiler/runner metadata, p50/p95/max, output bytes
 
 Correctness gates are independent of speed: no resource is spent more than once, every service and resource relationship is explicit, weighted floor categories reconcile, indeterminate outcomes are preserved, evidence references validate, and input permutations serialize identically. The current policy is equal-coverage progressive filling, not a physical network solver or a universally optimal allocation policy.
 
+
+### Staggered-bottleneck iteration profile
+
+The benchmark also runs 100 services over ten shared resources with one usage edge per service and stepwise capacity limits. Each resource has ten consumers; its capacity is set so its group reaches coverage 0.1, 0.2, …, 1.0 in turn. This forces **ten successive freeze rounds** instead of allowing all active services to stop in the first round. The expected protected-floor compliance lower bound is 0.8 for a floor of 0.3, and the benchmark asserts all ten conservative and optimistic iterations, each resource constraint, per-service coverage, deterministic output bytes, and the weighted-floor oracle.
+
+Proposed p95 target for this 100-service / 10-resource / 100-usage staged case: **50 ms**. It uses 50,500 estimated work units and is intended to expose iterative overhead alongside the balanced throughput cases above. The target remains unmeasured.
+
