@@ -168,3 +168,17 @@ Run with `WATER_ENERGY_BENCH_WARMUP=3` and `WATER_ENERGY_BENCH_SAMPLES=20` using
 | 10,000 | 1,000 ms |
 
 These are local engineering hypotheses, not external standards or measured performance. Attach each report to its exact commit, compiler, runner and host manifest; correctness and latency must be reported separately. A target pass does not imply hydraulic validity. The first oracle comparison remains the qualified EPANET corpus in issue #139, using only quantities with compatible physical meaning and explicit tolerances.
+
+## Paired water-energy counterfactual comparison
+
+The paired benchmark compares a synthetic 20 kW baseline pump with a 40 kW candidate pump at the same 0.5 kWh/m³ operating-regime estimate and a 100 m³/h nameplate limit. The deterministic oracle is a 40 m³ reduction in unmet demand per interval, with the result classified as a robust modeled improvement. The harness measures the full baseline-plus-candidate comparison and checks the oracle on every run.
+
+Run with `WATER_ENERGY_INTERVENTION_BENCH_WARMUP=3` and `WATER_ENERGY_INTERVENTION_BENCH_SAMPLES=20` using `cargo bench --bench water_energy_intervention`.
+
+| Paired intervals per side | Proposed p95 target |
+| ---: | ---: |
+| 100 | 40 ms |
+| 1,000 | 300 ms |
+| 10,000 | 2,000 ms |
+
+These are unmeasured engineering targets. A performance target can be marked met only from a report tied to the exact commit, compiler, runner and host manifest. Correctness gates and latency numbers are separate, and even an exact synthetic-oracle match does not establish that a real hydraulic system follows the aggregate model.
