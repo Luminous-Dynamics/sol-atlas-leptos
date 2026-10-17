@@ -75,14 +75,14 @@
         "sha256_utf8": "107c201430274af1584921bd20469cc4e664930cd757261698900cc88948da57"
       }
     ],
-    "validation_status": "SELECTED_RESOURCE_ROW_CONTRACT_TO_BE_CHECKED_BY_RUST_TOOL; NOT_COMPLETE_HSDS_CONFORMANCE",
-    "reason": "Selected HSDS 3.1 resource rows are checked against the pinned field/property names, required plus tabular-required fields, value types, declared enums, formats, and cross-row relationships. This is not full validation of every schema semantic or nested reference."
+    "validation_status": "PINNED_SELECTED_RESOURCE_ROW_CONTRACT_IMPLEMENTED_BUT_NOT_EXECUTED; FULL_HSDS_CONFORMANCE_NOT_ASSERTED",
+    "reason": "The checker is authored to validate selected HSDS 3.1 row properties, required plus tabular-required fields, types, formats, enums, and cross-row relationships against nine vendored, hash-pinned schema files. The Rust implementation is not compiled/executed yet; nested references and all upstream schema semantics are not fully implemented. No full HSDS conformance claim is made."
   },
   "local_profile": {
     "id": "city-belonging-admission-profile",
     "version": "0.1",
     "sha256_utf8": null,
-    "validation_status": "DOCUMENTED_IN_ADMISSION_POLICY_AND_RUST_CHECKER_NOT_YET_EXECUTED"
+    "validation_status": "ADMISSION_POLICY_IN_RUST_CHECKER_IMPLEMENTED_BUT_NOT_EXECUTED"
   },
   "status": "SYNTHETIC_RESEARCH_FIXTURE",
   "claims_not_made": [
