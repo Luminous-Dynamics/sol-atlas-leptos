@@ -182,6 +182,8 @@ pub struct WaterEnergyStressStepAssessment {
     pub floor_status: ServiceFloorStatus,
     pub unmet_demand_volume_lower_bound_m3: f64,
     pub unmet_demand_volume_upper_bound_m3: f64,
+    pub customer_delivered_volume_lower_bound_m3: f64,
+    pub customer_delivered_volume_upper_bound_m3: f64,
     pub supporting_evidence_ids: Vec<String>,
 }
 
@@ -882,6 +884,10 @@ fn evaluate_case(
                 floor_status: step_floor_statuses[index],
                 unmet_demand_volume_lower_bound_m3: deficit_lower,
                 unmet_demand_volume_upper_bound_m3: deficit_upper,
+                customer_delivered_volume_lower_bound_m3: step
+                    .customer_delivered_volume_lower_bound,
+                customer_delivered_volume_upper_bound_m3: step
+                    .customer_delivered_volume_upper_bound,
                 supporting_evidence_ids: step_evidence.into_iter().collect(),
             });
         }
