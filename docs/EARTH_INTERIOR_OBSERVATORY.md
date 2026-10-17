@@ -213,3 +213,12 @@ Success means independent reproduction and better-calibrated, better-generalizin
 - 2010 core-surface flow reversal study (jSEDI, 2026): https://jsedi.episciences.org/articles/17268
 - Prior sensitivity in core-flow inversion (Physics of the Earth and Planetary Interiors, 2025): https://www.sciencedirect.com/science/article/pii/S0031920125000172
 - Joint Bayesian magnetic field/core-flow inference (jSEDI, 2026): https://jsedi.episciences.org/articles/17320
+
+### Canonical benchmark-run receipts and fail-closed qualification
+
+All executed Earth Interior Observatory benchmark suites now point to the shared JSON Schema at [`benchmark-run-receipt.schema.json`](earth-interior/benchmark-run-receipt.schema.json). The schema is for an *attempted run*, not for an unexecuted benchmark specification. Every attempt should emit a receipt, including failed, cancelled, or interrupted runs; silence is not a pass.
+
+A qualified receipt binds the benchmark-specification digest, exact code commit, clean worktree, frozen configuration digest, toolchain/environment, random-number generator and seed set, immutable artifacts, metric values and uncertainty, negative-control outcomes, gate decisions, and an independent verifier result digest. Qualified synthetic runs must show that the truth artifact was withheld from the selector until scoring. Source-adapter qualification additionally requires a verified payload digest and passed unit, time-axis, and variable-shape audits. Real-observation evaluation additionally requires passed holdout-leakage and reference-overlap audits.
+
+The schema deliberately rejects a qualified status when any declared gate or negative control did not pass, the worktree is dirty, execution did not complete, or independent-verifier evidence is absent/not accepted. A queued, skipped, cancelled, missing, or stale-head workflow is not a pass. JSON Schema validates receipt structure; an independent verifier must still recompute hashes and gates before promoting a result. A valid receipt is provenance, not proof that the physical model is correct.
+
