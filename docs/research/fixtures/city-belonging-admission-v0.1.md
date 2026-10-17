@@ -75,3 +75,8 @@ The zero-error target is a strict synthetic regression gate, not a promise about
 - [Open Referral HSDS 3.1 overview](https://docs.openreferral.org/en/3.1/hsds/overview.html)
 - [HSDS 3.1 change notes](https://openreferral.org/upgrading-our-standards-introducing-version-3-1-of-the-human-service-data-specifications/)
 - [WHO Commission on Social Connection and 2025 report](https://www.who.int/groups/commission-on-social-connection)
+
+
+## Local admission evidence profile
+
+The local evidence envelope is separately versioned in [city-belonging-admission-profile-v0.1.json](city-belonging-admission-profile-v0.1.json), with its UTF-8 SHA-256 pinned by the fixture manifest. The Rust checker validates source/permission enums, field-state dimensions and values, contact-check shapes, duplicate provider-verified paths, and ensures each `resource.field` verification path exists in both the pinned resource contract and that case's row. For example, HSDS 3.1 uses `schedule.byday`, not `schedule.weekday`. Unknown enum values or non-existent field paths fail closed. This is not a judgment that the evidence source is honest or that a real provider/service is safe.
