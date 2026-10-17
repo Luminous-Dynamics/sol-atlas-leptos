@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-network-stress-v0.1.schema.json",
   "title": "Spatial-Economic Bounded Network Stress Request",
-  "description": "Request an exhaustive single-, double-, or triple-link-failure experiment over a complete directed service-capacity topology. Over-budget sweeps fail closed and are never silently truncated.",
+  "description": "Request an exhaustive single-, double-, or triple-link-failure experiment over a complete directed service-capacity topology. The implementation caps exhaustive cases at 10,000 and total cloned scenario-link references at 2,000,000. Over-budget sweeps fail closed and are never silently truncated.",
   "type": "object",
   "additionalProperties": false,
   "required": [
