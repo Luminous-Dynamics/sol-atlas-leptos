@@ -255,7 +255,9 @@ fn run(
         let serialized =
             serde_json::to_vec(&output).expect("measured result must serialize");
         if serialized != reference_bytes {
-            panic!("joint-stress benchmark output differs from its untimed deterministic reference");
+            panic!(
+                "joint-stress output differs from its untimed deterministic reference"
+            );
         }
         last = Some(output);
     }
