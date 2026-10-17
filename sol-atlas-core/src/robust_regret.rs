@@ -506,4 +506,90 @@ mod tests {
             );
         }
     }
+    #[test]
+    fn exhaustive_two_by_two_loss_grids_preserve_information_monotonicity() {
+        let scenario_ids: BTreeSet<String> =
+            ["scenario-a".to_string(), "scenario-b".to_string()]
+                .into_iter()
+                .collect();
+        let decision_ids: BTreeSet<String> =
+            ["decision-a".to_string(), "decision-b".to_string()]
+                .into_iter()
+                .collect();
+        let values = [0.0, 1.0, 2.0];
+        let mut evaluated = 0;
+
+        // Enumerate all 3^4 exact-loss matrices for two decisions and two scenarios.
+        for encoded in 0..81 {
+            let mut remainder = encoded;
+            let mut losses = Vec::with_capacity(4);
+            for decision_id in ["decision-a", "decision-b"] {
+                for scenario_id in ["scenario-a", "scenario-b"] {
+                    let value = values[remainder % values.len()];
+                    remainder /= values.len();
+                    losses.push(DecisionLoss {
+                        decision_id: decision_id.into(),
+                        scenario_id: scenario_id.into(),
+                        loss_lower: value,
+                        loss_upper: value,
+                    });
+                }
+            }
+
+            let problem = RobustRegretProblem {
+                scenario_ids: scenario_ids.clone(),
+                decision_ids: decision_ids.clone(),
+                losses,
+                actions: vec![
+                    InvestigationAction {
+                        action_id: "uninformative".into(),
+                        cost: 0.0,
+                        outcome_by_scenario: BTreeMap::from([
+                            ("scenario-a".into(), "same".into()),
+                            ("scenario-b".into(), "same".into()),
+                        ]),
+                    },
+                    InvestigationAction {
+                        action_id: "fully-discriminating".into(),
+                        cost: 0.0,
+                        outcome_by_scenario: BTreeMap::from([
+                            ("scenario-a".into(), "outcome-a".into()),
+                            ("scenario-b".into(), "outcome-b".into()),
+                        ]),
+                    },
+                ],
+            };
+
+            let report = analyze_robust_regret(&problem).unwrap();
+            let uninformative = report
+                .investigations
+                .iter()
+                .find(|item| item.action_id == "uninformative")
+                .unwrap();
+            let discriminating = report
+                .investigations
+                .iter()
+                .find(|item| item.action_id == "fully-discriminating")
+                .unwrap();
+
+            assert_eq!(
+                uninformative.post_investigation_regret_bound,
+                report.baseline.worst_case_regret_bound,
+                "an uninformative action must not change the bound for matrix {encoded}"
+            );
+            assert!(
+                discriminating.post_investigation_regret_bound
+                    <= report.baseline.worst_case_regret_bound + 1e-9,
+                "information increased regret bound for matrix {encoded}"
+            );
+            assert_eq!(
+                discriminating.post_investigation_regret_bound, 0.0,
+                "perfect state discrimination should remove exact-loss regret for matrix {encoded}"
+            );
+            evaluated += 1;
+        }
+
+        assert_eq!(evaluated, 81);
+    }
+
 }
