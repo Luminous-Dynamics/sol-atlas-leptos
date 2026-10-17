@@ -73,6 +73,16 @@ pub enum Freshness {
     ValidityWindowUnknown,
 }
 
+/// Instrument calibration state, separate from the observation's evidence class.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum InstrumentCalibrationStatus {
+    Current,
+    Expired,
+    NotApplicable,
+    Unknown,
+}
+
 /// Geographic bounds in decimal degrees (WGS 84 by convention).
 ///
 /// This v0.1 rectangle representation does not encode arbitrary polygons and
@@ -215,6 +225,10 @@ pub struct ResourceMeasurement {
     pub unit: String,
     pub evidence_class: EvidenceClass,
     pub measured_at_epoch_seconds: Option<u64>,
+    /// Absolute uncertainty in the same unit as value, when quantified.
+    pub absolute_uncertainty: Option<f64>,
+    pub instrument_id: Option<String>,
+    pub calibration_status: InstrumentCalibrationStatus,
     pub source_reference: String,
     pub uncertainty_note: Option<String>,
 }
@@ -234,10 +248,44 @@ impl ResourceMeasurement {
         if self.source_reference.trim().is_empty() {
             errors.push("measurement source_reference must not be empty".to_owned());
         }
-        if matches!(self.evidence_class, EvidenceClass::Estimated | EvidenceClass::Scenario | EvidenceClass::Unknown)
+        if let Some(uncertainty) = self.absolute_uncertainty {
+            if !uncertainty.is_finite() || uncertainty < 0.0 {
+                errors.push(
+                    "absolute_uncertainty must be finite and non-negative".to_owned(),
+                );
+            }
+        }
+        if self.instrument_id.as_ref().is_some_and(|id| id.trim().is_empty()) {
+            errors.push("instrument_id must be omitted rather than blank".to_owned());
+        }
+        if self.calibration_status == InstrumentCalibrationStatus::Current
+            && self.instrument_id.is_none()
+        {
+            errors.push("current calibration requires an instrument_id".to_owned());
+        }
+        if self.instrument_id.is_some()
+            && matches!(
+                self.calibration_status,
+                InstrumentCalibrationStatus::Expired | InstrumentCalibrationStatus::Unknown
+            )
             && self.uncertainty_note.as_deref().is_none_or(|note| note.trim().is_empty())
         {
-            errors.push("estimated, scenario, and unknown measurements require an uncertainty note".to_owned());
+            errors.push(
+                "expired or unknown instrument calibration requires an uncertainty note"
+                    .to_owned(),
+            );
+        }
+        if matches!(self.evidence_class, EvidenceClass::Estimated | EvidenceClass::Scenario | EvidenceClass::Unknown)
+            && self.uncertainty_note.as_deref().is_none_or(|note| note.trim().is_empty())
+            && self.absolute_uncertainty.is_none()
+        {
+            errors.push(
+                "estimated, scenario, and unknown measurements require a numeric uncertainty or an uncertainty note"
+                    .to_owned(),
+            );
+        }
+        if self.uncertainty_note.as_deref().is_some_and(|note| note.trim().is_empty()) {
+            errors.push("uncertainty_note must be omitted rather than blank".to_owned());
         }
         if errors.is_empty() { Ok(()) } else { Err(errors) }
     }
@@ -361,6 +409,9 @@ mod tests {
                 unit: "synthetic_cubic_meters".to_owned(),
                 evidence_class: EvidenceClass::Observed,
                 measured_at_epoch_seconds: Some(120),
+                absolute_uncertainty: Some(5.0),
+                instrument_id: None,
+                calibration_status: InstrumentCalibrationStatus::NotApplicable,
                 source_reference: "inventory-snapshot-001:plot-4".to_owned(),
                 uncertainty_note: None,
             }],
@@ -431,6 +482,44 @@ mod tests {
         value.provenance.uncertainty_notes.clear();
         let errors = value.validate().expect_err("estimated evidence requires uncertainty");
         assert!(errors.iter().any(|error| error.contains("uncertainty note")));
+    }
+
+    #[test]
+    fn numeric_uncertainty_allows_estimated_measurements_without_free_text() {
+        let mut measurement = feature().measurements.remove(0);
+        measurement.evidence_class = EvidenceClass::Estimated;
+        measurement.uncertainty_note = None;
+        measurement.absolute_uncertainty = Some(12.5);
+        assert!(measurement.validate().is_ok());
+    }
+
+    #[test]
+    fn malformed_numeric_uncertainty_fails_closed() {
+        let mut measurement = feature().measurements.remove(0);
+        measurement.absolute_uncertainty = Some(f64::NAN);
+        let errors = measurement.validate().expect_err("uncertainty must be finite");
+        assert!(errors.iter().any(|error| error.contains("absolute_uncertainty")));
+        measurement.absolute_uncertainty = Some(-1.0);
+        assert!(measurement.validate().is_err());
+    }
+
+    #[test]
+    fn current_calibration_requires_instrument_identity() {
+        let mut measurement = feature().measurements.remove(0);
+        measurement.calibration_status = InstrumentCalibrationStatus::Current;
+        measurement.instrument_id = None;
+        assert!(measurement.validate().expect_err("instrument identity required")
+            .iter().any(|error| error.contains("current calibration requires")));
+    }
+
+    #[test]
+    fn expired_instrument_calibration_requires_caveat() {
+        let mut measurement = feature().measurements.remove(0);
+        measurement.calibration_status = InstrumentCalibrationStatus::Expired;
+        measurement.instrument_id = Some("scanner-001".to_owned());
+        measurement.uncertainty_note = None;
+        assert!(measurement.validate().expect_err("expired calibration must be disclosed")
+            .iter().any(|error| error.contains("uncertainty note")));
     }
 
     #[test]
