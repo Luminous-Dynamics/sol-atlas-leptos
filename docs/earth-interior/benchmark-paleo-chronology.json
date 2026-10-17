@@ -84,5 +84,6 @@
     "symthaea_chronology_issue": "https://github.com/Luminous-Dynamics/symthaea/issues/7725",
     "symtropy_simulation_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1728",
     "data_fixture_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/121"
-  }
+  },
+  "run_receipt_schema": "./benchmark-run-receipt.schema.json"
 }
