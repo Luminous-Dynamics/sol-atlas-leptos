@@ -25,7 +25,8 @@ pub struct DecisionLoss {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct InvestigationAction {
     pub action_id: String,
-    /// Cost must use the same explicit loss units as decision losses.
+    /// Exact unit identifier; must equal the problem's loss_unit.
+    pub cost_unit: String,
     pub cost: f64,
     /// The outcome this action would report in each scenario.
     pub outcome_by_scenario: BTreeMap<String, String>,
@@ -33,6 +34,8 @@ pub struct InvestigationAction {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RobustRegretProblem {
+    /// Explicit, shared unit for all loss intervals, e.g. "risk-points-v1".
+    pub loss_unit: String,
     pub scenario_ids: BTreeSet<String>,
     pub decision_ids: BTreeSet<String>,
     /// Exactly one loss interval is required for every decision × scenario pair.
@@ -89,6 +92,11 @@ pub enum RobustRegretError {
     MissingActionOutcome { action_id: String, scenario_id: String },
     EmptyActionOutcome { action_id: String, scenario_id: String },
     InvalidActionCost(String),
+    IncompatibleUnits {
+        action_id: String,
+        loss_unit: String,
+        cost_unit: String,
+    },
     NumericOverflow(String),
 }
 
@@ -105,6 +113,9 @@ fn nonempty(value: &str) -> bool {
 
 impl RobustRegretProblem {
     fn validate(&self) -> Result<(), RobustRegretError> {
+        if !nonempty(&self.loss_unit) {
+            return Err(RobustRegretError::EmptyIdentifier { field: "loss_unit" });
+        }
         if self.scenario_ids.is_empty() {
             return Err(RobustRegretError::EmptyScenarios);
         }
@@ -165,6 +176,16 @@ impl RobustRegretProblem {
             }
             if !action_ids.insert(action.action_id.clone()) {
                 return Err(RobustRegretError::DuplicateAction(action.action_id.clone()));
+            }
+            if !nonempty(&action.cost_unit) {
+                return Err(RobustRegretError::EmptyIdentifier { field: "cost_unit" });
+            }
+            if action.cost_unit != self.loss_unit {
+                return Err(RobustRegretError::IncompatibleUnits {
+                    action_id: action.action_id.clone(),
+                    loss_unit: self.loss_unit.clone(),
+                    cost_unit: action.cost_unit.clone(),
+                });
             }
             if !action.cost.is_finite() || action.cost < 0.0 {
                 return Err(RobustRegretError::InvalidActionCost(action.action_id.clone()));
@@ -413,6 +434,7 @@ mod tests {
 
     fn basic_problem() -> RobustRegretProblem {
         RobustRegretProblem {
+            loss_unit: "regret-units".into(),
             scenario_ids: ["dry".to_string(), "wet".to_string()].into_iter().collect(),
             decision_ids: ["site-a".to_string(), "site-b".to_string()].into_iter().collect(),
             losses: vec![
@@ -538,6 +560,7 @@ mod tests {
             }
 
             let problem = RobustRegretProblem {
+                loss_unit: "regret-units".into(),
                 scenario_ids: scenario_ids.clone(),
                 decision_ids: decision_ids.clone(),
                 losses,
