@@ -430,7 +430,12 @@ fn validate_metric_receipt(
     }
     if !valid_sha256(&receipt.project_scope_sha256)
         || receipt.project_scope_sha256 != policy.project_scope_sha256
-        || !valid_sha256(&receipt.design_revision_sha256)
+    {
+        return Err(ConstructionMethodError::ScopeDigestMismatch(
+            candidate.method_id.clone(),
+        ));
+    }
+    if !valid_sha256(&receipt.design_revision_sha256)
         || receipt.design_revision_sha256 != candidate.design_revision_sha256
         || receipt.project_scope_id != policy.project_scope_id
     {
