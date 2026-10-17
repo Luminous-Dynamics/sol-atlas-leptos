@@ -64,9 +64,11 @@ pub fn verify_bytes(fixture_bytes: &[u8], manifest_text: &str) -> Result<Value, 
     }
 
     let as_of = required_str(&manifest, "policy_as_of_date", "manifest")?;
-    if !valid_date(as_of) {
-        return Err("manifest.policy_as_of_date must be YYYY-MM-DD".to_owned());
+    if days_from_date(as_of).is_none() {
+        return Err("manifest.policy_as_of_date must be a valid YYYY-MM-DD date".to_owned());
     }
+    let max_age_days = manifest.get("provider_confirmation_max_age_days").and_then(Value::as_u64)
+        .ok_or_else(|| "manifest.provider_confirmation_max_age_days must be an unsigned integer".to_owned())?;
     let declared_count = manifest.get("record_count").and_then(Value::as_u64)
         .ok_or_else(|| "manifest.record_count must be an unsigned integer".to_owned())? as usize;
     let mut seen = BTreeSet::new();
@@ -89,7 +91,7 @@ pub fn verify_bytes(fixture_bytes: &[u8], manifest_text: &str) -> Result<Value, 
         let expected = record.get("expected")
             .ok_or_else(|| format!("{} missing expected contract", fixture_id))?;
         let expected_disposition = required_str(expected, "disposition", fixture_id)?;
-        let decision = evaluate_record(&record, as_of)?;
+        let decision = evaluate_record(&record, as_of, max_age_days)?;
         let matches = decision.disposition.as_str() == expected_disposition;
         if !matches {
             return Err(format!(
@@ -163,6 +165,7 @@ pub fn verify_bytes(fixture_bytes: &[u8], manifest_text: &str) -> Result<Value, 
         "fixture_id": manifest.get("fixture_id").and_then(Value::as_str).unwrap_or("unknown"),
         "fixture_sha256": actual_hash,
         "policy_as_of_date": as_of,
+        "provider_confirmation_max_age_days": max_age_days,
         "record_count": receipts.len(),
         "disposition_counts": observed_counts,
         "all_cases_match_expected_policy": true,
@@ -173,7 +176,7 @@ pub fn verify_bytes(fixture_bytes: &[u8], manifest_text: &str) -> Result<Value, 
     }))
 }
 
-pub fn evaluate_record(record: &Value, as_of: &str) -> Result<Decision, String> {
+pub fn evaluate_record(record: &Value, as_of: &str, max_age_days: u64) -> Result<Decision, String> {
     let evidence = record.get("admission_evidence")
         .ok_or_else(|| "record missing admission_evidence".to_owned())?;
     let fields = evidence.get("field_states")
@@ -199,6 +202,7 @@ pub fn evaluate_record(record: &Value, as_of: &str) -> Result<Decision, String> 
     } else if field(fields, "event_date") == Some("past")
         || field(fields, "capacity") == Some("stale")
         || schedule_expired(record, as_of)
+        || verification_is_stale(evidence, as_of, max_age_days)?
     {
         Disposition::StaleOrDisputed
     } else if source_kind == "provider_supplied"
@@ -262,11 +266,63 @@ fn required_str<'a>(value: &'a Value, key: &str, where_: &str) -> Result<&'a str
 }
 
 fn valid_date(value: &str) -> bool {
-    let bytes = value.as_bytes();
-    bytes.len() == 10
-        && bytes[4] == b'-'
-        && bytes[7] == b'-'
-        && bytes.iter().enumerate().all(|(i, b)| matches!(i, 4 | 7) || b.is_ascii_digit())
+    value.len() == 10
+        && value.as_bytes().get(4) == Some(&b'-')
+        && value.as_bytes().get(7) == Some(&b'-')
+        && value.as_bytes().iter().enumerate().all(|(i, b)| matches!(i, 4 | 7) || b.is_ascii_digit())
+}
+
+fn verification_is_stale(evidence: &Value, as_of: &str, max_age_days: u64) -> Result<bool, String> {
+    let Some(value) = evidence.get("provider_verified_at") else {
+        return Ok(false);
+    };
+    if value.is_null() {
+        return Ok(false);
+    }
+    let timestamp = value.as_str()
+        .ok_or_else(|| "provider_verified_at must be a timestamp string or null".to_owned())?;
+    let verified_date = timestamp.get(..10)
+        .ok_or_else(|| "provider_verified_at must start with YYYY-MM-DD".to_owned())?;
+    let verified_day = days_from_date(verified_date)
+        .ok_or_else(|| "provider_verified_at contains an invalid calendar date".to_owned())?;
+    let policy_day = days_from_date(as_of)
+        .ok_or_else(|| "policy_as_of_date contains an invalid calendar date".to_owned())?;
+    let age = policy_day - verified_day;
+    if age < 0 {
+        return Err("provider_verified_at is after policy_as_of_date".to_owned());
+    }
+    Ok(age > max_age_days as i64)
+}
+
+// Proleptic Gregorian ordinal; used only for deterministic age comparison in the policy checker.
+fn days_from_date(value: &str) -> Option<i64> {
+    if !valid_date(value) {
+        return None;
+    }
+    let year: i64 = value.get(0..4)?.parse().ok()?;
+    let month: i64 = value.get(5..7)?.parse().ok()?;
+    let day: i64 = value.get(8..10)?.parse().ok()?;
+    if !(1..=12).contains(&month) || day < 1 {
+        return None;
+    }
+    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let month_days = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap => 29,
+        2 => 28,
+        _ => return None,
+    };
+    if day > month_days {
+        return None;
+    }
+    let adjusted_year = if month <= 2 { year - 1 } else { year };
+    let era = adjusted_year.div_euclid(400);
+    let year_of_era = adjusted_year - era * 400;
+    let adjusted_month = month + if month > 2 { -3 } else { 9 };
+    let day_of_year = (153 * adjusted_month + 2) / 5 + day - 1;
+    let day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
+    Some(era * 146_097 + day_of_era)
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -285,11 +341,11 @@ mod tests {
     fn golden_fixture_matches_every_expected_disposition_and_safety_flag() {
         let report = verify_bytes(FIXTURE.as_bytes(), MANIFEST).unwrap();
         assert_eq!(report["status"], "SYNTHETIC_POLICY_FIXTURE_MATCH");
-        assert_eq!(report["record_count"], 10);
+        assert_eq!(report["record_count"], 11);
         assert_eq!(report["all_cases_match_expected_policy"], true);
         assert_eq!(report["disposition_counts"]["ProviderConfirmed"], 3);
         assert_eq!(report["disposition_counts"]["ReviewRequired"], 3);
-        assert_eq!(report["disposition_counts"]["StaleOrDisputed"], 2);
+        assert_eq!(report["disposition_counts"]["StaleOrDisputed"], 3);
         assert_eq!(report["disposition_counts"]["CandidateOnly"], 1);
         assert_eq!(report["disposition_counts"]["ClosedOrWithdrawn"], 1);
     }
@@ -313,7 +369,7 @@ mod tests {
     #[test]
     fn an_expired_event_cannot_be_current() {
         let record: Value = serde_json::from_str(FIXTURE.lines().nth(1).unwrap()).unwrap();
-        let decision = evaluate_record(&record, "2026-10-17").unwrap();
+        let decision = evaluate_record(&record, "2026-10-17", 30).unwrap();
         assert_eq!(decision.disposition, Disposition::StaleOrDisputed);
         assert!(!decision.surface_as_current);
     }
@@ -331,6 +387,14 @@ mod tests {
         let record: Value = serde_json::from_str(FIXTURE.lines().nth(2).unwrap()).unwrap();
         let decision = evaluate_record(&record, "2026-10-17").unwrap();
         assert_eq!(decision.disposition, Disposition::ReviewRequired);
+        assert!(!decision.surface_as_current);
+    }
+
+    #[test]
+    fn an_old_provider_confirmation_is_not_current() {
+        let record: Value = serde_json::from_str(FIXTURE.lines().nth(10).unwrap()).unwrap();
+        let decision = evaluate_record(&record, "2026-10-17", 30).unwrap();
+        assert_eq!(decision.disposition, Disposition::StaleOrDisputed);
         assert!(!decision.surface_as_current);
     }
 
