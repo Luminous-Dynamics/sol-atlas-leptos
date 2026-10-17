@@ -390,7 +390,7 @@ mod tests {
     fn verified_gates_and_complete_evidence_are_shortlist_eligible() {
         let result = evaluate_site(&passing_candidate(), &policy(0.9)).unwrap();
         assert_eq!(result.status, SuitabilityStatus::ShortlistEligible);
-        assert_eq!(result.weighted_score, Some(0.8));
+        assert!((result.weighted_score.unwrap() - 0.8).abs() < 1e-12);
         assert_eq!(result.evidence_coverage, 1.0);
     }
 
