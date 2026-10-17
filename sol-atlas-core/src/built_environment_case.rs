@@ -116,6 +116,12 @@ pub struct EvidenceRecord {
     pub observed_at_unix_seconds: Option<i64>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ArtifactReference {
+    pub artifact_id: String,
+    pub content_sha256: String,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ArtifactRecord {
     pub artifact_id: String,
@@ -125,7 +131,7 @@ pub struct ArtifactRecord {
     pub revision: u64,
     pub kind: ArtifactKind,
     pub content_sha256: String,
-    pub parent_artifact_ids: Vec<String>,
+    pub parent_artifacts: Vec<ArtifactReference>,
     pub evidence_ids: Vec<String>,
     pub jurisdiction: String,
     pub created_at_unix_seconds: i64,
@@ -202,7 +208,9 @@ pub enum ValidationCode {
     ArtifactDependencyCycle,
     MissingInputArtifact,
     StaleInputDigest,
+    StaleParentArtifactDigest,
     EngineeringReceiptMismatch,
+    ApprovalHasConditions,
     SolverMetadataMissing,
     ConclusionStatusMismatch,
     ProfessionalReviewerMissing,
@@ -303,9 +311,9 @@ fn has_dependency_cycle(artifacts: &BTreeMap<String, &ArtifactRecord>) -> bool {
             return true;
         }
         if let Some(artifact) = artifacts.get(id) {
-            for parent in &artifact.parent_artifact_ids {
-                if artifacts.contains_key(parent)
-                    && visit(parent, artifacts, visiting, visited)
+            for parent in &artifact.parent_artifacts {
+                if artifacts.contains_key(&parent.artifact_id)
+                    && visit(&parent.artifact_id, artifacts, visiting, visited)
                 {
                     return true;
                 }
@@ -346,6 +354,8 @@ fn required_receipt_is_accepted(
     receipt: &EngineeringReceipt,
     target: &ArtifactRecord,
     policy: &EvidenceGraphPolicy,
+    evidence_by_id: &BTreeMap<&str, &EvidenceRecord>,
+    jurisdiction: &str,
 ) -> bool {
     receipt.design_id == target.design_id
         && receipt.input_artifact_id == target.artifact_id
@@ -362,6 +372,10 @@ fn required_receipt_is_accepted(
             .as_ref()
             .is_some_and(|version| nonempty(version))
         && nonempty(&receipt.declared_scope)
+        && !receipt.assumption_evidence_ids.is_empty()
+        && receipt.assumption_evidence_ids.iter().all(|evidence_id| {
+            accepted_evidence(evidence_id, evidence_by_id, policy, jurisdiction)
+        })
         && (receipt.review_level != ReviewLevel::QualifiedProfessional
             || receipt
                 .reviewer_id
@@ -592,13 +606,33 @@ pub fn validate_case(
                 );
             }
         }
-        for parent_id in &artifact.parent_artifact_ids {
-            if !artifacts_by_id.contains_key(parent_id.as_str()) {
-                issue(
+        for parent in &artifact.parent_artifacts {
+            match artifacts_by_id.get(parent.artifact_id.as_str()).copied() {
+                None => issue(
                     &mut issues,
                     ValidationCode::MissingParentArtifact,
                     artifact.artifact_id.clone(),
-                    format!("artifact references missing parent artifact {parent_id}"),
+                    format!("artifact references missing parent artifact {}", parent.artifact_id),
+                ),
+                Some(parent_record) if parent_record.content_sha256 != parent.content_sha256 => {
+                    issue(
+                        &mut issues,
+                        ValidationCode::StaleParentArtifactDigest,
+                        artifact.artifact_id.clone(),
+                        format!(
+                            "artifact dependency {} does not match the pinned parent digest",
+                            parent.artifact_id
+                        ),
+                    );
+                }
+                Some(_) => {}
+            }
+            if !valid_sha256(&parent.content_sha256) {
+                issue(
+                    &mut issues,
+                    ValidationCode::InvalidDigest,
+                    artifact.artifact_id.clone(),
+                    format!("parent artifact {} has an invalid pinned digest", parent.artifact_id),
                 );
             }
         }
@@ -763,6 +797,14 @@ pub fn validate_case(
                 }
 
                 if decision.disposition == DecisionDisposition::Approve {
+                    if !decision.conditions.is_empty() {
+                        issue(
+                            &mut issues,
+                            ValidationCode::ApprovalHasConditions,
+                            decision.event_id.clone(),
+                            "approval with outstanding conditions must be recorded as conditional, not approved",
+                        );
+                    }
                     if !policy.approvable_artifact_kinds.contains(&target.kind) {
                         issue(
                             &mut issues,
@@ -838,7 +880,13 @@ pub fn validate_case(
                                 format!("decision references missing engineering receipt {receipt_id}"),
                             ),
                             Some(receipt) => {
-                                if !required_receipt_is_accepted(receipt, target, policy) {
+                                if !required_receipt_is_accepted(
+                    receipt,
+                    target,
+                    policy,
+                    &evidence_by_id,
+                    &case.jurisdiction,
+                ) {
                                     issue(
                                         &mut issues,
                                         ValidationCode::EngineeringReceiptNotAccepted,
@@ -975,7 +1023,7 @@ mod tests {
             revision,
             kind: ArtifactKind::DesignModel,
             content_sha256: digest(sha),
-            parent_artifact_ids: Vec::new(),
+            parent_artifacts: Vec::new(),
             evidence_ids: vec!["evidence-1".into()],
             jurisdiction: "ZA-GP-JHB".into(),
             created_at_unix_seconds: 1_792_195_200,
@@ -1093,18 +1141,71 @@ mod tests {
     fn missing_evidence_reference_and_parent_are_explicit_issues() {
         let mut case = valid_case();
         case.artifacts[0].evidence_ids.push("missing-source".into());
-        case.artifacts[0].parent_artifact_ids.push("missing-parent".into());
+        case.artifacts[0].parent_artifacts.push(ArtifactReference {
+            artifact_id: "missing-parent".into(),
+            content_sha256: digest('d'),
+        });
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
         assert!(result.iter().any(|issue| issue.code == ValidationCode::MissingEvidenceReference));
         assert!(result.iter().any(|issue| issue.code == ValidationCode::MissingParentArtifact));
     }
 
     #[test]
+    fn changed_parent_digest_invalidates_child_lineage() {
+        let mut case = valid_case();
+        let mut child = artifact("drawing-1", 1, 'd');
+        child.family_id = "drawing-package".into();
+        child.parent_artifacts.push(ArtifactReference {
+            artifact_id: "model-1".into(),
+            content_sha256: digest('c'),
+        });
+        case.artifacts.push(child);
+        let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
+        assert!(result
+            .iter()
+            .any(|issue| issue.code == ValidationCode::StaleParentArtifactDigest));
+    }
+
+    #[test]
+    fn receipts_with_stale_assumption_evidence_cannot_support_approval() {
+        let mut case = valid_case();
+        case.engineering_receipts[0].assumption_evidence_ids = vec!["stale-assumption".into()];
+        case.evidence.push(EvidenceRecord {
+            evidence_id: "stale-assumption".into(),
+            evidence_state: EvidenceState::Stale,
+            ..evidence("stale-assumption")
+        });
+        let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
+        assert!(result
+            .iter()
+            .any(|issue| issue.code == ValidationCode::EngineeringReceiptNotAccepted));
+        assert!(result
+            .iter()
+            .any(|issue| issue.code == ValidationCode::MissingRequiredDiscipline));
+    }
+
+    #[test]
+    fn approval_with_conditions_must_not_be_reported_as_unconditional() {
+        let mut case = valid_case();
+        case.decisions[0].conditions.push("Await final local authority sign-off".into());
+        let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
+        assert!(result
+            .iter()
+            .any(|issue| issue.code == ValidationCode::ApprovalHasConditions));
+    }
+
+    #[test]
     fn cyclic_artifact_lineage_is_rejected() {
         let mut case = valid_case();
         let mut second = artifact("model-2", 2, 'd');
-        second.parent_artifact_ids.push("model-1".into());
-        case.artifacts[0].parent_artifact_ids.push("model-2".into());
+        second.parent_artifacts.push(ArtifactReference {
+            artifact_id: "model-1".into(),
+            content_sha256: digest('b'),
+        });
+        case.artifacts[0].parent_artifacts.push(ArtifactReference {
+            artifact_id: "model-2".into(),
+            content_sha256: digest('d'),
+        });
         case.artifacts.push(second);
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
         assert!(result.iter().any(|issue| issue.code == ValidationCode::ArtifactDependencyCycle));
