@@ -619,6 +619,24 @@ mod tests {
     }
 
     #[test]
+    fn an_unverified_route_cannot_satisfy_a_travel_time_limit() {
+        let mut value = case("CBT-013");
+        value["candidates"][0]["facts"]["route_estimate"] = json!("unknown");
+        value["candidates"][1]["facts"]["route_estimate"] = json!("not_available");
+        let result = evaluate_case(&value).unwrap();
+        assert!(result.eligible_candidate_ids.is_empty());
+        let a = result.candidate_receipts.iter().find(|r| r["candidate_id"] == "A").unwrap();
+        assert_eq!(a["eligibility"], "unknown_hard_constraint");
+    }
+
+    #[test]
+    fn unexpected_task_fields_fail_closed() {
+        let mut value = case("CBT-001");
+        value["opaque_match_score"] = json!(0.99);
+        assert!(validate_case_shape(&value, "test CBT-001").unwrap_err().contains("undeclared top-level field"));
+    }
+
+    #[test]
     fn exclusion_reasons_must_cover_every_rejected_candidate() {
         let mut value: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
         value["expected"]["ineligible_reasons"].as_object_mut().unwrap().remove("C");
