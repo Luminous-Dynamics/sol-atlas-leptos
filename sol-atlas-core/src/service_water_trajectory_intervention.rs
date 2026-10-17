@@ -673,7 +673,9 @@ mod tests {
         assert!(matches!(
             compare_water_service_trajectory_interventions(&duplicates, &[]),
             Err(WaterServiceTrajectoryInterventionError::InvalidInput(errors))
-                if errors.contains(&WaterTrajectoryInterventionValidationError::DuplicateComparisonId)
+                if errors.contains(
+                    &WaterTrajectoryInterventionValidationError::DuplicateComparisonId,
+                )
         ));
     }
 }
