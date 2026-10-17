@@ -390,6 +390,11 @@ mod tests {
         }
     }
 
+    fn measurement() -> ResourceMeasurement {
+        let mut value = feature();
+        value.measurements.remove(0)
+    }
+
     fn feature() -> WoodResourceFeature {
         WoodResourceFeature {
             feature_id: "forest-001".to_owned(),
@@ -486,7 +491,7 @@ mod tests {
 
     #[test]
     fn numeric_uncertainty_allows_estimated_measurements_without_free_text() {
-        let mut measurement = feature().measurements.remove(0);
+        let mut measurement = measurement();
         measurement.evidence_class = EvidenceClass::Estimated;
         measurement.uncertainty_note = None;
         measurement.absolute_uncertainty = Some(12.5);
@@ -495,7 +500,7 @@ mod tests {
 
     #[test]
     fn malformed_numeric_uncertainty_fails_closed() {
-        let mut measurement = feature().measurements.remove(0);
+        let mut measurement = measurement();
         measurement.absolute_uncertainty = Some(f64::NAN);
         let errors = measurement.validate().expect_err("uncertainty must be finite");
         assert!(errors.iter().any(|error| error.contains("absolute_uncertainty")));
@@ -505,7 +510,7 @@ mod tests {
 
     #[test]
     fn current_calibration_requires_instrument_identity() {
-        let mut measurement = feature().measurements.remove(0);
+        let mut measurement = measurement();
         measurement.calibration_status = InstrumentCalibrationStatus::Current;
         measurement.instrument_id = None;
         assert!(measurement.validate().expect_err("instrument identity required")
@@ -514,7 +519,7 @@ mod tests {
 
     #[test]
     fn expired_instrument_calibration_requires_caveat() {
-        let mut measurement = feature().measurements.remove(0);
+        let mut measurement = measurement();
         measurement.calibration_status = InstrumentCalibrationStatus::Expired;
         measurement.instrument_id = Some("scanner-001".to_owned());
         measurement.uncertainty_note = None;
