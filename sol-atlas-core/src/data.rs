@@ -138,8 +138,8 @@ fn parse_or_log<T: Default>(dataset: &str, result: Result<T, serde_json::Error>)
 ///
 /// ValidEmpty means the source parsed successfully and contained zero records.
 /// Malformed means parsing failed; it must not be presented as a valid empty
-/// inventory. Unavailable, StaleCache and Rejected are reserved for retrieval,
-/// cache and authentication layers that own those decisions.
+/// inventory. Rejected means parsing succeeded but every source record failed
+/// semantic validation. Unavailable and StaleCache remain retrieval-layer states.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DatasetLoadState {
@@ -212,6 +212,61 @@ fn parse_or_log_with_health<T: Default>(
     }
 }
 
+/// Parse a vector dataset and preserve the difference between syntax errors,
+/// valid empty input, partial acceptance, and total semantic rejection.
+fn parse_vector_with_health<T>(
+    dataset: &str,
+    result: Result<Vec<T>, serde_json::Error>,
+    is_valid: impl Fn(&T) -> bool,
+    health: &mut Vec<DatasetLoadHealth>,
+) -> Vec<T> {
+    match result {
+        Ok(records) => {
+            let source_count = records.len();
+            let mut accepted = Vec::with_capacity(source_count);
+            let mut rejected_count = 0;
+            for record in records {
+                if is_valid(&record) {
+                    accepted.push(record);
+                } else {
+                    rejected_count += 1;
+                }
+            }
+            let accepted_count = accepted.len();
+            let state = if source_count == 0 {
+                DatasetLoadState::ValidEmpty
+            } else if rejected_count == 0 {
+                DatasetLoadState::Loaded
+            } else if accepted_count == 0 {
+                DatasetLoadState::Rejected
+            } else {
+                DatasetLoadState::PartiallyLoaded
+            };
+            health.push(DatasetLoadHealth {
+                dataset: dataset.to_string(),
+                state,
+                record_count: Some(accepted_count),
+                rejected_record_count: Some(rejected_count),
+                diagnostic: (rejected_count > 0)
+                    .then(|| format!("{rejected_count} source records failed semantic validation")),
+            });
+            accepted
+        }
+        Err(error) => {
+            let diagnostic = error.to_string();
+            log::warn!("sol-atlas-core: failed to parse dataset '{dataset}': {diagnostic}");
+            health.push(DatasetLoadHealth {
+                dataset: dataset.to_string(),
+                state: DatasetLoadState::Malformed,
+                record_count: None,
+                rejected_record_count: None,
+                diagnostic: Some(diagnostic),
+            });
+            Vec::new()
+        }
+    }
+}
+
 /// Load all datasets from their respective JSON strings into a single `LoadedData`.
 pub fn load_all_with_health(
     sites_json: &str,
@@ -233,10 +288,15 @@ pub fn load_all_with_health(
     critical_infra_json: &str,
 ) -> LoadedDataReport {
     let mut health = Vec::new();
-    let sites = parse_or_log_with_health(
+    let sites = parse_vector_with_health(
         "sites-clustered",
         parse_sites(sites_json),
-        |v| v.len(),
+        |site: &Site| {
+            site.lat.is_finite()
+                && (-90.0..=90.0).contains(&site.lat)
+                && site.lon.is_finite()
+                && (-180.0..=180.0).contains(&site.lon)
+        },
         &mut health,
     );
     let (geothermal_nodes, maglev_corridors) = parse_or_log_with_health(
@@ -275,15 +335,12 @@ pub fn load_all_with_health(
         |v| v.len(),
         &mut health,
     );
-    let (emergency_shelters, health_facilities, robotics_dispatch) =
-        parse_or_log_with_health(
-            "infrastructure",
-            parse_infrastructure(infrastructure_json),
-            |(shelters, facilities, robotics)| {
-                shelters.len() + facilities.len() + robotics.len()
-            },
-            &mut health,
-        );
+    let (emergency_shelters, health_facilities, robotics_dispatch) = parse_or_log_with_health(
+        "infrastructure",
+        parse_infrastructure(infrastructure_json),
+        |(shelters, facilities, robotics)| shelters.len() + facilities.len() + robotics.len(),
+        &mut health,
+    );
     let fossil_deposits = parse_or_log_with_health(
         "fossil-deposits",
         parse_fossil_deposits(fossil_deposits_json),
@@ -296,12 +353,8 @@ pub fn load_all_with_health(
         |v| v.len(),
         &mut health,
     );
-    let (natural_events, natural_event_health) = parse_natural_events_with_health(
-        earthquakes_json,
-        fires_json,
-        storms_json,
-        volcanoes_json,
-    );
+    let (natural_events, natural_event_health) =
+        parse_natural_events_with_health(earthquakes_json, fires_json, storms_json, volcanoes_json);
     health.extend(natural_event_health);
     let major_cities = parse_or_log_with_health(
         "major-cities",
@@ -323,10 +376,23 @@ pub fn load_all_with_health(
     );
 
     let data = LoadedData {
-        sites, geothermal_nodes, maglev_corridors, resontia_vaults, terra_lumina_sites,
-        earth_regions, supply_routes, climate_projects, emergency_shelters, health_facilities,
-        robotics_dispatch, fossil_deposits, nuclear_sites, natural_events, major_cities,
-        chokepoints, critical_infrastructure,
+        sites,
+        geothermal_nodes,
+        maglev_corridors,
+        resontia_vaults,
+        terra_lumina_sites,
+        earth_regions,
+        supply_routes,
+        climate_projects,
+        emergency_shelters,
+        health_facilities,
+        robotics_dispatch,
+        fossil_deposits,
+        nuclear_sites,
+        natural_events,
+        major_cities,
+        chokepoints,
+        critical_infrastructure,
     };
     LoadedDataReport { data, health }
 }
@@ -370,7 +436,8 @@ pub fn load_all(
         cities_json,
         chokepoints_json,
         critical_infra_json,
-    ).data
+    )
+    .data
 }
 
 /// Parse simplified shipping lane routes (Vec of Vec of [lon, lat]).
@@ -449,7 +516,8 @@ fn parse_natural_events_with_health(
             }
         };
         let source_count = fc.features.len();
-        let events: Vec<NaturalEvent> = fc.features
+        let events: Vec<NaturalEvent> = fc
+            .features
             .iter()
             .filter_map(|f| {
                 let coords = &f.geometry.coordinates;
@@ -570,7 +638,12 @@ mod tests {
         assert_eq!(health[2].state, DatasetLoadState::Malformed);
         assert_eq!(health[2].record_count, None);
         assert_eq!(health[2].rejected_record_count, None);
-        assert!(health[2].diagnostic.as_deref().is_some_and(|d| !d.is_empty()));
+        assert!(
+            health[2]
+                .diagnostic
+                .as_deref()
+                .is_some_and(|d| !d.is_empty())
+        );
     }
 
     #[test]
@@ -578,26 +651,104 @@ mod tests {
         let report = load_all_with_health(
             "{",
             r#"{"geothermal_nodes":[],"maglev_corridors":[]}"#,
-            "[]", "[]", "[]", "[]", "[]", "{}",
-            "[]", "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "{}",
+            "[]",
+            "[]",
             "{", // malformed GeoJSON must be visible as malformed too
             r#"{"type":"FeatureCollection","features":[]}"#,
             r#"{"type":"FeatureCollection","features":[]}"#,
             r#"{"type":"FeatureCollection","features":[]}"#,
-            "[]", "[]", "[]",
+            "[]",
+            "[]",
+            "[]",
         );
         assert_eq!(report.health.len(), 17);
         assert!(report.data.sites.is_empty());
-        let sites = report.health.iter().find(|h| h.dataset == "sites-clustered").unwrap();
+        let sites = report
+            .health
+            .iter()
+            .find(|h| h.dataset == "sites-clustered")
+            .unwrap();
         assert_eq!(sites.state, DatasetLoadState::Malformed);
         assert_eq!(sites.record_count, None);
-        let earthquakes = report.health.iter().find(|h| h.dataset == "usgs-earthquakes").unwrap();
+        let earthquakes = report
+            .health
+            .iter()
+            .find(|h| h.dataset == "usgs-earthquakes")
+            .unwrap();
         assert_eq!(earthquakes.state, DatasetLoadState::Malformed);
         assert_eq!(earthquakes.record_count, None);
-        let vaults = report.health.iter().find(|h| h.dataset == "resontia-vaults").unwrap();
+        let vaults = report
+            .health
+            .iter()
+            .find(|h| h.dataset == "resontia-vaults")
+            .unwrap();
         assert_eq!(vaults.state, DatasetLoadState::ValidEmpty);
         assert_eq!(vaults.record_count, Some(0));
         assert!(report.health.iter().all(|h| !h.dataset.is_empty()));
+    }
+
+    #[test]
+    fn site_health_counts_invalid_coordinates_instead_of_reporting_loaded() {
+        let json = r#"[{
+            "id":"valid","name":"Valid","lat":10.0,"lon":20.0,
+            "energy_type":"solar","capacity_mw":1.0
+        },{
+            "id":"invalid","name":"Invalid","lat":91.0,"lon":20.0,
+            "energy_type":"solar","capacity_mw":1.0
+        }]"#;
+        let mut health = Vec::new();
+        let sites = parse_vector_with_health(
+            "sites-clustered",
+            parse_sites(json),
+            |site: &Site| {
+                site.lat.is_finite()
+                    && (-90.0..=90.0).contains(&site.lat)
+                    && site.lon.is_finite()
+                    && (-180.0..=180.0).contains(&site.lon)
+            },
+            &mut health,
+        );
+        assert_eq!(sites.len(), 1);
+        assert_eq!(sites[0].id, "valid");
+        assert_eq!(health[0].state, DatasetLoadState::PartiallyLoaded);
+        assert_eq!(health[0].record_count, Some(1));
+        assert_eq!(health[0].rejected_record_count, Some(1));
+        assert!(
+            health[0]
+                .diagnostic
+                .as_deref()
+                .is_some_and(|d| d.contains("1 source records"))
+        );
+    }
+
+    #[test]
+    fn site_health_marks_all_semantically_invalid_records_rejected() {
+        let json = r#"[{
+            "id":"invalid","name":"Invalid","lat":10.0,"lon":181.0,
+            "energy_type":"solar","capacity_mw":1.0
+        }]"#;
+        let mut health = Vec::new();
+        let sites = parse_vector_with_health(
+            "sites-clustered",
+            parse_sites(json),
+            |site: &Site| {
+                site.lat.is_finite()
+                    && (-90.0..=90.0).contains(&site.lat)
+                    && site.lon.is_finite()
+                    && (-180.0..=180.0).contains(&site.lon)
+            },
+            &mut health,
+        );
+        assert!(sites.is_empty());
+        assert_eq!(health[0].state, DatasetLoadState::Rejected);
+        assert_eq!(health[0].record_count, Some(0));
+        assert_eq!(health[0].rejected_record_count, Some(1));
     }
 
     #[test]
@@ -636,6 +787,15 @@ mod tests {
         assert_eq!(partial_json["state"], "partially_loaded");
         assert_eq!(partial_json["record_count"], 1);
         assert_eq!(partial_json["rejected_record_count"], 2);
+
+        let rejected = DatasetLoadHealth {
+            dataset: "sites-clustered".to_string(),
+            state: DatasetLoadState::Rejected,
+            record_count: Some(0),
+            rejected_record_count: Some(3),
+            diagnostic: Some("3 source records failed semantic validation".to_string()),
+        };
+        assert_eq!(serde_json::to_value(rejected).unwrap()["state"], "rejected");
     }
 
     #[test]
@@ -649,7 +809,12 @@ mod tests {
         assert_eq!(health[0].state, DatasetLoadState::PartiallyLoaded);
         assert_eq!(health[0].record_count, Some(1));
         assert_eq!(health[0].rejected_record_count, Some(1));
-        assert!(health[0].diagnostic.as_deref().is_some_and(|d| d.contains("1 source features")));
+        assert!(
+            health[0]
+                .diagnostic
+                .as_deref()
+                .is_some_and(|d| d.contains("1 source features"))
+        );
         assert_eq!(health[1].state, DatasetLoadState::ValidEmpty);
         assert_eq!(health[1].record_count, Some(0));
     }

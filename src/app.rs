@@ -47,10 +47,14 @@ fn GlobeApp() -> impl IntoView {
     let data_for_effect = data_state.clone();
     Effect::new(move |_| {
         let report = static_data::load_all_with_health();
-        let malformed = report.health.iter()
+        let malformed = report
+            .health
+            .iter()
             .filter(|item| item.state == DatasetLoadState::Malformed)
             .count();
-        let valid_empty = report.health.iter()
+        let valid_empty = report
+            .health
+            .iter()
             .filter(|item| item.state == DatasetLoadState::ValidEmpty)
             .count();
         log::info!(
@@ -64,8 +68,16 @@ fn GlobeApp() -> impl IntoView {
             valid_empty,
             malformed,
         );
-        for item in report.health.iter().filter(|item| item.state == DatasetLoadState::Malformed) {
-            log::warn!("Static dataset '{}' is malformed: {}", item.dataset, item.diagnostic.as_deref().unwrap_or("no parser diagnostic"));
+        for item in report
+            .health
+            .iter()
+            .filter(|item| item.state == DatasetLoadState::Malformed)
+        {
+            log::warn!(
+                "Static dataset '{}' is malformed: {}",
+                item.dataset,
+                item.diagnostic.as_deref().unwrap_or("no parser diagnostic")
+            );
         }
         data_for_effect.set_all_with_health(report);
     });
