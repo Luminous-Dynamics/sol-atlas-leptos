@@ -40,13 +40,14 @@ For each candidate pair, outputs include how many comparable scenarios prefer A,
 
 ## Synthetic benchmark
 
-The fixture at docs/research/fixtures/site-ranking-sensitivity-v0.1.jsonl covers six cases:
+The fixture at docs/research/fixtures/site-ranking-sensitivity-v0.1.jsonl covers seven cases:
 1. Access-, carbon- and community-first scenarios produce different winners.
 2. A unique candidate wins across all supplied preference regimes.
 3. Equal-score candidates remain tied.
 4. A candidate excluded by upstream hard constraints never re-enters the rankings.
 5. A candidate can be ranked in a scenario that assigns zero weight to its missing criterion, but is held when that criterion becomes active.
 6. A declared score tolerance prevents a false single-winner claim for near-ties.
+7. An unresolved competitor prevents a robust-unique-winner claim even when a different candidate wins all scenarios evaluated so far.
 
 An independent mirror over the fetched-back fixture should be used alongside the authored Rust tests; the Rust tests are not considered passing until compiled and run on the exact PR head.
 
