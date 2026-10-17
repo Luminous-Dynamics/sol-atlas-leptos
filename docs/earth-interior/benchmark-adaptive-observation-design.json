@@ -258,7 +258,9 @@
     "source_payload_qualification_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/121",
     "symtropy_synthetic_observability_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1728",
     "symthaea_inference_benchmark_issue": "https://github.com/Luminous-Dynamics/symthaea/issues/7688",
-    "mycelix_evidence_provenance_issue": "https://github.com/Luminous-Dynamics/mycelix/issues/2410"
+    "mycelix_evidence_provenance_issue": "https://github.com/Luminous-Dynamics/mycelix/issues/2410",
+    "symtropy_h0_implementation_pr": "https://github.com/Luminous-Dynamics/symtropy/pull/1804",
+    "symtropy_h0_public_manifest": "https://github.com/Luminous-Dynamics/symtropy/blob/feat/geophysics-known-truth-h0-20261017/crates/domains/symtropy-geophysics-benchmark/fixtures/h0-public-manifest.json"
   },
   "reference_fixtures": [
     {
@@ -387,5 +389,25 @@
   "required_ci_checks": [
     "Check",
     "Earth Interior receipt verifier"
-  ]
+  ],
+  "h0_implementation_reference": {
+    "status": "implementation_authored_not_ci_qualified",
+    "repository": "Luminous-Dynamics/symtropy",
+    "pull_request": "https://github.com/Luminous-Dynamics/symtropy/pull/1804",
+    "public_fixture_manifest": "https://github.com/Luminous-Dynamics/symtropy/blob/feat/geophysics-known-truth-h0-20261017/crates/domains/symtropy-geophysics-benchmark/fixtures/h0-public-manifest.json",
+    "compatibility_note": "The complementary two-channel and correlated-duplicate Gaussian EIG values match this contract's analytic reference values under the same standard-normal prior, declared measurement covariance and unit per-channel cost assumption. This is cross-checkable analytic input compatibility, not an executed or qualified benchmark.",
+    "expected_references": {
+      "complementary_two_channel_eig_nats": 1.6094379124341003,
+      "correlated_duplicate_eig_nats": 0.8067249769620305,
+      "false_independent_duplicate_eig_nats": 1.0986122886681098,
+      "expected_complementary_rank": 2,
+      "expected_correlated_duplicate_rank": 1
+    },
+    "implementation_status": {
+      "authored_tests": 15,
+      "rust_tests_executed_locally": false,
+      "exact_head_ci_qualified": false,
+      "source_payload_qualified": false
+    }
+  }
 }
