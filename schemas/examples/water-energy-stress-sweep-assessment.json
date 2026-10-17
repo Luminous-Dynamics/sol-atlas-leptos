@@ -64,7 +64,8 @@
             "floor_status": "meets_floor",
             "unmet_demand_volume_lower_bound_m3": 20,
             "unmet_demand_volume_upper_bound_m3": 20,
-            "supporting_evidence_ids": []
+            "supporting_evidence_ids": [],
+            "step_hours": 1
           },
           {
             "step_id": "hour-10",
@@ -76,7 +77,8 @@
             "floor_status": "meets_floor",
             "unmet_demand_volume_lower_bound_m3": 20,
             "unmet_demand_volume_upper_bound_m3": 20,
-            "supporting_evidence_ids": []
+            "supporting_evidence_ids": [],
+            "step_hours": 1
           }
         ],
         "supporting_evidence_ids": []
@@ -155,7 +157,8 @@
               "floor_status": "below_floor",
               "unmet_demand_volume_lower_bound_m3": 100,
               "unmet_demand_volume_upper_bound_m3": 100,
-              "supporting_evidence_ids": []
+              "supporting_evidence_ids": [],
+              "step_hours": 1
             },
             {
               "step_id": "hour-10",
@@ -167,7 +170,8 @@
               "floor_status": "below_floor",
               "unmet_demand_volume_lower_bound_m3": 100,
               "unmet_demand_volume_upper_bound_m3": 100,
-              "supporting_evidence_ids": []
+              "supporting_evidence_ids": [],
+              "step_hours": 1
             }
           ],
           "supporting_evidence_ids": []
