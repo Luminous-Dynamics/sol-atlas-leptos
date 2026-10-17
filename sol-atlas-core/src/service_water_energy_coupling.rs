@@ -314,7 +314,7 @@ pub(crate) fn assess_water_energy_coupled_trajectory_indexed(
             WaterEnergyMeasurementRole::AvailablePower,
             &input.available_power,
             &water_step.as_of,
-            &evidence_by_id,
+            evidence_by_id,
             &mut errors,
         );
         validate_one_measurement(
@@ -322,7 +322,7 @@ pub(crate) fn assess_water_energy_coupled_trajectory_indexed(
             WaterEnergyMeasurementRole::SpecificEnergy,
             &input.specific_energy,
             &water_step.as_of,
-            &evidence_by_id,
+            evidence_by_id,
             &mut errors,
         );
 
