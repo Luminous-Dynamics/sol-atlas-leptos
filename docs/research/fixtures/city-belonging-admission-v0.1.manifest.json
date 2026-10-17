@@ -3,12 +3,12 @@
   "fixture_id": "city-belonging-admission-v0.1",
   "fixture_path": "docs/research/fixtures/city-belonging-admission-v0.1.jsonl",
   "hash_algorithm": "SHA-256",
-  "fixture_sha256": "f4fa3ed4b98edd95382075c49730002441315c39317498e926d87abc3c0b608f",
+  "fixture_sha256": "3486a76b709e2b8e56e15b4fbb5b7c8cab6303dc7dfb1db916a3af89c70dbd10",
   "record_format": "JSON Lines; UTF-8; newline-terminated",
-  "record_count": 10,
+  "record_count": 11,
   "disposition_counts": {
     "ProviderConfirmed": 3,
-    "StaleOrDisputed": 2,
+    "StaleOrDisputed": 3,
     "ReviewRequired": 3,
     "ClosedOrWithdrawn": 1,
     "CandidateOnly": 1
@@ -38,5 +38,6 @@
   ],
   "all_entities_synthetic": true,
   "contains_real_personal_data": false,
-  "policy_as_of_date": "2026-10-17"
+  "policy_as_of_date": "2026-10-17",
+  "provider_confirmation_max_age_days": 30
 }
