@@ -123,10 +123,7 @@ mod tests {
     fn lineage_is_stable_and_contains_material_dependencies() {
         let projection = fixture();
         let ids: Vec<_> = projection.lineage_ids().collect();
-        assert_eq!(
-            ids,
-            vec!["evidence:4a90", "source:filing:v3"]
-        );
+        assert_eq!(ids, vec!["evidence:4a90", "source:filing:v3"]);
     }
 
     #[test]
