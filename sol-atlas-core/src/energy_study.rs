@@ -285,6 +285,45 @@ impl EnergyStudyManifestV1 {
 
         Ok(to_lower_hex(&hasher.finalize()))
     }
+
+    /// Compute a stable, domain-separated digest over the case inputs only.
+    ///
+    /// Unlike [`digest_sha256`](Self::digest_sha256), this digest excludes the
+    /// model and policy fields. It is stable across model version updates and
+    /// policy swaps, making it suitable as a case-input identity key.
+    ///
+    /// Encoding contract: same field ordering and encoding rules as
+    /// `digest_sha256` for every included field; uses a distinct domain
+    /// separator. Changing this format requires a new schema version.
+    pub fn case_digest_sha256(&self) -> Result<String, EnergyStudyValidationError> {
+        self.validate()?;
+
+        let mut hasher = Sha256::new();
+        hasher.update(CASE_DIGEST_DOMAIN);
+        hasher.update(self.schema_version.to_be_bytes());
+        hash_text(&mut hasher, &self.study_id);
+        hash_text(&mut hasher, &self.case_id);
+        hash_text(&mut hasher, &self.region_id);
+        hasher.update(self.start_unix_seconds.to_be_bytes());
+        hasher.update(self.interval_seconds.to_be_bytes());
+        hasher.update(self.interval_count.to_be_bytes());
+
+        let mut datasets: Vec<&EnergyDatasetRefV1> = self.datasets.iter().collect();
+        datasets.sort_by(|left, right| left.dataset_id.cmp(&right.dataset_id));
+        hasher.update((datasets.len() as u32).to_be_bytes());
+        for dataset in datasets {
+            hash_text(&mut hasher, &dataset.dataset_id);
+            hash_text(&mut hasher, &dataset.source_id);
+            hash_text(&mut hasher, &dataset.content_sha256);
+            hash_text(&mut hasher, &dataset.unit);
+            hasher.update([dataset.evidence_class.tag()]);
+        }
+
+        hash_text(&mut hasher, &self.asset_registry_sha256);
+        hash_text(&mut hasher, &self.constraints_sha256);
+
+        Ok(to_lower_hex(&hasher.finalize()))
+    }
 }
 
 impl EnergyEvidenceClass {
