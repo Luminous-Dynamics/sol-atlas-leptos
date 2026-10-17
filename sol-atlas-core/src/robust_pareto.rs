@@ -50,8 +50,10 @@ pub struct ParetoCandidate {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ParetoPolicy {
     pub objectives: BTreeMap<String, ObjectiveDirection>,
-    /// Absolute tolerance in the raw units of each objective.
-    pub epsilon: f64,
+    /// Optional per-objective absolute tolerances in that objective's raw units.
+    /// An omitted tolerance defaults to zero; no shared cross-unit epsilon is used.
+    #[serde(default)]
+    pub tolerances: BTreeMap<String, f64>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -85,7 +87,8 @@ pub enum ParetoError {
     EmptyCandidateId,
     DuplicateCandidateId(String),
     UnknownObjective { candidate_id: String, objective_id: String },
-    InvalidEpsilon(f64),
+    UnknownToleranceObjective(String),
+    InvalidTolerance { objective_id: String, value: f64 },
     InvalidBound { candidate_id: String, objective_id: String, bound: f64 },
     InvertedInterval { candidate_id: String, objective_id: String, lower: f64, upper: f64 },
 }
@@ -99,7 +102,8 @@ impl fmt::Display for ParetoError {
             Self::DuplicateCandidateId(id) => write!(f, "duplicate candidate ID: {id}"),
             Self::UnknownObjective { candidate_id, objective_id } =>
                 write!(f, "candidate {candidate_id} has undeclared objective {objective_id}"),
-            Self::InvalidEpsilon(value) => write!(f, "epsilon must be finite and non-negative, got {value}"),
+            Self::UnknownToleranceObjective(id) => write!(f, "tolerance declared for unknown objective {id}"),
+            Self::InvalidTolerance { objective_id, value } => write!(f, "tolerance for objective {objective_id} must be finite and non-negative, got {value}"),
             Self::InvalidBound { candidate_id, objective_id, bound } =>
                 write!(f, "candidate {candidate_id} objective {objective_id} has invalid bound {bound}"),
             Self::InvertedInterval { candidate_id, objective_id, lower, upper } =>
@@ -117,8 +121,16 @@ struct BenefitInterval {
 
 fn validate(policy: &ParetoPolicy, candidates: &[ParetoCandidate]) -> Result<(), ParetoError> {
     if policy.objectives.is_empty() { return Err(ParetoError::NoObjectives); }
-    if !policy.epsilon.is_finite() || policy.epsilon < 0.0 {
-        return Err(ParetoError::InvalidEpsilon(policy.epsilon));
+    for (objective_id, tolerance) in &policy.tolerances {
+        if !policy.objectives.contains_key(objective_id) {
+            return Err(ParetoError::UnknownToleranceObjective(objective_id.clone()));
+        }
+        if !tolerance.is_finite() || *tolerance < 0.0 {
+            return Err(ParetoError::InvalidTolerance {
+                objective_id: objective_id.clone(),
+                value: *tolerance,
+            });
+        }
     }
     if policy.objectives.keys().any(|id| id.trim().is_empty()) {
         return Err(ParetoError::EmptyObjectiveId);
@@ -176,8 +188,9 @@ fn robustly_dominates(a: &ParetoCandidate, b: &ParetoCandidate, policy: &ParetoP
     for (id, direction) in &policy.objectives {
         let Some(ai) = a.objectives.get(id).copied().and_then(|v| to_benefit(*direction, v)) else { return false; };
         let Some(bi) = b.objectives.get(id).copied().and_then(|v| to_benefit(*direction, v)) else { return false; };
-        if ai.worst + policy.epsilon < bi.best { return false; }
-        if ai.worst > bi.best + policy.epsilon { strict = true; }
+        let epsilon = policy.tolerances.get(id).copied().unwrap_or(0.0);
+        if ai.worst + epsilon < bi.best { return false; }
+        if ai.worst > bi.best + epsilon { strict = true; }
     }
     strict
 }
@@ -254,7 +267,7 @@ mod tests {
                 ("access".into(), ObjectiveDirection::Maximize),
                 ("carbon".into(), ObjectiveDirection::Minimize),
             ].into_iter().collect(),
-            epsilon: 0.0,
+            tolerances: BTreeMap::new(),
         }
     }
     fn candidate(id: &str, access: f64, carbon: f64) -> ParetoCandidate {
@@ -315,6 +328,21 @@ mod tests {
         let a=candidate("A",0.9,20.0); let b=candidate("B",0.7,40.0); let c=candidate("C",0.95,35.0);
         assert_eq!(analyze_pareto(&[a.clone(),b.clone(),c.clone()],&policy()).unwrap(),analyze_pareto(&[c,a,b],&policy()).unwrap());
     }
+    #[test]
+    fn criterion_specific_tolerance_respects_objective_units() {
+        let mut p = policy();
+        p.tolerances.insert("access".into(), 0.1);
+        let r = analyze_pareto(&[candidate("near-tie", 0.9, 20.0), candidate("other", 0.85, 20.0)], &p).unwrap();
+        assert_eq!(r.frontier, vec!["near-tie", "other"]);
+    }
+
+    #[test]
+    fn negative_tolerance_is_rejected() {
+        let mut p = policy();
+        p.tolerances.insert("access".into(), -0.01);
+        assert!(matches!(analyze_pareto(&[candidate("A",0.9,20.0)], &p), Err(ParetoError::InvalidTolerance { .. })));
+    }
+
     #[test]
     fn inverted_interval_is_rejected() {
         let mut bad=candidate("bad",0.9,10.0);
