@@ -1,0 +1,11 @@
+{
+  "benchmark_id": "SOL-ATLAS-SPATIAL-OVERLAY-001",
+  "version": "0.1.0",
+  "fixture_path": "docs/research/fixtures/spatial-overlay-benchmark-v0.1.jsonl",
+  "fixture_git_blob_sha": "23ef4452ddbd99d861f1f79cde5f45d2e17c0149",
+  "fixture_character_count": 23664,
+  "records": 21,
+  "as_of_date": "2026-10-17",
+  "provenance": "All candidate IDs, hashes, CRSs, layer coverage, geometries, source statuses and overlay results in the fixture are synthetic.",
+  "claim_ceiling": "Tests conservative interpretation of supplied overlay receipts only. It does not run polygon/raster geometry operations, transform coordinates, prove source-data accuracy, or certify zoning, protected-area, hazard, legal, environmental or engineering facts."
+}
