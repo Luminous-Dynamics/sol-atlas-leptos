@@ -176,6 +176,8 @@
         "floor_status",
         "unmet_demand_volume_lower_bound_m3",
         "unmet_demand_volume_upper_bound_m3",
+        "customer_delivered_volume_lower_bound_m3",
+        "customer_delivered_volume_upper_bound_m3",
         "supporting_evidence_ids"
       ],
       "properties": {
@@ -232,6 +234,14 @@
         "step_hours": {
           "type": "number",
           "exclusiveMinimum": 0
+        },
+        "customer_delivered_volume_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "customer_delivered_volume_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
         }
       }
     },
