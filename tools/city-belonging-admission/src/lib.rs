@@ -333,7 +333,7 @@ fn validate_admission_evidence(record: &Value, where_: &str) -> Result<(), Strin
         }
     }
     for field in ["source_id", "source_uri", "upstream_record_id", "retrieved_at"] {
-        let value = required_str(&Value::Object(evidence.clone()), field, where_)?;
+        let value = required_map_str(evidence, field, where_)?;
         if field == "source_uri" && !value.contains("://") {
             return Err(format!("{} source_uri must be URI-like", where_));
         }
@@ -342,11 +342,11 @@ fn validate_admission_evidence(record: &Value, where_: &str) -> Result<(), Strin
         }
     }
 
-    let source_kind = required_str(&Value::Object(evidence.clone()), "source_kind", where_)?;
+    let source_kind = required_map_str(evidence, "source_kind", where_)?;
     if !string_set(contract.get("source_kind_enum"), "local profile source_kind_enum")?.contains(source_kind) {
         return Err(format!("{} unknown source_kind {}", where_, source_kind));
     }
-    let permission = required_str(&Value::Object(evidence.clone()), "permission_disposition", where_)?;
+    let permission = required_map_str(evidence, "permission_disposition", where_)?;
     if !string_set(contract.get("permission_disposition_enum"), "local profile permission_disposition_enum")?.contains(permission) {
         return Err(format!("{} unknown permission_disposition {}", where_, permission));
     }
@@ -707,6 +707,12 @@ fn schedule_expired(record: &Value, as_of: &str) -> bool {
 
 fn field<'a>(fields: &'a serde_json::Map<String, Value>, key: &str) -> Option<&'a str> {
     fields.get(key).and_then(Value::as_str)
+}
+
+fn required_map_str<'a>(value: &'a serde_json::Map<String, Value>, key: &str, where_: &str) -> Result<&'a str, String> {
+    value.get(key).and_then(Value::as_str)
+        .filter(|s| !s.trim().is_empty())
+        .ok_or_else(|| format!("{}.{} must be a non-empty string", where_, key))
 }
 
 fn required_str<'a>(value: &'a Value, key: &str, where_: &str) -> Result<&'a str, String> {
