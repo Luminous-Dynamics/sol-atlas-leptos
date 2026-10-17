@@ -371,3 +371,22 @@ Batch budgets are enforced across the whole request, not only within each candid
 
 The registered batch benchmark compares compact results against repeated full comparisons on the same synthetic candidates. Its initial workloads are 10, 30 and 80 candidates, each using 100 service cells × 10 intervals × 10 declared joint failures. Proposed p95 targets are 1.5 / 4 / 12 seconds for compact batches and 3 / 8 / 24 seconds for repeated detailed calls. These are unmeasured targets until a report identifies the exact source revision, compiler, runner and host. The test oracle requires exact agreement in effect classification, service-floor regression, worst-case bounds and provenance between every compact summary and the detailed comparator.
 
+
+### One-snapshot shared-resource allocation
+
+The service_shared_resource_allocation module replaces independent per-cell capacity copies with one unique resource table and explicit service/resource usage coefficients. For each resource r, the declared packing constraint is:
+
+\[
+\sum_{i \in S_r} a_{ri}\,d_i\,c_i \leq C_r
+\]
+
+where C_r is the resource capacity, d_i is a service demand rate, a_ri is the caller-declared resource consumption per delivery-rate unit, and c_i is allocated service coverage. Coefficient dimensions are explicit in a textual compound-unit contract; no implicit unit conversion is performed.
+
+The first policy is **equal-coverage progressive filling**. It raises all active services by the same absolute coverage fraction until a shared constraint saturates, freezes every active consumer of that resource, and continues with remaining active services. This provides a deterministic and explainable baseline allocation policy—not a claim that max-min coverage is always the socially optimal policy. Policy alternatives need separate comparison and community legitimacy.
+
+Inputs are evaluated twice at monotone uncertainty endpoints: low capacity/high demand/high resource-use coefficient for the conservative policy outcome; high capacity/low demand/low coefficient for the optimistic policy outcome. The resulting coverage interval describes endpoint outcomes under this same policy; it is **not** a bound across every feasible allocation policy. Resource residuals are checked in both passes. Measurements use the shared evidence contract; observed quantities require compatible, admissible evidence, and assumptions remain assumptions.
+
+Hard bounds for this single-snapshot API are 1,000 services, 1,000 unique resources, 20,000 service/resource usage constraints, and 20,000,000 conservative rescanning work units. The evaluator rejects duplicate resource IDs, unknown relationships, duplicated service/resource pairs, missing service/resource constraints, invalid units, nonpositive demand lower bounds, nonfinite interval endpoints, and work-budget overruns. It reports community-specific floor weights and separates meets/below/indeterminate; no indeterminate weight is counted as guaranteed adequate.
+
+**Boundary:** this version has no graph topology, route selection, multi-commodity flow, storage state carried across time, pump curves, pressure/head loss, electrical load-flow, or calibrated uncertainty model. The coefficients define a constrained allocation abstraction. The separate EPANET adapter work in issue #139 remains the physical-validation path; the model must not imply hydraulic or water-quality fidelity. Time-series allocation, storage transitions, network constraints, alternative fairness policies, and intervention search over this layer are follow-on steps rather than hidden features.
+
