@@ -384,7 +384,10 @@ mod tests {
         }
     }
 
-    fn comparison(baseline_power: f64, candidate_power: f64) -> WaterEnergyInterventionComparisonRequest {
+    fn comparison(
+        baseline_power: f64,
+        candidate_power: f64,
+    ) -> WaterEnergyInterventionComparisonRequest {
         WaterEnergyInterventionComparisonRequest {
             schema_version: WATER_ENERGY_INTERVENTION_SCHEMA_VERSION.to_owned(),
             id: "comparison".to_owned(),
@@ -524,11 +527,35 @@ mod tests {
         let output = compare_water_energy_trajectory_interventions(&input, &evidence)
             .expect("observed inputs have exact matching evidence");
         let first = &output.steps[0];
-        assert!(first.baseline_supporting_evidence_ids.contains(&"baseline-water-source-0".to_owned()));
-        assert!(first.baseline_supporting_evidence_ids.contains(&"baseline-terminal-power-0".to_owned()));
-        assert!(first.candidate_supporting_evidence_ids.contains(&"candidate-water-source-0".to_owned()));
-        assert!(first.candidate_supporting_evidence_ids.contains(&"candidate-terminal-power-0".to_owned()));
-        assert!(!first.baseline_supporting_evidence_ids.contains(&"candidate-terminal-power-0".to_owned()));
-        assert!(!first.candidate_supporting_evidence_ids.contains(&"baseline-terminal-power-0".to_owned()));
+        assert!(
+            first
+                .baseline_supporting_evidence_ids
+                .contains(&"baseline-water-source-0".to_owned())
+        );
+        assert!(
+            first
+                .baseline_supporting_evidence_ids
+                .contains(&"baseline-terminal-power-0".to_owned())
+        );
+        assert!(
+            first
+                .candidate_supporting_evidence_ids
+                .contains(&"candidate-water-source-0".to_owned())
+        );
+        assert!(
+            first
+                .candidate_supporting_evidence_ids
+                .contains(&"candidate-terminal-power-0".to_owned())
+        );
+        assert!(
+            !first
+                .baseline_supporting_evidence_ids
+                .contains(&"candidate-terminal-power-0".to_owned())
+        );
+        assert!(
+            !first
+                .candidate_supporting_evidence_ids
+                .contains(&"baseline-terminal-power-0".to_owned())
+        );
     }
 }
