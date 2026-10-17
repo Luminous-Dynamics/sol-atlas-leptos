@@ -745,7 +745,7 @@ mod tests {
 
     #[test]
     fn missing_active_objective_is_held_but_zero_weight_objective_can_be_irrelevant_to_that_scenario()
-    {
+     {
         let candidates = [
             candidate(
                 "partial",
