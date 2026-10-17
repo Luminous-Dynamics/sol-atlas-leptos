@@ -1,0 +1,41 @@
+{
+  "manifest_version": "city-belonging-admission-manifest/0.1",
+  "fixture_id": "city-belonging-admission-v0.1",
+  "fixture_path": "docs/research/fixtures/city-belonging-admission-v0.1.jsonl",
+  "hash_algorithm": "SHA-256",
+  "fixture_sha256": "f4fa3ed4b98edd95382075c49730002441315c39317498e926d87abc3c0b608f",
+  "record_format": "JSON Lines; UTF-8; newline-terminated",
+  "record_count": 10,
+  "disposition_counts": {
+    "ProviderConfirmed": 3,
+    "StaleOrDisputed": 2,
+    "ReviewRequired": 3,
+    "ClosedOrWithdrawn": 1,
+    "CandidateOnly": 1
+  },
+  "schema_baseline": {
+    "standard": "Open Referral HSDS",
+    "version": "3.1",
+    "canonical_schema_ref": "https://github.com/openreferral/specification/tree/3.1/schema",
+    "schema_bytes_sha256": null,
+    "validation_status": "NOT_VALIDATED_AGAINST_UPSTREAM_SCHEMA",
+    "reason": "Exact upstream schema bytes have not been retrieved and hashed in this change; fixture is an admission-policy corpus, not proof of full HSDS conformance."
+  },
+  "local_profile": {
+    "id": "city-belonging-admission-profile",
+    "version": "0.1",
+    "sha256": null,
+    "validation_status": "DOCUMENTED_NOT_IMPLEMENTED"
+  },
+  "status": "SYNTHETIC_RESEARCH_FIXTURE",
+  "claims_not_made": [
+    "HSDS schema conformance",
+    "real service coverage",
+    "provider partnership",
+    "live availability",
+    "safety",
+    "reduction in loneliness"
+  ],
+  "all_entities_synthetic": true,
+  "contains_real_personal_data": false
+}
