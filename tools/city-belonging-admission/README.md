@@ -53,7 +53,8 @@ The report says `SYNTHETIC_POLICY_FIXTURE_MATCH` only when the synthetic fixture
 
 ## Pinned upstream sources
 
-- [Selected contract manifest](../../docs/research/fixtures/hsds-3.1-selected-contract-v0.1.json)
+- [Selected HSDS contract manifest](../../docs/research/fixtures/hsds-3.1-selected-contract-v0.1.json)
+- [Local admission evidence profile](../../docs/research/fixtures/city-belonging-admission-profile-v0.1.json)
 - [Vendored HSDS 3.1 schema files](../../docs/research/fixtures/upstream/hsds-3.1/schema/)
 - [Open Referral HSDS license](../../docs/research/fixtures/upstream/hsds-3.1/LICENSE) — CC BY-SA 4.0
 - Canonical upstream source: https://github.com/openreferral/specification/tree/3.1/schema
