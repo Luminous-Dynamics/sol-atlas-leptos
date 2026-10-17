@@ -1,7 +1,7 @@
 # City Belonging Task Benchmark v0.1
 
 **Status:** proposed synthetic task benchmark; not a usability study, user-outcome evaluation, or production matcher.  
-**Companion data:** [JSONL cases](city-belonging-task-benchmark-v0.1.jsonl) and [integrity manifest](city-belonging-task-benchmark-v0.1.manifest.json).  
+**Companion data:** [JSONL cases](city-belonging-task-benchmark-v0.1.jsonl), [integrity manifest](city-belonging-task-benchmark-v0.1.manifest.json), and [strict case schema](city-belonging-task-benchmark-v0.1.schema.json).  
 **Parent designs:** [City Belonging Navigator](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/123), [admission contract](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/125).
 
 ## Paradigm shift: constraints before ranking
@@ -15,6 +15,8 @@ A candidate cannot satisfy a requirement through missing data. A soft preference
 The synthetic benchmark contains 14 scenarios covering cost, accessibility, language, expired events, service currentness, contactability, virtual/service-area discovery, explicitly selected worldview framing, no-fit handling, soft preferences, conflicting claims, live capacity, verified travel time, and privacy/opt-out.
 
 - JSONL SHA-256: `6a35ca7cfc060f71621248f71e2540ac0910a76d33756713987db21d2f0ec160`
+- Case schema SHA-256: `4b1ff49fbd0d76751e9c59a1395a08257c80d9c7662abc39ee8844e068976c7d`
+- The schema is pinned; a JSON Schema validator has not yet been executed against these 14 records.
 - All candidates use synthetic IDs; no live listings, real contact details, coordinates, or participant data are included.
 - Per-case expected eligible sets, exclusion reasons, forbidden behaviors and rationale are part of the frozen fixture.
 - A valid task fixture is not a real-world service directory and does not establish that any listed synthetic service exists or is safe.
