@@ -568,12 +568,35 @@ fn canonical_json_value(value: &Value) -> Value {
     }
 }
 
+fn benchmark_specification_commit_matches(receipt: &Value) -> bool {
+    string_field(receipt, &["benchmark_specification", "git_commit_sha"])
+        .zip(string_field(receipt, &["code", "commit_sha"]))
+        .is_some_and(|(spec_commit, code_commit)| spec_commit == code_commit)
+}
+
 fn verify_benchmark_specification(
     repo_root: &Path,
     receipt: &Value,
     checks: &mut Vec<Check>,
     findings: &mut Vec<String>,
 ) -> bool {
+    let spec_commit_matches_code = benchmark_specification_commit_matches(receipt);
+    push_check(
+        checks,
+        "specification_commit_identity",
+        spec_commit_matches_code,
+        if spec_commit_matches_code {
+            "benchmark specification commit matches the code commit".to_string()
+        } else {
+            "benchmark specification git_commit_sha does not match code.commit_sha".to_string()
+        },
+    );
+    if !spec_commit_matches_code {
+        findings.push(
+            "benchmark specification must be bound to the same exact Git commit as the code under evaluation".to_string(),
+        );
+    }
+
     let path_value = string_field(receipt, &["benchmark_specification", "path"]);
     let expected = string_field(receipt, &["benchmark_specification", "sha256"]);
     let result = match (path_value, expected) {
@@ -589,17 +612,17 @@ fn verify_benchmark_specification(
         },
         _ => Err("benchmark_specification.path or sha256 is missing".to_string()),
     };
-    let passed = result.is_ok();
+    let digest_matches = result.is_ok();
     if let Err(error) = result.as_ref() {
         findings.push(error.clone());
     }
     push_check(
         checks,
         "benchmark_specification_digest",
-        passed,
+        digest_matches,
         result.err().unwrap_or_else(|| "benchmark specification SHA-256 matches".to_string()),
     );
-    passed
+    spec_commit_matches_code && digest_matches
 }
 
 fn verify_artifacts(
@@ -1286,6 +1309,25 @@ mod tests {
             ]
         });
         assert!(!synthetic_artifacts_and_controls_valid(&leaked, &artifacts));
+    }
+
+    #[test]
+    fn benchmark_specification_commit_must_match_evaluated_code_commit() {
+        let matching = json!({
+            "benchmark_specification": {"git_commit_sha": "a".repeat(40)},
+            "code": {"commit_sha": "a".repeat(40)}
+        });
+        let mismatched = json!({
+            "benchmark_specification": {"git_commit_sha": "b".repeat(40)},
+            "code": {"commit_sha": "a".repeat(40)}
+        });
+        let missing = json!({
+            "benchmark_specification": {},
+            "code": {"commit_sha": "a".repeat(40)}
+        });
+        assert!(benchmark_specification_commit_matches(&matching));
+        assert!(!benchmark_specification_commit_matches(&mismatched));
+        assert!(!benchmark_specification_commit_matches(&missing));
     }
 
 }
