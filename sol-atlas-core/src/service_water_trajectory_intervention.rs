@@ -67,6 +67,8 @@ pub struct WaterTrajectoryInterventionStepComparison {
     /// Baseline deficit minus candidate deficit; positive means modeled deficit fell.
     pub unmet_demand_reduction_lower_bound: f64,
     pub unmet_demand_reduction_upper_bound: f64,
+    pub baseline_supporting_evidence_ids: Vec<String>,
+    pub candidate_supporting_evidence_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -279,6 +281,8 @@ fn compare_indexed(
             candidate_unmet_demand_upper_bound: cand_deficit_upper,
             unmet_demand_reduction_lower_bound: step_reduction_lower,
             unmet_demand_reduction_upper_bound: step_reduction_upper,
+            baseline_supporting_evidence_ids: base_step.supporting_evidence_ids.clone(),
+            candidate_supporting_evidence_ids: cand_step.supporting_evidence_ids.clone(),
         });
     }
 

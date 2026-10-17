@@ -163,7 +163,9 @@
         "candidate_unmet_demand_lower_bound",
         "candidate_unmet_demand_upper_bound",
         "unmet_demand_reduction_lower_bound",
-        "unmet_demand_reduction_upper_bound"
+        "unmet_demand_reduction_upper_bound",
+        "baseline_supporting_evidence_ids",
+        "candidate_supporting_evidence_ids"
       ],
       "properties": {
         "as_of": {
@@ -205,6 +207,22 @@
         },
         "unmet_demand_reduction_upper_bound": {
           "type": "number"
+        },
+        "baseline_supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "candidate_supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     }
