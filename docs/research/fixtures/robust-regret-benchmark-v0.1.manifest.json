@@ -1,0 +1,17 @@
+{
+  "schema_version": "0.1",
+  "benchmark_id": "sol-atlas-robust-regret-v0.1",
+  "fixture_path": "docs/research/fixtures/robust-regret-benchmark-v0.1.jsonl",
+  "fixture_sha256": "3b9136c258574417f64469b687326d645d356a001fd036e2ccfcb9112117f753",
+  "fixture_bytes": 3446,
+  "case_count": 4,
+  "case_ids": [
+    "RR-001-perfect-observation",
+    "RR-002-no-discrimination",
+    "RR-003-interval-losses",
+    "RR-004-zero-cost-no-value"
+  ],
+  "data_class": "synthetic",
+  "oracle_status": "hand-authored expected values; not an independently implemented solver",
+  "claim_ceiling": "validates finite-model semantics only; no real-site, probability, cost, safety, legal, environmental, or community finding"
+}
