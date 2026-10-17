@@ -154,3 +154,17 @@ Run with WATER_TRAJECTORY_BENCH_WARMUP=3 and WATER_TRAJECTORY_BENCH_SAMPLES=30 u
 The paired-counterfactual harness runs 100, 1,000 and 10,000 baseline/candidate pairs, each with 10 contiguous hourly intervals. The baseline has a two-interval source outage; the candidate supplies a synthetic 50 m3/h during those intervals. The golden result is a 100 m3 reduction in cumulative unmet demand per pair, with both trajectories first returning to robust adequacy at the same sample. Candidate outputs are explicitly marked as modeled counterfactuals rather than causal evidence.
 
 Run with WATER_INTERVENTION_BENCH_WARMUP=3 and WATER_INTERVENTION_BENCH_SAMPLES=30 using cargo bench --bench water_trajectory_intervention. Proposed p95 budgets for 100 / 1,000 / 10,000 comparison pairs are 50 ms / 500 ms / 5,000 ms. Each sample asserts paired time-grid validity, expected effect class, exact synthetic deficit delta, result counts, deterministic output bytes, per-step bound ordering, and separate baseline/candidate evidence-reference arrays. These are proposed local engineering targets, not measured performance or external standards.
+
+## Coupled water-energy trajectories
+
+The water-energy benchmark evaluates 100, 1,000 and 10,000 contiguous intervals. Each interval limits a 100 m³/h mechanical pump with synthetic 40 kW pump-terminal power and 0.5 kWh/m³ operating specific energy, yielding an 80 m³/h energy-limited flow bound. The fixture is synthetic and is not a field accuracy claim.
+
+Run with `WATER_ENERGY_BENCH_WARMUP=3` and `WATER_ENERGY_BENCH_SAMPLES=20` using `cargo bench --bench water_energy_coupling`. The JSON report records p50, p95, max latency, measured sample count, interval count, output bytes, the effective flow bound and whether each **proposed** p95 target was met:
+
+| Coupled intervals | Proposed p95 target |
+| ---: | ---: |
+| 100 | 20 ms |
+| 1,000 | 150 ms |
+| 10,000 | 1,000 ms |
+
+These are local engineering hypotheses, not external standards or measured performance. Attach each report to its exact commit, compiler, runner and host manifest; correctness and latency must be reported separately. A target pass does not imply hydraulic validity. The first oracle comparison remains the qualified EPANET corpus in issue #139, using only quantities with compatible physical meaning and explicit tolerances.
