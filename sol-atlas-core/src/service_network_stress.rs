@@ -95,6 +95,8 @@ pub struct ServiceNetworkStressAssessment {
     pub service_entity_id: String,
     pub as_of: String,
     pub unit: String,
+    /// Maximum order of enumerated link combinations; declared event bundles may
+    /// disable more links together but are reported separately by origin.
     pub max_simultaneous_failures: usize,
     pub active_link_count: usize,
     pub declared_failure_set_count: usize,
@@ -223,10 +225,12 @@ pub fn assess_service_network_stress(
             }
             match availability_by_link_id.get(link_id.as_str()) {
                 None => errors.push(ServiceNetworkStressValidationError::UnknownDeclaredFailureLinkId),
-                Some(NetworkLinkAvailability::Inactive) => errors.push(
-                    ServiceNetworkStressValidationError::AlreadyInactiveDeclaredFailureLinkId,
-                ),
-                Some(NetworkLinkAvailability::Active | NetworkLinkAvailability::Unknown) => {}
+                Some(availability) if *availability == NetworkLinkAvailability::Inactive => {
+                    errors.push(
+                        ServiceNetworkStressValidationError::AlreadyInactiveDeclaredFailureLinkId,
+                    );
+                }
+                Some(_) => {}
             }
         }
     }
