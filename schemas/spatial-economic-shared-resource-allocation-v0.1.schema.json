@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-shared-resource-allocation-v0.1.schema.json",
+  "title": "Spatial-Economic Shared-Resource Allocation Request",
+  "description": "One aligned snapshot with each resource capacity declared once and shared across service-cell variables. Equal-coverage progressive filling is a policy abstraction, not a hydraulic or electrical-network solver.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "as_of",
+    "policy",
+    "services",
+    "resources",
+    "usages",
+    "max_work_units"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "policy": {
+      "const": "equal_coverage_progressive_fill"
+    },
+    "services": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "items": {
+        "$ref": "#/$defs/service"
+      }
+    },
+    "resources": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "items": {
+        "$ref": "#/$defs/resource"
+      }
+    },
+    "usages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20000,
+      "items": {
+        "$ref": "#/$defs/usage"
+      }
+    },
+    "max_work_units": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 60000000
+    }
+  },
+  "$defs": {
+    "quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit"
+      ],
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uncertainty_abs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_id",
+        "quantity",
+        "basis",
+        "rationale"
+      ],
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quantity": {
+          "$ref": "#/$defs/quantity"
+        },
+        "basis": {
+          "enum": [
+            "assumed",
+            "observed"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "const": "observed"
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "required": [
+              "supporting_evidence_ids"
+            ],
+            "properties": {
+              "supporting_evidence_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "const": "assumed"
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supporting_evidence_ids": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "service_entity_id",
+        "community_id",
+        "beneficiary_weight",
+        "delivery_rate_unit",
+        "demand_rate",
+        "essential_coverage_floor"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "community_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "beneficiary_weight": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "delivery_rate_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "demand_rate": {
+          "$ref": "#/$defs/measurement"
+        },
+        "essential_coverage_floor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "capacity"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capacity": {
+          "$ref": "#/$defs/measurement"
+        }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "resource_id",
+        "service_id",
+        "resource_use_per_delivery_rate"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource_use_per_delivery_rate": {
+          "$ref": "#/$defs/measurement"
+        }
+      }
+    }
+  }
+}

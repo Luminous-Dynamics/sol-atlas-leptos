@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-network-intervention-comparison-v0.1.schema.json",
+  "title": "Spatial-Economic Service Network Intervention Comparison",
+  "description": "Before/after max-flow and min-cut comparison of an explicit hypothetical network intervention. Deltas describe model bounds only, not executed actions or real-world causal impact.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "intervention_id",
+    "intervention_rationale",
+    "baseline_scenario_id",
+    "intervention_scenario_id",
+    "as_of",
+    "link_overrides",
+    "baseline",
+    "with_intervention",
+    "conservative_capacity_delta",
+    "optimistic_capacity_delta",
+    "effect"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "intervention_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intervention_rationale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseline_scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intervention_scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "link_overrides": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "spatial-economic-service-network-intervention-v0.1.schema.json#/$defs/link_override"
+      }
+    },
+    "baseline": {
+      "$ref": "spatial-economic-service-capacity-network-assessment-v0.1.schema.json"
+    },
+    "with_intervention": {
+      "$ref": "spatial-economic-service-capacity-network-assessment-v0.1.schema.json"
+    },
+    "conservative_capacity_delta": {
+      "type": "number"
+    },
+    "optimistic_capacity_delta": {
+      "type": "number"
+    },
+    "effect": {
+      "enum": [
+        "bounds_improved",
+        "bounds_degraded",
+        "possible_improvement_only",
+        "possible_degradation_only",
+        "conservative_bound_regressed",
+        "mixed_bound_movement",
+        "bounds_unchanged",
+        "topology_incomplete"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "baseline": {
+            "properties": {
+              "topology_completeness": {
+                "enum": [
+                  "partial",
+                  "unknown"
+                ]
+              }
+            },
+            "required": [
+              "topology_completeness"
+            ]
+          }
+        },
+        "required": [
+          "baseline"
+        ]
+      },
+      "then": {
+        "properties": {
+          "effect": {
+            "const": "topology_incomplete"
+          }
+        }
+      }
+    }
+  ]
+}

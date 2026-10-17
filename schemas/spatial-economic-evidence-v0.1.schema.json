@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-evidence-v0.1.schema.json",
+  "title": "Spatial-Economic Evidence Record",
+  "description": "Structural contract only. Validity does not establish truth, issuer authority, independent corroboration, delivery, payment, or impact.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "schema_version",
+    "kind",
+    "state",
+    "issuer_id",
+    "subject_id",
+    "spatial",
+    "time",
+    "statement",
+    "provenance",
+    "access_policy"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "kind": {
+      "enum": [
+        "observation",
+        "forecast",
+        "scenario",
+        "commitment",
+        "delivery",
+        "acceptance",
+        "invoice",
+        "settlement",
+        "impact_measurement"
+      ]
+    },
+    "state": {
+      "enum": [
+        "proposed",
+        "asserted",
+        "corroborated",
+        "disputed",
+        "superseded",
+        "withdrawn"
+      ]
+    },
+    "issuer_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "spatial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_id"
+      ],
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry_uri": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1
+        },
+        "crs": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "dependentRequired": {
+        "geometry_uri": [
+          "crs"
+        ]
+      }
+    },
+    "time": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "occurred_at",
+        "recorded_at"
+      ],
+      "properties": {
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "valid_from": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "valid_until": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "statement": {
+      "type": "string",
+      "minLength": 1
+    },
+    "quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit"
+      ],
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uncertainty_abs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "money": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "amount_decimal",
+        "currency"
+      ],
+      "properties": {
+        "amount_decimal": {
+          "type": "string",
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "source_artifacts"
+      ],
+      "properties": {
+        "method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_artifacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "uri",
+              "role"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uri": {
+                "type": "string",
+                "format": "uri"
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[A-Fa-f0-9]{64}$"
+              }
+            }
+          }
+        },
+        "derivation_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "supersedes": {
+      "type": "string",
+      "minLength": 1
+    },
+    "access_policy": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

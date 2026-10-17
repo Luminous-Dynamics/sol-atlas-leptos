@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1.0",
+  "id": "synthetic:irrigation-capacity-degraded",
+  "as_of": "2026-10-16T09:00:00Z",
+  "service_entity_id": "service:irrigation",
+  "available_capacity": {
+    "entity_id": "asset:pump",
+    "quantity": {
+      "value": 70,
+      "unit": "m3/h",
+      "uncertainty_abs": 5
+    },
+    "basis": "assumed",
+    "rationale": "Synthetic scenario: available irrigation flow is below nominal capacity.",
+    "supporting_evidence_ids": []
+  },
+  "required_capacity": {
+    "entity_id": "service:irrigation",
+    "quantity": {
+      "value": 100,
+      "unit": "m3/h",
+      "uncertainty_abs": 10
+    },
+    "basis": "assumed",
+    "rationale": "Synthetic scenario: irrigation service requires 100 cubic metres per hour.",
+    "supporting_evidence_ids": []
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": "0.1.0",
+  "trajectory_id": "trajectory:synthetic-water-recovery",
+  "service_entity_id": "service:water",
+  "unit": "m3/h",
+  "disruption_started_at": "2026-10-16T10:00:00Z",
+  "observation_ended_at": "2026-10-16T10:00:30Z",
+  "sample_count": 4,
+  "maximum_observed_sample_gap_seconds": 10,
+  "initial_state": "degraded",
+  "final_state": "adequate",
+  "preceding_sample_at": "2026-10-16T10:00:10Z",
+  "preceding_sample_elapsed_seconds": 10,
+  "first_adequate_sample_at": "2026-10-16T10:00:20Z",
+  "first_adequate_sample_elapsed_seconds": 20,
+  "observed_adequacy_maintained_through_end": true,
+  "observed_adequacy_duration_seconds": 10,
+  "normalized_deficit_seconds_lower_bound": 5,
+  "normalized_deficit_seconds_upper_bound": 5,
+  "maximum_normalized_deficit_lower_bound": 0.5,
+  "maximum_normalized_deficit_upper_bound": 0.5,
+  "evidence_ids": []
+}

@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-equity-assessment-v0.1.schema.json",
+  "title": "Spatial-Economic Essential Service-Floor Equity Assessment",
+  "description": "Distributional lower/upper bounds with explicit indeterminate weight, per-community floor compliance, and bounded between-community gap. This is not a unique population count or welfare score.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scenario_id",
+    "as_of",
+    "community_count",
+    "cell_count",
+    "total_beneficiary_weight",
+    "meets_floor_weight",
+    "below_floor_weight",
+    "indeterminate_weight",
+    "overall_floor_compliance_lower_bound",
+    "overall_floor_compliance_upper_bound",
+    "community_compliance_gap_lower_bound",
+    "community_compliance_gap_upper_bound",
+    "communities",
+    "cells"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "community_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "cell_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "total_beneficiary_weight": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "meets_floor_weight": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "below_floor_weight": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "indeterminate_weight": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "overall_floor_compliance_lower_bound": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "overall_floor_compliance_upper_bound": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "community_compliance_gap_lower_bound": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "community_compliance_gap_upper_bound": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "communities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "community_id",
+          "cell_count",
+          "total_beneficiary_weight",
+          "meets_floor_weight",
+          "below_floor_weight",
+          "indeterminate_weight",
+          "floor_compliance_lower_bound",
+          "floor_compliance_upper_bound"
+        ],
+        "properties": {
+          "community_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cell_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "total_beneficiary_weight": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "meets_floor_weight": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "below_floor_weight": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "indeterminate_weight": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "floor_compliance_lower_bound": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "floor_compliance_upper_bound": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "cells": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cell_id",
+          "service_scenario_id",
+          "service_entity_id",
+          "community_id",
+          "beneficiary_weight",
+          "essential_coverage_floor",
+          "service_state",
+          "floor_status",
+          "available_capacity_evidence_ids",
+          "required_capacity_evidence_ids"
+        ],
+        "properties": {
+          "cell_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "service_scenario_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "service_entity_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "community_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "beneficiary_weight": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "essential_coverage_floor": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "service_state": {
+            "enum": [
+              "adequate",
+              "degraded",
+              "unavailable",
+              "indeterminate"
+            ]
+          },
+          "coverage_lower_bound": {
+            "type": ["number", "null"],
+            "minimum": 0
+          },
+          "coverage_upper_bound": {
+            "type": ["number", "null"],
+            "minimum": 0
+          },
+          "floor_status": {
+            "enum": [
+              "meets_floor",
+              "below_floor",
+              "indeterminate"
+            ]
+          },
+          "available_capacity_evidence_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required_capacity_evidence_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}

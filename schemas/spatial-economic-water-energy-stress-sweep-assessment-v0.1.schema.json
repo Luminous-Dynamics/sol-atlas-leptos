@@ -1,0 +1,524 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-stress-sweep-assessment-v0.1.schema.json",
+  "title": "Spatial-Economic Water-Energy Joint Failure Assessment",
+  "description": "Bounded outcome over every explicitly declared failure scenario. This is not a probability distribution and does not establish that physical failures or interventions occurred.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "service_count",
+    "declared_failure_scenario_count",
+    "candidate_failure_scenario_count",
+    "evaluated_failure_scenario_count",
+    "exhaustive_over_declared_scenarios",
+    "total_service_step_assessments",
+    "baseline",
+    "cases",
+    "worst_case_unmet_demand_lower_bound_m3",
+    "worst_case_unmet_demand_upper_bound_m3",
+    "worst_case_floor_compliance_lower_bound",
+    "worst_case_floor_compliance_upper_bound",
+    "worst_case_maximum_normalized_deficit_lower_bound",
+    "worst_case_maximum_normalized_deficit_upper_bound",
+    "declared_failure_override_count",
+    "evaluated_failure_override_count"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "experiment_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "declared_failure_scenario_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "candidate_failure_scenario_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "evaluated_failure_scenario_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "exhaustive_over_declared_scenarios": {
+      "type": "boolean"
+    },
+    "total_service_step_assessments": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "baseline": {
+      "$ref": "#/$defs/case"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    },
+    "worst_case_unmet_demand_lower_bound_m3": {
+      "type": "number",
+      "minimum": 0
+    },
+    "worst_case_unmet_demand_upper_bound_m3": {
+      "type": "number",
+      "minimum": 0
+    },
+    "worst_case_floor_compliance_lower_bound": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "worst_case_floor_compliance_upper_bound": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "worst_case_maximum_normalized_deficit_lower_bound": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "worst_case_maximum_normalized_deficit_upper_bound": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "declared_failure_override_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000
+    },
+    "evaluated_failure_override_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000
+    }
+  },
+  "$defs": {
+    "floor_status": {
+      "enum": [
+        "meets_floor",
+        "below_floor",
+        "indeterminate"
+      ]
+    },
+    "service_state": {
+      "enum": [
+        "adequate",
+        "degraded",
+        "unavailable",
+        "indeterminate"
+      ]
+    },
+    "override": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_request_id",
+        "step_id",
+        "target",
+        "forced_value"
+      ],
+      "properties": {
+        "service_request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "step_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "enum": [
+            "source_flow_rate",
+            "pump_mechanical_capacity",
+            "pump_available_power",
+            "pump_specific_energy",
+            "treatment_capacity",
+            "distribution_capacity",
+            "demand_rate",
+            "distribution_loss_fraction"
+          ]
+        },
+        "forced_value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "forced_uncertainty_abs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step_id",
+        "as_of",
+        "step_hours",
+        "service_state",
+        "coverage_lower_bound",
+        "coverage_upper_bound",
+        "essential_coverage_floor",
+        "floor_status",
+        "unmet_demand_volume_lower_bound_m3",
+        "unmet_demand_volume_upper_bound_m3",
+        "customer_delivered_volume_lower_bound_m3",
+        "customer_delivered_volume_upper_bound_m3",
+        "supporting_evidence_ids"
+      ],
+      "properties": {
+        "step_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "as_of": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "service_state": {
+          "$ref": "#/$defs/service_state"
+        },
+        "coverage_lower_bound": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "coverage_upper_bound": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "essential_coverage_floor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "floor_status": {
+          "$ref": "#/$defs/floor_status"
+        },
+        "unmet_demand_volume_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unmet_demand_volume_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "step_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "customer_delivered_volume_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "customer_delivered_volume_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_request_id",
+        "service_entity_id",
+        "community_id",
+        "beneficiary_weight",
+        "essential_coverage_floor",
+        "floor_status",
+        "initial_state",
+        "final_state",
+        "first_adequate_as_of",
+        "adequacy_maintained_through_last_sample",
+        "unmet_demand_volume_lower_bound_m3",
+        "unmet_demand_volume_upper_bound_m3",
+        "customer_delivered_volume_lower_bound_m3",
+        "customer_delivered_volume_upper_bound_m3",
+        "maximum_normalized_deficit_lower_bound",
+        "maximum_normalized_deficit_upper_bound",
+        "steps",
+        "supporting_evidence_ids"
+      ],
+      "properties": {
+        "service_request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "community_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "beneficiary_weight": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "essential_coverage_floor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "floor_status": {
+          "$ref": "#/$defs/floor_status"
+        },
+        "initial_state": {
+          "$ref": "#/$defs/service_state"
+        },
+        "final_state": {
+          "$ref": "#/$defs/service_state"
+        },
+        "first_adequate_as_of": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "adequacy_maintained_through_last_sample": {
+          "type": "boolean"
+        },
+        "unmet_demand_volume_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unmet_demand_volume_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "customer_delivered_volume_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "customer_delivered_volume_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "maximum_normalized_deficit_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maximum_normalized_deficit_upper_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "community": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "community_id",
+        "service_cell_count",
+        "total_beneficiary_weight",
+        "meets_floor_weight",
+        "below_floor_weight",
+        "indeterminate_weight",
+        "floor_compliance_lower_bound",
+        "floor_compliance_upper_bound"
+      ],
+      "properties": {
+        "community_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_cell_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "total_beneficiary_weight": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "meets_floor_weight": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "below_floor_weight": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "indeterminate_weight": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "floor_compliance_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "floor_compliance_upper_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "rationale",
+        "overrides_applied",
+        "service_cell_count",
+        "total_beneficiary_weight",
+        "meets_floor_weight",
+        "below_floor_weight",
+        "indeterminate_weight",
+        "overall_floor_compliance_lower_bound",
+        "overall_floor_compliance_upper_bound",
+        "total_unmet_demand_volume_lower_bound_m3",
+        "total_unmet_demand_volume_upper_bound_m3",
+        "maximum_normalized_deficit_lower_bound",
+        "maximum_normalized_deficit_upper_bound",
+        "communities",
+        "services",
+        "supporting_evidence_ids"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "baseline",
+            "common_cause",
+            "hazard_bundle",
+            "other"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "overrides_applied": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/override"
+          }
+        },
+        "service_cell_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "total_beneficiary_weight": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "meets_floor_weight": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "below_floor_weight": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "indeterminate_weight": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "overall_floor_compliance_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "overall_floor_compliance_upper_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "total_unmet_demand_volume_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "total_unmet_demand_volume_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "maximum_normalized_deficit_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maximum_normalized_deficit_upper_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "communities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/community"
+          }
+        },
+        "services": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/service"
+          }
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
