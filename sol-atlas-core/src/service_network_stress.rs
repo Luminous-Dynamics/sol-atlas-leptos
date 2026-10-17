@@ -27,6 +27,25 @@ pub const MAX_EXHAUSTIVE_FAILURE_CASES: usize = 10_000;
 pub const MAX_STRESS_CASE_LINK_REFERENCES: usize = 2_000_000;
 const FAILURE_TIE_RELATIVE_TOLERANCE: f64 = 1.0e-9;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DeclaredFailureSetKind {
+    CommonCause,
+    HazardBundle,
+    Other,
+}
+
+/// A caller-declared event that jointly disables a named set of network links.
+/// The mapping and rationale are explicit assumptions; the evaluator does not
+/// infer that the event physically causes these links to fail.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DeclaredNetworkFailureSet {
+    pub id: String,
+    pub kind: DeclaredFailureSetKind,
+    pub rationale: String,
+    pub failed_link_ids: Vec<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ServiceNetworkStressRequest {
     pub schema_version: String,
@@ -35,14 +54,31 @@ pub struct ServiceNetworkStressRequest {
     pub baseline_scenario: ServiceCapacityNetworkScenario,
     /// Enumerate every combination of 1..=k active-link failures.
     pub max_simultaneous_failures: usize,
-    /// Hard budget for the exhaustive set. Over-budget inputs fail instead of
-    /// returning a misleading partial result.
+    /// Hard budget for link-combination plus declared-event cases. Over-budget
+    /// inputs fail instead of returning a misleading partial result.
     pub max_failure_cases: usize,
+    /// Optional explicit common-cause/hazard bundles, evaluated once each in
+    /// addition to the exhaustive single-/double-/triple-link combinations.
+    #[serde(default)]
+    pub declared_failure_sets: Vec<DeclaredNetworkFailureSet>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ServiceNetworkFailureCaseOrigin {
+    EnumeratedLinkCombination,
+    DeclaredCommonCause,
+    DeclaredHazardBundle,
+    DeclaredOther,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ServiceNetworkFailureCase {
     pub case_id: String,
+    pub origin: ServiceNetworkFailureCaseOrigin,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub failure_set_id: Option<String>,
+    pub rationale: String,
     /// Link IDs forced inactive by this synthetic stress case.
     pub failed_link_ids: Vec<String>,
     pub assessment: ServiceCapacityNetworkAssessment,
@@ -61,7 +97,8 @@ pub struct ServiceNetworkStressAssessment {
     pub unit: String,
     pub max_simultaneous_failures: usize,
     pub active_link_count: usize,
-    /// Exact number of generated failure combinations. This equals evaluated count
+    pub declared_failure_set_count: usize,
+    /// Exact number of generated link combinations plus declared-event cases. This equals evaluated count
     /// on every successful response: the sweep is exhaustive, not sampled.
     pub candidate_failure_case_count: usize,
     pub evaluated_failure_case_count: usize,
@@ -75,7 +112,8 @@ pub struct ServiceNetworkStressAssessment {
     pub worst_case_conservative_failure_sets: Vec<Vec<String>>,
     /// Failure sets whose optimistic flow ties the minimum within numeric tolerance, sorted deterministically.
     pub worst_case_optimistic_failure_sets: Vec<Vec<String>>,
-    /// Cases are sorted by failure order, then lexicographic failed-link IDs.
+    /// Enumerated link combinations (failure order then link IDs) come first,
+    /// followed by caller-declared event bundles sorted by declared event ID.
     pub cases: Vec<ServiceNetworkFailureCase>,
 }
 
@@ -90,6 +128,14 @@ pub enum ServiceNetworkStressValidationError {
     NoActiveLinks,
     ScenarioBudgetExceeded,
     ScenarioMemoryBudgetExceeded,
+    EmptyDeclaredFailureSetId,
+    DuplicateDeclaredFailureSetId,
+    EmptyDeclaredFailureSetRationale,
+    EmptyDeclaredFailureSetLinks,
+    DuplicateDeclaredFailureLinkId,
+    UnknownDeclaredFailureLinkId,
+    AlreadyInactiveDeclaredFailureLinkId,
+    DuplicateBaselineLinkId,
     NonMonotonicConservativeFlow,
     NonMonotonicOptimisticFlow,
 }
