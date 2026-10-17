@@ -14,6 +14,7 @@ pub mod constants;
 pub mod data;
 pub mod economics;
 pub mod energy_trading;
+pub mod evidence;
 pub mod geo;
 pub mod lod;
 pub mod mycelix_flows;
@@ -27,4 +28,5 @@ pub mod timeline;
 pub mod types;
 pub mod visual_validation;
 
+pub use evidence::*;
 pub use types::*;
