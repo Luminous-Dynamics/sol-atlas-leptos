@@ -234,7 +234,11 @@ fn run(
     intervals: usize,
 ) -> Report {
     let input = build_request(scenario_count, service_cells, intervals);
-    let mut last = None;
+    let reference_output = assess_water_energy_stress_sweep(&input, &[])
+        .expect("synthetic declared-scenario reference must be valid");
+    let reference_bytes =
+        serde_json::to_vec(&reference_output).expect("reference result must serialize");
+    let mut last = Some(reference_output);
     for _ in 0..warmup {
         last = Some(
             assess_water_energy_stress_sweep(&input, &[])
@@ -245,13 +249,17 @@ fn run(
     let mut timings = Vec::with_capacity(samples);
     for _ in 0..samples {
         let started = Instant::now();
-        last = Some(
-            assess_water_energy_stress_sweep(&input, &[])
-                .expect("synthetic declared-scenario benchmark must be valid"),
-        );
+        let output = assess_water_energy_stress_sweep(&input, &[])
+            .expect("synthetic declared-scenario benchmark must be valid");
         timings.push(started.elapsed());
+        let serialized =
+            serde_json::to_vec(&output).expect("measured result must serialize");
+        if serialized != reference_bytes {
+            panic!("joint-stress benchmark output differs from its untimed deterministic reference");
+        }
+        last = Some(output);
     }
-    let output = last.expect("at least one warmup or measured run");
+    let output = last.expect("reference output guarantees a result");
     let expected_step_assessments = service_cells * intervals * (scenario_count + 1);
     if output.evaluated_failure_scenario_count != scenario_count
         || output.candidate_failure_scenario_count != scenario_count
@@ -268,8 +276,7 @@ fn run(
     let p50 = percentile(&timings, 50);
     let p95 = percentile(&timings, 95);
     let max = timings.iter().copied().max().unwrap_or_default();
-    let serialized_result_bytes =
-        serde_json::to_vec(&output).expect("stress assessment must serialize").len();
+    let serialized_result_bytes = reference_bytes.len();
     let target_micros = target_ms * 1_000;
     Report {
         source_revision: source_revision(),
