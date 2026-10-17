@@ -1271,8 +1271,6 @@ mod tests {
     }
 }
 
-
-
 /// Versioned request for comparing many intervention candidates against one fixed
 /// baseline and one fixed declared joint-failure suite.
 pub const WATER_ENERGY_STRESS_INTERVENTION_BATCH_SCHEMA_VERSION: &str = "0.1.0";
@@ -1356,10 +1354,7 @@ pub enum WaterEnergyStressInterventionBatchError {
 pub fn compare_water_energy_stress_intervention_batch(
     request: &WaterEnergyStressInterventionBatchRequest,
     evidence_records: &[EvidenceRecord],
-) -> Result<
-    WaterEnergyStressInterventionBatchAssessment,
-    WaterEnergyStressInterventionBatchError,
-> {
+) -> Result<WaterEnergyStressInterventionBatchAssessment, WaterEnergyStressInterventionBatchError> {
     let mut errors = Vec::new();
     if request.schema_version != WATER_ENERGY_STRESS_INTERVENTION_BATCH_SCHEMA_VERSION {
         errors.push(WaterEnergyStressInterventionValidationError::UnsupportedSchemaVersion);
@@ -1380,15 +1375,16 @@ pub fn compare_water_energy_stress_intervention_batch(
             errors.push(WaterEnergyStressInterventionValidationError::DuplicateCandidateId);
         }
         if !experiment_ids.insert(candidate.experiment.id.clone()) {
-            errors.push(
-                WaterEnergyStressInterventionValidationError::DuplicateCandidateExperimentId,
-            );
+            errors
+                .push(WaterEnergyStressInterventionValidationError::DuplicateCandidateExperimentId);
         }
     }
     if !errors.is_empty() {
         errors.sort();
         errors.dedup();
-        return Err(WaterEnergyStressInterventionBatchError::InvalidInput(errors));
+        return Err(WaterEnergyStressInterventionBatchError::InvalidInput(
+            errors,
+        ));
     }
 
     // Validate every candidate against the same baseline and scenario suite before paying
@@ -1423,12 +1419,12 @@ pub fn compare_water_energy_stress_intervention_batch(
     for candidate in candidates {
         let candidate_assessment =
             assess_water_energy_stress_sweep_indexed(&candidate.experiment, &evidence_by_id)
-                .map_err(|source| {
-                    WaterEnergyStressInterventionBatchError::CandidateAssessment {
+                .map_err(
+                    |source| WaterEnergyStressInterventionBatchError::CandidateAssessment {
                         candidate_id: candidate.candidate_id.clone(),
                         source,
-                    }
-                })?;
+                    },
+                )?;
         total_service_step_assessments = total_service_step_assessments
             .checked_add(candidate_assessment.total_service_step_assessments)
             .ok_or_else(|| {
@@ -1463,10 +1459,8 @@ fn compact_intervention_summary(
     candidate_id: &str,
     baseline: &crate::service_water_energy_stress::WaterEnergyStressSweepAssessment,
     candidate: &crate::service_water_energy_stress::WaterEnergyStressSweepAssessment,
-) -> Result<
-    WaterEnergyStressInterventionCandidateSummary,
-    WaterEnergyStressInterventionBatchError,
-> {
+) -> Result<WaterEnergyStressInterventionCandidateSummary, WaterEnergyStressInterventionBatchError>
+{
     let mut baseline_cases: Vec<&WaterEnergyStressCaseAssessment> = vec![&baseline.baseline];
     baseline_cases.extend(baseline.cases.iter());
     let mut candidate_cases: Vec<&WaterEnergyStressCaseAssessment> = vec![&candidate.baseline];
@@ -1602,8 +1596,18 @@ mod batch_tests {
         assert_eq!(output.evaluated_candidate_count, 2);
         assert_eq!(output.candidates[0].candidate_id, "a-storage-100");
         assert_eq!(output.candidates[1].candidate_id, "z-storage-200");
-        assert!(output.candidates.iter().all(|candidate| candidate.compared_case_count == 2));
-        assert!(output.candidates.iter().all(|candidate| candidate.exhaustive_over_paired_declared_scenarios));
+        assert!(
+            output
+                .candidates
+                .iter()
+                .all(|candidate| candidate.compared_case_count == 2)
+        );
+        assert!(
+            output
+                .candidates
+                .iter()
+                .all(|candidate| candidate.exhaustive_over_paired_declared_scenarios)
+        );
     }
 
     #[test]
@@ -1611,8 +1615,8 @@ mod batch_tests {
         let first = request();
         let mut reversed = request();
         reversed.candidates.reverse();
-        let left = compare_water_energy_stress_intervention_batch(&first, &[])
-            .expect("first valid batch");
+        let left =
+            compare_water_energy_stress_intervention_batch(&first, &[]).expect("first valid batch");
         let right = compare_water_energy_stress_intervention_batch(&reversed, &[])
             .expect("permuted valid batch");
         assert_eq!(left, right);
@@ -1633,4 +1637,3 @@ mod batch_tests {
         ));
     }
 }
-
