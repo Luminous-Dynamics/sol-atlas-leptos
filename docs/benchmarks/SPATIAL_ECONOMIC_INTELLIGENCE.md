@@ -232,3 +232,22 @@ The harness times both the compact batch and repeated full-trace single-candidat
 
 These are **unmeasured engineering targets**, not published standards or performance claims. The process RSS high-water mark is shared across benchmark cases and is not isolated per workload. Timing and correctness are separate acceptance gates; no hydraulic accuracy or real-world causal effect follows from synthetic agreement.
 
+
+## Shared-resource constrained allocation
+
+The shared-resource allocation benchmark stresses one aligned snapshot with every service connected to ten shared resource constraints. Resource capacity is present once per resource ID, rather than copied per service. Workloads use deterministic balanced connectivity so their expected equal-coverage policy outputs are hand-calculable.
+
+Run with SHARED_RESOURCE_ALLOCATION_BENCH_WARMUP=2 and SHARED_RESOURCE_ALLOCATION_BENCH_SAMPLES=10 using cargo bench --bench shared_resource_allocation.
+
+| Services | Shared resources | Usage constraints | Conservative work units | Expected coverage | Proposed p95 |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 100 | 10 | 1,000 | 101,000 | 1.0 | 50 ms |
+| 500 | 25 | 5,000 | 2,505,000 | 0.5 | 500 ms |
+| 1,000 | 50 | 10,000 | 10,010,000 | 0.5 | 2 s |
+
+The fixture uses 100 m³/h demand per service and 10,000 m³/h capacity per declared resource, with each service consuming one capacity unit per delivered rate unit on ten resources. The first workload has 100 services evenly sharing ten constraints and reaches full coverage; the latter two have 200 users per resource and reach 0.5 coverage. The benchmark asserts service count, relationship count, per-service coverage, protected-floor compliance, resource-capacity residuals, and byte-identical serialized output against a reference assessment.
+
+The harness records revision/compiler/runner metadata, p50/p95/max, output bytes, work units, and /proc/self/status VmHWM when available. RSS is a process-wide high-water mark shared by the workload sizes; use fresh processes for per-size memory comparisons. All latency targets are **unmeasured engineering hypotheses**, not standards or current performance claims.
+
+Correctness gates are independent of speed: no resource is spent more than once, every service and resource relationship is explicit, weighted floor categories reconcile, indeterminate outcomes are preserved, evidence references validate, and input permutations serialize identically. The current policy is equal-coverage progressive filling, not a physical network solver or a universally optimal allocation policy.
+
