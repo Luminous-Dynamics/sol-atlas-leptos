@@ -478,7 +478,10 @@ mod tests {
     use super::*;
     use crate::dependency_logic::ScenarioBasis;
     use crate::service_water::DIMENSIONLESS_UNIT;
-    use crate::spatial_economic::Quantity;
+    use crate::spatial_economic::{
+        EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceRecord, EvidenceState, Provenance, Quantity,
+        SpatialContext, TimeContext,
+    };
 
     fn measurement(entity: &str, value: f64, unit: &str) -> FunctionMeasurement {
         FunctionMeasurement {
@@ -600,6 +603,61 @@ mod tests {
             assess_water_service_trajectory(&input, &[]),
             Err(WaterServiceTrajectoryError::StepAssessment(_))
         ));
+    }
+
+    fn source_observation(id: &str, at: &str) -> EvidenceRecord {
+        EvidenceRecord {
+            id: id.to_owned(),
+            schema_version: EVIDENCE_SCHEMA_VERSION.to_owned(),
+            kind: EvidenceKind::Observation,
+            state: EvidenceState::Asserted,
+            issuer_id: "did:example:water-trajectory-test".to_owned(),
+            subject_id: "source-a".to_owned(),
+            spatial: SpatialContext {
+                entity_id: "source-a".to_owned(),
+                geometry_uri: None,
+                crs: None,
+            },
+            time: TimeContext {
+                occurred_at: at.to_owned(),
+                recorded_at: at.to_owned(),
+                valid_from: None,
+                valid_until: None,
+            },
+            statement: "Synthetic observed source flow for traceability test.".to_owned(),
+            quantity: Some(Quantity {
+                value: 100.0,
+                unit: WATER_RATE_UNIT.to_owned(),
+                uncertainty_abs: None,
+            }),
+            money: None,
+            provenance: Provenance {
+                method: "synthetic_test".to_owned(),
+                source_artifacts: Vec::new(),
+                derivation_id: None,
+            },
+            supersedes: None,
+            access_policy: "policy:synthetic-test".to_owned(),
+        }
+    }
+
+    #[test]
+    fn evidence_is_attributed_to_the_exact_step_and_trajectory() {
+        let mut input = trajectory("evidence-trace");
+        input.steps[0].source_flow_rate.basis = crate::dependency_logic::ScenarioBasis::Observed;
+        input.steps[0].source_flow_rate.supporting_evidence_ids =
+            vec!["source-observation".to_owned()];
+        let evidence = source_observation("source-observation", &input.steps[0].as_of);
+        let result = assess_water_service_trajectory(&input, &[evidence]).unwrap();
+        assert_eq!(
+            result.steps[0].supporting_evidence_ids,
+            vec!["source-observation".to_owned()]
+        );
+        assert!(result.steps[1].supporting_evidence_ids.is_empty());
+        assert_eq!(
+            result.supporting_evidence_ids,
+            vec!["source-observation".to_owned()]
+        );
     }
 
     #[test]
