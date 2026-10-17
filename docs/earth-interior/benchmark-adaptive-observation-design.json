@@ -354,7 +354,9 @@
               0,
               0.2
             ]
-          ]
+          ],
+          "total_acquisition_cost": 2,
+          "expected_information_gain_per_cost": 0.8047189562170501
         },
         "budget_2_correlated_duplicate": {
           "design": [
@@ -372,7 +374,10 @@
               0,
               1
             ]
-          ]
+          ],
+          "total_acquisition_cost": 2,
+          "expected_information_gain_per_cost": 0.40336248848101525,
+          "false_independent_noise_eig_nats": 1.0986122886681098
         }
       },
       "acceptance_checks": [
@@ -380,7 +385,8 @@
         "A budget-1 north-only design does not identify x_east.",
         "The north+east design achieves rank 2 and higher expected information gain than the highly correlated north duplicate pair.",
         "The duplicate pair uses full measurement covariance; treating its measurements as independent is a negative-control failure.",
-        "Permuting candidate input order leaves normalized selected design and score unchanged under a deterministic tie policy."
+        "Permuting candidate input order leaves normalized selected design and score unchanged under a deterministic tie policy.",
+        "Cost-normalized EIG uses the same declared acquisition-cost model for each candidate design; the two-channel complementary and correlated-duplicate designs both cost 2."
       ],
       "expected_values_are_analytic_references_not_measured_results": true
     }
@@ -401,7 +407,9 @@
       "correlated_duplicate_eig_nats": 0.8067249769620305,
       "false_independent_duplicate_eig_nats": 1.0986122886681098,
       "expected_complementary_rank": 2,
-      "expected_correlated_duplicate_rank": 1
+      "expected_correlated_duplicate_rank": 1,
+      "complementary_eig_per_cost_nats": 0.8047189562170501,
+      "correlated_duplicate_eig_per_cost_nats": 0.40336248848101525
     },
     "implementation_status": {
       "authored_tests": 15,
