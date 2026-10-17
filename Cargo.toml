@@ -98,3 +98,7 @@ harness = false
 [[bench]]
 name = "water_energy_stress_intervention_batch"
 harness = false
+
+[[bench]]
+name = "shared_resource_allocation"
+harness = false
