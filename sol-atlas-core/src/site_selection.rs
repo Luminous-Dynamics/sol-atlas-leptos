@@ -133,21 +133,40 @@ pub enum SiteSelectionError {
     EmptyRequiredConstraints,
     DuplicateRequiredConstraint(HardConstraint),
     InvalidMinimumCoverage(f64),
-    InvalidWeight { criterion: SiteCriterion, weight: f64 },
+    InvalidWeight {
+        criterion: SiteCriterion,
+        weight: f64,
+    },
     NoPositiveWeights,
-    InvalidScore { criterion: SiteCriterion, value: f64 },
+    InvalidScore {
+        criterion: SiteCriterion,
+        value: f64,
+    },
 }
 
 impl fmt::Display for SiteSelectionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::EmptySiteId => write!(f, "site_id must not be empty"),
-            Self::EmptyRequiredConstraints => write!(f, "policy must name at least one required hard constraint"),
-            Self::DuplicateRequiredConstraint(c) => write!(f, "duplicate required constraint: {c:?}"),
-            Self::InvalidMinimumCoverage(v) => write!(f, "minimum evidence coverage must be finite and in [0, 1], got {v}"),
-            Self::InvalidWeight { criterion, weight } => write!(f, "weight for {criterion:?} must be finite and non-negative, got {weight}"),
+            Self::EmptyRequiredConstraints => {
+                write!(f, "policy must name at least one required hard constraint")
+            }
+            Self::DuplicateRequiredConstraint(c) => {
+                write!(f, "duplicate required constraint: {c:?}")
+            }
+            Self::InvalidMinimumCoverage(v) => write!(
+                f,
+                "minimum evidence coverage must be finite and in [0, 1], got {v}"
+            ),
+            Self::InvalidWeight { criterion, weight } => write!(
+                f,
+                "weight for {criterion:?} must be finite and non-negative, got {weight}"
+            ),
             Self::NoPositiveWeights => write!(f, "at least one criterion weight must be positive"),
-            Self::InvalidScore { criterion, value } => write!(f, "score for {criterion:?} must be finite and in [0, 1], got {value}"),
+            Self::InvalidScore { criterion, value } => write!(
+                f,
+                "score for {criterion:?} must be finite and in [0, 1], got {value}"
+            ),
         }
     }
 }
@@ -232,9 +251,7 @@ pub fn evaluate_site(
                     && evidence.evidence_state == EvidenceState::Verified =>
             {
                 hard_failure = true;
-                reasons.push(format!(
-                    "verified hard-constraint failure: {constraint:?}"
-                ));
+                reasons.push(format!("verified hard-constraint failure: {constraint:?}"));
             }
             Some(evidence)
                 if evidence.status != GateStatus::Pass
@@ -283,7 +300,9 @@ pub fn evaluate_site(
                     reasons.push(format!("{criterion:?} is marked verified but has no value"));
                 }
                 (None, EvidenceState::Estimated) => {
-                    reasons.push(format!("{criterion:?} is marked estimated but has no value"));
+                    reasons.push(format!(
+                        "{criterion:?} is marked estimated but has no value"
+                    ));
                 }
             },
             None => reasons.push(format!("{criterion:?} has no evidence record")),
@@ -295,9 +314,7 @@ pub fn evaluate_site(
 
     let status = if hard_failure {
         SuitabilityStatus::Excluded
-    } else if gate_needs_evidence
-        || evidence_coverage < policy.minimum_evidence_coverage
-    {
+    } else if gate_needs_evidence || evidence_coverage < policy.minimum_evidence_coverage {
         SuitabilityStatus::NeedsEvidence
     } else {
         SuitabilityStatus::ShortlistEligible
@@ -407,7 +424,12 @@ mod tests {
         }
         let result = evaluate_site(&candidate, &policy(0.9)).unwrap();
         assert_eq!(result.status, SuitabilityStatus::Excluded);
-        assert!(result.reasons.iter().any(|r| r.contains("verified hard-constraint failure")));
+        assert!(
+            result
+                .reasons
+                .iter()
+                .any(|r| r.contains("verified hard-constraint failure"))
+        );
     }
 
     #[test]
@@ -439,14 +461,22 @@ mod tests {
     #[test]
     fn stale_metric_is_not_silently_used_or_treated_as_zero() {
         let mut candidate = passing_candidate();
-        let metric = candidate.scores.get_mut(&SiteCriterion::EcologicalFit).unwrap();
+        let metric = candidate
+            .scores
+            .get_mut(&SiteCriterion::EcologicalFit)
+            .unwrap();
         metric.value = Some(1.0);
         metric.evidence_state = EvidenceState::Stale;
         let result = evaluate_site(&candidate, &policy(0.9)).unwrap();
         assert_eq!(result.status, SuitabilityStatus::NeedsEvidence);
         assert!((result.weighted_score.unwrap() - 0.8).abs() < 1e-12);
         assert_eq!(result.evidence_coverage, 0.875);
-        assert!(result.reasons.iter().any(|r| r.contains("evidence is stale")));
+        assert!(
+            result
+                .reasons
+                .iter()
+                .any(|r| r.contains("evidence is stale"))
+        );
     }
 
     #[test]
@@ -476,7 +506,9 @@ mod tests {
     #[test]
     fn missing_hard_constraint_record_needs_evidence() {
         let mut candidate = passing_candidate();
-        candidate.hard_constraints.remove(&HardConstraint::LandRights);
+        candidate
+            .hard_constraints
+            .remove(&HardConstraint::LandRights);
         let result = evaluate_site(&candidate, &policy(0.9)).unwrap();
         assert_eq!(result.status, SuitabilityStatus::NeedsEvidence);
         assert!(result.reasons.iter().any(|r| r.contains("is missing")));
@@ -494,7 +526,8 @@ mod tests {
 
     #[test]
     fn synthetic_benchmark_fixture_matches_expected_dispositions_and_scores() {
-        let fixture = include_str!("../../docs/research/fixtures/site-selection-benchmark-v0.1.jsonl");
+        let fixture =
+            include_str!("../../docs/research/fixtures/site-selection-benchmark-v0.1.jsonl");
         let mut records = 0;
         for line in fixture.lines().filter(|line| !line.trim().is_empty()) {
             let case: BenchmarkCase = serde_json::from_str(line).expect("valid benchmark JSONL");
@@ -511,6 +544,9 @@ mod tests {
             );
             records += 1;
         }
-        assert!(records >= 4, "benchmark fixture should include at least four cases");
+        assert!(
+            records >= 4,
+            "benchmark fixture should include at least four cases"
+        );
     }
 }
