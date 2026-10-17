@@ -24,6 +24,7 @@ pub mod picking;
 pub mod simulation;
 pub mod solar_system;
 pub mod spatial_overlay;
+pub mod robust_regret;
 pub mod timeline;
 pub mod types;
 pub mod visual_validation;
