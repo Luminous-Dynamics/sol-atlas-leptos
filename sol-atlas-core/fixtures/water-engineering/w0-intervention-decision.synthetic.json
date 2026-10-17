@@ -1,0 +1,313 @@
+{
+  "schema_version": "water-intervention-decision/v0.1",
+  "decision_id": "w0-intervention-decision-contract-fixture",
+  "classification": "synthetic_public",
+  "decision_question": "Which synthetic pipe intervention, if any, merits qualified engineering review?",
+  "baseline": {
+    "case_id": "w0-baseline-contract-only",
+    "role": "baseline",
+    "scenario_id": "w0-baseline-not-run",
+    "run_reference": {
+      "bundle_id": "w0-baseline-contract-only",
+      "manifest_sha256": null,
+      "run_state": "NotRun",
+      "evidence_ceiling": "contract_only"
+    },
+    "metrics": [
+      {
+        "metric_id": "service.pressure_compliance",
+        "domain": "service_reliability",
+        "availability_state": "unavailable",
+        "value": null,
+        "unit": "% of demand-time",
+        "direction": "higher_is_better",
+        "evidence_class": "unavailable",
+        "comparability_state": "not_assessed",
+        "scope": "synthetic W0 contract fixture only",
+        "period_label": "not_run",
+        "uncertainty": {
+          "state": "not_assessed",
+          "lower_bound": null,
+          "upper_bound": null,
+          "method_note": "No interval or sensitivity results exist because no solver run is attached."
+        },
+        "source_references": [],
+        "reason": "The contract fixture intentionally contains no evaluated result; do not infer zero."
+      },
+      {
+        "metric_id": "service.unmet_demand",
+        "domain": "service_reliability",
+        "availability_state": "unavailable",
+        "value": null,
+        "unit": "m3/day",
+        "direction": "lower_is_better",
+        "evidence_class": "unavailable",
+        "comparability_state": "not_assessed",
+        "scope": "synthetic W0 contract fixture only",
+        "period_label": "not_run",
+        "uncertainty": {
+          "state": "not_assessed",
+          "lower_bound": null,
+          "upper_bound": null,
+          "method_note": "No interval or sensitivity results exist because no solver run is attached."
+        },
+        "source_references": [],
+        "reason": "The contract fixture intentionally contains no evaluated result; do not infer zero."
+      },
+      {
+        "metric_id": "system.pumping_energy",
+        "domain": "energy",
+        "availability_state": "unavailable",
+        "value": null,
+        "unit": "kWh/m3",
+        "direction": "lower_is_better",
+        "evidence_class": "unavailable",
+        "comparability_state": "not_assessed",
+        "scope": "synthetic W0 contract fixture only",
+        "period_label": "not_run",
+        "uncertainty": {
+          "state": "not_assessed",
+          "lower_bound": null,
+          "upper_bound": null,
+          "method_note": "No interval or sensitivity results exist because no solver run is attached."
+        },
+        "source_references": [],
+        "reason": "The contract fixture intentionally contains no evaluated result; do not infer zero."
+      },
+      {
+        "metric_id": "lifecycle.cost",
+        "domain": "lifecycle_cost",
+        "availability_state": "unavailable",
+        "value": null,
+        "unit": "ZAR",
+        "direction": "lower_is_better",
+        "evidence_class": "unavailable",
+        "comparability_state": "not_assessed",
+        "scope": "synthetic W0 contract fixture only",
+        "period_label": "not_run",
+        "uncertainty": {
+          "state": "not_assessed",
+          "lower_bound": null,
+          "upper_bound": null,
+          "method_note": "No interval or sensitivity results exist because no solver run is attached."
+        },
+        "source_references": [],
+        "reason": "The contract fixture intentionally contains no evaluated result; do not infer zero."
+      }
+    ],
+    "hard_constraints": [
+      {
+        "constraint_id": "service.minimum_pressure",
+        "requirement": "All required service locations meet the locally specified minimum pressure.",
+        "status": "unknown",
+        "validation_basis": "not_defined",
+        "evidence_reference": null,
+        "notes": [
+          "No solver run or engineering requirement review is attached to this contract fixture."
+        ]
+      },
+      {
+        "constraint_id": "service.continuity",
+        "requirement": "Mandatory continuity-of-supply requirements are met.",
+        "status": "unknown",
+        "validation_basis": "not_defined",
+        "evidence_reference": null,
+        "notes": [
+          "No solver run or engineering requirement review is attached to this contract fixture."
+        ]
+      },
+      {
+        "constraint_id": "quality.potability",
+        "requirement": "Applicable drinking-water quality requirements are satisfied.",
+        "status": "unknown",
+        "validation_basis": "not_defined",
+        "evidence_reference": null,
+        "notes": [
+          "No solver run or engineering requirement review is attached to this contract fixture."
+        ]
+      }
+    ]
+  },
+  "alternatives": [
+    {
+      "alternative_id": "w0-p2-restriction-contract-only",
+      "role": "candidate",
+      "scenario_id": "w0-p2-restriction-not-run",
+      "run_reference": {
+        "bundle_id": "w0-p2-restriction-contract-only",
+        "manifest_sha256": null,
+        "run_state": "NotRun",
+        "evidence_ceiling": "contract_only"
+      },
+      "metrics": [
+        {
+          "metric_id": "service.pressure_compliance",
+          "domain": "service_reliability",
+          "availability_state": "unavailable",
+          "value": null,
+          "unit": "% of demand-time",
+          "direction": "higher_is_better",
+          "evidence_class": "unavailable",
+          "comparability_state": "not_assessed",
+          "scope": "synthetic W0 contract fixture only",
+          "period_label": "not_run",
+          "uncertainty": {
+            "state": "not_assessed",
+            "lower_bound": null,
+            "upper_bound": null,
+            "method_note": "No interval or sensitivity results exist because no solver run is attached."
+          },
+          "source_references": [],
+          "reason": "The contract fixture intentionally contains no evaluated result; do not infer zero."
+        },
+        {
+          "metric_id": "service.unmet_demand",
+          "domain": "service_reliability",
+          "availability_state": "unavailable",
+          "value": null,
+          "unit": "m3/day",
+          "direction": "lower_is_better",
+          "evidence_class": "unavailable",
+          "comparability_state": "not_assessed",
+          "scope": "synthetic W0 contract fixture only",
+          "period_label": "not_run",
+          "uncertainty": {
+            "state": "not_assessed",
+            "lower_bound": null,
+            "upper_bound": null,
+            "method_note": "No interval or sensitivity results exist because no solver run is attached."
+          },
+          "source_references": [],
+          "reason": "The contract fixture intentionally contains no evaluated result; do not infer zero."
+        },
+        {
+          "metric_id": "system.pumping_energy",
+          "domain": "energy",
+          "availability_state": "unavailable",
+          "value": null,
+          "unit": "kWh/m3",
+          "direction": "lower_is_better",
+          "evidence_class": "unavailable",
+          "comparability_state": "not_assessed",
+          "scope": "synthetic W0 contract fixture only",
+          "period_label": "not_run",
+          "uncertainty": {
+            "state": "not_assessed",
+            "lower_bound": null,
+            "upper_bound": null,
+            "method_note": "No interval or sensitivity results exist because no solver run is attached."
+          },
+          "source_references": [],
+          "reason": "The contract fixture intentionally contains no evaluated result; do not infer zero."
+        },
+        {
+          "metric_id": "lifecycle.cost",
+          "domain": "lifecycle_cost",
+          "availability_state": "unavailable",
+          "value": null,
+          "unit": "ZAR",
+          "direction": "lower_is_better",
+          "evidence_class": "unavailable",
+          "comparability_state": "not_assessed",
+          "scope": "synthetic W0 contract fixture only",
+          "period_label": "not_run",
+          "uncertainty": {
+            "state": "not_assessed",
+            "lower_bound": null,
+            "upper_bound": null,
+            "method_note": "No interval or sensitivity results exist because no solver run is attached."
+          },
+          "source_references": [],
+          "reason": "The contract fixture intentionally contains no evaluated result; do not infer zero."
+        }
+      ],
+      "hard_constraints": [
+        {
+          "constraint_id": "service.minimum_pressure",
+          "requirement": "All required service locations meet the locally specified minimum pressure.",
+          "status": "unknown",
+          "validation_basis": "not_defined",
+          "evidence_reference": null,
+          "notes": [
+            "No solver run or engineering requirement review is attached to this contract fixture."
+          ]
+        },
+        {
+          "constraint_id": "service.continuity",
+          "requirement": "Mandatory continuity-of-supply requirements are met.",
+          "status": "unknown",
+          "validation_basis": "not_defined",
+          "evidence_reference": null,
+          "notes": [
+            "No solver run or engineering requirement review is attached to this contract fixture."
+          ]
+        },
+        {
+          "constraint_id": "quality.potability",
+          "requirement": "Applicable drinking-water quality requirements are satisfied.",
+          "status": "unknown",
+          "validation_basis": "not_defined",
+          "evidence_reference": null,
+          "notes": [
+            "No solver run or engineering requirement review is attached to this contract fixture."
+          ]
+        }
+      ]
+    }
+  ],
+  "comparison_policy": {
+    "method": "pareto_frontier",
+    "hard_constraints_first": true,
+    "scalar_score_allowed": false,
+    "unknown_metric_behavior": "not_zero_and_not_rankable",
+    "non_comparable_metric_behavior": "retain_separately"
+  },
+  "uncertainty_review": {
+    "state": "not_assessed",
+    "sensitivity_state": "not_run",
+    "material_unknowns": [
+      "No pinned solver execution or independently inspected report is attached.",
+      "Demand, pipe roughness, boundary conditions and parameter uncertainty have not been swept.",
+      "The fixture contains no customer/service-zone population data."
+    ],
+    "next_evidence_actions": [
+      {
+        "action_id": "run-pinned-epanet",
+        "description": "Run the pinned EPANET baseline and candidate, preserving full logs and hashed outputs.",
+        "uncertainty_target": "Whether the declared synthetic hydraulic response is reproduced by the selected solver.",
+        "blocking": true
+      },
+      {
+        "action_id": "sensitivity-sweep",
+        "description": "After baseline reproduction, sweep declared demand, roughness and boundary-condition ranges without mixing unapproved real topology into the public fixture.",
+        "uncertainty_target": "Whether the candidate's direction of effect survives plausible input uncertainty.",
+        "blocking": true
+      }
+    ]
+  },
+  "equity_review": {
+    "state": "not_assessed",
+    "dimensions_considered": [
+      "service continuity",
+      "low-pressure exposure",
+      "affordability",
+      "outage duration",
+      "distribution by service zone"
+    ],
+    "unresolved_impacts": [
+      "No population, service-zone, affordability or customer-level evidence exists in the synthetic fixture."
+    ]
+  },
+  "decision_state": {
+    "state": "not_decided",
+    "selected_alternative_id": null,
+    "authorization_state": "not_authorized",
+    "independent_engineer_review": "required"
+  },
+  "nonclaims": [
+    "This is a schema contract fixture, not an EPANET run result.",
+    "Unavailable metrics are not zero and no alternative is ranked.",
+    "No real utility network, customer cohort, water saving, capital saving or service improvement is represented.",
+    "Schema validity does not establish solver correctness, calibration, engineering approval, or operational authorization."
+  ]
+}

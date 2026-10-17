@@ -1,0 +1,1143 @@
+{
+  "schema_version": "water-scenario-corpus-plan/v0.1",
+  "classification": "synthetic_public",
+  "plan_id": "net3-all-junction-localization",
+  "unit_system": "GPM",
+  "base_input": {
+    "path": ".epanet-source/example-networks/Net3.inp",
+    "sha256": "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53",
+    "byte_length": 30063
+  },
+  "observation_node_ids": [
+    "101",
+    "103",
+    "105",
+    "109"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "net3-all-junction-no-fault",
+      "ground_truth_class": "no_fault",
+      "target_junction_id": null,
+      "additional_demand": 0
+    },
+    {
+      "scenario_id": "net3-target-10-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "10",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-10-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "10",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-15-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "15",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-15-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "15",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-20-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "20",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-20-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "20",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-35-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "35",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-35-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "35",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-40-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "40",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-40-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "40",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-50-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "50",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-50-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "50",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-60-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "60",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-60-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "60",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-601-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "601",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-601-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "601",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-61-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "61",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-61-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "61",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-101-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "101",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-101-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "101",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-103-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "103",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-103-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "103",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-105-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "105",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-105-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "105",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-107-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "107",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-107-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "107",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-109-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "109",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-109-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "109",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-111-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "111",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-111-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "111",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-113-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "113",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-113-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "113",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-115-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "115",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-115-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "115",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-117-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "117",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-117-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "117",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-119-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "119",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-119-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "119",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-120-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "120",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-120-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "120",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-121-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "121",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-121-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "121",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-123-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "123",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-123-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "123",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-125-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "125",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-125-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "125",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-127-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "127",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-127-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "127",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-129-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "129",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-129-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "129",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-131-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "131",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-131-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "131",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-139-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "139",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-139-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "139",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-141-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "141",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-141-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "141",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-143-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "143",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-143-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "143",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-145-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "145",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-145-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "145",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-147-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "147",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-147-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "147",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-149-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "149",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-149-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "149",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-151-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "151",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-151-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "151",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-153-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "153",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-153-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "153",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-157-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "157",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-157-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "157",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-159-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "159",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-159-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "159",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-161-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "161",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-161-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "161",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-163-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "163",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-163-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "163",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-164-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "164",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-164-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "164",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-166-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "166",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-166-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "166",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-167-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "167",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-167-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "167",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-169-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "169",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-169-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "169",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-171-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "171",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-171-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "171",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-173-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "173",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-173-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "173",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-177-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "177",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-177-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "177",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-179-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "179",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-179-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "179",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-181-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "181",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-181-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "181",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-183-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "183",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-183-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "183",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-184-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "184",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-184-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "184",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-185-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "185",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-185-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "185",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-187-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "187",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-187-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "187",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-189-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "189",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-189-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "189",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-191-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "191",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-191-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "191",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-193-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "193",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-193-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "193",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-195-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "195",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-195-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "195",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-197-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "197",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-197-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "197",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-199-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "199",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-199-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "199",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-201-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "201",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-201-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "201",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-203-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "203",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-203-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "203",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-204-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "204",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-204-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "204",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-205-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "205",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-205-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "205",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-206-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "206",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-206-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "206",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-207-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "207",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-207-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "207",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-208-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "208",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-208-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "208",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-209-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "209",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-209-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "209",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-211-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "211",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-211-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "211",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-213-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "213",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-213-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "213",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-215-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "215",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-215-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "215",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-217-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "217",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-217-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "217",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-219-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "219",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-219-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "219",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-225-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "225",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-225-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "225",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-229-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "229",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-229-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "229",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-231-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "231",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-231-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "231",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-237-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "237",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-237-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "237",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-239-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "239",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-239-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "239",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-241-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "241",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-241-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "241",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-243-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "243",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-243-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "243",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-247-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "247",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-247-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "247",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-249-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "249",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-249-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "249",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-251-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "251",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-251-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "251",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-253-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "253",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-253-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "253",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-255-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "255",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-255-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "255",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-257-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "257",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-257-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "257",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-259-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "259",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-259-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "259",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-261-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "261",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-261-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "261",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-263-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "263",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-263-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "263",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-265-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "265",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-265-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "265",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-267-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "267",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-267-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "267",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-269-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "269",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-269-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "269",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-271-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "271",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-271-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "271",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-273-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "273",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-273-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "273",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-target-275-withdrawal-10gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "275",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-target-275-withdrawal-25gpm",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "275",
+      "additional_demand": 25
+    }
+  ],
+  "assumptions": [
+    "The source is OpenWaterAnalytics/EPANET Net3.inp at pinned commit 4d8d82ddc260fce216af9321fc3d9a4646ac6827; its exact source bytes are bound by SHA-256 d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53 and length 30063.",
+    "The target universe is every one of the 92 junction IDs in the pinned Net3 [JUNCTIONS] section; this file freezes 184 withdrawal cases across 10 and 25 GPM plus one no-fault control.",
+    "Measurement features remain limited to the four predeclared observation junctions 101, 103, 105 and 109; target locations are deliberately not required to be sensors.",
+    "Each target/magnitude case is independently generated from the same source network and run once with a deterministic demand addition; no randomized demand pattern, sensor noise, model-form perturbation or physical leak aperture is represented.",
+    "The same source network, solver revision, declared measurement nodes, and perturbation magnitudes are used for exact reproducibility; the expanded set is for candidate-space stress testing, not an out-of-topology generalization claim."
+  ],
+  "nonclaims": [
+    "A synthetic junction-demand increase is not a calibrated leak or burst model and does not identify a real incident.",
+    "Only one synthetic upstream topology and two withdrawal magnitudes are represented; there is no cross-topology generalization, calibrated sensor noise, uncertainty ensemble execution, or field validation.",
+    "The four sensor positions are a fixed pilot layout, not an optimized or costed sensor deployment.",
+    "No detection sensitivity, false-positive rate, detection delay, intervention regret, water-saving estimate, or operational recommendation is established.",
+    "No physical network intervention, SCADA write path, autonomous control, or actuation is authorized."
+  ]
+}

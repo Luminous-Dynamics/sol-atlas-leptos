@@ -26,5 +26,14 @@ pub mod solar_system;
 pub mod timeline;
 pub mod types;
 pub mod visual_validation;
+pub mod water_engineering;
+pub mod water_observations;
+pub mod water_decision;
 
 pub use types::*;
+
+pub mod water_measurement;
+pub mod water_scenario_corpus;
+pub mod water_localization_benchmark;
+pub mod water_sensor_placement;
+pub mod water_sensor_placement_statistics;

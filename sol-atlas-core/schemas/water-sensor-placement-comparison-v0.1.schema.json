@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/water-sensor-placement-comparison-v0.1.schema.json",
+  "title": "Paired water sensor-placement comparison envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_evaluation_sha256",
+    "source_manifest_sha256",
+    "source_plan_sha256",
+    "source_topology_sha256",
+    "comparison"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "water-sensor-placement-comparison-envelope/v0.1"
+    },
+    "source_evaluation_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_plan_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_topology_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "run_state",
+        "plan_id",
+        "reference_strategy",
+        "bootstrap_method",
+        "confidence_level",
+        "bootstrap_replicates",
+        "sensor_budgets",
+        "noise_sigma_fractions",
+        "held_out_magnitudes",
+        "strategy_ids",
+        "results",
+        "claim_ceiling",
+        "nonclaims"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "water-sensor-placement-comparison/v0.1"
+        },
+        "run_state": {
+          "const": "Completed"
+        },
+        "plan_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reference_strategy": {
+          "const": "fixed-predeclared"
+        },
+        "bootstrap_method": {
+          "const": "paired_target_cluster_percentile_bootstrap"
+        },
+        "confidence_level": {
+          "const": 0.95
+        },
+        "bootstrap_replicates": {
+          "type": "integer",
+          "const": 2000
+        },
+        "sensor_budgets": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "noise_sigma_fractions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "held_out_magnitudes": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "strategy_ids": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "fixed-predeclared",
+              "seeded-random",
+              "graph-coverage-greedy",
+              "response-separation-greedy"
+            ]
+          }
+        },
+        "results": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "candidate_strategy",
+              "reference_strategy",
+              "sensor_budget",
+              "noise_sigma_fraction",
+              "replicate",
+              "held_out_magnitude",
+              "test_case_count",
+              "target_cluster_count",
+              "mean_delta_top1",
+              "ci95_low_delta_top1",
+              "ci95_high_delta_top1",
+              "mean_delta_top3",
+              "ci95_low_delta_top3",
+              "ci95_high_delta_top3",
+              "mean_delta_mrr",
+              "ci95_low_delta_mrr",
+              "ci95_high_delta_mrr"
+            ],
+            "properties": {
+              "candidate_strategy": {
+                "enum": [
+                  "seeded-random",
+                  "graph-coverage-greedy",
+                  "response-separation-greedy"
+                ]
+              },
+              "reference_strategy": {
+                "const": "fixed-predeclared"
+              },
+              "sensor_budget": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "noise_sigma_fraction": {
+                "type": "number",
+                "minimum": 0
+              },
+              "replicate": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "held_out_magnitude": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "test_case_count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "target_cluster_count": {
+                "type": "integer",
+                "minimum": 2
+              },
+              "mean_delta_top1": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "ci95_low_delta_top1": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "ci95_high_delta_top1": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "mean_delta_top3": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "ci95_low_delta_top3": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "ci95_high_delta_top3": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "mean_delta_mrr": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "ci95_low_delta_mrr": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "ci95_high_delta_mrr": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              }
+            }
+          }
+        },
+        "claim_ceiling": {
+          "const": "conditional_synthetic_within_topology_comparison"
+        },
+        "nonclaims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

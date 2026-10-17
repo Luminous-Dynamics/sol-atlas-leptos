@@ -1,0 +1,566 @@
+// Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
+
+//! Semantic checks for source-attributed public water observations.
+//!
+//! Shape validation belongs to water-public-observation-bundle-v0.1.schema.json.
+//! This module additionally closes source references, enforces unique identifiers,
+//! and prevents reversed observation windows. It does not authenticate publishers
+//! or independently verify the source's reported measurements.
+
+use serde_json::Value;
+use std::collections::HashSet;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ObservationIssue {
+    pub code: &'static str,
+    pub path: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ObservationValidationReport {
+    pub issues: Vec<ObservationIssue>,
+}
+
+impl ObservationValidationReport {
+    pub fn is_valid(&self) -> bool {
+        self.issues.is_empty()
+    }
+
+    fn push(&mut self, code: &'static str, path: impl Into<String>, message: impl Into<String>) {
+        self.issues.push(ObservationIssue {
+            code,
+            path: path.into(),
+            message: message.into(),
+        });
+    }
+}
+
+/// Checks semantic consistency of the public observation bundle.
+/// The Draft 2020-12 schema must also be applied as a separate gate.
+pub fn validate_public_observation_bundle(bundle: &Value) -> ObservationValidationReport {
+    let mut report = ObservationValidationReport::default();
+    let Some(object) = bundle.as_object() else {
+        report.push("BUNDLE_NOT_OBJECT", "$", "bundle must be a JSON object");
+        return report;
+    };
+
+    if object.get("schema_version").and_then(Value::as_str)
+        != Some("water-public-observation-bundle/v0.1")
+    {
+        report.push(
+            "SCHEMA_VERSION_UNSUPPORTED",
+            "$.schema_version",
+            "expected water-public-observation-bundle/v0.1",
+        );
+    }
+
+    let Some(sources) = bundle.get("source_records").and_then(Value::as_array) else {
+        report.push(
+            "SOURCE_RECORDS_MISSING",
+            "$.source_records",
+            "source_records must be an array",
+        );
+        return report;
+    };
+    let Some(observations) = bundle.get("observations").and_then(Value::as_array) else {
+        report.push(
+            "OBSERVATIONS_MISSING",
+            "$.observations",
+            "observations must be an array",
+        );
+        return report;
+    };
+
+    let mut source_ids = HashSet::new();
+    for (index, source) in sources.iter().enumerate() {
+        let path = format!("$.source_records[{index}].source_id");
+        match source.get("source_id").and_then(Value::as_str) {
+            Some(id) if !id.trim().is_empty() => {
+                if !source_ids.insert(id.to_owned()) {
+                    report.push(
+                        "DUPLICATE_SOURCE_ID",
+                        path,
+                        format!("source id {id:?} occurs more than once"),
+                    );
+                }
+            }
+            _ => report.push(
+                "SOURCE_ID_MISSING",
+                path,
+                "source record needs a non-empty source_id",
+            ),
+        }
+    }
+
+    let mut observation_ids = HashSet::new();
+    for (index, observation) in observations.iter().enumerate() {
+        let path = format!("$.observations[{index}]");
+        match observation.get("observation_id").and_then(Value::as_str) {
+            Some(id) if !id.trim().is_empty() => {
+                if !observation_ids.insert(id.to_owned()) {
+                    report.push(
+                        "DUPLICATE_OBSERVATION_ID",
+                        format!("{path}.observation_id"),
+                        format!("observation id {id:?} occurs more than once"),
+                    );
+                }
+            }
+            _ => report.push(
+                "OBSERVATION_ID_MISSING",
+                format!("{path}.observation_id"),
+                "observation needs a non-empty observation_id",
+            ),
+        }
+
+        match observation.get("source_id").and_then(Value::as_str) {
+            Some(id) if source_ids.contains(id) => {}
+            Some(id) => report.push(
+                "OBSERVATION_SOURCE_UNKNOWN",
+                format!("{path}.source_id"),
+                format!("source id {id:?} is not present in source_records"),
+            ),
+            None => report.push(
+                "OBSERVATION_SOURCE_MISSING",
+                format!("{path}.source_id"),
+                "observation requires source_id",
+            ),
+        }
+
+        match (
+            observation.get("period_start"),
+            observation.get("period_end"),
+        ) {
+            (Some(start), Some(end)) if start.is_string() && end.is_string() => {
+                let start = start.as_str().unwrap_or_default();
+                let end = end.as_str().unwrap_or_default();
+                // The schema supplies ISO date format checks; lexicographic order
+                // is chronological for canonical YYYY-MM-DD strings.
+                if start.len() == 10 && end.len() == 10 && start > end {
+                    report.push(
+                        "OBSERVATION_PERIOD_REVERSED",
+                        path.clone(),
+                        format!("period_start {start} is after period_end {end}"),
+                    );
+                }
+            }
+            (Some(start), Some(end)) if start.is_null() && end.is_null() => {}
+            _ => report.push(
+                "OBSERVATION_PERIOD_INCOMPLETE",
+                path.clone(),
+                "period_start and period_end must both be dates or both be null",
+            ),
+        }
+
+        if observation
+            .get("name")
+            .and_then(Value::as_str)
+            .is_none_or(str::is_empty)
+        {
+            report.push(
+                "OBSERVATION_NAME_MISSING",
+                format!("{path}.name"),
+                "observation name must be a non-empty string",
+            );
+        }
+        if observation
+            .get("unit")
+            .and_then(Value::as_str)
+            .is_none_or(str::is_empty)
+        {
+            report.push(
+                "OBSERVATION_UNIT_MISSING",
+                format!("{path}.unit"),
+                "observation unit must be a non-empty string",
+            );
+        }
+        if observation.get("value").is_none() {
+            report.push(
+                "OBSERVATION_VALUE_MISSING",
+                format!("{path}.value"),
+                "observation must preserve the reported value",
+            );
+        }
+    }
+
+    let Some(comparisons) = bundle.get("comparisons").and_then(Value::as_array) else {
+        report.push(
+            "COMPARISONS_MISSING",
+            "$.comparisons",
+            "comparisons must be an array of source-linked unresolved comparisons",
+        );
+        return report;
+    };
+
+    let mut comparison_ids = HashSet::new();
+    for (index, comparison) in comparisons.iter().enumerate() {
+        let path = format!("$.comparisons[{index}]");
+        match comparison.get("comparison_id").and_then(Value::as_str) {
+            Some(id) if !id.trim().is_empty() => {
+                if !comparison_ids.insert(id.to_owned()) {
+                    report.push(
+                        "DUPLICATE_COMPARISON_ID",
+                        format!("{path}.comparison_id"),
+                        format!("comparison id {id:?} occurs more than once"),
+                    );
+                }
+            }
+            _ => report.push(
+                "COMPARISON_ID_MISSING",
+                format!("{path}.comparison_id"),
+                "comparison needs a non-empty comparison_id",
+            ),
+        }
+
+        let left_id = comparison.get("left_observation_id").and_then(Value::as_str);
+        let right_id = comparison.get("right_observation_id").and_then(Value::as_str);
+        let left = left_id.and_then(|id| {
+            observations
+                .iter()
+                .find(|row| row["observation_id"].as_str() == Some(id))
+        });
+        let right = right_id.and_then(|id| {
+            observations
+                .iter()
+                .find(|row| row["observation_id"].as_str() == Some(id))
+        });
+        match left_id {
+            None => report.push(
+                "COMPARISON_LEFT_OBSERVATION_MISSING",
+                format!("{path}.left_observation_id"),
+                "comparison requires left_observation_id",
+            ),
+            Some(id) if left.is_none() => report.push(
+                "COMPARISON_OBSERVATION_UNKNOWN",
+                format!("{path}.left_observation_id"),
+                format!("left observation id {id:?} does not exist in observations"),
+            ),
+            _ => {}
+        }
+        match right_id {
+            None => report.push(
+                "COMPARISON_RIGHT_OBSERVATION_MISSING",
+                format!("{path}.right_observation_id"),
+                "comparison requires right_observation_id",
+            ),
+            Some(id) if right.is_none() => report.push(
+                "COMPARISON_OBSERVATION_UNKNOWN",
+                format!("{path}.right_observation_id"),
+                format!("right observation id {id:?} does not exist in observations"),
+            ),
+            _ => {}
+        }
+        if left_id.is_some() && left_id == right_id {
+            report.push(
+                "COMPARISON_SAME_OBSERVATION",
+                path.clone(),
+                "left and right observations must be distinct",
+            );
+        }
+
+        let arithmetic = comparison.get("arithmetic");
+        let left_factor = arithmetic.and_then(|v| v.get("left_factor")).and_then(Value::as_f64);
+        let right_factor = arithmetic.and_then(|v| v.get("right_factor")).and_then(Value::as_f64);
+        let left_normalized = arithmetic
+            .and_then(|v| v.get("left_normalized_value"))
+            .and_then(Value::as_f64);
+        let right_normalized = arithmetic
+            .and_then(|v| v.get("right_normalized_value"))
+            .and_then(Value::as_f64);
+        let difference = arithmetic
+            .and_then(|v| v.get("difference"))
+            .and_then(Value::as_f64);
+        let source_left_value = left.and_then(|v| v.get("value")).and_then(Value::as_f64);
+        let source_right_value = right.and_then(|v| v.get("value")).and_then(Value::as_f64);
+        match (
+            left_factor,
+            right_factor,
+            left_normalized,
+            right_normalized,
+            difference,
+            source_left_value,
+            source_right_value,
+        ) {
+            (Some(lf), Some(rf), Some(ln), Some(rn), Some(delta), Some(lv), Some(rv))
+                if lf > 0.0 && rf > 0.0 =>
+            {
+                let expected_left = lv * lf;
+                let expected_right = rv * rf;
+                let expected_delta = expected_left - expected_right;
+                let close = |a: f64, b: f64| {
+                    (a - b).abs() <= 1e-6 * a.abs().max(b.abs()).max(1.0)
+                };
+                if !close(ln, expected_left)
+                    || !close(rn, expected_right)
+                    || !close(delta, expected_delta)
+                {
+                    report.push(
+                        "COMPARISON_ARITHMETIC_MISMATCH",
+                        format!("{path}.arithmetic"),
+                        "normalized values and left-minus-right difference must match the referenced numeric observations and positive conversion factors",
+                    );
+                }
+            }
+            _ => report.push(
+                "COMPARISON_ARITHMETIC_INCOMPLETE",
+                format!("{path}.arithmetic"),
+                "comparisons require numeric source values, normalized values, positive conversion factors, and a numeric difference",
+            ),
+        }
+    }
+
+    report
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn fixture() -> Value {
+        serde_json::from_str(include_str!(
+            "../fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json"
+        ))
+        .expect("public observation fixture must be valid JSON")
+    }
+
+    #[test]
+    fn real_public_aggregate_snapshot_has_closed_source_references() {
+        let bundle = fixture();
+        let report = validate_public_observation_bundle(&bundle);
+        assert!(
+            report.is_valid(),
+            "unexpected semantic issues: {:#?}",
+            report.issues
+        );
+        assert_eq!(bundle["observations"].as_array().map(Vec::len), Some(91));
+        assert_eq!(bundle["comparisons"].as_array().map(Vec::len), Some(3));
+
+        let fy23_quality = bundle["observations"]
+            .as_array()
+            .expect("observations must be an array")
+            .iter()
+            .find(|row| row["observation_id"] == "jw.annual23-24.ecoli.tests")
+            .expect("FY2023/24 water-quality row");
+        assert_eq!(
+            fy23_quality["source_id"].as_str(),
+            Some("jhb-water-annual-report-2023-24")
+        );
+
+        let comparative_kpi = bundle["observations"]
+            .as_array()
+            .expect("observations must be an array")
+            .iter()
+            .find(|row| row["observation_id"] == "jw.annual23-24.sewer-blockage-response")
+            .expect("FY2023/24 comparative KPI from the FY2024/25 report");
+        assert_eq!(
+            comparative_kpi["source_id"].as_str(),
+            Some("jhb-water-annual-report-2024-25")
+        );
+
+        let fy24_sample_count = bundle["observations"]
+            .as_array()
+            .expect("observations must be an array")
+            .iter()
+            .find(|row| row["observation_id"] == "jw.annual24-25.ecoli.samples")
+            .expect("FY2024/25 sample count");
+        assert_eq!(fy24_sample_count["unit"].as_str(), Some("sample"));
+    }
+
+    #[test]
+    fn rejects_unknown_source_reference() {
+        let mut bundle = fixture();
+        bundle["observations"][0]["source_id"] = json!("missing-source");
+        let report = validate_public_observation_bundle(&bundle);
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "OBSERVATION_SOURCE_UNKNOWN")
+        );
+    }
+
+    #[test]
+    fn rejects_reversed_reporting_period() {
+        let mut bundle = fixture();
+        bundle["observations"][0]["period_start"] = json!("2025-07-01");
+        bundle["observations"][0]["period_end"] = json!("2024-07-01");
+        let report = validate_public_observation_bundle(&bundle);
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "OBSERVATION_PERIOD_REVERSED")
+        );
+    }
+
+    #[test]
+    fn rejects_duplicate_observation_ids() {
+        let mut bundle = fixture();
+        let duplicate_id = bundle["observations"][0]["observation_id"].clone();
+        bundle["observations"][1]["observation_id"] = duplicate_id;
+        let report = validate_public_observation_bundle(&bundle);
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "DUPLICATE_OBSERVATION_ID")
+        );
+    }
+
+    #[test]
+    fn rejects_duplicate_source_ids() {
+        let mut bundle = fixture();
+        let duplicate_id = bundle["source_records"][0]["source_id"].clone();
+        bundle["source_records"][1]["source_id"] = duplicate_id;
+        let report = validate_public_observation_bundle(&bundle);
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "DUPLICATE_SOURCE_ID")
+        );
+    }
+
+    #[test]
+    fn annual_report_rows_remain_provisional_until_primary_page_review() {
+        let bundle = fixture();
+        let observations = bundle["observations"]
+            .as_array()
+            .expect("observations must be an array");
+        let mut annual_report_rows = 0usize;
+        for observation in observations {
+            let source_id = observation["source_id"].as_str().unwrap_or_default();
+            if source_id == "jhb-water-annual-report-2023-24"
+                || source_id == "jhb-water-annual-report-2024-25"
+            {
+                annual_report_rows += 1;
+                assert_eq!(
+                    observation["interpretation_state"].as_str(),
+                    Some("provisional_needs_primary_document_check"),
+                    "annual report row must not be promoted before page-level review: {}",
+                    observation["observation_id"]
+                );
+            }
+        }
+        assert_eq!(annual_report_rows, 46);
+    }
+
+    #[test]
+    fn business_plan_totals_remain_provisional_and_do_not_masquerade_as_verified_savings() {
+        let bundle = fixture();
+        let rows = bundle["observations"]
+            .as_array()
+            .expect("observations must be an array");
+        let mut plan_rows = 0usize;
+        for row in rows {
+            if row["source_id"].as_str() == Some("jhb-water-business-plan-2025-26") {
+                plan_rows += 1;
+                assert_eq!(
+                    row["interpretation_state"].as_str(),
+                    Some("provisional_needs_primary_document_check"),
+                    "business plan row must remain provisional: {}",
+                    row["observation_id"]
+                );
+            }
+        }
+        assert_eq!(plan_rows, 13);
+        let saving = rows
+            .iter()
+            .find(|row| row["observation_id"] == "jw.ld.fy2023-24.estimated-demand-reduction")
+            .expect("reported active leak-detection saving row");
+        assert_eq!(
+            saving["observation_kind"].as_str(),
+            Some("reported_reference")
+        );
+        assert!(
+            saving["notes"]
+                .as_array()
+                .expect("notes are array")
+                .iter()
+                .any(|note| {
+                    note.as_str()
+                        .unwrap_or_default()
+                        .contains("not independent measurement")
+                })
+        );
+    }
+
+    #[test]
+    fn preserves_conflicting_response_kpi_values_by_source_instead_of_silently_reconciling() {
+        let bundle = fixture();
+        let rows = bundle["observations"]
+            .as_array()
+            .expect("observations must be an array");
+        let direct_sewer = rows
+            .iter()
+            .find(|row| {
+                row["observation_id"] == "jw.annual23-24.direct-table26.sewer-blockage-response"
+            })
+            .expect("direct 2023/24 table value");
+        let comparator_sewer = rows
+            .iter()
+            .find(|row| row["observation_id"] == "jw.annual23-24.sewer-blockage-response")
+            .expect("2024/25 report's comparative value");
+        assert_eq!(direct_sewer["value"].as_f64(), Some(92.67));
+        assert_eq!(comparator_sewer["value"].as_f64(), Some(92.66));
+        assert_ne!(direct_sewer["source_id"], comparator_sewer["source_id"]);
+    }
+
+    #[test]
+    fn active_leak_detection_page_claims_remain_source_attributed_and_unverified() {
+        let bundle = fixture();
+        let rows = bundle["observations"]
+            .as_array()
+            .expect("observations must be an array");
+        let programme_rows: Vec<&Value> = rows
+            .iter()
+            .filter(|row| {
+                row["source_id"].as_str() == Some("jhb-water-active-leak-detection-programme")
+            })
+            .collect();
+        assert_eq!(programme_rows.len(), 8);
+        assert!(programme_rows.iter().all(|row| {
+            row["interpretation_state"].as_str() == Some("reported_not_independently_reproduced")
+        }));
+        let savings = programme_rows
+            .iter()
+            .find(|row| row["observation_id"] == "jw.active-leak-detection.estimated-water-savings")
+            .expect("programme savings claim");
+        assert_eq!(savings["value"].as_i64(), Some(8100));
+        let savings_notes = savings["notes"].as_array().expect("notes array");
+        assert!(savings_notes.iter().any(|note| {
+            note.as_str()
+                .unwrap_or_default()
+                .contains("independently measured")
+        }));
+    }
+
+    #[test]
+    fn rejects_a_comparison_referencing_an_unknown_observation() {
+        let mut bundle = fixture();
+        bundle["comparisons"][0]["left_observation_id"] = json!("missing-observation");
+        let report = validate_public_observation_bundle(&bundle);
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "COMPARISON_OBSERVATION_UNKNOWN")
+        );
+    }
+
+    #[test]
+    fn rejects_a_comparison_whose_arithmetic_does_not_match_its_source_observations() {
+        let mut bundle = fixture();
+        bundle["comparisons"][0]["arithmetic"]["difference"] = json!(0.0);
+        let report = validate_public_observation_bundle(&bundle);
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|issue| issue.code == "COMPARISON_ARITHMETIC_MISMATCH")
+        );
+    }
+}

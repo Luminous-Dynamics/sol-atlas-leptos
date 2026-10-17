@@ -1,0 +1,29 @@
+[TITLE]
+W0 synthetic two-junction pressurised water network
+; SYNTHETIC ONLY: not a municipal network; uncalibrated.
+
+[JUNCTIONS]
+;ID  Elevation  Demand
+J1   50         15
+J2   45         10
+
+[RESERVOIRS]
+;ID  Head
+R1   100
+
+[PIPES]
+;ID  Node1  Node2  Length  Diameter  Roughness  MinorLoss  Status
+P1   R1     J1     1000    200       100        0           OPEN
+P2   J1     J2     800     150       100        0           OPEN
+
+[OPTIONS]
+UNITS LPS
+HEADLOSS H-W
+
+[REPORT]
+STATUS YES
+SUMMARY YES
+NODES ALL
+LINKS ALL
+
+[END]

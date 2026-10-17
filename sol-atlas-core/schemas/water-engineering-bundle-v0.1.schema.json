@@ -1,0 +1,677 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/sol-atlas-core/schemas/water-engineering-bundle-v0.1.schema.json",
+  "title": "Water Engineering Run Bundle v0.1",
+  "description": "Portable evidence envelope for an engineering model, declared scenario, solver-run state, and validation claim ceiling. Schema validity does not qualify the model or solver.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "classification",
+    "model_package",
+    "scenario",
+    "run_result",
+    "validation",
+    "nonclaims"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "water-engineering-bundle/v0.1"
+    },
+    "bundle_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$"
+    },
+    "classification": {
+      "enum": [
+        "synthetic_public",
+        "public_reviewed",
+        "restricted"
+      ]
+    },
+    "model_package": {
+      "$ref": "#/$defs/modelPackage"
+    },
+    "scenario": {
+      "$ref": "#/$defs/scenario"
+    },
+    "run_result": {
+      "$ref": "#/$defs/runResult"
+    },
+    "validation": {
+      "$ref": "#/$defs/validation"
+    },
+    "nonclaims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "run_result": {
+            "properties": {
+              "state": {
+                "const": "NotRun"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          }
+        },
+        "required": [
+          "run_result"
+        ]
+      },
+      "then": {
+        "properties": {
+          "run_result": {
+            "properties": {
+              "execution": {
+                "properties": {
+                  "started_at": {
+                    "type": "null"
+                  },
+                  "finished_at": {
+                    "type": "null"
+                  }
+                }
+              },
+              "diagnostics": {
+                "properties": {
+                  "convergence_state": {
+                    "const": "NotRun"
+                  },
+                  "continuity_check_state": {
+                    "const": "NotRun"
+                  },
+                  "solver_exit_code": {
+                    "type": "null"
+                  }
+                }
+              },
+              "metrics": {
+                "maxItems": 0
+              },
+              "result_artifacts": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nullableSha256": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/sha256"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "artifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "role",
+        "path",
+        "sha256",
+        "byte_length",
+        "synthetic"
+      ],
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "byte_length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "synthetic": {
+          "type": "boolean"
+        }
+      }
+    },
+    "assetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "asset_type"
+      ],
+      "properties": {
+        "asset_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "asset_type": {
+          "enum": [
+            "reservoir",
+            "junction",
+            "pipe",
+            "pump",
+            "valve",
+            "tank",
+            "conduit",
+            "subcatchment",
+            "outfall",
+            "storage",
+            "other"
+          ]
+        }
+      }
+    },
+    "modelPackage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id",
+        "domain",
+        "input_snapshot",
+        "source_artifacts",
+        "unit_system",
+        "coordinate_reference_system",
+        "asset_index",
+        "solver_profile",
+        "calibration",
+        "assumptions"
+      ],
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "enum": [
+            "pressurized_water_distribution",
+            "stormwater",
+            "sanitary_sewer",
+            "combined_sewer"
+          ]
+        },
+        "input_snapshot": {
+          "$ref": "#/$defs/artifactRef"
+        },
+        "source_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/artifactRef"
+          }
+        },
+        "unit_system": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coordinate_reference_system": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "asset_index": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/assetRef"
+          }
+        },
+        "solver_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "engine",
+            "engine_version",
+            "engine_binary_sha256",
+            "execution_state",
+            "analysis_mode",
+            "headloss_model"
+          ],
+          "properties": {
+            "engine": {
+              "enum": [
+                "EPANET",
+                "EPA_SWMM",
+                "other"
+              ]
+            },
+            "engine_version": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "engine_binary_sha256": {
+              "$ref": "#/$defs/nullableSha256"
+            },
+            "execution_state": {
+              "enum": [
+                "NotSelected",
+                "NotRun",
+                "Pinned",
+                "Qualified"
+              ]
+            },
+            "analysis_mode": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "headloss_model": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "calibration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "evidence_artifact_ids",
+            "notes"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "SyntheticUncalibrated",
+                "NotAssessed",
+                "InCalibration",
+                "CalibratedForDeclaredScope",
+                "Rejected"
+              ]
+            },
+            "evidence_artifact_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "notes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "base_model_id",
+        "base_input_snapshot_sha256",
+        "scenario_type",
+        "changes",
+        "forcing_refs",
+        "rationale"
+      ],
+      "properties": {
+        "scenario_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "base_model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "base_input_snapshot_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "scenario_type": {
+          "enum": [
+            "baseline",
+            "intervention",
+            "fault_injection",
+            "sensitivity"
+          ]
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "asset_id",
+              "parameter",
+              "baseline_value",
+              "candidate_value",
+              "unit",
+              "rationale"
+            ],
+            "properties": {
+              "asset_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "parameter": {
+                "type": "string",
+                "minLength": 1
+              },
+              "baseline_value": {
+                "type": [
+                  "number",
+                  "string",
+                  "boolean",
+                  "null"
+                ]
+              },
+              "candidate_value": {
+                "type": [
+                  "number",
+                  "string",
+                  "boolean",
+                  "null"
+                ]
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "forcing_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric_id",
+        "value",
+        "unit",
+        "scope",
+        "interval",
+        "derivation"
+      ],
+      "properties": {
+        "metric_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "interval": {
+          "type": "string",
+          "minLength": 1
+        },
+        "derivation": {
+          "enum": [
+            "solver_output",
+            "postprocessed",
+            "observed_comparison",
+            "human_annotation"
+          ]
+        },
+        "uncertainty": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ]
+        },
+        "quality_state": {
+          "enum": [
+            "qualified_for_profile",
+            "provisional",
+            "withheld",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "runResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "state",
+        "solver",
+        "execution",
+        "diagnostics",
+        "metrics",
+        "result_artifacts",
+        "notes"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state": {
+          "enum": [
+            "NotRun",
+            "Completed",
+            "Failed",
+            "NonConverged",
+            "Blocked"
+          ]
+        },
+        "solver": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "engine",
+            "version",
+            "binary_sha256",
+            "settings_sha256"
+          ],
+          "properties": {
+            "engine": {
+              "enum": [
+                "EPANET",
+                "EPA_SWMM",
+                "other"
+              ]
+            },
+            "version": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "binary_sha256": {
+              "$ref": "#/$defs/nullableSha256"
+            },
+            "settings_sha256": {
+              "$ref": "#/$defs/nullableSha256"
+            }
+          }
+        },
+        "execution": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "started_at",
+            "finished_at",
+            "environment_ref"
+          ],
+          "properties": {
+            "started_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "finished_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "environment_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "diagnostics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "convergence_state",
+            "continuity_check_state",
+            "solver_exit_code",
+            "warnings"
+          ],
+          "properties": {
+            "convergence_state": {
+              "enum": [
+                "NotRun",
+                "Converged",
+                "NonConverged",
+                "Unknown"
+              ]
+            },
+            "continuity_check_state": {
+              "enum": [
+                "NotRun",
+                "WithinDeclaredTolerance",
+                "OutsideDeclaredTolerance",
+                "NotApplicable",
+                "Unknown"
+              ]
+            },
+            "solver_exit_code": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "warnings": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/metric"
+          }
+        },
+        "result_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/artifactRef"
+          }
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "empirical_state",
+        "independent_review_state",
+        "accepted_for_engineering_use",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "empirical_state": {
+          "enum": [
+            "NotAssessed",
+            "SyntheticOnly",
+            "InProgress",
+            "ValidatedForDeclaredScope",
+            "Rejected"
+          ]
+        },
+        "independent_review_state": {
+          "enum": [
+            "NotReviewed",
+            "InReview",
+            "ReviewedWithFindings",
+            "AcceptedForDeclaredScope",
+            "Rejected"
+          ]
+        },
+        "accepted_for_engineering_use": {
+          "type": "boolean"
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "schema_version": "water-scenario-corpus-plan/v0.1",
+  "classification": "synthetic_public",
+  "plan_id": "net3-withdrawal-response-pilot",
+  "unit_system": "GPM",
+  "base_input": {
+    "path": ".epanet-source/example-networks/Net3.inp",
+    "sha256": "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53",
+    "byte_length": 30063
+  },
+  "observation_node_ids": [
+    "101",
+    "103",
+    "105",
+    "109"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "net3-no-fault",
+      "ground_truth_class": "no_fault",
+      "target_junction_id": null,
+      "additional_demand": 0
+    },
+    {
+      "scenario_id": "net3-withdrawal-101-small",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "101",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-withdrawal-101-large",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "101",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-withdrawal-103-small",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "103",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-withdrawal-103-large",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "103",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-withdrawal-105-small",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "105",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-withdrawal-105-large",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "105",
+      "additional_demand": 25
+    },
+    {
+      "scenario_id": "net3-withdrawal-109-small",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "109",
+      "additional_demand": 10
+    },
+    {
+      "scenario_id": "net3-withdrawal-109-large",
+      "ground_truth_class": "synthetic_withdrawal",
+      "target_junction_id": "109",
+      "additional_demand": 25
+    }
+  ],
+  "assumptions": [
+    "The unmodified Net3 INP is retrieved from OpenWaterAnalytics/EPANET at pinned source commit 4d8d82ddc260fce216af9321fc3d9a4646ac6827; SHA-256 and byte length bind the original source bytes.",
+    "Net3 declares GPM; additional_demand values are in the source model's native gallons-per-minute units, not litres per second.",
+    "The runner deterministically adds 10 or 25 GPM to one named junction demand. These are synthetic withdrawal perturbations, not a calibrated leak-or-break model.",
+    "The runner normalizes only generated inputs to request REPORT NODES ALL and LINKS ALL; the source Net3 file remains unmodified and source identity remains bound to its original hash.",
+    "The four observation junctions are predeclared, and every target is also observed so the pilot can inspect pressure response at the perturbed junction and nearby observation candidates.",
+    "The source network has time patterns, dual reservoirs, and more junctions than W0; this is a second topology plumbing pilot, not full uncertainty calibration or sensor-placement evaluation."
+  ],
+  "nonclaims": [
+    "This fixture is an upstream EPANET example network, not a real utility system or active incident.",
+    "No leak physics, calibrated sensor noise, model-form uncertainty, top-k localization score, or strategy ranking is produced by this plan alone.",
+    "Nine scenarios on one Net3 topology do not satisfy the preregistered 1000-scenario/three-topology efficacy benchmark.",
+    "No municipal model calibration, pressure-dependent demand analysis, water-saving estimate, fieldwork authorization, or engineering approval is implied.",
+    "No operational actuation or SCADA write path is part of this pilot."
+  ]
+}

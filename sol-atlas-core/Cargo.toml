@@ -10,5 +10,42 @@ description = "Shared types, geo math, and constants for Sol Atlas renderers"
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+sha2 = "0.10"
 log = "0.4"
 h3o = "0.10"
+
+[[bin]]
+name = "water-bundle-validate"
+path = "src/bin/water_bundle_validate.rs"
+
+[[bin]]
+name = "water-observation-validate"
+path = "src/bin/water_observation_validate.rs"
+
+[[bin]]
+name = "water-decision-validate"
+path = "src/bin/water_decision_validate.rs"
+
+[[bin]]
+name = "water-measurement-evaluate"
+path = "src/bin/water_measurement_evaluate.rs"
+
+[[bin]]
+name = "water-measurement-robust-evaluate"
+path = "src/bin/water_measurement_robust_evaluate.rs"
+
+[[bin]]
+name = "water-scenario-corpus-run"
+path = "src/bin/water_scenario_corpus_run.rs"
+
+[[bin]]
+name = "water-localization-benchmark-evaluate"
+path = "src/bin/water_localization_benchmark_evaluate.rs"
+
+[[bin]]
+name = "water-sensor-placement-evaluate"
+path = "src/bin/water_sensor_placement_evaluate.rs"
+
+[[bin]]
+name = "water-sensor-placement-compare"
+path = "src/bin/water_sensor_placement_compare.rs"

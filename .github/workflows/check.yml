@@ -65,3 +65,960 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      - name: Test shared Rust core (including water bundle semantic checks)
+        run: cargo test -p sol-atlas-core
+      - name: Validate synthetic intervention decision packet semantics
+        run: cargo run -p sol-atlas-core --bin water-decision-validate -- sol-atlas-core/fixtures/water-engineering/w0-intervention-decision.synthetic.json
+      - name: Calculate and independently check illustrative measurement information value
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="sol-atlas-core/fixtures/water-engineering/w0-measurement-model.toy.synthetic.json"
+          expected_sha="$(sha256sum "$fixture" | awk '{print $1}')"
+          output_file="$(mktemp)"
+          trap 'rm -f "$output_file"' EXIT
+          cargo run -p sol-atlas-core --bin water-measurement-evaluate -- "$fixture" > "$output_file"
+          jq -e --arg expected_sha "$expected_sha" '
+            . as $root |
+            ($root.evaluation.actions[] | select(.action_id == "perfect_sensor")) as $perfect |
+            ($root.evaluation.actions[] | select(.action_id == "uninformative_sensor")) as $uninformative |
+            ($root.schema_version == "water-measurement-run-envelope/v0.1") and
+            ($root.source_input_sha256 == $expected_sha) and
+            ($root.evaluation.claim_ceiling == "illustrative_calculation_only") and
+            ($root.evaluation.selection_state == "positive_net_value_candidate") and
+            ($root.evaluation.selected_measurement_action == "perfect_sensor") and
+            (((($perfect.expected_information_gain_bits - 1.0) | abs) < 1e-9)) and
+            (((($perfect.expected_value_of_sample_information - 2.0) | abs) < 1e-9)) and
+            (((($perfect.net_value_in_loss_units - 1.0) | abs) < 1e-9)) and
+            (((($uninformative.expected_information_gain_bits) | abs) < 1e-9)) and
+            (((($uninformative.expected_value_of_sample_information) | abs) < 1e-9)) and
+            (((($uninformative.net_value_in_loss_units) | abs) < 1e-9))
+          ' "$output_file"
+      - name: Calculate robust measurement value across model uncertainty
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="sol-atlas-core/fixtures/water-engineering/w0-measurement-ensemble.toy.synthetic.json"
+          expected_sha="$(sha256sum "$fixture" | awk '{print $1}')"
+          output_file="$(mktemp)"
+          trap 'rm -f "$output_file"' EXIT
+          cargo run -p sol-atlas-core --bin water-measurement-robust-evaluate -- "$fixture" > "$output_file"
+          jq -e --arg expected_sha "$expected_sha" '
+            . as $root |
+            ($root.evaluation.actions[] | select(.action_id == "perfect_sensor")) as $perfect |
+            ($root.evaluation.actions[] | select(.action_id == "uninformative_sensor")) as $uninformative |
+            ($root.schema_version == "water-measurement-robust-run-envelope/v0.1") and
+            ($root.source_input_sha256 == $expected_sha) and
+            ($root.evaluation.claim_ceiling == "illustrative_ensemble_sensitivity_only") and
+            ($root.evaluation.model_count == 2) and
+            ($root.evaluation.selection_state == "no_positive_worst_case_net_value_candidate") and
+            ($root.evaluation.selected_measurement_action == null) and
+            (((($perfect.minimum_expected_information_gain_bits) | abs) < 1e-9)) and
+            (((($perfect.maximum_expected_information_gain_bits - 1.0) | abs) < 1e-9)) and
+            (((($perfect.minimum_expected_value_of_sample_information) | abs) < 1e-9)) and
+            (((($perfect.maximum_expected_value_of_sample_information - 2.0) | abs) < 1e-9)) and
+            (((($perfect.minimum_net_value_in_loss_units + 1.0) | abs) < 1e-9)) and
+            (((($perfect.maximum_net_value_in_loss_units - 1.0) | abs) < 1e-9)) and
+            (((($uninformative.minimum_expected_value_of_sample_information) | abs) < 1e-9)) and
+            (((($uninformative.maximum_expected_value_of_sample_information) | abs) < 1e-9))
+          ' "$output_file"
+
+  validate-water-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python for JSON Schema checks
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned JSON Schema validator
+        run: python -m pip install --disable-pip-version-check --no-input jsonschema==4.26.0
+      - name: Validate engineering, observation, decision, experiment and measurement-model schemas against fixtures
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          pairs = [
+              (
+                  Path("sol-atlas-core/schemas/water-engineering-bundle-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/w0-p2-diameter-restriction.synthetic.json"),
+              ),
+              (
+                  Path("sol-atlas-core/schemas/water-public-observation-bundle-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json"),
+              ),
+              (
+                  Path("sol-atlas-core/schemas/water-intervention-decision-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/w0-intervention-decision.synthetic.json"),
+              ),
+              (
+                  Path("sol-atlas-core/schemas/water-measurement-experiment-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/w0-measurement-experiment.synthetic.json"),
+              ),
+              (
+                  Path("sol-atlas-core/schemas/water-measurement-model-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/w0-measurement-model.toy.synthetic.json"),
+              ),
+              (
+                  Path("sol-atlas-core/schemas/water-measurement-ensemble-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/w0-measurement-ensemble.toy.synthetic.json"),
+              ),
+              (
+                  Path("sol-atlas-core/schemas/water-scenario-corpus-plan-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/w0-scenario-corpus-plan.synthetic.json"),
+              ),
+              (
+                  Path("sol-atlas-core/schemas/water-scenario-corpus-plan-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/net3-scenario-corpus-plan.synthetic.json"),
+              ),
+              (
+                  Path("sol-atlas-core/schemas/water-scenario-corpus-plan-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/net3-all-junction-localization-plan.synthetic.json"),
+              ),
+          ]
+
+          format_checker = FormatChecker()
+          for schema_path, fixture_path in pairs:
+              schema = json.loads(schema_path.read_text(encoding="utf-8"))
+              instance = json.loads(fixture_path.read_text(encoding="utf-8"))
+              Draft202012Validator.check_schema(schema)
+              validator = Draft202012Validator(schema, format_checker=format_checker)
+              errors = sorted(
+                  validator.iter_errors(instance),
+                  key=lambda error: (list(map(str, error.absolute_path)), error.message),
+              )
+              if errors:
+                  for error in errors:
+                      pointer = "/" + "/".join(map(str, error.absolute_path))
+                      print(f"{fixture_path}: {pointer}: {error.message}")
+                  raise SystemExit(1)
+              print(f"SCHEMA_FIXTURE_PASS: {schema_path} -> {fixture_path}")
+
+          generated_output_schema = Path("sol-atlas-core/schemas/water-scenario-corpus-run-v0.1.schema.json")
+          generated_schema = json.loads(generated_output_schema.read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(generated_schema)
+          print(f"SCHEMA_DEFINITION_PASS: {generated_output_schema}")
+
+          localization_schema_path = Path("sol-atlas-core/schemas/water-localization-evaluation-v0.1.schema.json")
+          localization_schema = json.loads(localization_schema_path.read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(localization_schema)
+          print(f"SCHEMA_DEFINITION_PASS: {localization_schema_path}")
+
+          sensor_placement_schema_path = Path("sol-atlas-core/schemas/water-sensor-placement-evaluation-v0.1.schema.json")
+          sensor_placement_schema = json.loads(sensor_placement_schema_path.read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(sensor_placement_schema)
+          print(f"SCHEMA_DEFINITION_PASS: {sensor_placement_schema_path}")
+          sensor_placement_comparison_schema_path = Path("sol-atlas-core/schemas/water-sensor-placement-comparison-v0.1.schema.json")
+          sensor_placement_comparison_schema = json.loads(sensor_placement_comparison_schema_path.read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(sensor_placement_comparison_schema)
+          print(f"SCHEMA_DEFINITION_PASS: {sensor_placement_comparison_schema_path}")
+          PY
+
+  epanet-synthetic-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust for deterministic scenario corpus execution
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Rust dependencies for scenario corpus runner
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-epanet-corpus-${{ hashFiles('**/Cargo.lock') }}
+      - name: Validate synthetic EPANET runner shell syntax
+        run: bash -n scripts/ci/epanet-synthetic-smoke.sh
+      - name: Checkout pinned OpenWaterAnalytics EPANET source
+        uses: actions/checkout@v4
+        with:
+          repository: OpenWaterAnalytics/EPANET
+          ref: 4d8d82ddc260fce216af9321fc3d9a4646ac6827
+          path: .epanet-source
+      - name: Build pinned EPANET 2.2 CLI
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/epanet-w0
+          cmake -S .epanet-source -B .epanet-build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
+          cmake --build .epanet-build --config Release --parallel 2
+          test -x .epanet-build/bin/runepanet
+      - name: Generate and execute deterministic synthetic scenario corpus
+        id: scenario_corpus
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo run -p sol-atlas-core --bin water-scenario-corpus-run -- \
+            sol-atlas-core/fixtures/water-engineering/w0_network.inp \
+            sol-atlas-core/fixtures/water-engineering/w0-scenario-corpus-plan.synthetic.json \
+            .epanet-build/bin/runepanet \
+            artifacts/water-scenario-corpus \
+            4d8d82ddc260fce216af9321fc3d9a4646ac6827
+      - name: Validate generated scenario corpus manifest
+        id: scenario_manifest
+        if: steps.scenario_corpus.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="sol-atlas-core/fixtures/water-engineering/w0-scenario-corpus-plan.synthetic.json"
+          output="artifacts/water-scenario-corpus/scenario-corpus-run.v0.1.json"
+          digest_file="artifacts/water-scenario-corpus/scenario-corpus-run.v0.1.sha256"
+          expected_plan_sha="$(sha256sum "$fixture" | awk '{print $1}')"
+          expected_manifest_sha="$(sha256sum "$output" | awk '{print $1}')"
+          test "$(awk '{print $1}' "$digest_file")" = "$expected_manifest_sha"
+          jq -e --arg plan_sha "$expected_plan_sha" '
+            (.schema_version == "water-scenario-corpus-run/v0.1") and
+            (.plan_sha256 == $plan_sha) and
+            (.base_input_sha256 == "0524e9f92940fae0ded3f9fb2e3f7471865f453df7a06e54a6de15c3cc0ba559") and
+            (.unit_system == "LPS") and
+            (.flow_unit == "L/s") and
+            (.pressure_unit == "m") and
+            (.report_policy == "NODES ALL; LINKS ALL") and
+            (.solver.source_commit == "4d8d82ddc260fce216af9321fc3d9a4646ac6827") and
+            (.claim_ceiling == "synthetic_single_topology_hydraulic_pilot") and
+            (.scenario_count == 5) and
+            (.completed_count == 5) and
+            (.failed_count == 0) and
+            (.run_state == "Completed") and
+            ([.scenarios[].scenario_id] == [
+              "w0-no-fault",
+              "w0-withdrawal-j1-small",
+              "w0-withdrawal-j1-large",
+              "w0-withdrawal-j2-small",
+              "w0-withdrawal-j2-large"
+            ]) and
+            all(.scenarios[];
+              .run_state == "Completed" and
+              (.generated_input.sha256 | test("^[a-f0-9]{64}$")) and
+              (.report.sha256 | test("^[a-f0-9]{64}$")) and
+              (.binary_output.sha256 | test("^[a-f0-9]{64}$")) and
+              (.pressure_readings | length == 2) and
+              all(.pressure_readings[]; .state == "measured" and (.pressure_value | type == "number") and .reason == null)
+            )
+          ' "$output"
+      - name: Upload scenario corpus inputs, results and failure manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: water-scenario-corpus-pilot
+          path: artifacts/water-scenario-corpus/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Generate and execute pinned Net3 synthetic scenario corpus
+        id: net3_corpus
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo run -p sol-atlas-core --bin water-scenario-corpus-run -- \
+            .epanet-source/example-networks/Net3.inp \
+            sol-atlas-core/fixtures/water-engineering/net3-scenario-corpus-plan.synthetic.json \
+            .epanet-build/bin/runepanet \
+            artifacts/net3-scenario-corpus \
+            4d8d82ddc260fce216af9321fc3d9a4646ac6827
+      - name: Validate generated Net3 corpus manifest
+        id: net3_manifest
+        if: steps.net3_corpus.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="sol-atlas-core/fixtures/water-engineering/net3-scenario-corpus-plan.synthetic.json"
+          output="artifacts/net3-scenario-corpus/scenario-corpus-run.v0.1.json"
+          digest_file="artifacts/net3-scenario-corpus/scenario-corpus-run.v0.1.sha256"
+          expected_plan_sha="$(sha256sum "$fixture" | awk '{print $1}')"
+          expected_manifest_sha="$(sha256sum "$output" | awk '{print $1}')"
+          test "$(awk '{print $1}' "$digest_file")" = "$expected_manifest_sha"
+          jq -e --arg plan_sha "$expected_plan_sha" '
+            (.schema_version == "water-scenario-corpus-run/v0.1") and
+            (.plan_sha256 == $plan_sha) and
+            (.base_input_sha256 == "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53") and
+            (.unit_system == "GPM") and
+            (.flow_unit == "GPM") and
+            (.pressure_unit == "psi") and
+            (.report_policy == "NODES ALL; LINKS ALL") and
+            (.solver.source_commit == "4d8d82ddc260fce216af9321fc3d9a4646ac6827") and
+            (.claim_ceiling == "synthetic_single_topology_hydraulic_pilot") and
+            (.scenario_count == 9) and
+            (.completed_count == 9) and
+            (.failed_count == 0) and
+            (.run_state == "Completed") and
+            ([.scenarios[].scenario_id] == [
+              "net3-no-fault",
+              "net3-withdrawal-101-small",
+              "net3-withdrawal-101-large",
+              "net3-withdrawal-103-small",
+              "net3-withdrawal-103-large",
+              "net3-withdrawal-105-small",
+              "net3-withdrawal-105-large",
+              "net3-withdrawal-109-small",
+              "net3-withdrawal-109-large"
+            ]) and
+            all(.scenarios[];
+              .run_state == "Completed" and
+              (.generated_input.sha256 | test("^[a-f0-9]{64}$")) and
+              (.report.sha256 | test("^[a-f0-9]{64}$")) and
+              (.binary_output.sha256 | test("^[a-f0-9]{64}$")) and
+              (.pressure_readings | length == 4) and
+              all(.pressure_readings[];
+                .state == "measured" and
+                (.pressure_value | type == "number") and
+                .reason == null
+              )
+            )
+          ' "$output"
+      - name: Upload Net3 scenario corpus inputs, results and failure manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: net3-scenario-corpus-pilot
+          path: artifacts/net3-scenario-corpus/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Evaluate W0 localization with held-out demand magnitude
+        id: w0_localization
+        if: steps.scenario_manifest.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="artifacts/water-scenario-corpus/scenario-corpus-run.v0.1.json"
+          output="artifacts/water-scenario-corpus/water-localization-evaluation.v0.1.json"
+          cargo run -p sol-atlas-core --bin water-localization-benchmark-evaluate -- "$manifest" sol-atlas-core/fixtures/water-engineering/w0_network.inp > "$output"
+      - name: Validate W0 localization evaluation contract
+        id: w0_localization_validate
+        if: steps.w0_localization.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="artifacts/water-scenario-corpus/scenario-corpus-run.v0.1.json"
+          output="artifacts/water-scenario-corpus/water-localization-evaluation.v0.1.json"
+          expected_manifest_sha="$(sha256sum "$manifest" | awk '{print $1}')"
+          plan_fixture="sol-atlas-core/fixtures/water-engineering/net3-all-junction-localization-plan.synthetic.json"
+          expected_plan_sha="$(sha256sum "$plan_fixture" | awk '{print $1}')"
+          jq -e --arg source_sha "$expected_manifest_sha" --arg plan_sha "$expected_plan_sha" '
+            (.schema_version == "water-localization-evaluation-envelope/v0.1") and
+            (.source_manifest_sha256 == $source_sha) and
+            (.evaluation.schema_version == "water-localization-evaluation/v0.1") and
+            (.evaluation.run_state == "Completed") and
+            (.evaluation.unit_system == "LPS") and
+            (.evaluation.flow_unit == "L/s") and
+            (.evaluation.pressure_unit == "m") and
+            (.source_topology_sha256 == "0524e9f92940fae0ded3f9fb2e3f7471865f453df7a06e54a6de15c3cc0ba559") and
+            (.evaluation.distance_semantics == "unweighted_undirected_link_hops") and
+            (.evaluation.topology_node_count >= 3) and
+            (.evaluation.topology_link_count >= 1) and
+            (.evaluation.claim_ceiling == "synthetic_withdrawal_localization_baseline_only") and
+            (.evaluation.negative_control_count == 1) and
+            (.evaluation.fault_scenario_count == 4) and
+            (.evaluation.candidate_target_count == 2) and
+            (.evaluation.top_k == 2) and
+            (.evaluation.held_out_magnitudes == [2,5]) and
+            ([.evaluation.models[].model_id] | sort == ["cosine-nearest-example","euclidean-nearest-example"]) and
+            all(.evaluation.models[];
+              .test_count == 4 and
+              (.predictions | length == 4) and
+              (.folds | length == 2) and
+              (.top1_accuracy >= 0 and .top1_accuracy <= 1) and
+              (.top_k_accuracy >= 0 and .top_k_accuracy <= 1) and
+              (.mean_reciprocal_rank >= 0 and .mean_reciprocal_rank <= 1) and
+              has("mean_topological_error_hops") and has("p95_topological_error_hops") and has("worst_topological_error_hops") and has("disconnected_prediction_count") and
+              ((.mean_topological_error_hops == null) or (.mean_topological_error_hops >= 0)) and
+              ((.p95_topological_error_hops == null) or (.p95_topological_error_hops >= 0)) and
+              ((.worst_topological_error_hops == null) or (.worst_topological_error_hops >= 0)) and
+              (.disconnected_prediction_count == ([.predictions[] | select(.topological_error_hops == null)] | length)) and
+              all(.predictions[]; has("topological_error_hops")) and
+              all(.folds[]; .test_count == 2 and (.top1_accuracy >= 0 and .top1_accuracy <= 1)) and
+              all(.predictions[]; .actual_rank >= 1 and (.ranked_candidates | length == 2))
+            )
+          ' "$output"
+      - name: Evaluate Net3 localization with held-out demand magnitude
+        id: net3_localization
+        if: steps.net3_manifest.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="artifacts/net3-scenario-corpus/scenario-corpus-run.v0.1.json"
+          output="artifacts/net3-scenario-corpus/water-localization-evaluation.v0.1.json"
+          cargo run -p sol-atlas-core --bin water-localization-benchmark-evaluate -- "$manifest" .epanet-source/example-networks/Net3.inp > "$output"
+      - name: Validate Net3 localization evaluation contract
+        id: net3_localization_validate
+        if: steps.net3_localization.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="artifacts/net3-scenario-corpus/scenario-corpus-run.v0.1.json"
+          output="artifacts/net3-scenario-corpus/water-localization-evaluation.v0.1.json"
+          expected_manifest_sha="$(sha256sum "$manifest" | awk '{print $1}')"
+          jq -e --arg source_sha "$expected_manifest_sha" '
+            (.schema_version == "water-localization-evaluation-envelope/v0.1") and
+            (.source_manifest_sha256 == $source_sha) and
+            (.evaluation.schema_version == "water-localization-evaluation/v0.1") and
+            (.evaluation.run_state == "Completed") and
+            (.evaluation.unit_system == "GPM") and
+            (.evaluation.flow_unit == "GPM") and
+            (.evaluation.pressure_unit == "psi") and
+            (.source_topology_sha256 == "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53") and
+            (.evaluation.distance_semantics == "unweighted_undirected_link_hops") and
+            (.evaluation.topology_node_count >= 1) and
+            (.evaluation.topology_link_count >= 1) and
+            (.evaluation.claim_ceiling == "synthetic_withdrawal_localization_baseline_only") and
+            (.evaluation.negative_control_count == 1) and
+            (.evaluation.fault_scenario_count == 8) and
+            (.evaluation.candidate_target_count == 4) and
+            (.evaluation.top_k == 3) and
+            (.evaluation.held_out_magnitudes == [10,25]) and
+            ([.evaluation.models[].model_id] | sort == ["cosine-nearest-example","euclidean-nearest-example"]) and
+            all(.evaluation.models[];
+              .test_count == 8 and
+              (.predictions | length == 8) and
+              (.folds | length == 2) and
+              (.top1_accuracy >= 0 and .top1_accuracy <= 1) and
+              (.top_k_accuracy >= 0 and .top_k_accuracy <= 1) and
+              (.mean_reciprocal_rank >= 0 and .mean_reciprocal_rank <= 1) and
+              has("mean_topological_error_hops") and has("p95_topological_error_hops") and has("worst_topological_error_hops") and has("disconnected_prediction_count") and
+              ((.mean_topological_error_hops == null) or (.mean_topological_error_hops >= 0)) and
+              ((.p95_topological_error_hops == null) or (.p95_topological_error_hops >= 0)) and
+              ((.worst_topological_error_hops == null) or (.worst_topological_error_hops >= 0)) and
+              (.disconnected_prediction_count == ([.predictions[] | select(.topological_error_hops == null)] | length)) and
+              all(.predictions[]; has("topological_error_hops")) and
+              all(.folds[]; .test_count == 4 and (.top1_accuracy >= 0 and .top1_accuracy <= 1)) and
+              all(.predictions[]; .actual_rank >= 1 and (.ranked_candidates | length == 4))
+            )
+          ' "$output"
+      - name: Execute exhaustive Net3 junction-target corpus
+        id: net3_exhaustive_corpus
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo run -p sol-atlas-core --bin water-scenario-corpus-run -- \
+            .epanet-source/example-networks/Net3.inp \
+            sol-atlas-core/fixtures/water-engineering/net3-all-junction-localization-plan.synthetic.json \
+            .epanet-build/bin/runepanet \
+            artifacts/net3-exhaustive-scenario-corpus \
+            4d8d82ddc260fce216af9321fc3d9a4646ac6827
+      - name: Validate exhaustive Net3 run manifest
+        id: net3_exhaustive_manifest
+        if: steps.net3_exhaustive_corpus.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="sol-atlas-core/fixtures/water-engineering/net3-all-junction-localization-plan.synthetic.json"
+          output="artifacts/net3-exhaustive-scenario-corpus/scenario-corpus-run.v0.1.json"
+          digest_file="artifacts/net3-exhaustive-scenario-corpus/scenario-corpus-run.v0.1.sha256"
+          expected_plan_sha="$(sha256sum "$fixture" | awk '{print $1}')"
+          expected_manifest_sha="$(sha256sum "$output" | awk '{print $1}')"
+          test "$(awk '{print $1}' "$digest_file")" = "$expected_manifest_sha"
+          jq -e --arg plan_sha "$expected_plan_sha" '
+            (.schema_version == "water-scenario-corpus-run/v0.1") and
+            (.plan_sha256 == $plan_sha) and
+            (.base_input_sha256 == "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53") and
+            (.unit_system == "GPM") and
+            (.flow_unit == "GPM") and
+            (.pressure_unit == "psi") and
+            (.solver.source_commit == "4d8d82ddc260fce216af9321fc3d9a4646ac6827") and
+            (.scenario_count == 185) and
+            (.completed_count == 185) and
+            (.failed_count == 0) and
+            (.run_state == "Completed") and
+            ([.scenarios[] | select(.ground_truth_class == "no_fault")] | length == 1) and
+            ([.scenarios[] | select(.ground_truth_class == "synthetic_withdrawal")] | length == 184) and
+            ([.scenarios[] | select(.target_junction_id != null) | .target_junction_id] | unique | length == 92) and
+            ([.scenarios[].scenario_id] | unique | length == 185) and
+            all(.scenarios[];
+              .run_state == "Completed" and
+              (.generated_input.sha256 | test("^[a-f0-9]{64}$")) and
+              (.report.sha256 | test("^[a-f0-9]{64}$")) and
+              (.binary_output.sha256 | test("^[a-f0-9]{64}$")) and
+              (.pressure_readings | length == 4) and
+              all(.pressure_readings[]; .state == "measured" and (.pressure_value | type == "number") and .reason == null)
+            )
+          ' "$output"
+      - name: Evaluate exhaustive Net3 candidate-localization score
+        id: net3_exhaustive_localization
+        if: steps.net3_exhaustive_manifest.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="artifacts/net3-exhaustive-scenario-corpus/scenario-corpus-run.v0.1.json"
+          output="artifacts/net3-exhaustive-scenario-corpus/water-localization-evaluation.v0.1.json"
+          cargo run -p sol-atlas-core --bin water-localization-benchmark-evaluate -- "$manifest" .epanet-source/example-networks/Net3.inp > "$output"
+      - name: Validate exhaustive Net3 candidate-localization score
+        id: net3_exhaustive_localization_validate
+        if: steps.net3_exhaustive_localization.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="artifacts/net3-exhaustive-scenario-corpus/scenario-corpus-run.v0.1.json"
+          output="artifacts/net3-exhaustive-scenario-corpus/water-localization-evaluation.v0.1.json"
+          expected_manifest_sha="$(sha256sum "$manifest" | awk '{print $1}')"
+          jq -e --arg source_sha "$expected_manifest_sha" '
+            (.schema_version == "water-localization-evaluation-envelope/v0.1") and
+            (.source_manifest_sha256 == $source_sha) and
+            (.source_topology_sha256 == "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53") and
+            (.evaluation.schema_version == "water-localization-evaluation/v0.1") and
+            (.evaluation.run_state == "Completed") and
+            (.evaluation.unit_system == "GPM") and
+            (.evaluation.flow_unit == "GPM") and
+            (.evaluation.pressure_unit == "psi") and
+            (.evaluation.distance_semantics == "unweighted_undirected_link_hops") and
+            (.evaluation.topology_node_count >= 1) and
+            (.evaluation.topology_link_count >= 1) and
+            (.evaluation.claim_ceiling == "synthetic_withdrawal_localization_baseline_only") and
+            (.evaluation.negative_control_count == 1) and
+            (.evaluation.fault_scenario_count == 184) and
+            (.evaluation.candidate_target_count == 92) and
+            (.evaluation.top_k == 3) and
+            (.evaluation.held_out_magnitudes == [10,25]) and
+            ([.evaluation.models[].model_id] | sort == ["cosine-nearest-example","euclidean-nearest-example"]) and
+            all(.evaluation.models[];
+              .test_count == 184 and
+              (.predictions | length == 184) and
+              (.folds | length == 2) and
+              (.top1_accuracy >= 0 and .top1_accuracy <= 1) and
+              (.top_k_accuracy >= 0 and .top_k_accuracy <= 1) and
+              (.mean_reciprocal_rank >= 0 and .mean_reciprocal_rank <= 1) and
+              has("mean_topological_error_hops") and has("p95_topological_error_hops") and has("worst_topological_error_hops") and has("disconnected_prediction_count") and
+              (.disconnected_prediction_count == ([.predictions[] | select(.topological_error_hops == null)] | length)) and
+              all(.folds[]; .test_count == 92 and (.top1_accuracy >= 0 and .top1_accuracy <= 1)) and
+              all(.predictions[]; .actual_rank >= 1 and (.ranked_candidates | length == 92) and has("topological_error_hops"))
+            )
+          ' "$output"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+          schema = json.loads(Path("sol-atlas-core/schemas/water-localization-evaluation-v0.1.schema.json").read_text())
+          result = json.loads(Path("artifacts/net3-exhaustive-scenario-corpus/water-localization-evaluation.v0.1.json").read_text())
+          errors = list(Draft202012Validator(schema).iter_errors(result))
+          if errors:
+              for error in errors:
+                  print(f"/{'/'.join(map(str, error.absolute_path))}: {error.message}")
+              raise SystemExit(1)
+          print("EXHAUSTIVE_LOCALIZATION_JSON_SCHEMA_PASS")
+          PY
+      - name: Evaluate matched sensor-placement strategies from verified all-node reports
+        id: net3_sensor_placement
+        if: steps.net3_exhaustive_manifest.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="artifacts/net3-exhaustive-scenario-corpus"
+          manifest="$root/scenario-corpus-run.v0.1.json"
+          output="$root/water-sensor-placement-evaluation.v0.1.json"
+          cargo run -p sol-atlas-core --bin water-sensor-placement-evaluate -- \
+            "$root" "$manifest" .epanet-source/example-networks/Net3.inp \
+            sol-atlas-core/fixtures/water-engineering/net3-all-junction-localization-plan.synthetic.json > "$output"
+      - name: Validate matched sensor-placement evaluation
+        id: net3_sensor_placement_validate
+        if: steps.net3_sensor_placement.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="artifacts/net3-exhaustive-scenario-corpus"
+          manifest="$root/scenario-corpus-run.v0.1.json"
+          output="$root/water-sensor-placement-evaluation.v0.1.json"
+          expected_manifest_sha="$(sha256sum "$manifest" | awk '{print $1}')"
+          plan_fixture="sol-atlas-core/fixtures/water-engineering/net3-all-junction-localization-plan.synthetic.json"
+          expected_plan_sha="$(sha256sum "$plan_fixture" | awk '{print $1}')"
+          jq -e --arg source_sha "$expected_manifest_sha" --arg plan_sha "$expected_plan_sha" '
+            (.schema_version == "water-sensor-placement-evaluation-envelope/v0.1") and
+            (.source_manifest_sha256 == $source_sha) and
+            (.source_plan_sha256 == $plan_sha) and
+            (.source_topology_sha256 == "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53") and
+            (.evaluation.plan_id == "net3-all-junction-localization") and
+            (.evaluation.schema_version == "water-sensor-placement-evaluation/v0.1") and
+            (.evaluation.run_state == "Completed") and
+            (.evaluation.unit_system == "GPM") and
+            (.evaluation.flow_unit == "GPM") and
+            (.evaluation.pressure_unit == "psi") and
+            (.evaluation.scenario_count == 185) and
+            (.evaluation.fault_scenario_count == 184) and
+            (.evaluation.candidate_target_count == 92) and
+            (.evaluation.sensor_budgets == [2,4,8]) and
+            (.evaluation.noise_sigma_fractions == [0,0.05,0.1]) and
+            (.evaluation.replicate_count == 5) and
+            (.evaluation.held_out_magnitudes == [10,25]) and
+            ([.evaluation.strategy_ids[]] | sort == ["fixed-predeclared","graph-coverage-greedy","response-separation-greedy","seeded-random"]) and
+            (.evaluation.results | length == 360) and
+            ([.evaluation.results[] | [.strategy_id, .sensor_budget, .noise_sigma_fraction, .replicate, .held_out_magnitude] | @json] | unique | length == 360) and
+            all(.evaluation.results[];
+              .test_count == 92 and
+              ((.selected_sensor_node_ids | length) == .sensor_budget) and
+              ((.selected_sensor_node_ids | unique | length) == .sensor_budget) and
+              (.top1_accuracy >= 0 and .top1_accuracy <= 1) and
+              (.top3_accuracy >= 0 and .top3_accuracy <= 1) and
+              (.mean_reciprocal_rank >= 0 and .mean_reciprocal_rank <= 1) and
+              has("mean_topological_error_hops") and
+              has("p95_topological_error_hops") and
+              has("worst_topological_error_hops") and
+              has("disconnected_prediction_count") and
+              (.predictions | length == 92) and
+              ([.predictions[].scenario_id] | unique | length == 92) and
+              all(.predictions[];
+                .actual_rank >= 1 and
+                .top1_hit == (.actual_rank == 1) and
+                .top3_hit == (.actual_rank <= 3) and
+                (.reciprocal_rank > 0 and .reciprocal_rank <= 1) and
+                has("topological_error_hops")
+              )
+            )
+          ' "$output"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+          schema = json.loads(Path("sol-atlas-core/schemas/water-sensor-placement-evaluation-v0.1.schema.json").read_text())
+          result = json.loads(Path("artifacts/net3-exhaustive-scenario-corpus/water-sensor-placement-evaluation.v0.1.json").read_text())
+          errors = list(Draft202012Validator(schema).iter_errors(result))
+          if errors:
+              for error in errors:
+                  print(f"/{'/'.join(map(str, error.absolute_path))}: {error.message}")
+              raise SystemExit(1)
+          print("SENSOR_PLACEMENT_JSON_SCHEMA_PASS")
+          PY
+      - name: Compute paired target-cluster bootstrap comparisons
+        id: net3_sensor_placement_compare
+        if: steps.net3_sensor_placement_validate.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="artifacts/net3-exhaustive-scenario-corpus"
+          evaluation="$root/water-sensor-placement-evaluation.v0.1.json"
+          output="$root/water-sensor-placement-comparison.v0.1.json"
+          cargo run -p sol-atlas-core --bin water-sensor-placement-compare -- "$evaluation" > "$output"
+      - name: Validate paired sensor-placement comparisons and confidence intervals
+        id: net3_sensor_placement_compare_validate
+        if: steps.net3_sensor_placement_compare.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="artifacts/net3-exhaustive-scenario-corpus"
+          evaluation="$root/water-sensor-placement-evaluation.v0.1.json"
+          output="$root/water-sensor-placement-comparison.v0.1.json"
+          expected_evaluation_sha="$(sha256sum "$evaluation" | awk '{print $1}')"
+          expected_plan_sha="$(sha256sum sol-atlas-core/fixtures/water-engineering/net3-all-junction-localization-plan.synthetic.json | awk '{print $1}')"
+          jq -e --arg evaluation_sha "$expected_evaluation_sha" --arg plan_sha "$expected_plan_sha" '
+            (.schema_version == "water-sensor-placement-comparison-envelope/v0.1") and
+            (.source_evaluation_sha256 == $evaluation_sha) and
+            (.source_plan_sha256 == $plan_sha) and
+            (.source_topology_sha256 == "d95b068194ba747605bea851d608333e577ac667658aaa1680cf1c07e43faf53") and
+            (.comparison.schema_version == "water-sensor-placement-comparison/v0.1") and
+            (.comparison.run_state == "Completed") and
+            (.comparison.plan_id == "net3-all-junction-localization") and
+            (.comparison.reference_strategy == "fixed-predeclared") and
+            (.comparison.bootstrap_method == "paired_target_cluster_percentile_bootstrap") and
+            (.comparison.bootstrap_replicates == 2000) and
+            (.comparison.sensor_budgets == [2,4,8]) and
+            (.comparison.noise_sigma_fractions == [0,0.05,0.1]) and
+            (.comparison.held_out_magnitudes == [10,25]) and
+            (.comparison.results | length == 270) and
+            ([.comparison.results[] | [.candidate_strategy, .sensor_budget, .noise_sigma_fraction, .replicate, .held_out_magnitude] | @json] | unique | length == 270) and
+            all(.comparison.results[];
+              .test_case_count == 92 and .target_cluster_count == 92 and
+              .reference_strategy == "fixed-predeclared" and
+              (.ci95_low_delta_top1 <= .mean_delta_top1 and .mean_delta_top1 <= .ci95_high_delta_top1) and
+              (.ci95_low_delta_top3 <= .mean_delta_top3 and .mean_delta_top3 <= .ci95_high_delta_top3) and
+              (.ci95_low_delta_mrr <= .mean_delta_mrr and .mean_delta_mrr <= .ci95_high_delta_mrr)
+            )
+          ' "$output"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+          schema = json.loads(Path("sol-atlas-core/schemas/water-sensor-placement-comparison-v0.1.schema.json").read_text())
+          result = json.loads(Path("artifacts/net3-exhaustive-scenario-corpus/water-sensor-placement-comparison.v0.1.json").read_text())
+          errors = list(Draft202012Validator(schema).iter_errors(result))
+          if errors:
+              for error in errors:
+                  print(f"/{'/'.join(map(str, error.absolute_path))}: {error.message}")
+              raise SystemExit(1)
+          print("SENSOR_PLACEMENT_COMPARISON_SCHEMA_PASS")
+          PY
+      - name: Upload exhaustive Net3 corpus and evaluation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: net3-exhaustive-localization-evidence
+          path: artifacts/net3-exhaustive-scenario-corpus/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload localization evaluation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: water-localization-evaluation-pilot
+          path: |
+            artifacts/water-scenario-corpus/water-localization-evaluation.v0.1.json
+            artifacts/net3-scenario-corpus/water-localization-evaluation.v0.1.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Run synthetic baseline and restricted-pipe scenario
+        shell: bash
+        run: bash scripts/ci/epanet-synthetic-smoke.sh
+      - name: Require both corpora and localization evaluations to validate
+        if: always()
+        env:
+          SCENARIO_CORPUS_OUTCOME: ${{ steps.scenario_corpus.outcome }}
+          SCENARIO_MANIFEST_OUTCOME: ${{ steps.scenario_manifest.outcome }}
+          NET3_CORPUS_OUTCOME: ${{ steps.net3_corpus.outcome }}
+          NET3_MANIFEST_OUTCOME: ${{ steps.net3_manifest.outcome }}
+          W0_LOCALIZATION_OUTCOME: ${{ steps.w0_localization.outcome }}
+          W0_LOCALIZATION_VALIDATION_OUTCOME: ${{ steps.w0_localization_validate.outcome }}
+          NET3_LOCALIZATION_OUTCOME: ${{ steps.net3_localization.outcome }}
+          NET3_LOCALIZATION_VALIDATION_OUTCOME: ${{ steps.net3_localization_validate.outcome }}
+          NET3_EXHAUSTIVE_CORPUS_OUTCOME: ${{ steps.net3_exhaustive_corpus.outcome }}
+          NET3_EXHAUSTIVE_MANIFEST_OUTCOME: ${{ steps.net3_exhaustive_manifest.outcome }}
+          NET3_EXHAUSTIVE_EVAL_OUTCOME: ${{ steps.net3_exhaustive_localization.outcome }}
+          NET3_EXHAUSTIVE_EVAL_VALIDATION_OUTCOME: ${{ steps.net3_exhaustive_localization_validate.outcome }}
+          NET3_SENSOR_PLACEMENT_OUTCOME: ${{ steps.net3_sensor_placement.outcome }}
+          NET3_SENSOR_PLACEMENT_VALIDATE_OUTCOME: ${{ steps.net3_sensor_placement_validate.outcome }}
+          NET3_SENSOR_PLACEMENT_COMPARE_OUTCOME: ${{ steps.net3_sensor_placement_compare.outcome }}
+          NET3_SENSOR_PLACEMENT_COMPARE_VALIDATE_OUTCOME: ${{ steps.net3_sensor_placement_compare_validate.outcome }}
+        run: |
+          if [[ "$SCENARIO_CORPUS_OUTCOME" != "success" || "$SCENARIO_MANIFEST_OUTCOME" != "success" || "$NET3_CORPUS_OUTCOME" != "success" || "$NET3_MANIFEST_OUTCOME" != "success" || "$W0_LOCALIZATION_OUTCOME" != "success" || "$W0_LOCALIZATION_VALIDATION_OUTCOME" != "success" || "$NET3_LOCALIZATION_OUTCOME" != "success" || "$NET3_LOCALIZATION_VALIDATION_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_CORPUS_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_MANIFEST_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_EVAL_OUTCOME" != "success" || "$NET3_EXHAUSTIVE_EVAL_VALIDATION_OUTCOME" != "success" || "$NET3_SENSOR_PLACEMENT_OUTCOME" != "success" || "$NET3_SENSOR_PLACEMENT_VALIDATE_OUTCOME" != "success" || "$NET3_SENSOR_PLACEMENT_COMPARE_OUTCOME" != "success" || "$NET3_SENSOR_PLACEMENT_COMPARE_VALIDATE_OUTCOME" != "success" ]]; then
+            echo "WATER_BENCHMARK_NOT_VALIDATED: w0_run=$SCENARIO_CORPUS_OUTCOME w0_manifest=$SCENARIO_MANIFEST_OUTCOME w0_eval=$W0_LOCALIZATION_OUTCOME w0_eval_validation=$W0_LOCALIZATION_VALIDATION_OUTCOME net3_run=$NET3_CORPUS_OUTCOME net3_manifest=$NET3_MANIFEST_OUTCOME net3_eval=$NET3_LOCALIZATION_OUTCOME net3_eval_validation=$NET3_LOCALIZATION_VALIDATION_OUTCOME net3_exhaustive_run=$NET3_EXHAUSTIVE_CORPUS_OUTCOME net3_exhaustive_manifest=$NET3_EXHAUSTIVE_MANIFEST_OUTCOME net3_exhaustive_eval=$NET3_EXHAUSTIVE_EVAL_OUTCOME net3_exhaustive_eval_validation=$NET3_EXHAUSTIVE_EVAL_VALIDATION_OUTCOME net3_sensor_placement=$NET3_SENSOR_PLACEMENT_OUTCOME net3_sensor_placement_validation=$NET3_SENSOR_PLACEMENT_VALIDATE_OUTCOME net3_sensor_placement_compare=$NET3_SENSOR_PLACEMENT_COMPARE_OUTCOME net3_sensor_placement_compare_validation=$NET3_SENSOR_PLACEMENT_COMPARE_VALIDATE_OUTCOME"
+            exit 1
+          fi
+      - name: Upload synthetic solver evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: epanet-w0-smoke
+          path: artifacts/epanet-w0/
+          if-no-files-found: warn
+          retention-days: 14
+
+          for field_name in \
+            baseline_source_flow candidate_source_flow \
+            baseline_pipe_flow candidate_pipe_flow \
+            baseline_pipe_velocity candidate_pipe_velocity \
+            baseline_pipe_headloss candidate_pipe_headloss \
+            baseline_downstream_pressure candidate_downstream_pressure \
+            total_junction_demand_lps downstream_demand_lps; do
+            field_value="${!field_name}"
+            if [[ ! "$field_value" =~ $number_re ]]; then
+              echo "REPORT_NUMERIC_FIELD_INVALID: field=$field_name value=[$field_value]"
+              exit 1
+            fi
+          done
+
+          printf '%s flow [L/s]: baseline=%s candidate=%s\n' "$asset_id" "$baseline_pipe_flow" "$candidate_pipe_flow"
+          printf '%s velocity [m/s]: baseline=%s candidate=%s\n' "$asset_id" "$baseline_pipe_velocity" "$candidate_pipe_velocity"
+          printf '%s headloss [m per 1000 m]: baseline=%s candidate=%s\n' "$asset_id" "$baseline_pipe_headloss" "$candidate_pipe_headloss"
+          printf '%s downstream pressure [m]: baseline=%s candidate=%s\n' "$downstream_node" "$baseline_downstream_pressure" "$candidate_downstream_pressure"
+
+          awk -v b="$baseline_pipe_flow" -v c="$candidate_pipe_flow" 'BEGIN { d = c - b; if (d < -0.02 || d > 0.02) exit 1 }' || {
+            echo "FAIL: demand-driven flow in $asset_id should remain invariant within report precision"
+            exit 1
+          }
+          for pair in \
+            "baseline source $baseline_source_flow $total_junction_demand_lps" \
+            "candidate source $candidate_source_flow $total_junction_demand_lps" \
+            "baseline target $baseline_pipe_flow $downstream_demand_lps" \
+            "candidate target $candidate_pipe_flow $downstream_demand_lps"; do
+            read -r label phase observed expected <<< "$pair"
+            awk -v observed="$observed" -v expected="$expected" 'BEGIN { delta = observed - expected; if (delta < -0.02 || delta > 0.02) exit 1 }' || {
+              echo "FAIL: synthetic continuity check $phase/$label observed=$observed expected=$expected tolerance=0.02 L/s"
+              exit 1
+            }
+          done
+          awk -v b="$baseline_pipe_velocity" -v c="$candidate_pipe_velocity" 'BEGIN { exit !(c > b) }' || {
+            echo "FAIL: reducing $asset_id diameter did not increase reported velocity"
+            exit 1
+          }
+          awk -v b="$baseline_pipe_headloss" -v c="$candidate_pipe_headloss" 'BEGIN { exit !(c > b) }' || {
+            echo "FAIL: reducing $asset_id diameter did not increase reported headloss"
+            exit 1
+          }
+          awk -v b="$baseline_downstream_pressure" -v c="$candidate_downstream_pressure" 'BEGIN { exit !(c < b) }' || {
+            echo "FAIL: restricting $asset_id did not reduce downstream $downstream_node pressure"
+            exit 1
+          }
+          echo "EPANET_DIRECTIONAL_HYDRAULICS_PASS: flow invariant; velocity/headloss increase; downstream pressure decreases."
+
+          if cmp -s "$out/w0-baseline.rpt" "$candidate_report"; then
+            echo "FAIL: diameter-restriction scenario did not change the EPANET report"
+            exit 1
+          fi
+          if cmp -s "$out/w0-baseline.bin" "$candidate_binary"; then
+            echo "FAIL: diameter-restriction scenario did not change the EPANET binary output"
+            exit 1
+          fi
+
+          finished_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          solver_sha="$(sha256sum "$solver" | awk '{print $1}')"
+          baseline_input_sha="$(sha256sum "$out/w0-baseline.inp" | awk '{print $1}')"
+          candidate_input_sha="$(sha256sum "$candidate_input" | awk '{print $1}')"
+          baseline_report_sha="$(sha256sum "$out/w0-baseline.rpt" | awk '{print $1}')"
+          candidate_report_sha="$(sha256sum "$candidate_report" | awk '{print $1}')"
+          baseline_binary_sha="$(sha256sum "$out/w0-baseline.bin" | awk '{print $1}')"
+          candidate_binary_sha="$(sha256sum "$candidate_binary" | awk '{print $1}')"
+          source_input_sha="$(sha256sum "$input" | awk '{print $1}')"
+          cmake_version="$(cmake --version | head -n 1)"
+          compiler_version="$(cc --version | head -n 1)"
+
+          jq -n \
+            --arg schema_version "epanet-synthetic-smoke/v0.1" \
+            --arg state "Completed" \
+            --arg source_commit "4d8d82ddc260fce216af9321fc3d9a4646ac6827" \
+            --arg engine_version "EPANET 2.2 source revision" \
+            --arg solver_sha256 "$solver_sha" \
+            --arg source_input_sha256 "$source_input_sha" \
+            --arg input_rel "$input_rel" \
+            --arg declared_input_sha "$declared_input_sha" \
+            --arg downstream_node "$downstream_node" \
+            --arg scenario_bundle_sha256 "$scenario_file_sha" \
+            --arg scenario_bundle_id "$scenario_bundle_id" \
+            --arg scenario_id "$scenario_id" \
+            --arg scenario_asset_id "$asset_id" \
+            --arg scenario_baseline_diameter "$baseline_diameter" \
+            --arg scenario_candidate_diameter "$candidate_diameter" \
+            --arg baseline_input_sha256 "$baseline_input_sha" \
+            --arg candidate_input_sha256 "$candidate_input_sha" \
+            --arg baseline_report_sha256 "$baseline_report_sha" \
+            --arg candidate_report_sha256 "$candidate_report_sha" \
+            --arg baseline_binary_sha256 "$baseline_binary_sha" \
+            --arg candidate_binary_sha256 "$candidate_binary_sha" \
+            --arg source_pipe_id "$source_pipe_id" \
+            --arg total_junction_demand_lps "$total_junction_demand_lps" \
+            --arg downstream_demand_lps "$downstream_demand_lps" \
+            --arg baseline_source_flow "$baseline_source_flow" \
+            --arg candidate_source_flow "$candidate_source_flow" \
+            --arg baseline_pipe_flow "$baseline_pipe_flow" \
+            --arg candidate_pipe_flow "$candidate_pipe_flow" \
+            --arg baseline_pipe_velocity "$baseline_pipe_velocity" \
+            --arg candidate_pipe_velocity "$candidate_pipe_velocity" \
+            --arg baseline_pipe_headloss "$baseline_pipe_headloss" \
+            --arg candidate_pipe_headloss "$candidate_pipe_headloss" \
+            --arg baseline_downstream_pressure "$baseline_downstream_pressure" \
+            --arg candidate_downstream_pressure "$candidate_downstream_pressure" \
+            --arg cmake_version "$cmake_version" \
+            --arg compiler_version "$compiler_version" \
+            --arg started_at "$started_at" \
+            --arg finished_at "$finished_at" \
+            '{
+              schema_version: $schema_version,
+              run_state: $state,
+              synthetic_only: true,
+              solver: {
+                engine: "EPANET",
+                version: $engine_version,
+                source_commit: $source_commit,
+                executable_sha256: $solver_sha256,
+                cmake: $cmake_version,
+                compiler: $compiler_version
+              },
+              source_fixture: {
+                path: $input_rel,
+                sha256: $source_input_sha256,
+                declared_sha256: $declared_input_sha
+              },
+              scenario_bundle: {
+                path: "sol-atlas-core/fixtures/water-engineering/w0-p2-diameter-restriction.synthetic.json",
+                sha256: $scenario_bundle_sha256,
+                downstream_node_id: $downstream_node,
+                bundle_id: $scenario_bundle_id,
+                scenario_id: $scenario_id,
+                target_asset_id: $scenario_asset_id,
+                parameter: "diameter_mm",
+                baseline_value_mm: ($scenario_baseline_diameter | tonumber),
+                candidate_value_mm: ($scenario_candidate_diameter | tonumber)
+              },
+              baseline: {
+                change: "none",
+                input_sha256: $baseline_input_sha256,
+                report_sha256: $baseline_report_sha256,
+                binary_output_sha256: $baseline_binary_sha256
+              },
+              candidate: {
+                change: ("pipe " + $scenario_asset_id + " diameter " + $scenario_baseline_diameter + " mm -> " + $scenario_candidate_diameter + " mm"),
+                input_sha256: $candidate_input_sha256,
+                report_sha256: $candidate_report_sha256,
+                binary_output_sha256: $candidate_binary_sha256
+              },
+              hydraulic_observations: {
+                scope: "first reported hydraulic period; report-rounded values",
+                continuity: {
+                  declared_total_junction_demand_lps: ($total_junction_demand_lps | tonumber),
+                  downstream_junction_id: $downstream_node,
+                  declared_downstream_demand_lps: ($downstream_demand_lps | tonumber),
+                  source_pipe_id: $source_pipe_id,
+                  source_flow_lps: {
+                    baseline: ($baseline_source_flow | tonumber),
+                    candidate: ($candidate_source_flow | tonumber)
+                  },
+                  target_pipe_flow_matches_downstream_demand_within_0_02_lps: true,
+                  source_flow_matches_total_demand_within_0_02_lps: true,
+                  terminal_node_has_single_pipe_connection: true
+                },
+                units: {
+                  flow: "L/s",
+                  velocity: "m/s",
+                  headloss: "m per 1000 m",
+                  pressure: "m"
+                },
+                target_pipe: {
+                  baseline: {
+                    flow_lps: ($baseline_pipe_flow | tonumber),
+                    velocity_m_per_s: ($baseline_pipe_velocity | tonumber),
+                    headloss_m_per_1000_m: ($baseline_pipe_headloss | tonumber)
+                  },
+                  candidate: {
+                    flow_lps: ($candidate_pipe_flow | tonumber),
+                    velocity_m_per_s: ($candidate_pipe_velocity | tonumber),
+                    headloss_m_per_1000_m: ($candidate_pipe_headloss | tonumber)
+                  }
+                },
+                downstream_node_pressure_m: {
+                  baseline: ($baseline_downstream_pressure | tonumber),
+                  candidate: ($candidate_downstream_pressure | tonumber)
+                },
+                checks: {
+                  target_pipe_flow_invariant_within_0_02_lps: true,
+                  target_pipe_velocity_increased: true,
+                  target_pipe_headloss_increased: true,
+                  downstream_node_pressure_decreased: true
+                }
+              },
+              execution: {
+                started_at: $started_at,
+                finished_at: $finished_at,
+                baseline_exit_code: 0,
+                candidate_exit_code: 0,
+                analysis_mode: "DemandDriven",
+                headloss_model: "Hazen-Williams",
+                unit_system: "EPANET LPS (length m, diameter mm, flow L/s, head m)",
+                command: "runepanet <input.inp> <report.rpt> <output.bin>"
+              },
+              nonclaims: [
+                "This is a synthetic solver smoke test only.",
+                "A changed report confirms a scenario affects this model run; it does not qualify a municipal model or design.",
+                "No empirical calibration, uncertainty quantification, engineering review, or real-network validation is implied."
+              ]
+            }' > "$out/epanet-synthetic-smoke-evidence.json"
+
+          sha256sum "$out"/* | tee "$out/artifact-sha256.txt"
+          echo "EPANET_SYNTHETIC_SMOKE_PASS: pinned solver ran scenario-bundle-derived restriction case; declared digests, simple-network continuity and directional hydraulics were verified."
+      - name: Upload synthetic solver evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: epanet-w0-smoke
+          path: artifacts/epanet-w0/
+          if-no-files-found: warn
+          retention-days: 14

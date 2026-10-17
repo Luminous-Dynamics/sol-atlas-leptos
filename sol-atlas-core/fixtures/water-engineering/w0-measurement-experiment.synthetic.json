@@ -1,0 +1,303 @@
+{
+  "schema_version": "water-measurement-experiment/v0.1",
+  "experiment_id": "w0-decision-directed-measurement-plan",
+  "classification": "synthetic_public",
+  "research_question": "Can decision-directed measurement strategies improve leak-localisation evidence per unit of sensor and inspection effort on a reproducible synthetic EPANET scenario corpus?",
+  "model_reference": {
+    "model_id": "w0_network_synthetic_v1",
+    "solver_family": "EPANET",
+    "state": "NotRun",
+    "input_sha256": null,
+    "evidence_ceiling": "contract_only",
+    "notes": [
+      "The existing W0 input is a small synthetic contract fixture, not a calibrated network.",
+      "No hydraulic simulation output is attached."
+    ]
+  },
+  "scenario_corpus": {
+    "state": "NotGenerated",
+    "scenario_count": 0,
+    "manifest_sha256": null,
+    "planned_axes": [
+      "synthetic leak location and magnitude across declared discrete ranges",
+      "nodal demand perturbation and timing profile",
+      "pipe roughness and sensor-noise perturbations",
+      "held-out parameter combinations for robustness checks"
+    ],
+    "random_seed_policy": "Freeze and hash one seed manifest before execution; use matched scenario seeds across strategies and a separate held-out seed set.",
+    "negative_controls": [
+      "zero-leak/no-fault must not count as a correctly localised leak",
+      "missing or corrupted sensor channels are failed/unavailable, never zero readings",
+      "input or scenario digest drift invalidates attached results",
+      "duplicated sensor information must not be credited as independent information gain"
+    ]
+  },
+  "candidate_actions": [
+    {
+      "action_id": "pressure-log-window",
+      "kind": "pressure_logging",
+      "question": "Which bounded pressure measurements distinguish candidate synthetic leak hypotheses?",
+      "decision_target": "Reduce ambiguity between baseline and declared synthetic leak cases without revealing real asset locations.",
+      "expected_evidence_type": "Timestamped synthetic node-pressure series with labelled scenarios and stated measurement noise.",
+      "action_state": "proposed",
+      "acquisition_cost": {
+        "state": "not_estimated",
+        "value": null,
+        "unit": "cost units not defined",
+        "basis_reference": null,
+        "assumptions": [
+          "No sensor prices, installation costs, telemetry costs, sampling intervals or labour rates have been established."
+        ]
+      },
+      "information_model": {
+        "state": "not_estimated",
+        "expected_information_gain_bits": null,
+        "expected_decision_value": null,
+        "decision_value_unit": "not defined",
+        "model_reference": null,
+        "assumptions": [
+          "Information gain cannot be inferred from intuition alone.",
+          "Estimate it only after labelled scenarios, noise assumptions and a declared hypothesis prior exist."
+        ]
+      },
+      "permission_state": "not_applicable_synthetic_only",
+      "location_specificity": "none",
+      "privacy_risk": "not_assessed",
+      "fieldwork_authorization": "not_authorized",
+      "blocking_unknowns": [
+        "No scenario corpus or sensor-noise model has been executed.",
+        "No field data collection or deployment is authorised."
+      ]
+    },
+    {
+      "action_id": "flow-meter-quality-check",
+      "kind": "flow_meter_validation",
+      "question": "Does an independent meter-quality check change which synthetic flow observations are trusted?",
+      "decision_target": "Distinguish instrumentation error from a simulated physical-loss hypothesis.",
+      "expected_evidence_type": "Synthetic calibrated and perturbed meter readings with ground-truth bias and uncertainty labels.",
+      "action_state": "proposed",
+      "acquisition_cost": {
+        "state": "not_estimated",
+        "value": null,
+        "unit": "cost units not defined",
+        "basis_reference": null,
+        "assumptions": [
+          "No meter calibration or staff-time cost model is available."
+        ]
+      },
+      "information_model": {
+        "state": "not_estimated",
+        "expected_information_gain_bits": null,
+        "expected_decision_value": null,
+        "decision_value_unit": "not defined",
+        "model_reference": null,
+        "assumptions": [
+          "No likelihood model for calibration outcomes has been specified.",
+          "Information gain and decision value must remain separate quantities."
+        ]
+      },
+      "permission_state": "not_applicable_synthetic_only",
+      "location_specificity": "none",
+      "privacy_risk": "not_assessed",
+      "fieldwork_authorization": "not_authorized",
+      "blocking_unknowns": [
+        "No ground-truth meter-error distribution is specified.",
+        "No real meter telemetry is attached."
+      ]
+    },
+    {
+      "action_id": "reported-table-verification",
+      "kind": "report_table_verification",
+      "question": "Can a primary-document table check resolve an aggregate discrepancy before intervention planning?",
+      "decision_target": "Prevent unresolved annual-report KPIs from entering a model as settled facts.",
+      "expected_evidence_type": "Reviewed source page/table locator, transcription, reviewer identity and correction history.",
+      "action_state": "proposed",
+      "acquisition_cost": {
+        "state": "not_estimated",
+        "value": null,
+        "unit": "cost units not defined",
+        "basis_reference": null,
+        "assumptions": [
+          "No task-duration or cost estimate has been measured."
+        ]
+      },
+      "information_model": {
+        "state": "not_estimated",
+        "expected_information_gain_bits": null,
+        "expected_decision_value": null,
+        "decision_value_unit": "not defined",
+        "model_reference": null,
+        "assumptions": [
+          "This is a provenance-resolving desk task, not a hydraulic observation.",
+          "Do not attribute expected service improvement to resolving a documentation discrepancy."
+        ]
+      },
+      "permission_state": "not_applicable_synthetic_only",
+      "location_specificity": "none",
+      "privacy_risk": "low",
+      "fieldwork_authorization": "not_authorized",
+      "blocking_unknowns": [
+        "A reviewer must inspect the primary table before a provisional value is promoted.",
+        "Document review alone cannot provide pipe-level hydraulic calibration."
+      ]
+    }
+  ],
+  "baseline_strategies": [
+    "information_directed",
+    "random_seeded",
+    "spatial_coverage_greedy",
+    "fixed_heuristic"
+  ],
+  "metric_definitions": [
+    {
+      "metric_id": "localization.top_k_accuracy",
+      "definition": "Fraction of labelled leak scenarios where the true leak class appears within predeclared top-k candidates.",
+      "unit": "proportion",
+      "direction": "higher_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "top_k",
+      "prohibited_interpretation": "Not a field leak detection rate or a performance guarantee."
+    },
+    {
+      "metric_id": "localization.detection_delay",
+      "definition": "Simulated elapsed time from scenario onset to a detection meeting frozen criteria.",
+      "unit": "second",
+      "direction": "lower_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "p95",
+      "prohibited_interpretation": "Not operational response time or a guarantee of reduced outages."
+    },
+    {
+      "metric_id": "sensor.count",
+      "definition": "Sensor channels required by the declared budget convention.",
+      "unit": "sensor",
+      "direction": "lower_is_better",
+      "evidence_requirement": "independent_review",
+      "aggregation": "per_scenario",
+      "prohibited_interpretation": "Not a full lifecycle-cost estimate."
+    },
+    {
+      "metric_id": "information.redundancy",
+      "definition": "Declared information redundancy across selected channels, with the exact method recorded.",
+      "unit": "bit",
+      "direction": "lower_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "per_scenario",
+      "prohibited_interpretation": "Information/entropy reduction is not automatically service or monetary benefit."
+    },
+    {
+      "metric_id": "robustness.worst_case_localization",
+      "definition": "Worst-case top-k localisation outcome on held-out scenarios, preserving denominator and failed cases.",
+      "unit": "proportion",
+      "direction": "higher_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "worst_case",
+      "prohibited_interpretation": "Not a guarantee outside the tested scenario domain."
+    },
+    {
+      "metric_id": "localization.false_positive_rate",
+      "definition": "Fraction of declared no-fault scenarios incorrectly flagged as a leak under a frozen detection threshold.",
+      "unit": "proportion",
+      "direction": "lower_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "mean",
+      "prohibited_interpretation": "A synthetic rate is not a field false-alarm rate."
+    },
+    {
+      "metric_id": "probability.brier_score",
+      "definition": "Mean squared error between a predicted hypothesis probability vector and the one-hot synthetic ground-truth class.",
+      "unit": "unitless",
+      "direction": "lower_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "mean",
+      "prohibited_interpretation": "A score is meaningful only when probability outputs and ground truth are defined consistently."
+    },
+    {
+      "metric_id": "decision.regret",
+      "definition": "Per-scenario loss of the evidence-selected decision minus the best decision under synthetic ground truth using the same frozen loss matrix.",
+      "unit": "declared_loss_units",
+      "direction": "lower_is_better",
+      "evidence_requirement": "synthetic_labelled_truth",
+      "aggregation": "p95",
+      "prohibited_interpretation": "Toy or synthetic loss units do not establish monetary or public-service value."
+    },
+    {
+      "metric_id": "solver.scenario_failure_rate",
+      "definition": "Fraction of scenario runs that fail convergence, validation, parsing, or required artifact checks.",
+      "unit": "proportion",
+      "direction": "lower_is_better",
+      "evidence_requirement": "reproduced_solver_artifact",
+      "aggregation": "mean",
+      "prohibited_interpretation": "Failed runs must remain in the denominator and cannot be counted as successful detection."
+    },
+    {
+      "metric_id": "robustness.minimum_evsi",
+      "definition": "Minimum expected value of sample information across the predeclared plausible prior/likelihood-model ensemble for a measurement action.",
+      "unit": "declared_loss_units",
+      "direction": "higher_is_better",
+      "evidence_requirement": "reproduced_solver_artifact",
+      "aggregation": "worst_case",
+      "prohibited_interpretation": "This extrema estimate covers only the declared ensemble and is not a guarantee against unrepresented model error."
+    },
+    {
+      "metric_id": "robustness.evsi_spread",
+      "definition": "Maximum minus minimum expected value of sample information across the predeclared plausible model ensemble.",
+      "unit": "declared_loss_units",
+      "direction": "diagnostic_only",
+      "evidence_requirement": "reproduced_solver_artifact",
+      "aggregation": "per_scenario",
+      "prohibited_interpretation": "A wide range diagnoses sensitivity; it does not identify which probability model is true."
+    }
+  ],
+  "acceptance_criteria": {
+    "state": "frozen",
+    "criteria": [
+      "Minimum benchmark corpus: at least 1,000 labelled scenario cases across at least three distinct network topologies; if fewer than three are available, report a pilot only and make no cross-topology generalization claim.",
+      "Freeze and hash scenario/seed manifests before scoring. Hold out at least 20% of parameter/noise regimes by grouped split, and use leave-one-topology-out evaluation where feasible; never randomly split near-duplicate runs across train and test.",
+      "Compare all four strategies on the same candidate measurement sites and matched scenario seeds at common feasible sensor budgets. Primary target: information-directed top-3 localization accuracy improves by at least 5 absolute percentage points over the strongest baseline on held-out cases, with a paired per-scenario bootstrap 95% confidence interval for the difference strictly above zero.",
+      "Robustness guardrail: on every reported held-out topology/model-form stratum, top-3 localization accuracy must not trail the strongest baseline by more than 5 percentage points; where detection delay is defined, p95 delay must not regress by more than 5% versus the strongest baseline.",
+      "No-fault negative controls: false-positive rate target is at most 5% point estimate and its Wilson 95% upper confidence bound at most 10%, with the denominator reported. Missing/corrupt measurements are explicit unavailable or failed observations, never zero-valued readings.",
+      "Completeness and provenance: 100% of scheduled scenario-strategy pairs produce a result or explicit failure record; zero failed solver runs count as successful localizations; every result binds solver/source/binary identity, network/scenario/seed, configuration, channels, and output digest.",
+      "Report Brier score, p95 decision regret, worst-case localization, sensor count, information redundancy, and solver-failure rate alongside information gain. High information gain alone is not a win; no cost-adjusted ranking without a defensible common cost/loss basis.",
+      "Reproduction target: a second run uses the frozen manifest and pinned solver, independently recomputes the primary metrics, and either reproduces the result within preregistered numeric tolerances or is reported as non-reproduced.",
+      "Model-uncertainty amendment v0.1.1 (2026-10-16): report minimum and maximum EIG/EVSI across a predeclared plausible prior/likelihood-model ensemble; call a measurement action robustly positive only when its minimum EVSI exceeds its acquisition cost in the same justified unit for all declared models, and suppress net ranking otherwise."
+    ],
+    "freeze_before_evaluation": true,
+    "notes": [
+      "These are proposed project acceptance targets, not published industry standards or observed results. They are frozen before any strategy-result inspection and may only change via a versioned amendment before evaluation.",
+      "The tiny W0 network is a solver-contract smoke test, not sufficient by itself for topology-generalization or sensor-placement efficacy claims.",
+      "Failed, unavailable and out-of-domain cases remain visible; no hidden scalar score or post-hoc acceptance threshold is allowed.",
+      "This benchmark is synthetic and offline. It does not authorize fieldwork, operational changes, or autonomous actuation.",
+      "Versioned amendment v0.1.1 dated 2026-10-16 adds model-ensemble sensitivity reporting before any scenario generation or strategy scoring; no benchmark results were inspected and the original numerical thresholds are unchanged."
+    ]
+  },
+  "comparison_policy": {
+    "strategies_must_share_corpus": true,
+    "same_seed_policy": "Matched scenario seeds across strategies; freeze and hash training and held-out manifests separately.",
+    "report_all_scenarios": true,
+    "scalar_score_allowed": false,
+    "missing_outcome_behavior": "explicit_failure_not_zero",
+    "selection_basis": "factor_level_and_pareto_no_hidden_weights"
+  },
+  "evaluation": {
+    "state": "NotRun",
+    "evaluation_manifest_sha256": null,
+    "strategy_results": [],
+    "failure_log": [],
+    "claim_ceiling": "protocol_only"
+  },
+  "safety_and_privacy": {
+    "operating_mode": "offline_read_only",
+    "fieldwork_authorization": "not_authorized",
+    "public_location_policy": "no_sensitive_coordinates_or_asset_ids",
+    "owner_permission_required": true,
+    "security_review_state": "required"
+  },
+  "nonclaims": [
+    "This is an experiment protocol, not an executed EPANET study.",
+    "No expected information gain, financial value, sensor cost or localisation performance has been estimated.",
+    "No real network, telemetry, sensor location or fieldwork authorisation is represented.",
+    "This protocol does not establish that information-directed strategies outperform any baseline.",
+    "Do not claim reproduced results until inputs, solver identity, scenario manifest, outputs and failures are independently reviewed."
+  ]
+}

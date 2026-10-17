@@ -1,0 +1,324 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/water-sensor-placement-evaluation-v0.1.schema.json",
+  "title": "Water sensor-placement evaluation envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_manifest_sha256",
+    "source_plan_sha256",
+    "source_topology_sha256",
+    "evaluation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "water-sensor-placement-evaluation-envelope/v0.1"
+    },
+    "source_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_topology_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "plan_id",
+        "run_state",
+        "unit_system",
+        "flow_unit",
+        "pressure_unit",
+        "topology_node_count",
+        "topology_link_count",
+        "junction_count",
+        "scenario_count",
+        "fault_scenario_count",
+        "candidate_target_count",
+        "sensor_budgets",
+        "noise_sigma_fractions",
+        "replicate_count",
+        "held_out_magnitudes",
+        "strategy_ids",
+        "results",
+        "claim_ceiling",
+        "nonclaims"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "water-sensor-placement-evaluation/v0.1"
+        },
+        "run_state": {
+          "const": "Completed"
+        },
+        "unit_system": {
+          "enum": [
+            "LPS",
+            "GPM"
+          ]
+        },
+        "flow_unit": {
+          "enum": [
+            "L/s",
+            "GPM"
+          ]
+        },
+        "pressure_unit": {
+          "enum": [
+            "m",
+            "psi"
+          ]
+        },
+        "topology_node_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "topology_link_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "junction_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "scenario_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fault_scenario_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "candidate_target_count": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "sensor_budgets": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "noise_sigma_fractions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "replicate_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "held_out_magnitudes": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "strategy_ids": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "fixed-predeclared",
+              "seeded-random",
+              "graph-coverage-greedy",
+              "response-separation-greedy"
+            ]
+          }
+        },
+        "results": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "strategy_id",
+              "sensor_budget",
+              "selected_sensor_node_ids",
+              "noise_sigma_fraction",
+              "replicate",
+              "held_out_magnitude",
+              "test_count",
+              "top1_accuracy",
+              "top3_accuracy",
+              "mean_reciprocal_rank",
+              "mean_topological_error_hops",
+              "p95_topological_error_hops",
+              "worst_topological_error_hops",
+              "disconnected_prediction_count",
+              "predictions"
+            ],
+            "properties": {
+              "strategy_id": {
+                "enum": [
+                  "fixed-predeclared",
+                  "seeded-random",
+                  "graph-coverage-greedy",
+                  "response-separation-greedy"
+                ]
+              },
+              "sensor_budget": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "selected_sensor_node_ids": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "noise_sigma_fraction": {
+                "type": "number",
+                "minimum": 0
+              },
+              "replicate": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "held_out_magnitude": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "test_count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "top1_accuracy": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "top3_accuracy": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "mean_reciprocal_rank": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "mean_topological_error_hops": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "p95_topological_error_hops": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "worst_topological_error_hops": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "disconnected_prediction_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "predictions": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scenario_id",
+                    "actual_target",
+                    "predicted_top1",
+                    "actual_rank",
+                    "top1_hit",
+                    "top3_hit",
+                    "reciprocal_rank",
+                    "topological_error_hops"
+                  ],
+                  "properties": {
+                    "scenario_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "actual_target": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "predicted_top1": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "actual_rank": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "top1_hit": {
+                      "type": "boolean"
+                    },
+                    "top3_hit": {
+                      "type": "boolean"
+                    },
+                    "reciprocal_rank": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 1
+                    },
+                    "topological_error_hops": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "claim_ceiling": {
+          "const": "synthetic_sensor_layout_comparison_only"
+        },
+        "nonclaims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "plan_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "source_plan_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}
