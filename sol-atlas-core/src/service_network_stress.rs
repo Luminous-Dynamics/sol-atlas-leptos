@@ -132,10 +132,12 @@ pub enum ServiceNetworkStressValidationError {
     DuplicateDeclaredFailureSetId,
     EmptyDeclaredFailureSetRationale,
     EmptyDeclaredFailureSetLinks,
+    EmptyDeclaredFailureLinkId,
     DuplicateDeclaredFailureLinkId,
     UnknownDeclaredFailureLinkId,
     AlreadyInactiveDeclaredFailureLinkId,
     DuplicateBaselineLinkId,
+    AssessmentCountMismatch,
     NonMonotonicConservativeFlow,
     NonMonotonicOptimisticFlow,
 }
@@ -145,6 +147,16 @@ pub enum ServiceNetworkStressError {
     InvalidInput(Vec<ServiceNetworkStressValidationError>),
     NetworkAssessment(ServiceCapacityNetworkError),
 }
+
+#[derive(Debug, Clone)]
+struct FailureCaseSpec {
+    case_id: String,
+    origin: ServiceNetworkFailureCaseOrigin,
+    failure_set_id: Option<String>,
+    rationale: String,
+    failed_link_ids: Vec<String>,
+}
+
 
 /// Enumerate all single-, double-, or triple-link failures within an explicit budget.
 ///
@@ -181,6 +193,47 @@ pub fn assess_service_network_stress(
         return Err(ServiceNetworkStressError::InvalidInput(errors));
     }
 
+    let mut availability_by_link_id = BTreeMap::new();
+    for link in &request.baseline_scenario.links {
+        if availability_by_link_id.insert(link.id.as_str(), link.availability).is_some() {
+            errors.push(ServiceNetworkStressValidationError::DuplicateBaselineLinkId);
+        }
+    }
+    let mut declared_set_ids = BTreeSet::new();
+    for failure_set in &request.declared_failure_sets {
+        if failure_set.id.trim().is_empty() {
+            errors.push(ServiceNetworkStressValidationError::EmptyDeclaredFailureSetId);
+        }
+        if !declared_set_ids.insert(failure_set.id.as_str()) {
+            errors.push(ServiceNetworkStressValidationError::DuplicateDeclaredFailureSetId);
+        }
+        if failure_set.rationale.trim().is_empty() {
+            errors.push(ServiceNetworkStressValidationError::EmptyDeclaredFailureSetRationale);
+        }
+        if failure_set.failed_link_ids.is_empty() {
+            errors.push(ServiceNetworkStressValidationError::EmptyDeclaredFailureSetLinks);
+        }
+        let mut failed_link_ids = BTreeSet::new();
+        for link_id in &failure_set.failed_link_ids {
+            if link_id.trim().is_empty() {
+                errors.push(ServiceNetworkStressValidationError::EmptyDeclaredFailureLinkId);
+            }
+            if !failed_link_ids.insert(link_id.as_str()) {
+                errors.push(ServiceNetworkStressValidationError::DuplicateDeclaredFailureLinkId);
+            }
+            match availability_by_link_id.get(link_id.as_str()) {
+                None => errors.push(ServiceNetworkStressValidationError::UnknownDeclaredFailureLinkId),
+                Some(NetworkLinkAvailability::Inactive) => errors.push(
+                    ServiceNetworkStressValidationError::AlreadyInactiveDeclaredFailureLinkId,
+                ),
+                Some(NetworkLinkAvailability::Active | NetworkLinkAvailability::Unknown) => {}
+            }
+        }
+    }
+    if !errors.is_empty() {
+        return Err(ServiceNetworkStressError::InvalidInput(errors));
+    }
+
     let mut active_link_ids: Vec<String> = request.baseline_scenario.links.iter()
         .filter(|link| link.availability == NetworkLinkAvailability::Active)
         .map(|link| link.id.clone())
@@ -192,22 +245,35 @@ pub fn assess_service_network_stress(
         ]));
     }
 
-    let candidate_count = count_failure_combinations(
+    let link_combination_count = count_failure_combinations(
         active_link_ids.len(),
         request.max_simultaneous_failures,
         request.max_failure_cases,
     );
-    let Some(candidate_count) = candidate_count else {
+    let Some(link_combination_count) = link_combination_count else {
         return Err(ServiceNetworkStressError::InvalidInput(vec![
             ServiceNetworkStressValidationError::ScenarioBudgetExceeded,
         ]));
     };
-    if candidate_count > request.max_failure_cases {
+    let Some(candidate_count) =
+        link_combination_count.checked_add(request.declared_failure_sets.len())
+    else {
+        return Err(ServiceNetworkStressError::InvalidInput(vec![
+            ServiceNetworkStressValidationError::ScenarioBudgetExceeded,
+        ]));
+    };
+    if candidate_count > request.max_failure_cases
+        || candidate_count > MAX_EXHAUSTIVE_FAILURE_CASES
+    {
         return Err(ServiceNetworkStressError::InvalidInput(vec![
             ServiceNetworkStressValidationError::ScenarioBudgetExceeded,
         ]));
     }
-    let scenario_count = candidate_count.saturating_add(1);
+    let Some(scenario_count) = candidate_count.checked_add(1) else {
+        return Err(ServiceNetworkStressError::InvalidInput(vec![
+            ServiceNetworkStressValidationError::ScenarioBudgetExceeded,
+        ]));
+    };
     let modeled_link_references = scenario_count
         .checked_mul(request.baseline_scenario.links.len());
     if modeled_link_references.is_none_or(|count| count > MAX_STRESS_CASE_LINK_REFERENCES) {
@@ -216,7 +282,7 @@ pub fn assess_service_network_stress(
         ]));
     }
 
-    let mut failure_sets = Vec::with_capacity(candidate_count);
+    let mut failure_sets = Vec::with_capacity(link_combination_count);
     let maximum_order = request.max_simultaneous_failures.min(active_link_ids.len());
     for order in 1..=maximum_order {
         let mut selected = Vec::with_capacity(order);
@@ -228,7 +294,7 @@ pub fn assess_service_network_stress(
             &mut failure_sets,
         );
     }
-    if failure_sets.len() != candidate_count {
+    if failure_sets.len() != link_combination_count {
         return Err(ServiceNetworkStressError::InvalidInput(vec![
             ServiceNetworkStressValidationError::ScenarioBudgetExceeded,
         ]));
@@ -238,8 +304,10 @@ pub fn assess_service_network_stress(
     let mut baseline_input = request.baseline_scenario.clone();
     baseline_input.id = baseline_key.clone();
 
-    let mut scenario_batch = Vec::with_capacity(candidate_count + 1);
+    let mut scenario_batch = Vec::with_capacity(scenario_count);
     scenario_batch.push(baseline_input);
+    let mut case_specs = Vec::with_capacity(candidate_count);
+
     for (index, failed_link_ids) in failure_sets.iter().enumerate() {
         let case_id = format!("sei-stress:{}:case:{:05}", request.id, index + 1);
         let failed: BTreeSet<&str> = failed_link_ids.iter().map(String::as_str).collect();
@@ -253,11 +321,64 @@ pub fn assess_service_network_stress(
             link.availability = NetworkLinkAvailability::Inactive;
             link.availability_basis = ScenarioBasis::Assumed;
             link.availability_rationale = format!(
-                "Explicit exhaustive stress experiment {}: force link {} inactive; this is a hypothetical failure, not an observation.",
+                "Explicit exhaustive link-failure experiment {}: force link {} inactive; this is a hypothetical failure, not an observation.",
                 request.id, link.id
             );
             link.availability_supporting_evidence_ids.clear();
         }
+        case_specs.push(FailureCaseSpec {
+            case_id,
+            origin: ServiceNetworkFailureCaseOrigin::EnumeratedLinkCombination,
+            failure_set_id: None,
+            rationale: format!(
+                "Exhaustively enumerated link-failure combination: {}",
+                failed_link_ids.join(", ")
+            ),
+            failed_link_ids: failed_link_ids.clone(),
+        });
+        scenario_batch.push(candidate);
+    }
+
+    let mut declared_sets: Vec<&DeclaredNetworkFailureSet> =
+        request.declared_failure_sets.iter().collect();
+    declared_sets.sort_by(|left, right| left.id.cmp(&right.id));
+    for failure_set in declared_sets {
+        let mut failed_link_ids = failure_set.failed_link_ids.clone();
+        failed_link_ids.sort();
+        let failed: BTreeSet<&str> = failed_link_ids.iter().map(String::as_str).collect();
+        let case_id = format!("sei-stress:{}:declared:{}", request.id, failure_set.id);
+        let mut candidate = request.baseline_scenario.clone();
+        candidate.id = case_id.clone();
+
+        for link in &mut candidate.links {
+            if !failed.contains(link.id.as_str()) {
+                continue;
+            }
+            link.availability = NetworkLinkAvailability::Inactive;
+            link.availability_basis = ScenarioBasis::Assumed;
+            link.availability_rationale = format!(
+                "Declared stress event {}: {}; link {} is forced inactive as a hypothetical scenario, not an observation.",
+                failure_set.id, failure_set.rationale, link.id
+            );
+            link.availability_supporting_evidence_ids.clear();
+        }
+
+        let origin = match failure_set.kind {
+            DeclaredFailureSetKind::CommonCause => {
+                ServiceNetworkFailureCaseOrigin::DeclaredCommonCause
+            }
+            DeclaredFailureSetKind::HazardBundle => {
+                ServiceNetworkFailureCaseOrigin::DeclaredHazardBundle
+            }
+            DeclaredFailureSetKind::Other => ServiceNetworkFailureCaseOrigin::DeclaredOther,
+        };
+        case_specs.push(FailureCaseSpec {
+            case_id,
+            origin,
+            failure_set_id: Some(failure_set.id.clone()),
+            rationale: failure_set.rationale.clone(),
+            failed_link_ids,
+        });
         scenario_batch.push(candidate);
     }
 
@@ -280,21 +401,17 @@ pub fn assess_service_network_stress(
     let mut worst_conservative = f64::INFINITY;
     let mut worst_optimistic = f64::INFINITY;
 
-    for failed_link_ids in &failure_sets {
-        // Failure set order determines generated IDs, so calculate this exact ID
-        // from its ordinal in the deterministic enumeration.
-        let index = cases.len() + 1;
-        let case_id = format!("sei-stress:{}:case:{:05}", request.id, index);
-        let Some(mut assessment) = by_id.remove(&case_id) else {
+    for spec in &case_specs {
+        let Some(mut assessment) = by_id.remove(&spec.case_id) else {
             return Err(ServiceNetworkStressError::InvalidInput(vec![
-                ServiceNetworkStressValidationError::ScenarioBudgetExceeded,
+                ServiceNetworkStressValidationError::AssessmentCountMismatch,
             ]));
         };
 
         let scale = baseline_conservative.abs()
             .max(assessment.conservative_available_capacity.abs())
             .max(1.0);
-        let tolerance = 1.0e-9 * scale;
+        let tolerance = FAILURE_TIE_RELATIVE_TOLERANCE * scale;
         if assessment.conservative_available_capacity > baseline_conservative + tolerance {
             return Err(ServiceNetworkStressError::InvalidInput(vec![
                 ServiceNetworkStressValidationError::NonMonotonicConservativeFlow,
@@ -303,7 +420,9 @@ pub fn assess_service_network_stress(
         let optimistic_scale = baseline_optimistic.abs()
             .max(assessment.optimistic_available_capacity.abs())
             .max(1.0);
-        if assessment.optimistic_available_capacity > baseline_optimistic + 1.0e-9 * optimistic_scale {
+        if assessment.optimistic_available_capacity
+            > baseline_optimistic + FAILURE_TIE_RELATIVE_TOLERANCE * optimistic_scale
+        {
             return Err(ServiceNetworkStressError::InvalidInput(vec![
                 ServiceNetworkStressValidationError::NonMonotonicOptimisticFlow,
             ]));
@@ -315,17 +434,23 @@ pub fn assess_service_network_stress(
             (baseline_optimistic - assessment.optimistic_available_capacity).max(0.0);
         worst_conservative = worst_conservative.min(assessment.conservative_available_capacity);
         worst_optimistic = worst_optimistic.min(assessment.optimistic_available_capacity);
+        assessment.scenario_id = spec.case_id.clone();
 
-        // Keep generated scenario ID for audit, even though it is derived from the
-        // experiment rather than persisted as an independent input scenario.
-        assessment.scenario_id = case_id.clone();
         cases.push(ServiceNetworkFailureCase {
-            case_id,
-            failed_link_ids: failed_link_ids.clone(),
+            case_id: spec.case_id.clone(),
+            origin: spec.origin,
+            failure_set_id: spec.failure_set_id.clone(),
+            rationale: spec.rationale.clone(),
+            failed_link_ids: spec.failed_link_ids.clone(),
             assessment,
             conservative_capacity_loss,
             optimistic_capacity_loss,
         });
+    }
+    if !by_id.is_empty() {
+        return Err(ServiceNetworkStressError::InvalidInput(vec![
+            ServiceNetworkStressValidationError::AssessmentCountMismatch,
+        ]));
     }
 
     let mut worst_case_conservative_failure_sets: Vec<Vec<String>> = cases.iter()
@@ -348,6 +473,7 @@ pub fn assess_service_network_stress(
         unit: baseline.unit.clone(),
         max_simultaneous_failures: maximum_order,
         active_link_count: active_link_ids.len(),
+        declared_failure_set_count: request.declared_failure_sets.len(),
         candidate_failure_case_count: candidate_count,
         evaluated_failure_case_count: cases.len(),
         exhaustive: true,
@@ -474,6 +600,7 @@ mod tests {
             },
             max_simultaneous_failures: order,
             max_failure_cases: budget,
+            declared_failure_sets: Vec::new(),
         }
     }
 
