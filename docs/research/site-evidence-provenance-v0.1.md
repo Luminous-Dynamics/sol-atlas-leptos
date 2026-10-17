@@ -47,9 +47,11 @@ The fixture at docs/research/fixtures/site-evidence-benchmark-v0.1.jsonl contain
 - malformed/missing digest;
 - insufficient spatial resolution;
 - unaccepted authority class;
+- fact-domain mismatch and missing/mismatched jurisdiction;
+- open-license class with no license identifier;
 - missing spatial metadata.
 
-An independent JavaScript mirror matched all 16 declared dispositions after fetching back the JSONL fixture. This is not execution of the Rust implementation.
+An independent JavaScript mirror matched all 20 declared dispositions after fetching back the JSONL fixture. This is not execution of the Rust implementation.
 
 ## Proposed promotion gates
 
