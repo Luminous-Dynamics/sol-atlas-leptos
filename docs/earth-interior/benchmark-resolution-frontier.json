@@ -1,0 +1,299 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "geo-resolution-frontier-001",
+  "title": "Scale-dependent recoverability and prior-dominance frontier",
+  "version": "0.1.0",
+  "status": "benchmark_specification_not_executed",
+  "purpose": "Quantify which spatial and temporal modes of an Earth-interior state are recoverable from a declared observation layout, noise model and prior, and identify where the reported structure is dominated by regularization or unresolved cross-talk.",
+  "paradigm_shift": {
+    "from": "Choose one model resolution or spherical-harmonic truncation, invert, and display the resulting field.",
+    "to": "Evaluate resolution as an empirical, scale-dependent property of the full inference setup. Publish a resolution frontier that trades spatial/temporal detail against recovery error, uncertainty calibration, prior sensitivity, observation coverage and compute cost.",
+    "principle": "A rendered field's grid spacing, spectral truncation and numerical precision are not evidence of physical resolving power.",
+    "scientific_motivation": "Published core-flow studies report that sensitivity to the prior and to the maximum spherical-harmonic degree varies by inferred feature; large-scale/transient features can be more robust while some slowly varying or higher-degree components remain substantially prior-dependent. Therefore, the recoverable subspace must be measured for each target and experiment rather than assumed universally.",
+    "claim_boundary": {
+      "synthetic_recovery_is_real_earth_resolution": false,
+      "resolution_matrix_alone_validates_the_physical_model": false,
+      "high_posterior_precision_implies_data_support": false,
+      "one_universal_maximum_degree_is_supported": false,
+      "benchmark_creates_real_earth_claim_authority": false
+    }
+  },
+  "research_basis": [
+    {
+      "title": "Effects of geodynamo priors and geomagnetic data on inverted core surface flows",
+      "publication_date": "2025-07",
+      "doi": "10.1016/j.pepi.2025.107323",
+      "url": "https://www.sciencedirect.com/science/article/pii/S0031920125000172",
+      "relevance": "Compares geodynamo prior, field-model choice and secular-variation truncation; reports prior/setup sensitivity and feature-dependent robustness."
+    },
+    {
+      "title": "Flow throughout the Earth's core inverted from geomagnetic observations and numerical dynamo models",
+      "url": "https://academic.oup.com/gji/article/192/2/537/581031",
+      "relevance": "Reports resolution-matrix analysis and differences between twin-experiment recovery and real-data inversion, including modes whose estimates depend strongly on priors."
+    },
+    {
+      "title": "A simple method for determining the spatial resolution of a general inverse problem",
+      "doi": "10.1111/j.1365-246X.2012.05661.x",
+      "url": "https://academic.oup.com/gji/article/191/2/849/646030",
+      "relevance": "Explains resolution matrices, their relation to averaging weights and resolution length, and limitations for large inverse problems."
+    },
+    {
+      "title": "Metrics for evaluating the quality in linear atmospheric inverse problems: a case study of a trace gas inversion",
+      "url": "https://gmd.copernicus.org/articles/16/5219/2023/gmd-16-5219-2023.html",
+      "relevance": "Connects averaging kernels and degrees of freedom for signal to information-content and resolution diagnostics."
+    },
+    {
+      "title": "Spatial and temporal resolution of millennial scale geomagnetic field models",
+      "url": "https://www.sciencedirect.com/science/article/abs/pii/S0273117707003481",
+      "relevance": "Shows that temporal and spatial resolving power depends on data coverage and quality for long-time-span magnetic-field models."
+    }
+  ],
+  "model_contract": {
+    "linear_gaussian_reference": {
+      "observation_model": "y = H x + epsilon",
+      "prior": "x ~ Normal(m0, Sa)",
+      "noise": "epsilon ~ Normal(0, Se)",
+      "posterior_covariance": "Sp = inverse(H^T inverse(Se) H + inverse(Sa))",
+      "posterior_mean": "m_post = Sp (H^T inverse(Se) y + inverse(Sa) m0)",
+      "truth_to_estimate_resolution_matrix_for_zero_prior_mean": "A = Sp H^T inverse(Se) H",
+      "degrees_of_freedom_for_signal": "DOFS = trace(A)",
+      "requirements": [
+        "Retain the full observation covariance, including correlated measurement errors.",
+        "Use dimensionless/scaled parameter coordinates and declare each scale.",
+        "Report diagonal resolution and off-diagonal cross-talk separately.",
+        "Report posterior uncertainty separately from data resolution; a tight prior may produce a tight posterior even when A shows that observations resolve little.",
+        "Do not infer global nonlinear identifiability from a local linear resolution matrix."
+      ]
+    },
+    "spectral_and_temporal_coordinates": {
+      "spatial_modes": "Use named spherical-harmonic degree/order or another declared basis, with poloidal/toroidal or equivalent physical mode identity kept explicit where relevant.",
+      "temporal_modes": "Use named periods/basis functions and explicit time support; distinguish acquisition cadence from recoverable temporal bandwidth.",
+      "other_parameters": "Include nuisance calibration offsets, source-separation terms or unresolved-scale terms when physically justified; label their status and avoid hiding them inside a residual bucket."
+    }
+  },
+  "reference_fixture": {
+    "id": "H0-low-high-mode-prior-dominance",
+    "status": "analytic_reference_not_executed",
+    "state_coordinates": [
+      {
+        "id": "low_degree_mode",
+        "interpretation": "Abstract well-sampled large-scale component"
+      },
+      {
+        "id": "high_degree_mode",
+        "interpretation": "Abstract weakly sampled fine-scale component"
+      }
+    ],
+    "prior_mean": [0.0, 0.0],
+    "prior_covariance": [[1.0, 0.0], [0.0, 1.0]],
+    "observation_matrix": [[2.0, 0.0], [0.0, 0.1]],
+    "observation_noise_covariance": [[1.0, 0.0], [0.0, 1.0]],
+    "expected_analytic_results": {
+      "posterior_covariance": [[0.2, 0.0], [0.0, 0.9900990099009901]],
+      "resolution_matrix": [[0.8, 0.0], [0.0, 0.009900990099009901]],
+      "degrees_of_freedom_for_signal": 0.8099009900990099,
+      "interpretation": [
+        "The low-degree coordinate has a data-response resolution of 0.8 under this exact model.",
+        "The high-degree coordinate has data-response resolution of approximately 0.00990 and remains dominated by the stated prior despite a finite posterior variance.",
+        "A small posterior variance is not enough to claim the second coordinate is data-resolved; its variance is about 0.9901 under a unit prior variance while its data resolution is near zero."
+      ]
+    },
+    "acceptance_checks": [
+      "Posterior covariance and resolution matrix match the analytic expressions within a preregistered numerical tolerance.",
+      "DOFS matches trace(A) and is not reported as the count of independently validated Earth-state parameters.",
+      "Parameter-order permutations permute matrix rows/columns consistently without changing semantic results.",
+      "A tight-prior ablation can produce a numerically tighter posterior while decreasing data attribution; the report must expose this rather than label it improved data resolution.",
+      "Off-diagonal examples are added in the next fixture tranche to prove that diagonal resolution alone can conceal cross-talk."
+    ]
+  },
+  "benchmark_stages": [
+    {
+      "id": "H0_exact_linear",
+      "status": "planned",
+      "setup": "Small analytical linear-Gaussian systems with known observation operators, correlated noise, tunable priors, and deliberately invisible/weakly visible modes.",
+      "must_show": [
+        "Correct posterior covariance, averaging/resolution matrix, DOFS, and rank against direct analytic references.",
+        "Exact detection of planted null modes and correct behaviour under parameter reordering.",
+        "Correct distinction between posterior precision, data-resolution and prior dependence."
+      ]
+    },
+    {
+      "id": "H1_injection_recovery",
+      "status": "planned",
+      "setup": "Inject individual modes, pairs of modes, band-limited fields, transient time functions and spatially localized perturbations into frozen synthetic truth; forward-project through declared geometry, cadence, covariance, missingness and noise.",
+      "must_show": [
+        "Amplitude attenuation, phase/time displacement, spatial spreading and mode cross-talk are reported by scale.",
+        "Recovery is evaluated on held-out truth states rather than only by in-sample residual.",
+        "Modes whose recovery is prior-dominated are labelled as such, not omitted from the diagnostics.",
+        "Results include repeated seeds and uncertainty intervals."
+      ]
+    },
+    {
+      "id": "H2_prior_and_basis_stress",
+      "status": "planned",
+      "setup": "Repeat the exact same synthetic observations across preregistered defensible prior strengths, spectra, parameterizations, spectral truncations and temporal regularizers.",
+      "must_show": [
+        "Feature-by-feature data-resolution and prior sensitivity are separated.",
+        "Changes to high-degree truncation cannot silently create a higher qualified physical resolution.",
+        "Alternative parameterizations preserve units and named quantity-of-interest semantics.",
+        "Modes trading off against one another are exposed through off-diagonal resolution and posterior correlation."
+      ]
+    },
+    {
+      "id": "H3_sensor_design_frontier",
+      "status": "planned",
+      "setup": "Use the active-observation policies in benchmark-adaptive-observation-design.json to choose candidate observation layouts under equal cost; compare resulting recoverability frontiers.",
+      "must_show": [
+        "Report which modes gain resolution per unit cost, not only total EIG or trace(A).",
+        "A design does not win by improving already-resolved modes while sacrificing predeclared priority modes without making that trade-off visible.",
+        "Correlated duplicate observations are not counted as independent resolution gain.",
+        "The Pareto frontier covers resolution, held-out recovery error, uncertainty calibration, robustness and compute/acquisition cost."
+      ]
+    },
+    {
+      "id": "H4_qualified_simulation_and_real_data",
+      "status": "blocked_on_source_qualification_and_separate_protocol",
+      "setup": "Only after GEO-DATA-001 independently verifies a documented public simulation payload, construct a reproducible adapter and then define a separate real-observation resolution evaluation with source-model leakage audit.",
+      "must_show": [
+        "Exact source files, version, licence, digests, units, time support, parser and transform are pinned.",
+        "Simulation state is never labelled as real Earth truth.",
+        "Any reference field model is checked for overlapping observations before being used as an independent baseline.",
+        "Resolution estimates are reported with the model/prior/observation setup that produced them, not generalized as universal instrument capability."
+      ]
+    }
+  ],
+  "metrics": [
+    {
+      "id": "R1_resolution_matrix",
+      "measures": [
+        "diagonal data-resolution by named mode",
+        "off-diagonal mode cross-talk and averaging-kernel concentration",
+        "DOFS / trace(A)",
+        "smallest resolved singular values and null-space directions",
+        "sensitivity of all above quantities to scale and numerical tolerance"
+      ]
+    },
+    {
+      "id": "R2_injection_recovery",
+      "measures": [
+        "mode-wise amplitude bias and recovery error",
+        "phase/timing error for transient or periodic features",
+        "spatial localization/spread and leakage into neighboring modes",
+        "frequency- and degree-dependent detection power",
+        "false discovery of absent injected modes"
+      ]
+    },
+    {
+      "id": "R3_prior_attribution",
+      "measures": [
+        "posterior mean displacement across prior variants",
+        "posterior covariance versus data-resolution separation",
+        "fraction of feature variance attributable to prior under a defined decomposition",
+        "rank and recoverability changes when data or prior information is ablated"
+      ]
+    },
+    {
+      "id": "R4_generalization",
+      "measures": [
+        "resolution/recovery on held-out continuous time windows",
+        "resolution/recovery on held-out simulator configurations",
+        "coverage across sensor-layout/noise strata",
+        "degradation under declared forward-model discrepancy"
+      ]
+    },
+    {
+      "id": "R5_frontier_and_cost",
+      "measures": [
+        "Pareto frontier of detail versus recovery error, calibration, prior sensitivity and total cost",
+        "newly data-resolved priority modes per cost unit",
+        "forward-model evaluation count, wall time and peak memory",
+        "sensitivity of selected resolution to candidate design and model resolution"
+      ]
+    }
+  ],
+  "aspirational_targets_not_yet_acceptance_gates": [
+    {
+      "id": "T0",
+      "target": "100% correct outcomes on the analytic linear-Gaussian and exact null-mode fixtures.",
+      "qualification": "Any failure here blocks more expensive benchmark stages."
+    },
+    {
+      "id": "T1",
+      "target": "On predeclared detectable injected modes, at least 90% detection power with no more than 5% false detections across matched null controls.",
+      "qualification": "Freeze minimum amplitude, spatial/temporal scale, sample count and noise regime in advance; report a separate power curve instead of one aggregate value."
+    },
+    {
+      "id": "T2",
+      "target": "Nominal 90%/95% credible intervals achieve predeclared coverage tolerance on held-out known-truth injections, without using posterior sharpness alone as a score.",
+      "qualification": "Report intervals and coverage separately by mode family, spatial scale, temporal period and sensor layout."
+    },
+    {
+      "id": "T3",
+      "target": "Resolution diagnostics predict the ordering of empirical injection-recovery difficulty across registered modes with rank correlation >= 0.8.",
+      "qualification": "This is a proposed research target, not a known universal threshold; establish sample size and confidence intervals before the blind run."
+    },
+    {
+      "id": "T4",
+      "target": "Report a Pareto frontier rather than one scalar winner when no policy dominates across detail, recovery error, calibration, prior sensitivity and cost.",
+      "qualification": "Any overall selection must declare the objective and weight/policy choices explicitly."
+    }
+  ],
+  "negative_controls": [
+    "inject a null mode that has exactly zero sensitivity to all candidate observations",
+    "inject two distinct truth states with identical observations under the declared operator",
+    "tighten the prior until the posterior looks visually smooth and test that data-resolution does not falsely increase",
+    "vary the prior power spectrum while keeping observations fixed",
+    "truncate high-degree modes and check that displayed interpolation does not imply new information",
+    "duplicate measurements with correlated errors and ensure resolution is not overstated",
+    "shuffle time labels or add a clock offset to expose false temporal resolution",
+    "inject an omitted fine-scale component to test leakage into low-degree modes",
+    "alter a reference model to share test observations and ensure the baseline is not called independent"
+  ],
+  "receipt": {
+    "fields": [
+      "benchmark id/schema version",
+      "exact generator/solver/model versions and manifest digest",
+      "state basis and unit/scaling declarations",
+      "observation operator, covariance, sampling layout and missingness identity",
+      "prior covariance/spectrum and regularization identity",
+      "resolution matrix/averaging kernels/DOFS and their numerical tolerances",
+      "injection identities, amplitudes, phases, target scales and hidden truth reference",
+      "blind splits and PRNG seed policy",
+      "per-mode metrics, uncertainty intervals, negative-control outcomes and exclusions",
+      "frontier points and total compute/acquisition costs",
+      "exact code commit and qualification status"
+    ],
+    "statuses": [
+      "specification_not_executed",
+      "executed_unqualified",
+      "qualified_analytic_reference",
+      "qualified_synthetic_injection_recovery",
+      "qualified_cross_prior_resolution",
+      "real_observation_evaluated_under_separate_protocol"
+    ]
+  },
+  "stop_rules": [
+    "No claim of increased physical resolution solely because model truncation or rendered grid resolution increases.",
+    "No resolved/unresolved decision from diagonal averaging-kernel values alone if cross-talk materially affects the quantity of interest.",
+    "No comparison across parameter scalings unless dimensionless/scaling conventions are matched or transformed explicitly.",
+    "No posterior confidence or low residual may override a known non-identifiability or failed negative control.",
+    "No source-model baseline is labelled independent without an explicit held-out-data overlap audit.",
+    "No H4 qualification until dataset capture, hashing, licence, parsing and transform identity are independently established."
+  ],
+  "cross_project_ownership": {
+    "sol_atlas": "Own the resolution-frontier schema, scale-dependent claim semantics and later renderer overlays for data-resolved, prior-dominated and unresolved modes.",
+    "symtropy": "Generate known-truth mode injections, observation operators and coverage/noise/prior ablations.",
+    "symthaea": "Estimate posteriors, perform calibration and evaluate per-mode recovery; any HDC/LTC model must beat simple inversion/statistical baselines on held-out cases.",
+    "mycelix": "Reuse SCI-EVID-001 provenance/evidence lineage for manifests, results and derived claims; no second evidence ledger."
+  },
+  "related_work": {
+    "observability_contract": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/118",
+    "active_observation_design_contract": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/earth-interior-observatory-contract-20261016/docs/earth-interior/benchmark-adaptive-observation-design.json",
+    "cross_model_falsification_contract": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/earth-interior-observatory-contract-20261016/docs/earth-interior/benchmark-model-falsification.json",
+    "synthetic_observability_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1728",
+    "active_observation_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1760",
+    "geomagnetic_inference_issue": "https://github.com/Luminous-Dynamics/symthaea/issues/7688",
+    "source_qualification_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/121",
+    "evidence_lineage": "https://github.com/Luminous-Dynamics/mycelix/issues/2410"
+  }
+}
