@@ -91,6 +91,11 @@ pub enum ValueOfInformationError {
         cost: f64,
     },
     DuplicateInvestigationId(String),
+    ConsistencyViolation {
+        investigation_id: String,
+        evsi: f64,
+        evpi: f64,
+    },
 }
 
 impl fmt::Display for ValueOfInformationError {
@@ -161,6 +166,14 @@ impl fmt::Display for ValueOfInformationError {
             Self::DuplicateInvestigationId(id) => {
                 write!(f, "duplicate investigation ID: {id}")
             }
+            Self::ConsistencyViolation {
+                investigation_id,
+                evsi,
+                evpi,
+            } => write!(
+                f,
+                "computed EVSI {evsi} exceeds EVPI {evpi} for investigation {investigation_id}"
+            ),
         }
     }
 }
@@ -353,14 +366,12 @@ pub fn assess_investigation(
     let evsi = (before - after_sample_information).max(0.0);
     let evpi = (before - perfect_information).max(0.0);
 
-    // Protect against accidental implementation errors or malformed floating-point inputs.
-    if evsi > evpi + NUMERIC_TOLERANCE {
-        return Err(ValueOfInformationError::InvalidProbability {
-            label: format!(
-                "computed EVSI exceeds EVPI for investigation {}",
-                investigation.investigation_id
-            ),
-            value: evsi / evpi.max(f64::EPSILON),
+    // Permit only scale-aware floating-point drift; a violated value bound is an error.
+    if evsi > evpi + NUMERIC_TOLERANCE * before.max(1.0) {
+        return Err(ValueOfInformationError::ConsistencyViolation {
+            investigation_id: investigation.investigation_id.clone(),
+            evsi,
+            evpi,
         });
     }
 
