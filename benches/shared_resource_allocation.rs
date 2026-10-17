@@ -249,6 +249,99 @@ fn run(
     }
 }
 
+fn run_staggered(samples: usize, warmup: usize, target_ms: u128) -> Report {
+    let mut request = build_request(100, 10, 1);
+    for resource in &mut request.resources {
+        let suffix = resource.id.rsplit('-').next().expect("resource ID suffix");
+        let index = suffix.parse::<usize>().expect("numeric resource ID suffix");
+        resource.capacity.quantity.value = (index + 1) as f64 * 100.0;
+    }
+    for service in &mut request.services {
+        service.essential_coverage_floor = 0.3;
+    }
+    let reference = assess_shared_resource_allocation(&request, &[])
+        .expect("staggered synthetic shared-resource request must be valid");
+    let reference_bytes = serde_json::to_vec(&reference).expect("reference must serialize");
+    assert_eq!(reference.conservative_allocation_iterations, 10);
+    assert_eq!(reference.optimistic_allocation_iterations, 10);
+    assert!((reference.floor_compliance_lower_bound - 0.8).abs() < 1e-9);
+    assert!((reference.floor_compliance_upper_bound - 0.8).abs() < 1e-9);
+    assert!(reference.resources.iter().all(|resource| {
+        resource.conservative_allocated_capacity <= resource.capacity_lower_bound + 1e-9
+    }));
+    for usage in &request.usages {
+        let capacity = request.resources.iter()
+            .find(|resource| resource.id == usage.resource_id)
+            .expect("usage resource exists")
+            .capacity.quantity.value;
+        let expected_coverage = capacity / 1_000.0;
+        let service = reference.services.iter()
+            .find(|service| service.service_id == usage.service_id)
+            .expect("usage service exists");
+        assert!((service.coverage_lower_bound - expected_coverage).abs() < 1e-9);
+    }
+
+    for _ in 0..warmup {
+        let result = assess_shared_resource_allocation(&request, &[])
+            .expect("staggered warmup must succeed");
+        assert_eq!(serde_json::to_vec(&result).expect("warmup bytes"), reference_bytes);
+    }
+    let mut times = Vec::with_capacity(samples);
+    let mut last_bytes = Vec::new();
+    let mut coverage_min = f64::INFINITY;
+    let mut coverage_max = f64::NEG_INFINITY;
+    for _ in 0..samples {
+        let started = Instant::now();
+        let output = assess_shared_resource_allocation(&request, &[])
+            .expect("staggered benchmark assessment must succeed");
+        times.push(started.elapsed());
+        assert_eq!(output.conservative_allocation_iterations, 10);
+        assert_eq!(output.optimistic_allocation_iterations, 10);
+        assert!((output.floor_compliance_lower_bound - 0.8).abs() < 1e-9);
+        for service in &output.services {
+            coverage_min = coverage_min.min(service.coverage_lower_bound);
+            coverage_max = coverage_max.max(service.coverage_lower_bound);
+        }
+        last_bytes = serde_json::to_vec(&output).expect("staggered result must serialize");
+        assert_eq!(last_bytes, reference_bytes, "staggered output must be deterministic");
+    }
+    let p50 = percentile(&times, 50);
+    let p95 = percentile(&times, 95);
+    let max = times.iter().copied().max().unwrap_or_default();
+    Report {
+        source_revision: source_revision(),
+        rustc_version: compiler_version(),
+        ci_runner: env::var("RUNNER_NAME").or_else(|_| env::var("CI_RUNNER_NAME")).ok(),
+        runner_os: env::var("RUNNER_OS").ok(),
+        runner_arch: env::var("RUNNER_ARCH").ok(),
+        host_os: std::env::consts::OS.to_owned(),
+        host_arch: std::env::consts::ARCH.to_owned(),
+        process_peak_rss_bytes_at_report: peak_rss_bytes(),
+        rss_measurement_scope: "process VmHWM since process start; workload sizes share a process",
+        workload: "staggered shared-resource bottlenecks requiring ten successive freeze rounds",
+        service_count: 100,
+        shared_resource_count: 10,
+        usage_constraints: 100,
+        estimated_work_units: reference.estimated_work_units,
+        warmup_iterations: warmup,
+        measured_iterations: samples,
+        p50_micros: p50.as_micros(),
+        p95_micros: p95.as_micros(),
+        max_micros: max.as_micros(),
+        proposed_p95_target_micros: target_ms * 1_000,
+        proposed_p95_target_met: p95.as_micros() <= target_ms * 1_000,
+        expected_coverage: 0.1,
+        observed_coverage_lower_min: coverage_min,
+        observed_coverage_lower_max: coverage_max,
+        protected_floor_compliance_lower_bound: reference.floor_compliance_lower_bound,
+        all_resource_capacity_constraints_hold: reference.resources.iter().all(|resource| {
+            resource.conservative_allocated_capacity <= resource.capacity_lower_bound + 1e-9
+        }),
+        deterministic_output_bytes: last_bytes == reference_bytes,
+        output_bytes: reference_bytes.len(),
+    }
+}
+
 fn main() {
     let samples = env::var("SHARED_RESOURCE_ALLOCATION_BENCH_SAMPLES")
         .ok().and_then(|value| value.parse::<usize>().ok()).unwrap_or(10).max(1);
@@ -258,6 +351,7 @@ fn main() {
         run(100, 10, 10, samples, warmup, 50, 1.0),
         run(500, 25, 10, samples, warmup, 500, 0.5),
         run(1_000, 50, 10, samples, warmup, 2_000, 0.5),
+        run_staggered(samples, warmup, 50),
     ];
     println!("{}", serde_json::to_string_pretty(&reports).expect("reports must serialize"));
 }
