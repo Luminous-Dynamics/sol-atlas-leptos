@@ -989,7 +989,8 @@ mod tests {
                                         let result =
                                             analyze_spatial_overlays(&[item], &policy()).unwrap();
                                         let actual = &result.candidates["site-A"];
-                                        let expected_finding = if validity == GeometryValidity::Invalid
+                                        let expected_finding = if validity
+                                            == GeometryValidity::Invalid
                                         {
                                             ConstraintFinding::Invalid
                                         } else if validity == GeometryValidity::Unknown {
@@ -1036,8 +1037,7 @@ mod tests {
                                             "finding matrix case {evaluated}"
                                         );
                                         assert_eq!(
-                                            actual.gate_status,
-                                            expected_gate,
+                                            actual.gate_status, expected_gate,
                                             "gate matrix case {evaluated}"
                                         );
                                         evaluated += 1;
