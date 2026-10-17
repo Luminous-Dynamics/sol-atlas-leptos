@@ -42,7 +42,8 @@ use sol_atlas_core::service_recovery::{
     SERVICE_RECOVERY_TRAJECTORY_SCHEMA_VERSION,
 };
 use sol_atlas_core::service_network_stress::{
-    assess_service_network_stress, ServiceNetworkStressRequest,
+    assess_service_network_stress, DeclaredFailureSetKind, DeclaredNetworkFailureSet,
+    ServiceNetworkFailureCaseOrigin, ServiceNetworkStressRequest,
     SERVICE_NETWORK_STRESS_SCHEMA_VERSION, MAX_EXHAUSTIVE_FAILURE_CASES,
 };
 use sol_atlas_core::spatial_economic::Quantity;
@@ -455,7 +456,12 @@ fn stress_fixture(
             baseline_scenario: scenario,
             max_simultaneous_failures: 2,
             max_failure_cases: MAX_EXHAUSTIVE_FAILURE_CASES,
-            declared_failure_sets: Vec::new(),
+            declared_failure_sets: vec![DeclaredNetworkFailureSet {
+                id: "shared-trunk:declared-common-cause".into(),
+                kind: DeclaredFailureSetKind::CommonCause,
+                rationale: "Synthetic stress event disables two nominally parallel routes together.".into(),
+                failed_link_ids: vec!["stress-link-0000".into(), "stress-link-0001".into()],
+            }],
         },
         records,
     )
@@ -784,12 +790,20 @@ fn main() {
         )
         .expect("synthetic exhaustive network stress fixture must evaluate");
         let expected_stress_cases =
-            stress_active_links + (stress_active_links * (stress_active_links - 1) / 2);
+            stress_active_links + (stress_active_links * (stress_active_links - 1) / 2) + 1;
         let expected_worst_sets =
             stress_active_links * (stress_active_links - 1) / 2;
         assert_eq!(reference_stress.candidate_failure_case_count, expected_stress_cases);
         assert_eq!(reference_stress.evaluated_failure_case_count, expected_stress_cases);
+        assert_eq!(reference_stress.declared_failure_set_count, 1);
         assert!(reference_stress.exhaustive);
+        let declared_common_cause = reference_stress.cases.iter().find(|case| {
+            case.origin == ServiceNetworkFailureCaseOrigin::DeclaredCommonCause
+                && case.failure_set_id.as_deref() == Some("shared-trunk:declared-common-cause")
+        }).expect("declared common-cause bundle is present");
+        assert_eq!(declared_common_cause.failed_link_ids, vec!["stress-link-0000", "stress-link-0001"]);
+        assert_eq!(declared_common_cause.assessment.conservative_available_capacity,
+            (stress_active_links - 2) as f64);
         assert_eq!(reference_stress.baseline.conservative_available_capacity, stress_active_links as f64);
         assert_eq!(reference_stress.worst_case_conservative_capacity, (stress_active_links - 2) as f64);
         assert_eq!(reference_stress.worst_case_conservative_capacity_loss, 2.0);
@@ -917,7 +931,13 @@ fn main() {
             .expect("synthetic exhaustive network stress fixture must evaluate");
             assert_eq!(stress.candidate_failure_case_count, expected_stress_cases);
             assert_eq!(stress.evaluated_failure_case_count, expected_stress_cases);
+            assert_eq!(stress.declared_failure_set_count, 1);
             assert!(stress.exhaustive);
+            assert!(stress.cases.iter().any(|case| {
+                case.origin == ServiceNetworkFailureCaseOrigin::DeclaredCommonCause
+                    && case.failed_link_ids == vec!["stress-link-0000", "stress-link-0001"]
+                    && case.assessment.conservative_available_capacity == (stress_active_links - 2) as f64
+            }));
             assert_eq!(
                 serde_json::to_vec(&stress).expect("stress report serializes"),
                 reference_stress_bytes
