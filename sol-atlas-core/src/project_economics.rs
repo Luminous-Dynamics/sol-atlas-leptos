@@ -81,8 +81,12 @@ impl std::fmt::Display for ProjectEconomicsError {
         let message = match self {
             Self::InvalidLifetime => "project lifetime must be between 1 and 200 years",
             Self::InvalidFinancialInput => "financial inputs must be finite and non-negative",
-            Self::InvalidGenerationInput => "generation and degradation inputs are outside their physical domain",
-            Self::InvalidReplacementSchedule => "replacement costs must occur inside the project lifetime",
+            Self::InvalidGenerationInput => {
+                "generation and degradation inputs are outside their physical domain"
+            }
+            Self::InvalidReplacementSchedule => {
+                "replacement costs must occur inside the project lifetime"
+            }
             Self::NonFiniteResult => "project economics produced a non-finite result",
             Self::NoDiscountedGeneration => "project has no positive discounted generation",
         };
@@ -147,8 +151,7 @@ pub fn evaluate_project(
         if !discount_factor.is_finite() || discount_factor <= 0.0 {
             return Err(ProjectEconomicsError::NonFiniteResult);
         }
-        let generation = input.annual_generation_kwh
-            * degradation_factor.powi((year - 1) as i32);
+        let generation = input.annual_generation_kwh * degradation_factor.powi((year - 1) as i32);
         let energy_value = generation * input.energy_value_usd_per_kwh;
         let variable_om = generation * input.variable_om_cost_per_kwh_usd;
         let replacement_cost: f64 = input
@@ -305,7 +308,10 @@ mod tests {
             ProjectEconomicsError::InvalidGenerationInput
         );
         let mut input = baseline();
-        input.replacement_costs = vec![ReplacementCost { year: 0, cost_usd: 1.0 }];
+        input.replacement_costs = vec![ReplacementCost {
+            year: 0,
+            cost_usd: 1.0,
+        }];
         assert_eq!(
             evaluate_project(&input).unwrap_err(),
             ProjectEconomicsError::InvalidReplacementSchedule
