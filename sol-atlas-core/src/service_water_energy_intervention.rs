@@ -51,6 +51,8 @@ pub enum WaterEnergyInterventionValidationError {
     StepIdMismatch,
     StepTimeMismatch,
     StepDurationMismatch,
+    NonFiniteDerivedValue,
+    BoundsInconsistent,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -219,12 +221,12 @@ pub fn compare_water_energy_trajectory_interventions(
         .any(|value| !value.is_finite())
         {
             return Err(WaterEnergyInterventionComparisonError::InvalidInput(vec![
-                WaterEnergyInterventionValidationError::StepCountMismatch,
+                WaterEnergyInterventionValidationError::NonFiniteDerivedValue,
             ]));
         }
         if reduction_lower > reduction_upper || delivery_delta_lower > delivery_delta_upper {
             return Err(WaterEnergyInterventionComparisonError::InvalidInput(vec![
-                WaterEnergyInterventionValidationError::StepCountMismatch,
+                WaterEnergyInterventionValidationError::BoundsInconsistent,
             ]));
         }
 
@@ -268,11 +270,16 @@ pub fn compare_water_energy_trajectory_interventions(
     ]
     .into_iter()
     .any(|value| !value.is_finite())
-    || total_reduction_lower > total_reduction_upper
-    || total_delivery_delta_lower > total_delivery_delta_upper
     {
         return Err(WaterEnergyInterventionComparisonError::InvalidInput(vec![
-            WaterEnergyInterventionValidationError::StepCountMismatch,
+            WaterEnergyInterventionValidationError::NonFiniteDerivedValue,
+        ]));
+    }
+    if total_reduction_lower > total_reduction_upper
+        || total_delivery_delta_lower > total_delivery_delta_upper
+    {
+        return Err(WaterEnergyInterventionComparisonError::InvalidInput(vec![
+            WaterEnergyInterventionValidationError::BoundsInconsistent,
         ]));
     }
 
