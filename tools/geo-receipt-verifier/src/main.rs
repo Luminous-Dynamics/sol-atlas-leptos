@@ -1065,4 +1065,91 @@ mod tests {
             "controls": [{"result":"passed"}]
         })));
     }
+    #[test]
+    fn queued_skipped_cancelled_missing_and_stale_head_ci_never_pass() {
+        let commit = "a".repeat(40);
+        let valid = json!({
+            "code": {"commit_sha": commit},
+            "ci_checks": [{
+                "check_id": "check-1",
+                "name": "required",
+                "commit_sha": commit,
+                "status": "completed",
+                "conclusion": "success"
+            }]
+        });
+        assert!(ci_checks_all_pass(&valid));
+
+        for status in ["queued", "in_progress", "skipped", "cancelled", "missing"] {
+            let receipt = json!({
+                "code": {"commit_sha": "a".repeat(40)},
+                "ci_checks": [{
+                    "check_id": "check-1",
+                    "name": "required",
+                    "commit_sha": "a".repeat(40),
+                    "status": status,
+                    "conclusion": null
+                }]
+            });
+            assert!(!ci_checks_all_pass(&receipt), "{status} was incorrectly accepted");
+        }
+
+        let stale_head = json!({
+            "code": {"commit_sha": "a".repeat(40)},
+            "ci_checks": [{
+                "check_id": "check-1",
+                "name": "required",
+                "commit_sha": "b".repeat(40),
+                "status": "completed",
+                "conclusion": "success"
+            }]
+        });
+        assert!(!ci_checks_all_pass(&stale_head));
+        assert!(!ci_checks_all_pass(&json!({
+            "code": {"commit_sha": commit},
+            "ci_checks": []
+        })));
+    }
+
+    #[test]
+    fn metrics_without_uncertainty_method_cannot_qualify() {
+        assert!(!metrics_present(&json!({
+            "metrics": [{
+                "metric_id": "rmse",
+                "name": "RMSE",
+                "value": 1.0,
+                "unit": "nT",
+                "sample_count": 100,
+                "uncertainty_method": "none"
+            }]
+        })));
+        assert!(metrics_present(&json!({
+            "metrics": [{
+                "metric_id": "rmse",
+                "name": "RMSE",
+                "value": 1.0,
+                "unit": "nT",
+                "sample_count": 100,
+                "uncertainty_method": "bootstrap",
+                "lower_bound": 0.9,
+                "upper_bound": 1.1,
+                "confidence_level": 0.95
+            }]
+        })));
+    }
+
+    #[test]
+    fn canonical_json_digest_ignores_object_insertion_order() {
+        let mut first = serde_json::Map::new();
+        first.insert("z".to_string(), json!(2));
+        first.insert("a".to_string(), json!({"q": 1, "b": 0}));
+        let mut second = serde_json::Map::new();
+        second.insert("a".to_string(), json!({"b": 0, "q": 1}));
+        second.insert("z".to_string(), json!(2));
+        assert_eq!(
+            serde_json::to_vec(&canonical_json_value(&Value::Object(first))).unwrap(),
+            serde_json::to_vec(&canonical_json_value(&Value::Object(second))).unwrap()
+        );
+    }
+
 }
