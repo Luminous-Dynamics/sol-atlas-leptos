@@ -264,12 +264,13 @@ fn evaluate_case(case: &Value) -> Result<CaseDecision, String> {
         } else {
             "unknown_hard_constraint"
         };
+        let candidate_reason_codes = reason_codes(&constraint_results);
         receipts.push(json!({
             "candidate_id": candidate_id,
             "eligibility": eligibility,
             "hard_constraint_results": constraint_results,
             "soft_preference_match": is_preferred,
-            "reason_codes": reason_codes(&constraint_results)
+            "reason_codes": candidate_reason_codes
         }));
     }
 
