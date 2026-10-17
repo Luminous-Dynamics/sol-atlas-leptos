@@ -275,15 +275,12 @@ pub fn load_all_with_health(
         |v| v.len(),
         &mut health,
     );
-    let (emergency_shelters, health_facilities, robotics_dispatch) =
-        parse_or_log_with_health(
-            "infrastructure",
-            parse_infrastructure(infrastructure_json),
-            |(shelters, facilities, robotics)| {
-                shelters.len() + facilities.len() + robotics.len()
-            },
-            &mut health,
-        );
+    let (emergency_shelters, health_facilities, robotics_dispatch) = parse_or_log_with_health(
+        "infrastructure",
+        parse_infrastructure(infrastructure_json),
+        |(shelters, facilities, robotics)| shelters.len() + facilities.len() + robotics.len(),
+        &mut health,
+    );
     let fossil_deposits = parse_or_log_with_health(
         "fossil-deposits",
         parse_fossil_deposits(fossil_deposits_json),
@@ -296,12 +293,8 @@ pub fn load_all_with_health(
         |v| v.len(),
         &mut health,
     );
-    let (natural_events, natural_event_health) = parse_natural_events_with_health(
-        earthquakes_json,
-        fires_json,
-        storms_json,
-        volcanoes_json,
-    );
+    let (natural_events, natural_event_health) =
+        parse_natural_events_with_health(earthquakes_json, fires_json, storms_json, volcanoes_json);
     health.extend(natural_event_health);
     let major_cities = parse_or_log_with_health(
         "major-cities",
@@ -323,10 +316,23 @@ pub fn load_all_with_health(
     );
 
     let data = LoadedData {
-        sites, geothermal_nodes, maglev_corridors, resontia_vaults, terra_lumina_sites,
-        earth_regions, supply_routes, climate_projects, emergency_shelters, health_facilities,
-        robotics_dispatch, fossil_deposits, nuclear_sites, natural_events, major_cities,
-        chokepoints, critical_infrastructure,
+        sites,
+        geothermal_nodes,
+        maglev_corridors,
+        resontia_vaults,
+        terra_lumina_sites,
+        earth_regions,
+        supply_routes,
+        climate_projects,
+        emergency_shelters,
+        health_facilities,
+        robotics_dispatch,
+        fossil_deposits,
+        nuclear_sites,
+        natural_events,
+        major_cities,
+        chokepoints,
+        critical_infrastructure,
     };
     LoadedDataReport { data, health }
 }
@@ -370,7 +376,8 @@ pub fn load_all(
         cities_json,
         chokepoints_json,
         critical_infra_json,
-    ).data
+    )
+    .data
 }
 
 /// Parse simplified shipping lane routes (Vec of Vec of [lon, lat]).
@@ -449,7 +456,8 @@ fn parse_natural_events_with_health(
             }
         };
         let source_count = fc.features.len();
-        let events: Vec<NaturalEvent> = fc.features
+        let events: Vec<NaturalEvent> = fc
+            .features
             .iter()
             .filter_map(|f| {
                 let coords = &f.geometry.coordinates;
@@ -570,7 +578,12 @@ mod tests {
         assert_eq!(health[2].state, DatasetLoadState::Malformed);
         assert_eq!(health[2].record_count, None);
         assert_eq!(health[2].rejected_record_count, None);
-        assert!(health[2].diagnostic.as_deref().is_some_and(|d| !d.is_empty()));
+        assert!(
+            health[2]
+                .diagnostic
+                .as_deref()
+                .is_some_and(|d| !d.is_empty())
+        );
     }
 
     #[test]
@@ -578,23 +591,43 @@ mod tests {
         let report = load_all_with_health(
             "{",
             r#"{"geothermal_nodes":[],"maglev_corridors":[]}"#,
-            "[]", "[]", "[]", "[]", "[]", "{}",
-            "[]", "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "{}",
+            "[]",
+            "[]",
             "{", // malformed GeoJSON must be visible as malformed too
             r#"{"type":"FeatureCollection","features":[]}"#,
             r#"{"type":"FeatureCollection","features":[]}"#,
             r#"{"type":"FeatureCollection","features":[]}"#,
-            "[]", "[]", "[]",
+            "[]",
+            "[]",
+            "[]",
         );
         assert_eq!(report.health.len(), 17);
         assert!(report.data.sites.is_empty());
-        let sites = report.health.iter().find(|h| h.dataset == "sites-clustered").unwrap();
+        let sites = report
+            .health
+            .iter()
+            .find(|h| h.dataset == "sites-clustered")
+            .unwrap();
         assert_eq!(sites.state, DatasetLoadState::Malformed);
         assert_eq!(sites.record_count, None);
-        let earthquakes = report.health.iter().find(|h| h.dataset == "usgs-earthquakes").unwrap();
+        let earthquakes = report
+            .health
+            .iter()
+            .find(|h| h.dataset == "usgs-earthquakes")
+            .unwrap();
         assert_eq!(earthquakes.state, DatasetLoadState::Malformed);
         assert_eq!(earthquakes.record_count, None);
-        let vaults = report.health.iter().find(|h| h.dataset == "resontia-vaults").unwrap();
+        let vaults = report
+            .health
+            .iter()
+            .find(|h| h.dataset == "resontia-vaults")
+            .unwrap();
         assert_eq!(vaults.state, DatasetLoadState::ValidEmpty);
         assert_eq!(vaults.record_count, Some(0));
         assert!(report.health.iter().all(|h| !h.dataset.is_empty()));
@@ -649,7 +682,12 @@ mod tests {
         assert_eq!(health[0].state, DatasetLoadState::PartiallyLoaded);
         assert_eq!(health[0].record_count, Some(1));
         assert_eq!(health[0].rejected_record_count, Some(1));
-        assert!(health[0].diagnostic.as_deref().is_some_and(|d| d.contains("1 source features")));
+        assert!(
+            health[0]
+                .diagnostic
+                .as_deref()
+                .is_some_and(|d| d.contains("1 source features"))
+        );
         assert_eq!(health[1].state, DatasetLoadState::ValidEmpty);
         assert_eq!(health[1].record_count, Some(0));
     }
