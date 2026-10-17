@@ -562,6 +562,55 @@ mod tests {
         ));
     }
 
+    #[derive(Deserialize)]
+    struct ExpectedValue {
+        before: f64,
+        after_sample: f64,
+        evpi: f64,
+        evsi: f64,
+        cost: f64,
+        net_value: f64,
+        recommended: bool,
+        tolerance: f64,
+    }
+
+    #[derive(Deserialize)]
+    struct BenchmarkCase {
+        case_id: String,
+        model: DecisionModel,
+        investigations: Vec<Investigation>,
+        expected: BTreeMap<String, ExpectedValue>,
+    }
+
+    #[test]
+    fn synthetic_voi_benchmark_matches_expected_values() {
+        let fixture =
+            include_str!("../../docs/research/fixtures/site-investigation-voi-benchmark-v0.1.jsonl");
+        let mut cases = 0;
+        for line in fixture.lines().filter(|line| !line.trim().is_empty()) {
+            let case: BenchmarkCase =
+                serde_json::from_str(line).expect("valid VOI benchmark JSONL");
+            let results = rank_investigations(&case.model, &case.investigations)
+                .unwrap_or_else(|error| panic!("{}: {error}", case.case_id));
+            assert_eq!(results.len(), case.expected.len(), "{}", case.case_id);
+            for result in results {
+                let expected = case.expected.get(&result.investigation_id)
+                    .unwrap_or_else(|| panic!("{}: missing expected result for {}", case.case_id, result.investigation_id));
+                let tolerance = expected.tolerance;
+                assert!((result.expected_loss_before_information - expected.before).abs() <= tolerance, "{}", case.case_id);
+                assert!((result.expected_loss_after_sample_information - expected.after_sample).abs() <= tolerance, "{}", case.case_id);
+                assert!((result.expected_loss_with_perfect_information - expected.evpi /* overwritten below */).abs() <= tolerance, "{}", case.case_id);
+                assert!((result.evsi - expected.evsi).abs() <= tolerance, "{}", case.case_id);
+                assert!((result.evpi - expected.evpi).abs() <= tolerance, "{}", case.case_id);
+                assert!((result.investigation_cost - expected.cost).abs() <= tolerance, "{}", case.case_id);
+                assert!((result.net_value - expected.net_value).abs() <= tolerance, "{}", case.case_id);
+                assert_eq!(result.recommended_for_economic_review, expected.recommended, "{}", case.case_id);
+            }
+            cases += 1;
+        }
+        assert!(cases >= 3, "benchmark must contain at least three cases");
+    }
+
     #[test]
     fn duplicate_investigation_ids_are_rejected() {
         let model = decision_model();
