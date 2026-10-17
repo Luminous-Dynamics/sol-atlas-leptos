@@ -1,0 +1,11 @@
+{
+  "benchmark_id": "SOL-ATLAS-SITE-EVIDENCE-001",
+  "version": "0.1.0",
+  "fixture_path": "docs/research/fixtures/site-evidence-benchmark-v0.1.jsonl",
+  "fixture_git_blob_sha": "7d02efd8727b0a49534805e8c14f0febc939c1d0",
+  "fixture_character_count": 17380,
+  "records": 16,
+  "as_of_date": "2026-10-17",
+  "provenance": "All source metadata, licenses, identifiers, coordinates, bounds, timestamps and authority results in this fixture are synthetic.",
+  "claim_ceiling": "Tests metadata-policy dispositions only. It does not check real GIS content, validate an actual source digest, confirm licenses, transform CRS, establish data truth, or certify legal, environmental or engineering suitability."
+}
