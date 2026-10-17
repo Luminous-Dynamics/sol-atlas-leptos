@@ -81,7 +81,7 @@ A zero exit code for `executed_unqualified` means the receipt was processed corr
 
 ## Current implementation slice
 
-The verifier now includes 14 authored regression tests for schema acceptance, canonical receipt digests, path traversal, Git URL normalization, strict gates/controls, exact-head CI evidence, metric uncertainty metadata, and synthetic truth visibility. A CI workflow was added for `cargo fmt --check`, tests, and Clippy. These commands have **not yet been executed in this environment**; the current feature-branch CI runs remain pending/queued until a runner reports results. Do not call the implementation Rust-qualified until the exact commit's workflow completes successfully.
+The verifier now includes 16 authored regression tests for schema acceptance, canonical receipt digests, path traversal, Git URL normalization, strict gates/controls, exact-head CI evidence, metric uncertainty metadata, and synthetic truth visibility. A CI workflow was added for `cargo fmt --check`, tests, and Clippy. These commands have **not yet been executed in this environment**; the current feature-branch CI runs remain pending/queued until a runner reports results. Do not call the implementation Rust-qualified until the exact commit's workflow completes successfully.
 
 The verifier checks retained workflow-run JSON offline against the receipt and the payload digest. It does not cryptographically authenticate that a JSON file originated from GitHub, so the linked run URL and provider provenance remain independently auditable. Receipt eligibility is a protocol/integrity check, not proof of geophysical truth.
 
