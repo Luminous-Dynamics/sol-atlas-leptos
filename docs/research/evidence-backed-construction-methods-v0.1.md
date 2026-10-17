@@ -90,3 +90,7 @@ Proposed promotion targets:
 ## Scope / claim ceiling
 
 This is a *screening and trade-off evaluator*. It does not design a building, calculate member sizes, prove fire/moisture performance, check a jurisdiction's building code, authenticate evidence, generate a bill of quantities, or certify safety, price, carbon or circularity. Synthetic benchmark success is not permission to build. Mandatory statutory, structural, fire, health, land-rights, environmental and worker-safety requirements remain outside weighted trade-offs.
+
+## Follow-on assembly research
+
+Issue https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/149 tracks a physical/testable design direction: reversible and serviceable connections, low part/tool complexity, accessible service routes, repair-first layers, measured disassembly yield and task-level worker exposure. That work should prototype and test assemblies before proposing a universal construction system.
