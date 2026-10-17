@@ -24,7 +24,7 @@ The [WHO Commission on Social Connection](https://www.who.int/groups/commission-
 
 A 2025 BMJ Open umbrella review, [“Potential harms of social prescribing: a global umbrella review and dark logic model”](https://doi.org/10.1136/bmjopen-2025-108998), argues that unintended effects and governance deserve attention and cautions against relying on one outcome measure alone. Treat that as a reason to predefine plausible harms and multiple measures—not as proof that every social-prescribing intervention is harmful.
 
-Open Referral's [HSDS schema reference](https://docs.openreferral.org/en/v3.3/hsds/schema_reference.html) specifies separate objects and their relationships; its documentation notes that object schemas define structure and required/optional fields. A schema check is therefore a format/structure gate, not evidence that a real service exists, remains open, or is suitable. This branch's fixture is explicitly **not yet validated against the canonical HSDS 3.1 schema**.
+Open Referral's [HSDS schema reference](https://docs.openreferral.org/en/v3.3/hsds/schema_reference.html) specifies separate objects and their relationships; its documentation notes that object schemas define structure and required/optional fields. A schema check is therefore a format/structure gate, not evidence that a real service exists, remains open, or is suitable. This branch now pins nine HSDS 3.1 resource-schema files and checks selected row fields, required/tabular-required fields, types, formats, enums and relationships; it **does not yet claim full canonical HSDS conformance**, because nested reference semantics and all upstream schema rules have not been implemented or run through the official full schema/profile toolchain.
 
 ## 3. Evaluation layers and proposed measures
 
@@ -93,7 +93,7 @@ A directory-only pilot can usually establish feasibility, coverage and task outc
 
 ## 6. Current evidence and open engineering gates
 
-The synthetic admission fixture currently includes eleven cases with manifest SHA-256 `3486a76b709e2b8e56e15b4fbb5b7c8cab6303dc7dfb1db916a3af89c70dbd10`. Its manifest pins the evaluation date (2026-10-17) and a 30-day provider-confirmation freshness window, making the stale-state decision reproducible. The 30-day threshold is an illustrative test policy, not a universal rule; production policies should be field-specific and locally reviewed. The standalone Rust checker has been authored with golden and negative-control tests, but **has not been compiled or run here**. Any hand-executed mirror or static inspection is not a Rust test pass.
+The synthetic admission fixture currently includes eleven cases with manifest SHA-256 `fa66bc059b780ce6e3ea5ba37689c48b4c14952c7a386e7fe1c8403806145b79`. Its manifest pins the evaluation date (2026-10-17) and a 30-day provider-confirmation freshness window, making the stale-state decision reproducible. The 30-day threshold is an illustrative test policy, not a universal rule; production policies should be field-specific and locally reviewed. The standalone Rust checker now verifies the pinned schema-file bytes and selected HSDS row contract, with 20 authored golden and negative-control tests, but **has not been compiled or run here**. Any hand-executed mirror or static inspection is not a Rust test pass.
 
 The next engineering gates remain:
 
