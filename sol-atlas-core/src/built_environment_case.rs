@@ -250,7 +250,10 @@ impl fmt::Display for EvidenceGraphError {
             Self::EmptyCaseId => write!(f, "case ID must not be empty"),
             Self::EmptyJurisdiction => write!(f, "case jurisdiction must not be empty"),
             Self::EmptyApprovableKinds => {
-                write!(f, "policy must declare at least one approvable artifact kind")
+                write!(
+                    f,
+                    "policy must declare at least one approvable artifact kind"
+                )
             }
             Self::InvalidPolicyStates => {
                 write!(f, "policy must declare accepted evidence states")
@@ -340,7 +343,9 @@ fn accepted_evidence<'a>(
     let Some(evidence) = evidence_by_id.get(evidence_id).copied() else {
         return false;
     };
-    policy.accepted_evidence_states.contains(&evidence.evidence_state)
+    policy
+        .accepted_evidence_states
+        .contains(&evidence.evidence_state)
         && policy.accepted_data_rights.contains(&evidence.data_rights)
         && evidence.jurisdiction == jurisdiction
         && nonempty(&evidence.source_id)
@@ -373,9 +378,10 @@ fn required_receipt_is_accepted(
             .is_some_and(|version| nonempty(version))
         && nonempty(&receipt.declared_scope)
         && !receipt.assumption_evidence_ids.is_empty()
-        && receipt.assumption_evidence_ids.iter().all(|evidence_id| {
-            accepted_evidence(evidence_id, evidence_by_id, policy, jurisdiction)
-        })
+        && receipt
+            .assumption_evidence_ids
+            .iter()
+            .all(|evidence_id| accepted_evidence(evidence_id, evidence_by_id, policy, jurisdiction))
         && (receipt.review_level != ReviewLevel::QualifiedProfessional
             || receipt
                 .reviewer_id
@@ -390,8 +396,7 @@ fn latest_artifact_revision<'a>(
     artifacts
         .iter()
         .filter(|candidate| {
-            candidate.design_id == artifact.design_id
-                && candidate.family_id == artifact.family_id
+            candidate.design_id == artifact.design_id && candidate.family_id == artifact.family_id
         })
         .max_by(|a, b| {
             a.revision
@@ -447,7 +452,11 @@ pub fn validate_case(
             "artifact identifiers must be unique",
         );
     }
-    for id in duplicates(case.engineering_receipts.iter().map(|r| r.receipt_id.as_str())) {
+    for id in duplicates(
+        case.engineering_receipts
+            .iter()
+            .map(|r| r.receipt_id.as_str()),
+    ) {
         issue(
             &mut issues,
             ValidationCode::DuplicateReceiptId,
@@ -524,11 +533,13 @@ pub fn validate_case(
                 "verified evidence must bind an exact source-payload digest",
             );
         }
-        if matches!(evidence.data_rights, DataRights::OpenLicense | DataRights::Restricted)
-            && evidence
-                .license_id
-                .as_ref()
-                .is_none_or(|license| !nonempty(license))
+        if matches!(
+            evidence.data_rights,
+            DataRights::OpenLicense | DataRights::Restricted
+        ) && evidence
+            .license_id
+            .as_ref()
+            .is_none_or(|license| !nonempty(license))
         {
             issue(
                 &mut issues,
@@ -612,7 +623,10 @@ pub fn validate_case(
                     &mut issues,
                     ValidationCode::MissingParentArtifact,
                     artifact.artifact_id.clone(),
-                    format!("artifact references missing parent artifact {}", parent.artifact_id),
+                    format!(
+                        "artifact references missing parent artifact {}",
+                        parent.artifact_id
+                    ),
                 ),
                 Some(parent_record) if parent_record.content_sha256 != parent.content_sha256 => {
                     issue(
@@ -632,7 +646,10 @@ pub fn validate_case(
                     &mut issues,
                     ValidationCode::InvalidDigest,
                     artifact.artifact_id.clone(),
-                    format!("parent artifact {} has an invalid pinned digest", parent.artifact_id),
+                    format!(
+                        "parent artifact {} has an invalid pinned digest",
+                        parent.artifact_id
+                    ),
                 );
             }
         }
@@ -681,7 +698,10 @@ pub fn validate_case(
                 "engineering receipt identity, design, and input artifact are required",
             );
         }
-        match artifacts_by_id.get(receipt.input_artifact_id.as_str()).copied() {
+        match artifacts_by_id
+            .get(receipt.input_artifact_id.as_str())
+            .copied()
+        {
             None => issue(
                 &mut issues,
                 ValidationCode::MissingInputArtifact,
@@ -734,7 +754,10 @@ pub fn validate_case(
             );
         }
         if receipt.review_level == ReviewLevel::QualifiedProfessional
-            && receipt.reviewer_id.as_ref().is_none_or(|reviewer| !nonempty(reviewer))
+            && receipt
+                .reviewer_id
+                .as_ref()
+                .is_none_or(|reviewer| !nonempty(reviewer))
         {
             issue(
                 &mut issues,
@@ -776,7 +799,9 @@ pub fn validate_case(
                 "decision timestamp is after the evaluation time",
             );
         }
-        let target = artifacts_by_id.get(decision.target_artifact_id.as_str()).copied();
+        let target = artifacts_by_id
+            .get(decision.target_artifact_id.as_str())
+            .copied();
         match target {
             None => issue(
                 &mut issues,
@@ -837,8 +862,12 @@ pub fn validate_case(
                             ),
                             Some(evidence)
                                 if evidence.evidence_state != EvidenceState::Verified
-                                    || !policy.accepted_evidence_states.contains(&evidence.evidence_state)
-                                    || !policy.accepted_data_rights.contains(&evidence.data_rights)
+                                    || !policy
+                                        .accepted_evidence_states
+                                        .contains(&evidence.evidence_state)
+                                    || !policy
+                                        .accepted_data_rights
+                                        .contains(&evidence.data_rights)
                                     || evidence.jurisdiction != case.jurisdiction =>
                             {
                                 issue(
@@ -877,16 +906,18 @@ pub fn validate_case(
                                 &mut issues,
                                 ValidationCode::MissingEngineeringReceipt,
                                 decision.event_id.clone(),
-                                format!("decision references missing engineering receipt {receipt_id}"),
+                                format!(
+                                    "decision references missing engineering receipt {receipt_id}"
+                                ),
                             ),
                             Some(receipt) => {
                                 if !required_receipt_is_accepted(
-                    receipt,
-                    target,
-                    policy,
-                    &evidence_by_id,
-                    &case.jurisdiction,
-                ) {
+                                    receipt,
+                                    target,
+                                    policy,
+                                    &evidence_by_id,
+                                    &case.jurisdiction,
+                                ) {
                                     issue(
                                         &mut issues,
                                         ValidationCode::EngineeringReceiptNotAccepted,
@@ -1115,8 +1146,16 @@ mod tests {
         let current = &mut case.artifacts[0];
         current.content_sha256 = digest('c');
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
-        assert!(result.iter().any(|issue| issue.code == ValidationCode::StaleInputDigest));
-        assert!(result.iter().any(|issue| issue.code == ValidationCode::EngineeringReceiptNotAccepted));
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::StaleInputDigest)
+        );
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::EngineeringReceiptNotAccepted)
+        );
     }
 
     #[test]
@@ -1124,7 +1163,11 @@ mod tests {
         let mut case = valid_case();
         case.artifacts.push(artifact("model-2", 2, 'd'));
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
-        assert!(result.iter().any(|issue| issue.code == ValidationCode::ApprovalForSupersededArtifact));
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::ApprovalForSupersededArtifact)
+        );
     }
 
     #[test]
@@ -1132,7 +1175,11 @@ mod tests {
         let mut case = valid_case();
         case.evidence[1].evidence_state = EvidenceState::Unknown;
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
-        assert!(result.iter().any(|issue| issue.code == ValidationCode::AuthorityEvidenceNotAccepted));
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::AuthorityEvidenceNotAccepted)
+        );
     }
 
     #[test]
@@ -1141,8 +1188,16 @@ mod tests {
         case.engineering_receipts[0].run_status = SolverRunStatus::NonConverged;
         case.engineering_receipts[0].conclusion = EngineeringConclusion::Indeterminate;
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
-        assert!(result.iter().any(|issue| issue.code == ValidationCode::EngineeringReceiptNotAccepted));
-        assert!(result.iter().any(|issue| issue.code == ValidationCode::MissingRequiredDiscipline));
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::EngineeringReceiptNotAccepted)
+        );
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::MissingRequiredDiscipline)
+        );
     }
 
     #[test]
@@ -1154,8 +1209,16 @@ mod tests {
             content_sha256: digest('d'),
         });
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
-        assert!(result.iter().any(|issue| issue.code == ValidationCode::MissingEvidenceReference));
-        assert!(result.iter().any(|issue| issue.code == ValidationCode::MissingParentArtifact));
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::MissingEvidenceReference)
+        );
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::MissingParentArtifact)
+        );
     }
 
     #[test]
@@ -1169,9 +1232,11 @@ mod tests {
         });
         case.artifacts.push(child);
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
-        assert!(result
-            .iter()
-            .any(|issue| issue.code == ValidationCode::StaleParentArtifactDigest));
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::StaleParentArtifactDigest)
+        );
     }
 
     #[test]
@@ -1184,22 +1249,30 @@ mod tests {
             ..evidence("stale-assumption")
         });
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
-        assert!(result
-            .iter()
-            .any(|issue| issue.code == ValidationCode::EngineeringReceiptNotAccepted));
-        assert!(result
-            .iter()
-            .any(|issue| issue.code == ValidationCode::MissingRequiredDiscipline));
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::EngineeringReceiptNotAccepted)
+        );
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::MissingRequiredDiscipline)
+        );
     }
 
     #[test]
     fn approval_with_conditions_must_not_be_reported_as_unconditional() {
         let mut case = valid_case();
-        case.decisions[0].conditions.push("Await final local authority sign-off".into());
+        case.decisions[0]
+            .conditions
+            .push("Await final local authority sign-off".into());
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
-        assert!(result
-            .iter()
-            .any(|issue| issue.code == ValidationCode::ApprovalHasConditions));
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::ApprovalHasConditions)
+        );
     }
 
     #[test]
@@ -1216,7 +1289,11 @@ mod tests {
         });
         case.artifacts.push(second);
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
-        assert!(result.iter().any(|issue| issue.code == ValidationCode::ArtifactDependencyCycle));
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::ArtifactDependencyCycle)
+        );
     }
 
     #[test]
@@ -1225,8 +1302,16 @@ mod tests {
         case.artifacts[0].content_sha256 = "not-a-digest".into();
         case.engineering_receipts[0].reviewer_id = None;
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
-        assert!(result.iter().any(|issue| issue.code == ValidationCode::InvalidDigest));
-        assert!(result.iter().any(|issue| issue.code == ValidationCode::ProfessionalReviewerMissing));
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::InvalidDigest)
+        );
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::ProfessionalReviewerMissing)
+        );
     }
 
     #[test]
@@ -1234,9 +1319,11 @@ mod tests {
         let mut case = valid_case();
         case.decisions[0].supersedes_event_id = Some("approval-1".into());
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
-        assert!(result
-            .iter()
-            .any(|issue| issue.code == ValidationCode::InvalidSupersessionReference));
+        assert!(
+            result
+                .iter()
+                .any(|issue| issue.code == ValidationCode::InvalidSupersessionReference)
+        );
     }
 
     #[test]
