@@ -1,0 +1,81 @@
+{
+  "schema_version": "luminous.sol-atlas.publisher-context-observation.v1",
+  "observation_id": "black-sea-global-food-market-context-2026-09",
+  "status": "publisher_narrative_discovery_only",
+  "case_relationship": {
+    "historical_case_id": "black-sea-grain-initiative-2022-2023",
+    "relationship": "separate_later_context_record",
+    "do_not_append_to_historical_corridor_series": true,
+    "rationale": "This is an FAO market narrative about September 2026, not an observation from the Black Sea Grain Initiative's 2022-2023 corridor series."
+  },
+  "publisher": "Food and Agriculture Organization of the United Nations",
+  "source": {
+    "source_id": "FAO-FFPI",
+    "url": "https://www.fao.org/worldfoodsituation/FoodPricesIndex/en/",
+    "release_date": "2026-10-02",
+    "retrieved_date": "2026-10-15",
+    "exact_source_bytes_acquired": false,
+    "source_sha256": null,
+    "capture_method": "official_page_discovery_only",
+    "rights_review_state": "review_dataset_version"
+  },
+  "reference_period": "2026-09",
+  "publisher_reported_metrics": {
+    "fao_food_price_index": {
+      "value": 136,
+      "unit": "index_points",
+      "change_from_previous_month_percent": 1.5,
+      "previous_month_status": "revised"
+    },
+    "fao_cereal_price_index": {
+      "value": 122.8,
+      "unit": "index_points",
+      "change_from_previous_month_points": 6,
+      "change_from_previous_month_percent": 5.1
+    },
+    "international_maize_prices": {
+      "change_from_previous_month_percent": 5.6,
+      "unit": "percent"
+    },
+    "fao_vegetable_oil_price_index": {
+      "value": 198.6,
+      "unit": "index_points",
+      "change_from_previous_month_percent": 0.9
+    }
+  },
+  "publisher_narrative": {
+    "black_sea": {
+      "summary": "FAO stated that logistical disruptions in the Black Sea region reduced maize export availability and constrained sunflower-oil price declines despite expectations of ample supply.",
+      "evidence_type": "publisher_interpretation",
+      "independent_corroboration_complete": false
+    },
+    "alternative_origins": {
+      "summary": "FAO reported that Black Sea logistical constraints prompted importers to shift toward alternative origins.",
+      "evidence_type": "publisher_interpretation",
+      "independent_corroboration_complete": false
+    },
+    "simultaneous_factors_reported": {
+      "summary": "The same release also identified dry conditions in North America, lower-than-anticipated US yields, less export availability in Brazil, and uncertainty over Strait of Hormuz shipping with implications for fuel, fertilizer and freight costs.",
+      "evidence_type": "publisher_interpretation",
+      "independent_corroboration_complete": false
+    }
+  },
+  "interpretation_ceiling": {
+    "allowed": "Record values and explanations as a dated FAO-published observation, subject to exact source capture and revision review.",
+    "not_established": [
+      "Independent confirmation of the FAO narrative or the relative contribution of each factor.",
+      "A quantified causal effect of conflict or shipping disruption on global prices.",
+      "A specific port closure, named supplier, shipment, inventory, destination shortage or real-time route state.",
+      "A current operational warning or forecast."
+    ]
+  },
+  "validation_gates": {
+    "exact_source_bytes_and_sha256": false,
+    "dataset_version_and_revision_review": false,
+    "rights_and_attribution_review": false,
+    "commodity_series_reparsed_from_captured_data": false,
+    "independent_corroboration_completed": false,
+    "concurrent_factor_analysis_completed": false,
+    "independent_review_completed": false
+  }
+}
