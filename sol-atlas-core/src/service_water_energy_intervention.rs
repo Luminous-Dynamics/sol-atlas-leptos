@@ -508,6 +508,24 @@ mod tests {
     }
 
     #[test]
+    fn validates_shared_evidence_corpus_before_assessing_either_side() {
+        let input = comparison(20.0, 40.0);
+        let duplicate = observed("duplicate", "source", 100.0, WATER_RATE_UNIT, TIMES[0]);
+        let result = compare_water_energy_trajectory_interventions(
+            &input,
+            &[duplicate.clone(), duplicate],
+        );
+        assert!(matches!(
+            result,
+            Err(WaterEnergyInterventionComparisonError::EvidenceValidation(
+                ServiceFunctionAssessmentError::InvalidInput(errors)
+            )) if errors.contains(
+                &crate::service_function::ServiceFunctionValidationError::DuplicateEvidenceRecordId
+            )
+        ));
+    }
+
+    #[test]
     fn keeps_water_and_energy_provenance_separate_for_each_side() {
         let mut input = comparison(20.0, 40.0);
         let mut evidence = Vec::new();
