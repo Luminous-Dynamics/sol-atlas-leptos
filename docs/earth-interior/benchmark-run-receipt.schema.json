@@ -406,7 +406,8 @@
           "commit_sha",
           "status",
           "conclusion",
-          "evidence_artifact_id"
+          "evidence_artifact_id",
+          "url"
         ],
         "properties": {
           "check_id": {
