@@ -8,7 +8,7 @@
 
 Treat the directory as a **real-world access workflow**, not a scraped map or an engagement funnel. A location pin, an organization record, a current service, a working contact path, provider confirmation, permission to republish, and actual live capacity are distinct facts. They must not be compressed into one trust score.
 
-The fixture contains ten synthetic decision cases. Every organization, service, URL and location is synthetic; no vulnerable-client data, personal contact details, or real coordinates are included.
+The fixture contains eleven synthetic decision cases. Every organization, service, URL and location is synthetic; no vulnerable-client data, personal contact details, or real coordinates are included.
 
 ## Fixture cases
 
@@ -24,6 +24,7 @@ The fixture contains ten synthetic decision cases. Every organization, service, 
 | CBF-008 | ClosedOrWithdrawn | Provider-confirmed closed service is suppressed |
 | CBF-009 | CandidateOnly | Unresolved reuse permission blocks publication |
 | CBF-010 | ProviderConfirmed | Service-area/virtual option has no fabricated street pin |
+| CBF-011 | StaleOrDisputed | Provider-confirmed status older than the manifest-pinned 30-day window is not current |
 
 Each JSONL record contains synthetic HSDS-shaped fragments (organization, service, location, service-at-location and schedule where relevant), a separate local admission-evidence envelope, and an expected decision. Local evidence fields are intentionally kept out of the HSDS fragments so a future profile can be versioned separately.
 
@@ -32,7 +33,7 @@ Each JSONL record contains synthetic HSDS-shaped fragments (organization, servic
 ## Admission invariants
 
 1. **Separate permission from verification.** Permission to reuse data does not verify a service; provider confirmation does not grant permission.
-2. **Field-scoped verification.** Verification applies only to named fields and the time evidenced.
+2. **Field-scoped verification.** Verification applies only to named fields and the time evidenced. At the fixture's pinned evaluation date, provider confirmation older than 30 days is stale; that is a test policy, not a universal freshness standard.
 3. **Fail closed on material ambiguity.** Conflicts affecting address, operation, eligibility, access, contactability or suitability require review.
 4. **Unknown never becomes positive.** Unknown cost, accessibility, eligibility, language, schedule, capacity and operation remain explicit unknowns.
 5. **No single trust score.** Preserve provenance and independent claim states.
