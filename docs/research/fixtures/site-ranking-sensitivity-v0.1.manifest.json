@@ -1,0 +1,11 @@
+{
+  "benchmark_id": "SOL-ATLAS-RANKING-SENSITIVITY-001",
+  "version": "0.1.0",
+  "fixture_path": "docs/research/fixtures/site-ranking-sensitivity-v0.1.jsonl",
+  "fixture_git_blob_sha": "accd7d3bbfe0607d1e4fca97ac7263c12200fbd9",
+  "fixture_character_count": 4406,
+  "records": 7,
+  "as_of_date": "2026-10-17",
+  "provenance": "All candidate IDs, normalized scores, weight scenarios and gate dispositions are synthetic fixtures.",
+  "claim_ceiling": "Tests scenario-based ranking semantics only. A robust unique winner is withheld if any non-excluded candidate is not rankable in any declared scenario. Scenario share is not a probability. The fixture does not validate real site scores, preferences, GIS, legal feasibility or engineering safety."
+}
