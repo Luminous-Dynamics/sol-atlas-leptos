@@ -68,6 +68,11 @@ pub enum WaterEnergyStressInterventionValidationError {
     StepAlignmentMismatch,
     NonFiniteDerivedValue,
     BoundsInconsistent,
+    EmptyCandidateSet,
+    EmptyCandidateId,
+    DuplicateCandidateId,
+    DuplicateCandidateExperimentId,
+    ArithmeticOverflow,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -1066,7 +1071,7 @@ mod tests {
         }
     }
 
-    fn sweep_request(id: &str, storage: f64) -> WaterEnergyStressSweepRequest {
+    pub(super) fn sweep_request(id: &str, storage: f64) -> WaterEnergyStressSweepRequest {
         let overrides = TIMES
             .iter()
             .enumerate()
@@ -1265,3 +1270,367 @@ mod tests {
         ));
     }
 }
+
+
+
+/// Versioned request for comparing many intervention candidates against one fixed
+/// baseline and one fixed declared joint-failure suite.
+pub const WATER_ENERGY_STRESS_INTERVENTION_BATCH_SCHEMA_VERSION: &str = "0.1.0";
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct WaterEnergyStressInterventionBatchCandidate {
+    /// Stable caller-defined candidate key; used to make output order deterministic.
+    pub candidate_id: String,
+    pub experiment: WaterEnergyStressSweepRequest,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct WaterEnergyStressInterventionBatchRequest {
+    pub schema_version: String,
+    pub id: String,
+    pub baseline: WaterEnergyStressSweepRequest,
+    pub candidates: Vec<WaterEnergyStressInterventionBatchCandidate>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct WaterEnergyStressInterventionCandidateSummary {
+    pub candidate_id: String,
+    pub candidate_experiment_id: String,
+    pub declared_failure_scenario_count: usize,
+    /// One nominal case plus all paired declared failure cases.
+    pub compared_case_count: usize,
+    pub exhaustive_over_paired_declared_scenarios: bool,
+    pub total_paired_service_step_assessments: usize,
+    pub effect: WaterEnergyStressInterventionEffect,
+    pub possible_protected_floor_regression: bool,
+    pub worst_case_unmet_demand_reduction_lower_bound_m3: f64,
+    pub worst_case_unmet_demand_reduction_upper_bound_m3: f64,
+    pub worst_case_customer_delivery_delta_lower_bound_m3: f64,
+    pub worst_case_customer_delivery_delta_upper_bound_m3: f64,
+    pub worst_case_floor_compliance_delta_lower_bound: f64,
+    pub worst_case_floor_compliance_delta_upper_bound: f64,
+    pub baseline_supporting_evidence_ids: Vec<String>,
+    pub candidate_supporting_evidence_ids: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct WaterEnergyStressInterventionBatchAssessment {
+    pub schema_version: String,
+    pub batch_id: String,
+    pub baseline_experiment_id: String,
+    pub requested_candidate_count: usize,
+    pub evaluated_candidate_count: usize,
+    /// The implementation evaluates the baseline exactly once for the whole batch.
+    pub baseline_sweep_evaluation_count: usize,
+    pub candidate_sweep_evaluation_count: usize,
+    pub total_service_step_assessments: usize,
+    pub candidates: Vec<WaterEnergyStressInterventionCandidateSummary>,
+    pub baseline_supporting_evidence_ids: Vec<String>,
+    pub interpretation_boundary: WaterEnergyStressInterventionInterpretationBoundary,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum WaterEnergyStressInterventionBatchError {
+    InvalidInput(Vec<WaterEnergyStressInterventionValidationError>),
+    EvidenceValidation(ServiceFunctionAssessmentError),
+    BaselineAssessment(WaterEnergyStressSweepError),
+    CandidateAssessment {
+        candidate_id: String,
+        source: WaterEnergyStressSweepError,
+    },
+    Comparison {
+        candidate_id: String,
+        source: WaterEnergyStressInterventionComparisonError,
+    },
+}
+
+/// Compare multiple candidates over a single declared scenario suite. Unlike looping over
+/// the single-candidate comparator, this evaluates and validates the baseline only once,
+/// shares one evidence index, and returns compact summaries rather than the full per-step
+/// trace for every candidate. Candidate and baseline traces are still calculated internally
+/// for correctness; consumers needing a detailed audit trace can use the single-candidate
+/// API for selected candidates after shortlisting.
+///
+/// This is exhaustive over the request's declared failure cases only. It does not attach
+/// probabilities to scenarios, establish hydraulic accuracy, or prove causal effects.
+pub fn compare_water_energy_stress_intervention_batch(
+    request: &WaterEnergyStressInterventionBatchRequest,
+    evidence_records: &[EvidenceRecord],
+) -> Result<
+    WaterEnergyStressInterventionBatchAssessment,
+    WaterEnergyStressInterventionBatchError,
+> {
+    let mut errors = Vec::new();
+    if request.schema_version != WATER_ENERGY_STRESS_INTERVENTION_BATCH_SCHEMA_VERSION {
+        errors.push(WaterEnergyStressInterventionValidationError::UnsupportedSchemaVersion);
+    }
+    if request.id.trim().is_empty() {
+        errors.push(WaterEnergyStressInterventionValidationError::EmptyComparisonId);
+    }
+    if request.candidates.is_empty() {
+        errors.push(WaterEnergyStressInterventionValidationError::EmptyCandidateSet);
+    }
+
+    let mut candidate_ids = BTreeSet::new();
+    let mut experiment_ids = BTreeSet::new();
+    for candidate in &request.candidates {
+        if candidate.candidate_id.trim().is_empty() {
+            errors.push(WaterEnergyStressInterventionValidationError::EmptyCandidateId);
+        } else if !candidate_ids.insert(candidate.candidate_id.clone()) {
+            errors.push(WaterEnergyStressInterventionValidationError::DuplicateCandidateId);
+        }
+        if !experiment_ids.insert(candidate.experiment.id.clone()) {
+            errors.push(
+                WaterEnergyStressInterventionValidationError::DuplicateCandidateExperimentId,
+            );
+        }
+    }
+    if !errors.is_empty() {
+        errors.sort();
+        errors.dedup();
+        return Err(WaterEnergyStressInterventionBatchError::InvalidInput(errors));
+    }
+
+    // Validate every candidate against the same baseline and scenario suite before paying
+    // for the baseline sweep or any candidate evaluation.
+    let mut candidates: Vec<&WaterEnergyStressInterventionBatchCandidate> =
+        request.candidates.iter().collect();
+    candidates.sort_by(|left, right| left.candidate_id.cmp(&right.candidate_id));
+    for candidate in &candidates {
+        let paired_request = WaterEnergyStressInterventionComparisonRequest {
+            schema_version: WATER_ENERGY_STRESS_INTERVENTION_SCHEMA_VERSION.to_owned(),
+            id: format!("{}::{}", request.id, candidate.candidate_id),
+            baseline: request.baseline.clone(),
+            candidate: candidate.experiment.clone(),
+        };
+        validate_paired_requests(&paired_request)
+            .map_err(WaterEnergyStressInterventionBatchError::InvalidInput)?;
+    }
+
+    let evidence_by_id = build_evidence_index(evidence_records)
+        .map_err(WaterEnergyStressInterventionBatchError::EvidenceValidation)?;
+    let baseline = assess_water_energy_stress_sweep_indexed(&request.baseline, &evidence_by_id)
+        .map_err(WaterEnergyStressInterventionBatchError::BaselineAssessment)?;
+
+    let mut baseline_evidence = BTreeSet::new();
+    baseline_evidence.extend(baseline.baseline.supporting_evidence_ids.iter().cloned());
+    for case in &baseline.cases {
+        baseline_evidence.extend(case.supporting_evidence_ids.iter().cloned());
+    }
+
+    let mut total_service_step_assessments = baseline.total_service_step_assessments;
+    let mut summaries = Vec::with_capacity(candidates.len());
+    for candidate in candidates {
+        let candidate_assessment =
+            assess_water_energy_stress_sweep_indexed(&candidate.experiment, &evidence_by_id)
+                .map_err(|source| {
+                    WaterEnergyStressInterventionBatchError::CandidateAssessment {
+                        candidate_id: candidate.candidate_id.clone(),
+                        source,
+                    }
+                })?;
+        total_service_step_assessments = total_service_step_assessments
+            .checked_add(candidate_assessment.total_service_step_assessments)
+            .ok_or_else(|| {
+                WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+                    WaterEnergyStressInterventionValidationError::ArithmeticOverflow,
+                ])
+            })?;
+        summaries.push(compact_intervention_summary(
+            &candidate.candidate_id,
+            &baseline,
+            &candidate_assessment,
+        )?);
+    }
+
+    Ok(WaterEnergyStressInterventionBatchAssessment {
+        schema_version: WATER_ENERGY_STRESS_INTERVENTION_BATCH_SCHEMA_VERSION.to_owned(),
+        batch_id: request.id.clone(),
+        baseline_experiment_id: baseline.experiment_id,
+        requested_candidate_count: request.candidates.len(),
+        evaluated_candidate_count: summaries.len(),
+        baseline_sweep_evaluation_count: 1,
+        candidate_sweep_evaluation_count: summaries.len(),
+        total_service_step_assessments,
+        candidates: summaries,
+        baseline_supporting_evidence_ids: baseline_evidence.into_iter().collect(),
+        interpretation_boundary:
+            WaterEnergyStressInterventionInterpretationBoundary::ModeledCounterfactualNotCausalEvidence,
+    })
+}
+
+fn compact_intervention_summary(
+    candidate_id: &str,
+    baseline: &crate::service_water_energy_stress::WaterEnergyStressSweepAssessment,
+    candidate: &crate::service_water_energy_stress::WaterEnergyStressSweepAssessment,
+) -> Result<
+    WaterEnergyStressInterventionCandidateSummary,
+    WaterEnergyStressInterventionBatchError,
+> {
+    let mut baseline_cases: Vec<&WaterEnergyStressCaseAssessment> = vec![&baseline.baseline];
+    baseline_cases.extend(baseline.cases.iter());
+    let mut candidate_cases: Vec<&WaterEnergyStressCaseAssessment> = vec![&candidate.baseline];
+    candidate_cases.extend(candidate.cases.iter());
+    baseline_cases.sort_by(|left, right| left.id.cmp(&right.id));
+    candidate_cases.sort_by(|left, right| left.id.cmp(&right.id));
+    if baseline_cases.len() != candidate_cases.len() {
+        return Err(WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+            WaterEnergyStressInterventionValidationError::FailureScenarioSetMismatch,
+        ]));
+    }
+
+    let mut cases = Vec::with_capacity(baseline_cases.len());
+    for (base, cand) in baseline_cases.into_iter().zip(candidate_cases.into_iter()) {
+        cases.push(compare_case(base, cand).map_err(|source| {
+            WaterEnergyStressInterventionBatchError::Comparison {
+                candidate_id: candidate_id.to_owned(),
+                source,
+            }
+        })?);
+    }
+    let worst_unmet_lower = cases
+        .iter()
+        .map(|case| case.unmet_demand_reduction_lower_bound_m3)
+        .fold(f64::INFINITY, f64::min);
+    let worst_unmet_upper = cases
+        .iter()
+        .map(|case| case.unmet_demand_reduction_upper_bound_m3)
+        .fold(f64::NEG_INFINITY, f64::max);
+    let worst_delivery_lower = cases
+        .iter()
+        .map(|case| case.customer_delivery_delta_lower_bound_m3)
+        .fold(f64::INFINITY, f64::min);
+    let worst_delivery_upper = cases
+        .iter()
+        .map(|case| case.customer_delivery_delta_upper_bound_m3)
+        .fold(f64::NEG_INFINITY, f64::max);
+    let worst_floor_lower = cases
+        .iter()
+        .map(|case| case.floor_compliance_delta_lower_bound)
+        .fold(f64::INFINITY, f64::min);
+    let worst_floor_upper = cases
+        .iter()
+        .map(|case| case.floor_compliance_delta_upper_bound)
+        .fold(f64::NEG_INFINITY, f64::max);
+    let scalars = [
+        worst_unmet_lower,
+        worst_unmet_upper,
+        worst_delivery_lower,
+        worst_delivery_upper,
+        worst_floor_lower,
+        worst_floor_upper,
+    ];
+    if scalars.iter().any(|value| !value.is_finite()) {
+        return Err(WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+            WaterEnergyStressInterventionValidationError::NonFiniteDerivedValue,
+        ]));
+    }
+    if worst_unmet_lower > worst_unmet_upper
+        || worst_delivery_lower > worst_delivery_upper
+        || worst_floor_lower > worst_floor_upper
+    {
+        return Err(WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+            WaterEnergyStressInterventionValidationError::BoundsInconsistent,
+        ]));
+    }
+
+    let mut baseline_evidence = BTreeSet::new();
+    let mut candidate_evidence = BTreeSet::new();
+    for case in &cases {
+        baseline_evidence.extend(case.baseline_supporting_evidence_ids.iter().cloned());
+        candidate_evidence.extend(case.candidate_supporting_evidence_ids.iter().cloned());
+    }
+    Ok(WaterEnergyStressInterventionCandidateSummary {
+        candidate_id: candidate_id.to_owned(),
+        candidate_experiment_id: candidate.experiment_id.clone(),
+        declared_failure_scenario_count: baseline.declared_failure_scenario_count,
+        compared_case_count: cases.len(),
+        exhaustive_over_paired_declared_scenarios: baseline.exhaustive_over_declared_scenarios
+            && candidate.exhaustive_over_declared_scenarios
+            && cases.len() == baseline.declared_failure_scenario_count + 1,
+        total_paired_service_step_assessments: baseline
+            .total_service_step_assessments
+            .checked_add(candidate.total_service_step_assessments)
+            .ok_or_else(|| {
+                WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+                    WaterEnergyStressInterventionValidationError::ArithmeticOverflow,
+                ])
+            })?,
+        effect: overall_effect(&cases),
+        possible_protected_floor_regression: cases
+            .iter()
+            .any(|case| case.possible_protected_floor_regression),
+        worst_case_unmet_demand_reduction_lower_bound_m3: worst_unmet_lower,
+        worst_case_unmet_demand_reduction_upper_bound_m3: worst_unmet_upper,
+        worst_case_customer_delivery_delta_lower_bound_m3: worst_delivery_lower,
+        worst_case_customer_delivery_delta_upper_bound_m3: worst_delivery_upper,
+        worst_case_floor_compliance_delta_lower_bound: worst_floor_lower,
+        worst_case_floor_compliance_delta_upper_bound: worst_floor_upper,
+        baseline_supporting_evidence_ids: baseline_evidence.into_iter().collect(),
+        candidate_supporting_evidence_ids: candidate_evidence.into_iter().collect(),
+    })
+}
+
+#[cfg(test)]
+mod batch_tests {
+    use super::*;
+
+    fn request() -> WaterEnergyStressInterventionBatchRequest {
+        WaterEnergyStressInterventionBatchRequest {
+            schema_version: WATER_ENERGY_STRESS_INTERVENTION_BATCH_SCHEMA_VERSION.to_owned(),
+            id: "batch-storage-shortlist".to_owned(),
+            baseline: tests::sweep_request("baseline", 0.0),
+            candidates: vec![
+                WaterEnergyStressInterventionBatchCandidate {
+                    candidate_id: "z-storage-200".to_owned(),
+                    experiment: tests::sweep_request("candidate-z", 200.0),
+                },
+                WaterEnergyStressInterventionBatchCandidate {
+                    candidate_id: "a-storage-100".to_owned(),
+                    experiment: tests::sweep_request("candidate-a", 100.0),
+                },
+            ],
+        }
+    }
+
+    #[test]
+    fn evaluates_baseline_once_and_returns_compact_sorted_candidate_summaries() {
+        let output =
+            compare_water_energy_stress_intervention_batch(&request(), &[]).expect("valid batch");
+        assert_eq!(output.baseline_sweep_evaluation_count, 1);
+        assert_eq!(output.candidate_sweep_evaluation_count, 2);
+        assert_eq!(output.evaluated_candidate_count, 2);
+        assert_eq!(output.candidates[0].candidate_id, "a-storage-100");
+        assert_eq!(output.candidates[1].candidate_id, "z-storage-200");
+        assert!(output.candidates.iter().all(|candidate| candidate.compared_case_count == 2));
+        assert!(output.candidates.iter().all(|candidate| candidate.exhaustive_over_paired_declared_scenarios));
+    }
+
+    #[test]
+    fn candidate_input_permutation_produces_identical_batch_output() {
+        let first = request();
+        let mut reversed = request();
+        reversed.candidates.reverse();
+        let left = compare_water_energy_stress_intervention_batch(&first, &[])
+            .expect("first valid batch");
+        let right = compare_water_energy_stress_intervention_batch(&reversed, &[])
+            .expect("permuted valid batch");
+        assert_eq!(left, right);
+        assert_eq!(
+            serde_json::to_vec(&left).expect("serialize left"),
+            serde_json::to_vec(&right).expect("serialize right")
+        );
+    }
+
+    #[test]
+    fn duplicate_candidate_ids_fail_closed_before_evaluation() {
+        let mut input = request();
+        input.candidates[1].candidate_id = input.candidates[0].candidate_id.clone();
+        assert!(matches!(
+            compare_water_energy_stress_intervention_batch(&input, &[]),
+            Err(WaterEnergyStressInterventionBatchError::InvalidInput(errors))
+                if errors.contains(&WaterEnergyStressInterventionValidationError::DuplicateCandidateId)
+        ));
+    }
+}
+
