@@ -219,6 +219,7 @@ pub enum ConstructionMethodError {
     EmptyMethodId,
     DuplicateMethodId(String),
     ScopeMismatch(String),
+    ScopeDigestMismatch(String),
     DesignDigestMismatch(String),
     FunctionalBasisMismatch(String),
     StudyPeriodMismatch(String),
@@ -318,10 +319,15 @@ fn validate_candidate_identity(
     if !nonempty(&candidate.method_id) {
         return Err(ConstructionMethodError::EmptyMethodId);
     }
-    if candidate.project_scope_id != policy.project_scope_id
+    if candidate.project_scope_id != policy.project_scope_id {
+        return Err(ConstructionMethodError::ScopeMismatch(
+            candidate.method_id.clone(),
+        ));
+    }
+    if !valid_sha256(&candidate.project_scope_sha256)
         || candidate.project_scope_sha256 != policy.project_scope_sha256
     {
-        return Err(ConstructionMethodError::ScopeMismatch(
+        return Err(ConstructionMethodError::ScopeDigestMismatch(
             candidate.method_id.clone(),
         ));
     }
@@ -368,7 +374,12 @@ fn validate_gate_receipt(
     }
     if !valid_sha256(&receipt.project_scope_sha256)
         || receipt.project_scope_sha256 != policy.project_scope_sha256
-        || !valid_sha256(&receipt.design_revision_sha256)
+    {
+        return Err(ConstructionMethodError::ScopeDigestMismatch(
+            candidate.method_id.clone(),
+        ));
+    }
+    if !valid_sha256(&receipt.design_revision_sha256)
         || receipt.design_revision_sha256 != candidate.design_revision_sha256
         || receipt.project_scope_id != policy.project_scope_id
     {
@@ -1007,6 +1018,17 @@ mod tests {
         assert!(matches!(
             evaluate_construction_methods(&[option], &policy()),
             Err(ConstructionMethodError::InvalidMetricInterval { .. })
+        ));
+    }
+
+
+    #[test]
+    fn changed_project_scope_digest_invalidates_gate_receipt() {
+        let mut option = candidate("scope-digest-drift", (100.0, 130.0), (100.0, 140.0), (0.2, 0.4));
+        option.gate_receipts[0].project_scope_sha256 = digest('e');
+        assert!(matches!(
+            evaluate_construction_methods(&[option], &policy()),
+            Err(ConstructionMethodError::ScopeDigestMismatch(_))
         ));
     }
 
