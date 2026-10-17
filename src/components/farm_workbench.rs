@@ -12,7 +12,7 @@ use leptos_router::components::A;
 #[component]
 pub fn FarmWorkbench() -> impl IntoView {
     let tab = RwSignal::new(0usize);
-    let water_recorded = RwSignal::new(false);
+    let water_status = RwSignal::new(0u8); // 0 unknown, 1 observed OK, 2 issue observed, 3 unable to inspect
     let paddock = RwSignal::new(1usize);
 
     view! {
@@ -54,15 +54,27 @@ pub fn FarmWorkbench() -> impl IntoView {
                                 <article class="farm-summary-card"><span>"Decision status"</span><strong>"Your call"</strong><small>"No autonomous actions"</small></article>
                             </div>
                             <div class="farm-work-list">
-                                <article class="farm-work-card" class:done=move || water_recorded.get()>
+                                <article class="farm-work-card" class:done=move || water_status.get() == 1 class:attention=move || water_status.get() == 2>
                                     <div class="farm-work-icon">"W"</div>
                                     <div class="farm-work-copy">
                                         <div class="farm-work-meta"><span>"WATER"</span><span class="farm-priority">"FIELD CHECK"</span></div>
                                         <h3>"Confirm trough flow"</h3>
                                         <p>"West paddock · Walk the line and record a quick observation before the next stock move."</p>
                                         <div class="farm-work-foot">
-                                            <span class="farm-record-state">{move || if water_recorded.get() { "Recorded in demo only" } else { "Not recorded" }}</span>
-                                            <button class="farm-action" on:click=move |_| water_recorded.set(!water_recorded.get())>{move || if water_recorded.get() { "Undo demo record" } else { "Record check" }}</button>
+                                            <span class="farm-record-state" role="status">{move || match water_status.get() {
+                                                1 => "Demo only: flow reported OK",
+                                                2 => "Demo only: problem reported",
+                                                3 => "Demo only: unable to inspect",
+                                                _ => "Not recorded",
+                                            }}</span>
+                                            <div class="farm-record-actions" role="group" aria-label="Water check result, demo only">
+                                                <button class="farm-action" class:selected=move || water_status.get() == 1 aria-pressed=move || water_status.get() == 1 on:click=move |_| water_status.set(1)>"Flow OK"</button>
+                                                <button class="farm-action issue" class:selected=move || water_status.get() == 2 aria-pressed=move || water_status.get() == 2 on:click=move |_| water_status.set(2)>"Problem found"</button>
+                                                <button class="farm-action secondary" class:selected=move || water_status.get() == 3 aria-pressed=move || water_status.get() == 3 on:click=move |_| water_status.set(3)>"Unable to inspect"</button>
+                                                {move || (water_status.get() != 0).then(|| view! {
+                                                    <button class="farm-action secondary" on:click=move |_| water_status.set(0)>"Clear demo result"</button>
+                                                })}
+                                            </div>
                                         </div>
                                     </div>
                                 </article>
