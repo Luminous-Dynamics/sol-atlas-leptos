@@ -85,5 +85,7 @@ The site_selection.rs module adds typed constraints and criteria, evidence state
 - OGC API - Features: https://www.ogc.org/standards/ogcapi-features/
 - NIST, Building Digitization and Semantic Interoperability: https://www.nist.gov/programs-projects/building-digitization-and-semantic-interoperability
 - US EPA EJSCREEN limitations and caveats: https://19january2021snapshot.epa.gov/ejscreen/limitations-and-caveats-using-ejscreen_.html
+- USGS National Seismic Hazard Model: https://www.usgs.gov/programs/earthquake-hazards/science/national-seismic-hazard-maps
+- NOAA Climate Mapping for Resilience and Adaptation: https://www.coast.noaa.gov/digitalcoast/tools/cmra.html
 
-These standards and screening resources inform interface and uncertainty handling; they do not certify this project. National screening layers are starting points only and must be supplemented with jurisdictional records, field surveys, professional advice, and local knowledge.
+These standards and screening resources inform interface and uncertainty handling; they do not certify this project. The USGS and NOAA links are examples of US-specific screening layers, not globally portable sources. National screening layers are starting points only and must be supplemented with jurisdictional records, field surveys, professional advice, and local knowledge.
