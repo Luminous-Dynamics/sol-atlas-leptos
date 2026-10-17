@@ -3,7 +3,7 @@
   "benchmark_id": "city-belonging-task-benchmark-v0.1",
   "fixture_path": "docs/research/fixtures/city-belonging-task-benchmark-v0.1.jsonl",
   "hash_algorithm": "SHA-256",
-  "fixture_sha256": "6a35ca7cfc060f71621248f71e2540ac0910a76d33756713987db21d2f0ec160",
+  "fixture_sha256": "bfd395076795ad37f892d7cef3c5cab4d4268731f25de8a7fd265abdd5ef23c4",
   "record_format": "JSON Lines; UTF-8; newline-terminated",
   "record_count": 14,
   "families": {
@@ -46,7 +46,9 @@
     "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/125"
   ],
   "case_schema_path": "docs/research/fixtures/city-belonging-task-benchmark-v0.1.schema.json",
-  "case_schema_sha256": "4b1ff49fbd0d76751e9c59a1395a08257c80d9c7662abc39ee8844e068976c7d",
+  "case_schema_sha256": "0a72a5eaceddc3fb8f8fe92da726cad3a1ad6a7931c72cd796e38231037d12a7",
   "schema_status": "STRICT_CASE_SHAPE_PINNED; NOT_YET_EXECUTED_BY_A_JSON_SCHEMA_VALIDATOR",
-  "validation_note": "The fixture bytes and schema digest are recorded; manual inspection and JSON parsing are not a schema-validation pass. A future executable verifier must bind to this exact schema digest."
+  "validation_note": "The fixture bytes and schema digest are recorded; manual inspection and JSON parsing are not a schema-validation pass. A future executable verifier must bind to this exact schema digest.",
+  "policy_version": "city-belonging-constraint-policy/0.1",
+  "validation_status": "PINNED_FIXTURE_AND_SCHEMA; RUST_MATCHER_TESTS_NOT_EXECUTED"
 }
