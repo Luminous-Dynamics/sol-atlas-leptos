@@ -4641,7 +4641,11 @@ mod graph_tests {
         );
         assert_ne!(first_race.execution_id, second_race.execution_id);
         let first_next = unbound_available
-            .consumed(&unbound_decision, &unbound_execution, "2026-10-02T08:00:00Z")
+            .consumed(
+                &unbound_decision,
+                &unbound_execution,
+                "2026-10-02T08:00:00Z",
+            )
             .expect("first successor");
         let second_next = unbound_available
             .consumed(
@@ -5065,17 +5069,19 @@ mod graph_tests {
         rejected_decision.decision = RecoveryPolicyDecisionV1::Rejected;
         let rejected_available =
             RecoveryPolicyConsumptionSnapshotV1::for_decision(&rejected_decision);
+        let mut rejected_execution = execution.clone();
+        rejected_execution.authorization = Some(rejected_decision.digest());
         assert_eq!(
             rejected_available.consumption_outcome(
                 &rejected_decision,
-                &execution,
+                &rejected_execution,
                 "2026-10-02T08:00:00Z"
             ),
             RecoveryPolicyConsumptionOutcomeV1::DecisionRejected
         );
         assert!(!rejected_available.permits_consumption(
             &rejected_decision,
-            &execution,
+            &rejected_execution,
             "2026-10-02T08:00:00Z"
         ));
 
