@@ -228,7 +228,10 @@ impl PhysicsRunManifest {
             return Err(ManifestError::InvalidSha256);
         }
         if self.assumptions.is_empty()
-            || self.assumptions.iter().any(|assumption| assumption.trim().is_empty())
+            || self
+                .assumptions
+                .iter()
+                .any(|assumption| assumption.trim().is_empty())
         {
             return Err(ManifestError::MissingAssumptions);
         }
@@ -292,7 +295,10 @@ impl PhysicsRunManifest {
             gate.gate == kind
                 && gate.outcome == GateOutcome::Passed
                 && gate.tested_commit_sha.as_deref() == Some(self.source.commit_sha.as_str())
-                && gate.evidence_url.as_deref().is_some_and(|url| url.starts_with("https://"))
+                && gate
+                    .evidence_url
+                    .as_deref()
+                    .is_some_and(|url| url.starts_with("https://"))
         })
     }
 
@@ -327,7 +333,10 @@ impl PhysicsRunManifest {
             VerificationGateKind::SinglePhysicsReference,
             VerificationGateKind::EnergyConservation,
         ];
-        if !core_gates.iter().all(|gate| self.exact_head_gate_passed(*gate)) {
+        if !core_gates
+            .iter()
+            .all(|gate| self.exact_head_gate_passed(*gate))
+        {
             return EvidenceReadiness::ProvenanceRecorded;
         }
 
@@ -418,8 +427,14 @@ mod tests {
                 "adiabatic well-mixed conductor".into(),
             ],
             quantities: vec![
-                QuantityUnit { quantity: "temperature".into(), unit: "K".into() },
-                QuantityUnit { quantity: "energy".into(), unit: "J".into() },
+                QuantityUnit {
+                    quantity: "temperature".into(),
+                    unit: "K".into(),
+                },
+                QuantityUnit {
+                    quantity: "energy".into(),
+                    unit: "J".into(),
+                },
             ],
             discretization: Some(Discretization {
                 cell_count: None,
@@ -483,12 +498,24 @@ mod tests {
         ];
         assert_eq!(run.readiness(), EvidenceReadiness::NumericallyVerified);
 
-        run.gates.push(passed_gate(VerificationGateKind::GridTimeRefinement, &commit));
-        run.gates.push(passed_gate(VerificationGateKind::ReferenceComparison, &commit));
+        run.gates.push(passed_gate(
+            VerificationGateKind::GridTimeRefinement,
+            &commit,
+        ));
+        run.gates.push(passed_gate(
+            VerificationGateKind::ReferenceComparison,
+            &commit,
+        ));
         assert_eq!(run.readiness(), EvidenceReadiness::ReferenceCompared);
 
-        run.gates.push(passed_gate(VerificationGateKind::CouplingStability, &commit));
-        assert_eq!(run.readiness(), EvidenceReadiness::CoupledNumericallyVerified);
+        run.gates.push(passed_gate(
+            VerificationGateKind::CouplingStability,
+            &commit,
+        ));
+        assert_eq!(
+            run.readiness(),
+            EvidenceReadiness::CoupledNumericallyVerified
+        );
     }
 
     #[test]
@@ -533,7 +560,10 @@ mod tests {
     fn invalid_manifest_and_ledger_arithmetic_fail_closed() {
         let mut bad_version = fixture();
         bad_version.schema_version = PHYSICS_RUN_SCHEMA_VERSION + 1;
-        assert_eq!(bad_version.validate(), Err(ManifestError::UnsupportedSchemaVersion));
+        assert_eq!(
+            bad_version.validate(),
+            Err(ManifestError::UnsupportedSchemaVersion)
+        );
         assert_eq!(bad_version.readiness(), EvidenceReadiness::Exploratory);
 
         let mut bad_sha = fixture();
@@ -542,7 +572,10 @@ mod tests {
 
         let mut bad_ledger = fixture();
         bad_ledger.energy_balance.as_mut().unwrap().residual_j = 10.0;
-        assert_eq!(bad_ledger.validate(), Err(ManifestError::InvalidEnergyBalance));
+        assert_eq!(
+            bad_ledger.validate(),
+            Err(ManifestError::InvalidEnergyBalance)
+        );
     }
 
     #[test]
@@ -569,7 +602,10 @@ mod tests {
 
         // At this scale, a claimed residual of zero is not consistent with
         // the declared 1 femtojoule input; absolute joule-scale slack would hide it.
-        assert_eq!(unbalanced.validate(), Err(ManifestError::InvalidEnergyBalance));
+        assert_eq!(
+            unbalanced.validate(),
+            Err(ManifestError::InvalidEnergyBalance)
+        );
         assert_eq!(unbalanced.readiness(), EvidenceReadiness::Exploratory);
     }
 
@@ -577,18 +613,25 @@ mod tests {
     fn non_finite_energy_and_discretization_are_rejected() {
         let mut bad_energy = fixture();
         bad_energy.energy_balance.as_mut().unwrap().energy_in_j = f64::INFINITY;
-        assert_eq!(bad_energy.validate(), Err(ManifestError::InvalidEnergyBalance));
+        assert_eq!(
+            bad_energy.validate(),
+            Err(ManifestError::InvalidEnergyBalance)
+        );
 
         let mut bad_step = fixture();
         bad_step.discretization.as_mut().unwrap().time_step_s = Some(f64::NAN);
-        assert_eq!(bad_step.validate(), Err(ManifestError::InvalidDiscretization));
+        assert_eq!(
+            bad_step.validate(),
+            Err(ManifestError::InvalidDiscretization)
+        );
     }
 
     #[test]
     fn invalid_manifest_never_reports_an_exact_head_gate_pass() {
         let commit = full_sha('a');
         let mut run = fixture();
-        run.gates.push(passed_gate(VerificationGateKind::InputValidation, &commit));
+        run.gates
+            .push(passed_gate(VerificationGateKind::InputValidation, &commit));
         run.schema_version = PHYSICS_RUN_SCHEMA_VERSION + 1;
 
         assert_eq!(run.validate(), Err(ManifestError::UnsupportedSchemaVersion));
@@ -611,12 +654,20 @@ mod tests {
     #[test]
     fn duplicate_quantity_and_gate_declarations_are_rejected() {
         let mut duplicate_quantity = fixture();
-        duplicate_quantity.quantities.push(duplicate_quantity.quantities[0].clone());
-        assert_eq!(duplicate_quantity.validate(), Err(ManifestError::DuplicateQuantity));
+        duplicate_quantity
+            .quantities
+            .push(duplicate_quantity.quantities[0].clone());
+        assert_eq!(
+            duplicate_quantity.validate(),
+            Err(ManifestError::DuplicateQuantity)
+        );
 
         let mut duplicate_gate = fixture();
         let pass = passed_gate(VerificationGateKind::InputValidation, &full_sha('a'));
         duplicate_gate.gates = vec![pass.clone(), pass];
-        assert_eq!(duplicate_gate.validate(), Err(ManifestError::DuplicateVerificationGate));
+        assert_eq!(
+            duplicate_gate.validate(),
+            Err(ManifestError::DuplicateVerificationGate)
+        );
     }
 }
