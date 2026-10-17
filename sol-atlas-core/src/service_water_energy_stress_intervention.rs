@@ -552,7 +552,9 @@ fn compare_case(
     }
 
     let mut services = Vec::with_capacity(baseline.services.len());
-    let mut possible_regression = false;
+    let mut possible_regression = communities
+        .iter()
+        .any(|community| community.possible_protected_floor_regression);
     for base in &baseline.services {
         let Some(cand) = find_matching_service(candidate, &base.service_request_id) else {
             return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
