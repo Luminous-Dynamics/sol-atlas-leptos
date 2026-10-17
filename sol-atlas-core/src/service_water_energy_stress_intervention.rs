@@ -1779,4 +1779,77 @@ mod batch_tests {
                 if errors.contains(&WaterEnergyStressInterventionValidationError::BatchOverrideBudgetExceeded)
         ));
     }
+
+    #[test]
+    fn compact_summaries_match_detailed_single_candidate_comparisons() {
+        let input = request();
+        let batch =
+            compare_water_energy_stress_intervention_batch(&input, &[]).expect("valid batch");
+        for summary in &batch.candidates {
+            let candidate = input
+                .candidates
+                .iter()
+                .find(|candidate| candidate.candidate_id == summary.candidate_id)
+                .expect("input candidate exists");
+            let detailed_request = WaterEnergyStressInterventionComparisonRequest {
+                schema_version: WATER_ENERGY_STRESS_INTERVENTION_SCHEMA_VERSION.to_owned(),
+                id: format!("detailed-{}", candidate.candidate_id),
+                baseline: input.baseline.clone(),
+                candidate: candidate.experiment.clone(),
+            };
+            let detailed = compare_water_energy_stress_interventions(&detailed_request, &[])
+                .expect("detailed comparator must accept paired candidates");
+            assert_eq!(summary.effect, detailed.effect);
+            assert_eq!(
+                summary.possible_protected_floor_regression,
+                detailed.possible_protected_floor_regression
+            );
+            assert_eq!(summary.compared_case_count, detailed.compared_case_count);
+            assert_eq!(
+                summary.worst_case_unmet_demand_reduction_lower_bound_m3,
+                detailed.worst_case_unmet_demand_reduction_lower_bound_m3
+            );
+            assert_eq!(
+                summary.worst_case_unmet_demand_reduction_upper_bound_m3,
+                detailed.worst_case_unmet_demand_reduction_upper_bound_m3
+            );
+            assert_eq!(
+                summary.worst_case_customer_delivery_delta_lower_bound_m3,
+                detailed.worst_case_customer_delivery_delta_lower_bound_m3
+            );
+            assert_eq!(
+                summary.worst_case_customer_delivery_delta_upper_bound_m3,
+                detailed.worst_case_customer_delivery_delta_upper_bound_m3
+            );
+            assert_eq!(
+                summary.worst_case_floor_compliance_delta_lower_bound,
+                detailed.worst_case_floor_compliance_delta_lower_bound
+            );
+            assert_eq!(
+                summary.worst_case_floor_compliance_delta_upper_bound,
+                detailed.worst_case_floor_compliance_delta_upper_bound
+            );
+            assert_eq!(
+                summary.baseline_supporting_evidence_ids,
+                detailed.baseline_supporting_evidence_ids
+            );
+            assert_eq!(
+                summary.candidate_supporting_evidence_ids,
+                detailed.candidate_supporting_evidence_ids
+            );
+        }
+    }
+
+    #[test]
+    fn batch_rejects_candidate_with_a_different_declared_failure_suite() {
+        let mut input = request();
+        input.candidates[0].experiment.failure_scenarios[0].id =
+            "candidate-only-grid-outage".to_owned();
+        assert!(matches!(
+            compare_water_energy_stress_intervention_batch(&input, &[]),
+            Err(WaterEnergyStressInterventionBatchError::InvalidInput(errors))
+                if errors.contains(&WaterEnergyStressInterventionValidationError::FailureScenarioSetMismatch)
+        ));
+    }
+
 }
