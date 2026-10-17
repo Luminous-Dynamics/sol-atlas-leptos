@@ -363,9 +363,15 @@ fn assess_trajectory_indexed(
         ]));
     }
 
-    let first_adequate_index = step_results
-        .iter()
-        .position(|item| item.state == WaterServiceState::Adequate);
+    // Recovery means adequate after an observed modeled deficit, not simply an
+    // initially healthy first sample. This avoids labelling baseline adequacy
+    // as recovery when an outage occurs later in the trajectory.
+    let first_adequate_index = step_results.iter().enumerate().position(|(index, item)| {
+        item.state == WaterServiceState::Adequate
+            && step_results[..index]
+                .iter()
+                .any(|prior| prior.state != WaterServiceState::Adequate)
+    });
     let first_adequate_step_id = first_adequate_index.map(|index| step_results[index].step_id.clone());
     let first_adequate_as_of = first_adequate_index.map(|index| step_results[index].as_of.clone());
     let preceding_step_id = first_adequate_index
@@ -504,8 +510,9 @@ mod tests {
         assert_eq!(result.unmet_demand_volume_upper_bound, 150.0);
         assert_eq!(result.customer_delivered_volume_lower_bound, 250.0);
         assert_eq!(result.customer_delivered_volume_upper_bound, 250.0);
-        assert_eq!(result.first_adequate_step_id.as_deref(), Some("normal"));
-        assert!(!result.adequacy_maintained_through_last_sample);
+        assert_eq!(result.first_adequate_step_id.as_deref(), Some("recovery"));
+        assert_eq!(result.preceding_step_id.as_deref(), Some("outage-2"));
+        assert!(result.adequacy_maintained_through_last_sample);
         assert!(result.steps.iter().all(|step| {
             step.conservative_mass_balance_residual.abs() <= 1e-9
                 && step.optimistic_mass_balance_residual.abs() <= 1e-9
