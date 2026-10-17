@@ -10,7 +10,7 @@
 //! Scenario counts are stress-test cases, not failure probabilities.
 
 use crate::service_network::{
-    assess_service_capacity_networks, NetworkAssessmentState, NetworkLinkAvailability,
+    assess_service_capacity_networks, NetworkLinkAvailability,
     NetworkTopologyCompleteness, ServiceCapacityNetworkAssessment, ServiceCapacityNetworkError,
     ServiceCapacityNetworkScenario,
 };
@@ -181,7 +181,6 @@ pub fn assess_service_network_stress(
 
     let mut scenario_batch = Vec::with_capacity(candidate_count + 1);
     scenario_batch.push(baseline_input);
-    let mut metadata_by_case_id = BTreeMap::<String, Vec<String>>::new();
     for (index, failed_link_ids) in failure_sets.iter().enumerate() {
         let case_id = format!("sei-stress:{}:case:{:05}", request.id, index + 1);
         let failed: BTreeSet<&str> = failed_link_ids.iter().map(String::as_str).collect();
@@ -200,7 +199,6 @@ pub fn assess_service_network_stress(
             );
             link.availability_supporting_evidence_ids.clear();
         }
-        metadata_by_case_id.insert(case_id, failed_link_ids.clone());
         scenario_batch.push(candidate);
     }
 
