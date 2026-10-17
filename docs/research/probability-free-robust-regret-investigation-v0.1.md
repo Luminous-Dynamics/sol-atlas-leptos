@@ -17,7 +17,7 @@ This increment adds a complementary *probability-free* view. It treats each enum
 
 ## Contract and calculation
 
-Input contains a finite set of decisions, a finite set of plausible scenarios, a complete matrix of non-negative loss intervals, and candidate investigation actions. The problem declares a loss-unit identifier; every action must declare the exact same cost-unit identifier, or evaluation fails. Each action also provides an explicit outcome label for every scenario.
+Input contains a finite set of decisions, a finite set of plausible scenarios, a complete matrix of non-negative loss intervals, and candidate investigation actions. The problem declares a loss-unit identifier; every action must declare the exact same cost-unit identifier, or evaluation fails. Each action provides a non-empty set of possible observation outcomes for every scenario. This supports measurement ambiguity without inventing probabilities: if several scenarios could produce the same label, all remain in that observation's decision group.
 
 For decision \(d\) in scenario \(s\), the conservative regret bound is:
 
@@ -41,12 +41,13 @@ No probabilities are inferred from scenario counts. Duplicating a scenario is th
 
 ## Synthetic reference cases
 
-The pinned JSONL fixture has four hand-authored cases. In addition, the Rust tests enumerate all 81 exact-loss matrices formed by two decisions, two scenarios and per-cell losses in {0, 1, 2}. For every matrix, the uninformative action must leave the regret bound unchanged and perfect scenario discrimination must reduce the exact-loss bound to zero. An independent reference calculation was run over the same 81-state space.
+The pinned JSONL fixture has five hand-authored cases. In addition, the Rust tests enumerate all 81 exact-loss matrices formed by two decisions, two scenarios and per-cell losses in {0, 1, 2}. For every matrix, the uninformative action must leave the regret bound unchanged and perfect scenario discrimination must reduce the exact-loss bound to zero. An independent reference calculation was run over the same 81-state space.
 
 1. Perfectly discriminating observation: bound 80 → 0, cost 10, net reduction 70.
 2. Non-discriminating inspection: bound stays 80, cost 5, net reduction −5.
 3. Interval losses with targeted observation: bound 80 → 10, cost 20, net reduction 50.
 4. Zero-cost but uninformative observation: bound stays 80; break-even by definition.
+5. Ambiguous observation: each world can produce a shared “ambiguous” result, so the worst-case bound stays 80 and the test cannot claim perfect information.
 
 All IDs, scenarios, losses, and costs are synthetic arithmetic examples. They are not estimates for a real parcel, hazard, water system, community or project.
 
