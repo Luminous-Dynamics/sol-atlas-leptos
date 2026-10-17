@@ -1,0 +1,11 @@
+{
+  "benchmark_id": "SOL-ATLAS-ROBUST-PARETO-001",
+  "version": "0.1.0",
+  "fixture_path": "docs/research/fixtures/pareto-site-benchmark-v0.1.jsonl",
+  "fixture_git_blob_sha": "9d02b5f86ef97afd77ce40207cd58460d2490913",
+  "fixture_character_count": 4961,
+  "records": 8,
+  "as_of_date": "2026-10-17",
+  "provenance": "All candidate IDs, objective values, intervals, and gate dispositions are synthetic. No real parcel or site data is represented.",
+  "claim_ceiling": "Tests robust Pareto policy semantics only. It does not validate source data, GIS coverage, statutory compliance, land rights, engineering safety, or any real site."
+}
