@@ -262,7 +262,7 @@ pub fn evaluate_site(
                 (Some(value), EvidenceState::Verified) => {
                     scored_weight += *weight;
                     score_sum += *weight * value;
-                    confidence_weight += *weight;
+                    confidence_weight += *weight * confidence(metric.evidence_state);
                 }
                 (Some(value), EvidenceState::Estimated) => {
                     scored_weight += *weight;
