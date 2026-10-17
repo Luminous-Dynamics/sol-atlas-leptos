@@ -183,8 +183,8 @@ pub fn assess_water_service(
     scenario: &WaterServiceScenario,
     evidence_records: &[EvidenceRecord],
 ) -> Result<WaterServiceAssessment, WaterServiceError> {
-    let evidence_by_id = build_evidence_index(evidence_records)
-        .map_err(WaterServiceError::EvidenceValidation)?;
+    let evidence_by_id =
+        build_evidence_index(evidence_records).map_err(WaterServiceError::EvidenceValidation)?;
     assess_water_service_indexed(scenario, &evidence_by_id)
 }
 
@@ -199,8 +199,8 @@ pub fn assess_water_services(
             WaterServiceValidationError::EmptyScenarioSet,
         ]));
     }
-    let evidence_by_id = build_evidence_index(evidence_records)
-        .map_err(WaterServiceError::EvidenceValidation)?;
+    let evidence_by_id =
+        build_evidence_index(evidence_records).map_err(WaterServiceError::EvidenceValidation)?;
     let mut seen = BTreeSet::new();
     for scenario in scenarios {
         if !seen.insert(scenario.id.as_str()) {
@@ -239,14 +239,46 @@ fn assess_water_service_indexed(
     }
 
     let measurements = [
-        (WaterMeasurementRole::SourceFlowRate, &scenario.source_flow_rate, WATER_RATE_UNIT),
-        (WaterMeasurementRole::PumpCapacity, &scenario.pump_capacity, WATER_RATE_UNIT),
-        (WaterMeasurementRole::TreatmentCapacity, &scenario.treatment_capacity, WATER_RATE_UNIT),
-        (WaterMeasurementRole::DistributionCapacity, &scenario.distribution_capacity, WATER_RATE_UNIT),
-        (WaterMeasurementRole::InitialStorage, &scenario.initial_storage, WATER_VOLUME_UNIT),
-        (WaterMeasurementRole::StorageCapacity, &scenario.storage_capacity, WATER_VOLUME_UNIT),
-        (WaterMeasurementRole::DemandRate, &scenario.demand_rate, WATER_RATE_UNIT),
-        (WaterMeasurementRole::DistributionLossFraction, &scenario.distribution_loss_fraction, DIMENSIONLESS_UNIT),
+        (
+            WaterMeasurementRole::SourceFlowRate,
+            &scenario.source_flow_rate,
+            WATER_RATE_UNIT,
+        ),
+        (
+            WaterMeasurementRole::PumpCapacity,
+            &scenario.pump_capacity,
+            WATER_RATE_UNIT,
+        ),
+        (
+            WaterMeasurementRole::TreatmentCapacity,
+            &scenario.treatment_capacity,
+            WATER_RATE_UNIT,
+        ),
+        (
+            WaterMeasurementRole::DistributionCapacity,
+            &scenario.distribution_capacity,
+            WATER_RATE_UNIT,
+        ),
+        (
+            WaterMeasurementRole::InitialStorage,
+            &scenario.initial_storage,
+            WATER_VOLUME_UNIT,
+        ),
+        (
+            WaterMeasurementRole::StorageCapacity,
+            &scenario.storage_capacity,
+            WATER_VOLUME_UNIT,
+        ),
+        (
+            WaterMeasurementRole::DemandRate,
+            &scenario.demand_rate,
+            WATER_RATE_UNIT,
+        ),
+        (
+            WaterMeasurementRole::DistributionLossFraction,
+            &scenario.distribution_loss_fraction,
+            DIMENSIONLESS_UNIT,
+        ),
     ];
     for (role, measurement, expected_unit) in measurements {
         let mut measurement_errors = Vec::new();
@@ -379,8 +411,8 @@ fn assess_water_service_indexed(
     let demand_volume_lower = demand.lower * step;
     let demand_volume_upper = demand.upper * step;
 
-    let coverage_lower = (demand_volume_upper > 0.0)
-        .then_some(delivery_capacity_lower / demand_volume_upper);
+    let coverage_lower =
+        (demand_volume_upper > 0.0).then_some(delivery_capacity_lower / demand_volume_upper);
     let coverage_upper =
         (demand_volume_lower > 0.0).then_some(delivery_capacity_upper / demand_volume_lower);
 
@@ -559,20 +591,26 @@ mod tests {
         assert!(result.conservative_path.mass_balance_residual.abs() < 1e-9);
         assert!(result.optimistic_path.mass_balance_residual.abs() < 1e-9);
         assert_eq!(result.conservative_path.ending_storage_volume, 105.0);
-        assert!((result.conservative_path.raw_distribution_withdrawal
-            - result.conservative_path.customer_delivered_volume
-            - result.conservative_path.distribution_loss_volume)
-            .abs()
-            < 1e-9);
-        assert!((result.optimistic_path.raw_distribution_withdrawal
-            - result.optimistic_path.customer_delivered_volume
-            - result.optimistic_path.distribution_loss_volume)
-            .abs()
-            < 1e-9);
+        assert!(
+            (result.conservative_path.raw_distribution_withdrawal
+                - result.conservative_path.customer_delivered_volume
+                - result.conservative_path.distribution_loss_volume)
+                .abs()
+                < 1e-9
+        );
+        assert!(
+            (result.optimistic_path.raw_distribution_withdrawal
+                - result.optimistic_path.customer_delivered_volume
+                - result.optimistic_path.distribution_loss_volume)
+                .abs()
+                < 1e-9
+        );
         let mut more_source = scenario("water-more-source");
         more_source.source_flow_rate.quantity.value = 10_000.0;
         assert_eq!(
-            assess_water_service(&more_source, &[]).unwrap().treated_volume_lower_bound,
+            assess_water_service(&more_source, &[])
+                .unwrap()
+                .treated_volume_lower_bound,
             65.0,
             "increasing source flow cannot exceed the pump/treatment serial bottleneck"
         );
@@ -672,8 +710,7 @@ mod tests {
         assert_eq!(results[1].scenario_id, "water-z");
         let bytes_a = serde_json::to_vec(&results).unwrap();
         let reversed = [scenario("water-a"), scenario("water-z")];
-        let bytes_b =
-            serde_json::to_vec(&assess_water_services(&reversed, &[]).unwrap()).unwrap();
+        let bytes_b = serde_json::to_vec(&assess_water_services(&reversed, &[]).unwrap()).unwrap();
         assert_eq!(bytes_a, bytes_b);
     }
 

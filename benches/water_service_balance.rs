@@ -9,7 +9,7 @@ use serde::Serialize;
 use sol_atlas_core::dependency_logic::ScenarioBasis;
 use sol_atlas_core::service_function::FunctionMeasurement;
 use sol_atlas_core::service_water::{
-    assess_water_services, WaterServiceScenario, WaterServiceState, WATER_SERVICE_SCHEMA_VERSION,
+    WATER_SERVICE_SCHEMA_VERSION, WaterServiceScenario, WaterServiceState, assess_water_services,
 };
 use sol_atlas_core::spatial_economic::Quantity;
 use std::env;
@@ -72,7 +72,8 @@ fn scenario(index: usize) -> WaterServiceScenario {
 fn percentile(samples: &[Duration], percentile: usize) -> Duration {
     let mut sorted = samples.to_vec();
     sorted.sort_unstable();
-    let index = (sorted.len() * percentile).div_ceil(100)
+    let index = (sorted.len() * percentile)
+        .div_ceil(100)
         .saturating_sub(1)
         .min(sorted.len() - 1);
     sorted[index]
@@ -94,9 +95,11 @@ fn main() {
         let reference = assess_water_services(&scenarios, &[])
             .expect("deterministic synthetic scenarios must assess");
         assert_eq!(reference.len(), count);
-        assert!(reference
-            .iter()
-            .all(|item| item.state == WaterServiceState::Degraded));
+        assert!(
+            reference
+                .iter()
+                .all(|item| item.state == WaterServiceState::Degraded)
+        );
         assert!(reference.iter().all(|item| {
             item.customer_delivery_capacity_lower_bound
                 <= item.customer_delivery_capacity_upper_bound
@@ -108,19 +111,23 @@ fn main() {
                     - item.conservative_path.customer_delivered_volume
                     - item.conservative_path.distribution_loss_volume
                     - item.conservative_path.ending_storage_volume
-                    - item.conservative_path.spilled_volume).abs() <= 1e-9
+                    - item.conservative_path.spilled_volume)
+                    .abs()
+                    <= 1e-9
                 && (item.optimistic_path.available_water_volume
                     - item.optimistic_path.customer_delivered_volume
                     - item.optimistic_path.distribution_loss_volume
                     - item.optimistic_path.ending_storage_volume
-                    - item.optimistic_path.spilled_volume).abs() <= 1e-9
+                    - item.optimistic_path.spilled_volume)
+                    .abs()
+                    <= 1e-9
         }));
-        let reference_bytes =
-            serde_json::to_vec(&reference).expect("reference assessment serialization must succeed");
+        let reference_bytes = serde_json::to_vec(&reference)
+            .expect("reference assessment serialization must succeed");
 
         for _ in 0..warmup {
-            let warm = assess_water_services(&scenarios, &[])
-                .expect("warmup assessment must succeed");
+            let warm =
+                assess_water_services(&scenarios, &[]).expect("warmup assessment must succeed");
             assert_eq!(
                 serde_json::to_vec(&warm).expect("warmup serialization must succeed"),
                 reference_bytes
@@ -130,11 +137,10 @@ fn main() {
         let mut timings = Vec::with_capacity(samples);
         for _ in 0..samples {
             let start = Instant::now();
-            let result = assess_water_services(&scenarios, &[])
-                .expect("measured assessment must succeed");
+            let result =
+                assess_water_services(&scenarios, &[]).expect("measured assessment must succeed");
             timings.push(start.elapsed());
-            let bytes =
-                serde_json::to_vec(&result).expect("result serialization must succeed");
+            let bytes = serde_json::to_vec(&result).expect("result serialization must succeed");
             assert_eq!(bytes, reference_bytes, "output must remain deterministic");
         }
 
@@ -145,7 +151,12 @@ fn main() {
             measured_iterations: samples,
             p50_micros: percentile(&timings, 50).as_micros(),
             p95_micros: percentile(&timings, 95).as_micros(),
-            max_micros: timings.iter().copied().max().unwrap_or_default().as_micros(),
+            max_micros: timings
+                .iter()
+                .copied()
+                .max()
+                .unwrap_or_default()
+                .as_micros(),
             result_count: reference.len(),
             degraded_count: reference
                 .iter()
@@ -154,10 +165,12 @@ fn main() {
             serialized_result_bytes: reference_bytes.len(),
             mass_balance_max_abs_residual: reference
                 .iter()
-                .flat_map(|item| [
-                    item.conservative_path.mass_balance_residual.abs(),
-                    item.optimistic_path.mass_balance_residual.abs(),
-                ])
+                .flat_map(|item| {
+                    [
+                        item.conservative_path.mass_balance_residual.abs(),
+                        item.optimistic_path.mass_balance_residual.abs(),
+                    ]
+                })
                 .fold(0.0, f64::max),
         };
         println!(
