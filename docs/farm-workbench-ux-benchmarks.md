@@ -58,6 +58,18 @@ This is a test of information architecture and vocabulary, not a field-ready pro
 - Mycelix: identity, permissions, provenance, consented sharing, cooperative coordination, and auditability. Farmers should not need to learn blockchain or currency concepts to finish a routine job.
 - Interoperability: use open exports and adapters. Assess the AgGateway ADAPT Standard for agricultural production-data exchange rather than inventing a closed canonical format: https://github.com/AgGateway-ADAPT/Standard
 
+## Existing cross-project work to compose
+
+This UI is the **operator-facing layer**, not a replacement for the existing agriculture workstreams. Keep the canonical model and validation logic in their current owners:
+
+- Sol Atlas site evidence and local climate/food resilience profile: [AGRO-CLIMATE-001 #107](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/107).
+- Shared agricultural research and systems boundaries: [Symthaea draft research PR #7796](https://github.com/Luminous-Dynamics/symthaea/pull/7796).
+- Robot feasibility/platform selection and safety evidence: [Symthaea #7797](https://github.com/Luminous-Dynamics/symthaea/issues/7797), [Symthaea #7818](https://github.com/Luminous-Dynamics/symthaea/issues/7818), [AGHRI evaluation #7828](https://github.com/Luminous-Dynamics/symthaea/issues/7828).
+- Measurement-first value of information and spatially conditioned farm-service economics: [Symtropy #1661](https://github.com/Luminous-Dynamics/symtropy/issues/1661), [Symtropy #1814](https://github.com/Luminous-Dynamics/symtropy/issues/1814), [Symtropy #1816](https://github.com/Luminous-Dynamics/symtropy/issues/1816).
+- Producer commitments, product units, cooperative fulfillment, and private/public data boundaries: [Mycelix MYC-FOOD-001 #5001](https://github.com/Luminous-Dynamics/mycelix/issues/5001).
+
+The route should consume versioned outputs from these contracts when they become available; it must not create a second geospatial truth, safety case, economic optimizer, producer ledger, or farm identity system. UI integration is blocked when a source contract is missing or unqualified; demo data remains visibly synthetic.
+
 ## Proposed benchmark ladder
 
 These are pilot gates to validate, not claims of current performance or universal agricultural targets.
