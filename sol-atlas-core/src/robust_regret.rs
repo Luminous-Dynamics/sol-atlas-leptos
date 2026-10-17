@@ -6,8 +6,9 @@
 //! Each scenario is treated as plausible; no probability distribution is fabricated.
 //! Losses are intervals. Regret uses an upper bound on the selected decision's loss
 //! minus the lowest plausible lower-bound loss for that scenario. An investigation
-//! partitions scenarios by its possible observations, enabling a different decision
-//! for each observed outcome. The result is a conservative minimax-regret bound,
+//! relates each scenario to a set of possible observations. These sets may overlap,
+//! so one observed result can remain compatible with several scenarios. The result is
+//! a conservative minimax-regret bound,
 //! not a calibrated probability, causal claim, or monetary valuation.
 
 use serde::{Deserialize, Serialize};
@@ -221,8 +222,8 @@ impl RobustRegretProblem {
 /// decision/scenario cell, the regret upper bound is the selected decision's upper loss
 /// minus the lowest lower loss in that scenario. This deliberately combines the selected
 /// decision's upper loss with the best competitor's lower loss. It is conservative;
-/// interval dependence is not modeled. An action can only change decisions by splitting
-/// scenarios into outcomes.
+/// interval dependence is not modeled. An action changes the decision only to the extent
+/// that its possible-outcome sets distinguish or leave ambiguity among scenarios.
 pub fn analyze_robust_regret(
     problem: &RobustRegretProblem,
 ) -> Result<RobustRegretReport, RobustRegretError> {
