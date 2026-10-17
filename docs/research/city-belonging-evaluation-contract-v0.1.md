@@ -93,7 +93,7 @@ A directory-only pilot can usually establish feasibility, coverage and task outc
 
 ## 6. Current evidence and open engineering gates
 
-The synthetic admission fixture currently includes ten cases with manifest SHA-256 `f4fa3ed4b98edd95382075c49730002441315c39317498e926d87abc3c0b608f`. A policy date is now pinned in its manifest to make stale-state decisions reproducible. The standalone Rust checker has been authored with golden and negative-control tests, but **has not been compiled or run here**. Any hand-executed mirror or static inspection is not a Rust test pass.
+The synthetic admission fixture currently includes eleven cases with manifest SHA-256 `3486a76b709e2b8e56e15b4fbb5b7c8cab6303dc7dfb1db916a3af89c70dbd10`. Its manifest pins the evaluation date (2026-10-17) and a 30-day provider-confirmation freshness window, making the stale-state decision reproducible. The 30-day threshold is an illustrative test policy, not a universal rule; production policies should be field-specific and locally reviewed. The standalone Rust checker has been authored with golden and negative-control tests, but **has not been compiled or run here**. Any hand-executed mirror or static inspection is not a Rust test pass.
 
 The next engineering gates remain:
 
