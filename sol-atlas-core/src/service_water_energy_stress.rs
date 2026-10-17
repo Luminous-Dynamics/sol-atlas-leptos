@@ -174,6 +174,7 @@ pub enum WaterEnergyStressSweepError {
 pub struct WaterEnergyStressStepAssessment {
     pub step_id: String,
     pub as_of: String,
+    pub step_hours: f64,
     pub service_state: WaterServiceState,
     pub coverage_lower_bound: Option<f64>,
     pub coverage_upper_bound: Option<f64>,
@@ -866,6 +867,7 @@ fn evaluate_case(
             service_steps.push(WaterEnergyStressStepAssessment {
                 step_id: step.step_id.clone(),
                 as_of: step.as_of.clone(),
+                step_hours: step.step_hours,
                 service_state: step.state,
                 coverage_lower_bound: step.coverage_lower_bound,
                 coverage_upper_bound: step.coverage_upper_bound,
