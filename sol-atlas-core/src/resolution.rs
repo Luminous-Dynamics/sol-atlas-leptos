@@ -309,6 +309,9 @@ fn cholesky(
                 return Err(ResolutionError::NonFiniteIntermediate);
             }
             if i == j {
+                if sum <= 0.0 {
+                    return Err(ResolutionError::NotPositiveDefinite(label));
+                }
                 if sum <= pivot_floor {
                     return Err(ResolutionError::SingularOrIllConditioned(label));
                 }
@@ -576,7 +579,7 @@ mod tests {
         problem.prior_covariance = vec![vec![1.0, 2.0], vec![2.0, 1.0]];
         assert_eq!(
             problem.analyze(1e-12, 1e-14),
-            Err(ResolutionError::SingularOrIllConditioned("prior_covariance"))
+            Err(ResolutionError::NotPositiveDefinite("prior_covariance"))
         );
     }
 
