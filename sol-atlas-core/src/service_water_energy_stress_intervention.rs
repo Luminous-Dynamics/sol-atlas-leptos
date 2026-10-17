@@ -1771,5 +1771,4 @@ mod batch_tests {
                 if errors.contains(&WaterEnergyStressInterventionValidationError::BatchOverrideBudgetExceeded)
         ));
     }
-
 }
