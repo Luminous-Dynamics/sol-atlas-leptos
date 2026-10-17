@@ -7,6 +7,7 @@ const REPORT_VERSION: &str = "city-belonging-admission-report/0.1";
 const CLAIM_CEILING: &str = "synthetic admission-policy fixtures only; not HSDS conformance, service truth, safety, availability, or outcome evidence";
 
 const HSDS_SELECTED_CONTRACT: &str = include_str!("../../../docs/research/fixtures/hsds-3.1-selected-contract-v0.1.json");
+const LOCAL_ADMISSION_PROFILE: &str = include_str!("../../../docs/research/fixtures/city-belonging-admission-profile-v0.1.json");
 const HSDS_SCHEMA_SOURCES: [(&str, &str); 9] = [
     ("organization", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/organization.json")),
     ("service", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/service.json")),
@@ -78,6 +79,8 @@ pub fn verify_bytes(fixture_bytes: &[u8], manifest_text: &str) -> Result<Value, 
 
     validate_pinned_schema_contract(&manifest)?;
 
+    validate_local_profile_manifest(&manifest)?;
+
     let as_of = required_str(&manifest, "policy_as_of_date", "manifest")?;
     if days_from_date(as_of).is_none() {
         return Err("manifest.policy_as_of_date must be a valid YYYY-MM-DD date".to_owned());
@@ -104,6 +107,7 @@ pub fn verify_bytes(fixture_bytes: &[u8], manifest_text: &str) -> Result<Value, 
             return Err(format!("duplicate fixture_id {}", fixture_id));
         }
         validate_hsds_resources(&record, &format!("line {} {}", index + 1, fixture_id))?;
+        validate_admission_evidence(&record, &format!("line {} {}", index + 1, fixture_id))?;
         let hsds_expected = record.pointer("/expected/hsds_selected_contract_valid")
             .and_then(Value::as_bool)
             .ok_or_else(|| format!("{}.expected.hsds_selected_contract_valid must be true", fixture_id))?;
@@ -193,6 +197,8 @@ pub fn verify_bytes(fixture_bytes: &[u8], manifest_text: &str) -> Result<Value, 
         "all_cases_match_expected_policy": true,
         "real_world_service_truth": "NOT_ASSESSED",
         "pinned_hsds_selected_resource_contract": "MATCH",
+        "local_admission_profile_sha256": sha256_hex(LOCAL_ADMISSION_PROFILE.as_bytes()),
+        "local_admission_profile_version": "city-belonging-admission-profile/0.1",
         "canonical_hsds_full_conformance": "NOT_ASSERTED",
         "human_efficacy_or_social_connection_outcomes": "NOT_ASSESSED",
         "case_receipts": receipts
@@ -285,6 +291,186 @@ fn string_set(value: Option<&Value>, where_: &str) -> Result<BTreeSet<String>, S
         .ok_or_else(|| format!("{} must be a string array", where_))?;
     array.iter().map(|item| item.as_str().map(str::to_owned)
         .ok_or_else(|| format!("{} entries must be strings", where_))).collect()
+}
+
+
+fn validate_local_profile_manifest(fixture_manifest: &Value) -> Result<(), String> {
+    let declared_hash = fixture_manifest.pointer("/local_profile/sha256_utf8")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "manifest missing local admission profile SHA-256".to_owned())?;
+    let actual_hash = sha256_hex(LOCAL_ADMISSION_PROFILE.as_bytes());
+    if declared_hash != actual_hash {
+        return Err(format!("local admission profile SHA-256 mismatch: manifest={}, actual={}", declared_hash, actual_hash));
+    }
+    let declared_path = required_str(
+        fixture_manifest.get("local_profile").ok_or_else(|| "manifest.local_profile missing".to_owned())?,
+        "path",
+        "manifest.local_profile",
+    )?;
+    if declared_path != "docs/research/fixtures/city-belonging-admission-profile-v0.1.json" {
+        return Err("manifest local admission profile path is unexpected".to_owned());
+    }
+    let profile: Value = serde_json::from_str(LOCAL_ADMISSION_PROFILE)
+        .map_err(|e| format!("local admission profile is malformed: {}", e))?;
+    if required_str(&profile, "profile_version", "local admission profile")? != "city-belonging-admission-profile/0.1" {
+        return Err("unsupported local admission profile version".to_owned());
+    }
+    Ok(())
+}
+
+fn validate_admission_evidence(record: &Value, where_: &str) -> Result<(), String> {
+    let profile: Value = serde_json::from_str(LOCAL_ADMISSION_PROFILE)
+        .map_err(|e| format!("local admission profile is malformed: {}", e))?;
+    let contract = profile.get("evidence_contract")
+        .ok_or_else(|| "local admission profile missing evidence_contract".to_owned())?;
+    let evidence = record.get("admission_evidence")
+        .and_then(Value::as_object)
+        .ok_or_else(|| format!("{} admission_evidence must be an object", where_))?;
+    let required = string_set(contract.get("required_fields"), "local profile required_fields")?;
+    for key in &required {
+        if !evidence.contains_key(key) {
+            return Err(format!("{} admission_evidence missing required field {}", where_, key));
+        }
+    }
+    for field in ["source_id", "source_uri", "upstream_record_id", "retrieved_at"] {
+        let value = required_str(&Value::Object(evidence.clone()), field, where_)?;
+        if field == "source_uri" && !value.contains("://") {
+            return Err(format!("{} source_uri must be URI-like", where_));
+        }
+        if field == "retrieved_at" && !valid_timestamp(value) {
+            return Err(format!("{} retrieved_at must be a valid timestamp", where_));
+        }
+    }
+
+    let source_kind = required_str(&Value::Object(evidence.clone()), "source_kind", where_)?;
+    if !string_set(contract.get("source_kind_enum"), "local profile source_kind_enum")?.contains(source_kind) {
+        return Err(format!("{} unknown source_kind {}", where_, source_kind));
+    }
+    let permission = required_str(&Value::Object(evidence.clone()), "permission_disposition", where_)?;
+    if !string_set(contract.get("permission_disposition_enum"), "local profile permission_disposition_enum")?.contains(permission) {
+        return Err(format!("{} unknown permission_disposition {}", where_, permission));
+    }
+
+    let verified_at = evidence.get("provider_verified_at").expect("required field checked above");
+    if !verified_at.is_null() {
+        let timestamp = verified_at.as_str()
+            .ok_or_else(|| format!("{} provider_verified_at must be a timestamp string or null", where_))?;
+        if !valid_timestamp(timestamp) {
+            return Err(format!("{} provider_verified_at must be a valid timestamp", where_));
+        }
+    }
+
+    let profile_states = contract.pointer("/field_state_enums").and_then(Value::as_object)
+        .ok_or_else(|| "local profile field_state_enums must be an object".to_owned())?;
+    let states = evidence.get("field_states").and_then(Value::as_object)
+        .ok_or_else(|| format!("{} field_states must be an object", where_))?;
+    for (field, observed) in states {
+        let allowed = profile_states.get(field).and_then(Value::as_array)
+            .ok_or_else(|| format!("{} undeclared field-state dimension {}", where_, field))?;
+        let observed = observed.as_str().ok_or_else(|| format!("{} field state {} must be a string", where_, field))?;
+        if !allowed.iter().any(|value| value.as_str() == Some(observed)) {
+            return Err(format!("{} invalid field state {}={}", where_, field, observed));
+        }
+    }
+
+    let pin: Value = serde_json::from_str(HSDS_SELECTED_CONTRACT)
+        .map_err(|e| format!("HSDS contract manifest is malformed: {}", e))?;
+    let verified_fields = evidence.get("provider_verified_fields").and_then(Value::as_array)
+        .ok_or_else(|| format!("{} provider_verified_fields must be an array", where_))?;
+    let mut verified_seen = BTreeSet::new();
+    let hsds_rows = record.get("hsds_resources").and_then(Value::as_object)
+        .ok_or_else(|| format!("{} missing hsds_resources", where_))?;
+    for item in verified_fields {
+        let path = item.as_str().ok_or_else(|| format!("{} provider_verified_fields entries must be strings", where_))?;
+        if !verified_seen.insert(path.to_owned()) {
+            return Err(format!("{} duplicate provider_verified_field {}", where_, path));
+        }
+        let (resource, field) = path.split_once('.')
+            .ok_or_else(|| format!("{} provider_verified_field must be resource.field: {}", where_, path))?;
+        let schema = pin.get("schema_files").and_then(Value::as_array)
+            .and_then(|schemas| schemas.iter().find(|schema| schema.get("resource").and_then(Value::as_str) == Some(resource)))
+            .ok_or_else(|| format!("{} provider_verified_field has unknown resource {}", where_, resource))?;
+        let allowed = string_set(schema.get("allowed_fields"), &format!("{}.allowed_fields", resource))?;
+        if !allowed.contains(field) {
+            return Err(format!("{} provider_verified_field {} is not a field in the pinned schema", where_, path));
+        }
+        let row = hsds_rows.get(resource).and_then(Value::as_object)
+            .ok_or_else(|| format!("{} provider_verified_field {} has no resource row", where_, path))?;
+        if !row.contains_key(field) {
+            return Err(format!("{} provider_verified_field {} is not present in the resource row", where_, path));
+        }
+    }
+
+    let checks = evidence.get("contact_checks").and_then(Value::as_array)
+        .ok_or_else(|| format!("{} contact_checks must be an array", where_))?;
+    let allowed_contact_fields = string_set(contract.pointer("/contact_check/allowed_fields"), "local profile contact allowed_fields")?;
+    let allowed_contact_kinds = string_set(contract.pointer("/contact_check/kind_enum"), "local profile contact kind_enum")?;
+    let allowed_contact_results = string_set(contract.pointer("/contact_check/result_enum"), "local profile contact result_enum")?;
+    for (index, check) in checks.iter().enumerate() {
+        let object = check.as_object().ok_or_else(|| format!("{} contact check {} must be an object", where_, index))?;
+        for key in object.keys() {
+            if !allowed_contact_fields.contains(key) {
+                return Err(format!("{} contact check {} has undeclared field {}", where_, index, key));
+            }
+        }
+        for key in &allowed_contact_fields {
+            if !object.contains_key(key) {
+                return Err(format!("{} contact check {} missing field {}", where_, index, key));
+            }
+        }
+        let kind = required_str(check, "kind", where_)?;
+        let result = required_str(check, "result", where_)?;
+        let _value = required_str(check, "value", where_)?;
+        if !allowed_contact_kinds.contains(kind) {
+            return Err(format!("{} unknown contact-check kind {}", where_, kind));
+        }
+        if !allowed_contact_results.contains(result) {
+            return Err(format!("{} unknown contact-check result {}", where_, result));
+        }
+    }
+
+    if let Some(conflicts) = evidence.get("conflicts") {
+        let list = conflicts.as_array().ok_or_else(|| format!("{} conflicts must be an array", where_))?;
+        for (index, conflict) in list.iter().enumerate() {
+            for key in ["field", "claim_a", "claim_b"] {
+                let _ = required_str(conflict, key, &format!("{} conflict {}", where_, index))?;
+            }
+        }
+    }
+    if let Some(correction) = evidence.get("user_correction") {
+        for key in ["field", "proposed_value", "review_state"] {
+            let _ = required_str(correction, key, &format!("{} user_correction", where_))?;
+        }
+        let allowed = string_set(contract.pointer("/optional_evidence_fields/user_correction/review_state_enum"), "local profile correction state enum")?;
+        let state = required_str(correction, "review_state", where_)?;
+        if !allowed.contains(state) {
+            return Err(format!("{} unknown user correction review state {}", where_, state));
+        }
+    }
+    if let Some(capacity) = evidence.get("capacity_claim") {
+        for key in ["units", "available"] {
+            if !capacity.get(key).map(Value::is_number).unwrap_or(false) {
+                return Err(format!("{} capacity_claim.{} must be numeric", where_, key));
+            }
+        }
+        let observed_at = required_str(capacity, "observed_at", where_)?;
+        if !valid_timestamp(observed_at) {
+            return Err(format!("{} capacity_claim.observed_at must be a timestamp", where_));
+        }
+        let authority = required_str(capacity, "authority", where_)?;
+        let allowed = string_set(contract.pointer("/optional_evidence_fields/capacity_claim/authority_enum"), "local profile capacity authority enum")?;
+        if !allowed.contains(authority) {
+            return Err(format!("{} unknown capacity authority {}", where_, authority));
+        }
+    }
+    Ok(())
+}
+
+fn valid_timestamp(value: &str) -> bool {
+    value.len() >= 20
+        && value.as_bytes().get(10) == Some(&b'T')
+        && value.get(..10).map(days_from_date).flatten().is_some()
+        && (value.ends_with('Z') || value.rfind('+').map(|at| at > 10).unwrap_or(false) || value.rfind('-').map(|at| at > 10).unwrap_or(false))
 }
 
 fn validate_hsds_resources(record: &Value, where_: &str) -> Result<(), String> {
@@ -616,6 +802,34 @@ mod tests {
         assert_eq!(report["disposition_counts"]["ClosedOrWithdrawn"], 1);
     }
 
+
+
+    #[test]
+    fn local_admission_profile_hash_matches_fixture_manifest() {
+        let manifest: Value = serde_json::from_str(MANIFEST).unwrap();
+        validate_local_profile_manifest(&manifest).unwrap();
+    }
+
+    #[test]
+    fn provider_verified_paths_must_exist_in_the_pinned_resource_row() {
+        let mut record: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
+        record["admission_evidence"]["provider_verified_fields"][2] = json!("schedule.weekday");
+        assert!(validate_admission_evidence(&record, "test CBF-001").unwrap_err().contains("not a field in the pinned schema"));
+    }
+
+    #[test]
+    fn unknown_field_state_values_fail_closed() {
+        let mut record: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
+        record["admission_evidence"]["field_states"]["cost"] = json!("free");
+        assert!(validate_admission_evidence(&record, "test CBF-001").unwrap_err().contains("invalid field state"));
+    }
+
+    #[test]
+    fn duplicate_verified_field_paths_fail_closed() {
+        let mut record: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
+        record["admission_evidence"]["provider_verified_fields"][1] = json!("service.name");
+        assert!(validate_admission_evidence(&record, "test CBF-001").unwrap_err().contains("duplicate provider_verified_field"));
+    }
 
     #[test]
     fn pinned_hsds_schema_bytes_match_derived_contract_and_fixture_manifest() {
