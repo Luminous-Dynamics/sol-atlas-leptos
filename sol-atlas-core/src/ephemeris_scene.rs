@@ -635,17 +635,21 @@ $EOE\n\
 
     #[test]
     fn self_center_and_reference_cycle_fail_closed() {
-        let self_centered = parsed_sample(
+        let mut state = parsed_sample(
             "mars",
-            "mars",
-            "@499",
-            "Mars",
+            "ssb",
+            "@0",
+            "Solar System Barycenter",
             EPOCH_JD,
             ReferencePlane::Frame,
             VectorCorrection::Geometric,
             [0.0, 0.0, 0.0],
             [0.0, 0.0, 0.0],
-        );
+        )
+        .state()
+        .clone();
+        state.center_id = "mars".into();
+        let self_centered = HashBoundStateVector::new(state);
         assert!(matches!(
             EphemerisScene::build(&[self_centered]),
             Err(SceneBuildError::SelfCenteredTarget(id)) if id == "mars"

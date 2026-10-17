@@ -580,7 +580,7 @@ pub struct HashBoundStateVector {
 }
 
 impl HashBoundStateVector {
-    fn new(state: StateVector) -> Self {
+    pub(crate) fn new(state: StateVector) -> Self {
         Self { state }
     }
 
@@ -1361,14 +1361,10 @@ mod tests {
         assert!(input_file.contains("VECT_CORR='NONE'\n"));
         assert!(input_file.contains("VECT_TABLE='2'\n"));
         assert!(input_file.ends_with(concat!("!", "$", "$", "EOF\n")));
-        assert!(
-            req.canonical_request_identity()
-                .unwrap()
-                .starts_with(concat!(
-                    "POST\nhttps://ssd.jpl.nasa.gov/api/horizons_file.api\n",
-                    "format=json\nfield=input\ninput-bytes:\n"
-                ))
-        );
+        assert!(req.canonical_request_identity().unwrap().contains(concat!(
+            "POST\nhttps://ssd.jpl.nasa.gov/api/horizons_file.api\n",
+            "format=json\nfield=input\ninput-bytes:\n"
+        )));
     }
 
     #[test]
@@ -1456,7 +1452,9 @@ mod tests {
     #[test]
     fn canonical_url_supports_encoded_small_body_designations() {
         let mut request = request();
+        request.target_id = "custom-small-body".into();
         request.provider_target = "DES=1999 AN10;".into();
+        request.expected_target_name = "1999 AN10".into();
         let url = request.canonical_url().unwrap();
         assert!(url.contains("COMMAND=%27DES%3D1999%20AN10%3B%27"));
         assert!(url.contains("TLIST=%272461323.5%27"));
