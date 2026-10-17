@@ -282,6 +282,10 @@ fn compare_indexed(
         });
     }
 
+    let recovery_comparison = recovery_comparison(&baseline, &candidate);
+    let baseline_first_adequate_as_of = baseline.first_adequate_as_of.clone();
+    let candidate_first_adequate_as_of = candidate.first_adequate_as_of.clone();
+
     Ok(WaterServiceTrajectoryInterventionComparison {
         schema_version: WATER_SERVICE_TRAJECTORY_INTERVENTION_SCHEMA_VERSION.to_owned(),
         comparison_id: request.id.clone(),
@@ -302,9 +306,9 @@ fn compare_indexed(
         customer_delivery_delta_lower_bound: delivery_delta_lower,
         customer_delivery_delta_upper_bound: delivery_delta_upper,
         effect,
-        recovery_comparison: recovery_comparison(&baseline, &candidate),
-        baseline_first_adequate_as_of: baseline.first_adequate_as_of,
-        candidate_first_adequate_as_of: candidate.first_adequate_as_of,
+        recovery_comparison,
+        baseline_first_adequate_as_of,
+        candidate_first_adequate_as_of,
         interpretation_boundary: WaterTrajectoryInterpretationBoundary::ModeledCounterfactualNotCausalEvidence,
         steps,
         supporting_evidence_ids: evidence_ids.into_iter().collect(),
