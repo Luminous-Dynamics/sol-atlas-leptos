@@ -62,6 +62,7 @@ struct VerificationReport {
     verifier_repository_url: Option<String>,
     verifier_worktree_clean: Option<bool>,
     verifier_checkout_independent: bool,
+    verifier_build_matches_checkout: bool,
     qualification_core_sha256: Option<String>,
     input_receipt_status: Option<String>,
     target_qualification_status: Option<String>,
@@ -252,6 +253,8 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
     let (actual_head, worktree_clean, remote_url) = git_snapshot(&repo_root);
     let (verifier_head, verifier_worktree_clean, verifier_repository_url) =
         git_snapshot(&verifier_root);
+    let verifier_build_matches_checkout = compiled_verifier_checkout_root()
+        .is_ok_and(|compiled_root| compiled_root == verifier_root);
     let verifier_checkout_independent = independent_verifier_checkout(
         &repo_root,
         actual_head.as_deref(),
@@ -341,6 +344,16 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
             "promotion requires a separate clean verifier checkout at a different commit with a known origin".to_string()
         },
     );
+    push_check(
+        &mut checks,
+        "verifier_build_matches_checkout",
+        verifier_build_matches_checkout,
+        if verifier_build_matches_checkout {
+            "compiled binary manifest directory resolves to the declared verifier checkout".to_string()
+        } else {
+            "compiled binary was not built from the declared verifier checkout".to_string()
+        },
+    );
     let run_passed = completed_successfully(&receipt);
     let gates_controls_passed = all_gates_and_controls_pass(&receipt);
     let metrics_passed = metrics_present(&receipt);
@@ -394,6 +407,11 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
         if !verifier_checkout_independent {
             qualification_reasons.push(
                 "promotion requires a separate clean verifier checkout with a distinct exact commit and recorded origin".to_string(),
+            );
+        }
+        if !verifier_build_matches_checkout {
+            qualification_reasons.push(
+                "the executing verifier binary must be built from the declared separate verifier checkout".to_string(),
             );
         }
         if !remote_matches {
@@ -579,6 +597,7 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
         verifier_repository_url,
         verifier_worktree_clean,
         verifier_checkout_independent,
+        verifier_build_matches_checkout,
         qualification_core_sha256: core_sha256,
         input_receipt_status: input_status,
         target_qualification_status: Some(target_status),
@@ -1124,6 +1143,7 @@ fn validate_prior_verifier_report(
         "clean_worktree",
         "exact_head_ci",
         "independent_verifier_checkout",
+        "verifier_build_matches_checkout",
         "completed_run",
         "gates_and_controls",
         "metrics_and_uncertainty",
@@ -1186,6 +1206,7 @@ fn validate_prior_verifier_report(
     }
     if report.get("verifier_worktree_clean").and_then(Value::as_bool) != Some(true)
         || report.get("verifier_checkout_independent").and_then(Value::as_bool) != Some(true)
+        || report.get("verifier_build_matches_checkout").and_then(Value::as_bool) != Some(true)
     {
         return Err("verifier report does not establish a separate clean verifier checkout".to_string());
     }
@@ -1213,6 +1234,17 @@ fn validate_prior_verifier_report(
         return Err("qualification evidence outcome is not accepted".to_string());
     }
     Ok(())
+}
+
+fn compiled_verifier_checkout_root() -> Result<PathBuf, String> {
+    let manifest_dir = fs::canonicalize(env!("CARGO_MANIFEST_DIR"))
+        .map_err(|error| format!("cannot canonicalize compiled verifier manifest dir: {error}"))?;
+    let repository_root = manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .ok_or_else(|| "compiled verifier manifest is not in the expected tools/<crate> layout".to_string())?;
+    fs::canonicalize(repository_root)
+        .map_err(|error| format!("cannot canonicalize compiled verifier repository root: {error}"))
 }
 
 fn independent_verifier_checkout(
@@ -1632,6 +1664,13 @@ mod tests {
             ]
         });
         assert!(!synthetic_artifacts_and_controls_valid(&leaked, &artifacts));
+    }
+
+    #[test]
+    fn compiled_binary_manifest_resolves_to_repository_root() {
+        let root = compiled_verifier_checkout_root().expect("compiled verifier root should resolve");
+        assert!(root.join("tools/geo-receipt-verifier/Cargo.toml").is_file());
+        assert!(root.join("docs/earth-interior/benchmark-run-receipt.schema.json").is_file());
     }
 
     #[test]
