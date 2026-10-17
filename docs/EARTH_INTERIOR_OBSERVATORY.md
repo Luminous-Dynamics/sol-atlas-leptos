@@ -222,3 +222,11 @@ A qualified receipt binds the benchmark-specification digest, exact code commit,
 
 The schema deliberately rejects a qualified status when any declared gate or negative control did not pass, the worktree is dirty, execution did not complete, or independent-verifier evidence is absent/not accepted. A queued, skipped, cancelled, missing, or stale-head workflow is not a pass. JSON Schema validates receipt structure; an independent verifier must still recompute hashes and gates before promoting a result. A valid receipt is provenance, not proof that the physical model is correct.
 
+#### Qualification digest protocol and workflow-run evidence
+
+The independent verifier binds its result to a *qualification-core digest*: compact UTF-8 JSON with recursively key-sorted objects after removing `qualification_evidence` and normalizing `qualification_status` to `executed_unqualified`. This lets the verifier inspect a provisional receipt and later attest the same scientific run after promotion. The verifier report lives outside the receipt; its SHA-256 is recorded in `qualification_evidence.verifier_result_sha256`. This avoids a self-referential hash cycle.
+
+Every required CI check must name its exact commit and a `ci_check_evidence` artifact containing the corresponding locally retained workflow-run JSON. The verifier compares run ID, name, head SHA, status, conclusion and URL to the receipt, and also verifies the evidence artifact digest and byte length. Queued, in-progress, skipped, cancelled, missing, failed, neutral, stale-head or other non-success checks cannot qualify. This offline comparison checks consistency and integrity; it does **not** cryptographically authenticate that JSON was returned by GitHub, so the run URL/provider source remains independently auditable.
+
+A verifier report must identify the target qualification status and verifier commit. JSON Schema validity alone never proves scientific validity.
+
