@@ -184,3 +184,17 @@ Run with `WATER_ENERGY_INTERVENTION_BENCH_WARMUP=3` and `WATER_ENERGY_INTERVENTI
 These are unmeasured engineering targets. A performance target can be marked met only from a report tied to the exact commit, compiler, runner and host manifest. Correctness gates and latency numbers are separate, and even an exact synthetic-oracle match does not establish that a real hydraulic system follows the aggregate model.
 
 **Benchmark metadata interpretation:** The water-energy benchmark JSON attempts to record the source revision, Rust compiler, CI runner/host architecture, output size and `/proc/self/status` `VmHWM` when available. `VmHWM` is a process-wide high-water mark since process start; because the three workload sizes run in one process, it is **not** an isolated per-workload peak. For comparable RSS by workload size, run each size in a fresh process or measure each invocation with an external process monitor. Missing metadata remains null rather than being fabricated.
+
+## Joint water-energy stress sweep with protected service floors
+
+The benchmark uses 100 independent service-cell trajectories, each with 10 aligned hourly intervals. It sweeps 10 / 100 / 900 declared common pump-terminal power-degradation scenarios (11,000 / 101,000 / 901,000 service-step assessments including nominal baselines), each scenario affecting the same named time step across all service cells. Every sample asserts complete evaluation of the declared scenario count, exact evaluation-budget accounting, the expected zero worst-case floor-compliance lower bound, and identical synthetic result serialization before reporting output bytes.
+
+Run with `WATER_ENERGY_STRESS_BENCH_WARMUP=1` and `WATER_ENERGY_STRESS_BENCH_SAMPLES=3` using `cargo bench --bench water_energy_stress_sweep`.
+
+| Declared failure scenarios | Service-step assessments including baseline | Proposed p95 target |
+| ---: | ---: | ---: |
+| 10 | 11,000 | 500 ms |
+| 100 | 101,000 | 5,000 ms |
+| 900 | 901,000 | 45,000 ms |
+
+These are proposed engineering budgets, not measured results. The harness records scenario and override counts, p50/p95/max, source revision/compiler/runner metadata, output bytes, and a process-wide RSS high-water mark when available. `VmHWM` is a process-wide high-water mark since process start, not an isolated per-workload peak; use fresh processes or an external process monitor for per-size memory comparison. The evaluator caps all service-step assessments at 1,000,000 and total scenario overrides at 100,000. The next scalability step is compact/streamed aggregation before raising those bounds.
