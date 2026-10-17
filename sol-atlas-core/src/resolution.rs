@@ -480,6 +480,75 @@ mod tests {
         }
     }
 
+    #[derive(Deserialize)]
+    struct ResolutionFrontierManifest {
+        reference_fixture: ResolutionFrontierFixture,
+    }
+
+    #[derive(Deserialize)]
+    struct ResolutionFrontierFixture {
+        id: String,
+        state_coordinates: Vec<ResolutionStateCoordinate>,
+        observation_ids: Vec<String>,
+        prior_covariance: Vec<Vec<f64>>,
+        observation_matrix: Vec<Vec<f64>>,
+        observation_noise_covariance: Vec<Vec<f64>>,
+        expected_analytic_results: ResolutionExpected,
+    }
+
+    #[derive(Deserialize)]
+    struct ResolutionStateCoordinate {
+        id: String,
+    }
+
+    #[derive(Deserialize)]
+    struct ResolutionExpected {
+        posterior_covariance: Vec<Vec<f64>>,
+        resolution_matrix: Vec<Vec<f64>>,
+        degrees_of_freedom_for_signal: f64,
+    }
+
+    #[test]
+    fn checked_in_benchmark_json_matches_the_rust_resolution_solver() {
+        const SPEC: &str =
+            include_str!("../../docs/earth-interior/benchmark-resolution-frontier.json");
+        let manifest: ResolutionFrontierManifest =
+            serde_json::from_str(SPEC).expect("resolution benchmark JSON must remain parseable");
+        let fixture = manifest.reference_fixture;
+        assert_eq!(fixture.id, "H0-low-high-mode-prior-dominance");
+
+        let problem = LinearGaussianResolutionProblem {
+            context: context(),
+            observation_ids: fixture.observation_ids,
+            parameter_ids: fixture.state_coordinates.into_iter().map(|x| x.id).collect(),
+            observation_operator: fixture.observation_matrix,
+            prior_covariance: fixture.prior_covariance,
+            observation_covariance: fixture.observation_noise_covariance,
+        };
+        let report = problem.analyze(1e-12, 1e-14).unwrap();
+        let expected = fixture.expected_analytic_results;
+
+        assert_eq!(report.posterior_covariance.len(), expected.posterior_covariance.len());
+        for (actual_row, expected_row) in report.posterior_covariance.iter().zip(&expected.posterior_covariance) {
+            assert_eq!(actual_row.len(), expected_row.len());
+            for (actual, expected) in actual_row.iter().zip(expected_row) {
+                assert!((actual - expected).abs() < 1e-10);
+            }
+        }
+
+        assert_eq!(report.resolution_matrix.len(), expected.resolution_matrix.len());
+        for (actual_row, expected_row) in report.resolution_matrix.iter().zip(&expected.resolution_matrix) {
+            assert_eq!(actual_row.len(), expected_row.len());
+            for (actual, expected) in actual_row.iter().zip(expected_row) {
+                assert!((actual - expected).abs() < 1e-10);
+            }
+        }
+        assert!(
+            (report.degrees_of_freedom_for_signal - expected.degrees_of_freedom_for_signal).abs()
+                < 1e-10
+        );
+    }
+
     #[test]
     fn exact_fixture_distinguishes_data_resolution_from_posterior_precision() {
         let report = diagonal_problem().analyze(1e-12, 1e-14).unwrap();
