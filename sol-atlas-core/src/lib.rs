@@ -20,6 +20,7 @@ pub mod mycelix_flows;
 // pub mod relativity_viz;
 pub mod geometry;
 pub mod math;
+pub mod physics_evidence;
 pub mod picking;
 pub mod simulation;
 pub mod solar_system;
