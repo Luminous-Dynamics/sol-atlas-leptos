@@ -179,7 +179,10 @@ impl fmt::Display for EvidencePolicyError {
                 write!(f, "maximum data age must be non-negative, got {value}")
             }
             Self::EmptyAuthorityPolicy => {
-                write!(f, "policy must name at least one accepted source-authority class")
+                write!(
+                    f,
+                    "policy must name at least one accepted source-authority class"
+                )
             }
             Self::EmptyRightsPolicy => {
                 write!(f, "policy must name at least one accepted data-rights class")
@@ -192,7 +195,10 @@ impl fmt::Display for EvidencePolicyError {
                 write!(f, "required jurisdiction must not be empty")
             }
             Self::MissingRequiredExtentCrs => {
-                write!(f, "required extent must declare its CRS or inherit an explicit required CRS")
+                write!(
+                    f,
+                    "required extent must declare its CRS or inherit an explicit required CRS"
+                )
             }
             Self::ConflictingRequiredCrs => {
                 write!(f, "required CRS and required extent CRS must agree")
@@ -201,7 +207,10 @@ impl fmt::Display for EvidencePolicyError {
                 write!(f, "required axis order must not be Unknown")
             }
             Self::InvalidMaximumResolution(value) => {
-                write!(f, "maximum resolution must be finite and positive, got {value}")
+                write!(
+                    f,
+                    "maximum resolution must be finite and positive, got {value}"
+                )
             }
             Self::InvalidRequiredExtent => {
                 write!(f, "required extent must contain finite, ordered bounds")
@@ -231,7 +240,11 @@ fn validate_policy(policy: &EvidencePolicy) -> Result<(), EvidencePolicyError> {
             return Err(EvidencePolicyError::InvalidMaximumAge(age));
         }
     }
-    if policy.required_jurisdiction.as_ref().is_some_and(|jurisdiction| jurisdiction.trim().is_empty()) {
+    if policy
+        .required_jurisdiction
+        .as_ref()
+        .is_some_and(|jurisdiction| jurisdiction.trim().is_empty())
+    {
         return Err(EvidencePolicyError::EmptyRequiredJurisdiction);
     }
     if policy.accepted_authorities.is_empty() {
@@ -240,7 +253,11 @@ fn validate_policy(policy: &EvidencePolicy) -> Result<(), EvidencePolicyError> {
     if policy.accepted_rights.is_empty() {
         return Err(EvidencePolicyError::EmptyRightsPolicy);
     }
-    if policy.required_crs.as_ref().is_some_and(|crs| crs.trim().is_empty()) {
+    if policy
+        .required_crs
+        .as_ref()
+        .is_some_and(|crs| crs.trim().is_empty())
+    {
         return Err(EvidencePolicyError::EmptyRequiredCrs);
     }
     if policy
@@ -255,12 +272,13 @@ fn validate_policy(policy: &EvidencePolicy) -> Result<(), EvidencePolicyError> {
     }
     if let Some(resolution) = policy.maximum_resolution_meters {
         if !resolution.is_finite() || resolution <= 0.0 {
-            return Err(EvidencePolicyError::InvalidMaximumResolution(
-                resolution,
-            ));
+            return Err(EvidencePolicyError::InvalidMaximumResolution(resolution));
         }
     }
-    if policy.required_extent.is_some_and(|extent| !valid_extent(extent)) {
+    if policy
+        .required_extent
+        .is_some_and(|extent| !valid_extent(extent))
+    {
         return Err(EvidencePolicyError::InvalidRequiredExtent);
     }
     if policy.required_extent.is_some()
@@ -269,9 +287,7 @@ fn validate_policy(policy: &EvidencePolicy) -> Result<(), EvidencePolicyError> {
     {
         return Err(EvidencePolicyError::MissingRequiredExtentCrs);
     }
-    if let (Some(crs), Some(extent_crs)) =
-        (&policy.required_crs, &policy.required_extent_crs)
-    {
+    if let (Some(crs), Some(extent_crs)) = (&policy.required_crs, &policy.required_extent_crs) {
         if crs != extent_crs {
             return Err(EvidencePolicyError::ConflictingRequiredCrs);
         }
@@ -318,9 +334,7 @@ fn assess_spatial(
 
     if spatial.crs.trim().is_empty()
         || spatial.horizontal_unit.trim().is_empty()
-        || spatial
-            .bounds
-            .is_some_and(|extent| !valid_extent(extent))
+        || spatial.bounds.is_some_and(|extent| !valid_extent(extent))
         || spatial
             .resolution_meters
             .is_some_and(|resolution| !resolution.is_finite() || resolution <= 0.0)
@@ -344,7 +358,10 @@ fn assess_spatial(
             note_failure(
                 assessment,
                 EvidenceReadiness::CrsMismatch,
-                format!("source CRS {} does not match required CRS {required_crs}", spatial.crs),
+                format!(
+                    "source CRS {} does not match required CRS {required_crs}",
+                    spatial.crs
+                ),
             );
         }
     }
@@ -437,7 +454,9 @@ pub fn assess_source(
         || source.publisher.trim().is_empty()
         || source.dataset_name.trim().is_empty()
         || source.revision.trim().is_empty()
-        || source.jurisdiction.as_ref().is_some_and(|jurisdiction| jurisdiction.trim().is_empty())
+            .jurisdiction
+            .as_ref()
+            .is_some_and(|jurisdiction| jurisdiction.trim().is_empty())
         || source
             .payload_sha256
             .as_ref()
@@ -499,9 +518,7 @@ pub fn assess_source(
                     note_failure(
                         &mut result,
                         EvidenceReadiness::Stale,
-                        format!(
-                            "source data age {age} s exceeds policy maximum {max_age} s"
-                        ),
+                        format!("source data age {age} s exceeds policy maximum {max_age} s"),
                     );
                 }
             }
@@ -527,12 +544,20 @@ pub fn assess_source(
         note_failure(
             &mut result,
             EvidenceReadiness::RightsNotAllowed,
-            format!("source rights {:?} are not allowed by this policy", source.rights),
+            format!(
+                "source rights {:?} are not allowed by this policy",
+                source.rights
+            ),
         );
     }
 
-    if matches!(source.rights, DataRights::OpenLicense | DataRights::Restricted)
-        && source.license_id.as_ref().is_none_or(|license| license.trim().is_empty())
+    if matches!(
+        source.rights,
+        DataRights::OpenLicense | DataRights::Restricted
+    ) && source
+        .license_id
+        .as_ref()
+        .is_none_or(|license| license.trim().is_empty())
     {
         note_failure(
             &mut result,
@@ -600,9 +625,7 @@ mod tests {
             maximum_data_age_seconds: Some(90 * 24 * 60 * 60),
             require_data_timestamp: true,
             require_payload_digest: true,
-            accepted_authorities: [SourceAuthority::GovernmentRecord]
-                .into_iter()
-                .collect(),
+            accepted_authorities: [SourceAuthority::GovernmentRecord].into_iter().collect(),
             accepted_rights: [DataRights::PublicDomain, DataRights::OpenLicense]
                 .into_iter()
                 .collect(),
