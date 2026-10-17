@@ -127,7 +127,11 @@ fn service_request(index: usize, intervals: usize) -> WaterEnergyCouplingRequest
     }
 }
 
-fn build_request(scenarios: usize, service_cells: usize, intervals: usize) -> WaterEnergyStressSweepRequest {
+fn build_request(
+    scenarios: usize,
+    service_cells: usize,
+    intervals: usize,
+) -> WaterEnergyStressSweepRequest {
     let baseline_services = (0..service_cells)
         .map(|index| service_request(index, intervals))
         .collect::<Vec<_>>();
@@ -158,7 +162,7 @@ fn build_request(scenarios: usize, service_cells: usize, intervals: usize) -> Wa
                 id: format!("case-{index:05}"),
                 kind: WaterEnergyFailureScenarioKind::CommonCause,
                 rationale: format!(
-                    "Synthetic common event reduces pump-terminal power to {power_level} kW for one shared sample; not an observed outage."
+                    "Pump-terminal power derating to {power_level} kW at one shared sample."
                 ),
                 overrides,
             }
