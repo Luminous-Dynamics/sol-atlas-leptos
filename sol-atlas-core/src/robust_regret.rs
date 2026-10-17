@@ -661,4 +661,94 @@ mod tests {
         assert_eq!(evaluated, 81);
     }
 
+    #[test]
+    fn exhaustive_ambiguous_observation_relations_never_increase_regret_bound() {
+        let scenario_ids: BTreeSet<String> =
+            ["scenario-a".to_string(), "scenario-b".to_string()]
+                .into_iter()
+                .collect();
+        let decision_ids: BTreeSet<String> =
+            ["decision-a".to_string(), "decision-b".to_string()]
+                .into_iter()
+                .collect();
+        let values = [0.0, 1.0, 2.0];
+        let outcome_set = |mask: u8| {
+            let mut outcomes = BTreeSet::new();
+            if mask & 1 != 0 {
+                outcomes.insert("outcome-a".to_string());
+            }
+            if mask & 2 != 0 {
+                outcomes.insert("outcome-b".to_string());
+            }
+            outcomes
+        };
+        let mut evaluated = 0;
+
+        // 3^4 loss matrices × 3^2 non-empty observation sets = 729 models.
+        // An observation set may overlap another scenario's set, representing ambiguity.
+        for encoded in 0..81 {
+            let mut remainder = encoded;
+            let mut losses = Vec::with_capacity(4);
+            for decision_id in ["decision-a", "decision-b"] {
+                for scenario_id in ["scenario-a", "scenario-b"] {
+                    let value = values[remainder % values.len()];
+                    remainder /= values.len();
+                    losses.push(DecisionLoss {
+                        decision_id: decision_id.into(),
+                        scenario_id: scenario_id.into(),
+                        loss_lower: value,
+                        loss_upper: value,
+                    });
+                }
+            }
+
+            let baseline_problem = RobustRegretProblem {
+                loss_unit: "regret-units".into(),
+                scenario_ids: scenario_ids.clone(),
+                decision_ids: decision_ids.clone(),
+                losses: losses.clone(),
+                actions: vec![],
+            };
+            let baseline = analyze_robust_regret(&baseline_problem)
+                .unwrap()
+                .baseline
+                .worst_case_regret_bound;
+
+            for mask_a in 1..=3 {
+                for mask_b in 1..=3 {
+                    let problem = RobustRegretProblem {
+                        loss_unit: "regret-units".into(),
+                        scenario_ids: scenario_ids.clone(),
+                        decision_ids: decision_ids.clone(),
+                        losses: losses.clone(),
+                        actions: vec![InvestigationAction {
+                            action_id: "set-valued-observation".into(),
+                            cost_unit: "regret-units".into(),
+                            cost: 0.0,
+                            outcome_by_scenario: BTreeMap::from([
+                                ("scenario-a".into(), outcome_set(mask_a)),
+                                ("scenario-b".into(), outcome_set(mask_b)),
+                            ]),
+                        }],
+                    };
+                    let report = analyze_robust_regret(&problem).unwrap();
+                    let actual = &report.investigations[0];
+                    assert!(
+                        actual.post_investigation_regret_bound <= baseline + 1e-9,
+                        "observation relation increased regret for loss grid {encoded}, masks {mask_a}/{mask_b}"
+                    );
+                    if mask_a == mask_b {
+                        assert_eq!(
+                            actual.post_investigation_regret_bound, baseline,
+                            "identical possible-outcome sets must not add information"
+                        );
+                    }
+                    evaluated += 1;
+                }
+            }
+        }
+
+        assert_eq!(evaluated, 729);
+    }
+
 }
