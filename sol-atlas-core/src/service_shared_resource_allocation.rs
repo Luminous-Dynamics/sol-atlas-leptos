@@ -657,6 +657,10 @@ pub fn assess_shared_resource_allocation(
         let refs = usage.resource_use_per_delivery_rate.supporting_evidence_ids.iter().cloned().collect::<Vec<_>>();
         service_evidence.entry(usage.service_id.clone()).or_default().extend(refs.iter().cloned());
         resource_evidence.entry(usage.resource_id.clone()).or_default().extend(refs.iter().cloned());
+        service_evidence
+            .entry(usage.service_id.clone())
+            .or_default()
+            .extend(resources[resource_index].capacity.supporting_evidence_ids.iter().cloned());
         all_evidence.extend(refs);
     }
 
@@ -825,6 +829,10 @@ pub fn assess_shared_resource_allocation(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::spatial_economic::{
+        EvidenceKind, EvidenceRecord, EvidenceState, Provenance, SpatialContext, TimeContext,
+        EVIDENCE_SCHEMA_VERSION,
+    };
 
     const AS_OF: &str = "2026-10-16T00:00:00Z";
     const RATE_UNIT: &str = "m3/h";
@@ -856,6 +864,38 @@ mod tests {
             resource_use_per_delivery_rate: measurement(id, value, None, unit),
         }
     }
+    fn observed_evidence(id: &str, entity: &str, quantity: Quantity) -> EvidenceRecord {
+        EvidenceRecord {
+            id: id.to_owned(),
+            schema_version: EVIDENCE_SCHEMA_VERSION.to_owned(),
+            kind: EvidenceKind::Observation,
+            state: EvidenceState::Asserted,
+            issuer_id: "did:example:shared-resource-tests".to_owned(),
+            subject_id: entity.to_owned(),
+            spatial: SpatialContext {
+                entity_id: entity.to_owned(),
+                geometry_uri: None,
+                crs: None,
+            },
+            time: TimeContext {
+                occurred_at: AS_OF.to_owned(),
+                recorded_at: AS_OF.to_owned(),
+                valid_from: None,
+                valid_until: None,
+            },
+            statement: "Synthetic observed capacity for provenance test.".to_owned(),
+            quantity: Some(quantity),
+            money: None,
+            provenance: Provenance {
+                method: "synthetic_test".to_owned(),
+                source_artifacts: Vec::new(),
+                derivation_id: None,
+            },
+            supersedes: None,
+            access_policy: "policy:synthetic-test".to_owned(),
+        }
+    }
+
     fn request() -> SharedResourceAllocationRequest {
         SharedResourceAllocationRequest {
             schema_version: SHARED_RESOURCE_ALLOCATION_SCHEMA_VERSION.to_owned(),
@@ -1054,6 +1094,34 @@ mod tests {
         assert!((observed_sorted[1] - best[1]).abs() < 1e-9);
         assert!((observed_sorted[2] - best[2]).abs() < 1e-9);
         assert_eq!(best, [0.5, 0.5, 1.0]);
+    }
+
+
+    #[test]
+    fn each_service_provenance_includes_evidence_for_its_shared_resource_capacity() {
+        let mut input = request();
+        input.resources[0].capacity.basis = ScenarioBasis::Observed;
+        input.resources[0].capacity.supporting_evidence_ids =
+            vec!["evidence:shared-water".to_owned()];
+        let evidence = observed_evidence(
+            "evidence:shared-water",
+            "shared-water",
+            Quantity {
+                value: 100.0,
+                unit: "m3/h".to_owned(),
+                uncertainty_abs: None,
+            },
+        );
+        let output = assess_shared_resource_allocation(&input, &[evidence])
+            .expect("observed shared capacity must be admissible");
+        assert!(output.services.iter().all(|service| {
+            service.supporting_evidence_ids.iter().any(|id| id == "evidence:shared-water")
+        }));
+        assert!(output.resources.iter().any(|resource| {
+            resource.resource_id == "shared-water"
+                && resource.supporting_evidence_ids.iter().any(|id| id == "evidence:shared-water")
+        }));
+        assert!(output.supporting_evidence_ids.iter().any(|id| id == "evidence:shared-water"));
     }
 
 }
