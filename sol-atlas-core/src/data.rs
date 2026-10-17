@@ -247,9 +247,8 @@ fn parse_vector_with_health<T>(
                 state,
                 record_count: Some(accepted_count),
                 rejected_record_count: Some(rejected_count),
-                diagnostic: (rejected_count > 0).then(|| {
-                    format!("{rejected_count} source records failed semantic validation")
-                }),
+                diagnostic: (rejected_count > 0)
+                    .then(|| format!("{rejected_count} source records failed semantic validation")),
             });
             accepted
         }
@@ -796,10 +795,7 @@ mod tests {
             rejected_record_count: Some(3),
             diagnostic: Some("3 source records failed semantic validation".to_string()),
         };
-        assert_eq!(
-            serde_json::to_value(rejected).unwrap()["state"],
-            "rejected"
-        );
+        assert_eq!(serde_json::to_value(rejected).unwrap()["state"], "rejected");
     }
 
     #[test]
