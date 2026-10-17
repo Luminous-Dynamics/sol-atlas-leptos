@@ -312,7 +312,8 @@ fn evaluate_constraint(
                 _ => return Ok(MatchState::Unknown),
             };
             let target = expected.as_str().ok_or_else(|| "contains_verified target must be a string".to_owned())?;
-            if values.iter().any(|value| value.as_str() == Some(&format!("verified:{}", target))) {
+            let verified_target = format!("verified:{}", target);
+            if values.iter().any(|value| value.as_str() == Some(verified_target.as_str())) {
                 Ok(MatchState::Satisfied)
             } else if values.iter().any(|value| is_unknown(Some(value))) {
                 Ok(MatchState::Unknown)
@@ -327,6 +328,9 @@ fn evaluate_constraint(
             };
             let target = expected.as_str().ok_or_else(|| "after_local_time target must be HH:MM".to_owned())?;
             let target_minutes = parse_minutes(target).ok_or_else(|| format!("invalid HH:MM target {}", target))?;
+            if value.starts_with("verified_before_") {
+                return Ok(MatchState::Mismatch);
+            }
             let encoded = value.strip_prefix("verified_after_")
                 .ok_or_else(|| format!("unsupported verified schedule fact {}", value))?;
             let hour: u32 = encoded.parse().map_err(|_| format!("invalid verified schedule hour {}", encoded))?;
