@@ -1,0 +1,66 @@
+{
+  "contract_version": "city-belonging-metamorphic-contract/0.1",
+  "benchmark_id": "city-belonging-task-matcher-metamorphic-v0.1",
+  "test_status": "AUTHORED_NOT_EXECUTED",
+  "claim_ceiling": "These properties test deterministic selector invariants on synthetic inputs only. They do not validate real-world recommendation quality, safety, or human outcomes.",
+  "properties": [
+    {
+      "id": "M01",
+      "law": "candidate_order_invariance",
+      "test": "candidate_order_is_a_metamorphic_invariant",
+      "relation": "Permuting candidate input order does not change the eligible set, preferred set, or sorted candidate receipts.",
+      "failure_signal": "Input ordering changes eligibility or preference."
+    },
+    {
+      "id": "M02",
+      "law": "hard_constraint_conjunction_commutativity",
+      "test": "hard_constraint_order_is_a_metamorphic_invariant",
+      "relation": "Reordering hard constraints leaves eligibility and preferred sets unchanged.",
+      "failure_signal": "Equivalent conjunctions yield different eligible candidates."
+    },
+    {
+      "id": "M03",
+      "law": "preference_noninterference",
+      "test": "changing_soft_preferences_cannot_change_hard_eligibility",
+      "relation": "Changing a soft preference can change the preferred subset but never the hard-eligible set.",
+      "failure_signal": "A preference change removes an otherwise eligible candidate."
+    },
+    {
+      "id": "M04",
+      "law": "constraint_strength_monotonicity",
+      "test": "adding_a_hard_constraint_cannot_add_eligible_candidates",
+      "relation": "Adding a constraint to a conjunction can only preserve or shrink its eligible set.",
+      "failure_signal": "A stronger constraint adds a candidate."
+    },
+    {
+      "id": "M05",
+      "law": "constraint_removal_monotonicity",
+      "test": "removing_a_hard_constraint_cannot_remove_eligible_candidates",
+      "relation": "Removing a constraint can only preserve or expand the eligible set.",
+      "failure_signal": "A weaker constraint removes a candidate."
+    },
+    {
+      "id": "M06",
+      "law": "irrelevant_fact_noninterference",
+      "test": "irrelevant_candidate_facts_do_not_change_constraint_decisions",
+      "relation": "Adding unrelated popularity/click-count facts cannot change constraint outcomes or receipts.",
+      "failure_signal": "Engagement proxies influence eligibility despite not being requested constraints."
+    },
+    {
+      "id": "M07",
+      "law": "conjunctive_hard_requirement",
+      "test": "verified_match_still_does_not_override_other_hard_constraints",
+      "relation": "Satisfying one constraint cannot override another mismatch or unknown.",
+      "failure_signal": "A single good feature yields an ineligible candidate a pass."
+    }
+  ],
+  "required_release_gate": {
+    "properties_total": 7,
+    "all_properties_pass": 7,
+    "hard_constraint_violations": 0,
+    "unknown_to_positive_conversions": 0,
+    "soft_preference_changes_to_eligibility": 0,
+    "non_deterministic_receipts": 0
+  },
+  "related": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/127"
+}
