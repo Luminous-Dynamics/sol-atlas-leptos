@@ -46,6 +46,9 @@ use sol_atlas_core::service_network_stress::{
     ServiceNetworkFailureCaseOrigin, ServiceNetworkStressRequest,
     SERVICE_NETWORK_STRESS_SCHEMA_VERSION, MAX_EXHAUSTIVE_FAILURE_CASES,
 };
+use sol_atlas_core::service_network_portfolio::{
+    compare_service_network_portfolio, ServiceNetworkPortfolioRequest,
+};
 use sol_atlas_core::spatial_economic::Quantity;
 use sol_atlas_core::spatial_graph::{DependencyGraph, RelationKind, SpatialRelation};
 use std::collections::BTreeMap;
@@ -110,6 +113,14 @@ struct SampleSummary {
     stress_p50_micros: u128,
     stress_p95_micros: u128,
     stress_max_micros: u128,
+    portfolio_plans_per_run: usize,
+    portfolio_scenarios_per_run: usize,
+    portfolio_pareto_front_one_count: usize,
+    portfolio_dominated_plan_count: usize,
+    portfolio_result_bytes: usize,
+    portfolio_p50_micros: u128,
+    portfolio_p95_micros: u128,
+    portfolio_max_micros: u128,
 }
 
 fn evidence(id: String, feeder_id: &str) -> EvidenceRecord {
@@ -502,6 +513,118 @@ fn network_intervention_requests(
         .collect()
 }
 
+fn portfolio_fixture(
+    plan_count: usize,
+    scenario_count: usize,
+) -> ServiceNetworkPortfolioRequest {
+    let service_id = "service:irrigation";
+    let source_id = "source:reservoir";
+    let mut scenarios = Vec::with_capacity(scenario_count);
+    for index in 0..scenario_count {
+        let suffix = format!("{index:03}");
+        let supply_capacity = 5.0 + (index % 3) as f64;
+        let backup_availability = match index % 3 {
+            0 => NetworkLinkAvailability::Active,
+            1 => NetworkLinkAvailability::Inactive,
+            _ => NetworkLinkAvailability::Unknown,
+        };
+        let link = |id: &str, from: &str, to: &str, value: f64,
+                    availability: NetworkLinkAvailability| NetworkLink {
+            id: id.into(),
+            from_entity_id: from.into(),
+            to_entity_id: to.into(),
+            capacity: FunctionMeasurement {
+                entity_id: id.into(),
+                quantity: Quantity {
+                    value,
+                    unit: "m3/h".into(),
+                    uncertainty_abs: Some(0.0),
+                },
+                basis: ScenarioBasis::Assumed,
+                rationale: "Synthetic portfolio benchmark capacity".into(),
+                supporting_evidence_ids: Vec::new(),
+            },
+            availability,
+            availability_basis: ScenarioBasis::Assumed,
+            availability_rationale: "Synthetic portfolio benchmark state".into(),
+            availability_supporting_evidence_ids: Vec::new(),
+        };
+        scenarios.push(ServiceCapacityNetworkScenario {
+            schema_version: SERVICE_NETWORK_SCHEMA_VERSION.into(),
+            id: format!("portfolio-scenario-{suffix}"),
+            as_of: "2026-10-15T12:00:00Z".into(),
+            service_entity_id: service_id.into(),
+            topology_completeness: NetworkTopologyCompleteness::Complete,
+            source_entity_ids: vec![source_id.into()],
+            required_capacity: FunctionMeasurement {
+                entity_id: service_id.into(),
+                quantity: Quantity {
+                    value: 8.0,
+                    unit: "m3/h".into(),
+                    uncertainty_abs: Some(0.0),
+                },
+                basis: ScenarioBasis::Assumed,
+                rationale: "Synthetic portfolio benchmark demand".into(),
+                supporting_evidence_ids: Vec::new(),
+            },
+            links: vec![
+                link("supply", source_id, "junction", supply_capacity, NetworkLinkAvailability::Active),
+                link("route-a", "junction", service_id, 4.0, NetworkLinkAvailability::Active),
+                link("route-b", "junction", service_id, 4.0, backup_availability),
+            ],
+        });
+    }
+
+    let mut plans = Vec::with_capacity(plan_count);
+    for index in 0..plan_count {
+        let mut link_overrides = BTreeMap::new();
+        match index % 3 {
+            0 => {
+                link_overrides.insert("route-b".into(), NetworkLinkInterventionOverride {
+                    availability: Some(NetworkLinkAvailability::Active),
+                    capacity_value: None,
+                    capacity_uncertainty_abs: None,
+                    rationale: "Synthetic plan activates backup route".into(),
+                });
+            }
+            1 => {
+                link_overrides.insert("supply".into(), NetworkLinkInterventionOverride {
+                    availability: None,
+                    capacity_value: Some(8.0 + (index % 4) as f64),
+                    capacity_uncertainty_abs: Some(0.0),
+                    rationale: "Synthetic plan upgrades shared supply".into(),
+                });
+            }
+            _ => {
+                link_overrides.insert("route-b".into(), NetworkLinkInterventionOverride {
+                    availability: Some(NetworkLinkAvailability::Active),
+                    capacity_value: None,
+                    capacity_uncertainty_abs: None,
+                    rationale: "Synthetic combined plan activates backup route".into(),
+                });
+                link_overrides.insert("supply".into(), NetworkLinkInterventionOverride {
+                    availability: None,
+                    capacity_value: Some(8.0 + (index % 4) as f64),
+                    capacity_uncertainty_abs: Some(0.0),
+                    rationale: "Synthetic combined plan upgrades supply".into(),
+                });
+            }
+        }
+        plans.push(ServiceNetworkInterventionPlan {
+            schema_version: SERVICE_NETWORK_INTERVENTION_SCHEMA_VERSION.into(),
+            id: format!("portfolio-plan-{index:05}"),
+            rationale: "Synthetic candidate only; no real work is implied".into(),
+            link_overrides,
+        });
+    }
+
+    ServiceNetworkPortfolioRequest {
+        comparison_id: format!("portfolio-benchmark-{plan_count}x{scenario_count}"),
+        scenarios,
+        plans,
+    }
+}
+
 fn assumed(state: EntityOperationalState, rationale: &str) -> ScenarioEntityCondition {
     ScenarioEntityCondition {
         state,
@@ -835,6 +958,27 @@ fn main() {
         let reference_recovery_bytes =
             serde_json::to_vec(&reference_recovery).expect("recovery trajectory serializes");
 
+        // Bound plan x scenario cost independently from graph-size and N-k sweeps.
+        let portfolio_plan_count = match groups_count {
+            100 => 10,
+            1_000 => 50,
+            _ => 100,
+        };
+        let portfolio_scenario_count = 10;
+        let portfolio_request = portfolio_fixture(portfolio_plan_count, portfolio_scenario_count);
+        let reference_portfolio = compare_service_network_portfolio(&portfolio_request, &[])
+            .expect("synthetic Pareto portfolio must evaluate");
+        assert_eq!(reference_portfolio.plans.len(), portfolio_plan_count);
+        assert!(reference_portfolio.plans.iter().all(|plan| plan.pareto_front >= 1));
+        assert!(reference_portfolio.plans.iter().any(|plan| plan.pareto_front == 1));
+        assert!(reference_portfolio.plans.iter().any(|plan| plan.pareto_front > 1));
+        assert!(reference_portfolio.plans.iter().all(|plan| {
+            plan.pareto_dominated_by_plan_ids.windows(2)
+                .all(|pair| pair[0] < pair[1])
+        }));
+        let reference_portfolio_bytes =
+            serde_json::to_vec(&reference_portfolio).expect("portfolio comparison serializes");
+
         for _ in 0..warmup_iterations {
             let result = compare_intervention(
                 &graph,
@@ -952,9 +1096,19 @@ fn main() {
                 serde_json::to_vec(&recovery).expect("recovery trajectory serializes"),
                 reference_recovery_bytes
             );
+
+            let portfolio = compare_service_network_portfolio(&portfolio_request, &[])
+                .expect("synthetic Pareto portfolio must evaluate");
+            assert_eq!(portfolio.plans.len(), portfolio_plan_count);
+            assert!(portfolio.plans.iter().all(|plan| plan.pareto_front >= 1));
+            assert_eq!(
+                serde_json::to_vec(&portfolio).expect("portfolio serializes"),
+                reference_portfolio_bytes
+            );
         }
 
         let mut samples = Vec::with_capacity(measured_iterations);
+        let mut portfolio_samples = Vec::with_capacity(measured_iterations);
         let mut common_cause_samples = Vec::with_capacity(measured_iterations);
         let mut functional_samples = Vec::with_capacity(measured_iterations);
         let mut network_samples = Vec::with_capacity(measured_iterations);
@@ -1082,6 +1236,17 @@ fn main() {
                 serde_json::to_vec(&recovery).expect("recovery trajectory serializes"),
                 reference_recovery_bytes
             );
+
+            let portfolio_start = Instant::now();
+            let portfolio = compare_service_network_portfolio(&portfolio_request, &[])
+                .expect("synthetic Pareto portfolio must evaluate");
+            portfolio_samples.push(portfolio_start.elapsed());
+            assert_eq!(portfolio.plans.len(), portfolio_plan_count);
+            assert!(portfolio.plans.iter().all(|plan| plan.pareto_front >= 1));
+            assert_eq!(
+                serde_json::to_vec(&portfolio).expect("portfolio serializes"),
+                reference_portfolio_bytes
+            );
         }
         samples.sort_unstable();
         common_cause_samples.sort_unstable();
@@ -1090,6 +1255,7 @@ fn main() {
         network_intervention_samples.sort_unstable();
         recovery_samples.sort_unstable();
         stress_samples.sort_unstable();
+        portfolio_samples.sort_unstable();
 
         let summary = SampleSummary {
             groups: groups_count,
@@ -1160,6 +1326,16 @@ fn main() {
             stress_p50_micros: percentile(&stress_samples, 50).as_micros(),
             stress_p95_micros: percentile(&stress_samples, 95).as_micros(),
             stress_max_micros: stress_samples.last().copied().unwrap_or_default().as_micros(),
+            portfolio_plans_per_run: reference_portfolio.plans.len(),
+            portfolio_scenarios_per_run: reference_portfolio.scenario_count,
+            portfolio_pareto_front_one_count: reference_portfolio.plans.iter()
+                .filter(|plan| plan.pareto_front == 1).count(),
+            portfolio_dominated_plan_count: reference_portfolio.plans.iter()
+                .filter(|plan| plan.pareto_front > 1).count(),
+            portfolio_result_bytes: reference_portfolio_bytes.len(),
+            portfolio_p50_micros: percentile(&portfolio_samples, 50).as_micros(),
+            portfolio_p95_micros: percentile(&portfolio_samples, 95).as_micros(),
+            portfolio_max_micros: portfolio_samples.last().copied().unwrap_or_default().as_micros(),
         };
         println!(
             "{}",
