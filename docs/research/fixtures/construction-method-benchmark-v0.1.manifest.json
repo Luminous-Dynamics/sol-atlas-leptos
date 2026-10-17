@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1",
+  "benchmark_id": "sol-atlas-construction-methods-v0.1",
+  "fixture_path": "docs/research/fixtures/construction-method-benchmark-v0.1.jsonl",
+  "fixture_git_blob_sha1": "275c125cb26709e25ba51d1b377698aa63d3f509",
+  "fixture_characters": 5575,
+  "case_count": 30,
+  "families": [
+    "conventional_cast_in_place",
+    "precast_concrete",
+    "light_gauge_steel",
+    "mass_timber",
+    "panelized_timber",
+    "volumetric_modular",
+    "earth_based",
+    "additive_manufactured",
+    "hybrid",
+    "other"
+  ],
+  "dimensions": [
+    "current verified pass/fail",
+    "estimated/unknown/disputed/stale hard-gate evidence",
+    "gate age boundaries",
+    "metric evidence states",
+    "hard-failure priority over missing performance evidence"
+  ],
+  "claim_ceiling": "synthetic policy semantics only; no construction approval, cost/carbon prediction, structural adequacy, or code-compliance claim"
+}
