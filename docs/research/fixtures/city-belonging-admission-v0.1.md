@@ -26,9 +26,9 @@ The fixture contains eleven synthetic decision cases. Every organization, servic
 | CBF-010 | ProviderConfirmed | Service-area/virtual option has no fabricated street pin |
 | CBF-011 | StaleOrDisputed | Provider-confirmed status older than the manifest-pinned 30-day window is not current |
 
-Each JSONL record contains synthetic HSDS-shaped fragments (organization, service, location, service-at-location and schedule where relevant), a separate local admission-evidence envelope, and an expected decision. Local evidence fields are intentionally kept out of the HSDS fragments so a future profile can be versioned separately.
+Each JSONL record contains separate synthetic HSDS 3.1 resource rows (organization, service, location, service-at-location, schedule, address, service-area, service-capacity, or unit where relevant), a separate local admission-evidence envelope, and an expected decision. Resource-row names and values are checked against the selected pinned contract; local evidence fields stay outside the standard rows.
 
-**Schema honesty gate:** the manifest names the HSDS 3.1 source reference but leaves its schema-bundle hash blank. The exact upstream schema bytes have not been retrieved and hashed in this change, and the fixture has not been validated against the canonical schema. The fixture hash establishes corpus integrity only, not HSDS conformance.
+**Schema honesty gate:** nine upstream HSDS 3.1 resource schema files are vendored byte-for-byte, attributed to Open Referral, and licensed under CC BY-SA 4.0; the pin manifest records each source URL, Git blob ID, UTF-8 SHA-256, required fields, tabular-required fields, field types, formats, and enums. The Rust checker compares the vendored bytes with that manifest and checks the selected rows against those pinned properties plus cross-row IDs. This is a selected resource-row contract check, **not full HSDS conformance**: nested references and every upstream schema semantic are not fully implemented, and no independent Frictionless/schema-validation command has been run. The corpus hash establishes fixture integrity, not real-world service truth.
 
 ## Admission invariants
 
@@ -64,10 +64,10 @@ The zero-error target is a strict synthetic regression gate, not a promise about
 
 ## Next engineering gates
 
-1. Retrieve the official HSDS 3.1 schema bundle from an immutable upstream commit; pin exact bytes and hashes for every referenced schema; include attribution/licence.
-2. Implement and hash a minimal namespaced local admission profile.
-3. Validate fixtures separately for schema conformance and admission-policy outcomes.
-4. Add deterministic negative tests for duplicate IDs, missing lineage, malformed input, stale events, conflicting sources, permission unknown, closed services, and unknown-field propagation.
+1. Complete upstream HSDS validation using the standard's full schema/profile tooling, including nested references; the current checker deliberately validates a selected resource-row contract only.
+2. Implement and hash the minimal namespaced local admission profile for provenance and permission state.
+3. Keep schema/profile validation separate from admission-policy outcomes.
+4. Execute the authored Rust tests at the exact head, including field enums, tabular-required fields, row relationships, stale events, conflicting sources, permission-unknown, closed services, and unknown-field propagation.
 5. Only then consider ingestion; review actual source terms and rights first.
 
 ## Source basis
