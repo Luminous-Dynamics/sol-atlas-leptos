@@ -1125,47 +1125,73 @@ mod tests {
     #[test]
     fn queued_skipped_cancelled_missing_and_stale_head_ci_never_pass() {
         let commit = "a".repeat(40);
-        let valid = json!({
-            "code": {"commit_sha": commit},
-            "ci_checks": [{
-                "check_id": "check-1",
-                "name": "required",
-                "commit_sha": commit,
-                "status": "completed",
-                "conclusion": "success"
-            }]
+        let run_url = "https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/123";
+
+        let valid_check = json!({
+            "check_id": "123",
+            "name": "Check",
+            "commit_sha": commit,
+            "status": "completed",
+            "conclusion": "success",
+            "url": run_url
         });
-        assert!(ci_checks_all_pass(&valid));
+        let valid_evidence = json!({
+            "id": 123,
+            "name": "Check",
+            "head_sha": commit,
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": run_url
+        });
+        assert!(ci_check_evidence_matches(&valid_check, &valid_evidence, &commit));
 
         for status in ["queued", "in_progress", "skipped", "cancelled", "missing"] {
-            let receipt = json!({
-                "code": {"commit_sha": "a".repeat(40)},
-                "ci_checks": [{
-                    "check_id": "check-1",
-                    "name": "required",
-                    "commit_sha": "a".repeat(40),
-                    "status": status,
-                    "conclusion": null
-                }]
+            let check = json!({
+                "check_id": "123",
+                "name": "Check",
+                "commit_sha": commit,
+                "status": status,
+                "conclusion": null,
+                "url": run_url
             });
-            assert!(!ci_checks_all_pass(&receipt), "{status} was incorrectly accepted");
+            let evidence = json!({
+                "id": 123,
+                "name": "Check",
+                "head_sha": commit,
+                "status": status,
+                "conclusion": null,
+                "html_url": run_url
+            });
+            assert!(
+                !ci_check_evidence_matches(&check, &evidence, &commit),
+                "{status} was incorrectly accepted"
+            );
         }
 
-        let stale_head = json!({
-            "code": {"commit_sha": "a".repeat(40)},
-            "ci_checks": [{
-                "check_id": "check-1",
-                "name": "required",
-                "commit_sha": "b".repeat(40),
-                "status": "completed",
-                "conclusion": "success"
-            }]
+        let stale_commit = "b".repeat(40);
+        let stale_check = json!({
+            "check_id": "123",
+            "name": "Check",
+            "commit_sha": stale_commit,
+            "status": "completed",
+            "conclusion": "success",
+            "url": run_url
         });
-        assert!(!ci_checks_all_pass(&stale_head));
-        assert!(!ci_checks_all_pass(&json!({
+        let stale_evidence = json!({
+            "id": 123,
+            "name": "Check",
+            "head_sha": stale_commit,
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": run_url
+        });
+        assert!(!ci_check_evidence_matches(&stale_check, &stale_evidence, &commit));
+
+        let no_checks = json!({
             "code": {"commit_sha": commit},
             "ci_checks": []
-        })));
+        });
+        assert!(!ci_checks_all_pass(&no_checks, &[], Path::new(".")));
     }
 
     #[test]
