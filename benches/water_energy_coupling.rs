@@ -48,7 +48,7 @@ fn measurement(entity_id: &str, value: f64, unit: &str) -> FunctionMeasurement {
             uncertainty_abs: None,
         },
         basis: ScenarioBasis::Assumed,
-        rationale: "Synthetic benchmark input; not evidence about physical infrastructure.".to_owned(),
+        rationale: "Synthetic benchmark input; not physical-infrastructure evidence.".to_owned(),
         supporting_evidence_ids: Vec::new(),
     }
 }
