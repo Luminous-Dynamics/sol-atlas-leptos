@@ -939,3 +939,486 @@ canvas#globe-canvas.has-hover {
         transition: none;
     }
 }
+
+
+/* ─── Public civic-energy proof slice ────────────────────────────── */
+
+.labs-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.community-energy-page {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    min-height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto;
+    background:
+        radial-gradient(ellipse at 82% 0%, rgba(var(--sa-accent), 0.07), transparent 38rem),
+        #05070d;
+    color: var(--sa-fg);
+    padding: 26px clamp(16px, 4vw, 52px) 64px;
+    box-sizing: border-box;
+}
+
+.community-energy-page * {
+    box-sizing: border-box;
+}
+
+.community-energy-topbar {
+    max-width: 1160px;
+    margin: 0 auto 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.community-energy-topbar a {
+    color: rgb(var(--sa-accent));
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.community-energy-topbar a:hover {
+    text-decoration: underline;
+}
+
+.community-energy-kicker,
+.community-energy-eyebrow,
+.community-energy-label,
+.community-energy-choice-label {
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    font-size: 10px;
+    font-weight: 650;
+    color: rgba(var(--sa-cool), 0.75);
+}
+
+.community-energy-hero,
+.community-energy-section,
+.community-energy-footer {
+    max-width: 1160px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.community-energy-hero {
+    padding: 10px 0 32px;
+}
+
+.community-energy-eyebrow {
+    color: rgb(var(--sa-accent));
+    margin: 0 0 12px;
+}
+
+.community-energy-hero h1 {
+    color: #f5f8fc;
+    font-size: clamp(32px, 5vw, 56px);
+    line-height: 1.04;
+    letter-spacing: -1.7px;
+    font-weight: 540;
+    max-width: 800px;
+    margin: 0 0 14px;
+}
+
+.community-energy-intro {
+    max-width: 760px;
+    font-size: clamp(15px, 1.6vw, 18px);
+    line-height: 1.65;
+    color: rgba(224, 232, 245, 0.8);
+    margin: 0 0 22px;
+}
+
+.community-energy-disclaimer {
+    max-width: 920px;
+    padding: 13px 16px;
+    border: 1px solid rgba(var(--sa-scenario), 0.46);
+    border-radius: var(--sa-radius-sm);
+    background: rgba(var(--sa-scenario), 0.075);
+    font-size: 12px;
+    line-height: 1.65;
+    color: rgba(246, 239, 219, 0.9);
+}
+
+.community-energy-disclaimer strong {
+    color: rgb(var(--sa-scenario));
+    margin-right: 4px;
+}
+
+.community-energy-section {
+    border-top: 1px solid rgba(var(--sa-line), 0.2);
+    padding: 30px 0;
+}
+
+.community-energy-section-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+.community-energy-step {
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: rgb(var(--sa-accent));
+    border: 1px solid rgba(var(--sa-accent), 0.35);
+    border-radius: 9px;
+    padding: 8px 9px;
+    min-width: 39px;
+    text-align: center;
+}
+
+.community-energy-section-heading h2 {
+    margin: 0 0 6px;
+    color: #f3f7fb;
+    font-size: clamp(19px, 2.4vw, 26px);
+    line-height: 1.2;
+    font-weight: 520;
+}
+
+.community-energy-section-heading p {
+    margin: 0;
+    color: rgba(211, 222, 238, 0.62);
+    line-height: 1.5;
+    font-size: 13px;
+}
+
+.community-energy-choice-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.community-energy-choice {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 9px;
+    min-height: 124px;
+    padding: 18px;
+    border: 1px solid rgba(var(--sa-line), 0.3);
+    border-radius: var(--sa-radius);
+    background: rgba(18, 23, 34, 0.92);
+    color: var(--sa-fg);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.community-energy-choice:hover {
+    border-color: rgba(var(--sa-accent), 0.7);
+    transform: translateY(-1px);
+}
+
+.community-energy-choice:focus-visible {
+    outline: 2px solid rgb(var(--sa-cool));
+    outline-offset: 3px;
+}
+
+.community-energy-choice-active {
+    border-color: rgba(var(--sa-accent), 0.85);
+    background: linear-gradient(135deg, rgba(var(--sa-accent), 0.11), rgba(18, 23, 34, 0.96) 60%);
+    box-shadow: inset 0 0 0 1px rgba(var(--sa-accent), 0.14);
+}
+
+.community-energy-choice strong {
+    font-size: 17px;
+    font-weight: 560;
+    color: #f5f8fb;
+}
+
+.community-energy-choice > span:last-child {
+    color: rgba(220, 229, 241, 0.68);
+    font-size: 12px;
+}
+
+.community-energy-choice-label {
+    color: rgb(var(--sa-accent));
+}
+
+.community-energy-candidate-warning {
+    margin: 12px 0 22px;
+    color: rgba(222, 228, 239, 0.57);
+    font-size: 11px;
+    line-height: 1.6;
+    max-width: 880px;
+}
+
+.community-energy-status-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 20px 0 14px;
+}
+
+.community-energy-status-card {
+    border-radius: var(--sa-radius);
+    border: 1px solid rgba(var(--sa-line), 0.25);
+    background: rgba(15, 20, 31, 0.85);
+    padding: 17px 18px;
+    min-width: 0;
+}
+
+.community-energy-status-card strong {
+    display: block;
+    font-size: 22px;
+    letter-spacing: 0.5px;
+    margin: 8px 0 6px;
+}
+
+.community-energy-status-pass {
+    color: rgb(var(--sa-accent));
+}
+
+.community-energy-status-fail {
+    color: rgb(var(--sa-scenario));
+}
+
+.community-energy-status-card p {
+    margin: 0;
+    color: rgba(220, 228, 240, 0.63);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.community-energy-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 14px 0 20px;
+}
+
+.community-energy-metric {
+    min-width: 0;
+    padding: 14px 15px;
+    border: 1px solid rgba(var(--sa-line), 0.17);
+    border-radius: var(--sa-radius-sm);
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.community-energy-metric span {
+    display: block;
+    color: rgba(213, 224, 239, 0.61);
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.community-energy-metric strong {
+    color: #f3f7fc;
+    font-size: clamp(17px, 2vw, 23px);
+    font-variant-numeric: tabular-nums;
+    font-weight: 540;
+}
+
+.community-energy-table-wrap {
+    overflow-x: auto;
+    border: 1px solid rgba(var(--sa-line), 0.24);
+    border-radius: var(--sa-radius);
+    background: rgba(10, 14, 22, 0.88);
+}
+
+.community-energy-table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 850px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.community-energy-table th,
+.community-energy-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid rgba(var(--sa-line), 0.12);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.community-energy-table th {
+    color: rgba(var(--sa-cool), 0.8);
+    font-size: 10px;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.community-energy-table th:first-child,
+.community-energy-table td:first-child,
+.community-energy-table th:nth-child(2),
+.community-energy-table td:nth-child(2) {
+    text-align: left;
+}
+
+.community-energy-table td {
+    color: rgba(229, 235, 245, 0.86);
+}
+
+.community-energy-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.community-energy-table tr.community-energy-outage td:first-child,
+.community-energy-table tr.community-energy-outage td:nth-child(2) {
+    color: rgb(var(--sa-scenario));
+}
+
+.community-energy-evidence-note {
+    padding: 13px 15px;
+    margin: 16px 0 0;
+    border-left: 2px solid rgba(var(--sa-cool), 0.55);
+    background: rgba(var(--sa-cool), 0.045);
+    color: rgba(219, 228, 240, 0.67);
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+.community-energy-evidence-note strong {
+    color: rgba(var(--sa-cool), 0.9);
+}
+
+.community-energy-vote {
+    display: grid;
+    grid-template-columns: minmax(210px, 0.9fr) 1.2fr;
+    gap: 18px;
+    padding: 20px;
+    border: 1px solid rgba(var(--sa-line), 0.28);
+    border-radius: var(--sa-radius);
+    background: rgba(17, 22, 34, 0.88);
+}
+
+.community-energy-vote-result strong {
+    display: block;
+    font-size: 25px;
+    color: rgb(var(--sa-accent));
+    margin: 9px 0;
+}
+
+.community-energy-vote-result p {
+    margin: 0;
+    max-width: 390px;
+    color: rgba(216, 226, 240, 0.62);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.community-energy-vote-numbers {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    align-self: start;
+}
+
+.community-energy-vote-numbers div {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--sa-radius-sm);
+    border: 1px solid rgba(var(--sa-line), 0.14);
+}
+
+.community-energy-vote-numbers span,
+.community-energy-vote-numbers strong {
+    display: block;
+}
+
+.community-energy-vote-numbers span {
+    color: rgba(217, 227, 241, 0.6);
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+.community-energy-vote-numbers strong {
+    color: #f4f8fc;
+    font-size: 25px;
+    margin-top: 8px;
+    font-weight: 540;
+}
+
+.community-energy-vote-rule {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    border-top: 1px solid rgba(var(--sa-line), 0.18);
+    padding-top: 13px;
+    color: rgba(221, 230, 242, 0.7);
+    font-size: 11px;
+}
+
+.community-energy-governance-boundary {
+    margin-top: 13px;
+    border: 1px solid rgba(var(--sa-scenario), 0.24);
+    border-radius: var(--sa-radius-sm);
+    padding: 14px 16px;
+    background: rgba(var(--sa-scenario), 0.045);
+}
+
+.community-energy-governance-boundary strong {
+    display: block;
+    color: rgb(var(--sa-scenario));
+    margin-bottom: 6px;
+    font-size: 12px;
+}
+
+.community-energy-governance-boundary p {
+    margin: 0;
+    color: rgba(222, 229, 239, 0.68);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.community-energy-footer {
+    border-top: 1px solid rgba(var(--sa-line), 0.2);
+    padding-top: 18px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+    gap: 16px;
+}
+
+.community-energy-footer > div {
+    min-width: 0;
+}
+
+.community-energy-footer code {
+    display: block;
+    margin-top: 8px;
+    font-size: 10px;
+    line-height: 1.5;
+    color: rgba(221, 231, 244, 0.74);
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+    .community-energy-topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 25px;
+    }
+
+    .community-energy-choice-row,
+    .community-energy-status-row,
+    .community-energy-vote {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .community-energy-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .community-energy-vote-numbers {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .community-energy-vote-rule {
+        grid-column: auto;
+    }
+
+    .community-energy-footer {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
