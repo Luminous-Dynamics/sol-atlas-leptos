@@ -185,7 +185,10 @@ impl fmt::Display for EvidencePolicyError {
                 )
             }
             Self::EmptyRightsPolicy => {
-                write!(f, "policy must name at least one accepted data-rights class")
+                write!(
+                    f,
+                    "policy must name at least one accepted data-rights class"
+                )
             }
             Self::EmptyRequiredCrs => write!(f, "required CRS must not be empty"),
             Self::EmptyRequiredExtentCrs => {
@@ -454,6 +457,7 @@ pub fn assess_source(
         || source.publisher.trim().is_empty()
         || source.dataset_name.trim().is_empty()
         || source.revision.trim().is_empty()
+        || source
             .jurisdiction
             .as_ref()
             .is_some_and(|jurisdiction| jurisdiction.trim().is_empty())
