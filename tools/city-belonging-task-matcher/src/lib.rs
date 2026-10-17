@@ -650,6 +650,91 @@ mod tests {
         assert!(verify_bytes(corpus.as_bytes(), &manifest).unwrap_err().contains("exclusion-reason keys"));
     }
 
+
+    #[test]
+    fn candidate_order_is_a_metamorphic_invariant() {
+        let original = case("CBT-010");
+        let original_result = evaluate_case(&original).unwrap();
+        let mut permuted = original;
+        permuted["candidates"].as_array_mut().unwrap().reverse();
+        let permuted_result = evaluate_case(&permuted).unwrap();
+        assert_eq!(original_result.eligible_candidate_ids, permuted_result.eligible_candidate_ids);
+        assert_eq!(original_result.preferred_candidate_ids, permuted_result.preferred_candidate_ids);
+        assert_eq!(original_result.candidate_receipts, permuted_result.candidate_receipts);
+    }
+
+    #[test]
+    fn hard_constraint_order_is_a_metamorphic_invariant() {
+        let mut original = case("CBT-009");
+        original["expected"]["no_fit_response"] = json!("synthetic expectation");
+        let original_result = evaluate_case(&original).unwrap();
+        original["hard_constraints"].as_array_mut().unwrap().reverse();
+        let reversed_result = evaluate_case(&original).unwrap();
+        assert_eq!(original_result.eligible_candidate_ids, reversed_result.eligible_candidate_ids);
+        assert_eq!(original_result.preferred_candidate_ids, reversed_result.preferred_candidate_ids);
+    }
+
+    #[test]
+    fn changing_soft_preferences_cannot_change_hard_eligibility() {
+        let mut value = case("CBT-010");
+        let before = evaluate_case(&value).unwrap();
+        assert_eq!(before.eligible_candidate_ids, vec!["A", "B"]);
+        value["soft_preferences"][0]["value"] = json!("large");
+        let after = evaluate_case(&value).unwrap();
+        assert_eq!(after.eligible_candidate_ids, before.eligible_candidate_ids);
+        assert_eq!(after.preferred_candidate_ids, vec!["B"]);
+    }
+
+    #[test]
+    fn adding_a_hard_constraint_cannot_add_eligible_candidates() {
+        let mut value = case("CBT-010");
+        let before = evaluate_case(&value).unwrap();
+        value["hard_constraints"].as_array_mut().unwrap().push(json!({
+            "field": "group_size",
+            "operator": "equals",
+            "value": "small_verified"
+        }));
+        let after = evaluate_case(&value).unwrap();
+        assert!(after.eligible_candidate_ids.iter().all(|id| before.eligible_candidate_ids.contains(id)));
+        assert_eq!(after.eligible_candidate_ids, vec!["A"]);
+    }
+
+    #[test]
+    fn removing_a_hard_constraint_cannot_remove_eligible_candidates() {
+        let mut value = case("CBT-002");
+        let before = evaluate_case(&value).unwrap();
+        assert_eq!(before.eligible_candidate_ids, vec!["A"]);
+        value["hard_constraints"].as_array_mut().unwrap().pop();
+        let after = evaluate_case(&value).unwrap();
+        assert!(before.eligible_candidate_ids.iter().all(|id| after.eligible_candidate_ids.contains(id)));
+        assert_eq!(after.eligible_candidate_ids, vec!["A", "B", "C"]);
+    }
+
+    #[test]
+    fn irrelevant_candidate_facts_do_not_change_constraint_decisions() {
+        let mut value = case("CBT-001");
+        let before = evaluate_case(&value).unwrap();
+        value["candidates"][1]["facts"]["popularity_score"] = json!(999999);
+        value["candidates"][1]["facts"]["click_count"] = json!(1000000);
+        let after = evaluate_case(&value).unwrap();
+        assert_eq!(before.eligible_candidate_ids, after.eligible_candidate_ids);
+        assert_eq!(before.preferred_candidate_ids, after.preferred_candidate_ids);
+        assert_eq!(before.candidate_receipts, after.candidate_receipts);
+    }
+
+    #[test]
+    fn verified_match_still_does_not_override_other_hard_constraints() {
+        let value = case("CBT-009");
+        let decision = evaluate_case(&value).unwrap();
+        assert!(decision.eligible_candidate_ids.is_empty());
+        let candidate_a = decision.candidate_receipts.iter().find(|r| r["candidate_id"] == "A").unwrap();
+        assert_eq!(candidate_a["hard_constraint_results"][0]["result"], "satisfied");
+        assert_eq!(candidate_a["hard_constraint_results"][2]["result"], "unknown");
+        let candidate_b = decision.candidate_receipts.iter().find(|r| r["candidate_id"] == "B").unwrap();
+        assert_eq!(candidate_b["hard_constraint_results"][0]["result"], "unknown");
+        assert_eq!(candidate_b["hard_constraint_results"][2]["result"], "satisfied");
+    }
+
     #[test]
     fn identical_inputs_produce_identical_report_bytes() {
         let first = serde_json::to_vec(&verify_bytes(FIXTURE.as_bytes(), MANIFEST).unwrap()).unwrap();
