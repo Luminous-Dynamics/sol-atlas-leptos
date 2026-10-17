@@ -54,6 +54,8 @@ A zero exit code for `executed_unqualified` means the receipt was processed corr
 - Artifact locators are relative to `--artifact-root`; path traversal and symlinks escaping that root are rejected.
 - A queued, skipped, cancelled, missing, or stale-head workflow is never treated as passing evidence. Each required CI claim must reference a locally retained workflow-run JSON artifact; its run ID, name, head SHA, status, conclusion, and URL must agree with the receipt.
 - All declared gates and controls must pass for promotion.
+
+- The selected benchmark specification declares `required_ci_checks`. The verifier requires the receipt check list to contain exactly that set—no omitted or duplicate check names/IDs—and then verifies each retained workflow-run JSON, preventing the receipt from shrinking its own required CI gate.
 - A promoted status requires explicit required-CI evidence: every listed check must be `completed` with conclusion `success` on the exact code commit. A pending, queued, skipped, cancelled, missing, stale-head, or failed check is never a pass.
 - Promotion requires metric rows with sample counts and an explicit uncertainty method; `none` is not sufficient.
 - Synthetic qualification requires both a withheld truth-state artifact and synthetic observations, plus passing null-signal and truth-leakage controls.
