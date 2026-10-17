@@ -151,5 +151,5 @@ Before collection, agree on ownership, retention, access, sharing, support, inci
 - [ ] Rust/WASM compile and browser rendering verified.
 - [ ] Keyboard/screen-reader and responsive browser review completed.
 - [ ] Farmer/operator usability sessions completed.
-- [ ] Offline persistence, real provenance, and field integrations implemented.
+- [ ] Durable offline capture/replay/conflict handling and real provenance implemented; tracked in [FARM-OFFLINE-001 #151](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/151).
 - [ ] Outcome pilot completed and independently reviewed.
