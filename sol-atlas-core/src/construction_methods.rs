@@ -903,7 +903,7 @@ mod tests {
         let incomplete = candidate("incomplete", (10.0, 20.0), (100.0, 120.0), (0.2, 0.3));
         let report = evaluate_construction_methods(&[incomplete], &p).unwrap();
         assert_eq!(
-            report.assessments["failed"].screening_status,
+            report.assessments["incomplete"].screening_status,
             MethodScreeningStatus::NeedsEvidence
         );
         let mut failed = one_gate_candidate(
