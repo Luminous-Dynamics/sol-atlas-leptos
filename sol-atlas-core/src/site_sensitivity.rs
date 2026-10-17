@@ -528,8 +528,7 @@ pub fn analyze_sensitivity(
             return true;
         }
         scenario_rankings.iter().all(|scenario| {
-            scenario.candidates[&candidate.candidate_id].status
-                == ScenarioCandidateStatus::Ranked
+            scenario.candidates[&candidate.candidate_id].status == ScenarioCandidateStatus::Ranked
         })
     });
 
