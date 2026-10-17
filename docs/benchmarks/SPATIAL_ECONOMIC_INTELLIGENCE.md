@@ -212,3 +212,23 @@ Run with `WATER_ENERGY_STRESS_INTERVENTION_BENCH_WARMUP=1` and `WATER_ENERGY_STR
 | 500 | 11,000,000 | 50 s |
 
 These targets are unmeasured engineering hypotheses. This measures repeated individual comparisons, not a compact multi-candidate batch API; a batch API that evaluates the shared baseline once and returns compact per-candidate/per-scenario summaries remains a worthwhile optimization. The full single-candidate comparison keeps detailed per-step provenance. See [issue #150](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/150). The harness records revision/compiler/runner metadata, p50/p95/max, output bytes and process-wide RSS high-water mark where available.
+
+
+## Compact multi-candidate stress intervention batch
+
+The new batch API evaluates one baseline and multiple candidate stress sweeps against the identical declared failure suite. It validates pairing before expensive evaluation, builds the evidence index once, evaluates the baseline once, sorts summaries by stable candidate ID, and emits compact candidate summaries with worst-case unmet-demand, delivered-volume and protected-floor bounds plus side-specific evidence IDs. It does not serialize each candidate's full per-step trace; use the detailed single-candidate API on shortlisted options.
+
+The batch is bounded independently of per-sweep limits: at most 1,000 candidates, at most 1,000,000 total service-step assessments across the baseline plus all candidates, and at most 100,000 total declared overrides. Caller budgets must be positive and cannot exceed those hard caps. Over-budget work fails closed before model evaluation.
+
+Run with \`WATER_ENERGY_STRESS_BATCH_BENCH_WARMUP=1\` and \`WATER_ENERGY_STRESS_BATCH_BENCH_SAMPLES=3\` using \`cargo bench --bench water_energy_stress_intervention_batch\`.
+
+| Candidates | Service cells × intervals × cases per sweep | Batch assessment budget | Proposed compact-batch p95 target | Proposed repeated-full-trace p95 target |
+| ---: | ---: | ---: | ---: | ---: |
+| 10 | 100 × 10 × 11 | 121,000 | 1.5 s | 3 s |
+| 30 | 100 × 10 × 11 | 341,000 | 4 s | 8 s |
+| 80 | 100 × 10 × 11 | 891,000 | 12 s | 24 s |
+
+The harness times both the compact batch and repeated full-trace single-candidate comparisons on the same candidates. It checks that every candidate's compact effect, protected-floor outcome, envelope bounds and evidence IDs exactly match the full comparison; it also asserts deterministic compact output bytes and complete candidate evaluation. The output records source/compiler/runner metadata, p50/p95/max, output bytes, theoretical assessment work avoided by baseline reuse, and a process-wide RSS high-water mark.
+
+These are **unmeasured engineering targets**, not published standards or performance claims. The process RSS high-water mark is shared across benchmark cases and is not isolated per workload. Timing and correctness are separate acceptance gates; no hydraulic accuracy or real-world causal effect follows from synthetic agreement.
+
