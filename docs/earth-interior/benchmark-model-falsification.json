@@ -261,5 +261,6 @@
     "symthaea_active_experiment_generic": "https://github.com/Luminous-Dynamics/symthaea/issues/7756",
     "source_qualification_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/121",
     "mycelix_evidence_lineage": "https://github.com/Luminous-Dynamics/mycelix/issues/2410"
-  }
+  },
+  "run_receipt_schema": "./benchmark-run-receipt.schema.json"
 }
