@@ -6,7 +6,7 @@
   "service_count": 2,
   "resource_count": 2,
   "usage_constraint_count": 4,
-  "estimated_work_units": 12,
+  "estimated_work_units": 60,
   "conservative_allocation_iterations": 1,
   "optimistic_allocation_iterations": 1,
   "total_beneficiary_weight": 100,
