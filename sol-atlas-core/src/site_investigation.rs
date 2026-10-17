@@ -566,6 +566,7 @@ mod tests {
     struct ExpectedValue {
         before: f64,
         after_sample: f64,
+        perfect_information: f64,
         evpi: f64,
         evsi: f64,
         cost: f64,
@@ -599,7 +600,7 @@ mod tests {
                 let tolerance = expected.tolerance;
                 assert!((result.expected_loss_before_information - expected.before).abs() <= tolerance, "{}", case.case_id);
                 assert!((result.expected_loss_after_sample_information - expected.after_sample).abs() <= tolerance, "{}", case.case_id);
-                assert!((result.expected_loss_with_perfect_information - expected.evpi /* overwritten below */).abs() <= tolerance, "{}", case.case_id);
+                assert!((result.expected_loss_with_perfect_information - expected.perfect_information).abs() <= tolerance, "{}", case.case_id);
                 assert!((result.evsi - expected.evsi).abs() <= tolerance, "{}", case.case_id);
                 assert!((result.evpi - expected.evpi).abs() <= tolerance, "{}", case.case_id);
                 assert!((result.investigation_cost - expected.cost).abs() <= tolerance, "{}", case.case_id);
