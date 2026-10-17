@@ -574,8 +574,7 @@ mod tests {
         let fixture = include_str!("../../docs/research/fixtures/pareto-site-benchmark-v0.1.jsonl");
         let mut count = 0;
         for line in fixture.lines().filter(|l| !l.trim().is_empty()) {
-            let case: BenchmarkCase =
-                serde_json::from_str(line).expect("valid JSONL benchmark");
+            let case: BenchmarkCase = serde_json::from_str(line).expect("valid JSONL benchmark");
             let result = analyze_pareto(&case.candidates, &case.policy)
                 .unwrap_or_else(|e| panic!("{}: {e}", case.case_id));
             assert_eq!(result.dispositions, case.expected, "{}", case.case_id);
