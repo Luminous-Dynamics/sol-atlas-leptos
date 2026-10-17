@@ -54,6 +54,8 @@ A zero exit code for `executed_unqualified` means the receipt was processed corr
 - Artifact locators are relative to `--artifact-root`; path traversal and symlinks escaping that root are rejected.
 - A queued, skipped, cancelled, missing, or stale-head workflow is never treated as passing evidence.
 - All declared gates and controls must pass for promotion.
+- A promoted status requires explicit required-CI evidence: every listed check must be `completed` with conclusion `success` on the exact code commit. A queued, skipped, cancelled, missing, stale-head, or failed check is never a pass.
+- Promotion requires metric rows with sample counts and an explicit uncertainty method; `none` is not sufficient.
 - Synthetic qualification requires both a withheld truth-state artifact and synthetic observations, plus passing null-signal and truth-leakage controls.
 - Source-adapter qualification requires hashed source payload bytes and passed unit, temporal-coordinate, and variable-shape audits.
 - Real-observation evaluation requires a hashed holdout manifest, the actual observation artifact, and passed leakage and reference-overlap audits.
