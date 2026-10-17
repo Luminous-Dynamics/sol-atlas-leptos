@@ -239,3 +239,6 @@ Flow-matching posterior correction under simulator/prior/noise misspecification 
 
 Initial target (aspirational, not yet a gate): per-qualified-stratum nominal 90% coverage within a preregistered ±5 percentage-point band, with no material proper-score or sharpness regression. Fix strata, power, thresholds and uncertainty calculation before opening the blinded qualification set.
 
+### Required-CI set completeness
+
+Each benchmark contract now declares `required_ci_checks` (currently `Check` and `Earth Interior receipt verifier`). The receipt verifier compares its listed check names against that policy exactly and rejects missing, duplicate or unexpected check records before inspecting each retained workflow-run JSON artifact. This closes the omission loophole where a syntactically valid receipt could show only one passing check while silently leaving another required check unreported. The policy is bound by the benchmark specification digest and exact code commit. Queued/pending/skipped/cancelled/stale-head evidence remains non-passing.
