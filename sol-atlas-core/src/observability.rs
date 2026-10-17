@@ -415,15 +415,13 @@ mod tests {
 
     #[test]
     fn rejects_ragged_jacobians() {
-        let report = operator(vec![vec![1.0, 0.0], vec![1.0]])
-            .analyze(1e-12, 1e-10);
+        let report = operator(vec![vec![1.0, 0.0], vec![1.0]]).analyze(1e-12, 1e-10);
         assert_eq!(report, Err(ObservabilityError::JacobianColumnCountMismatch));
     }
 
     #[test]
     fn rejects_non_finite_jacobian_values() {
-        let report = operator(vec![vec![f64::NAN]])
-            .analyze(1e-12, 1e-10);
+        let report = operator(vec![vec![f64::NAN]]).analyze(1e-12, 1e-10);
         assert_eq!(report, Err(ObservabilityError::NonFiniteInput("jacobian")));
     }
 
@@ -471,7 +469,9 @@ mod tests {
         op.context.linearization_id = "  ".into();
         assert_eq!(
             op.analyze(1e-12, 1e-10),
-            Err(ObservabilityError::EmptyIdentifier("context.linearization_id"))
+            Err(ObservabilityError::EmptyIdentifier(
+                "context.linearization_id"
+            ))
         );
     }
 
