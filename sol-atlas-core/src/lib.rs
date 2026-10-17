@@ -30,6 +30,7 @@ pub mod service_network_intervention;
 pub mod service_network_portfolio;
 pub mod service_network_stress;
 pub mod service_recovery;
+pub mod service_shared_resource_allocation;
 pub mod service_water;
 pub mod service_water_energy_coupling;
 pub mod service_water_energy_intervention;
