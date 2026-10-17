@@ -249,5 +249,128 @@
     "symtropy_synthetic_observability_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1728",
     "symthaea_inference_benchmark_issue": "https://github.com/Luminous-Dynamics/symthaea/issues/7688",
     "mycelix_evidence_provenance_issue": "https://github.com/Luminous-Dynamics/mycelix/issues/2410"
-  }
+  },
+  "reference_fixtures": [
+    {
+      "id": "H0-two-parameter-correlated-duplicate",
+      "purpose": "Exact posterior/utility oracle for rank integrity and non-double-counting of highly correlated sensors.",
+      "state": {
+        "parameter_names": [
+          "x_north",
+          "x_east"
+        ],
+        "prior_mean": [
+          0,
+          0
+        ],
+        "prior_covariance": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "parameter_scales": [
+          1,
+          1
+        ]
+      },
+      "candidates": [
+        {
+          "id": "north",
+          "h": [
+            1,
+            0
+          ],
+          "noise_variance": 0.25,
+          "cost": 1,
+          "systematic_group": "north-instrument"
+        },
+        {
+          "id": "east",
+          "h": [
+            0,
+            1
+          ],
+          "noise_variance": 0.25,
+          "cost": 1,
+          "systematic_group": "east-instrument"
+        },
+        {
+          "id": "north_repeat_correlated",
+          "h": [
+            1,
+            0
+          ],
+          "noise_variance": 0.25,
+          "cost": 1,
+          "correlation_with": "north",
+          "correlation": 0.99,
+          "systematic_group": "north-instrument"
+        }
+      ],
+      "noise_rules": {
+        "independent_pair": "north and east have independent errors",
+        "correlated_duplicate": "The 2x2 error covariance for north + north_repeat_correlated is 0.25 * [[1, 0.99], [0.99, 1]].",
+        "utility_formula": "For linear-Gaussian observations: EIG = 0.5 * ln(det(I + H^T R^-1 H)); use the full covariance R, not only its diagonal."
+      },
+      "exact_expected_results": {
+        "budget_1": {
+          "design": [
+            "north"
+          ],
+          "expected_information_gain_nats": 0.8047189562170501,
+          "expected_rank": 1,
+          "unidentifiable_parameter": "x_east"
+        },
+        "budget_2_independent_complementary": {
+          "design": [
+            "north",
+            "east"
+          ],
+          "expected_information_gain_nats": 1.6094379124341003,
+          "expected_rank": 2,
+          "expected_posterior_covariance": [
+            [
+              0.2,
+              0
+            ],
+            [
+              0,
+              0.2
+            ]
+          ]
+        },
+        "budget_2_correlated_duplicate": {
+          "design": [
+            "north",
+            "north_repeat_correlated"
+          ],
+          "expected_information_gain_nats": 0.8067249769620305,
+          "expected_rank": 1,
+          "expected_posterior_covariance": [
+            [
+              0.1991991991991992,
+              0
+            ],
+            [
+              0,
+              1
+            ]
+          ]
+        }
+      },
+      "acceptance_checks": [
+        "Analytic utility and posterior covariance match the implementation within a predeclared floating-point tolerance.",
+        "A budget-1 north-only design does not identify x_east.",
+        "The north+east design achieves rank 2 and higher expected information gain than the highly correlated north duplicate pair.",
+        "The duplicate pair uses full measurement covariance; treating its measurements as independent is a negative-control failure.",
+        "Permuting candidate input order leaves normalized selected design and score unchanged under a deterministic tie policy."
+      ],
+      "expected_values_are_analytic_references_not_measured_results": true
+    }
+  ]
 }
