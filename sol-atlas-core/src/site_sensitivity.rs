@@ -147,19 +147,32 @@ impl fmt::Display for SensitivityError {
             Self::DuplicateCandidateId(id) => write!(f, "duplicate candidate ID: {id}"),
             Self::EmptyScenarioId => write!(f, "scenario IDs must not be empty"),
             Self::DuplicateScenarioId(id) => write!(f, "duplicate scenario ID: {id}"),
-            Self::MissingScenarioWeight { scenario_id, objective_id } => write!(
+            Self::MissingScenarioWeight {
+                scenario_id,
+                objective_id,
+            } => write!(
                 f,
                 "scenario {scenario_id} lacks a weight for objective {objective_id}"
             ),
-            Self::UnknownScenarioObjective { scenario_id, objective_id } => write!(
+            Self::UnknownScenarioObjective {
+                scenario_id,
+                objective_id,
+            } => write!(
                 f,
                 "scenario {scenario_id} defines undeclared objective {objective_id}"
             ),
-            Self::UnknownCandidateObjective { candidate_id, objective_id } => write!(
+            Self::UnknownCandidateObjective {
+                candidate_id,
+                objective_id,
+            } => write!(
                 f,
                 "candidate {candidate_id} defines undeclared objective {objective_id}"
             ),
-            Self::InvalidWeight { scenario_id, objective_id, value } => write!(
+            Self::InvalidWeight {
+                scenario_id,
+                objective_id,
+                value,
+            } => write!(
                 f,
                 "weight for {objective_id} in scenario {scenario_id} must be finite and non-negative, got {value}"
             ),
@@ -170,7 +183,11 @@ impl fmt::Display for SensitivityError {
                 f,
                 "score tolerance must be finite and non-negative, got {value}"
             ),
-            Self::InvalidScore { candidate_id, objective_id, value } => write!(
+            Self::InvalidScore {
+                candidate_id,
+                objective_id,
+                value,
+            } => write!(
                 f,
                 "score for {objective_id} on candidate {candidate_id} must be finite and in [0, 1], got {value}"
             ),
@@ -192,7 +209,9 @@ fn validate(
         return Err(SensitivityError::EmptyObjectiveId);
     }
     if !policy.score_tolerance.is_finite() || policy.score_tolerance < 0.0 {
-        return Err(SensitivityError::InvalidScoreTolerance(policy.score_tolerance));
+        return Err(SensitivityError::InvalidScoreTolerance(
+            policy.score_tolerance,
+        ));
     }
     if scenarios.is_empty() {
         return Err(SensitivityError::EmptyScenarioId);
@@ -275,10 +294,14 @@ fn score_candidate(
 ) -> Result<f64, Vec<String>> {
     match candidate.gate {
         GateDisposition::Excluded => {
-            return Err(vec!["upstream hard-constraint policy excluded this candidate".into()]);
+            return Err(vec![
+                "upstream hard-constraint policy excluded this candidate".into(),
+            ]);
         }
         GateDisposition::NeedsEvidence => {
-            return Err(vec!["upstream gate disposition requires additional evidence".into()]);
+            return Err(vec![
+                "upstream gate disposition requires additional evidence".into(),
+            ]);
         }
         GateDisposition::Eligible => {}
     }
@@ -313,15 +336,10 @@ fn score_candidate(
     Ok(weighted_sum / total_weight)
 }
 
-fn rank_scores(
-    scores: &BTreeMap<String, f64>,
-    tolerance: f64,
-) -> BTreeMap<String, usize> {
+fn rank_scores(scores: &BTreeMap<String, f64>, tolerance: f64) -> BTreeMap<String, usize> {
     let mut ranked: Vec<(&String, f64)> = scores.iter().map(|(id, score)| (id, *score)).collect();
     ranked.sort_by(|(id_a, score_a), (id_b, score_b)| {
-        score_b
-            .total_cmp(score_a)
-            .then_with(|| id_a.cmp(id_b))
+        score_b.total_cmp(score_a).then_with(|| id_a.cmp(id_b))
     });
 
     let mut ranks = BTreeMap::new();
@@ -597,9 +615,27 @@ mod tests {
     #[test]
     fn ranking_reversals_are_reported_across_preference_scenarios() {
         let candidates = [
-            candidate("A", GateDisposition::Eligible, Some(0.95), Some(0.3), Some(0.6)),
-            candidate("B", GateDisposition::Eligible, Some(0.6), Some(0.95), Some(0.5)),
-            candidate("C", GateDisposition::Eligible, Some(0.7), Some(0.75), Some(0.95)),
+            candidate(
+                "A",
+                GateDisposition::Eligible,
+                Some(0.95),
+                Some(0.3),
+                Some(0.6),
+            ),
+            candidate(
+                "B",
+                GateDisposition::Eligible,
+                Some(0.6),
+                Some(0.95),
+                Some(0.5),
+            ),
+            candidate(
+                "C",
+                GateDisposition::Eligible,
+                Some(0.7),
+                Some(0.75),
+                Some(0.95),
+            ),
         ];
         let report = analyze_sensitivity(&candidates, &scenarios(), &policy()).unwrap();
         let winners: BTreeMap<String, Vec<String>> = report
@@ -610,15 +646,32 @@ mod tests {
         assert_eq!(winners["access-first"], vec!["A"]);
         assert_eq!(winners["carbon-first"], vec!["B"]);
         assert_eq!(winners["community-first"], vec!["C"]);
-        assert!(report.pairwise.iter().any(|pair| pair.ordering_reversal_observed));
+        assert!(
+            report
+                .pairwise
+                .iter()
+                .any(|pair| pair.ordering_reversal_observed)
+        );
         assert_eq!(report.robust_unique_winner, None);
     }
 
     #[test]
     fn same_unique_winner_across_all_scenarios_is_reported() {
         let candidates = [
-            candidate("stable", GateDisposition::Eligible, Some(0.99), Some(0.99), Some(0.99)),
-            candidate("other", GateDisposition::Eligible, Some(0.4), Some(0.4), Some(0.4)),
+            candidate(
+                "stable",
+                GateDisposition::Eligible,
+                Some(0.99),
+                Some(0.99),
+                Some(0.99),
+            ),
+            candidate(
+                "other",
+                GateDisposition::Eligible,
+                Some(0.4),
+                Some(0.4),
+                Some(0.4),
+            ),
         ];
         let report = analyze_sensitivity(&candidates, &scenarios(), &policy()).unwrap();
         assert_eq!(report.robust_unique_winner, Some("stable".into()));
@@ -631,8 +684,20 @@ mod tests {
         let mut p = policy();
         p.score_tolerance = 0.01;
         let candidates = [
-            candidate("A", GateDisposition::Eligible, Some(0.801), Some(0.8), Some(0.8)),
-            candidate("B", GateDisposition::Eligible, Some(0.8), Some(0.8), Some(0.8)),
+            candidate(
+                "A",
+                GateDisposition::Eligible,
+                Some(0.801),
+                Some(0.8),
+                Some(0.8),
+            ),
+            candidate(
+                "B",
+                GateDisposition::Eligible,
+                Some(0.8),
+                Some(0.8),
+                Some(0.8),
+            ),
         ];
         let one = vec![WeightScenario {
             scenario_id: "equal-access".into(),
@@ -653,19 +718,49 @@ mod tests {
     #[test]
     fn excluded_candidate_never_wins_due_to_a_high_score() {
         let candidates = [
-            candidate("excluded", GateDisposition::Excluded, Some(1.0), Some(1.0), Some(1.0)),
-            candidate("allowed", GateDisposition::Eligible, Some(0.4), Some(0.4), Some(0.4)),
+            candidate(
+                "excluded",
+                GateDisposition::Excluded,
+                Some(1.0),
+                Some(1.0),
+                Some(1.0),
+            ),
+            candidate(
+                "allowed",
+                GateDisposition::Eligible,
+                Some(0.4),
+                Some(0.4),
+                Some(0.4),
+            ),
         ];
         let result = analyze_sensitivity(&candidates, &scenarios(), &policy()).unwrap();
         assert_eq!(result.candidates["excluded"].excluded_scenarios, 3);
-        assert!(result.scenario_rankings.iter().all(|s| s.winners == vec!["allowed"]));
+        assert!(
+            result
+                .scenario_rankings
+                .iter()
+                .all(|s| s.winners == vec!["allowed"])
+        );
     }
 
     #[test]
-    fn missing_active_objective_is_held_but_zero_weight_objective_can_be_irrelevant_to_that_scenario() {
+    fn missing_active_objective_is_held_but_zero_weight_objective_can_be_irrelevant_to_that_scenario()
+    {
         let candidates = [
-            candidate("partial", GateDisposition::Eligible, Some(0.95), None, Some(0.6)),
-            candidate("complete", GateDisposition::Eligible, Some(0.8), Some(0.8), Some(0.8)),
+            candidate(
+                "partial",
+                GateDisposition::Eligible,
+                Some(0.95),
+                None,
+                Some(0.6),
+            ),
+            candidate(
+                "complete",
+                GateDisposition::Eligible,
+                Some(0.8),
+                Some(0.8),
+                Some(0.8),
+            ),
         ];
         let options = [
             WeightScenario {
@@ -690,15 +785,27 @@ mod tests {
             },
         ];
         let result = analyze_sensitivity(&candidates, &options, &policy()).unwrap();
-        assert_eq!(result.scenario_rankings[0].candidates["partial"].status, ScenarioCandidateStatus::Ranked);
-        assert_eq!(result.scenario_rankings[1].candidates["partial"].status, ScenarioCandidateStatus::NeedsEvidence);
+        assert_eq!(
+            result.scenario_rankings[0].candidates["partial"].status,
+            ScenarioCandidateStatus::Ranked
+        );
+        assert_eq!(
+            result.scenario_rankings[1].candidates["partial"].status,
+            ScenarioCandidateStatus::NeedsEvidence
+        );
         assert_eq!(result.candidates["partial"].ranked_scenarios, 1);
         assert_eq!(result.candidates["partial"].needs_evidence_scenarios, 1);
     }
 
     #[test]
     fn invalid_weight_and_invalid_score_are_rejected() {
-        let candidates = [candidate("A", GateDisposition::Eligible, Some(0.5), Some(0.5), Some(0.5))];
+        let candidates = [candidate(
+            "A",
+            GateDisposition::Eligible,
+            Some(0.5),
+            Some(0.5),
+            Some(0.5),
+        )];
         let mut invalid_scenarios = scenarios();
         invalid_scenarios[0].weights.insert("access".into(), -0.1);
         assert!(matches!(
@@ -706,7 +813,13 @@ mod tests {
             Err(SensitivityError::InvalidWeight { .. })
         ));
 
-        let invalid_candidate = [candidate("bad", GateDisposition::Eligible, Some(1.1), Some(0.5), Some(0.5))];
+        let invalid_candidate = [candidate(
+            "bad",
+            GateDisposition::Eligible,
+            Some(1.1),
+            Some(0.5),
+            Some(0.5),
+        )];
         assert!(matches!(
             analyze_sensitivity(&invalid_candidate, &scenarios(), &policy()),
             Err(SensitivityError::InvalidScore { .. })
@@ -715,12 +828,36 @@ mod tests {
 
     #[test]
     fn input_order_does_not_change_report() {
-        let a = candidate("A", GateDisposition::Eligible, Some(0.95), Some(0.3), Some(0.6));
-        let b = candidate("B", GateDisposition::Eligible, Some(0.6), Some(0.95), Some(0.5));
-        let c = candidate("C", GateDisposition::Eligible, Some(0.7), Some(0.75), Some(0.95));
+        let a = candidate(
+            "A",
+            GateDisposition::Eligible,
+            Some(0.95),
+            Some(0.3),
+            Some(0.6),
+        );
+        let b = candidate(
+            "B",
+            GateDisposition::Eligible,
+            Some(0.6),
+            Some(0.95),
+            Some(0.5),
+        );
+        let c = candidate(
+            "C",
+            GateDisposition::Eligible,
+            Some(0.7),
+            Some(0.75),
+            Some(0.95),
+        );
         let options = scenarios();
-        let forward = analyze_sensitivity(&[a.clone(), b.clone(), c.clone()], &options, &policy()).unwrap();
-        let reversed = analyze_sensitivity(&[c, a, b], &[options[2].clone(), options[0].clone(), options[1].clone()], &policy()).unwrap();
+        let forward =
+            analyze_sensitivity(&[a.clone(), b.clone(), c.clone()], &options, &policy()).unwrap();
+        let reversed = analyze_sensitivity(
+            &[c, a, b],
+            &[options[2].clone(), options[0].clone(), options[1].clone()],
+            &policy(),
+        )
+        .unwrap();
         assert_eq!(forward, reversed);
     }
 
@@ -736,7 +873,8 @@ mod tests {
 
     #[test]
     fn synthetic_weight_sensitivity_benchmark_matches_expected_winners() {
-        let fixture = include_str!("../../docs/research/fixtures/site-ranking-sensitivity-v0.1.jsonl");
+        let fixture =
+            include_str!("../../docs/research/fixtures/site-ranking-sensitivity-v0.1.jsonl");
         let mut records = 0;
         for line in fixture.lines().filter(|line| !line.trim().is_empty()) {
             let case: BenchmarkCase = serde_json::from_str(line).expect("valid sensitivity JSONL");
@@ -748,9 +886,16 @@ mod tests {
                 .map(|scenario| (scenario.scenario_id.clone(), scenario.winners.clone()))
                 .collect();
             assert_eq!(got, case.expected_winners, "{}", case.case_id);
-            assert_eq!(report.robust_unique_winner, case.expected_robust_unique_winner, "{}", case.case_id);
+            assert_eq!(
+                report.robust_unique_winner, case.expected_robust_unique_winner,
+                "{}",
+                case.case_id
+            );
             records += 1;
         }
-        assert!(records >= 6, "benchmark must include at least six scenarios");
+        assert!(
+            records >= 6,
+            "benchmark must include at least six scenarios"
+        );
     }
 }
