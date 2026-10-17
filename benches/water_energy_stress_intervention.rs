@@ -137,7 +137,12 @@ fn service_request(index: usize, intervals: usize, storage: f64) -> WaterEnergyC
     }
 }
 
-fn build_sweep(id: &str, intervals: usize, service_cells: usize, storage: f64) -> WaterEnergyStressSweepRequest {
+fn build_sweep(
+    id: &str,
+    intervals: usize,
+    service_cells: usize,
+    storage: f64,
+) -> WaterEnergyStressSweepRequest {
     let baseline_services = (0..service_cells)
         .map(|index| service_request(index, intervals, storage))
         .collect::<Vec<_>>();
@@ -182,7 +187,10 @@ fn build_sweep(id: &str, intervals: usize, service_cells: usize, storage: f64) -
     }
 }
 
-fn build_request(intervals: usize, service_cells: usize) -> WaterEnergyStressInterventionComparisonRequest {
+fn build_request(
+    intervals: usize,
+    service_cells: usize,
+) -> WaterEnergyStressInterventionComparisonRequest {
     WaterEnergyStressInterventionComparisonRequest {
         schema_version: WATER_ENERGY_STRESS_INTERVENTION_SCHEMA_VERSION.to_owned(),
         id: format!("bench-paired-stress-{service_cells}-{intervals}"),
