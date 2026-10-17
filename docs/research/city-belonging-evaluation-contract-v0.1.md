@@ -93,7 +93,7 @@ A directory-only pilot can usually establish feasibility, coverage and task outc
 
 ## 6. Current evidence and open engineering gates
 
-The synthetic admission fixture currently includes eleven cases with manifest SHA-256 `fa66bc059b780ce6e3ea5ba37689c48b4c14952c7a386e7fe1c8403806145b79`. Its manifest pins the evaluation date (2026-10-17) and a 30-day provider-confirmation freshness window, making the stale-state decision reproducible. The 30-day threshold is an illustrative test policy, not a universal rule; production policies should be field-specific and locally reviewed. The standalone Rust checker now verifies the pinned schema-file bytes and selected HSDS row contract, with 20 authored golden and negative-control tests, but **has not been compiled or run here**. Any hand-executed mirror or static inspection is not a Rust test pass.
+The synthetic admission fixture currently includes eleven cases with manifest SHA-256 `111a51e614ac033a0eb3ae5918159fbe020cc4fa01cdbc753fe5e09dd169c7d0`. Its manifest pins the evaluation date (2026-10-17) and a 30-day provider-confirmation freshness window, making the stale-state decision reproducible. The 30-day threshold is an illustrative test policy, not a universal rule; production policies should be field-specific and locally reviewed. The standalone Rust checker now verifies the pinned schema-file bytes, selected HSDS row contract, and a separately hashed local evidence profile; it rejects field-state drift and verification paths that do not correspond to actual HSDS resource fields. It has 25 authored golden and negative-control tests, but **has not been compiled or run here**. Any hand-executed mirror or static inspection is not a Rust test pass.
 
 The next engineering gates remain:
 
