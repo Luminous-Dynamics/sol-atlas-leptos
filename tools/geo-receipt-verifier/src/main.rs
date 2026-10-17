@@ -299,6 +299,17 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
     );
 
     let mut qualification_reasons = Vec::new();
+    let ci_passed = ci_checks_all_pass(&receipt);
+    push_check(
+        &mut checks,
+        "exact_head_ci",
+        ci_passed,
+        if ci_passed {
+            "all declared required checks completed successfully on the recorded code commit".to_string()
+        } else {
+            "one or more required checks are absent, queued, skipped, cancelled, stale-head, non-success, or tied to another commit".to_string()
+        },
+    );
     if target_status != "executed_unqualified" {
         if !schema_valid {
             qualification_reasons.push("receipt/schema validation did not pass".to_string());
@@ -332,7 +343,10 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
             );
         }
         if !metrics_present(&receipt) {
-            qualification_reasons.push("at least one metric result is required".to_string());
+            qualification_reasons.push("at least one metric result with sample count and uncertainty method is required".to_string());
+        }
+        if !ci_passed {
+            qualification_reasons.push("required CI checks must be completed successes on the exact code commit".to_string());
         }
         if !configuration_digest_is_bound(&receipt, &artifact_checks) {
             qualification_reasons.push(
@@ -667,7 +681,30 @@ fn all_gates_and_controls_pass(receipt: &Value) -> bool {
 }
 
 fn metrics_present(receipt: &Value) -> bool {
-    matches!(receipt.get("metrics").and_then(Value::as_array), Some(metrics) if !metrics.is_empty() && metrics.iter().all(|metric| metric.get("sample_count").and_then(Value::as_u64).is_some_and(|count| count > 0)))
+    matches!(
+        receipt.get("metrics").and_then(Value::as_array),
+        Some(metrics)
+            if !metrics.is_empty()
+                && metrics.iter().all(|metric| {
+                    metric.get("sample_count").and_then(Value::as_u64).is_some_and(|count| count > 0)
+                        && string_field(metric, &["uncertainty_method"]).is_some_and(|method| method != "none")
+                })
+    )
+}
+
+fn ci_checks_all_pass(receipt: &Value) -> bool {
+    let Some(checks) = receipt.get("ci_checks").and_then(Value::as_array) else {
+        return false;
+    };
+    let Some(code_commit) = string_field(receipt, &["code", "commit_sha"]) else {
+        return false;
+    };
+    !checks.is_empty()
+        && checks.iter().all(|check| {
+            string_field(check, &["commit_sha"]) == Some(code_commit)
+                && string_field(check, &["status"]) == Some("completed")
+                && string_field(check, &["conclusion"]) == Some("success")
+        })
 }
 
 fn configuration_digest_is_bound(receipt: &Value, artifacts: &[ArtifactCheck]) -> bool {
@@ -938,6 +975,7 @@ mod tests {
                 "timezone": "UTC"
             },
             "qualification_status": "executed_unqualified",
+            "ci_checks": [],
             "artifacts": [{
                 "artifact_id": "fixture-config",
                 "role": "configuration",
