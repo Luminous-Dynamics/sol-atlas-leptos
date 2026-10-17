@@ -34,6 +34,7 @@ pub mod service_water;
 pub mod service_water_energy_coupling;
 pub mod service_water_energy_intervention;
 pub mod service_water_energy_stress;
+pub mod service_water_energy_stress_intervention;
 pub mod service_water_trajectory;
 pub mod service_water_trajectory_intervention;
 pub mod simulation;
