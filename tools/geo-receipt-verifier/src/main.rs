@@ -253,8 +253,8 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
     let (actual_head, worktree_clean, remote_url) = git_snapshot(&repo_root);
     let (verifier_head, verifier_worktree_clean, verifier_repository_url) =
         git_snapshot(&verifier_root);
-    let verifier_build_matches_checkout = compiled_verifier_checkout_root()
-        .is_ok_and(|compiled_root| compiled_root == verifier_root);
+    let verifier_build_matches_checkout =
+        compiled_verifier_checkout_root().is_ok_and(|compiled_root| compiled_root == verifier_root);
     let verifier_checkout_independent = independent_verifier_checkout(
         &repo_root,
         actual_head.as_deref(),
@@ -349,7 +349,8 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
         "verifier_build_matches_checkout",
         verifier_build_matches_checkout,
         if verifier_build_matches_checkout {
-            "compiled binary manifest directory resolves to the declared verifier checkout".to_string()
+            "compiled binary manifest directory resolves to the declared verifier checkout"
+                .to_string()
         } else {
             "compiled binary was not built from the declared verifier checkout".to_string()
         },
@@ -1194,17 +1195,18 @@ fn validate_prior_verifier_report(
         );
     }
     if verifier_root == repo_root {
-        return Err("verifier checkout is the same directory as the evaluated repository".to_string());
+        return Err(
+            "verifier checkout is the same directory as the evaluated repository".to_string(),
+        );
     }
-    let evidence_commit = string_field(
-        receipt,
-        &["qualification_evidence", "verifier_commit_sha"],
-    )
-    .ok_or_else(|| "qualification_evidence.verifier_commit_sha is missing".to_string())?;
+    let evidence_commit = string_field(receipt, &["qualification_evidence", "verifier_commit_sha"])
+        .ok_or_else(|| "qualification_evidence.verifier_commit_sha is missing".to_string())?;
     let report_verifier_repo = string_field(&report, &["verifier_repository_url"])
         .ok_or_else(|| "verifier report is missing its repository URL".to_string())?;
     if normalize_git_url(report_verifier_repo) != normalize_git_url(evidence_repo) {
-        return Err("verifier report repository URL does not match qualification evidence".to_string());
+        return Err(
+            "verifier report repository URL does not match qualification evidence".to_string(),
+        );
     }
     if report.get("verifier_worktree_clean").and_then(Value::as_bool) != Some(true)
         || report.get("verifier_checkout_independent").and_then(Value::as_bool) != Some(true)
@@ -1244,7 +1246,9 @@ fn compiled_verifier_checkout_root() -> Result<PathBuf, String> {
     let repository_root = manifest_dir
         .parent()
         .and_then(Path::parent)
-        .ok_or_else(|| "compiled verifier manifest is not in the expected tools/<crate> layout".to_string())?;
+        .ok_or_else(|| {
+            "compiled verifier manifest is not in the expected tools/<crate> layout".to_string()
+        })?;
     fs::canonicalize(repository_root)
         .map_err(|error| format!("cannot canonicalize compiled verifier repository root: {error}"))
 }
@@ -1670,9 +1674,13 @@ mod tests {
 
     #[test]
     fn compiled_binary_manifest_resolves_to_repository_root() {
-        let root = compiled_verifier_checkout_root().expect("compiled verifier root should resolve");
+        let root =
+            compiled_verifier_checkout_root().expect("compiled verifier root should resolve");
         assert!(root.join("tools/geo-receipt-verifier/Cargo.toml").is_file());
-        assert!(root.join("docs/earth-interior/benchmark-run-receipt.schema.json").is_file());
+        assert!(
+            root.join("docs/earth-interior/benchmark-run-receipt.schema.json")
+                .is_file()
+        );
     }
 
     #[test]
