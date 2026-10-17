@@ -331,3 +331,9 @@ This is a deliberately narrow operating-point approximation. It does **not** cal
 - Modeled deltas remain non-causal unless independently evaluated by an appropriate field or experimental design.
 
 The Rust adapter, versioned schemas, synthetic fixtures and benchmark target are an initial contract implementation, **not operationally validated hydraulic accuracy**.
+
+### Paired water-energy counterfactuals
+
+The paired evaluator runs the same energy-coupled assessment independently for a baseline and candidate, then compares bounded unmet-demand and customer-delivery volumes over an identical service entity and ordered time grid. A robust improvement requires the aggregate lower bound on unmet-demand reduction to be positive beyond floating-point tolerance; a robust regression requires its upper bound to be negative. Overlapping intervals are indeterminate and exact near-zero deltas are reported as no material change.
+
+Each compared interval carries separate baseline and candidate evidence-ID sets formed from both the water-trajectory measurements and the electrical power/specific-energy inputs. The aggregate union is available for audit, but does not replace the per-side references. The output is explicitly labeled as a modeled counterfactual, not causal evidence. No probability of outage, intervention execution, hydraulic validity, or realized customer benefit is inferred.
