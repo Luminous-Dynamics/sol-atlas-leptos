@@ -527,6 +527,24 @@ mod tests {
     }
 
     #[test]
+    fn correlated_prior_and_observation_covariances_are_both_respected() {
+        let mut problem = diagonal_problem();
+        problem.observation_operator = vec![vec![1.0, 0.0], vec![1.0, 1.0]];
+        problem.prior_covariance = vec![vec![1.0, 0.2], vec![0.2, 2.0]];
+        problem.observation_covariance = vec![vec![1.0, 0.8], vec![0.8, 1.0]];
+
+        let report = problem.analyze(1e-12, 1e-14).unwrap();
+        assert!((report.posterior_covariance[0][0] - 0.4833333333333333).abs() < 1e-10);
+        assert!((report.posterior_covariance[0][1] + 0.0666666666666667).abs() < 1e-10);
+        assert!((report.posterior_covariance[1][1] - 0.3133333333333333).abs() < 1e-10);
+        assert!((report.resolution_matrix[0][0] - 0.5).abs() < 1e-10);
+        assert!((report.resolution_matrix[0][1] - 0.0833333333333333).abs() < 1e-10);
+        assert!((report.resolution_matrix[1][0] - 0.1).abs() < 1e-10);
+        assert!((report.resolution_matrix[1][1] - 0.8333333333333333).abs() < 1e-10);
+        assert!((report.degrees_of_freedom_for_signal - 1.3333333333333333).abs() < 1e-10);
+    }
+
+    #[test]
     fn a_tighter_prior_does_not_masquerade_as_more_data_resolution() {
         let baseline = diagonal_problem().analyze(1e-12, 1e-14).unwrap();
 
