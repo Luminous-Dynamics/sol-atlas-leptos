@@ -835,10 +835,7 @@ fn ci_checks_all_pass(
     let Some(required_names) = required_names else {
         return false;
     };
-    let required_names: Vec<String> = required_names
-        .into_iter()
-        .map(str::to_owned)
-        .collect();
+    let required_names: Vec<String> = required_names.into_iter().map(str::to_owned).collect();
     if !ci_check_names_match_policy(checks, &required_names) {
         return false;
     }
@@ -1450,13 +1447,16 @@ mod tests {
         });
         assert!(!ci_check_names_match_policy(&[], &["Check".to_string()]));
         let one_check = vec![json!({"name":"Check"})];
-        let required = vec!["Check".to_string(), "Earth Interior receipt verifier".to_string()];
+        let required = vec![
+            "Check".to_string(),
+            "Earth Interior receipt verifier".to_string(),
+        ];
         assert!(!ci_check_names_match_policy(&one_check, &required));
         let duplicated = vec![json!({"name":"Check"}), json!({"name":"Check"})];
         assert!(!ci_check_names_match_policy(&duplicated, &required));
         let complete = vec![
             json!({"name":"Check"}),
-            json!({"name":"Earth Interior receipt verifier"})
+            json!({"name":"Earth Interior receipt verifier"}),
         ];
         assert!(ci_check_names_match_policy(&complete, &required));
     }
@@ -1684,7 +1684,9 @@ mod tests {
         const SPECS: &[(&str, &str)] = &[
             (
                 "geo-active-observation-design-001",
-                include_str!("../../../docs/earth-interior/benchmark-adaptive-observation-design.json"),
+                include_str!(
+                    "../../../docs/earth-interior/benchmark-adaptive-observation-design.json"
+                ),
             ),
             (
                 "geo-resolution-frontier-001",
@@ -1712,9 +1714,17 @@ mod tests {
                 .expect("required_ci_checks must exist");
             let names: Vec<String> = names
                 .iter()
-                .map(|value| value.as_str().expect("CI check name is a string").to_string())
+                .map(|value| {
+                    value
+                        .as_str()
+                        .expect("CI check name is a string")
+                        .to_string()
+                })
                 .collect();
-            assert_eq!(names, expected, "{expected_id} must freeze the full required CI set");
+            assert_eq!(
+                names, expected,
+                "{expected_id} must freeze the full required CI set"
+            );
             assert!(ci_check_names_match_policy(
                 &names
                     .iter()
@@ -1724,5 +1734,4 @@ mod tests {
             ));
         }
     }
-
 }
