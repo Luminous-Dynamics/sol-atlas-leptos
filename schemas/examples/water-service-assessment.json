@@ -35,5 +35,8 @@
     "mass_balance_residual": 0,
     "distribution_loss_volume": 4.8
   },
-  "supporting_evidence_ids": []
+  "supporting_evidence_ids": [],
+  "rate_unit": "m3/h",
+  "volume_unit": "m3",
+  "time_unit": "h"
 }

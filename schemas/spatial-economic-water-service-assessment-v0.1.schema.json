@@ -10,6 +10,9 @@
     "scenario_id",
     "service_entity_id",
     "as_of",
+    "rate_unit",
+    "volume_unit",
+    "time_unit",
     "state",
     "step_hours",
     "demand_volume_lower_bound",
@@ -95,6 +98,15 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "rate_unit": {
+      "const": "m3/h"
+    },
+    "volume_unit": {
+      "const": "m3"
+    },
+    "time_unit": {
+      "const": "h"
     }
   },
   "$defs": {
