@@ -455,6 +455,7 @@ fn stress_fixture(
             baseline_scenario: scenario,
             max_simultaneous_failures: 2,
             max_failure_cases: MAX_EXHAUSTIVE_FAILURE_CASES,
+            declared_failure_sets: Vec::new(),
         },
         records,
     )
