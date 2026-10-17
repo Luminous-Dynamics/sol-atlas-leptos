@@ -161,7 +161,11 @@ fn validate_request(
             }
         }
     }
-    if errors.is_empty() { Ok(()) } else { Err(errors) }
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors)
+    }
 }
 
 fn deficit_bounds(step: &WaterServiceTrajectoryStepAssessment) -> (f64, f64) {
@@ -179,8 +183,12 @@ fn recovery_comparison(
         baseline.first_adequate_as_of.as_deref(),
         candidate.first_adequate_as_of.as_deref(),
     ) {
-        (Some(base), Some(cand)) if cand < base => WaterTrajectoryRecoveryComparison::CandidateEarlier,
-        (Some(base), Some(cand)) if base < cand => WaterTrajectoryRecoveryComparison::BaselineEarlier,
+        (Some(base), Some(cand)) if cand < base => {
+            WaterTrajectoryRecoveryComparison::CandidateEarlier
+        }
+        (Some(base), Some(cand)) if base < cand => {
+            WaterTrajectoryRecoveryComparison::BaselineEarlier
+        }
         (Some(_), Some(_)) => WaterTrajectoryRecoveryComparison::BothSameSample,
         (None, Some(_)) => WaterTrajectoryRecoveryComparison::CandidateOnlyWithinWindow,
         (Some(_), None) => WaterTrajectoryRecoveryComparison::BaselineOnlyWithinWindow,
@@ -202,12 +210,14 @@ fn compare_indexed(
         baseline.unmet_demand_volume_lower_bound - candidate.unmet_demand_volume_upper_bound;
     let reduction_upper =
         baseline.unmet_demand_volume_upper_bound - candidate.unmet_demand_volume_lower_bound;
-    let delivery_delta_lower =
-        candidate.customer_delivered_volume_lower_bound - baseline.customer_delivered_volume_upper_bound;
-    let delivery_delta_upper =
-        candidate.customer_delivered_volume_upper_bound - baseline.customer_delivered_volume_lower_bound;
-    let tol = f64::EPSILON * 256.0
-        * baseline.unmet_demand_volume_upper_bound
+    let delivery_delta_lower = candidate.customer_delivered_volume_lower_bound
+        - baseline.customer_delivered_volume_upper_bound;
+    let delivery_delta_upper = candidate.customer_delivered_volume_upper_bound
+        - baseline.customer_delivered_volume_lower_bound;
+    let tol = f64::EPSILON
+        * 256.0
+        * baseline
+            .unmet_demand_volume_upper_bound
             .max(candidate.unmet_demand_volume_upper_bound)
             .max(baseline.customer_delivered_volume_upper_bound)
             .max(candidate.customer_delivered_volume_upper_bound)
@@ -218,7 +228,10 @@ fn compare_indexed(
         reduction_upper,
         delivery_delta_lower,
         delivery_delta_upper,
-    ].into_iter().any(|value| !value.is_finite()) {
+    ]
+    .into_iter()
+    .any(|value| !value.is_finite())
+    {
         return Err(WaterServiceTrajectoryInterventionError::InvalidInput(vec![
             WaterTrajectoryInterventionValidationError::NonFiniteDelta,
         ]));
@@ -226,7 +239,8 @@ fn compare_indexed(
     if reduction_lower > reduction_upper + tol
         || delivery_delta_lower > delivery_delta_upper + tol
         || baseline.unmet_demand_volume_lower_bound > baseline.unmet_demand_volume_upper_bound + tol
-        || candidate.unmet_demand_volume_lower_bound > candidate.unmet_demand_volume_upper_bound + tol
+        || candidate.unmet_demand_volume_lower_bound
+            > candidate.unmet_demand_volume_upper_bound + tol
     {
         return Err(WaterServiceTrajectoryInterventionError::InvalidInput(vec![
             WaterTrajectoryInterventionValidationError::BoundsInconsistent,
@@ -257,7 +271,10 @@ fn compare_indexed(
             cand_deficit_upper,
             step_reduction_lower,
             step_reduction_upper,
-        ].into_iter().any(|value| !value.is_finite()) {
+        ]
+        .into_iter()
+        .any(|value| !value.is_finite())
+        {
             return Err(WaterServiceTrajectoryInterventionError::InvalidInput(vec![
                 WaterTrajectoryInterventionValidationError::NonFiniteDelta,
             ]));
@@ -313,7 +330,8 @@ fn compare_indexed(
         recovery_comparison,
         baseline_first_adequate_as_of,
         candidate_first_adequate_as_of,
-        interpretation_boundary: WaterTrajectoryInterpretationBoundary::ModeledCounterfactualNotCausalEvidence,
+        interpretation_boundary:
+            WaterTrajectoryInterpretationBoundary::ModeledCounterfactualNotCausalEvidence,
         steps,
         supporting_evidence_ids: evidence_ids.into_iter().collect(),
     })
@@ -324,7 +342,10 @@ fn compare_indexed(
 pub fn compare_water_service_trajectory_interventions(
     requests: &[WaterServiceTrajectoryInterventionRequest],
     evidence_records: &[EvidenceRecord],
-) -> Result<Vec<WaterServiceTrajectoryInterventionComparison>, WaterServiceTrajectoryInterventionError> {
+) -> Result<
+    Vec<WaterServiceTrajectoryInterventionComparison>,
+    WaterServiceTrajectoryInterventionError,
+> {
     if requests.is_empty() {
         return Err(WaterServiceTrajectoryInterventionError::InvalidInput(vec![
             WaterTrajectoryInterventionValidationError::EmptyRequestSet,
@@ -346,7 +367,10 @@ pub fn compare_water_service_trajectory_interventions(
     })?;
     let mut ordered: Vec<&WaterServiceTrajectoryInterventionRequest> = requests.iter().collect();
     ordered.sort_by(|left, right| left.id.cmp(&right.id));
-    ordered.into_iter().map(|request| compare_indexed(request, &evidence_by_id)).collect()
+    ordered
+        .into_iter()
+        .map(|request| compare_indexed(request, &evidence_by_id))
+        .collect()
 }
 
 #[cfg(test)]
@@ -359,21 +383,35 @@ mod tests {
         WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectoryStep,
     };
     use crate::spatial_economic::{
-        EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceRecord, EvidenceState, Provenance,
-        Quantity, SpatialContext, TimeContext,
+        EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceRecord, EvidenceState, Provenance, Quantity,
+        SpatialContext, TimeContext,
     };
 
-    fn measurement(entity: &str, value: f64, unit: &str, uncertainty: Option<f64>) -> FunctionMeasurement {
+    fn measurement(
+        entity: &str,
+        value: f64,
+        unit: &str,
+        uncertainty: Option<f64>,
+    ) -> FunctionMeasurement {
         FunctionMeasurement {
             entity_id: entity.to_owned(),
-            quantity: Quantity { value, unit: unit.to_owned(), uncertainty_abs: uncertainty },
+            quantity: Quantity {
+                value,
+                unit: unit.to_owned(),
+                uncertainty_abs: uncertainty,
+            },
             basis: ScenarioBasis::Assumed,
             rationale: format!("Synthetic counterfactual assumption for {entity}"),
             supporting_evidence_ids: Vec::new(),
         }
     }
 
-    fn step(id: &str, hour: u32, source_rate: f64, uncertainty: Option<f64>) -> WaterServiceTrajectoryStep {
+    fn step(
+        id: &str,
+        hour: u32,
+        source_rate: f64,
+        uncertainty: Option<f64>,
+    ) -> WaterServiceTrajectoryStep {
         let distribution = "distribution-a";
         WaterServiceTrajectoryStep {
             id: id.to_owned(),
@@ -388,7 +426,11 @@ mod tests {
         }
     }
 
-    fn trajectory(id: &str, outage_source: f64, outage_uncertainty: Option<f64>) -> WaterServiceTrajectory {
+    fn trajectory(
+        id: &str,
+        outage_source: f64,
+        outage_uncertainty: Option<f64>,
+    ) -> WaterServiceTrajectory {
         WaterServiceTrajectory {
             schema_version: WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION.to_owned(),
             id: id.to_owned(),
@@ -404,7 +446,11 @@ mod tests {
         }
     }
 
-    fn request(id: &str, baseline: WaterServiceTrajectory, candidate: WaterServiceTrajectory) -> WaterServiceTrajectoryInterventionRequest {
+    fn request(
+        id: &str,
+        baseline: WaterServiceTrajectory,
+        candidate: WaterServiceTrajectory,
+    ) -> WaterServiceTrajectoryInterventionRequest {
         WaterServiceTrajectoryInterventionRequest {
             schema_version: WATER_SERVICE_TRAJECTORY_INTERVENTION_SCHEMA_VERSION.to_owned(),
             id: id.to_owned(),
@@ -416,35 +462,66 @@ mod tests {
 
     #[test]
     fn robust_intervention_reduces_unmet_demand_and_compares_recovery() {
-        let input = request("pump-backup", trajectory("base", 0.0, None), trajectory("backup", 50.0, None));
+        let input = request(
+            "pump-backup",
+            trajectory("base", 0.0, None),
+            trajectory("backup", 50.0, None),
+        );
         let result = compare_water_service_trajectory_interventions(&[input], &[]).unwrap();
         assert_eq!(result[0].baseline_unmet_demand_lower_bound, 150.0);
         assert_eq!(result[0].candidate_unmet_demand_lower_bound, 50.0);
         assert_eq!(result[0].unmet_demand_reduction_lower_bound, 100.0);
         assert_eq!(result[0].unmet_demand_reduction_upper_bound, 100.0);
         assert_eq!(
-            result[0].steps.iter().map(|step| step.unmet_demand_reduction_lower_bound).sum::<f64>(),
+            result[0]
+                .steps
+                .iter()
+                .map(|step| step.unmet_demand_reduction_lower_bound)
+                .sum::<f64>(),
             result[0].unmet_demand_reduction_lower_bound
         );
-        assert_eq!(result[0].effect, WaterTrajectoryInterventionEffect::RobustImprovement);
-        assert_eq!(result[0].recovery_comparison, WaterTrajectoryRecoveryComparison::BothSameSample);
-        assert_eq!(result[0].interpretation_boundary, WaterTrajectoryInterpretationBoundary::ModeledCounterfactualNotCausalEvidence);
+        assert_eq!(
+            result[0].effect,
+            WaterTrajectoryInterventionEffect::RobustImprovement
+        );
+        assert_eq!(
+            result[0].recovery_comparison,
+            WaterTrajectoryRecoveryComparison::BothSameSample
+        );
+        assert_eq!(
+            result[0].interpretation_boundary,
+            WaterTrajectoryInterpretationBoundary::ModeledCounterfactualNotCausalEvidence
+        );
     }
 
     #[test]
     fn uncertainty_that_overlaps_baseline_benefit_is_indeterminate() {
-        let input = request("uncertain-backup", trajectory("base", 0.0, None), trajectory("candidate", 50.0, Some(50.0)));
+        let input = request(
+            "uncertain-backup",
+            trajectory("base", 0.0, None),
+            trajectory("candidate", 50.0, Some(50.0)),
+        );
         let result = compare_water_service_trajectory_interventions(&[input], &[]).unwrap();
-        assert_eq!(result[0].effect, WaterTrajectoryInterventionEffect::Indeterminate);
+        assert_eq!(
+            result[0].effect,
+            WaterTrajectoryInterventionEffect::Indeterminate
+        );
         assert!(result[0].unmet_demand_reduction_lower_bound <= 0.0);
         assert!(result[0].unmet_demand_reduction_upper_bound > 0.0);
     }
 
     #[test]
     fn regression_is_detected_when_candidate_is_worse() {
-        let input = request("worse", trajectory("base", 50.0, None), trajectory("candidate", 0.0, None));
+        let input = request(
+            "worse",
+            trajectory("base", 50.0, None),
+            trajectory("candidate", 0.0, None),
+        );
         let result = compare_water_service_trajectory_interventions(&[input], &[]).unwrap();
-        assert_eq!(result[0].effect, WaterTrajectoryInterventionEffect::RobustRegression);
+        assert_eq!(
+            result[0].effect,
+            WaterTrajectoryInterventionEffect::RobustRegression
+        );
         assert!(result[0].unmet_demand_reduction_upper_bound < 0.0);
     }
 
@@ -479,7 +556,8 @@ mod tests {
                 valid_from: None,
                 valid_until: None,
             },
-            statement: "Synthetic source-flow observation for evidence-attribution test.".to_owned(),
+            statement: "Synthetic source-flow observation for evidence-attribution test."
+                .to_owned(),
             quantity: Some(Quantity {
                 value,
                 unit: WATER_RATE_UNIT.to_owned(),
@@ -534,7 +612,10 @@ mod tests {
             trajectory("candidate-same", 0.0, None),
         );
         let result = compare_water_service_trajectory_interventions(&[input], &[]).unwrap();
-        assert_eq!(result[0].effect, WaterTrajectoryInterventionEffect::NoMaterialChange);
+        assert_eq!(
+            result[0].effect,
+            WaterTrajectoryInterventionEffect::NoMaterialChange
+        );
         assert_eq!(result[0].unmet_demand_reduction_lower_bound, 0.0);
         assert_eq!(result[0].unmet_demand_reduction_upper_bound, 0.0);
     }
@@ -559,16 +640,38 @@ mod tests {
 
     #[test]
     fn batch_is_sorted_and_duplicate_comparison_ids_fail_closed() {
-        let first = request("zeta", trajectory("base-z", 0.0, None), trajectory("candidate-z", 50.0, None));
-        let second = request("alpha", trajectory("base-a", 0.0, None), trajectory("candidate-a", 50.0, None));
-        let sorted = compare_water_service_trajectory_interventions(&[first.clone(), second.clone()], &[]).unwrap();
+        let first = request(
+            "zeta",
+            trajectory("base-z", 0.0, None),
+            trajectory("candidate-z", 50.0, None),
+        );
+        let second = request(
+            "alpha",
+            trajectory("base-a", 0.0, None),
+            trajectory("candidate-a", 50.0, None),
+        );
+        let sorted =
+            compare_water_service_trajectory_interventions(&[first.clone(), second.clone()], &[])
+                .unwrap();
         assert_eq!(sorted[0].comparison_id, "alpha");
         assert_eq!(sorted[1].comparison_id, "zeta");
-        let reversed = compare_water_service_trajectory_interventions(&[second, first], &[]).unwrap();
-        assert_eq!(serde_json::to_vec(&sorted).unwrap(), serde_json::to_vec(&reversed).unwrap());
+        let reversed =
+            compare_water_service_trajectory_interventions(&[second, first], &[]).unwrap();
+        assert_eq!(
+            serde_json::to_vec(&sorted).unwrap(),
+            serde_json::to_vec(&reversed).unwrap()
+        );
         let duplicates = [
-            request("same", trajectory("base-1", 0.0, None), trajectory("candidate-1", 50.0, None)),
-            request("same", trajectory("base-2", 0.0, None), trajectory("candidate-2", 50.0, None)),
+            request(
+                "same",
+                trajectory("base-1", 0.0, None),
+                trajectory("candidate-1", 50.0, None),
+            ),
+            request(
+                "same",
+                trajectory("base-2", 0.0, None),
+                trajectory("candidate-2", 50.0, None),
+            ),
         ];
         assert!(matches!(
             compare_water_service_trajectory_interventions(&duplicates, &[]),

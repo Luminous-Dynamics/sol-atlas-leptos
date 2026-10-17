@@ -42,7 +42,11 @@ struct Report {
 fn measurement(entity_id: String, value: f64, unit: &str) -> FunctionMeasurement {
     FunctionMeasurement {
         entity_id,
-        quantity: Quantity { value, unit: unit.into(), uncertainty_abs: None },
+        quantity: Quantity {
+            value,
+            unit: unit.into(),
+            uncertainty_abs: None,
+        },
         basis: ScenarioBasis::Assumed,
         rationale: "Synthetic benchmark assumptions, not observed infrastructure facts.".into(),
         supporting_evidence_ids: Vec::new(),
@@ -55,20 +59,30 @@ fn trajectory(prefix: String, service_entity: String, outage_flow: f64) -> Water
     let source = format!("{prefix}-source");
     let pump = format!("{prefix}-pump");
     let treatment = format!("{prefix}-treatment");
-    let steps = (0..10).map(|hour| {
-        let source_flow = if hour == 5 || hour == 6 { outage_flow } else { 100.0 };
-        WaterServiceTrajectoryStep {
-            id: format!("step-{hour:02}"),
-            as_of: format!("2026-10-16T{hour:02}:00:00Z"),
-            step_hours: 1.0,
-            source_flow_rate: measurement(source.clone(), source_flow, WATER_RATE_UNIT),
-            pump_capacity: measurement(pump.clone(), 100.0, WATER_RATE_UNIT),
-            treatment_capacity: measurement(treatment.clone(), 100.0, WATER_RATE_UNIT),
-            distribution_capacity: measurement(distribution.clone(), 120.0, WATER_RATE_UNIT),
-            demand_rate: measurement(service_entity.clone(), 100.0, WATER_RATE_UNIT),
-            distribution_loss_fraction: measurement(distribution.clone(), 0.0, DIMENSIONLESS_UNIT),
-        }
-    }).collect();
+    let steps = (0..10)
+        .map(|hour| {
+            let source_flow = if hour == 5 || hour == 6 {
+                outage_flow
+            } else {
+                100.0
+            };
+            WaterServiceTrajectoryStep {
+                id: format!("step-{hour:02}"),
+                as_of: format!("2026-10-16T{hour:02}:00:00Z"),
+                step_hours: 1.0,
+                source_flow_rate: measurement(source.clone(), source_flow, WATER_RATE_UNIT),
+                pump_capacity: measurement(pump.clone(), 100.0, WATER_RATE_UNIT),
+                treatment_capacity: measurement(treatment.clone(), 100.0, WATER_RATE_UNIT),
+                distribution_capacity: measurement(distribution.clone(), 120.0, WATER_RATE_UNIT),
+                demand_rate: measurement(service_entity.clone(), 100.0, WATER_RATE_UNIT),
+                distribution_loss_fraction: measurement(
+                    distribution.clone(),
+                    0.0,
+                    DIMENSIONLESS_UNIT,
+                ),
+            }
+        })
+        .collect();
     WaterServiceTrajectory {
         schema_version: WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION.into(),
         id: prefix,
@@ -96,18 +110,27 @@ fn request(index: usize) -> WaterServiceTrajectoryInterventionRequest {
 fn percentile(samples: &[Duration], percentile: usize) -> Duration {
     let mut sorted = samples.to_vec();
     sorted.sort_unstable();
-    let index = (sorted.len() * percentile).div_ceil(100).saturating_sub(1).min(sorted.len() - 1);
+    let index = (sorted.len() * percentile)
+        .div_ceil(100)
+        .saturating_sub(1)
+        .min(sorted.len() - 1);
     sorted[index]
 }
 
 fn main() {
     let warmup = env::var("WATER_INTERVENTION_BENCH_WARMUP")
-        .ok().and_then(|value| value.parse::<usize>().ok()).unwrap_or(3);
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(3);
     let samples = env::var("WATER_INTERVENTION_BENCH_SAMPLES")
-        .ok().and_then(|value| value.parse::<usize>().ok()).unwrap_or(30).max(1);
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(30)
+        .max(1);
 
     for pair_count in [100usize, 1_000, 10_000] {
-        let requests: Vec<WaterServiceTrajectoryInterventionRequest> = (0..pair_count).map(request).collect();
+        let requests: Vec<WaterServiceTrajectoryInterventionRequest> =
+            (0..pair_count).map(request).collect();
         let reference = compare_water_service_trajectory_interventions(&requests, &[])
             .expect("paired synthetic interventions must assess");
         assert_eq!(reference.len(), pair_count);
@@ -126,7 +149,10 @@ fn main() {
         for _ in 0..warmup {
             let warm = compare_water_service_trajectory_interventions(&requests, &[])
                 .expect("warmup comparison must succeed");
-            assert_eq!(serde_json::to_vec(&warm).expect("warmup serialization"), reference_bytes);
+            assert_eq!(
+                serde_json::to_vec(&warm).expect("warmup serialization"),
+                reference_bytes
+            );
         }
         let mut timings = Vec::with_capacity(samples);
         for _ in 0..samples {
@@ -134,7 +160,10 @@ fn main() {
             let measured = compare_water_service_trajectory_interventions(&requests, &[])
                 .expect("measured comparison must succeed");
             timings.push(start.elapsed());
-            assert_eq!(serde_json::to_vec(&measured).expect("measured serialization"), reference_bytes);
+            assert_eq!(
+                serde_json::to_vec(&measured).expect("measured serialization"),
+                reference_bytes
+            );
         }
         let report = Report {
             workload: "synthetic_water_trajectory_intervention",
@@ -145,15 +174,35 @@ fn main() {
             measured_iterations: samples,
             p50_micros: percentile(&timings, 50).as_micros(),
             p95_micros: percentile(&timings, 95).as_micros(),
-            max_micros: timings.iter().copied().max().unwrap_or_default().as_micros(),
+            max_micros: timings
+                .iter()
+                .copied()
+                .max()
+                .unwrap_or_default()
+                .as_micros(),
             result_count: reference.len(),
-            robust_improvement_count: reference.iter().filter(|item| item.effect == WaterTrajectoryInterventionEffect::RobustImprovement).count(),
-            unmet_demand_reduction_lower_bound_total: reference.iter().map(|item| item.unmet_demand_reduction_lower_bound).sum(),
-            unmet_demand_reduction_upper_bound_total: reference.iter().map(|item| item.unmet_demand_reduction_upper_bound).sum(),
+            robust_improvement_count: reference
+                .iter()
+                .filter(|item| item.effect == WaterTrajectoryInterventionEffect::RobustImprovement)
+                .count(),
+            unmet_demand_reduction_lower_bound_total: reference
+                .iter()
+                .map(|item| item.unmet_demand_reduction_lower_bound)
+                .sum(),
+            unmet_demand_reduction_upper_bound_total: reference
+                .iter()
+                .map(|item| item.unmet_demand_reduction_upper_bound)
+                .sum(),
             serialized_result_bytes: reference_bytes.len(),
         };
         assert_eq!(report.robust_improvement_count, pair_count);
-        assert_eq!(report.unmet_demand_reduction_lower_bound_total, pair_count as f64 * 100.0);
-        println!("{}", serde_json::to_string(&report).expect("benchmark report serializes"));
+        assert_eq!(
+            report.unmet_demand_reduction_lower_bound_total,
+            pair_count as f64 * 100.0
+        );
+        println!(
+            "{}",
+            serde_json::to_string(&report).expect("benchmark report serializes")
+        );
     }
 }
