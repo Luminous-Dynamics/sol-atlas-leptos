@@ -48,8 +48,10 @@
   "case_schema_path": "docs/research/fixtures/city-belonging-task-benchmark-v0.1.schema.json",
   "case_schema_sha256": "0a72a5eaceddc3fb8f8fe92da726cad3a1ad6a7931c72cd796e38231037d12a7",
   "schema_status": "STRICT_CASE_SHAPE_PINNED; NOT_YET_EXECUTED_BY_A_JSON_SCHEMA_VALIDATOR",
-  "validation_note": "The fixture bytes and schema digest are recorded; manual inspection and JSON parsing are not a schema-validation pass. A future executable verifier must bind to this exact schema digest.",
+  "validation_note": "A separate JavaScript policy mirror matched all 14 eligible/preferred sets and exclusion-reason key coverage. This is not a Rust test pass or a JSON Schema validation command. The standalone Rust crate has 18 authored tests but remains uncompiled/unexecuted.",
   "policy_version": "city-belonging-constraint-policy/0.1",
   "validation_status": "PINNED_FIXTURE_AND_SCHEMA; TASK MIRROR EXECUTED; RUST TESTS NOT EXECUTED",
-  "task_mirror_note": "A separate JavaScript policy mirror was executed against all 14 cases after correcting field references. This is not the Rust implementation or a JSON Schema validator; the Rust crate remains uncompiled/unexecuted."
+  "task_mirror_note": "A separate JavaScript policy mirror was executed against all 14 cases after correcting field references. This is not the Rust implementation or a JSON Schema validator; the Rust crate remains uncompiled/unexecuted.",
+  "rust_authored_test_count": 18,
+  "rust_test_execution_status": "NOT_EXECUTED"
 }
