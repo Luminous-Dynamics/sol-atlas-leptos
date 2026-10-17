@@ -299,7 +299,15 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
     );
 
     let mut qualification_reasons = Vec::new();
+    let run_passed = completed_successfully(&receipt);
+    let gates_controls_passed = all_gates_and_controls_pass(&receipt);
+    let metrics_passed = metrics_present(&receipt);
+    let config_digest_passed = configuration_digest_is_bound(&receipt, &artifact_checks);
     let ci_passed = ci_checks_all_pass(&receipt, &artifact_checks, &artifact_root);
+    push_check(&mut checks, "completed_run", run_passed, "run outcome, exit code, and finished_at must prove successful completion".to_string());
+    push_check(&mut checks, "gates_and_controls", gates_controls_passed, "all non-empty predeclared gates and negative controls must pass".to_string());
+    push_check(&mut checks, "metrics_and_uncertainty", metrics_passed, "metric records must carry a positive sample count and an explicit uncertainty method other than none".to_string());
+    push_check(&mut checks, "configuration_artifact_binding", config_digest_passed, "configuration SHA-256 must equal the verified configuration artifact digest".to_string());
     push_check(
         &mut checks,
         "exact_head_ci",
@@ -348,7 +356,7 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
         if !ci_passed {
             qualification_reasons.push("required CI checks must be completed successes on the exact code commit".to_string());
         }
-        if !configuration_digest_is_bound(&receipt, &artifact_checks) {
+        if !config_digest_passed {
             qualification_reasons.push(
                 "configuration SHA-256 must match a verified configuration artifact".to_string(),
             );
@@ -923,8 +931,51 @@ fn validate_prior_verifier_report(
     if string_field(&report, &["target_qualification_status"]) != Some(target_status) {
         return Err("referenced verifier report targets a different qualification status".to_string());
     }
+    let required_checks = [
+        "receipt_schema",
+        "specification_commit_identity",
+        "benchmark_specification_digest",
+        "declared_artifact_integrity",
+        "exact_git_head",
+        "repository_identity",
+        "clean_worktree",
+        "exact_head_ci",
+        "completed_run",
+        "gates_and_controls",
+        "metrics_and_uncertainty",
+        "configuration_artifact_binding",
+        "promotion_prerequisites"
+    ];
+    let report_checks_pass = report
+        .get("checks")
+        .and_then(Value::as_array)
+        .is_some_and(|checks| {
+            required_checks.iter().all(|required_id| {
+                checks.iter().any(|check| {
+                    string_field(check, &["id"]) == Some(required_id)
+                        && check.get("passed").and_then(Value::as_bool) == Some(true)
+                })
+            })
+        });
+    if !report_checks_pass {
+        return Err("referenced verifier report does not contain every required passing gate".to_string());
+    }
     if string_field(&report, &["qualification_core_sha256"]) != core_sha256 {
         return Err("referenced verifier report is bound to a different qualification core".to_string());
+    }
+    let evidence_repo = string_field(
+        receipt,
+        &["qualification_evidence", "verifier_repository_url"],
+    )
+    .ok_or_else(|| "qualification_evidence.verifier_repository_url is missing".to_string())?;
+    let receipt_repo = string_field(receipt, &["code", "repository_url"])
+        .ok_or_else(|| "code.repository_url is missing".to_string())?;
+    let measured_origin = git_output(repo_root, &["remote", "get-url", "origin"])
+        .ok_or_else(|| "cannot independently read verifier repository origin".to_string())?;
+    if normalize_git_url(evidence_repo) != normalize_git_url(receipt_repo)
+        || normalize_git_url(evidence_repo) != normalize_git_url(&measured_origin)
+    {
+        return Err("verifier repository URL does not match receipt repository and checkout origin".to_string());
     }
     let evidence_commit = string_field(
         receipt,
