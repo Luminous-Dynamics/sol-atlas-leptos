@@ -159,12 +159,7 @@
           "minLength": 1
         },
         "power_measurement_location": {
-          "enum": [
-            "pump_terminals",
-            "feeder",
-            "substation",
-            "generator"
-          ]
+          "const": "pump_terminals"
         },
         "available_power": {
           "$ref": "#/$defs/measurement"
