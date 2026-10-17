@@ -411,6 +411,10 @@ mod tests {
         assert_eq!(result[0].candidate_unmet_demand_lower_bound, 50.0);
         assert_eq!(result[0].unmet_demand_reduction_lower_bound, 100.0);
         assert_eq!(result[0].unmet_demand_reduction_upper_bound, 100.0);
+        assert_eq!(
+            result[0].steps.iter().map(|step| step.unmet_demand_reduction_lower_bound).sum::<f64>(),
+            result[0].unmet_demand_reduction_lower_bound
+        );
         assert_eq!(result[0].effect, WaterTrajectoryInterventionEffect::RobustImprovement);
         assert_eq!(result[0].recovery_comparison, WaterTrajectoryRecoveryComparison::BothSameSample);
         assert_eq!(result[0].interpretation_boundary, WaterTrajectoryInterpretationBoundary::ModeledCounterfactualNotCausalEvidence);
@@ -443,6 +447,37 @@ mod tests {
             Err(WaterServiceTrajectoryInterventionError::InvalidInput(errors))
                 if errors.contains(&WaterTrajectoryInterventionValidationError::TimeGridMismatch)
         ));
+    }
+
+    #[test]
+    fn identical_trajectories_are_no_material_change() {
+        let input = request(
+            "no-change",
+            trajectory("baseline-same", 0.0, None),
+            trajectory("candidate-same", 0.0, None),
+        );
+        let result = compare_water_service_trajectory_interventions(&[input], &[]).unwrap();
+        assert_eq!(result[0].effect, WaterTrajectoryInterventionEffect::NoMaterialChange);
+        assert_eq!(result[0].unmet_demand_reduction_lower_bound, 0.0);
+        assert_eq!(result[0].unmet_demand_reduction_upper_bound, 0.0);
+    }
+
+    #[test]
+    fn candidate_only_recovery_is_distinguished_within_observation_window() {
+        let mut baseline = trajectory("baseline-stays-down", 0.0, None);
+        baseline.steps[3].source_flow_rate.quantity.value = 0.0;
+        let candidate = trajectory("candidate-recovers", 50.0, None);
+        let input = request("candidate-recovers-only", baseline, candidate);
+        let result = compare_water_service_trajectory_interventions(&[input], &[]).unwrap();
+        assert_eq!(
+            result[0].recovery_comparison,
+            WaterTrajectoryRecoveryComparison::CandidateOnlyWithinWindow
+        );
+        assert_eq!(result[0].baseline_first_adequate_as_of, None);
+        assert_eq!(
+            result[0].candidate_first_adequate_as_of.as_deref(),
+            Some("2026-10-16T13:00:00Z")
+        );
     }
 
     #[test]
