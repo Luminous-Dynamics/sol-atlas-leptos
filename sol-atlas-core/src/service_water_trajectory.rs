@@ -59,7 +59,9 @@ pub struct WaterServiceTrajectoryStepAssessment {
     pub as_of: String,
     pub step_hours: f64,
     pub state: WaterServiceState,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub coverage_lower_bound: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub coverage_upper_bound: Option<f64>,
     pub demand_volume_lower_bound: f64,
     pub demand_volume_upper_bound: f64,
@@ -486,9 +488,7 @@ pub fn assess_water_service_trajectories(
 mod tests {
     use super::*;
     use crate::dependency_logic::ScenarioBasis;
-    use crate::service_water::{
-        DIMENSIONLESS_UNIT, WATER_SERVICE_SCHEMA_VERSION,
-    };
+    use crate::service_water::DIMENSIONLESS_UNIT;
     use crate::spatial_economic::Quantity;
 
     fn measurement(entity: &str, value: f64, unit: &str) -> FunctionMeasurement {
