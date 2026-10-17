@@ -17,7 +17,7 @@ This increment adds a complementary *probability-free* view. It treats each enum
 
 ## Contract and calculation
 
-Input contains a finite set of decisions, a finite set of plausible scenarios, a complete matrix of non-negative loss intervals, and candidate investigation actions. Each action provides an explicit outcome label for every scenario and a cost in the same declared units as the losses.
+Input contains a finite set of decisions, a finite set of plausible scenarios, a complete matrix of non-negative loss intervals, and candidate investigation actions. The problem declares a loss-unit identifier; every action must declare the exact same cost-unit identifier, or evaluation fails. Each action also provides an explicit outcome label for every scenario.
 
 For decision \(d\) in scenario \(s\), the conservative regret bound is:
 
