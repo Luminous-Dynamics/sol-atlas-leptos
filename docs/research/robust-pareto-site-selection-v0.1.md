@@ -6,7 +6,7 @@ Status: implementation proposal v0.1. This is decision-support research, not sta
 
 A weighted sum forces unlike values (access, carbon, ecology, cost, culture, resilience) into one selected set of weights. It can be useful as a scenario-specific preference view, but it can hide rank instability and let a strong score compensate for a critical weakness. A Pareto set preserves alternatives that are not demonstrably worse across all selected objectives.
 
-This implementation adds interval-aware robust dominance. Each metric carries a plausible lower and upper bound. Candidate A robustly dominates B only if A's worst plausible outcome is at least as good as B's best plausible outcome on every objective, and strictly better on at least one, within an explicit tolerance. Overlapping uncertainty intervals do not justify eliminating a candidate. Incomplete intervals are held for evidence. Upstream excluded candidates can never re-enter the frontier.
+This implementation adds interval-aware robust dominance. Each metric carries a plausible lower and upper bound. Candidate A robustly dominates B only if A's worst plausible outcome is at least as good as B's best plausible outcome on every objective, and strictly better on at least one, within an explicit, criterion-specific tolerance. Overlapping uncertainty intervals do not justify eliminating a candidate. Incomplete intervals are held for evidence. Upstream excluded candidates can never re-enter the frontier.
 
 This is deliberately conservative. It may retain more candidates than point-estimate Pareto analysis; that is preferable to false certainty during early site screening.
 
@@ -19,7 +19,7 @@ For every objective i:
 - A is no worse under robust comparison when lower_benefit(A_i) + epsilon >= upper_benefit(B_i).
 - A is strictly better on at least one objective when lower_benefit(A_i) > upper_benefit(B_i) + epsilon.
 
-If the first condition fails for any objective, A does not robustly dominate B. If no objective is strictly better, the candidates do not dominate one another. The current epsilon is absolute and shared across objectives; this is only appropriate when units are comparably scaled. Before real-world use, implement a criterion-specific tolerance/normalization contract and benchmark unit-scaling invariance.
+If the first condition fails for any objective, A does not robustly dominate B. If no objective is strictly better, the candidates do not dominate one another. Tolerances are optional and criterion-specific, expressed in each objective's raw units; an omitted tolerance defaults to zero. Unit transformations still need pinned semantics and unit-scaling invariance tests before any real-world use.
 
 ## Disposition model
 
