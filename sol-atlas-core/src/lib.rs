@@ -5,7 +5,7 @@
 //! Shared data types, geodetic math, geometry generation, and constants
 //! for Sol Atlas renderers (Leptos WebGL, Bevy wgpu).
 //!
-//! All math uses raw `[f32; N]` arrays to avoid dependency collisions
+//! All math uses raw [f32; N] arrays to avoid dependency collisions
 //! between rendering backends (web-sys, glam/nalgebra).
 
 pub mod aesthetics;
@@ -15,16 +15,23 @@ pub mod data;
 pub mod economics;
 pub mod energy_trading;
 pub mod geo;
+pub mod gibs;
 pub mod lod;
 pub mod mycelix_flows;
 // pub mod relativity_viz;
 pub mod geometry;
 pub mod math;
 pub mod picking;
+pub mod raster_quality;
 pub mod simulation;
 pub mod solar_system;
+pub mod surface_water;
+pub mod tiles;
 pub mod timeline;
 pub mod types;
+pub mod utility_telemetry;
 pub mod visual_validation;
 
+pub use surface_water::*;
 pub use types::*;
+pub use utility_telemetry::*;

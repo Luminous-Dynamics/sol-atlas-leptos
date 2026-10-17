@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "observation_id": "synthetic-water-pressure-001",
+  "subject_id": "synthetic-pressure-zone-001",
+  "subject_kind": "pressure_zone",
+  "domain": "water",
+  "metric": "water_pressure",
+  "value": {
+    "kind": "numeric",
+    "value": 420.0,
+    "unit": "kilopascal"
+  },
+  "observed_at_unix_ms": 1000,
+  "received_at_unix_ms": 1100,
+  "source": "scada_read_only_export",
+  "transport": "store_and_forward",
+  "provenance": {
+    "source_id": "synthetic-fixture-not-a-live-source",
+    "source_version": "fixture-v1",
+    "evidence_sha256": null,
+    "upstream_observation_ids": [],
+    "processing_parameters": null
+  },
+  "quality": {
+    "confidence": 0.98,
+    "uncertainty": 2.0,
+    "flags": ["operator_reviewed"]
+  },
+  "location": {
+    "latitude_deg": -26.2,
+    "longitude_deg": 28.0
+  }
+}
