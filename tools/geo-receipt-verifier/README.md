@@ -13,27 +13,42 @@ cargo clippy --manifest-path tools/geo-receipt-verifier/Cargo.toml --all-targets
 
 ## Verify an executed but not yet promoted receipt
 
-Run with a clean checkout at the exact code commit recorded by the benchmark. Receipt and schema paths may be repository-relative or absolute. All artifact locators and benchmark-specification paths are relative to their respective roots and are prevented from escaping those roots.
+Use **two clean checkouts**:
+
+- `EVALUATED_ROOT`: the exact code commit being benchmarked, with a clean worktree.
+- `VERIFIER_ROOT`: a separate checkout containing the verifier implementation, with a clean worktree and a distinct commit SHA. It may be a reviewed verifier commit from the same public repository or a separate verifier repository. It must not be the same directory or the same commit as the evaluated checkout.
+
+The verifier cross-checks this distinct identity, both worktree states, and the verifier repository origin. This prevents a receipt from qualifying by treating the code-under-test's own checkout as an independent verifier. It is still a provenance control, not proof that an independent human organization reviewed the code or that retained provider JSON is authentic.
+
+Receipt/schema paths are relative to `EVALUATED_ROOT`; artifact locators are relative to `--artifact-root`. Both roots are canonicalized and traversal/symlinks escaping the declared roots are rejected.
 
 ```sh
-cargo run --quiet --manifest-path tools/geo-receipt-verifier/Cargo.toml -- \
-  "$PWD" \
+EVALUATED_ROOT=/absolute/path/to/evaluated-clean-checkout
+VERIFIER_ROOT=/absolute/path/to/separate-verifier-clean-checkout
+ARTIFACT_ROOT=/absolute/path/to/frozen-artifacts
+
+cargo run --quiet \
+  --manifest-path "$VERIFIER_ROOT/tools/geo-receipt-verifier/Cargo.toml" -- \
+  "$EVALUATED_ROOT" \
   docs/earth-interior/benchmark-run-receipt.schema.json \
-  /absolute/path/to/receipt.json \
-  --artifact-root /absolute/path/to/frozen-artifacts \
+  /absolute/path/to/provisional-receipt.json \
+  --artifact-root "$ARTIFACT_ROOT" \
+  --verifier-root "$VERIFIER_ROOT" \
   --target-status qualified_synthetic > /tmp/geo-verification-report.json
 ```
 
-The provisional receipt should have `qualification_status: "executed_unqualified"`. The output contains a qualification-core digest, target status, individual checks and a deterministic verification outcome. Keep this report outside the repository checkout so generating it does not dirty the evaluated worktree.
+The provisional receipt should have `qualification_status: "executed_unqualified"`. The report records the qualification-core digest, target status, separate verifier HEAD/origin/worktree status, individual checks, and outcome. Keep the report outside both checkouts so creating it does not dirty either worktree. The report is a proposal for promotion and still requires an independent review of the recorded provider/run evidence.
 
-After an independent process accepts the report, its exact file SHA-256 and verifier commit may be recorded in the final receipt's `qualification_evidence`. The final receipt can then be checked with the report supplied:
+After that review accepts the report, the final receipt's `qualification_evidence` records the report SHA-256 plus the exact verifier repository URL and commit. The final receipt must then be verified with the **same clean verifier checkout at the same exact commit**, using `--verifier-report`:
 
 ```sh
-cargo run --quiet --manifest-path tools/geo-receipt-verifier/Cargo.toml -- \
-  "$PWD" \
+cargo run --quiet \
+  --manifest-path "$VERIFIER_ROOT/tools/geo-receipt-verifier/Cargo.toml" -- \
+  "$EVALUATED_ROOT" \
   docs/earth-interior/benchmark-run-receipt.schema.json \
   /absolute/path/to/final-receipt.json \
-  --artifact-root /absolute/path/to/frozen-artifacts \
+  --artifact-root "$ARTIFACT_ROOT" \
+  --verifier-root "$VERIFIER_ROOT" \
   --verifier-report /tmp/geo-verification-report.json
 ```
 
