@@ -1,0 +1,421 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "geo-active-observation-design-001",
+  "title": "Robust active observation design for Earth-interior inverse problems",
+  "status": "benchmark_specification_not_executed",
+  "purpose": "Test whether choosing the next measurement by expected information value improves recovery of known hidden geophysical state under a fixed acquisition budget, including when the assumed prior, measurement noise, or forward model is wrong.",
+  "claim_boundary": {
+    "synthetic_results_are_earth_observations": false,
+    "design_recommendations_are_automatic_instrument_commands": false,
+    "success_proves_real_earth_predictive_validity": false,
+    "required_label_for_initial_results": "synthetic known-truth benchmark",
+    "notes": [
+      "This benchmark evaluates experimental-design policies, not an operational geophysical monitoring network.",
+      "Model agreement or information gain alone cannot establish that a selected physical hypothesis is true.",
+      "A design can reduce uncertainty inside a wrong model while failing to discriminate that model from alternatives."
+    ]
+  },
+  "research_question": "Given a finite budget of candidate geomagnetic or seismic observations, which acquisition plan most reduces uncertainty about identifiable state quantities and best discriminates competing physical/model explanations, while remaining useful under prior and observation-model misspecification?",
+  "research_basis": [
+    {
+      "title": "Robust A-Optimal Experimental Design for Sensor Placement in Bayesian Linear Inverse Problems",
+      "doi": "10.1137/24M1667543",
+      "url": "https://epubs.siam.org/doi/abs/10.1137/24M1667543",
+      "relevance": "Robust design explicitly addresses uncertainty or misspecification in priors and measurement uncertainties."
+    },
+    {
+      "title": "Analysis and optimization of seismic monitoring networks with Bayesian optimal experimental design",
+      "url": "https://academic.oup.com/gji/article/240/3/1802/7959837",
+      "relevance": "Describes sensor-network design using expected information gain and highlights sensor fidelity, Earth-model uncertainty, sensor count/type/location, and prior assumptions."
+    },
+    {
+      "title": "Effects of geodynamo priors and geomagnetic data on inverted core surface flows",
+      "doi": "10.1016/j.pepi.2025.107323",
+      "url": "https://www.sciencedirect.com/science/article/pii/S0031920125000172",
+      "relevance": "Reports that changing the dynamo setup can strongly affect inferred core-surface motions; prior sensitivity must be measured."
+    },
+    {
+      "title": "Submodularity of the expected information gain in infinite-dimensional linear inverse problems",
+      "doi": "10.3934/eect.2026090",
+      "url": "https://www.aimsciences.org/article/doi/10.3934/eect.2026090",
+      "relevance": "Provides a theoretical basis for greedy sensor placement in a specified class of linear-Gaussian problems; do not generalize its guarantee to nonlinear or misspecified geophysical models without proof."
+    }
+  ],
+  "scope": {
+    "initial_parameters": "A small, versioned low-order state vector representing magnetic-field coefficients and tangential core-surface-flow modes, with optional nuisance parameters for bias and model discrepancy.",
+    "candidate_action": "A proposed observation defined by modality, spatial support/geometry, time window, expected uncertainty, fidelity, data-dependence group, acquisition cost, and exact forward-operator/configuration identity.",
+    "candidate_sources": [
+      "synthetic satellite or ground magnetic-field observation",
+      "synthetic seismic differential travel-time observation",
+      "synthetic observation of a published-model quantity, only as a clearly labelled comparator"
+    ],
+    "initial_non_goals": [
+      "issuing commands to real instruments",
+      "claiming an optimal real-world sensor network",
+      "running a full 3D geodynamo solver as the first milestone",
+      "treating a single prior or model family as authoritative",
+      "using the held-out truth state during candidate scoring or design selection"
+    ]
+  },
+  "design_policies": [
+    {
+      "id": "random_budget_matched",
+      "role": "baseline",
+      "rule": "Select valid actions at random under the same cost and feasibility constraints."
+    },
+    {
+      "id": "uniform_coverage",
+      "role": "baseline",
+      "rule": "Favor spatial and temporal coverage without using inferred utility."
+    },
+    {
+      "id": "scaled_d_optimal",
+      "role": "baseline",
+      "rule": "Maximize log determinant of a dimensionless, noise-whitened information matrix; report rank and regularization explicitly."
+    },
+    {
+      "id": "a_optimal_posterior_trace",
+      "role": "baseline",
+      "rule": "Minimize expected posterior covariance trace in declared parameter scales."
+    },
+    {
+      "id": "nominal_expected_information_gain",
+      "role": "candidate",
+      "rule": "Maximize expected KL divergence from prior to posterior under the declared nominal model."
+    },
+    {
+      "id": "robust_expected_information_gain",
+      "role": "candidate",
+      "rule": "Optimize a declared worst-case or risk-sensitive utility over a frozen ensemble of plausible priors, noise models, and forward-model variants."
+    },
+    {
+      "id": "expected_model_discrimination",
+      "role": "candidate",
+      "rule": "Prefer actions whose predicted observation distributions separate competing model families or discrepancy hypotheses; score against known-truth model-mismatch cases."
+    }
+  ],
+  "objective_contract": {
+    "primary_utility": "Expected information gain about explicitly named quantity-of-interest parameters, estimated with a declared approximation and Monte Carlo error.",
+    "separate_secondary_utilities": [
+      "expected general information gain under model discrepancy",
+      "expected discrimination between competing model families",
+      "expected reduction in posterior covariance trace",
+      "identifiable-subspace rank gain"
+    ],
+    "budget_rule": "Compare policies under equal total acquisition cost and the same feasibility constraints; disclose the cost model and do not combine all utilities into an opaque single score.",
+    "dependence_rule": "Model correlated observations and shared systematic errors; duplicated or near-duplicate observations must not be counted as independent information.",
+    "scale_rule": "Parameter scaling and observation covariance are explicit, unit-aware inputs; raw unscaled determinant values are not comparable across parameterizations.",
+    "uncertainty_rule": "Report Monte Carlo/approximation error for estimated utilities and use paired scenario seeds for policy comparisons."
+  },
+  "benchmark_stages": [
+    {
+      "id": "H0_exact_linear",
+      "status": "planned",
+      "setup": "Small linear-Gaussian problems with known analytic posterior covariance, planted null spaces, correlated observation noise, and a tractable exact design score.",
+      "must_show": [
+        "Computed expected utility agrees with analytic reference within a preregistered numerical tolerance.",
+        "A policy cannot declare a planted null-space parameter identifiable.",
+        "Repeated runs from a frozen manifest are deterministic where the algorithm is deterministic."
+      ]
+    },
+    {
+      "id": "H1_nonlinear_known_truth",
+      "status": "planned",
+      "setup": "Deterministic low-order synthetic field/flow trajectories with versioned observation operators, incomplete spatial coverage, temporal gaps, noise, calibration bias, and known truth.",
+      "must_show": [
+        "Selected observations improve the named quantity-of-interest score on held-out states or trajectories, not only on design/training cases.",
+        "The evaluation keeps truth states, candidate measurements, selected designs, and posterior/estimate artifacts distinct.",
+        "Temporal holdouts are contiguous; entire trajectory or model-family holdouts are used where possible."
+      ]
+    },
+    {
+      "id": "H2_robustness_and_discrimination",
+      "status": "planned",
+      "setup": "Generate truth under model/prior/noise variants that differ from the nominal selector assumptions; include competing physical explanations with similar nominal predictions.",
+      "must_show": [
+        "Robust design is scored across all preregistered variants, including worst-case outcomes.",
+        "Model-discrimination actions are evaluated on held-out likelihood ratios or proper predictive scores.",
+        "The policy does not receive hidden truth labels, holdout residuals, or held-out forward outputs during design selection."
+      ]
+    },
+    {
+      "id": "H3_data_qualified_adapter",
+      "status": "blocked_on_source_qualification",
+      "setup": "Only after the GEO-DATA-001 payload is retrieved, independently hash-verified, parsed, licensed, and frozen, use a qualified simulation case to generate controlled observation-design scenarios.",
+      "must_show": [
+        "Exact dataset version, file ID, byte digest, parser version, units, time span, and transformation identity are recorded.",
+        "Simulation truth remains labelled as simulation output, never as Earth's observed trajectory.",
+        "Real observational evaluation remains a separate later gate."
+      ]
+    }
+  ],
+  "metrics": [
+    {
+      "name": "utility_gain_per_cost",
+      "definition": "Held-out difference in expected information gain per acquisition-cost unit against each budget-matched baseline.",
+      "aggregation": "paired across scenarios and seeds, with uncertainty interval"
+    },
+    {
+      "name": "quantity_of_interest_recovery",
+      "definition": "Bias, RMSE, and proper predictive score for predeclared state quantities after the selected measurement budget."
+    },
+    {
+      "name": "uncertainty_calibration",
+      "definition": "Empirical coverage of nominal 50%, 90%, and 95% intervals and calibration/sharpness metrics over repeated known-truth cases."
+    },
+    {
+      "name": "identifiability_integrity",
+      "definition": "Rank and null-space recovery on exact synthetic fixtures; count false-positive identifiability claims."
+    },
+    {
+      "name": "model_discrimination",
+      "definition": "Held-out ability to distinguish planted competing model families using proper predictive scores and preregistered decision thresholds."
+    },
+    {
+      "name": "robustness",
+      "definition": "Worst-case and distributional-tail utility, calibration loss, and rank stability across frozen prior/noise/forward-model perturbations."
+    },
+    {
+      "name": "compute_cost",
+      "definition": "Forward-model evaluations, utility evaluations, wall-clock time, peak memory, and any stochastic approximation budget."
+    }
+  ],
+  "negative_controls": [
+    "exactly duplicate a candidate observation while declaring its correlated error; information utility must not double-count it",
+    "shuffle observation timestamps while preserving marginal values",
+    "insert a sensor with no sensitivity to the target parameter",
+    "plant a parameter direction that lies in the exact observation null space",
+    "score under a prior with deliberately incorrect scale or support",
+    "generate data under a forward model absent from the selector's nominal family",
+    "corrupt or remove covariance metadata",
+    "attempt to leak truth labels or held-out measurements into candidate utility"
+  ],
+  "aspirational_targets_not_yet_acceptance_gates": [
+    {
+      "id": "T1",
+      "target": "100% correct non-identifiability handling on deterministic exact-linear null-space fixtures.",
+      "qualification": "Exact fixture gate, not an empirical claim about nonlinear Earth-scale inversion."
+    },
+    {
+      "id": "T2",
+      "target": "At least 10% improvement in mean held-out utility-per-cost over the strongest simple baseline on a preregistered scenario suite.",
+      "qualification": "Promote to an acceptance gate only after baseline variance and scenario diversity are measured; report paired confidence intervals and calibration/non-identifiability guardrails."
+    },
+    {
+      "id": "T3",
+      "target": "Nominal 90% and 95% interval coverage within a preregistered tolerance on adequately powered synthetic calibration runs.",
+      "qualification": "Publish sample size, binomial uncertainty, and per-scenario as well as aggregate coverage."
+    },
+    {
+      "id": "T4",
+      "target": "Demonstrate robust-design utility/call-count trade-offs across at least three distinct forward-model or noise families.",
+      "qualification": "No single best-case model establishes robustness."
+    }
+  ],
+  "reproducibility_receipt": {
+    "required_fields": [
+      "benchmark_id and schema_version",
+      "source dataset/synthetic generator identities and versions",
+      "truth manifest digest, inaccessible to selector until scoring",
+      "candidate-set and observation-operator digests",
+      "prior/noise/model-family ensemble digest",
+      "policy implementation commit and configuration digest",
+      "PRNG algorithm and seed set",
+      "budget, utility approximation, and numerical tolerances",
+      "selected action identifiers and costs",
+      "per-policy/per-scenario raw metrics and aggregate uncertainty",
+      "negative-control outcomes",
+      "runtime and memory measurements",
+      "exact code commit, toolchain, and qualification status"
+    ],
+    "status_semantics": {
+      "specification_not_executed": "The benchmark definition exists; no results exist.",
+      "executed_unqualified": "A run produced results but required gates or provenance are incomplete.",
+      "qualified_synthetic": "All preregistered synthetic gates passed on the recorded exact code/configuration.",
+      "source_adapter_qualified": "Exact simulation payload and parsing transform independently verified.",
+      "real_observation_evaluated": "A separately defined evaluation used qualified real observations with leakage controls."
+    },
+    "schema_path": "./benchmark-run-receipt.schema.json",
+    "execution_record_rule": "Emit a receipt for every attempted run, including failed, cancelled, or interrupted runs. The specification_not_executed status belongs to the benchmark contract; it is not a run receipt. Queued, skipped, cancelled, missing, or stale-head CI checks are never passes.",
+    "qualification_guardrails": [
+      "Qualified statuses require a clean exact-commit worktree and a matching immutable code/configuration identity.",
+      "Every preregistered gate and negative control must pass; missing or unexecuted checks are not passes.",
+      "Truth artifacts remain withheld from the selector until scoring.",
+      "An independent verifier result must be recorded and its digest linked.",
+      "Source adapter qualification requires verified local payload bytes and passed unit, time-axis, and variable-shape audits.",
+      "Real-observation evaluation additionally requires passed leakage and reference-overlap audits."
+    ]
+  },
+  "stop_rules": [
+    "Do not report an optimizer's selected design as superior if its confidence interval overlaps the benchmark's predeclared non-inferiority region.",
+    "Do not accept utility gains that come with worse interval calibration or false identifiability claims.",
+    "Do not use random adjacent-time holdouts as the only generalization test.",
+    "Do not convert missing provenance, missing noise covariance, or unqualified source payloads into defaults.",
+    "Do not report any target as achieved until a reproducibility receipt contains exact code/configuration identity and all required results."
+  ],
+  "related_work": {
+    "sol_atlas_contract_pr": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/118",
+    "source_payload_qualification_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/121",
+    "symtropy_synthetic_observability_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1728",
+    "symthaea_inference_benchmark_issue": "https://github.com/Luminous-Dynamics/symthaea/issues/7688",
+    "mycelix_evidence_provenance_issue": "https://github.com/Luminous-Dynamics/mycelix/issues/2410",
+    "symtropy_h0_implementation_pr": "https://github.com/Luminous-Dynamics/symtropy/pull/1804",
+    "symtropy_h0_public_manifest": "https://github.com/Luminous-Dynamics/symtropy/blob/feat/geophysics-known-truth-h0-20261017/crates/domains/symtropy-geophysics-benchmark/fixtures/h0-public-manifest.json"
+  },
+  "reference_fixtures": [
+    {
+      "id": "H0-two-parameter-correlated-duplicate",
+      "purpose": "Exact posterior/utility oracle for rank integrity and non-double-counting of highly correlated sensors.",
+      "state": {
+        "parameter_names": [
+          "x_north",
+          "x_east"
+        ],
+        "prior_mean": [
+          0,
+          0
+        ],
+        "prior_covariance": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "parameter_scales": [
+          1,
+          1
+        ]
+      },
+      "candidates": [
+        {
+          "id": "north",
+          "h": [
+            1,
+            0
+          ],
+          "noise_variance": 0.25,
+          "cost": 1,
+          "systematic_group": "north-instrument"
+        },
+        {
+          "id": "east",
+          "h": [
+            0,
+            1
+          ],
+          "noise_variance": 0.25,
+          "cost": 1,
+          "systematic_group": "east-instrument"
+        },
+        {
+          "id": "north_repeat_correlated",
+          "h": [
+            1,
+            0
+          ],
+          "noise_variance": 0.25,
+          "cost": 1,
+          "correlation_with": "north",
+          "correlation": 0.99,
+          "systematic_group": "north-instrument"
+        }
+      ],
+      "noise_rules": {
+        "independent_pair": "north and east have independent errors",
+        "correlated_duplicate": "The 2x2 error covariance for north + north_repeat_correlated is 0.25 * [[1, 0.99], [0.99, 1]].",
+        "utility_formula": "For linear-Gaussian observations: EIG = 0.5 * ln(det(I + H^T R^-1 H)); use the full covariance R, not only its diagonal."
+      },
+      "exact_expected_results": {
+        "budget_1": {
+          "design": [
+            "north"
+          ],
+          "expected_information_gain_nats": 0.8047189562170501,
+          "expected_rank": 1,
+          "unidentifiable_parameter": "x_east"
+        },
+        "budget_2_independent_complementary": {
+          "design": [
+            "north",
+            "east"
+          ],
+          "expected_information_gain_nats": 1.6094379124341003,
+          "expected_rank": 2,
+          "expected_posterior_covariance": [
+            [
+              0.2,
+              0
+            ],
+            [
+              0,
+              0.2
+            ]
+          ],
+          "total_acquisition_cost": 2,
+          "expected_information_gain_per_cost": 0.8047189562170501
+        },
+        "budget_2_correlated_duplicate": {
+          "design": [
+            "north",
+            "north_repeat_correlated"
+          ],
+          "expected_information_gain_nats": 0.8067249769620305,
+          "expected_rank": 1,
+          "expected_posterior_covariance": [
+            [
+              0.1991991991991992,
+              0
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "total_acquisition_cost": 2,
+          "expected_information_gain_per_cost": 0.40336248848101525,
+          "false_independent_noise_eig_nats": 1.0986122886681098
+        }
+      },
+      "acceptance_checks": [
+        "Analytic utility and posterior covariance match the implementation within a predeclared floating-point tolerance.",
+        "A budget-1 north-only design does not identify x_east.",
+        "The north+east design achieves rank 2 and higher expected information gain than the highly correlated north duplicate pair.",
+        "The duplicate pair uses full measurement covariance; treating its measurements as independent is a negative-control failure.",
+        "Permuting candidate input order leaves normalized selected design and score unchanged under a deterministic tie policy.",
+        "Cost-normalized EIG uses the same declared acquisition-cost model for each candidate design; the two-channel complementary and correlated-duplicate designs both cost 2."
+      ],
+      "expected_values_are_analytic_references_not_measured_results": true
+    }
+  ],
+  "run_receipt_schema": "./benchmark-run-receipt.schema.json",
+  "required_ci_checks": [
+    "Check",
+    "Earth Interior receipt verifier"
+  ],
+  "h0_implementation_reference": {
+    "status": "implementation_authored_not_ci_qualified",
+    "repository": "Luminous-Dynamics/symtropy",
+    "pull_request": "https://github.com/Luminous-Dynamics/symtropy/pull/1804",
+    "public_fixture_manifest": "https://github.com/Luminous-Dynamics/symtropy/blob/feat/geophysics-known-truth-h0-20261017/crates/domains/symtropy-geophysics-benchmark/fixtures/h0-public-manifest.json",
+    "compatibility_note": "The complementary two-channel and correlated-duplicate Gaussian EIG values match this contract's analytic reference values under the same standard-normal prior, declared measurement covariance and unit per-channel cost assumption. This is cross-checkable analytic input compatibility, not an executed or qualified benchmark.",
+    "expected_references": {
+      "complementary_two_channel_eig_nats": 1.6094379124341003,
+      "correlated_duplicate_eig_nats": 0.8067249769620305,
+      "false_independent_duplicate_eig_nats": 1.0986122886681098,
+      "expected_complementary_rank": 2,
+      "expected_correlated_duplicate_rank": 1,
+      "complementary_eig_per_cost_nats": 0.8047189562170501,
+      "correlated_duplicate_eig_per_cost_nats": 0.40336248848101525
+    },
+    "implementation_status": {
+      "authored_tests": 15,
+      "rust_tests_executed_locally": false,
+      "exact_head_ci_qualified": false,
+      "source_payload_qualified": false
+    }
+  }
+}

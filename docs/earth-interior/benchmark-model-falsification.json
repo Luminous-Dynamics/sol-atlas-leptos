@@ -1,0 +1,320 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "geo-model-falsification-001",
+  "title": "Cross-model falsification and posterior reliability for Earth-interior inference",
+  "status": "benchmark_specification_not_executed",
+  "version": "0.1.1",
+  "purpose": "Test whether an Earth-interior inference claim survives known-truth calibration, held-out predictive checks, alternative physical priors, unseen simulator families, and deliberate negative controls before it is described as robust.",
+  "central_paradigm": {
+    "from": "Select one plausible model, fit it, and display its best estimate.",
+    "to": "Treat every estimate as a falsifiable claim that competes against alternative explanations and can be downgraded when robustness evidence is insufficient.",
+    "operating_rule": "The strongest permitted conclusion is bounded by the weakest required evidence gate. Good in-family calibration, low ensemble disagreement, or a visually coherent field map alone never establishes that the real Earth follows the assumed model."
+  },
+  "claim_boundary": {
+    "synthetic_data_are_real_observations": false,
+    "simulation_based_calibration_proves_model_truth": false,
+    "ensemble_agreement_proves_accuracy": false,
+    "posterior_predictive_fit_proves_causality": false,
+    "real_earth_claims_authorized_by_this_specification": false,
+    "current_status_sentence": "Protocol only; no runs, calibration scores, falsification detections, or Earth-interior discoveries are claimed."
+  },
+  "research_basis": [
+    {
+      "title": "Effects of geodynamo priors and geomagnetic data on inverted core surface flows",
+      "publication_date": "2025-07",
+      "doi": "10.1016/j.pepi.2025.107323",
+      "url": "https://www.sciencedirect.com/science/article/pii/S0031920125000172",
+      "implication": "Prior and dynamo-setup sensitivity are first-class evaluation dimensions because inferred background flow can vary substantially with the chosen dynamo prior."
+    },
+    {
+      "title": "Simulation-based inference with deep ensembles: evaluating calibration uncertainty and detecting model misspecification",
+      "publication_date": "2026-01-12",
+      "doi": "10.1088/2632-2153/ae3103",
+      "url": "https://doi.org/10.1088/2632-2153/ae3103",
+      "implication": "Pairwise divergence across independently trained posterior estimators can flag instability or potential misspecification; agreement is necessary in some contexts but is not sufficient for correctness."
+    },
+    {
+      "title": "Addressing Misspecification in Simulation-based Inference through Data-driven Calibration",
+      "publication_date": "2025-07",
+      "venue": "ICML 2025, Proceedings of Machine Learning Research 267",
+      "url": "https://proceedings.mlr.press/v267/wehenkel25a.html",
+      "implication": "Simulation-based inference can be miscalibrated under simulator mismatch; calibration methods and real/held-out calibration evidence need separate evaluation."
+    },
+    {
+      "title": "Simulation-Based Calibration Checking",
+      "source": "Stan User's Guide, version 2.39",
+      "url": "https://mc-stan.org/docs/2_39/stan-users-guide/simulation-based-calibration.html",
+      "implication": "Under the declared generative model, posterior rank statistics should be discrete-uniform; this diagnoses inference computation and calibration under that model, not whether the model describes Earth."
+    },
+    {
+      "title": "Bayesian inversion for the filtered flow at the Earth's core-mantle boundary",
+      "publication_date": "2014-03-11",
+      "doi": "10.1002/2013JB010358",
+      "url": "https://agupubs.onlinelibrary.wiley.com/doi/10.1002/2013JB010358",
+      "implication": "Posterior reliability of inferred core flow is conditional on the selected prior constraints and scale, motivating explicit prior sensitivity and unresolved-scale reporting."
+    },
+    {
+      "title": "Posterior SBC: simulation-based calibration checking conditional on data",
+      "publication_date": "2026-01-31",
+      "doi": "10.1007/s11222-026-10825-9",
+      "url": "https://doi.org/10.1007/s11222-026-10825-9",
+      "implication": "Prior-predictive simulation-based calibration checks computational calibration averaged under a generative prior; conditional-on-data checks probe whether reliability changes in observation regimes resembling a particular observed dataset. The latter must still be evaluated on known-truth simulations and cannot establish real-Earth latent-state calibration."
+    },
+    {
+      "title": "Flow Matching Calibration for Simulation-Based Inference under Model Misspecification",
+      "publication_date": "2026-07",
+      "venue": "ICML 2026, Proceedings of Machine Learning Research 306",
+      "url": "https://proceedings.mlr.press/v306/ruhlmann26a.html",
+      "implication": "Posterior correction using calibration examples is a candidate robustness method for simulator/noise/prior shift. In Earth-interior inference, hidden true core states are not directly labelled; therefore evaluate such corrections first on held-out known-truth simulation families and do not claim real-Earth latent posterior calibration without suitable ground-truth labels."
+    }
+  ],
+  "evaluation_lanes": [
+    {
+      "id": "L0_in_family_calibration",
+      "question": "Can the inference algorithm recover calibrated posteriors when data truly are generated by the declared model?",
+      "methods": [
+        "simulation-based calibration rank statistics for each declared parameter",
+        "empirical coverage and sharpness of 50%, 90%, and 95% intervals",
+        "proper scoring rules on held-out simulated observations and latent states",
+        "recovery of known parameter scales, correlations, and posterior multimodality"
+      ],
+      "interpretation_limit": "Passing L0 qualifies computational/statistical behavior under the generating model only."
+    },
+    {
+      "id": "L1_posterior_predictive_falsification",
+      "question": "Can the fitted model reproduce preregistered features of held-out observations without using those observations in fitting?",
+      "diagnostics": [
+        "temporal autocorrelation and spectral content of secular-variation residuals",
+        "spatial residual structure by coverage region and spherical-harmonic band where applicable",
+        "residual heteroscedasticity, correlated sensor errors, and missingness patterns",
+        "predeclared summaries of seismic differential travel-time observations when that modality is enabled"
+      ],
+      "rule": "Freeze discrepancy statistics and reference distributions before evaluating the held-out data. Do not select diagnostics after observing which ones make a preferred model look good."
+    },
+    {
+      "id": "L2_prior_and_parameterization_sensitivity",
+      "question": "Which estimated features survive credible alternative priors, truncation levels, temporal regularization and parameterizations?",
+      "required_variants": [
+        "at least three scientifically documented prior/dynamo families where qualified",
+        "multiple stated spherical-harmonic truncations or equivalent model resolutions",
+        "alternative defensible observation-error/covariance profiles",
+        "explicit treatment or bounded sensitivity of unresolved scales",
+        "nuisance bias and model-discrepancy terms where applicable"
+      ],
+      "report": "Feature-level stability, posterior displacement in scaled coordinates, uncertainty overlap, rank/identifiability changes, and parameter-specific sensitivity; never collapse all features into one opaque robustness score."
+    },
+    {
+      "id": "L3_out_of_simulator_generalization",
+      "question": "Does the inference pipeline remain calibrated when evaluated data come from a simulator configuration or physics family not present in fitting?",
+      "shift_families": [
+        "held-out geodynamo setup or boundary condition",
+        "held-out simulation resolution or spectral truncation",
+        "different temporal correlation/noise process",
+        "sensor coverage and sampling shift",
+        "calibration bias or correlated systematic error",
+        "one declared discrepancy component omitted from the fitted family"
+      ],
+      "rule": "Split by complete simulator configuration/family where possible, not only by randomly selected adjacent time steps. Hide held-out truth and labels from training, tuning, candidate observation selection, and threshold selection."
+    },
+    {
+      "id": "L4_ensemble_instability",
+      "question": "Do independently trained inference estimators or physically defensible model families disagree enough to indicate unstable conclusions?",
+      "measures": [
+        "pairwise posterior KL where estimable, with Monte Carlo error and estimator direction stated",
+        "symmetric alternative such as Jensen-Shannon divergence when a bounded symmetric diagnostic is preferred",
+        "posterior location/scale and multimodality disagreement for each quantity of interest",
+        "ensemble spread across seeds, training budgets, prior families, and simulator families"
+      ],
+      "interpretation_limit": "Large disagreement is a warning requiring diagnosis; low disagreement cannot rule out shared systematic error or common misspecification."
+    },
+    {
+      "id": "L5_blind_adversarial_controls",
+      "question": "Can the system reject plausible-looking but incorrect evidence/model situations without peeking at the answer?",
+      "controls": [
+        "shuffle observation times while preserving marginal values",
+        "inject a timestamp offset or unit-scale error",
+        "duplicate measurements with correlated errors but incorrectly mark the covariance as unknown",
+        "withhold a spatial band or introduce a known missing-not-at-random pattern",
+        "generate a competing physical hypothesis with near-identical nominal observable predictions",
+        "plant an exactly unobservable parameter direction",
+        "shift a boundary condition or noise family outside the fitted model family",
+        "corrupt source lineage or change an input artifact without updating its manifest identity",
+        "introduce a seismic event-pair phase/time mismatch when seismic evaluation is enabled"
+      ],
+      "required_response": "Flag the affected claim, widen/downgrade uncertainty, report non-identifiability, or abstain according to the frozen protocol; do not silently produce a confident unique estimate."
+    },
+    {
+      "id": "L6_data_conditioned_calibration",
+      "question": "Does uncertainty calibration remain credible in the observation-conditioned regions actually encountered, or do prior-predictive aggregate checks mask local under-coverage?",
+      "methods": [
+        "Run registered prior-predictive simulation-based calibration on known-truth synthetic ensembles.",
+        "Add posterior-SBC/conditional calibration diagnostics across predeclared observation strata: spatial coverage, signal-to-noise, temporal regime, missingness, correlated errors, and model-family shift.",
+        "Compare uncorrected posterior inference with deep-ensemble uncertainty diagnostics and, only when valid calibration truth exists, candidate posterior-correction methods such as data-driven calibration or flow-matching correction.",
+        "Report conditional interval coverage, proper predictive scores, sharpness, estimator disagreement and abstention per stratum, with sample size and confidence intervals."
+      ],
+      "controls": [
+        "Construct two data strata where pooled coverage appears acceptable while one conditional stratum under-covers.",
+        "Generate an observation region outside the calibration set and test whether the system flags extrapolation rather than silently applying the correction.",
+        "Use calibration labels only from the declared training/calibration split; do not expose qualification labels or hidden state truth.",
+        "Test whether posterior correction improves coverage at the expense of uselessly broad intervals or degraded proper predictive scores."
+      ],
+      "required_response": "Flag localized miscalibration, abstain or downgrade the affected claim, and retain per-stratum failures even if aggregate coverage passes.",
+      "interpretation_limit": "This lane qualifies calibration on synthetic known-truth or genuinely labelled calibration cases only. Real geomagnetic measurements do not directly label the Earth's hidden core state; posterior calibration on simulated truth is not calibration proof for that real latent state."
+    }
+  ],
+  "registered_baselines": [
+    "declared prior-only forecast",
+    "single-prior statistical/physics inversion",
+    "prior/dynamo ensemble baseline",
+    "simple linear-Gaussian or low-order known-truth oracle on H0 cases",
+    "same inference method with simulation-based calibration and posterior predictive diagnostics disabled",
+    "the same method with model-family holdout enabled, for ablation comparison"
+  ],
+  "protocol": {
+    "development_split": "Visible synthetic cases used to implement and debug the pipeline.",
+    "calibration_split": "In-family known-truth cases used to calibrate uncertainty and freeze alert thresholds.",
+    "qualification_split": "Blind known-truth cases with frozen configuration, not used for method/threshold tuning.",
+    "generalization_split": "Entire simulator configurations/families and contiguous time intervals held out where possible.",
+    "real_observation_split": "Separate later protocol only after source payloads and capture digests are independently verified; model training cutoff and data lineage must establish that test observations did not contribute to reference models used as baselines.",
+    "randomness": "Record PRNG algorithm, seeds, independent repetitions, and stochastic inference sampling settings.",
+    "pre_registration": "Freeze parameter scales, metrics, discrepancy statistics, alert thresholds, minimum effect sizes, exclusion rules, and aggregate formulas before evaluating blind cases."
+  },
+  "metrics": [
+    {
+      "id": "M1_calibration",
+      "values": [
+        "simulation-based calibration rank statistic",
+        "50/90/95% interval coverage with binomial confidence intervals",
+        "proper log predictive score and CRPS where defined",
+        "interval sharpness paired with coverage"
+      ]
+    },
+    {
+      "id": "M2_falsification_power",
+      "values": [
+        "detection sensitivity by misspecification family",
+        "false-alert rate on in-family controls",
+        "calibration of alert thresholds",
+        "abstention precision and recall where a claim-status decision is defined"
+      ]
+    },
+    {
+      "id": "M3_identifiability",
+      "values": [
+        "rank and null-space accuracy on exact fixtures",
+        "false-positive unique-solution rate",
+        "fraction of parameter/state dimensions explicitly reported as weakly identified or unidentifiable"
+      ]
+    },
+    {
+      "id": "M4_robustness",
+      "values": [
+        "feature-level sign/rank stability across prior families",
+        "posterior displacement in declared normalized coordinates",
+        "worst-case and lower-quantile held-out predictive score under simulator shift",
+        "uncertainty coverage degradation under each shift family"
+      ]
+    },
+    {
+      "id": "M5_cost",
+      "values": [
+        "simulator evaluations",
+        "inference and diagnostic wall time",
+        "peak memory",
+        "human review units where applicable"
+      ]
+    },
+    {
+      "id": "M6_conditional_calibration",
+      "values": [
+        "coverage and sharpness stratified by predeclared observation regime",
+        "conditional-versus-pooled calibration gap with confidence intervals",
+        "proper predictive score and calibration shift after posterior correction",
+        "out-of-calibration-support detection and abstention rate",
+        "label/holdout leakage count"
+      ]
+    }
+  ],
+  "aspirational_targets_not_yet_acceptance_gates": [
+    {
+      "id": "T0",
+      "target": "100% correct handling of deterministic analytic posterior and exact null-space controls.",
+      "why": "Any failure here blocks larger expensive benchmarks."
+    },
+    {
+      "id": "T1",
+      "target": "For adequately powered in-family synthetic runs, 90% and 95% interval coverage within a predeclared tolerance (initial planning range: ±3 percentage points), with rank calibration assessed by a registered uniformity test.",
+      "qualification": "Report sample count, dependence assumptions, confidence intervals and per-parameter strata; do not use the tolerance as a universal scientific guarantee."
+    },
+    {
+      "id": "T2",
+      "target": "On a preregistered misspecification suite, detect at least 80% of specified material shifts while limiting false alerts to at most 5% on matched in-family controls.",
+      "qualification": "Define shift magnitudes and statistical power before runs; also report each family separately and the missed-shift distribution."
+    },
+    {
+      "id": "T3",
+      "target": "No confident unique-state claim on exact non-identifiable fixtures, and no benchmark success if uncertainty calibration deteriorates materially under declared shifts.",
+      "qualification": "Ablate each safeguard to measure which guardrail catches which failure."
+    },
+    {
+      "id": "T4",
+      "target": "On adequately powered synthetic known-truth cases, report conditional nominal-90% interval coverage within a predeclared ±5 percentage-point range in every qualified stratum, while no material proper-score or sharpness regression is hidden by aggregate coverage.",
+      "qualification": "A planning target only. Freeze strata, sample counts, confidence intervals, and minimum practical score effects before blind evaluation. This does not assert that true core-state labels exist for real Earth observations."
+    }
+  ],
+  "evidence_receipt": {
+    "fields": [
+      "benchmark_id, schema_version and status",
+      "exact source or generator identities, versions and digests",
+      "forward model, inference method, priors, noise and observation operator versions",
+      "development/calibration/qualification/generalization split identities",
+      "posterior sampling method and PRNG settings",
+      "parameter scales and discrepancy-statistic definitions",
+      "predeclared thresholds, metrics and exclusion rules",
+      "per-case posterior/predictive diagnostics and per-family summaries",
+      "ensemble divergence with estimator error",
+      "negative-control disposition and any abstentions",
+      "runtime, memory and simulator evaluation count",
+      "exact code commit, configuration digest, and qualification status"
+    ],
+    "statuses": [
+      "specification_not_executed",
+      "executed_unqualified",
+      "qualified_in_family_synthetic",
+      "qualified_cross_model_synthetic",
+      "real_observation_evaluated_under_separate_protocol"
+    ]
+  },
+  "stop_rules": [
+    "Passing simulation-based calibration does not waive model-misspecification testing.",
+    "Low estimator-ensemble divergence does not count as proof of accuracy.",
+    "A visually plausible map or low training residual does not qualify an Earth-state claim.",
+    "No random adjacent-sample split may be the only generalization evaluation.",
+    "No held-out truth, test observation, or post hoc diagnostic may influence model selection or threshold tuning.",
+    "No real-data qualification until exact source artifacts, provenance, licenses, capture digests and data-leakage audit are complete.",
+    "All failed negative controls, unstable features, exclusion decisions and negative results stay in the receipt.",
+    "Do not promote a posterior-correction method on pooled coverage alone if any preregistered observation stratum has material under-coverage.",
+    "Do not describe posterior-SBC success on synthetic known-truth cases as evidence of conditional calibration for the real Earth's hidden core state.",
+    "Do not use calibration methods requiring labelled latent truth on real Earth inference unless an independently justified truth-labelled calibration source is available."
+  ],
+  "cross_project_ownership": {
+    "sol_atlas": "Data/estimate contracts, versioned benchmark definitions and visualization of qualified versus underidentified quantities.",
+    "symtropy": "Deterministic known-truth generators, simulator-family shifts, observation operators, and physical applicability conditions.",
+    "symthaea": "Posterior estimation, ensemble diagnostic, calibration, model comparison and evidence-bounded abstention.",
+    "mycelix": "Reuse existing SCI-EVID-001 artifact/provenance graph and review lineage; do not create a parallel evidence ledger."
+  },
+  "related_work": {
+    "observability_pr": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/118",
+    "active_observation_design_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1760",
+    "synthetic_observability_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1728",
+    "symthaea_inference_benchmark": "https://github.com/Luminous-Dynamics/symthaea/issues/7688",
+    "symthaea_active_experiment_generic": "https://github.com/Luminous-Dynamics/symthaea/issues/7756",
+    "source_qualification_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/121",
+    "mycelix_evidence_lineage": "https://github.com/Luminous-Dynamics/mycelix/issues/2410"
+  },
+  "run_receipt_schema": "./benchmark-run-receipt.schema.json",
+  "required_ci_checks": [
+    "Check",
+    "Earth Interior receipt verifier"
+  ]
+}

@@ -1,0 +1,401 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "geo-robust-design-under-discrepancy-001",
+  "status": "benchmark_specification_not_executed",
+  "purpose": "Test whether observation-selection policies remain informative, calibrated, and cost-efficient when the assumed forward model, prior, or measurement-error structure is wrong or incomplete.",
+  "claim_boundary": {
+    "synthetic_cases_are_earth_observations": false,
+    "analytic_fixture_validates_a_physical_geodynamo_model": false,
+    "declared_model_ensemble_is_exhaustive": false,
+    "hidden_truth_is_visible_to_selector": false,
+    "policy_superiority_claimed": false,
+    "notes": [
+      "This is a benchmark protocol, not a result. No experiment-policy comparison has been executed or qualified by this specification.",
+      "Known-truth synthetic controls measure algorithm behavior under specified generators; they cannot establish that those generators span the real Earth.",
+      "Expected information gain is conditional on a probabilistic model. A high nominal score alone is not evidence that an observation policy is robust to misspecification.",
+      "This benchmark separates uncertainty calibration, parameter recovery, model discrimination, and information-per-cost rather than collapsing them into one aggregate score."
+    ]
+  },
+  "paradigm_shift": {
+    "from": "Choose the next observation by maximizing information under one favored simulator and noise model.",
+    "to": "Choose under a declared ambiguity set, explicitly test model disagreement, and measure realized utility against withheld truth across in-family and out-of-family generators.",
+    "principle": "An observation policy must be judged both for how much it learns when right and how safely it behaves when its assumptions are wrong."
+  },
+  "protocol": {
+    "version": "0.1.0",
+    "status": "preregister-before-execution",
+    "state_parameterization": [
+      "low_degree_field_proxy",
+      "high_degree_flow_proxy"
+    ],
+    "parameter_units": "synthetic_dimensionless",
+    "cost_policy": "All comparisons are budget matched using declared positive acquisition costs. Report utility per cost and total budget; never compare raw utility from policies that spend different totals.",
+    "estimator_separation": "The selector receives public candidate definitions, declared ambiguity-set metadata, and policy settings. It must not see hidden state draws, the true generator-family label for a scored trial, or scorer-only outputs.",
+    "randomization": "Freeze PRNG algorithm, seed set, draw order, numerical tolerances, candidate ordering, tie-breaking rule, and stopping rule before running scored trials.",
+    "split_policy": "Use disjoint seed sets for policy development, hyperparameter selection, and final scoring. The final seed set and hidden truth remain inaccessible to the selector until all predictions and policy choices are recorded.",
+    "covariance_policy": "Use full covariance matrices, including off-diagonal shared-error terms. Diagonalizing a declared correlated covariance is a negative-control failure.",
+    "temporal_split": "Where time-dependent cases are introduced, hold out contiguous future intervals and acquisition regimes. Random adjacent-time splits are supplemental, never the only generalization test."
+  },
+  "scenario_families": [
+    {
+      "id": "F0_nominal_in_family",
+      "role": "positive control",
+      "generator": "Declared linear-Gaussian observation operator, prior, and full measurement covariance are correctly specified.",
+      "purpose": "Verify analytic utility and posterior references; measure performance when assumptions hold."
+    },
+    {
+      "id": "F1_prior_shift",
+      "role": "in_family_stress",
+      "generator": "Hidden-truth prior covariance is shifted by prespecified scale factors, including narrower and broader high-mode variance, while the selector uses only the declared prior or ambiguity set.",
+      "purpose": "Test sensitivity of selected design and calibrated posterior intervals to prior mismatch."
+    },
+    {
+      "id": "F2_omitted_additive_bias",
+      "role": "in_family_stress",
+      "generator": "One sensor family receives a frozen signed offset expressed in units of its noise standard deviation; null trials include exactly zero bias.",
+      "purpose": "Test false discoveries and whether model-discriminating observations expose systematic mismatch."
+    },
+    {
+      "id": "F3_correlated_noise_mismatch",
+      "role": "in_family_stress",
+      "generator": "Truth uses nonzero shared-error correlation, including positive and negative cases, while a deliberately misspecified control assumes independent errors.",
+      "purpose": "Prevent duplicate or shared-systematic sensors from receiving unjustified independent information credit."
+    },
+    {
+      "id": "F4_operator_perturbation",
+      "role": "in_family_stress",
+      "generator": "The actual observation operator differs from the assumed operator by a prespecified low-dimensional tilt or mode-sensitivity perturbation.",
+      "purpose": "Measure recoverability, model-discrimination utility, and policy regret when sensor sensitivity is not perfectly known."
+    },
+    {
+      "id": "F5_held_out_generator_family",
+      "role": "out_of_ensemble_stress",
+      "generator": "The scoring-only generator contains a predeclared discrepancy mechanism absent from the selector's ensemble. Its generator ID and hidden states remain withheld until policy outputs are frozen.",
+      "purpose": "Measure the limit of robustness claims when the ambiguity set itself is incomplete."
+    }
+  ],
+  "policy_cohort": [
+    {
+      "id": "budget_matched_random",
+      "objective": "Randomly select feasible observations using frozen seeds and the same total acquisition budget.",
+      "role": "baseline"
+    },
+    {
+      "id": "uniform_coverage",
+      "objective": "Prefer spatial, temporal, or modal coverage under the same cost cap without using a nominal likelihood.",
+      "role": "baseline"
+    },
+    {
+      "id": "nominal_eig",
+      "objective": "Maximize expected information gain under the single declared nominal model.",
+      "role": "reference"
+    },
+    {
+      "id": "nominal_scaled_d_optimal",
+      "objective": "Maximize a parameter-scaled determinant/Fisher-information criterion under the nominal model.",
+      "role": "reference"
+    },
+    {
+      "id": "robust_eig_ambiguity_set",
+      "objective": "Maximize a preregistered lower-tail or worst-case EIG across the declared ambiguity set; report sensitivity to ambiguity-set radius.",
+      "role": "candidate"
+    },
+    {
+      "id": "general_information_gain",
+      "objective": "Optimize a declared discrepancy-aware information objective that penalizes expected mismatch between predicted and generated observation distributions.",
+      "role": "candidate"
+    },
+    {
+      "id": "model_discrimination",
+      "objective": "Select observations for their expected ability to discriminate between competing observation-model or simulator-family hypotheses.",
+      "role": "candidate"
+    }
+  ],
+  "metrics": [
+    {
+      "id": "realized_information_per_cost",
+      "formula": "Posterior-to-prior information gain evaluated under the scoring-only truth generator, divided by realized declared acquisition cost.",
+      "report": [
+        "mean",
+        "median",
+        "10th_percentile",
+        "paired_95_percent_confidence_interval"
+      ],
+      "rule": "Do not substitute nominal predicted EIG for scored realized performance."
+    },
+    {
+      "id": "oracle_regret",
+      "formula": "Per trial, the oracle policy chosen with knowledge of the scoring-only generator's expected utility minus the policy's realized scoring utility; report normalized regret and uncertainty.",
+      "report": [
+        "median",
+        "90th_percentile",
+        "worst_stratum",
+        "paired_95_percent_confidence_interval"
+      ]
+    },
+    {
+      "id": "predictive_quality",
+      "formula": "Held-out log predictive density and a preregistered proper predictive score; normalize units and verify score direction.",
+      "report": [
+        "per_family",
+        "per_signal_strength",
+        "per_noise_regime"
+      ]
+    },
+    {
+      "id": "interval_calibration",
+      "formula": "Empirical coverage of 90% and 95% intervals, stratified by generating family, discrepancy magnitude, signal strength, and sensor geometry.",
+      "report": [
+        "coverage",
+        "interval_width",
+        "binomial_confidence_interval",
+        "sample_count"
+      ],
+      "rule": "Pooled coverage cannot mask a failing stratum."
+    },
+    {
+      "id": "discrepancy_detection",
+      "formula": "Power on preregistered detectable mismatch alternatives and false-positive rate on matched null controls.",
+      "report": [
+        "power",
+        "false_positive_rate",
+        "confidence_intervals",
+        "family_wise_error_policy"
+      ]
+    },
+    {
+      "id": "decision_stability",
+      "formula": "Change in chosen design and score under candidate permutation, equivalent unit rescaling, seed changes, and small changes to the ambiguity-set radius.",
+      "report": [
+        "selection_agreement",
+        "utility_change",
+        "rank_change"
+      ]
+    }
+  ],
+  "acceptance_gates": [
+    {
+      "id": "G0_analytic_compatibility",
+      "target": "All shared H0 analytic rank, covariance, and EIG references reproduce within absolute tolerance 1e-10 or a stricter justified tolerance. The shared-additive-bias repeated-sensor oracle must also match 0.31799438335999836 nats using the full covariance, while its diagonalized and bias-omitted negative controls reproduce their separately labelled values.",
+      "gate_type": "hard",
+      "status": "target_not_tested"
+    },
+    {
+      "id": "G1_false_discovery_control",
+      "target": "Family-wise false positive rate <= 0.05 on preregistered null/discrepancy-absent cases, with the confidence bound reported.",
+      "gate_type": "hard",
+      "status": "target_not_tested"
+    },
+    {
+      "id": "G2_detectable_mismatch_power",
+      "target": "At least 0.90 power for each preregistered detectable discrepancy magnitude, while retaining G1 false-positive control.",
+      "gate_type": "hard",
+      "status": "target_not_tested",
+      "caveat": "The minimum detectable effect and multiplicity procedure must be frozen before the hidden-truth scoring run."
+    },
+    {
+      "id": "G3_stratified_95pct_coverage",
+      "target": "For every adequately powered predeclared stratum, nominal 95% interval coverage target is 0.92 to 0.98; report binomial intervals and sample counts rather than treating the band as a guarantee.",
+      "gate_type": "hard",
+      "status": "target_not_tested",
+      "minimum_trials_per_stratum": 2000
+    },
+    {
+      "id": "G4_robust_policy_noninferiority",
+      "target": "Under F0, the robust policy's cost-normalized score is no worse than 5% relative to nominal EIG, using a paired confidence interval and a frozen comparison rule.",
+      "gate_type": "hard",
+      "status": "target_not_tested"
+    },
+    {
+      "id": "G5_out_of_family_utility",
+      "target": "Across F1-F5, the robust policy improves worst-stratum cost-normalized utility by at least 10% relative to nominal EIG, with a paired confidence interval excluding zero improvement, and does not worsen G1-G3.",
+      "gate_type": "hard",
+      "status": "target_not_tested",
+      "caveat": "This is an aspirational research target, not an evidence-backed expectation that any existing policy already achieves it."
+    },
+    {
+      "id": "G6_permutation_and_unit_invariance",
+      "target": "Permuting candidate order or applying a consistent coordinate/unit rescaling does not change the mathematically equivalent design choice or utility beyond frozen floating-point tolerance, except at explicitly declared ties.",
+      "gate_type": "hard",
+      "status": "target_not_tested"
+    }
+  ],
+  "negative_controls": [
+    {
+      "id": "NC1_truth_label_leakage",
+      "expected": "Fail qualification if selector-visible input, policy state, logs, or serialized outputs reveal scoring-only true family labels or hidden state values."
+    },
+    {
+      "id": "NC2_correlated_duplicate_as_independent",
+      "expected": "Fail if replacing full covariance with a diagonal approximation is accepted as equivalent or receives more justified information credit in the frozen high-correlation control. The shared-additive-bias scalar reference must reproduce 0.31799438335999836 nats with the full covariance; dropping the off-diagonal term yields 0.4777557225137182 nats and omitting the bias yields 1.0986122886681098 nats."
+    },
+    {
+      "id": "NC3_zero_bias_null",
+      "expected": "False-discovery rate must remain within G1 when the bias mechanism is set exactly to zero."
+    },
+    {
+      "id": "NC4_perfect_model_anchor",
+      "expected": "Robust policies must remain within G4 under the nominal in-family anchor; an overly conservative policy that discards useful nominal information does not pass by being safe only in a worst case."
+    },
+    {
+      "id": "NC5_unmodeled_family",
+      "expected": "The out-of-ensemble case is reported separately and cannot be relabelled as in-ensemble robustness if it fails."
+    },
+    {
+      "id": "NC6_candidate_order",
+      "expected": "Candidate permutations must preserve results under the frozen deterministic tie rule."
+    },
+    {
+      "id": "NC7_pooled_coverage_trap",
+      "expected": "Fail if aggregate coverage passes while any adequately powered predeclared family/noise/signal stratum falls outside its calibration gate."
+    },
+    {
+      "id": "NC8_shared_additive_bias_information_inflation",
+      "expected": "The repeated-sensor scalar fixture uses the full covariance [[1.25,1.0],[1.0,1.25]]. The implementation reproduces 0.31799438335999836 nats and rejects diagonalized or bias-omitted values as evidence of correct utility."
+    }
+  ],
+  "reproducibility_receipt": {
+    "required_fields": [
+      "benchmark_id and schema_version",
+      "exact source/specification/configuration digests",
+      "selector-visible inputs and hidden scorer artifact digests, with visibility boundaries",
+      "truth-generator family/version and discrepancy parameters recorded only in scorer-side output",
+      "prior, observation operator, full covariance, candidate costs and budget",
+      "policy implementation commit, configuration digest, and ambiguity-set radius",
+      "PRNG algorithm, development/tuning/scoring seed-set digests, and sample counts",
+      "selected designs and per-trial acquisition costs",
+      "per-policy/per-family/per-stratum raw metrics and confidence intervals",
+      "negative-control outcomes and all predeclared gate results",
+      "runtime, memory, toolchain, and exact code commit",
+      "independent-verifier report digest and qualification status"
+    ],
+    "status_semantics": {
+      "specification_not_executed": "The protocol exists; there is no run result.",
+      "executed_unqualified": "A run exists but at least one gate, control, provenance, or required qualification step is incomplete or failed.",
+      "qualified_synthetic": "All gates and controls pass on an exact commit/configuration with hidden-truth boundaries and an accepted independent verification receipt.",
+      "source_adapter_qualified": "Separate status requiring verified source bytes, units/time/shape audits, and no reference-data leakage.",
+      "real_observation_evaluated": "Separate evaluation tier requiring qualified source adapters, frozen real-data holdouts, and passed leakage/reference-overlap audits."
+    },
+    "schema_path": "./benchmark-run-receipt.schema.json",
+    "execution_record_rule": "Create a receipt for every run attempt, including failed, interrupted, and cancelled attempts. A benchmark spec status is not a run receipt. Queued, skipped, cancelled, absent, or stale-head workflows never count as passes."
+  },
+  "qualification_guardrails": [
+    "Freeze target metrics, detectable-effect magnitudes, multiplicity correction, thresholds, seeds, policy tuning budget, and scoring rules before accessing final hidden truth.",
+    "Separate selector-visible policy code from scorer-only truth and generator labels; audit file access and serialized outputs for leakage.",
+    "Run every policy against paired seeds and the same candidate costs to reduce comparison variance.",
+    "Report each generator family and calibration stratum; averages cannot compensate for failed falsification or calibration controls.",
+    "If an out-of-ensemble scenario fails, report a robustness boundary and do not widen the claim to that family.",
+    "An independent verifier checks protocol integrity and receipt consistency; it does not certify physical truth or substitute for expert scientific review."
+  ],
+  "stop_rules": [
+    "Do not recommend an observation policy solely because nominal EIG is high when model-discrepancy controls fail.",
+    "Do not label a policy robust if it fails the perfect-model noninferiority anchor or loses uncertainty calibration.",
+    "Do not treat average utility gains as acceptable when a required discrepancy, null, or calibration stratum fails.",
+    "Do not tune against the final hidden truth, change thresholds after observing final scores, or omit failed/interrupted run receipts.",
+    "Do not describe synthetic success as validated Earth-interior inference, live monitoring, or physical-model correctness."
+  ],
+  "related_work": {
+    "sol_atlas_contract_pr": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/118",
+    "adaptive_observation_design": "./benchmark-adaptive-observation-design.json",
+    "model_falsification": "./benchmark-model-falsification.json",
+    "receipt_schema": "./benchmark-run-receipt.schema.json",
+    "symtropy_h0_implementation_pr": "https://github.com/Luminous-Dynamics/symtropy/pull/1804",
+    "symtropy_simulation_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1728",
+    "observation_contract_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1760"
+  },
+  "research_references": [
+    {
+      "citation": "Wehenkel et al. (2025), Addressing Misspecification in Simulation-based Inference through Data-driven Calibration, ICML/PMLR 267.",
+      "url": "https://proceedings.mlr.press/v267/wehenkel25a.html",
+      "relevance": "A data-driven calibration approach frames simulator misspecification as a distinct inference-reliability problem."
+    },
+    {
+      "citation": "Ruhlmann et al. (2026), Flow Matching Calibration for Simulation-Based Inference under Model Misspecification, ICML/PMLR 306.",
+      "url": "https://proceedings.mlr.press/v306/ruhlmann26a.html",
+      "relevance": "Recent work studies calibration corrections when simulator, noise, or prior assumptions are mismatched."
+    },
+    {
+      "citation": "Go and Isaac (2022), Robust expected information gain for optimal Bayesian experimental design using ambiguity sets, UAI/PMLR 180.",
+      "url": "https://proceedings.mlr.press/v180/go22a.html",
+      "relevance": "Robust EIG explicitly accounts for ambiguity around the assumed prior and estimated information utility."
+    },
+    {
+      "citation": "Catanach and Das (2023), Metrics for Bayesian Optimal Experiment Design under Model Misspecification.",
+      "url": "https://arxiv.org/abs/2304.07949",
+      "relevance": "Proposes generalized information gain and discriminatory information objectives for discrepancy-aware design."
+    },
+    {
+      "citation": "Doumbouya, Vidard, and Zahm (2026), Certified Bayesian optimal experimental design: from Expected Information Gain to Signal-to-Noise Ratio.",
+      "url": "https://arxiv.org/abs/2609.32282",
+      "relevance": "Recent theory develops upper/lower EIG bounds for scalable sequential design; any implementation must still state the assumptions under which bounds apply."
+    }
+  ],
+  "required_ci_checks": [
+    "Check",
+    "Earth Interior receipt verifier"
+  ],
+  "reference_fixtures": [
+    {
+      "id": "R1-shared-additive-bias-repeated-sensors",
+      "purpose": "Exact scalar linear-Gaussian oracle demonstrating that repeated sensors sharing an additive bias cannot be counted as independent high-information measurements.",
+      "status": "analytic_reference_not_executed",
+      "model": {
+        "state_dimension": 1,
+        "state_prior_mean": [
+          0
+        ],
+        "state_prior_covariance": [
+          [
+            1
+          ]
+        ],
+        "observation_operator": [
+          [
+            1
+          ],
+          [
+            1
+          ]
+        ],
+        "observation_equation": "y_i = x + b + epsilon_i",
+        "common_additive_bias": "b ~ Normal(0, 1), shared by both sensor channels and marginalized into the observation covariance",
+        "independent_sensor_noise": "epsilon_i ~ Normal(0, 0.25), mutually independent",
+        "observation_covariance": [
+          [
+            1.25,
+            1
+          ],
+          [
+            1,
+            1.25
+          ]
+        ],
+        "channel_costs": [
+          1,
+          1
+        ],
+        "total_cost": 2,
+        "information_gain_formula": "0.5 * ln(det(I + Sa * H^T * R^-1 * H))"
+      },
+      "exact_expected_results": {
+        "full_shared_bias_covariance_eig_nats": 0.31799438335999836,
+        "full_shared_bias_covariance_eig_exact": "0.5 * ln(17/9)",
+        "diagonalized_same_marginals_eig_nats": 0.4777557225137182,
+        "diagonalized_same_marginals_eig_exact": "0.5 * ln(2.6)",
+        "wrongly_omitted_bias_eig_nats": 1.0986122886681098,
+        "wrongly_omitted_bias_eig_exact": "0.5 * ln(9)",
+        "diagonalization_overstatement_nats": 0.15976133915371984,
+        "omitted_bias_overstatement_nats": 0.7806179053081115
+      },
+      "acceptance_checks": [
+        "The full 2x2 covariance is used without dropping the off-diagonal shared-bias terms.",
+        "Full-covariance EIG reproduces 0.31799438335999836 nats within absolute tolerance 1e-10.",
+        "Diagonalizing the same covariance reproduces 0.4777557225137182 nats and is explicitly reported as a misspecified control.",
+        "Dropping both bias variance and shared covariance reproduces 1.0986122886681098 nats and is rejected as an invalid information claim.",
+        "All three designs are compared at the same declared two-channel acquisition cost.",
+        "This fixture is a mathematical measurement-error control, not a calibrated geophysical sensor model or empirical Earth observation."
+      ],
+      "related_implementation": "https://github.com/Luminous-Dynamics/symtropy/pull/1804"
+    }
+  ]
+}

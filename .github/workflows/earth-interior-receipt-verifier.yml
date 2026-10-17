@@ -1,0 +1,40 @@
+name: Earth Interior receipt verifier
+
+on:
+  pull_request:
+    paths:
+      - "tools/geo-receipt-verifier/**"
+      - "docs/earth-interior/benchmark-run-receipt.schema.json"
+      - ".github/workflows/earth-interior-receipt-verifier.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "tools/geo-receipt-verifier/**"
+      - "docs/earth-interior/benchmark-run-receipt.schema.json"
+      - ".github/workflows/earth-interior-receipt-verifier.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: earth-interior-receipt-verifier-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Format, unit tests, and Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/geo-receipt-verifier/Cargo.toml -- --check
+      - name: Test verifier
+        run: cargo test --manifest-path tools/geo-receipt-verifier/Cargo.toml
+      - name: Run Clippy
+        run: cargo clippy --manifest-path tools/geo-receipt-verifier/Cargo.toml --all-targets -- -D warnings
