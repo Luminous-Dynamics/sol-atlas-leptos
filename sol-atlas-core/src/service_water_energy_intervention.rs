@@ -179,16 +179,12 @@ pub fn compare_water_energy_trajectory_interventions(
     // Validate and index evidence once for both sides of the counterfactual.
     let evidence_by_id = build_evidence_index(evidence_records)
         .map_err(WaterEnergyInterventionComparisonError::EvidenceValidation)?;
-    let baseline = assess_water_energy_coupled_trajectory_indexed(
-        &request.baseline,
-        &evidence_by_id,
-    )
-    .map_err(WaterEnergyInterventionComparisonError::BaselineAssessment)?;
-    let candidate = assess_water_energy_coupled_trajectory_indexed(
-        &request.candidate,
-        &evidence_by_id,
-    )
-    .map_err(WaterEnergyInterventionComparisonError::CandidateAssessment)?;
+    let baseline =
+        assess_water_energy_coupled_trajectory_indexed(&request.baseline, &evidence_by_id)
+            .map_err(WaterEnergyInterventionComparisonError::BaselineAssessment)?;
+    let candidate =
+        assess_water_energy_coupled_trajectory_indexed(&request.candidate, &evidence_by_id)
+            .map_err(WaterEnergyInterventionComparisonError::CandidateAssessment)?;
 
     let mut steps = Vec::with_capacity(baseline.water_assessment.steps.len());
     let mut total_reduction_lower = 0.0;
@@ -320,20 +316,17 @@ mod tests {
     use super::*;
     use crate::dependency_logic::ScenarioBasis;
     use crate::service_function::FunctionMeasurement;
-    use crate::service_water::{
-        DIMENSIONLESS_UNIT, WATER_RATE_UNIT, WATER_VOLUME_UNIT,
-    };
+    use crate::service_water::{DIMENSIONLESS_UNIT, WATER_RATE_UNIT, WATER_VOLUME_UNIT};
     use crate::service_water_energy_coupling::{
         ELECTRIC_POWER_UNIT, PUMP_SPECIFIC_ENERGY_UNIT, PowerMeasurementLocation,
         WATER_ENERGY_COUPLING_SCHEMA_VERSION, WaterEnergyCouplingStepInput,
     };
     use crate::service_water_trajectory::{
-        WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectory,
-        WaterServiceTrajectoryStep,
+        WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectory, WaterServiceTrajectoryStep,
     };
     use crate::spatial_economic::{
-        EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceRecord, EvidenceState, Provenance,
-        Quantity, SpatialContext, TimeContext,
+        EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceRecord, EvidenceState, Provenance, Quantity,
+        SpatialContext, TimeContext,
     };
 
     const TIMES: [&str; 2] = ["2026-10-16T09:00:00Z", "2026-10-16T10:00:00Z"];
@@ -407,13 +400,7 @@ mod tests {
         }
     }
 
-    fn observed(
-        id: &str,
-        entity: &str,
-        value: f64,
-        unit: &str,
-        at: &str,
-    ) -> EvidenceRecord {
+    fn observed(id: &str, entity: &str, value: f64, unit: &str, at: &str) -> EvidenceRecord {
         EvidenceRecord {
             id: id.to_owned(),
             schema_version: EVIDENCE_SCHEMA_VERSION.to_owned(),
@@ -453,7 +440,10 @@ mod tests {
     fn classifies_robust_improvement_from_reduced_unmet_demand() {
         let output = compare_water_energy_trajectory_interventions(&comparison(20.0, 40.0), &[])
             .expect("aligned synthetic comparison");
-        assert_eq!(output.effect, WaterEnergyInterventionEffect::RobustImprovement);
+        assert_eq!(
+            output.effect,
+            WaterEnergyInterventionEffect::RobustImprovement
+        );
         assert!((output.total_unmet_demand_reduction_lower_bound - 80.0).abs() < 1e-9);
         assert!((output.total_unmet_demand_reduction_upper_bound - 80.0).abs() < 1e-9);
         assert_eq!(
@@ -466,7 +456,10 @@ mod tests {
     fn classifies_robust_regression_when_candidate_has_less_power() {
         let output = compare_water_energy_trajectory_interventions(&comparison(40.0, 10.0), &[])
             .expect("aligned synthetic comparison");
-        assert_eq!(output.effect, WaterEnergyInterventionEffect::RobustRegression);
+        assert_eq!(
+            output.effect,
+            WaterEnergyInterventionEffect::RobustRegression
+        );
         assert!((output.total_unmet_demand_reduction_upper_bound + 120.0).abs() < 1e-9);
     }
 
@@ -474,7 +467,10 @@ mod tests {
     fn identical_trajectories_are_no_material_change() {
         let output = compare_water_energy_trajectory_interventions(&comparison(40.0, 40.0), &[])
             .expect("aligned synthetic comparison");
-        assert_eq!(output.effect, WaterEnergyInterventionEffect::NoMaterialChange);
+        assert_eq!(
+            output.effect,
+            WaterEnergyInterventionEffect::NoMaterialChange
+        );
         assert_eq!(output.total_unmet_demand_reduction_lower_bound, 0.0);
         assert_eq!(output.total_unmet_demand_reduction_upper_bound, 0.0);
     }
@@ -511,10 +507,8 @@ mod tests {
     fn validates_shared_evidence_corpus_before_assessing_either_side() {
         let input = comparison(20.0, 40.0);
         let duplicate = observed("duplicate", "source", 100.0, WATER_RATE_UNIT, TIMES[0]);
-        let result = compare_water_energy_trajectory_interventions(
-            &input,
-            &[duplicate.clone(), duplicate],
-        );
+        let result =
+            compare_water_energy_trajectory_interventions(&input, &[duplicate.clone(), duplicate]);
         assert!(matches!(
             result,
             Err(WaterEnergyInterventionComparisonError::EvidenceValidation(
@@ -540,16 +534,24 @@ mod tests {
                 let at = TIMES[index];
                 let water_id = format!("{side}-water-source-{index}");
                 coupling.trajectory.steps[index].source_flow_rate.basis = ScenarioBasis::Observed;
-                coupling.trajectory.steps[index].source_flow_rate.supporting_evidence_ids =
-                    vec![water_id.clone()];
+                coupling.trajectory.steps[index]
+                    .source_flow_rate
+                    .supporting_evidence_ids = vec![water_id.clone()];
                 evidence.push(observed(&water_id, "source", 100.0, WATER_RATE_UNIT, at));
 
                 let power_id = format!("{side}-terminal-power-{index}");
                 let power_value = coupling.steps[index].available_power.quantity.value;
                 coupling.steps[index].available_power.basis = ScenarioBasis::Observed;
-                coupling.steps[index].available_power.supporting_evidence_ids =
-                    vec![power_id.clone()];
-                evidence.push(observed(&power_id, "pump", power_value, ELECTRIC_POWER_UNIT, at));
+                coupling.steps[index]
+                    .available_power
+                    .supporting_evidence_ids = vec![power_id.clone()];
+                evidence.push(observed(
+                    &power_id,
+                    "pump",
+                    power_value,
+                    ELECTRIC_POWER_UNIT,
+                    at,
+                ));
             }
         }
 

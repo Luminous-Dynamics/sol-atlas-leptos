@@ -8,13 +8,10 @@
 use serde::Serialize;
 use sol_atlas_core::dependency_logic::ScenarioBasis;
 use sol_atlas_core::service_function::FunctionMeasurement;
-use sol_atlas_core::service_water::{
-    DIMENSIONLESS_UNIT, WATER_RATE_UNIT, WATER_VOLUME_UNIT,
-};
+use sol_atlas_core::service_water::{DIMENSIONLESS_UNIT, WATER_RATE_UNIT, WATER_VOLUME_UNIT};
 use sol_atlas_core::service_water_energy_coupling::{
     ELECTRIC_POWER_UNIT, PUMP_SPECIFIC_ENERGY_UNIT, PowerMeasurementLocation,
-    WATER_ENERGY_COUPLING_SCHEMA_VERSION, WaterEnergyCouplingRequest,
-    WaterEnergyCouplingStepInput,
+    WATER_ENERGY_COUPLING_SCHEMA_VERSION, WaterEnergyCouplingRequest, WaterEnergyCouplingStepInput,
 };
 use sol_atlas_core::service_water_energy_intervention::{
     WATER_ENERGY_INTERVENTION_SCHEMA_VERSION, WaterEnergyInterventionComparisonRequest,
@@ -162,7 +159,10 @@ fn source_revision() -> Option<String> {
     if configured.is_some() {
         return configured;
     }
-    let output = Command::new("git").args(["rev-parse", "HEAD"]).output().ok()?;
+    let output = Command::new("git")
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .ok()?;
     if !output.status.success() {
         return None;
     }
@@ -234,7 +234,9 @@ fn run(intervals: usize, samples: usize, warmup: usize, target_ms: u128) -> Repo
     Report {
         source_revision: source_revision(),
         rustc_version: compiler_version(),
-        ci_runner: env::var("RUNNER_NAME").or_else(|_| env::var("CI_RUNNER_NAME")).ok(),
+        ci_runner: env::var("RUNNER_NAME")
+            .or_else(|_| env::var("CI_RUNNER_NAME"))
+            .ok(),
         runner_os: env::var("RUNNER_OS").ok(),
         runner_arch: env::var("RUNNER_ARCH").ok(),
         host_os: std::env::consts::OS.to_owned(),

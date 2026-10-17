@@ -358,9 +358,8 @@ pub(crate) fn assess_water_energy_coupled_trajectory_indexed(
             interval_bounds(&input.available_power).expect("validated finite power interval");
         let (energy_low, energy_high) =
             interval_bounds(&input.specific_energy).expect("validated finite energy interval");
-        let (mechanical_low, mechanical_high) =
-            interval_bounds(&water_step.pump_capacity)
-                .expect("validated finite mechanical capacity interval");
+        let (mechanical_low, mechanical_high) = interval_bounds(&water_step.pump_capacity)
+            .expect("validated finite mechanical capacity interval");
 
         if energy_low <= 0.0 {
             return Err(WaterEnergyCouplingError::InvalidInput(vec![
@@ -372,9 +371,14 @@ pub(crate) fn assess_water_energy_coupled_trajectory_indexed(
         let energy_flow_high = power_high / energy_low;
         let effective_low = mechanical_low.min(energy_flow_low);
         let effective_high = mechanical_high.min(energy_flow_high);
-        if [energy_flow_low, energy_flow_high, effective_low, effective_high]
-            .into_iter()
-            .any(|value| !value.is_finite())
+        if [
+            energy_flow_low,
+            energy_flow_high,
+            effective_low,
+            effective_high,
+        ]
+        .into_iter()
+        .any(|value| !value.is_finite())
         {
             return Err(WaterEnergyCouplingError::InvalidInput(vec![
                 WaterEnergyCouplingValidationError::NonFiniteDerivedValue,
@@ -389,9 +393,27 @@ pub(crate) fn assess_water_energy_coupled_trajectory_indexed(
         let midpoint = effective_low + (effective_high - effective_low) / 2.0;
         let uncertainty = (effective_high - effective_low) / 2.0;
         let mut step_evidence_ids = BTreeSet::new();
-        step_evidence_ids.extend(water_step.pump_capacity.supporting_evidence_ids.iter().cloned());
-        step_evidence_ids.extend(input.available_power.supporting_evidence_ids.iter().cloned());
-        step_evidence_ids.extend(input.specific_energy.supporting_evidence_ids.iter().cloned());
+        step_evidence_ids.extend(
+            water_step
+                .pump_capacity
+                .supporting_evidence_ids
+                .iter()
+                .cloned(),
+        );
+        step_evidence_ids.extend(
+            input
+                .available_power
+                .supporting_evidence_ids
+                .iter()
+                .cloned(),
+        );
+        step_evidence_ids.extend(
+            input
+                .specific_energy
+                .supporting_evidence_ids
+                .iter()
+                .cloned(),
+        );
         all_evidence_ids.extend(step_evidence_ids.iter().cloned());
 
         assessments.push(WaterEnergyCouplingStepAssessment {
@@ -455,7 +477,7 @@ pub(crate) fn assess_water_energy_coupled_trajectory_indexed(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::service_water::{DIMENSIONLESS_UNIT};
+    use crate::service_water::DIMENSIONLESS_UNIT;
     use crate::service_water_trajectory::{
         WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectoryStep,
     };
@@ -670,6 +692,11 @@ mod tests {
         let output =
             assess_water_energy_coupled_trajectory(&request(40.0, 0.5), &[]).expect("valid model");
         assert!(output.supporting_evidence_ids.is_empty());
-        assert!(output.steps.iter().all(|step| step.supporting_evidence_ids.is_empty()));
+        assert!(
+            output
+                .steps
+                .iter()
+                .all(|step| step.supporting_evidence_ids.is_empty())
+        );
     }
 }
