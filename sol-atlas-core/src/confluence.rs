@@ -7,13 +7,12 @@
 //!
 //! # Design constraints (why this is NOT a risk/danger score)
 //!
-//! 1. **Never Scenario data.** Only layers whose [`DataProvenance`] kind is
-//!    `Observed` or `Curated` may contribute. Resontia Vaults, Maglev,
-//!    Geothermal, Terra Lumina, Robotics Dispatch, and the DeSci demo are
-//!    speculative planning fiction — mixing them into a "real systems
-//!    overlap here" signal would be actively dishonest, not just
-//!    incomplete. [`eligible_real_layers`] is the single, tested
-//!    enforcement point for this.
+//! 1. **Never fiction, synthetic data, or unclassified observations.** Point
+//!    records contribute only when the record itself is explicitly classified
+//!    as `Observed` or `Curated`. Layer-level `Mixed` provenance is not
+//!    enough: a bundled synthetic FIRMS fixture must not become a real-world
+//!    confluence just because its layer also has live EONET records. Scenario
+//!    layers and records with unknown provenance are excluded.
 //! 2. **No weighting, no hidden coefficients.** A [`ConfluenceCell`] is
 //!    just the plain set of distinct real categories present and a raw
 //!    entity count — not a blended "severity" or "risk" number. Every
@@ -30,7 +29,9 @@
 //!    excluded — binning either into a single H3 cell would misrepresent
 //!    what's actually physically co-located there.
 
-use crate::types::{DataKind, Layer, LoadedData, NaturalEventType};
+use crate::types::{
+    DataKind, Layer, LoadedData, NaturalEvent, NaturalEventType, RecordTemporalOrigin,
+};
 use h3o::{CellIndex, LatLng, Resolution};
 use std::collections::HashMap;
 
@@ -71,12 +72,9 @@ impl ConfluenceCell {
     }
 }
 
-/// The layers eligible to contribute to confluence — every one is
-/// `Observed` or `Curated` (never `Scenario`), and every one is
-/// point-like data (not a region centroid or a line route). This is the
-/// single source of truth `compute` draws from; the accompanying test
-/// (`eligible_layers_are_never_scenario`) is what makes that a checked
-/// invariant, not just a comment.
+/// Candidate point-like layers. For layers with mixed source histories
+/// (notably Fires), `compute` also gates each record on explicit provenance;
+/// this list alone never authorizes an individual record to contribute.
 fn eligible_real_layers() -> [Layer; 10] {
     [
         Layer::Energy,
@@ -97,12 +95,62 @@ fn eligible_real_layers() -> [Layer; 10] {
 // literal counts conveniently with the loop below; the invariant test
 // checks the full effective set via `compute`, not just this array.
 
+/// A live feed record needs a concrete identity and positive event time.
+/// The adapters enforce source-specific validation; this consumer repeats the
+/// minimum structural check before allowing a record into present-day overlap.
+fn has_live_identity_and_time(event: &NaturalEvent) -> bool {
+    event
+        .source_id
+        .as_deref()
+        .is_some_and(|id| !id.trim().is_empty())
+        && event.occurred_at_ms.is_some_and(|timestamp| timestamp > 0)
+}
+
 /// Bin every eligible real-data entity into H3 cells at
 /// [`CONFLUENCE_RESOLUTION`], and return the cells where at least
 /// `min_layers` distinct real categories co-locate (2 is the sensible
 /// default — a single category alone isn't a confluence, it's just that
 /// layer's own marker).
+/// Whether each live natural-event source currently has a valid or
+/// acceptably recent last-known snapshot. The default is fail-closed;
+/// callers must affirmatively supply source health before live records count.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LiveSourceFreshness {
+    pub usgs_is_current: bool,
+    pub eonet_is_current: bool,
+}
+
+impl Default for LiveSourceFreshness {
+    fn default() -> Self {
+        Self {
+            usgs_is_current: false,
+            eonet_is_current: false,
+        }
+    }
+}
+
+/// Compute confluence with a fail-closed assumption about live-source freshness.
+/// Live-feed records are omitted unless the caller explicitly supplies current
+/// source health through compute_with_live_source_freshness. Curated references
+/// and other eligible static layers remain available.
 pub fn compute(data: &LoadedData, min_layers: usize) -> Vec<ConfluenceCell> {
+    compute_with_live_source_freshness(data, min_layers, LiveSourceFreshness::default())
+}
+
+/// Compute confluence with explicit freshness status for source-owned live
+/// records. Bundled snapshots are never counted as current observations, even
+/// when the underlying event's historical source classification is Observed.
+pub fn compute_with_live_source_freshness(
+    data: &LoadedData,
+    min_layers: usize,
+    freshness: LiveSourceFreshness,
+) -> Vec<ConfluenceCell> {
+    // A ConfluenceCell represents a relation between at least two distinct
+    // real categories. Never let a caller configure away that invariant.
+    if min_layers < 2 {
+        return Vec::new();
+    }
+
     let mut cells: HashMap<CellIndex, (Vec<Layer>, u32)> = HashMap::new();
 
     let mut bin = |lat: f64, lon: f64, layer: Layer| {
@@ -132,6 +180,39 @@ pub fn compute(data: &LoadedData, min_layers: usize) -> Vec<ConfluenceCell> {
         bin(f.lat, f.lon, Layer::FossilDeposits);
     }
     for e in &data.natural_events {
+        // Temporal origin is independent from source classification:
+        // only accepted live observations and persistent curated references
+        // may contribute. Bundled snapshots stay visible, but cannot imply
+        // present-day co-location.
+        let eligible_origin = match (
+            e.data_kind,
+            e.record_temporal_origin,
+            e.source_name.as_deref(),
+            e.event_type,
+        ) {
+            (
+                Some(DataKind::Observed),
+                Some(RecordTemporalOrigin::LiveFeed),
+                Some("USGS ComCat"),
+                NaturalEventType::Earthquake,
+            ) if has_live_identity_and_time(e) => freshness.usgs_is_current,
+            (
+                Some(DataKind::Observed),
+                Some(RecordTemporalOrigin::LiveFeed),
+                Some("NASA EONET"),
+                NaturalEventType::Fire | NaturalEventType::Storm | NaturalEventType::Volcano,
+            ) if has_live_identity_and_time(e) => freshness.eonet_is_current,
+            (
+                Some(DataKind::Curated),
+                Some(RecordTemporalOrigin::CuratedReference),
+                Some("Curated volcano inventory"),
+                NaturalEventType::Volcano,
+            ) => true,
+            _ => false,
+        };
+        if !eligible_origin {
+            continue;
+        }
         let layer = match e.event_type {
             NaturalEventType::Earthquake => Layer::Earthquakes,
             NaturalEventType::Fire => Layer::Fires,
@@ -188,7 +269,7 @@ mod tests {
     /// If someone adds a new real layer to `compute` without adding it
     /// here (or vice versa), this is the test that should fail.
     #[test]
-    fn eligible_layers_are_never_scenario() {
+    fn eligible_point_layers_are_not_scenarios() {
         for layer in eligible_real_layers() {
             assert_ne!(
                 layer.provenance().kind,
@@ -252,13 +333,57 @@ mod tests {
     }
 
     fn quake(lat: f64, lon: f64) -> NaturalEvent {
+        // Represents a validated source observation for the spatial algorithm tests.
         NaturalEvent {
             lat,
             lon,
             event_type: NaturalEventType::Earthquake,
             magnitude: 5.0,
             name: "Test Quake".into(),
+            magnitude_unit: None,
+            magnitude_description: None,
+            source_name: Some("USGS ComCat".into()),
+            data_kind: Some(DataKind::Observed),
+            record_temporal_origin: Some(RecordTemporalOrigin::LiveFeed),
+            source_id: Some("test-quake-1".into()),
+            source_url: None,
+            occurred_at_ms: Some(1_759_996_800_000),
+            updated_at_ms: None,
+            depth_km: Some(10.0),
+            geometry_note: None,
         }
+    }
+
+    fn synthetic_fire(lat: f64, lon: f64) -> NaturalEvent {
+        NaturalEvent {
+            lat,
+            lon,
+            event_type: NaturalEventType::Fire,
+            magnitude: 3.8,
+            name: "Demo Fire".into(),
+            magnitude_unit: None,
+            magnitude_description: None,
+            source_name: Some("Demo Data".into()),
+            data_kind: Some(DataKind::Synthetic),
+            record_temporal_origin: Some(RecordTemporalOrigin::BundledSnapshot),
+            source_id: None,
+            source_url: None,
+            occurred_at_ms: None,
+            updated_at_ms: None,
+            depth_km: None,
+            geometry_note: None,
+        }
+    }
+
+    #[test]
+    fn minimum_layer_threshold_cannot_downgrade_confluence_semantics() {
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            ..Default::default()
+        };
+
+        assert!(compute(&data, 0).is_empty());
+        assert!(compute(&data, 1).is_empty());
     }
 
     #[test]
@@ -281,7 +406,14 @@ mod tests {
             chokepoints: vec![chokepoint(35.0002, 139.0002)],
             ..Default::default()
         };
-        let result = compute(&data, 2);
+        let result = compute_with_live_source_freshness(
+            &data,
+            2,
+            LiveSourceFreshness {
+                usgs_is_current: true,
+                eonet_is_current: false,
+            },
+        );
         assert_eq!(result.len(), 1);
         let cell = &result[0];
         assert_eq!(cell.layers.len(), 3);
@@ -290,6 +422,75 @@ mod tests {
         assert!(cell.layers.contains(&Layer::Chokepoints));
         assert_eq!(cell.entity_count, 3);
         assert!(cell.summary().contains("3 real systems"));
+    }
+
+    #[test]
+    fn live_feed_records_require_explicit_freshness() {
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            natural_events: vec![quake(10.0001, 10.0001)],
+            ..Default::default()
+        };
+
+        assert!(
+            compute(&data, 2).is_empty(),
+            "the default freshness policy must not assume live feeds are current"
+        );
+
+        let current = compute_with_live_source_freshness(
+            &data,
+            2,
+            LiveSourceFreshness {
+                usgs_is_current: true,
+                eonet_is_current: false,
+            },
+        );
+        assert_eq!(current.len(), 1);
+        assert!(current[0].layers.contains(&Layer::Earthquakes));
+    }
+
+    #[test]
+    fn live_records_without_identity_or_positive_event_time_are_excluded() {
+        let mut missing_id = quake(10.0001, 10.0001);
+        missing_id.source_id = None;
+        let mut missing_time = quake(10.0002, 10.0002);
+        missing_time.occurred_at_ms = None;
+
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            natural_events: vec![missing_id, missing_time],
+            ..Default::default()
+        };
+        let freshness = LiveSourceFreshness {
+            usgs_is_current: true,
+            eonet_is_current: true,
+        };
+
+        assert!(
+            compute_with_live_source_freshness(&data, 2, freshness).is_empty(),
+            "live observations need a source ID and positive event timestamp"
+        );
+    }
+
+    #[test]
+    fn eonet_provenance_cannot_authorize_usgs_only_event_types() {
+        let mut mislabeled_eonet_earthquake = quake(10.0001, 10.0001);
+        mislabeled_eonet_earthquake.source_name = Some("NASA EONET".into());
+
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            natural_events: vec![mislabeled_eonet_earthquake],
+            ..Default::default()
+        };
+        let freshness = LiveSourceFreshness {
+            usgs_is_current: false,
+            eonet_is_current: true,
+        };
+
+        assert!(
+            compute_with_live_source_freshness(&data, 2, freshness).is_empty(),
+            "EONET fire/storm/volcano provenance must not authorize an earthquake record"
+        );
     }
 
     #[test]
@@ -313,6 +514,69 @@ mod tests {
         for layer in &result[0].layers {
             assert_ne!(layer.provenance().kind, DataKind::Scenario);
         }
+    }
+
+    #[test]
+    fn synthetic_and_unclassified_events_do_not_create_real_confluence() {
+        let mut unclassified = quake(10.0001, 10.0001);
+        unclassified.source_name = None;
+        unclassified.data_kind = None;
+        unclassified.source_id = None;
+        unclassified.occurred_at_ms = None;
+
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            natural_events: vec![synthetic_fire(10.0001, 10.0001), unclassified],
+            ..Default::default()
+        };
+        assert!(
+            compute(&data, 2).is_empty(),
+            "Synthetic or unclassified events must not be counted as real-world layers"
+        );
+    }
+
+    #[test]
+    fn stale_live_records_are_excluded_but_curated_reference_remains() {
+        let mut bundled_quake = quake(10.0001, 10.0001);
+        bundled_quake.record_temporal_origin = Some(RecordTemporalOrigin::BundledSnapshot);
+
+        let mut curated_volcano = quake(10.0002, 10.0002);
+        curated_volcano.event_type = NaturalEventType::Volcano;
+        curated_volcano.name = "Curated volcano inventory point".into();
+        curated_volcano.source_name = Some("Curated volcano inventory".into());
+        curated_volcano.data_kind = Some(DataKind::Curated);
+        curated_volcano.record_temporal_origin = Some(RecordTemporalOrigin::CuratedReference);
+
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            natural_events: vec![bundled_quake, curated_volcano],
+            ..Default::default()
+        };
+        let freshness = LiveSourceFreshness {
+            usgs_is_current: false,
+            eonet_is_current: false,
+        };
+        let result = compute_with_live_source_freshness(&data, 2, freshness);
+        assert_eq!(result.len(), 1);
+        assert!(result[0].layers.contains(&Layer::Energy));
+        assert!(result[0].layers.contains(&Layer::Volcanoes));
+        assert!(!result[0].layers.contains(&Layer::Earthquakes));
+    }
+
+    #[test]
+    fn bundled_observed_snapshot_does_not_create_current_confluence() {
+        let mut bundled_quake = quake(10.0001, 10.0001);
+        bundled_quake.record_temporal_origin = Some(RecordTemporalOrigin::BundledSnapshot);
+
+        let data = LoadedData {
+            sites: vec![site(10.0, 10.0)],
+            natural_events: vec![bundled_quake],
+            ..Default::default()
+        };
+        assert!(
+            compute(&data, 2).is_empty(),
+            "a bundled observed event must not be treated as a current live co-location"
+        );
     }
 
     #[test]

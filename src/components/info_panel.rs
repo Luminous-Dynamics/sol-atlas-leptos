@@ -9,7 +9,11 @@
 use leptos::prelude::*;
 
 use crate::data::types::SelectedItem;
+use crate::state::data_state::DataState;
 use crate::state::globe_state::GlobeState;
+
+const NEARBY_INFRASTRUCTURE_RADIUS_KM: f64 = 100.0;
+const MAX_NEARBY_INFRASTRUCTURE: usize = 4;
 
 /// Hero stat block: the single number that defines the selected thing.
 fn hero(value: String, unit: &'static str) -> impl IntoView {
@@ -30,9 +34,20 @@ fn row(label: &'static str, value: String) -> impl IntoView {
     }
 }
 
+fn format_timestamp_ms(timestamp_ms: i64) -> String {
+    let date = js_sys::Date::new(&wasm_bindgen::JsValue::from_f64(timestamp_ms as f64));
+    if !date.get_time().is_finite() {
+        return "Invalid timestamp".to_string();
+    }
+    date.to_iso_string()
+        .as_string()
+        .unwrap_or_else(|| "Invalid timestamp".to_string())
+}
+
 #[component]
 pub fn InfoPanel() -> impl IntoView {
     let globe_state = expect_context::<GlobeState>();
+    let data_state = expect_context::<DataState>();
 
     let visible = move || globe_state.selected.read().is_some();
     let close = move |_| globe_state.selected.set(None);
@@ -144,14 +159,151 @@ pub fn InfoPanel() -> impl IntoView {
                             </div>
                         }.into_any()
                     }
-                    Some(SelectedItem::NaturalEvent(e)) => view! {
-                        <div>
-                            <h2>{e.name.clone()}</h2>
-                            <div class="subtitle">{format!("{:?} \u{00b7} observed snapshot", e.event_type)}</div>
-                            {hero(format!("{:.1}", e.magnitude), "magnitude")}
-                        </div>
-                    }.into_any(),
-                    Some(SelectedItem::MajorCity(c)) => view! {
+                    Some(SelectedItem::NaturalEvent(e)) => {
+                        // Geographic proximity is context only. The curated
+                        // infrastructure inventory is neither complete nor an
+                        // assessment of whether this event caused damage.
+                        let infrastructure = data_state.critical_infrastructure.get();
+                        let nearby = sol_atlas_core::hazard_context::nearby_infrastructure(
+                            e,
+                            &infrastructure,
+                            NEARBY_INFRASTRUCTURE_RADIUS_KM,
+                            MAX_NEARBY_INFRASTRUCTURE,
+                        );
+                        let nearby_count = nearby.len();
+                        let source_label = e.source_name.clone().unwrap_or_else(|| {
+                            if e.source_id.is_some() {
+                                "Source-linked record".to_string()
+                            } else {
+                                "Source not identified".to_string()
+                            }
+                        });
+                        let provenance_label = e
+                            .data_kind
+                            .map(|kind| kind.label().to_string())
+                            .unwrap_or_else(|| "unclassified".to_string());
+                        let temporal_origin_label = e
+                            .record_temporal_origin
+                            .map(|origin| origin.label().to_string())
+                            .unwrap_or_else(|| "unknown temporal origin".to_string());
+                        let measurement = match e.data_kind {
+                            Some(sol_atlas_core::types::DataKind::Observed)
+                                if e.source_name.as_deref() == Some("NASA EONET") =>
+                            {
+                                let label = match (
+                                    e.magnitude_description.as_deref(),
+                                    e.magnitude_unit.as_deref(),
+                                ) {
+                                    (Some(description), Some(unit)) => {
+                                        format!("{description} ({:.1} {unit})", e.magnitude)
+                                    }
+                                    (Some(description), None) => description.to_string(),
+                                    (None, Some(unit)) => format!("{:.1} {unit}", e.magnitude),
+                                    (None, None) => {
+                                        "No standardized measure across EONET categories".to_string()
+                                    }
+                                };
+                                row("Reported measure", label).into_any()
+                            }
+                            Some(sol_atlas_core::types::DataKind::Observed)
+                                if e.source_name.as_deref() == Some("USGS ComCat") =>
+                            {
+                                hero(format!("{:.1}", e.magnitude), "magnitude").into_any()
+                            }
+                            Some(sol_atlas_core::types::DataKind::Synthetic) => row(
+                                "Measurement",
+                                "Synthetic demo value; not a real-world observation".to_string(),
+                            )
+                            .into_any(),
+                            Some(sol_atlas_core::types::DataKind::Mixed) => row(
+                                "Measurement",
+                                "Mixed provenance; value is not treated as a verified measurement".to_string(),
+                            )
+                            .into_any(),
+                            Some(sol_atlas_core::types::DataKind::Curated) => row(
+                                "Measurement",
+                                "No source-validated measurement is available".to_string(),
+                            )
+                            .into_any(),
+                            Some(sol_atlas_core::types::DataKind::Observed) => row(
+                                "Measurement",
+                                "No supported source-specific measure; numeric value suppressed".to_string(),
+                            )
+                            .into_any(),
+                            _ => row(
+                                "Measurement",
+                                "Unknown provenance; value is not shown as verified".to_string(),
+                            )
+                            .into_any(),
+                        };
+                        let nearby_rows: Vec<_> = if nearby.is_empty() {
+                            vec![view! {
+                                <div class="stat-row">
+                                    <span class="stat-label">"No mapped assets nearby"</span>
+                                    <span class="stat-value">"None within 100 km"</span>
+                                </div>
+                            }.into_any()]
+                        } else {
+                            nearby.into_iter().map(|entry| {
+                                let name = entry.asset.name.clone();
+                                let detail = format!(
+                                    "{} · {:.1} km",
+                                    entry.asset.infra_type,
+                                    entry.distance_km
+                                );
+                                view! {
+                                    <div class="stat-row nearby-context-row">
+                                        <span class="stat-label">{name}</span>
+                                        <span class="stat-value">{detail}</span>
+                                    </div>
+                                }.into_any()
+                            }).collect()
+                        };
+
+                        view! {
+                            <div>
+                                <h2>{e.name.clone()}</h2>
+                                <div class="subtitle">{format!(
+                                    "{:?} · {} · {}",
+                                    e.event_type,
+                                    provenance_label,
+                                    temporal_origin_label
+                                )}</div>
+                                {measurement}
+                                {row("Source", source_label)}
+                                {row("Classification", provenance_label)}
+                                {row("Temporal origin", temporal_origin_label)}
+                                {e.source_id.clone().map(|id| row("Source ID", id))}
+                                {e.occurred_at_ms.map(|timestamp| row("Occurred (UTC)", format_timestamp_ms(timestamp)))}
+                                {e.updated_at_ms.map(|timestamp| row("Updated (UTC)", format_timestamp_ms(timestamp)))}
+                                {e.depth_km.map(|depth| row("Depth", format!("{depth:.1} km")))}
+                                {e.geometry_note.clone().map(|note| row("Location representation", note))}
+                                {match e.source_url.clone() {
+                                    Some(url) if
+                                        e.data_kind == Some(sol_atlas_core::types::DataKind::Observed)
+                                        && (
+                                            (e.source_name.as_deref() == Some("USGS ComCat")
+                                                && url.starts_with("https://earthquake.usgs.gov/earthquakes/eventpage/"))
+                                            || (e.source_name.as_deref() == Some("NASA EONET")
+                                                && url.starts_with("https://eonet.gsfc.nasa.gov/api/v3/events/"))
+                                        ) =>
+                                        view! {
+                                            <a class="stat-row source-link" href=url target="_blank" rel="noopener noreferrer">
+                                                <span class="stat-label">"Evidence"</span>
+                                                <span class="stat-value">"Open official source ↗"</span>
+                                            </a>
+                                        }.into_any(),
+                                    _ => view! { <div /> }.into_any(),
+                                }}
+                                {row("Mapped assets", format!("{nearby_count} within 100 km"))}
+                                <div class="context-note">
+                                    "Curated geographic context only. Proximity is not an impact or risk assessment."
+                                </div>
+                                {nearby_rows}
+                            </div>
+                        }.into_any()
+                    }
+                                        Some(SelectedItem::MajorCity(c)) => view! {
                         <div>
                             <h2>{c.name.clone()}</h2>
                             <div class="subtitle">{format!("{} \u{00b7} curated", c.country)}</div>

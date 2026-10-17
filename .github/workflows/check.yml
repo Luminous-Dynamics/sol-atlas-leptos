@@ -20,6 +20,8 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
+      - name: Format-check shared core crate
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml --check
 
   check-wasm:
     runs-on: ubuntu-latest
@@ -59,9 +61,10 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
-      # This crate is a wasm-bindgen-heavy [[bin]] with no [lib] target —
-      # native `cargo test` still works (verified 2026-07-11) and is much
-      # faster than a wasm test harness for the pure-logic unit tests
-      # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
-      # `cargo test --lib` fails with "no library targets found".
+      # This crate is a wasm-bindgen-heavy [[bin]] with no [lib] target.
+      # Native tests cover the binary's pure-logic tests (e.g. renderer::hex);
+      # the separate sol-atlas-core crate is tested in the step below.
+      # The bin must be selected explicitly: --lib fails with "no library targets".
       - run: cargo test --bin sol-atlas-leptos
+      - name: Test shared Rust core crate
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml

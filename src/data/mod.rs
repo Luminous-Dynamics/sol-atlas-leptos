@@ -3,6 +3,9 @@
 // Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
 pub mod geo;
 pub mod holochain;
+pub mod live_earthquakes;
+pub mod live_eonet;
+pub mod live_feed_http;
 pub mod reactor_twin;
 pub mod static_data;
 pub mod types;
