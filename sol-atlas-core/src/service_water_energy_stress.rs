@@ -17,11 +17,11 @@ use crate::service_equity::ServiceFloorStatus;
 use crate::service_function::{
     FunctionMeasurement, ServiceFunctionAssessmentError, build_evidence_index,
 };
+use crate::service_water::WaterServiceState;
 use crate::service_water_energy_coupling::{
     WaterEnergyCouplingError, WaterEnergyCouplingRequest,
     assess_water_energy_coupled_trajectory_indexed,
 };
-use crate::service_water::WaterServiceState;
 use crate::spatial_economic::{EvidenceRecord, Quantity};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -592,15 +592,14 @@ fn validate_sweep_request(
         } else {
             reference_grid = Some(grid);
         }
-        step_assessment_count = match
-            step_assessment_count.checked_add(service.trajectory.steps.len())
-        {
-            Some(count) => count,
-            None => {
-                errors.push(WaterEnergyStressValidationError::StepAssessmentBudgetExceeded);
-                usize::MAX
-            }
-        };
+        step_assessment_count =
+            match step_assessment_count.checked_add(service.trajectory.steps.len()) {
+                Some(count) => count,
+                None => {
+                    errors.push(WaterEnergyStressValidationError::StepAssessmentBudgetExceeded);
+                    usize::MAX
+                }
+            };
     }
 
     let mut floor_request_ids = BTreeSet::new();
@@ -725,18 +724,14 @@ fn validate_sweep_request(
                 errors.push(WaterEnergyStressValidationError::NonPositiveSpecificEnergyLowerBound);
                 continue;
             }
-            let Some(current) = measurement_for_target(
-                service,
-                &override_value.step_id,
-                override_value.target,
-            ) else {
+            let Some(current) =
+                measurement_for_target(service, &override_value.step_id, override_value.target)
+            else {
                 errors.push(WaterEnergyStressValidationError::UnknownOverrideStepId);
                 continue;
             };
-            let (old_lower, old_upper) = measurement_interval(
-                current.quantity.value,
-                current.quantity.uncertainty_abs,
-            );
+            let (old_lower, old_upper) =
+                measurement_interval(current.quantity.value, current.quantity.uncertainty_abs);
             let adverse_and_changed = if target_is_capacity(override_value.target) {
                 new_lower <= old_lower
                     && new_upper <= old_upper
@@ -783,12 +778,9 @@ fn apply_scenario_overrides(
             .iter_mut()
             .find(|service| service.id == override_value.service_request_id)
             .ok_or(WaterEnergyStressValidationError::UnknownOverrideServiceRequest)?;
-        let measurement = measurement_for_target_mut(
-            service,
-            &override_value.step_id,
-            override_value.target,
-        )
-        .ok_or(WaterEnergyStressValidationError::UnknownOverrideStepId)?;
+        let measurement =
+            measurement_for_target_mut(service, &override_value.step_id, override_value.target)
+                .ok_or(WaterEnergyStressValidationError::UnknownOverrideStepId)?;
         measurement.quantity = Quantity {
             value: override_value.forced_value,
             unit: measurement.quantity.unit.clone(),
@@ -865,7 +857,12 @@ fn evaluate_case(
         for (index, step) in assessment.water_assessment.steps.iter().enumerate() {
             let mut step_evidence = BTreeSet::new();
             step_evidence.extend(step.supporting_evidence_ids.iter().cloned());
-            step_evidence.extend(assessment.steps[index].supporting_evidence_ids.iter().cloned());
+            step_evidence.extend(
+                assessment.steps[index]
+                    .supporting_evidence_ids
+                    .iter()
+                    .cloned(),
+            );
             service_evidence.extend(step_evidence.iter().cloned());
             let demand_lower = step.demand_volume_lower_bound;
             let demand_upper = step.demand_volume_upper_bound;
@@ -909,21 +906,7 @@ fn evaluate_case(
             })?;
         match service_floor_status {
             ServiceFloorStatus::MeetsFloor => {
-                meets_weight = meets_weight.checked_add(floor.beneficiary_weight).ok_or_else(|| {
-                    WaterEnergyStressSweepError::InvalidInput(vec![
-                        WaterEnergyStressValidationError::WeightOverflow,
-                    ])
-                })?;
-            }
-            ServiceFloorStatus::BelowFloor => {
-                below_weight = below_weight.checked_add(floor.beneficiary_weight).ok_or_else(|| {
-                    WaterEnergyStressSweepError::InvalidInput(vec![
-                        WaterEnergyStressValidationError::WeightOverflow,
-                    ])
-                })?;
-            }
-            ServiceFloorStatus::Indeterminate => {
-                indeterminate_weight = indeterminate_weight
+                meets_weight = meets_weight
                     .checked_add(floor.beneficiary_weight)
                     .ok_or_else(|| {
                         WaterEnergyStressSweepError::InvalidInput(vec![
@@ -931,14 +914,38 @@ fn evaluate_case(
                         ])
                     })?;
             }
+            ServiceFloorStatus::BelowFloor => {
+                below_weight = below_weight
+                    .checked_add(floor.beneficiary_weight)
+                    .ok_or_else(|| {
+                        WaterEnergyStressSweepError::InvalidInput(vec![
+                            WaterEnergyStressValidationError::WeightOverflow,
+                        ])
+                    })?;
+            }
+            ServiceFloorStatus::Indeterminate => {
+                indeterminate_weight = indeterminate_weight
+                    .checked_add(floor.beneficiary_weight)
+                    .ok_or_else(|| {
+                    WaterEnergyStressSweepError::InvalidInput(vec![
+                        WaterEnergyStressValidationError::WeightOverflow,
+                    ])
+                })?;
+            }
         }
 
         total_unmet_lower += assessment.water_assessment.unmet_demand_volume_lower_bound;
         total_unmet_upper += assessment.water_assessment.unmet_demand_volume_upper_bound;
-        maximum_deficit_lower = maximum_deficit_lower
-            .max(assessment.water_assessment.maximum_normalized_deficit_lower_bound);
-        maximum_deficit_upper = maximum_deficit_upper
-            .max(assessment.water_assessment.maximum_normalized_deficit_upper_bound);
+        maximum_deficit_lower = maximum_deficit_lower.max(
+            assessment
+                .water_assessment
+                .maximum_normalized_deficit_lower_bound,
+        );
+        maximum_deficit_upper = maximum_deficit_upper.max(
+            assessment
+                .water_assessment
+                .maximum_normalized_deficit_upper_bound,
+        );
         evidence_ids.extend(service_evidence.iter().cloned());
 
         service_results.push(WaterEnergyStressServiceAssessment {
@@ -1047,11 +1054,7 @@ pub fn assess_water_energy_stress_sweep(
         validate_sweep_request(request).map_err(WaterEnergyStressSweepError::InvalidInput)?;
     let evidence_by_id = build_evidence_index(evidence_records)
         .map_err(WaterEnergyStressSweepError::EvidenceValidation)?;
-    assess_water_energy_stress_sweep_validated(
-        request,
-        total_step_assessments,
-        &evidence_by_id,
-    )
+    assess_water_energy_stress_sweep_validated(request, total_step_assessments, &evidence_by_id)
 }
 
 pub(crate) fn assess_water_energy_stress_sweep_indexed(
@@ -1187,8 +1190,7 @@ mod tests {
         WATER_ENERGY_COUPLING_SCHEMA_VERSION, WaterEnergyCouplingStepInput,
     };
     use crate::service_water_trajectory::{
-        WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectory,
-        WaterServiceTrajectoryStep,
+        WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectory, WaterServiceTrajectoryStep,
     };
 
     const TIMES: [&str; 2] = ["2026-10-16T09:00:00Z", "2026-10-16T10:00:00Z"];
@@ -1320,25 +1322,31 @@ mod tests {
     #[test]
     fn input_order_does_not_change_sorted_scenario_results() {
         let mut input = request();
-        input.failure_scenarios.push(WaterEnergyDeclaredFailureScenario {
-            id: "reduced-source".to_owned(),
-            kind: WaterEnergyFailureScenarioKind::HazardBundle,
-            rationale: "Declared synthetic source interruption.".to_owned(),
-            overrides: vec![WaterEnergyMeasurementOverride {
-                service_request_id: "cell-a".to_owned(),
-                step_id: "step-0".to_owned(),
-                target: WaterEnergyFailureTarget::SourceFlowRate,
-                forced_value: 10.0,
-                forced_uncertainty_abs: None,
-            }],
-        });
+        input
+            .failure_scenarios
+            .push(WaterEnergyDeclaredFailureScenario {
+                id: "reduced-source".to_owned(),
+                kind: WaterEnergyFailureScenarioKind::HazardBundle,
+                rationale: "Declared synthetic source interruption.".to_owned(),
+                overrides: vec![WaterEnergyMeasurementOverride {
+                    service_request_id: "cell-a".to_owned(),
+                    step_id: "step-0".to_owned(),
+                    target: WaterEnergyFailureTarget::SourceFlowRate,
+                    forced_value: 10.0,
+                    forced_uncertainty_abs: None,
+                }],
+            });
         let mut shuffled = input.clone();
         shuffled.failure_scenarios.reverse();
         let first = assess_water_energy_stress_sweep(&input, &[]).expect("valid sweep");
         let second = assess_water_energy_stress_sweep(&shuffled, &[]).expect("permuted sweep");
         assert_eq!(first.cases, second.cases);
         assert_eq!(
-            first.cases.iter().map(|case| case.id.as_str()).collect::<Vec<_>>(),
+            first
+                .cases
+                .iter()
+                .map(|case| case.id.as_str())
+                .collect::<Vec<_>>(),
             vec!["grid-outage", "reduced-source"]
         );
     }
@@ -1369,12 +1377,14 @@ mod tests {
             step.source_flow_rate.entity_id = shared_source.clone();
         }
         input.baseline_services.push(second);
-        input.protected_service_floors.push(ProtectedWaterServiceFloor {
-            service_request_id: "cell-b".to_owned(),
-            community_id: "community-b".to_owned(),
-            beneficiary_weight: 50,
-            essential_coverage_floor: 0.8,
-        });
+        input
+            .protected_service_floors
+            .push(ProtectedWaterServiceFloor {
+                service_request_id: "cell-b".to_owned(),
+                community_id: "community-b".to_owned(),
+                beneficiary_weight: 50,
+                essential_coverage_floor: 0.8,
+            });
         let result = assess_water_energy_stress_sweep(&input, &[]);
         assert!(matches!(
             result,
@@ -1388,7 +1398,9 @@ mod tests {
     #[test]
     fn rejects_duplicate_scenario_ids() {
         let mut input = request();
-        input.failure_scenarios.push(input.failure_scenarios[0].clone());
+        input
+            .failure_scenarios
+            .push(input.failure_scenarios[0].clone());
         let result = assess_water_energy_stress_sweep(&input, &[]);
         assert!(matches!(
             result,

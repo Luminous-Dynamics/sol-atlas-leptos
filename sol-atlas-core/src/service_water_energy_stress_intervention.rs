@@ -15,8 +15,7 @@ use crate::service_water::WaterServiceState;
 use crate::service_water_energy_stress::{
     WaterEnergyCommunityFloorOutcome, WaterEnergyMeasurementOverride,
     WaterEnergyStressCaseAssessment, WaterEnergyStressCaseKind, WaterEnergyStressSweepError,
-    WaterEnergyStressSweepRequest,
-    assess_water_energy_stress_sweep_indexed,
+    WaterEnergyStressSweepRequest, assess_water_energy_stress_sweep_indexed,
 };
 use crate::spatial_economic::EvidenceRecord;
 use serde::{Deserialize, Serialize};
@@ -289,9 +288,7 @@ fn validate_paired_requests(
             errors.push(WaterEnergyStressInterventionValidationError::ServiceTimeGridMismatch);
         }
         for (base, cand) in baseline_steps.iter().zip(candidate_steps) {
-            if base.id != cand.id
-                || base.as_of != cand.as_of
-                || base.step_hours != cand.step_hours
+            if base.id != cand.id || base.as_of != cand.as_of || base.step_hours != cand.step_hours
             {
                 errors.push(WaterEnergyStressInterventionValidationError::ServiceTimeGridMismatch);
                 break;
@@ -310,16 +307,17 @@ fn validate_paired_requests(
             .collect();
         if baseline_energy_steps.len() != baseline_service.steps.len()
             || candidate_energy_steps.len() != candidate_service.steps.len()
-            || baseline_energy_steps.keys().ne(candidate_energy_steps.keys())
+            || baseline_energy_steps
+                .keys()
+                .ne(candidate_energy_steps.keys())
         {
             errors.push(WaterEnergyStressInterventionValidationError::CouplingTimeGridMismatch);
         }
         for (step_id, base) in &baseline_energy_steps {
             match candidate_energy_steps.get(step_id).copied() {
                 Some(cand) if base.as_of == cand.as_of => {}
-                _ => errors.push(
-                    WaterEnergyStressInterventionValidationError::CouplingTimeGridMismatch,
-                ),
+                _ => errors
+                    .push(WaterEnergyStressInterventionValidationError::CouplingTimeGridMismatch),
             }
         }
     }
@@ -404,10 +402,7 @@ fn validate_paired_requests(
     }
 }
 
-fn possible_floor_regression(
-    baseline: ServiceFloorStatus,
-    candidate: ServiceFloorStatus,
-) -> bool {
+fn possible_floor_regression(baseline: ServiceFloorStatus, candidate: ServiceFloorStatus) -> bool {
     baseline != ServiceFloorStatus::BelowFloor && candidate != ServiceFloorStatus::MeetsFloor
 }
 
@@ -437,7 +432,10 @@ fn delta_bounds(
     candidate_lower: f64,
     candidate_upper: f64,
 ) -> (f64, f64) {
-    (baseline_lower - candidate_upper, baseline_upper - candidate_lower)
+    (
+        baseline_lower - candidate_upper,
+        baseline_upper - candidate_lower,
+    )
 }
 
 fn delivery_delta_bounds(
@@ -446,7 +444,10 @@ fn delivery_delta_bounds(
     candidate_lower: f64,
     candidate_upper: f64,
 ) -> (f64, f64) {
-    (candidate_lower - baseline_upper, candidate_upper - baseline_lower)
+    (
+        candidate_lower - baseline_upper,
+        candidate_upper - baseline_lower,
+    )
 }
 
 fn find_matching_service<'a>(
@@ -461,14 +462,12 @@ fn find_matching_service<'a>(
 fn compare_case(
     baseline: &WaterEnergyStressCaseAssessment,
     candidate: &WaterEnergyStressCaseAssessment,
-) -> Result<
-    WaterEnergyStressInterventionCaseComparison,
-    WaterEnergyStressInterventionComparisonError,
-> {
+) -> Result<WaterEnergyStressInterventionCaseComparison, WaterEnergyStressInterventionComparisonError>
+{
     if baseline.id != candidate.id || baseline.kind != candidate.kind {
-        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
-            WaterEnergyStressInterventionValidationError::FailureScenarioSetMismatch,
-        ]));
+        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(
+            vec![WaterEnergyStressInterventionValidationError::FailureScenarioSetMismatch],
+        ));
     }
     let mut baseline_support = BTreeSet::new();
     baseline_support.extend(baseline.supporting_evidence_ids.iter().cloned());
@@ -482,19 +481,23 @@ fn compare_case(
         candidate.total_unmet_demand_volume_upper_bound_m3,
     );
     let (delivery_delta_lower, delivery_delta_upper) = delivery_delta_bounds(
-        baseline.services
+        baseline
+            .services
             .iter()
             .map(|service| service.customer_delivered_volume_lower_bound_m3)
             .sum(),
-        baseline.services
+        baseline
+            .services
             .iter()
             .map(|service| service.customer_delivered_volume_upper_bound_m3)
             .sum(),
-        candidate.services
+        candidate
+            .services
             .iter()
             .map(|service| service.customer_delivered_volume_lower_bound_m3)
             .sum(),
-        candidate.services
+        candidate
+            .services
             .iter()
             .map(|service| service.customer_delivered_volume_upper_bound_m3)
             .sum(),
@@ -517,11 +520,13 @@ fn compare_case(
         candidate_floor_by_community.insert(community.community_id.as_str(), community);
     }
     if baseline_floor_by_community.len() != candidate_floor_by_community.len()
-        || baseline_floor_by_community.keys().ne(candidate_floor_by_community.keys())
+        || baseline_floor_by_community
+            .keys()
+            .ne(candidate_floor_by_community.keys())
     {
-        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
-            WaterEnergyStressInterventionValidationError::CommunitySetMismatch,
-        ]));
+        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(
+            vec![WaterEnergyStressInterventionValidationError::CommunitySetMismatch],
+        ));
     }
 
     let mut communities = Vec::with_capacity(baseline_floor_by_community.len());
@@ -533,9 +538,9 @@ fn compare_case(
         if base.total_beneficiary_weight != cand.total_beneficiary_weight
             || base.service_cell_count != cand.service_cell_count
         {
-            return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
-                WaterEnergyStressInterventionValidationError::CommunitySetMismatch,
-            ]));
+            return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(
+                vec![WaterEnergyStressInterventionValidationError::CommunitySetMismatch],
+            ));
         }
         let (delta_lower, delta_upper) = delivery_delta_bounds(
             base.floor_compliance_lower_bound,
@@ -564,9 +569,9 @@ fn compare_case(
         .any(|community| community.possible_protected_floor_regression);
     for base in &baseline.services {
         let Some(cand) = find_matching_service(candidate, &base.service_request_id) else {
-            return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
-                WaterEnergyStressInterventionValidationError::ServiceAssessmentCountMismatch,
-            ]));
+            return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(
+                vec![WaterEnergyStressInterventionValidationError::ServiceAssessmentCountMismatch],
+            ));
         };
         if base.service_entity_id != cand.service_entity_id
             || base.community_id != cand.community_id
@@ -574,9 +579,9 @@ fn compare_case(
             || base.essential_coverage_floor != cand.essential_coverage_floor
             || base.steps.len() != cand.steps.len()
         {
-            return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
-                WaterEnergyStressInterventionValidationError::StepAlignmentMismatch,
-            ]));
+            return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(
+                vec![WaterEnergyStressInterventionValidationError::StepAlignmentMismatch],
+            ));
         }
 
         let (service_reduction_lower, service_reduction_upper) = delta_bounds(
@@ -585,13 +590,12 @@ fn compare_case(
             cand.unmet_demand_volume_lower_bound_m3,
             cand.unmet_demand_volume_upper_bound_m3,
         );
-        let (service_delivery_delta_lower, service_delivery_delta_upper) =
-            delivery_delta_bounds(
-                base.customer_delivered_volume_lower_bound_m3,
-                base.customer_delivered_volume_upper_bound_m3,
-                cand.customer_delivered_volume_lower_bound_m3,
-                cand.customer_delivered_volume_upper_bound_m3,
-            );
+        let (service_delivery_delta_lower, service_delivery_delta_upper) = delivery_delta_bounds(
+            base.customer_delivered_volume_lower_bound_m3,
+            base.customer_delivered_volume_upper_bound_m3,
+            cand.customer_delivered_volume_lower_bound_m3,
+            cand.customer_delivered_volume_upper_bound_m3,
+        );
         let mut step_comparisons = Vec::with_capacity(base.steps.len());
         let mut service_possible_regression =
             possible_floor_regression(base.floor_status, cand.floor_status);
@@ -605,14 +609,12 @@ fn compare_case(
                 || base_step.as_of != cand_step.as_of
                 || base_step.step_hours != cand_step.step_hours
             {
-                return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
-                    WaterEnergyStressInterventionValidationError::StepAlignmentMismatch,
-                ]));
+                return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(
+                    vec![WaterEnergyStressInterventionValidationError::StepAlignmentMismatch],
+                ));
             }
-            let floor_regression = possible_floor_regression(
-                base_step.floor_status,
-                cand_step.floor_status,
-            );
+            let floor_regression =
+                possible_floor_regression(base_step.floor_status, cand_step.floor_status);
             service_possible_regression |= floor_regression;
             let (step_reduction_lower, step_reduction_upper) = delta_bounds(
                 base_step.unmet_demand_volume_lower_bound_m3,
@@ -649,14 +651,14 @@ fn compare_case(
                 candidate_unmet_demand_upper_bound_m3: cand_step.unmet_demand_volume_upper_bound_m3,
                 unmet_demand_reduction_lower_bound_m3: step_reduction_lower,
                 unmet_demand_reduction_upper_bound_m3: step_reduction_upper,
-                baseline_customer_delivery_lower_bound_m3:
-                    base_step.customer_delivered_volume_lower_bound_m3,
-                baseline_customer_delivery_upper_bound_m3:
-                    base_step.customer_delivered_volume_upper_bound_m3,
-                candidate_customer_delivery_lower_bound_m3:
-                    cand_step.customer_delivered_volume_lower_bound_m3,
-                candidate_customer_delivery_upper_bound_m3:
-                    cand_step.customer_delivered_volume_upper_bound_m3,
+                baseline_customer_delivery_lower_bound_m3: base_step
+                    .customer_delivered_volume_lower_bound_m3,
+                baseline_customer_delivery_upper_bound_m3: base_step
+                    .customer_delivered_volume_upper_bound_m3,
+                candidate_customer_delivery_lower_bound_m3: cand_step
+                    .customer_delivered_volume_lower_bound_m3,
+                candidate_customer_delivery_upper_bound_m3: cand_step
+                    .customer_delivered_volume_upper_bound_m3,
                 customer_delivery_delta_lower_bound_m3: step_delivery_lower,
                 customer_delivery_delta_upper_bound_m3: step_delivery_upper,
                 baseline_supporting_evidence_ids: base_step.supporting_evidence_ids.clone(),
@@ -680,24 +682,24 @@ fn compare_case(
             candidate_unmet_demand_upper_bound_m3: cand.unmet_demand_volume_upper_bound_m3,
             unmet_demand_reduction_lower_bound_m3: service_reduction_lower,
             unmet_demand_reduction_upper_bound_m3: service_reduction_upper,
-            baseline_customer_delivery_lower_bound_m3:
-                base.customer_delivered_volume_lower_bound_m3,
-            baseline_customer_delivery_upper_bound_m3:
-                base.customer_delivered_volume_upper_bound_m3,
-            candidate_customer_delivery_lower_bound_m3:
-                cand.customer_delivered_volume_lower_bound_m3,
-            candidate_customer_delivery_upper_bound_m3:
-                cand.customer_delivered_volume_upper_bound_m3,
+            baseline_customer_delivery_lower_bound_m3: base
+                .customer_delivered_volume_lower_bound_m3,
+            baseline_customer_delivery_upper_bound_m3: base
+                .customer_delivered_volume_upper_bound_m3,
+            candidate_customer_delivery_lower_bound_m3: cand
+                .customer_delivered_volume_lower_bound_m3,
+            candidate_customer_delivery_upper_bound_m3: cand
+                .customer_delivered_volume_upper_bound_m3,
             customer_delivery_delta_lower_bound_m3: service_delivery_delta_lower,
             customer_delivery_delta_upper_bound_m3: service_delivery_delta_upper,
-            baseline_maximum_normalized_deficit_lower_bound:
-                base.maximum_normalized_deficit_lower_bound,
-            baseline_maximum_normalized_deficit_upper_bound:
-                base.maximum_normalized_deficit_upper_bound,
-            candidate_maximum_normalized_deficit_lower_bound:
-                cand.maximum_normalized_deficit_lower_bound,
-            candidate_maximum_normalized_deficit_upper_bound:
-                cand.maximum_normalized_deficit_upper_bound,
+            baseline_maximum_normalized_deficit_lower_bound: base
+                .maximum_normalized_deficit_lower_bound,
+            baseline_maximum_normalized_deficit_upper_bound: base
+                .maximum_normalized_deficit_upper_bound,
+            candidate_maximum_normalized_deficit_lower_bound: cand
+                .maximum_normalized_deficit_lower_bound,
+            candidate_maximum_normalized_deficit_upper_bound: cand
+                .maximum_normalized_deficit_upper_bound,
             steps: step_comparisons,
             baseline_supporting_evidence_ids: baseline_service_evidence.into_iter().collect(),
             candidate_supporting_evidence_ids: candidate_service_evidence.into_iter().collect(),
@@ -721,17 +723,17 @@ fn compare_case(
         floor_delta_upper,
     ];
     if numbers.iter().any(|value| !value.is_finite()) {
-        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
-            WaterEnergyStressInterventionValidationError::NonFiniteDerivedValue,
-        ]));
+        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(
+            vec![WaterEnergyStressInterventionValidationError::NonFiniteDerivedValue],
+        ));
     }
     if unmet_reduction_lower > unmet_reduction_upper
         || delivery_delta_lower > delivery_delta_upper
         || floor_delta_lower > floor_delta_upper
     {
-        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
-            WaterEnergyStressInterventionValidationError::BoundsInconsistent,
-        ]));
+        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(
+            vec![WaterEnergyStressInterventionValidationError::BoundsInconsistent],
+        ));
     }
 
     Ok(WaterEnergyStressInterventionCaseComparison {
@@ -741,29 +743,33 @@ fn compare_case(
         overrides_applied: baseline.overrides_applied.clone(),
         effect,
         possible_protected_floor_regression: possible_regression,
-        baseline_total_unmet_demand_lower_bound_m3:
-            baseline.total_unmet_demand_volume_lower_bound_m3,
-        baseline_total_unmet_demand_upper_bound_m3:
-            baseline.total_unmet_demand_volume_upper_bound_m3,
-        candidate_total_unmet_demand_lower_bound_m3:
-            candidate.total_unmet_demand_volume_lower_bound_m3,
-        candidate_total_unmet_demand_upper_bound_m3:
-            candidate.total_unmet_demand_volume_upper_bound_m3,
+        baseline_total_unmet_demand_lower_bound_m3: baseline
+            .total_unmet_demand_volume_lower_bound_m3,
+        baseline_total_unmet_demand_upper_bound_m3: baseline
+            .total_unmet_demand_volume_upper_bound_m3,
+        candidate_total_unmet_demand_lower_bound_m3: candidate
+            .total_unmet_demand_volume_lower_bound_m3,
+        candidate_total_unmet_demand_upper_bound_m3: candidate
+            .total_unmet_demand_volume_upper_bound_m3,
         unmet_demand_reduction_lower_bound_m3: unmet_reduction_lower,
         unmet_demand_reduction_upper_bound_m3: unmet_reduction_upper,
-        baseline_customer_delivery_lower_bound_m3: baseline.services
+        baseline_customer_delivery_lower_bound_m3: baseline
+            .services
             .iter()
             .map(|service| service.customer_delivered_volume_lower_bound_m3)
             .sum(),
-        baseline_customer_delivery_upper_bound_m3: baseline.services
+        baseline_customer_delivery_upper_bound_m3: baseline
+            .services
             .iter()
             .map(|service| service.customer_delivered_volume_upper_bound_m3)
             .sum(),
-        candidate_customer_delivery_lower_bound_m3: candidate.services
+        candidate_customer_delivery_lower_bound_m3: candidate
+            .services
             .iter()
             .map(|service| service.customer_delivered_volume_lower_bound_m3)
             .sum(),
-        candidate_customer_delivery_upper_bound_m3: candidate.services
+        candidate_customer_delivery_upper_bound_m3: candidate
+            .services
             .iter()
             .map(|service| service.customer_delivered_volume_upper_bound_m3)
             .sum(),
@@ -775,14 +781,14 @@ fn compare_case(
         candidate_floor_compliance_upper_bound: candidate.overall_floor_compliance_upper_bound,
         floor_compliance_delta_lower_bound: floor_delta_lower,
         floor_compliance_delta_upper_bound: floor_delta_upper,
-        baseline_maximum_normalized_deficit_lower_bound:
-            baseline.maximum_normalized_deficit_lower_bound,
-        baseline_maximum_normalized_deficit_upper_bound:
-            baseline.maximum_normalized_deficit_upper_bound,
-        candidate_maximum_normalized_deficit_lower_bound:
-            candidate.maximum_normalized_deficit_lower_bound,
-        candidate_maximum_normalized_deficit_upper_bound:
-            candidate.maximum_normalized_deficit_upper_bound,
+        baseline_maximum_normalized_deficit_lower_bound: baseline
+            .maximum_normalized_deficit_lower_bound,
+        baseline_maximum_normalized_deficit_upper_bound: baseline
+            .maximum_normalized_deficit_upper_bound,
+        candidate_maximum_normalized_deficit_lower_bound: candidate
+            .maximum_normalized_deficit_lower_bound,
+        candidate_maximum_normalized_deficit_upper_bound: candidate
+            .maximum_normalized_deficit_upper_bound,
         communities,
         services,
         baseline_supporting_evidence_ids: baseline_support.into_iter().collect(),
@@ -812,21 +818,21 @@ fn overall_effect(
     if cases.is_empty() {
         return WaterEnergyStressInterventionEffect::Indeterminate;
     }
-    let all_nonworsening = cases.iter().all(|case| {
-        case.unmet_demand_reduction_lower_bound_m3 >= -scenario_tolerance(case)
-    });
-    let any_robust_improvement = cases.iter().any(|case| {
-        case.unmet_demand_reduction_lower_bound_m3 > scenario_tolerance(case)
-    });
+    let all_nonworsening = cases
+        .iter()
+        .all(|case| case.unmet_demand_reduction_lower_bound_m3 >= -scenario_tolerance(case));
+    let any_robust_improvement = cases
+        .iter()
+        .any(|case| case.unmet_demand_reduction_lower_bound_m3 > scenario_tolerance(case));
     if all_nonworsening && any_robust_improvement {
         return WaterEnergyStressInterventionEffect::RobustImprovement;
     }
-    let all_nonimproving = cases.iter().all(|case| {
-        case.unmet_demand_reduction_upper_bound_m3 <= scenario_tolerance(case)
-    });
-    let any_robust_regression = cases.iter().any(|case| {
-        case.unmet_demand_reduction_upper_bound_m3 < -scenario_tolerance(case)
-    });
+    let all_nonimproving = cases
+        .iter()
+        .all(|case| case.unmet_demand_reduction_upper_bound_m3 <= scenario_tolerance(case));
+    let any_robust_regression = cases
+        .iter()
+        .any(|case| case.unmet_demand_reduction_upper_bound_m3 < -scenario_tolerance(case));
     if all_nonimproving && any_robust_regression {
         return WaterEnergyStressInterventionEffect::RobustRegression;
     }
@@ -836,12 +842,12 @@ fn overall_effect(
     }) {
         return WaterEnergyStressInterventionEffect::NoMaterialChange;
     }
-    let has_improvement = cases.iter().any(|case| {
-        case.unmet_demand_reduction_lower_bound_m3 > scenario_tolerance(case)
-    });
-    let has_regression = cases.iter().any(|case| {
-        case.unmet_demand_reduction_upper_bound_m3 < -scenario_tolerance(case)
-    });
+    let has_improvement = cases
+        .iter()
+        .any(|case| case.unmet_demand_reduction_lower_bound_m3 > scenario_tolerance(case));
+    let has_regression = cases
+        .iter()
+        .any(|case| case.unmet_demand_reduction_upper_bound_m3 < -scenario_tolerance(case));
     if has_improvement && has_regression {
         WaterEnergyStressInterventionEffect::MixedEffects
     } else {
@@ -879,9 +885,9 @@ pub fn compare_water_energy_stress_interventions(
     baseline_cases.sort_by(|left, right| left.id.cmp(&right.id));
     candidate_cases.sort_by(|left, right| left.id.cmp(&right.id));
     if baseline_cases.len() != candidate_cases.len() {
-        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
-            WaterEnergyStressInterventionValidationError::FailureScenarioSetMismatch,
-        ]));
+        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(
+            vec![WaterEnergyStressInterventionValidationError::FailureScenarioSetMismatch],
+        ));
     }
 
     let mut cases = Vec::with_capacity(baseline_cases.len());
@@ -929,17 +935,17 @@ pub fn compare_water_energy_stress_interventions(
         worst_case_floor_upper,
     ];
     if scalars.iter().any(|value| !value.is_finite()) {
-        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
-            WaterEnergyStressInterventionValidationError::NonFiniteDerivedValue,
-        ]));
+        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(
+            vec![WaterEnergyStressInterventionValidationError::NonFiniteDerivedValue],
+        ));
     }
     if worst_case_unmet_lower > worst_case_unmet_upper
         || worst_case_delivery_lower > worst_case_delivery_upper
         || worst_case_floor_lower > worst_case_floor_upper
     {
-        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
-            WaterEnergyStressInterventionValidationError::BoundsInconsistent,
-        ]));
+        return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(
+            vec![WaterEnergyStressInterventionValidationError::BoundsInconsistent],
+        ));
     }
 
     Ok(WaterEnergyStressInterventionComparisonAssessment {
@@ -985,22 +991,19 @@ mod tests {
     use super::*;
     use crate::dependency_logic::ScenarioBasis;
     use crate::service_function::FunctionMeasurement;
-    use crate::service_water::{
-        DIMENSIONLESS_UNIT, WATER_RATE_UNIT, WATER_VOLUME_UNIT,
-    };
+    use crate::service_water::{DIMENSIONLESS_UNIT, WATER_RATE_UNIT, WATER_VOLUME_UNIT};
     use crate::service_water_energy_coupling::{
         ELECTRIC_POWER_UNIT, PUMP_SPECIFIC_ENERGY_UNIT, PowerMeasurementLocation,
         WATER_ENERGY_COUPLING_SCHEMA_VERSION, WaterEnergyCouplingRequest,
         WaterEnergyCouplingStepInput,
     };
     use crate::service_water_energy_stress::{
-        WATER_ENERGY_STRESS_SCHEMA_VERSION, ProtectedWaterServiceFloor,
+        ProtectedWaterServiceFloor, WATER_ENERGY_STRESS_SCHEMA_VERSION,
         WaterEnergyDeclaredFailureScenario, WaterEnergyFailureScenarioKind,
         WaterEnergyFailureTarget, WaterEnergyMeasurementOverride, WaterEnergyStressSweepRequest,
     };
     use crate::service_water_trajectory::{
-        WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectory,
-        WaterServiceTrajectoryStep,
+        WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectory, WaterServiceTrajectoryStep,
     };
     use crate::spatial_economic::Quantity;
 
@@ -1113,17 +1116,23 @@ mod tests {
         let input = request(0.0, 200.0);
         let output = compare_water_energy_stress_interventions(&input, &[])
             .expect("aligned baseline/candidate sweeps");
-        assert_eq!(output.effect, WaterEnergyStressInterventionEffect::RobustImprovement);
+        assert_eq!(
+            output.effect,
+            WaterEnergyStressInterventionEffect::RobustImprovement
+        );
         assert_eq!(output.declared_failure_scenario_count, 1);
         assert_eq!(output.compared_case_count, 2);
         assert_eq!(
-            output.cases.iter().find(|case| case.scenario_id == "grid-outage").unwrap().effect,
+            output
+                .cases
+                .iter()
+                .find(|case| case.scenario_id == "grid-outage")
+                .unwrap()
+                .effect,
             WaterEnergyStressInterventionEffect::RobustImprovement
         );
         assert!(!output.possible_protected_floor_regression);
-        assert!(
-            output.worst_case_unmet_demand_reduction_lower_bound_m3 >= 0.0
-        );
+        assert!(output.worst_case_unmet_demand_reduction_lower_bound_m3 >= 0.0);
         assert_eq!(
             output.interpretation_boundary,
             WaterEnergyStressInterventionInterpretationBoundary::
@@ -1141,7 +1150,11 @@ mod tests {
             WaterEnergyStressInterventionEffect::ProtectedFloorRegression
         );
         assert!(output.possible_protected_floor_regression);
-        let outage = output.cases.iter().find(|case| case.scenario_id == "grid-outage").unwrap();
+        let outage = output
+            .cases
+            .iter()
+            .find(|case| case.scenario_id == "grid-outage")
+            .unwrap();
         assert!(outage.possible_protected_floor_regression);
         assert!(outage.customer_delivery_delta_upper_bound_m3 < 0.0);
     }
@@ -1186,7 +1199,10 @@ mod tests {
         }
         let output = compare_water_energy_stress_interventions(&input, &[])
             .expect("overlapping intervals are evaluable");
-        assert_eq!(output.effect, WaterEnergyStressInterventionEffect::Indeterminate);
+        assert_eq!(
+            output.effect,
+            WaterEnergyStressInterventionEffect::Indeterminate
+        );
     }
 
     #[test]
@@ -1195,10 +1211,9 @@ mod tests {
         let mut shuffled = input.clone();
         shuffled.baseline.failure_scenarios[0].overrides.reverse();
         shuffled.candidate.failure_scenarios[0].overrides.reverse();
-        let first = compare_water_energy_stress_interventions(&input, &[])
-            .expect("original sweep");
-        let second = compare_water_energy_stress_interventions(&shuffled, &[])
-            .expect("permuted sweep");
+        let first = compare_water_energy_stress_interventions(&input, &[]).expect("original sweep");
+        let second =
+            compare_water_energy_stress_interventions(&shuffled, &[]).expect("permuted sweep");
         assert_eq!(first, second);
     }
 
@@ -1238,10 +1253,8 @@ mod tests {
             supersedes: None,
             access_policy: "policy:synthetic".to_owned(),
         };
-        let result = compare_water_energy_stress_interventions(
-            &input,
-            &[duplicate.clone(), duplicate],
-        );
+        let result =
+            compare_water_energy_stress_interventions(&input, &[duplicate.clone(), duplicate]);
         assert!(matches!(
             result,
             Err(WaterEnergyStressInterventionComparisonError::EvidenceValidation(

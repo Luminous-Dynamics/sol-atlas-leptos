@@ -9,11 +9,11 @@
 //! intervention execution, field delivery, or causal impact.
 
 use crate::service_function::{ServiceFunctionAssessmentError, build_evidence_index};
+use crate::service_water::WaterServiceState;
 use crate::service_water_energy_coupling::{
     WaterEnergyCoupledTrajectoryAssessment, WaterEnergyCouplingError, WaterEnergyCouplingRequest,
     assess_water_energy_coupled_trajectory_indexed,
 };
-use crate::service_water::WaterServiceState;
 use crate::spatial_economic::EvidenceRecord;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
