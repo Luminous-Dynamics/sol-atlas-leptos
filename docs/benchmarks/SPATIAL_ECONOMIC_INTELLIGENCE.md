@@ -187,7 +187,7 @@ These are unmeasured engineering targets. A performance target can be marked met
 
 ## Joint water-energy stress sweep with protected service floors
 
-The benchmark uses 100 independent service-cell trajectories, each with 10 aligned hourly intervals. It sweeps 10 / 100 / 900 declared common pump-terminal power-degradation scenarios (11,000 / 101,000 / 901,000 service-step assessments including nominal baselines), each scenario affecting the same named time step across all service cells. Every sample asserts complete evaluation of the declared scenario count, exact evaluation-budget accounting, the expected zero worst-case floor-compliance lower bound, and identical synthetic result serialization before reporting output bytes.
+The benchmark uses 100 independent service-cell trajectories, each with 10 aligned hourly intervals. It sweeps 10 / 100 / 900 declared common pump-terminal power-degradation scenarios (11,000 / 101,000 / 901,000 service-step assessments including nominal baselines), each scenario affecting the same named time step across all service cells. Every sample asserts complete evaluation of the declared scenario count, exact evaluation-budget and override accounting, the expected zero worst-case floor-compliance lower bound, and byte-identical serialized output against an untimed reference before reporting output bytes.
 
 Run with `WATER_ENERGY_STRESS_BENCH_WARMUP=1` and `WATER_ENERGY_STRESS_BENCH_SAMPLES=3` using `cargo bench --bench water_energy_stress_sweep`.
 
