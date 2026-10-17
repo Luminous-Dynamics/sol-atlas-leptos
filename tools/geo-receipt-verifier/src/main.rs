@@ -1201,7 +1201,9 @@ fn validate_prior_verifier_report(
         &["qualification_evidence", "verifier_commit_sha"],
     )
     .ok_or_else(|| "qualification_evidence.verifier_commit_sha is missing".to_string())?;
-    if string_field(&report, &["verifier_repository_url"]) != Some(evidence_repo) {
+    let report_verifier_repo = string_field(&report, &["verifier_repository_url"])
+        .ok_or_else(|| "verifier report is missing its repository URL".to_string())?;
+    if normalize_git_url(report_verifier_repo) != normalize_git_url(evidence_repo) {
         return Err("verifier report repository URL does not match qualification evidence".to_string());
     }
     if report.get("verifier_worktree_clean").and_then(Value::as_bool) != Some(true)
