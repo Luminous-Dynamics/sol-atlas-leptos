@@ -1880,6 +1880,12 @@ mod tests {
                 "geo-chron-discrete-age-marginalization-001",
                 include_str!("../../../docs/earth-interior/benchmark-paleo-chronology.json"),
             ),
+            (
+                "geo-robust-design-under-discrepancy-001",
+                include_str!(
+                    "../../../docs/earth-interior/benchmark-robust-design-under-discrepancy.json"
+                ),
+            ),
         ];
         let expected = vec![
             "Check".to_string(),
