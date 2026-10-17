@@ -256,7 +256,7 @@ Both H0 designs have the same declared total cost (2 unit-cost channels). Cost-n
 
 The weak-mode fixture in Symtropy uses (H = mathrm{diag}(1,0.1)) with non-uniform observation covariance, so its singular values/condition number differ from the separate resolution-frontier H0 reference (H = mathrm{diag}(2,0.1)) with identity prior and observation covariance. Keep the matrices, scaling, covariance, and tolerances bound to each fixture ID rather than combining their numbers.
 
-**Status:** 15 Rust tests are authored in Symtropy PR #1804, but no local Rust toolchain is available in this environment and the exact-head workflows remain pending/queued. The manifest remains `benchmark_specification_not_executed`; this cross-project link does not promote it to an executed or qualified benchmark.
+**Status:** 20 Rust tests are authored in Symtropy PR #1804, including a shared-additive-bias regression that checks full-covariance EIG (0.31799438335999836 nats) against diagonalized (0.4777557225137182) and bias-omitted (1.0986122886681098) negative controls. These are exact analytic references, not empirical results. Current source head is `56efd46cfcf8ba3aaf12f2a1e04f090dff3cdc45`; CI run [#2968](https://github.com/Luminous-Dynamics/symtropy/actions/runs/39045592314) is queued and H0 workflow [#24](https://github.com/Luminous-Dynamics/symtropy/actions/runs/39045592303) is pending. No Rust test/build/Clippy pass is claimed. The manifest remains `benchmark_specification_not_executed`; this cross-project link does not promote it to an executed or qualified benchmark.
 
 ### Independent-verifier checkout boundary
 
