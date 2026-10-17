@@ -15,10 +15,9 @@ use crate::service_equity::ServiceFloorStatus;
 use crate::service_function::{
     FunctionMeasurement, ServiceFunctionAssessmentError, build_evidence_index,
 };
-use crate::service_water::{DIMENSIONLESS_UNIT, WATER_RATE_UNIT, WATER_VOLUME_UNIT};
 use crate::service_water_energy_coupling::{
-    WaterEnergyCoupledTrajectoryAssessment, WaterEnergyCouplingError,
-    WaterEnergyCouplingRequest, assess_water_energy_coupled_trajectory_indexed,
+    WaterEnergyCouplingError, WaterEnergyCouplingRequest,
+    assess_water_energy_coupled_trajectory_indexed,
 };
 use crate::service_water_trajectory::WaterServiceState;
 use crate::spatial_economic::{EvidenceRecord, Quantity};
@@ -200,7 +199,6 @@ pub struct WaterEnergyStressServiceAssessment {
     pub maximum_normalized_deficit_upper_bound: f64,
     pub steps: Vec<WaterEnergyStressStepAssessment>,
     pub supporting_evidence_ids: Vec<String>,
-    pub assessment: WaterEnergyCoupledTrajectoryAssessment,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -912,7 +910,6 @@ fn evaluate_case(
                 .maximum_normalized_deficit_upper_bound,
             steps: service_steps,
             supporting_evidence_ids: service_evidence.into_iter().collect(),
-            assessment,
         });
     }
 
@@ -1091,7 +1088,7 @@ pub fn assess_water_energy_stress_sweep(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::service_water::{DIMENSIONLESS_UNIT};
+    use crate::service_water::{DIMENSIONLESS_UNIT, WATER_RATE_UNIT, WATER_VOLUME_UNIT};
     use crate::service_water_energy_coupling::{
         ELECTRIC_POWER_UNIT, PUMP_SPECIFIC_ENERGY_UNIT, PowerMeasurementLocation,
         WATER_ENERGY_COUPLING_SCHEMA_VERSION, WaterEnergyCouplingStepInput,
