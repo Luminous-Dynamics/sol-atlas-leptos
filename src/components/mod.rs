@@ -5,6 +5,7 @@ pub mod globe_canvas;
 pub mod hud;
 pub mod info_panel;
 pub mod layer_panel;
+pub mod lunar_observatory;
 pub mod planet_nav;
 pub mod reactor_twin_demo;
 pub mod timeline;
