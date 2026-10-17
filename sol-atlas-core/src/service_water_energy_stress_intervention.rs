@@ -73,6 +73,11 @@ pub enum WaterEnergyStressInterventionValidationError {
     DuplicateCandidateId,
     DuplicateCandidateExperimentId,
     ArithmeticOverflow,
+    CandidateCountExceeded,
+    InvalidBatchAssessmentBudget,
+    BatchAssessmentBudgetExceeded,
+    InvalidBatchOverrideBudget,
+    BatchOverrideBudgetExceeded,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -1274,6 +1279,9 @@ mod tests {
 /// Versioned request for comparing many intervention candidates against one fixed
 /// baseline and one fixed declared joint-failure suite.
 pub const WATER_ENERGY_STRESS_INTERVENTION_BATCH_SCHEMA_VERSION: &str = "0.1.0";
+pub const MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_CANDIDATES: usize = 1_000;
+pub const MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_SERVICE_STEP_ASSESSMENTS: usize = 1_000_000;
+pub const MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_OVERRIDES: usize = 100_000;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WaterEnergyStressInterventionBatchCandidate {
@@ -1288,6 +1296,10 @@ pub struct WaterEnergyStressInterventionBatchRequest {
     pub id: String,
     pub baseline: WaterEnergyStressSweepRequest,
     pub candidates: Vec<WaterEnergyStressInterventionBatchCandidate>,
+    /// Caller budget across baseline plus every candidate sweep; hard-capped by this module.
+    pub max_total_service_step_assessments: usize,
+    /// Caller budget across the baseline and every candidate's declared scenario overrides.
+    pub max_total_declared_failure_overrides: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -1365,6 +1377,21 @@ pub fn compare_water_energy_stress_intervention_batch(
     if request.candidates.is_empty() {
         errors.push(WaterEnergyStressInterventionValidationError::EmptyCandidateSet);
     }
+    if request.candidates.len() > MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_CANDIDATES {
+        errors.push(WaterEnergyStressInterventionValidationError::CandidateCountExceeded);
+    }
+    if request.max_total_service_step_assessments == 0
+        || request.max_total_service_step_assessments
+            > MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_SERVICE_STEP_ASSESSMENTS
+    {
+        errors.push(WaterEnergyStressInterventionValidationError::InvalidBatchAssessmentBudget);
+    }
+    if request.max_total_declared_failure_overrides == 0
+        || request.max_total_declared_failure_overrides
+            > MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_OVERRIDES
+    {
+        errors.push(WaterEnergyStressInterventionValidationError::InvalidBatchOverrideBudget);
+    }
 
     let mut candidate_ids = BTreeSet::new();
     let mut experiment_ids = BTreeSet::new();
@@ -1385,6 +1412,81 @@ pub fn compare_water_energy_stress_intervention_batch(
         return Err(WaterEnergyStressInterventionBatchError::InvalidInput(
             errors,
         ));
+    }
+
+    // Enforce aggregate budgets before evaluating any candidate. Individual sweep budgets
+    // alone do not constrain work multiplied across a large candidate set.
+    let service_count = request.baseline.baseline_services.len();
+    let steps_per_service = request
+        .baseline
+        .baseline_services
+        .first()
+        .map(|service| service.trajectory.steps.len())
+        .unwrap_or(0);
+    let cases_per_sweep = request
+        .baseline
+        .failure_scenarios
+        .len()
+        .checked_add(1)
+        .ok_or_else(|| {
+            WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+                WaterEnergyStressInterventionValidationError::ArithmeticOverflow,
+            ])
+        })?;
+    let steps_per_sweep = service_count
+        .checked_mul(steps_per_service)
+        .and_then(|value| value.checked_mul(cases_per_sweep))
+        .ok_or_else(|| {
+            WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+                WaterEnergyStressInterventionValidationError::ArithmeticOverflow,
+            ])
+        })?;
+    let all_sweep_count = request.candidates.len().checked_add(1).ok_or_else(|| {
+        WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+            WaterEnergyStressInterventionValidationError::ArithmeticOverflow,
+        ])
+    })?;
+    let estimated_total_step_assessments = steps_per_sweep
+        .checked_mul(all_sweep_count)
+        .ok_or_else(|| {
+            WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+                WaterEnergyStressInterventionValidationError::ArithmeticOverflow,
+            ])
+        })?;
+    if estimated_total_step_assessments > request.max_total_service_step_assessments
+        || estimated_total_step_assessments
+            > MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_SERVICE_STEP_ASSESSMENTS
+    {
+        return Err(WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+            WaterEnergyStressInterventionValidationError::BatchAssessmentBudgetExceeded,
+        ]));
+    }
+
+    let mut total_override_count = 0usize;
+    for sweep in std::iter::once(&request.baseline)
+        .chain(request.candidates.iter().map(|candidate| &candidate.experiment))
+    {
+        let sweep_overrides = sweep
+            .failure_scenarios
+            .iter()
+            .try_fold(0usize, |sum, scenario| sum.checked_add(scenario.overrides.len()))
+            .ok_or_else(|| {
+                WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+                    WaterEnergyStressInterventionValidationError::ArithmeticOverflow,
+                ])
+            })?;
+        total_override_count = total_override_count.checked_add(sweep_overrides).ok_or_else(|| {
+            WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+                WaterEnergyStressInterventionValidationError::ArithmeticOverflow,
+            ])
+        })?;
+    }
+    if total_override_count > request.max_total_declared_failure_overrides
+        || total_override_count > MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_OVERRIDES
+    {
+        return Err(WaterEnergyStressInterventionBatchError::InvalidInput(vec![
+            WaterEnergyStressInterventionValidationError::BatchOverrideBudgetExceeded,
+        ]));
     }
 
     // Validate every candidate against the same baseline and scenario suite before paying
@@ -1574,6 +1676,8 @@ mod batch_tests {
             schema_version: WATER_ENERGY_STRESS_INTERVENTION_BATCH_SCHEMA_VERSION.to_owned(),
             id: "batch-storage-shortlist".to_owned(),
             baseline: tests::sweep_request("baseline", 0.0),
+            max_total_service_step_assessments: MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_SERVICE_STEP_ASSESSMENTS,
+            max_total_declared_failure_overrides: MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_OVERRIDES,
             candidates: vec![
                 WaterEnergyStressInterventionBatchCandidate {
                     candidate_id: "z-storage-200".to_owned(),
