@@ -25,6 +25,7 @@ const QUALIFIED_STATUSES: [&str; 3] = [
 #[derive(Debug)]
 struct Args {
     repo_root: PathBuf,
+    verifier_root: Option<PathBuf>,
     schema_path: String,
     receipt_path: String,
     artifact_root: Option<PathBuf>,
@@ -58,6 +59,9 @@ struct VerificationReport {
     verifier_name: String,
     verifier_version: String,
     verifier_commit_sha: Option<String>,
+    verifier_repository_url: Option<String>,
+    verifier_worktree_clean: Option<bool>,
+    verifier_checkout_independent: bool,
     qualification_core_sha256: Option<String>,
     input_receipt_status: Option<String>,
     target_qualification_status: Option<String>,
@@ -133,6 +137,7 @@ fn parse_args(args: Vec<String>) -> Result<Args, String> {
     let schema_path = args[1].clone();
     let receipt_path = args[2].clone();
     let mut artifact_root = None;
+    let mut verifier_root = None;
     let mut target_status = None;
     let mut verifier_report_path = None;
     let mut index = 3;
@@ -143,6 +148,11 @@ fn parse_args(args: Vec<String>) -> Result<Args, String> {
                 index += 1;
                 let value = args.get(index).ok_or_else(usage)?;
                 artifact_root = Some(PathBuf::from(value));
+            }
+            "--verifier-root" => {
+                index += 1;
+                let value = args.get(index).ok_or_else(usage)?;
+                verifier_root = Some(PathBuf::from(value));
             }
             "--target-status" => {
                 index += 1;
@@ -166,6 +176,7 @@ fn parse_args(args: Vec<String>) -> Result<Args, String> {
 
     Ok(Args {
         repo_root,
+        verifier_root,
         schema_path,
         receipt_path,
         artifact_root,
@@ -176,13 +187,21 @@ fn parse_args(args: Vec<String>) -> Result<Args, String> {
 
 fn usage() -> String {
     "usage: geo-receipt-verifier <repo-root> <schema-path> <receipt-path> \
-     [--artifact-root PATH] [--target-status STATUS] [--verifier-report PATH]"
+     [--artifact-root PATH] [--verifier-root PATH] \
+     [--target-status STATUS] [--verifier-report PATH]"
         .to_string()
 }
 
 fn verify(args: Args) -> Result<VerificationReport, String> {
     let repo_root = fs::canonicalize(&args.repo_root)
         .map_err(|error| format!("cannot resolve repository root: {error}"))?;
+    let verifier_root_candidate = match args.verifier_root.as_ref() {
+        Some(path) if path.is_absolute() => path.clone(),
+        Some(path) => repo_root.join(path),
+        None => repo_root.clone(),
+    };
+    let verifier_root = fs::canonicalize(&verifier_root_candidate)
+        .map_err(|error| format!("cannot resolve verifier root: {error}"))?;
     let artifact_root_candidate = match args.artifact_root.as_ref() {
         Some(path) if path.is_absolute() => path.clone(),
         Some(path) => repo_root.join(path),
@@ -231,7 +250,17 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
 
     let core_sha256 = qualification_core_sha256(&receipt).ok();
     let (actual_head, worktree_clean, remote_url) = git_snapshot(&repo_root);
-    let verifier_commit_sha = actual_head.clone();
+    let (verifier_head, verifier_worktree_clean, verifier_repository_url) =
+        git_snapshot(&verifier_root);
+    let verifier_checkout_independent = independent_verifier_checkout(
+        &repo_root,
+        actual_head.as_deref(),
+        &verifier_root,
+        verifier_head.as_deref(),
+        verifier_worktree_clean,
+        verifier_repository_url.as_deref(),
+    );
+    let verifier_commit_sha = verifier_head.clone();
 
     let mut checks = Vec::new();
     let mut findings = schema_errors.clone();
@@ -302,6 +331,16 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
     );
 
     let mut qualification_reasons = Vec::new();
+    push_check(
+        &mut checks,
+        "independent_verifier_checkout",
+        verifier_checkout_independent,
+        if verifier_checkout_independent {
+            "verifier uses a separate clean checkout at a different exact commit".to_string()
+        } else {
+            "promotion requires a separate clean verifier checkout at a different commit with a known origin".to_string()
+        },
+    );
     let run_passed = completed_successfully(&receipt);
     let gates_controls_passed = all_gates_and_controls_pass(&receipt);
     let metrics_passed = metrics_present(&receipt);
@@ -351,6 +390,11 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
         if !head_matches {
             qualification_reasons
                 .push("checkout HEAD does not match the recorded code commit".to_string());
+        }
+        if !verifier_checkout_independent {
+            qualification_reasons.push(
+                "promotion requires a separate clean verifier checkout with a distinct exact commit and recorded origin".to_string(),
+            );
         }
         if !remote_matches {
             qualification_reasons
@@ -461,6 +505,7 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
             match validate_prior_verifier_report(
                 args.verifier_report_path.as_deref(),
                 &repo_root,
+                &verifier_root,
                 &receipt,
                 &target_status,
                 core_sha256.as_deref(),
@@ -531,6 +576,9 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
         verifier_name: "geo-receipt-verifier".to_string(),
         verifier_version: env!("CARGO_PKG_VERSION").to_string(),
         verifier_commit_sha,
+        verifier_repository_url,
+        verifier_worktree_clean,
+        verifier_checkout_independent,
         qualification_core_sha256: core_sha256,
         input_receipt_status: input_status,
         target_qualification_status: Some(target_status),
@@ -1014,6 +1062,7 @@ fn real_observation_valid(receipt: &Value, artifacts: &[ArtifactCheck]) -> bool 
 fn validate_prior_verifier_report(
     report_path: Option<&Path>,
     repo_root: &Path,
+    verifier_root: &Path,
     receipt: &Value,
     target_status: &str,
     core_sha256: Option<&str>,
@@ -1074,6 +1123,7 @@ fn validate_prior_verifier_report(
         "repository_identity",
         "clean_worktree",
         "exact_head_ci",
+        "independent_verifier_checkout",
         "completed_run",
         "gates_and_controls",
         "metrics_and_uncertainty",
@@ -1115,30 +1165,45 @@ fn validate_prior_verifier_report(
         &["qualification_evidence", "verifier_repository_url"],
     )
     .ok_or_else(|| "qualification_evidence.verifier_repository_url is missing".to_string())?;
-    let receipt_repo = string_field(receipt, &["code", "repository_url"])
-        .ok_or_else(|| "code.repository_url is missing".to_string())?;
-    let measured_origin = git_output(repo_root, &["remote", "get-url", "origin"])
-        .ok_or_else(|| "cannot independently read verifier repository origin".to_string())?;
-    if normalize_git_url(evidence_repo) != normalize_git_url(receipt_repo)
-        || normalize_git_url(evidence_repo) != normalize_git_url(&measured_origin)
-    {
+    let measured_verifier_origin = git_output(verifier_root, &["remote", "get-url", "origin"])
+        .ok_or_else(|| "cannot independently read verifier checkout origin".to_string())?;
+    if normalize_git_url(evidence_repo) != normalize_git_url(&measured_verifier_origin) {
         return Err(
-            "verifier repository URL does not match receipt repository and checkout origin"
+            "verifier repository URL does not match the separate verifier checkout origin"
                 .to_string(),
         );
     }
-    let evidence_commit = string_field(receipt, &["qualification_evidence", "verifier_commit_sha"])
-        .ok_or_else(|| "qualification_evidence.verifier_commit_sha is missing".to_string())?;
+    if verifier_root == repo_root {
+        return Err("verifier checkout is the same directory as the evaluated repository".to_string());
+    }
+    let evidence_commit = string_field(
+        receipt,
+        &["qualification_evidence", "verifier_commit_sha"],
+    )
+    .ok_or_else(|| "qualification_evidence.verifier_commit_sha is missing".to_string())?;
+    if string_field(&report, &["verifier_repository_url"]) != Some(evidence_repo) {
+        return Err("verifier report repository URL does not match qualification evidence".to_string());
+    }
+    if report.get("verifier_worktree_clean").and_then(Value::as_bool) != Some(true)
+        || report.get("verifier_checkout_independent").and_then(Value::as_bool) != Some(true)
+    {
+        return Err("verifier report does not establish a separate clean verifier checkout".to_string());
+    }
     if string_field(&report, &["verifier_commit_sha"]) != Some(evidence_commit) {
         return Err(
             "referenced verifier report commit does not match qualification evidence".to_string(),
         );
     }
-    if git_output(repo_root, &["rev-parse", "HEAD"]).as_deref() != Some(evidence_commit) {
+    if git_output(verifier_root, &["rev-parse", "HEAD"]).as_deref() != Some(evidence_commit) {
         return Err(
             "verifier report was not produced from the exact currently checked-out verifier commit"
                 .to_string(),
         );
+    }
+    let evaluated_commit = string_field(receipt, &["code", "commit_sha"])
+        .ok_or_else(|| "code.commit_sha is missing".to_string())?;
+    if evaluated_commit == evidence_commit {
+        return Err("verifier and evaluated code must be pinned to distinct commits".to_string());
     }
     if string_field(
         &receipt,
@@ -1148,6 +1213,22 @@ fn validate_prior_verifier_report(
         return Err("qualification evidence outcome is not accepted".to_string());
     }
     Ok(())
+}
+
+fn independent_verifier_checkout(
+    target_root: &Path,
+    target_head: Option<&str>,
+    verifier_root: &Path,
+    verifier_head: Option<&str>,
+    verifier_worktree_clean: Option<bool>,
+    verifier_origin: Option<&str>,
+) -> bool {
+    target_root != verifier_root
+        && target_head
+            .zip(verifier_head)
+            .is_some_and(|(target, verifier)| target != verifier)
+        && verifier_worktree_clean == Some(true)
+        && verifier_origin.is_some_and(|origin| !origin.trim().is_empty())
 }
 
 fn git_snapshot(root: &Path) -> (Option<String>, Option<bool>, Option<String>) {
@@ -1551,6 +1632,56 @@ mod tests {
             ]
         });
         assert!(!synthetic_artifacts_and_controls_valid(&leaked, &artifacts));
+    }
+
+    #[test]
+    fn promotion_requires_a_separate_clean_verifier_checkout_and_commit() {
+        let target_root = Path::new("/tmp/evaluated");
+        let verifier_root = Path::new("/tmp/verifier");
+        let target_sha = "a".repeat(40);
+        let verifier_sha = "b".repeat(40);
+        let origin = "https://github.com/Luminous-Dynamics/sol-atlas-leptos";
+
+        assert!(independent_verifier_checkout(
+            target_root,
+            Some(&target_sha),
+            verifier_root,
+            Some(&verifier_sha),
+            Some(true),
+            Some(origin),
+        ));
+        assert!(!independent_verifier_checkout(
+            target_root,
+            Some(&target_sha),
+            target_root,
+            Some(&verifier_sha),
+            Some(true),
+            Some(origin),
+        ));
+        assert!(!independent_verifier_checkout(
+            target_root,
+            Some(&target_sha),
+            verifier_root,
+            Some(&target_sha),
+            Some(true),
+            Some(origin),
+        ));
+        assert!(!independent_verifier_checkout(
+            target_root,
+            Some(&target_sha),
+            verifier_root,
+            Some(&verifier_sha),
+            Some(false),
+            Some(origin),
+        ));
+        assert!(!independent_verifier_checkout(
+            target_root,
+            Some(&target_sha),
+            verifier_root,
+            Some(&verifier_sha),
+            Some(true),
+            None,
+        ));
     }
 
     #[test]
