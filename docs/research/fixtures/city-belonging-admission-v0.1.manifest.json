@@ -3,7 +3,7 @@
   "fixture_id": "city-belonging-admission-v0.1",
   "fixture_path": "docs/research/fixtures/city-belonging-admission-v0.1.jsonl",
   "hash_algorithm": "SHA-256",
-  "fixture_sha256": "3486a76b709e2b8e56e15b4fbb5b7c8cab6303dc7dfb1db916a3af89c70dbd10",
+  "fixture_sha256": "3c84f1394a570787fb4076be45f28f877c08b6fc4853e2afce1425c1b58dd802",
   "record_format": "JSON Lines; UTF-8; newline-terminated",
   "record_count": 11,
   "disposition_counts": {
@@ -16,16 +16,67 @@
   "schema_baseline": {
     "standard": "Open Referral HSDS",
     "version": "3.1",
-    "canonical_schema_ref": "https://github.com/openreferral/specification/tree/3.1/schema",
-    "schema_bytes_sha256": null,
-    "validation_status": "NOT_VALIDATED_AGAINST_UPSTREAM_SCHEMA",
-    "reason": "Exact upstream schema bytes have not been retrieved and hashed in this change; fixture is an admission-policy corpus, not proof of full HSDS conformance."
+    "upstream_ref": "3.1",
+    "schema_pin_manifest_path": "docs/research/fixtures/hsds-3.1-selected-contract-v0.1.json",
+    "schema_pin_manifest_sha256_utf8": "07b8330038cf3093f6a853673b72ed0361a33f17b3b0d332fcfd9ecb9ef75a80",
+    "vendored_schema_files": [
+      {
+        "resource": "organization",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/organization.json",
+        "git_blob_sha1": "53f11b97c1461a935144524f76423a952a7bdcde",
+        "sha256_utf8": "b4359388ff45e77027bdfaa074567bf1c0bae37f2392fe978a68e1eb048484e6"
+      },
+      {
+        "resource": "service",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/service.json",
+        "git_blob_sha1": "bacbe613f10f89acd62861caaf362226f24dd28f",
+        "sha256_utf8": "e692fe57de03536403f2223cc955e30622a34f492cd268810593e57c3e57ed7e"
+      },
+      {
+        "resource": "location",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/location.json",
+        "git_blob_sha1": "06e86e417e448b3ff11108a208126eccbb3fc1ac",
+        "sha256_utf8": "205c3ce4ec0f4b5dd0b2ca30b1321bd320d1ba184f41434041e4276b3fb2e286"
+      },
+      {
+        "resource": "service_at_location",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/service_at_location.json",
+        "git_blob_sha1": "d399404fb790951ccaeb6f57f2b4b49e73082e9f",
+        "sha256_utf8": "24ae016e44bb626cdacd53b1a45eec348796c86efb8f8708a689c83c78264710"
+      },
+      {
+        "resource": "schedule",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/schedule.json",
+        "git_blob_sha1": "b4f2afa953cd91843fd900b1965266210ac653ba",
+        "sha256_utf8": "c611984058f37c8435d930fd89bf915a20eea7f3a217ff053206e21440744bdb"
+      },
+      {
+        "resource": "address",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/address.json",
+        "git_blob_sha1": "ba0d945f73df9581f47ed8632fb50a6847a5c539",
+        "sha256_utf8": "0647496d479a41c01744ce8caee9edc19feadb111acaecf42167128b8635209f"
+      },
+      {
+        "resource": "service_area",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/service_area.json",
+        "git_blob_sha1": "697283140d538a86302a667d7a6e221bec8a036f",
+        "sha256_utf8": "59dc874931770cccd9e81afd086b2b1e2a329df8fb0791f7a99c6eb0a3cc4de8"
+      },
+      {
+        "resource": "service_capacity",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/service_capacity.json",
+        "git_blob_sha1": "6b6ebb238cf50072dee30f0ff48f4f05bd57e5eb",
+        "sha256_utf8": "bd9620d0154c960fe61e2e0f1552bb6050da4d8f95265843064f09bd8cf63425"
+      }
+    ],
+    "validation_status": "SELECTED_RESOURCE_ROW_CONTRACT_TO_BE_CHECKED_BY_RUST_TOOL; NOT_COMPLETE_HSDS_CONFORMANCE",
+    "reason": "Selected HSDS 3.1 resource rows are checked against the pinned field/property names, required plus tabular-required fields, value types, declared enums, formats, and cross-row relationships. This is not full validation of every schema semantic or nested reference."
   },
   "local_profile": {
     "id": "city-belonging-admission-profile",
     "version": "0.1",
-    "sha256": null,
-    "validation_status": "DOCUMENTED_NOT_IMPLEMENTED"
+    "sha256_utf8": null,
+    "validation_status": "DOCUMENTED_IN_ADMISSION_POLICY_AND_RUST_CHECKER_NOT_YET_EXECUTED"
   },
   "status": "SYNTHETIC_RESEARCH_FIXTURE",
   "claims_not_made": [
