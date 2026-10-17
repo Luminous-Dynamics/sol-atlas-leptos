@@ -7,8 +7,10 @@
 //! This evaluator runs every caller-declared scenario; it does not infer causal links,
 //! enumerate undeclared failures, or assign scenario probabilities. Overrides are
 //! adverse interval changes to named per-step inputs and become scenario assumptions,
-//! never observations. Beneficiary weights describe caller-defined service-cell exposure,
-//! not necessarily unique people across services.
+//! never observations. The baseline trajectories are assessed independently: shared physical
+//! source/tank/pump capacity is not globally conserved across cells, so shared asset IDs are
+//! rejected and callers must preallocate shared resources before using this evaluator. Beneficiary
+//! weights describe caller-defined service-cell exposure, not necessarily unique people.
 
 use crate::dependency_logic::ScenarioBasis;
 use crate::service_equity::ServiceFloorStatus;
@@ -124,6 +126,7 @@ pub enum WaterEnergyStressValidationError {
     ServiceRequestIdEmpty,
     DuplicateServiceRequestId,
     DuplicateServiceEntityId,
+    SharedPhysicalAssetAcrossServiceCells,
     EmptyServiceTrajectory,
     ServiceTimeGridMismatch,
     ProtectedFloorCountMismatch,
@@ -526,6 +529,7 @@ fn validate_sweep_request(
 
     let mut request_ids = BTreeSet::new();
     let mut service_entities = BTreeSet::new();
+    let mut physical_component_owners: BTreeMap<&str, &str> = BTreeMap::new();
     let mut reference_grid: Option<Vec<(String, String, f64)>> = None;
     let mut step_assessment_count = 0_usize;
     for service in &request.baseline_services {
@@ -537,6 +541,32 @@ fn validate_sweep_request(
         }
         if !service_entities.insert(service.trajectory.service_entity_id.as_str()) {
             errors.push(WaterEnergyStressValidationError::DuplicateServiceEntityId);
+        }
+        let mut physical_component_ids = BTreeSet::new();
+        physical_component_ids.insert(service.trajectory.initial_storage.entity_id.as_str());
+        physical_component_ids.insert(service.trajectory.storage_capacity.entity_id.as_str());
+        for step in &service.trajectory.steps {
+            physical_component_ids.insert(step.source_flow_rate.entity_id.as_str());
+            physical_component_ids.insert(step.pump_capacity.entity_id.as_str());
+            physical_component_ids.insert(step.treatment_capacity.entity_id.as_str());
+            physical_component_ids.insert(step.distribution_capacity.entity_id.as_str());
+            physical_component_ids.insert(step.distribution_loss_fraction.entity_id.as_str());
+        }
+        for component_id in physical_component_ids {
+            if component_id.trim().is_empty() {
+                continue;
+            }
+            match physical_component_owners.get(component_id) {
+                Some(owner) if *owner != service.id.as_str() => {
+                    errors.push(
+                        WaterEnergyStressValidationError::SharedPhysicalAssetAcrossServiceCells,
+                    );
+                }
+                Some(_) => {}
+                None => {
+                    physical_component_owners.insert(component_id, service.id.as_str());
+                }
+            }
         }
         if service.trajectory.steps.is_empty() {
             errors.push(WaterEnergyStressValidationError::EmptyServiceTrajectory);
@@ -1276,6 +1306,34 @@ mod tests {
             first.cases.iter().map(|case| case.id.as_str()).collect::<Vec<_>>(),
             vec!["grid-outage", "reduced-source"]
         );
+    }
+
+    #[test]
+    fn rejects_shared_physical_asset_ids_across_independent_service_cells() {
+        let mut input = request();
+        let mut second = service_request("cell-b", "community-b");
+        let shared_source = input.baseline_services[0].trajectory.steps[0]
+            .source_flow_rate
+            .entity_id
+            .clone();
+        for step in &mut second.trajectory.steps {
+            step.source_flow_rate.entity_id = shared_source.clone();
+        }
+        input.baseline_services.push(second);
+        input.protected_service_floors.push(ProtectedWaterServiceFloor {
+            service_request_id: "cell-b".to_owned(),
+            community_id: "community-b".to_owned(),
+            beneficiary_weight: 50,
+            essential_coverage_floor: 0.8,
+        });
+        let result = assess_water_energy_stress_sweep(&input, &[]);
+        assert!(matches!(
+            result,
+            Err(WaterEnergyStressSweepError::InvalidInput(errors))
+                if errors.contains(
+                    &WaterEnergyStressValidationError::SharedPhysicalAssetAcrossServiceCells
+                )
+        ));
     }
 
     #[test]
