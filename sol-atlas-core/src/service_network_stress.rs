@@ -22,6 +22,7 @@ use std::collections::{BTreeMap, BTreeSet};
 pub const SERVICE_NETWORK_STRESS_SCHEMA_VERSION: &str = "0.1.0";
 pub const MAX_SIMULTANEOUS_LINK_FAILURES: usize = 3;
 pub const MAX_EXHAUSTIVE_FAILURE_CASES: usize = 10_000;
+const FAILURE_TIE_RELATIVE_TOLERANCE: f64 = 1.0e-9;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ServiceNetworkStressRequest {
@@ -67,9 +68,9 @@ pub struct ServiceNetworkStressAssessment {
     pub worst_case_optimistic_capacity: f64,
     pub worst_case_conservative_capacity_loss: f64,
     pub worst_case_optimistic_capacity_loss: f64,
-    /// All failure sets tied for the lowest conservative flow, stable sorted order.
+    /// Failure sets whose conservative flow ties the minimum within numeric tolerance, sorted deterministically.
     pub worst_case_conservative_failure_sets: Vec<Vec<String>>,
-    /// All failure sets tied for the lowest optimistic flow, stable sorted order.
+    /// Failure sets whose optimistic flow ties the minimum within numeric tolerance, sorted deterministically.
     pub worst_case_optimistic_failure_sets: Vec<Vec<String>>,
     /// Cases are sorted by failure order, then lexicographic failed-link IDs.
     pub cases: Vec<ServiceNetworkFailureCase>,
@@ -270,11 +271,11 @@ pub fn assess_service_network_stress(
     }
 
     let mut worst_case_conservative_failure_sets: Vec<Vec<String>> = cases.iter()
-        .filter(|case| case.assessment.conservative_available_capacity == worst_conservative)
+        .filter(|case| capacities_tie(case.assessment.conservative_available_capacity, worst_conservative))
         .map(|case| case.failed_link_ids.clone())
         .collect();
     let mut worst_case_optimistic_failure_sets: Vec<Vec<String>> = cases.iter()
-        .filter(|case| case.assessment.optimistic_available_capacity == worst_optimistic)
+        .filter(|case| capacities_tie(case.assessment.optimistic_available_capacity, worst_optimistic))
         .map(|case| case.failed_link_ids.clone())
         .collect();
     worst_case_conservative_failure_sets.sort();
@@ -301,6 +302,11 @@ pub fn assess_service_network_stress(
         worst_case_optimistic_failure_sets,
         cases,
     })
+}
+
+fn capacities_tie(left: f64, right: f64) -> bool {
+    (left - right).abs()
+        <= FAILURE_TIE_RELATIVE_TOLERANCE * left.abs().max(right.abs()).max(1.0)
 }
 
 fn count_failure_combinations(
@@ -360,7 +366,10 @@ mod tests {
     use super::*;
     use crate::service_network::{NetworkLink, NetworkLinkAvailability, NetworkTopologyCompleteness, ServiceCapacityNetworkScenario, SERVICE_NETWORK_SCHEMA_VERSION};
     use crate::service_function::FunctionMeasurement;
-    use crate::spatial_economic::Quantity;
+    use crate::spatial_economic::{
+        EvidenceKind, EvidenceRecord, EvidenceState, Provenance, SpatialContext, TimeContext,
+        Quantity, EVIDENCE_SCHEMA_VERSION,
+    };
 
     fn measurement(entity_id: &str, value: f64) -> FunctionMeasurement {
         FunctionMeasurement {
@@ -478,6 +487,51 @@ mod tests {
             result.worst_case_conservative_failure_sets,
             vec![vec!["supply".to_owned()]]
         );
+    }
+
+    #[test]
+    fn forced_availability_failures_remove_the_overridden_observation_reference() {
+        let mut input = request(1, 10);
+        input.baseline_scenario.links.truncate(1);
+        input.baseline_scenario.links[0].to_entity_id = "service:water".into();
+        input.baseline_scenario.links[0].availability_basis = ScenarioBasis::Observed;
+        input.baseline_scenario.links[0].availability_supporting_evidence_ids =
+            vec!["ev:supply-active".into()];
+        let evidence = EvidenceRecord {
+            id: "ev:supply-active".into(),
+            schema_version: EVIDENCE_SCHEMA_VERSION.into(),
+            kind: EvidenceKind::Observation,
+            state: EvidenceState::Asserted,
+            issuer_id: "did:example:stress-tests".into(),
+            subject_id: "supply".into(),
+            spatial: SpatialContext {
+                entity_id: "supply".into(),
+                geometry_uri: None,
+                crs: None,
+            },
+            time: TimeContext {
+                occurred_at: "2026-10-16T10:00:00Z".into(),
+                recorded_at: "2026-10-16T10:00:00Z".into(),
+                valid_from: None,
+                valid_until: None,
+            },
+            statement: "Synthetic observed supply-link availability".into(),
+            quantity: None,
+            money: None,
+            provenance: Provenance {
+                method: "synthetic_test".into(),
+                source_artifacts: Vec::new(),
+                derivation_id: None,
+            },
+            supersedes: None,
+            access_policy: "policy:synthetic-test".into(),
+        };
+
+        let result = assess_service_network_stress(&input, &[evidence]).unwrap();
+        assert_eq!(result.baseline.availability_evidence_ids, vec!["ev:supply-active"]);
+        assert_eq!(result.cases.len(), 1);
+        assert!(result.cases[0].assessment.availability_evidence_ids.is_empty());
+        assert_eq!(result.cases[0].failed_link_ids, vec!["supply"]);
     }
 
     #[test]
