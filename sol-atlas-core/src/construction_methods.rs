@@ -111,6 +111,7 @@ pub struct ConstructionGateReceipt {
     pub evidence_sha256: String,
     pub reviewer_id: String,
     pub project_scope_id: String,
+    pub project_scope_sha256: String,
     pub design_revision_sha256: String,
     pub assessed_at_unix_seconds: i64,
     pub valid_until_unix_seconds: i64,
@@ -126,6 +127,7 @@ pub struct ConstructionMetricReceipt {
     pub source_id: String,
     pub source_sha256: String,
     pub project_scope_id: String,
+    pub project_scope_sha256: String,
     pub design_revision_sha256: String,
     pub functional_basis_id: String,
     pub study_period_years: u16,
@@ -138,6 +140,7 @@ pub struct ConstructionMethodCandidate {
     pub method_id: String,
     pub family: ConstructionFamily,
     pub project_scope_id: String,
+    pub project_scope_sha256: String,
     pub design_revision_sha256: String,
     /// Exact shared basis, e.g. one m² of usable floor area delivering the same service.
     pub functional_basis_id: String,
@@ -315,7 +318,9 @@ fn validate_candidate_identity(
     if !nonempty(&candidate.method_id) {
         return Err(ConstructionMethodError::EmptyMethodId);
     }
-    if candidate.project_scope_id != policy.project_scope_id {
+    if candidate.project_scope_id != policy.project_scope_id
+        || candidate.project_scope_sha256 != policy.project_scope_sha256
+    {
         return Err(ConstructionMethodError::ScopeMismatch(
             candidate.method_id.clone(),
         ));
@@ -361,7 +366,9 @@ fn validate_gate_receipt(
             field: "gate evidence_sha256".into(),
         });
     }
-    if !valid_sha256(&receipt.design_revision_sha256)
+    if !valid_sha256(&receipt.project_scope_sha256)
+        || receipt.project_scope_sha256 != policy.project_scope_sha256
+        || !valid_sha256(&receipt.design_revision_sha256)
         || receipt.design_revision_sha256 != candidate.design_revision_sha256
         || receipt.project_scope_id != policy.project_scope_id
     {
@@ -410,7 +417,9 @@ fn validate_metric_receipt(
             field: "metric source_sha256".into(),
         });
     }
-    if !valid_sha256(&receipt.design_revision_sha256)
+    if !valid_sha256(&receipt.project_scope_sha256)
+        || receipt.project_scope_sha256 != policy.project_scope_sha256
+        || !valid_sha256(&receipt.design_revision_sha256)
         || receipt.design_revision_sha256 != candidate.design_revision_sha256
         || receipt.project_scope_id != policy.project_scope_id
     {
@@ -755,6 +764,7 @@ mod tests {
             method_id: method_id.into(),
             family: ConstructionFamily::Hybrid,
             project_scope_id: p.project_scope_id.clone(),
+            project_scope_sha256: p.project_scope_sha256.clone(),
             design_revision_sha256: digest('b'),
             functional_basis_id: p.functional_basis_id.clone(),
             study_period_years: p.study_period_years,
@@ -766,6 +776,7 @@ mod tests {
                 evidence_sha256: digest('c'),
                 reviewer_id: "qualified-reviewer-role".into(),
                 project_scope_id: p.project_scope_id.clone(),
+                project_scope_sha256: p.project_scope_sha256.clone(),
                 design_revision_sha256: digest('b'),
                 assessed_at_unix_seconds: 999_000,
                 valid_until_unix_seconds: 1_010_000,
@@ -809,6 +820,7 @@ mod tests {
             source_id: format!("{method_id}-{metric:?}-estimate"),
             source_sha256: digest('d'),
             project_scope_id: p.project_scope_id,
+            project_scope_sha256: p.project_scope_sha256,
             design_revision_sha256: digest('b'),
             functional_basis_id: "one-square-meter-usable-floor-60y-v1".into(),
             study_period_years: 60,
