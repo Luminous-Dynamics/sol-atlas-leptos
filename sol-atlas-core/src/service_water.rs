@@ -10,7 +10,6 @@
 //! customer-side losses, and explicit spill. It does not calculate pressure,
 //! pipe friction, water quality, contamination, or within-step transient behavior.
 
-use crate::dependency_logic::ScenarioBasis;
 use crate::service_function::{
     FunctionMeasurement, ServiceFunctionAssessmentError, ServiceFunctionValidationError,
     build_evidence_index, validate_measurement,
@@ -62,6 +61,7 @@ pub struct WaterServiceScenario {
     pub treatment_capacity: FunctionMeasurement,
     /// Customer-side delivery is bounded by this rate after treatment and storage.
     pub distribution_capacity: FunctionMeasurement,
+    /// Usable treated-water inventory downstream of treatment and upstream of distribution.
     /// Both storage measurements must identify the same tank/reservoir entity.
     pub initial_storage: FunctionMeasurement,
     pub storage_capacity: FunctionMeasurement,
@@ -81,6 +81,8 @@ pub struct WaterServiceBalancePath {
     pub raw_distribution_withdrawal: f64,
     /// Customer-side delivery after the selected loss fraction.
     pub customer_delivered_volume: f64,
+    /// Water lost between distribution withdrawal and customer delivery.
+    pub distribution_loss_volume: f64,
     pub ending_storage_volume: f64,
     pub spilled_volume: f64,
     /// Available water minus withdrawal, ending storage, and spill. Must be ~0.
@@ -470,10 +472,11 @@ fn simulate_path(inputs: PathInputs, step_hours: f64) -> WaterServiceBalancePath
     let demand_with_losses = inputs.demand_volume / (1.0 - inputs.loss_fraction);
     let withdrawal = available.min(distribution_limit).min(demand_with_losses);
     let delivered = withdrawal * (1.0 - inputs.loss_fraction);
+    let distribution_loss = (withdrawal - delivered).max(0.0);
     let before_spill = (available - withdrawal).max(0.0);
     let ending_storage = before_spill.min(inputs.storage_capacity);
     let spill = (before_spill - ending_storage).max(0.0);
-    let residual = available - withdrawal - ending_storage - spill;
+    let residual = available - delivered - distribution_loss - ending_storage - spill;
 
     WaterServiceBalancePath {
         demand_volume: inputs.demand_volume,
@@ -481,6 +484,7 @@ fn simulate_path(inputs: PathInputs, step_hours: f64) -> WaterServiceBalancePath
         available_water_volume: available,
         raw_distribution_withdrawal: withdrawal,
         customer_delivered_volume: delivered,
+        distribution_loss_volume: distribution_loss,
         ending_storage_volume: ending_storage,
         spilled_volume: spill,
         mass_balance_residual: residual,
@@ -490,6 +494,7 @@ fn simulate_path(inputs: PathInputs, step_hours: f64) -> WaterServiceBalancePath
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::dependency_logic::ScenarioBasis;
     use crate::spatial_economic::Quantity;
 
     const AS_OF: &str = "2026-10-16T09:00:00Z";
@@ -548,6 +553,23 @@ mod tests {
         assert!(result.conservative_path.mass_balance_residual.abs() < 1e-9);
         assert!(result.optimistic_path.mass_balance_residual.abs() < 1e-9);
         assert_eq!(result.conservative_path.ending_storage_volume, 105.0);
+        assert!((result.conservative_path.raw_distribution_withdrawal
+            - result.conservative_path.customer_delivered_volume
+            - result.conservative_path.distribution_loss_volume)
+            .abs()
+            < 1e-9);
+        assert!((result.optimistic_path.raw_distribution_withdrawal
+            - result.optimistic_path.customer_delivered_volume
+            - result.optimistic_path.distribution_loss_volume)
+            .abs()
+            < 1e-9);
+        let mut more_source = scenario("water-more-source");
+        more_source.source_flow_rate.quantity.value = 10_000.0;
+        assert_eq!(
+            assess_water_service(&more_source, &[]).unwrap().treated_volume_lower_bound,
+            65.0,
+            "increasing source flow cannot exceed the pump/treatment serial bottleneck"
+        );
     }
 
     #[test]

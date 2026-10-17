@@ -104,6 +104,16 @@ fn main() {
                 && item.optimistic_path.mass_balance_residual.abs() <= 1e-9
                 && item.conservative_path.ending_storage_volume <= 500.0
                 && item.optimistic_path.ending_storage_volume <= 500.0
+                && (item.conservative_path.available_water_volume
+                    - item.conservative_path.customer_delivered_volume
+                    - item.conservative_path.distribution_loss_volume
+                    - item.conservative_path.ending_storage_volume
+                    - item.conservative_path.spilled_volume).abs() <= 1e-9
+                && (item.optimistic_path.available_water_volume
+                    - item.optimistic_path.customer_delivered_volume
+                    - item.optimistic_path.distribution_loss_volume
+                    - item.optimistic_path.ending_storage_volume
+                    - item.optimistic_path.spilled_volume).abs() <= 1e-9
         }));
         let reference_bytes =
             serde_json::to_vec(&reference).expect("reference assessment serialization must succeed");

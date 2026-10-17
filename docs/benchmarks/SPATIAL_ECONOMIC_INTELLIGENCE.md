@@ -135,7 +135,7 @@ This protocol is intended to make improvements measurable and reproducible—not
 
 ## Water-service balance batch
 
-The separate water_service_balance benchmark evaluates 100, 1,000 and 10,000 synthetic water-service scenarios. Each scenario has distinct source, pump, treatment, distribution, storage and demand entities; the serial stages have a known treatment bottleneck. The run asserts the expected degraded state, ordered delivery-capacity bounds, storage-capacity limits, zero-within-tolerance mass residuals and byte-identical result serialization. It reports p50/p95/max latency and result bytes; it does not claim field accuracy or measured performance before execution.
+The separate water_service_balance benchmark evaluates 100, 1,000 and 10,000 synthetic water-service scenarios. Each scenario has distinct source, pump, treatment, distribution, storage and demand entities; the serial stages have a known treatment bottleneck. The run asserts the expected degraded state, ordered delivery-capacity bounds, storage-capacity limits, explicit distribution-loss reconciliation, zero-within-tolerance whole-ledger mass residuals and byte-identical result serialization. It reports p50/p95/max latency and result bytes; it does not claim field accuracy or measured performance before execution.
 
 Run with WATER_BENCH_WARMUP=5 and WATER_BENCH_SAMPLES=100 using cargo bench --bench water_service_balance.
 

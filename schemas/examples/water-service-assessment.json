@@ -21,7 +21,8 @@
     "customer_delivered_volume": 52.8,
     "ending_storage_volume": 105,
     "spilled_volume": 0,
-    "mass_balance_residual": 0
+    "mass_balance_residual": 0,
+    "distribution_loss_volume": 7.2
   },
   "optimistic_path": {
     "demand_volume": 100,
@@ -31,7 +32,8 @@
     "customer_delivered_volume": 55.2,
     "ending_storage_volume": 105,
     "spilled_volume": 0,
-    "mass_balance_residual": 0
+    "mass_balance_residual": 0,
+    "distribution_loss_volume": 4.8
   },
   "supporting_evidence_ids": []
 }

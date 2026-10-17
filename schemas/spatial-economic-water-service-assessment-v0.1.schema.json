@@ -107,6 +107,7 @@
         "available_water_volume",
         "raw_distribution_withdrawal",
         "customer_delivered_volume",
+        "distribution_loss_volume",
         "ending_storage_volume",
         "spilled_volume",
         "mass_balance_residual"
@@ -142,6 +143,10 @@
         },
         "mass_balance_residual": {
           "type": "number"
+        },
+        "distribution_loss_volume": {
+          "type": "number",
+          "minimum": 0
         }
       }
     }
