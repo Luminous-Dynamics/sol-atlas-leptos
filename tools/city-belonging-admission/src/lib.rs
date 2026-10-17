@@ -728,8 +728,8 @@ mod tests {
     #[test]
     fn service_area_never_becomes_a_street_pin_even_if_coordinates_exist() {
         let mut record: Value = serde_json::from_str(FIXTURE.lines().nth(9).unwrap()).unwrap();
-        record["hsds_fragment"]["location"]["latitude"] = json!(-26.2);
-        record["hsds_fragment"]["location"]["longitude"] = json!(28.0);
+        record["hsds_resources"]["location"]["latitude"] = json!(-26.2);
+        record["hsds_resources"]["location"]["longitude"] = json!(28.0);
         record["admission_evidence"]["field_states"]["coordinates"] = json!("provider_confirmed");
         let decision = evaluate_record(&record, "2026-10-17", 30).unwrap();
         assert!(!decision.show_map_pin);
