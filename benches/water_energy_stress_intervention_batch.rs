@@ -32,6 +32,7 @@ use sol_atlas_core::service_water_trajectory::{
 };
 use sol_atlas_core::spatial_economic::Quantity;
 use std::env;
+use std::fs;
 use std::process::Command;
 use std::time::{Duration, Instant};
 
@@ -44,6 +45,8 @@ struct Report {
     runner_arch: Option<String>,
     host_os: String,
     host_arch: String,
+    process_peak_rss_bytes_at_report: Option<u64>,
+    rss_measurement_scope: &'static str,
     workload: &'static str,
     service_cells: usize,
     intervals_per_service: usize,
@@ -300,6 +303,13 @@ fn compiler_version() -> Option<String> {
         .map(|value| value.trim().to_owned())
 }
 
+fn peak_rss_bytes() -> Option<u64> {
+    let status = fs::read_to_string("/proc/self/status").ok()?;
+    let line = status.lines().find(|line| line.starts_with("VmHWM:"))?;
+    let kibibytes = line.split_whitespace().nth(1)?.parse::<u64>().ok()?;
+    kibibytes.checked_mul(1024)
+}
+
 fn run(
     candidate_count: usize,
     cells: usize,
@@ -409,6 +419,8 @@ fn run(
         runner_arch: env::var("RUNNER_ARCH").ok(),
         host_os: std::env::consts::OS.to_owned(),
         host_arch: std::env::consts::ARCH.to_owned(),
+        process_peak_rss_bytes_at_report: peak_rss_bytes(),
+        rss_measurement_scope: "process VmHWM since process start; compact and full-trace workloads share one benchmark process",
         workload: "one-baseline compact batch versus repeated full-trace per-candidate comparisons",
         service_cells: cells,
         intervals_per_service: intervals,
