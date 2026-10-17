@@ -37,9 +37,9 @@ The precedence is intentionally conservative and must be reviewed with local ope
 
 ## Failure behaviour and outputs
 
-The verifier checks exact SHA-256 before parsing, requires newline-terminated JSONL, rejects blank lines, malformed JSON, duplicate fixture IDs and manifest count/disposition drift, then compares every expected decision and safety flag to the policy function. Errors return a non-zero CLI exit; manifests are never rewritten automatically.
+The verifier checks the fixture SHA-256 before parsing records, confirms the pinned schema-manifest SHA-256 and each vendored source-schema digest, checks the selected HSDS 3.1 row contract and cross-row IDs, requires newline-terminated JSONL, rejects blank lines, malformed JSON, duplicate fixture IDs and manifest count/disposition drift, then compares every expected admission decision and display-safety flag to the policy function. Errors return a non-zero CLI exit; manifests are never rewritten automatically.
 
-The report says `SYNTHETIC_POLICY_FIXTURE_MATCH` only when the fixture matches this version of the policy. It is not evidence that a real listing is open, safe, affordable, accessible, available, or permitted for reuse. It does not yet validate against the canonical upstream HSDS 3.1 JSON Schemas; the fixture uses HSDS-shaped fragments and a separately versioned local evidence envelope. No real service data are imported.
+The report says `SYNTHETIC_POLICY_FIXTURE_MATCH` only when the synthetic fixture matches this policy. It also verifies byte hashes for nine vendored Open Referral HSDS 3.1 resource-schema files and validates selected row properties: allowed fields, required plus tabular-required fields, declared scalar types, formats, enums, and cross-row relationships. The input resource rows are normalized (not a full nested HSDS API document). This is **not full HSDS conformance**: nested `$ref` semantics and every upstream schema rule are not fully implemented, and the standard's full schema/profile toolchain has not been run. A pass is not evidence that any real listing is open, safe, affordable, accessible, available, or permitted for reuse. No real service data are imported.
 
 ## Qualification targets
 
