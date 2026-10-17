@@ -16,7 +16,7 @@ use crate::service_function::{
 use crate::service_water::{WATER_RATE_UNIT, WATER_VOLUME_UNIT};
 use crate::service_water_trajectory::{
     WaterServiceTrajectory, WaterServiceTrajectoryAssessment, WaterServiceTrajectoryError,
-    WaterServiceTrajectoryStep, assess_trajectory_indexed,
+    assess_trajectory_indexed,
 };
 use crate::spatial_economic::{EvidenceRecord, Quantity};
 use crate::spatial_graph::is_canonical_utc_timestamp;
