@@ -260,7 +260,7 @@ fn validate_trajectory(
     }
 }
 
-fn assess_trajectory_indexed(
+pub(crate) fn assess_trajectory_indexed(
     trajectory: &WaterServiceTrajectory,
     evidence_by_id: &BTreeMap<&str, &EvidenceRecord>,
 ) -> Result<WaterServiceTrajectoryAssessment, WaterServiceTrajectoryError> {

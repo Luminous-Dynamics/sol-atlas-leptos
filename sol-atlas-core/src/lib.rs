@@ -32,6 +32,7 @@ pub mod service_network_stress;
 pub mod service_recovery;
 pub mod service_water;
 pub mod service_water_trajectory;
+pub mod service_water_trajectory_intervention;
 pub mod simulation;
 pub mod solar_system;
 pub mod spatial_economic;
