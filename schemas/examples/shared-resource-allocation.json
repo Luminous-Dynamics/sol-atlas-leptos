@@ -123,5 +123,5 @@
       }
     }
   ],
-  "max_work_units": 20000000
+  "max_work_units": 60000000
 }
