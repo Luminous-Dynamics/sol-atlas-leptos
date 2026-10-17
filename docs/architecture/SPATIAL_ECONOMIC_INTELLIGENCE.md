@@ -104,7 +104,7 @@ The trajectory requires the first snapshot to coincide with the declared disrupt
 
 This is a discrete trajectory primitive, not a stochastic restoration model or a domain-specific physical simulator. Future time-to-recovery estimates must be evaluated against independently recorded disruptions and restoration times, with sampling gaps and uncertain records retained in the report.
 
-### 10. From nominal resilience estimates to exhaustive bounded failure experiments
+### 12. From nominal resilience estimates to exhaustive bounded failure experiments
 
 A baseline max-flow value answers what the declared network can deliver under one scenario. It does not answer how fragile that service is when multiple links fail together. The new service_network_stress.rs enumerates all combinations of one, two or three currently active link failures, subject to explicit limits of at most 10,000 failure cases and 2,000,000 total scenario-link references. It also accepts explicitly declared common-cause or hazard bundles (for example, one shared feeder fault disabling two alternative routes), labeled separately from the enumerated link combinations. It reports the exact candidate/evaluated case counts, case provenance, worst-case conservative and optimistic capacity, flow loss and all unique failed-link sets tied for the worst result.
 
@@ -113,9 +113,9 @@ This is deterministic stress testing, not probabilistic risk estimation. The enu
 The budget is a safety boundary. If the exhaustive set exceeds the configured limit, the algorithm fails closed rather than silently truncating or sampling failure combinations. A successful response is exhaustive for the chosen order and declared graph. It still does not cover omitted hazards, shared-cause relationships that are not translated into the scenario, repair-time dependencies, or physical effects such as pressure and voltage. Those need separate, explicit models. This direction complements NIST's system-of-systems resilience methods, which emphasize service functionality, interdependencies, disruptive scenarios and recovery. The implementation intentionally keeps its narrower graph assumptions visible.
 
 
-### 12. From average service performance to distributional service-floor guarantees
+### 13. From average service performance to distributional service-floor guarantees
 
-A high system-wide average can conceal a community that remains below a minimum essential-service threshold. The new service_equity.rs consumes evidence-validated capacity/demand scenarios and pairs each one with an explicit community, caller-defined beneficiary weight and essential coverage floor. It classifies each cell as meets-floor, below-floor, or indeterminate using lower and upper coverage bounds, retains evidence IDs, and reports per-community lower/upper compliance fractions plus bounds on the gap between communities.
+A high system-wide average can conceal a community that remains below a minimum essential-service threshold. The new service_equity.rs consumes evidence-validated capacity/demand scenarios and pairs each one with an explicit community, caller-defined beneficiary weight and essential coverage floor. Each capacity/demand scenario must already represent delivery applicable to its service/community cell: this evaluator does not spatially disaggregate network flow. Reusing one scenario across several communities explicitly assumes that the same assessed coverage applies to each. It classifies each cell as meets-floor, below-floor, or indeterminate using lower and upper coverage bounds, retains evidence IDs, and reports per-community lower/upper compliance fractions plus bounds on the gap between communities.
 
 The aggregate is intentionally a set of inspectable measures, not a composite welfare score. Indeterminate weight is never quietly counted as definitely served or definitely underserved. Service-floor definitions should be ratified with affected communities and relevant public-service obligations, not selected to make an intervention look successful.
 
