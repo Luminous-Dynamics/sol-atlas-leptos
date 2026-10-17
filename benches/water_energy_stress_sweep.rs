@@ -44,6 +44,8 @@ struct Report {
     rss_measurement_scope: &'static str,
     workload: &'static str,
     declared_failure_scenarios: usize,
+    declared_failure_overrides: usize,
+    evaluated_failure_overrides: usize,
     service_cells: usize,
     intervals_per_service: usize,
     total_service_step_assessments: usize,
@@ -256,6 +258,8 @@ fn run(
         || !output.exhaustive_over_declared_scenarios
         || output.total_service_step_assessments != expected_step_assessments
         || output.cases.len() != scenario_count
+        || output.declared_failure_override_count != scenario_count * service_cells
+        || output.evaluated_failure_override_count != scenario_count * service_cells
         || (output.worst_case_floor_compliance_lower_bound - 0.0).abs() > 1e-9
     {
         panic!("joint-stress benchmark failed its exhaustive-count or worst-floor oracle");
@@ -282,6 +286,8 @@ fn run(
         ),
         workload: "joint water-energy stress sweep with protected service floors",
         declared_failure_scenarios: scenario_count,
+        declared_failure_overrides: output.declared_failure_override_count,
+        evaluated_failure_overrides: output.evaluated_failure_override_count,
         service_cells,
         intervals_per_service: intervals,
         total_service_step_assessments: output.total_service_step_assessments,
