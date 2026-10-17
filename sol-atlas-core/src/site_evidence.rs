@@ -139,6 +139,8 @@ pub enum EvidencePolicyError {
     EmptyRightsPolicy,
     EmptyRequiredCrs,
     EmptyRequiredExtentCrs,
+    MissingRequiredExtentCrs,
+    ConflictingRequiredCrs,
     EmptyRequiredAxisPolicy,
     InvalidMaximumResolution(f64),
     InvalidRequiredExtent,
@@ -162,6 +164,12 @@ impl fmt::Display for EvidencePolicyError {
             Self::EmptyRequiredCrs => write!(f, "required CRS must not be empty"),
             Self::EmptyRequiredExtentCrs => {
                 write!(f, "required extent CRS must not be empty")
+            }
+            Self::MissingRequiredExtentCrs => {
+                write!(f, "required extent must declare its CRS or inherit an explicit required CRS")
+            }
+            Self::ConflictingRequiredCrs => {
+                write!(f, "required CRS and required extent CRS must agree")
             }
             Self::EmptyRequiredAxisPolicy => {
                 write!(f, "required axis order must not be Unknown")
@@ -225,6 +233,19 @@ fn validate_policy(policy: &EvidencePolicy) -> Result<(), EvidencePolicyError> {
     }
     if policy.required_extent.is_some_and(|extent| !valid_extent(extent)) {
         return Err(EvidencePolicyError::InvalidRequiredExtent);
+    }
+    if policy.required_extent.is_some()
+        && policy.required_extent_crs.is_none()
+        && policy.required_crs.is_none()
+    {
+        return Err(EvidencePolicyError::MissingRequiredExtentCrs);
+    }
+    if let (Some(crs), Some(extent_crs)) =
+        (&policy.required_crs, &policy.required_extent_crs)
+    {
+        if crs != extent_crs {
+            return Err(EvidencePolicyError::ConflictingRequiredCrs);
+        }
     }
     Ok(())
 }
