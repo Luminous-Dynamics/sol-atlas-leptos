@@ -61,3 +61,18 @@ The task fixture is currently a proposed benchmark. It must receive independent 
 ## Reference evaluator
 
 The standalone Rust policy slice is [tools/city-belonging-task-matcher](../../../tools/city-belonging-task-matcher/README.md). It emits per-constraint states and separate eligible/preferred sets. A separate JavaScript policy mirror matched the current 14 cases' expected eligible sets, preferred sets, and exclusion-reason coverage. This is independent logic over the fixture, **not** execution of the Rust evaluator, and does not validate the JSON Schema with a schema engine. The Rust crate has 18 authored tests but remains uncompiled/unexecuted.
+
+
+## Metamorphic tests: 7 invariants
+
+The task matcher now has seven authored metamorphic tests, summarized in the [machine-readable contract](city-belonging-metamorphic-contract-v0.1.json):
+
+1. Candidate ordering cannot change eligibility, preference, or receipt outcomes.
+2. Reordering a conjunction of hard constraints cannot change the answer.
+3. Changing soft preferences cannot change hard eligibility.
+4. Adding a hard constraint cannot add eligible candidates.
+5. Removing a hard constraint cannot remove eligible candidates.
+6. Adding unrelated popularity/click-count fields cannot change a decision.
+7. Satisfying one condition cannot override an unknown or mismatch in another hard constraint.
+
+All seven are authored tests, not executed evidence. Target: 7/7 properties pass, with zero hard-constraint violations, zero unknown-to-positive conversions, and zero preference-only eligibility changes. The matcher has 25 authored tests at this revision; Rust execution is still pending.
