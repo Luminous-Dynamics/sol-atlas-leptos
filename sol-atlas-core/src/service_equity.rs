@@ -520,6 +520,25 @@ mod tests {
     }
 
     #[test]
+    fn service_equity_json_fixtures_match_distributional_golden_output() {
+        let input: ServiceEquityScenario = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-equity-scenario.json"
+        )).unwrap();
+        let expected: ServiceEquityAssessment = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-equity-assessment.json"
+        )).unwrap();
+        let services = vec![
+            function_scenario("service:a", "water:north", 9.0, None, 10.0, None),
+            function_scenario("service:b", "water:south", 2.0, None, 10.0, None),
+            function_scenario("service:c", "water:east", 7.0, Some(2.0), 10.0, Some(1.0)),
+        ];
+        let actual = assess_service_equity(&input, &services, &[]).unwrap();
+        assert_eq!(actual, expected);
+        assert_eq!(actual.overall_floor_compliance_lower_bound, 0.6);
+        assert_eq!(actual.overall_floor_compliance_upper_bound, 0.8);
+    }
+
+    #[test]
     fn unknown_service_reference_and_timestamp_mismatch_fail_closed() {
         let valid_service = function_scenario("known", "water:service", 10.0, None, 10.0, None);
         let unknown_reference = assess_service_equity(
