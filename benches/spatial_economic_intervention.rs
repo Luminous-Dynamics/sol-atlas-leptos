@@ -19,13 +19,13 @@ use sol_atlas_core::dependency_logic::{
     EntityOperationalState, ScenarioBasis, ScenarioEntityCondition,
 };
 use sol_atlas_core::intervention::{InterventionPlan, compare_intervention};
+use sol_atlas_core::service_equity::{
+    SERVICE_EQUITY_SCHEMA_VERSION, ServiceEquityCell, ServiceEquityScenario, ServiceFloorStatus,
+    assess_service_equity,
+};
 use sol_atlas_core::service_function::{
     FunctionMeasurement, SERVICE_FUNCTION_SCHEMA_VERSION, ServiceFunctionScenario,
     ServiceFunctionState, assess_service_functions,
-};
-use sol_atlas_core::service_equity::{
-    ServiceEquityCell, ServiceEquityScenario, SERVICE_EQUITY_SCHEMA_VERSION,
-    ServiceFloorStatus, assess_service_equity,
 };
 use sol_atlas_core::service_network::{
     NetworkAssessmentState, NetworkLink, NetworkLinkAvailability, NetworkTopologyCompleteness,
@@ -894,16 +894,36 @@ fn main() {
                 }
             },
         );
-        assert_eq!(reference_equity.total_beneficiary_weight, expected_equity_totals.0);
-        assert_eq!(reference_equity.meets_floor_weight, expected_equity_totals.1);
-        assert_eq!(reference_equity.below_floor_weight, expected_equity_totals.2);
-        assert_eq!(reference_equity.indeterminate_weight, expected_equity_totals.3);
-        assert!(reference_equity.cells.iter().all(|cell| match cell.floor_status {
-            ServiceFloorStatus::MeetsFloor => cell.coverage_lower_bound == Some(65.0 / 110.0),
-            ServiceFloorStatus::Indeterminate => cell.coverage_lower_bound == Some(65.0 / 110.0)
-                && cell.coverage_upper_bound == Some(75.0 / 90.0),
-            ServiceFloorStatus::BelowFloor => cell.coverage_upper_bound == Some(75.0 / 90.0),
-        }));
+        assert_eq!(
+            reference_equity.total_beneficiary_weight,
+            expected_equity_totals.0
+        );
+        assert_eq!(
+            reference_equity.meets_floor_weight,
+            expected_equity_totals.1
+        );
+        assert_eq!(
+            reference_equity.below_floor_weight,
+            expected_equity_totals.2
+        );
+        assert_eq!(
+            reference_equity.indeterminate_weight,
+            expected_equity_totals.3
+        );
+        assert!(
+            reference_equity
+                .cells
+                .iter()
+                .all(|cell| match cell.floor_status {
+                    ServiceFloorStatus::MeetsFloor =>
+                        cell.coverage_lower_bound == Some(65.0 / 110.0),
+                    ServiceFloorStatus::Indeterminate =>
+                        cell.coverage_lower_bound == Some(65.0 / 110.0)
+                            && cell.coverage_upper_bound == Some(75.0 / 90.0),
+                    ServiceFloorStatus::BelowFloor =>
+                        cell.coverage_upper_bound == Some(75.0 / 90.0),
+                })
+        );
         let reference_equity_bytes =
             serde_json::to_vec(&reference_equity).expect("equity assessment serializes");
 
@@ -1420,14 +1440,22 @@ fn main() {
             equity_meets_floor_weight: reference_equity.meets_floor_weight,
             equity_below_floor_weight: reference_equity.below_floor_weight,
             equity_indeterminate_weight: reference_equity.indeterminate_weight,
-            equity_floor_compliance_lower_bound: reference_equity.overall_floor_compliance_lower_bound,
-            equity_floor_compliance_upper_bound: reference_equity.overall_floor_compliance_upper_bound,
-            equity_compliance_gap_lower_bound: reference_equity.community_compliance_gap_lower_bound,
-            equity_compliance_gap_upper_bound: reference_equity.community_compliance_gap_upper_bound,
+            equity_floor_compliance_lower_bound: reference_equity
+                .overall_floor_compliance_lower_bound,
+            equity_floor_compliance_upper_bound: reference_equity
+                .overall_floor_compliance_upper_bound,
+            equity_compliance_gap_lower_bound: reference_equity
+                .community_compliance_gap_lower_bound,
+            equity_compliance_gap_upper_bound: reference_equity
+                .community_compliance_gap_upper_bound,
             equity_result_bytes: reference_equity_bytes.len(),
             equity_p50_micros: percentile(&equity_samples, 50).as_micros(),
             equity_p95_micros: percentile(&equity_samples, 95).as_micros(),
-            equity_max_micros: equity_samples.last().copied().unwrap_or_default().as_micros(),
+            equity_max_micros: equity_samples
+                .last()
+                .copied()
+                .unwrap_or_default()
+                .as_micros(),
             network_scenarios_per_run: reference_network.len(),
             network_links_per_run: network_scenarios.iter().map(|item| item.links.len()).sum(),
             network_evidence_records: network_evidence.len(),
