@@ -108,7 +108,10 @@ impl fmt::Display for ValueOfInformationError {
             Self::EmptyDecisionId => write!(f, "decision IDs must not be empty"),
             Self::EmptyOutcomeId => write!(f, "outcome IDs must not be empty"),
             Self::InvalidProbability { label, value } => {
-                write!(f, "probability {label} must be finite and in [0, 1], got {value}")
+                write!(
+                    f,
+                    "probability {label} must be finite and in [0, 1], got {value}"
+                )
             }
             Self::InvalidLoss {
                 decision_id,
@@ -121,10 +124,7 @@ impl fmt::Display for ValueOfInformationError {
             Self::MissingDecisionLoss {
                 decision_id,
                 state_id,
-            } => write!(
-                f,
-                "decision {decision_id} has no loss for state {state_id}"
-            ),
+            } => write!(f, "decision {decision_id} has no loss for state {state_id}"),
             Self::UnknownDecisionState {
                 decision_id,
                 state_id,
@@ -334,8 +334,7 @@ pub fn assess_investigation(
         .state_probabilities
         .iter()
         .map(|(state, probability)| {
-            probability
-                * choose_loss(model.losses.values().map(|losses| losses[state]))
+            probability * choose_loss(model.losses.values().map(|losses| losses[state]))
         })
         .sum::<f64>();
 
@@ -422,12 +421,9 @@ mod tests {
 
     fn decision_model() -> DecisionModel {
         DecisionModel {
-            state_probabilities: [
-                ("good_ground".into(), 0.7),
-                ("poor_ground".into(), 0.3),
-            ]
-            .into_iter()
-            .collect(),
+            state_probabilities: [("good_ground".into(), 0.7), ("poor_ground".into(), 0.3)]
+                .into_iter()
+                .collect(),
             losses: [
                 (
                     "standard_foundation".into(),
@@ -496,21 +492,15 @@ mod tests {
             outcome_likelihoods: [
                 (
                     "good_signal".into(),
-                    [
-                        ("good_ground".into(), 1.0),
-                        ("poor_ground".into(), 0.0),
-                    ]
-                    .into_iter()
-                    .collect(),
+                    [("good_ground".into(), 1.0), ("poor_ground".into(), 0.0)]
+                        .into_iter()
+                        .collect(),
                 ),
                 (
                     "poor_signal".into(),
-                    [
-                        ("good_ground".into(), 0.0),
-                        ("poor_ground".into(), 1.0),
-                    ]
-                    .into_iter()
-                    .collect(),
+                    [("good_ground".into(), 0.0), ("poor_ground".into(), 1.0)]
+                        .into_iter()
+                        .collect(),
                 ),
             ]
             .into_iter()
@@ -585,8 +575,9 @@ mod tests {
 
     #[test]
     fn synthetic_voi_benchmark_matches_expected_values() {
-        let fixture =
-            include_str!("../../docs/research/fixtures/site-investigation-voi-benchmark-v0.1.jsonl");
+        let fixture = include_str!(
+            "../../docs/research/fixtures/site-investigation-voi-benchmark-v0.1.jsonl"
+        );
         let mut cases = 0;
         for line in fixture.lines().filter(|line| !line.trim().is_empty()) {
             let case: BenchmarkCase =
@@ -595,17 +586,59 @@ mod tests {
                 .unwrap_or_else(|error| panic!("{}: {error}", case.case_id));
             assert_eq!(results.len(), case.expected.len(), "{}", case.case_id);
             for result in results {
-                let expected = case.expected.get(&result.investigation_id)
-                    .unwrap_or_else(|| panic!("{}: missing expected result for {}", case.case_id, result.investigation_id));
+                let expected = case
+                    .expected
+                    .get(&result.investigation_id)
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "{}: missing expected result for {}",
+                            case.case_id, result.investigation_id
+                        )
+                    });
                 let tolerance = expected.tolerance;
-                assert!((result.expected_loss_before_information - expected.before).abs() <= tolerance, "{}", case.case_id);
-                assert!((result.expected_loss_after_sample_information - expected.after_sample).abs() <= tolerance, "{}", case.case_id);
-                assert!((result.expected_loss_with_perfect_information - expected.perfect_information).abs() <= tolerance, "{}", case.case_id);
-                assert!((result.evsi - expected.evsi).abs() <= tolerance, "{}", case.case_id);
-                assert!((result.evpi - expected.evpi).abs() <= tolerance, "{}", case.case_id);
-                assert!((result.investigation_cost - expected.cost).abs() <= tolerance, "{}", case.case_id);
-                assert!((result.net_value - expected.net_value).abs() <= tolerance, "{}", case.case_id);
-                assert_eq!(result.recommended_for_economic_review, expected.recommended, "{}", case.case_id);
+                assert!(
+                    (result.expected_loss_before_information - expected.before).abs() <= tolerance,
+                    "{}",
+                    case.case_id
+                );
+                assert!(
+                    (result.expected_loss_after_sample_information - expected.after_sample).abs()
+                        <= tolerance,
+                    "{}",
+                    case.case_id
+                );
+                assert!(
+                    (result.expected_loss_with_perfect_information - expected.perfect_information)
+                        .abs()
+                        <= tolerance,
+                    "{}",
+                    case.case_id
+                );
+                assert!(
+                    (result.evsi - expected.evsi).abs() <= tolerance,
+                    "{}",
+                    case.case_id
+                );
+                assert!(
+                    (result.evpi - expected.evpi).abs() <= tolerance,
+                    "{}",
+                    case.case_id
+                );
+                assert!(
+                    (result.investigation_cost - expected.cost).abs() <= tolerance,
+                    "{}",
+                    case.case_id
+                );
+                assert!(
+                    (result.net_value - expected.net_value).abs() <= tolerance,
+                    "{}",
+                    case.case_id
+                );
+                assert_eq!(
+                    result.recommended_for_economic_review, expected.recommended,
+                    "{}",
+                    case.case_id
+                );
             }
             cases += 1;
         }
