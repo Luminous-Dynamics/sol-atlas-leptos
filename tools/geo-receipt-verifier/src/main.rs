@@ -852,6 +852,9 @@ fn validate_prior_verifier_report(
     if string_field(&report, &["verifier_commit_sha"]) != Some(evidence_commit) {
         return Err("referenced verifier report commit does not match qualification evidence".to_string());
     }
+    if git_output(repo_root, &["rev-parse", "HEAD"]).as_deref() != Some(evidence_commit) {
+        return Err("verifier report was not produced from the exact currently checked-out verifier commit".to_string());
+    }
     if string_field(&receipt, &["qualification_evidence", "verification_outcome"]) != Some("accepted") {
         return Err("qualification evidence outcome is not accepted".to_string());
     }
