@@ -198,3 +198,17 @@ Run with `WATER_ENERGY_STRESS_BENCH_WARMUP=1` and `WATER_ENERGY_STRESS_BENCH_SAM
 | 900 | 901,000 | 45,000 ms |
 
 These are proposed engineering budgets, not measured results. The harness records scenario and override counts, p50/p95/max, source revision/compiler/runner metadata, output bytes, and a process-wide RSS high-water mark when available. `VmHWM` is a process-wide high-water mark since process start, not an isolated per-workload peak; use fresh processes or an external process monitor for per-size memory comparison. The evaluator caps all service-step assessments at 1,000,000 and total scenario overrides at 100,000. The next scalability step is compact/streamed aggregation before raising those bounds.
+
+## Paired intervention comparison across joint-failure suites
+
+The dedicated `water_energy_stress_intervention` harness compares a 100-cell × 10-interval baseline and candidate across 10 declared pump-terminal power-loss scenarios (22,000 paired service-step assessments for each comparison). It runs 10 / 100 / 500 repeated evaluations of the same deterministic candidate pair inside each sample to measure repeated-comparison throughput without holding hundreds of full trace outputs in memory. Every comparison asserts robust improvement, zero protected-floor regression, complete scenario evaluation and a stable summary; each sample's serialized output must match an untimed reference.
+
+Run with `WATER_ENERGY_STRESS_INTERVENTION_BENCH_WARMUP=1` and `WATER_ENERGY_STRESS_INTERVENTION_BENCH_SAMPLES=3` using `cargo bench --bench water_energy_stress_intervention`.
+
+| Repeated evaluations per sample | Paired service-step assessments | Proposed p95 target |
+| ---: | ---: | ---: |
+| 10 | 220,000 | 1 s |
+| 100 | 2,200,000 | 10 s |
+| 500 | 11,000,000 | 50 s |
+
+These targets are unmeasured engineering hypotheses. This measures repeated individual comparisons, not a compact multi-candidate batch API; a batch API that evaluates the shared baseline once and returns compact per-candidate/per-scenario summaries remains a worthwhile optimization. The full single-candidate comparison keeps detailed per-step provenance. See [issue #150](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/150). The harness records revision/compiler/runner metadata, p50/p95/max, output bytes and process-wide RSS high-water mark where available.
