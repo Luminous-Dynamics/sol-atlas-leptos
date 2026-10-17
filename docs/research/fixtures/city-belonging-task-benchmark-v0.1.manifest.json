@@ -3,7 +3,7 @@
   "benchmark_id": "city-belonging-task-benchmark-v0.1",
   "fixture_path": "docs/research/fixtures/city-belonging-task-benchmark-v0.1.jsonl",
   "hash_algorithm": "SHA-256",
-  "fixture_sha256": "bfd395076795ad37f892d7cef3c5cab4d4268731f25de8a7fd265abdd5ef23c4",
+  "fixture_sha256": "2c20cf7bdddf5dcc2ea0f7959b6e66dbe55e9910b7e8c2e105ea8891c9f94f50",
   "record_format": "JSON Lines; UTF-8; newline-terminated",
   "record_count": 14,
   "families": {
