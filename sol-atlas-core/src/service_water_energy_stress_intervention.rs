@@ -273,14 +273,12 @@ fn validate_paired_sweeps(
         errors.push(WaterEnergyStressInterventionValidationError::EmptyComparisonId);
     }
 
-    let baseline_services: BTreeMap<&str, _> = request
-        .baseline
+    let baseline_services: BTreeMap<&str, _> = baseline
         .baseline_services
         .iter()
         .map(|service| (service.id.as_str(), service))
         .collect();
-    let candidate_services: BTreeMap<&str, _> = request
-        .candidate
+    let candidate_services: BTreeMap<&str, _> = candidate
         .baseline_services
         .iter()
         .map(|service| (service.id.as_str(), service))
@@ -346,14 +344,12 @@ fn validate_paired_sweeps(
         }
     }
 
-    let baseline_floors: BTreeMap<&str, _> = request
-        .baseline
+    let baseline_floors: BTreeMap<&str, _> = baseline
         .protected_service_floors
         .iter()
         .map(|floor| (floor.service_request_id.as_str(), floor))
         .collect();
-    let candidate_floors: BTreeMap<&str, _> = request
-        .candidate
+    let candidate_floors: BTreeMap<&str, _> = candidate
         .protected_service_floors
         .iter()
         .map(|floor| (floor.service_request_id.as_str(), floor))
@@ -380,14 +376,12 @@ fn validate_paired_sweeps(
         }
     }
 
-    let baseline_scenarios: BTreeMap<&str, _> = request
-        .baseline
+    let baseline_scenarios: BTreeMap<&str, _> = baseline
         .failure_scenarios
         .iter()
         .map(|scenario| (scenario.id.as_str(), scenario))
         .collect();
-    let candidate_scenarios: BTreeMap<&str, _> = request
-        .candidate
+    let candidate_scenarios: BTreeMap<&str, _> = candidate
         .failure_scenarios
         .iter()
         .map(|scenario| (scenario.id.as_str(), scenario))
