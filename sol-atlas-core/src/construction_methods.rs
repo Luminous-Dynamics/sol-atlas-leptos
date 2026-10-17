@@ -221,6 +221,7 @@ pub enum ConstructionMethodError {
     DuplicateGateReceipt { method_id: String, gate: ConstructionGate },
     DuplicateMetricReceipt { method_id: String, metric: ConstructionMetric },
     UnexpectedGateReceipt { method_id: String, gate: ConstructionGate },
+    UnexpectedMetricReceipt { method_id: String, metric: ConstructionMetric },
     MissingReceiptMetadata { method_id: String, field: String },
     InvalidDigest { method_id: String, field: String },
     InvalidReceiptTime { method_id: String },
@@ -477,9 +478,9 @@ fn evaluate_candidate(
         .collect();
     for receipt in &candidate.metric_receipts {
         let objective = objective_by_metric.get(&receipt.metric).ok_or_else(|| {
-            ConstructionMethodError::UnexpectedGateReceipt {
+            ConstructionMethodError::UnexpectedMetricReceipt {
                 method_id: candidate.method_id.clone(),
-                gate: ConstructionGate::QualityAssurancePlan,
+                metric: receipt.metric,
             }
         })?;
         validate_metric_receipt(candidate, receipt, policy, objective)?;
@@ -898,8 +899,8 @@ mod tests {
     fn confirmed_failure_excludes_even_with_other_missing_gates() {
         let mut p = policy();
         p.required_hard_gates.insert(ConstructionGate::FireLifeSafety);
-        let candidate = candidate("failed", (10.0, 20.0), (100.0, 120.0), (0.2, 0.3));
-        let report = evaluate_construction_methods(&[candidate], &p).unwrap();
+        let incomplete = candidate("incomplete", (10.0, 20.0), (100.0, 120.0), (0.2, 0.3));
+        let report = evaluate_construction_methods(&[incomplete], &p).unwrap();
         assert_eq!(
             report.assessments["failed"].screening_status,
             MethodScreeningStatus::NeedsEvidence
