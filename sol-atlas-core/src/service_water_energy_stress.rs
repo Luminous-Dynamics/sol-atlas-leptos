@@ -554,7 +554,9 @@ fn validate_sweep_request(
         } else {
             reference_grid = Some(grid);
         }
-        step_assessment_count = match step_assessment_count.checked_add(service.trajectory.steps.len()) {
+        step_assessment_count = match
+            step_assessment_count.checked_add(service.trajectory.steps.len())
+        {
             Some(count) => count,
             None => {
                 errors.push(WaterEnergyStressValidationError::StepAssessmentBudgetExceeded);
