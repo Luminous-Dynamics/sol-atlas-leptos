@@ -381,7 +381,7 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
         }
     }
 
-    let eligible = target_status == "executed_unqualified" || qualification_reasons.is_empty();
+    let eligible = target_status != "executed_unqualified" && qualification_reasons.is_empty();
     let mut verification_outcome = if schema_valid && spec_integrity && artifact_integrity {
         "accepted".to_string()
     } else {
@@ -1233,6 +1233,57 @@ mod tests {
             serde_json::to_vec(&canonical_json_value(&Value::Object(first))).unwrap(),
             serde_json::to_vec(&canonical_json_value(&Value::Object(second))).unwrap()
         );
+    }
+
+    #[test]
+    fn truth_visibility_and_required_negative_controls_gate_synthetic_claims() {
+        let artifacts = vec![
+            ArtifactCheck {
+                artifact_id: "truth".to_string(),
+                role: "truth_state".to_string(),
+                locator: "truth.json".to_string(),
+                expected_sha256: None,
+                actual_sha256: Some("a".repeat(64)),
+                expected_byte_length: None,
+                actual_byte_length: None,
+                passed: true,
+                detail: "verified".to_string()
+            },
+            ArtifactCheck {
+                artifact_id: "observations".to_string(),
+                role: "synthetic_observations".to_string(),
+                locator: "observations.json".to_string(),
+                expected_sha256: None,
+                actual_sha256: Some("b".repeat(64)),
+                expected_byte_length: None,
+                actual_byte_length: None,
+                passed: true,
+                detail: "verified".to_string()
+            }
+        ];
+        let receipt = json!({
+            "artifacts": [
+                {"artifact_id":"truth","role":"truth_state","locator":"truth.json","selector_visibility":"withheld_until_scoring"},
+                {"artifact_id":"observations","role":"synthetic_observations","locator":"observations.json","selector_visibility":"visible_to_selector"}
+            ],
+            "controls": [
+                {"kind":"null_signal","result":"passed"},
+                {"kind":"truth_leakage","result":"passed"}
+            ]
+        });
+        assert!(synthetic_artifacts_and_controls_valid(&receipt, &artifacts));
+
+        let leaked = json!({
+            "artifacts": [
+                {"artifact_id":"truth","role":"truth_state","locator":"truth.json","selector_visibility":"visible_to_selector"},
+                {"artifact_id":"observations","role":"synthetic_observations","locator":"observations.json","selector_visibility":"visible_to_selector"}
+            ],
+            "controls": [
+                {"kind":"null_signal","result":"passed"},
+                {"kind":"truth_leakage","result":"passed"}
+            ]
+        });
+        assert!(!synthetic_artifacts_and_controls_valid(&leaked, &artifacts));
     }
 
 }
