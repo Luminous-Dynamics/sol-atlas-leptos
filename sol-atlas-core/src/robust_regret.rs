@@ -502,6 +502,25 @@ mod tests {
         ));
     }
 
+
+    #[test]
+    fn incompatible_cost_units_are_rejected() {
+        let mut problem = basic_problem();
+        problem.actions.push(InvestigationAction {
+            action_id: "cost-in-days".into(),
+            cost_unit: "days".into(),
+            cost: 1.0,
+            outcome_by_scenario: BTreeMap::from([
+                ("dry".into(), "same".into()),
+                ("wet".into(), "same".into()),
+            ]),
+        });
+        assert!(matches!(
+            analyze_robust_regret(&problem),
+            Err(RobustRegretError::IncompatibleUnits { .. })
+        ));
+    }
+
     #[test]
     fn investigation_cannot_increase_the_minimax_regret_bound_before_cost() {
         let mut problem = basic_problem();
