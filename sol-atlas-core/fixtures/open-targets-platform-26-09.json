@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "snapshot_id": "open-targets-platform-26-09-release",
+  "source_provider": "Open Targets Platform",
+  "source_record_id": "open-targets-release-26.09",
+  "source_record_kind": "release_announcement",
+  "source_record_url": "https://blog.opentargets.org/open-targets-platform-26-09-has-been-released/",
+  "source_record_license": {
+    "status": "review_required",
+    "identifier": null,
+    "terms_url": null
+  },
+  "dataset_name": "Open Targets Platform",
+  "dataset_release": "26.09",
+  "dataset_release_date": "2026-09-25",
+  "dataset_landing_url": "https://platform.opentargets.org/",
+  "dataset_license": {
+    "status": "known",
+    "identifier": "CC0-1.0",
+    "terms_url": "https://platform-docs.opentargets.org/licence"
+  },
+  "retrieved_on": "2026-10-13",
+  "artifact_capture": "metadata_only",
+  "artifact_sha256": null
+}
