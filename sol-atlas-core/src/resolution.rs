@@ -529,7 +529,11 @@ mod tests {
         let expected = fixture.expected_analytic_results;
 
         assert_eq!(report.posterior_covariance.len(), expected.posterior_covariance.len());
-        for (actual_row, expected_row) in report.posterior_covariance.iter().zip(&expected.posterior_covariance) {
+        for (actual_row, expected_row) in report
+            .posterior_covariance
+            .iter()
+            .zip(&expected.posterior_covariance)
+        {
             assert_eq!(actual_row.len(), expected_row.len());
             for (actual, expected) in actual_row.iter().zip(expected_row) {
                 assert!((actual - expected).abs() < 1e-10);
@@ -537,7 +541,11 @@ mod tests {
         }
 
         assert_eq!(report.resolution_matrix.len(), expected.resolution_matrix.len());
-        for (actual_row, expected_row) in report.resolution_matrix.iter().zip(&expected.resolution_matrix) {
+        for (actual_row, expected_row) in report
+            .resolution_matrix
+            .iter()
+            .zip(&expected.resolution_matrix)
+        {
             assert_eq!(actual_row.len(), expected_row.len());
             for (actual, expected) in actual_row.iter().zip(expected_row) {
                 assert!((actual - expected).abs() < 1e-10);
