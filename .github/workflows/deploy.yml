@@ -7,26 +7,34 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
+env:
+  RUST_TOOLCHAIN: 1.99.0
+  TRUNK_VERSION: 0.21.14
+
 jobs:
   build:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # 1.99.0
         with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           targets: wasm32-unknown-unknown
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
             ~/.cargo/bin/
@@ -34,35 +42,35 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-rust-${{ env.RUST_TOOLCHAIN }}-trunk-${{ env.TRUNK_VERSION }}-cargo-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Install Trunk
         run: |
           if ! command -v trunk &> /dev/null; then
-            cargo install trunk --locked
+            cargo install trunk --locked --version "${{ env.TRUNK_VERSION }}"
           fi
 
       - name: Build
         run: |
-          # Release build (opt-level=z + LTO: 17.3MB dev WASM -> ~835KB).
-          # index.html sets data-wasm-opt="0" so trunk skips its bundled
-          # wasm-opt, which chokes on this crate's output — the cargo
-          # release profile does the size work instead.
-          trunk build --release --no-sri
+          trunk build --release --locked --no-sri
 
       - name: SPA fallback for client-side routes
         run: |
-          # GitHub Pages serves 404.html for unknown paths; copying index.html
-          # there lets deep links / refreshes on routes like /labs/reactor-twin
-          # load the app instead of a 404 page.
           cp dist/index.html dist/404.html
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: dist
 
   deploy:
+    permissions:
+      pages: write
+      id-token: write
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -71,4 +79,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

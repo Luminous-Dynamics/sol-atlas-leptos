@@ -1,0 +1,42 @@
+name: Qualification Witness
+
+on:
+  workflow_run:
+    workflows: ["Check"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  witness:
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout trusted verifier
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Download qualification evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.0
+        with:
+          name: sol-atlas-qualification-execution-v2
+          path: /tmp/qualification-execution-v2
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Self-test trusted qualification verifier
+        run: python3 tools/test_verify_qualification_run.py
+
+      - name: Verify completed qualification independently
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/verify_qualification_run.py             --artifact-dir /tmp/qualification-execution-v2             --run-id "${{ github.event.workflow_run.id }}"             --repository "${{ github.repository }}"             --server-url "${{ github.server_url }}"             --api-url "${{ github.api_url }}"
