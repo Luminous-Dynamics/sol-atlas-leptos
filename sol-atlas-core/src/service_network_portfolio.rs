@@ -13,7 +13,7 @@ use crate::service_network::{
     NetworkTopologyCompleteness, ServiceCapacityNetworkScenario,
 };
 use crate::service_network_intervention::{
-    compare_service_network_interventions, NetworkInterventionEffect,
+    compare_service_network_interventions,
     ServiceNetworkInterventionComparison, ServiceNetworkInterventionError,
     ServiceNetworkInterventionPlan, ServiceNetworkInterventionRequest,
 };
