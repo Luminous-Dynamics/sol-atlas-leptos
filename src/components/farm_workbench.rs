@@ -34,11 +34,11 @@ pub fn FarmWorkbench() -> impl IntoView {
             </section>
 
             <section class="farm-workspace" aria-label="Farm workbench concept">
-                <nav class="farm-tabs" aria-label="Farm workspace sections">
-                    <button class="farm-tab" class:active=move || tab.get() == 0 on:click=move |_| tab.set(0)>"Today"</button>
-                    <button class="farm-tab" class:active=move || tab.get() == 1 on:click=move |_| tab.set(1)>"Land & grazing"</button>
-                    <button class="farm-tab" class:active=move || tab.get() == 2 on:click=move |_| tab.set(2)>"Herd"</button>
-                    <button class="farm-tab" class:active=move || tab.get() == 3 on:click=move |_| tab.set(3)>"Costs & outcomes"</button>
+                <nav class="farm-tabs" role="group" aria-label="Farm workspace sections">
+                    <button class="farm-tab" class:active=move || tab.get() == 0 aria-pressed=move || tab.get() == 0 on:click=move |_| tab.set(0)>"Today"</button>
+                    <button class="farm-tab" class:active=move || tab.get() == 1 aria-pressed=move || tab.get() == 1 on:click=move |_| tab.set(1)>"Land & grazing"</button>
+                    <button class="farm-tab" class:active=move || tab.get() == 2 aria-pressed=move || tab.get() == 2 on:click=move |_| tab.set(2)>"Herd"</button>
+                    <button class="farm-tab" class:active=move || tab.get() == 3 aria-pressed=move || tab.get() == 3 on:click=move |_| tab.set(3)>"Costs & outcomes"</button>
                 </nav>
 
                 {move || match tab.get() {
@@ -95,11 +95,11 @@ pub fn FarmWorkbench() -> impl IntoView {
                                 <article class="farm-map-card">
                                     <div class="farm-card-heading"><div><strong>"Paddock sketch"</strong><small>"Not geographic or live data"</small></div><span>"N ↑"</span></div>
                                     <div class="farm-paddock-map" role="group" aria-label="Select an example paddock">
-                                        <button class="farm-paddock" class:selected=move || paddock.get() == 1 on:click=move |_| paddock.set(1)><strong>"North 1"</strong><small>"Resting"</small></button>
-                                        <button class="farm-paddock" class:selected=move || paddock.get() == 2 on:click=move |_| paddock.set(2)><strong>"North 2"</strong><small>"Review"</small></button>
-                                        <button class="farm-paddock" class:selected=move || paddock.get() == 3 on:click=move |_| paddock.set(3)><strong>"East 1"</strong><small>"Availability?"</small></button>
-                                        <button class="farm-paddock" class:selected=move || paddock.get() == 4 on:click=move |_| paddock.set(4)><strong>"West 1"</strong><small>"Water check"</small></button>
-                                        <button class="farm-paddock wide" class:selected=move || paddock.get() == 5 on:click=move |_| paddock.set(5)><strong>"South reserve"</strong><small>"Verify access rules"</small></button>
+                                        <button class="farm-paddock" class:selected=move || paddock.get() == 1 aria-pressed=move || paddock.get() == 1 on:click=move |_| paddock.set(1)><strong>"North 1"</strong><small>"Resting"</small></button>
+                                        <button class="farm-paddock" class:selected=move || paddock.get() == 2 aria-pressed=move || paddock.get() == 2 on:click=move |_| paddock.set(2)><strong>"North 2"</strong><small>"Review"</small></button>
+                                        <button class="farm-paddock" class:selected=move || paddock.get() == 3 aria-pressed=move || paddock.get() == 3 on:click=move |_| paddock.set(3)><strong>"East 1"</strong><small>"Availability?"</small></button>
+                                        <button class="farm-paddock" class:selected=move || paddock.get() == 4 aria-pressed=move || paddock.get() == 4 on:click=move |_| paddock.set(4)><strong>"West 1"</strong><small>"Water check"</small></button>
+                                        <button class="farm-paddock wide" class:selected=move || paddock.get() == 5 aria-pressed=move || paddock.get() == 5 on:click=move |_| paddock.set(5)><strong>"South reserve"</strong><small>"Verify access rules"</small></button>
                                     </div>
                                     <p class="farm-footnote">"A live map needs farmer-verified boundaries, source provenance, and a way to correct errors."</p>
                                 </article>
