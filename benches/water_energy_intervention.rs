@@ -38,7 +38,8 @@ struct Report {
     runner_arch: Option<String>,
     host_os: String,
     host_arch: String,
-    peak_rss_bytes_at_report: Option<u64>,
+    process_peak_rss_bytes_at_report: Option<u64>,
+    rss_measurement_scope: &'static str,
     workload: &'static str,
     paired_intervals_per_side: usize,
     total_paired_intervals: usize,
@@ -155,7 +156,19 @@ fn comparison(intervals: usize) -> WaterEnergyInterventionComparisonRequest {
 }
 
 fn source_revision() -> Option<String> {
-    env::var("GITHUB_SHA").or_else(|_| env::var("GIT_COMMIT")).ok()
+    let configured = env::var("GITHUB_SHA")
+        .or_else(|_| env::var("GIT_COMMIT"))
+        .ok();
+    if configured.is_some() {
+        return configured;
+    }
+    let output = Command::new("git").args(["rev-parse", "HEAD"]).output().ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    String::from_utf8(output.stdout)
+        .ok()
+        .map(|revision| revision.trim().to_owned())
 }
 
 fn compiler_version() -> Option<String> {
@@ -226,7 +239,8 @@ fn run(intervals: usize, samples: usize, warmup: usize, target_ms: u128) -> Repo
         runner_arch: env::var("RUNNER_ARCH").ok(),
         host_os: std::env::consts::OS.to_owned(),
         host_arch: std::env::consts::ARCH.to_owned(),
-        peak_rss_bytes_at_report: peak_rss_bytes(),
+        process_peak_rss_bytes_at_report: peak_rss_bytes(),
+        rss_measurement_scope: "process VmHWM since process start; workloads share one benchmark process",
         workload: "paired coupled water-energy counterfactual comparison",
         paired_intervals_per_side: intervals,
         total_paired_intervals: intervals * 2,
