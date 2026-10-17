@@ -399,6 +399,21 @@ mod tests {
     }
 
     #[test]
+    fn provider_confirmation_at_freshness_boundary_remains_eligible() {
+        let mut record: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
+        record["admission_evidence"]["provider_verified_at"] = json!("2026-09-17T00:00:00Z");
+        let decision = evaluate_record(&record, "2026-10-17", 30).unwrap();
+        assert_eq!(decision.disposition, Disposition::ProviderConfirmed);
+    }
+
+    #[test]
+    fn future_provider_timestamp_fails_closed() {
+        let mut record: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
+        record["admission_evidence"]["provider_verified_at"] = json!("2026-10-18T00:00:00Z");
+        assert!(evaluate_record(&record, "2026-10-17", 30).unwrap_err().contains("after policy_as_of_date"));
+    }
+
+    #[test]
     fn unknown_cost_accessibility_and_capacity_are_never_promoted() {
         let record: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
         let decision = evaluate_record(&record, "2026-10-17", 30).unwrap();
