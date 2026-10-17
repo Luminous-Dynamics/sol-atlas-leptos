@@ -67,6 +67,7 @@ A zero exit code for `executed_unqualified` means the receipt was processed corr
 
 - No runtime network access is used for schema references; the schema and artifacts are supplied locally.
 - Artifact locators are relative to `--artifact-root`; path traversal and symlinks escaping that root are rejected.
+- The verifier checks that the running binary's compiled `CARGO_MANIFEST_DIR` canonicalizes to the declared `--verifier-root` checkout. Passing another path as metadata while running a binary built from the evaluated checkout is rejected.
 - A queued, skipped, cancelled, missing, or stale-head workflow is never treated as passing evidence. Each required CI claim must reference a locally retained workflow-run JSON artifact; its run ID, name, head SHA, status, conclusion, and URL must agree with the receipt.
 - All declared gates and controls must pass for promotion.
 
@@ -81,7 +82,7 @@ A zero exit code for `executed_unqualified` means the receipt was processed corr
 
 ## Current implementation slice
 
-The verifier now includes 16 authored regression tests for schema acceptance, canonical receipt digests, path traversal, Git URL normalization, strict gates/controls, exact-head CI evidence, metric uncertainty metadata, and synthetic truth visibility. A CI workflow was added for `cargo fmt --check`, tests, and Clippy. These commands have **not yet been executed in this environment**; the current feature-branch CI runs remain pending/queued until a runner reports results. Do not call the implementation Rust-qualified until the exact commit's workflow completes successfully.
+The verifier now includes 17 authored regression tests for schema acceptance, canonical receipt digests, path traversal, Git URL normalization, strict gates/controls, exact-head CI evidence, metric uncertainty metadata, and synthetic truth visibility. A CI workflow was added for `cargo fmt --check`, tests, and Clippy. These commands have **not yet been executed in this environment**; the current feature-branch CI runs remain pending/queued until a runner reports results. Do not call the implementation Rust-qualified until the exact commit's workflow completes successfully.
 
 The verifier checks retained workflow-run JSON offline against the receipt and the payload digest. It does not cryptographically authenticate that a JSON file originated from GitHub, so the linked run URL and provider provenance remain independently auditable. Receipt eligibility is a protocol/integrity check, not proof of geophysical truth.
 
