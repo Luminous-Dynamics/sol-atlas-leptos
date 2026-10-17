@@ -811,6 +811,14 @@ mod tests {
 
 
     #[test]
+    fn tampered_local_profile_hash_fails_closed() {
+        let mut manifest: Value = serde_json::from_str(MANIFEST).unwrap();
+        manifest["local_profile"]["sha256_utf8"] = json!("deadbeef");
+        let manifest = serde_json::to_string(&manifest).unwrap();
+        assert!(verify_bytes(FIXTURE.as_bytes(), &manifest).unwrap_err().contains("local admission profile SHA-256 mismatch"));
+    }
+
+    #[test]
     fn local_admission_profile_hash_matches_fixture_manifest() {
         let manifest: Value = serde_json::from_str(MANIFEST).unwrap();
         validate_local_profile_manifest(&manifest).unwrap();
