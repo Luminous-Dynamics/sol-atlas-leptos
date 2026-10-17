@@ -6,7 +6,7 @@
 
 use jsonschema::draft202012;
 use serde::Serialize;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use std::env;
@@ -107,9 +107,11 @@ fn main() -> ExitCode {
             }
             if hard_failure {
                 ExitCode::from(1)
-            } else if outcome == "incomplete" || outcome == "rejected"
+            } else if outcome == "incomplete"
+                || outcome == "rejected"
                 || (!eligible
-                    && report.target_qualification_status.as_deref() != Some("executed_unqualified"))
+                    && report.target_qualification_status.as_deref()
+                        != Some("executed_unqualified"))
             {
                 ExitCode::from(2)
             } else {
@@ -145,8 +147,8 @@ fn parse_args(args: Vec<String>) -> Result<Args, String> {
             "--target-status" => {
                 index += 1;
                 let value = args.get(index).ok_or_else(usage)?;
-                let valid = value == "executed_unqualified"
-                    || QUALIFIED_STATUSES.contains(&value.as_str());
+                let valid =
+                    value == "executed_unqualified" || QUALIFIED_STATUSES.contains(&value.as_str());
                 if !valid {
                     return Err(format!("unknown target status: {value}\n{}", usage()));
                 }
@@ -244,10 +246,11 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
         },
     );
 
-    let spec_integrity = verify_benchmark_specification(&repo_root, &receipt, &mut checks, &mut findings);
+    let spec_integrity =
+        verify_benchmark_specification(&repo_root, &receipt, &mut checks, &mut findings);
     let artifact_checks = verify_artifacts(&artifact_root, &receipt, &mut findings);
-    let artifact_integrity = !artifact_checks.is_empty()
-        && artifact_checks.iter().all(|artifact| artifact.passed);
+    let artifact_integrity =
+        !artifact_checks.is_empty() && artifact_checks.iter().all(|artifact| artifact.passed);
     push_check(
         &mut checks,
         "declared_artifact_integrity",
@@ -304,16 +307,32 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
     let metrics_passed = metrics_present(&receipt);
     let config_digest_passed = configuration_digest_is_bound(&receipt, &artifact_checks);
     let ci_passed = ci_checks_all_pass(&receipt, &artifact_checks, &artifact_root);
-    push_check(&mut checks, "completed_run", run_passed, "run outcome, exit code, and finished_at must prove successful completion".to_string());
-    push_check(&mut checks, "gates_and_controls", gates_controls_passed, "all non-empty predeclared gates and negative controls must pass".to_string());
+    push_check(
+        &mut checks,
+        "completed_run",
+        run_passed,
+        "run outcome, exit code, and finished_at must prove successful completion".to_string(),
+    );
+    push_check(
+        &mut checks,
+        "gates_and_controls",
+        gates_controls_passed,
+        "all non-empty predeclared gates and negative controls must pass".to_string(),
+    );
     push_check(&mut checks, "metrics_and_uncertainty", metrics_passed, "metric records must carry a positive sample count and an explicit uncertainty method other than none".to_string());
-    push_check(&mut checks, "configuration_artifact_binding", config_digest_passed, "configuration SHA-256 must equal the verified configuration artifact digest".to_string());
+    push_check(
+        &mut checks,
+        "configuration_artifact_binding",
+        config_digest_passed,
+        "configuration SHA-256 must equal the verified configuration artifact digest".to_string(),
+    );
     push_check(
         &mut checks,
         "exact_head_ci",
         ci_passed,
         if ci_passed {
-            "all declared required checks completed successfully on the recorded code commit".to_string()
+            "all declared required checks completed successfully on the recorded code commit"
+                .to_string()
         } else {
             "one or more required checks are absent, queued, skipped, cancelled, stale-head, non-success, or tied to another commit".to_string()
         },
@@ -326,13 +345,16 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
             qualification_reasons.push("benchmark specification digest did not verify".to_string());
         }
         if !artifact_integrity {
-            qualification_reasons.push("one or more declared artifact digests did not verify".to_string());
+            qualification_reasons
+                .push("one or more declared artifact digests did not verify".to_string());
         }
         if !head_matches {
-            qualification_reasons.push("checkout HEAD does not match the recorded code commit".to_string());
+            qualification_reasons
+                .push("checkout HEAD does not match the recorded code commit".to_string());
         }
         if !remote_matches {
-            qualification_reasons.push("origin does not match the recorded repository identity".to_string());
+            qualification_reasons
+                .push("origin does not match the recorded repository identity".to_string());
         }
         if worktree_clean != Some(true)
             || string_field(&receipt, &["code", "worktree_state"]) != Some("clean")
@@ -351,10 +373,16 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
             );
         }
         if !metrics_present(&receipt) {
-            qualification_reasons.push("at least one metric result with sample count and uncertainty method is required".to_string());
+            qualification_reasons.push(
+                "at least one metric result with sample count and uncertainty method is required"
+                    .to_string(),
+            );
         }
         if !ci_passed {
-            qualification_reasons.push("required CI checks must be completed successes on the exact code commit".to_string());
+            qualification_reasons.push(
+                "required CI checks must be completed successes on the exact code commit"
+                    .to_string(),
+            );
         }
         if !config_digest_passed {
             qualification_reasons.push(
@@ -476,13 +504,21 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
         );
     }
 
-    if target_status != "executed_unqualified" && eligible && input_status.as_deref() == Some(target_status.as_str()) {
+    if target_status != "executed_unqualified"
+        && eligible
+        && input_status.as_deref() == Some(target_status.as_str())
+    {
         // Reaching this point means a final promoted receipt has an accepted,
         // digest-matched prior verifier report. The schema itself does not
         // authenticate the person or organization operating that verifier.
-        if string_field(&receipt, &["qualification_evidence", "verification_outcome"]) != Some("accepted") {
+        if string_field(
+            &receipt,
+            &["qualification_evidence", "verification_outcome"],
+        ) != Some("accepted")
+        {
             verification_outcome = "incomplete".to_string();
-            findings.push("qualification_evidence.verification_outcome is not accepted".to_string());
+            findings
+                .push("qualification_evidence.verification_outcome is not accepted".to_string());
         }
     }
 
@@ -526,11 +562,16 @@ fn resolve_cli_input(root: &Path, raw: &str) -> Result<PathBuf, String> {
 fn safe_join(root: &Path, relative: &str) -> Result<PathBuf, String> {
     let path = Path::new(relative);
     if path.is_absolute()
-        || path
-            .components()
-            .any(|component| matches!(component, Component::ParentDir | Component::RootDir | Component::Prefix(_)))
+        || path.components().any(|component| {
+            matches!(
+                component,
+                Component::ParentDir | Component::RootDir | Component::Prefix(_)
+            )
+        })
     {
-        return Err(format!("path must be relative and cannot traverse its root: {relative}"));
+        return Err(format!(
+            "path must be relative and cannot traverse its root: {relative}"
+        ));
     }
     let root = fs::canonicalize(root)
         .map_err(|error| format!("cannot canonicalize root {}: {error}", root.display()))?;
@@ -546,8 +587,8 @@ fn safe_join(root: &Path, relative: &str) -> Result<PathBuf, String> {
 }
 
 fn hash_file(path: &Path) -> Result<(String, u64), String> {
-    let mut file = File::open(path)
-        .map_err(|error| format!("cannot open {}: {error}", path.display()))?;
+    let mut file =
+        File::open(path).map_err(|error| format!("cannot open {}: {error}", path.display()))?;
     let mut hasher = Sha256::new();
     let mut length = 0_u64;
     let mut buffer = [0_u8; 64 * 1024];
@@ -595,9 +636,7 @@ fn canonical_json_value(value: &Value) -> Value {
             }
             Value::Object(result)
         }
-        Value::Array(values) => {
-            Value::Array(values.iter().map(canonical_json_value).collect())
-        }
+        Value::Array(values) => Value::Array(values.iter().map(canonical_json_value).collect()),
         scalar => scalar.clone(),
     }
 }
@@ -654,7 +693,9 @@ fn verify_benchmark_specification(
         checks,
         "benchmark_specification_digest",
         digest_matches,
-        result.err().unwrap_or_else(|| "benchmark specification SHA-256 matches".to_string()),
+        result
+            .err()
+            .unwrap_or_else(|| "benchmark specification SHA-256 matches".to_string()),
     );
     spec_commit_matches_code && digest_matches
 }
@@ -726,8 +767,16 @@ fn verify_artifacts(
 
 fn completed_successfully(receipt: &Value) -> bool {
     string_field(receipt, &["run", "outcome"]) == Some("completed")
-        && receipt.get("run").and_then(|run| run.get("exit_code")).and_then(Value::as_i64) == Some(0)
-        && receipt.get("run").and_then(|run| run.get("finished_at")).and_then(Value::as_str).is_some()
+        && receipt
+            .get("run")
+            .and_then(|run| run.get("exit_code"))
+            .and_then(Value::as_i64)
+            == Some(0)
+        && receipt
+            .get("run")
+            .and_then(|run| run.get("finished_at"))
+            .and_then(Value::as_str)
+            .is_some()
 }
 
 fn all_gates_and_controls_pass(receipt: &Value) -> bool {
@@ -749,11 +798,7 @@ fn metrics_present(receipt: &Value) -> bool {
     )
 }
 
-fn ci_checks_all_pass(
-    receipt: &Value,
-    artifacts: &[ArtifactCheck],
-    artifact_root: &Path,
-) -> bool {
+fn ci_checks_all_pass(receipt: &Value, artifacts: &[ArtifactCheck], artifact_root: &Path) -> bool {
     let Some(checks) = receipt.get("ci_checks").and_then(Value::as_array) else {
         return false;
     };
@@ -809,9 +854,12 @@ fn ci_checks_all_pass(
 
 fn ci_check_evidence_matches(check: &Value, evidence: &Value, expected_commit: &str) -> bool {
     let check_id = string_field(check, &["check_id"]);
-    let evidence_id = evidence
-        .get("id")
-        .and_then(|value| value.as_str().map(str::to_owned).or_else(|| value.as_u64().map(|id| id.to_string())));
+    let evidence_id = evidence.get("id").and_then(|value| {
+        value
+            .as_str()
+            .map(str::to_owned)
+            .or_else(|| value.as_u64().map(|id| id.to_string()))
+    });
     check_id.is_some_and(|id| evidence_id.as_deref() == Some(id))
         && string_field(check, &["name"]) == string_field(evidence, &["name"])
         && string_field(check, &["commit_sha"]) == Some(expected_commit)
@@ -848,21 +896,16 @@ fn synthetic_artifacts_and_controls_valid(receipt: &Value, artifacts: &[Artifact
                 return false;
             };
             string_field(record, &["role"]) == Some("truth_state")
-                && string_field(record, &["selector_visibility"])
-                    == Some("withheld_until_scoring")
+                && string_field(record, &["selector_visibility"]) == Some("withheld_until_scoring")
                 && artifacts.iter().any(|checked| {
-                    checked.artifact_id == id
-                        && checked.role == "truth_state"
-                        && checked.passed
+                    checked.artifact_id == id && checked.role == "truth_state" && checked.passed
                 })
         });
     let synthetic_observations = artifacts
         .iter()
         .any(|artifact| artifact.passed && artifact.role == "synthetic_observations");
     let controls = receipt.get("controls").and_then(Value::as_array);
-    let has_passing_control = |kind: &str| {
-        matches!(controls, Some(values) if values.iter().any(|value| string_field(value, &["kind"]) == Some(kind) && string_field(value, &["result"]) == Some("passed")))
-    };
+    let has_passing_control = |kind: &str| matches!(controls, Some(values) if values.iter().any(|value| string_field(value, &["kind"]) == Some(kind) && string_field(value, &["result"]) == Some("passed")));
     truth_hidden
         && synthetic_observations
         && has_passing_control("null_signal")
@@ -888,10 +931,8 @@ fn source_adapter_valid(receipt: &Value, artifacts: &[ArtifactCheck]) -> bool {
 }
 
 fn real_observation_valid(receipt: &Value, artifacts: &[ArtifactCheck]) -> bool {
-    let leakage_ok = string_field(
-        receipt,
-        &["real_observation_evaluation", "leakage_audit"],
-    ) == Some("passed");
+    let leakage_ok =
+        string_field(receipt, &["real_observation_evaluation", "leakage_audit"]) == Some("passed");
     let overlap_ok = string_field(
         receipt,
         &["real_observation_evaluation", "reference_overlap_audit"],
@@ -945,17 +986,30 @@ fn validate_prior_verifier_report(
     if string_field(&report, &["verification_outcome"]) != Some("accepted") {
         return Err("referenced verifier report is not accepted".to_string());
     }
-    if report.get("qualification_eligible").and_then(Value::as_bool) != Some(true) {
-        return Err("referenced verifier report does not establish qualification eligibility".to_string());
+    if report
+        .get("qualification_eligible")
+        .and_then(Value::as_bool)
+        != Some(true)
+    {
+        return Err(
+            "referenced verifier report does not establish qualification eligibility".to_string(),
+        );
     }
     if report.get("schema_valid").and_then(Value::as_bool) != Some(true)
-        || report.get("benchmark_specification_integrity").and_then(Value::as_bool) != Some(true)
+        || report
+            .get("benchmark_specification_integrity")
+            .and_then(Value::as_bool)
+            != Some(true)
         || report.get("artifact_integrity").and_then(Value::as_bool) != Some(true)
     {
-        return Err("referenced verifier report has a failed schema or integrity check".to_string());
+        return Err(
+            "referenced verifier report has a failed schema or integrity check".to_string(),
+        );
     }
     if string_field(&report, &["target_qualification_status"]) != Some(target_status) {
-        return Err("referenced verifier report targets a different qualification status".to_string());
+        return Err(
+            "referenced verifier report targets a different qualification status".to_string(),
+        );
     }
     let mut required_checks = vec![
         "receipt_schema",
@@ -993,10 +1047,14 @@ fn validate_prior_verifier_report(
             })
         });
     if !report_checks_pass {
-        return Err("referenced verifier report does not contain every required passing gate".to_string());
+        return Err(
+            "referenced verifier report does not contain every required passing gate".to_string(),
+        );
     }
     if string_field(&report, &["qualification_core_sha256"]) != core_sha256 {
-        return Err("referenced verifier report is bound to a different qualification core".to_string());
+        return Err(
+            "referenced verifier report is bound to a different qualification core".to_string(),
+        );
     }
     let evidence_repo = string_field(
         receipt,
@@ -1010,20 +1068,29 @@ fn validate_prior_verifier_report(
     if normalize_git_url(evidence_repo) != normalize_git_url(receipt_repo)
         || normalize_git_url(evidence_repo) != normalize_git_url(&measured_origin)
     {
-        return Err("verifier repository URL does not match receipt repository and checkout origin".to_string());
+        return Err(
+            "verifier repository URL does not match receipt repository and checkout origin"
+                .to_string(),
+        );
     }
-    let evidence_commit = string_field(
-        receipt,
-        &["qualification_evidence", "verifier_commit_sha"],
-    )
-    .ok_or_else(|| "qualification_evidence.verifier_commit_sha is missing".to_string())?;
+    let evidence_commit = string_field(receipt, &["qualification_evidence", "verifier_commit_sha"])
+        .ok_or_else(|| "qualification_evidence.verifier_commit_sha is missing".to_string())?;
     if string_field(&report, &["verifier_commit_sha"]) != Some(evidence_commit) {
-        return Err("referenced verifier report commit does not match qualification evidence".to_string());
+        return Err(
+            "referenced verifier report commit does not match qualification evidence".to_string(),
+        );
     }
     if git_output(repo_root, &["rev-parse", "HEAD"]).as_deref() != Some(evidence_commit) {
-        return Err("verifier report was not produced from the exact currently checked-out verifier commit".to_string());
+        return Err(
+            "verifier report was not produced from the exact currently checked-out verifier commit"
+                .to_string(),
+        );
     }
-    if string_field(&receipt, &["qualification_evidence", "verification_outcome"]) != Some("accepted") {
+    if string_field(
+        &receipt,
+        &["qualification_evidence", "verification_outcome"],
+    ) != Some("accepted")
+    {
         return Err("qualification evidence outcome is not accepted".to_string());
     }
     Ok(())
@@ -1033,11 +1100,7 @@ fn git_snapshot(root: &Path) -> (Option<String>, Option<bool>, Option<String>) {
     let head = git_output(root, &["rev-parse", "HEAD"]);
     let status = git_output(root, &["status", "--porcelain", "--untracked-files=all"]);
     let remote = git_output(root, &["remote", "get-url", "origin"]);
-    (
-        head,
-        status.map(|value| value.trim().is_empty()),
-        remote,
-    )
+    (head, status.map(|value| value.trim().is_empty()), remote)
 }
 
 fn git_output(root: &Path, arguments: &[&str]) -> Option<String> {
@@ -1093,10 +1156,12 @@ mod tests {
     fn embedded_receipt_schema_is_valid_draft_2020_12() {
         let schema: Value = serde_json::from_str(RECEIPT_SCHEMA).expect("schema JSON parses");
         assert!(draft202012::meta::validate(&schema).is_ok());
-        assert!(draft202012::options()
-            .should_validate_formats(true)
-            .build(&schema)
-            .is_ok());
+        assert!(
+            draft202012::options()
+                .should_validate_formats(true)
+                .build(&schema)
+                .is_ok()
+        );
     }
 
     #[test]
@@ -1164,7 +1229,14 @@ mod tests {
                 "forbidden_claims": ["not a result"]
             }
         });
-        assert!(validator.is_valid(&receipt), "{:?}", validator.iter_errors(&receipt).map(|e| e.to_string()).collect::<Vec<_>>());
+        assert!(
+            validator.is_valid(&receipt),
+            "{:?}",
+            validator
+                .iter_errors(&receipt)
+                .map(|e| e.to_string())
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -1223,7 +1295,9 @@ mod tests {
 
     #[test]
     fn controls_and_gates_fail_closed_when_empty_or_not_passed() {
-        assert!(!all_gates_and_controls_pass(&json!({"gates": [], "controls": []})));
+        assert!(!all_gates_and_controls_pass(
+            &json!({"gates": [], "controls": []})
+        ));
         assert!(!all_gates_and_controls_pass(&json!({
             "gates": [{"decision":"passed"}],
             "controls": [{"result":"not_evaluated"}]
@@ -1254,9 +1328,20 @@ mod tests {
             "conclusion": "success",
             "html_url": run_url
         });
-        assert!(ci_check_evidence_matches(&valid_check, &valid_evidence, &commit));
+        assert!(ci_check_evidence_matches(
+            &valid_check,
+            &valid_evidence,
+            &commit
+        ));
 
-        for status in ["pending", "queued", "in_progress", "skipped", "cancelled", "missing"] {
+        for status in [
+            "pending",
+            "queued",
+            "in_progress",
+            "skipped",
+            "cancelled",
+            "missing",
+        ] {
             let check = json!({
                 "check_id": "123",
                 "name": "Check",
@@ -1296,7 +1381,11 @@ mod tests {
             "conclusion": "success",
             "html_url": run_url
         });
-        assert!(!ci_check_evidence_matches(&stale_check, &stale_evidence, &commit));
+        assert!(!ci_check_evidence_matches(
+            &stale_check,
+            &stale_evidence,
+            &commit
+        ));
 
         let no_checks = json!({
             "code": {"commit_sha": commit},
@@ -1358,7 +1447,7 @@ mod tests {
                 expected_byte_length: None,
                 actual_byte_length: None,
                 passed: true,
-                detail: "verified".to_string()
+                detail: "verified".to_string(),
             },
             ArtifactCheck {
                 artifact_id: "observations".to_string(),
@@ -1369,8 +1458,8 @@ mod tests {
                 expected_byte_length: None,
                 actual_byte_length: None,
                 passed: true,
-                detail: "verified".to_string()
-            }
+                detail: "verified".to_string(),
+            },
         ];
         let receipt = json!({
             "artifacts": [
@@ -1436,7 +1525,7 @@ mod tests {
             expected_byte_length: Some(10),
             actual_byte_length: Some(10),
             passed: true,
-            detail: "verified".to_string()
+            detail: "verified".to_string(),
         }];
         assert!(source_adapter_valid(&receipt, &payload));
 
@@ -1472,23 +1561,38 @@ mod tests {
         });
         let artifacts = vec![
             ArtifactCheck {
-                artifact_id:"payload".to_string(), role:"source_payload".to_string(),
-                locator:"payload.bin".to_string(), expected_sha256:Some(payload_digest.clone()),
-                actual_sha256:Some(payload_digest.clone()), expected_byte_length:Some(1),
-                actual_byte_length:Some(1), passed:true, detail:"verified".to_string()
+                artifact_id: "payload".to_string(),
+                role: "source_payload".to_string(),
+                locator: "payload.bin".to_string(),
+                expected_sha256: Some(payload_digest.clone()),
+                actual_sha256: Some(payload_digest.clone()),
+                expected_byte_length: Some(1),
+                actual_byte_length: Some(1),
+                passed: true,
+                detail: "verified".to_string(),
             },
             ArtifactCheck {
-                artifact_id:"real-data".to_string(), role:"real_observations".to_string(),
-                locator:"obs.bin".to_string(), expected_sha256:Some(real_digest.clone()),
-                actual_sha256:Some(real_digest.clone()), expected_byte_length:Some(2),
-                actual_byte_length:Some(2), passed:true, detail:"verified".to_string()
+                artifact_id: "real-data".to_string(),
+                role: "real_observations".to_string(),
+                locator: "obs.bin".to_string(),
+                expected_sha256: Some(real_digest.clone()),
+                actual_sha256: Some(real_digest.clone()),
+                expected_byte_length: Some(2),
+                actual_byte_length: Some(2),
+                passed: true,
+                detail: "verified".to_string(),
             },
             ArtifactCheck {
-                artifact_id:"holdout".to_string(), role:"holdout_manifest".to_string(),
-                locator:"holdout.json".to_string(), expected_sha256:Some(holdout_digest.clone()),
-                actual_sha256:Some(holdout_digest.clone()), expected_byte_length:Some(3),
-                actual_byte_length:Some(3), passed:true, detail:"verified".to_string()
-            }
+                artifact_id: "holdout".to_string(),
+                role: "holdout_manifest".to_string(),
+                locator: "holdout.json".to_string(),
+                expected_sha256: Some(holdout_digest.clone()),
+                actual_sha256: Some(holdout_digest.clone()),
+                expected_byte_length: Some(3),
+                actual_byte_length: Some(3),
+                passed: true,
+                detail: "verified".to_string(),
+            },
         ];
         assert!(source_adapter_valid(&receipt, &artifacts));
         assert!(real_observation_valid(&receipt, &artifacts));
@@ -1508,5 +1612,4 @@ mod tests {
         });
         assert!(!real_observation_valid(&missing_holdout, &artifacts[..2]));
     }
-
 }
