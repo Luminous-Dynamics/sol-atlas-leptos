@@ -7,7 +7,7 @@ const REPORT_VERSION: &str = "city-belonging-admission-report/0.1";
 const CLAIM_CEILING: &str = "synthetic admission-policy fixtures only; not HSDS conformance, service truth, safety, availability, or outcome evidence";
 
 const HSDS_SELECTED_CONTRACT: &str = include_str!("../../../docs/research/fixtures/hsds-3.1-selected-contract-v0.1.json");
-const HSDS_SCHEMA_SOURCES: [(&str, &str); 8] = [
+const HSDS_SCHEMA_SOURCES: [(&str, &str); 9] = [
     ("organization", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/organization.json")),
     ("service", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/service.json")),
     ("location", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/location.json")),
@@ -16,6 +16,7 @@ const HSDS_SCHEMA_SOURCES: [(&str, &str); 8] = [
     ("address", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/address.json")),
     ("service_area", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/service_area.json")),
     ("service_capacity", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/service_capacity.json")),
+    ("unit", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/unit.json")),
 ];
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -296,7 +297,7 @@ fn validate_hsds_resources(record: &Value, where_: &str) -> Result<(), String> {
             return Err(format!("{} missing HSDS resource row {}", where_, required));
         }
     }
-    let known: BTreeSet<&str> = ["organization", "service", "location", "service_at_location", "schedule", "address", "service_area", "service_capacity"].into_iter().collect();
+    let known: BTreeSet<&str> = ["organization", "service", "location", "service_at_location", "schedule", "address", "service_area", "service_capacity", "unit"].into_iter().collect();
     for key in resources.keys() {
         if !known.contains(key.as_str()) {
             return Err(format!("{} contains undeclared HSDS resource {}", where_, key));
@@ -344,6 +345,11 @@ fn validate_hsds_resources(record: &Value, where_: &str) -> Result<(), String> {
     if let Some(row) = resources.get("service_capacity") {
         if row.get("service_id").and_then(Value::as_str).map(|id| id != service_id).unwrap_or(false) {
             return Err(format!("{} service_capacity.service_id does not link to service.id", where_));
+        }
+        let unit = resources.get("unit")
+            .ok_or_else(|| format!("{} service_capacity row requires a linked unit row", where_))?;
+        if row.get("unit_id").and_then(Value::as_str) != unit.get("id").and_then(Value::as_str) {
+            return Err(format!("{} service_capacity.unit_id does not link to unit.id", where_));
         }
     }
     Ok(())
@@ -636,6 +642,20 @@ mod tests {
         let mut record: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
         record["hsds_resources"]["service_at_location"]["location_id"] = json!("ffffffff-ffff-4fff-8fff-ffffffffffff");
         assert!(validate_hsds_resources(&record, "test CBF-001").unwrap_err().contains("does not link to location.id"));
+    }
+
+    #[test]
+    fn rejects_missing_capacity_unit_link() {
+        let mut record: Value = serde_json::from_str(FIXTURE.lines().nth(6).unwrap()).unwrap();
+        record["hsds_resources"]["service_capacity"].as_object_mut().unwrap().remove("unit_id");
+        assert!(validate_hsds_resources(&record, "test CBF-007").unwrap_err().contains("missing required field unit_id"));
+    }
+
+    #[test]
+    fn rejects_capacity_unit_relationship_mismatch() {
+        let mut record: Value = serde_json::from_str(FIXTURE.lines().nth(6).unwrap()).unwrap();
+        record["hsds_resources"]["service_capacity"]["unit_id"] = json!("ffffffff-ffff-4fff-8fff-ffffffffffff");
+        assert!(validate_hsds_resources(&record, "test CBF-007").unwrap_err().contains("unit_id does not link to unit.id"));
     }
 
     #[test]
