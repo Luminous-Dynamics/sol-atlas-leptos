@@ -462,6 +462,25 @@ mod tests {
     }
 
     #[test]
+    fn json_request_fixture_produces_exhaustive_n1_report() {
+        let input: ServiceNetworkStressRequest = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-network-stress-request.json"
+        ))
+        .unwrap();
+        let result = assess_service_network_stress(&input, &[]).unwrap();
+        assert_eq!(result.baseline_scenario_id, "network:shared-trunk");
+        assert_eq!(result.candidate_failure_case_count, 3);
+        assert_eq!(result.evaluated_failure_case_count, 3);
+        assert!(result.exhaustive);
+        assert_eq!(result.baseline.conservative_available_capacity, 7.0);
+        assert_eq!(result.worst_case_conservative_capacity, 0.0);
+        assert_eq!(
+            result.worst_case_conservative_failure_sets,
+            vec![vec!["supply".to_owned()]]
+        );
+    }
+
+    #[test]
     fn source_input_order_does_not_change_failure_case_manifest() {
         let first = assess_service_network_stress(&request(2, 10), &[]).unwrap();
         let mut reordered = request(2, 10);
