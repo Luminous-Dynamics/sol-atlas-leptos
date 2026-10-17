@@ -23,6 +23,10 @@ use sol_atlas_core::service_function::{
     FunctionMeasurement, SERVICE_FUNCTION_SCHEMA_VERSION, ServiceFunctionScenario,
     ServiceFunctionState, assess_service_functions,
 };
+use sol_atlas_core::service_equity::{
+    ServiceEquityCell, ServiceEquityScenario, SERVICE_EQUITY_SCHEMA_VERSION,
+    ServiceFloorStatus, assess_service_equity,
+};
 use sol_atlas_core::service_network::{
     NetworkAssessmentState, NetworkLink, NetworkLinkAvailability, NetworkTopologyCompleteness,
     SERVICE_NETWORK_SCHEMA_VERSION, ServiceCapacityNetworkScenario,
@@ -78,6 +82,20 @@ struct SampleSummary {
     functional_p50_micros: u128,
     functional_p95_micros: u128,
     functional_max_micros: u128,
+    equity_cells_per_run: usize,
+    equity_communities_per_run: usize,
+    equity_total_beneficiary_weight: u64,
+    equity_meets_floor_weight: u64,
+    equity_below_floor_weight: u64,
+    equity_indeterminate_weight: u64,
+    equity_floor_compliance_lower_bound: f64,
+    equity_floor_compliance_upper_bound: f64,
+    equity_compliance_gap_lower_bound: f64,
+    equity_compliance_gap_upper_bound: f64,
+    equity_result_bytes: usize,
+    equity_p50_micros: u128,
+    equity_p95_micros: u128,
+    equity_max_micros: u128,
     network_scenarios_per_run: usize,
     network_links_per_run: usize,
     network_evidence_records: usize,
@@ -837,6 +855,58 @@ fn main() {
         let reference_functional_bytes =
             serde_json::to_vec(&reference_functional).expect("functional assessments serialize");
 
+        let equity_scenario = ServiceEquityScenario {
+            schema_version: SERVICE_EQUITY_SCHEMA_VERSION.into(),
+            id: format!("equity-benchmark-{groups_count}"),
+            as_of: "2026-10-15T12:00:00Z".into(),
+            cells: functional_scenarios
+                .iter()
+                .enumerate()
+                .map(|(index, service)| ServiceEquityCell {
+                    id: format!("equity-cell-{index:06}"),
+                    service_scenario_id: service.id.clone(),
+                    community_id: format!("community-{:02}", index % 17),
+                    beneficiary_weight: (index % 5 + 1) as u64,
+                    essential_coverage_floor: match index % 3 {
+                        0 => 0.5,
+                        1 => 0.8,
+                        _ => 0.9,
+                    },
+                })
+                .collect(),
+        };
+        let reference_equity = assess_service_equity(
+            &equity_scenario,
+            &functional_scenarios,
+            &functional_evidence,
+        )
+        .expect("synthetic distributional service-floor fixture must evaluate");
+        assert_eq!(reference_equity.cells.len(), groups_count);
+        assert_eq!(reference_equity.community_count, groups_count.min(17));
+        let expected_equity_totals = equity_scenario.cells.iter().enumerate().fold(
+            (0_u64, 0_u64, 0_u64, 0_u64),
+            |(total, met, below, unknown), (index, cell)| {
+                let weight = cell.beneficiary_weight;
+                match index % 3 {
+                    0 => (total + weight, met + weight, below, unknown),
+                    1 => (total + weight, met, below, unknown + weight),
+                    _ => (total + weight, met, below + weight, unknown),
+                }
+            },
+        );
+        assert_eq!(reference_equity.total_beneficiary_weight, expected_equity_totals.0);
+        assert_eq!(reference_equity.meets_floor_weight, expected_equity_totals.1);
+        assert_eq!(reference_equity.below_floor_weight, expected_equity_totals.2);
+        assert_eq!(reference_equity.indeterminate_weight, expected_equity_totals.3);
+        assert!(reference_equity.cells.iter().all(|cell| match cell.floor_status {
+            ServiceFloorStatus::MeetsFloor => cell.coverage_lower_bound == Some(65.0 / 110.0),
+            ServiceFloorStatus::Indeterminate => cell.coverage_lower_bound == Some(65.0 / 110.0)
+                && cell.coverage_upper_bound == Some(75.0 / 90.0),
+            ServiceFloorStatus::BelowFloor => cell.coverage_upper_bound == Some(75.0 / 90.0),
+        }));
+        let reference_equity_bytes =
+            serde_json::to_vec(&reference_equity).expect("equity assessment serializes");
+
         let (network_scenarios, network_evidence) = network_fixture(groups_count);
         let reference_network =
             assess_service_capacity_networks(&network_scenarios, &network_evidence)
@@ -1073,6 +1143,22 @@ fn main() {
                 reference_functional_bytes
             );
 
+            let equity = assess_service_equity(
+                &equity_scenario,
+                &functional_scenarios,
+                &functional_evidence,
+            )
+            .expect("synthetic distributional service-floor fixture must evaluate");
+            assert_eq!(equity.cells.len(), groups_count);
+            assert_eq!(equity.total_beneficiary_weight, expected_equity_totals.0);
+            assert_eq!(equity.meets_floor_weight, expected_equity_totals.1);
+            assert_eq!(equity.below_floor_weight, expected_equity_totals.2);
+            assert_eq!(equity.indeterminate_weight, expected_equity_totals.3);
+            assert_eq!(
+                serde_json::to_vec(&equity).expect("equity assessment serializes"),
+                reference_equity_bytes
+            );
+
             let networks = assess_service_capacity_networks(&network_scenarios, &network_evidence)
                 .expect("synthetic capacity network fixtures must evaluate");
             assert_eq!(networks.len(), groups_count);
@@ -1147,6 +1233,7 @@ fn main() {
         let mut portfolio_samples = Vec::with_capacity(measured_iterations);
         let mut common_cause_samples = Vec::with_capacity(measured_iterations);
         let mut functional_samples = Vec::with_capacity(measured_iterations);
+        let mut equity_samples = Vec::with_capacity(measured_iterations);
         let mut network_samples = Vec::with_capacity(measured_iterations);
         let mut network_intervention_samples = Vec::with_capacity(measured_iterations);
         let mut recovery_samples = Vec::with_capacity(measured_iterations);
@@ -1195,6 +1282,24 @@ fn main() {
             assert_eq!(
                 serde_json::to_vec(&functional).expect("functional assessments serialize"),
                 reference_functional_bytes
+            );
+
+            let equity_start = Instant::now();
+            let equity = assess_service_equity(
+                &equity_scenario,
+                &functional_scenarios,
+                &functional_evidence,
+            )
+            .expect("synthetic distributional service-floor fixture must evaluate");
+            equity_samples.push(equity_start.elapsed());
+            assert_eq!(equity.cells.len(), groups_count);
+            assert_eq!(equity.total_beneficiary_weight, expected_equity_totals.0);
+            assert_eq!(equity.meets_floor_weight, expected_equity_totals.1);
+            assert_eq!(equity.below_floor_weight, expected_equity_totals.2);
+            assert_eq!(equity.indeterminate_weight, expected_equity_totals.3);
+            assert_eq!(
+                serde_json::to_vec(&equity).expect("equity assessment serializes"),
+                reference_equity_bytes
             );
 
             let network_start = Instant::now();
@@ -1272,6 +1377,7 @@ fn main() {
         samples.sort_unstable();
         common_cause_samples.sort_unstable();
         functional_samples.sort_unstable();
+        equity_samples.sort_unstable();
         network_samples.sort_unstable();
         network_intervention_samples.sort_unstable();
         recovery_samples.sort_unstable();
@@ -1308,6 +1414,20 @@ fn main() {
                 .copied()
                 .unwrap_or_default()
                 .as_micros(),
+            equity_cells_per_run: reference_equity.cell_count,
+            equity_communities_per_run: reference_equity.community_count,
+            equity_total_beneficiary_weight: reference_equity.total_beneficiary_weight,
+            equity_meets_floor_weight: reference_equity.meets_floor_weight,
+            equity_below_floor_weight: reference_equity.below_floor_weight,
+            equity_indeterminate_weight: reference_equity.indeterminate_weight,
+            equity_floor_compliance_lower_bound: reference_equity.overall_floor_compliance_lower_bound,
+            equity_floor_compliance_upper_bound: reference_equity.overall_floor_compliance_upper_bound,
+            equity_compliance_gap_lower_bound: reference_equity.community_compliance_gap_lower_bound,
+            equity_compliance_gap_upper_bound: reference_equity.community_compliance_gap_upper_bound,
+            equity_result_bytes: reference_equity_bytes.len(),
+            equity_p50_micros: percentile(&equity_samples, 50).as_micros(),
+            equity_p95_micros: percentile(&equity_samples, 95).as_micros(),
+            equity_max_micros: equity_samples.last().copied().unwrap_or_default().as_micros(),
             network_scenarios_per_run: reference_network.len(),
             network_links_per_run: network_scenarios.iter().map(|item| item.links.len()).sum(),
             network_evidence_records: network_evidence.len(),
