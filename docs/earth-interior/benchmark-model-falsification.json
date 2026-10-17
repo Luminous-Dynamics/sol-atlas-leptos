@@ -3,7 +3,7 @@
   "benchmark_id": "geo-model-falsification-001",
   "title": "Cross-model falsification and posterior reliability for Earth-interior inference",
   "status": "benchmark_specification_not_executed",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "purpose": "Test whether an Earth-interior inference claim survives known-truth calibration, held-out predictive checks, alternative physical priors, unseen simulator families, and deliberate negative controls before it is described as robust.",
   "central_paradigm": {
     "from": "Select one plausible model, fit it, and display its best estimate.",
@@ -52,6 +52,20 @@
       "doi": "10.1002/2013JB010358",
       "url": "https://agupubs.onlinelibrary.wiley.com/doi/10.1002/2013JB010358",
       "implication": "Posterior reliability of inferred core flow is conditional on the selected prior constraints and scale, motivating explicit prior sensitivity and unresolved-scale reporting."
+    },
+    {
+      "title": "Posterior SBC: simulation-based calibration checking conditional on data",
+      "publication_date": "2026-01-31",
+      "doi": "10.1007/s11222-026-10825-9",
+      "url": "https://doi.org/10.1007/s11222-026-10825-9",
+      "implication": "Prior-predictive simulation-based calibration checks computational calibration averaged under a generative prior; conditional-on-data checks probe whether reliability changes in observation regimes resembling a particular observed dataset. The latter must still be evaluated on known-truth simulations and cannot establish real-Earth latent-state calibration."
+    },
+    {
+      "title": "Flow Matching Calibration for Simulation-Based Inference under Model Misspecification",
+      "publication_date": "2026-07",
+      "venue": "ICML 2026, Proceedings of Machine Learning Research 306",
+      "url": "https://proceedings.mlr.press/v306/ruhlmann26a.html",
+      "implication": "Posterior correction using calibration examples is a candidate robustness method for simulator/noise/prior shift. In Earth-interior inference, hidden true core states are not directly labelled; therefore evaluate such corrections first on held-out known-truth simulation families and do not claim real-Earth latent posterior calibration without suitable ground-truth labels."
     }
   ],
   "evaluation_lanes": [
@@ -128,6 +142,24 @@
         "introduce a seismic event-pair phase/time mismatch when seismic evaluation is enabled"
       ],
       "required_response": "Flag the affected claim, widen/downgrade uncertainty, report non-identifiability, or abstain according to the frozen protocol; do not silently produce a confident unique estimate."
+    },
+    {
+      "id": "L6_data_conditioned_calibration",
+      "question": "Does uncertainty calibration remain credible in the observation-conditioned regions actually encountered, or do prior-predictive aggregate checks mask local under-coverage?",
+      "methods": [
+        "Run registered prior-predictive simulation-based calibration on known-truth synthetic ensembles.",
+        "Add posterior-SBC/conditional calibration diagnostics across predeclared observation strata: spatial coverage, signal-to-noise, temporal regime, missingness, correlated errors, and model-family shift.",
+        "Compare uncorrected posterior inference with deep-ensemble uncertainty diagnostics and, only when valid calibration truth exists, candidate posterior-correction methods such as data-driven calibration or flow-matching correction.",
+        "Report conditional interval coverage, proper predictive scores, sharpness, estimator disagreement and abstention per stratum, with sample size and confidence intervals."
+      ],
+      "controls": [
+        "Construct two data strata where pooled coverage appears acceptable while one conditional stratum under-covers.",
+        "Generate an observation region outside the calibration set and test whether the system flags extrapolation rather than silently applying the correction.",
+        "Use calibration labels only from the declared training/calibration split; do not expose qualification labels or hidden state truth.",
+        "Test whether posterior correction improves coverage at the expense of uselessly broad intervals or degraded proper predictive scores."
+      ],
+      "required_response": "Flag localized miscalibration, abstain or downgrade the affected claim, and retain per-stratum failures even if aggregate coverage passes.",
+      "interpretation_limit": "This lane qualifies calibration on synthetic known-truth or genuinely labelled calibration cases only. Real geomagnetic measurements do not directly label the Earth's hidden core state; posterior calibration on simulated truth is not calibration proof for that real latent state."
     }
   ],
   "registered_baselines": [
@@ -191,6 +223,16 @@
         "peak memory",
         "human review units where applicable"
       ]
+    },
+    {
+      "id": "M6_conditional_calibration",
+      "values": [
+        "coverage and sharpness stratified by predeclared observation regime",
+        "conditional-versus-pooled calibration gap with confidence intervals",
+        "proper predictive score and calibration shift after posterior correction",
+        "out-of-calibration-support detection and abstention rate",
+        "label/holdout leakage count"
+      ]
     }
   ],
   "aspirational_targets_not_yet_acceptance_gates": [
@@ -213,6 +255,11 @@
       "id": "T3",
       "target": "No confident unique-state claim on exact non-identifiable fixtures, and no benchmark success if uncertainty calibration deteriorates materially under declared shifts.",
       "qualification": "Ablate each safeguard to measure which guardrail catches which failure."
+    },
+    {
+      "id": "T4",
+      "target": "On adequately powered synthetic known-truth cases, report conditional nominal-90% interval coverage within a predeclared ±5 percentage-point range in every qualified stratum, while no material proper-score or sharpness regression is hidden by aggregate coverage.",
+      "qualification": "A planning target only. Freeze strata, sample counts, confidence intervals, and minimum practical score effects before blind evaluation. This does not assert that true core-state labels exist for real Earth observations."
     }
   ],
   "evidence_receipt": {
@@ -245,7 +292,10 @@
     "No random adjacent-sample split may be the only generalization evaluation.",
     "No held-out truth, test observation, or post hoc diagnostic may influence model selection or threshold tuning.",
     "No real-data qualification until exact source artifacts, provenance, licenses, capture digests and data-leakage audit are complete.",
-    "All failed negative controls, unstable features, exclusion decisions and negative results stay in the receipt."
+    "All failed negative controls, unstable features, exclusion decisions and negative results stay in the receipt.",
+    "Do not promote a posterior-correction method on pooled coverage alone if any preregistered observation stratum has material under-coverage.",
+    "Do not describe posterior-SBC success on synthetic known-truth cases as evidence of conditional calibration for the real Earth's hidden core state.",
+    "Do not use calibration methods requiring labelled latent truth on real Earth inference unless an independently justified truth-labelled calibration source is available."
   ],
   "cross_project_ownership": {
     "sol_atlas": "Data/estimate contracts, versioned benchmark definitions and visualization of qualified versus underidentified quantities.",
