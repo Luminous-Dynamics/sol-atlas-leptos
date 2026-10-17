@@ -28,8 +28,9 @@ pub struct InvestigationAction {
     /// Exact unit identifier; must equal the problem's loss_unit.
     pub cost_unit: String,
     pub cost: f64,
-    /// The outcome this action would report in each scenario.
-    pub outcome_by_scenario: BTreeMap<String, String>,
+    /// Every outcome still possible under this action for each scenario. Multiple outcomes
+    /// represent diagnostic ambiguity; no probabilities are assigned among them.
+    pub outcome_by_scenario: BTreeMap<String, BTreeSet<String>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -196,13 +197,13 @@ impl RobustRegretProblem {
                 }
             }
             for scenario_id in &self.scenario_ids {
-                let outcome = action.outcome_by_scenario.get(scenario_id).ok_or_else(|| {
+                let outcomes = action.outcome_by_scenario.get(scenario_id).ok_or_else(|| {
                     RobustRegretError::MissingActionOutcome {
                         action_id: action.action_id.clone(),
                         scenario_id: scenario_id.clone(),
                     }
                 })?;
-                if !nonempty(outcome) {
+                if outcomes.is_empty() || outcomes.iter().any(|outcome| !nonempty(outcome)) {
                     return Err(RobustRegretError::EmptyActionOutcome {
                         action_id: action.action_id.clone(),
                         scenario_id: scenario_id.clone(),
@@ -272,11 +273,12 @@ pub fn analyze_robust_regret(
     for action in &problem.actions {
         let mut scenarios_by_outcome: BTreeMap<String, Vec<String>> = BTreeMap::new();
         for scenario_id in &problem.scenario_ids {
-            let outcome = &action.outcome_by_scenario[scenario_id];
-            scenarios_by_outcome
-                .entry(outcome.clone())
-                .or_default()
-                .push(scenario_id.clone());
+            for outcome in &action.outcome_by_scenario[scenario_id] {
+                scenarios_by_outcome
+                    .entry(outcome.clone())
+                    .or_default()
+                    .push(scenario_id.clone());
+            }
         }
 
         let mut decision_by_outcome = BTreeMap::new();
@@ -494,7 +496,7 @@ mod tests {
             action_id: "inspect-water".into(),
             cost_unit: "regret-units".into(),
             cost: 1.0,
-            outcome_by_scenario: BTreeMap::from([("dry".into(), "low".into())]),
+            outcome_by_scenario: BTreeMap::from([("dry".into(), BTreeSet::from(["low".into()]))]),
         });
         assert!(matches!(
             analyze_robust_regret(&problem),
@@ -511,8 +513,8 @@ mod tests {
             cost_unit: "days".into(),
             cost: 1.0,
             outcome_by_scenario: BTreeMap::from([
-                ("dry".into(), "same".into()),
-                ("wet".into(), "same".into()),
+                ("dry".into(), BTreeSet::from(["same".into()])),
+                ("wet".into(), BTreeSet::from(["same".into()])),
             ]),
         });
         assert!(matches!(
@@ -529,8 +531,8 @@ mod tests {
             cost_unit: "regret-units".into(),
             cost: 0.0,
             outcome_by_scenario: BTreeMap::from([
-                ("dry".into(), "not-dry".into()),
-                ("wet".into(), "not-dry".into()),
+                ("dry".into(), BTreeSet::from(["not-dry".into()])),
+                ("wet".into(), BTreeSet::from(["not-dry".into()])),
             ]),
         });
         problem.actions.push(InvestigationAction {
@@ -538,8 +540,8 @@ mod tests {
             cost_unit: "regret-units".into(),
             cost: 0.0,
             outcome_by_scenario: BTreeMap::from([
-                ("dry".into(), "dry".into()),
-                ("wet".into(), "wet".into()),
+                ("dry".into(), BTreeSet::from(["dry".into()])),
+                ("wet".into(), BTreeSet::from(["wet".into()])),
             ]),
         });
         let report = analyze_robust_regret(&problem).unwrap();
