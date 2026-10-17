@@ -13,7 +13,7 @@ use crate::service_function::{
     FunctionMeasurement, ServiceFunctionAssessmentError, ServiceFunctionValidationError,
     build_evidence_index, validate_measurement,
 };
-use crate::service_water::{WATER_RATE_UNIT, WATER_VOLUME_UNIT};
+use crate::service_water::WATER_RATE_UNIT;
 use crate::service_water_trajectory::{
     WaterServiceTrajectory, WaterServiceTrajectoryAssessment, WaterServiceTrajectoryError,
     assess_trajectory_indexed,
