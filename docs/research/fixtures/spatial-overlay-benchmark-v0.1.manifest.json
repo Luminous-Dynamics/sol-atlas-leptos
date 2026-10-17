@@ -2,7 +2,7 @@
   "benchmark_id": "SOL-ATLAS-SPATIAL-OVERLAY-001",
   "version": "0.1.0",
   "fixture_path": "docs/research/fixtures/spatial-overlay-benchmark-v0.1.jsonl",
-  "fixture_git_blob_sha": "23ef4452ddbd99d861f1f79cde5f45d2e17c0149",
+  "fixture_git_blob_sha": "9f342597a96b2ae47930f60bdb36952ec449afff",
   "fixture_character_count": 23664,
   "records": 21,
   "as_of_date": "2026-10-17",
