@@ -20,7 +20,8 @@
     "metrics",
     "controls",
     "gates",
-    "claim_boundary"
+    "claim_boundary",
+    "ci_checks"
   ],
   "properties": {
     "schema_version": {
@@ -392,6 +393,68 @@
       "items": {
         "type": "string"
       }
+    },
+    "ci_checks": {
+      "type": "array",
+      "description": "Every required CI/workflow check relevant to this qualification attempt, captured on the exact tested commit. Queued, skipped, cancelled, missing, stale-head, or non-success checks are never passes.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "check_id",
+          "name",
+          "commit_sha",
+          "status",
+          "conclusion"
+        ],
+        "properties": {
+          "check_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "commit_sha": {
+            "$ref": "#/$defs/gitSha"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "in_progress",
+              "completed",
+              "skipped",
+              "cancelled",
+              "missing"
+            ]
+          },
+          "conclusion": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "success",
+              "failure",
+              "neutral",
+              "cancelled",
+              "skipped",
+              "timed_out",
+              "action_required",
+              "stale",
+              null
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          }
+        }
+      }
     }
   },
   "allOf": [
@@ -457,6 +520,23 @@
               "outcome": {
                 "const": "completed"
               }
+            }
+          },
+          "ci_checks": {
+            "minItems": 1,
+            "items": {
+              "properties": {
+                "status": {
+                  "const": "completed"
+                },
+                "conclusion": {
+                  "const": "success"
+                }
+              },
+              "required": [
+                "status",
+                "conclusion"
+              ]
             }
           }
         }
