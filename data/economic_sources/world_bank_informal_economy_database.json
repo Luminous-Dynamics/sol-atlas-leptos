@@ -1,0 +1,403 @@
+{
+  "schema_version": 1,
+  "registry_id": "sol-atlas-economic-source-registry",
+  "registry_version": "world-bank-informal-economy-database/v8",
+  "record_kind": "source_qualification_candidate",
+  "status": "metadata_only_not_approved_for_data_ingestion_or_redistribution",
+  "source_id": "world_bank_informal_economy_database",
+  "publisher": "World Bank Prospects Group",
+  "title": "Informal Economy Database",
+  "canonical_url": "https://www.worldbank.org/en/brief/2024/01/09/informal-economy-database",
+  "data_url": "https://thedocs.worldbank.org/en/doc/37511318c092e6fd4ca3c60f0af0bea3-0350012021/related/informal-economy-database.xlsx",
+  "source_page_date": "2024-01-09",
+  "source_period_start": 1990,
+  "source_period_end": 2020,
+  "max_economies_claimed": 196,
+  "measure_count_claimed_by_source_page": 11,
+  "source_page_update_frequency": "every_two_years",
+  "source_page_claims": {
+    "output_methods": [
+      "dynamic_general_equilibrium_model",
+      "multiple_indicators_multiple_causes_model"
+    ],
+    "employment_indicators": [
+      "self_employment",
+      "informal_employment",
+      "employment_outside_formal_sector",
+      "labor_force_without_pension_insurance"
+    ],
+    "perception_sources": [
+      {
+        "source": "World Economic Forum Executive Opinion Surveys",
+        "count": 1
+      },
+      {
+        "source": "World Bank Enterprise Surveys",
+        "count": 4
+      },
+      {
+        "source": "World Values Survey",
+        "count": 1
+      }
+    ],
+    "count_reconciliation": "Count remains unresolved at the observed-series and edition level. The 2024 official brief claims 11 measures across a 1990–2020 period, while its bullets list two output estimates (DGE and MIMIC), four employment indicators, and six perception indicators—12 listed series if DGE and MIMIC are counted separately. Separately, the World Bank Data360 WB_INFECDB dataset metadata describes 12 measures over 1990–2018, and the Data360 catalogue search labels the dataset as containing 12 indicators. The period and measure-count differences may reflect different editions or metadata taxonomies; available evidence does not settle which workbook edition underlies each description. Downstream catalogues also list DGE and MIMIC separately, and a reproduction package reports DGE_p and MIMIC_p sheets/variables. The actual official workbook edition, its exact version, and its inventory must be captured and inspected before resolving the count or joining series across vintages.",
+    "concept_inventory": {
+      "source_page_claimed_measure_count": 11,
+      "output_series_listed": 2,
+      "employment_indicators_listed": 4,
+      "perception_indicators_listed": 6,
+      "series_count_if_all_listed_as_separate": 12,
+      "conceptual_count_if_output_estimators_grouped": 11,
+      "count_reconciliation_status": "unresolved_until_exact_workbook_inventory_and_edition_reconciliation",
+      "note": "The 2024 official brief taxonomy supports both a one-concept/two-estimator interpretation and a twelve-series interpretation. A separate World Bank Data360 WB_INFECDB metadata record describes a 1990–2018 period and twelve measures, while the brief describes 1990–2020 and eleven measures; the catalogue search also lists twelve indicators. This is material evidence of an edition or metadata discrepancy, not proof of the exact current workbook inventory. Downstream catalogues list DGE and MIMIC separately. The exact official workbook edition and its inventory remain unverified. do not select an interpretation or merge values across editions until the exact asset and its sheets/indicator inventory have been inspected."
+    }
+  },
+  "primary_methodology_citation": {
+    "authors": [
+      "Ceyhun Elgin",
+      "M. Ayhan Kose",
+      "Franziska Ohnsorge",
+      "Shu Yu"
+    ],
+    "year": 2021,
+    "title": "Understanding Informality",
+    "publication": "CERP Discussion Paper 16497",
+    "url": "https://cepr.org/publications/dp16497"
+  },
+  "license_review": {
+    "status": "source_specific_review_required",
+    "rights_decision": "conflicting_secondary_catalog_labels_exact_workbook_rights_not_yet_adjudicated",
+    "official_page_download_present": true,
+    "publicly_available_in_reproducibility_package": true,
+    "dataset_license_label": "conflicting_metadata_cc_by_4_0_and_custom_license",
+    "redistribution_approved": false,
+    "commercial_use_approved": false,
+    "approval_status": "not_approved_pending_exact_asset_and_terms_reconciliation",
+    "general_world_bank_dataset_terms_url": "https://www.worldbank.org/ext/en/legal/terms-conditions/datasets",
+    "general_world_bank_terms_summary": "World Bank Data Catalog datasets default to CC BY 4.0 unless specifically labeled otherwise; third-party datasets may have separate restrictions.",
+    "specific_evidence_url": "https://reproducibility.worldbank.org/catalog/265",
+    "specific_evidence_label": "CC BY 4.0 for named informal-economy-database.xlsx row; Custom license in separate package catalog",
+    "specific_evidence_url_points_to": "https://datacatalog.worldbank.org/public-licenses#cc-by",
+    "interpretation_limit": "A specific catalogue row labels the named workbook CC BY 4.0, while another reproduction catalogue labels a workbook source Custom license and links to general terms; a derivative is separately listed CC BY 4.0. The evidence is inconsistent at the catalogue-metadata level. The project gate is not a legal finding that reuse is prohibited; verify the exact current asset and governing terms before project approval.",
+    "required_next_action": "Determine whether the actual workbook is governed by the linked World Bank dataset terms or a dataset-specific notice, then record explicit rights evidence for attribution, modification, redistribution, and commercial use before ingestion or publication."
+  },
+  "provenance": {
+    "acquisition_method": "official_source_page_review_only",
+    "workbook_downloaded": false,
+    "source_snapshot_id": null,
+    "source_snapshot_digest": null,
+    "digest_status": "not_captured",
+    "raw_observations_embedded": false,
+    "observed_column_inventory": null,
+    "last_reviewed_at": "2026-10-13"
+  },
+  "qualification_gates": [
+    "confirm exact workbook edition and digest",
+    "capture workbook sheet and variable inventory without altering the original",
+    "reconcile measure count against the 2021 methodology paper and workbook variables",
+    "record definition, unit, denominator, geography, period, method, missingness and source for each variable",
+    "separate DGE and MIMIC estimates as alternative model-based measures; do not average or sum by default",
+    "separate model estimates from survey-derived employment and perception indicators",
+    "check country-year coverage and missingness before comparing economies",
+    "resolve source-specific terms and third-party restrictions before any data redistribution or commercial use",
+    "do not infer illegality or adjudicated illicit output from informality estimates",
+    "obtain and hash the specific reproducibility-package derivative before considering its values for import",
+    "do not transfer the derivative's CC BY 4.0 metadata to the current official Excel workbook or to the separately author-provided companion file",
+    "reconcile CC BY 4.0 evidence for informal-economy-database.xlsx with the Custom license catalogue entry",
+    "distinguish parent-package embargo from the access policy for the separately linked official Excel dataset",
+    "preserve the distinction between a catalogue's embargoed reproduction ZIP and its separately linked original dataset asset",
+    "capture an HTTP response, workbook byte length and SHA-256 before claiming exact-asset verification",
+    "reconcile the Data360 WB_INFECDB metadata claim of 12 measures over 1990–2018 against the official brief claim of 11 measures over 1990–2020 and the exact workbook edition",
+    "qualify the World Bank Data360 API response and indicator-level terms: capture immutable paginated responses, counts, indicator IDs, digests, and any third-party reuse restrictions before importing observations"
+  ],
+  "interpretation_ceiling": "Historical cross-country context only after the workbook variables, methods, coverage and terms have been independently qualified; not a current-year estimate, not a complete global shadow-economy total, and not evidence of illegal activity.",
+  "supersedes_registry_version": "world-bank-informal-economy-database/v7",
+  "official_asset": {
+    "label": "Informal economy data (Excel)",
+    "format": "xlsx",
+    "url": "https://thedocs.worldbank.org/en/doc/37511318c092e6fd4ca3c60f0af0bea3-0350012021/related/informal-economy-database.xlsx",
+    "discovered_on_official_page": true,
+    "downloaded_in_this_review": false,
+    "source_page_update_frequency": "every_two_years",
+    "note": "The official page links to an Excel download. The bytes have not been retrieved and inspected in this review; do not claim workbook sheet/column inventory or a digest."
+  },
+  "reproducibility_package_evidence": {
+    "catalog_url": "https://reproducibility.worldbank.org/catalog/583",
+    "catalog_created_date": "2026-06-17",
+    "dataset_access_date": "2026-05-05",
+    "filename_in_package": "DGE_Raw.xlsx",
+    "access_policy_claim": "publicly_available_and_included_in_reproducibility_package",
+    "license_label": "Custom license",
+    "license_url": "https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets",
+    "interpretation": "The package metadata establishes that a 2026 reproduction effort reports the dataset publicly available and included in its package, while applying a Custom license label and linking the World Bank dataset terms. This is availability evidence, not a complete rights analysis. A separate World Bank reproduction package for a different paper describes DGE_p and MIMIC_p sheets in a processed derivative; it is supplementary evidence about downstream variable separation, not proof of the exact current workbook inventory or its license."
+  },
+  "cross_catalog_evidence": [
+    {
+      "catalog_url": "https://datafinder.qog.gu.se/dataset/ied",
+      "reviewed_on": "2026-10-13",
+      "catalog_name": "Quality of Government (QoG) Datafinder",
+      "variables": [
+        {
+          "id": "ied_dge",
+          "label": "DGE Model-based Informal Output"
+        },
+        {
+          "id": "ied_mimic",
+          "label": "MIMIC Model-based Informal Output"
+        }
+      ],
+      "interpretation_limit": "The downstream catalog treats DGE and MIMIC as separately selectable variables. This corroborates distinct series in that catalog; it does not establish the exact sheet/column inventory of the current World Bank Excel workbook."
+    },
+    {
+      "catalog_url": "https://reproducibility.worldbank.org/catalog/330",
+      "reviewed_on": "2026-10-13",
+      "catalog_name": "World Bank reproducibility package for (In)Formalizing Jobs in Latin America and the Caribbean",
+      "reported_sheets": [
+        "DGE_p",
+        "MIMIC_p"
+      ],
+      "reported_variables": [
+        "dge_paverage_1993_2019",
+        "mimic_paverage_1993_2019"
+      ],
+      "source_context": "The package documents a processed derivative of the Informal Economy Database and a distinct additional author-provided file. Its column names and license terms must not be assumed to match the current official Excel workbook."
+    }
+  ],
+  "derivative_candidate": {
+    "candidate_id": "world-bank-informal-economy-database-with-fixes",
+    "status": "public_reproducibility_package_candidate_not_yet_materialized_or_hash_verified",
+    "catalog_url": "https://reproducibility.worldbank.org/catalog/330",
+    "catalog_created_date": "2025-09-15",
+    "catalog_last_modified_date": "2026-01-06",
+    "source_access_date": "2024-09",
+    "dataset_names_in_package": [
+      "informal-economy-database-with-fixes.dta",
+      "INFORMALITY DATA SET.dta"
+    ],
+    "source_sheets_reported": [
+      "DGE_p",
+      "MIMIC_p"
+    ],
+    "processed_variables_reported": [
+      {
+        "id": "dge_paverage_1993_2019",
+        "meaning": "DGE measure of informality averaged over 1993–2019"
+      },
+      {
+        "id": "mimic_paverage_1993_2019",
+        "meaning": "MIMIC measure of informality averaged over 1993–2019"
+      }
+    ],
+    "other_reported_variables": [
+      "economy",
+      "ccode",
+      "var4",
+      "var5"
+    ],
+    "license_label_reported": "Creative Commons Attribution 4.0 International License (CC BY 4.0)",
+    "license_url": "https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets",
+    "rights_scope": "The listed CC BY 4.0 evidence applies to the processed dataset as described by this specific reproduction-package record. It is not proof that every asset, author-provided companion file, or the current official Excel workbook has identical rights.",
+    "raw_or_derivative": "processed derivative; not the current official Excel workbook",
+    "downloaded_in_this_review": false,
+    "source_snapshot_digest": null,
+    "digest_status": "not_captured",
+    "project_status": "not_approved_for_import_until_package_asset_is_obtained_hashed_and_its_metadata_reconciled",
+    "next_actions": [
+      "obtain the publicly listed reproducibility-package asset and README",
+      "capture SHA-256 for the package and the exact DTA file without modifying the originals",
+      "check package README and license metadata scope for the two DGE/MIMIC series separately from the author-provided non-public companion file",
+      "verify country identifiers, period-average definitions, missingness and row counts against the workbook-derived description",
+      "use only the explicitly licensed processed derivative if its package contents and terms match this record; do not infer the raw workbook has the same rights"
+    ]
+  },
+  "license_evidence_matrix": [
+    {
+      "evidence_id": "world_bank_catalog_jobless_development_265",
+      "source_url": "https://reproducibility.worldbank.org/catalog/265",
+      "source_title": "Reproducibility package for Jobless Development",
+      "source_record_date": "2025-04-08",
+      "named_dataset": "Informal Economy Database",
+      "named_asset": "informal-economy-database.xlsx",
+      "data_url": "https://www.worldbank.org/en/research/brief/informal-economy-database",
+      "access_policy_label": "Publicly available and will be included in the package",
+      "license_label": "Creative Commons Attribution 4.0 International License",
+      "license_url": "https://datacatalog.worldbank.org/public-licenses#cc-by",
+      "evidence_strength": "specific_dataset_row_names_source_file_and_explicit_license",
+      "caveat": "The same catalogue page states in its package-level overview that the RR_WLD_2025_286 ZIP is under temporary embargo and its reproduction data/code are not yet publicly available, while its separate dataset row identifies the original informal-economy-database.xlsx as publicly available and included. Do not fetch or redistribute the embargoed package. Treat this as a scope ambiguity in catalogue metadata; the official page exposes its own direct Excel link, which must be retrieved and verified independently."
+    },
+    {
+      "evidence_id": "world_bank_catalog_informalizing_jobs_330",
+      "source_url": "https://reproducibility.worldbank.org/catalog/330",
+      "source_title": "Reproducibility package for (In)Formalizing Jobs in Latin America and the Caribbean",
+      "source_record_date": "2025-09-15",
+      "named_dataset": "Informal Economy Database (with fixes)",
+      "named_asset": "informal-economy-database-with-fixes.dta",
+      "data_url": "https://www.worldbank.org/en/research/brief/informal-economy-database",
+      "access_policy_label": "Data is publicly available and included in the reproducibility package",
+      "license_label": "Creative Commons Attribution 4.0 International License (CC BY 4.0)",
+      "license_url": "https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets",
+      "evidence_strength": "processed_derivative_license_record",
+      "caveat": "License applies to the specifically described processed derivative, not automatically to other package files or any later/current workbook edition."
+    },
+    {
+      "evidence_id": "world_bank_catalog_sme_training_583",
+      "source_url": "https://reproducibility.worldbank.org/catalog/583",
+      "source_title": "Reproducibility package for Does Informal Competition Reduce Firm-Provided Worker Training Among Formal Manufacturing SMEs In Sub-Saharan Africa?",
+      "source_record_date": "2026-06-17",
+      "named_dataset": "World Bank Informal Economy Database",
+      "named_asset": "DGE_Raw.xlsx",
+      "data_url": "https://www.worldbank.org/en/research/brief/informal-economy-database",
+      "access_policy_label": "Data is publicly available and included in the reproducibility package",
+      "license_label": "Custom license",
+      "license_url": "https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets",
+      "evidence_strength": "source_used_in_replication_package_with_different_license_label",
+      "caveat": "Catalog label refers to the reproduction package's source entry and links to general terms; it does not articulate a separate prohibition or the exact current workbook's rights scope."
+    }
+  ],
+  "rights_adjudication": {
+    "status": "conflicting_secondary_catalog_labels_exact_workbook_rights_not_yet_adjudicated",
+    "project_status": "do_not_publish_or_redistribute_workbook_bytes_or_derived_table_until_exact_asset_and_rights_scope_are_confirmed",
+    "not_a_legal_finding": "The project gate is precautionary and does not assert that the dataset is legally prohibited from reuse.",
+    "reconciliation_note": "One World Bank reproduction catalogue specifically identifies the named Excel workbook and labels it CC BY 4.0, while the overview on that same catalogue page marks its parent reproduction ZIP as temporarily embargoed and says its reproduction data/code are not yet publicly available; a separate row on that page says the original dataset is public and included. A second catalogue lists DGE_Raw.xlsx under Custom license, and a third labels a processed derivative CC BY 4.0. These statements have different scopes and cannot be reconciled solely from labels. Verify the original official Excel asset directly and its current terms before project approval.",
+    "required_actions": [
+      "obtain the official Excel asset from the World Bank's official dataset page",
+      "record the exact URL, retrieved-at time, byte size and SHA-256 digest",
+      "inspect the downloaded workbook's filename/version/sheets and confirm it matches the asset named in the CC BY 4.0 catalog record",
+      "review the current World Bank dataset terms linked from the official page and the dataset-specific license metadata",
+      "reconcile the Custom license entry from the other reproduction catalogue without treating its label alone as a prohibition",
+      "only after reconciling rights, set an explicit project approval state for attribution, modification, redistribution and commercial use",
+      "record the package-level embargo separately from the original dataset-row access policy; do not fetch or distribute the embargoed parent ZIP"
+    ]
+  },
+  "package_access_scope": {
+    "package_id": "RR_WLD_2025_286",
+    "package_catalog_url": "https://reproducibility.worldbank.org/catalog/265",
+    "package_zip": "RR_WLD_2025_286.zip",
+    "package_zip_status": "temporarily_embargoed_per_package_overview",
+    "package_data_and_code_status": "not_yet_publicly_available_per_package_overview",
+    "source_dataset_row_status": "publicly_available_and_included_per_dataset_row",
+    "source_dataset_filename": "informal-economy-database.xlsx",
+    "source_dataset_url": "https://www.worldbank.org/en/research/brief/informal-economy-database",
+    "resolution": "Preserve the scope ambiguity in catalogue metadata until the exact asset is captured. Do not use the parent reproduction ZIP as a download route. Resolve the original dataset through the official dataset page/direct Excel link and verify bytes independently."
+  },
+  "asset_acquisition": {
+    "official_page_url": "https://www.worldbank.org/en/brief/2024/01/09/informal-economy-database",
+    "official_excel_url": "https://thedocs.worldbank.org/en/doc/37511318c092e6fd4ca3c60f0af0bea3-0350012021/related/informal-economy-database.xlsx",
+    "browser_attempt": {
+      "attempted_on": "2026-10-13",
+      "result": "reader_rejected_binary_workbook_content_type",
+      "detail": "Browser reader returned unsupported content-type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; this indicates reader limitation, not a source HTTP failure."
+    },
+    "direct_container_attempt": {
+      "attempted_on": "2026-10-13",
+      "result": "failed_dns_resolution_in_execution_environment",
+      "detail": "curl failed before receiving an HTTP response: Could not resolve host: thedocs.worldbank.org.",
+      "destination_path": "/mnt/data/economic-source-review/informal-economy-database.xlsx",
+      "bytes_captured": false,
+      "http_status": null
+    },
+    "snapshot_id": null,
+    "sha256": null,
+    "byte_length": null,
+    "workbook_inspected": false,
+    "column_inventory": null,
+    "data_ingestion_authorized": false,
+    "note": "Retrieval failed at the execution environment, not at an observed remote response. No local workbook file, digest, byte length or workbook inventory is claimed."
+  },
+  "edition_history_evidence": {
+    "evidence_id": "world_bank_data360_wb_infecdb_metadata_alternate_edition",
+    "dataset_id": "WB_INFECDB",
+    "dataset_title": "Informal Economy Database",
+    "metadata_url": "https://data360files.worldbank.org/data360-data/datasetmetadata/WB_INFECDB.pdf",
+    "api_documentation_url": "https://data360.worldbank.org/en/api",
+    "catalogue_search_url": "https://data360.worldbank.org/en/search",
+    "reviewed_on": "2026-10-13",
+    "metadata_version_date": null,
+    "source_period_start": 1990,
+    "source_period_end": 2018,
+    "measure_count_claimed": 12,
+    "catalogue_indicator_count": 12,
+    "measure_breakdown": {
+      "output_methods": 2,
+      "employment_indicators": 4,
+      "perception_indicators": 6,
+      "total_if_each_output_estimator_is_separate": 12
+    },
+    "competing_official_brief": {
+      "url": "https://www.worldbank.org/en/brief/2024/01/09/informal-economy-database",
+      "source_period_start": 1990,
+      "source_period_end": 2020,
+      "measure_count_claimed": 11
+    },
+    "exact_workbook_inventory_captured": false,
+    "metadata_pdf_bytes_captured": false,
+    "data_observations_captured": false,
+    "interpretation": "This is an alternate World Bank Data360 metadata record and a catalogue-level indicator count. Its reported 1990–2018 period and 12 measures differ from the 2024 official brief's 1990–2020 period and 11 measures. The record's version date is not established by the retrieved metadata excerpt. Treat the mismatch as an edition/metadata discrepancy; do not infer which record matches the currently linked Excel workbook until its bytes, digest, sheets and indicator inventory are inspected.",
+    "access_note": "The published Data360 API documentation was reviewed, but its data endpoint was not successfully queried in this review. The metadata PDF and workbook bytes were not captured locally. No observations, digest, or current workbook inventory are claimed."
+  },
+  "data360_api_review": {
+    "evidence_id": "world_bank_data360_open_api_v1",
+    "api_root": "https://data360api.worldbank.org",
+    "api_spec_url": "https://raw.githubusercontent.com/worldbank/open-api-specs/refs/heads/main/Data360%20Open_API.json",
+    "official_api_documentation_url": "https://data360.worldbank.org/en/api",
+    "official_terms_url": "https://data360.worldbank.org/en/about",
+    "reviewed_on": "2026-10-13",
+    "documented_routes": {
+      "list_indicator_ids": {
+        "method": "GET",
+        "path": "/data360/indicators",
+        "dataset_query_parameter": "datasetId",
+        "purpose": "List indicator IDs for a dataset; use to discover published series before requesting observations"
+      },
+      "retrieve_observations": {
+        "method": "GET",
+        "path": "/data360/data",
+        "dataset_query_parameter": "DATABASE_ID",
+        "indicator_query_parameter": "INDICATOR",
+        "period_query_parameters": [
+          "timePeriodFrom",
+          "timePeriodTo",
+          "TIME_PERIOD"
+        ],
+        "pagination_parameter": "skip",
+        "documented_max_records_per_response": 1000
+      },
+      "retrieve_metadata": {
+        "method": "POST",
+        "path": "/data360/metadata",
+        "request_body_field": "query",
+        "query_language": "OData-like filter/select expression as documented by the OpenAPI specification"
+      }
+    },
+    "probe": {
+      "attempted_on": "2026-10-13",
+      "route_probe_result": "web_reader_refused_direct_api_url",
+      "attempted_indicator_url": "https://data360api.worldbank.org/data360/indicators?datasetId=WB_INFECDB",
+      "http_status": null,
+      "response_bytes_captured": false,
+      "indicator_ids_captured": false,
+      "data_observations_captured": false,
+      "digest": null,
+      "interpretation": "The direct API URL could not be opened by the web retrieval tool. This is not an observed API HTTP response and does not establish that the World Bank endpoint is unavailable. Use a normal HTTP client in the repository or a network-enabled environment to probe the official documented endpoint, capture status/headers/body, and record a digest."
+    },
+    "terms_review": {
+      "default_label": "Creative Commons Attribution 4.0 International License (CC BY 4.0), unless specifically labelled otherwise",
+      "third_party_exception_disclosed": true,
+      "specific_indicator_terms_must_be_checked": true,
+      "official_terms_summary": "Data360 terms say datasets are generally CC BY 4.0 unless specifically labelled otherwise, and that some third-party datasets or indicators can have different conditions or require provider consent. Terms applicable to Data360 do not by themselves resolve rights for the separately linked official Excel workbook or every Data360 indicator.",
+      "data360_api_or_metadata_ingestion_approved": false,
+      "derived_data_redistribution_approved": false
+    },
+    "acquisition_protocol": [
+      "Query GET /data360/indicators?datasetId=WB_INFECDB and preserve the exact URL, request time, HTTP status, relevant response headers, raw response bytes, and SHA-256 before parsing.",
+      "Validate the returned indicator list and compare it with the twelve-indicator metadata description and the competing 2024 official brief before requesting values.",
+      "Request each discovered indicator separately using GET /data360/data with DATABASE_ID=WB_INFECDB and a bounded period filter; do not assume undocumented indicator codes.",
+      "Follow the documented skip pagination parameter and verify the source count, returned row count, uniqueness, and page boundaries; the OpenAPI documentation states a maximum of 1000 records per response.",
+      "Persist each immutable page response and manifest, then calculate a combined dataset digest over a documented manifest rather than concatenating pages without provenance.",
+      "Preserve each observation's indicator ID, source period, reference area, value, unit, missing/status flags, and all dimensions; do not convert nulls to zero.",
+      "Inspect indicator-level licensing/attribution and third-party exceptions before approving reuse or redistribution; keep Data360 observations distinct from the uninspected Excel workbook.",
+      "Reconcile the resulting country/period/indicator inventory against the workbook only after the exact workbook bytes and terms have been captured."
+    ],
+    "qualification_status": "documented_acquisition_route_not_execution_verified"
+  }
+}

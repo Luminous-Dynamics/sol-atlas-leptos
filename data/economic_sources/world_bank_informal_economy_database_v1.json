@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "registry_id": "sol-atlas-economic-source-registry",
+  "registry_version": "world-bank-informal-economy-database/v1",
+  "record_kind": "source_qualification_candidate",
+  "status": "metadata_only_not_approved_for_data_ingestion_or_redistribution",
+  "source_id": "world_bank_informal_economy_database",
+  "publisher": "World Bank Prospects Group",
+  "title": "Informal Economy Database",
+  "canonical_url": "https://www.worldbank.org/en/brief/2024/01/09/informal-economy-database",
+  "data_url": "https://thedocs.worldbank.org/en/doc/37511318c092e6fd4ca3c60f0af0bea3-0350012021/related/informal-economy-database.xlsx",
+  "source_page_date": "2024-01-09",
+  "source_period_start": 1990,
+  "source_period_end": 2020,
+  "max_economies_claimed": 196,
+  "measure_count_claimed_by_source_page": 11,
+  "source_page_update_frequency": "every_two_years",
+  "source_page_claims": {
+    "output_methods": [
+      "dynamic_general_equilibrium_model",
+      "multiple_indicators_multiple_causes_model"
+    ],
+    "employment_indicators": [
+      "self_employment",
+      "informal_employment",
+      "employment_outside_formal_sector",
+      "labor_force_without_pension_insurance"
+    ],
+    "perception_sources": [
+      {
+        "source": "World Economic Forum Executive Opinion Surveys",
+        "count": 1
+      },
+      {
+        "source": "World Bank Enterprise Surveys",
+        "count": 4
+      },
+      {
+        "source": "World Values Survey",
+        "count": 1
+      }
+    ],
+    "count_reconciliation": "The source page claims 11 measures, while its category bullets enumerate two output-method series, four employment indicators and six perception-source indicators. These may not map one-to-one to workbook variables; reconcile the actual workbook variable inventory and paper appendix before claiming an exact count."
+  },
+  "primary_methodology_citation": {
+    "authors": [
+      "Ceyhun Elgin",
+      "M. Ayhan Kose",
+      "Franziska Ohnsorge",
+      "Shu Yu"
+    ],
+    "year": 2021,
+    "title": "Understanding Informality",
+    "publication": "CERP Discussion Paper 16497",
+    "url": "https://cepr.org/publications/dp16497"
+  },
+  "license_review": {
+    "status": "source_specific_review_required",
+    "redistributable": false,
+    "commercial_use_approved": false,
+    "general_world_bank_dataset_terms_url": "https://www.worldbank.org/ext/en/legal/terms-conditions/datasets",
+    "general_world_bank_terms_summary": "World Bank Data Catalog datasets default to CC BY 4.0 unless specifically labelled otherwise; third-party datasets may have separate restrictions.",
+    "conflicting_or_ambiguous_evidence": {
+      "source_url": "https://reproducibility.worldbank.org/catalog/583",
+      "catalog_label": "Custom license",
+      "catalog_license_url": "https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets",
+      "interpretation_limit": "This label appears in a reproducibility package that lists the Informal Economy Database as an included source. It is a warning to resolve the terms for the exact workbook; it does not by itself prove that the source-page workbook is prohibited or permitted for redistribution."
+    },
+    "required_next_action": "Resolve the exact workbook's governing dataset license and any third-party data restrictions in the dataset metadata or with World Bank Data before ingestion, bundling, public redistribution, or commercial use."
+  },
+  "provenance": {
+    "acquisition_method": "official_source_page_review_only",
+    "workbook_downloaded": false,
+    "source_snapshot_id": null,
+    "source_snapshot_digest": null,
+    "digest_status": "not_captured",
+    "raw_observations_embedded": false,
+    "observed_column_inventory": null,
+    "last_reviewed_at": "2026-10-13"
+  },
+  "qualification_gates": [
+    "confirm exact workbook edition and digest",
+    "capture workbook sheet and variable inventory without altering the original",
+    "reconcile measure count against the 2021 methodology paper and workbook variables",
+    "record definition, unit, denominator, geography, period, method, missingness and source for each variable",
+    "separate DGE and MIMIC estimates as alternative model-based measures; do not average or sum by default",
+    "separate model estimates from survey-derived employment and perception indicators",
+    "check country-year coverage and missingness before comparing economies",
+    "resolve source-specific terms and third-party restrictions before any data redistribution or commercial use",
+    "do not infer illegality or adjudicated illicit output from informality estimates"
+  ],
+  "interpretation_ceiling": "Historical cross-country context only after the workbook variables, methods, coverage and terms have been independently qualified; not a current-year estimate, not a complete global shadow-economy total, and not evidence of illegal activity."
+}

@@ -19,6 +19,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
+      # Both the application and shared core are workspace members.
       - run: cargo fmt --all --check
 
   check-wasm:
@@ -43,6 +44,7 @@ jobs:
       # (a closure type-inference error in layer_panel.rs) before it
       # would otherwise have shipped, 2026-07-10.
       - run: cargo check --target wasm32-unknown-unknown
+      - run: cargo check --manifest-path sol-atlas-core/Cargo.toml --target wasm32-unknown-unknown
 
   test-native:
     runs-on: ubuntu-latest
@@ -59,9 +61,22 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
-      # This crate is a wasm-bindgen-heavy [[bin]] with no [lib] target —
-      # native `cargo test` still works (verified 2026-07-11) and is much
-      # faster than a wasm test harness for the pure-logic unit tests
-      # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
-      # `cargo test --lib` fails with "no library targets found".
-      - run: cargo test --bin sol-atlas-leptos
+      - name: Compile independent fixture verifier
+        run: python3 -m py_compile scripts/verify_economic_intelligence_fixture.py
+      - name: Verify frozen economic-intelligence reference corpus
+        run: python3 scripts/verify_economic_intelligence_fixture.py
+      - name: Compile South Africa metric-registry verifier
+        run: python3 -m py_compile scripts/verify_economic_metric_registry.py
+      - name: Verify source-attributed South Africa QLFS metric registry
+        run: python3 scripts/verify_economic_metric_registry.py
+      - name: Compile source-registry verifier regression tests
+        run: python3 -m py_compile scripts/test_verify_economic_source_registry.py
+      - name: Test fail-closed source-registry verifier
+        run: python3 -m unittest discover -s scripts -p 'test_verify_economic_source_registry.py'
+      - name: Compile economic source-registry verifier
+        run: python3 -m py_compile scripts/verify_economic_source_registry.py
+      - name: Verify World Bank informality source qualification record
+        run: python3 scripts/verify_economic_source_registry.py
+      # Run every package's unit/integration targets. The core is a path
+      # dependency and would be skipped by testing only the top-level binary.
+      - run: cargo test --workspace

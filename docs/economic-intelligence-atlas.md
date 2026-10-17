@@ -1,0 +1,254 @@
+# Evidence-Bound Economic Intelligence Atlas
+
+**Status:** Design proposal; not a statement that the capability is implemented or qualified.  
+**Target repository:** `Luminous-Dynamics/sol-atlas-leptos`  
+**Related work:** [SOL-ATLAS-007 / #90](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/90), [SOL-FIN-001 / #10](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/10), [Mycelix supply-chain provenance](https://github.com/Luminous-Dynamics/mycelix-supplychain), [Symthaea financial fragility profile / #5605](https://github.com/Luminous-Dynamics/symthaea/issues/5605)
+
+**Broader economic model:** [Real and Shadow Economy Atlas — Measurement Architecture](real-and-shadow-economy-atlas.md) separates production/value added, livelihoods, unpaid care, financial circulation, informality, statistical visibility, legal disposition and environmental flows. It defines the South Africa aggregate pilot, anti-double-counting rules, source ladder and acceptance tests.
+
+**First machine-readable seed:** [South Africa QLFS Q4 2025 metric registry](../data/economic_metrics/south_africa_qlfs_q4_2025_v1.json), checked by `scripts/verify_economic_metric_registry.py` in CI. It preserves the 21.4% informal-sector and 33.5% informal-employment headline values as separate measures, leaves unsupplied counts and source digest null, and records the Q3 2025 definition break explicitly.
+
+**Cross-country source candidate:** [World Bank Informal Economy Database qualification record](../data/economic_sources/world_bank_informal_economy_database.json), checked by `scripts/verify_economic_source_registry.py` in CI. Active registry v8 preserves v1–v7 history; the source-asset rights decision remains unresolved and redistribution/commercial use are not approved. The 2024 official brief claims 11 measures for 1990–2020, while a separate [World Bank Data360 metadata PDF](https://data360files.worldbank.org/data360-data/datasetmetadata/WB_INFECDB.pdf) and the [Data360 catalogue search](https://data360.worldbank.org/en/search) describe 12 indicators over 1990–2018. The discrepancy is recorded as an edition/metadata conflict, not silently resolved; the exact current Excel workbook remains uninspected. Three separate catalogue licence records also remain distinct: the named Excel entry says CC BY 4.0, `DGE_Raw.xlsx` is labelled “Custom license,” and CC BY 4.0 applies to a named processed derivative. The same catalogue page pairs an embargoed parent ZIP with a source-data row saying the original Excel dataset is public; v8 keeps those scopes separate. The [official Data360 OpenAPI specification](https://raw.githubusercontent.com/worldbank/open-api-specs/refs/heads/main/Data360%20Open_API.json) documents `/data360/indicators`, `/data360/data` and `/data360/metadata`; the observation endpoint documents `skip` pagination and a 1,000-record per-response limit. Direct API URL probing was refused by the web retrieval tool before an HTTP response, so no API status, body, indicator IDs, observations or digest are claimed. Data360 describes CC BY 4.0 as the default unless otherwise labelled and calls out third-party exceptions ([terms](https://data360.worldbank.org/en/about)); this does not independently approve the source workbook or derived-data redistribution. No workbook bytes, hash, byte length, or sheet inventory are claimed. A strict offline Rust parser is now committed in `sol-atlas-core/src/world_bank_data360.rs`, with synthetic-only fixtures and tests for query identity, value-token preservation, rejection handling, duplicates, count drift and contiguous pagination. It is not a live client; native/wasm CI has not yet reported its result.
+
+## 1. Product boundary
+
+Build a global, evidence-grounded atlas for exploring:
+
+1. informal-economy estimates;
+2. cross-border trade discrepancies and other illicit-financial-flow (IFF) indicators;
+3. documented ownership and entity relationships;
+4. relevant logistics and commodity-flow observations;
+5. official designations, enforcement findings, and public allegations as distinct record classes.
+
+The product must **not** claim to see every hidden transaction, equate informality with criminality, or turn anomalies into allegations of guilt. It is an investigative and statistical workbench: it shows what was observed, what was estimated, which method produced an inference, what conflicts with it, and what remains unknown.
+
+UNCTAD and UNODC define IFFs for statistical purposes as cross-border flows reflecting an exchange of value that are illicit in origin, transfer, or use. Their framework exists partly because consistent data and measurement remain difficult. This definition is a useful baseline, not a warrant to classify every unusual flow as illicit.
+
+## 2. Market reality and positioning
+
+This is an established category, not an empty market. The product should benchmark existing capabilities and avoid claiming differentiation based only on a 3D globe or generic entity graph.
+
+- [Sayari Graph](https://sayari.com/platform/graph/) markets source-linked corporate ownership, trade and supply-chain network analysis, sanctions context, and investigation workspaces at substantial claimed data scale.
+- [S&P Global Trade Compliance Secure](https://www.spglobal.com/market-intelligence/en/solutions/products/trade-compliance-secure) markets trade-risk tooling across shipping, cargo, goods, prices, volumes, and vessel/company relationships.
+- [LSEG Risk Intelligence / World-Check](https://www.lseg.com/en/risk-intelligence) provides sanctions, politically exposed person (PEP), adverse-media, enforcement and due-diligence screening.
+- [Chainalysis](https://www.chainalysis.com/solution/crypto-investigations/) is a specialist benchmark for tracing blockchain transactions and crypto-related illicit-finance networks.
+
+These vendors' public pages are vendor descriptions, not independent audits of coverage or accuracy. Their existence nevertheless shows that “map shadow economies” is not a defensible unique-value claim by itself.
+
+### Plausible differentiation
+
+Sol-Atlas should not try to outbid established vendors for the world's largest proprietary company/trade dataset as its first move. A more credible wedge is:
+
+1. **Research-grade transparency:** every metric and alert ships with its exact recipe, input snapshot identity, exclusions, sensitivity, counter-explanations and claim ceiling.
+2. **Macro-to-micro context:** connect country/sector-level informal-economy and IFF estimates to carefully qualified trade/ownership/logistics evidence without pretending these use the same unit of analysis.
+3. **Reproducible and inspectable results:** frozen fixtures, versioned transformations, public methodology and deterministic exports that independent researchers can reproduce.
+4. **Source-policy clarity:** publish which sources are open, non-commercial, commercial-licensed, conditional, stale, or unavailable. Never imply that “publicly reachable” means “commercially reusable.”
+5. **Interoperable provenance:** use Mycelix for durable lineage, corrections and controlled sharing while preserving portable source citations and conventional exports. Cryptographic integrity must not be marketed as proof of the truth of a claim.
+6. **Explicit uncertainty and fairness:** no opaque universal risk score and no treating poverty, informality, jurisdiction, shared addresses, or network proximity as evidence of criminality.
+
+The best initial audience is likely researchers, investigative journalists, and public-interest oversight teams working on reproducible evidence. A commercial compliance product is possible later, but it needs a sustainable licence/data-partner strategy and stronger operational controls before relying on datasets with non-commercial terms. A research-only prototype should not quietly become a commercial service using the same restricted feed.
+
+## 3. First vertical slice: trade-mirror discrepancy workbench
+
+Start with one reproducible, offline analysis over a small, frozen UN Comtrade fixture. Do not begin with a global risk score, a large live-ingestion program, or a claim about named suspects.
+
+For a selected reporter pair, year, commodity classification, and flow direction:
+
+1. retrieve or load the exporter-reported and importer-reported observations;
+2. preserve original values, quantity, units, partner codes, classification revision, flow direction, and period;
+3. pair records only when the dimensions match under a documented policy;
+4. classify records as matched, orphaned, incompatible, or excluded, with a machine-readable reason;
+5. compute a descriptive mirror-value gap only where preconditions are satisfied;
+6. report coverage and sensitivity to exclusions separately from the measured gap;
+7. export a deterministic result bundle with the exact inputs, method version, parameters, source snapshot identity, and limitations.
+
+Global Financial Integrity's published method documents practical controls around non-zero values/volumes, compatible units, re-exports, and CIF-vs-FOB reporting. UNCTAD's trade-asymmetry case studies also show why the normalization convention must be named: a worked mirror discrepancy is expressed as (imports − exports) / exports, which differs from a symmetric percentage-of-mean metric. The prototype therefore labels both denominators rather than presenting one as a universal standard. Reuse published methods as research references, not as an automatic claim that every resulting value gap is criminal. A gap can also arise from legitimate freight/insurance treatment, timing, classification, re-exporting, reporting errors, or incomplete observations. Colluding parties may report matching false values, so absence of a discrepancy is not proof of absence of illicit activity either.
+
+### Output vocabulary
+
+Use neutral, method-bound labels such as:
+
+- `MirrorValueGapObserved`: two reported values differ under the selected matching rule;
+- `MirrorValueGapEstimated`: a stated model has adjusted or imputed the raw gap;
+- `CoverageInsufficient`: source coverage or record compatibility prevents the calculation;
+- `NotAssessed`: no supported evaluation has run;
+- `CorroboratedContext`: independent records add relevant context without proving the hypothesis;
+- `OfficialFinding`: a competent authority's specific published finding, linked to its source;
+- `Allegation`: a source reports an allegation that has not been represented as an established finding.
+
+These are proposed product semantics, not existing Rust enum variants. Their definitions, serialization, migration and exhaustive-match implications must be decided before implementation.
+
+
+
+### Additional hard gate: geography and measurement grain
+
+The primitive also requires the geography code system to match and every party to be classified as an individual reporting area. World, regional, or trade-bloc aggregates must be explicitly typed as aggregates and are excluded from bilateral matching by this first method. An upstream adapter must not infer "individual country" solely from a display label. Keep M49 or other source-native identifiers and resolve their reference tables under a pinned version.
+
+The observation stores the full denomination/scale label as well as currency; values in USD and thousands of USD cannot be paired without an explicit, qualified normalization path. Any future rescaling method must preserve both source-native values and its checked conversion calculation.
+## 4. Keep independent semantic axes separate
+
+The current Sol Atlas `DataKind` (Observed / Curated / Scenario) is useful for broad layer provenance but is insufficient by itself for a mixed intelligence product. Do not overload it into a criminality or confidence score. Add a separate, versioned observation/claim envelope when implementation begins, keeping the existing enum backward compatible unless an explicit migration is designed.
+
+Each observation or claim should retain at least:
+
+- stable `record_id`, `source_id`, source URL or lawful locator, source record ID, and source-revision identity;
+- source-published time, retrieval/known-at time, and valid period/event time as separate fields;
+- original value and unit, original geography/entity identifiers, and each normalized or derived value;
+- `record_kind` (for example reported statistic, direct observation, modeled estimate, derived discrepancy, allegation, official finding, or scenario);
+- validation status and its basis, separate from confidence or evidentiary disposition;
+- source coverage, missingness, revision state, and known limitations;
+- transformation/method identity, version, parameters, and parent input record hashes;
+- licence/access policy, required attribution, and redistribution permission;
+- claim ceiling: what the record supports and what it does not support.
+
+**Do not collapse these into one “trust score.”** Source reliability, identity-match certainty, statistical uncertainty, independence of corroboration, and legal status answer different questions and must remain separately inspectable.
+
+Model at least two times:
+- **valid time** — the period the observation describes;
+- **known time** — when this version of the information was available to the system.
+
+A later investigation or corrected dataset must not silently rewrite what the system could have known at an earlier date.
+
+## 5. Source onboarding and legal gates
+
+Maintain a source registry. No source becomes an automated production dependency until its owner, terms, coverage, freshness, schema, attribution, redistribution rights, and use class are recorded.
+
+Required source-registry fields:
+
+```text
+source_id, owner, canonical_url, source_type, schema_version,
+data_license, terms_url, allowed_use_classes, redistribution_status,
+required_attribution, auth_required, rate_limits, retention_policy,
+coverage, temporal_resolution, geographic_resolution, known_biases,
+reviewed_at, review_evidence_ref
+```
+
+Minimum initial source set:
+
+| Source | Suitable first use | Gate / limitation |
+|---|---|---|
+| [UN Comtrade API documentation](https://uncomtrade.org/docs/un-comtrade-api/) | Bilateral merchandise-trade observations and metadata | Public preview is limited to at most 500 records per response and has rate limits; query design should constrain period and product rather than assume a preview is complete. Wider data API, bulk and asynchronous access have account/subscription conditions that vary by tier. Confirm the current plan, access rights, rate limits, and redistribution terms before scaling or promising refresh rates. See the [official preview guidance](https://uncomtrade.org/docs/what-is-data-preview/) and [subscription table](https://uncomtrade.org/docs/subscriptions/). |
+| [UNCTAD/UNODC IFF framework](https://unctad.org/statistics/illicit-financial-flows) | Definitions and statistical measurement boundaries | An indicator or estimate is not a case-level adjudication of crime. |
+| [GFI mirror-analysis methodology](https://gfintegrity.org/reports/methodology/trade-misinvoicing-mirror-analysis/) | Independently documented approach to qualifying, pairing and analyzing trade gaps | Reproduce the relevant assumptions and exclusions; do not label the gross gap as confirmed criminal proceeds. |
+| [World Bank Informal Economy Database](https://www.worldbank.org/en/brief/2024/01/09/informal-economy-database) | Historical country-level context and alternative measures | Dataset covers up to 196 economies for 1990–2020 and mixes indirect model-based measures with survey/other indicators. It is not a current live map and not a measure of illegality. |
+| [FATF trade-based money-laundering indicators](https://www.fatf-gafi.org/content/dam/fatf/documents/reports/Trade%20Based%20Money%20Laundering.pdf) | Candidate hypothesis features | Red flags guide review; any single indicator is non-dispositive and may have legitimate explanations. |
+| [Open Ownership BODS](https://standard.openownership.org/en/latest/) | Interoperability reference for beneficial-ownership records | Pin the schema version and validate each jurisdiction's coverage and reuse terms. BODS 0.4 documentation says development is paused; do not assume an actively evolving standard. |
+| [OpenSanctions](https://www.opensanctions.org/docs/) | Matching against publicly documented sanctions/PEP and other public-interest datasets | Bulk data is CC BY-NC 4.0 for non-commercial use; commercial use requires a data licence. Re-check exact terms before use. |
+| [Global Fishing Watch APIs](https://api-doc.globalfishingwatch.org/our-apis/documentation/) | Research pilot for vessel-identity/behavior context | API is currently non-commercial under CC BY-NC 4.0 terms. Do not build a commercial dependency until explicit rights are established. |
+
+The source register must distinguish **available for research** from **approved for public display**, **approved for commercial use**, and **approved for redistribution**. A public URL does not imply permission to republish its entire dataset. Keep credentials server-side; never embed tokens in the WASM bundle or public frontend.
+
+## 6. Architecture boundaries
+
+### Sol Atlas — map, inspect, and compare
+
+- Keep renderer-independent Rust data contracts in `sol-atlas-core`.
+- Render geographic features only at the resolution supported by source data. Do not fabricate point locations from country aggregates or put country-level estimates on H3 cells as if they were cell-level observations.
+- Expose source, period, coverage, method, status, and caveats in the inspector.
+- Use a country/region/sector table fallback when boundaries are unavailable or unlicensed.
+- Keep the public aggregate map distinct from any permissioned case-workbench view.
+
+### Symthaea — propose and test hypotheses
+
+- Start with deterministic, understandable statistical and graph rules; measure any Symthaea contribution against these baselines.
+- Keep hypotheses, supporting observations, contradictions, missing evidence, and competing benign explanations explicit.
+- Allow abstention when identity resolution, coverage, or data quality is inadequate.
+- Never convert an anomaly into a finding of guilt or make an enforcement decision.
+
+### Mycelix — preserve evidence lineage and controlled sharing
+
+- Bind each derived claim to exact source snapshots, transformation versions, parent hashes, and issuer identity where available.
+- Preserve corrections and supersession instead of silently overwriting source history.
+- Track source independence: duplicated reporting or syndicated allegations must not count as independent corroboration.
+- Enforce purpose and audience boundaries. Do not publish private financial intelligence, personal data, credentials, or sensitive case-linkage edges merely because they are present in an internal graph.
+- Treat cryptographic signatures as evidence of origin/integrity, not proof that the underlying statement is true.
+
+## 7. Qualification plan
+
+All initial fixtures should be frozen and deterministic. Include positive examples and negative controls before adding real-world alerting:
+
+- exact bilateral pair with equal values;
+- genuine numeric value difference with matching units and periods;
+- missing value or zero volume;
+- incompatible units and commodity-classification revisions;
+- re-export/transshipment edge case;
+- CIF/FOB asymmetry or documented freight/insurance explanation;
+- duplicate/syndicated source mistaken for independent corroboration;
+- company-name collision and ambiguous entity match;
+- later source correction, with historical known-at replay;
+- sanctioned entity candidate with incomplete identity descriptors;
+- synthetic collusive case with no mirror discrepancy;
+- ordinary lawful trade spike and legitimate shared corporate address.
+
+Acceptance gates:
+
+1. **Source qualification:** source terms, access plan, schema, attribution and coverage are recorded and reviewed.
+2. **Parser qualification:** malformed input, unknown fields, duplicate keys/records, unit mismatch, missingness and schema drift fail explicitly or enter a named quarantine state; they must not silently become zero.
+3. **Method qualification:** a frozen reference implementation and fixtures reproduce exact outputs, exclusions and counts.
+4. **Evidence qualification:** every displayed result has a complete lineage bundle and explicit claim ceiling.
+5. **Temporal qualification:** replay at an earlier known-at frontier does not consume later publications/corrections.
+6. **UI qualification:** deterministic screenshots/capture review show observed, modeled, derived, allegation, official finding, stale, partial and missing-data states distinctly.
+7. **Safety qualification:** the public view does not expose person-level suspicion rankings or sensitive site/route targeting; no automated adverse action is wired to analytic output.
+
+A queued or green workflow is not evidence by itself. Record the exact tested commit, commands, fixture manifest digest, counts, exit status, and captured UI state.
+
+## 8. Explicit non-goals
+
+The initial slice does not:
+- estimate the total dollar value of all illicit activity in the world;
+- infer crime from country, ethnicity, poverty, cash use, or geographic proximity;
+- create a universal “criminality score” for a country, company, or person;
+- infer guilt from sanctions proximity, co-location, network adjacency, or a model score;
+- promise real-time coverage from sources that publish with delays or offer limited access;
+- ingest confidential bank, tax, law-enforcement or suspicious-transaction data without specific lawful authorization;
+- make a public map of vulnerable people, operational enforcement targets, or sensitive facilities;
+- replace specialist statistical methods or competent legal authorities.
+
+## 9. Implementation status and next steps
+
+### Present on this feature branch
+
+A renderer-independent raw bilateral comparison primitive is implemented in `sol-atlas-core/src/economic_intelligence.rs`, and an **offline-only** source-shaped UN Comtrade preview parser now exists in `sol-atlas-core/src/un_comtrade_preview.rs`.
+
+### Comparison primitive
+
+- The normalized observation contract is versioned (currently schema version 6) and retains source and reference snapshot identity, area/reference-code context, reporting-area versus aggregate grain, period, commodity classification, currency and value-unit/scale, source-native value text, disaggregation dimensions, source-state flags, and retrieval time.
+- Candidate selection is fail-closed: missing sides, duplicates, ambiguous candidates, aggregate geographies, incompatible geography-code systems or area-reference versions, non-reciprocal reporters, mismatched period/product/classification/currency/value-unit/disaggregation/source-state, missing values, unsupported decimal formats/schema versions, non-positive values, and arithmetic overflow receive explicit dispositions.
+- Monetary differences are calculated from strict base-10 decimal strings using checked `i128` arithmetic (up to 18 fractional digits), not by subtracting binary floating-point inputs. Exact normalized gap strings are authoritative for audit/display; floating-point projections and percentages are approximate.
+- Two separately named percentage conventions are exposed: absolute gap divided by the arithmetic mean, and signed gap divided by exporter-reported value. The denominators are not interchangeable and neither is an illicit-flow estimate.
+- Every compared result has the fixed `DescriptiveValueDifferenceOnly` claim ceiling and exposes its source IDs, source snapshot IDs, reference snapshot IDs, currency, value-unit label, and both valuation-basis signatures. A like-for-like basis match is true only when both bases are explicitly known and identical; differing known bases are returned as a flag, and unknown basis remains unknown rather than being treated as a match.
+- Each observation carries its source collection coverage. `compare_mirror_pair` refuses to produce a gap unless both observations are explicitly marked `CompleteSnapshot`. The preview parser never assigns that status; preview rows remain inspectable, but incomplete/unproven candidate sets cannot silently become numerical findings.
+
+### Offline UN Comtrade parser
+
+- No HTTP client or API key is embedded. A caller supplies the frozen response text, query context, source snapshot ID, retrieval time, and pinned area-code classification map.
+- The parser validates response envelope schema and required query dimensions, classifies records only against the pinned code map, retains accepted raw row objects alongside normalized observations, and reports row rejections with source-array indices. The caller must retain the original response bytes under the supplied snapshot ID to reproduce both accepted and rejected rows.
+- It requires matching requested type, frequency, period, reporter, partner, flow, commodity, and effective row-level classification code; it rejects values marked aggregated above the requested commodity level. It also tracks second partner, mode of transport, customs procedure, reported/estimated status, and legacy estimation state. Duplicate normalized record identities are rejected.
+- The query context requires a caller-reviewed valuation-basis signature. It never infers FOB/CIF solely from flow direction, because UN Comtrade notes that national practices vary and `primaryValue` can use CIF-type or FOB-type values. The raw arithmetic gap remains descriptive until valuation normalization is qualified; see [UN Comtrade trade valuation](https://uncomtrade.org/docs/trade-valuation/) and [mirror-asymmetry caveats](https://uncomtrade.org/docs/exports-of-a-country-not-coincide-with-imports-of-its-partner/).
+- It distinguishes source-reported count from rows actually returned. A source count larger than the payload or reaching the requested preview ceiling is marked as **possibly truncated**. Fewer rows never proves complete source coverage. A source count smaller than the returned row count fails closed.
+- Top-level unknown envelope fields fail schema validation. Unknown fields inside a trade row are retained in `raw_record`; parsing the normalized fields does not discard the source row.
+- The frozen response fixture at `sol-atlas-core/tests/fixtures/synthetic_un_comtrade_preview_v1.json` is explicitly synthetic. It is a schema/precision test, **not real UN Comtrade evidence** and not a claim about the USA/China trade relationship.
+
+### Qualification tests added
+
+- 23 unit-test definitions in the raw comparison module cover exact decimal precision, normalization, negative signed differences, overflow, record ambiguity, source-state mismatch, area-reference versions, and other fail-closed conditions.
+- 19 unit-test definitions in the Comtrade parser cover goods-only query qualification, annual/monthly frequency and period validation, strict source JSON typing for boolean flags, numeric values, dimension tokens, and optional quantities, estimation-flag validation, null-value preservation, source-shaped parsing, raw-value preservation, possible truncation, duplicate rows, query mismatches, unknown area codes, response-count inconsistency, unknown envelope fields, and API error envelopes.
+- 3 external public-API integration-test definitions cover exact source-value round-tripping, rejection of unknown normalized-observation fields, and the nine-case synthetic reference corpus.
+- `scripts/verify_economic_intelligence_fixture.py` independently checks the nine-case reference corpus and the synthetic source-shaped API response using standard-library integer arithmetic. The root Cargo manifest now declares both the application and `sol-atlas-core` as workspace members, so `cargo fmt --all --check` and `cargo test --workspace` cover both packages. The Check workflow syntax-checks the independent verifier and builds both the application and core for WebAssembly.
+
+These are **test definitions and validation wiring**, not a claim that they have passed. The last inspected exact-head CI checks were queued. We do not currently have a completed Rust build in this working environment.
+
+### Scope limits
+
+The first parser contract accepts UN Comtrade goods records (`typeCode=C`) at annual (`freqCode=A`) or monthly (`freqCode=M`) frequency only. It validates `YYYY` versus `YYYYMM` period shape and month range, rejects services (`S`) pending a separately qualified service-classification contract, requires JSON booleans for `isAggrAbove`/`isReported`, requires `primaryValue` to be a JSON number or explicit null (retained as a missing value, never zero), and requires `legacyEstimationFlag` to use a non-negative integer token (not a decimal or exponent-form number). Optional `qty` and `qtyUnitAbbr` fields accept their declared number/string types or null/missing values, and malformed supplied fields are rejected rather than silently mapped to absent values. Boolean JSON values cannot masquerade as dimension/code tokens. Malformed fields are quarantined with explicit type/value rejection reasons. The parser is not a live API connector or a qualified source adapter. It requires caller-supplied snapshot identity and area reference data, and it does not itself verify licenses, calculate source-body digests, retry/rate-limit requests, reconcile CIF/FOB values, convert currencies, model re-exports, quantify illicit flows, prove identity, persist evidence bundles, or connect the UI to Mycelix/Symthaea. The strict decimal parser rejects exponent notation and more than 18 fractional digits until an adapter has an explicit, tested normalization policy.
+
+### Next sequence
+
+1. Get completed exact-head formatting, workspace-native tests, and WASM checks; do not infer success from queued workflows.
+2. Review the versioned observation/claim contract with SOL-ATLAS-007 (#90) and freeze source-registry, area-reference, and snapshot-manifest semantics.
+3. Validate this offline parser against a captured, authorized UN Comtrade response and its exact query metadata. Do not publish or reuse a live capture before source access, retention, attribution, and intended commercial-use terms are reviewed.
+4. Implement a bounded server-side request layer only after source access is qualified: allow-listed endpoint, redacted query logging, bounded response bytes, explicit timeout/rate limit/retry policy, source-body digest, and last-known-good snapshot preservation.
+5. Add a deterministic result/evidence export before building a map overlay, ensuring exclusions, missingness, source snapshots, coverage flags, calculations, and alternative explanations are visible.
+6. Connect Mycelix provenance and Symthaea hypothesis generation only after the source and evidence contract is stable.
+
+The first proof of value is not a dramatic global heat map. It is a reproducible analysis in which a user can explain exactly why a trade discrepancy appears, what assumptions affect it, which legitimate alternatives exist, and why the system does or does not permit a stronger claim.

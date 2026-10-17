@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "registry_id": "sol-atlas-economic-metric-registry",
+  "registry_version": "south-africa-qlfs-q4-2025/v1",
+  "registry_kind": "source_attributed_aggregate_observations",
+  "status": "research_seed_not_a_complete_qlfs_extract",
+  "note": "Values reproduce headline percentages published by Stats SA. Numerator and denominator counts are not supplied in the cited headline summary and are deliberately null; do not reverse-engineer counts from rounded percentages. Source access/reuse terms require review before redistribution beyond these attributed facts.",
+  "sources": [
+    {
+      "source_id": "stats_sa_qlfs_q4_2025_summary",
+      "publisher": "Statistics South Africa (Stats SA)",
+      "title": "How informality shapes South Africa's employment landscape",
+      "source_url": "https://www.statssa.gov.za/?p=19240",
+      "publication_date": "2026-03-04",
+      "source_period": "2025-Q4",
+      "related_data_portal_url": "https://isibaloweb.statssa.gov.za/pages/surveys/pss/qlfs/2025/qlfs2025.php",
+      "source_snapshot_id": "stats-sa-qlfs-q4-2025-summary-p19240",
+      "source_snapshot_digest": null,
+      "digest_status": "not_captured",
+      "acquisition_method": "manually_reviewed_published_summary",
+      "reuse_status": "terms_review_required",
+      "review_note": "The summary and QLFS download portal are publicly accessible; public access alone is not treated as proof of unrestricted redistribution rights. Q4 2025 QLFS metadata states that data applications must acknowledge Stats SA and identify the work as independently processed, and that basic data/reprocessed versions/applications may not be sold or offered for sale without prior permission. This metadata restriction is tracked separately from unresolved reuse rights for the standalone published summary.",
+      "terms_url": "https://isibaloweb.statssa.gov.za/metadata/QLFS/2025/Qtr04/Quarterly%20Labour%20Force%20Survey%204th%20Quarter%202025%20metadata.pdf",
+      "terms_reviewed_at": "2026-10-13",
+      "underlying_data_redistribution": "prior_permission_required_before_sale_or_offer_for_sale",
+      "terms_statement": "Stats SA's QLFS Q4 2025 metadata states that users may apply/process the data if Stats SA is acknowledged as the original source and the application/analysis is identified as the user's independent processing; the basic data and any reprocessed version or application may not be sold or offered for sale in any form without prior permission from Stats SA.",
+      "terms_scope": "This statement is recorded as a restriction on the underlying QLFS data and reprocessed data/applications. It does not by itself settle reuse rights for the separately published headline-summary page or its two headline values. Keep summary reuse_status at terms_review_required; do not sell or offer underlying/reprocessed data without prior permission."
+    }
+  ],
+  "comparability_events": [
+    {
+      "event_id": "stats_sa_informality_definition_revision_2025_q3",
+      "event_kind": "definition_change",
+      "effective_period": "2025-Q3",
+      "source_id": "stats_sa_qlfs_q4_2025_summary",
+      "source_url": "https://www.statssa.gov.za/?p=19240",
+      "description": "Stats SA reports that refined informality definitions recommended by the 21st International Conference of Labour Statisticians were adopted from Q3 2025. For informal-sector classification, enterprise registration/tax records and CIPC registration now take precedence over enterprise size as the main criterion.",
+      "impacted_metric_ids": [
+        "informal_sector_share_of_jobs"
+      ],
+      "comparability_policy": "break_requires_bridge",
+      "display_warning": "Definition change from Q3 2025: do not treat adjacent-quarter changes in the informal-sector series as pure economic movement without a documented comparability bridge or backcast."
+    }
+  ],
+  "metrics": [
+    {
+      "metric_id": "informal_sector_share_of_jobs",
+      "definition_version": "stats-sa-qlfs-informal-sector-q4-2025-v1",
+      "label": "Jobs in the informal sector",
+      "value": "21.4",
+      "unit": "percent",
+      "value_kind": "employment_share",
+      "unit_of_analysis": "job_or_employment_position_as_defined_by_qlfs",
+      "account_boundary": "employment_by_type_of_production_unit",
+      "recording_state": "published_survey_estimate",
+      "formality_dimension": "informal_sector",
+      "legal_assessment_state": "not_assessed",
+      "numerator_definition": "Jobs/employment attributed to the informal sector under the QLFS Q4 2025 classification.",
+      "numerator_value": null,
+      "denominator_definition": "All jobs/employment in the QLFS Q4 2025 summary's stated employment distribution; use the official quarter metadata to establish the exact analytical denominator before recomputation.",
+      "denominator_value": null,
+      "geography": {
+        "name": "South Africa",
+        "code_system": "ISO 3166-1 alpha-2",
+        "code": "ZA"
+      },
+      "reference_period": "2025-Q4",
+      "source_publication_date": "2026-03-04",
+      "known_at": "2026-10-13",
+      "source_id": "stats_sa_qlfs_q4_2025_summary",
+      "source_definition_id": "Stats SA QLFS Q4 2025 published summary: informal sector share of all jobs (21.4%)",
+      "source_snapshot_id": "stats-sa-qlfs-q4-2025-summary-p19240",
+      "source_snapshot_digest": null,
+      "source_url": "https://www.statssa.gov.za/?p=19240",
+      "source_method": "household_survey_published_aggregate",
+      "uncertainty": {
+        "published_interval": null,
+        "note": "The headline summary cited here does not provide a sampling-error interval for this headline percentage. Consult the QLFS Q4 2025 report/metadata before interpreting small differences."
+      },
+      "reuse_status": "terms_review_required",
+      "comparability_event_ids": [
+        "stats_sa_informality_definition_revision_2025_q3"
+      ],
+      "aggregation_policy": "non_aggregable_with_other_metric_ids",
+      "interpretation_ceiling": "Descriptive published employment share; not a measure of illegal activity or total shadow-economy output."
+    },
+    {
+      "metric_id": "informal_employment_share_of_employed_people",
+      "definition_version": "stats-sa-qlfs-informal-employment-q4-2025-v1",
+      "label": "Employed people in informal employment",
+      "value": "33.5",
+      "unit": "percent",
+      "value_kind": "employment_protection_share",
+      "unit_of_analysis": "employed_person_under_qlfs_definition",
+      "account_boundary": "employment_arrangement_and_work_protections",
+      "recording_state": "published_survey_estimate",
+      "formality_dimension": "informal_employment",
+      "legal_assessment_state": "not_assessed",
+      "numerator_definition": "Employed people described by Stats SA as being in informal employment; the published summary defines this by lacking access to a pension and paid annual and sick leave.",
+      "numerator_value": null,
+      "denominator_definition": "All employed people in the population covered by the QLFS Q4 2025 published summary; consult the quarter metadata before recomputation.",
+      "denominator_value": null,
+      "geography": {
+        "name": "South Africa",
+        "code_system": "ISO 3166-1 alpha-2",
+        "code": "ZA"
+      },
+      "reference_period": "2025-Q4",
+      "source_publication_date": "2026-03-04",
+      "known_at": "2026-10-13",
+      "source_id": "stats_sa_qlfs_q4_2025_summary",
+      "source_definition_id": "Stats SA QLFS Q4 2025 published summary: employed people in informal employment (33.5%)",
+      "source_snapshot_id": "stats-sa-qlfs-q4-2025-summary-p19240",
+      "source_snapshot_digest": null,
+      "source_url": "https://www.statssa.gov.za/?p=19240",
+      "source_method": "household_survey_published_aggregate",
+      "uncertainty": {
+        "published_interval": null,
+        "note": "The headline summary cited here does not provide a sampling-error interval for this headline percentage. Consult the QLFS Q4 2025 report/metadata before interpreting small differences."
+      },
+      "reuse_status": "terms_review_required",
+      "comparability_event_ids": [],
+      "aggregation_policy": "non_aggregable_with_other_metric_ids",
+      "interpretation_ceiling": "Descriptive employment-protection measure; not interchangeable with informal-sector share and not evidence of illegality."
+    }
+  ]
+}

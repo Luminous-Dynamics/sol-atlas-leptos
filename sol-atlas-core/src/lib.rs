@@ -12,6 +12,7 @@ pub mod aesthetics;
 pub mod confluence;
 pub mod constants;
 pub mod data;
+pub mod economic_intelligence;
 pub mod economics;
 pub mod energy_trading;
 pub mod geo;
@@ -25,6 +26,9 @@ pub mod simulation;
 pub mod solar_system;
 pub mod timeline;
 pub mod types;
+pub mod un_comtrade_preview;
 pub mod visual_validation;
+pub mod world_bank_data360;
+pub mod world_bank_data360_evidence;
 
 pub use types::*;
