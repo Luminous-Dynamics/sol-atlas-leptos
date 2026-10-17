@@ -710,5 +710,7 @@
         "max_service_step_assessments": 100
       }
     }
-  ]
+  ],
+  "max_total_service_step_assessments": 1000000,
+  "max_total_declared_failure_overrides": 100000
 }
