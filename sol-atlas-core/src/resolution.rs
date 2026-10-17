@@ -581,6 +581,45 @@ mod tests {
     }
 
     #[test]
+    fn exact_zero_sensitivity_mode_remains_unresolved() {
+        let mut problem = diagonal_problem();
+        problem.observation_operator = vec![vec![1.0, 0.0], vec![0.0, 0.0]];
+        let report = problem.analyze(1e-12, 1e-14).unwrap();
+
+        assert!((report.posterior_covariance[0][0] - 0.5).abs() < 1e-10);
+        assert!((report.posterior_covariance[1][1] - 1.0).abs() < 1e-10);
+        assert!((report.diagonal_resolution[0] - 0.5).abs() < 1e-10);
+        assert!(report.diagonal_resolution[1].abs() < 1e-10);
+    }
+
+    #[test]
+    fn parameter_order_changes_only_the_ordered_report_coordinates() {
+        let first = diagonal_problem().analyze(1e-12, 1e-14).unwrap();
+
+        let mut swapped = diagonal_problem();
+        swapped.parameter_ids.swap(0, 1);
+        for row in &mut swapped.observation_operator {
+            row.swap(0, 1);
+        }
+        swapped.prior_covariance = vec![vec![1.0, 0.0], vec![0.0, 1.0]];
+        let second = swapped.analyze(1e-12, 1e-14).unwrap();
+
+        assert_eq!(second.parameter_ids, vec!["high_mode", "low_mode"]);
+        assert!((second.diagonal_resolution[0] - first.diagonal_resolution[1]).abs() < 1e-10);
+        assert!((second.diagonal_resolution[1] - first.diagonal_resolution[0]).abs() < 1e-10);
+    }
+
+    #[test]
+    fn duplicate_observation_ids_are_rejected() {
+        let mut problem = diagonal_problem();
+        problem.observation_ids[1] = "low".into();
+        assert_eq!(
+            problem.analyze(1e-12, 1e-14),
+            Err(ResolutionError::DuplicateIdentifier("observation_ids"))
+        );
+    }
+
+    #[test]
     fn preserves_experiment_context_and_parameter_order() {
         let report = diagonal_problem().analyze(1e-12, 1e-14).unwrap();
         assert_eq!(report.context.analysis_id, "resolution-fixture");
