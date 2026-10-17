@@ -759,8 +759,10 @@ fn ci_check_evidence_matches(check: &Value, evidence: &Value, expected_commit: &
         && string_field(check, &["name"]) == string_field(evidence, &["name"])
         && string_field(check, &["commit_sha"]) == Some(expected_commit)
         && string_field(evidence, &["head_sha"]) == Some(expected_commit)
-        && string_field(check, &["status"]) == string_field(evidence, &["status"])
-        && string_field(check, &["conclusion"]) == string_field(evidence, &["conclusion"])
+        && string_field(check, &["status"]) == Some("completed")
+        && string_field(check, &["conclusion"]) == Some("success")
+        && string_field(evidence, &["status"]) == Some("completed")
+        && string_field(evidence, &["conclusion"]) == Some("success")
         && string_field(check, &["url"]) == string_field(evidence, &["html_url"])
 }
 
