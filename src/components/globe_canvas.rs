@@ -986,11 +986,8 @@ fn update_renderer_data(
             usgs_is_current: matches!(usgs_health, FeedHealth::Live | FeedHealth::Degraded),
             eonet_is_current: matches!(eonet_health, FeedHealth::Live | FeedHealth::Degraded),
         };
-        let cells = sol_atlas_core::confluence::compute_with_live_source_freshness(
-            &snapshot,
-            2,
-            freshness,
-        );
+        let cells =
+            sol_atlas_core::confluence::compute_with_live_source_freshness(&snapshot, 2, freshness);
         for cell in &cells {
             let pos = geo::lat_lon_to_xyz(cell.lat, cell.lon, 1.008);
             // Size and brightness scale with how many distinct real

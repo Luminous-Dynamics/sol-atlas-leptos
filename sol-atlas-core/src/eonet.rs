@@ -476,21 +476,25 @@ pub(crate) fn parse_iso8601_ms(value: &str) -> Option<i64> {
             fraction_ms = format!("{first_three:0<3}").parse::<i64>().ok()?;
         }
 
-        match bytes.get(suffix_start).copied()? {
-            b'Z' if suffix_start + 1 == bytes.len() => {}
-            sign @ (b'+' | b'-')
-                if suffix_start + 6 == bytes.len()
-                    && bytes.get(suffix_start + 3) == Some(&b':') =>
-            {
-                let offset_hour = parse_digits(bytes, suffix_start + 1, 2)? as i64;
-                let offset_minute = parse_digits(bytes, suffix_start + 4, 2)? as i64;
-                if offset_hour > 23 || offset_minute > 59 {
-                    return None;
+        // A bare datetime without any timezone designator (e.g. "2025-09-16T01:05:59.070000")
+        // is treated as UTC. Z or ±HH:MM offsets are parsed normally.
+        if suffix_start < bytes.len() {
+            match bytes.get(suffix_start).copied()? {
+                b'Z' if suffix_start + 1 == bytes.len() => {}
+                sign @ (b'+' | b'-')
+                    if suffix_start + 6 == bytes.len()
+                        && bytes.get(suffix_start + 3) == Some(&b':') =>
+                {
+                    let offset_hour = parse_digits(bytes, suffix_start + 1, 2)? as i64;
+                    let offset_minute = parse_digits(bytes, suffix_start + 4, 2)? as i64;
+                    if offset_hour > 23 || offset_minute > 59 {
+                        return None;
+                    }
+                    let multiplier = if sign == b'+' { 1 } else { -1 };
+                    offset_seconds = multiplier * (offset_hour * 3600 + offset_minute * 60);
                 }
-                let multiplier = if sign == b'+' { 1 } else { -1 };
-                offset_seconds = multiplier * (offset_hour * 3600 + offset_minute * 60);
+                _ => return None,
             }
-            _ => return None,
         }
     }
 

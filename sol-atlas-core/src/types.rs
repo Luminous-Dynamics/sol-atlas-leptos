@@ -970,13 +970,21 @@ mod provenance_tests {
         );
 
         let earthquake = Layer::Earthquakes.provenance();
-        assert!(earthquake.summary().contains("snapshot depends on retrieval/source"));
+        assert!(
+            earthquake
+                .summary()
+                .contains("snapshot depends on retrieval/source")
+        );
         assert!(earthquake.summary().contains("bundled fallback"));
         assert!(earthquake.snapshot_date.is_empty());
 
         let fires = Layer::Fires.provenance();
         assert_eq!(fires.kind, DataKind::Mixed);
         assert!(fires.summary().contains("mixed provenance"));
-        assert!(fires.summary().contains("snapshot depends on retrieval/source"));
+        assert!(
+            fires
+                .summary()
+                .contains("snapshot depends on retrieval/source")
+        );
     }
 }

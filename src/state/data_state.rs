@@ -62,7 +62,8 @@ impl DataState {
 
     /// Notify consumers that must rebuild derived render data.
     pub fn mark_changed(&self) {
-        self.data_revision.update(|revision| *revision = revision.wrapping_add(1));
+        self.data_revision
+            .update(|revision| *revision = revision.wrapping_add(1));
     }
 
     pub fn set_all(&self, data: LoadedData) {

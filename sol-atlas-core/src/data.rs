@@ -241,8 +241,12 @@ fn has_synthetic_lineage(source: Option<&str>, lineage: &[String]) -> bool {
     let looks_synthetic = |value: &str| {
         value
             .split(|character: char| !character.is_ascii_alphanumeric())
-            .any(|token| matches!(token.to_ascii_lowercase().as_str(),
-                "demo" | "synthetic" | "generated" | "fixture" | "mock"))
+            .any(|token| {
+                matches!(
+                    token.to_ascii_lowercase().as_str(),
+                    "demo" | "synthetic" | "generated" | "fixture" | "mock"
+                )
+            })
     };
 
     source.is_some_and(looks_synthetic)
@@ -322,12 +326,8 @@ fn source_url_for_record(
         source_name.is_some_and(|source| source.trim().eq_ignore_ascii_case("NASA EONET"));
 
     let (candidate, prefix) = match dataset_name {
-        "usgs-earthquakes" if accepted_usgs_source => {
-            (url, crate::usgs::USGS_EVENT_PAGE_PREFIX)
-        }
-        "nasa-eonet" if accepted_eonet_source => {
-            (link, crate::eonet::EONET_EVENT_API_PREFIX)
-        }
+        "usgs-earthquakes" if accepted_usgs_source => (url, crate::usgs::USGS_EVENT_PAGE_PREFIX),
+        "nasa-eonet" if accepted_eonet_source => (link, crate::eonet::EONET_EVENT_API_PREFIX),
         _ => return None,
     };
     candidate
@@ -343,11 +343,7 @@ fn parse_timestamp_ms(value: &serde_json::Value, fallback_iso: Option<&str>) -> 
                 .as_u64()
                 .and_then(|timestamp| i64::try_from(timestamp).ok())
         })
-        .or_else(|| {
-            value
-                .as_str()
-                .and_then(crate::eonet::parse_iso8601_ms)
-        })
+        .or_else(|| value.as_str().and_then(crate::eonet::parse_iso8601_ms))
         .or_else(|| fallback_iso.and_then(crate::eonet::parse_iso8601_ms))
 }
 
@@ -431,18 +427,17 @@ fn parse_natural_events(
                 }
                 let lon = coords[0];
                 let lat = coords[1];
-                if !lat.is_finite()
-                    || !lon.is_finite()
-                    || lat.abs() > 90.0
-                    || lon.abs() > 180.0
-                {
+                if !lat.is_finite() || !lon.is_finite() || lat.abs() > 90.0 || lon.abs() > 180.0 {
                     return None;
                 }
 
                 let magnitude = feature
                     .properties
                     .magnitude
-                    .or(feature.properties.brightness.map(|brightness| brightness / 100.0))
+                    .or(feature
+                        .properties
+                        .brightness
+                        .map(|brightness| brightness / 100.0))
                     .unwrap_or(1.0);
                 let name = feature
                     .properties
@@ -452,11 +447,9 @@ fn parse_natural_events(
                     .or(feature.properties.name.as_deref())
                     .unwrap_or("Unknown")
                     .to_string();
-                let declared_source =
-                    normalized_source_name(feature.properties.source.as_deref());
+                let declared_source = normalized_source_name(feature.properties.source.as_deref());
                 let source_for_classification = declared_source.clone().or_else(|| {
-                    (dataset_name == "volcanoes")
-                        .then(|| "Curated volcano inventory".to_string())
+                    (dataset_name == "volcanoes").then(|| "Curated volcano inventory".to_string())
                 });
                 let data_kind = classify_natural_event(
                     dataset_name,
@@ -465,10 +458,8 @@ fn parse_natural_events(
                 );
                 // Canonicalize only allow-listed official source names for display.
                 // Unknown and synthetic labels are kept exactly as declared.
-                let source_name = canonical_source_label(
-                    dataset_name,
-                    source_for_classification.as_deref(),
-                );
+                let source_name =
+                    canonical_source_label(dataset_name, source_for_classification.as_deref());
                 let source_id = feature
                     .id
                     .as_deref()
@@ -712,11 +703,15 @@ mod tests {
         assert!(!events.is_empty(), "the bundled FIRMS fixture should parse");
 
         assert!(
-            events.iter().all(|event| event.source_name.as_deref() == Some("Demo Data")),
+            events
+                .iter()
+                .all(|event| event.source_name.as_deref() == Some("Demo Data")),
             "the static fixture must retain its own declared source, never be relabeled NASA FIRMS"
         );
         assert!(
-            events.iter().all(|event| event.data_kind == Some(DataKind::Synthetic)),
+            events
+                .iter()
+                .all(|event| event.data_kind == Some(DataKind::Synthetic)),
             "the fixture's Demo/Synthetic/Generated lineage must be preserved per record"
         );
         assert!(
