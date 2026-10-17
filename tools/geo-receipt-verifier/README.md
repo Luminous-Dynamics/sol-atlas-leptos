@@ -1,0 +1,60 @@
+# Earth Interior Observatory benchmark receipt verifier
+
+This standalone Rust utility is deliberately separate from the inference/benchmark code. It validates a receipt against the local Draft 2020-12 schema, recomputes SHA-256 for declared artifacts and the benchmark specification, checks the exact Git HEAD and worktree cleanliness, and evaluates fail-closed qualification requirements.
+
+It does **not** establish that a geophysical model is physically correct. It verifies protocol, provenance and artifact integrity only.
+
+## Build and test
+
+```sh
+cargo test --manifest-path tools/geo-receipt-verifier/Cargo.toml
+cargo clippy --manifest-path tools/geo-receipt-verifier/Cargo.toml --all-targets -- -D warnings
+```
+
+## Verify an executed but not yet promoted receipt
+
+Run with a clean checkout at the exact code commit recorded by the benchmark. Receipt and schema paths may be repository-relative or absolute. All artifact locators and benchmark-specification paths are relative to their respective roots and are prevented from escaping those roots.
+
+```sh
+cargo run --quiet --manifest-path tools/geo-receipt-verifier/Cargo.toml -- \
+  "$PWD" \
+  docs/earth-interior/benchmark-run-receipt.schema.json \
+  /absolute/path/to/receipt.json \
+  --artifact-root /absolute/path/to/frozen-artifacts \
+  --target-status qualified_synthetic > /tmp/geo-verification-report.json
+```
+
+The provisional receipt should have `qualification_status: "executed_unqualified"`. The output contains a qualification-core digest, target status, individual checks and a deterministic verification outcome. Keep this report outside the repository checkout so generating it does not dirty the evaluated worktree.
+
+After an independent process accepts the report, its exact file SHA-256 and verifier commit may be recorded in the final receipt's `qualification_evidence`. The final receipt can then be checked with the report supplied:
+
+```sh
+cargo run --quiet --manifest-path tools/geo-receipt-verifier/Cargo.toml -- \
+  "$PWD" \
+  docs/earth-interior/benchmark-run-receipt.schema.json \
+  /absolute/path/to/final-receipt.json \
+  --artifact-root /absolute/path/to/frozen-artifacts \
+  --verifier-report /tmp/geo-verification-report.json
+```
+
+The verifier's qualification-core digest uses compact JSON serialization with deterministic object-key ordering, removes `qualification_evidence`, and normalizes `qualification_status` to `executed_unqualified`. This makes the digest stable across the provisional and attested receipt without a self-referential hash cycle.
+
+## Exit codes
+
+- `0`: structurally and integrally verified; when a promoted status is requested, its gates were eligible and any supplied verifier report checked out.
+- `1`: invalid schema/receipt or artifact-integrity failure.
+- `2`: requested qualification is not eligible or its attestation is incomplete/invalid.
+- `64`: command-line usage error.
+
+A zero exit code for `executed_unqualified` means the receipt was processed correctly; it does not mean the benchmark passed.
+
+## Trust boundary
+
+- No runtime network access is used for schema references; the schema and artifacts are supplied locally.
+- Artifact locators are relative to `--artifact-root`; path traversal and symlinks escaping that root are rejected.
+- A queued, skipped, cancelled, missing, or stale-head workflow is never treated as passing evidence.
+- All declared gates and controls must pass for promotion.
+- Synthetic qualification requires both a withheld truth-state artifact and synthetic observations, plus passing null-signal and truth-leakage controls.
+- Source-adapter qualification requires hashed source payload bytes and passed unit, temporal-coordinate, and variable-shape audits.
+- Real-observation evaluation requires a hashed holdout manifest, the actual observation artifact, and passed leakage and reference-overlap audits.
+- The utility does not authenticate a publisher and does not replace a separately reviewed verifier, domain review, or physical validation.
