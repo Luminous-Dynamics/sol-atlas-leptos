@@ -306,7 +306,7 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
     let gates_controls_passed = all_gates_and_controls_pass(&receipt);
     let metrics_passed = metrics_present(&receipt);
     let config_digest_passed = configuration_digest_is_bound(&receipt, &artifact_checks);
-    let ci_passed = ci_checks_all_pass(&receipt, &artifact_checks, &artifact_root);
+    let ci_passed = ci_checks_all_pass(&receipt, &artifact_checks, &artifact_root, &repo_root);
     push_check(
         &mut checks,
         "completed_run",
@@ -798,19 +798,58 @@ fn metrics_present(receipt: &Value) -> bool {
     )
 }
 
-fn ci_checks_all_pass(receipt: &Value, artifacts: &[ArtifactCheck], artifact_root: &Path) -> bool {
+fn ci_checks_all_pass(
+    receipt: &Value,
+    artifacts: &[ArtifactCheck],
+    artifact_root: &Path,
+    repo_root: &Path,
+) -> bool {
     let Some(checks) = receipt.get("ci_checks").and_then(Value::as_array) else {
         return false;
     };
     let Some(code_commit) = string_field(receipt, &["code", "commit_sha"]) else {
         return false;
     };
-    if checks.is_empty() {
+    let Some(spec_path) = string_field(receipt, &["benchmark_specification", "path"]) else {
+        return false;
+    };
+    let Ok(spec_path) = safe_join(repo_root, spec_path) else {
+        return false;
+    };
+    let Ok(spec_bytes) = fs::read(spec_path) else {
+        return false;
+    };
+    let Ok(specification) = serde_json::from_slice::<Value>(&spec_bytes) else {
+        return false;
+    };
+    let Some(required_ci_checks) = specification
+        .get("required_ci_checks")
+        .and_then(Value::as_array)
+    else {
+        return false;
+    };
+    let required_names = required_ci_checks
+        .iter()
+        .map(Value::as_str)
+        .collect::<Option<Vec<_>>>();
+    let Some(required_names) = required_names else {
+        return false;
+    };
+    let required_names: Vec<String> = required_names
+        .into_iter()
+        .map(str::to_owned)
+        .collect();
+    if !ci_check_names_match_policy(checks, &required_names) {
         return false;
     }
 
+    let mut seen_check_ids = std::collections::HashSet::new();
     checks.iter().all(|check| {
-        if string_field(check, &["commit_sha"]) != Some(code_commit)
+        let Some(check_id) = string_field(check, &["check_id"]) else {
+            return false;
+        };
+        if !seen_check_ids.insert(check_id.to_string())
+            || string_field(check, &["commit_sha"]) != Some(code_commit)
             || string_field(check, &["status"]) != Some("completed")
             || string_field(check, &["conclusion"]) != Some("success")
         {
@@ -850,6 +889,24 @@ fn ci_checks_all_pass(receipt: &Value, artifacts: &[ArtifactCheck], artifact_roo
         };
         ci_check_evidence_matches(check, &payload, code_commit)
     })
+}
+
+fn ci_check_names_match_policy(checks: &[Value], required_names: &[String]) -> bool {
+    if checks.is_empty() || required_names.is_empty() || checks.len() != required_names.len() {
+        return false;
+    }
+    let required_set: std::collections::HashSet<&str> =
+        required_names.iter().map(String::as_str).collect();
+    if required_set.len() != required_names.len() {
+        return false;
+    }
+    let mut seen_names = std::collections::HashSet::new();
+    checks.iter().all(|check| {
+        let Some(name) = string_field(check, &["name"]) else {
+            return false;
+        };
+        required_set.contains(name) && seen_names.insert(name)
+    }) && seen_names.len() == required_set.len()
 }
 
 fn ci_check_evidence_matches(check: &Value, evidence: &Value, expected_commit: &str) -> bool {
@@ -1391,7 +1448,17 @@ mod tests {
             "code": {"commit_sha": commit},
             "ci_checks": []
         });
-        assert!(!ci_checks_all_pass(&no_checks, &[], Path::new(".")));
+        assert!(!ci_check_names_match_policy(&[], &["Check".to_string()]));
+        let one_check = vec![json!({"name":"Check"})];
+        let required = vec!["Check".to_string(), "Earth Interior receipt verifier".to_string()];
+        assert!(!ci_check_names_match_policy(&one_check, &required));
+        let duplicated = vec![json!({"name":"Check"}), json!({"name":"Check"})];
+        assert!(!ci_check_names_match_policy(&duplicated, &required));
+        let complete = vec![
+            json!({"name":"Check"}),
+            json!({"name":"Earth Interior receipt verifier"})
+        ];
+        assert!(ci_check_names_match_policy(&complete, &required));
     }
 
     #[test]
