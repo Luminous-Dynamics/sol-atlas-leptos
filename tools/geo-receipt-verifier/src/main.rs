@@ -1221,7 +1221,7 @@ mod tests {
         });
         assert!(ci_check_evidence_matches(&valid_check, &valid_evidence, &commit));
 
-        for status in ["queued", "in_progress", "skipped", "cancelled", "missing"] {
+        for status in ["pending", "queued", "in_progress", "skipped", "cancelled", "missing"] {
             let check = json!({
                 "check_id": "123",
                 "name": "Check",
