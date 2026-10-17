@@ -61,3 +61,13 @@ A zero exit code for `executed_unqualified` means the receipt was processed corr
 - Real-observation evaluation requires a hashed holdout manifest, the actual observation artifact, and passed leakage and reference-overlap audits.
 - CI JSON payloads are digest-checked and cross-compared offline; this does not cryptographically authenticate GitHub as the payload origin. Review the run URL/provider evidence independently.
 - The utility does not authenticate a publisher and does not replace a separately reviewed verifier, domain review, or physical validation.
+
+## Current implementation slice
+
+The verifier now includes 11 authored regression tests for schema acceptance, canonical receipt digests, path traversal, Git URL normalization, strict gates/controls, exact-head CI evidence, metric uncertainty metadata, and synthetic truth visibility. A CI workflow was added for `cargo fmt --check`, tests, and Clippy. These commands have **not yet been executed in this environment**; the current feature-branch CI runs remain pending/queued until a runner reports results. Do not call the implementation Rust-qualified until the exact commit's workflow completes successfully.
+
+The verifier checks retained workflow-run JSON offline against the receipt and the payload digest. It does not cryptographically authenticate that a JSON file originated from GitHub, so the linked run URL and provider provenance remain independently auditable. Receipt eligibility is a protocol/integrity check, not proof of geophysical truth.
+
+## Calibration research addition
+
+The model-falsification contract is now version 0.1.1 with lane `L6_data_conditioned_calibration`. It compares pooled simulation-based calibration to coverage and predictive scores stratified by predeclared observation regimes, tests cases where pooled coverage hides conditional under-coverage, and evaluates posterior-correction candidates only where valid known-truth calibration cases exist. It explicitly forbids presenting simulated posterior calibration as calibration proof for the real Earth's hidden core state. Research leads: [Posterior SBC (2026)](https://doi.org/10.1007/s11222-026-10825-9) and [Flow Matching Calibration for SBI under Model Misspecification (ICML 2026)](https://proceedings.mlr.press/v306/ruhlmann26a.html).
