@@ -1,0 +1,48 @@
+{
+  "manifest_version": "city-belonging-task-benchmark-manifest/0.1",
+  "benchmark_id": "city-belonging-task-benchmark-v0.1",
+  "fixture_path": "docs/research/fixtures/city-belonging-task-benchmark-v0.1.jsonl",
+  "hash_algorithm": "SHA-256",
+  "fixture_sha256": "6a35ca7cfc060f71621248f71e2540ac0910a76d33756713987db21d2f0ec160",
+  "record_format": "JSON Lines; UTF-8; newline-terminated",
+  "record_count": 14,
+  "families": {
+    "hard_cost_constraint": 1,
+    "accessibility_constraint": 1,
+    "language_constraint": 1,
+    "event_currentness": 1,
+    "current_service_status": 1,
+    "verified_next_action": 1,
+    "virtual_service_area_without_fake_pin": 1,
+    "explicit_worldview_preference": 1,
+    "no_verified_fit": 1,
+    "soft_preference_without_hard_filtering": 1,
+    "conflicted_service_claim": 1,
+    "live_capacity_constraint": 1,
+    "travel_time_constraint": 1,
+    "privacy_and_opt_out": 1
+  },
+  "status": "synthetic task contract; proposed benchmark; not a usability study",
+  "claim_ceiling": "checks whether a selector preserves user-stated constraints, unknowns, opt-outs and explanation obligations. It does not establish actual search performance, service coverage, safety, connection outcomes, or loneliness reduction.",
+  "dataset_boundaries": [
+    "all candidates are synthetic labels",
+    "no real service listings or contact details",
+    "no personal or vulnerable-user data",
+    "no real coordinates or travel estimates"
+  ],
+  "scoring_contract": {
+    "hard_constraint_violation_tolerance": 0,
+    "unknown_promoted_to_verified_tolerance": 0,
+    "silent_hard_constraint_relaxation_tolerance": 0,
+    "explanation_coverage_target": 1,
+    "soft_preference_must_not_filter_target": 1,
+    "explicit_user_opt_out_honored_target": 1,
+    "task_level_accuracy_reported_per_case": true,
+    "aggregate_single_match_score_prohibited": true
+  },
+  "use": "constraint-aware service discovery; false-match and uncertainty-retention regression",
+  "related": [
+    "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/123",
+    "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/125"
+  ]
+}
