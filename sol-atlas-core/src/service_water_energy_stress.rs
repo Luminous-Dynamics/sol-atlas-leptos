@@ -811,6 +811,13 @@ fn evaluate_case(
     floors_by_request_id: &BTreeMap<&str, &ProtectedWaterServiceFloor>,
     evidence_by_id: &BTreeMap<&str, &EvidenceRecord>,
 ) -> Result<WaterEnergyStressCaseAssessment, WaterEnergyStressSweepError> {
+    let mut overrides_applied = overrides_applied;
+    overrides_applied.sort_by(|left, right| {
+        left.service_request_id
+            .cmp(&right.service_request_id)
+            .then_with(|| left.step_id.cmp(&right.step_id))
+            .then_with(|| left.target.cmp(&right.target))
+    });
     let mut service_results = Vec::with_capacity(services.len());
     let mut community_accumulators: BTreeMap<String, CommunityAccumulator> = BTreeMap::new();
     let mut total_weight = 0_u64;
@@ -1307,6 +1314,20 @@ mod tests {
         assert_eq!(
             first.cases.iter().map(|case| case.id.as_str()).collect::<Vec<_>>(),
             vec!["grid-outage", "reduced-source"]
+        );
+    }
+
+    #[test]
+    fn override_input_order_does_not_change_serialized_case_results() {
+        let input = request();
+        let mut shuffled = input.clone();
+        shuffled.failure_scenarios[0].overrides.reverse();
+        let first = assess_water_energy_stress_sweep(&input, &[]).expect("valid sweep");
+        let second = assess_water_energy_stress_sweep(&shuffled, &[]).expect("permuted sweep");
+        assert_eq!(first.cases, second.cases);
+        assert_eq!(
+            serde_json::to_vec(&first).expect("serialize first"),
+            serde_json::to_vec(&second).expect("serialize second")
         );
     }
 
