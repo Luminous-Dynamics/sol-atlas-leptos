@@ -360,11 +360,8 @@ pub fn compare_water_service_trajectory_interventions(
             ]));
         }
     }
-    let evidence_by_id = build_evidence_index(evidence_records).map_err(|errors| {
-        WaterServiceTrajectoryInterventionError::EvidenceValidation(
-            ServiceFunctionAssessmentError::InvalidInput(errors),
-        )
-    })?;
+    let evidence_by_id = build_evidence_index(evidence_records)
+        .map_err(WaterServiceTrajectoryInterventionError::EvidenceValidation)?;
     let mut ordered: Vec<&WaterServiceTrajectoryInterventionRequest> = requests.iter().collect();
     ordered.sort_by(|left, right| left.id.cmp(&right.id));
     ordered
