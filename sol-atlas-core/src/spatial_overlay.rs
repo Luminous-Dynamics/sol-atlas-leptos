@@ -530,7 +530,7 @@ mod tests {
     use super::*;
     use serde::Deserialize;
 
-    const EVALUATION_TIME: i64 = 1_800_000_000;
+    const EVALUATION_TIME: i64 = 1_792_195_200;
 
     fn policy() -> SpatialOverlayPolicy {
         SpatialOverlayPolicy {
