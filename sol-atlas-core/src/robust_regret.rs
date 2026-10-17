@@ -431,7 +431,7 @@ mod tests {
             }
             evaluated += 1;
         }
-        assert_eq!(evaluated, 4, "the pinned benchmark has four synthetic cases");
+        assert_eq!(evaluated, 5, "the pinned benchmark has five synthetic cases");
     }
 
     fn basic_problem() -> RobustRegretProblem {
@@ -520,6 +520,25 @@ mod tests {
         assert!(matches!(
             analyze_robust_regret(&problem),
             Err(RobustRegretError::IncompatibleUnits { .. })
+        ));
+    }
+
+
+    #[test]
+    fn empty_possible_outcome_set_is_rejected() {
+        let mut problem = basic_problem();
+        problem.actions.push(InvestigationAction {
+            action_id: "empty-outcome-set".into(),
+            cost_unit: "regret-units".into(),
+            cost: 0.0,
+            outcome_by_scenario: BTreeMap::from([
+                ("dry".into(), BTreeSet::new()),
+                ("wet".into(), BTreeSet::from(["wet".into()])),
+            ]),
+        });
+        assert!(matches!(
+            analyze_robust_regret(&problem),
+            Err(RobustRegretError::EmptyActionOutcome { .. })
         ));
     }
 
