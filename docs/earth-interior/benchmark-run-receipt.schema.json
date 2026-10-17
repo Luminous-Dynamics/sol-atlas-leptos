@@ -450,10 +450,7 @@
             ]
           },
           "url": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": "string",
             "format": "uri"
           },
           "evidence_artifact_id": {
@@ -577,7 +574,57 @@
                 "role",
                 "selector_visibility"
               ]
-            }
+            },
+            "allOf": [
+              {
+                "contains": {
+                  "properties": {
+                    "role": {
+                      "const": "synthetic_observations"
+                    }
+                  },
+                  "required": [
+                    "role"
+                  ]
+                }
+              }
+            ]
+          },
+          "controls": {
+            "allOf": [
+              {
+                "contains": {
+                  "properties": {
+                    "kind": {
+                      "const": "null_signal"
+                    },
+                    "result": {
+                      "const": "passed"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "result"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "kind": {
+                      "const": "truth_leakage"
+                    },
+                    "result": {
+                      "const": "passed"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "result"
+                  ]
+                }
+              }
+            ]
           }
         }
       }
@@ -676,7 +723,21 @@
               "required": [
                 "role"
               ]
-            }
+            },
+            "allOf": [
+              {
+                "contains": {
+                  "properties": {
+                    "role": {
+                      "const": "holdout_manifest"
+                    }
+                  },
+                  "required": [
+                    "role"
+                  ]
+                }
+              }
+            ]
           }
         }
       }
