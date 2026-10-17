@@ -3,7 +3,7 @@
   "fixture_id": "city-belonging-admission-v0.1",
   "fixture_path": "docs/research/fixtures/city-belonging-admission-v0.1.jsonl",
   "hash_algorithm": "SHA-256",
-  "fixture_sha256": "d9cc72b5383be10c6550108eab00ebf1422d9b01600a0c322b5dde50815c7c8e",
+  "fixture_sha256": "fa66bc059b780ce6e3ea5ba37689c48b4c14952c7a386e7fe1c8403806145b79",
   "record_format": "JSON Lines; UTF-8; newline-terminated",
   "record_count": 11,
   "disposition_counts": {
@@ -18,7 +18,7 @@
     "version": "3.1",
     "upstream_ref": "3.1",
     "schema_pin_manifest_path": "docs/research/fixtures/hsds-3.1-selected-contract-v0.1.json",
-    "schema_pin_manifest_sha256_utf8": "07b8330038cf3093f6a853673b72ed0361a33f17b3b0d332fcfd9ecb9ef75a80",
+    "schema_pin_manifest_sha256_utf8": "854163e66a650f74f30822a3caa67bbb5d90370718bc175e6d647165070f807f",
     "vendored_schema_files": [
       {
         "resource": "organization",
@@ -67,6 +67,12 @@
         "path": "docs/research/fixtures/upstream/hsds-3.1/schema/service_capacity.json",
         "git_blob_sha1": "6b6ebb238cf50072dee30f0ff48f4f05bd57e5eb",
         "sha256_utf8": "bd9620d0154c960fe61e2e0f1552bb6050da4d8f95265843064f09bd8cf63425"
+      },
+      {
+        "resource": "unit",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/unit.json",
+        "git_blob_sha1": "bbae59f7cac33157c64fd368ac0a350cd33a8854",
+        "sha256_utf8": "107c201430274af1584921bd20469cc4e664930cd757261698900cc88948da57"
       }
     ],
     "validation_status": "SELECTED_RESOURCE_ROW_CONTRACT_TO_BE_CHECKED_BY_RUST_TOOL; NOT_COMPLETE_HSDS_CONFORMANCE",
