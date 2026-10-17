@@ -881,6 +881,54 @@ mod tests {
     }
 
     #[test]
+    fn receipt_order_does_not_change_report_or_aggregate_counts() {
+        let mut p = policy();
+        p.candidate_ids = ["site-A".into(), "site-B".into()].into_iter().collect();
+        p.required_constraints = [
+            ("protected-area".into(), ConstraintCriticality::Hard),
+            ("flood-zone".into(), ConstraintCriticality::Hard),
+        ]
+        .into_iter()
+        .collect();
+
+        let a_protected = receipt(SpatialRelation::Disjoint, CoverageStatus::Complete);
+        let mut a_flood = receipt(SpatialRelation::Indeterminate, CoverageStatus::Unknown);
+        a_flood.constraint_id = "flood-zone".into();
+        a_flood.layer_geometry_sha256 = "d".repeat(64);
+
+        let mut b_protected = receipt(SpatialRelation::Intersects, CoverageStatus::Partial);
+        b_protected.candidate_id = "site-B".into();
+        b_protected.candidate_geometry_sha256 = "e".repeat(64);
+
+        let mut b_flood = receipt(SpatialRelation::Disjoint, CoverageStatus::Complete);
+        b_flood.candidate_id = "site-B".into();
+        b_flood.candidate_geometry_sha256 = "e".repeat(64);
+        b_flood.constraint_id = "flood-zone".into();
+        b_flood.layer_geometry_sha256 = "f".repeat(64);
+
+        let mut receipts = vec![a_protected, a_flood, b_protected, b_flood];
+        let forward = analyze_spatial_overlays(&receipts, &p).unwrap();
+        receipts.reverse();
+        let reversed = analyze_spatial_overlays(&receipts, &p).unwrap();
+
+        assert_eq!(forward, reversed);
+        assert_eq!(
+            forward.candidates["site-A"].gate_status,
+            CandidateGateStatus::NeedsEvidence
+        );
+        assert_eq!(
+            forward.candidates["site-B"].gate_status,
+            CandidateGateStatus::Excluded
+        );
+        assert_eq!(forward.eligible_count, 0);
+        assert_eq!(forward.excluded_count, 1);
+        assert_eq!(forward.needs_evidence_count, 1);
+        assert_eq!(forward.confirmed_present_count, 1);
+        assert_eq!(forward.confirmed_absent_count, 2);
+        assert_eq!(forward.unresolved_constraint_count, 1);
+    }
+
+    #[test]
     fn exhaustive_clearance_matrix_never_promotes_uncertainty_to_eligibility() {
         let relations = [
             SpatialRelation::Intersects,
