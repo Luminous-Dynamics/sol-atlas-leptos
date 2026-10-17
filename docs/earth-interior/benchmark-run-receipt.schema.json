@@ -437,6 +437,27 @@
           },
           "metrics": {
             "minItems": 1
+          },
+          "qualification_evidence": {
+            "properties": {
+              "verification_outcome": {
+                "const": "accepted"
+              }
+            }
+          },
+          "code": {
+            "properties": {
+              "worktree_state": {
+                "const": "clean"
+              }
+            }
+          },
+          "run": {
+            "properties": {
+              "outcome": {
+                "const": "completed"
+              }
+            }
           }
         }
       }
@@ -487,7 +508,34 @@
       "then": {
         "required": [
           "source_adapter"
-        ]
+        ],
+        "properties": {
+          "source_adapter": {
+            "properties": {
+              "units_audit": {
+                "const": "passed"
+              },
+              "time_axis_audit": {
+                "const": "passed"
+              },
+              "variable_shape_audit": {
+                "const": "passed"
+              }
+            }
+          },
+          "artifacts": {
+            "contains": {
+              "properties": {
+                "role": {
+                  "const": "source_payload"
+                }
+              },
+              "required": [
+                "role"
+              ]
+            }
+          }
+        }
       }
     },
     {
@@ -505,7 +553,32 @@
         "required": [
           "source_adapter",
           "real_observation_evaluation"
-        ]
+        ],
+        "properties": {
+          "source_adapter": {
+            "properties": {
+              "units_audit": {
+                "const": "passed"
+              },
+              "time_axis_audit": {
+                "const": "passed"
+              },
+              "variable_shape_audit": {
+                "const": "passed"
+              }
+            }
+          },
+          "real_observation_evaluation": {
+            "properties": {
+              "leakage_audit": {
+                "const": "passed"
+              },
+              "reference_overlap_audit": {
+                "const": "passed"
+              }
+            }
+          }
+        }
       }
     }
   ],
