@@ -1,0 +1,485 @@
+name: Qualify GCS external effect
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: sol-atlas-gcs-qualification
+  cancel-in-progress: false
+
+jobs:
+  observe-wif-trust:
+    name: Observe GCS WIF trust
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: sol-atlas-gcs-qualification
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    outputs:
+      artifact_id: ${{ steps.upload_wif_evidence.outputs.artifact-id }}
+      qualification_object_root: ${{ steps.define_object_root.outputs.value }}
+
+    env:
+      GCP_PROJECT_ID: ${{ vars.SOL_ATLAS_GCP_PROJECT_ID }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.SOL_ATLAS_GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ vars.SOL_ATLAS_GCP_SERVICE_ACCOUNT }}
+      GCS_QUALIFICATION_BUCKET: ${{ vars.SOL_ATLAS_GCS_QUALIFICATION_BUCKET }}
+      GCS_QUALIFICATION_OBJECT_PREFIX: sol-atlas/qualification
+      GCP_IAM_OBSERVER_SERVICE_ACCOUNT: ${{ vars.SOL_ATLAS_GCP_IAM_OBSERVER_SERVICE_ACCOUNT }}
+      GCP_IAM_ANALYSIS_SCOPE: ${{ vars.SOL_ATLAS_GCP_IAM_ANALYSIS_SCOPE }}
+      CLOUDSDK_CONFIG: ${{ runner.temp }}/sol-atlas-gcloud-observer-config
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Verify GitHub server workflow-run provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/verify_github_workflow_run.py
+
+      - name: Verify immutable GitHub OIDC subject configuration
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p observer-artifacts
+          python3 scripts/verify_github_oidc_subject_configuration.py \
+            --output observer-artifacts/github-oidc-subject-configuration.json
+
+      - name: Verify checked-out source and workflow commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          workflow_claim_spec="$GITHUB_WORKFLOW_SHA:.github/workflows/qualify-gcs.yml"
+          test "$(git rev-parse "$workflow_claim_spec")" = "$(git rev-parse "HEAD:.github/workflows/qualify-gcs.yml")"
+
+      - name: Validate observer configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for value in GCP_PROJECT_ID GCP_WORKLOAD_IDENTITY_PROVIDER GCP_SERVICE_ACCOUNT GCP_IAM_OBSERVER_SERVICE_ACCOUNT GCP_IAM_ANALYSIS_SCOPE; do
+            if [ -z "${!value}" ]; then
+              echo "::error::$value is not configured"
+              exit 1
+            fi
+          done
+          test "$GCP_SERVICE_ACCOUNT" != "$GCP_IAM_OBSERVER_SERVICE_ACCOUNT"
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+        with:
+          version: "586.0.0"
+
+      - name: Verify GitHub OIDC claims for observer
+        env:
+          EXPECTED_OIDC_AUDIENCE: >-
+            https://iam.googleapis.com/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        run: |
+          set -euo pipefail
+          mkdir -p observer-artifacts
+          python3 scripts/verify_github_oidc_claims.py \
+            --audience "$EXPECTED_OIDC_AUDIENCE" \
+            --output observer-artifacts/github-oidc-claims.json \
+            --token-output "$RUNNER_TEMP/sol-atlas-observer-oidc-token.jwt"
+
+      - name: Create observer WIF credential configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud iam workload-identity-pools create-cred-config \
+            "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
+            --service-account="$GCP_IAM_OBSERVER_SERVICE_ACCOUNT" \
+            --subject-token-type="urn:ietf:params:oauth:token-type:jwt" \
+            --credential-source-file="$RUNNER_TEMP/sol-atlas-observer-oidc-token.jwt" \
+            --output-file="$RUNNER_TEMP/sol-atlas-observer-credentials.json"
+          chmod 600 "$RUNNER_TEMP/sol-atlas-observer-credentials.json"
+
+      - name: Verify observer credential binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_gcs_wif_credential_config.py \
+            --config "$RUNNER_TEMP/sol-atlas-observer-credentials.json" \
+            --token-file "$RUNNER_TEMP/sol-atlas-observer-oidc-token.jwt" \
+            --oidc-claims observer-artifacts/github-oidc-claims.json \
+            --provider-resource "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
+            --service-account "$GCP_IAM_OBSERVER_SERVICE_ACCOUNT"
+
+      - name: Authenticate observer to Google Cloud
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud auth login --cred-file="$RUNNER_TEMP/sol-atlas-observer-credentials.json"
+          gcloud config set project "$GCP_PROJECT_ID"
+
+      - name: Define deterministic qualification object root
+        id: define_object_root
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'value=%s/run-%s-attempt-%s\n' \
+            "$GCS_QUALIFICATION_OBJECT_PREFIX" \
+            "$GITHUB_RUN_ID" \
+            "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+
+      - name: Verify effect service-account trust policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          python3 scripts/verify_gcs_wif_provider.py \
+            --provider-resource "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
+            --project-id "$GCP_PROJECT_ID" \
+            --service-account "$GCP_SERVICE_ACCOUNT" \
+            --observer-service-account "$GCP_IAM_OBSERVER_SERVICE_ACCOUNT" \
+            --output artifacts/gcs-wif-trust-verification.json
+
+      - name: Audit effective IAM for qualification identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_gcs_effective_iam.py \
+            --scope "$GCP_IAM_ANALYSIS_SCOPE" \
+            --project-id "$GCP_PROJECT_ID" \
+            --service-account "$GCP_SERVICE_ACCOUNT" \
+            --oidc-claims observer-artifacts/github-oidc-claims.json \
+            --wif-verification artifacts/gcs-wif-trust-verification.json \
+            --output artifacts/gcs-effective-iam-verification.json
+
+      - name: Audit broad service-account impersonation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_gcs_broad_sa_impersonation.py \
+            --scope "$GCP_IAM_ANALYSIS_SCOPE" \
+            --project-id "$GCP_PROJECT_ID" \
+            --service-account "$GCP_SERVICE_ACCOUNT" \
+            --oidc-claims observer-artifacts/github-oidc-claims.json \
+            --wif-verification artifacts/gcs-wif-trust-verification.json \
+            --output artifacts/gcs-broad-sa-impersonation-verification.json
+
+      - name: Audit downstream GCS policy effects
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_gcs_policy_effect.py \
+            --principal-email "$GCP_SERVICE_ACCOUNT" \
+            --targets sol-atlas-policy-store-contract/conformance/gcs_policy_troubleshooter_targets_v3.json \
+            --project-id "$GCP_PROJECT_ID" \
+            --bucket "$GCS_QUALIFICATION_BUCKET" \
+            --object-root "${{ steps.define_object_root.outputs.value }}" \
+            --output artifacts/gcs-policy-effect-verification.json
+
+      - name: Audit observer effect-account isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_gcs_observer_isolation.py \
+            --scope "$GCP_IAM_ANALYSIS_SCOPE" \
+            --project-id "$GCP_PROJECT_ID" \
+            --effect-service-account "$GCP_SERVICE_ACCOUNT" \
+            --observer-service-account "$GCP_IAM_OBSERVER_SERVICE_ACCOUNT" \
+            --output artifacts/gcs-observer-isolation-verification.json
+
+      - name: Remove transient observer credentials
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f "$RUNNER_TEMP/sol-atlas-observer-oidc-token.jwt" "$RUNNER_TEMP/sol-atlas-observer-credentials.json"
+          rm -rf "$CLOUDSDK_CONFIG"
+
+      - name: Upload WIF trust evidence
+        id: upload_wif_evidence
+        if: ${{ success() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sol-atlas-gcs-wif-trust-observer
+          path: |
+            artifacts/gcs-wif-trust-verification.json
+            observer-artifacts/github-oidc-claims.json
+            observer-artifacts/github-oidc-subject-configuration.json
+            artifacts/gcs-effective-iam-verification.json
+            artifacts/gcs-broad-sa-impersonation-verification.json
+            artifacts/gcs-observer-isolation-verification.json
+            artifacts/gcs-policy-effect-verification.json
+          if-no-files-found: error
+          retention-days: 90
+  qualify:
+    name: Live GCS qualification
+    needs: observe-wif-trust
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: sol-atlas-gcs-qualification
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      attestations: write
+    outputs:
+      artifact_id: ${{ steps.upload_evidence.outputs.artifact-id }}
+
+    env:
+      GCP_PROJECT_ID: ${{ vars.SOL_ATLAS_GCP_PROJECT_ID }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.SOL_ATLAS_GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ vars.SOL_ATLAS_GCP_SERVICE_ACCOUNT }}
+      GCS_QUALIFICATION_BUCKET: ${{ vars.SOL_ATLAS_GCS_QUALIFICATION_BUCKET }}
+      GCS_QUALIFICATION_OBJECT_PREFIX: sol-atlas/qualification
+      GCS_QUALIFICATION_OBJECT_ROOT: ${{ needs.observe-wif-trust.outputs.qualification_object_root }}
+      CLOUDSDK_CONFIG: ${{ runner.temp }}/sol-atlas-gcloud-config
+      # GitHub does not expose a default GITHUB_ENVIRONMENT variable.
+      # Keep this explicit value aligned with the protected job environment.
+      GITHUB_ENVIRONMENT: sol-atlas-gcs-qualification
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Verify GitHub server workflow-run provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          python3 scripts/verify_github_workflow_run.py \
+            --output artifacts/github-workflow-run-verification.json
+      - name: Verify immutable GitHub OIDC subject configuration
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: python3 scripts/verify_github_oidc_subject_configuration.py
+
+
+      - name: Verify checked-out source and workflow commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -n "$GITHUB_WORKFLOW_SHA"
+          workflow_claim_spec="$GITHUB_WORKFLOW_SHA:.github/workflows/qualify-gcs.yml"
+          workflow_at_claim="$(git rev-parse "$workflow_claim_spec")"
+          workflow_at_checkout="$(git rev-parse "HEAD:.github/workflows/qualify-gcs.yml")"
+          test "$workflow_at_claim" = "$workflow_at_checkout"
+
+      - name: Verify workflow action pins
+        run: python3 scripts/verify_github_actions_pins.py
+
+      - name: Validate qualification configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for value in \
+            GCP_PROJECT_ID \
+            GCP_WORKLOAD_IDENTITY_PROVIDER \
+            GCP_SERVICE_ACCOUNT \
+            GCS_QUALIFICATION_BUCKET
+          do
+            if [ -z "${!value}" ]; then
+              echo "::error::$value is not configured"
+              exit 1
+            fi
+          done
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+        with:
+          version: "586.0.0"
+      - name: Download observed WIF trust evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.observe-wif-trust.outputs.artifact_id }}
+          path: artifacts/wif-observer/
+          merge-multiple: true
+          digest-mismatch: error
+      - name: Promote observed WIF trust evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s artifacts/wif-observer/gcs-wif-trust-verification.json
+          test -s artifacts/wif-observer/github-oidc-claims.json
+          test -s artifacts/wif-observer/github-oidc-subject-configuration.json
+          test -s artifacts/wif-observer/gcs-effective-iam-verification.json
+          test -s artifacts/wif-observer/gcs-broad-sa-impersonation-verification.json
+          test -s artifacts/wif-observer/gcs-observer-isolation-verification.json
+          test -s artifacts/wif-observer/gcs-policy-effect-verification.json
+          cp artifacts/wif-observer/gcs-wif-trust-verification.json artifacts/gcs-wif-trust-verification.json
+          cp artifacts/wif-observer/github-oidc-claims.json artifacts/observer-github-oidc-claims.json
+          cp artifacts/wif-observer/github-oidc-subject-configuration.json artifacts/github-oidc-subject-configuration.json
+          cp artifacts/wif-observer/gcs-effective-iam-verification.json artifacts/gcs-effective-iam-verification.json
+          cp artifacts/wif-observer/gcs-broad-sa-impersonation-verification.json artifacts/gcs-broad-sa-impersonation-verification.json
+          cp artifacts/wif-observer/gcs-observer-isolation-verification.json artifacts/gcs-observer-isolation-verification.json
+          cp artifacts/wif-observer/gcs-policy-effect-verification.json artifacts/gcs-policy-effect-verification.json
+      - name: Verify GitHub OIDC claims
+        env:
+          EXPECTED_OIDC_AUDIENCE: >-
+            https://iam.googleapis.com/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          python3 scripts/verify_github_oidc_claims.py \
+            --audience "$EXPECTED_OIDC_AUDIENCE" \
+            --output artifacts/github-oidc-claims.json \
+            --token-output "$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt"
+
+
+      - name: Create WIF credential configuration from verified OIDC token
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt"
+          rm -f "$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
+          gcloud iam workload-identity-pools create-cred-config \
+            "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
+            --service-account="$GCP_SERVICE_ACCOUNT" \
+            --subject-token-type="urn:ietf:params:oauth:token-type:jwt" \
+            --credential-source-file="$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt" \
+            --output-file="$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
+          test -s "$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
+          chmod 600 "$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
+
+      - name: Verify exact WIF credential binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_gcs_wif_credential_config.py \
+            --config "$RUNNER_TEMP/sol-atlas-gcp-credentials.json" \
+            --token-file "$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt" \
+            --oidc-claims artifacts/github-oidc-claims.json \
+            --provider-resource "$GCP_WORKLOAD_IDENTITY_PROVIDER" \
+            --service-account "$GCP_SERVICE_ACCOUNT" \
+            --output artifacts/gcs-wif-credential-config-verification.json
+
+      - name: Authenticate to Google Cloud with verified token
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud auth login \
+            --cred-file="$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
+          gcloud config set project "$GCP_PROJECT_ID"
+      - name: Verify caller identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud auth list --filter=status:ACTIVE --format="value(account)"
+          test "$(gcloud config get-value project)" = "$GCP_PROJECT_ID"
+
+
+      - name: Run live GCS qualification
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          python3 scripts/qualify_gcs_external_effect.py \
+            qualify \
+            --bucket "$GCS_QUALIFICATION_BUCKET" \
+            --wif-verification artifacts/wif-observer/gcs-wif-trust-verification.json \
+            --oidc-claims artifacts/github-oidc-claims.json \
+            --oidc-subject-configuration \
+              artifacts/github-oidc-subject-configuration.json \
+            --github-run-verification \
+              artifacts/github-workflow-run-verification.json \
+            --wif-credential-config-verification \
+              artifacts/gcs-wif-credential-config-verification.json \
+            --observer-oidc-claims artifacts/observer-github-oidc-claims.json \
+            --effective-iam-audit artifacts/gcs-effective-iam-verification.json \
+            --broad-sa-audit artifacts/gcs-broad-sa-impersonation-verification.json \
+            --observer-isolation-audit artifacts/gcs-observer-isolation-verification.json \
+            --policy-effect-audit artifacts/gcs-policy-effect-verification.json \
+            --object-root "$GCS_QUALIFICATION_OBJECT_ROOT" \
+            --object-prefix "$GCS_QUALIFICATION_OBJECT_PREFIX" \
+            --output artifacts/gcs-external-effect-report.json
+
+      - name: Re-verify qualification artifact
+        run: |
+          set -euo pipefail
+          python3 scripts/qualify_gcs_external_effect.py \
+            verify \
+            --report artifacts/gcs-external-effect-report.json
+
+      - name: Remove transient OIDC credentials
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f \
+            "$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt" \
+            "$RUNNER_TEMP/sol-atlas-gcp-credentials.json"
+          rm -rf "$CLOUDSDK_CONFIG"
+      - name: Upload qualification evidence
+        id: upload_evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sol-atlas-gcs-external-effect-qualification
+          path: |
+            artifacts/github-oidc-claims.json
+            artifacts/github-oidc-subject-configuration.json
+            artifacts/gcs-wif-credential-config-verification.json
+            artifacts/gcs-wif-trust-verification.json
+            artifacts/github-workflow-run-verification.json
+            artifacts/gcs-external-effect-report.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Attest qualification artifact provenance
+        if: ${{ success() }}
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: artifacts/gcs-external-effect-report.json
+
+
+  publish:
+    name: Re-verify qualification evidence
+    needs: qualify
+    if: ${{ needs.qualify.result == "success" }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      attestations: read
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Download qualification evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.qualify.outputs.artifact_id }}
+          path: artifacts/
+          digest-mismatch: error
+
+      - name: Re-verify qualification artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/qualify_gcs_external_effect.py \
+            verify \
+            --report artifacts/gcs-external-effect-report.json
+
+      - name: Verify GitHub artifact attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh attestation verify \
+            artifacts/gcs-external-effect-report.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow \
+              "$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml" \
+            --signer-digest "$GITHUB_WORKFLOW_SHA" \
+            --source-digest "$GITHUB_SHA" \
+            --source-ref "$GITHUB_REF" \
+            --predicate-type "https://slsa.dev/provenance/v1" \
+            --deny-self-hosted-runners \
+            --cert-oidc-issuer \
+              "https://token.actions.githubusercontent.com"
+

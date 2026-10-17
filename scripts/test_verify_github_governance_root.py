@@ -1,0 +1,206 @@
+#!/usr/bin/env python3
+# Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+"""Offline semantic tests for the GitHub governance root auditor."""
+
+from __future__ import annotations
+
+import json
+import importlib.util
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = ROOT / "scripts" / "verify_github_governance_root.py"
+
+spec = importlib.util.spec_from_file_location("governance_root", SCRIPT)
+assert spec and spec.loader
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+
+
+def rule(rule_type: str, parameters=None):
+    result = {"type": rule_type}
+    if parameters is not None:
+        result["parameters"] = parameters
+    return result
+
+
+def good_ruleset():
+    return {
+        "id": 77,
+        "name": "Sol Atlas main governance root",
+        "source_type": "Organization",
+        "source": module.REQUIRED_RULESET_SOURCE,
+        "enforcement": "active",
+        "target": "branch",
+        "conditions": {
+            "repository_id": {
+                "repository_ids": [1195997641],
+            },
+            "ref_name": {
+                "include": ["refs/heads/main"],
+                "exclude": [],
+            }
+        },
+        "rules": [
+            rule(
+                "pull_request",
+                {
+                    "required_approving_review_count": 1,
+                    "dismiss_stale_reviews_on_push": True,
+                    "require_last_push_approval": True,
+                    "required_review_thread_resolution": True,
+                    "allowed_merge_methods": ["squash"],
+                },
+            ),
+            rule("required_signatures"),
+            rule("deletion"),
+            rule("non_fast_forward"),
+            rule(
+                "required_status_checks",
+                {
+                    "do_not_enforce_on_create": False,
+                    "strict_required_status_checks_policy": True,
+                    "required_status_checks": [
+                        {
+                            "context": "Check",
+                            "integration_id": 15368,
+                        }
+                    ],
+                },
+            ),
+        ],
+        "bypass_actors": [],
+    }
+
+
+def expect_failure(ruleset, label: str):
+    try:
+        module.verify_ruleset(ruleset)
+    except AssertionError:
+        return
+    raise AssertionError("accepted invalid governance root: " + label)
+
+
+def main():
+    manifest = json.loads(
+        (ROOT / ".github/governance/protect-main.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert manifest["target"] == "branch"
+    assert manifest["enforcement"] == "active"
+    assert manifest["conditions"]["repository_id"]["include"] == [
+        "1195997641"
+    ]
+    assert manifest["conditions"]["ref_name"]["include"] == [
+        "refs/heads/main"
+    ]
+    assert manifest["bypass_actors"] == []
+    status_rules = [
+        item for item in manifest["rules"]
+        if item["type"] == "required_status_checks"
+    ]
+    assert len(status_rules) == 1
+    assert status_rules[0]["parameters"]["required_status_checks"] == [
+        {
+            "context": "Check",
+            "integration_id": module.REQUIRED_CHECK_INTEGRATION_ID,
+        }
+    ]
+    verified = module.verify_ruleset(good_ruleset())
+    assert verified["required_check"] == "Check"
+    assert verified["required_check_integration_id"] == module.REQUIRED_CHECK_INTEGRATION_ID
+    assert verified["required_ruleset_source_type"] == "Organization"
+    assert verified["required_ruleset_source"] == "Luminous-Dynamics"
+
+    for rule_type in (
+        "pull_request",
+        "required_signatures",
+        "deletion",
+        "non_fast_forward",
+        "required_status_checks",
+    ):
+        broken = good_ruleset()
+        broken["rules"] = [
+            r for r in broken["rules"]
+            if r["type"] != rule_type
+        ]
+        expect_failure(broken, "missing " + rule_type)
+
+    broken = good_ruleset()
+    broken["rules"][0]["parameters"]["required_approving_review_count"] = "1"
+    expect_failure(broken, "non-integer approval count")
+
+    broken = good_ruleset()
+    broken["rules"].append(None)
+    expect_failure(broken, "malformed rule entry")
+
+    layered = good_ruleset()
+    layered["id"] = 78
+    verified_layered = module.verify_ruleset(layered)
+    assert verified_layered["id"] == 78
+
+    broken = good_ruleset()
+    broken["conditions"]["repository_id"]["repository_ids"] = [999]
+    expect_failure(broken, "wrong repository")
+    broken = good_ruleset()
+    broken["conditions"]["ref_name"]["include"] = ["refs/heads/dev"]
+    expect_failure(broken, "wrong target")
+    broken = good_ruleset()
+    broken["bypass_actors"] = [
+        {"actor_id": 42, "actor_type": "Team", "bypass_mode": "pull_request"}
+    ]
+    expect_failure(broken, "unexpected bypass actor")
+
+    broken = good_ruleset()
+    broken["source_type"] = "Repository"
+    expect_failure(broken, "repository-owned root")
+
+    broken = good_ruleset()
+    broken["source"] = "other-org"
+    expect_failure(broken, "wrong root organization")
+
+    broken = good_ruleset()
+    broken["enforcement"] = "enabled"
+    expect_failure(broken, "non-active enforcement mode")
+    broken = good_ruleset()
+    broken["enforcement"] = "evaluate"
+    expect_failure(broken, "non-active")
+
+    broken = good_ruleset()
+    broken["rules"][-1]["parameters"]["strict_required_status_checks_policy"] = False
+    expect_failure(broken, "non-strict status checks")
+
+    broken = good_ruleset()
+    broken["rules"][-1]["parameters"]["do_not_enforce_on_create"] = True
+    expect_failure(broken, "status checks not enforced on creation")
+
+    broken = good_ruleset()
+    broken["rules"][0]["parameters"]["required_review_thread_resolution"] = False
+    expect_failure(broken, "unresolved review threads")
+
+    broken = good_ruleset()
+    broken["rules"][0]["parameters"]["allowed_merge_methods"] = ["merge"]
+    expect_failure(broken, "non-squash merge")
+
+    broken = good_ruleset()
+    broken["rules"][-1]["parameters"]["required_status_checks"][0][
+        "integration_id"
+    ] = None
+    expect_failure(broken, "unbound status-check source")
+
+    broken = good_ruleset()
+    broken["bypass_actors"][0]["bypass_mode"] = "always"
+    expect_failure(broken, "unreviewed bypass")
+
+    broken = good_ruleset()
+    broken["bypass_actors"] = None
+    expect_failure(broken, "unobservable bypass policy")
+
+    print("GitHub governance root semantic checks: PASS")
+
+
+if __name__ == "__main__":
+    main()
