@@ -219,7 +219,7 @@
         },
         "storage_state_origin": {
           "enum": [
-            "initial_scenario_measurement",
+            "initial_scenario_input",
             "derived_from_previous_step"
           ]
         },

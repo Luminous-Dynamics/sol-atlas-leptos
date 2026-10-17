@@ -38,7 +38,7 @@
       "coverage_lower_bound": 1.2,
       "coverage_upper_bound": 1.2,
       "supporting_evidence_ids": [],
-      "storage_state_origin": "initial_scenario_measurement"
+      "storage_state_origin": "initial_scenario_input"
     },
     {
       "step_id": "outage-1",

@@ -56,7 +56,7 @@ pub struct WaterServiceTrajectory {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WaterStorageStateOrigin {
-    InitialScenarioMeasurement,
+    InitialScenarioInput,
     DerivedFromPreviousStep,
 }
 
@@ -282,7 +282,7 @@ fn assess_trajectory_indexed(
             derived_storage_measurement(&trajectory.initial_storage.entity_id, low, high)?
         };
         let storage_state_origin = if index == 0 {
-            WaterStorageStateOrigin::InitialScenarioMeasurement
+            WaterStorageStateOrigin::InitialScenarioInput
         } else {
             WaterStorageStateOrigin::DerivedFromPreviousStep
         };
