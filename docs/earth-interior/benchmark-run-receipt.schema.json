@@ -633,7 +633,8 @@
             "summary_report",
             "parser_output",
             "qualification_output",
-            "other"
+            "other",
+            "holdout_manifest"
           ]
         },
         "locator": {
