@@ -85,5 +85,9 @@
     "symtropy_simulation_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1728",
     "data_fixture_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/121"
   },
-  "run_receipt_schema": "./benchmark-run-receipt.schema.json"
+  "run_receipt_schema": "./benchmark-run-receipt.schema.json",
+  "required_ci_checks": [
+    "Check",
+    "Earth Interior receipt verifier"
+  ]
 }
