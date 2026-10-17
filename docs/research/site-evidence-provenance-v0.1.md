@@ -16,7 +16,7 @@ These standards support interoperable data; they do not validate a suitability d
 ## What the Rust slice checks
 
 The source evidence module currently records:
-- source ID, publisher, dataset, revision, payload SHA-256 syntax, rights/license class and authority class;
+- source ID, publisher, dataset, revision, fact domain, jurisdiction, payload SHA-256 syntax, rights/license class and authority class;
 - retrieval time versus source data-as-of time, explicit expiry, and a project-specific maximum age;
 - CRS identifier, axis order, horizontal unit, declared spatial bounds and optional ground resolution;
 - a policy's accepted authority/rights classes, required CRS and axis order, required extent, resolution cap, timestamp and payload-digest requirements.
@@ -36,7 +36,7 @@ A Ready result means only that supplied metadata satisfies the supplied policy. 
 
 ## Synthetic benchmark
 
-The fixture at docs/research/fixtures/site-evidence-benchmark-v0.1.jsonl contains 16 synthetic cases:
+The fixture at docs/research/fixtures/site-evidence-benchmark-v0.1.jsonl contains 20 synthetic cases:
 - accepted fresh source;
 - stale source despite recent retrieval;
 - missing source timestamp;
