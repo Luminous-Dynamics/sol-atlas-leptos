@@ -78,3 +78,7 @@ harness = false
 [[bench]]
 name = "water_trajectory_intervention"
 harness = false
+
+[[bench]]
+name = "water_energy_coupling"
+harness = false
