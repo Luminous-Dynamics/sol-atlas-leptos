@@ -67,7 +67,9 @@ This contract is an initial internal seam, not yet a stable external interchange
 
 - Sol Atlas contract and project benchmark plan: https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/118
 - Symthaea inference/validation work: https://github.com/Luminous-Dynamics/symthaea/issues/7688. It composes existing state-estimation/calibration work (#3759), model credibility/VVUQ (#6122), and benchmark portfolio selection (#6270).
-- Symtropy known-truth simulation/identifiability work: https://github.com/Luminous-Dynamics/symtropy/issues/1728. It composes the existing exact-head qualification harness (#1264) and the Earth-fluid applicability boundary (#515).
+- Symthaea discrete chronology uncertainty: https://github.com/Luminous-Dynamics/symthaea/issues/7725. It benchmarks Bayesian marginalization over age support against mean-age/MAP-age plug-in baselines, with proper scoring rules, coverage, lock-in lag separation, and negative controls.
+- Symtropy known-truth simulation/identifiability work: https://github.com/Luminous-Dynamics/symtropy/issues/1728. It composes the existing exact-head qualification harness (#1264) and the Earth-fluid applicability boundary (#515); now also includes synthetic age-support and nonlinear-trajectory controls for the chronology benchmark.
+- Public geodynamo payload acquisition/fixture task: https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/121. The file identity is pinned, but the source payload remains not downloaded/hash-verified until the exact version is independently acquired.
 - Mycelix should compose, rather than duplicate, scientific artifact typing and derived-claim authority: https://github.com/Luminous-Dynamics/mycelix/issues/2410 and https://github.com/Luminous-Dynamics/mycelix/issues/2408. These remain the provenance/evidence handoff; this repository does not create a second canonical evidence ledger.
 
 ## Multi-timescale reference benchmark discovered (2026-10-16)
