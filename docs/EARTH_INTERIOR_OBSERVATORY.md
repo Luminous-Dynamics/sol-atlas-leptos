@@ -68,6 +68,7 @@ This contract is an initial internal seam, not yet a stable external interchange
 - Sol Atlas contract and project benchmark plan: https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/118
 - Symthaea inference/validation work: https://github.com/Luminous-Dynamics/symthaea/issues/7688. It composes existing state-estimation/calibration work (#3759), model credibility/VVUQ (#6122), and benchmark portfolio selection (#6270).
 - Symthaea discrete chronology uncertainty: https://github.com/Luminous-Dynamics/symthaea/issues/7725. It benchmarks Bayesian marginalization over age support against mean-age/MAP-age plug-in baselines, with proper scoring rules, coverage, lock-in lag separation, and negative controls.
+- Machine-readable chronology benchmark contract: `docs/earth-interior/benchmark-paleo-chronology.json`. It is a specification only; no scores have been produced yet.
 - Symtropy known-truth simulation/identifiability work: https://github.com/Luminous-Dynamics/symtropy/issues/1728. It composes the existing exact-head qualification harness (#1264) and the Earth-fluid applicability boundary (#515); now also includes synthetic age-support and nonlinear-trajectory controls for the chronology benchmark.
 - Public geodynamo payload acquisition/fixture task: https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/121. The file identity is pinned, but the source payload remains not downloaded/hash-verified until the exact version is independently acquired.
 - Mycelix should compose, rather than duplicate, scientific artifact typing and derived-claim authority: https://github.com/Luminous-Dynamics/mycelix/issues/2410 and https://github.com/Luminous-Dynamics/mycelix/issues/2408. These remain the provenance/evidence handoff; this repository does not create a second canonical evidence ledger.
@@ -94,6 +95,18 @@ A UTC-only timestamp is not valid for physical model seconds, and a present-day 
 - `age_before_present` — a named age-reference convention, a youngest/oldest age interval, and optionally a discrete age-probability support tied to a named chronology model.
 
 `ObservationRecord.acquired_at_unix_ns` is distinct from the phenomenon's `time`. An age distribution must be non-empty, strictly ordered, fall within the declared interval, identify its chronology model, and have probabilities summing to one within a stated validation tolerance. This preserves the kind of chronological uncertainty that recent Bayesian geomagnetic reconstructions marginalize rather than silently replacing it with a point date. See: https://jsedi.episciences.org/articles/17320
+
+### Chronology-marginalization benchmark pinned
+
+A machine-readable specification is tracked at `docs/earth-interior/benchmark-paleo-chronology.json`. It converts the 2026 joint Bayesian field/flow reconstruction paper into an independently authored benchmark contract:
+
+- Compare discrete age marginalization with mean-age and MAP-age plug-in baselines on the same frozen synthetic known-truth cases.
+- Add exact tiny-support tests for stable log-sum-exp, and a nonlinear trajectory where plug-in age evaluation diverges from marginalized likelihood.
+- Generate narrow, broad, skewed, multimodal, and outlier-weight chronology supports; separate depositional/lock-in lag from dating uncertainty.
+- Score held-out log predictive density/CRPS, field/flow bias and RMSE, interval calibration, negative-control rejection, and runtime scaling.
+- Preserve chronology prior, likelihood, physical prior, posterior age distribution, and inferred field/flow as distinct artifacts.
+
+The specification is not yet executed and does not claim to reproduce the authors' implementation. The referenced paper is CC BY-NC-ND 4.0; this work uses bibliographic metadata and an independently written test protocol rather than copying or adapting article figures/text. The scientific basis is the paper's abstract describing discrete chronology-age marginalization and synthetic geodynamo validation: https://jsedi.episciences.org/articles/17320
 
 ### Proposed simulation benchmark protocol
 
