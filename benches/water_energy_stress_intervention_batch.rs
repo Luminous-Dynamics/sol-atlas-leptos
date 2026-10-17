@@ -19,12 +19,13 @@ use sol_atlas_core::service_water_energy_stress::{
     WaterEnergyMeasurementOverride, WaterEnergyStressSweepRequest,
 };
 use sol_atlas_core::service_water_energy_stress_intervention::{
-    WATER_ENERGY_STRESS_INTERVENTION_SCHEMA_VERSION, WATER_ENERGY_STRESS_INTERVENTION_BATCH_SCHEMA_VERSION,
-    WaterEnergyStressInterventionBatchCandidate, WaterEnergyStressInterventionBatchRequest,
-    WaterEnergyStressInterventionCandidateSummary, WaterEnergyStressInterventionComparisonRequest,
-    compare_water_energy_stress_intervention_batch, compare_water_energy_stress_interventions,
     MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_OVERRIDES,
     MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_SERVICE_STEP_ASSESSMENTS,
+    WATER_ENERGY_STRESS_INTERVENTION_BATCH_SCHEMA_VERSION,
+    WATER_ENERGY_STRESS_INTERVENTION_SCHEMA_VERSION, WaterEnergyStressInterventionBatchCandidate,
+    WaterEnergyStressInterventionBatchRequest, WaterEnergyStressInterventionCandidateSummary,
+    WaterEnergyStressInterventionComparisonRequest, compare_water_energy_stress_intervention_batch,
+    compare_water_energy_stress_interventions,
 };
 use sol_atlas_core::service_water_trajectory::{
     WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectory, WaterServiceTrajectoryStep,
@@ -141,7 +142,12 @@ fn service_request(index: usize, intervals: usize, storage: f64) -> WaterEnergyC
     }
 }
 
-fn build_sweep(id: &str, intervals: usize, service_cells: usize, storage: f64) -> WaterEnergyStressSweepRequest {
+fn build_sweep(
+    id: &str,
+    intervals: usize,
+    service_cells: usize,
+    storage: f64,
+) -> WaterEnergyStressSweepRequest {
     let baseline_services = (0..service_cells)
         .map(|index| service_request(index, intervals, storage))
         .collect::<Vec<_>>();
@@ -168,7 +174,9 @@ fn build_sweep(id: &str, intervals: usize, service_cells: usize, storage: f64) -
             WaterEnergyDeclaredFailureScenario {
                 id: format!("terminal-power-loss-{hour:02}"),
                 kind: WaterEnergyFailureScenarioKind::CommonCause,
-                rationale: format!("Synthetic common event removes pump-terminal power at sample {hour}."),
+                rationale: format!(
+                    "Synthetic common event removes pump-terminal power at sample {hour}."
+                ),
                 overrides,
             }
         })
@@ -184,7 +192,11 @@ fn build_sweep(id: &str, intervals: usize, service_cells: usize, storage: f64) -
     }
 }
 
-fn build_batch(candidates: usize, service_cells: usize, intervals: usize) -> WaterEnergyStressInterventionBatchRequest {
+fn build_batch(
+    candidates: usize,
+    service_cells: usize,
+    intervals: usize,
+) -> WaterEnergyStressInterventionBatchRequest {
     let baseline = build_sweep("batch-baseline", intervals, service_cells, 0.0);
     let candidates = (0..candidates)
         .map(|index| WaterEnergyStressInterventionBatchCandidate {
@@ -202,23 +214,54 @@ fn build_batch(candidates: usize, service_cells: usize, intervals: usize) -> Wat
         id: format!("batch-{service_cells}-{intervals}"),
         baseline,
         candidates,
-        max_total_service_step_assessments: MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_SERVICE_STEP_ASSESSMENTS,
+        max_total_service_step_assessments:
+            MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_SERVICE_STEP_ASSESSMENTS,
         max_total_declared_failure_overrides: MAX_WATER_ENERGY_STRESS_INTERVENTION_BATCH_OVERRIDES,
     }
 }
 
-fn compare_summary(summary: &WaterEnergyStressInterventionCandidateSummary, full: &sol_atlas_core::service_water_energy_stress_intervention::WaterEnergyStressInterventionComparisonAssessment) {
+fn compare_summary(
+    summary: &WaterEnergyStressInterventionCandidateSummary,
+    full: &sol_atlas_core::service_water_energy_stress_intervention::WaterEnergyStressInterventionComparisonAssessment,
+) {
     assert_eq!(summary.effect, full.effect);
-    assert_eq!(summary.possible_protected_floor_regression, full.possible_protected_floor_regression);
+    assert_eq!(
+        summary.possible_protected_floor_regression,
+        full.possible_protected_floor_regression
+    );
     assert_eq!(summary.compared_case_count, full.compared_case_count);
-    assert_eq!(summary.worst_case_unmet_demand_reduction_lower_bound_m3, full.worst_case_unmet_demand_reduction_lower_bound_m3);
-    assert_eq!(summary.worst_case_unmet_demand_reduction_upper_bound_m3, full.worst_case_unmet_demand_reduction_upper_bound_m3);
-    assert_eq!(summary.worst_case_customer_delivery_delta_lower_bound_m3, full.worst_case_customer_delivery_delta_lower_bound_m3);
-    assert_eq!(summary.worst_case_customer_delivery_delta_upper_bound_m3, full.worst_case_customer_delivery_delta_upper_bound_m3);
-    assert_eq!(summary.worst_case_floor_compliance_delta_lower_bound, full.worst_case_floor_compliance_delta_lower_bound);
-    assert_eq!(summary.worst_case_floor_compliance_delta_upper_bound, full.worst_case_floor_compliance_delta_upper_bound);
-    assert_eq!(summary.baseline_supporting_evidence_ids, full.baseline_supporting_evidence_ids);
-    assert_eq!(summary.candidate_supporting_evidence_ids, full.candidate_supporting_evidence_ids);
+    assert_eq!(
+        summary.worst_case_unmet_demand_reduction_lower_bound_m3,
+        full.worst_case_unmet_demand_reduction_lower_bound_m3
+    );
+    assert_eq!(
+        summary.worst_case_unmet_demand_reduction_upper_bound_m3,
+        full.worst_case_unmet_demand_reduction_upper_bound_m3
+    );
+    assert_eq!(
+        summary.worst_case_customer_delivery_delta_lower_bound_m3,
+        full.worst_case_customer_delivery_delta_lower_bound_m3
+    );
+    assert_eq!(
+        summary.worst_case_customer_delivery_delta_upper_bound_m3,
+        full.worst_case_customer_delivery_delta_upper_bound_m3
+    );
+    assert_eq!(
+        summary.worst_case_floor_compliance_delta_lower_bound,
+        full.worst_case_floor_compliance_delta_lower_bound
+    );
+    assert_eq!(
+        summary.worst_case_floor_compliance_delta_upper_bound,
+        full.worst_case_floor_compliance_delta_upper_bound
+    );
+    assert_eq!(
+        summary.baseline_supporting_evidence_ids,
+        full.baseline_supporting_evidence_ids
+    );
+    assert_eq!(
+        summary.candidate_supporting_evidence_ids,
+        full.candidate_supporting_evidence_ids
+    );
 }
 
 fn percentile(samples: &[Duration], percentile: usize) -> Duration {
@@ -235,11 +278,16 @@ fn source_revision() -> Option<String> {
     if let Ok(sha) = env::var("GITHUB_SHA").or_else(|_| env::var("GIT_COMMIT")) {
         return Some(sha);
     }
-    let output = Command::new("git").args(["rev-parse", "HEAD"]).output().ok()?;
+    let output = Command::new("git")
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .ok()?;
     if !output.status.success() {
         return None;
     }
-    String::from_utf8(output.stdout).ok().map(|value| value.trim().to_owned())
+    String::from_utf8(output.stdout)
+        .ok()
+        .map(|value| value.trim().to_owned())
 }
 
 fn compiler_version() -> Option<String> {
@@ -247,10 +295,20 @@ fn compiler_version() -> Option<String> {
     if !output.status.success() {
         return None;
     }
-    String::from_utf8(output.stdout).ok().map(|value| value.trim().to_owned())
+    String::from_utf8(output.stdout)
+        .ok()
+        .map(|value| value.trim().to_owned())
 }
 
-fn run(candidate_count: usize, cells: usize, intervals: usize, samples: usize, warmup: usize, batch_target_ms: u128, legacy_target_ms: u128) -> Report {
+fn run(
+    candidate_count: usize,
+    cells: usize,
+    intervals: usize,
+    samples: usize,
+    warmup: usize,
+    batch_target_ms: u128,
+    legacy_target_ms: u128,
+) -> Report {
     let input = build_batch(candidate_count, cells, intervals);
     let reference = compare_water_energy_stress_intervention_batch(&input, &[])
         .expect("synthetic batch must satisfy all declared budgets and pairing rules");
@@ -258,7 +316,10 @@ fn run(candidate_count: usize, cells: usize, intervals: usize, samples: usize, w
     let steps_per_sweep = cells * intervals * (intervals + 1);
     assert_eq!(reference.baseline_sweep_evaluation_count, 1);
     assert_eq!(reference.evaluated_candidate_count, candidate_count);
-    assert_eq!(reference.total_service_step_assessments, steps_per_sweep * (candidate_count + 1));
+    assert_eq!(
+        reference.total_service_step_assessments,
+        steps_per_sweep * (candidate_count + 1)
+    );
 
     let mut matching = true;
     let mut legacy_bytes_per_run = 0usize;
@@ -272,13 +333,18 @@ fn run(candidate_count: usize, cells: usize, intervals: usize, samples: usize, w
         let full = compare_water_energy_stress_interventions(&pair, &[])
             .expect("legacy full-trace comparison must be valid");
         compare_summary(&reference.candidates[index], &full);
-        legacy_bytes_per_run += serde_json::to_vec(&full).expect("full result must serialize").len();
+        legacy_bytes_per_run += serde_json::to_vec(&full)
+            .expect("full result must serialize")
+            .len();
     }
 
     for _ in 0..warmup {
         let output = compare_water_energy_stress_intervention_batch(&input, &[])
             .expect("batch warmup must succeed");
-        assert_eq!(serde_json::to_vec(&output).expect("warmup serialize"), reference_bytes);
+        assert_eq!(
+            serde_json::to_vec(&output).expect("warmup serialize"),
+            reference_bytes
+        );
     }
 
     let mut batch_times = Vec::with_capacity(samples);
@@ -296,7 +362,11 @@ fn run(candidate_count: usize, cells: usize, intervals: usize, samples: usize, w
         assert_eq!(output.baseline_sweep_evaluation_count, 1);
         assert_eq!(output.candidates.len(), candidate_count);
         compact_bytes = bytes.len();
-        floor_regression_count = output.candidates.iter().filter(|c| c.possible_protected_floor_regression).count();
+        floor_regression_count = output
+            .candidates
+            .iter()
+            .filter(|c| c.possible_protected_floor_regression)
+            .count();
 
         let legacy_started = Instant::now();
         let mut sample_legacy_bytes = 0usize;
@@ -310,7 +380,9 @@ fn run(candidate_count: usize, cells: usize, intervals: usize, samples: usize, w
             let full = compare_water_energy_stress_interventions(&pair, &[])
                 .expect("legacy full-trace comparison must be valid");
             compare_summary(&output.candidates[index], &full);
-            sample_legacy_bytes += serde_json::to_vec(&full).expect("legacy result must serialize").len();
+            sample_legacy_bytes += serde_json::to_vec(&full)
+                .expect("legacy result must serialize")
+                .len();
         }
         legacy_times.push(legacy_started.elapsed());
         matching &= sample_legacy_bytes == legacy_bytes_per_run;
@@ -330,7 +402,9 @@ fn run(candidate_count: usize, cells: usize, intervals: usize, samples: usize, w
     Report {
         source_revision: source_revision(),
         rustc_version: compiler_version(),
-        ci_runner: env::var("RUNNER_NAME").or_else(|_| env::var("CI_RUNNER_NAME")).ok(),
+        ci_runner: env::var("RUNNER_NAME")
+            .or_else(|_| env::var("CI_RUNNER_NAME"))
+            .ok(),
         runner_os: env::var("RUNNER_OS").ok(),
         runner_arch: env::var("RUNNER_ARCH").ok(),
         host_os: std::env::consts::OS.to_owned(),
@@ -369,13 +443,21 @@ fn run(candidate_count: usize, cells: usize, intervals: usize, samples: usize, w
 
 fn main() {
     let samples = env::var("WATER_ENERGY_STRESS_BATCH_BENCH_SAMPLES")
-        .ok().and_then(|value| value.parse::<usize>().ok()).unwrap_or(3).max(1);
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(3)
+        .max(1);
     let warmup = env::var("WATER_ENERGY_STRESS_BATCH_BENCH_WARMUP")
-        .ok().and_then(|value| value.parse::<usize>().ok()).unwrap_or(1);
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(1);
     let reports = [
         run(10, 100, 10, samples, warmup, 1_500, 3_000),
         run(30, 100, 10, samples, warmup, 4_000, 8_000),
         run(80, 100, 10, samples, warmup, 12_000, 24_000),
     ];
-    println!("{}", serde_json::to_string_pretty(&reports).expect("reports must serialize"));
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&reports).expect("reports must serialize")
+    );
 }
