@@ -92,11 +92,12 @@ pub enum ResolutionError {
 ///   Sp = inverse(Hᵀ inverse(Se) H + inverse(Sa))
 ///   A  = Sp Hᵀ inverse(Se) H
 ///
-/// The implementation uses Cholesky factorizations and triangular solves for
-/// positive-definite covariance/precision systems rather than explicitly
-/// inverting either input covariance. A dense normal-equation information matrix
-/// is still formed; for large or ill-conditioned problems use a reviewed
-/// numerical backend and compare against this small reference only on fixtures.
+/// The implementation uses Cholesky factorizations and triangular solves,
+/// whitens parameter coordinates through the prior Cholesky factor, and avoids
+/// explicitly constructing inverses of the input covariance matrices. A dense
+/// normal-equation information matrix is still formed; for large or ill-conditioned
+/// problems use a reviewed numerical backend and compare against this reference
+/// only on small qualification fixtures.
 impl LinearGaussianResolutionProblem {
     pub fn analyze(
         &self,
@@ -126,16 +127,35 @@ impl LinearGaussianResolutionProblem {
         let weighted_operator = solve_cholesky(&observation_cholesky, &self.observation_operator)?;
         let information = multiply(&transpose(&self.observation_operator), &weighted_operator)?;
 
-        // Prior precision and posterior covariance use the same robust SPD solve.
-        let prior_precision = inverse_from_cholesky(&prior_cholesky)?;
-        let posterior_precision = add(&information, &prior_precision)?;
-        let posterior_cholesky = cholesky(
-            &posterior_precision,
-            "posterior_precision",
+        // Whiten the parameters with Sa = L Lᵀ. In whitened coordinates the
+        // posterior precision is I + Lᵀ Hᵀ Se⁻¹ H L. This avoids explicitly
+        // constructing the inverse of the prior covariance and is better
+        // scaled when the original parameters have different prior variances.
+        let information_times_prior = multiply(&information, &prior_cholesky)?;
+        let whitened_information = multiply(
+            &transpose(&prior_cholesky),
+            &information_times_prior,
+        )?;
+        let mut identity = vec![vec![0.0_f64; n]; n];
+        for (i, row) in identity.iter_mut().enumerate() {
+            row[i] = 1.0;
+        }
+        let posterior_whitened_precision = add(&identity, &whitened_information)?;
+        let posterior_whitened_cholesky = cholesky(
+            &posterior_whitened_precision,
+            "posterior_whitened_precision",
             symmetry_tolerance,
             relative_pivot_tolerance,
         )?;
-        let posterior_covariance = inverse_from_cholesky(&posterior_cholesky)?;
+        let posterior_whitened_covariance =
+            inverse_from_cholesky(&posterior_whitened_cholesky)?;
+        let posterior_covariance = multiply(
+            &prior_cholesky,
+            &multiply(
+                &posterior_whitened_covariance,
+                &transpose(&prior_cholesky),
+            )?,
+        )?;
 
         // A = Sp * Hᵀ * Se⁻¹ * H. Its off-diagonal elements measure leakage
         // between parameter modes. Store both diagonals and a row-wise leakage
