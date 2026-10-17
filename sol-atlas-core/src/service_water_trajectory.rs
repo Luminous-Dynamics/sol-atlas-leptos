@@ -15,8 +15,7 @@ use crate::service_function::{
 use crate::service_recovery::utc_epoch_seconds;
 use crate::service_water::{
     WATER_RATE_UNIT, WATER_SERVICE_SCHEMA_VERSION, WATER_VOLUME_UNIT, WaterServiceError,
-    WaterServiceScenario, WaterServiceState,
-    assess_water_service_indexed,
+    WaterServiceScenario, WaterServiceState, assess_water_service_indexed,
 };
 use crate::spatial_economic::EvidenceRecord;
 use crate::spatial_graph::is_canonical_utc_timestamp;
@@ -227,7 +226,8 @@ fn validate_trajectory(
                 || first.treatment_capacity.entity_id != later.treatment_capacity.entity_id
                 || first.distribution_capacity.entity_id != later.distribution_capacity.entity_id
                 || first.demand_rate.entity_id != later.demand_rate.entity_id
-                || first.distribution_loss_fraction.entity_id != later.distribution_loss_fraction.entity_id
+                || first.distribution_loss_fraction.entity_id
+                    != later.distribution_loss_fraction.entity_id
             {
                 errors.push(WaterServiceTrajectoryValidationError::ComponentEntityChanged);
                 break;
@@ -253,7 +253,11 @@ fn validate_trajectory(
         }
     }
 
-    if errors.is_empty() { Ok(()) } else { Err(errors) }
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors)
+    }
 }
 
 fn assess_trajectory_indexed(
@@ -278,7 +282,8 @@ fn assess_trajectory_indexed(
         let initial_storage = if index == 0 {
             trajectory.initial_storage.clone()
         } else {
-            let (low, high) = previous_storage_bounds.expect("previous step must establish storage");
+            let (low, high) =
+                previous_storage_bounds.expect("previous step must establish storage");
             derived_storage_measurement(&trajectory.initial_storage.entity_id, low, high)?
         };
         let storage_state_origin = if index == 0 {
@@ -317,16 +322,21 @@ fn assess_trajectory_indexed(
         let deficit_upper = (demand_upper - delivered_lower).max(0.0);
 
         if [
-            demand_lower, demand_upper, delivered_lower, delivered_upper,
-            deficit_lower, deficit_upper,
-        ].into_iter().any(|value| !value.is_finite()) {
+            demand_lower,
+            demand_upper,
+            delivered_lower,
+            delivered_upper,
+            deficit_lower,
+            deficit_upper,
+        ]
+        .into_iter()
+        .any(|value| !value.is_finite())
+        {
             return Err(WaterServiceTrajectoryError::InvalidInput(vec![
                 WaterServiceTrajectoryValidationError::NonFiniteDerivedValue,
             ]));
         }
-        let step_tolerance = f64::EPSILON
-            * 128.0
-            * demand_upper.max(delivered_upper).max(1.0);
+        let step_tolerance = f64::EPSILON * 128.0 * demand_upper.max(delivered_upper).max(1.0);
         if demand_lower > demand_upper + step_tolerance
             || delivered_lower > delivered_upper + step_tolerance
             || assessment.conservative_path.ending_storage_volume
@@ -385,9 +395,18 @@ fn assess_trajectory_indexed(
     }
 
     if [
-        demand_lower_total, demand_upper_total, delivery_lower_total, delivery_upper_total,
-        deficit_lower_total, deficit_upper_total, maximum_deficit_lower, maximum_deficit_upper,
-    ].into_iter().any(|value| !value.is_finite()) {
+        demand_lower_total,
+        demand_upper_total,
+        delivery_lower_total,
+        delivery_upper_total,
+        deficit_lower_total,
+        deficit_upper_total,
+        maximum_deficit_lower,
+        maximum_deficit_upper,
+    ]
+    .into_iter()
+    .any(|value| !value.is_finite())
+    {
         return Err(WaterServiceTrajectoryError::InvalidInput(vec![
             WaterServiceTrajectoryValidationError::NonFiniteAggregate,
         ]));
@@ -396,9 +415,8 @@ fn assess_trajectory_indexed(
     // Recovery means adequate after an observed modeled deficit, not simply an
     // initially healthy first sample. This avoids labelling baseline adequacy
     // as recovery when an outage occurs later in the trajectory.
-    let aggregate_tolerance = f64::EPSILON
-        * 256.0
-        * demand_upper_total.max(delivery_upper_total).max(1.0);
+    let aggregate_tolerance =
+        f64::EPSILON * 256.0 * demand_upper_total.max(delivery_upper_total).max(1.0);
     if demand_lower_total > demand_upper_total + aggregate_tolerance
         || delivery_lower_total > delivery_upper_total + aggregate_tolerance
         || deficit_lower_total > deficit_upper_total + aggregate_tolerance
@@ -415,7 +433,8 @@ fn assess_trajectory_indexed(
                 .iter()
                 .any(|prior| prior.state != WaterServiceState::Adequate)
     });
-    let first_adequate_step_id = first_adequate_index.map(|index| step_results[index].step_id.clone());
+    let first_adequate_step_id =
+        first_adequate_index.map(|index| step_results[index].step_id.clone());
     let first_adequate_as_of = first_adequate_index.map(|index| step_results[index].as_of.clone());
     let preceding_step_id = first_adequate_index
         .and_then(|index| index.checked_sub(1))
@@ -423,8 +442,11 @@ fn assess_trajectory_indexed(
     let preceding_step_as_of = first_adequate_index
         .and_then(|index| index.checked_sub(1))
         .map(|index| step_results[index].as_of.clone());
-    let adequacy_maintained_through_last_sample = first_adequate_index
-        .is_some_and(|index| step_results[index..].iter().all(|step| step.state == WaterServiceState::Adequate));
+    let adequacy_maintained_through_last_sample = first_adequate_index.is_some_and(|index| {
+        step_results[index..]
+            .iter()
+            .all(|step| step.state == WaterServiceState::Adequate)
+    });
 
     Ok(WaterServiceTrajectoryAssessment {
         schema_version: WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION.to_owned(),
@@ -434,8 +456,16 @@ fn assess_trajectory_indexed(
         volume_unit: WATER_VOLUME_UNIT.to_owned(),
         time_unit: "h".to_owned(),
         step_count: step_results.len(),
-        first_step_as_of: step_results.first().expect("validated non-empty").as_of.clone(),
-        last_step_as_of: step_results.last().expect("validated non-empty").as_of.clone(),
+        first_step_as_of: step_results
+            .first()
+            .expect("validated non-empty")
+            .as_of
+            .clone(),
+        last_step_as_of: step_results
+            .last()
+            .expect("validated non-empty")
+            .as_of
+            .clone(),
         initial_state: step_results.first().expect("validated non-empty").state,
         final_state: step_results.last().expect("validated non-empty").state,
         first_adequate_step_id,
@@ -506,7 +536,11 @@ mod tests {
     fn measurement(entity: &str, value: f64, unit: &str) -> FunctionMeasurement {
         FunctionMeasurement {
             entity_id: entity.to_owned(),
-            quantity: Quantity { value, unit: unit.to_owned(), uncertainty_abs: None },
+            quantity: Quantity {
+                value,
+                unit: unit.to_owned(),
+                uncertainty_abs: None,
+            },
             basis: ScenarioBasis::Assumed,
             rationale: format!("Synthetic trajectory assumption for {entity}"),
             supporting_evidence_ids: Vec::new(),
@@ -548,10 +582,19 @@ mod tests {
         let result = assess_water_service_trajectory(&trajectory("north"), &[]).unwrap();
         assert_eq!(result.steps[0].state, WaterServiceState::Adequate);
         assert_eq!(result.steps[1].state, WaterServiceState::Degraded);
-        assert_eq!(result.steps[1].storage_state_origin, WaterStorageStateOrigin::DerivedFromPreviousStep);
-        assert_eq!(result.steps[1].storage_source_step_id.as_deref(), Some("normal"));
+        assert_eq!(
+            result.steps[1].storage_state_origin,
+            WaterStorageStateOrigin::DerivedFromPreviousStep
+        );
+        assert_eq!(
+            result.steps[1].storage_source_step_id.as_deref(),
+            Some("normal")
+        );
         assert_eq!(result.steps[2].state, WaterServiceState::Unavailable);
-        assert_eq!(result.steps[2].storage_source_step_id.as_deref(), Some("outage-1"));
+        assert_eq!(
+            result.steps[2].storage_source_step_id.as_deref(),
+            Some("outage-1")
+        );
         assert_eq!(result.steps[3].state, WaterServiceState::Adequate);
         assert_eq!(result.unmet_demand_volume_lower_bound, 150.0);
         assert_eq!(result.unmet_demand_volume_upper_bound, 150.0);
@@ -588,7 +631,10 @@ mod tests {
         let second_inputs = [trajectory("alpha"), trajectory("zeta")];
         let second = assess_water_service_trajectories(&second_inputs, &[]).unwrap();
         assert_eq!(first[0].trajectory_id, "alpha");
-        assert_eq!(serde_json::to_vec(&first).unwrap(), serde_json::to_vec(&second).unwrap());
+        assert_eq!(
+            serde_json::to_vec(&first).unwrap(),
+            serde_json::to_vec(&second).unwrap()
+        );
         assert!(matches!(
             assess_water_service_trajectories(&[trajectory("same"), trajectory("same")], &[]),
             Err(WaterServiceTrajectoryError::InvalidInput(errors))
@@ -693,7 +739,10 @@ mod tests {
         assert_eq!(result.steps[1].customer_delivered_volume_lower_bound, 40.0);
         assert_eq!(result.steps[1].customer_delivered_volume_upper_bound, 60.0);
         assert!(result.unmet_demand_volume_lower_bound <= result.unmet_demand_volume_upper_bound);
-        assert!(result.customer_delivered_volume_lower_bound <= result.customer_delivered_volume_upper_bound);
+        assert!(
+            result.customer_delivered_volume_lower_bound
+                <= result.customer_delivered_volume_upper_bound
+        );
     }
 
     #[test]
@@ -709,8 +758,13 @@ mod tests {
         assert_eq!(result.unmet_demand_volume_lower_bound, 120.0);
         assert_eq!(result.unmet_demand_volume_upper_bound, 280.0);
         assert_eq!(result.maximum_normalized_deficit_lower_bound, 0.375);
-        assert!((result.maximum_normalized_deficit_upper_bound - (1.0 - 50.0 / 120.0)).abs() < 1e-12);
-        assert!(result.maximum_normalized_deficit_lower_bound <= result.maximum_normalized_deficit_upper_bound);
+        assert!(
+            (result.maximum_normalized_deficit_upper_bound - (1.0 - 50.0 / 120.0)).abs() < 1e-12
+        );
+        assert!(
+            result.maximum_normalized_deficit_lower_bound
+                <= result.maximum_normalized_deficit_upper_bound
+        );
     }
 
     #[test]

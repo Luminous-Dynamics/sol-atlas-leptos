@@ -10,8 +10,8 @@ use sol_atlas_core::dependency_logic::ScenarioBasis;
 use sol_atlas_core::service_function::FunctionMeasurement;
 use sol_atlas_core::service_water::{DIMENSIONLESS_UNIT, WATER_RATE_UNIT, WATER_VOLUME_UNIT};
 use sol_atlas_core::service_water_trajectory::{
-    WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectory,
-    WaterServiceTrajectoryStep, assess_water_service_trajectories,
+    WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectory, WaterServiceTrajectoryStep,
+    assess_water_service_trajectories,
 };
 use sol_atlas_core::spatial_economic::Quantity;
 use std::env;
@@ -38,7 +38,11 @@ struct Report {
 fn measurement(entity: String, value: f64, unit: &str) -> FunctionMeasurement {
     FunctionMeasurement {
         entity_id: entity,
-        quantity: Quantity { value, unit: unit.to_owned(), uncertainty_abs: None },
+        quantity: Quantity {
+            value,
+            unit: unit.to_owned(),
+            uncertainty_abs: None,
+        },
         basis: ScenarioBasis::Assumed,
         rationale: "Synthetic benchmark scenario, not observed infrastructure evidence.".into(),
         supporting_evidence_ids: Vec::new(),
@@ -55,20 +59,34 @@ fn trajectory(index: usize) -> WaterServiceTrajectory {
     let tank = format!("{prefix}-tank");
     let distribution = format!("{prefix}-distribution");
 
-    let steps = (0..10).map(|hour| {
-        let source_rate = if hour == 5 || hour == 6 { 0.0 } else { 100.0 };
-        WaterServiceTrajectoryStep {
-            id: format!("step-{hour:02}"),
-            as_of: timestamp(hour),
-            step_hours: 1.0,
-            source_flow_rate: measurement(format!("{prefix}-source"), source_rate, WATER_RATE_UNIT),
-            pump_capacity: measurement(format!("{prefix}-pump"), 100.0, WATER_RATE_UNIT),
-            treatment_capacity: measurement(format!("{prefix}-treatment"), 100.0, WATER_RATE_UNIT),
-            distribution_capacity: measurement(distribution.clone(), 120.0, WATER_RATE_UNIT),
-            demand_rate: measurement(service.clone(), 100.0, WATER_RATE_UNIT),
-            distribution_loss_fraction: measurement(distribution.clone(), 0.0, DIMENSIONLESS_UNIT),
-        }
-    }).collect();
+    let steps = (0..10)
+        .map(|hour| {
+            let source_rate = if hour == 5 || hour == 6 { 0.0 } else { 100.0 };
+            WaterServiceTrajectoryStep {
+                id: format!("step-{hour:02}"),
+                as_of: timestamp(hour),
+                step_hours: 1.0,
+                source_flow_rate: measurement(
+                    format!("{prefix}-source"),
+                    source_rate,
+                    WATER_RATE_UNIT,
+                ),
+                pump_capacity: measurement(format!("{prefix}-pump"), 100.0, WATER_RATE_UNIT),
+                treatment_capacity: measurement(
+                    format!("{prefix}-treatment"),
+                    100.0,
+                    WATER_RATE_UNIT,
+                ),
+                distribution_capacity: measurement(distribution.clone(), 120.0, WATER_RATE_UNIT),
+                demand_rate: measurement(service.clone(), 100.0, WATER_RATE_UNIT),
+                distribution_loss_fraction: measurement(
+                    distribution.clone(),
+                    0.0,
+                    DIMENSIONLESS_UNIT,
+                ),
+            }
+        })
+        .collect();
 
     WaterServiceTrajectory {
         schema_version: WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION.to_owned(),
@@ -83,7 +101,8 @@ fn trajectory(index: usize) -> WaterServiceTrajectory {
 fn percentile(samples: &[Duration], percentile: usize) -> Duration {
     let mut sorted = samples.to_vec();
     sorted.sort_unstable();
-    let index = (sorted.len() * percentile).div_ceil(100)
+    let index = (sorted.len() * percentile)
+        .div_ceil(100)
         .saturating_sub(1)
         .min(sorted.len() - 1);
     sorted[index]
@@ -91,9 +110,14 @@ fn percentile(samples: &[Duration], percentile: usize) -> Duration {
 
 fn main() {
     let warmup = env::var("WATER_TRAJECTORY_BENCH_WARMUP")
-        .ok().and_then(|value| value.parse::<usize>().ok()).unwrap_or(3);
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(3);
     let samples = env::var("WATER_TRAJECTORY_BENCH_SAMPLES")
-        .ok().and_then(|value| value.parse::<usize>().ok()).unwrap_or(30).max(1);
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(30)
+        .max(1);
 
     // 10 intervals per trajectory gives 100, 1,000, and 10,000 total intervals.
     for trajectory_count in [10usize, 100, 1_000] {
@@ -148,25 +172,41 @@ fn main() {
             measured_iterations: samples,
             p50_micros: percentile(&timings, 50).as_micros(),
             p95_micros: percentile(&timings, 95).as_micros(),
-            max_micros: timings.iter().copied().max().unwrap_or_default().as_micros(),
+            max_micros: timings
+                .iter()
+                .copied()
+                .max()
+                .unwrap_or_default()
+                .as_micros(),
             result_count: reference.len(),
-            observed_recovery_count: reference.iter().filter(|item| {
-                item.first_adequate_step_id.as_deref() == Some("step-07")
-            }).count(),
-            unmet_demand_volume_lower_bound: reference.iter()
-                .map(|item| item.unmet_demand_volume_lower_bound).sum(),
-            unmet_demand_volume_upper_bound: reference.iter()
-                .map(|item| item.unmet_demand_volume_upper_bound).sum(),
+            observed_recovery_count: reference
+                .iter()
+                .filter(|item| item.first_adequate_step_id.as_deref() == Some("step-07"))
+                .count(),
+            unmet_demand_volume_lower_bound: reference
+                .iter()
+                .map(|item| item.unmet_demand_volume_lower_bound)
+                .sum(),
+            unmet_demand_volume_upper_bound: reference
+                .iter()
+                .map(|item| item.unmet_demand_volume_upper_bound)
+                .sum(),
             serialized_result_bytes: reference_bytes.len(),
-            mass_balance_max_abs_residual: reference.iter()
+            mass_balance_max_abs_residual: reference
+                .iter()
                 .flat_map(|item| item.steps.iter())
-                .flat_map(|step| [
-                    step.conservative_mass_balance_residual.abs(),
-                    step.optimistic_mass_balance_residual.abs(),
-                ])
+                .flat_map(|step| {
+                    [
+                        step.conservative_mass_balance_residual.abs(),
+                        step.optimistic_mass_balance_residual.abs(),
+                    ]
+                })
                 .fold(0.0, f64::max),
         };
         assert_eq!(report.observed_recovery_count, trajectory_count);
-        println!("{}", serde_json::to_string(&report).expect("benchmark report serializes"));
+        println!(
+            "{}",
+            serde_json::to_string(&report).expect("benchmark report serializes")
+        );
     }
 }
