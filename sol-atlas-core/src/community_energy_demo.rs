@@ -211,7 +211,10 @@ pub fn simulate(configuration: BatteryConfiguration) -> Result<SimulationResult,
             || input.critical_load_kwh > input.load_kwh
             || input.renewable_generation_kwh < 0.0
         {
-            return Err(format!("invalid scenario input at interval {}", input.interval));
+            return Err(format!(
+                "invalid scenario input at interval {}",
+                input.interval
+            ));
         }
 
         let renewable_to_load = input.load_kwh.min(input.renewable_generation_kwh);
@@ -260,7 +263,9 @@ pub fn simulate(configuration: BatteryConfiguration) -> Result<SimulationResult,
         let critical_served = input.critical_load_kwh.min(total_served);
         let critical_unserved = (input.critical_load_kwh - critical_served).max(0.0);
         let noncritical_load = input.load_kwh - input.critical_load_kwh;
-        let noncritical_served = (total_served - critical_served).max(0.0).min(noncritical_load);
+        let noncritical_served = (total_served - critical_served)
+            .max(0.0)
+            .min(noncritical_load);
         let noncritical_unserved = (noncritical_load - noncritical_served).max(0.0);
 
         intervals.push(IntervalResult {
@@ -283,7 +288,12 @@ pub fn simulate(configuration: BatteryConfiguration) -> Result<SimulationResult,
     }
 
     let totals = aggregate_totals(&intervals, state_of_charge);
-    Ok(SimulationResult { case_id: CASE_ID, configuration, intervals, totals })
+    Ok(SimulationResult {
+        case_id: CASE_ID,
+        configuration,
+        intervals,
+        totals,
+    })
 }
 
 /// Independently recompute physical/service accounting from row outputs.
@@ -333,7 +343,10 @@ pub fn verify(
             return Err(format!("invalid flow value at interval {}", position));
         }
         if row.battery_charge_input_kwh > EPS && row.battery_discharge_withdrawn_kwh > EPS {
-            return Err(format!("simultaneous charge and discharge at interval {}", position));
+            return Err(format!(
+                "simultaneous charge and discharge at interval {}",
+                position
+            ));
         }
         let input = *input;
         let renewable_to_load_expected = input.load_kwh.min(input.renewable_generation_kwh);
@@ -341,13 +354,19 @@ pub fn verify(
             || row.renewable_to_load_kwh > input.load_kwh + EPS
             || row.renewable_to_load_kwh > input.renewable_generation_kwh + EPS
         {
-            return Err(format!("renewable-to-load allocation mismatch at interval {}", position));
+            return Err(format!(
+                "renewable-to-load allocation mismatch at interval {}",
+                position
+            ));
         }
         if row.battery_charge_input_kwh > configuration.max_charge_power_kw * INTERVAL_HOURS + EPS
             || row.battery_discharge_withdrawn_kwh
                 > configuration.max_discharge_power_kw * INTERVAL_HOURS + EPS
         {
-            return Err(format!("battery power limit exceeded at interval {}", position));
+            return Err(format!(
+                "battery power limit exceeded at interval {}",
+                position
+            ));
         }
         let input_surplus = (input.renewable_generation_kwh - input.load_kwh).max(0.0);
         let input_deficit = (input.load_kwh - input.renewable_generation_kwh).max(0.0);
@@ -363,17 +382,20 @@ pub fn verify(
         let expected_discharge_withdrawal = (prior_soc - configuration.minimum_soc_kwh)
             .max(0.0)
             .min(configuration.max_discharge_power_kw * INTERVAL_HOURS);
-        let expected_discharge_delivery = input_deficit
-            .min(expected_discharge_withdrawal * configuration.discharge_efficiency);
-        if !near(row.battery_discharge_to_load_kwh, expected_discharge_delivery) {
+        let expected_discharge_delivery =
+            input_deficit.min(expected_discharge_withdrawal * configuration.discharge_efficiency);
+        if !near(
+            row.battery_discharge_to_load_kwh,
+            expected_discharge_delivery,
+        ) {
             return Err(format!(
                 "battery dispatch differs from the declared deficit-first rule at interval {}",
                 position
             ));
         }
 
-        let charge_room_input = (configuration.capacity_kwh - prior_soc).max(0.0)
-            / configuration.charge_efficiency;
+        let charge_room_input =
+            (configuration.capacity_kwh - prior_soc).max(0.0) / configuration.charge_efficiency;
         let expected_charge_input = input_surplus
             .min(configuration.max_charge_power_kw * INTERVAL_HOURS)
             .min(charge_room_input);
@@ -387,7 +409,10 @@ pub fn verify(
         if row.battery_soc_kwh < configuration.minimum_soc_kwh - EPS
             || row.battery_soc_kwh > configuration.capacity_kwh + EPS
         {
-            return Err(format!("battery state outside bounds at interval {}", position));
+            return Err(format!(
+                "battery state outside bounds at interval {}",
+                position
+            ));
         }
         if !near(
             row.battery_charge_stored_kwh,
@@ -396,12 +421,14 @@ pub fn verify(
             row.battery_discharge_to_load_kwh,
             row.battery_discharge_withdrawn_kwh * configuration.discharge_efficiency,
         ) {
-            return Err(format!("battery efficiency accounting mismatch at interval {}", position));
+            return Err(format!(
+                "battery efficiency accounting mismatch at interval {}",
+                position
+            ));
         }
 
         if input.grid_available {
-            let expected_grid_import =
-                (input_deficit - expected_discharge_delivery).max(0.0);
+            let expected_grid_import = (input_deficit - expected_discharge_delivery).max(0.0);
             let expected_grid_export = (input_surplus - expected_charge_input).max(0.0);
             if !near(row.grid_import_kwh, expected_grid_import)
                 || row.unserved_load_kwh > EPS
@@ -439,7 +466,9 @@ pub fn verify(
         let load_residual = (input.load_kwh - load_left).abs();
         let generation_residual = (input.renewable_generation_kwh - generation_right).abs();
         let soc_residual = (prior_soc + row.battery_charge_stored_kwh
-            - row.battery_discharge_withdrawn_kwh - row.battery_soc_kwh).abs();
+            - row.battery_discharge_withdrawn_kwh
+            - row.battery_soc_kwh)
+            .abs();
         max_load_residual = max_load_residual.max(load_residual);
         max_generation_residual = max_generation_residual.max(generation_residual);
         max_soc_residual = max_soc_residual.max(soc_residual);
@@ -452,8 +481,9 @@ pub fn verify(
         let expected_critical_unserved =
             (input.critical_load_kwh - expected_critical_served).max(0.0);
         let noncritical_load = input.load_kwh - input.critical_load_kwh;
-        let expected_noncritical_served =
-            (served - expected_critical_served).max(0.0).min(noncritical_load);
+        let expected_noncritical_served = (served - expected_critical_served)
+            .max(0.0)
+            .min(noncritical_load);
         let expected_noncritical_unserved =
             (noncritical_load - expected_noncritical_served).max(0.0);
         if !near(row.critical_served_kwh, expected_critical_served)
@@ -461,7 +491,10 @@ pub fn verify(
             || !near(row.noncritical_served_kwh, expected_noncritical_served)
             || !near(row.noncritical_unserved_kwh, expected_noncritical_unserved)
         {
-            return Err(format!("service allocation mismatch at interval {}", position));
+            return Err(format!(
+                "service allocation mismatch at interval {}",
+                position
+            ));
         }
         critical_unserved += expected_critical_unserved;
         noncritical_unserved += expected_noncritical_unserved;
@@ -477,8 +510,16 @@ pub fn verify(
             .iter()
             .map(|row| row.renewable_generation_kwh)
             .sum(),
-        total_grid_import_kwh: candidate.intervals.iter().map(|row| row.grid_import_kwh).sum(),
-        total_grid_export_kwh: candidate.intervals.iter().map(|row| row.grid_export_kwh).sum(),
+        total_grid_import_kwh: candidate
+            .intervals
+            .iter()
+            .map(|row| row.grid_import_kwh)
+            .sum(),
+        total_grid_export_kwh: candidate
+            .intervals
+            .iter()
+            .map(|row| row.grid_export_kwh)
+            .sum(),
         total_renewable_curtailed_kwh: candidate
             .intervals
             .iter()
@@ -489,7 +530,10 @@ pub fn verify(
             .iter()
             .map(|row| row.unserved_load_kwh)
             .sum(),
-        total_critical_load_kwh: expected_inputs.iter().map(|row| row.critical_load_kwh).sum(),
+        total_critical_load_kwh: expected_inputs
+            .iter()
+            .map(|row| row.critical_load_kwh)
+            .sum(),
         total_critical_unserved_kwh: critical_unserved,
         total_noncritical_unserved_kwh: noncritical_unserved,
         final_battery_soc_kwh: prior_soc,
@@ -546,14 +590,23 @@ fn aggregate_totals(rows: &[IntervalResult], final_soc: f64) -> SimulationTotals
 
 fn totals_near(a: &SimulationTotals, b: &SimulationTotals) -> bool {
     near(a.total_load_kwh, b.total_load_kwh)
-        && near(a.total_renewable_generation_kwh, b.total_renewable_generation_kwh)
+        && near(
+            a.total_renewable_generation_kwh,
+            b.total_renewable_generation_kwh,
+        )
         && near(a.total_grid_import_kwh, b.total_grid_import_kwh)
         && near(a.total_grid_export_kwh, b.total_grid_export_kwh)
-        && near(a.total_renewable_curtailed_kwh, b.total_renewable_curtailed_kwh)
+        && near(
+            a.total_renewable_curtailed_kwh,
+            b.total_renewable_curtailed_kwh,
+        )
         && near(a.total_unserved_load_kwh, b.total_unserved_load_kwh)
         && near(a.total_critical_load_kwh, b.total_critical_load_kwh)
         && near(a.total_critical_unserved_kwh, b.total_critical_unserved_kwh)
-        && near(a.total_noncritical_unserved_kwh, b.total_noncritical_unserved_kwh)
+        && near(
+            a.total_noncritical_unserved_kwh,
+            b.total_noncritical_unserved_kwh,
+        )
         && near(a.final_battery_soc_kwh, b.final_battery_soc_kwh)
 }
 
@@ -606,9 +659,7 @@ impl GovernanceVoteFixture {
             return false;
         }
         let decisive = u16::from(self.yes) + u16::from(self.no);
-        decisive > 0
-            && u16::from(self.yes) * 100
-                >= decisive * u16::from(self.approval_percent)
+        decisive > 0 && u16::from(self.yes) * 100 >= decisive * u16::from(self.approval_percent)
     }
 
     pub fn passed(self) -> bool {
@@ -644,8 +695,12 @@ mod tests {
     #[test]
     fn resilience_sensitivity_passes_critical_service_bound_but_sheds_noncritical_load() {
         let run = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
-        let report =
-            verify(BatteryConfiguration::RESILIENCE_CANDIDATE, &SCENARIO_INPUTS, &run).unwrap();
+        let report = verify(
+            BatteryConfiguration::RESILIENCE_CANDIDATE,
+            &SCENARIO_INPUTS,
+            &run,
+        )
+        .unwrap();
         assert!(report.accounting_consistent);
         assert!(report.critical_service_limit_satisfied);
         assert!(run.totals.total_noncritical_unserved_kwh > 0.0);
@@ -654,7 +709,10 @@ mod tests {
     #[test]
     fn independent_verifier_rejects_forged_aggregate_total() {
         let run = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
-        assert!(tampered_aggregate_rejected(BatteryConfiguration::RESILIENCE_CANDIDATE, &run));
+        assert!(tampered_aggregate_rejected(
+            BatteryConfiguration::RESILIENCE_CANDIDATE,
+            &run
+        ));
     }
 
     #[test]
@@ -670,12 +728,14 @@ mod tests {
     fn verifier_rejects_grid_import_during_a_frozen_outage() {
         let mut run = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
         run.intervals[4].grid_import_kwh = 0.25;
-        assert!(verify(
-            BatteryConfiguration::RESILIENCE_CANDIDATE,
-            &SCENARIO_INPUTS,
-            &run
-        )
-        .is_err());
+        assert!(
+            verify(
+                BatteryConfiguration::RESILIENCE_CANDIDATE,
+                &SCENARIO_INPUTS,
+                &run
+            )
+            .is_err()
+        );
     }
 
     #[test]
@@ -724,12 +784,14 @@ mod tests {
         let run = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
         let mut tampered = run.clone();
         tampered.intervals[0].input.load_kwh += 0.1;
-        assert!(verify(
-            BatteryConfiguration::RESILIENCE_CANDIDATE,
-            &SCENARIO_INPUTS,
-            &tampered
-        )
-        .is_err());
+        assert!(
+            verify(
+                BatteryConfiguration::RESILIENCE_CANDIDATE,
+                &SCENARIO_INPUTS,
+                &tampered
+            )
+            .is_err()
+        );
     }
 
     #[test]
@@ -742,12 +804,14 @@ mod tests {
     fn verifier_rejects_charge_power_limit_violation() {
         let mut run = simulate(BatteryConfiguration::RESILIENCE_CANDIDATE).unwrap();
         run.intervals[0].battery_charge_input_kwh = 2.01;
-        assert!(verify(
-            BatteryConfiguration::RESILIENCE_CANDIDATE,
-            &SCENARIO_INPUTS,
-            &run
-        )
-        .is_err());
+        assert!(
+            verify(
+                BatteryConfiguration::RESILIENCE_CANDIDATE,
+                &SCENARIO_INPUTS,
+                &run
+            )
+            .is_err()
+        );
     }
 
     #[test]

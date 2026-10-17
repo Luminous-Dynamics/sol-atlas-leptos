@@ -10,8 +10,8 @@ use leptos::prelude::*;
 use leptos_router::components::A;
 
 use sol_atlas_core::community_energy_demo::{
-    simulate, verify, BatteryConfiguration, GovernanceVoteFixture, SCENARIO_INPUTS, CASE_ID,
-    EVIDENCE_CLASS,
+    BatteryConfiguration, CASE_ID, EVIDENCE_CLASS, GovernanceVoteFixture, SCENARIO_INPUTS,
+    simulate, verify,
 };
 
 #[component]
@@ -258,4 +258,3 @@ pub fn CommunityEnergyDemo() -> impl IntoView {
         </div>
     }
 }
-

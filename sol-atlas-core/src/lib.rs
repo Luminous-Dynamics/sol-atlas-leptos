@@ -9,11 +9,11 @@
 //! between rendering backends (web-sys, glam/nalgebra).
 
 pub mod aesthetics;
+pub mod community_energy_demo;
 pub mod confluence;
 pub mod constants;
 pub mod data;
 pub mod economics;
-pub mod community_energy_demo;
 pub mod energy_trading;
 pub mod geo;
 pub mod lod;
