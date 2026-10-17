@@ -14,8 +14,8 @@
 //! systems.
 
 use crate::capability::{
-    CapabilityGraph, CapabilityGraphError, CapabilityId, CapabilityInstance, CapabilityLifecycle,
-    CapabilityAvailability, CapabilityProvenance,
+    CapabilityAvailability, CapabilityGraph, CapabilityGraphError, CapabilityId,
+    CapabilityInstance, CapabilityLifecycle, CapabilityProvenance,
 };
 use crate::types::DataKind;
 use h3o::{LatLng, Resolution};
@@ -110,8 +110,13 @@ pub struct AtlasCapabilityProjectionV1 {
 pub enum ProjectionError {
     Graph(CapabilityGraphError),
     DuplicateInstanceId(String),
-    MissingCapabilityForInstance { instance_id: String, capability_id: CapabilityId },
-    InvalidInstanceLocation { instance_id: String },
+    MissingCapabilityForInstance {
+        instance_id: String,
+        capability_id: CapabilityId,
+    },
+    InvalidInstanceLocation {
+        instance_id: String,
+    },
 }
 
 impl From<CapabilityGraphError> for ProjectionError {
@@ -125,11 +130,20 @@ impl fmt::Display for ProjectionError {
         match self {
             Self::Graph(err) => write!(f, "capability graph error: {err}"),
             Self::DuplicateInstanceId(id) => write!(f, "duplicate instance id: {id}"),
-            Self::MissingCapabilityForInstance { instance_id, capability_id } => {
-                write!(f, "instance {instance_id} references missing capability {capability_id}")
+            Self::MissingCapabilityForInstance {
+                instance_id,
+                capability_id,
+            } => {
+                write!(
+                    f,
+                    "instance {instance_id} references missing capability {capability_id}"
+                )
             }
             Self::InvalidInstanceLocation { instance_id } => {
-                write!(f, "instance {instance_id} has invalid geographic coordinates")
+                write!(
+                    f,
+                    "instance {instance_id} has invalid geographic coordinates"
+                )
             }
         }
     }
@@ -232,14 +246,16 @@ impl AtlasCapabilityProjectionV1 {
 
         let mut instance_ids = BTreeSet::new();
         for instance in instances {
-            if !capability_ids.contains(&instance.capability_id) {
-                continue;
-            }
+            // Validate input graph integrity before applying projection scope:
+            // an invalid external reference must not disappear as a filtered node.
             if graph.get(&instance.capability_id).is_none() {
                 return Err(ProjectionError::MissingCapabilityForInstance {
                     instance_id: instance.instance_id.clone(),
                     capability_id: instance.capability_id.clone(),
                 });
+            }
+            if !capability_ids.contains(&instance.capability_id) {
+                continue;
             }
             if !instance_ids.insert(instance.instance_id.clone()) {
                 return Err(ProjectionError::DuplicateInstanceId(
@@ -329,15 +345,20 @@ impl AtlasCapabilityProjectionV1 {
 fn summarize_h3(nodes: &[ProjectionNode]) -> Vec<H3CellSummary> {
     let mut by_cell: BTreeMap<String, H3CellSummary> = BTreeMap::new();
 
-    for node in nodes.iter().filter(|n| n.kind == ProjectionNodeKind::Instance) {
+    for node in nodes
+        .iter()
+        .filter(|n| n.kind == ProjectionNodeKind::Instance)
+    {
         let Some(cell) = &node.h3_cell else { continue };
-        let entry = by_cell.entry(cell.clone()).or_insert_with(|| H3CellSummary {
-            cell: cell.clone(),
-            member_instance_ids: Vec::new(),
-            capability_ids: Vec::new(),
-            scenario_instance_count: 0,
-            externally_qualified_reference_count: 0,
-        });
+        let entry = by_cell
+            .entry(cell.clone())
+            .or_insert_with(|| H3CellSummary {
+                cell: cell.clone(),
+                member_instance_ids: Vec::new(),
+                capability_ids: Vec::new(),
+                scenario_instance_count: 0,
+                externally_qualified_reference_count: 0,
+            });
 
         entry.member_instance_ids.push(
             node.node_id
@@ -380,20 +401,23 @@ mod tests {
         )
         .unwrap();
 
-        assert!(projection
-            .nodes
-            .iter()
-            .any(|n| n.kind == ProjectionNodeKind::Capability
-                && n.capability_id == fixture.root));
-        assert!(projection
-            .nodes
-            .iter()
-            .any(|n| n.kind == ProjectionNodeKind::Instance
-                && n.capability_id == fixture.root));
-        assert!(projection
-            .edges
-            .iter()
-            .any(|e| e.from == "instance:fixture.bootstrap.node"));
+        assert!(
+            projection.nodes.iter().any(
+                |n| n.kind == ProjectionNodeKind::Capability && n.capability_id == fixture.root
+            )
+        );
+        assert!(
+            projection
+                .nodes
+                .iter()
+                .any(|n| n.kind == ProjectionNodeKind::Instance && n.capability_id == fixture.root)
+        );
+        assert!(
+            projection
+                .edges
+                .iter()
+                .any(|e| e.from == "instance:fixture.bootstrap.node")
+        );
     }
 
     #[test]
@@ -454,10 +478,7 @@ mod tests {
             projection.h3_cells[0].member_instance_ids,
             vec!["fixture.bootstrap.node"]
         );
-        assert_eq!(
-            projection.h3_cells[0].capability_ids,
-            vec![fixture.root]
-        );
+        assert_eq!(projection.h3_cells[0].capability_ids, vec![fixture.root]);
     }
 
     #[test]
