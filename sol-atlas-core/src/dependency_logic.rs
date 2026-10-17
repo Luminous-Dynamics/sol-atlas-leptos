@@ -656,8 +656,8 @@ fn validate_scenario(
             if invalid_window {
                 errors.push(ScenarioValidationError::InvalidSupportingEvidenceValidity);
             } else if condition.basis == ScenarioBasis::Observed
-                && (start.is_some_and(|value| value > scenario.as_of)
-                    || end.is_some_and(|value| scenario.as_of >= value))
+                && (start.is_some_and(|value| value > scenario.as_of.as_str())
+                    || end.is_some_and(|value| scenario.as_of.as_str() >= value))
             {
                 errors.push(ScenarioValidationError::OutsideSupportingEvidenceValidity);
             }
