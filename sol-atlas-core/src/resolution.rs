@@ -442,7 +442,7 @@ mod tests {
             model_id: "linear-gaussian".into(),
             model_version: "1".into(),
             linearization_id: "exact-linear-operator".into(),
-            input_manifest_id: "sha256:fixture".into(),
+            input_manifest_id: "fixture-manifest-v1".into(),
         }
     }
 
@@ -491,6 +491,34 @@ mod tests {
         let report = problem.analyze(1e-12, 1e-14).unwrap();
         assert!(report.posterior_covariance.iter().flatten().all(|x| x.is_finite()));
         assert!(report.resolution_matrix.iter().flatten().all(|x| x.is_finite()));
+
+        // The correlated covariance must change the answer relative to a false
+        // independent-noise assumption; checking finiteness alone is insufficient.
+        let mut independent = problem.clone();
+        independent.observation_covariance = vec![vec![1.0, 0.0], vec![0.0, 1.0]];
+        let independent_report = independent.analyze(1e-12, 1e-14).unwrap();
+        assert!(
+            (report.resolution_matrix[0][0] - independent_report.resolution_matrix[0][0]).abs()
+                > 1e-2
+        );
+    }
+
+    #[test]
+    fn a_tighter_prior_does_not_masquerade_as_more_data_resolution() {
+        let baseline = diagonal_problem().analyze(1e-12, 1e-14).unwrap();
+
+        let mut tight_prior = diagonal_problem();
+        tight_prior.prior_covariance[1][1] = 0.01;
+        let tight = tight_prior.analyze(1e-12, 1e-14).unwrap();
+
+        // The prior makes the high-mode posterior variance much smaller, but
+        // lowers the data-resolution response for that mode.
+        assert!(
+            tight.posterior_covariance[1][1] < baseline.posterior_covariance[1][1] / 50.0
+        );
+        assert!(
+            tight.diagonal_resolution[1] < baseline.diagonal_resolution[1] / 50.0
+        );
     }
 
     #[test]
