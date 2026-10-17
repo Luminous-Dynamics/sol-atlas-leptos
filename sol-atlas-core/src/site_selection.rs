@@ -282,6 +282,9 @@ pub fn evaluate_site(
                 (None, EvidenceState::Verified) => {
                     reasons.push(format!("{criterion:?} is marked verified but has no value"));
                 }
+                (None, EvidenceState::Estimated) => {
+                    reasons.push(format!("{criterion:?} is marked estimated but has no value"));
+                }
             },
             None => reasons.push(format!("{criterion:?} has no evidence record")),
         }
@@ -441,7 +444,7 @@ mod tests {
         metric.evidence_state = EvidenceState::Stale;
         let result = evaluate_site(&candidate, &policy(0.9)).unwrap();
         assert_eq!(result.status, SuitabilityStatus::NeedsEvidence);
-        assert_eq!(result.weighted_score, Some(0.8));
+        assert!((result.weighted_score.unwrap() - 0.8).abs() < 1e-12);
         assert_eq!(result.evidence_coverage, 0.875);
         assert!(result.reasons.iter().any(|r| r.contains("evidence is stale")));
     }
