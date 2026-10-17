@@ -48,10 +48,13 @@
   "case_schema_path": "docs/research/fixtures/city-belonging-task-benchmark-v0.1.schema.json",
   "case_schema_sha256": "0a72a5eaceddc3fb8f8fe92da726cad3a1ad6a7931c72cd796e38231037d12a7",
   "schema_status": "STRICT_CASE_SHAPE_PINNED; NOT_YET_EXECUTED_BY_A_JSON_SCHEMA_VALIDATOR",
-  "validation_note": "A separate JavaScript policy mirror matched all 14 eligible/preferred sets and exclusion-reason key coverage. This is not a Rust test pass or a JSON Schema validation command. The standalone Rust crate has 18 authored tests but remains uncompiled/unexecuted.",
+  "validation_note": "A separate JavaScript policy mirror matched all 14 frozen task cases. Seven metamorphic invariance tests are authored in Rust. Neither the Rust crate nor a JSON Schema validator has been executed.",
   "policy_version": "city-belonging-constraint-policy/0.1",
   "validation_status": "PINNED_FIXTURE_AND_SCHEMA; TASK MIRROR EXECUTED; RUST TESTS NOT EXECUTED",
   "task_mirror_note": "A separate JavaScript policy mirror was executed against all 14 cases after correcting field references. This is not the Rust implementation or a JSON Schema validator; the Rust crate remains uncompiled/unexecuted.",
-  "rust_authored_test_count": 18,
-  "rust_test_execution_status": "NOT_EXECUTED"
+  "rust_authored_test_count": 25,
+  "rust_test_execution_status": "NOT_EXECUTED",
+  "metamorphic_contract_path": "docs/research/fixtures/city-belonging-metamorphic-contract-v0.1.json",
+  "metamorphic_contract_sha256": "d0898984e09eb59c0f3f352d7c5fdc8502a778be88e85ab6a8e04bb3c1954a8a",
+  "metamorphic_properties_authored": 7
 }
