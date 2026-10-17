@@ -377,7 +377,7 @@ mod tests {
     #[test]
     fn unresolved_reuse_permission_blocks_publication() {
         let record: Value = serde_json::from_str(FIXTURE.lines().nth(8).unwrap()).unwrap();
-        let decision = evaluate_record(&record, "2026-10-17").unwrap();
+        let decision = evaluate_record(&record, "2026-10-17", 30).unwrap();
         assert_eq!(decision.disposition, Disposition::CandidateOnly);
         assert!(!decision.surface_as_current);
     }
@@ -385,7 +385,7 @@ mod tests {
     #[test]
     fn a_failed_contact_path_requires_review() {
         let record: Value = serde_json::from_str(FIXTURE.lines().nth(2).unwrap()).unwrap();
-        let decision = evaluate_record(&record, "2026-10-17").unwrap();
+        let decision = evaluate_record(&record, "2026-10-17", 30).unwrap();
         assert_eq!(decision.disposition, Disposition::ReviewRequired);
         assert!(!decision.surface_as_current);
     }
@@ -401,7 +401,7 @@ mod tests {
     #[test]
     fn unknown_cost_accessibility_and_capacity_are_never_promoted() {
         let record: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
-        let decision = evaluate_record(&record, "2026-10-17").unwrap();
+        let decision = evaluate_record(&record, "2026-10-17", 30).unwrap();
         assert!(!decision.may_claim_free);
         assert!(!decision.may_claim_accessible);
         assert!(!decision.may_claim_live_capacity);
@@ -410,7 +410,7 @@ mod tests {
     #[test]
     fn virtual_service_area_has_no_fabricated_pin() {
         let record: Value = serde_json::from_str(FIXTURE.lines().nth(9).unwrap()).unwrap();
-        let decision = evaluate_record(&record, "2026-10-17").unwrap();
+        let decision = evaluate_record(&record, "2026-10-17", 30).unwrap();
         assert_eq!(decision.disposition, Disposition::ProviderConfirmed);
         assert!(!decision.show_map_pin);
     }
