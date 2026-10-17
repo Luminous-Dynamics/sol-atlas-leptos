@@ -20,6 +20,9 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
+      # sol-atlas-core is a path dependency, not a workspace member; format it
+      # explicitly so new geospatial modules are included in the check.
+      - run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml --all --check
 
   check-wasm:
     runs-on: ubuntu-latest
@@ -64,4 +67,7 @@ jobs:
       # faster than a wasm test harness for the pure-logic unit tests
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
+      # The core crate is a path dependency, not a workspace member. Test its
+      # unit tests directly; testing the app binary does not run dependency tests.
+      - run: cargo test --manifest-path sol-atlas-core/Cargo.toml
       - run: cargo test --bin sol-atlas-leptos
