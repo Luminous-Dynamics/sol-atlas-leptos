@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-stress-sweep-v0.1.schema.json",
   "title": "Spatial-Economic Water-Energy Joint Failure Stress Sweep",
-  "description": "Evaluates nominal coupled water-service trajectories and every caller-declared adverse joint-failure scenario against explicit service floors. Scenario counts are not probabilities.",
+  "description": "Explicit declared failure-scenario sweep over independent water-energy service cells with protected floors. The runtime rejects shared physical asset IDs across cells and enforces caller and hard evaluation budgets. Scenario counts are not probabilities.",
   "type": "object",
   "additionalProperties": false,
   "required": [
