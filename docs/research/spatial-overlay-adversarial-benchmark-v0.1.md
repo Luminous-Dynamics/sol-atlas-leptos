@@ -101,6 +101,7 @@ Correct GIS predicates are necessary but insufficient for correct site choices. 
 - The 5,832-case matrix is generated deterministically by Rust test code; it is not a real-world parcel dataset.
 - Existing 21-case JSONL overlay fixtures remain the small, inspectable reference examples.
 - The independent JavaScript mirror previously matched those 21 fixture expectations, but that does not validate the Rust implementation or geometry operations.
-- As of the last inspected run, native tests and WASM compilation succeeded on the prior head, while `cargo fmt --all --check` failed. Formatter-reported edits and the matrix test have since been committed; their exact-head results must be verified separately.
+- The workflow now has a dedicated `cargo test --manifest-path sol-atlas-core/Cargo.toml` step. The root app-binary test alone does not execute unit tests in the `sol-atlas-core` path dependency, so the explicit step closes a real test-discovery gap.
+- The prior exact-head run passed native app tests and WASM compilation but failed formatting. Formatter changes, the 5,832-case matrix, and receipt-order invariance test have since been committed. The newest head's exact CI result remains unverified until the current run completes.
 - Real GIS adapter work and its differential geometry corpus remain a separate requirement tracked in [issue #141](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/141).
 
