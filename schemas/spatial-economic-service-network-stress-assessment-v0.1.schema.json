@@ -175,13 +175,56 @@
         },
         "failure_set_id": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "Required for caller-declared event bundles; omitted for enumerated link combinations."
         },
         "rationale": {
           "type": "string",
           "minLength": 1
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "origin": {
+                "const": "enumerated_link_combination"
+              }
+            },
+            "required": [
+              "origin"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "failure_set_id"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "origin": {
+                "enum": [
+                  "declared_common_cause",
+                  "declared_hazard_bundle",
+                  "declared_other"
+                ]
+              }
+            },
+            "required": [
+              "origin"
+            ]
+          },
+          "then": {
+            "required": [
+              "failure_set_id"
+            ]
+          }
+        }
+      ]
     }
   }
 }
