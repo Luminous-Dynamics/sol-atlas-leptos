@@ -363,23 +363,49 @@ fn verify(args: Args) -> Result<VerificationReport, String> {
         }
         match target_status.as_str() {
             "qualified_synthetic" => {
-                if !synthetic_artifacts_and_controls_valid(&receipt, &artifact_checks) {
+                let passed = synthetic_artifacts_and_controls_valid(&receipt, &artifact_checks);
+                push_check(
+                    &mut checks,
+                    "synthetic_evidence_integrity",
+                    passed,
+                    "verified truth and synthetic-observation artifacts plus passing null-signal and truth-leakage controls are required".to_string(),
+                );
+                if !passed {
                     qualification_reasons.push(
                         "synthetic qualification requires withheld truth, synthetic observations, and passing null-signal/truth-leakage controls".to_string(),
                     );
                 }
             }
             "source_adapter_qualified" => {
-                if !source_adapter_valid(&receipt, &artifact_checks) {
+                let passed = source_adapter_valid(&receipt, &artifact_checks);
+                push_check(
+                    &mut checks,
+                    "source_adapter_integrity",
+                    passed,
+                    "source payload SHA-256, variable-shape, units, and time-axis audits must all pass".to_string(),
+                );
+                if !passed {
                     qualification_reasons.push(
                         "source adapter needs verified payload bytes and passed variable-shape, units, and time-axis audits".to_string(),
                     );
                 }
             }
             "real_observation_evaluated" => {
-                if !source_adapter_valid(&receipt, &artifact_checks)
-                    || !real_observation_valid(&receipt, &artifact_checks)
-                {
+                let adapter_passed = source_adapter_valid(&receipt, &artifact_checks);
+                let real_passed = real_observation_valid(&receipt, &artifact_checks);
+                push_check(
+                    &mut checks,
+                    "source_adapter_integrity",
+                    adapter_passed,
+                    "source payload SHA-256, variable-shape, units, and time-axis audits must all pass".to_string(),
+                );
+                push_check(
+                    &mut checks,
+                    "real_observation_holdout_integrity",
+                    real_passed,
+                    "real data and frozen holdout manifests must hash correctly, with passed leakage and reference-overlap audits".to_string(),
+                );
+                if !adapter_passed || !real_passed {
                     qualification_reasons.push(
                         "real-observation evaluation needs a qualified source adapter, verified real data and holdout manifest, and passed leakage/overlap audits".to_string(),
                     );
@@ -931,7 +957,7 @@ fn validate_prior_verifier_report(
     if string_field(&report, &["target_qualification_status"]) != Some(target_status) {
         return Err("referenced verifier report targets a different qualification status".to_string());
     }
-    let required_checks = [
+    let mut required_checks = vec![
         "receipt_schema",
         "specification_commit_identity",
         "benchmark_specification_digest",
@@ -944,8 +970,17 @@ fn validate_prior_verifier_report(
         "gates_and_controls",
         "metrics_and_uncertainty",
         "configuration_artifact_binding",
-        "promotion_prerequisites"
+        "promotion_prerequisites",
     ];
+    match target_status {
+        "qualified_synthetic" => required_checks.push("synthetic_evidence_integrity"),
+        "source_adapter_qualified" => required_checks.push("source_adapter_integrity"),
+        "real_observation_evaluated" => {
+            required_checks.push("source_adapter_integrity");
+            required_checks.push("real_observation_holdout_integrity");
+        }
+        _ => {}
+    }
     let report_checks_pass = report
         .get("checks")
         .and_then(Value::as_array)
