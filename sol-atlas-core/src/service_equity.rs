@@ -570,6 +570,35 @@ mod tests {
     }
 
     #[test]
+    fn exact_coverage_floor_boundary_counts_as_meeting_the_floor() {
+        let service = function_scenario("service:boundary", "water:boundary", 8.0, None, 10.0, None);
+        let result = assess_service_equity(
+            &scenario(vec![cell("boundary-cell", "service:boundary", "district", 3, 0.8)]),
+            &[service],
+            &[],
+        ).unwrap();
+        assert_eq!(result.cells[0].coverage_lower_bound, Some(0.8));
+        assert_eq!(result.cells[0].floor_status, ServiceFloorStatus::MeetsFloor);
+        assert_eq!(result.meets_floor_weight, 3);
+        assert_eq!(result.indeterminate_weight, 0);
+    }
+
+    #[test]
+    fn zero_requirement_and_absent_coverage_ratio_do_not_imply_floor_success() {
+        let service = function_scenario("service:zero-demand", "water:zero-demand", 10.0, None, 0.0, None);
+        let result = assess_service_equity(
+            &scenario(vec![cell("zero-demand-cell", "service:zero-demand", "district", 4, 0.5)]),
+            &[service],
+            &[],
+        ).unwrap();
+        assert_eq!(result.cells[0].coverage_lower_bound, None);
+        assert_eq!(result.cells[0].coverage_upper_bound, None);
+        assert_eq!(result.cells[0].floor_status, ServiceFloorStatus::Indeterminate);
+        assert_eq!(result.meets_floor_weight, 0);
+        assert_eq!(result.indeterminate_weight, 4);
+    }
+
+    #[test]
     fn community_gap_bounds_capture_uncertainty_between_groups() {
         let services = vec![
             function_scenario("met", "water:met", 10.0, None, 10.0, None),
