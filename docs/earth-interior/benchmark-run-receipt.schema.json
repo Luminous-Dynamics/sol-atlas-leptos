@@ -423,6 +423,7 @@
           },
           "status": {
             "enum": [
+              "pending",
               "queued",
               "in_progress",
               "completed",
