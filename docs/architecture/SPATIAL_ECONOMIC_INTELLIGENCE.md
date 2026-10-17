@@ -304,3 +304,30 @@ The comparator does not infer that intervention work occurred or that a modeled 
 - Candidate recovery timing is compared only on the same sample grid; a sampled recovery is not a continuous-time or causal claim.
 - Deterministic output under input permutation; duplicate comparison IDs fail closed.
 - Proposed p95 budgets for 100 / 1,000 / 10,000 paired 10-step trajectories: 50 ms / 500 ms / 5,000 ms. Measure against a documented runner before declaring targets met.
+
+## Water-energy coupling: from static pump limits to cross-lifeline constraints
+
+The water trajectory evaluator now has a bounded coupling adapter that derives an effective pump-flow interval from declared pump-terminal electrical power, a declared operating-regime-specific energy estimate, and the existing mechanical pump-capacity interval.
+
+For positive specific energy, the uncapped relationship is:
+
+- conservative flow lower bound = lower available power / upper specific energy;
+- optimistic flow upper bound = upper available power / lower specific energy;
+- effective pump interval = the interval-wise minimum of energy-limited flow and mechanical capacity.
+
+The units are intentionally fixed at **kW**, **kWh/m³**, and **m³/h**. No implicit unit conversion is performed. A specific-energy interval whose lower bound is zero is rejected. Feeder, substation, and generator readings are not silently treated as power available at pump terminals; they fail closed until an explicit electrical delivery/loss adapter exists.
+
+The coupling request aligns energy inputs to the exact water trajectory step ID and timestamp. Each assessment interval preserves evidence IDs for the mechanical capacity, power measurement and operating-regime estimate. The derived pump-capacity measurement is marked as a model assumption rather than an observation; its input provenance remains in the coupled assessment wrapper. The existing water mass-balance and storage-carry-forward evaluator remains the water-side engine.
+
+This is a deliberately narrow operating-point approximation. It does **not** calculate pump curves, head, pressure, pipe friction, electrical feeder delivery, or hydraulic transients. It does not imply the pump actually ran, the stated power reached its terminals outside the declared scenario, or the modeled water volume was physically delivered. Detailed hydraulic comparison belongs behind the EPANET differential-validation seam tracked in issue #139.
+
+### Coupled water-energy correctness gates
+
+- Every hand-calculated power/specific-energy/mechanical-capacity fixture matches the lower and upper flow bounds.
+- Effective pump-flow bounds never exceed the corresponding mechanical-capacity or energy-limited bounds.
+- Zero-denominator, unsupported unit, off-terminal power, invalid/out-of-scope evidence and misaligned interval inputs cannot yield a robust service-adequacy assessment.
+- Increasing terminal power with all other inputs fixed cannot reduce either effective flow bound; increasing specific energy cannot increase either energy-limited flow bound.
+- Every coupled trajectory keeps the existing mass-balance and storage carry-forward invariants and includes both water-side and energy-side evidence references.
+- Modeled deltas remain non-causal unless independently evaluated by an appropriate field or experimental design.
+
+The Rust adapter, versioned schemas, synthetic fixtures and benchmark target are an initial contract implementation, **not operationally validated hydraulic accuracy**.
