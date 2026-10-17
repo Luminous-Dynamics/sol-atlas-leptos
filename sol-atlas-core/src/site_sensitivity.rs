@@ -283,6 +283,7 @@ fn score_candidate(
         GateDisposition::Eligible => {}
     }
 
+    let maximum_weight = scenario.weights.values().copied().fold(0.0_f64, f64::max);
     let mut weighted_sum = 0.0;
     let mut total_weight = 0.0;
     let mut missing = Vec::new();
@@ -290,10 +291,11 @@ fn score_candidate(
         if *weight == 0.0 {
             continue;
         }
+        let normalized_weight = weight / maximum_weight;
         match candidate.scores.get(objective_id).copied().flatten() {
             Some(value) => {
-                weighted_sum += value * weight;
-                total_weight += weight;
+                weighted_sum += value * normalized_weight;
+                total_weight += normalized_weight;
             }
             None => missing.push(format!(
                 "active objective {objective_id} lacks a usable score in scenario {}",
@@ -420,7 +422,7 @@ pub fn analyze_sensitivity(
         let mut needs_evidence = 0;
         let mut excluded = 0;
         let mut top = 0;
-        let mut ranks = Vec::new();
+        let mut ranks: Vec<usize> = Vec::new();
         let mut scores = Vec::new();
 
         for scenario in &scenario_rankings {
@@ -432,7 +434,7 @@ pub fn analyze_sensitivity(
                         top += 1;
                     }
                     if let Some(rank) = result.rank {
-                        ranks.push(rank as f64);
+                        ranks.push(rank);
                     }
                     if let Some(score) = result.weighted_score {
                         scores.push(score);
@@ -456,10 +458,11 @@ pub fn analyze_sensitivity(
                 } else {
                     top as f64 / scenario_rankings.len() as f64
                 },
-                minimum_rank: ranks.iter().copied().map(|rank| rank as usize).min(),
-                maximum_rank: ranks.iter().copied().map(|rank| rank as usize).max(),
-                mean_rank: (!ranks.is_empty())
-                    .then(|| ranks.iter().sum::<f64>() / ranks.len() as f64),
+                minimum_rank: ranks.iter().copied().min(),
+                maximum_rank: ranks.iter().copied().max(),
+                mean_rank: (!ranks.is_empty()).then(|| {
+                    ranks.iter().map(|rank| *rank as f64).sum::<f64>() / ranks.len() as f64
+                }),
                 mean_weighted_score: (!scores.is_empty())
                     .then(|| scores.iter().sum::<f64>() / scores.len() as f64),
             },
