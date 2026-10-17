@@ -101,6 +101,8 @@ pub enum SharedResourceAllocationValidationError {
     ZeroBeneficiaryWeight,
     EmptyDeliveryRateUnit,
     DemandEntityMismatch,
+    DemandUnitMismatch,
+    DeliveryRateUnitMismatch,
     InvalidCoverageFloor,
     DemandLowerBoundNonPositive,
     EmptyResourceId,
@@ -491,10 +493,11 @@ pub fn assess_shared_resource_allocation(
         if service.delivery_rate_unit.trim().is_empty() {
             errors.push(SharedResourceAllocationValidationError::EmptyDeliveryRateUnit);
         }
-        if service.demand_rate.entity_id != service.service_entity_id
-            || service.demand_rate.quantity.unit != service.delivery_rate_unit
-        {
+        if service.demand_rate.entity_id != service.service_entity_id {
             errors.push(SharedResourceAllocationValidationError::DemandEntityMismatch);
+        }
+        if service.demand_rate.quantity.unit != service.delivery_rate_unit {
+            errors.push(SharedResourceAllocationValidationError::DemandUnitMismatch);
         }
         if !service.essential_coverage_floor.is_finite()
             || !(0.0..=1.0).contains(&service.essential_coverage_floor)
@@ -567,7 +570,7 @@ pub fn assess_shared_resource_allocation(
         .map(|service| service.delivery_rate_unit.as_str())
         .collect::<BTreeSet<_>>();
     if delivery_units.len() > 1 {
-        errors.push(SharedResourceAllocationValidationError::EmptyDeliveryRateUnit);
+        errors.push(SharedResourceAllocationValidationError::DeliveryRateUnitMismatch);
     }
     if !errors.is_empty() {
         errors.sort();
@@ -996,6 +999,61 @@ mod tests {
         assert!((coverage["service-b"] - 0.5).abs() < 1e-9);
         assert!((coverage["service-c"] - 1.0).abs() < 1e-9);
         assert!(output.conservative_allocation_iterations >= 2);
+    }
+
+
+    #[test]
+    fn progressive_fill_matches_small_discrete_lexicographic_fairness_oracle() {
+        let mut input = request();
+        input.services = vec![
+            service("service-a", "community-a", 1, 0.0),
+            service("service-b", "community-b", 1, 0.0),
+            service("service-c", "community-c", 1, 0.0),
+        ];
+        input.resources = vec![
+            resource("shared-limited", 100.0, None, "m3/h"),
+            resource("independent", 100.0, None, "m3/h"),
+        ];
+        input.usages = vec![
+            usage("limited-a", "shared-limited", "service-a", 1.0, "m3/h per (m3/h)"),
+            usage("limited-b", "shared-limited", "service-b", 1.0, "m3/h per (m3/h)"),
+            usage("independent-c", "independent", "service-c", 1.0, "m3/h per (m3/h)"),
+        ];
+        let output = assess_shared_resource_allocation(&input, &[]).expect("valid oracle fixture");
+        let observed = output.services.iter().map(|service| service.coverage_lower_bound).collect::<Vec<_>>();
+        assert!((observed[0] - 0.5).abs() < 1e-9);
+        assert!((observed[1] - 0.5).abs() < 1e-9);
+        assert!((observed[2] - 1.0).abs() < 1e-9);
+
+        // Enumerate a discrete 0.1-coverage grid as an independent small-instance oracle.
+        // Feasibility: 100*c_a + 100*c_b <= 100; 100*c_c <= 100.
+        let mut best = [0.0_f64; 3];
+        for a in 0..=10 {
+            for b in 0..=10 {
+                for c in 0..=10 {
+                    let ca = a as f64 / 10.0;
+                    let cb = b as f64 / 10.0;
+                    let cc = c as f64 / 10.0;
+                    if 100.0 * ca + 100.0 * cb > 100.0 + 1e-9 || 100.0 * cc > 100.0 + 1e-9 {
+                        continue;
+                    }
+                    let mut candidate = [ca, cb, cc];
+                    candidate.sort_by(f64::total_cmp);
+                    if candidate[0] > best[0]
+                        || (candidate[0] == best[0] && candidate[1] > best[1])
+                        || (candidate[0] == best[0] && candidate[1] == best[1] && candidate[2] > best[2])
+                    {
+                        best = candidate;
+                    }
+                }
+            }
+        }
+        let mut observed_sorted = observed;
+        observed_sorted.sort_by(f64::total_cmp);
+        assert!((observed_sorted[0] - best[0]).abs() < 1e-9);
+        assert!((observed_sorted[1] - best[1]).abs() < 1e-9);
+        assert!((observed_sorted[2] - best[2]).abs() < 1e-9);
+        assert_eq!(best, [0.5, 0.5, 1.0]);
     }
 
 }
