@@ -918,6 +918,14 @@ pub fn validate_case(
         }
 
         if let Some(supersedes_id) = &decision.supersedes_event_id {
+            if supersedes_id == &decision.event_id {
+                issue(
+                    &mut issues,
+                    ValidationCode::InvalidSupersessionReference,
+                    decision.event_id.clone(),
+                    "a decision event cannot supersede itself",
+                );
+            }
             match decisions_by_id.get(supersedes_id.as_str()).copied() {
                 None => issue(
                     &mut issues,
@@ -1219,6 +1227,16 @@ mod tests {
         let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
         assert!(result.iter().any(|issue| issue.code == ValidationCode::InvalidDigest));
         assert!(result.iter().any(|issue| issue.code == ValidationCode::ProfessionalReviewerMissing));
+    }
+
+    #[test]
+    fn decision_event_cannot_supersede_itself() {
+        let mut case = valid_case();
+        case.decisions[0].supersedes_event_id = Some("approval-1".into());
+        let result = validate_case(&case, &policy(), 1_792_195_200).unwrap();
+        assert!(result
+            .iter()
+            .any(|issue| issue.code == ValidationCode::InvalidSupersessionReference));
     }
 
     #[test]
