@@ -34,6 +34,7 @@ pub mod service_water;
 pub mod service_water_trajectory;
 pub mod service_water_trajectory_intervention;
 pub mod service_water_energy_coupling;
+pub mod service_water_energy_intervention;
 pub mod simulation;
 pub mod solar_system;
 pub mod spatial_economic;
