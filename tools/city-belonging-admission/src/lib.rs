@@ -6,6 +6,18 @@ use sha2::{Digest, Sha256};
 const REPORT_VERSION: &str = "city-belonging-admission-report/0.1";
 const CLAIM_CEILING: &str = "synthetic admission-policy fixtures only; not HSDS conformance, service truth, safety, availability, or outcome evidence";
 
+const HSDS_SELECTED_CONTRACT: &str = include_str!("../../../docs/research/fixtures/hsds-3.1-selected-contract-v0.1.json");
+const HSDS_SCHEMA_SOURCES: [(&str, &str); 8] = [
+    ("organization", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/organization.json")),
+    ("service", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/service.json")),
+    ("location", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/location.json")),
+    ("service_at_location", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/service_at_location.json")),
+    ("schedule", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/schedule.json")),
+    ("address", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/address.json")),
+    ("service_area", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/service_area.json")),
+    ("service_capacity", include_str!("../../../docs/research/fixtures/upstream/hsds-3.1/schema/service_capacity.json")),
+];
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Disposition {
     CandidateOnly,
@@ -63,6 +75,8 @@ pub fn verify_bytes(fixture_bytes: &[u8], manifest_text: &str) -> Result<Value, 
         return Err("fixture must end with a newline".to_owned());
     }
 
+    validate_pinned_schema_contract(&manifest)?;
+
     let as_of = required_str(&manifest, "policy_as_of_date", "manifest")?;
     if days_from_date(as_of).is_none() {
         return Err("manifest.policy_as_of_date must be a valid YYYY-MM-DD date".to_owned());
@@ -87,6 +101,13 @@ pub fn verify_bytes(fixture_bytes: &[u8], manifest_text: &str) -> Result<Value, 
         let fixture_id = required_str(&record, "fixture_id", &format!("line {}", index + 1))?;
         if !seen.insert(fixture_id.to_owned()) {
             return Err(format!("duplicate fixture_id {}", fixture_id));
+        }
+        validate_hsds_resources(&record, &format!("line {} {}", index + 1, fixture_id))?;
+        let hsds_expected = record.pointer("/expected/hsds_selected_contract_valid")
+            .and_then(Value::as_bool)
+            .ok_or_else(|| format!("{}.expected.hsds_selected_contract_valid must be true", fixture_id))?;
+        if !hsds_expected {
+            return Err(format!("{} expected HSDS selected-resource contract to be valid", fixture_id));
         }
         let expected = record.get("expected")
             .ok_or_else(|| format!("{} missing expected contract", fixture_id))?;
@@ -170,10 +191,245 @@ pub fn verify_bytes(fixture_bytes: &[u8], manifest_text: &str) -> Result<Value, 
         "disposition_counts": observed_counts,
         "all_cases_match_expected_policy": true,
         "real_world_service_truth": "NOT_ASSESSED",
-        "hsds_schema_conformance": "NOT_ASSESSED",
+        "pinned_hsds_selected_resource_contract": "MATCH",
+        "canonical_hsds_full_conformance": "NOT_ASSERTED",
         "human_efficacy_or_social_connection_outcomes": "NOT_ASSESSED",
         "case_receipts": receipts
     }))
+}
+
+
+fn validate_pinned_schema_contract(fixture_manifest: &Value) -> Result<(), String> {
+    let declared_pin_hash = fixture_manifest
+        .pointer("/schema_baseline/schema_pin_manifest_sha256_utf8")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "manifest missing pinned HSDS contract-manifest SHA-256".to_owned())?;
+    let actual_pin_hash = sha256_hex(HSDS_SELECTED_CONTRACT.as_bytes());
+    if declared_pin_hash != actual_pin_hash {
+        return Err(format!(
+            "pinned HSDS contract-manifest SHA-256 mismatch: manifest={}, actual={}",
+            declared_pin_hash, actual_pin_hash
+        ));
+    }
+    let pin: Value = serde_json::from_str(HSDS_SELECTED_CONTRACT)
+        .map_err(|e| format!("pinned HSDS contract manifest is malformed: {}", e))?;
+    if required_str(&pin, "manifest_version", "HSDS pin")? != "hsds-3.1-selected-contract/0.1" {
+        return Err("unsupported pinned HSDS contract version".to_owned());
+    }
+    if required_str(&pin, "upstream_ref", "HSDS pin")? != "3.1" {
+        return Err("pinned HSDS source ref must be 3.1".to_owned());
+    }
+    let entries = pin.get("schema_files").and_then(Value::as_array)
+        .ok_or_else(|| "HSDS pin schema_files must be an array".to_owned())?;
+    if entries.len() != HSDS_SCHEMA_SOURCES.len() {
+        return Err("HSDS pin schema list does not match vendored source count".to_owned());
+    }
+
+    for (resource, source_text) in HSDS_SCHEMA_SOURCES {
+        let entry = entries.iter().find(|entry| entry.get("resource").and_then(Value::as_str) == Some(resource))
+            .ok_or_else(|| format!("HSDS pin has no contract for resource {}", resource))?;
+        let expected_hash = required_str(entry, "sha256_utf8", resource)?;
+        let actual_hash = sha256_hex(source_text.as_bytes());
+        if expected_hash != actual_hash {
+            return Err(format!("vendored HSDS {} schema SHA-256 mismatch", resource));
+        }
+        let expected_bytes = entry.get("utf8_byte_length").and_then(Value::as_u64)
+            .ok_or_else(|| format!("HSDS pin {} utf8_byte_length missing", resource))? as usize;
+        if expected_bytes != source_text.as_bytes().len() {
+            return Err(format!("vendored HSDS {} schema byte length mismatch", resource));
+        }
+        let upstream: Value = serde_json::from_str(source_text)
+            .map_err(|e| format!("vendored HSDS {} schema is malformed: {}", resource, e))?;
+        let properties = upstream.get("properties").and_then(Value::as_object)
+            .ok_or_else(|| format!("upstream HSDS {} schema properties missing", resource))?;
+        let actual_fields: BTreeSet<String> = properties.keys().cloned().collect();
+        let pinned_fields = string_set(entry.get("allowed_fields"), &format!("{}.allowed_fields", resource))?;
+        if actual_fields != pinned_fields {
+            return Err(format!("pinned HSDS {} allowed-field contract drift", resource));
+        }
+        for (schema_key, pin_key) in [("required", "required_fields"), ("tabular_required", "tabular_required_fields")] {
+            let actual = upstream.get(schema_key)
+                .and_then(Value::as_array)
+                .map(|items| items.iter().filter_map(Value::as_str).map(str::to_owned).collect::<BTreeSet<_>>())
+                .unwrap_or_default();
+            let expected = string_set(entry.get(pin_key), &format!("{}.{}", resource, pin_key))?;
+            if actual != expected {
+                return Err(format!("pinned HSDS {} {} contract drift", resource, pin_key));
+            }
+        }
+        for (property_key, pin_key) in [("type", "field_types"), ("format", "field_formats"), ("enum", "field_enums")] {
+            let mut actual = serde_json::Map::new();
+            for (field_name, property) in properties {
+                if let Some(value) = property.get(property_key) {
+                    let include = match property_key {
+                        "type" | "format" => value.as_str().is_some(),
+                        "enum" => value.as_array().is_some(),
+                        _ => false,
+                    };
+                    if include { actual.insert(field_name.clone(), value.clone()); }
+                }
+            }
+            let expected = entry.get(pin_key)
+                .ok_or_else(|| format!("HSDS pin {}.{} missing", resource, pin_key))?;
+            if &Value::Object(actual) != expected {
+                return Err(format!("pinned HSDS {} {} contract drift", resource, pin_key));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn string_set(value: Option<&Value>, where_: &str) -> Result<BTreeSet<String>, String> {
+    let array = value.and_then(Value::as_array)
+        .ok_or_else(|| format!("{} must be a string array", where_))?;
+    array.iter().map(|item| item.as_str().map(str::to_owned)
+        .ok_or_else(|| format!("{} entries must be strings", where_))).collect()
+}
+
+fn validate_hsds_resources(record: &Value, where_: &str) -> Result<(), String> {
+    let pin: Value = serde_json::from_str(HSDS_SELECTED_CONTRACT)
+        .map_err(|e| format!("HSDS contract manifest is malformed: {}", e))?;
+    let resources = record.get("hsds_resources").and_then(Value::as_object)
+        .ok_or_else(|| format!("{} must contain hsds_resources object", where_))?;
+    for required in ["organization", "service", "location", "service_at_location"] {
+        if !resources.contains_key(required) {
+            return Err(format!("{} missing HSDS resource row {}", where_, required));
+        }
+    }
+    let known: BTreeSet<&str> = ["organization", "service", "location", "service_at_location", "schedule", "address", "service_area", "service_capacity"].into_iter().collect();
+    for key in resources.keys() {
+        if !known.contains(key.as_str()) {
+            return Err(format!("{} contains undeclared HSDS resource {}", where_, key));
+        }
+        let row = resources.get(key).expect("resource key was just enumerated");
+        validate_hsds_resource_row(&pin, key, row, where_)?;
+    }
+
+    let org_id = required_str(resources.get("organization").unwrap(), "id", where_)?;
+    let service = resources.get("service").unwrap();
+    let service_id = required_str(service, "id", where_)?;
+    if required_str(service, "organization_id", where_)? != org_id {
+        return Err(format!("{} service.organization_id does not link to organization.id", where_));
+    }
+    let location = resources.get("location").unwrap();
+    let location_id = required_str(location, "id", where_)?;
+    if required_str(location, "organization_id", where_)? != org_id {
+        return Err(format!("{} location.organization_id does not link to organization.id", where_));
+    }
+    let service_at_location = resources.get("service_at_location").unwrap();
+    if required_str(service_at_location, "service_id", where_)? != service_id {
+        return Err(format!("{} service_at_location.service_id does not link to service.id", where_));
+    }
+    if required_str(service_at_location, "location_id", where_)? != location_id {
+        return Err(format!("{} service_at_location.location_id does not link to location.id", where_));
+    }
+    if let Some(row) = resources.get("schedule") {
+        if row.get("service_id").and_then(Value::as_str).map(|id| id != service_id).unwrap_or(false) {
+            return Err(format!("{} schedule.service_id does not link to service.id", where_));
+        }
+    }
+    if let Some(row) = resources.get("address") {
+        if row.get("location_id").and_then(Value::as_str).map(|id| id != location_id).unwrap_or(false) {
+            return Err(format!("{} address.location_id does not link to location.id", where_));
+        }
+        if location.get("location_type").and_then(Value::as_str) == Some("virtual") {
+            return Err(format!("{} virtual location must not carry a physical address row", where_));
+        }
+    }
+    if let Some(row) = resources.get("service_area") {
+        if row.get("service_id").and_then(Value::as_str).map(|id| id != service_id).unwrap_or(false) {
+            return Err(format!("{} service_area.service_id does not link to service.id", where_));
+        }
+    }
+    if let Some(row) = resources.get("service_capacity") {
+        if row.get("service_id").and_then(Value::as_str).map(|id| id != service_id).unwrap_or(false) {
+            return Err(format!("{} service_capacity.service_id does not link to service.id", where_));
+        }
+    }
+    Ok(())
+}
+
+fn validate_hsds_resource_row(pin: &Value, resource: &str, row: &Value, where_: &str) -> Result<(), String> {
+    let entries = pin.get("schema_files").and_then(Value::as_array)
+        .ok_or_else(|| "HSDS pin schema_files must be an array".to_owned())?;
+    let schema = entries.iter().find(|entry| entry.get("resource").and_then(Value::as_str) == Some(resource))
+        .ok_or_else(|| format!("no pinned HSDS resource schema for {}", resource))?;
+    let object = row.as_object().ok_or_else(|| format!("{}.{} row must be an object", where_, resource))?;
+    let allowed = string_set(schema.get("allowed_fields"), &format!("{}.allowed_fields", resource))?;
+    let mut required = string_set(schema.get("required_fields"), &format!("{}.required_fields", resource))?;
+    required.extend(string_set(schema.get("tabular_required_fields"), &format!("{}.tabular_required_fields", resource))?);
+    for key in object.keys() {
+        if !allowed.contains(key) {
+            return Err(format!("{}.{} has field not in pinned HSDS 3.1 contract: {}", where_, resource, key));
+        }
+    }
+    for key in &required {
+        let value = object.get(key).ok_or_else(|| format!("{}.{} missing required field {}", where_, resource, key))?;
+        if value.is_null() {
+            return Err(format!("{}.{} required field {} is null", where_, resource, key));
+        }
+        if let Some(text) = value.as_str() {
+            if text.trim().is_empty() {
+                return Err(format!("{}.{} required string {} is blank", where_, resource, key));
+            }
+        }
+    }
+    let types = schema.get("field_types").and_then(Value::as_object)
+        .ok_or_else(|| format!("HSDS pin {} field_types missing", resource))?;
+    let formats = schema.get("field_formats").and_then(Value::as_object)
+        .ok_or_else(|| format!("HSDS pin {} field_formats missing", resource))?;
+    let enums = schema.get("field_enums").and_then(Value::as_object)
+        .ok_or_else(|| format!("HSDS pin {} field_enums missing", resource))?;
+    for (key, value) in object {
+        if value.is_null() {
+            return Err(format!("{}.{} field {} must be omitted rather than null", where_, resource, key));
+        }
+        if let Some(field_type) = types.get(key).and_then(Value::as_str) {
+            let valid = match field_type {
+                "string" => value.is_string(),
+                "number" => value.is_number(),
+                "array" => value.is_array(),
+                "object" => value.is_object(),
+                _ => true,
+            };
+            if !valid {
+                return Err(format!("{}.{} field {} violates pinned type {}", where_, resource, key, field_type));
+            }
+        }
+        if let Some(values) = enums.get(key).and_then(Value::as_array) {
+            let observed = value.as_str().ok_or_else(|| format!("{}.{} enum field {} must be a string", where_, resource, key))?;
+            if !values.iter().any(|candidate| candidate.as_str() == Some(observed)) {
+                return Err(format!("{}.{} field {} violates pinned enum: {}", where_, resource, key, observed));
+            }
+        }
+        if let Some(format) = formats.get(key).and_then(Value::as_str) {
+            let observed = value.as_str().ok_or_else(|| format!("{}.{} formatted field {} must be a string", where_, resource, key))?;
+            let valid = match format {
+                "uuid" => valid_uuid(observed),
+                "uri" => observed.contains("://"),
+                "email" => observed.contains('@') && !observed.starts_with('@') && !observed.ends_with('@'),
+                "date" => days_from_date(observed).is_some(),
+                "date-time" => observed.len() >= 20 && observed.as_bytes().get(10) == Some(&b'T') && days_from_date(&observed[..10]).is_some() && (observed.ends_with('Z') || observed.rfind('+').map(|at| at > 10).unwrap_or(false) || observed.rfind('-').map(|at| at > 10).unwrap_or(false)),
+                _ => true,
+            };
+            if !valid {
+                return Err(format!("{}.{} field {} violates pinned format {}", where_, resource, key, format));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn valid_uuid(value: &str) -> bool {
+    if value.len() != 36 { return false; }
+    for (index, byte) in value.bytes().enumerate() {
+        if matches!(index, 8 | 13 | 18 | 23) {
+            if byte != b'-' { return false; }
+        } else if !byte.is_ascii_hexdigit() {
+            return false;
+        }
+    }
+    true
 }
 
 pub fn evaluate_record(record: &Value, as_of: &str, max_age_days: u64) -> Result<Decision, String> {
@@ -188,7 +444,7 @@ pub fn evaluate_record(record: &Value, as_of: &str, max_age_days: u64) -> Result
     let verified_fields = evidence.get("provider_verified_fields")
         .and_then(Value::as_array)
         .ok_or_else(|| "provider_verified_fields must be an array".to_owned())?;
-    let record_status = record.pointer("/hsds_fragment/service/status").and_then(Value::as_str).unwrap_or("unknown");
+    let record_status = record.pointer("/hsds_resources/service/status").and_then(Value::as_str).unwrap_or("unknown");
 
     // Publication rights are a prerequisite and deliberately outrank provider confirmation.
     let disposition = if permission != "approved_for_fixture_only" {
@@ -197,7 +453,7 @@ pub fn evaluate_record(record: &Value, as_of: &str, max_age_days: u64) -> Result
         Disposition::ReviewRequired
     } else if record.get("admission_evidence").and_then(|e| e.get("user_correction")).is_some() {
         Disposition::ReviewRequired
-    } else if record_status == "closed" || field(fields, "operational_status") == Some("provider_confirmed_closed") {
+    } else if matches!(record_status, "closed" | "temporarily closed" | "inactive" | "defunct") || field(fields, "operational_status") == Some("provider_confirmed_closed") {
         Disposition::ClosedOrWithdrawn
     } else if field(fields, "event_date") == Some("past")
         || field(fields, "capacity") == Some("stale")
@@ -218,10 +474,10 @@ pub fn evaluate_record(record: &Value, as_of: &str, max_age_days: u64) -> Result
     };
 
     let surface_as_current = disposition == Disposition::ProviderConfirmed;
-    let location_type = record.pointer("/hsds_fragment/location/location_type").and_then(Value::as_str);
+    let location_type = record.pointer("/hsds_resources/location/location_type").and_then(Value::as_str);
     let has_verified_coordinates = location_type == Some("physical")
-        && record.pointer("/hsds_fragment/location/latitude").and_then(Value::as_f64).is_some()
-        && record.pointer("/hsds_fragment/location/longitude").and_then(Value::as_f64).is_some()
+        && record.pointer("/hsds_resources/location/latitude").and_then(Value::as_f64).is_some()
+        && record.pointer("/hsds_resources/location/longitude").and_then(Value::as_f64).is_some()
         && field(fields, "coordinates") == Some("provider_confirmed");
     let show_map_pin = surface_as_current && has_verified_coordinates;
     let may_claim_free = surface_as_current && field(fields, "cost") == Some("provider_confirmed_free");
@@ -251,7 +507,7 @@ fn has_failed_contact(evidence: &Value) -> bool {
 }
 
 fn schedule_expired(record: &Value, as_of: &str) -> bool {
-    record.pointer("/hsds_fragment/schedule/valid_to")
+    record.pointer("/hsds_resources/schedule/valid_to")
         .and_then(Value::as_str)
         .map(|valid_to| valid_to < as_of)
         .unwrap_or(false)
@@ -345,11 +601,48 @@ mod tests {
         assert_eq!(report["status"], "SYNTHETIC_POLICY_FIXTURE_MATCH");
         assert_eq!(report["record_count"], 11);
         assert_eq!(report["all_cases_match_expected_policy"], true);
+        assert_eq!(report["pinned_hsds_selected_resource_contract"], "MATCH");
+        assert_eq!(report["canonical_hsds_full_conformance"], "NOT_ASSERTED");
         assert_eq!(report["disposition_counts"]["ProviderConfirmed"], 3);
         assert_eq!(report["disposition_counts"]["ReviewRequired"], 3);
         assert_eq!(report["disposition_counts"]["StaleOrDisputed"], 3);
         assert_eq!(report["disposition_counts"]["CandidateOnly"], 1);
         assert_eq!(report["disposition_counts"]["ClosedOrWithdrawn"], 1);
+    }
+
+
+    #[test]
+    fn pinned_hsds_schema_bytes_match_derived_contract_and_fixture_manifest() {
+        let fixture_manifest: Value = serde_json::from_str(MANIFEST).unwrap();
+        validate_pinned_schema_contract(&fixture_manifest).unwrap();
+    }
+
+    #[test]
+    fn rejects_non_hsds_location_type_enum() {
+        let mut record: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
+        record["hsds_resources"]["location"]["location_type"] = json!("service_area");
+        assert!(validate_hsds_resources(&record, "test CBF-001").unwrap_err().contains("pinned enum"));
+    }
+
+    #[test]
+    fn rejects_non_hsds_service_status_enum() {
+        let mut record: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
+        record["hsds_resources"]["service"]["status"] = json!("closed");
+        assert!(validate_hsds_resources(&record, "test CBF-001").unwrap_err().contains("pinned enum"));
+    }
+
+    #[test]
+    fn rejects_orphaned_service_location_relationship() {
+        let mut record: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
+        record["hsds_resources"]["service_at_location"]["location_id"] = json!("ffffffff-ffff-4fff-8fff-ffffffffffff");
+        assert!(validate_hsds_resources(&record, "test CBF-001").unwrap_err().contains("does not link to location.id"));
+    }
+
+    #[test]
+    fn rejects_missing_tabular_required_service_organization() {
+        let mut record: Value = serde_json::from_str(FIXTURE.lines().next().unwrap()).unwrap();
+        record["hsds_resources"]["service"].as_object_mut().unwrap().remove("organization_id");
+        assert!(validate_hsds_resources(&record, "test CBF-001").unwrap_err().contains("missing required field organization_id"));
     }
 
     #[test]
