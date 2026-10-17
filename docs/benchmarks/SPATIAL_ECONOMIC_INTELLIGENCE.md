@@ -131,3 +131,12 @@ The pilot should use a vector of physical, economic and distributional outcomes 
 - OpenTelemetry's performance benchmark guidance emphasises a defined workload/configuration and warm-up/reporting protocol: https://opentelemetry.io/docs/specs/otel/performance-benchmark/
 
 This protocol is intended to make improvements measurable and reproducible—not to make benchmark scores a proxy for truth, public benefit, fairness or operational safety.
+
+
+## Water-service balance batch
+
+The separate water_service_balance benchmark evaluates 100, 1,000 and 10,000 synthetic water-service scenarios. Each scenario has distinct source, pump, treatment, distribution, storage and demand entities; the serial stages have a known treatment bottleneck. The run asserts the expected degraded state, ordered delivery-capacity bounds, storage-capacity limits, zero-within-tolerance mass residuals and byte-identical result serialization. It reports p50/p95/max latency and result bytes; it does not claim field accuracy or measured performance before execution.
+
+Run with WATER_BENCH_WARMUP=5 and WATER_BENCH_SAMPLES=100 using cargo bench --bench water_service_balance.
+
+The model's conservation gate is 1e-9 m3 per aggregate balance path. Initial proposed p95 targets are 5 ms / 25 ms / 250 ms for 100 / 1,000 / 10,000 services, respectively. These targets are local engineering hypotheses, separate from hydraulic correctness. The adapter boundary must be validated against EPA EPANET fixtures before making pressure, head-loss, water-quality, or real-network claims.

@@ -176,7 +176,7 @@ pub fn assess_service_functions(
         .collect()
 }
 
-fn build_evidence_index<'a>(
+pub(crate) fn build_evidence_index<'a>(
     evidence_records: &'a [EvidenceRecord],
 ) -> Result<BTreeMap<&'a str, &'a EvidenceRecord>, ServiceFunctionAssessmentError> {
     let mut errors = Vec::new();
@@ -306,7 +306,7 @@ fn assess_service_function_indexed(
     })
 }
 
-fn validate_measurement(
+pub(crate) fn validate_measurement(
     measurement: &FunctionMeasurement,
     as_of: &str,
     evidence_by_id: &BTreeMap<&str, &EvidenceRecord>,

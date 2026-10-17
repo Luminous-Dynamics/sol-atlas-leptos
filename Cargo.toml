@@ -66,3 +66,7 @@ strip = true
 [[bench]]
 name = "spatial_economic_intervention"
 harness = false
+
+[[bench]]
+name = "water_service_balance"
+harness = false

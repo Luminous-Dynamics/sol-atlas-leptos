@@ -250,3 +250,23 @@ Stop or roll back any integration that silently drops provenance, changes units/
 
 - Open Contracting Data Standard: https://standard.open-contracting.org/latest/en/
 - IETF RFC 9943, *An Architecture for Trustworthy and Transparent Digital Supply Chains*: https://datatracker.ietf.org/doc/rfc9943/
+
+
+## Bounded water-service balance prototype
+
+The water-service evaluator composes source flow, pumping, and treatment through the minimum serial-stage rate, then accounts for a storage buffer, distribution-rate cap, customer-side distribution loss, and spill. It never sums serial capacities. It emits lower/upper customer-delivery capacity and capacity-to-demand coverage bounds, plus conservative and optimistic realizations whose water-volume balances close independently.
+
+This is intentionally a bounded aggregate accounting model, not an EPANET replacement. It does not calculate pipe pressure, friction/head loss, hydraulic convergence, water age, contaminant transport, or within-step timing. The one-step model assumes produced water is available during the step and does not prove the availability of a real source or physical delivery. Exact unit codes are required: m3/h, m3, and dimensionless 1. Implicit conversions are rejected. An observed measurement must still match its cited evidence, entity, quantity, unit, uncertainty, and time scope under the shared evidence contract.
+
+Research boundary: EPA EPANET models pressure-driven pipe networks, pumps, valves, tanks, hydraulic head loss, and water-quality behaviors. Sol-Atlas should use an explicitly versioned EPANET adapter and reference models for those quantities instead of approximating them with a scalar flow calculation. The aggregate water balance is useful as a deterministic resilience/accounting layer around that more detailed engine, and as a conservative fallback where hydraulic inputs do not exist. See https://www.epa.gov/water-research/epanet and https://github.com/USEPA/EPANET/blob/main/manual/Intro.md.
+
+### Proposed water-balance acceptance gates
+
+- Conservation: absolute mass-balance residual <= 1e-9 m3 for every reported path in synthetic fixtures; test multiple scales and rounding stress.
+- Physical invariants: storage stays within capacity; spill is non-negative; raw withdrawal does not exceed available water, distribution throughput, or demand-with-losses; customer delivery never exceeds demand on that path.
+- Serial-stage invariant: increasing source capacity cannot raise treatment output above the lowest pump/treatment bound. Serial capacities must never be summed.
+- Uncertainty: lower delivery capacity <= upper capacity; conservative coverage uses demand upper and optimistic coverage uses demand lower; zero demand yields an undefined ratio and indeterminate classification rather than presumed success.
+- Evidence: zero positive observed claims when support is missing, inadmissible, time-invalid, wrong-kind, wrong-subject, quantity-mismatched, or unit-mismatched.
+- Determinism: input-order permutations preserve canonical serialized outputs; repeated reference runs match byte-for-byte.
+- Initial CPU targets, measured on a documented reference runner: 100 services p95 <= 5 ms; 1,000 p95 <= 25 ms; 10,000 p95 <= 250 ms. These are proposed targets, not measured results or external standards.
+- Record warm-up, sample count, CPU/OS, compiler version, commit SHA, p50/p95/max, output size, and peak RSS. Do not report a target as passed until a real run provides raw evidence.
