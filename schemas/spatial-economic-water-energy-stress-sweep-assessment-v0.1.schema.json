@@ -21,7 +21,9 @@
     "worst_case_floor_compliance_lower_bound",
     "worst_case_floor_compliance_upper_bound",
     "worst_case_maximum_normalized_deficit_lower_bound",
-    "worst_case_maximum_normalized_deficit_upper_bound"
+    "worst_case_maximum_normalized_deficit_upper_bound",
+    "declared_failure_override_count",
+    "evaluated_failure_override_count"
   ],
   "properties": {
     "schema_version": {
@@ -92,6 +94,16 @@
       "type": "number",
       "minimum": 0,
       "maximum": 1
+    },
+    "declared_failure_override_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000
+    },
+    "evaluated_failure_override_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000
     }
   },
   "$defs": {
