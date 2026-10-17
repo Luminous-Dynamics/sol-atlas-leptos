@@ -15,5 +15,6 @@
   "data_class": "synthetic",
   "oracle_status": "hand-authored expected values; not an independently implemented solver",
   "claim_ceiling": "validates finite-model semantics only; no real-site, probability, cost, safety, legal, environmental, or community finding",
-  "exhaustive_tiny_state_matrices_tested": 81
+  "exhaustive_tiny_state_matrices_tested": 81,
+  "observation_relation_combinations_tested": 729
 }
