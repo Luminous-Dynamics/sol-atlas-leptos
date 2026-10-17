@@ -352,7 +352,9 @@ fn validate_paired_requests(
             || base.beneficiary_weight != cand.beneficiary_weight
             || base.essential_coverage_floor != cand.essential_coverage_floor
         {
-            errors.push(WaterEnergyStressInterventionValidationError::ProtectedFloorDefinitionMismatch);
+            errors.push(
+                WaterEnergyStressInterventionValidationError::ProtectedFloorDefinitionMismatch,
+            );
         }
     }
 
@@ -384,7 +386,9 @@ fn validate_paired_requests(
             errors.push(WaterEnergyStressInterventionValidationError::FailureScenarioKindMismatch);
         }
         if base.rationale != cand.rationale {
-            errors.push(WaterEnergyStressInterventionValidationError::FailureScenarioRationaleMismatch);
+            errors.push(
+                WaterEnergyStressInterventionValidationError::FailureScenarioRationaleMismatch,
+            );
         }
         if !aligned_override_sets(&base.overrides, &cand.overrides) {
             errors.push(WaterEnergyStressInterventionValidationError::FailureOverrideSetMismatch);
@@ -457,7 +461,10 @@ fn find_matching_service<'a>(
 fn compare_case(
     baseline: &WaterEnergyStressCaseAssessment,
     candidate: &WaterEnergyStressCaseAssessment,
-) -> Result<WaterEnergyStressInterventionCaseComparison, WaterEnergyStressInterventionComparisonError> {
+) -> Result<
+    WaterEnergyStressInterventionCaseComparison,
+    WaterEnergyStressInterventionComparisonError,
+> {
     if baseline.id != candidate.id || baseline.kind != candidate.kind {
         return Err(WaterEnergyStressInterventionComparisonError::InvalidInput(vec![
             WaterEnergyStressInterventionValidationError::FailureScenarioSetMismatch,
@@ -852,7 +859,10 @@ fn overall_effect(
 pub fn compare_water_energy_stress_interventions(
     request: &WaterEnergyStressInterventionComparisonRequest,
     evidence_records: &[EvidenceRecord],
-) -> Result<WaterEnergyStressInterventionComparisonAssessment, WaterEnergyStressInterventionComparisonError> {
+) -> Result<
+    WaterEnergyStressInterventionComparisonAssessment,
+    WaterEnergyStressInterventionComparisonError,
+> {
     validate_paired_requests(request)
         .map_err(WaterEnergyStressInterventionComparisonError::InvalidInput)?;
     let evidence_by_id = build_evidence_index(evidence_records)
@@ -965,7 +975,8 @@ pub fn compare_water_energy_stress_interventions(
         baseline_supporting_evidence_ids: baseline_evidence.into_iter().collect(),
         candidate_supporting_evidence_ids: candidate_evidence.into_iter().collect(),
         interpretation_boundary:
-            WaterEnergyStressInterventionInterpretationBoundary::ModeledCounterfactualNotCausalEvidence,
+            WaterEnergyStressInterventionInterpretationBoundary::
+                ModeledCounterfactualNotCausalEvidence,
     })
 }
 
@@ -1041,7 +1052,7 @@ mod tests {
             schema_version: WATER_ENERGY_COUPLING_SCHEMA_VERSION.to_owned(),
             id: id.to_owned(),
             trajectory: WaterServiceTrajectory {
-                schema_version: crate::service_water_trajectory::WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION.to_owned(),
+                schema_version: WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION.to_owned(),
                 id: format!("trajectory-{id}"),
                 service_entity_id: service_entity.to_owned(),
                 initial_storage: measurement("tank", storage, WATER_VOLUME_UNIT),
@@ -1085,7 +1096,10 @@ mod tests {
         }
     }
 
-    fn request(baseline_storage: f64, candidate_storage: f64) -> WaterEnergyStressInterventionComparisonRequest {
+    fn request(
+        baseline_storage: f64,
+        candidate_storage: f64,
+    ) -> WaterEnergyStressInterventionComparisonRequest {
         WaterEnergyStressInterventionComparisonRequest {
             schema_version: WATER_ENERGY_STRESS_INTERVENTION_SCHEMA_VERSION.to_owned(),
             id: "paired-sweep-comparison".to_owned(),
@@ -1112,7 +1126,8 @@ mod tests {
         );
         assert_eq!(
             output.interpretation_boundary,
-            WaterEnergyStressInterventionInterpretationBoundary::ModeledCounterfactualNotCausalEvidence
+            WaterEnergyStressInterventionInterpretationBoundary::
+                ModeledCounterfactualNotCausalEvidence
         );
     }
 
@@ -1139,7 +1154,9 @@ mod tests {
         assert!(matches!(
             result,
             Err(WaterEnergyStressInterventionComparisonError::InvalidInput(errors))
-                if errors.contains(&WaterEnergyStressInterventionValidationError::FailureScenarioSetMismatch)
+                if errors.contains(
+                    &WaterEnergyStressInterventionValidationError::FailureScenarioSetMismatch,
+                )
         ));
     }
 
@@ -1151,7 +1168,9 @@ mod tests {
         assert!(matches!(
             result,
             Err(WaterEnergyStressInterventionComparisonError::InvalidInput(errors))
-                if errors.contains(&WaterEnergyStressInterventionValidationError::ProtectedFloorDefinitionMismatch)
+                if errors.contains(
+                    &WaterEnergyStressInterventionValidationError::ProtectedFloorDefinitionMismatch,
+                )
         ));
     }
 
