@@ -9,7 +9,7 @@
 //! redistribution permissions. Configurations should be populated from the
 //! selected layer's current GIBS capabilities metadata and usage terms.
 
-use crate::tiles::{tiles_for_bounds, MAX_TILE_ZOOM, TileCoordinate, TileError};
+use crate::tiles::{MAX_TILE_ZOOM, TileCoordinate, TileError, tiles_for_bounds};
 use std::fmt;
 
 pub const NASA_GIBS_SERVICE_ACKNOWLEDGEMENT: &str = "NASA Global Imagery Browse Services (GIBS)";
@@ -56,17 +56,17 @@ impl fmt::Display for GibsUrlError {
             Self::InvalidLayerIdentifier => write!(f, "GIBS layer identifier is not path-safe"),
             Self::InvalidTileMatrixSet => {
                 write!(f, "GIBS tile matrix set identifier is not path-safe")
-            },
+            }
             Self::InvalidTimeDimension => write!(
                 f,
                 "GIBS time dimension must be 'default', a YYYY-MM-DD date, or an RFC3339 UTC timestamp"
             ),
             Self::InvalidLayerAttribution => {
                 write!(f, "GIBS layer attribution must be present and non-empty")
-            },
+            }
             Self::InvalidMaximumZoom(zoom) => {
                 write!(f, "GIBS maximum zoom {zoom} exceeds {MAX_TILE_ZOOM}")
-            },
+            }
             Self::ZoomExceedsLayerMaximum { requested, maximum } => {
                 write!(
                     f,
@@ -233,9 +233,9 @@ fn is_path_identifier(value: &str) -> bool {
         && value.len() <= 128
         && value != "."
         && value != ".."
-        && value.bytes().all(|byte| {
-            byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-' | b'.')
-        })
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-' | b'.'))
 }
 
 fn is_supported_time_dimension(value: &str) -> bool {
@@ -310,9 +310,7 @@ fn parse_digits(bytes: &[u8]) -> Option<u32> {
         return None;
     }
     bytes.iter().try_fold(0_u32, |value, digit| {
-        value
-            .checked_mul(10)?
-            .checked_add(u32::from(*digit - b'0'))
+        value.checked_mul(10)?.checked_add(u32::from(*digit - b'0'))
     })
 }
 
@@ -362,22 +360,28 @@ mod tests {
                 .ends_with("/0/0/0.jpg")
         );
 
-        assert!(GibsWebMercatorSource::new(
-            "layer",
-            "matrix",
-            5,
-            "2026-10-10T12:00:00Z",
-            TileImageFormat::Png,
-            "Fixture layer attribution",
-        ).is_ok());
-        assert!(GibsWebMercatorSource::new(
-            "layer",
-            "matrix",
-            5,
-            "2026-10-10/2026-10-11",
-            TileImageFormat::Png,
-            "Fixture layer attribution",
-        ).is_err());
+        assert!(
+            GibsWebMercatorSource::new(
+                "layer",
+                "matrix",
+                5,
+                "2026-10-10T12:00:00Z",
+                TileImageFormat::Png,
+                "Fixture layer attribution",
+            )
+            .is_ok()
+        );
+        assert!(
+            GibsWebMercatorSource::new(
+                "layer",
+                "matrix",
+                5,
+                "2026-10-10/2026-10-11",
+                TileImageFormat::Png,
+                "Fixture layer attribution",
+            )
+            .is_err()
+        );
     }
 
     #[test]
@@ -412,7 +416,10 @@ mod tests {
         ));
         assert!(matches!(
             source.tile_urls_for_bounds(-90.0, -10.0, 0.0, 10.0, 6, 100),
-            Err(GibsUrlError::ZoomExceedsLayerMaximum { requested: 6, maximum: 5 })
+            Err(GibsUrlError::ZoomExceedsLayerMaximum {
+                requested: 6,
+                maximum: 5
+            })
         ));
     }
 
@@ -486,7 +493,10 @@ mod tests {
         .unwrap();
         assert_eq!(
             source.tile_url(TileCoordinate::new(3, 2, 1).unwrap()),
-            Err(GibsUrlError::ZoomExceedsLayerMaximum { requested: 3, maximum: 1 })
+            Err(GibsUrlError::ZoomExceedsLayerMaximum {
+                requested: 3,
+                maximum: 1
+            })
         );
     }
 }

@@ -37,18 +37,24 @@ impl fmt::Display for TileError {
         match self {
             Self::InvalidZoom(zoom) => {
                 write!(f, "tile zoom {zoom} exceeds maximum {MAX_TILE_ZOOM}")
-            },
+            }
             Self::NonFiniteCoordinate => write!(f, "geographic coordinates must be finite"),
             Self::LongitudeOutOfRange => {
                 write!(f, "longitude must be within [-180, 180] for bounds")
-            },
+            }
             Self::LatitudeOutOfRange => write!(f, "latitude must be within [-90, 90]"),
             Self::InvalidBounds => {
-                write!(f, "bounds must have south < north and non-zero longitude width")
-            },
+                write!(
+                    f,
+                    "bounds must have south < north and non-zero longitude width"
+                )
+            }
             Self::TileIndexOutOfRange => write!(f, "tile index is outside the selected zoom level"),
             Self::TileBudgetExceeded { requested, maximum } => {
-                write!(f, "tile selection requests {requested} tiles, exceeding budget {maximum}")
+                write!(
+                    f,
+                    "tile selection requests {requested} tiles, exceeding budget {maximum}"
+                )
             }
         }
     }
@@ -133,11 +139,7 @@ impl TileCoordinate {
     ///
     /// Use this only when mapping polar locations onto the edge of the projected
     /// map is intended. It does not imply that Web Mercator represents the pole.
-    pub fn from_lon_lat_clamped(
-        lon: f64,
-        lat: f64,
-        zoom: u8,
-    ) -> Result<Self, TileError> {
+    pub fn from_lon_lat_clamped(lon: f64, lat: f64, zoom: u8) -> Result<Self, TileError> {
         validate_zoom(zoom)?;
         if !lon.is_finite() || !lat.is_finite() {
             return Err(TileError::NonFiniteCoordinate);
@@ -151,10 +153,11 @@ impl TileCoordinate {
 
     fn from_lon_lat_mercator(lon: f64, lat: f64, zoom: u8) -> Result<Self, TileError> {
         let count = tile_count(zoom) as f64;
-        let x = (((lon + 180.0) / 360.0) * count).floor().clamp(0.0, count - 1.0) as u32;
+        let x = (((lon + 180.0) / 360.0) * count)
+            .floor()
+            .clamp(0.0, count - 1.0) as u32;
         let latitude_radians = lat.to_radians();
-        let y_fraction =
-            (1.0 - latitude_radians.tan().asinh() / std::f64::consts::PI) / 2.0;
+        let y_fraction = (1.0 - latitude_radians.tan().asinh() / std::f64::consts::PI) / 2.0;
         let y = (y_fraction * count).floor().clamp(0.0, count - 1.0) as u32;
         Self::new(zoom, x, y)
     }
@@ -212,7 +215,12 @@ impl TileCoordinate {
         let east = (f64::from(self.x) + 1.0) / count * 360.0 - 180.0;
         let north = tile_y_to_latitude(f64::from(self.y), count);
         let south = tile_y_to_latitude(f64::from(self.y) + 1.0, count);
-        TileExtent { west, south, east, north }
+        TileExtent {
+            west,
+            south,
+            east,
+            north,
+        }
     }
 }
 
@@ -333,8 +341,7 @@ fn longitude_to_tile_x(lon: f64, count: u64) -> u32 {
 
 fn latitude_to_tile_y(lat: f64, count: u64) -> u32 {
     let latitude_radians = lat.to_radians();
-    let fraction =
-        (1.0 - latitude_radians.tan().asinh() / std::f64::consts::PI) / 2.0;
+    let fraction = (1.0 - latitude_radians.tan().asinh() / std::f64::consts::PI) / 2.0;
     (fraction * count as f64)
         .floor()
         .clamp(0.0, count as f64 - 1.0) as u32
@@ -402,7 +409,9 @@ mod tests {
         }
         assert_eq!(TileCoordinate::new(0, 0, 0).unwrap().parent(), None);
         assert_eq!(
-            TileCoordinate::new(MAX_TILE_ZOOM, 0, 0).unwrap().children_xyz(),
+            TileCoordinate::new(MAX_TILE_ZOOM, 0, 0)
+                .unwrap()
+                .children_xyz(),
             Err(TileError::InvalidZoom(MAX_TILE_ZOOM + 1))
         );
     }
@@ -414,11 +423,15 @@ mod tests {
             Err(TileError::LatitudeOutOfRange)
         );
         assert_eq!(
-            TileCoordinate::from_lon_lat_clamped(0.0, 90.0, 3).unwrap().y(),
+            TileCoordinate::from_lon_lat_clamped(0.0, 90.0, 3)
+                .unwrap()
+                .y(),
             0
         );
         assert_eq!(
-            TileCoordinate::from_lon_lat_clamped(0.0, -90.0, 3).unwrap().y(),
+            TileCoordinate::from_lon_lat_clamped(0.0, -90.0, 3)
+                .unwrap()
+                .y(),
             7
         );
         assert_eq!(
@@ -442,7 +455,10 @@ mod tests {
 
         assert_eq!(
             tiles_for_bounds(-180.0, -85.0, 180.0, 85.0, 3, 4),
-            Err(TileError::TileBudgetExceeded { requested: 64, maximum: 4 })
+            Err(TileError::TileBudgetExceeded {
+                requested: 64,
+                maximum: 4
+            })
         );
         assert_eq!(
             tiles_for_bounds(-180.0, -10.0, 180.0, 10.0, 31, 4),
@@ -464,8 +480,9 @@ mod tests {
         let a = tiles_for_bounds(10.0, -5.0, 20.0, 5.0, 5, 100).unwrap();
         let b = tiles_for_bounds(10.0, -5.0, 20.0, 5.0, 5, 100).unwrap();
         assert_eq!(a, b);
-        assert!(a.windows(2).all(|pair| {
-            (pair[0].y(), pair[0].x()) <= (pair[1].y(), pair[1].x())
-        }));
+        assert!(
+            a.windows(2)
+                .all(|pair| { (pair[0].y(), pair[0].x()) <= (pair[1].y(), pair[1].x()) })
+        );
     }
 }
