@@ -133,12 +133,8 @@ pub enum MissingValueReason {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "status", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AnnualFlareValue {
-    Estimated {
-        volume_million_m3_per_year: f64,
-    },
-    Missing {
-        reason: MissingValueReason,
-    },
+    Estimated { volume_million_m3_per_year: f64 },
+    Missing { reason: MissingValueReason },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -370,8 +366,8 @@ pub fn parse_json_snapshot(
     authorization: &TrustedReuseAuthorization,
     requested_purpose: &str,
 ) -> Result<ValidatedFlareSnapshot, AdmissionError> {
-    let snapshot: FlareSnapshot =
-        serde_json::from_str(json).map_err(|error| AdmissionError::InvalidJson(error.to_string()))?;
+    let snapshot: FlareSnapshot = serde_json::from_str(json)
+        .map_err(|error| AdmissionError::InvalidJson(error.to_string()))?;
     admit_snapshot(snapshot, authorization, requested_purpose).map_err(AdmissionError::Rejected)
 }
 
@@ -524,9 +520,7 @@ pub fn admit_snapshot(
                 volume_million_m3_per_year,
             } = &estimate.value
             {
-                if !volume_million_m3_per_year.is_finite()
-                    || *volume_million_m3_per_year < 0.0
-                {
+                if !volume_million_m3_per_year.is_finite() || *volume_million_m3_per_year < 0.0 {
                     issues.push(issue(
                         "invalid_flare_volume",
                         format!("{row_path}.value.volume_million_m3_per_year"),
@@ -542,7 +536,9 @@ pub fn admit_snapshot(
         return Err(issues);
     }
 
-    snapshot.sites.sort_by(|left, right| left.site_key.cmp(&right.site_key));
+    snapshot
+        .sites
+        .sort_by(|left, right| left.site_key.cmp(&right.site_key));
     for site in &mut snapshot.sites {
         site.annual_estimates.sort_by_key(|estimate| estimate.year);
     }
@@ -691,8 +687,7 @@ fn validate_provenance(provenance: &FlareSourceProvenance, issues: &mut Vec<Vali
                     "derived identity requires a versioned algorithm",
                 ));
             }
-            if source_fields.is_empty()
-                || source_fields.iter().any(|field| field.trim().is_empty())
+            if source_fields.is_empty() || source_fields.iter().any(|field| field.trim().is_empty())
             {
                 issues.push(issue(
                     "missing_identity_source_fields",
@@ -903,8 +898,7 @@ fn validate_site_identity(
         } => {
             let actual_fields: Vec<&str> =
                 site.identity_values.keys().map(String::as_str).collect();
-            let expected_fields: Vec<&str> =
-                source_fields.iter().map(String::as_str).collect();
+            let expected_fields: Vec<&str> = source_fields.iter().map(String::as_str).collect();
 
             if actual_fields != expected_fields {
                 issues.push(issue(
@@ -951,7 +945,9 @@ fn derive_site_key(
 ) -> Option<String> {
     if algorithm_version != "sha256-lp-v1"
         || source_fields.is_empty()
-        || source_fields.windows(2).any(|pair| pair[0].as_str() >= pair[1].as_str())
+        || source_fields
+            .windows(2)
+            .any(|pair| pair[0].as_str() >= pair[1].as_str())
     {
         return None;
     }
@@ -1077,9 +1073,7 @@ mod tests {
         .expect("synthetic fixture authorization should be well formed")
     }
 
-    fn admit(
-        snapshot: FlareSnapshot,
-    ) -> Result<ValidatedFlareSnapshot, Vec<ValidationIssue>> {
+    fn admit(snapshot: FlareSnapshot) -> Result<ValidatedFlareSnapshot, Vec<ValidationIssue>> {
         let authorization = test_authorization(&snapshot);
         super::admit_snapshot(
             snapshot,
@@ -1210,7 +1204,11 @@ mod tests {
         let duplicate = snapshot.sites[0].clone();
         snapshot.sites.push(duplicate);
         let issues = admit(snapshot).expect_err("duplicate must fail closed");
-        assert!(issues.iter().any(|item| item.code == "duplicate_site_identity"));
+        assert!(
+            issues
+                .iter()
+                .any(|item| item.code == "duplicate_site_identity")
+        );
     }
 
     #[test]
@@ -1231,7 +1229,11 @@ mod tests {
         };
         let issues = admit(snapshot).expect_err("invalid values must fail closed");
         assert!(issues.iter().any(|item| item.code == "invalid_latitude"));
-        assert!(issues.iter().any(|item| item.code == "invalid_flare_volume"));
+        assert!(
+            issues
+                .iter()
+                .any(|item| item.code == "invalid_flare_volume")
+        );
     }
 
     #[test]
@@ -1248,9 +1250,11 @@ mod tests {
             "synthetic test",
         )
         .expect_err("empty source snapshot cannot be authorized");
-        assert!(source_empty
-            .iter()
-            .any(|item| item.code == "missing_source_snapshot_bytes"));
+        assert!(
+            source_empty
+                .iter()
+                .any(|item| item.code == "missing_source_snapshot_bytes")
+        );
 
         let normalized_empty = TrustedReuseAuthorization::record_manual_review(
             "https://example.invalid/source",
@@ -1264,9 +1268,11 @@ mod tests {
             "synthetic test",
         )
         .expect_err("empty normalized snapshot cannot be authorized");
-        assert!(normalized_empty
-            .iter()
-            .any(|item| item.code == "missing_normalized_snapshot_bytes"));
+        assert!(
+            normalized_empty
+                .iter()
+                .any(|item| item.code == "missing_normalized_snapshot_bytes")
+        );
 
         let terms_empty = TrustedReuseAuthorization::record_manual_review(
             "https://example.invalid/source",
@@ -1280,9 +1286,11 @@ mod tests {
             "synthetic test",
         )
         .expect_err("empty reviewed terms snapshot cannot be authorized");
-        assert!(terms_empty
-            .iter()
-            .any(|item| item.code == "missing_terms_snapshot_bytes"));
+        assert!(
+            terms_empty
+                .iter()
+                .any(|item| item.code == "missing_terms_snapshot_bytes")
+        );
     }
 
     #[test]
@@ -1302,9 +1310,11 @@ mod tests {
             "Synthetic unit-test fixture only; source workbook redistribution not implied",
         )
         .expect_err("snapshot metadata cannot substitute for trusted review");
-        assert!(issues
-            .iter()
-            .any(|item| item.code == "reuse_authorization_attestation_mismatch"));
+        assert!(
+            issues
+                .iter()
+                .any(|item| item.code == "reuse_authorization_attestation_mismatch")
+        );
     }
 
     #[test]
@@ -1321,9 +1331,11 @@ mod tests {
             "Synthetic unit-test fixture only; source workbook redistribution not implied",
         )
         .expect_err("tampered normalized value must reject");
-        assert!(issues
-            .iter()
-            .any(|item| item.code == "normalized_snapshot_digest_mismatch"));
+        assert!(
+            issues
+                .iter()
+                .any(|item| item.code == "normalized_snapshot_digest_mismatch")
+        );
     }
 
     #[test]
@@ -1337,9 +1349,11 @@ mod tests {
             "Synthetic unit-test fixture only; source workbook redistribution not implied",
         )
         .expect_err("digest mismatch must reject");
-        assert!(issues
-            .iter()
-            .any(|item| item.code == "reuse_authorization_binding_mismatch"));
+        assert!(
+            issues
+                .iter()
+                .any(|item| item.code == "reuse_authorization_binding_mismatch")
+        );
     }
 
     #[test]
@@ -1348,8 +1362,16 @@ mod tests {
         snapshot.provenance.retrieved_at = "yesterday".into();
         snapshot.provenance.published_at = Some("2026-13-44".into());
         let issues = admit(snapshot).expect_err("invalid dates must reject");
-        assert!(issues.iter().any(|item| item.code == "invalid_retrieved_at"));
-        assert!(issues.iter().any(|item| item.code == "invalid_published_at"));
+        assert!(
+            issues
+                .iter()
+                .any(|item| item.code == "invalid_retrieved_at")
+        );
+        assert!(
+            issues
+                .iter()
+                .any(|item| item.code == "invalid_published_at")
+        );
     }
 
     #[test]
@@ -1358,8 +1380,16 @@ mod tests {
         snapshot.provenance.snapshot_sha256 = "not-a-digest".into();
         snapshot.provenance.reuse_review = ReuseReview::Unreviewed;
         let issues = admit(snapshot).expect_err("unreviewed source must fail closed");
-        assert!(issues.iter().any(|item| item.code == "invalid_snapshot_digest"));
-        assert!(issues.iter().any(|item| item.code == "reuse_terms_unreviewed"));
+        assert!(
+            issues
+                .iter()
+                .any(|item| item.code == "invalid_snapshot_digest")
+        );
+        assert!(
+            issues
+                .iter()
+                .any(|item| item.code == "reuse_terms_unreviewed")
+        );
     }
 
     #[test]
@@ -1407,7 +1437,11 @@ mod tests {
 
         snapshot.sites[0].site_key = "0".repeat(64);
         let issues = admit(snapshot).expect_err("incorrect digest rejects");
-        assert!(issues.iter().any(|item| item.code == "site_fingerprint_mismatch"));
+        assert!(
+            issues
+                .iter()
+                .any(|item| item.code == "site_fingerprint_mismatch")
+        );
     }
 
     #[test]
@@ -1417,7 +1451,11 @@ mod tests {
             .identity_values
             .insert("Synthetic Site ID".into(), "different-site".into());
         let issues = admit(snapshot).expect_err("mismatched source ID must reject");
-        assert!(issues.iter().any(|item| item.code == "source_identity_mismatch"));
+        assert!(
+            issues
+                .iter()
+                .any(|item| item.code == "source_identity_mismatch")
+        );
     }
 
     #[test]
@@ -1458,15 +1496,19 @@ mod tests {
             "Commercial redistribution of workbook-derived data",
         )
         .expect_err("different downstream purpose must fail closed");
-        assert!(issues
-            .iter()
-            .any(|item| item.code == "requested_purpose_not_approved"));
+        assert!(
+            issues
+                .iter()
+                .any(|item| item.code == "requested_purpose_not_approved")
+        );
 
         let empty_purpose = super::admit_snapshot(sample_snapshot(), &authorization, "   ")
-        .expect_err("empty requested purpose must fail closed");
-        assert!(empty_purpose
-            .iter()
-            .any(|item| item.code == "missing_requested_purpose"));
+            .expect_err("empty requested purpose must fail closed");
+        assert!(
+            empty_purpose
+                .iter()
+                .any(|item| item.code == "missing_requested_purpose")
+        );
     }
 
     #[test]
