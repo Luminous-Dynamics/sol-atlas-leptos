@@ -34,6 +34,20 @@ pub enum DataRights {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum EvidenceDomain {
+    LandRights,
+    PlanningPermission,
+    EnvironmentalProtection,
+    Hazard,
+    Geotechnical,
+    Utilities,
+    TransitAccess,
+    CommunityContext,
+    GeneralSpatial,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum AxisOrder {
     Xy,
     LonLat,
@@ -67,6 +81,8 @@ pub struct SourceRecord {
     pub publisher: String,
     pub dataset_name: String,
     pub revision: String,
+    pub fact_domain: EvidenceDomain,
+    pub jurisdiction: Option<String>,
     /// SHA-256 of the exact ingested payload, when available. Format is checked here;
     /// bytes must be hashed by the ingestion layer.
     pub payload_sha256: Option<String>,
@@ -84,6 +100,8 @@ pub struct SourceRecord {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EvidencePolicy {
     pub evaluation_time_unix_seconds: i64,
+    pub required_fact_domain: EvidenceDomain,
+    pub required_jurisdiction: Option<String>,
     /// Policy-specific maximum age for source data. None means the caller accepts no
     /// automatic age cutoff; source-specific authority rules still apply.
     pub maximum_data_age_seconds: Option<i64>,
@@ -111,6 +129,10 @@ pub enum EvidenceReadiness {
     MissingDigest,
     RightsUnknown,
     RightsNotAllowed,
+    LicenseIdentifierMissing,
+    FactDomainMismatch,
+    JurisdictionUnknown,
+    JurisdictionMismatch,
     AuthorityNotAccepted,
     SpatialMetadataMissing,
     SpatialMetadataInvalid,
@@ -139,6 +161,7 @@ pub enum EvidencePolicyError {
     EmptyRightsPolicy,
     EmptyRequiredCrs,
     EmptyRequiredExtentCrs,
+    EmptyRequiredJurisdiction,
     MissingRequiredExtentCrs,
     ConflictingRequiredCrs,
     EmptyRequiredAxisPolicy,
@@ -164,6 +187,9 @@ impl fmt::Display for EvidencePolicyError {
             Self::EmptyRequiredCrs => write!(f, "required CRS must not be empty"),
             Self::EmptyRequiredExtentCrs => {
                 write!(f, "required extent CRS must not be empty")
+            }
+            Self::EmptyRequiredJurisdiction => {
+                write!(f, "required jurisdiction must not be empty")
             }
             Self::MissingRequiredExtentCrs => {
                 write!(f, "required extent must declare its CRS or inherit an explicit required CRS")
@@ -204,6 +230,9 @@ fn validate_policy(policy: &EvidencePolicy) -> Result<(), EvidencePolicyError> {
         if age < 0 {
             return Err(EvidencePolicyError::InvalidMaximumAge(age));
         }
+    }
+    if policy.required_jurisdiction.as_ref().is_some_and(|jurisdiction| jurisdiction.trim().is_empty()) {
+        return Err(EvidencePolicyError::EmptyRequiredJurisdiction);
     }
     if policy.accepted_authorities.is_empty() {
         return Err(EvidencePolicyError::EmptyAuthorityPolicy);
@@ -408,6 +437,7 @@ pub fn assess_source(
         || source.publisher.trim().is_empty()
         || source.dataset_name.trim().is_empty()
         || source.revision.trim().is_empty()
+        || source.jurisdiction.as_ref().is_some_and(|jurisdiction| jurisdiction.trim().is_empty())
         || source
             .payload_sha256
             .as_ref()
@@ -501,6 +531,45 @@ pub fn assess_source(
         );
     }
 
+    if matches!(source.rights, DataRights::OpenLicense | DataRights::Restricted)
+        && source.license_id.as_ref().is_none_or(|license| license.trim().is_empty())
+    {
+        note_failure(
+            &mut result,
+            EvidenceReadiness::LicenseIdentifierMissing,
+            "open or restricted rights class has no license/terms identifier",
+        );
+    }
+
+    if source.fact_domain != policy.required_fact_domain {
+        note_failure(
+            &mut result,
+            EvidenceReadiness::FactDomainMismatch,
+            format!(
+                "source fact domain {:?} does not match required domain {:?}",
+                source.fact_domain, policy.required_fact_domain
+            ),
+        );
+    }
+
+    if let Some(required_jurisdiction) = &policy.required_jurisdiction {
+        match &source.jurisdiction {
+            None => note_failure(
+                &mut result,
+                EvidenceReadiness::JurisdictionUnknown,
+                "policy requires jurisdictional source evidence but the source jurisdiction is unknown",
+            ),
+            Some(jurisdiction) if jurisdiction != required_jurisdiction => note_failure(
+                &mut result,
+                EvidenceReadiness::JurisdictionMismatch,
+                format!(
+                    "source jurisdiction {jurisdiction} does not match required jurisdiction {required_jurisdiction}"
+                ),
+            ),
+            Some(_) => {}
+        }
+    }
+
     if source.authority == SourceAuthority::Unverified
         || !policy.accepted_authorities.contains(&source.authority)
     {
@@ -526,6 +595,8 @@ mod tests {
     fn policy() -> EvidencePolicy {
         EvidencePolicy {
             evaluation_time_unix_seconds: 1_792_195_200,
+            required_fact_domain: EvidenceDomain::PlanningPermission,
+            required_jurisdiction: Some("ZA-GP-JHB".into()),
             maximum_data_age_seconds: Some(90 * 24 * 60 * 60),
             require_data_timestamp: true,
             require_payload_digest: true,
@@ -555,6 +626,8 @@ mod tests {
             publisher: "Synthetic authority".into(),
             dataset_name: "Synthetic planning data".into(),
             revision: "fixture-1".into(),
+            fact_domain: EvidenceDomain::PlanningPermission,
+            jurisdiction: Some("ZA-GP-JHB".into()),
             payload_sha256: Some("a".repeat(64)),
             authority: SourceAuthority::GovernmentRecord,
             rights: DataRights::OpenLicense,
