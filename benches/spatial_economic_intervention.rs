@@ -10,46 +10,46 @@
 
 use serde::{Deserialize, Serialize};
 use sol_atlas_core::common_cause::{
-    assess_common_cause_domains, correlate_common_cause_with_dependency_groups,
     CommonCauseBasis, CommonCauseCondition, CommonCauseDomain, CommonCauseScenario,
-    CommonCauseState, FailureMechanism,
+    CommonCauseState, FailureMechanism, assess_common_cause_domains,
+    correlate_common_cause_with_dependency_groups,
 };
 use sol_atlas_core::dependency_logic::{
     AvailabilityScenario, DependencyGroup, DependencyGroupState, DependencyLogic,
     EntityOperationalState, ScenarioBasis, ScenarioEntityCondition,
 };
-use sol_atlas_core::intervention::{compare_intervention, InterventionPlan};
-use sol_atlas_core::spatial_economic::{
-    EvidenceKind, EvidenceRecord, EvidenceState, Provenance, SpatialContext, TimeContext,
-    EVIDENCE_SCHEMA_VERSION,
-};
+use sol_atlas_core::intervention::{InterventionPlan, compare_intervention};
 use sol_atlas_core::service_function::{
-    assess_service_functions, FunctionMeasurement, ServiceFunctionScenario, ServiceFunctionState,
-    SERVICE_FUNCTION_SCHEMA_VERSION,
+    FunctionMeasurement, SERVICE_FUNCTION_SCHEMA_VERSION, ServiceFunctionScenario,
+    ServiceFunctionState, assess_service_functions,
 };
 use sol_atlas_core::service_network::{
-    assess_service_capacity_networks, NetworkAssessmentState, NetworkLink,
-    NetworkLinkAvailability, NetworkTopologyCompleteness, ServiceCapacityNetworkScenario,
-    SERVICE_NETWORK_SCHEMA_VERSION,
+    NetworkAssessmentState, NetworkLink, NetworkLinkAvailability, NetworkTopologyCompleteness,
+    SERVICE_NETWORK_SCHEMA_VERSION, ServiceCapacityNetworkScenario,
+    assess_service_capacity_networks,
 };
 use sol_atlas_core::service_network_intervention::{
-    compare_service_network_interventions, NetworkInterventionEffect,
-    NetworkLinkInterventionOverride, ServiceNetworkInterventionPlan,
-    ServiceNetworkInterventionRequest, SERVICE_NETWORK_INTERVENTION_SCHEMA_VERSION,
-};
-use sol_atlas_core::service_recovery::{
-    assess_service_recovery_trajectory, ServiceRecoveryTrajectory,
-    SERVICE_RECOVERY_TRAJECTORY_SCHEMA_VERSION,
-};
-use sol_atlas_core::service_network_stress::{
-    assess_service_network_stress, DeclaredFailureSetKind, DeclaredNetworkFailureSet,
-    ServiceNetworkFailureCaseOrigin, ServiceNetworkStressRequest,
-    SERVICE_NETWORK_STRESS_SCHEMA_VERSION, MAX_EXHAUSTIVE_FAILURE_CASES,
+    NetworkInterventionEffect, NetworkLinkInterventionOverride,
+    SERVICE_NETWORK_INTERVENTION_SCHEMA_VERSION, ServiceNetworkInterventionPlan,
+    ServiceNetworkInterventionRequest, compare_service_network_interventions,
 };
 use sol_atlas_core::service_network_portfolio::{
-    compare_service_network_portfolio, ServiceNetworkPortfolioRequest,
+    ServiceNetworkPortfolioRequest, compare_service_network_portfolio,
+};
+use sol_atlas_core::service_network_stress::{
+    DeclaredFailureSetKind, DeclaredNetworkFailureSet, MAX_EXHAUSTIVE_FAILURE_CASES,
+    SERVICE_NETWORK_STRESS_SCHEMA_VERSION, ServiceNetworkFailureCaseOrigin,
+    ServiceNetworkStressRequest, assess_service_network_stress,
+};
+use sol_atlas_core::service_recovery::{
+    SERVICE_RECOVERY_TRAJECTORY_SCHEMA_VERSION, ServiceRecoveryTrajectory,
+    assess_service_recovery_trajectory,
 };
 use sol_atlas_core::spatial_economic::Quantity;
+use sol_atlas_core::spatial_economic::{
+    EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceRecord, EvidenceState, Provenance,
+    SpatialContext, TimeContext,
+};
 use sol_atlas_core::spatial_graph::{DependencyGraph, RelationKind, SpatialRelation};
 use std::collections::BTreeMap;
 use std::env;
@@ -268,9 +268,7 @@ fn recovery_fixture(count: usize) -> (ServiceRecoveryTrajectory, Vec<EvidenceRec
     )
 }
 
-fn functional_fixture(
-    count: usize,
-) -> (Vec<ServiceFunctionScenario>, Vec<EvidenceRecord>) {
+fn functional_fixture(count: usize) -> (Vec<ServiceFunctionScenario>, Vec<EvidenceRecord>) {
     let mut scenarios = Vec::with_capacity(count);
     let mut records = Vec::with_capacity(count.saturating_mul(2));
     for index in 0..count {
@@ -345,9 +343,7 @@ fn network_measurement(
     }
 }
 
-fn network_fixture(
-    count: usize,
-) -> (Vec<ServiceCapacityNetworkScenario>, Vec<EvidenceRecord>) {
+fn network_fixture(count: usize) -> (Vec<ServiceCapacityNetworkScenario>, Vec<EvidenceRecord>) {
     let mut scenarios = Vec::with_capacity(count);
     let mut records = Vec::with_capacity(count.saturating_mul(4));
     for index in 0..count {
@@ -397,21 +393,14 @@ fn network_fixture(
             service_entity_id: service_id.clone(),
             topology_completeness: NetworkTopologyCompleteness::Complete,
             source_entity_ids: vec![source_id],
-            required_capacity: network_measurement(
-                &service_id,
-                &demand_evidence_id,
-                8.0,
-                "m3/h",
-            ),
+            required_capacity: network_measurement(&service_id, &demand_evidence_id, 8.0, "m3/h"),
             links,
         });
     }
     (scenarios, records)
 }
 
-fn stress_fixture(
-    active_links: usize,
-) -> (ServiceNetworkStressRequest, Vec<EvidenceRecord>) {
+fn stress_fixture(active_links: usize) -> (ServiceNetworkStressRequest, Vec<EvidenceRecord>) {
     let source_id = "stress-source".to_owned();
     let service_id = "stress-service".to_owned();
     let mut links = Vec::with_capacity(active_links);
@@ -470,7 +459,8 @@ fn stress_fixture(
             declared_failure_sets: vec![DeclaredNetworkFailureSet {
                 id: "shared-trunk:declared-common-cause".into(),
                 kind: DeclaredFailureSetKind::CommonCause,
-                rationale: "Synthetic stress event disables two nominally parallel routes together.".into(),
+                rationale:
+                    "Synthetic stress event disables two nominally parallel routes together.".into(),
                 failed_link_ids: vec!["stress-link-0000".into(), "stress-link-0001".into()],
             }],
         },
@@ -513,10 +503,7 @@ fn network_intervention_requests(
         .collect()
 }
 
-fn portfolio_fixture(
-    plan_count: usize,
-    scenario_count: usize,
-) -> ServiceNetworkPortfolioRequest {
+fn portfolio_fixture(plan_count: usize, scenario_count: usize) -> ServiceNetworkPortfolioRequest {
     let service_id = "service:irrigation";
     let source_id = "source:reservoir";
     let mut scenarios = Vec::with_capacity(scenario_count);
@@ -528,27 +515,29 @@ fn portfolio_fixture(
             1 => NetworkLinkAvailability::Inactive,
             _ => NetworkLinkAvailability::Unknown,
         };
-        let link = |id: &str, from: &str, to: &str, value: f64,
-                    availability: NetworkLinkAvailability| NetworkLink {
-            id: id.into(),
-            from_entity_id: from.into(),
-            to_entity_id: to.into(),
-            capacity: FunctionMeasurement {
-                entity_id: id.into(),
-                quantity: Quantity {
-                    value,
-                    unit: "m3/h".into(),
-                    uncertainty_abs: Some(0.0),
-                },
-                basis: ScenarioBasis::Assumed,
-                rationale: "Synthetic portfolio benchmark capacity".into(),
-                supporting_evidence_ids: Vec::new(),
-            },
-            availability,
-            availability_basis: ScenarioBasis::Assumed,
-            availability_rationale: "Synthetic portfolio benchmark state".into(),
-            availability_supporting_evidence_ids: Vec::new(),
-        };
+        let link =
+            |id: &str, from: &str, to: &str, value: f64, availability: NetworkLinkAvailability| {
+                NetworkLink {
+                    id: id.into(),
+                    from_entity_id: from.into(),
+                    to_entity_id: to.into(),
+                    capacity: FunctionMeasurement {
+                        entity_id: id.into(),
+                        quantity: Quantity {
+                            value,
+                            unit: "m3/h".into(),
+                            uncertainty_abs: Some(0.0),
+                        },
+                        basis: ScenarioBasis::Assumed,
+                        rationale: "Synthetic portfolio benchmark capacity".into(),
+                        supporting_evidence_ids: Vec::new(),
+                    },
+                    availability,
+                    availability_basis: ScenarioBasis::Assumed,
+                    availability_rationale: "Synthetic portfolio benchmark state".into(),
+                    availability_supporting_evidence_ids: Vec::new(),
+                }
+            };
         scenarios.push(ServiceCapacityNetworkScenario {
             schema_version: SERVICE_NETWORK_SCHEMA_VERSION.into(),
             id: format!("portfolio-scenario-{suffix}"),
@@ -568,8 +557,20 @@ fn portfolio_fixture(
                 supporting_evidence_ids: Vec::new(),
             },
             links: vec![
-                link("supply", source_id, "junction", supply_capacity, NetworkLinkAvailability::Active),
-                link("route-a", "junction", service_id, 4.0, NetworkLinkAvailability::Active),
+                link(
+                    "supply",
+                    source_id,
+                    "junction",
+                    supply_capacity,
+                    NetworkLinkAvailability::Active,
+                ),
+                link(
+                    "route-a",
+                    "junction",
+                    service_id,
+                    4.0,
+                    NetworkLinkAvailability::Active,
+                ),
                 link("route-b", "junction", service_id, 4.0, backup_availability),
             ],
         });
@@ -580,34 +581,46 @@ fn portfolio_fixture(
         let mut link_overrides = BTreeMap::new();
         match index % 3 {
             0 => {
-                link_overrides.insert("route-b".into(), NetworkLinkInterventionOverride {
-                    availability: Some(NetworkLinkAvailability::Active),
-                    capacity_value: None,
-                    capacity_uncertainty_abs: None,
-                    rationale: "Synthetic plan activates backup route".into(),
-                });
+                link_overrides.insert(
+                    "route-b".into(),
+                    NetworkLinkInterventionOverride {
+                        availability: Some(NetworkLinkAvailability::Active),
+                        capacity_value: None,
+                        capacity_uncertainty_abs: None,
+                        rationale: "Synthetic plan activates backup route".into(),
+                    },
+                );
             }
             1 => {
-                link_overrides.insert("supply".into(), NetworkLinkInterventionOverride {
-                    availability: None,
-                    capacity_value: Some(8.0 + (index % 4) as f64),
-                    capacity_uncertainty_abs: Some(0.0),
-                    rationale: "Synthetic plan upgrades shared supply".into(),
-                });
+                link_overrides.insert(
+                    "supply".into(),
+                    NetworkLinkInterventionOverride {
+                        availability: None,
+                        capacity_value: Some(8.0 + (index % 4) as f64),
+                        capacity_uncertainty_abs: Some(0.0),
+                        rationale: "Synthetic plan upgrades shared supply".into(),
+                    },
+                );
             }
             _ => {
-                link_overrides.insert("route-b".into(), NetworkLinkInterventionOverride {
-                    availability: Some(NetworkLinkAvailability::Active),
-                    capacity_value: None,
-                    capacity_uncertainty_abs: None,
-                    rationale: "Synthetic combined plan activates backup route".into(),
-                });
-                link_overrides.insert("supply".into(), NetworkLinkInterventionOverride {
-                    availability: None,
-                    capacity_value: Some(8.0 + (index % 4) as f64),
-                    capacity_uncertainty_abs: Some(0.0),
-                    rationale: "Synthetic combined plan upgrades supply".into(),
-                });
+                link_overrides.insert(
+                    "route-b".into(),
+                    NetworkLinkInterventionOverride {
+                        availability: Some(NetworkLinkAvailability::Active),
+                        capacity_value: None,
+                        capacity_uncertainty_abs: None,
+                        rationale: "Synthetic combined plan activates backup route".into(),
+                    },
+                );
+                link_overrides.insert(
+                    "supply".into(),
+                    NetworkLinkInterventionOverride {
+                        availability: None,
+                        capacity_value: Some(8.0 + (index % 4) as f64),
+                        capacity_uncertainty_abs: Some(0.0),
+                        rationale: "Synthetic combined plan upgrades supply".into(),
+                    },
+                );
             }
         }
         plans.push(ServiceNetworkInterventionPlan {
@@ -634,7 +647,9 @@ fn assumed(state: EntityOperationalState, rationale: &str) -> ScenarioEntityCond
     }
 }
 
-fn fixture(groups_count: usize) -> (
+fn fixture(
+    groups_count: usize,
+) -> (
     DependencyGraph,
     Vec<DependencyGroup>,
     AvailabilityScenario,
@@ -746,17 +761,12 @@ fn main() {
 
     for groups_count in [100usize, 1_000, 10_000] {
         let (graph, groups, baseline, intervention, evidence_records) = fixture(groups_count);
-        let reference = compare_intervention(
-            &graph,
-            &groups,
-            &baseline,
-            &intervention,
-            &evidence_records,
-        )
-        .expect("synthetic fixture must evaluate");
+        let reference =
+            compare_intervention(&graph, &groups, &baseline, &intervention, &evidence_records)
+                .expect("synthetic fixture must evaluate");
         assert_eq!(reference.summary.recovered, groups_count);
-        let reference_bytes = serde_json::to_vec(&reference)
-            .expect("deterministic comparison serializes");
+        let reference_bytes =
+            serde_json::to_vec(&reference).expect("deterministic comparison serializes");
         let common_cause_domain = CommonCauseDomain {
             id: "domain:shared-feeder".into(),
             cause_entity_id: "grid:shared-feeder".into(),
@@ -805,19 +815,16 @@ fn main() {
         assert!(reference_overlaps.iter().all(|overlap| {
             overlap.domain_evidence_admissible
                 && overlap.independent_redundancy_warning
-                && overlap.shared_prerequisite_entity_ids
-                    == vec!["feeder-backup", "feeder-primary"]
+                && overlap.shared_prerequisite_entity_ids == vec!["feeder-backup", "feeder-primary"]
                 && overlap.currently_exposed_relation_ids.len() == 2
         }));
         let reference_overlap_bytes =
             serde_json::to_vec(&reference_overlaps).expect("overlaps serialize");
 
         let (functional_scenarios, functional_evidence) = functional_fixture(groups_count);
-        let reference_functional = assess_service_functions(
-            &functional_scenarios,
-            &functional_evidence,
-        )
-        .expect("synthetic functional-adequacy fixtures must evaluate");
+        let reference_functional =
+            assess_service_functions(&functional_scenarios, &functional_evidence)
+                .expect("synthetic functional-adequacy fixtures must evaluate");
         assert_eq!(reference_functional.len(), groups_count);
         assert!(reference_functional.iter().all(|assessment| {
             assessment.state == ServiceFunctionState::Degraded
@@ -827,15 +834,13 @@ fn main() {
                 && !assessment.available_capacity_evidence_ids.is_empty()
                 && !assessment.required_capacity_evidence_ids.is_empty()
         }));
-        let reference_functional_bytes = serde_json::to_vec(&reference_functional)
-            .expect("functional assessments serialize");
+        let reference_functional_bytes =
+            serde_json::to_vec(&reference_functional).expect("functional assessments serialize");
 
         let (network_scenarios, network_evidence) = network_fixture(groups_count);
-        let reference_network = assess_service_capacity_networks(
-            &network_scenarios,
-            &network_evidence,
-        )
-        .expect("synthetic capacity network fixtures must evaluate");
+        let reference_network =
+            assess_service_capacity_networks(&network_scenarios, &network_evidence)
+                .expect("synthetic capacity network fixtures must evaluate");
         assert_eq!(reference_network.len(), groups_count);
         assert!(reference_network.iter().all(|assessment| {
             assessment.state == NetworkAssessmentState::Degraded
@@ -866,30 +871,39 @@ fn main() {
                     .iter()
                     .any(|id| id.ends_with("-supply"))
         }));
-        let reference_network_intervention_bytes = serde_json::to_vec(&reference_network_interventions)
-            .expect("network intervention comparisons serialize");
-        let network_intervention_bounds_improved = reference_network_interventions.iter()
+        let reference_network_intervention_bytes =
+            serde_json::to_vec(&reference_network_interventions)
+                .expect("network intervention comparisons serialize");
+        let network_intervention_bounds_improved = reference_network_interventions
+            .iter()
             .filter(|item| item.effect == NetworkInterventionEffect::BoundsImproved)
             .count();
-        let network_intervention_bounds_degraded = reference_network_interventions.iter()
+        let network_intervention_bounds_degraded = reference_network_interventions
+            .iter()
             .filter(|item| item.effect == NetworkInterventionEffect::BoundsDegraded)
             .count();
-        let network_intervention_possible_improvement_only = reference_network_interventions.iter()
+        let network_intervention_possible_improvement_only = reference_network_interventions
+            .iter()
             .filter(|item| item.effect == NetworkInterventionEffect::PossibleImprovementOnly)
             .count();
-        let network_intervention_possible_degradation_only = reference_network_interventions.iter()
+        let network_intervention_possible_degradation_only = reference_network_interventions
+            .iter()
             .filter(|item| item.effect == NetworkInterventionEffect::PossibleDegradationOnly)
             .count();
-        let network_intervention_conservative_bound_regressed = reference_network_interventions.iter()
+        let network_intervention_conservative_bound_regressed = reference_network_interventions
+            .iter()
             .filter(|item| item.effect == NetworkInterventionEffect::ConservativeBoundRegressed)
             .count();
-        let network_intervention_mixed_bound_movement = reference_network_interventions.iter()
+        let network_intervention_mixed_bound_movement = reference_network_interventions
+            .iter()
             .filter(|item| item.effect == NetworkInterventionEffect::MixedBoundMovement)
             .count();
-        let network_intervention_bounds_unchanged = reference_network_interventions.iter()
+        let network_intervention_bounds_unchanged = reference_network_interventions
+            .iter()
             .filter(|item| item.effect == NetworkInterventionEffect::BoundsUnchanged)
             .count();
-        let network_intervention_topology_incomplete = reference_network_interventions.iter()
+        let network_intervention_topology_incomplete = reference_network_interventions
+            .iter()
             .filter(|item| item.effect == NetworkInterventionEffect::TopologyIncomplete)
             .count();
         assert_eq!(network_intervention_bounds_improved, groups_count);
@@ -907,39 +921,59 @@ fn main() {
             _ => 40,
         };
         let (stress_request, stress_evidence) = stress_fixture(stress_active_links);
-        let reference_stress = assess_service_network_stress(
-            &stress_request,
-            &stress_evidence,
-        )
-        .expect("synthetic exhaustive network stress fixture must evaluate");
+        let reference_stress = assess_service_network_stress(&stress_request, &stress_evidence)
+            .expect("synthetic exhaustive network stress fixture must evaluate");
         let expected_stress_cases =
             stress_active_links + (stress_active_links * (stress_active_links - 1) / 2) + 1;
-        let expected_worst_sets =
-            stress_active_links * (stress_active_links - 1) / 2;
-        assert_eq!(reference_stress.candidate_failure_case_count, expected_stress_cases);
-        assert_eq!(reference_stress.evaluated_failure_case_count, expected_stress_cases);
+        let expected_worst_sets = stress_active_links * (stress_active_links - 1) / 2;
+        assert_eq!(
+            reference_stress.candidate_failure_case_count,
+            expected_stress_cases
+        );
+        assert_eq!(
+            reference_stress.evaluated_failure_case_count,
+            expected_stress_cases
+        );
         assert_eq!(reference_stress.declared_failure_set_count, 1);
         assert!(reference_stress.exhaustive);
-        let declared_common_cause = reference_stress.cases.iter().find(|case| {
-            case.origin == ServiceNetworkFailureCaseOrigin::DeclaredCommonCause
-                && case.failure_set_id.as_deref() == Some("shared-trunk:declared-common-cause")
-        }).expect("declared common-cause bundle is present");
-        assert_eq!(declared_common_cause.failed_link_ids, vec!["stress-link-0000", "stress-link-0001"]);
-        assert_eq!(declared_common_cause.assessment.conservative_available_capacity,
-            (stress_active_links - 2) as f64);
-        assert_eq!(reference_stress.baseline.conservative_available_capacity, stress_active_links as f64);
-        assert_eq!(reference_stress.worst_case_conservative_capacity, (stress_active_links - 2) as f64);
+        let declared_common_cause = reference_stress
+            .cases
+            .iter()
+            .find(|case| {
+                case.origin == ServiceNetworkFailureCaseOrigin::DeclaredCommonCause
+                    && case.failure_set_id.as_deref() == Some("shared-trunk:declared-common-cause")
+            })
+            .expect("declared common-cause bundle is present");
+        assert_eq!(
+            declared_common_cause.failed_link_ids,
+            vec!["stress-link-0000", "stress-link-0001"]
+        );
+        assert_eq!(
+            declared_common_cause
+                .assessment
+                .conservative_available_capacity,
+            (stress_active_links - 2) as f64
+        );
+        assert_eq!(
+            reference_stress.baseline.conservative_available_capacity,
+            stress_active_links as f64
+        );
+        assert_eq!(
+            reference_stress.worst_case_conservative_capacity,
+            (stress_active_links - 2) as f64
+        );
         assert_eq!(reference_stress.worst_case_conservative_capacity_loss, 2.0);
-        assert_eq!(reference_stress.worst_case_conservative_failure_sets.len(), expected_worst_sets);
+        assert_eq!(
+            reference_stress.worst_case_conservative_failure_sets.len(),
+            expected_worst_sets
+        );
         let reference_stress_bytes =
             serde_json::to_vec(&reference_stress).expect("stress report serializes");
 
         let (recovery_trajectory, recovery_evidence) = recovery_fixture(groups_count);
-        let reference_recovery = assess_service_recovery_trajectory(
-            &recovery_trajectory,
-            &recovery_evidence,
-        )
-        .expect("synthetic recovery trajectory must evaluate");
+        let reference_recovery =
+            assess_service_recovery_trajectory(&recovery_trajectory, &recovery_evidence)
+                .expect("synthetic recovery trajectory must evaluate");
         assert_eq!(reference_recovery.sample_count, groups_count);
         assert_eq!(
             reference_recovery.first_adequate_sample_elapsed_seconds,
@@ -969,30 +1003,43 @@ fn main() {
         let reference_portfolio = compare_service_network_portfolio(&portfolio_request, &[])
             .expect("synthetic Pareto portfolio must evaluate");
         assert_eq!(reference_portfolio.plans.len(), portfolio_plan_count);
-        assert!(reference_portfolio.plans.iter().all(|plan| plan.pareto_front >= 1));
-        assert!(reference_portfolio.plans.iter().any(|plan| plan.pareto_front == 1));
-        assert!(reference_portfolio.plans.iter().any(|plan| plan.pareto_front > 1));
+        assert!(
+            reference_portfolio
+                .plans
+                .iter()
+                .all(|plan| plan.pareto_front >= 1)
+        );
+        assert!(
+            reference_portfolio
+                .plans
+                .iter()
+                .any(|plan| plan.pareto_front == 1)
+        );
+        assert!(
+            reference_portfolio
+                .plans
+                .iter()
+                .any(|plan| plan.pareto_front > 1)
+        );
         assert!(reference_portfolio.plans.iter().all(|plan| {
-            plan.pareto_dominated_by_plan_ids.windows(2)
+            plan.pareto_dominated_by_plan_ids
+                .windows(2)
                 .all(|pair| pair[0] < pair[1])
         }));
         let reference_portfolio_bytes =
             serde_json::to_vec(&reference_portfolio).expect("portfolio comparison serializes");
 
         for _ in 0..warmup_iterations {
-            let result = compare_intervention(
-                &graph,
-                &groups,
-                &baseline,
-                &intervention,
-                &evidence_records,
-            )
-            .expect("synthetic fixture must evaluate");
+            let result =
+                compare_intervention(&graph, &groups, &baseline, &intervention, &evidence_records)
+                    .expect("synthetic fixture must evaluate");
             assert_eq!(result.summary.recovered, groups_count);
-            assert!(result
-                .group_deltas
-                .iter()
-                .all(|delta| delta.with_intervention.state == DependencyGroupState::Satisfied));
+            assert!(
+                result
+                    .group_deltas
+                    .iter()
+                    .all(|delta| delta.with_intervention.state == DependencyGroupState::Satisfied)
+            );
             assert_eq!(
                 serde_json::to_vec(&result).expect("comparison serializes"),
                 reference_bytes
@@ -1003,22 +1050,17 @@ fn main() {
                 &common_cause_evidence,
             )
             .expect("synthetic common-cause fixture must evaluate");
-            let overlaps = correlate_common_cause_with_dependency_groups(
-                &common,
-                &intervention_groups,
-            )
-            .expect("same-time synthetic assessments must correlate");
+            let overlaps =
+                correlate_common_cause_with_dependency_groups(&common, &intervention_groups)
+                    .expect("same-time synthetic assessments must correlate");
             assert_eq!(overlaps.len(), groups_count);
             assert_eq!(
                 serde_json::to_vec(&overlaps).expect("overlaps serialize"),
                 reference_overlap_bytes
             );
 
-            let functional = assess_service_functions(
-                &functional_scenarios,
-                &functional_evidence,
-            )
-            .expect("synthetic functional-adequacy fixtures must evaluate");
+            let functional = assess_service_functions(&functional_scenarios, &functional_evidence)
+                .expect("synthetic functional-adequacy fixtures must evaluate");
             assert_eq!(functional.len(), groups_count);
             assert!(functional.iter().all(|assessment| {
                 assessment.state == ServiceFunctionState::Degraded
@@ -1031,11 +1073,8 @@ fn main() {
                 reference_functional_bytes
             );
 
-            let networks = assess_service_capacity_networks(
-                &network_scenarios,
-                &network_evidence,
-            )
-            .expect("synthetic capacity network fixtures must evaluate");
+            let networks = assess_service_capacity_networks(&network_scenarios, &network_evidence)
+                .expect("synthetic capacity network fixtures must evaluate");
             assert_eq!(networks.len(), groups_count);
             assert!(networks.iter().all(|assessment| {
                 assessment.state == NetworkAssessmentState::Degraded
@@ -1064,15 +1103,13 @@ fn main() {
                         .any(|id| id.ends_with("-supply"))
             }));
             assert_eq!(
-                serde_json::to_vec(&comparisons).expect("network intervention comparisons serialize"),
+                serde_json::to_vec(&comparisons)
+                    .expect("network intervention comparisons serialize"),
                 reference_network_intervention_bytes
             );
 
-            let stress = assess_service_network_stress(
-                &stress_request,
-                &stress_evidence,
-            )
-            .expect("synthetic exhaustive network stress fixture must evaluate");
+            let stress = assess_service_network_stress(&stress_request, &stress_evidence)
+                .expect("synthetic exhaustive network stress fixture must evaluate");
             assert_eq!(stress.candidate_failure_case_count, expected_stress_cases);
             assert_eq!(stress.evaluated_failure_case_count, expected_stress_cases);
             assert_eq!(stress.declared_failure_set_count, 1);
@@ -1080,18 +1117,17 @@ fn main() {
             assert!(stress.cases.iter().any(|case| {
                 case.origin == ServiceNetworkFailureCaseOrigin::DeclaredCommonCause
                     && case.failed_link_ids == vec!["stress-link-0000", "stress-link-0001"]
-                    && case.assessment.conservative_available_capacity == (stress_active_links - 2) as f64
+                    && case.assessment.conservative_available_capacity
+                        == (stress_active_links - 2) as f64
             }));
             assert_eq!(
                 serde_json::to_vec(&stress).expect("stress report serializes"),
                 reference_stress_bytes
             );
 
-            let recovery = assess_service_recovery_trajectory(
-                &recovery_trajectory,
-                &recovery_evidence,
-            )
-            .expect("synthetic recovery trajectory must evaluate");
+            let recovery =
+                assess_service_recovery_trajectory(&recovery_trajectory, &recovery_evidence)
+                    .expect("synthetic recovery trajectory must evaluate");
             assert_eq!(
                 serde_json::to_vec(&recovery).expect("recovery trajectory serializes"),
                 reference_recovery_bytes
@@ -1118,14 +1154,9 @@ fn main() {
         let mut recovered = 0;
         for _ in 0..measured_iterations {
             let start = Instant::now();
-            let result = compare_intervention(
-                &graph,
-                &groups,
-                &baseline,
-                &intervention,
-                &evidence_records,
-            )
-            .expect("synthetic fixture must evaluate");
+            let result =
+                compare_intervention(&graph, &groups, &baseline, &intervention, &evidence_records)
+                    .expect("synthetic fixture must evaluate");
             samples.push(start.elapsed());
             recovered = result.summary.recovered;
             assert_eq!(recovered, groups_count);
@@ -1141,11 +1172,9 @@ fn main() {
                 &common_cause_evidence,
             )
             .expect("synthetic common-cause fixture must evaluate");
-            let overlaps = correlate_common_cause_with_dependency_groups(
-                &common,
-                &intervention_groups,
-            )
-            .expect("same-time synthetic assessments must correlate");
+            let overlaps =
+                correlate_common_cause_with_dependency_groups(&common, &intervention_groups)
+                    .expect("same-time synthetic assessments must correlate");
             common_cause_samples.push(common_start.elapsed());
             assert_eq!(overlaps.len(), groups_count);
             assert_eq!(
@@ -1154,27 +1183,23 @@ fn main() {
             );
 
             let functional_start = Instant::now();
-            let functional = assess_service_functions(
-                &functional_scenarios,
-                &functional_evidence,
-            )
-            .expect("synthetic functional-adequacy fixtures must evaluate");
+            let functional = assess_service_functions(&functional_scenarios, &functional_evidence)
+                .expect("synthetic functional-adequacy fixtures must evaluate");
             functional_samples.push(functional_start.elapsed());
             assert_eq!(functional.len(), groups_count);
-            assert!(functional
-                .iter()
-                .all(|assessment| assessment.state == ServiceFunctionState::Degraded));
+            assert!(
+                functional
+                    .iter()
+                    .all(|assessment| assessment.state == ServiceFunctionState::Degraded)
+            );
             assert_eq!(
                 serde_json::to_vec(&functional).expect("functional assessments serialize"),
                 reference_functional_bytes
             );
 
             let network_start = Instant::now();
-            let networks = assess_service_capacity_networks(
-                &network_scenarios,
-                &network_evidence,
-            )
-            .expect("synthetic capacity network fixtures must evaluate");
+            let networks = assess_service_capacity_networks(&network_scenarios, &network_evidence)
+                .expect("synthetic capacity network fixtures must evaluate");
             network_samples.push(network_start.elapsed());
             assert_eq!(networks.len(), groups_count);
             assert!(networks.iter().all(|assessment| {
@@ -1201,16 +1226,14 @@ fn main() {
                     && comparison.optimistic_capacity_delta == 3.0
             }));
             assert_eq!(
-                serde_json::to_vec(&comparisons).expect("network intervention comparisons serialize"),
+                serde_json::to_vec(&comparisons)
+                    .expect("network intervention comparisons serialize"),
                 reference_network_intervention_bytes
             );
 
             let stress_start = Instant::now();
-            let stress = assess_service_network_stress(
-                &stress_request,
-                &stress_evidence,
-            )
-            .expect("synthetic exhaustive network stress fixture must evaluate");
+            let stress = assess_service_network_stress(&stress_request, &stress_evidence)
+                .expect("synthetic exhaustive network stress fixture must evaluate");
             stress_samples.push(stress_start.elapsed());
             assert_eq!(stress.candidate_failure_case_count, expected_stress_cases);
             assert_eq!(stress.evaluated_failure_case_count, expected_stress_cases);
@@ -1221,11 +1244,9 @@ fn main() {
             );
 
             let recovery_start = Instant::now();
-            let recovery = assess_service_recovery_trajectory(
-                &recovery_trajectory,
-                &recovery_evidence,
-            )
-            .expect("synthetic recovery trajectory must evaluate");
+            let recovery =
+                assess_service_recovery_trajectory(&recovery_trajectory, &recovery_evidence)
+                    .expect("synthetic recovery trajectory must evaluate");
             recovery_samples.push(recovery_start.elapsed());
             assert_eq!(recovery.sample_count, groups_count);
             assert_eq!(
@@ -1293,7 +1314,11 @@ fn main() {
             network_result_bytes: reference_network_bytes.len(),
             network_p50_micros: percentile(&network_samples, 50).as_micros(),
             network_p95_micros: percentile(&network_samples, 95).as_micros(),
-            network_max_micros: network_samples.last().copied().unwrap_or_default().as_micros(),
+            network_max_micros: network_samples
+                .last()
+                .copied()
+                .unwrap_or_default()
+                .as_micros(),
             network_interventions_per_run: reference_network_interventions.len(),
             network_intervention_bounds_improved,
             network_intervention_bounds_degraded,
@@ -1304,8 +1329,10 @@ fn main() {
             network_intervention_bounds_unchanged,
             network_intervention_topology_incomplete,
             network_intervention_result_bytes: reference_network_intervention_bytes.len(),
-            network_intervention_p50_micros: percentile(&network_intervention_samples, 50).as_micros(),
-            network_intervention_p95_micros: percentile(&network_intervention_samples, 95).as_micros(),
+            network_intervention_p50_micros: percentile(&network_intervention_samples, 50)
+                .as_micros(),
+            network_intervention_p95_micros: percentile(&network_intervention_samples, 95)
+                .as_micros(),
             network_intervention_max_micros: network_intervention_samples
                 .last()
                 .copied()
@@ -1314,28 +1341,48 @@ fn main() {
             recovery_samples_per_run: reference_recovery.sample_count,
             recovery_evidence_records: recovery_evidence.len(),
             recovery_result_bytes: reference_recovery_bytes.len(),
-            recovery_first_adequate_elapsed_seconds: reference_recovery.first_adequate_sample_elapsed_seconds,
-            recovery_normalized_deficit_seconds: reference_recovery.normalized_deficit_seconds_lower_bound,
+            recovery_first_adequate_elapsed_seconds: reference_recovery
+                .first_adequate_sample_elapsed_seconds,
+            recovery_normalized_deficit_seconds: reference_recovery
+                .normalized_deficit_seconds_lower_bound,
             recovery_p50_micros: percentile(&recovery_samples, 50).as_micros(),
             recovery_p95_micros: percentile(&recovery_samples, 95).as_micros(),
-            recovery_max_micros: recovery_samples.last().copied().unwrap_or_default().as_micros(),
+            recovery_max_micros: recovery_samples
+                .last()
+                .copied()
+                .unwrap_or_default()
+                .as_micros(),
             stress_active_links,
             stress_failure_cases_per_run: reference_stress.evaluated_failure_case_count,
             stress_evidence_records: stress_evidence.len(),
             stress_result_bytes: reference_stress_bytes.len(),
             stress_p50_micros: percentile(&stress_samples, 50).as_micros(),
             stress_p95_micros: percentile(&stress_samples, 95).as_micros(),
-            stress_max_micros: stress_samples.last().copied().unwrap_or_default().as_micros(),
+            stress_max_micros: stress_samples
+                .last()
+                .copied()
+                .unwrap_or_default()
+                .as_micros(),
             portfolio_plans_per_run: reference_portfolio.plans.len(),
             portfolio_scenarios_per_run: reference_portfolio.scenario_count,
-            portfolio_pareto_front_one_count: reference_portfolio.plans.iter()
-                .filter(|plan| plan.pareto_front == 1).count(),
-            portfolio_dominated_plan_count: reference_portfolio.plans.iter()
-                .filter(|plan| plan.pareto_front > 1).count(),
+            portfolio_pareto_front_one_count: reference_portfolio
+                .plans
+                .iter()
+                .filter(|plan| plan.pareto_front == 1)
+                .count(),
+            portfolio_dominated_plan_count: reference_portfolio
+                .plans
+                .iter()
+                .filter(|plan| plan.pareto_front > 1)
+                .count(),
             portfolio_result_bytes: reference_portfolio_bytes.len(),
             portfolio_p50_micros: percentile(&portfolio_samples, 50).as_micros(),
             portfolio_p95_micros: percentile(&portfolio_samples, 95).as_micros(),
-            portfolio_max_micros: portfolio_samples.last().copied().unwrap_or_default().as_micros(),
+            portfolio_max_micros: portfolio_samples
+                .last()
+                .copied()
+                .unwrap_or_default()
+                .as_micros(),
         };
         println!(
             "{}",

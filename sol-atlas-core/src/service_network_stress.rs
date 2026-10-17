@@ -9,12 +9,11 @@
 //! to a caller-declared case budget; it never silently samples or truncates cases.
 //! Scenario counts are stress-test cases, not failure probabilities.
 
-use crate::service_network::{
-    assess_service_capacity_networks, NetworkLinkAvailability,
-    NetworkTopologyCompleteness, ServiceCapacityNetworkAssessment, ServiceCapacityNetworkError,
-    ServiceCapacityNetworkScenario,
-};
 use crate::dependency_logic::ScenarioBasis;
+use crate::service_network::{
+    NetworkLinkAvailability, NetworkTopologyCompleteness, ServiceCapacityNetworkAssessment,
+    ServiceCapacityNetworkError, ServiceCapacityNetworkScenario, assess_service_capacity_networks,
+};
 use crate::spatial_economic::EvidenceRecord;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -159,7 +158,6 @@ struct FailureCaseSpec {
     failed_link_ids: Vec<String>,
 }
 
-
 /// Enumerate all single-, double-, or triple-link failures within an explicit budget.
 ///
 /// Requires a complete topology. Each forced outage is explicitly tagged as an
@@ -186,9 +184,7 @@ pub fn assess_service_network_stress(
     } else if request.max_simultaneous_failures > MAX_SIMULTANEOUS_LINK_FAILURES {
         errors.push(ServiceNetworkStressValidationError::FailureOrderTooLarge);
     }
-    if request.max_failure_cases == 0
-        || request.max_failure_cases > MAX_EXHAUSTIVE_FAILURE_CASES
-    {
+    if request.max_failure_cases == 0 || request.max_failure_cases > MAX_EXHAUSTIVE_FAILURE_CASES {
         errors.push(ServiceNetworkStressValidationError::InvalidFailureCaseBudget);
     }
     if !errors.is_empty() {
@@ -197,7 +193,10 @@ pub fn assess_service_network_stress(
 
     let mut availability_by_link_id = BTreeMap::new();
     for link in &request.baseline_scenario.links {
-        if availability_by_link_id.insert(link.id.as_str(), link.availability).is_some() {
+        if availability_by_link_id
+            .insert(link.id.as_str(), link.availability)
+            .is_some()
+        {
             errors.push(ServiceNetworkStressValidationError::DuplicateBaselineLinkId);
         }
     }
@@ -224,7 +223,9 @@ pub fn assess_service_network_stress(
                 errors.push(ServiceNetworkStressValidationError::DuplicateDeclaredFailureLinkId);
             }
             match availability_by_link_id.get(link_id.as_str()) {
-                None => errors.push(ServiceNetworkStressValidationError::UnknownDeclaredFailureLinkId),
+                None => {
+                    errors.push(ServiceNetworkStressValidationError::UnknownDeclaredFailureLinkId)
+                }
                 Some(availability) if *availability == NetworkLinkAvailability::Inactive => {
                     errors.push(
                         ServiceNetworkStressValidationError::AlreadyInactiveDeclaredFailureLinkId,
@@ -238,7 +239,10 @@ pub fn assess_service_network_stress(
         return Err(ServiceNetworkStressError::InvalidInput(errors));
     }
 
-    let mut active_link_ids: Vec<String> = request.baseline_scenario.links.iter()
+    let mut active_link_ids: Vec<String> = request
+        .baseline_scenario
+        .links
+        .iter()
         .filter(|link| link.availability == NetworkLinkAvailability::Active)
         .map(|link| link.id.clone())
         .collect();
@@ -266,8 +270,7 @@ pub fn assess_service_network_stress(
             ServiceNetworkStressValidationError::ScenarioBudgetExceeded,
         ]));
     };
-    if candidate_count > request.max_failure_cases
-        || candidate_count > MAX_EXHAUSTIVE_FAILURE_CASES
+    if candidate_count > request.max_failure_cases || candidate_count > MAX_EXHAUSTIVE_FAILURE_CASES
     {
         return Err(ServiceNetworkStressError::InvalidInput(vec![
             ServiceNetworkStressValidationError::ScenarioBudgetExceeded,
@@ -278,8 +281,7 @@ pub fn assess_service_network_stress(
             ServiceNetworkStressValidationError::ScenarioBudgetExceeded,
         ]));
     };
-    let modeled_link_references = scenario_count
-        .checked_mul(request.baseline_scenario.links.len());
+    let modeled_link_references = scenario_count.checked_mul(request.baseline_scenario.links.len());
     if modeled_link_references.is_none_or(|count| count > MAX_STRESS_CASE_LINK_REFERENCES) {
         return Err(ServiceNetworkStressError::InvalidInput(vec![
             ServiceNetworkStressValidationError::ScenarioMemoryBudgetExceeded,
@@ -290,13 +292,7 @@ pub fn assess_service_network_stress(
     let maximum_order = request.max_simultaneous_failures.min(active_link_ids.len());
     for order in 1..=maximum_order {
         let mut selected = Vec::with_capacity(order);
-        append_combinations(
-            &active_link_ids,
-            order,
-            0,
-            &mut selected,
-            &mut failure_sets,
-        );
+        append_combinations(&active_link_ids, order, 0, &mut selected, &mut failure_sets);
     }
     if failure_sets.len() != link_combination_count {
         return Err(ServiceNetworkStressError::InvalidInput(vec![
@@ -389,7 +385,8 @@ pub fn assess_service_network_stress(
     // One shared evidence corpus/index for the baseline and every failure case.
     let assessments = assess_service_capacity_networks(&scenario_batch, evidence_records)
         .map_err(ServiceNetworkStressError::NetworkAssessment)?;
-    let mut by_id: BTreeMap<String, ServiceCapacityNetworkAssessment> = assessments.into_iter()
+    let mut by_id: BTreeMap<String, ServiceCapacityNetworkAssessment> = assessments
+        .into_iter()
         .map(|assessment| (assessment.scenario_id.clone(), assessment))
         .collect();
     let mut baseline = by_id.remove(&baseline_key).ok_or_else(|| {
@@ -412,7 +409,8 @@ pub fn assess_service_network_stress(
             ]));
         };
 
-        let scale = baseline_conservative.abs()
+        let scale = baseline_conservative
+            .abs()
             .max(assessment.conservative_available_capacity.abs())
             .max(1.0);
         let tolerance = FAILURE_TIE_RELATIVE_TOLERANCE * scale;
@@ -421,7 +419,8 @@ pub fn assess_service_network_stress(
                 ServiceNetworkStressValidationError::NonMonotonicConservativeFlow,
             ]));
         }
-        let optimistic_scale = baseline_optimistic.abs()
+        let optimistic_scale = baseline_optimistic
+            .abs()
             .max(assessment.optimistic_available_capacity.abs())
             .max(1.0);
         if assessment.optimistic_available_capacity
@@ -457,12 +456,24 @@ pub fn assess_service_network_stress(
         ]));
     }
 
-    let mut worst_case_conservative_failure_sets: Vec<Vec<String>> = cases.iter()
-        .filter(|case| capacities_tie(case.assessment.conservative_available_capacity, worst_conservative))
+    let mut worst_case_conservative_failure_sets: Vec<Vec<String>> = cases
+        .iter()
+        .filter(|case| {
+            capacities_tie(
+                case.assessment.conservative_available_capacity,
+                worst_conservative,
+            )
+        })
         .map(|case| case.failed_link_ids.clone())
         .collect();
-    let mut worst_case_optimistic_failure_sets: Vec<Vec<String>> = cases.iter()
-        .filter(|case| capacities_tie(case.assessment.optimistic_available_capacity, worst_optimistic))
+    let mut worst_case_optimistic_failure_sets: Vec<Vec<String>> = cases
+        .iter()
+        .filter(|case| {
+            capacities_tie(
+                case.assessment.optimistic_available_capacity,
+                worst_optimistic,
+            )
+        })
         .map(|case| case.failed_link_ids.clone())
         .collect();
     worst_case_conservative_failure_sets.sort();
@@ -486,7 +497,8 @@ pub fn assess_service_network_stress(
         baseline,
         worst_case_conservative_capacity: worst_conservative,
         worst_case_optimistic_capacity: worst_optimistic,
-        worst_case_conservative_capacity_loss: (baseline_conservative - worst_conservative).max(0.0),
+        worst_case_conservative_capacity_loss: (baseline_conservative - worst_conservative)
+            .max(0.0),
         worst_case_optimistic_capacity_loss: (baseline_optimistic - worst_optimistic).max(0.0),
         worst_case_conservative_failure_sets,
         worst_case_optimistic_failure_sets,
@@ -495,15 +507,10 @@ pub fn assess_service_network_stress(
 }
 
 fn capacities_tie(left: f64, right: f64) -> bool {
-    (left - right).abs()
-        <= FAILURE_TIE_RELATIVE_TOLERANCE * left.abs().max(right.abs()).max(1.0)
+    (left - right).abs() <= FAILURE_TIE_RELATIVE_TOLERANCE * left.abs().max(right.abs()).max(1.0)
 }
 
-fn count_failure_combinations(
-    link_count: usize,
-    max_order: usize,
-    cap: usize,
-) -> Option<usize> {
+fn count_failure_combinations(link_count: usize, max_order: usize, cap: usize) -> Option<usize> {
     let mut total = 0usize;
     for order in 1..=max_order.min(link_count) {
         let count = bounded_binomial(link_count, order, cap)?;
@@ -554,24 +561,37 @@ fn append_combinations(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::service_network::{NetworkLink, NetworkLinkAvailability, NetworkTopologyCompleteness, ServiceCapacityNetworkScenario, SERVICE_NETWORK_SCHEMA_VERSION};
     use crate::service_function::FunctionMeasurement;
+    use crate::service_network::{
+        NetworkLink, NetworkLinkAvailability, NetworkTopologyCompleteness,
+        SERVICE_NETWORK_SCHEMA_VERSION, ServiceCapacityNetworkScenario,
+    };
     use crate::spatial_economic::{
-        EvidenceKind, EvidenceRecord, EvidenceState, Provenance, SpatialContext, TimeContext,
-        Quantity, EVIDENCE_SCHEMA_VERSION,
+        EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceRecord, EvidenceState, Provenance, Quantity,
+        SpatialContext, TimeContext,
     };
 
     fn measurement(entity_id: &str, value: f64) -> FunctionMeasurement {
         FunctionMeasurement {
             entity_id: entity_id.into(),
-            quantity: Quantity { value, unit: "m3/h".into(), uncertainty_abs: Some(0.0) },
+            quantity: Quantity {
+                value,
+                unit: "m3/h".into(),
+                uncertainty_abs: Some(0.0),
+            },
             basis: ScenarioBasis::Assumed,
             rationale: "Synthetic stress test assumption".into(),
             supporting_evidence_ids: Vec::new(),
         }
     }
 
-    fn link(id: &str, from: &str, to: &str, capacity: f64, availability: NetworkLinkAvailability) -> NetworkLink {
+    fn link(
+        id: &str,
+        from: &str,
+        to: &str,
+        capacity: f64,
+        availability: NetworkLinkAvailability,
+    ) -> NetworkLink {
         NetworkLink {
             id: id.into(),
             from_entity_id: from.into(),
@@ -597,11 +617,41 @@ mod tests {
                 source_entity_ids: vec!["source:reservoir".into()],
                 required_capacity: measurement("service:water", 8.0),
                 links: vec![
-                    link("supply", "source:reservoir", "junction", 10.0, NetworkLinkAvailability::Active),
-                    link("route-a", "junction", "service:water", 4.0, NetworkLinkAvailability::Active),
-                    link("route-b", "junction", "service:water", 3.0, NetworkLinkAvailability::Active),
-                    link("uncertain", "junction", "service:water", 2.0, NetworkLinkAvailability::Unknown),
-                    link("closed", "junction", "service:water", 100.0, NetworkLinkAvailability::Inactive),
+                    link(
+                        "supply",
+                        "source:reservoir",
+                        "junction",
+                        10.0,
+                        NetworkLinkAvailability::Active,
+                    ),
+                    link(
+                        "route-a",
+                        "junction",
+                        "service:water",
+                        4.0,
+                        NetworkLinkAvailability::Active,
+                    ),
+                    link(
+                        "route-b",
+                        "junction",
+                        "service:water",
+                        3.0,
+                        NetworkLinkAvailability::Active,
+                    ),
+                    link(
+                        "uncertain",
+                        "junction",
+                        "service:water",
+                        2.0,
+                        NetworkLinkAvailability::Unknown,
+                    ),
+                    link(
+                        "closed",
+                        "junction",
+                        "service:water",
+                        100.0,
+                        NetworkLinkAvailability::Inactive,
+                    ),
                 ],
             },
             max_simultaneous_failures: order,
@@ -619,7 +669,10 @@ mod tests {
         assert_eq!(result.baseline.conservative_available_capacity, 7.0);
         assert_eq!(result.worst_case_conservative_capacity, 0.0);
         assert_eq!(result.worst_case_conservative_capacity_loss, 7.0);
-        assert_eq!(result.worst_case_conservative_failure_sets, vec![vec!["supply".to_owned()]]);
+        assert_eq!(
+            result.worst_case_conservative_failure_sets,
+            vec![vec!["supply".to_owned()]]
+        );
     }
 
     #[test]
@@ -628,7 +681,12 @@ mod tests {
         assert_eq!(result.candidate_failure_case_count, 6);
         assert_eq!(result.evaluated_failure_case_count, 6);
         assert!(result.exhaustive);
-        assert!(result.cases.iter().all(|case| case.failed_link_ids.len() <= 2));
+        assert!(
+            result
+                .cases
+                .iter()
+                .all(|case| case.failed_link_ids.len() <= 2)
+        );
         assert_eq!(result.cases[3].failed_link_ids, vec!["route-a", "route-b"]);
     }
 
@@ -636,8 +694,18 @@ mod tests {
     fn unknown_and_inactive_links_are_not_failure_candidates() {
         let result = assess_service_network_stress(&request(3, 10), &[]).unwrap();
         assert_eq!(result.active_link_count, 3);
-        assert!(result.cases.iter().all(|case| !case.failed_link_ids.contains(&"uncertain".to_owned())));
-        assert!(result.cases.iter().all(|case| !case.failed_link_ids.contains(&"closed".to_owned())));
+        assert!(
+            result
+                .cases
+                .iter()
+                .all(|case| !case.failed_link_ids.contains(&"uncertain".to_owned()))
+        );
+        assert!(
+            result
+                .cases
+                .iter()
+                .all(|case| !case.failed_link_ids.contains(&"closed".to_owned()))
+        );
     }
 
     #[test]
@@ -739,9 +807,17 @@ mod tests {
         };
 
         let result = assess_service_network_stress(&input, &[evidence]).unwrap();
-        assert_eq!(result.baseline.availability_evidence_ids, vec!["ev:supply-active"]);
+        assert_eq!(
+            result.baseline.availability_evidence_ids,
+            vec!["ev:supply-active"]
+        );
         assert_eq!(result.cases.len(), 1);
-        assert!(result.cases[0].assessment.availability_evidence_ids.is_empty());
+        assert!(
+            result.cases[0]
+                .assessment
+                .availability_evidence_ids
+                .is_empty()
+        );
         assert_eq!(result.cases[0].failed_link_ids, vec!["supply"]);
     }
 
@@ -761,10 +837,15 @@ mod tests {
         assert_eq!(result.declared_failure_set_count, 1);
         assert!(result.exhaustive);
 
-        let bundle = result.cases.iter()
+        let bundle = result
+            .cases
+            .iter()
             .find(|case| case.failure_set_id.as_deref() == Some("shared-feeder:outage"))
             .unwrap();
-        assert_eq!(bundle.origin, ServiceNetworkFailureCaseOrigin::DeclaredCommonCause);
+        assert_eq!(
+            bundle.origin,
+            ServiceNetworkFailureCaseOrigin::DeclaredCommonCause
+        );
         assert_eq!(bundle.failed_link_ids, vec!["route-a", "route-b"]);
         assert_eq!(bundle.assessment.conservative_available_capacity, 0.0);
         assert_eq!(bundle.conservative_capacity_loss, 7.0);

@@ -225,7 +225,10 @@ impl EvidenceRecord {
             if !quantity.value.is_finite() {
                 errors.push(ContractError::NonFiniteQuantity);
             }
-            if quantity.uncertainty_abs.is_some_and(|v| !v.is_finite() || v < 0.0) {
+            if quantity
+                .uncertainty_abs
+                .is_some_and(|v| !v.is_finite() || v < 0.0)
+            {
                 errors.push(ContractError::InvalidUncertainty);
             }
         }
@@ -334,7 +337,12 @@ mod tests {
     fn rejects_geometry_without_crs() {
         let mut record = valid_record();
         record.spatial.crs = None;
-        assert!(record.validate().unwrap_err().contains(&ContractError::GeometryMissingCrs));
+        assert!(
+            record
+                .validate()
+                .unwrap_err()
+                .contains(&ContractError::GeometryMissingCrs)
+        );
     }
 
     #[test]
@@ -440,17 +448,20 @@ mod tests {
         ];
         for (name, state) in expected_states {
             assert!(states.contains(&serde_json::json!(name)));
-            assert_eq!(serde_json::to_value(state).unwrap(), serde_json::json!(name));
+            assert_eq!(
+                serde_json::to_value(state).unwrap(),
+                serde_json::json!(name)
+            );
         }
 
         assert_eq!(
             schema["properties"]["schema_version"],
             serde_json::json!({"const": EVIDENCE_SCHEMA_VERSION})
         );
-        let money_pattern = schema["properties"]["money"]["properties"]["amount_decimal"]
-            ["pattern"]
-            .as_str()
-            .unwrap();
+        let money_pattern =
+            schema["properties"]["money"]["properties"]["amount_decimal"]["pattern"]
+                .as_str()
+                .unwrap();
         assert!(money_pattern.contains(r"(?:\.[0-9]+)?"));
     }
 
@@ -465,5 +476,4 @@ mod tests {
         assert!(record.statement.starts_with("SYNTHETIC EXAMPLE ONLY"));
         assert_eq!(record.validate(), Ok(()));
     }
-
 }

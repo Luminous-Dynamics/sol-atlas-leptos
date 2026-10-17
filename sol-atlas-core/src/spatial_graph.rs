@@ -82,7 +82,6 @@ pub enum DependencyQueryError {
     InvalidRelationValidity,
 }
 
-
 /// Evidence-gate outcome for one relationship. These are query-readiness labels,
 /// not truth scores and not a substitute for source independence review.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -428,7 +427,6 @@ impl DependencyGraph {
         })
     }
 
-
     /// Low-level traversal over graph structure without inspecting evidence state.
     ///
     /// Prefer `assess_dependents_at` for decision-support or operational use.
@@ -546,8 +544,11 @@ pub fn is_canonical_utc_timestamp(value: &str) -> bool {
     let minute = decimal_component(&bytes[14..16]);
     let second = decimal_component(&bytes[17..19]);
 
-    if year == 0 || !(1..=12).contains(&month) || !(0..=23).contains(&hour)
-        || !(0..=59).contains(&minute) || !(0..=59).contains(&second)
+    if year == 0
+        || !(1..=12).contains(&month)
+        || !(0..=23).contains(&hour)
+        || !(0..=59).contains(&minute)
+        || !(0..=59).contains(&second)
     {
         return false;
     }
@@ -573,8 +574,8 @@ fn decimal_component(bytes: &[u8]) -> u32 {
 mod tests {
     use super::*;
     use crate::spatial_economic::{
-        EvidenceKind, EvidenceState, Money, Provenance, Quantity, SourceArtifact, SpatialContext,
-        TimeContext, EVIDENCE_SCHEMA_VERSION,
+        EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceState, Money, Provenance, Quantity,
+        SourceArtifact, SpatialContext, TimeContext,
     };
 
     fn evidence(id: &str) -> EvidenceRecord {
@@ -597,8 +598,15 @@ mod tests {
                 valid_until: None,
             },
             statement: "Synthetic evidence record for a unit test".into(),
-            quantity: Some(Quantity { value: 1.0, unit: "item".into(), uncertainty_abs: None }),
-            money: Some(Money { amount_decimal: "1.00".into(), currency: "ZAR".into() }),
+            quantity: Some(Quantity {
+                value: 1.0,
+                unit: "item".into(),
+                uncertainty_abs: None,
+            }),
+            money: Some(Money {
+                amount_decimal: "1.00".into(),
+                currency: "ZAR".into(),
+            }),
             provenance: Provenance {
                 method: "synthetic_test".into(),
                 source_artifacts: vec![SourceArtifact {
@@ -752,30 +760,38 @@ mod tests {
 
     #[test]
     fn half_open_validity_windows_are_respected() {
-        let mut edge = relation(
-            "edge",
-            "pump",
-            RelationKind::SuppliedBy,
-            "feeder",
-            "ev",
-        );
+        let mut edge = relation("edge", "pump", RelationKind::SuppliedBy, "feeder", "ev");
         edge.valid_from = Some("2026-10-15T10:00:00Z".into());
         edge.valid_until = Some("2026-10-15T11:00:00Z".into());
-        let graph = DependencyGraph { relations: vec![edge] };
+        let graph = DependencyGraph {
+            relations: vec![edge],
+        };
         assert_eq!(
-            graph.affected_dependents_at("feeder", "2026-10-15T09:59:59Z").unwrap().len(),
+            graph
+                .affected_dependents_at("feeder", "2026-10-15T09:59:59Z")
+                .unwrap()
+                .len(),
             0
         );
         assert_eq!(
-            graph.affected_dependents_at("feeder", "2026-10-15T10:00:00Z").unwrap().len(),
+            graph
+                .affected_dependents_at("feeder", "2026-10-15T10:00:00Z")
+                .unwrap()
+                .len(),
             1
         );
         assert_eq!(
-            graph.affected_dependents_at("feeder", "2026-10-15T10:59:59Z").unwrap().len(),
+            graph
+                .affected_dependents_at("feeder", "2026-10-15T10:59:59Z")
+                .unwrap()
+                .len(),
             1
         );
         assert_eq!(
-            graph.affected_dependents_at("feeder", "2026-10-15T11:00:00Z").unwrap().len(),
+            graph
+                .affected_dependents_at("feeder", "2026-10-15T11:00:00Z")
+                .unwrap()
+                .len(),
             0
         );
     }
@@ -801,8 +817,12 @@ mod tests {
         );
         edge.valid_from = Some("2026-10-15T11:00:00Z".into());
         edge.valid_until = Some("2026-10-15T10:00:00Z".into());
-        let graph = DependencyGraph { relations: vec![edge] };
-        let errors = graph.validate(&[evidence("some-other-evidence")]).unwrap_err();
+        let graph = DependencyGraph {
+            relations: vec![edge],
+        };
+        let errors = graph
+            .validate(&[evidence("some-other-evidence")])
+            .unwrap_err();
         assert!(errors.contains(&GraphValidationError::UnknownEvidenceReference));
         assert!(errors.contains(&GraphValidationError::InvalidValidityWindow));
         assert_eq!(
@@ -816,8 +836,20 @@ mod tests {
         let valid_ev = evidence("ev-valid");
         let mut graph = DependencyGraph {
             relations: vec![
-                relation("edge", "pump", RelationKind::SuppliedBy, "feeder", "ev-valid"),
-                relation("edge", "pump", RelationKind::SuppliedBy, "feeder", "ev-valid"),
+                relation(
+                    "edge",
+                    "pump",
+                    RelationKind::SuppliedBy,
+                    "feeder",
+                    "ev-valid",
+                ),
+                relation(
+                    "edge",
+                    "pump",
+                    RelationKind::SuppliedBy,
+                    "feeder",
+                    "ev-valid",
+                ),
                 relation("", "", RelationKind::DependsOn, "", ""),
                 relation(
                     "missing-support",
@@ -895,20 +927,38 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec!["synthetic-pump-east", "synthetic-field-north"]
         );
-        assert!(!impacts.iter().any(|impact| impact.entity_id == "synthetic-warehouse"));
-        assert!(impacts[0]
-            .supporting_evidence_by_relation
-            .iter()
-            .flatten()
-            .any(|id| id == "synthetic-evidence-pump-power"));
+        assert!(
+            !impacts
+                .iter()
+                .any(|impact| impact.entity_id == "synthetic-warehouse")
+        );
+        assert!(
+            impacts[0]
+                .supporting_evidence_by_relation
+                .iter()
+                .flatten()
+                .any(|id| id == "synthetic-evidence-pump-power")
+        );
     }
 
     #[test]
     fn evidence_aware_query_propagates_only_admissible_edges_and_explains_path_state() {
         let graph = DependencyGraph {
             relations: vec![
-                relation("pump-feeder", "pump", RelationKind::SuppliedBy, "feeder", "ev-pump"),
-                relation("field-pump", "field", RelationKind::DependsOn, "pump", "ev-field"),
+                relation(
+                    "pump-feeder",
+                    "pump",
+                    RelationKind::SuppliedBy,
+                    "feeder",
+                    "ev-pump",
+                ),
+                relation(
+                    "field-pump",
+                    "field",
+                    RelationKind::DependsOn,
+                    "pump",
+                    "ev-field",
+                ),
                 relation(
                     "warehouse-feeder",
                     "warehouse",
@@ -957,7 +1007,10 @@ mod tests {
             .find(|assessment| assessment.relation_id == "warehouse-feeder")
             .unwrap();
         assert_eq!(warehouse.readiness, EvidenceReadiness::Blocked);
-        assert_eq!(warehouse.blockers[0].reason, EvidenceBlockReason::ProposedEvidence);
+        assert_eq!(
+            warehouse.blockers[0].reason,
+            EvidenceBlockReason::ProposedEvidence
+        );
     }
 
     #[test]
@@ -979,18 +1032,19 @@ mod tests {
         disputed.state = EvidenceState::Disputed;
 
         let report = graph
-            .assess_dependents_at(
-                "feeder",
-                "2026-10-15T10:00:00Z",
-                &[corroborated, disputed],
-            )
+            .assess_dependents_at("feeder", "2026-10-15T10:00:00Z", &[corroborated, disputed])
             .unwrap();
         assert!(report.impacts.is_empty());
-        assert_eq!(report.relation_assessments[0].readiness, EvidenceReadiness::Blocked);
-        assert!(report.relation_assessments[0]
-            .blockers
-            .iter()
-            .any(|blocker| blocker.reason == EvidenceBlockReason::DisputedEvidence));
+        assert_eq!(
+            report.relation_assessments[0].readiness,
+            EvidenceReadiness::Blocked
+        );
+        assert!(
+            report.relation_assessments[0]
+                .blockers
+                .iter()
+                .any(|blocker| blocker.reason == EvidenceBlockReason::DisputedEvidence)
+        );
     }
 
     #[test]
@@ -1009,11 +1063,7 @@ mod tests {
         expired.time.valid_until = Some("2026-10-10T00:00:00Z".into());
 
         let report = graph
-            .assess_dependents_at(
-                "feeder",
-                "2026-10-15T10:00:00Z",
-                &[expired],
-            )
+            .assess_dependents_at("feeder", "2026-10-15T10:00:00Z", &[expired])
             .unwrap();
         assert!(report.impacts.is_empty());
         assert_eq!(
@@ -1062,11 +1112,7 @@ mod tests {
         let mut invalid_record = evidence("ev-pump");
         invalid_record.issuer_id.clear();
         let invalid = graph
-            .assess_dependents_at(
-                "feeder",
-                "2026-10-15T10:00:00Z",
-                &[invalid_record],
-            )
+            .assess_dependents_at("feeder", "2026-10-15T10:00:00Z", &[invalid_record])
             .unwrap_err();
         assert!(matches!(
             invalid,
@@ -1089,11 +1135,7 @@ mod tests {
         let mut evidence_record = evidence("ev-pump");
         evidence_record.time.valid_from = Some("not-a-timestamp".into());
         let report = graph
-            .assess_dependents_at(
-                "feeder",
-                "2026-10-15T10:00:00Z",
-                &[evidence_record],
-            )
+            .assess_dependents_at("feeder", "2026-10-15T10:00:00Z", &[evidence_record])
             .unwrap();
         assert!(report.impacts.is_empty());
         assert_eq!(
@@ -1105,5 +1147,4 @@ mod tests {
             Err(DependencyAssessmentError::InvalidAsOfTimestamp)
         );
     }
-
 }

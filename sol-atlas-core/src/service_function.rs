@@ -257,8 +257,7 @@ fn assess_service_function_indexed(
         ServiceFunctionState::Indeterminate
     };
 
-    let coverage_ratio =
-        (requirement.value > 0.0).then(|| capacity.value / requirement.value);
+    let coverage_ratio = (requirement.value > 0.0).then(|| capacity.value / requirement.value);
     let coverage_lower_bound =
         (requirement_upper > 0.0).then(|| capacity_lower / requirement_upper);
     let coverage_upper_bound =
@@ -299,10 +298,7 @@ fn assess_service_function_indexed(
             .available_capacity
             .supporting_evidence_ids
             .clone(),
-        required_capacity_evidence_ids: scenario
-            .required_capacity
-            .supporting_evidence_ids
-            .clone(),
+        required_capacity_evidence_ids: scenario.required_capacity.supporting_evidence_ids.clone(),
         rationale: format!(
             "{}; {}",
             scenario.available_capacity.rationale, scenario.required_capacity.rationale
@@ -378,13 +374,16 @@ fn validate_measurement(
                     errors.push(ServiceFunctionValidationError::SupportingEvidenceSubjectMismatch);
                 }
                 match &record.quantity {
-                    None => errors.push(ServiceFunctionValidationError::SupportingEvidenceMissingQuantity),
+                    None => errors
+                        .push(ServiceFunctionValidationError::SupportingEvidenceMissingQuantity),
                     Some(quantity) => {
                         if quantity.value != measurement.quantity.value
                             || quantity.unit != measurement.quantity.unit
                             || quantity.uncertainty_abs != measurement.quantity.uncertainty_abs
                         {
-                            errors.push(ServiceFunctionValidationError::SupportingEvidenceQuantityMismatch);
+                            errors.push(
+                                ServiceFunctionValidationError::SupportingEvidenceQuantityMismatch,
+                            );
                         }
                     }
                 }
@@ -427,9 +426,7 @@ fn validate_evidence_validity(
         });
     if invalid {
         errors.push(ServiceFunctionValidationError::InvalidSupportingEvidenceValidity);
-    } else if start.is_some_and(|value| value > as_of)
-        || end.is_some_and(|value| as_of >= value)
-    {
+    } else if start.is_some_and(|value| value > as_of) || end.is_some_and(|value| as_of >= value) {
         errors.push(ServiceFunctionValidationError::OutsideSupportingEvidenceValidity);
     }
 }
@@ -438,8 +435,8 @@ fn validate_evidence_validity(
 mod tests {
     use super::*;
     use crate::spatial_economic::{
-        EvidenceKind, EvidenceState, Provenance, SpatialContext, TimeContext,
-        EVIDENCE_SCHEMA_VERSION,
+        EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceState, Provenance, SpatialContext,
+        TimeContext,
     };
 
     const AT: &str = "2026-10-16T09:00:00Z";
@@ -463,7 +460,10 @@ mod tests {
         }
     }
 
-    fn scenario(capacity: FunctionMeasurement, required: FunctionMeasurement) -> ServiceFunctionScenario {
+    fn scenario(
+        capacity: FunctionMeasurement,
+        required: FunctionMeasurement,
+    ) -> ServiceFunctionScenario {
         ServiceFunctionScenario {
             schema_version: SERVICE_FUNCTION_SCHEMA_VERSION.into(),
             id: "synthetic:service-capacity".into(),
@@ -519,7 +519,8 @@ mod tests {
                 measurement("service:irrigation", 10.0, "m3/h", None),
             ),
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.state, ServiceFunctionState::Adequate);
         assert_eq!(result.coverage_ratio, Some(1.0));
         assert_eq!(result.coverage_lower_bound, Some(1.0));
@@ -534,7 +535,8 @@ mod tests {
                 measurement("service:irrigation", 10.0, "m3/h", None),
             ),
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.state, ServiceFunctionState::Degraded);
         assert_eq!(result.coverage_ratio, Some(0.7));
         assert_eq!(result.available_capacity_value, 7.0);
@@ -548,7 +550,8 @@ mod tests {
                 measurement("service:irrigation", 10.0, "m3/h", None),
             ),
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.state, ServiceFunctionState::Unavailable);
         assert_eq!(result.coverage_ratio, Some(0.0));
     }
@@ -561,7 +564,8 @@ mod tests {
                 measurement("service:irrigation", 10.0, "m3/h", Some(0.5)),
             ),
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.state, ServiceFunctionState::Indeterminate);
         assert!(result.coverage_lower_bound.unwrap() < 1.0);
         assert!(result.coverage_upper_bound.unwrap() > 1.0);
@@ -575,7 +579,8 @@ mod tests {
                 measurement("service:irrigation", 10.0, "m3/h", Some(1.0)),
             ),
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.state, ServiceFunctionState::Adequate);
         assert_eq!(result.available_capacity_lower_bound, 11.0);
         assert_eq!(result.required_capacity_upper_bound, 11.0);
@@ -615,16 +620,32 @@ mod tests {
 
     #[test]
     fn observed_measurements_require_matching_admissible_evidence() {
-        let quantity = Quantity { value: 7.0, unit: "m3/h".into(), uncertainty_abs: Some(0.5) };
+        let quantity = Quantity {
+            value: 7.0,
+            unit: "m3/h".into(),
+            uncertainty_abs: Some(0.5),
+        };
         let mut capacity = measurement("asset:pump", 7.0, "m3/h", Some(0.5));
         capacity.basis = ScenarioBasis::Observed;
         capacity.supporting_evidence_ids = vec!["ev:pump-capacity".into()];
         let result = assess_service_function(
-            &scenario(capacity, measurement("service:irrigation", 10.0, "m3/h", None)),
-            &[evidence("ev:pump-capacity", "asset:pump", quantity, EvidenceState::Asserted)],
-        ).unwrap();
+            &scenario(
+                capacity,
+                measurement("service:irrigation", 10.0, "m3/h", None),
+            ),
+            &[evidence(
+                "ev:pump-capacity",
+                "asset:pump",
+                quantity,
+                EvidenceState::Asserted,
+            )],
+        )
+        .unwrap();
         assert_eq!(result.state, ServiceFunctionState::Degraded);
-        assert_eq!(result.available_capacity_evidence_ids, vec!["ev:pump-capacity"]);
+        assert_eq!(
+            result.available_capacity_evidence_ids,
+            vec!["ev:pump-capacity"]
+        );
     }
 
     #[test]
@@ -635,12 +656,19 @@ mod tests {
         let mut forecast = evidence(
             "ev:pump-capacity",
             "asset:pump",
-            Quantity { value: 7.0, unit: "m3/h".into(), uncertainty_abs: None },
+            Quantity {
+                value: 7.0,
+                unit: "m3/h".into(),
+                uncertainty_abs: None,
+            },
             EvidenceState::Asserted,
         );
         forecast.kind = EvidenceKind::Forecast;
         let result = assess_service_function(
-            &scenario(capacity, measurement("service:irrigation", 10.0, "m3/h", None)),
+            &scenario(
+                capacity,
+                measurement("service:irrigation", 10.0, "m3/h", None),
+            ),
             &[forecast],
         );
         assert!(matches!(
@@ -673,11 +701,18 @@ mod tests {
         capacity.basis = ScenarioBasis::Observed;
         capacity.supporting_evidence_ids = vec!["ev:pump-capacity".into()];
         let result = assess_service_function(
-            &scenario(capacity, measurement("service:irrigation", 10.0, "m3/h", None)),
+            &scenario(
+                capacity,
+                measurement("service:irrigation", 10.0, "m3/h", None),
+            ),
             &[evidence(
                 "ev:pump-capacity",
                 "asset:other-pump",
-                Quantity { value: 8.0, unit: "m3/h".into(), uncertainty_abs: None },
+                Quantity {
+                    value: 8.0,
+                    unit: "m3/h".into(),
+                    uncertainty_abs: None,
+                },
                 EvidenceState::Asserted,
             )],
         );
@@ -694,7 +729,11 @@ mod tests {
         let mut record = evidence(
             "ev:pump-capacity",
             "asset:pump",
-            Quantity { value: 7.0, unit: "m3/h".into(), uncertainty_abs: None },
+            Quantity {
+                value: 7.0,
+                unit: "m3/h".into(),
+                uncertainty_abs: None,
+            },
             EvidenceState::Asserted,
         );
         record.time.valid_until = Some("2026-10-16T08:00:00Z".into());
@@ -702,7 +741,10 @@ mod tests {
         capacity.basis = ScenarioBasis::Observed;
         capacity.supporting_evidence_ids = vec!["ev:pump-capacity".into()];
         let result = assess_service_function(
-            &scenario(capacity, measurement("service:irrigation", 10.0, "m3/h", None)),
+            &scenario(
+                capacity,
+                measurement("service:irrigation", 10.0, "m3/h", None),
+            ),
             &[record],
         );
         assert!(matches!(
@@ -717,7 +759,11 @@ mod tests {
         let mut record = evidence(
             "ev:pump-capacity",
             "asset:pump",
-            Quantity { value: 7.0, unit: "m3/h".into(), uncertainty_abs: None },
+            Quantity {
+                value: 7.0,
+                unit: "m3/h".into(),
+                uncertainty_abs: None,
+            },
             EvidenceState::Asserted,
         );
         record.time.recorded_at = "2026-10-16T10:00:00Z".into();
@@ -725,7 +771,10 @@ mod tests {
         capacity.basis = ScenarioBasis::Observed;
         capacity.supporting_evidence_ids = vec!["ev:pump-capacity".into()];
         let result = assess_service_function(
-            &scenario(capacity, measurement("service:irrigation", 10.0, "m3/h", None)),
+            &scenario(
+                capacity,
+                measurement("service:irrigation", 10.0, "m3/h", None),
+            ),
             &[record],
         );
         assert!(matches!(
@@ -740,7 +789,11 @@ mod tests {
         let mut record = evidence(
             "ev:pump-capacity",
             "asset:pump",
-            Quantity { value: 7.0, unit: "m3/h".into(), uncertainty_abs: None },
+            Quantity {
+                value: 7.0,
+                unit: "m3/h".into(),
+                uncertainty_abs: None,
+            },
             EvidenceState::Asserted,
         );
         record.time.occurred_at = "2026-10-16T09:00:00+00:00".into();
@@ -748,7 +801,10 @@ mod tests {
         capacity.basis = ScenarioBasis::Observed;
         capacity.supporting_evidence_ids = vec!["ev:pump-capacity".into()];
         let result = assess_service_function(
-            &scenario(capacity, measurement("service:irrigation", 10.0, "m3/h", None)),
+            &scenario(
+                capacity,
+                measurement("service:irrigation", 10.0, "m3/h", None),
+            ),
             &[record],
         );
         assert!(matches!(
@@ -766,7 +822,8 @@ mod tests {
                 measurement("service:irrigation", 0.0, "m3/h", None),
             ),
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.state, ServiceFunctionState::Adequate);
         assert_eq!(result.coverage_ratio, None);
         assert_eq!(result.coverage_upper_bound, None);
@@ -788,8 +845,13 @@ mod tests {
         second.service_entity_id = "service:b".into();
 
         let batch = assess_service_functions(&[first.clone(), second.clone()], &[]).unwrap();
-        assert_eq!(batch.iter().map(|item| item.scenario_id.as_str()).collect::<Vec<_>>(),
-            vec!["scenario:a", "scenario:b"]);
+        assert_eq!(
+            batch
+                .iter()
+                .map(|item| item.scenario_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["scenario:a", "scenario:b"]
+        );
         assert_eq!(batch[0].state, ServiceFunctionState::Adequate);
         assert_eq!(batch[1].state, ServiceFunctionState::Degraded);
 

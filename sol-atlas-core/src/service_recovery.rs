@@ -10,8 +10,8 @@
 //! an outage probability model, or proof that any intervention caused recovery.
 
 use crate::service_function::{
-    assess_service_functions, ServiceFunctionAssessment, ServiceFunctionAssessmentError,
-    ServiceFunctionScenario, ServiceFunctionState,
+    ServiceFunctionAssessment, ServiceFunctionAssessmentError, ServiceFunctionScenario,
+    ServiceFunctionState, assess_service_functions,
 };
 use crate::spatial_graph::is_canonical_utc_timestamp;
 use serde::{Deserialize, Serialize};
@@ -110,9 +110,9 @@ fn utc_epoch_seconds(timestamp: &str) -> Option<i64> {
     }
     let bytes = timestamp.as_bytes();
     let number = |range: std::ops::Range<usize>| -> i64 {
-        bytes[range].iter().fold(0_i64, |acc, byte| {
-            acc * 10 + i64::from(*byte - b'0')
-        })
+        bytes[range]
+            .iter()
+            .fold(0_i64, |acc, byte| acc * 10 + i64::from(*byte - b'0'))
     };
     let year_raw = number(0..4);
     let month = number(5..7);
@@ -127,8 +127,7 @@ fn utc_epoch_seconds(timestamp: &str) -> Option<i64> {
     let year_of_era = year - era * 400;
     let shifted_month = month + if month > 2 { -3 } else { 9 };
     let day_of_year = (153 * shifted_month + 2) / 5 + day - 1;
-    let day_of_era =
-        year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
+    let day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
     let days_since_epoch = era * 146_097 + day_of_era - 719_468;
     Some(days_since_epoch * 86_400 + hour * 3_600 + minute * 60 + second)
 }
@@ -205,11 +204,15 @@ pub fn assess_service_recovery_trajectory(
     }
 
     sorted_snapshots.sort_by(|left, right| {
-        left.as_of.cmp(&right.as_of).then_with(|| left.id.cmp(&right.id))
+        left.as_of
+            .cmp(&right.as_of)
+            .then_with(|| left.id.cmp(&right.id))
     });
     if let Some(first) = sorted_snapshots.first() {
         if first.as_of != trajectory.disruption_started_at {
-            errors.push(ServiceRecoveryTrajectoryValidationError::FirstSnapshotMustMatchDisruptionStart);
+            errors.push(
+                ServiceRecoveryTrajectoryValidationError::FirstSnapshotMustMatchDisruptionStart,
+            );
         }
     }
     for pair in sorted_snapshots.windows(2) {
@@ -280,8 +283,8 @@ pub fn assess_service_recovery_trajectory(
     ) = match first_adequate_index {
         Some(index) => {
             let adequate = &chronological[index];
-            let adequate_epoch = utc_epoch_seconds(&adequate.as_of)
-                .expect("assessed timestamp is canonical");
+            let adequate_epoch =
+                utc_epoch_seconds(&adequate.as_of).expect("assessed timestamp is canonical");
             let preceding = (index > 0).then(|| &chronological[index - 1]);
             let all_later_adequate = chronological[index..]
                 .iter()
@@ -321,12 +324,10 @@ pub fn assess_service_recovery_trajectory(
         let right_epoch = utc_epoch_seconds(&chronological[index + 1].as_of)
             .expect("assessed timestamp is canonical");
         let duration = (right_epoch - left_epoch) as f64;
-        deficit_lower_integral += duration
-            * (deficit_samples[index].lower + deficit_samples[index + 1].lower)
-            / 2.0;
-        deficit_upper_integral += duration
-            * (deficit_samples[index].upper + deficit_samples[index + 1].upper)
-            / 2.0;
+        deficit_lower_integral +=
+            duration * (deficit_samples[index].lower + deficit_samples[index + 1].lower) / 2.0;
+        deficit_upper_integral +=
+            duration * (deficit_samples[index].upper + deficit_samples[index + 1].upper) / 2.0;
     }
 
     if !deficit_lower_integral.is_finite()
@@ -345,7 +346,11 @@ pub fn assess_service_recovery_trajectory(
         service_entity_id: trajectory.service_entity_id.clone(),
         unit: chronological[0].unit.clone(),
         disruption_started_at: trajectory.disruption_started_at.clone(),
-        observation_ended_at: chronological.last().expect("at least two snapshots").as_of.clone(),
+        observation_ended_at: chronological
+            .last()
+            .expect("at least two snapshots")
+            .as_of
+            .clone(),
         sample_count: chronological.len(),
         maximum_observed_sample_gap_seconds: maximum_gap,
         initial_state,
@@ -358,8 +363,14 @@ pub fn assess_service_recovery_trajectory(
         observed_adequacy_duration_seconds,
         normalized_deficit_seconds_lower_bound: deficit_lower_integral,
         normalized_deficit_seconds_upper_bound: deficit_upper_integral,
-        maximum_normalized_deficit_lower_bound: deficit_samples.iter().map(|x| x.lower).fold(0.0, f64::max),
-        maximum_normalized_deficit_upper_bound: deficit_samples.iter().map(|x| x.upper).fold(0.0, f64::max),
+        maximum_normalized_deficit_lower_bound: deficit_samples
+            .iter()
+            .map(|x| x.lower)
+            .fold(0.0, f64::max),
+        maximum_normalized_deficit_upper_bound: deficit_samples
+            .iter()
+            .map(|x| x.upper)
+            .fold(0.0, f64::max),
         evidence_ids: evidence_ids.into_iter().collect(),
     })
 }
@@ -376,7 +387,11 @@ mod tests {
     fn measurement(entity: &str, value: f64, unit: &str) -> FunctionMeasurement {
         FunctionMeasurement {
             entity_id: entity.into(),
-            quantity: Quantity { value, unit: unit.into(), uncertainty_abs: Some(0.0) },
+            quantity: Quantity {
+                value,
+                unit: unit.into(),
+                uncertainty_abs: Some(0.0),
+            },
             basis: ScenarioBasis::Assumed,
             rationale: "Synthetic recovery trajectory assumption".into(),
             supporting_evidence_ids: Vec::new(),
@@ -476,8 +491,14 @@ mod tests {
         high.available_capacity.quantity.uncertainty_abs = Some(1.0);
         high.required_capacity.quantity.uncertainty_abs = Some(1.0);
         let result = assess_service_recovery_trajectory(&trajectory(vec![low, high]), &[]).unwrap();
-        assert!(result.normalized_deficit_seconds_lower_bound <= result.normalized_deficit_seconds_upper_bound);
-        assert!(result.maximum_normalized_deficit_lower_bound <= result.maximum_normalized_deficit_upper_bound);
+        assert!(
+            result.normalized_deficit_seconds_lower_bound
+                <= result.normalized_deficit_seconds_upper_bound
+        );
+        assert!(
+            result.maximum_normalized_deficit_lower_bound
+                <= result.maximum_normalized_deficit_upper_bound
+        );
     }
 
     #[test]
@@ -546,7 +567,10 @@ mod tests {
         ));
 
         let mut indeterminate_sample = sample("sample-0", START, 7.0, 8.0);
-        indeterminate_sample.available_capacity.quantity.uncertainty_abs = Some(2.0);
+        indeterminate_sample
+            .available_capacity
+            .quantity
+            .uncertainty_abs = Some(2.0);
         let indeterminate = assess_service_recovery_trajectory(
             &trajectory(vec![
                 indeterminate_sample,

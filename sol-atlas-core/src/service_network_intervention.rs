@@ -11,9 +11,9 @@
 
 use crate::dependency_logic::ScenarioBasis;
 use crate::service_network::{
-    assess_service_capacity_network_indexed, build_evidence_index, NetworkLinkAvailability,
-    NetworkTopologyCompleteness, ServiceCapacityNetworkAssessment, ServiceCapacityNetworkError,
-    ServiceCapacityNetworkScenario,
+    NetworkLinkAvailability, NetworkTopologyCompleteness, ServiceCapacityNetworkAssessment,
+    ServiceCapacityNetworkError, ServiceCapacityNetworkScenario,
+    assess_service_capacity_network_indexed, build_evidence_index,
 };
 use crate::spatial_economic::EvidenceRecord;
 use serde::{Deserialize, Serialize};
@@ -159,16 +159,15 @@ pub fn compare_service_network_interventions(
     })?;
     let mut ordered: Vec<&ServiceNetworkInterventionRequest> = requests.iter().collect();
     ordered.sort_by(|left, right| {
-        left.scenario.id.cmp(&right.scenario.id)
+        left.scenario
+            .id
+            .cmp(&right.scenario.id)
             .then_with(|| left.plan.id.cmp(&right.plan.id))
     });
-    ordered.into_iter()
+    ordered
+        .into_iter()
         .map(|request| {
-            compare_network_intervention_indexed(
-                &request.scenario,
-                &evidence_by_id,
-                &request.plan,
-            )
+            compare_network_intervention_indexed(&request.scenario, &evidence_by_id, &request.plan)
         })
         .collect()
 }
@@ -204,8 +203,12 @@ fn validate_plan(
         if override_value.availability.is_none() && override_value.capacity_value.is_none() {
             errors.push(ServiceNetworkInterventionValidationError::OverrideMustChangeSomething);
         }
-        if override_value.capacity_uncertainty_abs.is_some() && override_value.capacity_value.is_none() {
-            errors.push(ServiceNetworkInterventionValidationError::UncertaintyWithoutCapacityOverride);
+        if override_value.capacity_uncertainty_abs.is_some()
+            && override_value.capacity_value.is_none()
+        {
+            errors.push(
+                ServiceNetworkInterventionValidationError::UncertaintyWithoutCapacityOverride,
+            );
         }
         if let Some(value) = override_value.capacity_value {
             if !value.is_finite() {
@@ -216,7 +219,8 @@ fn validate_plan(
         }
         if let Some(uncertainty) = override_value.capacity_uncertainty_abs {
             if !uncertainty.is_finite() {
-                errors.push(ServiceNetworkInterventionValidationError::NonFiniteCapacityUncertainty);
+                errors
+                    .push(ServiceNetworkInterventionValidationError::NonFiniteCapacityUncertainty);
             } else if uncertainty < 0.0 {
                 errors.push(ServiceNetworkInterventionValidationError::NegativeCapacityUncertainty);
             }
@@ -260,8 +264,8 @@ fn compare_network_intervention_indexed(
         .map_err(ServiceNetworkInterventionError::InterventionAssessment)?;
     let conservative_capacity_delta = with_intervention.conservative_available_capacity
         - baseline.conservative_available_capacity;
-    let optimistic_capacity_delta = with_intervention.optimistic_available_capacity
-        - baseline.optimistic_available_capacity;
+    let optimistic_capacity_delta =
+        with_intervention.optimistic_available_capacity - baseline.optimistic_available_capacity;
     if !conservative_capacity_delta.is_finite() || !optimistic_capacity_delta.is_finite() {
         return Err(ServiceNetworkInterventionError::InvalidPlan(vec![
             ServiceNetworkInterventionValidationError::NonFiniteDelta,
@@ -317,11 +321,11 @@ fn classify_effect(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::service_function::FunctionMeasurement;
     use crate::service_network::{
         NetworkAssessmentState, NetworkLink, NetworkTopologyCompleteness,
         SERVICE_NETWORK_SCHEMA_VERSION,
     };
-    use crate::service_function::FunctionMeasurement;
     use crate::spatial_economic::Quantity;
     use serde::Deserialize;
 
@@ -384,14 +388,35 @@ mod tests {
                 supporting_evidence_ids: Vec::new(),
             },
             links: vec![
-                link("supply", "source:reservoir", "junction", 10.0, NetworkLinkAvailability::Active),
-                link("route-a", "junction", "service:irrigation", 4.0, NetworkLinkAvailability::Active),
-                link("route-b", "junction", "service:irrigation", 4.0, NetworkLinkAvailability::Inactive),
+                link(
+                    "supply",
+                    "source:reservoir",
+                    "junction",
+                    10.0,
+                    NetworkLinkAvailability::Active,
+                ),
+                link(
+                    "route-a",
+                    "junction",
+                    "service:irrigation",
+                    4.0,
+                    NetworkLinkAvailability::Active,
+                ),
+                link(
+                    "route-b",
+                    "junction",
+                    "service:irrigation",
+                    4.0,
+                    NetworkLinkAvailability::Inactive,
+                ),
             ],
         }
     }
 
-    fn plan(id: &str, overrides: BTreeMap<String, NetworkLinkInterventionOverride>) -> ServiceNetworkInterventionPlan {
+    fn plan(
+        id: &str,
+        overrides: BTreeMap<String, NetworkLinkInterventionOverride>,
+    ) -> ServiceNetworkInterventionPlan {
         ServiceNetworkInterventionPlan {
             schema_version: SERVICE_NETWORK_INTERVENTION_SCHEMA_VERSION.into(),
             id: id.into(),
@@ -414,13 +439,23 @@ mod tests {
         let comparison = compare_service_network_intervention(
             &scenario(),
             &[],
-            &plan("restore-route-b", [("route-b".into(), activate_link("route-b"))].into()),
-        ).unwrap();
+            &plan(
+                "restore-route-b",
+                [("route-b".into(), activate_link("route-b"))].into(),
+            ),
+        )
+        .unwrap();
         assert_eq!(comparison.baseline.conservative_available_capacity, 4.0);
-        assert_eq!(comparison.with_intervention.conservative_available_capacity, 8.0);
+        assert_eq!(
+            comparison.with_intervention.conservative_available_capacity,
+            8.0
+        );
         assert_eq!(comparison.conservative_capacity_delta, 4.0);
         assert_eq!(comparison.baseline.state, NetworkAssessmentState::Degraded);
-        assert_eq!(comparison.with_intervention.state, NetworkAssessmentState::Adequate);
+        assert_eq!(
+            comparison.with_intervention.state,
+            NetworkAssessmentState::Adequate
+        );
         assert_eq!(comparison.effect, NetworkInterventionEffect::BoundsImproved);
     }
 
@@ -430,20 +465,33 @@ mod tests {
         input.links[0].capacity.quantity.value = 5.0;
         input.links[2].availability = NetworkLinkAvailability::Active;
         input.required_capacity.quantity.value = 8.0;
-        let plan = plan("upgrade-supply", [(
-            "supply".into(),
-            NetworkLinkInterventionOverride {
-                availability: None,
-                capacity_value: Some(10.0),
-                capacity_uncertainty_abs: None,
-                rationale: "Synthetic supply upgrade assumption".into(),
-            },
-        )].into());
+        let plan = plan(
+            "upgrade-supply",
+            [(
+                "supply".into(),
+                NetworkLinkInterventionOverride {
+                    availability: None,
+                    capacity_value: Some(10.0),
+                    capacity_uncertainty_abs: None,
+                    rationale: "Synthetic supply upgrade assumption".into(),
+                },
+            )]
+            .into(),
+        );
         let comparison = compare_service_network_intervention(&input, &[], &plan).unwrap();
-        assert_eq!(comparison.baseline.conservative_min_cut_link_ids, vec!["supply"]);
-        assert_eq!(comparison.with_intervention.conservative_min_cut_link_ids, vec!["route-a", "route-b"]);
+        assert_eq!(
+            comparison.baseline.conservative_min_cut_link_ids,
+            vec!["supply"]
+        );
+        assert_eq!(
+            comparison.with_intervention.conservative_min_cut_link_ids,
+            vec!["route-a", "route-b"]
+        );
         assert_eq!(comparison.baseline.conservative_available_capacity, 5.0);
-        assert_eq!(comparison.with_intervention.conservative_available_capacity, 8.0);
+        assert_eq!(
+            comparison.with_intervention.conservative_available_capacity,
+            8.0
+        );
         assert_eq!(comparison.effect, NetworkInterventionEffect::BoundsImproved);
     }
 
@@ -454,8 +502,12 @@ mod tests {
         let base = compare_service_network_intervention(
             &input,
             &[],
-            &plan("activate-route", [("route-b".into(), activate_link("route-b"))].into()),
-        ).unwrap();
+            &plan(
+                "activate-route",
+                [("route-b".into(), activate_link("route-b"))].into(),
+            ),
+        )
+        .unwrap();
         assert_eq!(base.baseline.conservative_available_capacity, 4.0);
         assert_eq!(base.baseline.optimistic_available_capacity, 8.0);
         assert_eq!(base.effect, NetworkInterventionEffect::BoundsImproved);
@@ -476,7 +528,8 @@ mod tests {
             )]
             .into(),
         );
-        let unchanged = compare_service_network_intervention(&scenario(), &[], &supply_only).unwrap();
+        let unchanged =
+            compare_service_network_intervention(&scenario(), &[], &supply_only).unwrap();
         assert_eq!(unchanged.conservative_capacity_delta, 0.0);
         assert_eq!(unchanged.optimistic_capacity_delta, 0.0);
         assert_eq!(unchanged.effect, NetworkInterventionEffect::BoundsUnchanged);
@@ -518,7 +571,10 @@ mod tests {
             compare_service_network_intervention(&unknown_route, &[], &improve_possible).unwrap();
         assert_eq!(possible_improvement.conservative_capacity_delta, 0.0);
         assert_eq!(possible_improvement.optimistic_capacity_delta, 4.0);
-        assert_eq!(possible_improvement.effect, NetworkInterventionEffect::PossibleImprovementOnly);
+        assert_eq!(
+            possible_improvement.effect,
+            NetworkInterventionEffect::PossibleImprovementOnly
+        );
 
         let reduce_possible = plan(
             "reduce-unknown-route-capacity",
@@ -537,7 +593,10 @@ mod tests {
             compare_service_network_intervention(&unknown_route, &[], &reduce_possible).unwrap();
         assert_eq!(possible_degradation.conservative_capacity_delta, 0.0);
         assert_eq!(possible_degradation.optimistic_capacity_delta, -2.0);
-        assert_eq!(possible_degradation.effect, NetworkInterventionEffect::PossibleDegradationOnly);
+        assert_eq!(
+            possible_degradation.effect,
+            NetworkInterventionEffect::PossibleDegradationOnly
+        );
 
         let mut mixed_input = scenario();
         mixed_input.links[2].availability = NetworkLinkAvailability::Unknown;
@@ -559,14 +618,14 @@ mod tests {
                         availability: None,
                         capacity_value: Some(10.0),
                         capacity_uncertainty_abs: None,
-                        rationale: "Synthetic scenario increases the unknown alternate's capacity".into(),
+                        rationale: "Synthetic scenario increases the unknown alternate's capacity"
+                            .into(),
                     },
                 ),
             ]
             .into(),
         );
-        let mixed =
-            compare_service_network_intervention(&mixed_input, &[], &mixed_plan).unwrap();
+        let mixed = compare_service_network_intervention(&mixed_input, &[], &mixed_plan).unwrap();
         assert_eq!(mixed.conservative_capacity_delta, -4.0);
         assert_eq!(mixed.optimistic_capacity_delta, 2.0);
         assert_eq!(mixed.effect, NetworkInterventionEffect::MixedBoundMovement);
@@ -590,11 +649,20 @@ mod tests {
             .into(),
         );
         let comparison = compare_service_network_intervention(&input, &[], &plan).unwrap();
-        assert_eq!(comparison.with_intervention.conservative_available_capacity, 0.0);
-        assert_eq!(comparison.with_intervention.optimistic_available_capacity, 8.0);
+        assert_eq!(
+            comparison.with_intervention.conservative_available_capacity,
+            0.0
+        );
+        assert_eq!(
+            comparison.with_intervention.optimistic_available_capacity,
+            8.0
+        );
         assert_eq!(comparison.conservative_capacity_delta, -4.0);
         assert_eq!(comparison.optimistic_capacity_delta, 0.0);
-        assert_eq!(comparison.effect, NetworkInterventionEffect::ConservativeBoundRegressed);
+        assert_eq!(
+            comparison.effect,
+            NetworkInterventionEffect::ConservativeBoundRegressed
+        );
     }
 
     #[test]
@@ -604,11 +672,24 @@ mod tests {
         let comparison = compare_service_network_intervention(
             &input,
             &[],
-            &plan("restore-route-b", [("route-b".into(), activate_link("route-b"))].into()),
-        ).unwrap();
-        assert_eq!(comparison.effect, NetworkInterventionEffect::TopologyIncomplete);
-        assert_eq!(comparison.baseline.state, NetworkAssessmentState::Indeterminate);
-        assert_eq!(comparison.with_intervention.state, NetworkAssessmentState::Indeterminate);
+            &plan(
+                "restore-route-b",
+                [("route-b".into(), activate_link("route-b"))].into(),
+            ),
+        )
+        .unwrap();
+        assert_eq!(
+            comparison.effect,
+            NetworkInterventionEffect::TopologyIncomplete
+        );
+        assert_eq!(
+            comparison.baseline.state,
+            NetworkAssessmentState::Indeterminate
+        );
+        assert_eq!(
+            comparison.with_intervention.state,
+            NetworkAssessmentState::Indeterminate
+        );
         assert_eq!(comparison.baseline.coverage_lower_bound, None);
         assert_eq!(comparison.with_intervention.coverage_upper_bound, None);
     }
@@ -653,7 +734,10 @@ mod tests {
         ];
         let results = compare_service_network_interventions(&requests, &[]).unwrap();
         assert_eq!(
-            results.iter().map(|item| item.baseline_scenario_id.as_str()).collect::<Vec<_>>(),
+            results
+                .iter()
+                .map(|item| item.baseline_scenario_id.as_str())
+                .collect::<Vec<_>>(),
             vec!["scenario:a", "scenario:b"]
         );
         assert!(results.iter().all(|item| {
@@ -686,18 +770,17 @@ mod tests {
     fn network_intervention_fixture_matches_golden_comparison() {
         let input: ServiceCapacityNetworkScenario = serde_json::from_str(include_str!(
             "../../schemas/examples/service-capacity-network-scenario.json"
-        )).unwrap();
+        ))
+        .unwrap();
         let fixture: FixturePlan = serde_json::from_str(include_str!(
             "../../schemas/examples/service-network-intervention-plan.json"
-        )).unwrap();
+        ))
+        .unwrap();
         let expected: FixtureComparison = serde_json::from_str(include_str!(
             "../../schemas/examples/service-network-intervention-comparison.json"
-        )).unwrap();
-        let comparison = compare_service_network_intervention(
-            &input,
-            &[],
-            &fixture.plan,
-        ).unwrap();
+        ))
+        .unwrap();
+        let comparison = compare_service_network_intervention(&input, &[], &fixture.plan).unwrap();
         assert_eq!(comparison, expected.comparison);
         assert_eq!(comparison.effect, NetworkInterventionEffect::BoundsImproved);
     }

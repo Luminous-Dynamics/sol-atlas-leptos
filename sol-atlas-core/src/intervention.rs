@@ -96,16 +96,13 @@ pub enum InterventionComparisonError {
     ComparisonResultCountMismatch,
 }
 
-fn classify_change(
-    baseline: DependencyGroupState,
-    after: DependencyGroupState,
-) -> OutcomeChange {
+fn classify_change(baseline: DependencyGroupState, after: DependencyGroupState) -> OutcomeChange {
     use DependencyGroupState::{Disrupted, Indeterminate, Satisfied};
 
     match (baseline, after) {
-        (Satisfied, Satisfied)
-        | (Disrupted, Disrupted)
-        | (Indeterminate, Indeterminate) => OutcomeChange::Unchanged,
+        (Satisfied, Satisfied) | (Disrupted, Disrupted) | (Indeterminate, Indeterminate) => {
+            OutcomeChange::Unchanged
+        }
         (Disrupted, Satisfied) => OutcomeChange::Recovered,
         (Satisfied, Disrupted) => OutcomeChange::Degraded,
         (Indeterminate, Satisfied) => OutcomeChange::ResolvedToSatisfied,
@@ -222,8 +219,8 @@ mod tests {
     use super::*;
     use crate::dependency_logic::{DependencyLogic, EntityOperationalState};
     use crate::spatial_economic::{
-        EvidenceKind, EvidenceRecord, EvidenceState, Provenance, SpatialContext, TimeContext,
-        EVIDENCE_SCHEMA_VERSION,
+        EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceRecord, EvidenceState, Provenance,
+        SpatialContext, TimeContext,
     };
     use crate::spatial_graph::{RelationKind, SpatialRelation};
     use std::collections::BTreeMap;
@@ -305,7 +302,11 @@ mod tests {
             logic: DependencyLogic::AnyOne,
             relation_ids: vec!["pump-primary".into(), "pump-backup".into()],
         };
-        (graph, group, vec![evidence("ev-primary"), evidence("ev-backup")])
+        (
+            graph,
+            group,
+            vec![evidence("ev-primary"), evidence("ev-backup")],
+        )
     }
 
     fn plan(
@@ -321,15 +322,33 @@ mod tests {
     #[test]
     fn intervention_recovers_a_disrupted_redundant_group() {
         let (graph, group, evidence) = fixture_graph_and_group();
-        let baseline = scenario("baseline", [
-            ("feeder-a".into(), condition(EntityOperationalState::Unavailable)),
-            ("feeder-b".into(), condition(EntityOperationalState::Unavailable)),
-        ]);
-        let plan = plan([("feeder-b".into(), condition(EntityOperationalState::Available))]);
+        let baseline = scenario(
+            "baseline",
+            [
+                (
+                    "feeder-a".into(),
+                    condition(EntityOperationalState::Unavailable),
+                ),
+                (
+                    "feeder-b".into(),
+                    condition(EntityOperationalState::Unavailable),
+                ),
+            ],
+        );
+        let plan = plan([(
+            "feeder-b".into(),
+            condition(EntityOperationalState::Available),
+        )]);
 
         let result = compare_intervention(&graph, &[group], &baseline, &plan, &evidence).unwrap();
-        assert_eq!(result.group_deltas[0].baseline.state, DependencyGroupState::Disrupted);
-        assert_eq!(result.group_deltas[0].with_intervention.state, DependencyGroupState::Satisfied);
+        assert_eq!(
+            result.group_deltas[0].baseline.state,
+            DependencyGroupState::Disrupted
+        );
+        assert_eq!(
+            result.group_deltas[0].with_intervention.state,
+            DependencyGroupState::Satisfied
+        );
         assert_eq!(result.group_deltas[0].change, OutcomeChange::Recovered);
         assert_eq!(result.summary.recovered, 1);
         assert_eq!(result.summary.groups_compared, 1);
@@ -338,13 +357,28 @@ mod tests {
     #[test]
     fn intervention_can_degrade_a_satisfied_group() {
         let (graph, group, evidence) = fixture_graph_and_group();
-        let baseline = scenario("baseline", [
-            ("feeder-a".into(), condition(EntityOperationalState::Available)),
-            ("feeder-b".into(), condition(EntityOperationalState::Available)),
-        ]);
+        let baseline = scenario(
+            "baseline",
+            [
+                (
+                    "feeder-a".into(),
+                    condition(EntityOperationalState::Available),
+                ),
+                (
+                    "feeder-b".into(),
+                    condition(EntityOperationalState::Available),
+                ),
+            ],
+        );
         let plan = plan([
-            ("feeder-a".into(), condition(EntityOperationalState::Unavailable)),
-            ("feeder-b".into(), condition(EntityOperationalState::Unavailable)),
+            (
+                "feeder-a".into(),
+                condition(EntityOperationalState::Unavailable),
+            ),
+            (
+                "feeder-b".into(),
+                condition(EntityOperationalState::Unavailable),
+            ),
         ]);
 
         let result = compare_intervention(&graph, &[group], &baseline, &plan, &evidence).unwrap();
@@ -356,12 +390,24 @@ mod tests {
     fn intervention_can_resolve_indeterminate_baseline_to_satisfied() {
         let (graph, group, evidence) = fixture_graph_and_group();
         let baseline = scenario("baseline", []);
-        let plan = plan([("feeder-b".into(), condition(EntityOperationalState::Available))]);
+        let plan = plan([(
+            "feeder-b".into(),
+            condition(EntityOperationalState::Available),
+        )]);
 
         let result = compare_intervention(&graph, &[group], &baseline, &plan, &evidence).unwrap();
-        assert_eq!(result.group_deltas[0].baseline.state, DependencyGroupState::Indeterminate);
-        assert_eq!(result.group_deltas[0].with_intervention.state, DependencyGroupState::Satisfied);
-        assert_eq!(result.group_deltas[0].change, OutcomeChange::ResolvedToSatisfied);
+        assert_eq!(
+            result.group_deltas[0].baseline.state,
+            DependencyGroupState::Indeterminate
+        );
+        assert_eq!(
+            result.group_deltas[0].with_intervention.state,
+            DependencyGroupState::Satisfied
+        );
+        assert_eq!(
+            result.group_deltas[0].change,
+            OutcomeChange::ResolvedToSatisfied
+        );
     }
 
     #[test]
@@ -369,12 +415,21 @@ mod tests {
         let (graph, group, evidence) = fixture_graph_and_group();
         let baseline = scenario("baseline", []);
         let plan = plan([
-            ("feeder-a".into(), condition(EntityOperationalState::Unavailable)),
-            ("feeder-b".into(), condition(EntityOperationalState::Unavailable)),
+            (
+                "feeder-a".into(),
+                condition(EntityOperationalState::Unavailable),
+            ),
+            (
+                "feeder-b".into(),
+                condition(EntityOperationalState::Unavailable),
+            ),
         ]);
 
         let result = compare_intervention(&graph, &[group], &baseline, &plan, &evidence).unwrap();
-        assert_eq!(result.group_deltas[0].change, OutcomeChange::ResolvedToDisrupted);
+        assert_eq!(
+            result.group_deltas[0].change,
+            OutcomeChange::ResolvedToDisrupted
+        );
         assert_eq!(result.summary.resolved_to_disrupted, 1);
         assert_eq!(result.summary.degraded, 0);
     }
@@ -382,11 +437,23 @@ mod tests {
     #[test]
     fn no_op_intervention_is_reported_as_unchanged() {
         let (graph, group, evidence) = fixture_graph_and_group();
-        let baseline = scenario("baseline", [
-            ("feeder-a".into(), condition(EntityOperationalState::Available)),
-            ("feeder-b".into(), condition(EntityOperationalState::Unavailable)),
-        ]);
-        let plan = plan([("feeder-b".into(), condition(EntityOperationalState::Unavailable))]);
+        let baseline = scenario(
+            "baseline",
+            [
+                (
+                    "feeder-a".into(),
+                    condition(EntityOperationalState::Available),
+                ),
+                (
+                    "feeder-b".into(),
+                    condition(EntityOperationalState::Unavailable),
+                ),
+            ],
+        );
+        let plan = plan([(
+            "feeder-b".into(),
+            condition(EntityOperationalState::Unavailable),
+        )]);
 
         let result = compare_intervention(&graph, &[group], &baseline, &plan, &evidence).unwrap();
         assert_eq!(result.group_deltas[0].change, OutcomeChange::Unchanged);
@@ -396,10 +463,19 @@ mod tests {
     #[test]
     fn proposed_intervention_cannot_masquerade_as_observed_evidence() {
         let (graph, group, evidence) = fixture_graph_and_group();
-        let baseline = scenario("baseline", [
-            ("feeder-a".into(), condition(EntityOperationalState::Unavailable)),
-            ("feeder-b".into(), condition(EntityOperationalState::Unavailable)),
-        ]);
+        let baseline = scenario(
+            "baseline",
+            [
+                (
+                    "feeder-a".into(),
+                    condition(EntityOperationalState::Unavailable),
+                ),
+                (
+                    "feeder-b".into(),
+                    condition(EntityOperationalState::Unavailable),
+                ),
+            ],
+        );
         let mut observed = condition(EntityOperationalState::Available);
         observed.basis = ScenarioBasis::Observed;
         observed.supporting_evidence_ids = vec!["ev-backup".into()];
@@ -429,7 +505,10 @@ mod tests {
     fn duplicate_group_ids_fail_closed() {
         let (graph, group, evidence) = fixture_graph_and_group();
         let baseline = scenario("baseline", []);
-        let plan = plan([("feeder-b".into(), condition(EntityOperationalState::Available))]);
+        let plan = plan([(
+            "feeder-b".into(),
+            condition(EntityOperationalState::Available),
+        )]);
 
         assert_eq!(
             compare_intervention(&graph, &[group.clone(), group], &baseline, &plan, &evidence),
@@ -450,11 +529,23 @@ mod tests {
             id: "a-earlier".into(),
             ..group
         };
-        let baseline = scenario("baseline", [
-            ("feeder-a".into(), condition(EntityOperationalState::Unavailable)),
-            ("feeder-b".into(), condition(EntityOperationalState::Unavailable)),
-        ]);
-        let plan = plan([("feeder-b".into(), condition(EntityOperationalState::Available))]);
+        let baseline = scenario(
+            "baseline",
+            [
+                (
+                    "feeder-a".into(),
+                    condition(EntityOperationalState::Unavailable),
+                ),
+                (
+                    "feeder-b".into(),
+                    condition(EntityOperationalState::Unavailable),
+                ),
+            ],
+        );
+        let plan = plan([(
+            "feeder-b".into(),
+            condition(EntityOperationalState::Available),
+        )]);
 
         let first = compare_intervention(
             &graph,
@@ -464,14 +555,8 @@ mod tests {
             &evidence,
         )
         .unwrap();
-        let second = compare_intervention(
-            &graph,
-            &[earlier, other],
-            &baseline,
-            &plan,
-            &evidence,
-        )
-        .unwrap();
+        let second =
+            compare_intervention(&graph, &[earlier, other], &baseline, &plan, &evidence).unwrap();
         assert_eq!(first, second);
         assert_eq!(
             first
@@ -518,17 +603,19 @@ mod tests {
             comparison_schema["properties"]["schema_version"]["const"],
             serde_json::json!(INTERVENTION_COMPARISON_SCHEMA_VERSION)
         );
-        assert!(comparison_schema["$defs"]["delta"]["properties"]["change"]["enum"]
-            .as_array()
-            .unwrap()
-            .contains(&serde_json::json!("recovered")));
+        assert!(
+            comparison_schema["$defs"]["delta"]["properties"]["change"]["enum"]
+                .as_array()
+                .unwrap()
+                .contains(&serde_json::json!("recovered"))
+        );
         assert_eq!(
             plan_schema["properties"]["condition_overrides"]["minProperties"],
             serde_json::json!(1)
         );
         assert_eq!(
-            plan_schema["properties"]["condition_overrides"]["additionalProperties"]
-                ["properties"]["basis"]["const"],
+            plan_schema["properties"]["condition_overrides"]["additionalProperties"]["properties"]
+                ["basis"]["const"],
             serde_json::json!("assumed")
         );
         let evidence_records = [
@@ -538,14 +625,9 @@ mod tests {
             evidence("synthetic-evidence-warehouse-location"),
         ];
 
-        let comparison = compare_intervention(
-            &graph,
-            &groups.groups,
-            &baseline,
-            &plan,
-            &evidence_records,
-        )
-        .unwrap();
+        let comparison =
+            compare_intervention(&graph, &groups.groups, &baseline, &plan, &evidence_records)
+                .unwrap();
 
         assert_eq!(comparison.summary.groups_compared, 2);
         assert_eq!(comparison.summary.recovered, 1);
@@ -579,12 +661,24 @@ mod tests {
         let cases = [
             ((Satisfied, Satisfied), OutcomeChange::Unchanged),
             ((Satisfied, Disrupted), OutcomeChange::Degraded),
-            ((Satisfied, Indeterminate), OutcomeChange::BecameIndeterminate),
+            (
+                (Satisfied, Indeterminate),
+                OutcomeChange::BecameIndeterminate,
+            ),
             ((Disrupted, Satisfied), OutcomeChange::Recovered),
             ((Disrupted, Disrupted), OutcomeChange::Unchanged),
-            ((Disrupted, Indeterminate), OutcomeChange::BecameIndeterminate),
-            ((Indeterminate, Satisfied), OutcomeChange::ResolvedToSatisfied),
-            ((Indeterminate, Disrupted), OutcomeChange::ResolvedToDisrupted),
+            (
+                (Disrupted, Indeterminate),
+                OutcomeChange::BecameIndeterminate,
+            ),
+            (
+                (Indeterminate, Satisfied),
+                OutcomeChange::ResolvedToSatisfied,
+            ),
+            (
+                (Indeterminate, Disrupted),
+                OutcomeChange::ResolvedToDisrupted,
+            ),
             ((Indeterminate, Indeterminate), OutcomeChange::Unchanged),
         ];
         for ((before, after), expected) in cases {

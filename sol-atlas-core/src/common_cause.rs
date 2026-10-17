@@ -219,8 +219,12 @@ pub fn correlate_common_cause_with_dependency_groups(
         .or_else(|| groups.first().map(|value| value.as_of.as_str()));
     if let Some(as_of) = expected_as_of {
         if !is_canonical_utc_timestamp(as_of)
-            || domains.iter().any(|value| !is_canonical_utc_timestamp(&value.as_of))
-            || groups.iter().any(|value| !is_canonical_utc_timestamp(&value.as_of))
+            || domains
+                .iter()
+                .any(|value| !is_canonical_utc_timestamp(&value.as_of))
+            || groups
+                .iter()
+                .any(|value| !is_canonical_utc_timestamp(&value.as_of))
         {
             return Err(CommonCauseCorrelationError::InvalidAsOfTimestamp);
         }
@@ -311,8 +315,7 @@ pub fn correlate_common_cause_with_dependency_groups(
             }
             shared_relation_ids.sort();
             currently_exposed_relation_ids.sort();
-            let shared_prerequisite_entity_ids: Vec<String> =
-                shared_entities.into_iter().collect();
+            let shared_prerequisite_entity_ids: Vec<String> = shared_entities.into_iter().collect();
 
             overlaps.push(CommonCauseGroupOverlap {
                 domain_id: domain.domain_id.clone(),
@@ -415,13 +418,10 @@ pub fn assess_common_cause_domains(
                 errors.push(CommonCauseValidationError::InvalidDomainValidUntil);
             }
         }
-        if let (Some(start), Some(end)) = (
-            domain.valid_from.as_deref(),
-            domain.valid_until.as_deref(),
-        ) {
-            if is_canonical_utc_timestamp(start)
-                && is_canonical_utc_timestamp(end)
-                && start >= end
+        if let (Some(start), Some(end)) =
+            (domain.valid_from.as_deref(), domain.valid_until.as_deref())
+        {
+            if is_canonical_utc_timestamp(start) && is_canonical_utc_timestamp(end) && start >= end
             {
                 errors.push(CommonCauseValidationError::InvalidDomainValidityWindow);
             }
@@ -527,7 +527,11 @@ pub fn assess_common_cause_domains(
         let domain_in_scope = domain.is_valid_at(&scenario.as_of);
         let blocked = !domain_evidence_blockers.is_empty();
 
-        let mut members: Vec<&str> = domain.member_entity_ids.iter().map(String::as_str).collect();
+        let mut members: Vec<&str> = domain
+            .member_entity_ids
+            .iter()
+            .map(String::as_str)
+            .collect();
         members.sort_unstable();
         let entity_exposures = members
             .into_iter()
@@ -567,20 +571,22 @@ pub fn assess_common_cause_domains(
 }
 
 fn evidence_is_admissible_at(record: &EvidenceRecord, at: &str) -> bool {
-    matches!(record.state, EvidenceState::Asserted | EvidenceState::Corroborated)
-        && {
-            let start = record.time.valid_from.as_deref();
-            let end = record.time.valid_until.as_deref();
-            !start.is_some_and(|value| !is_canonical_utc_timestamp(value))
-                && !end.is_some_and(|value| !is_canonical_utc_timestamp(value))
-                && !matches!((start, end), (Some(first), Some(last)) if {
-                    is_canonical_utc_timestamp(first)
-                        && is_canonical_utc_timestamp(last)
-                        && first >= last
-                })
-                && !start.is_some_and(|value| value > at)
-                && !end.is_some_and(|value| at >= value)
-        }
+    matches!(
+        record.state,
+        EvidenceState::Asserted | EvidenceState::Corroborated
+    ) && {
+        let start = record.time.valid_from.as_deref();
+        let end = record.time.valid_until.as_deref();
+        !start.is_some_and(|value| !is_canonical_utc_timestamp(value))
+            && !end.is_some_and(|value| !is_canonical_utc_timestamp(value))
+            && !matches!((start, end), (Some(first), Some(last)) if {
+                is_canonical_utc_timestamp(first)
+                    && is_canonical_utc_timestamp(last)
+                    && first >= last
+            })
+            && !start.is_some_and(|value| value > at)
+            && !end.is_some_and(|value| at >= value)
+    }
 }
 
 fn domain_evidence_blockers_for(
@@ -610,7 +616,10 @@ fn domain_evidence_blockers_for(
         }),
     }
 
-    if !matches!(record.kind, EvidenceKind::Observation | EvidenceKind::Scenario) {
+    if !matches!(
+        record.kind,
+        EvidenceKind::Observation | EvidenceKind::Scenario
+    ) {
         blockers.push(DomainEvidenceBlocker {
             evidence_id: evidence_id.into(),
             reason: DomainEvidenceBlockReason::WrongKind,
@@ -649,7 +658,7 @@ fn domain_evidence_blockers_for(
 mod tests {
     use super::*;
     use crate::spatial_economic::{
-        Provenance, SpatialContext, TimeContext, EVIDENCE_SCHEMA_VERSION,
+        EVIDENCE_SCHEMA_VERSION, Provenance, SpatialContext, TimeContext,
     };
     use serde::Deserialize;
 
@@ -735,16 +744,18 @@ mod tests {
 
     #[test]
     fn shared_cause_overlap_flags_redundancy_assumption_without_rewriting_group_state() {
-        use crate::dependency_logic::{
-            DependencyGroupMemberAssessment, DependencyGroupState,
-        };
+        use crate::dependency_logic::{DependencyGroupMemberAssessment, DependencyGroupState};
 
         let mut shared = domain();
         shared.member_entity_ids = vec!["feeder:a".into(), "feeder:b".into()];
         let common = assess_common_cause_domains(
             &[shared],
             &scenario(Some(condition(CommonCauseState::Active))),
-            &[evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")],
+            &[evidence(
+                "ev:domain",
+                "domain:shared-feeder",
+                "feeder:grid-1",
+            )],
         )
         .unwrap();
         let group = DependencyGroupAssessment {
@@ -780,11 +791,17 @@ mod tests {
             ],
         };
 
-        let overlaps = correlate_common_cause_with_dependency_groups(&common, &[group.clone()])
-            .unwrap();
+        let overlaps =
+            correlate_common_cause_with_dependency_groups(&common, &[group.clone()]).unwrap();
         assert_eq!(overlaps.len(), 1);
-        assert_eq!(overlaps[0].shared_relation_ids, vec!["pump-from-a", "pump-from-b"]);
-        assert_eq!(overlaps[0].shared_prerequisite_entity_ids, vec!["feeder:a", "feeder:b"]);
+        assert_eq!(
+            overlaps[0].shared_relation_ids,
+            vec!["pump-from-a", "pump-from-b"]
+        );
+        assert_eq!(
+            overlaps[0].shared_prerequisite_entity_ids,
+            vec!["feeder:a", "feeder:b"]
+        );
         assert_eq!(overlaps[0].currently_exposed_relation_ids.len(), 2);
         assert!(overlaps[0].independent_redundancy_warning);
         // The existing qualitative group remains unchanged. Exposure is not failure.
@@ -875,9 +892,7 @@ mod tests {
 
     #[test]
     fn shared_feeder_json_fixtures_parse_and_correlate_with_dependency_alternatives() {
-        use crate::dependency_logic::{
-            DependencyGroupMemberAssessment, DependencyGroupState,
-        };
+        use crate::dependency_logic::{DependencyGroupMemberAssessment, DependencyGroupState};
 
         let domains: DomainFixture = serde_json::from_str(include_str!(
             "../../schemas/examples/shared-feeder-domain.json"
@@ -899,10 +914,12 @@ mod tests {
         let assessments =
             assess_common_cause_domains(&domains.domains, &scenario, &evidence.records).unwrap();
         assert_eq!(assessments.len(), 1);
-        assert!(assessments[0]
-            .entity_exposures
-            .iter()
-            .all(|member| member.exposure == CommonCauseExposure::Exposed));
+        assert!(
+            assessments[0]
+                .entity_exposures
+                .iter()
+                .all(|member| member.exposure == CommonCauseExposure::Exposed)
+        );
 
         let group = DependencyGroupAssessment {
             group_id: "synthetic:pump-alternatives".into(),
@@ -951,7 +968,11 @@ mod tests {
         let common = assess_common_cause_domains(
             &[domain()],
             &scenario(Some(condition(CommonCauseState::Active))),
-            &[evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")],
+            &[evidence(
+                "ev:domain",
+                "domain:shared-feeder",
+                "feeder:grid-1",
+            )],
         )
         .unwrap();
         let group = DependencyGroupAssessment {
@@ -986,8 +1007,7 @@ mod tests {
                 },
             ],
         };
-        let overlaps =
-            correlate_common_cause_with_dependency_groups(&common, &[group]).unwrap();
+        let overlaps = correlate_common_cause_with_dependency_groups(&common, &[group]).unwrap();
         assert_eq!(overlaps.len(), 1);
         assert_eq!(overlaps[0].shared_relation_ids.len(), 2);
         assert_eq!(overlaps[0].shared_prerequisite_entity_ids, vec!["pump:a"]);
@@ -996,9 +1016,7 @@ mod tests {
 
     #[test]
     fn blocked_common_cause_evidence_never_emits_exposure_warning() {
-        use crate::dependency_logic::{
-            DependencyGroupMemberAssessment, DependencyGroupState,
-        };
+        use crate::dependency_logic::{DependencyGroupMemberAssessment, DependencyGroupState};
 
         let mut shared = domain();
         shared.member_entity_ids = vec!["feeder:a".into(), "feeder:b".into()];
@@ -1054,7 +1072,11 @@ mod tests {
 
     #[test]
     fn active_shared_cause_exposes_all_declared_members_without_marking_them_failed() {
-        let evidence = [evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")];
+        let evidence = [evidence(
+            "ev:domain",
+            "domain:shared-feeder",
+            "feeder:grid-1",
+        )];
         let result = assess_common_cause_domains(
             &[domain()],
             &scenario(Some(condition(CommonCauseState::Active))),
@@ -1064,21 +1086,32 @@ mod tests {
 
         assert_eq!(result[0].entity_exposures.len(), 2);
         assert_eq!(result[0].entity_exposures[0].entity_id, "pump:a");
-        assert_eq!(result[0].entity_exposures[0].exposure, CommonCauseExposure::Exposed);
-        assert_eq!(result[0].entity_exposures[1].exposure, CommonCauseExposure::Exposed);
+        assert_eq!(
+            result[0].entity_exposures[0].exposure,
+            CommonCauseExposure::Exposed
+        );
+        assert_eq!(
+            result[0].entity_exposures[1].exposure,
+            CommonCauseExposure::Exposed
+        );
         // There is no operational-state field to mutate: exposure is not failure.
     }
 
     #[test]
     fn missing_condition_remains_indeterminate() {
-        let evidence = [evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")];
-        let result =
-            assess_common_cause_domains(&[domain()], &scenario(None), &evidence).unwrap();
+        let evidence = [evidence(
+            "ev:domain",
+            "domain:shared-feeder",
+            "feeder:grid-1",
+        )];
+        let result = assess_common_cause_domains(&[domain()], &scenario(None), &evidence).unwrap();
         assert_eq!(result[0].state, CommonCauseState::Unknown);
-        assert!(result[0]
-            .entity_exposures
-            .iter()
-            .all(|member| member.exposure == CommonCauseExposure::Indeterminate));
+        assert!(
+            result[0]
+                .entity_exposures
+                .iter()
+                .all(|member| member.exposure == CommonCauseExposure::Indeterminate)
+        );
     }
 
     #[test]
@@ -1096,25 +1129,33 @@ mod tests {
             result[0].domain_evidence_blockers[0].reason,
             DomainEvidenceBlockReason::DisputedEvidence
         );
-        assert!(result[0]
-            .entity_exposures
-            .iter()
-            .all(|member| member.exposure == CommonCauseExposure::EvidenceBlocked));
+        assert!(
+            result[0]
+                .entity_exposures
+                .iter()
+                .all(|member| member.exposure == CommonCauseExposure::EvidenceBlocked)
+        );
     }
 
     #[test]
     fn inactive_common_cause_is_not_triggered_not_a_claim_of_independence() {
-        let evidence = [evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")];
+        let evidence = [evidence(
+            "ev:domain",
+            "domain:shared-feeder",
+            "feeder:grid-1",
+        )];
         let result = assess_common_cause_domains(
             &[domain()],
             &scenario(Some(condition(CommonCauseState::Inactive))),
             &evidence,
         )
         .unwrap();
-        assert!(result[0]
-            .entity_exposures
-            .iter()
-            .all(|member| member.exposure == CommonCauseExposure::NotTriggered));
+        assert!(
+            result[0]
+                .entity_exposures
+                .iter()
+                .all(|member| member.exposure == CommonCauseExposure::NotTriggered)
+        );
     }
 
     #[test]
@@ -1126,13 +1167,12 @@ mod tests {
             evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1"),
             evidence("ev:cause", "feeder:grid-1", "feeder:grid-1"),
         ];
-        let result = assess_common_cause_domains(
-            &[domain()],
-            &scenario(Some(observed)),
-            &records,
-        )
-        .unwrap();
-        assert_eq!(result[0].entity_exposures[0].exposure, CommonCauseExposure::Exposed);
+        let result =
+            assess_common_cause_domains(&[domain()], &scenario(Some(observed)), &records).unwrap();
+        assert_eq!(
+            result[0].entity_exposures[0].exposure,
+            CommonCauseExposure::Exposed
+        );
         assert_eq!(result[0].condition_evidence_ids, vec!["ev:cause"]);
     }
 
@@ -1167,10 +1207,9 @@ mod tests {
         ));
 
         let mut bad_scenario = scenario(None);
-        bad_scenario.conditions.insert(
-            "domain:unknown".into(),
-            condition(CommonCauseState::Active),
-        );
+        bad_scenario
+            .conditions
+            .insert("domain:unknown".into(), condition(CommonCauseState::Active));
         assert!(matches!(
             assess_common_cause_domains(
                 &[domain()],
@@ -1195,10 +1234,12 @@ mod tests {
         assert!(result[0].domain_evidence_blockers.iter().any(|blocker| {
             blocker.reason == DomainEvidenceBlockReason::OutsideEvidenceValidity
         }));
-        assert!(result[0]
-            .entity_exposures
-            .iter()
-            .all(|member| member.exposure == CommonCauseExposure::EvidenceBlocked));
+        assert!(
+            result[0]
+                .entity_exposures
+                .iter()
+                .all(|member| member.exposure == CommonCauseExposure::EvidenceBlocked)
+        );
     }
 
     #[test]
@@ -1208,13 +1249,19 @@ mod tests {
         let result = assess_common_cause_domains(
             &[expired],
             &scenario(Some(condition(CommonCauseState::Active))),
-            &[evidence("ev:domain", "domain:shared-feeder", "feeder:grid-1")],
+            &[evidence(
+                "ev:domain",
+                "domain:shared-feeder",
+                "feeder:grid-1",
+            )],
         )
         .unwrap();
-        assert!(result[0]
-            .entity_exposures
-            .iter()
-            .all(|member| member.exposure == CommonCauseExposure::OutsideDomainValidity));
+        assert!(
+            result[0]
+                .entity_exposures
+                .iter()
+                .all(|member| member.exposure == CommonCauseExposure::OutsideDomainValidity)
+        );
     }
 
     #[test]

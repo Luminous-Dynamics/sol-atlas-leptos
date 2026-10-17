@@ -197,8 +197,8 @@ pub fn assess_service_capacity_network(
     scenario: &ServiceCapacityNetworkScenario,
     evidence_records: &[EvidenceRecord],
 ) -> Result<ServiceCapacityNetworkAssessment, ServiceCapacityNetworkError> {
-    let evidence_by_id =
-        build_evidence_index(evidence_records).map_err(ServiceCapacityNetworkError::InvalidInput)?;
+    let evidence_by_id = build_evidence_index(evidence_records)
+        .map_err(ServiceCapacityNetworkError::InvalidInput)?;
     assess_service_capacity_network_indexed(scenario, &evidence_by_id)
 }
 
@@ -216,8 +216,8 @@ pub fn assess_service_capacity_networks(
             ServiceCapacityNetworkValidationError::EmptyScenarioSet,
         ]));
     }
-    let evidence_by_id =
-        build_evidence_index(evidence_records).map_err(ServiceCapacityNetworkError::InvalidInput)?;
+    let evidence_by_id = build_evidence_index(evidence_records)
+        .map_err(ServiceCapacityNetworkError::InvalidInput)?;
     let mut ids = BTreeSet::new();
     for scenario in scenarios {
         if !ids.insert(scenario.id.as_str()) {
@@ -228,7 +228,8 @@ pub fn assess_service_capacity_networks(
     }
     let mut ordered: Vec<&ServiceCapacityNetworkScenario> = scenarios.iter().collect();
     ordered.sort_by(|left, right| left.id.cmp(&right.id));
-    ordered.into_iter()
+    ordered
+        .into_iter()
         .map(|scenario| assess_service_capacity_network_indexed(scenario, &evidence_by_id))
         .collect()
 }
@@ -306,12 +307,7 @@ pub(crate) fn assess_service_capacity_network_indexed(
         if link.capacity.quantity.unit != scenario.required_capacity.quantity.unit {
             errors.push(ServiceCapacityNetworkValidationError::UnitMismatch);
         }
-        validate_measurement(
-            &link.capacity,
-            &scenario.as_of,
-            evidence_by_id,
-            &mut errors,
-        );
+        validate_measurement(&link.capacity, &scenario.as_of, evidence_by_id, &mut errors);
         validate_availability_evidence(link, &scenario.as_of, evidence_by_id, &mut errors);
     }
     if !errors.is_empty() {
@@ -369,17 +365,26 @@ pub(crate) fn assess_service_capacity_network_indexed(
             NetworkLinkAvailability::Active => {
                 active_link_ids.push(link.id.clone());
                 lower_edges.push(FlowInputEdge {
-                    from, to, capacity: lower, link_id: link.id.clone(),
+                    from,
+                    to,
+                    capacity: lower,
+                    link_id: link.id.clone(),
                 });
                 upper_edges.push(FlowInputEdge {
-                    from, to, capacity: upper, link_id: link.id.clone(),
+                    from,
+                    to,
+                    capacity: upper,
+                    link_id: link.id.clone(),
                 });
             }
             NetworkLinkAvailability::Inactive => inactive_link_ids.push(link.id.clone()),
             NetworkLinkAvailability::Unknown => {
                 unknown_link_ids.push(link.id.clone());
                 upper_edges.push(FlowInputEdge {
-                    from, to, capacity: upper, link_id: link.id.clone(),
+                    from,
+                    to,
+                    capacity: upper,
+                    link_id: link.id.clone(),
                 });
             }
         }
@@ -390,8 +395,8 @@ pub(crate) fn assess_service_capacity_network_indexed(
 
     // Virtual-source arcs are larger than all physical link capacities combined,
     // preventing them from being mistaken for a physical minimum cut.
-    let virtual_source_capacity = (total_upper_capacity + 1.0)
-        .max(total_upper_capacity * (1.0 + 4.0 * f64::EPSILON));
+    let virtual_source_capacity =
+        (total_upper_capacity + 1.0).max(total_upper_capacity * (1.0 + 4.0 * f64::EPSILON));
     if !virtual_source_capacity.is_finite() || virtual_source_capacity <= total_upper_capacity {
         return Err(ServiceCapacityNetworkError::InvalidInput(vec![
             ServiceCapacityNetworkValidationError::NonFiniteDerivedValue,
@@ -418,8 +423,10 @@ pub(crate) fn assess_service_capacity_network_indexed(
     let required = &scenario.required_capacity.quantity;
     let demand_lower = (required.value - required.uncertainty_abs.unwrap_or(0.0)).max(0.0);
     let demand_upper = required.value + required.uncertainty_abs.unwrap_or(0.0);
-    if !demand_lower.is_finite() || !demand_upper.is_finite()
-        || !lower_flow.flow.is_finite() || !upper_flow.flow.is_finite()
+    if !demand_lower.is_finite()
+        || !demand_upper.is_finite()
+        || !lower_flow.flow.is_finite()
+        || !upper_flow.flow.is_finite()
     {
         return Err(ServiceCapacityNetworkError::InvalidInput(vec![
             ServiceCapacityNetworkValidationError::NonFiniteDerivedValue,
@@ -531,12 +538,16 @@ fn validate_measurement(
     match measurement.basis {
         ScenarioBasis::Assumed => {
             if !measurement.supporting_evidence_ids.is_empty() {
-                errors.push(ServiceCapacityNetworkValidationError::EvidenceForbiddenForAssumedMeasurement);
+                errors.push(
+                    ServiceCapacityNetworkValidationError::EvidenceForbiddenForAssumedMeasurement,
+                );
             }
         }
         ScenarioBasis::Observed => {
             if measurement.supporting_evidence_ids.is_empty() {
-                errors.push(ServiceCapacityNetworkValidationError::MissingEvidenceForObservedMeasurement);
+                errors.push(
+                    ServiceCapacityNetworkValidationError::MissingEvidenceForObservedMeasurement,
+                );
             }
             for id in &measurement.supporting_evidence_ids {
                 let Some(record) = evidence_by_id.get(id.as_str()) else {
@@ -573,12 +584,16 @@ fn validate_availability_evidence(
     match link.availability_basis {
         ScenarioBasis::Assumed => {
             if !link.availability_supporting_evidence_ids.is_empty() {
-                errors.push(ServiceCapacityNetworkValidationError::EvidenceForbiddenForAssumedAvailability);
+                errors.push(
+                    ServiceCapacityNetworkValidationError::EvidenceForbiddenForAssumedAvailability,
+                );
             }
         }
         ScenarioBasis::Observed => {
             if link.availability_supporting_evidence_ids.is_empty() {
-                errors.push(ServiceCapacityNetworkValidationError::MissingEvidenceForObservedAvailability);
+                errors.push(
+                    ServiceCapacityNetworkValidationError::MissingEvidenceForObservedAvailability,
+                );
             }
             for id in &link.availability_supporting_evidence_ids {
                 let Some(record) = evidence_by_id.get(id.as_str()) else {
@@ -598,7 +613,10 @@ fn validate_observation_record(
     as_of: &str,
     errors: &mut Vec<ServiceCapacityNetworkValidationError>,
 ) {
-    if !matches!(record.state, EvidenceState::Asserted | EvidenceState::Corroborated) {
+    if !matches!(
+        record.state,
+        EvidenceState::Asserted | EvidenceState::Corroborated
+    ) {
         errors.push(ServiceCapacityNetworkValidationError::InadmissibleSupportingEvidence);
     }
     if record.kind != EvidenceKind::Observation {
@@ -609,13 +627,16 @@ fn validate_observation_record(
     }
     if let Some(expected) = quantity {
         match &record.quantity {
-            None => errors.push(ServiceCapacityNetworkValidationError::SupportingEvidenceMissingQuantity),
+            None => errors
+                .push(ServiceCapacityNetworkValidationError::SupportingEvidenceMissingQuantity),
             Some(actual) => {
                 if actual.value != expected.value
                     || actual.unit != expected.unit
                     || actual.uncertainty_abs != expected.uncertainty_abs
                 {
-                    errors.push(ServiceCapacityNetworkValidationError::SupportingEvidenceQuantityMismatch);
+                    errors.push(
+                        ServiceCapacityNetworkValidationError::SupportingEvidenceQuantityMismatch,
+                    );
                 }
             }
         }
@@ -641,9 +662,7 @@ fn validate_observation_record(
         });
     if invalid {
         errors.push(ServiceCapacityNetworkValidationError::InvalidSupportingEvidenceValidity);
-    } else if start.is_some_and(|value| value > as_of)
-        || end.is_some_and(|value| as_of >= value)
-    {
+    } else if start.is_some_and(|value| value > as_of) || end.is_some_and(|value| as_of >= value) {
         errors.push(ServiceCapacityNetworkValidationError::OutsideSupportingEvidenceValidity);
     }
 }
@@ -729,7 +748,10 @@ fn max_flow_and_min_cut(
             }
             total_flow += pushed;
             if !total_flow.is_finite() {
-                return FlowResult { flow: f64::INFINITY, min_cut_link_ids: Vec::new() };
+                return FlowResult {
+                    flow: f64::INFINITY,
+                    min_cut_link_ids: Vec::new(),
+                };
             }
         }
     }
@@ -757,7 +779,10 @@ fn max_flow_and_min_cut(
             cut.insert(edge.link_id.clone());
         }
     }
-    FlowResult { flow: total_flow, min_cut_link_ids: cut.into_iter().collect() }
+    FlowResult {
+        flow: total_flow,
+        min_cut_link_ids: cut.into_iter().collect(),
+    }
 }
 
 /// Iterative level-graph DFS avoids a call-stack limit on long infrastructure chains.
@@ -827,15 +852,24 @@ mod tests {
     use super::*;
     use crate::service_function::FunctionMeasurement;
     use crate::spatial_economic::{
-        Provenance, SpatialContext, TimeContext, EVIDENCE_SCHEMA_VERSION,
+        EVIDENCE_SCHEMA_VERSION, Provenance, SpatialContext, TimeContext,
     };
 
     const AT: &str = "2026-10-16T10:00:00Z";
 
-    fn measurement(entity_id: &str, value: f64, uncertainty_abs: Option<f64>, unit: &str) -> FunctionMeasurement {
+    fn measurement(
+        entity_id: &str,
+        value: f64,
+        uncertainty_abs: Option<f64>,
+        unit: &str,
+    ) -> FunctionMeasurement {
         FunctionMeasurement {
             entity_id: entity_id.into(),
-            quantity: Quantity { value, unit: unit.into(), uncertainty_abs },
+            quantity: Quantity {
+                value,
+                unit: unit.into(),
+                uncertainty_abs,
+            },
             basis: ScenarioBasis::Assumed,
             rationale: "Synthetic explicit capacity assumption".into(),
             supporting_evidence_ids: Vec::new(),
@@ -843,8 +877,12 @@ mod tests {
     }
 
     fn link(
-        id: &str, from: &str, to: &str, capacity: f64,
-        uncertainty: Option<f64>, availability: NetworkLinkAvailability,
+        id: &str,
+        from: &str,
+        to: &str,
+        capacity: f64,
+        uncertainty: Option<f64>,
+        availability: NetworkLinkAvailability,
     ) -> NetworkLink {
         NetworkLink {
             id: id.into(),
@@ -858,7 +896,11 @@ mod tests {
         }
     }
 
-    fn scenario(links: Vec<NetworkLink>, required: f64, uncertainty: Option<f64>) -> ServiceCapacityNetworkScenario {
+    fn scenario(
+        links: Vec<NetworkLink>,
+        required: f64,
+        uncertainty: Option<f64>,
+    ) -> ServiceCapacityNetworkScenario {
         ServiceCapacityNetworkScenario {
             schema_version: SERVICE_NETWORK_SCHEMA_VERSION.into(),
             id: "scenario:network-test".into(),
@@ -874,13 +916,39 @@ mod tests {
     #[test]
     fn shared_trunk_bottleneck_caps_sum_of_parallel_routes() {
         let result = assess_service_capacity_network(
-            &scenario(vec![
-                link("supply", "source:reservoir", "junction", 5.0, None, NetworkLinkAvailability::Active),
-                link("route-a", "junction", "service:irrigation", 4.0, None, NetworkLinkAvailability::Active),
-                link("route-b", "junction", "service:irrigation", 4.0, None, NetworkLinkAvailability::Active),
-            ], 8.0, None),
+            &scenario(
+                vec![
+                    link(
+                        "supply",
+                        "source:reservoir",
+                        "junction",
+                        5.0,
+                        None,
+                        NetworkLinkAvailability::Active,
+                    ),
+                    link(
+                        "route-a",
+                        "junction",
+                        "service:irrigation",
+                        4.0,
+                        None,
+                        NetworkLinkAvailability::Active,
+                    ),
+                    link(
+                        "route-b",
+                        "junction",
+                        "service:irrigation",
+                        4.0,
+                        None,
+                        NetworkLinkAvailability::Active,
+                    ),
+                ],
+                8.0,
+                None,
+            ),
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.conservative_available_capacity, 5.0);
         assert_eq!(result.optimistic_available_capacity, 5.0);
         assert_eq!(result.state, NetworkAssessmentState::Degraded);
@@ -890,27 +958,75 @@ mod tests {
     #[test]
     fn parallel_routes_increase_flow_until_the_shared_trunk_binds() {
         let result = assess_service_capacity_network(
-            &scenario(vec![
-                link("supply", "source:reservoir", "junction", 10.0, None, NetworkLinkAvailability::Active),
-                link("route-a", "junction", "service:irrigation", 4.0, None, NetworkLinkAvailability::Active),
-                link("route-b", "junction", "service:irrigation", 3.0, None, NetworkLinkAvailability::Active),
-            ], 7.0, None),
+            &scenario(
+                vec![
+                    link(
+                        "supply",
+                        "source:reservoir",
+                        "junction",
+                        10.0,
+                        None,
+                        NetworkLinkAvailability::Active,
+                    ),
+                    link(
+                        "route-a",
+                        "junction",
+                        "service:irrigation",
+                        4.0,
+                        None,
+                        NetworkLinkAvailability::Active,
+                    ),
+                    link(
+                        "route-b",
+                        "junction",
+                        "service:irrigation",
+                        3.0,
+                        None,
+                        NetworkLinkAvailability::Active,
+                    ),
+                ],
+                7.0,
+                None,
+            ),
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.conservative_available_capacity, 7.0);
         assert_eq!(result.state, NetworkAssessmentState::Adequate);
-        assert_eq!(result.conservative_min_cut_link_ids, vec!["route-a", "route-b"]);
+        assert_eq!(
+            result.conservative_min_cut_link_ids,
+            vec!["route-a", "route-b"]
+        );
     }
 
     #[test]
     fn unknown_link_yields_interval_instead_of_false_outage() {
         let result = assess_service_capacity_network(
-            &scenario(vec![
-                link("known", "source:reservoir", "junction", 8.0, None, NetworkLinkAvailability::Active),
-                link("uncertain", "junction", "service:irrigation", 8.0, None, NetworkLinkAvailability::Unknown),
-            ], 6.0, None),
+            &scenario(
+                vec![
+                    link(
+                        "known",
+                        "source:reservoir",
+                        "junction",
+                        8.0,
+                        None,
+                        NetworkLinkAvailability::Active,
+                    ),
+                    link(
+                        "uncertain",
+                        "junction",
+                        "service:irrigation",
+                        8.0,
+                        None,
+                        NetworkLinkAvailability::Unknown,
+                    ),
+                ],
+                6.0,
+                None,
+            ),
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.conservative_available_capacity, 0.0);
         assert_eq!(result.optimistic_available_capacity, 8.0);
         assert_eq!(result.state, NetworkAssessmentState::Indeterminate);
@@ -920,9 +1036,21 @@ mod tests {
     #[test]
     fn inactive_link_is_excluded_from_both_bounds() {
         let result = assess_service_capacity_network(
-            &scenario(vec![link("closed", "source:reservoir", "service:irrigation", 12.0, None, NetworkLinkAvailability::Inactive)], 1.0, None),
+            &scenario(
+                vec![link(
+                    "closed",
+                    "source:reservoir",
+                    "service:irrigation",
+                    12.0,
+                    None,
+                    NetworkLinkAvailability::Inactive,
+                )],
+                1.0,
+                None,
+            ),
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.conservative_available_capacity, 0.0);
         assert_eq!(result.optimistic_available_capacity, 0.0);
         assert_eq!(result.state, NetworkAssessmentState::Unavailable);
@@ -931,9 +1059,21 @@ mod tests {
     #[test]
     fn uncertain_capacity_must_cover_upper_demand_to_claim_adequacy() {
         let result = assess_service_capacity_network(
-            &scenario(vec![link("edge", "source:reservoir", "service:irrigation", 10.0, Some(1.0), NetworkLinkAvailability::Active)], 10.0, Some(1.0)),
+            &scenario(
+                vec![link(
+                    "edge",
+                    "source:reservoir",
+                    "service:irrigation",
+                    10.0,
+                    Some(1.0),
+                    NetworkLinkAvailability::Active,
+                )],
+                10.0,
+                Some(1.0),
+            ),
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.conservative_available_capacity, 9.0);
         assert_eq!(result.required_capacity_upper_bound, 11.0);
         assert_eq!(result.state, NetworkAssessmentState::Indeterminate);
@@ -941,7 +1081,14 @@ mod tests {
 
     #[test]
     fn mismatched_units_and_duplicate_link_ids_fail_closed() {
-        let mut mismatched = link("edge", "source:reservoir", "service:irrigation", 12.0, None, NetworkLinkAvailability::Active);
+        let mut mismatched = link(
+            "edge",
+            "source:reservoir",
+            "service:irrigation",
+            12.0,
+            None,
+            NetworkLinkAvailability::Active,
+        );
         mismatched.capacity.quantity.unit = "L/s".into();
         assert!(matches!(
             assess_service_capacity_network(&scenario(vec![mismatched], 10.0, None), &[]),
@@ -949,7 +1096,14 @@ mod tests {
                 if errors.contains(&ServiceCapacityNetworkValidationError::UnitMismatch)
         ));
 
-        let duplicate = link("edge", "source:reservoir", "service:irrigation", 12.0, None, NetworkLinkAvailability::Active);
+        let duplicate = link(
+            "edge",
+            "source:reservoir",
+            "service:irrigation",
+            12.0,
+            None,
+            NetworkLinkAvailability::Active,
+        );
         assert!(matches!(
             assess_service_capacity_network(&scenario(vec![duplicate.clone(), duplicate], 10.0, None), &[]),
             Err(ServiceCapacityNetworkError::InvalidInput(errors))
@@ -987,10 +1141,28 @@ mod tests {
     #[test]
     fn derived_capacity_overflow_fails_closed() {
         let result = assess_service_capacity_network(
-            &scenario(vec![
-                link("huge-a", "source:reservoir", "junction", f64::MAX, None, NetworkLinkAvailability::Active),
-                link("huge-b", "junction", "service:irrigation", f64::MAX, None, NetworkLinkAvailability::Active),
-            ], 10.0, None),
+            &scenario(
+                vec![
+                    link(
+                        "huge-a",
+                        "source:reservoir",
+                        "junction",
+                        f64::MAX,
+                        None,
+                        NetworkLinkAvailability::Active,
+                    ),
+                    link(
+                        "huge-b",
+                        "junction",
+                        "service:irrigation",
+                        f64::MAX,
+                        None,
+                        NetworkLinkAvailability::Active,
+                    ),
+                ],
+                10.0,
+                None,
+            ),
             &[],
         );
         assert!(matches!(
@@ -1002,13 +1174,26 @@ mod tests {
 
     #[test]
     fn observed_capacity_requires_matching_evidence() {
-        let mut edge = link("edge", "source:reservoir", "service:irrigation", 7.0, None, NetworkLinkAvailability::Active);
+        let mut edge = link(
+            "edge",
+            "source:reservoir",
+            "service:irrigation",
+            7.0,
+            None,
+            NetworkLinkAvailability::Active,
+        );
         edge.capacity.basis = ScenarioBasis::Observed;
         edge.capacity.supporting_evidence_ids = vec!["ev:edge".into()];
         let records = [evidence(
-            "ev:edge", "edge",
-            Quantity { value: 8.0, unit: "m3/h".into(), uncertainty_abs: None },
-            EvidenceState::Asserted, AT,
+            "ev:edge",
+            "edge",
+            Quantity {
+                value: 8.0,
+                unit: "m3/h".into(),
+                uncertainty_abs: None,
+            },
+            EvidenceState::Asserted,
+            AT,
         )];
         assert!(matches!(
             assess_service_capacity_network(&scenario(vec![edge], 10.0, None), &records),
@@ -1020,19 +1205,39 @@ mod tests {
     #[test]
     fn batch_network_assessment_sorts_scenario_ids() {
         let mut first = scenario(
-            vec![link("first-edge", "source:reservoir", "service:irrigation", 4.0, None, NetworkLinkAvailability::Active)],
+            vec![link(
+                "first-edge",
+                "source:reservoir",
+                "service:irrigation",
+                4.0,
+                None,
+                NetworkLinkAvailability::Active,
+            )],
             10.0,
             None,
         );
         first.id = "scenario:b".into();
         let mut second = scenario(
-            vec![link("second-edge", "source:reservoir", "service:irrigation", 12.0, None, NetworkLinkAvailability::Active)],
+            vec![link(
+                "second-edge",
+                "source:reservoir",
+                "service:irrigation",
+                12.0,
+                None,
+                NetworkLinkAvailability::Active,
+            )],
             10.0,
             None,
         );
         second.id = "scenario:a".into();
         let result = assess_service_capacity_networks(&[first, second], &[]).unwrap();
-        assert_eq!(result.iter().map(|item| item.scenario_id.as_str()).collect::<Vec<_>>(), vec!["scenario:a", "scenario:b"]);
+        assert_eq!(
+            result
+                .iter()
+                .map(|item| item.scenario_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["scenario:a", "scenario:b"]
+        );
         assert_eq!(result[0].state, NetworkAssessmentState::Adequate);
         assert_eq!(result[1].state, NetworkAssessmentState::Degraded);
     }
@@ -1056,10 +1261,12 @@ mod tests {
     fn complete_network_fixture_matches_golden_max_flow_and_cut() {
         let input: ServiceCapacityNetworkScenario = serde_json::from_str(include_str!(
             "../../schemas/examples/service-capacity-network-scenario.json"
-        )).unwrap();
+        ))
+        .unwrap();
         let expected: ServiceCapacityNetworkAssessment = serde_json::from_str(include_str!(
             "../../schemas/examples/service-capacity-network-assessment.json"
-        )).unwrap();
+        ))
+        .unwrap();
         let actual = assess_service_capacity_network(&input, &[]).unwrap();
         assert_eq!(actual, expected);
         assert_eq!(actual.conservative_min_cut_link_ids, vec!["supply"]);
@@ -1086,9 +1293,13 @@ mod tests {
             .map(|(index, id)| (id.as_str(), index))
             .collect();
         let sink_index = node_index[scenario.service_entity_id.as_str()];
-        let total_upper: f64 = scenario.links.iter().map(|edge| {
-            edge.capacity.quantity.value + edge.capacity.quantity.uncertainty_abs.unwrap_or(0.0)
-        }).sum();
+        let total_upper: f64 = scenario
+            .links
+            .iter()
+            .map(|edge| {
+                edge.capacity.quantity.value + edge.capacity.quantity.uncertainty_abs.unwrap_or(0.0)
+            })
+            .sum();
         let virtual_capacity = total_upper + 1.0;
         let mut best = f64::INFINITY;
 
@@ -1096,9 +1307,7 @@ mod tests {
             if mask & (1_usize << sink_index) != 0 {
                 continue;
             }
-            let on_source_side = |id: &str| {
-                mask & (1_usize << node_index[id]) != 0
-            };
+            let on_source_side = |id: &str| mask & (1_usize << node_index[id]) != 0;
             let mut cut_capacity = 0.0;
             for source in &scenario.source_entity_ids {
                 if !on_source_side(source) {
@@ -1160,11 +1369,31 @@ mod tests {
 
     #[test]
     fn source_and_link_input_order_does_not_change_the_assessment() {
-        let mut input = scenario(vec![
-            link("z-route", "source:other-reservoir", "service:irrigation", 3.0, None, NetworkLinkAvailability::Active),
-            link("a-route", "source:reservoir", "service:irrigation", 4.0, None, NetworkLinkAvailability::Active),
-        ], 10.0, None);
-        input.source_entity_ids.push("source:other-reservoir".into());
+        let mut input = scenario(
+            vec![
+                link(
+                    "z-route",
+                    "source:other-reservoir",
+                    "service:irrigation",
+                    3.0,
+                    None,
+                    NetworkLinkAvailability::Active,
+                ),
+                link(
+                    "a-route",
+                    "source:reservoir",
+                    "service:irrigation",
+                    4.0,
+                    None,
+                    NetworkLinkAvailability::Active,
+                ),
+            ],
+            10.0,
+            None,
+        );
+        input
+            .source_entity_ids
+            .push("source:other-reservoir".into());
         let baseline = assess_service_capacity_network(&input, &[]).unwrap();
 
         input.source_entity_ids.reverse();
@@ -1183,8 +1412,18 @@ mod tests {
             "service:irrigation",
         ];
         let arcs = [
-            (0, 1), (0, 2), (1, 2), (2, 1), (1, 3), (2, 3),
-            (3, 4), (1, 4), (2, 4), (3, 1), (0, 3), (2, 4),
+            (0, 1),
+            (0, 2),
+            (1, 2),
+            (2, 1),
+            (1, 3),
+            (2, 3),
+            (3, 4),
+            (1, 4),
+            (2, 4),
+            (3, 1),
+            (0, 3),
+            (2, 4),
         ];
         for seed in 0..64_usize {
             let mut links = Vec::new();
@@ -1221,14 +1460,21 @@ mod tests {
                 "optimistic capacity must not fall below conservative capacity on seed {seed}"
             );
 
-            let link_by_id: BTreeMap<&str, &NetworkLink> = input.links.iter()
+            let link_by_id: BTreeMap<&str, &NetworkLink> = input
+                .links
+                .iter()
                 .map(|edge| (edge.id.as_str(), edge))
                 .collect();
-            let cut_capacity: f64 = actual.conservative_min_cut_link_ids.iter().map(|id| {
-                let edge = link_by_id[id.as_str()];
-                (edge.capacity.quantity.value
-                    - edge.capacity.quantity.uncertainty_abs.unwrap_or(0.0)).max(0.0)
-            }).sum();
+            let cut_capacity: f64 = actual
+                .conservative_min_cut_link_ids
+                .iter()
+                .map(|id| {
+                    let edge = link_by_id[id.as_str()];
+                    (edge.capacity.quantity.value
+                        - edge.capacity.quantity.uncertainty_abs.unwrap_or(0.0))
+                    .max(0.0)
+                })
+                .sum();
             assert!(
                 (cut_capacity - actual.conservative_available_capacity).abs() < 1.0e-9,
                 "reported minimum cut does not certify flow on seed {seed}"
@@ -1255,10 +1501,28 @@ mod tests {
 
     #[test]
     fn same_input_is_deterministic() {
-        let scenario = scenario(vec![
-            link("z-route", "source:reservoir", "service:irrigation", 3.0, None, NetworkLinkAvailability::Active),
-            link("a-route", "source:reservoir", "service:irrigation", 4.0, None, NetworkLinkAvailability::Active),
-        ], 10.0, None);
+        let scenario = scenario(
+            vec![
+                link(
+                    "z-route",
+                    "source:reservoir",
+                    "service:irrigation",
+                    3.0,
+                    None,
+                    NetworkLinkAvailability::Active,
+                ),
+                link(
+                    "a-route",
+                    "source:reservoir",
+                    "service:irrigation",
+                    4.0,
+                    None,
+                    NetworkLinkAvailability::Active,
+                ),
+            ],
+            10.0,
+            None,
+        );
         let first = assess_service_capacity_network(&scenario, &[]).unwrap();
         let second = assess_service_capacity_network(&scenario, &[]).unwrap();
         assert_eq!(
@@ -1266,11 +1530,18 @@ mod tests {
             serde_json::to_vec(&second).unwrap()
         );
         assert_eq!(first.conservative_available_capacity, 7.0);
-        assert_eq!(first.conservative_min_cut_link_ids, vec!["a-route", "z-route"]);
+        assert_eq!(
+            first.conservative_min_cut_link_ids,
+            vec!["a-route", "z-route"]
+        );
     }
 
     fn evidence(
-        id: &str, entity_id: &str, quantity: Quantity, state: EvidenceState, recorded_at: &str,
+        id: &str,
+        entity_id: &str,
+        quantity: Quantity,
+        state: EvidenceState,
+        recorded_at: &str,
     ) -> EvidenceRecord {
         EvidenceRecord {
             id: id.into(),

@@ -11,9 +11,9 @@
 
 use crate::spatial_economic::{EvidenceKind, EvidenceRecord, EvidenceState};
 use crate::spatial_graph::{
-    is_canonical_utc_timestamp, AssessedDependencyReport, DependencyAssessmentError,
-    DependencyGraph, EvidenceBlocker, EvidenceReadiness, GraphValidationError,
-    RelationEvidenceAssessment,
+    AssessedDependencyReport, DependencyAssessmentError, DependencyGraph, EvidenceBlocker,
+    EvidenceReadiness, GraphValidationError, RelationEvidenceAssessment,
+    is_canonical_utc_timestamp,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -221,7 +221,6 @@ impl DependencyGraph {
             Err(errors)
         }
     }
-
 
     /// Evaluate multiple groups against the same scenario while validating and
     /// constructing evidence/graph indexes once. Results are sorted by group ID.
@@ -447,7 +446,11 @@ impl DependencyGraph {
             .map_err(ScenarioEvaluationError::InvalidScenario)?;
 
         let report = self
-            .assess_dependents_at(&group.dependent_entity_id, &scenario.as_of, evidence_records)
+            .assess_dependents_at(
+                &group.dependent_entity_id,
+                &scenario.as_of,
+                evidence_records,
+            )
             .map_err(ScenarioEvaluationError::EvidenceAssessmentFailed)?;
         let assessments = relation_assessment_index(&report);
         let relations: BTreeMap<&str, _> = self
@@ -566,12 +569,15 @@ impl DependencyGraph {
     }
 }
 
-fn relation_is_active(
-    relation: &crate::spatial_graph::SpatialRelation,
-    as_of: &str,
-) -> bool {
-    relation.valid_from.as_deref().is_none_or(|start| start <= as_of)
-        && relation.valid_until.as_deref().is_none_or(|end| as_of < end)
+fn relation_is_active(relation: &crate::spatial_graph::SpatialRelation, as_of: &str) -> bool {
+    relation
+        .valid_from
+        .as_deref()
+        .is_none_or(|start| start <= as_of)
+        && relation
+            .valid_until
+            .as_deref()
+            .is_none_or(|end| as_of < end)
 }
 
 fn relation_assessment_index(
@@ -675,8 +681,8 @@ fn validate_scenario(
 mod tests {
     use super::*;
     use crate::spatial_economic::{
-        EvidenceKind, EvidenceRecord, EvidenceState, Money, Provenance, Quantity, SourceArtifact,
-        SpatialContext, TimeContext, EVIDENCE_SCHEMA_VERSION,
+        EVIDENCE_SCHEMA_VERSION, EvidenceKind, EvidenceRecord, EvidenceState, Money, Provenance,
+        Quantity, SourceArtifact, SpatialContext, TimeContext,
     };
     use crate::spatial_graph::{RelationKind, SpatialRelation};
 
@@ -778,10 +784,19 @@ mod tests {
                 relation("pump-backup", "pump", "feeder-b", "ev-backup"),
             ],
         };
-        let states = scenario("any-one", [
-            ("feeder-a".into(), assumed(EntityOperationalState::Unavailable)),
-            ("feeder-b".into(), assumed(EntityOperationalState::Available)),
-        ]);
+        let states = scenario(
+            "any-one",
+            [
+                (
+                    "feeder-a".into(),
+                    assumed(EntityOperationalState::Unavailable),
+                ),
+                (
+                    "feeder-b".into(),
+                    assumed(EntityOperationalState::Available),
+                ),
+            ],
+        );
         let result = graph
             .evaluate_dependency_group_at(
                 &group(DependencyLogic::AnyOne, &["pump-primary", "pump-backup"]),
@@ -803,10 +818,19 @@ mod tests {
                 relation("pump-backup", "pump", "feeder-b", "ev-backup"),
             ],
         };
-        let states = scenario("both-failed", [
-            ("feeder-a".into(), assumed(EntityOperationalState::Unavailable)),
-            ("feeder-b".into(), assumed(EntityOperationalState::Unavailable)),
-        ]);
+        let states = scenario(
+            "both-failed",
+            [
+                (
+                    "feeder-a".into(),
+                    assumed(EntityOperationalState::Unavailable),
+                ),
+                (
+                    "feeder-b".into(),
+                    assumed(EntityOperationalState::Unavailable),
+                ),
+            ],
+        );
         let result = graph
             .evaluate_dependency_group_at(
                 &group(DependencyLogic::AnyOne, &["pump-primary", "pump-backup"]),
@@ -832,31 +856,72 @@ mod tests {
         let dep_group = group(logic, &["pump-a", "pump-b", "pump-c"]);
         let evidence = [evidence("ev-a"), evidence("ev-b"), evidence("ev-c")];
 
-        let satisfied = scenario("satisfied", [
-            ("feeder-a".into(), assumed(EntityOperationalState::Available)),
-            ("feeder-b".into(), assumed(EntityOperationalState::Available)),
-            ("feeder-c".into(), assumed(EntityOperationalState::Unavailable)),
-        ]);
+        let satisfied = scenario(
+            "satisfied",
+            [
+                (
+                    "feeder-a".into(),
+                    assumed(EntityOperationalState::Available),
+                ),
+                (
+                    "feeder-b".into(),
+                    assumed(EntityOperationalState::Available),
+                ),
+                (
+                    "feeder-c".into(),
+                    assumed(EntityOperationalState::Unavailable),
+                ),
+            ],
+        );
         assert_eq!(
-            graph.evaluate_dependency_group_at(&dep_group, &satisfied, &evidence).unwrap().state,
+            graph
+                .evaluate_dependency_group_at(&dep_group, &satisfied, &evidence)
+                .unwrap()
+                .state,
             DependencyGroupState::Satisfied
         );
 
-        let disrupted = scenario("disrupted", [
-            ("feeder-a".into(), assumed(EntityOperationalState::Available)),
-            ("feeder-b".into(), assumed(EntityOperationalState::Unavailable)),
-            ("feeder-c".into(), assumed(EntityOperationalState::Unavailable)),
-        ]);
+        let disrupted = scenario(
+            "disrupted",
+            [
+                (
+                    "feeder-a".into(),
+                    assumed(EntityOperationalState::Available),
+                ),
+                (
+                    "feeder-b".into(),
+                    assumed(EntityOperationalState::Unavailable),
+                ),
+                (
+                    "feeder-c".into(),
+                    assumed(EntityOperationalState::Unavailable),
+                ),
+            ],
+        );
         assert_eq!(
-            graph.evaluate_dependency_group_at(&dep_group, &disrupted, &evidence).unwrap().state,
+            graph
+                .evaluate_dependency_group_at(&dep_group, &disrupted, &evidence)
+                .unwrap()
+                .state,
             DependencyGroupState::Disrupted
         );
 
-        let uncertain = scenario("uncertain", [
-            ("feeder-a".into(), assumed(EntityOperationalState::Available)),
-            ("feeder-b".into(), assumed(EntityOperationalState::Unavailable)),
-        ]);
-        let result = graph.evaluate_dependency_group_at(&dep_group, &uncertain, &evidence).unwrap();
+        let uncertain = scenario(
+            "uncertain",
+            [
+                (
+                    "feeder-a".into(),
+                    assumed(EntityOperationalState::Available),
+                ),
+                (
+                    "feeder-b".into(),
+                    assumed(EntityOperationalState::Unavailable),
+                ),
+            ],
+        );
+        let result = graph
+            .evaluate_dependency_group_at(&dep_group, &uncertain, &evidence)
+            .unwrap();
         assert_eq!(result.state, DependencyGroupState::Indeterminate);
         assert_eq!(result.unknown_count, 1);
     }
@@ -869,15 +934,20 @@ mod tests {
                 relation("pump-water", "pump", "water", "ev-water"),
             ],
         };
-        let states = scenario("series-dependency", [
-            ("feeder".into(), assumed(EntityOperationalState::Available)),
-            ("water".into(), assumed(EntityOperationalState::Unavailable)),
-        ]);
-        let result = graph.evaluate_dependency_group_at(
-            &group(DependencyLogic::AllRequired, &["pump-power", "pump-water"]),
-            &states,
-            &[evidence("ev-power"), evidence("ev-water")],
-        ).unwrap();
+        let states = scenario(
+            "series-dependency",
+            [
+                ("feeder".into(), assumed(EntityOperationalState::Available)),
+                ("water".into(), assumed(EntityOperationalState::Unavailable)),
+            ],
+        );
+        let result = graph
+            .evaluate_dependency_group_at(
+                &group(DependencyLogic::AllRequired, &["pump-power", "pump-water"]),
+                &states,
+                &[evidence("ev-power"), evidence("ev-water")],
+            )
+            .unwrap();
         assert_eq!(result.state, DependencyGroupState::Disrupted);
         assert_eq!(result.required_count, 2);
     }
@@ -890,17 +960,28 @@ mod tests {
                 relation("pump-backup", "pump", "feeder-b", "ev-backup"),
             ],
         };
-        let states = scenario("unverified-backup", [
-            ("feeder-a".into(), assumed(EntityOperationalState::Unavailable)),
-            ("feeder-b".into(), assumed(EntityOperationalState::Available)),
-        ]);
+        let states = scenario(
+            "unverified-backup",
+            [
+                (
+                    "feeder-a".into(),
+                    assumed(EntityOperationalState::Unavailable),
+                ),
+                (
+                    "feeder-b".into(),
+                    assumed(EntityOperationalState::Available),
+                ),
+            ],
+        );
         let mut backup = evidence("ev-backup");
         backup.state = EvidenceState::Disputed;
-        let result = graph.evaluate_dependency_group_at(
-            &group(DependencyLogic::AnyOne, &["pump-primary", "pump-backup"]),
-            &states,
-            &[evidence("ev-primary"), backup],
-        ).unwrap();
+        let result = graph
+            .evaluate_dependency_group_at(
+                &group(DependencyLogic::AnyOne, &["pump-primary", "pump-backup"]),
+                &states,
+                &[evidence("ev-primary"), backup],
+            )
+            .unwrap();
         assert_eq!(result.state, DependencyGroupState::Indeterminate);
         assert_eq!(result.unknown_count, 1);
         assert!(result.members.iter().any(|member| {
@@ -916,11 +997,13 @@ mod tests {
             relations: vec![relation("pump-source", "pump", "feeder", "ev-source")],
         };
         let no_condition = scenario("missing-condition", []);
-        let result = graph.evaluate_dependency_group_at(
-            &group(DependencyLogic::AnyOne, &["pump-source"]),
-            &no_condition,
-            &[evidence("ev-source")],
-        ).unwrap();
+        let result = graph
+            .evaluate_dependency_group_at(
+                &group(DependencyLogic::AnyOne, &["pump-source"]),
+                &no_condition,
+                &[evidence("ev-source")],
+            )
+            .unwrap();
         assert_eq!(result.state, DependencyGroupState::Indeterminate);
         assert_eq!(result.unknown_count, 1);
         assert_eq!(
@@ -930,12 +1013,16 @@ mod tests {
 
         let mut inactive_relation = relation("pump-source", "pump", "feeder", "ev-source");
         inactive_relation.valid_until = Some("2026-10-15T09:00:00Z".into());
-        let inactive_graph = DependencyGraph { relations: vec![inactive_relation] };
-        let result = inactive_graph.evaluate_dependency_group_at(
-            &group(DependencyLogic::AnyOne, &["pump-source"]),
-            &scenario("no-active-members", []),
-            &[evidence("ev-source")],
-        ).unwrap();
+        let inactive_graph = DependencyGraph {
+            relations: vec![inactive_relation],
+        };
+        let result = inactive_graph
+            .evaluate_dependency_group_at(
+                &group(DependencyLogic::AnyOne, &["pump-source"]),
+                &scenario("no-active-members", []),
+                &[evidence("ev-source")],
+            )
+            .unwrap();
         assert_eq!(result.state, DependencyGroupState::Indeterminate);
         assert_eq!(result.active_count, 0);
         assert_eq!(result.members[0].state, DependencyMemberState::Inactive);
@@ -952,11 +1039,13 @@ mod tests {
         let states = scenario("invalid-observation", [("feeder".into(), condition)]);
         let mut proposed = evidence("ev-proposed");
         proposed.state = EvidenceState::Proposed;
-        let result = graph.evaluate_dependency_group_at(
-            &group(DependencyLogic::AnyOne, &["pump-source"]),
-            &states,
-            &[evidence("ev-source"), proposed],
-        ).unwrap_err();
+        let result = graph
+            .evaluate_dependency_group_at(
+                &group(DependencyLogic::AnyOne, &["pump-source"]),
+                &states,
+                &[evidence("ev-source"), proposed],
+            )
+            .unwrap_err();
         assert!(matches!(
             result,
             ScenarioEvaluationError::InvalidScenario(errors)
@@ -998,11 +1087,7 @@ mod tests {
         state_record.kind = EvidenceKind::Observation;
         state_record.time.valid_until = Some("2026-10-10T00:00:00Z".into());
         let expired = graph
-            .evaluate_dependency_group_at(
-                &dep_group,
-                &states,
-                &[evidence("ev-link"), state_record],
-            )
+            .evaluate_dependency_group_at(&dep_group, &states, &[evidence("ev-link"), state_record])
             .unwrap_err();
         assert!(matches!(
             expired,
@@ -1028,12 +1113,24 @@ mod tests {
                 relation("field-pump", "field", "pump", "ev-field"),
             ],
         };
-        assert!(graph.validate_dependency_group(&group(DependencyLogic::AnyOne, &["missing"]))
-            .unwrap_err().contains(&DependencyGroupValidationError::UnknownRelationId));
-        assert!(graph.validate_dependency_group(&group(DependencyLogic::AnyOne, &["pump-location"]))
-            .unwrap_err().contains(&DependencyGroupValidationError::NonDependencyRelation));
-        assert!(graph.validate_dependency_group(&group(DependencyLogic::AnyOne, &["field-pump"]))
-            .unwrap_err().contains(&DependencyGroupValidationError::WrongDependentEntity));
+        assert!(
+            graph
+                .validate_dependency_group(&group(DependencyLogic::AnyOne, &["missing"]))
+                .unwrap_err()
+                .contains(&DependencyGroupValidationError::UnknownRelationId)
+        );
+        assert!(
+            graph
+                .validate_dependency_group(&group(DependencyLogic::AnyOne, &["pump-location"]))
+                .unwrap_err()
+                .contains(&DependencyGroupValidationError::NonDependencyRelation)
+        );
+        assert!(
+            graph
+                .validate_dependency_group(&group(DependencyLogic::AnyOne, &["field-pump"]))
+                .unwrap_err()
+                .contains(&DependencyGroupValidationError::WrongDependentEntity)
+        );
         assert!(
             graph
                 .validate_dependency_group(&group(
@@ -1091,9 +1188,21 @@ mod tests {
         );
 
         let choices = schema["$defs"]["logic"]["oneOf"].as_array().unwrap();
-        assert!(choices.iter().any(|item| item["properties"]["mode"]["const"] == "all_required"));
-        assert!(choices.iter().any(|item| item["properties"]["mode"]["const"] == "any_one"));
-        assert!(choices.iter().any(|item| item["properties"]["mode"]["const"] == "at_least"));
+        assert!(
+            choices
+                .iter()
+                .any(|item| item["properties"]["mode"]["const"] == "all_required")
+        );
+        assert!(
+            choices
+                .iter()
+                .any(|item| item["properties"]["mode"]["const"] == "any_one")
+        );
+        assert!(
+            choices
+                .iter()
+                .any(|item| item["properties"]["mode"]["const"] == "at_least")
+        );
         assert_eq!(
             serde_json::to_value(DependencyLogic::AtLeast { minimum: 2 }).unwrap(),
             serde_json::json!({"mode":"at_least","minimum":2})

@@ -9,21 +9,18 @@
 //! improved, then fewer worsened scenarios and stable plan ID. This is decision
 //! support, not a capital-budget optimizer, causal estimate, or welfare score.
 
-use crate::service_network::{
-    NetworkTopologyCompleteness, ServiceCapacityNetworkScenario,
-};
+use crate::service_network::{NetworkTopologyCompleteness, ServiceCapacityNetworkScenario};
 use crate::service_network_intervention::{
-    compare_service_network_interventions,
     ServiceNetworkInterventionComparison, ServiceNetworkInterventionError,
     ServiceNetworkInterventionPlan, ServiceNetworkInterventionRequest,
+    compare_service_network_interventions,
 };
 use crate::spatial_economic::EvidenceRecord;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub const SERVICE_NETWORK_PORTFOLIO_SCHEMA_VERSION: &str = "0.1.0";
-pub const NETWORK_PORTFOLIO_RANKING_METHOD: &str =
-    "worst_case_conservative_capacity_gain_desc_then_scenarios_improved_desc_then_scenarios_worsened_asc_then_plan_id_asc";
+pub const NETWORK_PORTFOLIO_RANKING_METHOD: &str = "worst_case_conservative_capacity_gain_desc_then_scenarios_improved_desc_then_scenarios_worsened_asc_then_plan_id_asc";
 pub const NETWORK_PORTFOLIO_PARETO_OBJECTIVES: [&str; 4] = [
     "worst_case_conservative_capacity_gain:maximize",
     "minimum_post_intervention_conservative_capacity:maximize",
@@ -156,8 +153,15 @@ pub fn compare_service_network_portfolio(
     if let Some(first) = request.scenarios.first() {
         let expected_sources: BTreeSet<&str> =
             first.source_entity_ids.iter().map(String::as_str).collect();
-        let expected_topology: BTreeMap<&str, (&str, &str)> = first.links.iter()
-            .map(|link| (link.id.as_str(), (link.from_entity_id.as_str(), link.to_entity_id.as_str())))
+        let expected_topology: BTreeMap<&str, (&str, &str)> = first
+            .links
+            .iter()
+            .map(|link| {
+                (
+                    link.id.as_str(),
+                    (link.from_entity_id.as_str(), link.to_entity_id.as_str()),
+                )
+            })
             .collect();
         for scenario in &request.scenarios {
             if scenario.service_entity_id != first.service_entity_id {
@@ -166,13 +170,23 @@ pub fn compare_service_network_portfolio(
             if scenario.required_capacity.quantity.unit != first.required_capacity.quantity.unit {
                 errors.push(ServiceNetworkPortfolioValidationError::MixedCapacityUnit);
             }
-            let sources: BTreeSet<&str> =
-                scenario.source_entity_ids.iter().map(String::as_str).collect();
+            let sources: BTreeSet<&str> = scenario
+                .source_entity_ids
+                .iter()
+                .map(String::as_str)
+                .collect();
             if sources != expected_sources {
                 errors.push(ServiceNetworkPortfolioValidationError::DifferentSourceSets);
             }
-            let topology: BTreeMap<&str, (&str, &str)> = scenario.links.iter()
-                .map(|link| (link.id.as_str(), (link.from_entity_id.as_str(), link.to_entity_id.as_str())))
+            let topology: BTreeMap<&str, (&str, &str)> = scenario
+                .links
+                .iter()
+                .map(|link| {
+                    (
+                        link.id.as_str(),
+                        (link.from_entity_id.as_str(), link.to_entity_id.as_str()),
+                    )
+                })
                 .collect();
             if topology != expected_topology {
                 errors.push(ServiceNetworkPortfolioValidationError::DifferentLinkTopology);
@@ -180,7 +194,12 @@ pub fn compare_service_network_portfolio(
         }
     }
 
-    if request.scenarios.len().checked_mul(request.plans.len()).is_none() {
+    if request
+        .scenarios
+        .len()
+        .checked_mul(request.plans.len())
+        .is_none()
+    {
         errors.push(ServiceNetworkPortfolioValidationError::ComparisonMatrixTooLarge);
     }
 
@@ -190,7 +209,9 @@ pub fn compare_service_network_portfolio(
         return Err(ServiceNetworkPortfolioError::InvalidInput(errors));
     }
 
-    let mut scenario_ids: Vec<String> = request.scenarios.iter()
+    let mut scenario_ids: Vec<String> = request
+        .scenarios
+        .iter()
         .map(|scenario| scenario.id.clone())
         .collect();
     scenario_ids.sort();
@@ -199,12 +220,15 @@ pub fn compare_service_network_portfolio(
     ordered_scenarios.sort_by(|left, right| left.id.cmp(&right.id));
     let requests: Vec<ServiceNetworkInterventionRequest> = ordered_scenarios
         .iter()
-        .flat_map(|scenario| request.plans.iter().map(move |plan| {
-            ServiceNetworkInterventionRequest {
-                scenario: (**scenario).clone(),
-                plan: plan.clone(),
-            }
-        }))
+        .flat_map(|scenario| {
+            request
+                .plans
+                .iter()
+                .map(move |plan| ServiceNetworkInterventionRequest {
+                    scenario: (**scenario).clone(),
+                    plan: plan.clone(),
+                })
+        })
         .collect();
 
     let comparisons = compare_service_network_interventions(&requests, evidence_records)
@@ -246,9 +270,14 @@ pub fn compare_service_network_portfolio(
             .iter()
             .map(|comparison| comparison.with_intervention.conservative_available_capacity)
             .fold(f64::INFINITY, f64::min);
-        let worst_case_conservative_capacity_gain = deltas.iter().copied().fold(f64::INFINITY, f64::min);
-        let worst_case_optimistic_capacity_gain = optimistic_deltas.iter().copied().fold(f64::INFINITY, f64::min);
-        let best_case_conservative_capacity_gain = deltas.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        let worst_case_conservative_capacity_gain =
+            deltas.iter().copied().fold(f64::INFINITY, f64::min);
+        let worst_case_optimistic_capacity_gain = optimistic_deltas
+            .iter()
+            .copied()
+            .fold(f64::INFINITY, f64::min);
+        let best_case_conservative_capacity_gain =
+            deltas.iter().copied().fold(f64::NEG_INFINITY, f64::max);
 
         if !minimum_post_intervention_conservative_capacity.is_finite()
             || !worst_case_conservative_capacity_gain.is_finite()
@@ -288,17 +317,31 @@ pub fn compare_service_network_portfolio(
             }
         }
 
-        let mut recurring_baseline_cut_links: Vec<_> = baseline_cut_counts.into_iter()
-            .map(|(link_id, scenario_count)| NetworkLinkScenarioFrequency { link_id, scenario_count })
+        let mut recurring_baseline_cut_links: Vec<_> = baseline_cut_counts
+            .into_iter()
+            .map(|(link_id, scenario_count)| NetworkLinkScenarioFrequency {
+                link_id,
+                scenario_count,
+            })
             .collect();
         recurring_baseline_cut_links.sort_by(|left, right| {
-            right.scenario_count.cmp(&left.scenario_count).then_with(|| left.link_id.cmp(&right.link_id))
+            right
+                .scenario_count
+                .cmp(&left.scenario_count)
+                .then_with(|| left.link_id.cmp(&right.link_id))
         });
-        let mut recurring_post_intervention_cut_links: Vec<_> = post_cut_counts.into_iter()
-            .map(|(link_id, scenario_count)| NetworkLinkScenarioFrequency { link_id, scenario_count })
+        let mut recurring_post_intervention_cut_links: Vec<_> = post_cut_counts
+            .into_iter()
+            .map(|(link_id, scenario_count)| NetworkLinkScenarioFrequency {
+                link_id,
+                scenario_count,
+            })
             .collect();
         recurring_post_intervention_cut_links.sort_by(|left, right| {
-            right.scenario_count.cmp(&left.scenario_count).then_with(|| left.link_id.cmp(&right.link_id))
+            right
+                .scenario_count
+                .cmp(&left.scenario_count)
+                .then_with(|| left.link_id.cmp(&right.link_id))
         });
 
         plan_results.push(ServiceNetworkPlanRobustness {
@@ -324,7 +367,8 @@ pub fn compare_service_network_portfolio(
     assign_pareto_fronts(&mut plan_results);
 
     plan_results.sort_by(|left, right| {
-        right.worst_case_conservative_capacity_gain
+        right
+            .worst_case_conservative_capacity_gain
             .total_cmp(&left.worst_case_conservative_capacity_gain)
             .then_with(|| right.scenarios_improved.cmp(&left.scenarios_improved))
             .then_with(|| left.scenarios_worsened.cmp(&right.scenarios_worsened))
@@ -390,9 +434,9 @@ fn assign_pareto_fronts(plans: &mut [ServiceNetworkPlanRobustness]) {
             .iter()
             .copied()
             .filter(|index| {
-                !remaining.iter().any(|other| {
-                    other != index && pareto_dominates(&plans[*other], &plans[*index])
-                })
+                !remaining
+                    .iter()
+                    .any(|other| other != index && pareto_dominates(&plans[*other], &plans[*index]))
             })
             .collect();
 
@@ -419,11 +463,11 @@ mod tests {
     use crate::service_function::FunctionMeasurement;
     use crate::service_network::{
         NetworkLink, NetworkLinkAvailability, NetworkTopologyCompleteness,
-        ServiceCapacityNetworkScenario, SERVICE_NETWORK_SCHEMA_VERSION,
+        SERVICE_NETWORK_SCHEMA_VERSION, ServiceCapacityNetworkScenario,
     };
     use crate::service_network_intervention::{
-        NetworkLinkInterventionOverride, ServiceNetworkInterventionPlan,
-        SERVICE_NETWORK_INTERVENTION_SCHEMA_VERSION,
+        NetworkLinkInterventionOverride, SERVICE_NETWORK_INTERVENTION_SCHEMA_VERSION,
+        ServiceNetworkInterventionPlan,
     };
     use crate::spatial_economic::Quantity;
     use std::collections::BTreeMap;
@@ -431,14 +475,24 @@ mod tests {
     fn measurement(entity_id: &str, value: f64) -> FunctionMeasurement {
         FunctionMeasurement {
             entity_id: entity_id.into(),
-            quantity: Quantity { value, unit: "m3/h".into(), uncertainty_abs: None },
+            quantity: Quantity {
+                value,
+                unit: "m3/h".into(),
+                uncertainty_abs: None,
+            },
             basis: ScenarioBasis::Assumed,
             rationale: "Synthetic portfolio assumption".into(),
             supporting_evidence_ids: Vec::new(),
         }
     }
 
-    fn link(id: &str, from: &str, to: &str, capacity: f64, availability: NetworkLinkAvailability) -> NetworkLink {
+    fn link(
+        id: &str,
+        from: &str,
+        to: &str,
+        capacity: f64,
+        availability: NetworkLinkAvailability,
+    ) -> NetworkLink {
         NetworkLink {
             id: id.into(),
             from_entity_id: from.into(),
@@ -451,7 +505,11 @@ mod tests {
         }
     }
 
-    fn scenario(id: &str, supply: f64, backup: NetworkLinkAvailability) -> ServiceCapacityNetworkScenario {
+    fn scenario(
+        id: &str,
+        supply: f64,
+        backup: NetworkLinkAvailability,
+    ) -> ServiceCapacityNetworkScenario {
         ServiceCapacityNetworkScenario {
             schema_version: SERVICE_NETWORK_SCHEMA_VERSION.into(),
             id: id.into(),
@@ -461,26 +519,48 @@ mod tests {
             source_entity_ids: vec!["source:reservoir".into()],
             required_capacity: measurement("service:irrigation", 8.0),
             links: vec![
-                link("supply", "source:reservoir", "junction", supply, NetworkLinkAvailability::Active),
-                link("route-a", "junction", "service:irrigation", 4.0, NetworkLinkAvailability::Active),
+                link(
+                    "supply",
+                    "source:reservoir",
+                    "junction",
+                    supply,
+                    NetworkLinkAvailability::Active,
+                ),
+                link(
+                    "route-a",
+                    "junction",
+                    "service:irrigation",
+                    4.0,
+                    NetworkLinkAvailability::Active,
+                ),
                 link("route-b", "junction", "service:irrigation", 4.0, backup),
             ],
         }
     }
 
-    fn plan(id: &str, overrides: Vec<(&str, Option<NetworkLinkAvailability>, Option<f64>)>) -> ServiceNetworkInterventionPlan {
+    fn plan(
+        id: &str,
+        overrides: Vec<(&str, Option<NetworkLinkAvailability>, Option<f64>)>,
+    ) -> ServiceNetworkInterventionPlan {
         ServiceNetworkInterventionPlan {
             schema_version: SERVICE_NETWORK_INTERVENTION_SCHEMA_VERSION.into(),
             id: id.into(),
-            rationale: "Synthetic intervention candidate; no work is asserted to be performed".into(),
-            link_overrides: overrides.into_iter().map(|(link_id, availability, capacity_value)| {
-                (link_id.to_owned(), NetworkLinkInterventionOverride {
-                    availability,
-                    capacity_value,
-                    capacity_uncertainty_abs: None,
-                    rationale: "Synthetic explicit intervention assumption".into(),
+            rationale: "Synthetic intervention candidate; no work is asserted to be performed"
+                .into(),
+            link_overrides: overrides
+                .into_iter()
+                .map(|(link_id, availability, capacity_value)| {
+                    (
+                        link_id.to_owned(),
+                        NetworkLinkInterventionOverride {
+                            availability,
+                            capacity_value,
+                            capacity_uncertainty_abs: None,
+                            rationale: "Synthetic explicit intervention assumption".into(),
+                        },
+                    )
                 })
-            }).collect::<BTreeMap<_, _>>(),
+                .collect::<BTreeMap<_, _>>(),
         }
     }
 
@@ -551,11 +631,16 @@ mod tests {
         assign_pareto_fronts(&mut second);
 
         let summarize = |items: &[ServiceNetworkPlanRobustness]| {
-            items.iter().map(|item| (
-                item.plan_id.clone(),
-                item.pareto_front,
-                item.pareto_dominated_by_plan_ids.clone(),
-            )).collect::<BTreeMap<_, _>>()
+            items
+                .iter()
+                .map(|item| {
+                    (
+                        item.plan_id.clone(),
+                        item.pareto_front,
+                        item.pareto_dominated_by_plan_ids.clone(),
+                    )
+                })
+                .collect::<BTreeMap<_, _>>()
         };
         assert_eq!(summarize(&first), summarize(&second));
     }
@@ -568,14 +653,19 @@ mod tests {
         ];
         assign_pareto_fronts(&mut plans);
         assert!(plans.iter().all(|plan| plan.pareto_front == 1));
-        assert!(plans.iter().all(|plan| plan.pareto_dominated_by_plan_ids.is_empty()));
+        assert!(
+            plans
+                .iter()
+                .all(|plan| plan.pareto_dominated_by_plan_ids.is_empty())
+        );
     }
 
     #[test]
     fn json_portfolio_fixture_ranks_the_robust_combination_first() {
         let request: ServiceNetworkPortfolioRequest = serde_json::from_str(include_str!(
             "../../schemas/examples/service-network-portfolio-request.json"
-        )).unwrap();
+        ))
+        .unwrap();
         let result = compare_service_network_portfolio(&request, &[]).unwrap();
         assert_eq!(result.scenario_count, 2);
         assert_eq!(result.plan_count, 3);
@@ -602,12 +692,18 @@ mod tests {
                 scenario("scenario:drought", 4.0, NetworkLinkAvailability::Active),
             ],
             plans: vec![
-                plan("open-backup", vec![("route-b", Some(NetworkLinkAvailability::Active), None)]),
+                plan(
+                    "open-backup",
+                    vec![("route-b", Some(NetworkLinkAvailability::Active), None)],
+                ),
                 plan("upgrade-supply", vec![("supply", None, Some(8.0))]),
-                plan("robust-combined", vec![
-                    ("route-b", Some(NetworkLinkAvailability::Active), None),
-                    ("supply", None, Some(8.0)),
-                ]),
+                plan(
+                    "robust-combined",
+                    vec![
+                        ("route-b", Some(NetworkLinkAvailability::Active), None),
+                        ("supply", None, Some(8.0)),
+                    ],
+                ),
             ],
         };
         let result = compare_service_network_portfolio(&request, &[]).unwrap();
@@ -616,10 +712,16 @@ mod tests {
         assert_eq!(result.plans[0].scenarios_improved, 2);
         assert_eq!(result.plans[1].worst_case_conservative_capacity_gain, 0.0);
         assert_eq!(result.plans[2].worst_case_conservative_capacity_gain, 0.0);
-        assert_eq!(result.scenario_ids, vec!["scenario:drought", "scenario:normal"]);
-        assert!(result.plans[0].scenario_comparisons.iter().all(|item| {
-            item.effect == NetworkInterventionEffect::BoundsImproved
-        }));
+        assert_eq!(
+            result.scenario_ids,
+            vec!["scenario:drought", "scenario:normal"]
+        );
+        assert!(
+            result.plans[0]
+                .scenario_comparisons
+                .iter()
+                .all(|item| { item.effect == NetworkInterventionEffect::BoundsImproved })
+        );
     }
 
     #[test]
@@ -630,16 +732,27 @@ mod tests {
                 scenario("scenario:normal", 10.0, NetworkLinkAvailability::Inactive),
                 scenario("scenario:drought", 4.0, NetworkLinkAvailability::Active),
             ],
-            plans: vec![plan("restore-and-upgrade", vec![
-                ("route-b", Some(NetworkLinkAvailability::Active), None),
-                ("supply", None, Some(8.0)),
-            ])],
+            plans: vec![plan(
+                "restore-and-upgrade",
+                vec![
+                    ("route-b", Some(NetworkLinkAvailability::Active), None),
+                    ("supply", None, Some(8.0)),
+                ],
+            )],
         };
         let result = compare_service_network_portfolio(&request, &[]).unwrap();
-        assert!(result.plans[0].recurring_baseline_cut_links.iter()
-            .any(|item| item.link_id == "supply" && item.scenario_count >= 1));
-        assert!(result.plans[0].scenario_comparisons.iter()
-            .all(|comparison| comparison.baseline_scenario_id.starts_with("scenario:")));
+        assert!(
+            result.plans[0]
+                .recurring_baseline_cut_links
+                .iter()
+                .any(|item| item.link_id == "supply" && item.scenario_count >= 1)
+        );
+        assert!(
+            result.plans[0]
+                .scenario_comparisons
+                .iter()
+                .all(|comparison| comparison.baseline_scenario_id.starts_with("scenario:"))
+        );
     }
 
     #[test]
@@ -649,7 +762,10 @@ mod tests {
         let request = ServiceNetworkPortfolioRequest {
             comparison_id: "portfolio:invalid".into(),
             scenarios: vec![incomplete],
-            plans: vec![plan("activate", vec![("route-b", Some(NetworkLinkAvailability::Active), None)])],
+            plans: vec![plan(
+                "activate",
+                vec![("route-b", Some(NetworkLinkAvailability::Active), None)],
+            )],
         };
         assert!(matches!(
             compare_service_network_portfolio(&request, &[]),
@@ -664,8 +780,14 @@ mod tests {
         wrong_unit.required_capacity.quantity.unit = "L/s".into();
         let request = ServiceNetworkPortfolioRequest {
             comparison_id: "portfolio:unit".into(),
-            scenarios: vec![scenario("scenario:a", 5.0, NetworkLinkAvailability::Active), wrong_unit],
-            plans: vec![plan("activate", vec![("route-b", Some(NetworkLinkAvailability::Active), None)])],
+            scenarios: vec![
+                scenario("scenario:a", 5.0, NetworkLinkAvailability::Active),
+                wrong_unit,
+            ],
+            plans: vec![plan(
+                "activate",
+                vec![("route-b", Some(NetworkLinkAvailability::Active), None)],
+            )],
         };
         assert!(matches!(
             compare_service_network_portfolio(&request, &[]),
@@ -681,7 +803,10 @@ mod tests {
             comparison_id: "portfolio:duplicates".into(),
             scenarios: vec![one.clone(), one],
             plans: vec![
-                plan("same", vec![("route-b", Some(NetworkLinkAvailability::Active), None)]),
+                plan(
+                    "same",
+                    vec![("route-b", Some(NetworkLinkAvailability::Active), None)],
+                ),
                 plan("same", vec![("supply", None, Some(8.0))]),
             ],
         };
@@ -702,12 +827,18 @@ mod tests {
                 scenario("scenario:a", 5.0, NetworkLinkAvailability::Inactive),
             ],
             plans: vec![
-                plan("z-plan", vec![("route-b", Some(NetworkLinkAvailability::Active), None)]),
+                plan(
+                    "z-plan",
+                    vec![("route-b", Some(NetworkLinkAvailability::Active), None)],
+                ),
                 plan("a-plan", vec![("supply", None, Some(8.0))]),
             ],
         };
         let first = compare_service_network_portfolio(&request, &[]).unwrap();
         let second = compare_service_network_portfolio(&request, &[]).unwrap();
-        assert_eq!(serde_json::to_vec(&first).unwrap(), serde_json::to_vec(&second).unwrap());
+        assert_eq!(
+            serde_json::to_vec(&first).unwrap(),
+            serde_json::to_vec(&second).unwrap()
+        );
     }
 }

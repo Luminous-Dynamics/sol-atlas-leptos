@@ -11,8 +11,8 @@
 //! are not guaranteed to be unique people or comparable across datasets.
 
 use crate::service_function::{
-    assess_service_functions, ServiceFunctionAssessment, ServiceFunctionAssessmentError,
-    ServiceFunctionScenario,
+    ServiceFunctionAssessment, ServiceFunctionAssessmentError, ServiceFunctionScenario,
+    assess_service_functions,
 };
 use crate::spatial_graph::is_canonical_utc_timestamp;
 use serde::{Deserialize, Serialize};
@@ -143,21 +143,33 @@ struct CommunityAccumulator {
 }
 
 impl CommunityAccumulator {
-    fn add(&mut self, weight: u64, status: ServiceFloorStatus) -> Result<(), ServiceEquityValidationError> {
+    fn add(
+        &mut self,
+        weight: u64,
+        status: ServiceFloorStatus,
+    ) -> Result<(), ServiceEquityValidationError> {
         self.cell_count += 1;
-        self.total_weight = self.total_weight.checked_add(weight)
+        self.total_weight = self
+            .total_weight
+            .checked_add(weight)
             .ok_or(ServiceEquityValidationError::WeightOverflow)?;
         match status {
             ServiceFloorStatus::MeetsFloor => {
-                self.meets_weight = self.meets_weight.checked_add(weight)
+                self.meets_weight = self
+                    .meets_weight
+                    .checked_add(weight)
                     .ok_or(ServiceEquityValidationError::WeightOverflow)?;
             }
             ServiceFloorStatus::BelowFloor => {
-                self.below_weight = self.below_weight.checked_add(weight)
+                self.below_weight = self
+                    .below_weight
+                    .checked_add(weight)
                     .ok_or(ServiceEquityValidationError::WeightOverflow)?;
             }
             ServiceFloorStatus::Indeterminate => {
-                self.indeterminate_weight = self.indeterminate_weight.checked_add(weight)
+                self.indeterminate_weight = self
+                    .indeterminate_weight
+                    .checked_add(weight)
                     .ok_or(ServiceEquityValidationError::WeightOverflow)?;
             }
         }
@@ -166,7 +178,8 @@ impl CommunityAccumulator {
 
     fn finish(self, community_id: String) -> CommunityServiceFloorAssessment {
         let lower = self.meets_weight as f64 / self.total_weight as f64;
-        let upper = (self.meets_weight + self.indeterminate_weight) as f64 / self.total_weight as f64;
+        let upper =
+            (self.meets_weight + self.indeterminate_weight) as f64 / self.total_weight as f64;
         CommunityServiceFloorAssessment {
             community_id,
             cell_count: self.cell_count,
@@ -229,7 +242,10 @@ pub fn assess_service_equity(
         {
             errors.push(ServiceEquityValidationError::InvalidCoverageFloor);
         }
-        if !service_community_pairs.insert((cell.service_scenario_id.as_str(), cell.community_id.as_str())) {
+        if !service_community_pairs.insert((
+            cell.service_scenario_id.as_str(),
+            cell.community_id.as_str(),
+        )) {
             errors.push(ServiceEquityValidationError::DuplicateServiceCommunityCell);
         }
         referenced_scenario_ids.insert(cell.service_scenario_id.as_str());
@@ -270,7 +286,8 @@ pub fn assess_service_equity(
 
     let mut ordered_cells: Vec<&ServiceEquityCell> = scenario.cells.iter().collect();
     ordered_cells.sort_by(|left, right| {
-        left.community_id.cmp(&right.community_id)
+        left.community_id
+            .cmp(&right.community_id)
             .then_with(|| left.service_scenario_id.cmp(&right.service_scenario_id))
             .then_with(|| left.id.cmp(&right.id))
     });
@@ -287,17 +304,43 @@ pub fn assess_service_equity(
             ServiceFloorStatus::Indeterminate
         };
 
-        total_weight = total_weight.checked_add(cell.beneficiary_weight)
-            .ok_or_else(|| ServiceEquityError::InvalidInput(vec![ServiceEquityValidationError::WeightOverflow]))?;
+        total_weight = total_weight
+            .checked_add(cell.beneficiary_weight)
+            .ok_or_else(|| {
+                ServiceEquityError::InvalidInput(vec![ServiceEquityValidationError::WeightOverflow])
+            })?;
         match status {
-            ServiceFloorStatus::MeetsFloor => meets_weight = meets_weight.checked_add(cell.beneficiary_weight)
-                .ok_or_else(|| ServiceEquityError::InvalidInput(vec![ServiceEquityValidationError::WeightOverflow]))?,
-            ServiceFloorStatus::BelowFloor => below_weight = below_weight.checked_add(cell.beneficiary_weight)
-                .ok_or_else(|| ServiceEquityError::InvalidInput(vec![ServiceEquityValidationError::WeightOverflow]))?,
-            ServiceFloorStatus::Indeterminate => indeterminate_weight = indeterminate_weight.checked_add(cell.beneficiary_weight)
-                .ok_or_else(|| ServiceEquityError::InvalidInput(vec![ServiceEquityValidationError::WeightOverflow]))?,
+            ServiceFloorStatus::MeetsFloor => {
+                meets_weight = meets_weight
+                    .checked_add(cell.beneficiary_weight)
+                    .ok_or_else(|| {
+                        ServiceEquityError::InvalidInput(vec![
+                            ServiceEquityValidationError::WeightOverflow,
+                        ])
+                    })?
+            }
+            ServiceFloorStatus::BelowFloor => {
+                below_weight = below_weight
+                    .checked_add(cell.beneficiary_weight)
+                    .ok_or_else(|| {
+                        ServiceEquityError::InvalidInput(vec![
+                            ServiceEquityValidationError::WeightOverflow,
+                        ])
+                    })?
+            }
+            ServiceFloorStatus::Indeterminate => {
+                indeterminate_weight = indeterminate_weight
+                    .checked_add(cell.beneficiary_weight)
+                    .ok_or_else(|| {
+                        ServiceEquityError::InvalidInput(vec![
+                            ServiceEquityValidationError::WeightOverflow,
+                        ])
+                    })?
+            }
         }
-        groups.entry(cell.community_id.clone()).or_default()
+        groups
+            .entry(cell.community_id.clone())
+            .or_default()
             .add(cell.beneficiary_weight, status)
             .map_err(|error| ServiceEquityError::InvalidInput(vec![error]))?;
 
@@ -318,10 +361,13 @@ pub fn assess_service_equity(
     }
 
     if total_weight == 0 {
-        return Err(ServiceEquityError::InvalidInput(vec![ServiceEquityValidationError::ZeroBeneficiaryWeight]));
+        return Err(ServiceEquityError::InvalidInput(vec![
+            ServiceEquityValidationError::ZeroBeneficiaryWeight,
+        ]));
     }
     let overall_floor_compliance_lower_bound = meets_weight as f64 / total_weight as f64;
-    let overall_floor_compliance_upper_bound = (meets_weight + indeterminate_weight) as f64 / total_weight as f64;
+    let overall_floor_compliance_upper_bound =
+        (meets_weight + indeterminate_weight) as f64 / total_weight as f64;
     let communities: Vec<CommunityServiceFloorAssessment> = groups
         .into_iter()
         .map(|(id, aggregate)| aggregate.finish(id))
@@ -333,10 +379,22 @@ pub fn assess_service_equity(
         community_compliance_gap_lower_bound = 0.0;
         community_compliance_gap_upper_bound = 0.0;
     } else {
-        let max_lower = communities.iter().map(|c| c.floor_compliance_lower_bound).fold(0.0_f64, f64::max);
-        let min_lower = communities.iter().map(|c| c.floor_compliance_lower_bound).fold(1.0_f64, f64::min);
-        let max_upper = communities.iter().map(|c| c.floor_compliance_upper_bound).fold(0.0_f64, f64::max);
-        let min_upper = communities.iter().map(|c| c.floor_compliance_upper_bound).fold(1.0_f64, f64::min);
+        let max_lower = communities
+            .iter()
+            .map(|c| c.floor_compliance_lower_bound)
+            .fold(0.0_f64, f64::max);
+        let min_lower = communities
+            .iter()
+            .map(|c| c.floor_compliance_lower_bound)
+            .fold(1.0_f64, f64::min);
+        let max_upper = communities
+            .iter()
+            .map(|c| c.floor_compliance_upper_bound)
+            .fold(0.0_f64, f64::max);
+        let min_upper = communities
+            .iter()
+            .map(|c| c.floor_compliance_upper_bound)
+            .fold(1.0_f64, f64::min);
         community_compliance_gap_lower_bound = (max_lower - min_upper).max(0.0);
         community_compliance_gap_upper_bound = (max_upper - min_lower).max(0.0).min(1.0);
     }
@@ -346,7 +404,9 @@ pub fn assess_service_equity(
         || !community_compliance_gap_lower_bound.is_finite()
         || !community_compliance_gap_upper_bound.is_finite()
     {
-        return Err(ServiceEquityError::InvalidInput(vec![ServiceEquityValidationError::NonFiniteAggregate]));
+        return Err(ServiceEquityError::InvalidInput(vec![
+            ServiceEquityValidationError::NonFiniteAggregate,
+        ]));
     }
 
     Ok(ServiceEquityAssessment {
@@ -377,28 +437,53 @@ mod tests {
 
     const AT: &str = "2026-10-17T10:00:00Z";
 
-    fn measurement(entity: &str, value: f64, uncertainty: Option<f64>) -> crate::service_function::FunctionMeasurement {
+    fn measurement(
+        entity: &str,
+        value: f64,
+        uncertainty: Option<f64>,
+    ) -> crate::service_function::FunctionMeasurement {
         crate::service_function::FunctionMeasurement {
             entity_id: entity.into(),
-            quantity: Quantity { value, unit: "m3/h".into(), uncertainty_abs: uncertainty },
+            quantity: Quantity {
+                value,
+                unit: "m3/h".into(),
+                uncertainty_abs: uncertainty,
+            },
             basis: ScenarioBasis::Assumed,
             rationale: "Synthetic service-equity scenario assumption".into(),
             supporting_evidence_ids: Vec::new(),
         }
     }
 
-    fn function_scenario(id: &str, service: &str, capacity: f64, capacity_uncertainty: Option<f64>, demand: f64, demand_uncertainty: Option<f64>) -> ServiceFunctionScenario {
+    fn function_scenario(
+        id: &str,
+        service: &str,
+        capacity: f64,
+        capacity_uncertainty: Option<f64>,
+        demand: f64,
+        demand_uncertainty: Option<f64>,
+    ) -> ServiceFunctionScenario {
         ServiceFunctionScenario {
             schema_version: SERVICE_FUNCTION_SCHEMA_VERSION.into(),
             id: id.into(),
             as_of: AT.into(),
             service_entity_id: service.into(),
-            available_capacity: measurement(&format!("capacity:{service}"), capacity, capacity_uncertainty),
+            available_capacity: measurement(
+                &format!("capacity:{service}"),
+                capacity,
+                capacity_uncertainty,
+            ),
             required_capacity: measurement(service, demand, demand_uncertainty),
         }
     }
 
-    fn cell(id: &str, service_scenario_id: &str, community: &str, weight: u64, floor: f64) -> ServiceEquityCell {
+    fn cell(
+        id: &str,
+        service_scenario_id: &str,
+        community: &str,
+        weight: u64,
+        floor: f64,
+    ) -> ServiceEquityCell {
         ServiceEquityCell {
             id: id.into(),
             service_scenario_id: service_scenario_id.into(),
@@ -438,7 +523,10 @@ mod tests {
         assert_eq!(result.overall_floor_compliance_upper_bound, 0.8);
         assert_eq!(result.communities.len(), 3);
         assert_eq!(result.cells[0].community_id, "east");
-        assert_eq!(result.cells[0].floor_status, ServiceFloorStatus::Indeterminate);
+        assert_eq!(
+            result.cells[0].floor_status,
+            ServiceFloorStatus::Indeterminate
+        );
         assert_eq!(result.cells[1].floor_status, ServiceFloorStatus::MeetsFloor);
         assert_eq!(result.cells[2].floor_status, ServiceFloorStatus::BelowFloor);
         assert_eq!(result.community_compliance_gap_lower_bound, 1.0);
@@ -446,13 +534,28 @@ mod tests {
     }
 
     #[test]
-    fn indeterminate_service_weight_is_never_counted_as_definitely_served_or_definitely_below_floor() {
-        let service = function_scenario("service:uncertain", "water:uncertain", 8.0, Some(2.0), 10.0, Some(1.0));
+    fn indeterminate_service_weight_is_never_counted_as_definitely_served_or_definitely_below_floor()
+     {
+        let service = function_scenario(
+            "service:uncertain",
+            "water:uncertain",
+            8.0,
+            Some(2.0),
+            10.0,
+            Some(1.0),
+        );
         let result = assess_service_equity(
-            &scenario(vec![cell("uncertain", "service:uncertain", "district", 15, 0.8)]),
+            &scenario(vec![cell(
+                "uncertain",
+                "service:uncertain",
+                "district",
+                15,
+                0.8,
+            )]),
             &[service],
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.meets_floor_weight, 0);
         assert_eq!(result.below_floor_weight, 0);
         assert_eq!(result.indeterminate_weight, 15);
@@ -464,16 +567,30 @@ mod tests {
     fn community_gap_bounds_capture_uncertainty_between_groups() {
         let services = vec![
             function_scenario("met", "water:met", 10.0, None, 10.0, None),
-            function_scenario("uncertain", "water:uncertain", 8.0, Some(2.0), 10.0, Some(1.0)),
+            function_scenario(
+                "uncertain",
+                "water:uncertain",
+                8.0,
+                Some(2.0),
+                10.0,
+                Some(1.0),
+            ),
         ];
         let result = assess_service_equity(
             &scenario(vec![
                 cell("met-cell", "met", "served-community", 10, 0.8),
-                cell("uncertain-cell", "uncertain", "uncertain-community", 10, 0.8),
+                cell(
+                    "uncertain-cell",
+                    "uncertain",
+                    "uncertain-community",
+                    10,
+                    0.8,
+                ),
             ]),
             &services,
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.community_compliance_gap_lower_bound, 0.0);
         assert_eq!(result.community_compliance_gap_upper_bound, 1.0);
     }
@@ -493,7 +610,8 @@ mod tests {
             ]),
             &services,
             &[],
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(result.cell_count, 3);
         assert_eq!(result.meets_floor_weight, 99);
         assert_eq!(result.below_floor_weight, 1);
@@ -516,17 +634,22 @@ mod tests {
         second.cells.reverse();
         let result_a = assess_service_equity(&first, &services, &[]).unwrap();
         let result_b = assess_service_equity(&second, &services, &[]).unwrap();
-        assert_eq!(serde_json::to_vec(&result_a).unwrap(), serde_json::to_vec(&result_b).unwrap());
+        assert_eq!(
+            serde_json::to_vec(&result_a).unwrap(),
+            serde_json::to_vec(&result_b).unwrap()
+        );
     }
 
     #[test]
     fn service_equity_json_fixtures_match_distributional_golden_output() {
         let input: ServiceEquityScenario = serde_json::from_str(include_str!(
             "../../schemas/examples/service-equity-scenario.json"
-        )).unwrap();
+        ))
+        .unwrap();
         let expected: ServiceEquityAssessment = serde_json::from_str(include_str!(
             "../../schemas/examples/service-equity-assessment.json"
-        )).unwrap();
+        ))
+        .unwrap();
         let services = vec![
             function_scenario("service:a", "water:north", 9.0, None, 10.0, None),
             function_scenario("service:b", "water:south", 2.0, None, 10.0, None),
@@ -546,8 +669,10 @@ mod tests {
             &[valid_service.clone()],
             &[],
         );
-        assert!(matches!(unknown_reference, Err(ServiceEquityError::InvalidInput(errors))
-            if errors.contains(&ServiceEquityValidationError::UnknownServiceScenario)));
+        assert!(
+            matches!(unknown_reference, Err(ServiceEquityError::InvalidInput(errors))
+            if errors.contains(&ServiceEquityValidationError::UnknownServiceScenario))
+        );
 
         let mut other_time = valid_service;
         other_time.as_of = "2026-10-17T11:00:00Z".into();
@@ -556,8 +681,10 @@ mod tests {
             &[other_time],
             &[],
         );
-        assert!(matches!(mismatch, Err(ServiceEquityError::InvalidInput(errors))
-            if errors.contains(&ServiceEquityValidationError::ServiceTimestampMismatch)));
+        assert!(
+            matches!(mismatch, Err(ServiceEquityError::InvalidInput(errors))
+            if errors.contains(&ServiceEquityValidationError::ServiceTimestampMismatch))
+        );
     }
 
     #[test]
@@ -568,8 +695,10 @@ mod tests {
             &[service.clone()],
             &[],
         );
-        assert!(matches!(invalid_floor, Err(ServiceEquityError::InvalidInput(errors))
-            if errors.contains(&ServiceEquityValidationError::InvalidCoverageFloor)));
+        assert!(
+            matches!(invalid_floor, Err(ServiceEquityError::InvalidInput(errors))
+            if errors.contains(&ServiceEquityValidationError::InvalidCoverageFloor))
+        );
 
         let duplicate = assess_service_equity(
             &scenario(vec![
@@ -579,8 +708,10 @@ mod tests {
             &[service.clone()],
             &[],
         );
-        assert!(matches!(duplicate, Err(ServiceEquityError::InvalidInput(errors))
-            if errors.contains(&ServiceEquityValidationError::DuplicateCellId)));
+        assert!(
+            matches!(duplicate, Err(ServiceEquityError::InvalidInput(errors))
+            if errors.contains(&ServiceEquityValidationError::DuplicateCellId))
+        );
 
         let overflow = assess_service_equity(
             &scenario(vec![
@@ -590,7 +721,9 @@ mod tests {
             &[service],
             &[],
         );
-        assert!(matches!(overflow, Err(ServiceEquityError::InvalidInput(errors))
-            if errors.contains(&ServiceEquityValidationError::WeightOverflow)));
+        assert!(
+            matches!(overflow, Err(ServiceEquityError::InvalidInput(errors))
+            if errors.contains(&ServiceEquityValidationError::WeightOverflow))
+        );
     }
 }
