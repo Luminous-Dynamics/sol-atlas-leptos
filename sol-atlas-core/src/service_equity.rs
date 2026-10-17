@@ -24,7 +24,9 @@ pub const SERVICE_EQUITY_SCHEMA_VERSION: &str = "0.1.0";
 pub struct ServiceEquityCell {
     /// Stable row ID within this distributional assessment.
     pub id: String,
-    /// Reference to a ServiceFunctionScenario.id.
+    /// Reference to a ServiceFunctionScenario.id that genuinely describes delivery
+    /// for this service/community cell. Reuse across communities explicitly assumes
+    /// the referenced scenario's coverage applies to each reused community.
     pub service_scenario_id: String,
     /// Region, community, facility catchment, or other declared beneficiary group.
     pub community_id: String,
@@ -196,6 +198,10 @@ impl CommunityAccumulator {
 /// Assess service-floor distribution across communities for one explicit snapshot.
 ///
 /// Service capacity/demand scenarios are batch-evaluated against one evidence corpus.
+/// Each input scenario must already represent the service capacity/demand applicable
+/// to its mapped community cell: this function does not spatially disaggregate a
+/// network's flow among communities. Reusing a scenario across communities explicitly
+/// applies the same assessed coverage to each row.
 /// The result includes weighted and per-community bounds plus a distributional gap
 /// interval. It does not infer causal effects, uniquely count people across services,
 /// or replace human review of rights and allocation decisions.
