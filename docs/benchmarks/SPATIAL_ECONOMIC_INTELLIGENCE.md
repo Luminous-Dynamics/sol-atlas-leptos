@@ -241,9 +241,9 @@ Run with SHARED_RESOURCE_ALLOCATION_BENCH_WARMUP=2 and SHARED_RESOURCE_ALLOCATIO
 
 | Services | Shared resources | Usage constraints | Conservative work units | Expected coverage | Proposed p95 |
 | ---: | ---: | ---: | ---: | ---: | ---: |
-| 100 | 10 | 1,000 | 101,000 | 1.0 | 50 ms |
-| 500 | 25 | 5,000 | 2,505,000 | 0.5 | 500 ms |
-| 1,000 | 50 | 10,000 | 10,010,000 | 0.5 | 2 s |
+| 100 | 10 | 1,000 | 505,000 | 1.0 | 50 ms |
+| 500 | 25 | 5,000 | 12,525,000 | 0.5 | 500 ms |
+| 1,000 | 50 | 10,000 | 50,050,000 | 0.5 | 2 s |
 
 The fixture uses 100 m³/h demand per service and 10,000 m³/h capacity per declared resource, with each service consuming one capacity unit per delivered rate unit on ten resources. The first workload has 100 services evenly sharing ten constraints and reaches full coverage; the latter two have 200 users per resource and reach 0.5 coverage. The benchmark asserts service count, relationship count, per-service coverage, protected-floor compliance, resource-capacity residuals, and byte-identical serialized output against a reference assessment.
 
