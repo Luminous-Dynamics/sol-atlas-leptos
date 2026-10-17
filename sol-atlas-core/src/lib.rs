@@ -23,6 +23,7 @@ pub mod mycelix_flows;
 pub mod geometry;
 pub mod math;
 pub mod picking;
+pub mod provenance;
 pub mod simulation;
 pub mod solar_system;
 pub mod timeline;
