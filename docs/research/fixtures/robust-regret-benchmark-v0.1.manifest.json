@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "benchmark_id": "sol-atlas-robust-regret-v0.1",
   "fixture_path": "docs/research/fixtures/robust-regret-benchmark-v0.1.jsonl",
-  "fixture_sha256": "3b9136c258574417f64469b687326d645d356a001fd036e2ccfcb9112117f753",
-  "fixture_bytes": 3446,
+  "fixture_sha256": "0ae42fc5d7c8ac608c85adface93635d7c9e0bb9a80ff41672cd980407c24595",
+  "fixture_bytes": 3662,
   "case_count": 4,
   "case_ids": [
     "RR-001-perfect-observation",
