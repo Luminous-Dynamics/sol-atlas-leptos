@@ -84,14 +84,62 @@
         "interpretation": "Abstract weakly sampled fine-scale component"
       }
     ],
-    "prior_mean": [0.0, 0.0],
-    "prior_covariance": [[1.0, 0.0], [0.0, 1.0]],
-    "observation_matrix": [[2.0, 0.0], [0.0, 0.1]],
-    "observation_noise_covariance": [[1.0, 0.0], [0.0, 1.0]],
+    "prior_mean": [
+      0,
+      0
+    ],
+    "prior_covariance": [
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "observation_matrix": [
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        0.1
+      ]
+    ],
+    "observation_noise_covariance": [
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ],
     "expected_analytic_results": {
-      "posterior_covariance": [[0.2, 0.0], [0.0, 0.9900990099009901]],
-      "resolution_matrix": [[0.8, 0.0], [0.0, 0.009900990099009901]],
-      "degrees_of_freedom_for_signal": 0.8099009900990099,
+      "posterior_covariance": [
+        [
+          0.2,
+          0
+        ],
+        [
+          0,
+          0.9900990099009901
+        ]
+      ],
+      "resolution_matrix": [
+        [
+          0.8,
+          0
+        ],
+        [
+          0,
+          0.009900990099009901
+        ]
+      ],
+      "degrees_of_freedom_for_signal": 0.80990099009901,
       "interpretation": [
         "The low-degree coordinate has a data-response resolution of 0.8 under this exact model.",
         "The high-degree coordinate has data-response resolution of approximately 0.00990 and remains dominated by the stated prior despite a finite posterior variance.",
@@ -104,6 +152,10 @@
       "Parameter-order permutations permute matrix rows/columns consistently without changing semantic results.",
       "A tight-prior ablation can produce a numerically tighter posterior while decreasing data attribution; the report must expose this rather than label it improved data resolution.",
       "Off-diagonal examples are added in the next fixture tranche to prove that diagonal resolution alone can conceal cross-talk."
+    ],
+    "observation_ids": [
+      "synthetic_low_mode_measurement",
+      "synthetic_high_mode_measurement"
     ]
   },
   "benchmark_stages": [
