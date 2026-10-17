@@ -166,7 +166,8 @@ pub enum SpatialOverlayError {
     InvalidMaximumAge(i64),
     EmptyCandidateId,
     EmptyConstraintId,
-    EmptyAcceptedState,
+    InvalidAcceptedSourceState,
+    NoHardConstraints,
     UnknownCandidate(String),
     UnknownConstraint(String),
     DuplicateCandidateConstraint {
@@ -199,7 +200,8 @@ impl fmt::Display for SpatialOverlayError {
             Self::InvalidMaximumAge(value) => write!(f, "maximum overlay age must be non-negative, got {value}"),
             Self::EmptyCandidateId => write!(f, "candidate IDs must not be empty"),
             Self::EmptyConstraintId => write!(f, "constraint IDs must not be empty"),
-            Self::EmptyAcceptedState => write!(f, "accepted evidence-state IDs must not be empty"),
+            Self::InvalidAcceptedSourceState => write!(f, "unknown, disputed, stale and restricted evidence states cannot be accepted for spatial gate inference"),
+            Self::NoHardConstraints => write!(f, "policy must define at least one hard constraint for candidate eligibility"),
             Self::UnknownCandidate(id) => write!(f, "overlay receipt refers to undeclared candidate {id}"),
             Self::UnknownConstraint(id) => write!(f, "overlay receipt refers to undeclared constraint {id}"),
             Self::DuplicateCandidateConstraint { candidate_id, constraint_id } => write!(
@@ -255,11 +257,18 @@ fn validate_policy(policy: &SpatialOverlayPolicy) -> Result<(), SpatialOverlayEr
     if policy.required_constraints.keys().any(|id| !nonempty(id)) {
         return Err(SpatialOverlayError::EmptyConstraintId);
     }
+    if !policy
+        .required_constraints
+        .values()
+        .any(|criticality| *criticality == ConstraintCriticality::Hard)
+    {
+        return Err(SpatialOverlayError::NoHardConstraints);
+    }
     if policy.accepted_source_states.iter().any(|state| {
         matches!(state, SourceEvidenceState::Unknown | SourceEvidenceState::Disputed | SourceEvidenceState::Stale | SourceEvidenceState::Restricted)
     }) {
         // These states should never be accepted as a basis for asserting presence/absence.
-        return Err(SpatialOverlayError::EmptyAcceptedState);
+        return Err(SpatialOverlayError::InvalidAcceptedSourceState);
     }
     Ok(())
 }
@@ -700,6 +709,28 @@ mod tests {
         assert!(matches!(
             analyze_spatial_overlays(&[first, second], &p),
             Err(SpatialOverlayError::CandidateGeometryMismatch(_))
+        ));
+    }
+
+    #[test]
+    fn policy_with_only_soft_constraints_cannot_claim_candidate_eligibility() {
+        let mut p = policy();
+        p.required_constraints = [("solar-potential".into(), ConstraintCriticality::Soft)]
+            .into_iter()
+            .collect();
+        assert!(matches!(
+            analyze_spatial_overlays(&[], &p),
+            Err(SpatialOverlayError::NoHardConstraints)
+        ));
+    }
+
+    #[test]
+    fn unsafe_evidence_states_cannot_be_added_to_accepted_state_policy() {
+        let mut p = policy();
+        p.accepted_source_states.insert(SourceEvidenceState::Stale);
+        assert!(matches!(
+            analyze_spatial_overlays(&[], &p),
+            Err(SpatialOverlayError::InvalidAcceptedSourceState)
         ));
     }
 
