@@ -24,8 +24,8 @@ pub const SHARED_RESOURCE_ALLOCATION_SCHEMA_VERSION: &str = "0.1.0";
 pub const MAX_SHARED_RESOURCE_SERVICES: usize = 1_000;
 pub const MAX_SHARED_RESOURCE_ASSETS: usize = 1_000;
 pub const MAX_SHARED_RESOURCE_USAGES: usize = 20_000;
-/// Conservative upper bound on service-by-usage rescans in this progressive-fill solver.
-pub const MAX_SHARED_RESOURCE_WORK_UNITS: usize = 20_000_000;
+/// Conservative budget for service/usage passes, resource freezing scans, and final audit.
+pub const MAX_SHARED_RESOURCE_WORK_UNITS: usize = 60_000_000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -256,6 +256,10 @@ fn run_progressive_fill(
     resource_count: usize,
     conservative: bool,
 ) -> Result<AllocationSide, SharedResourceAllocationValidationError> {
+    let mut usages_by_resource = vec![Vec::<&IndexedUsage>::new(); resource_count];
+    for usage in usages {
+        usages_by_resource[usage.resource_index].push(usage);
+    }
     let mut coverage = vec![0.0_f64; service_count];
     let mut active = vec![true; service_count];
     let mut iterations = 0usize;
@@ -346,7 +350,7 @@ fn run_progressive_fill(
                 return Err(SharedResourceAllocationValidationError::CapacityConstraintViolated);
             }
             if remaining <= numeric_tolerance(capacity, new_used[resource_index]) {
-                for usage in usages.iter().filter(|usage| usage.resource_index == resource_index) {
+                for usage in &usages_by_resource[resource_index] {
                     let coefficient = if conservative { usage.coefficient.upper } else { usage.coefficient.lower };
                     if active[usage.service_index]
                         && coefficient * demand_rates[usage.service_index] > 0.0
@@ -453,8 +457,9 @@ pub fn assess_shared_resource_allocation(
     let estimated_work_units = request
         .services
         .len()
-        .saturating_add(1)
-        .checked_mul(request.usages.len())
+        .checked_add(1)
+        .and_then(|iterations| iterations.checked_mul(request.usages.len()))
+        .and_then(|passes| passes.checked_mul(5))
         .ok_or_else(|| SharedResourceAllocationError::InvalidInput(vec![
             SharedResourceAllocationValidationError::WorkEstimateOverflow,
         ]))?;
@@ -967,4 +972,30 @@ mod tests {
             Err(SharedResourceAllocationError::MeasurementValidation(errors))
                 if errors.contains(&ServiceFunctionValidationError::MissingEvidenceForObservedMeasurement)));
     }
+
+    #[test]
+    fn saturated_resource_freezes_its_consumers_but_not_unrelated_services() {
+        let mut input = request();
+        input.services = vec![
+            service("service-a", "community-a", 1, 0.4),
+            service("service-b", "community-b", 1, 0.4),
+            service("service-c", "community-c", 1, 0.8),
+        ];
+        input.resources = vec![
+            resource("shared-limited", 100.0, None, "m3/h"),
+            resource("independent", 100.0, None, "m3/h"),
+        ];
+        input.usages = vec![
+            usage("limited-a", "shared-limited", "service-a", 1.0, "m3/h per (m3/h)"),
+            usage("limited-b", "shared-limited", "service-b", 1.0, "m3/h per (m3/h)"),
+            usage("independent-c", "independent", "service-c", 1.0, "m3/h per (m3/h)"),
+        ];
+        let output = assess_shared_resource_allocation(&input, &[]).expect("valid mixed constraints");
+        let coverage = output.services.iter().map(|service| (service.service_id.as_str(), service.coverage_lower_bound)).collect::<BTreeMap<_, _>>();
+        assert!((coverage["service-a"] - 0.5).abs() < 1e-9);
+        assert!((coverage["service-b"] - 0.5).abs() < 1e-9);
+        assert!((coverage["service-c"] - 1.0).abs() < 1e-9);
+        assert!(output.conservative_allocation_iterations >= 2);
+    }
+
 }
