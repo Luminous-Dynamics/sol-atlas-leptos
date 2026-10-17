@@ -1,0 +1,20 @@
+{
+  "benchmark_id": "SOL-ATLAS-SITE-SELECTION-001",
+  "version": "0.1.0",
+  "fixture_path": "docs/research/fixtures/site-selection-benchmark-v0.1.jsonl",
+  "fixture_sha256": "c3234e3b0d9a1e62e5e689464af573677f92d077d84c35a70db33fa1bd8d8373",
+  "fixture_git_blob_sha": "d9786987b69623da5305253a1f5022ca3c9ab995",
+  "records": 6,
+  "encoded_bytes": 21154,
+  "as_of_date": "2026-10-17",
+  "provenance": "All candidate sites, sources, metrics, and gate outcomes are synthetic fixtures; they do not represent real parcels or conditions.",
+  "claim_ceiling": "Validates only the deterministic policy semantics represented by this fixture. It does not validate GIS, legal interpretation, engineering safety, planning approval, or any real site.",
+  "cases": [
+    "SE-001-all-gates-verified",
+    "SE-002-hard-failure-beats-perfect-score",
+    "SE-003-unknown-hazard-holds-site",
+    "SE-004-stale-metric-does-not-count",
+    "SE-005-missing-land-rights-holds-site",
+    "SE-006-estimate-lowers-evidence-coverage"
+  ]
+}
