@@ -36,7 +36,8 @@
       "conservative_mass_balance_residual": 0,
       "optimistic_mass_balance_residual": 0,
       "coverage_lower_bound": 1.2,
-      "coverage_upper_bound": 1.2
+      "coverage_upper_bound": 1.2,
+      "supporting_evidence_ids": []
     },
     {
       "step_id": "outage-1",
@@ -52,7 +53,8 @@
       "conservative_mass_balance_residual": 0,
       "optimistic_mass_balance_residual": 0,
       "coverage_lower_bound": 0.5,
-      "coverage_upper_bound": 0.5
+      "coverage_upper_bound": 0.5,
+      "supporting_evidence_ids": []
     },
     {
       "step_id": "outage-2",
@@ -68,7 +70,8 @@
       "conservative_mass_balance_residual": 0,
       "optimistic_mass_balance_residual": 0,
       "coverage_lower_bound": 0,
-      "coverage_upper_bound": 0
+      "coverage_upper_bound": 0,
+      "supporting_evidence_ids": []
     },
     {
       "step_id": "recovery",
@@ -84,7 +87,8 @@
       "conservative_mass_balance_residual": 0,
       "optimistic_mass_balance_residual": 0,
       "coverage_lower_bound": 1,
-      "coverage_upper_bound": 1
+      "coverage_upper_bound": 1,
+      "supporting_evidence_ids": []
     }
   ],
   "supporting_evidence_ids": []

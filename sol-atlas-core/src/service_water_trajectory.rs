@@ -71,6 +71,7 @@ pub struct WaterServiceTrajectoryStepAssessment {
     pub ending_storage_upper_bound: f64,
     pub conservative_mass_balance_residual: f64,
     pub optimistic_mass_balance_residual: f64,
+    pub supporting_evidence_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -288,20 +289,7 @@ fn assess_trajectory_indexed(
         let assessment = assess_water_service_indexed(&scenario, evidence_by_id)
             .map_err(WaterServiceTrajectoryError::StepAssessment)?;
 
-        for measurement in [
-            &step.source_flow_rate,
-            &step.pump_capacity,
-            &step.treatment_capacity,
-            &step.distribution_capacity,
-            &step.demand_rate,
-            &step.distribution_loss_fraction,
-        ] {
-            evidence_ids.extend(measurement.supporting_evidence_ids.iter().cloned());
-        }
-        if index == 0 {
-            evidence_ids.extend(trajectory.initial_storage.supporting_evidence_ids.iter().cloned());
-        }
-        evidence_ids.extend(trajectory.storage_capacity.supporting_evidence_ids.iter().cloned());
+        evidence_ids.extend(assessment.supporting_evidence_ids.iter().cloned());
 
         let demand_lower = assessment.demand_volume_lower_bound;
         let demand_upper = assessment.demand_volume_upper_bound;
@@ -372,6 +360,7 @@ fn assess_trajectory_indexed(
             ending_storage_upper_bound: assessment.optimistic_path.ending_storage_volume,
             conservative_mass_balance_residual: assessment.conservative_path.mass_balance_residual,
             optimistic_mass_balance_residual: assessment.optimistic_path.mass_balance_residual,
+            supporting_evidence_ids: assessment.supporting_evidence_ids.clone(),
         });
     }
 

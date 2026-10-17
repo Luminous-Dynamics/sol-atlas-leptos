@@ -151,7 +151,8 @@
         "ending_storage_lower_bound",
         "ending_storage_upper_bound",
         "conservative_mass_balance_residual",
-        "optimistic_mass_balance_residual"
+        "optimistic_mass_balance_residual",
+        "supporting_evidence_ids"
       ],
       "properties": {
         "step_id": {
@@ -206,6 +207,14 @@
         },
         "optimistic_mass_balance_residual": {
           "type": "number"
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     }
