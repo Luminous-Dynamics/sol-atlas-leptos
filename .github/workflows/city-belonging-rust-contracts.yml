@@ -1,0 +1,46 @@
+name: City Belonging Rust Contracts
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/city-belonging-rust-contracts.yml"
+      - "tools/city-belonging-admission/**"
+      - "tools/city-belonging-task-matcher/**"
+      - "docs/research/fixtures/city-belonging-admission-v0.1.*"
+      - "docs/research/fixtures/city-belonging-task-benchmark-v0.1.*"
+      - "docs/research/fixtures/city-belonging-admission-profile-v0.1.json"
+      - "docs/research/fixtures/hsds-3.1-selected-contract-v0.1.json"
+      - "docs/research/fixtures/upstream/hsds-3.1/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/city-belonging-rust-contracts.yml"
+      - "tools/city-belonging-admission/**"
+      - "tools/city-belonging-task-matcher/**"
+      - "docs/research/fixtures/city-belonging-admission-v0.1.*"
+      - "docs/research/fixtures/city-belonging-task-benchmark-v0.1.*"
+      - "docs/research/fixtures/city-belonging-admission-profile-v0.1.json"
+      - "docs/research/fixtures/hsds-3.1-selected-contract-v0.1.json"
+      - "docs/research/fixtures/upstream/hsds-3.1/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: city-belonging-rust-contracts-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  standalone-rust-contracts:
+    name: Build and test standalone policy crates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Test service admission policy
+        run: cargo test --manifest-path tools/city-belonging-admission/Cargo.toml
+      - name: Test constraint-first task matcher
+        run: cargo test --manifest-path tools/city-belonging-task-matcher/Cargo.toml
