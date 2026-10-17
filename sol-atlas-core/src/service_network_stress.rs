@@ -462,7 +462,9 @@ pub fn assess_service_network_stress(
         .map(|case| case.failed_link_ids.clone())
         .collect();
     worst_case_conservative_failure_sets.sort();
+    worst_case_conservative_failure_sets.dedup();
     worst_case_optimistic_failure_sets.sort();
+    worst_case_optimistic_failure_sets.dedup();
 
     Ok(ServiceNetworkStressAssessment {
         schema_version: SERVICE_NETWORK_STRESS_SCHEMA_VERSION.into(),
@@ -737,6 +739,149 @@ mod tests {
         assert_eq!(result.cases.len(), 1);
         assert!(result.cases[0].assessment.availability_evidence_ids.is_empty());
         assert_eq!(result.cases[0].failed_link_ids, vec!["supply"]);
+    }
+
+    #[test]
+    fn declared_common_cause_bundle_is_separate_from_single_link_combinations() {
+        let mut input = request(1, 10);
+        input.declared_failure_sets = vec![DeclaredNetworkFailureSet {
+            id: "shared-feeder:outage".into(),
+            kind: DeclaredFailureSetKind::CommonCause,
+            rationale: "Synthetic shared feeder fault disables both parallel routes.".into(),
+            failed_link_ids: vec!["route-b".into(), "route-a".into()],
+        }];
+
+        let result = assess_service_network_stress(&input, &[]).unwrap();
+        assert_eq!(result.candidate_failure_case_count, 4);
+        assert_eq!(result.evaluated_failure_case_count, 4);
+        assert_eq!(result.declared_failure_set_count, 1);
+        assert!(result.exhaustive);
+
+        let bundle = result.cases.iter()
+            .find(|case| case.failure_set_id.as_deref() == Some("shared-feeder:outage"))
+            .unwrap();
+        assert_eq!(bundle.origin, ServiceNetworkFailureCaseOrigin::DeclaredCommonCause);
+        assert_eq!(bundle.failed_link_ids, vec!["route-a", "route-b"]);
+        assert_eq!(bundle.assessment.conservative_available_capacity, 0.0);
+        assert_eq!(bundle.conservative_capacity_loss, 7.0);
+        assert!(bundle.rationale.contains("shared feeder fault"));
+
+        assert_eq!(
+            result.worst_case_conservative_failure_sets,
+            vec![
+                vec!["route-a".to_owned(), "route-b".to_owned()],
+                vec!["supply".to_owned()]
+            ]
+        );
+    }
+
+    #[test]
+    fn declared_failure_sets_validate_ids_members_and_active_state() {
+        let mut unknown = request(1, 10);
+        unknown.declared_failure_sets = vec![DeclaredNetworkFailureSet {
+            id: "bad-set".into(),
+            kind: DeclaredFailureSetKind::CommonCause,
+            rationale: "Synthetic invalid bundle.".into(),
+            failed_link_ids: vec!["link-does-not-exist".into()],
+        }];
+        assert!(matches!(
+            assess_service_network_stress(&unknown, &[]),
+            Err(ServiceNetworkStressError::InvalidInput(errors))
+                if errors.contains(&ServiceNetworkStressValidationError::UnknownDeclaredFailureLinkId)
+        ));
+
+        let mut inactive = request(1, 10);
+        inactive.declared_failure_sets = vec![DeclaredNetworkFailureSet {
+            id: "inactive-bundle".into(),
+            kind: DeclaredFailureSetKind::HazardBundle,
+            rationale: "Synthetic invalid already-inactive bundle.".into(),
+            failed_link_ids: vec!["closed".into()],
+        }];
+        assert!(matches!(
+            assess_service_network_stress(&inactive, &[]),
+            Err(ServiceNetworkStressError::InvalidInput(errors))
+                if errors.contains(&ServiceNetworkStressValidationError::AlreadyInactiveDeclaredFailureLinkId)
+        ));
+
+        let mut duplicate_set = request(1, 10);
+        duplicate_set.declared_failure_sets = vec![
+            DeclaredNetworkFailureSet {
+                id: "same".into(),
+                kind: DeclaredFailureSetKind::Other,
+                rationale: "Synthetic first bundle.".into(),
+                failed_link_ids: vec!["route-a".into()],
+            },
+            DeclaredNetworkFailureSet {
+                id: "same".into(),
+                kind: DeclaredFailureSetKind::Other,
+                rationale: "Synthetic second bundle.".into(),
+                failed_link_ids: vec!["route-b".into()],
+            },
+        ];
+        assert!(matches!(
+            assess_service_network_stress(&duplicate_set, &[]),
+            Err(ServiceNetworkStressError::InvalidInput(errors))
+                if errors.contains(&ServiceNetworkStressValidationError::DuplicateDeclaredFailureSetId)
+        ));
+    }
+
+    #[test]
+    fn declared_failure_bundle_is_included_in_case_budget() {
+        let mut input = request(1, 3);
+        input.declared_failure_sets = vec![DeclaredNetworkFailureSet {
+            id: "shared-feeder".into(),
+            kind: DeclaredFailureSetKind::CommonCause,
+            rationale: "Synthetic common-cause event.".into(),
+            failed_link_ids: vec!["route-a".into(), "route-b".into()],
+        }];
+        assert!(matches!(
+            assess_service_network_stress(&input, &[]),
+            Err(ServiceNetworkStressError::InvalidInput(errors))
+                if errors.contains(&ServiceNetworkStressValidationError::ScenarioBudgetExceeded)
+        ));
+    }
+
+    #[test]
+    fn declared_failure_manifest_is_deterministic_under_input_permutation() {
+        let mut first = request(1, 10);
+        first.declared_failure_sets = vec![
+            DeclaredNetworkFailureSet {
+                id: "zeta".into(),
+                kind: DeclaredFailureSetKind::HazardBundle,
+                rationale: "Synthetic second named event.".into(),
+                failed_link_ids: vec!["route-b".into(), "route-a".into()],
+            },
+            DeclaredNetworkFailureSet {
+                id: "alpha".into(),
+                kind: DeclaredFailureSetKind::CommonCause,
+                rationale: "Synthetic first named event.".into(),
+                failed_link_ids: vec!["supply".into(), "route-a".into()],
+            },
+        ];
+        let first_result = assess_service_network_stress(&first, &[]).unwrap();
+        first.declared_failure_sets.reverse();
+        first.baseline_scenario.links.reverse();
+        for set in &mut first.declared_failure_sets {
+            set.failed_link_ids.reverse();
+        }
+        let second_result = assess_service_network_stress(&first, &[]).unwrap();
+        assert_eq!(first_result, second_result);
+    }
+
+    #[test]
+    fn json_common_cause_request_fixture_enumerates_shared_failure() {
+        let input: ServiceNetworkStressRequest = serde_json::from_str(include_str!(
+            "../../schemas/examples/service-network-stress-common-cause-request.json"
+        ))
+        .unwrap();
+        let result = assess_service_network_stress(&input, &[]).unwrap();
+        assert_eq!(result.declared_failure_set_count, 1);
+        assert_eq!(result.candidate_failure_case_count, 4);
+        assert!(result.cases.iter().any(|case| {
+            case.origin == ServiceNetworkFailureCaseOrigin::DeclaredCommonCause
+                && case.failed_link_ids == vec!["route-a", "route-b"]
+                && case.assessment.conservative_available_capacity == 0.0
+        }));
     }
 
     #[test]
