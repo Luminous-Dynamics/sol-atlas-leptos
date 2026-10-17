@@ -312,5 +312,9 @@
     "source_qualification_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/121",
     "mycelix_evidence_lineage": "https://github.com/Luminous-Dynamics/mycelix/issues/2410"
   },
-  "run_receipt_schema": "./benchmark-run-receipt.schema.json"
+  "run_receipt_schema": "./benchmark-run-receipt.schema.json",
+  "required_ci_checks": [
+    "Check",
+    "Earth Interior receipt verifier"
+  ]
 }
