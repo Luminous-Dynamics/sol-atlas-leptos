@@ -25,7 +25,7 @@ For decision \(d\) in scenario \(s\), the conservative regret bound is:
 R^+(d,s)=\max\left(0,\;L^+_{d,s}-\min_j L^-_{j,s}\right)
 \]
 
-The baseline decision minimizes its worst-case regret bound across all scenarios. After an investigation, scenarios are grouped by predicted observation; the system chooses a minimax-regret decision independently within each outcome group. The maximum regret bound across those groups is the post-investigation bound.
+The baseline decision minimizes its worst-case regret bound across all scenarios. After an investigation, each outcome group contains every scenario that can produce that label; groups may overlap when the measurement is ambiguous. The system chooses a minimax-regret decision independently within each outcome group. The maximum regret bound across all possible groups is the post-investigation bound.
 
 - **Regret-bound reduction** = baseline bound − post-investigation bound.
 - **Net regret-bound reduction** = regret-bound reduction − declared investigation cost.
