@@ -14,8 +14,8 @@ use crate::service_function::{
 };
 use crate::service_recovery::utc_epoch_seconds;
 use crate::service_water::{
-    WATER_RATE_UNIT, WATER_SERVICE_SCHEMA_VERSION, WATER_VOLUME_UNIT, WaterServiceAssessment,
-    WaterServiceError, WaterServiceScenario, WaterServiceState, WaterServiceValidationError,
+    WATER_RATE_UNIT, WATER_SERVICE_SCHEMA_VERSION, WATER_VOLUME_UNIT, WaterServiceError,
+    WaterServiceScenario, WaterServiceState,
     assess_water_service_indexed,
 };
 use crate::spatial_economic::EvidenceRecord;
@@ -336,12 +336,18 @@ fn assess_trajectory_indexed(
         deficit_lower_total += deficit_lower;
         deficit_upper_total += deficit_upper;
 
-        let normalized_low = if demand_upper > 0.0 {
-            (deficit_lower / demand_upper).clamp(0.0, 1.0)
-        } else { 0.0 };
-        let normalized_high = if demand_lower > 0.0 {
-            (deficit_upper / demand_lower).clamp(0.0, 1.0)
-        } else if deficit_upper == 0.0 { 0.0 } else { 1.0 };
+        // Tight normalized-deficit bounds use the demand denominator that
+        // minimizes/maximizes the ratio, independently of the volume bounds.
+        let normalized_low = if demand_lower > 0.0 {
+            (1.0 - delivered_upper / demand_lower).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+        let normalized_high = if demand_upper > 0.0 {
+            (1.0 - delivered_lower / demand_upper).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
         maximum_deficit_lower = maximum_deficit_lower.max(normalized_low);
         maximum_deficit_upper = maximum_deficit_upper.max(normalized_high);
 
@@ -618,6 +624,23 @@ mod tests {
         assert_eq!(result.steps[1].customer_delivered_volume_upper_bound, 60.0);
         assert!(result.unmet_demand_volume_lower_bound <= result.unmet_demand_volume_upper_bound);
         assert!(result.customer_delivered_volume_lower_bound <= result.customer_delivered_volume_upper_bound);
+    }
+
+    #[test]
+    fn normalized_deficit_bounds_use_adversarial_demand_denominators() {
+        let mut input = trajectory("deficit-bounds");
+        input.initial_storage.quantity.value = 0.0;
+        for (index, item) in input.steps.iter_mut().enumerate() {
+            *item = step(&format!("shortfall-{index}"), 10 + index as u32, 50.0);
+            item.demand_rate.quantity.value = 100.0;
+            item.demand_rate.quantity.uncertainty_abs = Some(20.0);
+        }
+        let result = assess_water_service_trajectory(&input, &[]).unwrap();
+        assert_eq!(result.unmet_demand_volume_lower_bound, 120.0);
+        assert_eq!(result.unmet_demand_volume_upper_bound, 280.0);
+        assert_eq!(result.maximum_normalized_deficit_lower_bound, 0.375);
+        assert!((result.maximum_normalized_deficit_upper_bound - (1.0 - 50.0 / 120.0)).abs() < 1e-12);
+        assert!(result.maximum_normalized_deficit_lower_bound <= result.maximum_normalized_deficit_upper_bound);
     }
 
     #[test]
