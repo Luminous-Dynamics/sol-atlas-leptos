@@ -263,3 +263,4 @@ This is stronger than relabelling the tested commit as “independently verified
 
 The verifier source change is authored on the feature branch but is not Rust-qualified until the exact-head formatter, tests and Clippy checks complete successfully.
 
+The running verifier binary is also bound to its compiled Cargo manifest location: the canonical repository root derived from `CARGO_MANIFEST_DIR` must equal the declared verifier checkout. This blocks an invocation from passing a second clean path while actually executing a binary compiled from the evaluated checkout. The verifier report records this check. It still does not constitute a cryptographic signature or prove an independent human review.
