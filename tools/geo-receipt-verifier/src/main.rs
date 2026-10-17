@@ -8,6 +8,7 @@ use jsonschema::draft202012;
 use serde::Serialize;
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
+use std::collections::BTreeMap;
 use std::env;
 use std::fs::{self, File};
 use std::io::{Read, Write};
@@ -104,12 +105,11 @@ fn main() -> ExitCode {
                     return ExitCode::from(1);
                 }
             }
-            if hard_failure || outcome == "rejected" {
+            if hard_failure {
                 ExitCode::from(1)
-            } else if outcome == "incomplete" {
-                ExitCode::from(2)
-            } else if !eligible
-                && report.target_qualification_status.as_deref() != Some("executed_unqualified")
+            } else if outcome == "incomplete" || outcome == "rejected"
+                || (!eligible
+                    && report.target_qualification_status.as_deref() != Some("executed_unqualified"))
             {
                 ExitCode::from(2)
             } else {
@@ -181,12 +181,13 @@ fn usage() -> String {
 fn verify(args: Args) -> Result<VerificationReport, String> {
     let repo_root = fs::canonicalize(&args.repo_root)
         .map_err(|error| format!("cannot resolve repository root: {error}"))?;
-    let artifact_root = fs::canonicalize(
-        args.artifact_root
-            .as_ref()
-            .unwrap_or(&repo_root),
-    )
-    .map_err(|error| format!("cannot resolve artifact root: {error}"))?;
+    let artifact_root_candidate = match args.artifact_root.as_ref() {
+        Some(path) if path.is_absolute() => path.clone(),
+        Some(path) => repo_root.join(path),
+        None => repo_root.clone(),
+    };
+    let artifact_root = fs::canonicalize(&artifact_root_candidate)
+        .map_err(|error| format!("cannot resolve artifact root: {error}"))?;
 
     let schema_path = resolve_cli_input(&repo_root, &args.schema_path)?;
     let receipt_path = resolve_cli_input(&repo_root, &args.receipt_path)?;
@@ -527,9 +528,30 @@ fn qualification_core_sha256(receipt: &Value) -> Result<String, String> {
         "qualification_status".to_string(),
         Value::String("executed_unqualified".to_string()),
     );
-    let bytes = serde_json::to_vec(&core)
+    let canonical = canonical_json_value(&core);
+    let bytes = serde_json::to_vec(&canonical)
         .map_err(|error| format!("cannot canonicalize receipt core: {error}"))?;
     Ok(format!("{:x}", Sha256::digest(bytes)))
+}
+
+fn canonical_json_value(value: &Value) -> Value {
+    match value {
+        Value::Object(object) => {
+            let sorted: BTreeMap<String, Value> = object
+                .iter()
+                .map(|(key, value)| (key.clone(), canonical_json_value(value)))
+                .collect();
+            let mut result = serde_json::Map::new();
+            for (key, value) in sorted {
+                result.insert(key, value);
+            }
+            Value::Object(result)
+        }
+        Value::Array(values) => {
+            Value::Array(values.iter().map(canonical_json_value).collect())
+        }
+        scalar => scalar.clone(),
+    }
 }
 
 fn verify_benchmark_specification(
@@ -663,26 +685,24 @@ fn configuration_digest_is_bound(receipt: &Value, artifacts: &[ArtifactCheck]) -
 }
 
 fn synthetic_artifacts_and_controls_valid(receipt: &Value, artifacts: &[ArtifactCheck]) -> bool {
-    let truth_hidden = artifacts.iter().any(|artifact| {
-        artifact.passed
-            && artifact.role == "truth_state"
-            && artifact.locator == string_field(
-                receipt.get("artifacts").and_then(Value::as_array).unwrap_or(&Vec::new())
-                    .iter()
-                    .find(|value| string_field(value, &["artifact_id"]) == Some(artifact.artifact_id.as_str()))
-                    .unwrap_or(&Value::Null),
-                &["locator"],
-            ).unwrap_or("")
-            && receipt
-                .get("artifacts")
-                .and_then(Value::as_array)
-                .into_iter()
-                .flatten()
-                .any(|value| {
-                    string_field(value, &["artifact_id"]) == Some(artifact.artifact_id.as_str())
-                        && string_field(value, &["selector_visibility"]) == Some("withheld_until_scoring")
+    let truth_hidden = receipt
+        .get("artifacts")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .any(|record| {
+            let Some(id) = string_field(record, &["artifact_id"]) else {
+                return false;
+            };
+            string_field(record, &["role"]) == Some("truth_state")
+                && string_field(record, &["selector_visibility"])
+                    == Some("withheld_until_scoring")
+                && artifacts.iter().any(|checked| {
+                    checked.artifact_id == id
+                        && checked.role == "truth_state"
+                        && checked.passed
                 })
-    });
+        });
     let synthetic_observations = artifacts
         .iter()
         .any(|artifact| artifact.passed && artifact.role == "synthetic_observations");
@@ -771,6 +791,15 @@ fn validate_prior_verifier_report(
         .map_err(|error| format!("verifier report is not valid JSON: {error}"))?;
     if string_field(&report, &["verification_outcome"]) != Some("accepted") {
         return Err("referenced verifier report is not accepted".to_string());
+    }
+    if report.get("qualification_eligible").and_then(Value::as_bool) != Some(true) {
+        return Err("referenced verifier report does not establish qualification eligibility".to_string());
+    }
+    if report.get("schema_valid").and_then(Value::as_bool) != Some(true)
+        || report.get("benchmark_specification_integrity").and_then(Value::as_bool) != Some(true)
+        || report.get("artifact_integrity").and_then(Value::as_bool) != Some(true)
+    {
+        return Err("referenced verifier report has a failed schema or integrity check".to_string());
     }
     if string_field(&report, &["target_qualification_status"]) != Some(target_status) {
         return Err("referenced verifier report targets a different qualification status".to_string());
