@@ -1,0 +1,548 @@
+{
+  "manifest_version": "hsds-3.1-selected-contract/0.1",
+  "standard": "Open Referral Human Services Data Specification",
+  "upstream_repository": "https://github.com/openreferral/specification",
+  "upstream_ref": "3.1",
+  "upstream_schema_directory": "schema/",
+  "license": {
+    "name": "Creative Commons Attribution-ShareAlike 4.0 International",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Open Referral, Human Services Data Specification (HSDS) 3.1 schemas. Source files are preserved byte-for-byte from https://github.com/openreferral/specification/tree/3.1/schema"
+  },
+  "claim_ceiling": "Pins exact upstream schema-file bytes and derives a selected flat-resource contract for this synthetic fixture. This is not a complete JSON Schema implementation, not complete HSDS conformance, and not evidence of real-world service truth.",
+  "schema_files": [
+    {
+      "resource": "organization",
+      "source_url": "https://github.com/openreferral/specification/blob/3.1/schema/organization.json",
+      "vendored_path": "docs/research/fixtures/upstream/hsds-3.1/schema/organization.json",
+      "git_blob_sha1": "53f11b97c1461a935144524f76423a952a7bdcde",
+      "sha256_utf8": "b4359388ff45e77027bdfaa074567bf1c0bae37f2392fe978a68e1eb048484e6",
+      "utf8_byte_length": 7445,
+      "required_fields": [
+        "id",
+        "name",
+        "description"
+      ],
+      "tabular_required_fields": [],
+      "allowed_fields": [
+        "additional_websites",
+        "alternate_name",
+        "attributes",
+        "contacts",
+        "description",
+        "email",
+        "funding",
+        "id",
+        "legal_status",
+        "locations",
+        "logo",
+        "metadata",
+        "name",
+        "organization_identifiers",
+        "parent_organization_id",
+        "phones",
+        "programs",
+        "tax_id",
+        "tax_status",
+        "uri",
+        "website",
+        "year_incorporated"
+      ],
+      "field_types": {
+        "id": "string",
+        "name": "string",
+        "alternate_name": "string",
+        "description": "string",
+        "email": "string",
+        "website": "string",
+        "additional_websites": "array",
+        "tax_status": "string",
+        "tax_id": "string",
+        "year_incorporated": "number",
+        "legal_status": "string",
+        "logo": "string",
+        "uri": "string",
+        "parent_organization_id": "string",
+        "funding": "array",
+        "contacts": "array",
+        "phones": "array",
+        "locations": "array",
+        "programs": "array",
+        "organization_identifiers": "array",
+        "attributes": "array",
+        "metadata": "array"
+      },
+      "field_formats": {
+        "id": "uuid",
+        "email": "email",
+        "website": "uri",
+        "uri": "uri",
+        "parent_organization_id": "uuid"
+      },
+      "field_enums": {}
+    },
+    {
+      "resource": "service",
+      "source_url": "https://github.com/openreferral/specification/blob/3.1/schema/service.json",
+      "vendored_path": "docs/research/fixtures/upstream/hsds-3.1/schema/service.json",
+      "git_blob_sha1": "bacbe613f10f89acd62861caaf362226f24dd28f",
+      "sha256_utf8": "e692fe57de03536403f2223cc955e30622a34f492cd268810593e57c3e57ed7e",
+      "utf8_byte_length": 13150,
+      "required_fields": [
+        "id",
+        "name",
+        "status"
+      ],
+      "tabular_required_fields": [
+        "organization_id"
+      ],
+      "allowed_fields": [
+        "accreditations",
+        "additional_urls",
+        "alert",
+        "alternate_name",
+        "application_process",
+        "assured_date",
+        "assurer_email",
+        "attributes",
+        "capacities",
+        "contacts",
+        "cost_options",
+        "description",
+        "eligibility_description",
+        "email",
+        "fees",
+        "fees_description",
+        "funding",
+        "id",
+        "interpretation_services",
+        "languages",
+        "last_modified",
+        "licenses",
+        "maximum_age",
+        "metadata",
+        "minimum_age",
+        "name",
+        "organization",
+        "organization_id",
+        "phones",
+        "program",
+        "program_id",
+        "required_documents",
+        "schedules",
+        "service_areas",
+        "service_at_locations",
+        "status",
+        "url",
+        "wait_time"
+      ],
+      "field_types": {
+        "id": "string",
+        "organization_id": "string",
+        "program_id": "string",
+        "name": "string",
+        "alternate_name": "string",
+        "description": "string",
+        "url": "string",
+        "additional_urls": "array",
+        "email": "string",
+        "status": "string",
+        "interpretation_services": "string",
+        "application_process": "string",
+        "fees_description": "string",
+        "wait_time": "string",
+        "fees": "string",
+        "accreditations": "string",
+        "eligibility_description": "string",
+        "minimum_age": "number",
+        "maximum_age": "number",
+        "assured_date": "string",
+        "assurer_email": "string",
+        "licenses": "string",
+        "alert": "string",
+        "last_modified": "string",
+        "phones": "array",
+        "schedules": "array",
+        "service_areas": "array",
+        "service_at_locations": "array",
+        "languages": "array",
+        "funding": "array",
+        "cost_options": "array",
+        "required_documents": "array",
+        "contacts": "array",
+        "capacities": "array",
+        "attributes": "array",
+        "metadata": "array"
+      },
+      "field_formats": {
+        "id": "uuid",
+        "organization_id": "uuid",
+        "program_id": "uuid",
+        "url": "uri",
+        "email": "email",
+        "assurer_email": "email",
+        "last_modified": "date-time"
+      },
+      "field_enums": {
+        "status": [
+          "active",
+          "inactive",
+          "defunct",
+          "temporarily closed"
+        ]
+      }
+    },
+    {
+      "resource": "location",
+      "source_url": "https://github.com/openreferral/specification/blob/3.1/schema/location.json",
+      "vendored_path": "docs/research/fixtures/upstream/hsds-3.1/schema/location.json",
+      "git_blob_sha1": "06e86e417e448b3ff11108a208126eccbb3fc1ac",
+      "sha256_utf8": "205c3ce4ec0f4b5dd0b2ca30b1321bd320d1ba184f41434041e4276b3fb2e286",
+      "utf8_byte_length": 8460,
+      "required_fields": [
+        "id",
+        "location_type"
+      ],
+      "tabular_required_fields": [],
+      "allowed_fields": [
+        "accessibility",
+        "addresses",
+        "alternate_name",
+        "attributes",
+        "contacts",
+        "description",
+        "external_identifier",
+        "external_identifier_type",
+        "id",
+        "languages",
+        "latitude",
+        "location_type",
+        "longitude",
+        "metadata",
+        "name",
+        "organization_id",
+        "phones",
+        "schedules",
+        "transportation",
+        "url"
+      ],
+      "field_types": {
+        "id": "string",
+        "location_type": "string",
+        "url": "string",
+        "organization_id": "string",
+        "name": "string",
+        "alternate_name": "string",
+        "description": "string",
+        "transportation": "string",
+        "latitude": "number",
+        "longitude": "number",
+        "external_identifier": "string",
+        "external_identifier_type": "string",
+        "languages": "array",
+        "addresses": "array",
+        "contacts": "array",
+        "accessibility": "array",
+        "phones": "array",
+        "schedules": "array",
+        "attributes": "array",
+        "metadata": "array"
+      },
+      "field_formats": {
+        "id": "uuid",
+        "url": "uri",
+        "organization_id": "uuid"
+      },
+      "field_enums": {
+        "location_type": [
+          "physical",
+          "postal",
+          "virtual"
+        ]
+      }
+    },
+    {
+      "resource": "service_at_location",
+      "source_url": "https://github.com/openreferral/specification/blob/3.1/schema/service_at_location.json",
+      "vendored_path": "docs/research/fixtures/upstream/hsds-3.1/schema/service_at_location.json",
+      "git_blob_sha1": "d399404fb790951ccaeb6f57f2b4b49e73082e9f",
+      "sha256_utf8": "24ae016e44bb626cdacd53b1a45eec348796c86efb8f8708a689c83c78264710",
+      "utf8_byte_length": 4380,
+      "required_fields": [
+        "id"
+      ],
+      "tabular_required_fields": [
+        "service_id",
+        "location_id"
+      ],
+      "allowed_fields": [
+        "attributes",
+        "contacts",
+        "description",
+        "id",
+        "location",
+        "location_id",
+        "metadata",
+        "phones",
+        "schedules",
+        "service_areas",
+        "service_id"
+      ],
+      "field_types": {
+        "id": "string",
+        "service_id": "string",
+        "location_id": "string",
+        "description": "string",
+        "service_areas": "array",
+        "contacts": "array",
+        "phones": "array",
+        "schedules": "array",
+        "attributes": "array",
+        "metadata": "array"
+      },
+      "field_formats": {
+        "id": "uuid",
+        "service_id": "uuid",
+        "location_id": "uuid"
+      },
+      "field_enums": {}
+    },
+    {
+      "resource": "schedule",
+      "source_url": "https://github.com/openreferral/specification/blob/3.1/schema/schedule.json",
+      "vendored_path": "docs/research/fixtures/upstream/hsds-3.1/schema/schedule.json",
+      "git_blob_sha1": "b4f2afa953cd91843fd900b1965266210ac653ba",
+      "sha256_utf8": "c611984058f37c8435d930fd89bf915a20eea7f3a217ff053206e21440744bdb",
+      "utf8_byte_length": 11476,
+      "required_fields": [
+        "id"
+      ],
+      "tabular_required_fields": [],
+      "allowed_fields": [
+        "attending_type",
+        "attributes",
+        "byday",
+        "bymonthday",
+        "byweekno",
+        "byyearday",
+        "closes_at",
+        "count",
+        "description",
+        "dtstart",
+        "freq",
+        "id",
+        "interval",
+        "location_id",
+        "metadata",
+        "notes",
+        "opens_at",
+        "schedule_link",
+        "service_at_location_id",
+        "service_id",
+        "timezone",
+        "until",
+        "valid_from",
+        "valid_to",
+        "wkst"
+      ],
+      "field_types": {
+        "id": "string",
+        "service_id": "string",
+        "location_id": "string",
+        "service_at_location_id": "string",
+        "valid_from": "string",
+        "valid_to": "string",
+        "dtstart": "string",
+        "timezone": "number",
+        "until": "string",
+        "count": "number",
+        "wkst": "string",
+        "freq": "string",
+        "interval": "number",
+        "byday": "string",
+        "byweekno": "string",
+        "bymonthday": "string",
+        "byyearday": "string",
+        "description": "string",
+        "opens_at": "string",
+        "closes_at": "string",
+        "schedule_link": "string",
+        "attending_type": "string",
+        "notes": "string",
+        "attributes": "array",
+        "metadata": "array"
+      },
+      "field_formats": {
+        "id": "uuid",
+        "service_id": "uuid",
+        "location_id": "uuid",
+        "service_at_location_id": "uuid",
+        "schedule_link": "uri"
+      },
+      "field_enums": {
+        "wkst": [
+          "MO",
+          "TU",
+          "WE",
+          "TH",
+          "FR",
+          "SA",
+          "SU"
+        ],
+        "freq": [
+          "WEEKLY",
+          "MONTHLY"
+        ]
+      }
+    },
+    {
+      "resource": "address",
+      "source_url": "https://github.com/openreferral/specification/blob/3.1/schema/address.json",
+      "vendored_path": "docs/research/fixtures/upstream/hsds-3.1/schema/address.json",
+      "git_blob_sha1": "ba0d945f73df9581f47ed8632fb50a6847a5c539",
+      "sha256_utf8": "0647496d479a41c01744ce8caee9edc19feadb111acaecf42167128b8635209f",
+      "utf8_byte_length": 5469,
+      "required_fields": [
+        "id",
+        "address_1",
+        "city",
+        "state_province",
+        "postal_code",
+        "country",
+        "address_type"
+      ],
+      "tabular_required_fields": [],
+      "allowed_fields": [
+        "address_1",
+        "address_2",
+        "address_type",
+        "attention",
+        "attributes",
+        "city",
+        "country",
+        "id",
+        "location_id",
+        "metadata",
+        "postal_code",
+        "region",
+        "state_province"
+      ],
+      "field_types": {
+        "id": "string",
+        "location_id": "string",
+        "attention": "string",
+        "address_1": "string",
+        "address_2": "string",
+        "city": "string",
+        "region": "string",
+        "state_province": "string",
+        "postal_code": "string",
+        "country": "string",
+        "address_type": "string",
+        "attributes": "array",
+        "metadata": "array"
+      },
+      "field_formats": {
+        "id": "uuid",
+        "location_id": "uuid"
+      },
+      "field_enums": {
+        "address_type": [
+          "physical",
+          "postal",
+          "virtual"
+        ]
+      }
+    },
+    {
+      "resource": "service_area",
+      "source_url": "https://github.com/openreferral/specification/blob/3.1/schema/service_area.json",
+      "vendored_path": "docs/research/fixtures/upstream/hsds-3.1/schema/service_area.json",
+      "git_blob_sha1": "697283140d538a86302a667d7a6e221bec8a036f",
+      "sha256_utf8": "59dc874931770cccd9e81afd086b2b1e2a329df8fb0791f7a99c6eb0a3cc4de8",
+      "utf8_byte_length": 4593,
+      "required_fields": [
+        "id"
+      ],
+      "tabular_required_fields": [],
+      "allowed_fields": [
+        "attributes",
+        "description",
+        "extent",
+        "extent_type",
+        "id",
+        "metadata",
+        "name",
+        "service_at_location_id",
+        "service_id",
+        "uri"
+      ],
+      "field_types": {
+        "id": "string",
+        "service_id": "string",
+        "service_at_location_id": "string",
+        "name": "string",
+        "description": "string",
+        "extent": "string",
+        "extent_type": "string",
+        "uri": "string",
+        "attributes": "array",
+        "metadata": "array"
+      },
+      "field_formats": {
+        "id": "uuid",
+        "service_id": "uuid",
+        "service_at_location_id": "uuid"
+      },
+      "field_enums": {}
+    },
+    {
+      "resource": "service_capacity",
+      "source_url": "https://github.com/openreferral/specification/blob/3.1/schema/service_capacity.json",
+      "vendored_path": "docs/research/fixtures/upstream/hsds-3.1/schema/service_capacity.json",
+      "git_blob_sha1": "6b6ebb238cf50072dee30f0ff48f4f05bd57e5eb",
+      "sha256_utf8": "bd9620d0154c960fe61e2e0f1552bb6050da4d8f95265843064f09bd8cf63425",
+      "utf8_byte_length": 3614,
+      "required_fields": [
+        "id",
+        "unit",
+        "available",
+        "updated"
+      ],
+      "tabular_required_fields": [
+        "unit_id",
+        "service_id"
+      ],
+      "allowed_fields": [
+        "attributes",
+        "available",
+        "description",
+        "id",
+        "maximum",
+        "metadata",
+        "service_id",
+        "unit",
+        "unit_id",
+        "updated"
+      ],
+      "field_types": {
+        "id": "string",
+        "service_id": "string",
+        "unit_id": "string",
+        "available": "number",
+        "maximum": "number",
+        "description": "string",
+        "updated": "string",
+        "attributes": "array",
+        "metadata": "array"
+      },
+      "field_formats": {
+        "id": "uuid",
+        "service_id": "uuid",
+        "unit_id": "uuid",
+        "updated": "date-time"
+      },
+      "field_enums": {}
+    }
+  ]
+}
