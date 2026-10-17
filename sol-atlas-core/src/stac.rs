@@ -71,8 +71,8 @@ impl SkippedStacAsset {
 /// relative hrefs, or mark licences reusable just because a STAC item declares
 /// a licence identifier.
 pub fn import_item_json(input: &str) -> Result<StacItemImport, String> {
-    let root: Value = serde_json::from_str(input)
-        .map_err(|error| format!("invalid STAC Item JSON: {error}"))?;
+    let root: Value =
+        serde_json::from_str(input).map_err(|error| format!("invalid STAC Item JSON: {error}"))?;
     let object = root
         .as_object()
         .ok_or_else(|| "STAC Item root must be an object".to_string())?;
@@ -124,7 +124,8 @@ pub fn import_item_json(input: &str) -> Result<StacItemImport, String> {
             continue;
         };
 
-        let Some(media_type) = optional_nonempty_text(asset.get("type"), "asset media type")? else {
+        let Some(media_type) = optional_nonempty_text(asset.get("type"), "asset media type")?
+        else {
             skipped_assets.push(SkippedStacAsset {
                 key: key.clone(),
                 reason: "asset has no declared media type".into(),
@@ -182,8 +183,7 @@ pub fn import_item_json(input: &str) -> Result<StacItemImport, String> {
 }
 
 fn required_nonempty_text(value: Option<&Value>, label: &str) -> Result<String, String> {
-    optional_nonempty_text(value, label)?
-        .ok_or_else(|| format!("missing {label}"))
+    optional_nonempty_text(value, label)?.ok_or_else(|| format!("missing {label}"))
 }
 
 fn optional_nonempty_text(value: Option<&Value>, label: &str) -> Result<Option<String>, String> {
@@ -235,8 +235,7 @@ fn parse_observation_time(properties: &Map<String, Value>) -> Result<Observation
         properties.get("start_datetime"),
         "properties.start_datetime",
     )?;
-    let end =
-        optional_nonempty_text(properties.get("end_datetime"), "properties.end_datetime")?;
+    let end = optional_nonempty_text(properties.get("end_datetime"), "properties.end_datetime")?;
 
     match (datetime, start, end) {
         (Some(datetime), Some(start), Some(end)) => ObservationTime::new_with_datetime(
@@ -353,18 +352,20 @@ fn parse_resolution(
                 .get("raster:spatial_resolution")
                 .filter(|value| !value.is_null())
             {
-                let value = value.as_f64().ok_or_else(|| {
-                    "raster:spatial_resolution must be numeric".to_string()
-                })?;
+                let value = value
+                    .as_f64()
+                    .ok_or_else(|| "raster:spatial_resolution must be numeric".to_string())?;
                 resolutions.push(value);
             }
         }
 
         if !resolutions.is_empty() {
-            if resolutions.iter().any(|value| !value.is_finite() || *value <= 0.0) {
+            if resolutions
+                .iter()
+                .any(|value| !value.is_finite() || *value <= 0.0)
+            {
                 return Err(
-                    "raster:spatial_resolution values must be finite and greater than zero"
-                        .into(),
+                    "raster:spatial_resolution values must be finite and greater than zero".into(),
                 );
             }
 
@@ -422,7 +423,8 @@ fn classify_asset(asset: &Map<String, Value>, media_type: &str) -> Option<AssetK
         } else {
             Some(AssetKind::Imagery)
         }
-    } else if media_type.contains("3dtiles") || media_type == "application/vnd.cesium.3dtiles+json" {
+    } else if media_type.contains("3dtiles") || media_type == "application/vnd.cesium.3dtiles+json"
+    {
         Some(AssetKind::ThreeDTiles)
     } else if matches!(
         media_type.as_str(),
@@ -450,8 +452,7 @@ fn classify_asset(asset: &Map<String, Value>, media_type: &str) -> Option<AssetK
 
 /// Deterministic URL-safe base64 encoding without padding for opaque ID parts.
 fn base64url_no_pad(input: &[u8]) -> String {
-    const ALPHABET: &[u8; 64] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     let mut output = String::with_capacity((input.len() * 4).div_ceil(3));
     for chunk in input.chunks(3) {
         let first = chunk[0];
@@ -459,10 +460,13 @@ fn base64url_no_pad(input: &[u8]) -> String {
         let third = chunk.get(2).copied();
 
         output.push(ALPHABET[(first >> 2) as usize] as char);
-        output.push(ALPHABET[(((first & 0x03) << 4) | (second.unwrap_or(0) >> 4)) as usize] as char);
+        output
+            .push(ALPHABET[(((first & 0x03) << 4) | (second.unwrap_or(0) >> 4)) as usize] as char);
 
         if let Some(second) = second {
-            output.push(ALPHABET[(((second & 0x0f) << 2) | (third.unwrap_or(0) >> 6)) as usize] as char);
+            output.push(
+                ALPHABET[(((second & 0x0f) << 2) | (third.unwrap_or(0) >> 6)) as usize] as char,
+            );
         }
         if let Some(third) = third {
             output.push(ALPHABET[(third & 0x3f) as usize] as char);
@@ -486,7 +490,8 @@ mod tests {
         assert_eq!(result.skipped_assets()[0].key(), "metadata");
         assert!(result.skipped_assets()[0].reason().contains("unsupported"));
 
-        let raster = result.imported_assets()
+        let raster = result
+            .imported_assets()
             .iter()
             .find(|record| record.source().locator().ends_with("scene.tif"))
             .unwrap();
@@ -500,7 +505,10 @@ mod tests {
             Some("https://example.test/licence")
         );
         assert!(raster.footprint().unwrap().crosses_antimeridian());
-        assert_eq!(raster.observation_time().kind(), ObservationTimeKind::Interval);
+        assert_eq!(
+            raster.observation_time().kind(),
+            ObservationTimeKind::Interval
+        );
     }
 
     #[test]
@@ -532,7 +540,11 @@ mod tests {
           "properties":{},
           "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
         }"#;
-        assert!(import_item_json(missing).unwrap_err().contains("datetime is required"));
+        assert!(
+            import_item_json(missing)
+                .unwrap_err()
+                .contains("datetime is required")
+        );
 
         let null_without_range = r#"{
           "type":"Feature",
@@ -540,7 +552,11 @@ mod tests {
           "properties":{"datetime":null},
           "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
         }"#;
-        assert!(import_item_json(null_without_range).unwrap_err().contains("may be null only"));
+        assert!(
+            import_item_json(null_without_range)
+                .unwrap_err()
+                .contains("may be null only")
+        );
 
         let partial = r#"{
           "type":"Feature",
@@ -551,7 +567,11 @@ mod tests {
           },
           "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
         }"#;
-        assert!(import_item_json(partial).unwrap_err().contains("must occur together"));
+        assert!(
+            import_item_json(partial)
+                .unwrap_err()
+                .contains("must occur together")
+        );
 
         let mixed = r#"{
           "type":"Feature",
@@ -577,7 +597,10 @@ mod tests {
           "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
         }"#;
         let result = import_item_json(unknown_licence).unwrap();
-        assert_eq!(result.imported_assets()[0].licence().review(), LicenceReview::Unknown);
+        assert_eq!(
+            result.imported_assets()[0].licence().review(),
+            LicenceReview::Unknown
+        );
         assert!(result.imported_assets()[0].licence().identifier().is_none());
     }
 
@@ -590,7 +613,13 @@ mod tests {
           "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
         }"#;
         let result = import_item_json(item).unwrap();
-        assert_eq!(result.imported_assets()[0].spatial_resolution().unwrap().value(), 30.0);
+        assert_eq!(
+            result.imported_assets()[0]
+                .spatial_resolution()
+                .unwrap()
+                .value(),
+            30.0
+        );
 
         let asset_override = r#"{
           "type":"Feature",
@@ -599,7 +628,13 @@ mod tests {
           "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg","gsd":5}}
         }"#;
         let result = import_item_json(asset_override).unwrap();
-        assert_eq!(result.imported_assets()[0].spatial_resolution().unwrap().value(), 5.0);
+        assert_eq!(
+            result.imported_assets()[0]
+                .spatial_resolution()
+                .unwrap()
+                .value(),
+            5.0
+        );
     }
 
     #[test]
@@ -612,7 +647,7 @@ mod tests {
 
         let unpaired_date = ITEM.replace(
             r#""end_datetime": "2025-01-31T00:00:00Z","#,
-            r#""end_datetime": null,"#
+            r#""end_datetime": null,"#,
         );
         assert!(import_item_json(&unpaired_date).is_err());
     }
@@ -621,8 +656,16 @@ mod tests {
     fn asset_identity_is_deterministic_and_safe_for_non_token_stac_ids() {
         let a = import_item_json(ITEM).unwrap();
         let b = import_item_json(ITEM).unwrap();
-        let ids_a: Vec<_> = a.imported_assets().iter().map(|asset| asset.asset_id().as_str()).collect();
-        let ids_b: Vec<_> = b.imported_assets().iter().map(|asset| asset.asset_id().as_str()).collect();
+        let ids_a: Vec<_> = a
+            .imported_assets()
+            .iter()
+            .map(|asset| asset.asset_id().as_str())
+            .collect();
+        let ids_b: Vec<_> = b
+            .imported_assets()
+            .iter()
+            .map(|asset| asset.asset_id().as_str())
+            .collect();
         assert_eq!(ids_a, ids_b);
         assert!(ids_a.iter().all(|id| id.starts_with("stac:")));
         assert!(ids_a.iter().all(|id| id.len() <= 128));

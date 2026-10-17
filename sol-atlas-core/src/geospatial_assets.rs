@@ -30,17 +30,22 @@ impl AssetId {
                 .bytes()
                 .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'.' | b':'))
         {
-            return Err("asset ID must be <=128 ASCII letters, digits, '-', '_', '.', or ':'".into());
+            return Err(
+                "asset ID must be <=128 ASCII letters, digits, '-', '_', '.', or ':'".into(),
+            );
         }
         Ok(Self(value))
     }
 
-    pub fn as_str(&self) -> &str { &self.0 }
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
 impl<'de> Deserialize<'de> for AssetId {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let value = String::deserialize(deserializer)?;
         Self::new(value).map_err(serde::de::Error::custom)
@@ -74,7 +79,12 @@ pub struct GeoFootprint {
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct GeoFootprintWire { west: f64, south: f64, east: f64, north: f64 }
+struct GeoFootprintWire {
+    west: f64,
+    south: f64,
+    east: f64,
+    north: f64,
+}
 
 impl GeoFootprint {
     pub fn new(west: f64, south: f64, east: f64, north: f64) -> Result<Self, String> {
@@ -93,14 +103,29 @@ impl GeoFootprint {
         if west == east || (west == 180.0 && east == -180.0) {
             return Err("footprint must have non-zero longitudinal width".into());
         }
-        Ok(Self { west, south, east, north })
+        Ok(Self {
+            west,
+            south,
+            east,
+            north,
+        })
     }
 
-    pub fn west(&self) -> f64 { self.west }
-    pub fn south(&self) -> f64 { self.south }
-    pub fn east(&self) -> f64 { self.east }
-    pub fn north(&self) -> f64 { self.north }
-    pub fn crosses_antimeridian(&self) -> bool { self.west > self.east }
+    pub fn west(&self) -> f64 {
+        self.west
+    }
+    pub fn south(&self) -> f64 {
+        self.south
+    }
+    pub fn east(&self) -> f64 {
+        self.east
+    }
+    pub fn north(&self) -> f64 {
+        self.north
+    }
+    pub fn crosses_antimeridian(&self) -> bool {
+        self.west > self.east
+    }
 
     /// Bounding-box longitude span in degrees, including antimeridian crossing.
     pub fn longitude_span_degrees(&self) -> f64 {
@@ -114,11 +139,11 @@ impl GeoFootprint {
 
 impl<'de> Deserialize<'de> for GeoFootprint {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let wire = GeoFootprintWire::deserialize(deserializer)?;
-        Self::new(wire.west, wire.south, wire.east, wire.north)
-            .map_err(serde::de::Error::custom)
+        Self::new(wire.west, wire.south, wire.east, wire.north).map_err(serde::de::Error::custom)
     }
 }
 
@@ -129,7 +154,12 @@ impl<'de> Deserialize<'de> for GeoFootprint {
 /// inferred from strings with unknown timezones or precisions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum ObservationTimeKind { Unknown, Instant, Interval, Approximate }
+pub enum ObservationTimeKind {
+    Unknown,
+    Instant,
+    Interval,
+    Approximate,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct ObservationTime {
@@ -189,13 +219,9 @@ impl ObservationTime {
         start: Option<String>,
         end: Option<String>,
     ) -> Result<Self, String> {
-        for value in [
-            datetime.as_deref(),
-            start.as_deref(),
-            end.as_deref(),
-        ]
-        .into_iter()
-        .flatten()
+        for value in [datetime.as_deref(), start.as_deref(), end.as_deref()]
+            .into_iter()
+            .flatten()
         {
             if value.trim().is_empty() {
                 return Err("observation time values must not be empty".into());
@@ -203,12 +229,8 @@ impl ObservationTime {
         }
 
         let valid_shape = match kind {
-            ObservationTimeKind::Unknown => {
-                datetime.is_none() && start.is_none() && end.is_none()
-            }
-            ObservationTimeKind::Instant => {
-                datetime.is_some() && start.is_none() && end.is_none()
-            }
+            ObservationTimeKind::Unknown => datetime.is_none() && start.is_none() && end.is_none(),
+            ObservationTimeKind::Instant => datetime.is_some() && start.is_none() && end.is_none(),
             // STAC explicitly permits datetime alongside inclusive start/end bounds.
             ObservationTimeKind::Interval => start.is_some() && end.is_some(),
             ObservationTimeKind::Approximate => {
@@ -264,7 +286,12 @@ impl<'de> Deserialize<'de> for ObservationTime {
 /// This is metadata, not legal advice or a claim of source accuracy.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum LicenceReview { Unknown, NotReviewed, ReusableForDeclaredUse, Restricted }
+pub enum LicenceReview {
+    Unknown,
+    NotReviewed,
+    ReusableForDeclaredUse,
+    Restricted,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct LicenceMetadata {
@@ -299,40 +326,76 @@ impl LicenceMetadata {
                 return Err(format!("{label} must be absent or non-empty"));
             }
         }
-        Ok(Self { identifier, terms_locator, attribution, review })
+        Ok(Self {
+            identifier,
+            terms_locator,
+            attribution,
+            review,
+        })
     }
 
     pub fn unknown() -> Self {
-        Self { identifier: None, terms_locator: None, attribution: None, review: LicenceReview::Unknown }
+        Self {
+            identifier: None,
+            terms_locator: None,
+            attribution: None,
+            review: LicenceReview::Unknown,
+        }
     }
 
-    pub fn identifier(&self) -> Option<&str> { self.identifier.as_deref() }
-    pub fn terms_locator(&self) -> Option<&str> { self.terms_locator.as_deref() }
-    pub fn attribution(&self) -> Option<&str> { self.attribution.as_deref() }
-    pub fn review(&self) -> LicenceReview { self.review }
+    pub fn identifier(&self) -> Option<&str> {
+        self.identifier.as_deref()
+    }
+    pub fn terms_locator(&self) -> Option<&str> {
+        self.terms_locator.as_deref()
+    }
+    pub fn attribution(&self) -> Option<&str> {
+        self.attribution.as_deref()
+    }
+    pub fn review(&self) -> LicenceReview {
+        self.review
+    }
 }
 
 impl<'de> Deserialize<'de> for LicenceMetadata {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let wire = LicenceMetadataWire::deserialize(deserializer)?;
-        Self::new(wire.identifier, wire.terms_locator, wire.attribution, wire.review)
-            .map_err(serde::de::Error::custom)
+        Self::new(
+            wire.identifier,
+            wire.terms_locator,
+            wire.attribution,
+            wire.review,
+        )
+        .map_err(serde::de::Error::custom)
     }
 }
 
 /// Units explicitly declared by the source for spatial resolution.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum ResolutionUnit { Meter, Centimeter, Foot, Degree, ArcSecond }
+pub enum ResolutionUnit {
+    Meter,
+    Centimeter,
+    Foot,
+    Degree,
+    ArcSecond,
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct SpatialResolution { value: f64, unit: ResolutionUnit }
+pub struct SpatialResolution {
+    value: f64,
+    unit: ResolutionUnit,
+}
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct SpatialResolutionWire { value: f64, unit: ResolutionUnit }
+struct SpatialResolutionWire {
+    value: f64,
+    unit: ResolutionUnit,
+}
 
 impl SpatialResolution {
     pub fn new(value: f64, unit: ResolutionUnit) -> Result<Self, String> {
@@ -341,13 +404,18 @@ impl SpatialResolution {
         }
         Ok(Self { value, unit })
     }
-    pub fn value(&self) -> f64 { self.value }
-    pub fn unit(&self) -> ResolutionUnit { self.unit }
+    pub fn value(&self) -> f64 {
+        self.value
+    }
+    pub fn unit(&self) -> ResolutionUnit {
+        self.unit
+    }
 }
 
 impl<'de> Deserialize<'de> for SpatialResolution {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let wire = SpatialResolutionWire::deserialize(deserializer)?;
         Self::new(wire.value, wire.unit).map_err(serde::de::Error::custom)
@@ -359,11 +427,17 @@ impl<'de> Deserialize<'de> for SpatialResolution {
 /// The locator is intentionally opaque: it may be a URL or provider-defined ID.
 /// Constructing one does not cause network access or verify the locator.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct AssetSource { provider_id: Option<String>, locator: String }
+pub struct AssetSource {
+    provider_id: Option<String>,
+    locator: String,
+}
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct AssetSourceWire { provider_id: Option<String>, locator: String }
+struct AssetSourceWire {
+    provider_id: Option<String>,
+    locator: String,
+}
 
 impl AssetSource {
     pub fn new(provider_id: Option<String>, locator: impl Into<String>) -> Result<Self, String> {
@@ -374,15 +448,23 @@ impl AssetSource {
         if provider_id.as_deref().is_some_and(|s| s.trim().is_empty()) {
             return Err("provider ID must be absent or non-empty".into());
         }
-        Ok(Self { provider_id, locator })
+        Ok(Self {
+            provider_id,
+            locator,
+        })
     }
-    pub fn provider_id(&self) -> Option<&str> { self.provider_id.as_deref() }
-    pub fn locator(&self) -> &str { &self.locator }
+    pub fn provider_id(&self) -> Option<&str> {
+        self.provider_id.as_deref()
+    }
+    pub fn locator(&self) -> &str {
+        &self.locator
+    }
 }
 
 impl<'de> Deserialize<'de> for AssetSource {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let wire = AssetSourceWire::deserialize(deserializer)?;
         Self::new(wire.provider_id, wire.locator).map_err(serde::de::Error::custom)
@@ -458,29 +540,66 @@ impl AssetRecord {
         }
         Ok(Self {
             schema_version: ASSET_SCHEMA_VERSION,
-            asset_id, title, kind, source, media_type, source_crs, footprint, observation_time, licence,
-            spatial_resolution, published_at, source_snapshot_id,
+            asset_id,
+            title,
+            kind,
+            source,
+            media_type,
+            source_crs,
+            footprint,
+            observation_time,
+            licence,
+            spatial_resolution,
+            published_at,
+            source_snapshot_id,
         })
     }
 
-    pub fn schema_version(&self) -> u32 { self.schema_version }
-    pub fn asset_id(&self) -> &AssetId { &self.asset_id }
-    pub fn title(&self) -> &str { &self.title }
-    pub fn kind(&self) -> AssetKind { self.kind }
-    pub fn source(&self) -> &AssetSource { &self.source }
-    pub fn media_type(&self) -> Option<&str> { self.media_type.as_deref() }
-    pub fn source_crs(&self) -> Option<&str> { self.source_crs.as_deref() }
-    pub fn footprint(&self) -> Option<&GeoFootprint> { self.footprint.as_ref() }
-    pub fn observation_time(&self) -> &ObservationTime { &self.observation_time }
-    pub fn licence(&self) -> &LicenceMetadata { &self.licence }
-    pub fn spatial_resolution(&self) -> Option<&SpatialResolution> { self.spatial_resolution.as_ref() }
-    pub fn published_at(&self) -> Option<&str> { self.published_at.as_deref() }
-    pub fn source_snapshot_id(&self) -> Option<&str> { self.source_snapshot_id.as_deref() }
+    pub fn schema_version(&self) -> u32 {
+        self.schema_version
+    }
+    pub fn asset_id(&self) -> &AssetId {
+        &self.asset_id
+    }
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+    pub fn kind(&self) -> AssetKind {
+        self.kind
+    }
+    pub fn source(&self) -> &AssetSource {
+        &self.source
+    }
+    pub fn media_type(&self) -> Option<&str> {
+        self.media_type.as_deref()
+    }
+    pub fn source_crs(&self) -> Option<&str> {
+        self.source_crs.as_deref()
+    }
+    pub fn footprint(&self) -> Option<&GeoFootprint> {
+        self.footprint.as_ref()
+    }
+    pub fn observation_time(&self) -> &ObservationTime {
+        &self.observation_time
+    }
+    pub fn licence(&self) -> &LicenceMetadata {
+        &self.licence
+    }
+    pub fn spatial_resolution(&self) -> Option<&SpatialResolution> {
+        self.spatial_resolution.as_ref()
+    }
+    pub fn published_at(&self) -> Option<&str> {
+        self.published_at.as_deref()
+    }
+    pub fn source_snapshot_id(&self) -> Option<&str> {
+        self.source_snapshot_id.as_deref()
+    }
 }
 
 impl<'de> Deserialize<'de> for AssetRecord {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let wire = AssetRecordWire::deserialize(deserializer)?;
         if wire.schema_version != ASSET_SCHEMA_VERSION {
@@ -490,46 +609,79 @@ impl<'de> Deserialize<'de> for AssetRecord {
             )));
         }
         Self::new(
-            wire.asset_id, wire.title, wire.kind, wire.source, wire.media_type, wire.source_crs,
-            wire.footprint, wire.observation_time, wire.licence, wire.spatial_resolution,
-            wire.published_at, wire.source_snapshot_id,
-        ).map_err(serde::de::Error::custom)
+            wire.asset_id,
+            wire.title,
+            wire.kind,
+            wire.source,
+            wire.media_type,
+            wire.source_crs,
+            wire.footprint,
+            wire.observation_time,
+            wire.licence,
+            wire.spatial_resolution,
+            wire.published_at,
+            wire.source_snapshot_id,
+        )
+        .map_err(serde::de::Error::custom)
     }
 }
 
 /// Deterministically normalized catalogue. Duplicate semantic asset IDs fail closed.
 #[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct AssetCatalogV1 { schema_version: u32, assets: Vec<AssetRecord> }
+pub struct AssetCatalogV1 {
+    schema_version: u32,
+    assets: Vec<AssetRecord>,
+}
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct AssetCatalogWire { schema_version: u32, assets: Vec<AssetRecord> }
+struct AssetCatalogWire {
+    schema_version: u32,
+    assets: Vec<AssetRecord>,
+}
 
 impl AssetCatalogV1 {
     pub fn new(mut assets: Vec<AssetRecord>) -> Result<Self, String> {
         let mut seen = BTreeSet::new();
         for asset in &assets {
             if !seen.insert(asset.asset_id().clone()) {
-                return Err(format!("duplicate asset ID '{}'", asset.asset_id().as_str()));
+                return Err(format!(
+                    "duplicate asset ID '{}'",
+                    asset.asset_id().as_str()
+                ));
             }
         }
         assets.sort_by(|a, b| a.asset_id().cmp(b.asset_id()));
-        Ok(Self { schema_version: ASSET_SCHEMA_VERSION, assets })
+        Ok(Self {
+            schema_version: ASSET_SCHEMA_VERSION,
+            assets,
+        })
     }
 
-    pub fn schema_version(&self) -> u32 { self.schema_version }
-    pub fn assets(&self) -> &[AssetRecord] { &self.assets }
-    pub fn len(&self) -> usize { self.assets.len() }
-    pub fn is_empty(&self) -> bool { self.assets.is_empty() }
+    pub fn schema_version(&self) -> u32 {
+        self.schema_version
+    }
+    pub fn assets(&self) -> &[AssetRecord] {
+        &self.assets
+    }
+    pub fn len(&self) -> usize {
+        self.assets.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.assets.is_empty()
+    }
     pub fn get(&self, id: &AssetId) -> Option<&AssetRecord> {
-        self.assets.binary_search_by(|record| record.asset_id().cmp(id))
-            .ok().map(|index| &self.assets[index])
+        self.assets
+            .binary_search_by(|record| record.asset_id().cmp(id))
+            .ok()
+            .map(|index| &self.assets[index])
     }
 }
 
 impl<'de> Deserialize<'de> for AssetCatalogV1 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let wire = AssetCatalogWire::deserialize(deserializer)?;
         if wire.schema_version != ASSET_SCHEMA_VERSION {
@@ -559,17 +711,20 @@ mod tests {
                 ObservationTimeKind::Interval,
                 Some("2025-01-01".into()),
                 Some("2025-01-31".into()),
-            ).unwrap(),
+            )
+            .unwrap(),
             LicenceMetadata::new(
                 Some("CC-BY-4.0".into()),
                 Some("https://creativecommons.org/licenses/by/4.0/".into()),
                 Some("Fixture Provider".into()),
                 LicenceReview::ReusableForDeclaredUse,
-            ).unwrap(),
+            )
+            .unwrap(),
             Some(SpatialResolution::new(10.0, ResolutionUnit::Meter).unwrap()),
             Some("2025-02-01".into()),
             Some(format!("snapshot-{id}")),
-        ).unwrap()
+        )
+        .unwrap()
     }
 
     #[test]
@@ -579,7 +734,9 @@ mod tests {
         assert!(serde_json::from_str::<AssetId>("").is_err());
         assert!(serde_json::from_str::<AssetId>("\"bad/id\"").is_err());
         assert_eq!(
-            serde_json::from_str::<AssetId>("\"imagery:coast-1\"").unwrap().as_str(),
+            serde_json::from_str::<AssetId>("\"imagery:coast-1\"")
+                .unwrap()
+                .as_str(),
             "imagery:coast-1"
         );
     }
@@ -593,25 +750,35 @@ mod tests {
         assert!(GeoFootprint::new(10.0, 5.0, 10.0, 8.0).is_err());
         assert!(GeoFootprint::new(180.0, -10.0, -180.0, 10.0).is_err());
         assert!(GeoFootprint::new(0.0, 90.0, 20.0, 91.0).is_err());
-        assert!(serde_json::from_str::<GeoFootprint>(
-            r#"{"west":0,"south":91,"east":1,"north":92}"#
-        ).is_err());
+        assert!(
+            serde_json::from_str::<GeoFootprint>(r#"{"west":0,"south":91,"east":1,"north":92}"#)
+                .is_err()
+        );
     }
 
     #[test]
     fn observation_time_preserves_unknown_and_range_semantics() {
-        assert_eq!(ObservationTime::unknown().kind(), ObservationTimeKind::Unknown);
-        assert!(ObservationTime::new(
-            ObservationTimeKind::Unknown, Some("2025".into()), None
-        ).is_err());
+        assert_eq!(
+            ObservationTime::unknown().kind(),
+            ObservationTimeKind::Unknown
+        );
+        assert!(
+            ObservationTime::new(ObservationTimeKind::Unknown, Some("2025".into()), None).is_err()
+        );
         let point_interval = ObservationTime::new(
-            ObservationTimeKind::Interval, Some("2025".into()), Some("2025".into())
-        ).unwrap();
+            ObservationTimeKind::Interval,
+            Some("2025".into()),
+            Some("2025".into()),
+        )
+        .unwrap();
         assert_eq!(point_interval.start(), Some("2025"));
         assert_eq!(point_interval.end(), Some("2025"));
         let time = ObservationTime::new(
-            ObservationTimeKind::Approximate, Some("circa 2020".into()), None
-        ).unwrap();
+            ObservationTimeKind::Approximate,
+            Some("circa 2020".into()),
+            None,
+        )
+        .unwrap();
         assert_eq!(time.start(), Some("circa 2020"));
     }
 
@@ -621,7 +788,10 @@ mod tests {
         assert_eq!(catalog.assets()[0].asset_id().as_str(), "a");
         assert_eq!(catalog.assets()[1].asset_id().as_str(), "z");
         assert!(AssetCatalogV1::new(vec![fixture_asset("same"), fixture_asset("same")]).is_err());
-        assert_eq!(catalog.get(&AssetId::new("z").unwrap()).unwrap().title(), "Fixture z");
+        assert_eq!(
+            catalog.get(&AssetId::new("z").unwrap()).unwrap().title(),
+            "Fixture z"
+        );
     }
 
     #[test]
@@ -677,8 +847,8 @@ mod tests {
         assert!(licence.identifier().is_none());
         assert!(SpatialResolution::new(f64::NAN, ResolutionUnit::Meter).is_err());
         assert!(SpatialResolution::new(0.0, ResolutionUnit::Meter).is_err());
-        assert!(serde_json::from_str::<SpatialResolution>(
-            r#"{"value":-1.0,"unit":"meter"}"#
-        ).is_err());
+        assert!(
+            serde_json::from_str::<SpatialResolution>(r#"{"value":-1.0,"unit":"meter"}"#).is_err()
+        );
     }
 }
