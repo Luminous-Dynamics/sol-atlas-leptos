@@ -31,6 +31,7 @@ pub mod service_function;
 pub mod service_network;
 pub mod service_network_intervention;
 pub mod service_network_portfolio;
+pub mod service_network_stress;
 pub mod service_recovery;
 pub mod timeline;
 pub mod types;
