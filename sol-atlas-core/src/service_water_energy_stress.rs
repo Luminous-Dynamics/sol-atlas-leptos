@@ -26,6 +26,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 pub const WATER_ENERGY_STRESS_SCHEMA_VERSION: &str = "0.1.0";
 pub const MAX_DECLARED_WATER_ENERGY_FAILURE_SCENARIOS: usize = 10_000;
+pub const MAX_WATER_ENERGY_FAILURE_OVERRIDES: usize = 100_000;
 // Hard bound on (baseline + every declared failure case) * service-step count.
 pub const MAX_WATER_ENERGY_SERVICE_STEP_ASSESSMENTS: usize = 1_000_000;
 
@@ -117,6 +118,7 @@ pub enum WaterEnergyStressValidationError {
     EmptyProtectedFloorSet,
     InvalidScenarioBudget,
     ScenarioBudgetExceeded,
+    FailureOverrideBudgetExceeded,
     InvalidStepAssessmentBudget,
     StepAssessmentBudgetExceeded,
     ServiceRequestIdEmpty,
@@ -145,6 +147,7 @@ pub enum WaterEnergyStressValidationError {
     NegativeForcedValue,
     NonFiniteForcedUncertainty,
     NegativeForcedUncertainty,
+    NonFiniteForcedInterval,
     InvalidDistributionLossInterval,
     NonPositiveSpecificEnergyLowerBound,
     OverrideNotAdverse,
@@ -243,6 +246,8 @@ pub struct WaterEnergyStressSweepAssessment {
     pub declared_failure_scenario_count: usize,
     pub candidate_failure_scenario_count: usize,
     pub evaluated_failure_scenario_count: usize,
+    pub declared_failure_override_count: usize,
+    pub evaluated_failure_override_count: usize,
     /// True means every caller-declared case was evaluated; it does not mean all
     /// physically possible outages were enumerated.
     pub exhaustive_over_declared_scenarios: bool,
@@ -595,7 +600,11 @@ fn validate_sweep_request(
     }
 
     let mut scenario_ids = BTreeSet::new();
+    let mut total_declared_overrides = 0_usize;
     for scenario in &request.failure_scenarios {
+        total_declared_overrides = total_declared_overrides
+            .checked_add(scenario.overrides.len())
+            .unwrap_or(usize::MAX);
         if scenario.id.trim().is_empty() {
             errors.push(WaterEnergyStressValidationError::FailureScenarioIdEmpty);
         }
@@ -667,6 +676,10 @@ fn validate_sweep_request(
                 override_value.forced_value,
                 override_value.forced_uncertainty_abs,
             );
+            if !new_upper.is_finite() {
+                errors.push(WaterEnergyStressValidationError::NonFiniteForcedInterval);
+                continue;
+            }
             if override_value.target == WaterEnergyFailureTarget::DistributionLossFraction
                 && new_upper >= 1.0
             {
@@ -706,6 +719,10 @@ fn validate_sweep_request(
                 errors.push(WaterEnergyStressValidationError::OverrideNotAdverse);
             }
         }
+    }
+
+    if total_declared_overrides > MAX_WATER_ENERGY_FAILURE_OVERRIDES {
+        errors.push(WaterEnergyStressValidationError::FailureOverrideBudgetExceeded);
     }
 
     let total_step_assessments = step_assessment_count
@@ -1074,6 +1091,15 @@ pub fn assess_water_energy_stress_sweep(
         declared_failure_scenario_count: request.failure_scenarios.len(),
         candidate_failure_scenario_count: request.failure_scenarios.len(),
         evaluated_failure_scenario_count: cases.len(),
+        declared_failure_override_count: request
+            .failure_scenarios
+            .iter()
+            .map(|scenario| scenario.overrides.len())
+            .sum(),
+        evaluated_failure_override_count: cases
+            .iter()
+            .map(|case| case.overrides_applied.len())
+            .sum(),
         exhaustive_over_declared_scenarios: cases.len() == request.failure_scenarios.len(),
         total_service_step_assessments,
         baseline,
