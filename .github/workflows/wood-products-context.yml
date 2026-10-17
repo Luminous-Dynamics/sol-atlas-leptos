@@ -1,0 +1,47 @@
+name: Wood Products Spatial Context
+
+on:
+  push:
+    branches: ["feat/wood-products-context-v0-1"]
+    paths:
+      - "sol-atlas-core/src/forest_products.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - ".github/workflows/wood-products-context.yml"
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "sol-atlas-core/src/forest_products.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - ".github/workflows/wood-products-context.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wood-products-context-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+
+      - name: Test Sol Atlas core contract
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+
+      - name: Verify exact source revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
