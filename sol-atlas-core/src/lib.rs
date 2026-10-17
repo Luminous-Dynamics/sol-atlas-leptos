@@ -10,6 +10,7 @@
 
 pub mod aesthetics;
 pub mod capability;
+pub mod capability_projection;
 pub mod confluence;
 pub mod constants;
 pub mod data;
